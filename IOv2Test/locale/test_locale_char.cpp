@@ -1,0 +1,272 @@
+#include <locale/locale.h>
+
+#include <common/dump_info.h>
+#include <common/exe_path.h>
+#include <common/verify.h>
+
+void test_locale_char_1()
+{
+    dump_info("Test locale<char> case 1...");
+    
+    auto loc = IOv2::locale<char>("C.UTF-8");
+
+    {
+        if (!loc.has<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::has error");
+        auto obj = loc.get<IOv2::ctype_conf<char>>();
+        if (!obj) throw std::runtime_error("locale::get error");
+    }
+    
+    {
+        if (loc.has<IOv2::ctype_conf<wchar_t>>()) throw std::runtime_error("locale::has error");
+        auto obj = loc.get<IOv2::ctype_conf<wchar_t>>();
+        if (obj) throw std::runtime_error("locale::get error");
+    }
+    
+    auto loc_r = loc.remove<IOv2::ctype_conf<char>>();
+    {
+        if (loc_r.has<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::has error");
+        auto obj = loc_r.get<IOv2::ctype_conf<char>>();
+        if (obj) throw std::runtime_error("locale::get error");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_locale_char_2()
+{
+    dump_info("Test locale<char> case 2...");
+    
+    auto loc = IOv2::locale<char>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
+    
+    if (!loc.has<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::has error");
+
+    dump_info("Done\n");
+}
+
+void test_locale_char_3()
+{
+    dump_info("Test locale<char> case 3...");
+    
+    auto loc1 = IOv2::locale<char>("zh_CN.UTF-8");
+    {
+        if (!loc1.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        auto p1 = loc1.get<IOv2::ctype<char>>();
+        if (!p1) throw std::runtime_error("locale::get error");
+
+        auto p2 = loc1.get<IOv2::ctype<char>>();
+        if (p1 != p2) throw std::runtime_error("locale::get error");
+    }
+    
+    auto loc2 = loc1.remove<IOv2::ctype_conf<char>>();
+    {
+        if (loc2.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        auto p1 = loc2.get<IOv2::ctype<char>>();
+        if (p1) throw std::runtime_error("locale::get error");
+    }
+    
+    auto loc3 = loc2.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
+    {
+        if (!loc3.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        auto p1 = loc3.get<IOv2::ctype<char>>();
+        if (!p1) throw std::runtime_error("locale::get error");
+    }
+    
+    dump_info("Done\n");
+}
+
+namespace
+{
+    struct test_ext1
+    {
+        using create_rules = IOv2::facet_create_rule<IOv2::collate<char>, IOv2::ctype<char>>;
+        test_ext1(std::shared_ptr<IOv2::collate<char>> p_obj)
+            : m_p1(std::move(p_obj))
+        {}
+        
+        test_ext1(std::shared_ptr<IOv2::ctype<char>> p_obj)
+            : m_p2(std::move(p_obj))
+        {}
+        
+        std::shared_ptr<IOv2::collate<char>> m_p1;
+        std::shared_ptr<IOv2::ctype<char>> m_p2;
+    };
+    
+    struct test_ext2
+    {
+        using create_rules = IOv2::facet_create_rule<IOv2::facet_create_pack<IOv2::ctype_conf<char>, IOv2::collate_conf<char>>>;
+     
+        test_ext2(std::shared_ptr<IOv2::ctype_conf<char>> p_obj1,
+                  std::shared_ptr<IOv2::collate_conf<char>> p_obj2)
+            : m_obj1(std::move(p_obj1))
+            , m_obj2(std::move(p_obj2))
+        {}
+        
+        std::shared_ptr<IOv2::ctype_conf<char>> m_obj1;
+        std::shared_ptr<IOv2::collate_conf<char>> m_obj2;
+    };
+    
+    struct test_ext3
+    {
+        using create_rules = IOv2::facet_create_rule<IOv2::timeio_conf<char>,
+                                                      IOv2::facet_create_pack<test_ext2, IOv2::numeric<char>>>;
+     
+        test_ext3(std::shared_ptr<IOv2::timeio_conf<char>> p_obj1)
+            : m_obj1(std::move(p_obj1))
+        {}
+        
+        test_ext3(std::shared_ptr<test_ext2> p_obj2,
+                  std::shared_ptr<IOv2::numeric<char>> p_obj3)
+            : m_obj2(std::move(p_obj2))
+            , m_obj3(std::move(p_obj3))
+        {}
+        
+        std::shared_ptr<IOv2::timeio_conf<char>> m_obj1;
+        std::shared_ptr<test_ext2> m_obj2;
+        std::shared_ptr<IOv2::numeric<char>> m_obj3;
+    };
+    
+    struct test_ext4 : IOv2::timeio_conf<char>
+    {
+        using BT = IOv2::timeio_conf<char>;
+        using BT::BT;
+    };
+}
+
+void test_locale_char_4()
+{
+    dump_info("Test locale<char> case 4...");
+    
+    auto loc1 = IOv2::locale<char>("en_US.UTF-8");
+    {
+        if (!loc1.has<test_ext1>()) throw std::runtime_error("locale::has error");
+        auto p = loc1.get<test_ext1>();
+    
+        if (!p->m_p1) throw std::runtime_error("locale::get error");
+        if (p->m_p2) throw std::runtime_error("locale::get error");
+    }
+    
+    auto loc2 = loc1.remove<IOv2::collate_conf<char>>();
+    {
+        if (!loc2.has<test_ext1>()) throw std::runtime_error("locale::has error");
+        auto p = loc2.get<test_ext1>();
+    
+        if (p->m_p1) throw std::runtime_error("locale::get error");
+        if (!p->m_p2) throw std::runtime_error("locale::get error");
+    }
+    
+    dump_info("Done\n");
+}
+
+void test_locale_char_5()
+{
+    dump_info("Test locale<char> case 5...");
+    
+    auto loc1 = IOv2::locale<char>("en_US.UTF-8");
+    
+    if (!loc1.has<test_ext2>()) throw std::runtime_error("locale::has error");
+    auto ptr2 = loc1.get<test_ext2>();
+    if (!ptr2) throw std::runtime_error("locale::get error");
+    
+    if (ptr2->m_obj1 != loc1.get<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::get error");
+    if (ptr2->m_obj2 != loc1.get<IOv2::collate_conf<char>>()) throw std::runtime_error("locale::get error");
+    
+    dump_info("Done\n");
+}
+
+void test_locale_char_6()
+{
+    dump_info("Test locale<char> case 6...");
+    
+    auto loc1 = IOv2::locale<char>("en_US.UTF-8");
+    {
+        if (!loc1.has<test_ext3>()) throw std::runtime_error("locale::has error");
+        auto ptr = loc1.get<test_ext3>();
+        if (!ptr) throw std::runtime_error("locale::get error");
+        
+        if (!ptr->m_obj1) throw std::runtime_error("locale::get error");
+        if (ptr->m_obj1 != loc1.get<IOv2::timeio_conf<char>>()) throw std::runtime_error("locale::get error");
+        if (ptr->m_obj2) throw std::runtime_error("locale::get error");
+        if (ptr->m_obj3) throw std::runtime_error("locale::get error");
+    }
+    
+    auto loc2 = loc1.remove<IOv2::timeio_conf<char>>();
+    {
+        if (!loc2.has<test_ext3>()) throw std::runtime_error("locale::has error");
+        auto ptr = loc2.get<test_ext3>();
+        if (!ptr) throw std::runtime_error("locale::get error");
+        
+        if (ptr->m_obj1) throw std::runtime_error("locale::get error");
+        if (!ptr->m_obj2) throw std::runtime_error("locale::get error");
+        if (!ptr->m_obj3) throw std::runtime_error("locale::get error");
+    }
+    
+    dump_info("Done\n");
+}
+
+void test_locale_char_7()
+{
+    dump_info("Test locale<char> case 7...");
+    
+    {
+        auto loc1 = IOv2::locale<char>("en_US.UTF-8");
+        auto loc2 = loc1.remove<IOv2::timeio_conf<char>>();
+        
+        if (loc2.has<IOv2::timeio<char>>()) throw std::runtime_error("locale::has error");
+        auto ptr = loc2.get<IOv2::timeio<char>>();
+        if (ptr) throw std::runtime_error("locale::get error");
+        
+        if (!loc2.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        auto ptr2 = loc2.get<IOv2::ctype<char>>();
+        if (!ptr2) throw std::runtime_error("locale::get error");
+    }
+
+    {
+        auto loc1 = IOv2::locale<char>("en_US.UTF-8");
+        if (loc1.has<test_ext4>()) throw std::runtime_error("locale::has error");
+        auto ptr = loc1.get<test_ext4>();
+        if (ptr) throw std::runtime_error("locale::get error");
+    }
+    dump_info("Done\n");
+}
+
+void test_locale_char_8()
+{
+    dump_info("Test locale<char> case 8...");
+
+    std::filesystem::path mo_path = exe_path();
+    mo_path = mo_path.remove_filename() / ".." / "IOv2Test" / "IOv2TestResources";
+    mo_path = std::filesystem::canonical(mo_path);
+    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
+
+    auto loc = IOv2::locale<char>("en_US.UTF-8").involve_msg("messages", "zh_CN", "zh_CN.UTF-8");
+    auto msg = loc.get<IOv2::messages<char>>();
+
+    std::string ref1 = "\xe8\xaf\xb7";               //请
+    std::string ref2 = "\xe8\xb0\xa2\xe8\xb0\xa2";   //谢谢
+    VERIFY(msg->translate("please") == ref1);
+    VERIFY(msg->translate("thank you") == ref2);
+    VERIFY(msg->translate("") == "");
+    VERIFY(msg->head_entry() != "");
+
+    dump_info("Done\n");
+}
+
+void test_locale_char_9()
+{
+    dump_info("Test locale<char> case 9...");
+
+    std::filesystem::path mo_path = exe_path();
+    mo_path = mo_path.remove_filename() / ".." / "IOv2Test";
+    mo_path = std::filesystem::canonical(mo_path);
+    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
+
+    auto loc = IOv2::locale<char>("en_US.UTF-8").involve_msg("messages", "zh_CN", "zh_CN.UTF-8");
+    auto msg = loc.get<IOv2::messages<char>>();
+
+    VERIFY(msg->translate("please") == "please");
+    VERIFY(msg->translate("thank you") == "thank you");
+    VERIFY(msg->translate("") == "");
+    VERIFY(msg->head_entry() == "");
+
+    dump_info("Done\n");
+}
