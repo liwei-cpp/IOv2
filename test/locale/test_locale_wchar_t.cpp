@@ -290,7 +290,7 @@ void test_locale_wchar_t_9()
     dump_info("Test locale<wchar_t> case 9...");
 
     std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2Test" / "IOv2TestResources";
+    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
     mo_path = std::filesystem::canonical(mo_path);
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
 
@@ -312,7 +312,7 @@ void test_locale_wchar_t_10()
     dump_info("Test locale<wchar_t> case 10...");
 
     std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2Test";
+    mo_path = mo_path.remove_filename() / "..";
     mo_path = std::filesystem::canonical(mo_path);
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
 

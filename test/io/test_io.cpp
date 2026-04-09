@@ -9,7 +9,7 @@ void test_iostream();
 
 void test_io_objects();
 
-void test_io()
+int main()
 {
     test_io_base();
     test_io_state_and_exp();

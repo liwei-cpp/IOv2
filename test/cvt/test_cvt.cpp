@@ -7,7 +7,7 @@ void test_runtime_cvt();
 
 void test_cvt_io();
 
-void test_cvt()
+int main()
 {
     test_root_cvt();
     test_code_cvt();

@@ -41,7 +41,7 @@ void test_locale_char8_t_8();
 void test_locale_char8_t_9();
 void test_locale_char8_t_10();
 
-void test_locale()
+int main()
 {
     test_locale_char_1();
     test_locale_char_2();

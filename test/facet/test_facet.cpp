@@ -5,7 +5,7 @@ void test_monetary();
 void test_timeio();
 void test_messages();
 
-void test_facet()
+int main()
 {
     test_ctype();
     test_collate();
