@@ -20,7 +20,7 @@ void test_messages_char_translate_1()
 {
     dump_info("Test messages<char>::translate case 1...");
     std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2Test" / "IOv2TestResources";
+    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
     mo_path = std::filesystem::canonical(mo_path);
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
 
@@ -54,7 +54,7 @@ void test_messages_char_translate_3()
 {
     dump_info("Test messages<char>::translate case 3...");
     std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2Test" / "IOv2TestResources";
+    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
     mo_path = std::filesystem::canonical(mo_path);
     IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
 

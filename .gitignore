@@ -1,0 +1,5 @@
+# Build artifacts
+test/bin_debug/
+test/bin_release/
+test/obj_debug/
+test/obj_release/

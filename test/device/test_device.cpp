@@ -85,7 +85,7 @@ void test_file_device_char8_t_seek_6();
 void test_file_device_char8_t_seek_7();
 void test_file_device_char8_t_seek_8();
 
-void test_device()
+int main()
 {
     test_mem_device_char_gen_1();
     test_mem_device_char_gen_2();
