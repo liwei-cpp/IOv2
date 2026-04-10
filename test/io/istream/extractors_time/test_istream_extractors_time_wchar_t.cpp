@@ -15,7 +15,7 @@ void test_istream_extractors_time_wchar_t_1()
 
     auto helper = []<template <typename, typename> class T>()
     {
-        std::tm tp;
+        std::tm tp{};
         T f(IOv2::mem_device{L"09/04/24 13:33:18"}, IOv2::locale<wchar_t>("C"));
 
         f >> tp;

@@ -369,7 +369,7 @@ struct time_parse_context
         auto hms = static_cast<std::chrono::hh_mm_ss<std::chrono::seconds>>(*this);
         auto tz = static_cast<const std::chrono::time_zone*>(*this);
 
-        local_time<seconds> lt{ sys_days{ymd} + hms.to_duration() };
+        local_time<seconds> lt{ local_days{ymd} + hms.to_duration() };
         return zoned_time<seconds>{tz, lt};
     }
 
