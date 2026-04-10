@@ -1,13 +1,14 @@
 #pragma once
 #include <atomic>
+#include <exception>
 #include <forward_list>
 #include <functional>
 #include <ios>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
-#include <memory>
 #include <common/defs.h>
 
 namespace IOv2
@@ -300,8 +301,8 @@ protected:
 
                 if (new_data)
                 {
-                    if (it != m_pwords.end()) it->second = move(new_data);
-                    else m_pwords.insert({id, move(new_data)});
+                    if (it != m_pwords.end()) it->second = std::move(new_data);
+                    else m_pwords.insert({id, std::move(new_data)});
                 }
                 else if (it != m_pwords.end())
                 {
