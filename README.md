@@ -30,6 +30,12 @@
 - **操作系统**：Fedora Linux (或其它 Linux 发行版)
 - **标准**：现代 C++ (C++23 及以上)
 
+### 已知编译器问题
+
+| 编译器 | 问题描述 | 状态 |
+|--------|----------|------|
+| GCC 13 | 在 Release 模式下，`-Warray-bounds` 对 `std::copy` 内联展开产生误报警告。当将单个 `wchar_t` 变量的地址传递给 `mem_device::dget()` 时，GCC 错误地认为 `__builtin_memcpy` 可能越界访问。这是 GCC 13 的已知缺陷，代码本身没有问题。 | GCC 15 已修复 |
+
 ---
 
 ## English
@@ -57,4 +63,10 @@ Instead of providing partial patches or wrappers for the existing standard libra
 ### Development Environment
 - **OS**: Fedora Linux (Primary platform)
 - **Standard**: Modern C++ (C++23 or later)
+
+### Known Compiler Issues
+
+| Compiler | Issue | Status |
+|----------|-------|--------|
+| GCC 13 | In Release mode, `-Warray-bounds` produces false positive warnings when `std::copy` is inlined. When passing the address of a single `wchar_t` variable to `mem_device::dget()`, GCC incorrectly reports that `__builtin_memcpy` may access out of bounds. This is a known GCC 13 bug; the code is correct. | Fixed in GCC 15 |
 
