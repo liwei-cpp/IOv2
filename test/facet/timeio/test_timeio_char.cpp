@@ -722,7 +722,6 @@ void test_timeio_char_put_3()
     dump_info("Test timeio<char> put 3...");
 
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("ja_JP.UTF-8"));
-    dump_info(obj.era_time_format());
     auto tp = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
 
     std::string res;
