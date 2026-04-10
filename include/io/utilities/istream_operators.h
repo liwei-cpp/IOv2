@@ -201,17 +201,14 @@ struct istream_operators
     {
         T& obj = static_cast<T&>(*this);
 
-        size_t gcount = 0;
-
         try
         {
             auto ct = obj.m_locale.template get<IOv2::ctype<TChar>>();
             auto c = obj.m_streambuf.sgetc();
-            while (c.has_value() && 
+            while (c.has_value() &&
                     ct->is_any(base_ft<ctype>::space, c.value()))
             {
                 c = obj.m_streambuf.snextc();
-                ++gcount;
             }
 
             if (!c.has_value())

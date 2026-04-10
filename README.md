@@ -30,11 +30,20 @@
 - **操作系统**：Fedora Linux (或其它 Linux 发行版)
 - **标准**：现代 C++ (C++23 及以上)
 
+### 已测试编译器
+
+| 编译器 | 版本 | 标准库 | 状态 |
+|--------|------|--------|------|
+| GCC | 15.2.0 | libstdc++ | ✅ 通过 |
+| Clang | 18.1.8 | libstdc++ (GCC 13) | ✅ 通过 |
+| Clang | 22.1.3 | libstdc++ (GCC 13) | ⚠️ 编译通过，测试待验证 |
+
 ### 已知编译器问题
 
 | 编译器 | 问题描述 | 状态 |
 |--------|----------|------|
 | GCC 13 | 在 Release 模式下，`-Warray-bounds` 对 `std::copy` 内联展开产生误报警告。当将单个 `wchar_t` 变量的地址传递给 `mem_device::dget()` 时，GCC 错误地认为 `__builtin_memcpy` 可能越界访问。这是 GCC 13 的已知缺陷，代码本身没有问题。 | GCC 15 已修复 |
+| Clang + libc++ | libc++ 22.1.3 尚未完整实现 C++20 chrono 时区功能（`std::chrono::time_zone`、`zoned_time`、`get_tzdb` 等）。IOv2 的时间格式化功能依赖这些特性，因此暂不支持 libc++。请使用 libstdc++ 作为标准库。 | 等待 libc++ 支持 |
 
 ---
 
@@ -64,9 +73,18 @@ Instead of providing partial patches or wrappers for the existing standard libra
 - **OS**: Fedora Linux (Primary platform)
 - **Standard**: Modern C++ (C++23 or later)
 
+### Tested Compilers
+
+| Compiler | Version | Standard Library | Status |
+|----------|---------|------------------|--------|
+| GCC | 15.2.0 | libstdc++ | ✅ Passed |
+| Clang | 18.1.8 | libstdc++ (GCC 13) | ✅ Passed |
+| Clang | 22.1.3 | libstdc++ (GCC 13) | ⚠️ Build passed, tests pending |
+
 ### Known Compiler Issues
 
 | Compiler | Issue | Status |
 |----------|-------|--------|
 | GCC 13 | In Release mode, `-Warray-bounds` produces false positive warnings when `std::copy` is inlined. When passing the address of a single `wchar_t` variable to `mem_device::dget()`, GCC incorrectly reports that `__builtin_memcpy` may access out of bounds. This is a known GCC 13 bug; the code is correct. | Fixed in GCC 15 |
+| Clang + libc++ | libc++ 22.1.3 has not fully implemented C++20 chrono time zone features (`std::chrono::time_zone`, `zoned_time`, `get_tzdb`, etc.). IOv2's time formatting functionality depends on these features, so libc++ is not currently supported. Please use libstdc++ as the standard library. | Waiting for libc++ support |
 

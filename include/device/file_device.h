@@ -3,8 +3,9 @@
 
 #include <cassert>
 #include <cstdio>
-#include <filesystem>
 #include <cstdint>
+#include <exception>
+#include <filesystem>
 #include <limits>
 #include <optional>
 #include <string>
