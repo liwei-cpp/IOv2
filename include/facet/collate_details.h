@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <common/clocale_wrapper.h>
+#include <common/defs.h>
 #include <common/metafunctions.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/facet_common.h>
@@ -38,12 +39,13 @@ public:
             auto ch1 = std::find(low1, high1, static_cast<CharT>(0));
             if (ch1 == high1)
             {
-                buf1.resize(high1 - low1 + 1);
+                auto data_len = high1 - low1;
+                buf1.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
                 std::copy(low1, high1, buf1.data());
-                buf1.back() = static_cast<CharT>(0);
+                buf1[data_len] = static_cast<CharT>(0);
                 extra_eos1 = true;
                 cl1 = buf1.data();
-                ch1 = buf1.data() + buf1.size();
+                ch1 = buf1.data() + data_len + 1;
                 low1 = high1;
             }
             else low1 = ch1 + 1;
@@ -52,12 +54,13 @@ public:
             auto ch2 = std::find(low2, high2, static_cast<CharT>(0));
             if (ch2 == high2)
             {
-                buf2.resize(high2 - low2 + 1);
+                auto data_len = high2 - low2;
+                buf2.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
                 std::copy(low2, high2, buf2.data());
-                buf2.back() = static_cast<CharT>(0);
+                buf2[data_len] = static_cast<CharT>(0);
                 extra_eos2 = true;
                 cl2 = buf2.data();
-                ch2 = buf2.data() + buf2.size();
+                ch2 = buf2.data() + data_len + 1;
                 low2 = high2;
             }
             else low2 = ch2 + 1;
@@ -107,9 +110,10 @@ public:
             const CharT* cur = low;
             if (auto next = std::find(low, high, static_cast<CharT>(0)); next == high)
             {
-                buf.resize(high - low + 1);
+                auto data_len = high - low;
+                buf.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
                 std::copy(low, high, buf.data());
-                buf.back() = static_cast<CharT>(0);
+                buf[data_len] = static_cast<CharT>(0);
                 cur = buf.data();
                 low = high;
             }
@@ -154,9 +158,10 @@ public:
             const CharT* cur = low;
             if (auto next = std::find(low, high, static_cast<CharT>(0)); next == high)
             {
-                buf.resize(high - low + 1);
+                auto data_len = high - low;
+                buf.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
                 std::copy(low, high, buf.data());
-                buf.back() = static_cast<CharT>(0);
+                buf[data_len] = static_cast<CharT>(0);
                 cur = buf.data();
                 low = high;
                 extra_eos = true;
