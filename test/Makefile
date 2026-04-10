@@ -84,6 +84,22 @@ test-locale: locale
 test-io: io
 	@echo "Running $(BIN_DIR)/test_io..."; $(BIN_DIR)/test_io
 
+# Convenience targets for building and running individual modules with valgrind
+valgrind-device: device
+	@echo "Running $(BIN_DIR)/test_device with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_device
+
+valgrind-cvt: cvt
+	@echo "Running $(BIN_DIR)/test_cvt with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_cvt
+
+valgrind-facet: facet
+	@echo "Running $(BIN_DIR)/test_facet with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_facet
+
+valgrind-locale: locale
+	@echo "Running $(BIN_DIR)/test_locale with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_locale
+
+valgrind-io: io
+	@echo "Running $(BIN_DIR)/test_io with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_io
+
 # Generic compilation rule
 $(OBJ_DIR)/%.o: ./%.cpp
 	@mkdir -p $(dir $@)
@@ -93,7 +109,9 @@ $(OBJ_DIR)/%.o: ./%.cpp
 test: all
 	@for t in $(TARGETS); do echo "Running $$t..."; $$t || exit 1; done
 
-run: test
+# Run all tests with valgrind
+valgrind: all
+	@for t in $(TARGETS); do echo "Running $$t with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $$t || exit 1; done
 
 # Clean up
 clean:
@@ -104,21 +122,28 @@ help:
 	@echo "Usage: make [TARGET] [MODE=debug|release]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  all          Build all test binaries (default)"
-	@echo "  test, run    Build and run all tests"
-	@echo "  clean        Remove build artifacts for current MODE"
+	@echo "  all              Build all test binaries (default)"
+	@echo "  test             Build and run all tests"
+	@echo "  valgrind         Build and run all tests with valgrind"
+	@echo "  clean            Remove build artifacts for current MODE"
 	@echo ""
-	@echo "  device       Build device tests"
-	@echo "  cvt          Build cvt tests"
-	@echo "  facet        Build facet tests"
-	@echo "  locale       Build locale tests"
-	@echo "  io           Build io tests"
+	@echo "  device           Build device tests"
+	@echo "  cvt              Build cvt tests"
+	@echo "  facet            Build facet tests"
+	@echo "  locale           Build locale tests"
+	@echo "  io               Build io tests"
 	@echo ""
-	@echo "  test-device  Build and run device tests"
-	@echo "  test-cvt     Build and run cvt tests"
-	@echo "  test-facet   Build and run facet tests"
-	@echo "  test-locale  Build and run locale tests"
-	@echo "  test-io      Build and run io tests"
+	@echo "  test-device      Build and run device tests"
+	@echo "  test-cvt         Build and run cvt tests"
+	@echo "  test-facet       Build and run facet tests"
+	@echo "  test-locale      Build and run locale tests"
+	@echo "  test-io          Build and run io tests"
+	@echo ""
+	@echo "  valgrind-device  Build and run device tests with valgrind"
+	@echo "  valgrind-cvt     Build and run cvt tests with valgrind"
+	@echo "  valgrind-facet   Build and run facet tests with valgrind"
+	@echo "  valgrind-locale  Build and run locale tests with valgrind"
+	@echo "  valgrind-io      Build and run io tests with valgrind"
 	@echo ""
 	@echo "Options:"
 	@echo "  MODE=debug   Build with debug flags (default)"
@@ -131,8 +156,11 @@ help:
 	@echo "  make device              Build device tests only"
 	@echo "  make test-device         Build and run device tests"
 	@echo "  make test                Build and run all tests"
+	@echo "  make valgrind            Build and run all tests with valgrind"
+	@echo "  make valgrind-device     Build and run device tests with valgrind"
 
 # Phony targets
-.PHONY: all clean test run help
+.PHONY: all clean test valgrind help
 .PHONY: device cvt facet locale io
 .PHONY: test-device test-cvt test-facet test-locale test-io
+.PHONY: valgrind-device valgrind-cvt valgrind-facet valgrind-locale valgrind-io
