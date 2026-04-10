@@ -1,6 +1,7 @@
 #pragma once
 #include <langinfo.h>
 #include <nl_types.h>
+#include <limits>
 #include <string>
 #include <cvt/cvt_facilities.h>
 #include <facet/ctype_details.h>
@@ -77,7 +78,7 @@ namespace IOv2::FacetHelper
         // grouping (only do the check if the numpunct char is > 0
         // because <= 0 means any size is ok).
         if (static_cast<signed char>(__grouping[__min]) > 0
-            && __grouping[__min] != __gnu_cxx::__numeric_traits<char>::__max)
+            && __grouping[__min] != std::numeric_limits<char>::max())
             __test &= __grouping_tmp[0] <= __grouping[__min];
         return __test;
     }
