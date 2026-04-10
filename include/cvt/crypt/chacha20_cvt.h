@@ -43,22 +43,8 @@ public:
     
     chacha20_cvt(const chacha20_cvt&) = delete;
     chacha20_cvt& operator=(const chacha20_cvt&) = delete;
-    
-    chacha20_cvt(chacha20_cvt&& val)
-        : BT(std::move(val))
-        , m_cipher(std::move(val.m_cipher))
-        , m_key(std::move(val.m_key))
-        , m_bos_done(val.m_bos_done)
-    {}
-    
-    chacha20_cvt& operator= (chacha20_cvt&& val)
-    {
-        BT::operator=(std::move(val));
-        m_cipher = std::move(val.m_cipher);
-        m_key = std::move(val.m_key);
-        m_bos_done = val.m_bos_done;
-        return *this;
-    }
+    chacha20_cvt(chacha20_cvt&& val) = default;
+    chacha20_cvt& operator= (chacha20_cvt&& val) = default;
 
 // mandatory methods
 public:

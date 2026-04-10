@@ -28,7 +28,8 @@ make test
 | 目标 | 说明 |
 |------|------|
 | `all` | 构建所有测试程序（默认） |
-| `test` / `run` | 构建并运行所有测试 |
+| `test` | 构建并运行所有测试 |
+| `valgrind` | 使用 valgrind 构建并运行所有测试 |
 | `clean` | 清理当前模式的构建产物 |
 
 ### 单模块构建
@@ -50,6 +51,16 @@ make test
 | `test-facet` | 构建并运行 facet 测试 |
 | `test-locale` | 构建并运行 locale 测试 |
 | `test-io` | 构建并运行 io 测试 |
+
+### 单模块内存检测 (Valgrind)
+
+| 目标 | 说明 |
+|------|------|
+| `valgrind-device` | 使用 valgrind 构建并运行 device 测试 |
+| `valgrind-cvt` | 使用 valgrind 构建并运行 cvt 测试 |
+| `valgrind-facet` | 使用 valgrind 构建并运行 facet 测试 |
+| `valgrind-locale` | 使用 valgrind 构建并运行 locale 测试 |
+| `valgrind-io` | 使用 valgrind 构建并运行 io 测试 |
 
 ### 构建模式
 
@@ -77,6 +88,12 @@ make test-device
 
 # Release 模式构建并运行 device 测试
 make MODE=release test-device
+
+# 使用 valgrind 运行所有测试
+make valgrind
+
+# 使用 valgrind 运行 device 测试
+make valgrind-device
 
 # 清理 debug 构建产物
 make clean
@@ -114,7 +131,8 @@ make test
 | Target | Description |
 |--------|-------------|
 | `all` | Build all test programs (default) |
-| `test` / `run` | Build and run all tests |
+| `test` | Build and run all tests |
+| `valgrind` | Build and run all tests with valgrind |
 | `clean` | Remove build artifacts for current mode |
 
 ### Single Module Build
@@ -136,6 +154,16 @@ make test
 | `test-facet` | Build and run facet tests |
 | `test-locale` | Build and run locale tests |
 | `test-io` | Build and run io tests |
+
+### Single Module Run with Valgrind
+
+| Target | Description |
+|--------|-------------|
+| `valgrind-device` | Build and run device tests with valgrind |
+| `valgrind-cvt` | Build and run cvt tests with valgrind |
+| `valgrind-facet` | Build and run facet tests with valgrind |
+| `valgrind-locale` | Build and run locale tests with valgrind |
+| `valgrind-io` | Build and run io tests with valgrind |
 
 ### Build Modes
 
@@ -163,6 +191,12 @@ make test-device
 
 # Build and run device tests in release mode
 make MODE=release test-device
+
+# Run all tests with valgrind
+make valgrind
+
+# Run device tests with valgrind
+make valgrind-device
 
 # Clean debug build artifacts
 make clean
