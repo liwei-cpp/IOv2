@@ -43,10 +43,10 @@ public:
 
     istreambuf_iterator operator++(int)
     {
-        istreambuf_iterator __old = *this;
-        __old.m_c = m_streambuf->sbumpc();
+        istreambuf_iterator old = *this;
+        old.m_c = m_streambuf->sbumpc();
         m_c = std::optional<value_type>{};
-        return __old;
+        return old;
     }
 
     void sputbackc(value_type ch)
