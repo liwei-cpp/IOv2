@@ -86,19 +86,19 @@ test-io: io
 
 # Convenience targets for building and running individual modules with valgrind
 valgrind-device: device
-	@echo "Running $(BIN_DIR)/test_device with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_device
+	@echo "Running $(BIN_DIR)/test_device with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_device
 
 valgrind-cvt: cvt
-	@echo "Running $(BIN_DIR)/test_cvt with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_cvt
+	@echo "Running $(BIN_DIR)/test_cvt with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_cvt
 
 valgrind-facet: facet
-	@echo "Running $(BIN_DIR)/test_facet with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_facet
+	@echo "Running $(BIN_DIR)/test_facet with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_facet
 
 valgrind-locale: locale
-	@echo "Running $(BIN_DIR)/test_locale with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_locale
+	@echo "Running $(BIN_DIR)/test_locale with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_locale
 
 valgrind-io: io
-	@echo "Running $(BIN_DIR)/test_io with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_io
+	@echo "Running $(BIN_DIR)/test_io with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_io
 
 # Generic compilation rule
 $(OBJ_DIR)/%.o: ./%.cpp
@@ -107,11 +107,11 @@ $(OBJ_DIR)/%.o: ./%.cpp
 
 # Run all tests
 test: all
-	@for t in $(TARGETS); do echo "Running $$t..."; $$t || exit 1; done
+	@for t in $(TARGETS); do echo "Running $$t..."; $$t || { echo "[!] Test $$t failed!"; exit 1; }; done
 
 # Run all tests with valgrind
 valgrind: all
-	@for t in $(TARGETS); do echo "Running $$t with valgrind..."; valgrind --leak-check=full --max-stackframe=6000000 $$t || exit 1; done
+	@for t in $(TARGETS); do echo "Running $$t with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $$t || { echo "[!] Test $$t failed!"; exit 1; }; done
 
 # Clean up
 clean:
