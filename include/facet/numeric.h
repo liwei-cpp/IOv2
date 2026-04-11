@@ -27,11 +27,11 @@ public:
         m_grouping = p_obj->grouping();
         adjust_grouping();
 
-        char __in_atoms_c[] = "-+xX0123456789abcdefABCDEF";
-        m_ctype->widen_seq(__in_atoms_c, __in_atoms_c + 26, m_in_atoms);
+        char in_atoms_c[] = "-+xX0123456789abcdefABCDEF";
+        m_ctype->widen_seq(in_atoms_c, in_atoms_c + 26, m_in_atoms);
 
-        char __out_atoms_c[] = "-+xX0123456789abcdef0123456789ABCDEF";
-        m_ctype->widen_seq(__out_atoms_c, __out_atoms_c + 36, m_out_atoms);
+        char out_atoms_c[] = "-+xX0123456789abcdef0123456789ABCDEF";
+        m_ctype->widen_seq(out_atoms_c, out_atoms_c + 36, m_out_atoms);
     }
 
 public:
@@ -80,518 +80,518 @@ public:
     
     template <typename TIter, typename TValue>
         requires (std::is_integral_v<TValue> && (!std::is_same_v<TValue, bool>))
-    TIter put(TIter __s, ios_base<char_type>& __io, TValue __v) const { return insert_int(__s, __io, __v); }
-    
+    TIter put(TIter s, ios_base<char_type>& io, TValue v) const { return insert_int(s, io, v); }
+
     template <typename TIter, typename TValue>
         requires (std::is_floating_point_v<TValue>)
-    TIter put(TIter __s, ios_base<char_type>& __io, TValue __v) const
+    TIter put(TIter s, ios_base<char_type>& io, TValue v) const
     {
         if constexpr (std::is_same_v<TValue, long double>)
-            return insert_float(__s, __io, __v, 'L');
+            return insert_float(s, io, v, 'L');
         else
-            return insert_float(__s, __io, __v, char());
+            return insert_float(s, io, v, char());
     }
 
     template <typename TIter>
-    TIter put(TIter __s, ios_base<char_type>& __io, const void* __v) const
+    TIter put(TIter s, ios_base<char_type>& io, const void* v) const
     {
-        const ios_defs::fmtflags __flags = __io.flags();
-        const ios_defs::fmtflags __fmt = ~(ios_defs::basefield | ios_defs::uppercase);
-        __io.flags((__flags & __fmt) | (ios_defs::hex | ios_defs::showbase));
+        const ios_defs::fmtflags flags = io.flags();
+        const ios_defs::fmtflags fmt = ~(ios_defs::basefield | ios_defs::uppercase);
+        io.flags((flags & fmt) | (ios_defs::hex | ios_defs::showbase));
 
         using _UIntPtrType = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
                                                 unsigned long,
                                                 unsigned long long>;
 
-        __s = insert_int(__s, __io, reinterpret_cast<_UIntPtrType>(__v));
-        __io.flags(__flags);
-        return __s;
+        s = insert_int(s, io, reinterpret_cast<_UIntPtrType>(v));
+        io.flags(flags);
+        return s;
     }
     
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    TIter get(TIter __beg, TSent __end, ios_base<char_type>& __io, bool& __v) const
+    TIter get(TIter beg, TSent end, ios_base<char_type>& io, bool& v) const
     {
         bool success = true;
-        
-        if (!(__io.flags() & ios_defs::boolalpha))
+
+        if (!(io.flags() & ios_defs::boolalpha))
         {
             // Parse bool values as long.
-            long __l = -1;
-            std::tie(success, __beg) = extract_int(__beg, __end, __io, __l);
+            long l = -1;
+            std::tie(success, beg) = extract_int(beg, end, io, l);
 
-            if (__l == 0 || __l == 1) __v = bool(__l);
+            if (l == 0 || l == 1) v = bool(l);
             else
             {
                 // _GLIBCXX_RESOLVE_LIB_DEFECTS
                 // 23. Num_get overflow result.
-                __v = true;
+                v = true;
                 success = false;
             }
         }
         else
         {
             // Parse bool values as alphanumeric.
-            bool __testf = true;
-            bool __testt = true;
-            bool __donef = (m_false_name.empty());
-            bool __donet = (m_true_name.empty());
-            size_t __n = 0;
-            while (!__donef || !__donet)
+            bool testf = true;
+            bool testt = true;
+            bool donef = (m_false_name.empty());
+            bool donet = (m_true_name.empty());
+            size_t n = 0;
+            while (!donef || !donet)
             {
-                if (__beg == __end)
+                if (beg == end)
                     break;
 
-                const CharT __c = *__beg;
+                const CharT c = *beg;
 
-                if (!__donef)
-                    __testf = __c == m_false_name[__n];
+                if (!donef)
+                    testf = c == m_false_name[n];
 
-                if (!__testf && __donet) break;
+                if (!testf && donet) break;
 
-                if (!__donet)
-                    __testt = __c == m_true_name[__n];
+                if (!donet)
+                    testt = c == m_true_name[n];
 
-                if (!__testt && __donef) break;
+                if (!testt && donef) break;
 
-                if (!__testt && !__testf) break;
+                if (!testt && !testf) break;
 
-                ++__n;
-                ++__beg;
+                ++n;
+                ++beg;
 
-                __donef = !__testf || __n >= m_false_name.size();
-                __donet = !__testt || __n >= m_true_name.size();
+                donef = !testf || n >= m_false_name.size();
+                donet = !testt || n >= m_true_name.size();
             }
-            if (__testf && __n == m_false_name.size() && __n)
+            if (testf && n == m_false_name.size() && n)
             {
-                __v = false;
-                if (__testt && __n == m_true_name.size())
+                v = false;
+                if (testt && n == m_true_name.size())
                     success = false;
             }
-            else if (__testt && __n == m_true_name.size() && __n)
+            else if (testt && n == m_true_name.size() && n)
             {
-                __v = true;
+                v = true;
             }
             else
             {
                 // _GLIBCXX_RESOLVE_LIB_DEFECTS
                 // 23. Num_get overflow result.
-                __v = false;
+                v = false;
                 success = false;
             }
         }
-        
+
         if (!success) throw stream_error("numeric::get fail: parse boolean fail");
-        return __beg;
+        return beg;
     }
     
     template <typename TIter, std::sentinel_for<TIter> TSent, typename TValue>
         requires (std::is_integral_v<TValue> && (!std::is_same_v<TValue, bool>))
-    TIter get(TIter __beg, TSent __end, ios_base<char_type>& __io, TValue& __v) const
+    TIter get(TIter beg, TSent end, ios_base<char_type>& io, TValue& v) const
     {
-        auto [succ, res] = extract_int(__beg, __end, __io, __v);
+        auto [succ, res] = extract_int(beg, end, io, v);
         if (!succ) throw stream_error("numeric::get fail: parse integral fail");
         return res;
     }
-    
+
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    TIter get(TIter __beg, TSent __end, ios_base<char_type>& __io, void*& __v) const
+    TIter get(TIter beg, TSent end, ios_base<char_type>& io, void*& v) const
     {
         // Prepare for hex formatted input.
-        const auto __fmt = __io.flags();
-        __io.flags((__fmt & ~ios_defs::basefield) | ios_defs::hex);
+        const auto fmt = io.flags();
+        io.flags((fmt & ~ios_defs::basefield) | ios_defs::hex);
 
         using _UIntPtrType = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
                                                 unsigned long,
                                                 unsigned long long>;
-        _UIntPtrType __ul;
-        auto [succ, res] = extract_int(__beg, __end, __io, __ul);
+        _UIntPtrType ul;
+        auto [succ, res] = extract_int(beg, end, io, ul);
 
         // Reset from hex formatted input.
-        __io.flags(__fmt);
+        io.flags(fmt);
 
-        __v = reinterpret_cast<void*>(__ul);
+        v = reinterpret_cast<void*>(ul);
 
         if (!succ) throw stream_error("numeric::get fail: parse address fail");
         return res;
     }
-    
+
     template <typename TIter, std::sentinel_for<TIter> TSent, typename TValue>
         requires (std::is_floating_point_v<TValue>)
-    TIter get(TIter __beg, TSent __end, ios_base<char_type>& __io, TValue& __v) const
+    TIter get(TIter beg, TSent end, ios_base<char_type>& io, TValue& v) const
     {
-        std::string __xtrc;
-        __xtrc.reserve(32);
-        auto [succ, __res] = extract_float(__beg, __end, __io, __xtrc);
-        succ &= convert_to_v(__xtrc.c_str(), __v);
-        
+        std::string xtrc;
+        xtrc.reserve(32);
+        auto [succ, res] = extract_float(beg, end, io, xtrc);
+        succ &= convert_to_v(xtrc.c_str(), v);
+
         if (!succ) throw stream_error("numeric::get fail: parse float fail");
-        return __res;
+        return res;
     }
 
 private:
     template <typename TIter, typename TValue>
-    TIter insert_float(TIter __s, ios_base<char_type>& __io, TValue __v, char __mod) const
+    TIter insert_float(TIter s, ios_base<char_type>& io, TValue v, char mod) const
     {
         // Use default precision if out of range.
-        const std::streamsize __prec = __io.precision() < 0 ? 6 : __io.precision();
-        const int __max_digits = std::numeric_limits<TValue>::digits10;
-        
+        const std::streamsize prec = io.precision() < 0 ? 6 : io.precision();
+        const int max_digits = std::numeric_limits<TValue>::digits10;
+
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
-        int __len;
+        int len;
         // Long enough for the max format spec.
-        char __fbuf[16];
-        _S_format_float(__io.flags(), __fbuf, __mod);
-        
+        char fbuf[16];
+        _S_format_float(io.flags(), fbuf, mod);
+
         // Consider the possibility of long ios_base::fixed outputs
-        const bool __fixed = __io.flags() & ios_defs::fixed;
-        const int __max_exp = std::numeric_limits<TValue>::max_exponent10;
+        const bool fixed = io.flags() & ios_defs::fixed;
+        const int max_exp = std::numeric_limits<TValue>::max_exponent10;
 
         // The size of the output string is computed as follows.
-        // ios_base::fixed outputs may need up to __max_exp + 1 chars
-        // for the integer part + __prec chars for the fractional part
+        // ios_base::fixed outputs may need up to max_exp + 1 chars
+        // for the integer part + prec chars for the fractional part
         // + 3 chars for sign, decimal point, '\0'. On the other hand,
-        // for non-fixed outputs __max_digits * 2 + __prec chars are
+        // for non-fixed outputs max_digits * 2 + prec chars are
         // largely sufficient.
-        const int __cs_size = __fixed ? __max_exp + __prec + 4
-                                      : __max_digits * 2 + __prec;
-        std::vector<char> vec_cs(__cs_size);
-        char* __cs = vec_cs.data();
-        
+        const int cs_size = fixed ? max_exp + prec + 4
+                                  : max_digits * 2 + prec;
+        std::vector<char> vec_cs(cs_size);
+        char* cs = vec_cs.data();
+
         {
             clocale_wrapper inter_locale("C");
             clocale_user guard(inter_locale.c_locale);
-            __len = sprintf(__cs, __fbuf, __prec, __v);
+            len = sprintf(cs, fbuf, prec, v);
         }
-        
+
         // [22.2.2.2.2] Stage 2, convert to char_type, using correct
         // numpunct.decimal_point() values for '.' and adding grouping.
-        std::vector<CharT> vec_ws(__len);
-        CharT* __ws = vec_ws.data();
-        m_ctype->widen_seq(__cs, __cs + __len, __ws);
+        std::vector<CharT> vec_ws(len);
+        CharT* ws = vec_ws.data();
+        m_ctype->widen_seq(cs, cs + len, ws);
 
         // Replace decimal point.
-        const char* __p = std::find(__cs, __cs + __len, '.');
-        CharT* __wp = 0;
-        if (__p != __cs + __len)
+        const char* p = std::find(cs, cs + len, '.');
+        CharT* wp = 0;
+        if (p != cs + len)
         {
-            __wp = __ws + (__p - __cs);
-            *__wp = m_decimal_point;
+            wp = ws + (p - cs);
+            *wp = m_decimal_point;
         }
-        
+
         // Add grouping, if necessary.
         if ((!m_grouping.empty())
-            && (__wp || __len < 3 || (__cs[1] <= '9' && __cs[2] <= '9' && __cs[1] >= '0' && __cs[2] >= '0')))
+            && (wp || len < 3 || (cs[1] <= '9' && cs[2] <= '9' && cs[1] >= '0' && cs[2] >= '0')))
         {
             // Grouping can add (almost) as many separators as the
             // number of digits, but no more.
-            std::vector<CharT> vec_ws2(__len * 2);
-            CharT* __ws2 = vec_ws2.data();
+            std::vector<CharT> vec_ws2(len * 2);
+            CharT* ws2 = vec_ws2.data();
 
-            std::streamsize __off = 0;
-            if (__cs[0] == '-' || __cs[0] == '+')
+            std::streamsize off = 0;
+            if (cs[0] == '-' || cs[0] == '+')
             {
-                __off = 1;
-                __ws2[0] = __ws[0];
-                __len -= 1;
+                off = 1;
+                ws2[0] = ws[0];
+                len -= 1;
             }
 
-            group_float(m_grouping, m_thousands_sep, __wp,
-                        __ws2 + __off, __ws + __off, __len);
-            __len += __off;
+            group_float(m_grouping, m_thousands_sep, wp,
+                        ws2 + off, ws + off, len);
+            len += off;
             std::swap(vec_ws, vec_ws2);
-            __ws = vec_ws.data();
+            ws = vec_ws.data();
         }
-        
+
         // Pad.
-        const std::streamsize __w = __io.width();
-        if (__w > static_cast<std::streamsize>(__len))
+        const std::streamsize w = io.width();
+        if (w > static_cast<std::streamsize>(len))
         {
-            std::vector<CharT> vec_ws3(__w);
-            CharT* __ws3 = vec_ws3.data();
-            bool startSign = (__ws[0] == m_out_atoms[s_ominus]) || (__ws[0] == m_out_atoms[s_oplus]);
-            bool start0x = (__ws[0] == m_out_atoms[s_odigits]) && (__len > 1) && 
-                           ((__ws[1] == m_out_atoms[s_ox]) || (__ws[1] == m_out_atoms[s_oX]));
-            const ios_defs::fmtflags __adjust = __io.flags() & ios_defs::adjustfield;
-            pad(__io.fill(), __w, __adjust, __ws3, __ws, __len, startSign, start0x);
-            
+            std::vector<CharT> vec_ws3(w);
+            CharT* ws3 = vec_ws3.data();
+            bool startSign = (ws[0] == m_out_atoms[s_ominus]) || (ws[0] == m_out_atoms[s_oplus]);
+            bool start0x = (ws[0] == m_out_atoms[s_odigits]) && (len > 1) &&
+                           ((ws[1] == m_out_atoms[s_ox]) || (ws[1] == m_out_atoms[s_oX]));
+            const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
+            pad(io.fill(), w, adjust, ws3, ws, len, startSign, start0x);
+
             std::swap(vec_ws, vec_ws3);
-            __ws = vec_ws.data();
+            ws = vec_ws.data();
         }
-        __io.width(0);
+        io.width(0);
 
         // [22.2.2.2.2] Stage 4.
         // Write resulting, fully-formatted string to output iterator.
-        return std::copy(__ws, __ws + __len, __s);
+        return std::copy(ws, ws + len, s);
     }
     
     template <typename TIter, typename TValue>
-    TIter insert_int(TIter __s, ios_base<char_type>& __io, TValue __v) const
+    TIter insert_int(TIter s, ios_base<char_type>& io, TValue v) const
     {
-        using __unsigned_type = std::make_unsigned_t<TValue>;
-        
-        const ios_defs::fmtflags __flags = __io.flags();
+        using unsigned_type = std::make_unsigned_t<TValue>;
+
+        const ios_defs::fmtflags flags = io.flags();
 
         // Long enough to hold hex, dec, and octal representations.
-        const auto __ilen = 5 * sizeof(TValue);
-        std::vector<char_type> cs_vec(__ilen);
-        char_type* __cs = cs_vec.data();
+        const auto ilen = 5 * sizeof(TValue);
+        std::vector<char_type> cs_vec(ilen);
+        char_type* cs = cs_vec.data();
 
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
         // Result is returned right-justified in the buffer.
-        const ios_defs::fmtflags __basefield = __flags & ios_defs::basefield;
-        const bool __dec = (__basefield != ios_defs::oct && __basefield != ios_defs::hex);
-        const __unsigned_type __u = ((__v > 0 || !__dec) ? __unsigned_type(__v)
-                                                         : -__unsigned_type(__v));
-        auto __len = int_to_char(__cs + __ilen, __u, __flags, __dec);
-        __cs += __ilen - __len;
-        
+        const ios_defs::fmtflags basefield = flags & ios_defs::basefield;
+        const bool dec = (basefield != ios_defs::oct && basefield != ios_defs::hex);
+        const unsigned_type u = ((v > 0 || !dec) ? unsigned_type(v)
+                                                 : -unsigned_type(v));
+        auto len = int_to_char(cs + ilen, u, flags, dec);
+        cs += ilen - len;
+
         // Add grouping, if necessary.
         if (!m_grouping.empty())
         {
             // Grouping can add (almost) as many separators as the number
             // of digits + space is reserved for numeric base or sign.
-            std::vector<char_type> cs_vec2((__ilen + 1) * 2);
-            char_type* __cs2 = cs_vec2.data() + 2;
-            __len = FacetHelper::add_grouping(__cs2, m_thousands_sep, m_grouping, __cs, __cs + __len) - __cs2;
+            std::vector<char_type> cs_vec2((ilen + 1) * 2);
+            char_type* cs2 = cs_vec2.data() + 2;
+            len = FacetHelper::add_grouping(cs2, m_thousands_sep, m_grouping, cs, cs + len) - cs2;
             std::swap(cs_vec, cs_vec2);
-            __cs = cs_vec.data() + 2;
+            cs = cs_vec.data() + 2;
         }
-        
+
         // Complete Stage 1, prepend numeric base or sign.
-        if (__dec)
+        if (dec)
         { // Decimal.
-            if (__v >= 0)
+            if (v >= 0)
             {
-                if (bool(__flags & ios_defs::showpos) && std::is_signed_v<TValue>)
-                    *--__cs = m_out_atoms[s_oplus], ++__len;
+                if (bool(flags & ios_defs::showpos) && std::is_signed_v<TValue>)
+                    *--cs = m_out_atoms[s_oplus], ++len;
             }
             else
-                *--__cs = m_out_atoms[s_ominus], ++__len;
+                *--cs = m_out_atoms[s_ominus], ++len;
         }
-        else if (bool(__flags & ios_defs::showbase) && __v)
+        else if (bool(flags & ios_defs::showbase) && v)
         {
-            if (__basefield == ios_defs::oct)
-                *--__cs = m_out_atoms[s_odigits], ++__len;
+            if (basefield == ios_defs::oct)
+                *--cs = m_out_atoms[s_odigits], ++len;
             else
             {
                 // 'x' or 'X'
-                const bool __uppercase = __flags & ios_defs::uppercase;
-                *--__cs = m_out_atoms[s_ox + __uppercase];
+                const bool uppercase = flags & ios_defs::uppercase;
+                *--cs = m_out_atoms[s_ox + uppercase];
                 // '0'
-                *--__cs = m_out_atoms[s_odigits];
-                    __len += 2;
+                *--cs = m_out_atoms[s_odigits];
+                    len += 2;
             }
         }
-        
+
         // Pad.
-        const std::streamsize __w = __io.width();
-        if (__w > static_cast<std::streamsize>(__len))
+        const std::streamsize w = io.width();
+        if (w > static_cast<std::streamsize>(len))
         {
-            std::vector<char_type> cs_vec3(__w);
-            char_type* __cs3 = cs_vec3.data();
-            bool startSign = (__cs[0] == m_out_atoms[s_ominus]) || (__cs[0] == m_out_atoms[s_oplus]);
-            bool start0x = (__cs[0] == m_out_atoms[s_odigits]) && (__len > 1) && 
-                           ((__cs[1] == m_out_atoms[s_ox]) || (__cs[1] == m_out_atoms[s_oX]));
-            const ios_defs::fmtflags __adjust = __io.flags() & ios_defs::adjustfield;
-            pad(__io.fill(), __w, __adjust, __cs3, __cs, __len, startSign, start0x);
+            std::vector<char_type> cs_vec3(w);
+            char_type* cs3 = cs_vec3.data();
+            bool startSign = (cs[0] == m_out_atoms[s_ominus]) || (cs[0] == m_out_atoms[s_oplus]);
+            bool start0x = (cs[0] == m_out_atoms[s_odigits]) && (len > 1) &&
+                           ((cs[1] == m_out_atoms[s_ox]) || (cs[1] == m_out_atoms[s_oX]));
+            const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
+            pad(io.fill(), w, adjust, cs3, cs, len, startSign, start0x);
             std::swap(cs_vec, cs_vec3);
-            __cs = cs_vec.data();
+            cs = cs_vec.data();
         }
-        __io.width(0);
+        io.width(0);
 
         // [22.2.2.2.2] Stage 4.
         // Write resulting, fully-formatted string to output iterator.
-        return std::copy(__cs, __cs + __len, __s);
+        return std::copy(cs, cs + len, s);
     }
     
     template <typename TValue>
-    int int_to_char(CharT* __bufend, TValue __v, ios_defs::fmtflags __flags, bool __dec) const
+    int int_to_char(CharT* bufend, TValue v, ios_defs::fmtflags flags, bool dec) const
     {
-        auto __buf = __bufend;
-        if (__dec)
+        auto buf = bufend;
+        if (dec)
         {   // Decimal.
             do
             {
-                *--__buf = m_out_atoms[(__v % 10) + s_odigits];
-                __v /= 10;
-            } while (__v != 0);
+                *--buf = m_out_atoms[(v % 10) + s_odigits];
+                v /= 10;
+            } while (v != 0);
         }
-        else if ((__flags & ios_defs::basefield) == ios_defs::oct)
+        else if ((flags & ios_defs::basefield) == ios_defs::oct)
         { // Octal.
             do
             {
-                *--__buf = m_out_atoms[(__v & 0x7) + s_odigits];
-                __v >>= 3;
-            } while (__v != 0);
+                *--buf = m_out_atoms[(v & 0x7) + s_odigits];
+                v >>= 3;
+            } while (v != 0);
         }
         else
         {   // Hex.
-            const bool __uppercase = __flags & ios_defs::uppercase;
-            const int __case_offset = __uppercase ? s_oudigits : s_odigits;
+            const bool uppercase = flags & ios_defs::uppercase;
+            const int case_offset = uppercase ? s_oudigits : s_odigits;
             do
             {
-                *--__buf = m_out_atoms[(__v & 0xf) + __case_offset];
-                __v >>= 4;
-            } while (__v != 0);
+                *--buf = m_out_atoms[(v & 0xf) + case_offset];
+                v >>= 4;
+            } while (v != 0);
         }
-        return __bufend - __buf;
+        return bufend - buf;
     }
 
-    void pad(char_type __fill, std::streamsize __w, ios_defs::fmtflags __adjust,
-             char_type* __new, const char_type* __cs, int& __len,
+    void pad(char_type fill, std::streamsize w, ios_defs::fmtflags adjust,
+             char_type* new_buf, const char_type* cs, int& len,
              bool startSign, bool start0x) const
     {
       // [22.2.2.2.2] Stage 3.
       // If necessary, pad.
-      _S_pad(__adjust, __fill, __new, __cs, __w, __len, startSign, start0x);
-      __len = static_cast<int>(__w);
+      _S_pad(adjust, fill, new_buf, cs, w, len, startSign, start0x);
+      len = static_cast<int>(w);
     }
-    
-    void _S_pad(ios_defs::fmtflags __adjust, char_type __fill,
-                char_type* __news, const char_type* __olds,
-                std::streamsize __newlen, std::streamsize __oldlen,
+
+    void _S_pad(ios_defs::fmtflags adjust, char_type fill,
+                char_type* news, const char_type* olds,
+                std::streamsize newlen, std::streamsize oldlen,
                 bool startSign, bool start0x) const
     {
-        
-        const size_t __plen = static_cast<size_t>(__newlen - __oldlen);
+
+        const size_t plen = static_cast<size_t>(newlen - oldlen);
 
         // Padding last.
-        if (__adjust == ios_defs::left)
+        if (adjust == ios_defs::left)
         {
-            std::copy(__olds, __olds + __oldlen, __news);
-            std::fill_n(__news + __oldlen, __plen, __fill);
+            std::copy(olds, olds + oldlen, news);
+            std::fill_n(news + oldlen, plen, fill);
             return;
         }
 
-        size_t __mod = 0;
-        if (__adjust == ios_defs::internal)
+        size_t mod = 0;
+        if (adjust == ios_defs::internal)
         {
             // Pad after the sign, if there is one.
             // Pad after 0[xX], if there is one.
             // Who came up with these rules, anyway? Jeeze.
             if (startSign)
             {
-                __news[0] = __olds[0];
-                __mod = 1;
-                ++__news;
+                news[0] = olds[0];
+                mod = 1;
+                ++news;
             }
             else if (start0x)
             {
-                __news[0] = __olds[0];
-                __news[1] = __olds[1];
-                __mod = 2;
-                __news += 2;
+                news[0] = olds[0];
+                news[1] = olds[1];
+                mod = 2;
+                news += 2;
             }
             // else Padding first.
         }
-        std::fill_n(__news, __plen, __fill);
-        std::copy(__olds + __mod, __olds + __oldlen, __news + __plen);
+        std::fill_n(news, plen, fill);
+        std::copy(olds + mod, olds + oldlen, news + plen);
     }
     
-    void _S_format_float(ios_defs::fmtflags __flags, char* __fptr, char __mod) const noexcept
+    void _S_format_float(ios_defs::fmtflags flags, char* fptr, char mod) const noexcept
     {
-        *__fptr++ = '%';
+        *fptr++ = '%';
         // [22.2.2.2.2] Table 60
-        if (__flags & ios_defs::showpos)
-            *__fptr++ = '+';
-        if (__flags & ios_defs::showpoint)
-            *__fptr++ = '#';
-            
-        ios_defs::fmtflags __fltfield = __flags & ios_defs::floatfield;
-        if (__fltfield != (ios_defs::fixed | ios_defs::scientific))
+        if (flags & ios_defs::showpos)
+            *fptr++ = '+';
+        if (flags & ios_defs::showpoint)
+            *fptr++ = '#';
+
+        ios_defs::fmtflags fltfield = flags & ios_defs::floatfield;
+        if (fltfield != (ios_defs::fixed | ios_defs::scientific))
         {
-            // As per DR 231: not only when __flags & ios_base::fixed || __prec > 0
-            *__fptr++ = '.';
-            *__fptr++ = '*';
+            // As per DR 231: not only when flags & ios_base::fixed || prec > 0
+            *fptr++ = '.';
+            *fptr++ = '*';
         }
-        
-        if (__mod)
-            *__fptr++ = __mod;
+
+        if (mod)
+            *fptr++ = mod;
         // [22.2.2.2.2] Table 58
-        if (__fltfield == ios_defs::fixed)
-            *__fptr++ = 'f';
-        else if (__fltfield == ios_defs::scientific)
-            *__fptr++ = (__flags & ios_defs::uppercase) ? 'E' : 'e';
-        else if (__fltfield == (ios_defs::fixed | ios_defs::scientific))
-            *__fptr++ = (__flags & ios_defs::uppercase) ? 'A' : 'a';
+        if (fltfield == ios_defs::fixed)
+            *fptr++ = 'f';
+        else if (fltfield == ios_defs::scientific)
+            *fptr++ = (flags & ios_defs::uppercase) ? 'E' : 'e';
+        else if (fltfield == (ios_defs::fixed | ios_defs::scientific))
+            *fptr++ = (flags & ios_defs::uppercase) ? 'A' : 'a';
         else
-            *__fptr++ = (__flags & ios_defs::uppercase) ? 'G' : 'g';
-        *__fptr = '\0';
+            *fptr++ = (flags & ios_defs::uppercase) ? 'G' : 'g';
+        *fptr = '\0';
     }
     
-    void group_float(const std::vector<uint8_t>& __grouping, char_type __sep, const char_type* __p, char_type* __new, char_type* __cs, int& __len) const
+    void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, int& len) const
     {
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
         // 282. What types does numpunct grouping refer to?
         // Add grouping, if necessary.
-        const int __declen = __p ? __p - __cs : __len;
-        char_type* __p2 = FacetHelper::add_grouping(__new, __sep, __grouping, __cs, __cs + __declen);
+        const int declen = p ? p - cs : len;
+        char_type* p2 = FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + declen);
 
         // Tack on decimal part.
-        int __newlen = __p2 - __new;
-        if (__p)
+        int newlen = p2 - new_buf;
+        if (p)
         {
-            std::copy(__p, __p + __len - __declen, __p2);
-            __newlen += __len - __declen;
+            std::copy(p, p + len - declen, p2);
+            newlen += len - declen;
         }
-        __len = __newlen;
+        len = newlen;
     }
     
     template <typename TIter, std::sentinel_for<TIter> TSent, typename TValue>
-    std::pair<bool, TIter> extract_int(TIter __beg, TSent __end, ios_base<char_type>& __io, TValue& __v) const
+    std::pair<bool, TIter> extract_int(TIter beg, TSent end, ios_base<char_type>& io, TValue& v) const
     {
-        using __unsigned_type = std::make_unsigned_t<TValue>;
-        
-        CharT __c{};
+        using unsigned_type = std::make_unsigned_t<TValue>;
 
-        // NB: Iff __basefield == 0, __base can change based on contents.
-        const ios_defs::fmtflags __basefield = __io.flags() & ios_defs::basefield;
-        const bool __oct = __basefield == ios_defs::oct;
-        int __base = __oct ? 8 : (__basefield == ios_defs::hex ? 16 : 10);
+        CharT c{};
 
-        // True if __beg becomes equal to __end.
-        bool __testeof = __beg == __end;
+        // NB: Iff basefield == 0, base can change based on contents.
+        const ios_defs::fmtflags basefield = io.flags() & ios_defs::basefield;
+        const bool oct = basefield == ios_defs::oct;
+        int base = oct ? 8 : (basefield == ios_defs::hex ? 16 : 10);
+
+        // True if beg becomes equal to end.
+        bool testeof = beg == end;
 
         // First check for sign.
-        bool __negative = false;
-        if (!__testeof)
+        bool negative = false;
+        if (!testeof)
         {
-            __c = *__beg;
-            __negative = __c == m_in_atoms[s_ominus];
-            if ((__negative || __c == m_in_atoms[s_oplus])
-                && (m_grouping.empty() || __c != m_thousands_sep)
-                && (__c != m_decimal_point))
+            c = *beg;
+            negative = c == m_in_atoms[s_ominus];
+            if ((negative || c == m_in_atoms[s_oplus])
+                && (m_grouping.empty() || c != m_thousands_sep)
+                && (c != m_decimal_point))
             {
-                if (++__beg != __end)
-                    __c = *__beg;
+                if (++beg != end)
+                    c = *beg;
                 else
-                    __testeof = true;
+                    testeof = true;
             }
         }
 
         // Next, look for leading zeros and check required digits
         // for base formats.
-        bool __found_zero = false;
-        int __sep_pos = 0;
-        while (!__testeof)
+        bool found_zero = false;
+        int sep_pos = 0;
+        while (!testeof)
         {
-            if ((!m_grouping.empty() && __c == m_thousands_sep)
-                || __c == m_decimal_point)
+            if ((!m_grouping.empty() && c == m_thousands_sep)
+                || c == m_decimal_point)
                 break;
-            else if (__c == m_in_atoms[s_odigits] && (!__found_zero || __base == 10))
+            else if (c == m_in_atoms[s_odigits] && (!found_zero || base == 10))
             {
-                __found_zero = true;
-                ++__sep_pos;
-                if (__basefield == 0) __base = 8;
-                if (__base == 8) __sep_pos = 0;
+                found_zero = true;
+                ++sep_pos;
+                if (basefield == 0) base = 8;
+                if (base == 8) sep_pos = 0;
             }
-            else if (__found_zero && (__c == m_in_atoms[s_ox] || __c == m_in_atoms[s_oX]))
+            else if (found_zero && (c == m_in_atoms[s_ox] || c == m_in_atoms[s_oX]))
             {
-                if (__basefield == 0) __base = 16;
-                if (__base == 16)
+                if (basefield == 0) base = 16;
+                if (base == 16)
                 {
-                    __found_zero = false;
-                    __sep_pos = 0;
+                    found_zero = false;
+                    sep_pos = 0;
                 }
                 else
                     break;
@@ -599,235 +599,235 @@ private:
             else
                 break;
 
-            if (++__beg != __end)
+            if (++beg != end)
             {
-                __c = *__beg;
-                if (!__found_zero) break;
+                c = *beg;
+                if (!found_zero) break;
             }
             else
-                __testeof = true;
+                testeof = true;
         }
 
         // At this point, base is determined. If not hex, only allow
         // base digits as valid input.
-        const size_t __len = (__base == 16 ? s_iend - s_izero : __base);
+        const size_t len = (base == 16 ? s_iend - s_izero : base);
 
         // Extract.
-        std::string __found_grouping;
-        if (!m_grouping.empty()) __found_grouping.reserve(32);
-        bool __testfail = false;
-        bool __testoverflow = false;
-        const __unsigned_type __max = (__negative && std::is_signed_v<TValue>)
-                                        ? -static_cast<__unsigned_type>(std::numeric_limits<TValue>::min()) : std::numeric_limits<TValue>::max();
-        const __unsigned_type __smax = __max / __base;
-        __unsigned_type __result = 0;
-        int __digit = 0;
-        const char_type* __lit_zero = m_in_atoms + s_izero;
+        std::string found_grouping;
+        if (!m_grouping.empty()) found_grouping.reserve(32);
+        bool testfail = false;
+        bool testoverflow = false;
+        const unsigned_type max_val = (negative && std::is_signed_v<TValue>)
+                                        ? -static_cast<unsigned_type>(std::numeric_limits<TValue>::min()) : std::numeric_limits<TValue>::max();
+        const unsigned_type smax = max_val / base;
+        unsigned_type result = 0;
+        int digit = 0;
+        const char_type* lit_zero = m_in_atoms + s_izero;
 
-        while (!__testeof)
+        while (!testeof)
         {
             // According to 22.2.2.1.2, p8-9, first look for thousands_sep
             // and decimal_point.
-            if (!m_grouping.empty() && __c == m_thousands_sep)
+            if (!m_grouping.empty() && c == m_thousands_sep)
             {
                 // NB: Thousands separator at the beginning of a string
                 // is a no-no, as is two consecutive thousands separators.
-                if (__sep_pos)
+                if (sep_pos)
                 {
-                    __found_grouping += static_cast<char>(__sep_pos);
-                    __sep_pos = 0;
+                    found_grouping += static_cast<char>(sep_pos);
+                    sep_pos = 0;
                 }
                 else
                 {
-                    __testfail = true;
+                    testfail = true;
                     break;
                 }
             }
-            else if (__c == m_decimal_point) break;
+            else if (c == m_decimal_point) break;
             else
             {
-                const char_type* __q = std::find(__lit_zero, __lit_zero + __len, __c);
-                if (__q == __lit_zero + __len) break;
+                const char_type* q = std::find(lit_zero, lit_zero + len, c);
+                if (q == lit_zero + len) break;
 
-                __digit = __q - __lit_zero;
-                if (__digit > 15) __digit -= 6;
-                if (__result > __smax) __testoverflow = true;
+                digit = q - lit_zero;
+                if (digit > 15) digit -= 6;
+                if (result > smax) testoverflow = true;
                 else
                 {
-                    __result *= __base;
-                    __testoverflow |= __result > __max - __digit;
-                    __result += __digit;
-                    ++__sep_pos;
+                    result *= base;
+                    testoverflow |= result > max_val - digit;
+                    result += digit;
+                    ++sep_pos;
                 }
             }
-            
-            if (++__beg != __end) __c = *__beg;
-            else __testeof = true;
+
+            if (++beg != end) c = *beg;
+            else testeof = true;
         }
 
         bool success = true;
         // Digit grouping is checked. If grouping and found_grouping don't
         // match, then get very very upset, and set failbit.
-        if (!__found_grouping.empty())
+        if (!found_grouping.empty())
         {
             // Add the ending grouping.
-            __found_grouping += static_cast<char>(__sep_pos);
+            found_grouping += static_cast<char>(sep_pos);
 
-            success = FacetHelper::verify_grouping(m_grouping, __found_grouping);
+            success = FacetHelper::verify_grouping(m_grouping, found_grouping);
         }
 
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
         // 23. Num_get overflow result.
-        if ((!__sep_pos && !__found_zero && !__found_grouping.size()) || __testfail)
+        if ((!sep_pos && !found_zero && !found_grouping.size()) || testfail)
         {
-            __v = 0;
+            v = 0;
             success = false;
         }
-        else if (__testoverflow)
+        else if (testoverflow)
         {
-            if (__negative && std::is_signed_v<TValue>)
-                __v = std::numeric_limits<TValue>::min();
+            if (negative && std::is_signed_v<TValue>)
+                v = std::numeric_limits<TValue>::min();
             else
-                __v = std::numeric_limits<TValue>::max();
+                v = std::numeric_limits<TValue>::max();
             success = false;
         }
         else
-            __v = __negative ? -__result : __result;
+            v = negative ? -result : result;
 
-        return std::pair(success, __beg);
+        return std::pair(success, beg);
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    std::pair<bool, TIter> extract_float(TIter __beg, TSent __end, ios_base<char_type>& __io, std::string& __xtrc) const
+    std::pair<bool, TIter> extract_float(TIter beg, TSent end, ios_base<char_type>& io, std::string& xtrc) const
     {
-        char_type __c = char_type();
+        char_type c = char_type();
 
-        // True if __beg becomes equal to __end.
-        bool __testeof = __beg == __end;
+        // True if beg becomes equal to end.
+        bool testeof = beg == end;
 
         // First check for sign.
-        if (!__testeof)
+        if (!testeof)
         {
-            __c = *__beg;
-            const bool __plus = __c == m_in_atoms[s_iplus];
-            if ((__plus || __c == m_in_atoms[s_iminus])
-                && (m_grouping.empty() || __c != m_thousands_sep)
-                && (__c != m_decimal_point))
+            c = *beg;
+            const bool plus = c == m_in_atoms[s_iplus];
+            if ((plus || c == m_in_atoms[s_iminus])
+                && (m_grouping.empty() || c != m_thousands_sep)
+                && (c != m_decimal_point))
             {
-                __xtrc += __plus ? '+' : '-';
-                if (++__beg != __end) __c = *__beg;
+                xtrc += plus ? '+' : '-';
+                if (++beg != end) c = *beg;
                 else
-                    __testeof = true;
+                    testeof = true;
             }
         }
 
         // Next, look for leading zeros.
-        bool __found_mantissa = false;
-        int __sep_pos = 0;
-        while (!__testeof)
+        bool found_mantissa = false;
+        int sep_pos = 0;
+        while (!testeof)
         {
-            if ((!m_grouping.empty() && __c == m_thousands_sep) || __c == m_decimal_point)
+            if ((!m_grouping.empty() && c == m_thousands_sep) || c == m_decimal_point)
                 break;
-            else if (__c == m_in_atoms[s_izero])
+            else if (c == m_in_atoms[s_izero])
             {
-                if (!__found_mantissa)
+                if (!found_mantissa)
                 {
-                    __xtrc += '0';
-                    __found_mantissa = true;
+                    xtrc += '0';
+                    found_mantissa = true;
                 }
-                ++__sep_pos;
+                ++sep_pos;
 
-                if (++__beg != __end)
-                    __c = *__beg;
+                if (++beg != end)
+                    c = *beg;
                 else
-                    __testeof = true;
+                    testeof = true;
             }
             else
                 break;
         }
 
         // Only need acceptable digits for floating point numbers.
-        bool __found_dec = false;
-        bool __found_sci = false;
-        std::string __found_grouping;
+        bool found_dec = false;
+        bool found_sci = false;
+        std::string found_grouping;
         if (!m_grouping.empty())
-            __found_grouping.reserve(32);
-        const char_type* __lit_zero = m_in_atoms + s_izero;
+            found_grouping.reserve(32);
+        const char_type* lit_zero = m_in_atoms + s_izero;
 
-        while (!__testeof)
+        while (!testeof)
         {
             // According to 22.2.2.1.2, p8-9, first look for thousands_sep
             // and decimal_point.
-            if (!m_grouping.empty() && __c == m_thousands_sep)
+            if (!m_grouping.empty() && c == m_thousands_sep)
             {
-                if (!__found_dec && !__found_sci)
+                if (!found_dec && !found_sci)
                 {
                     // NB: Thousands separator at the beginning of a string
                     // is a no-no, as is two consecutive thousands separators.
-                    if (__sep_pos)
+                    if (sep_pos)
                     {
-                        __found_grouping += static_cast<char>(__sep_pos);
-                        __sep_pos = 0;
+                        found_grouping += static_cast<char>(sep_pos);
+                        sep_pos = 0;
                     }
                     else
                     {
-                        // NB: convert_to_v will not assign __v and will
+                        // NB: convert_to_v will not assign v and will
                         // set the failbit.
-                        __xtrc.clear();
+                        xtrc.clear();
                         break;
                     }
                 }
                 else
                     break;
             }
-            else if (__c == m_decimal_point)
+            else if (c == m_decimal_point)
             {
-                if (!__found_dec && !__found_sci)
+                if (!found_dec && !found_sci)
                 {
                     // If no grouping chars are seen, no grouping check
-                    // is applied. Therefore __found_grouping is adjusted
+                    // is applied. Therefore found_grouping is adjusted
                     // only if decimal_point comes after some thousands_sep.
-                    if (__found_grouping.size())
-                        __found_grouping += static_cast<char>(__sep_pos);
-                    __xtrc += '.';
-                    __found_dec = true;
+                    if (found_grouping.size())
+                        found_grouping += static_cast<char>(sep_pos);
+                    xtrc += '.';
+                    found_dec = true;
                 }
                 else
                     break;
             }
             else
             {
-                const char_type* __q = std::find(__lit_zero, __lit_zero + 10, __c);
-                if (__q != __lit_zero + 10)
+                const char_type* q = std::find(lit_zero, lit_zero + 10, c);
+                if (q != lit_zero + 10)
                 {
-                    __xtrc += '0' + (__q - __lit_zero);
-                    __found_mantissa = true;
-                    ++__sep_pos;
+                    xtrc += '0' + (q - lit_zero);
+                    found_mantissa = true;
+                    ++sep_pos;
                 }
-                else if ((__c == m_in_atoms[s_ie] || __c == m_in_atoms[s_iE])
-                        && !__found_sci && __found_mantissa)
+                else if ((c == m_in_atoms[s_ie] || c == m_in_atoms[s_iE])
+                        && !found_sci && found_mantissa)
                 {
                     // Scientific notation.
-                    if (__found_grouping.size() && !__found_dec)
-                        __found_grouping += static_cast<char>(__sep_pos);
-                    __xtrc += 'e';
-                    __found_sci = true;
+                    if (found_grouping.size() && !found_dec)
+                        found_grouping += static_cast<char>(sep_pos);
+                    xtrc += 'e';
+                    found_sci = true;
 
                     // Remove optional plus or minus sign, if they exist.
-                    if (++__beg != __end)
+                    if (++beg != end)
                     {
-                        __c = *__beg;
-                        const bool __plus = __c == m_in_atoms[s_iplus];
-                        if ((__plus || __c == m_in_atoms[s_iminus])
-                            && (m_grouping.empty() || __c != m_thousands_sep)
-                            && (__c != m_decimal_point))
-                            __xtrc += __plus ? '+' : '-';
+                        c = *beg;
+                        const bool plus = c == m_in_atoms[s_iplus];
+                        if ((plus || c == m_in_atoms[s_iminus])
+                            && (m_grouping.empty() || c != m_thousands_sep)
+                            && (c != m_decimal_point))
+                            xtrc += plus ? '+' : '-';
                         else
                             continue;
                     }
                     else
                     {
-                        __testeof = true;
+                        testeof = true;
                         break;
                     }
                 }
@@ -835,58 +835,58 @@ private:
                     break;
             }
 
-            if (++__beg != __end)
-                __c = *__beg;
+            if (++beg != end)
+                c = *beg;
             else
-                __testeof = true;
+                testeof = true;
         }
 
         bool success = true;
         // Digit grouping is checked. If grouping and found_grouping don't
         // match, then get very very upset, and set failbit.
-        if (__found_grouping.size())
+        if (found_grouping.size())
         {
             // Add the ending grouping if a decimal or 'e'/'E' wasn't found.
-            if (!__found_dec && !__found_sci)
-                __found_grouping += static_cast<char>(__sep_pos);
+            if (!found_dec && !found_sci)
+                found_grouping += static_cast<char>(sep_pos);
 
-            success = FacetHelper::verify_grouping(m_grouping, __found_grouping);
+            success = FacetHelper::verify_grouping(m_grouping, found_grouping);
         }
 
-        return std::pair(success, __beg);
+        return std::pair(success, beg);
     }
 
     template <typename TValue>
-    bool convert_to_v(const char* __s, TValue& __v) const noexcept
+    bool convert_to_v(const char* s, TValue& v) const noexcept
     {
         bool res = true;
-        char* __sanity;
-        
+        char* sanity;
+
         clocale_wrapper inter_locale("C");
         clocale_user guard(inter_locale.c_locale);
-        
+
         if constexpr (std::is_same_v<TValue, float>)
-            __v = strtof(__s, &__sanity);
+            v = strtof(s, &sanity);
         else if constexpr (std::is_same_v<TValue, double>)
-            __v = strtod(__s, &__sanity);
+            v = strtod(s, &sanity);
         else
-            __v = strtold(__s, &__sanity);
+            v = strtold(s, &sanity);
 
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
         // 23. Num_get overflow result.
-        if (__sanity == __s || *__sanity != '\0')
+        if (sanity == s || *sanity != '\0')
         {
-            __v = 0.0l;
+            v = 0.0l;
             res = false;
         }
-        else if (__v == std::numeric_limits<TValue>::infinity())
+        else if (v == std::numeric_limits<TValue>::infinity())
         {
-            __v = std::numeric_limits<TValue>::max();
+            v = std::numeric_limits<TValue>::max();
             res = false;
         }
-        else if (__v == -std::numeric_limits<TValue>::infinity())
+        else if (v == -std::numeric_limits<TValue>::infinity())
         {
-            __v = -std::numeric_limits<TValue>::max();
+            v = -std::numeric_limits<TValue>::max();
             res = false;
         }
         return res;

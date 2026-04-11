@@ -26,61 +26,61 @@ namespace IOv2::FacetHelper
     }
     
     template <typename CharT>
-    inline CharT* add_grouping(CharT* __s, CharT __sep, const std::vector<uint8_t>& grouping,
-                               const CharT* __first, const CharT* __last)
+    inline CharT* add_grouping(CharT* s, CharT sep, const std::vector<uint8_t>& grouping,
+                               const CharT* first, const CharT* last)
     {
-        size_t __idx = 0;
-        size_t __ctr = 0;
-        size_t __gsize = grouping.size();
+        size_t idx = 0;
+        size_t ctr = 0;
+        size_t gsize = grouping.size();
 
-        while (__last - __first > grouping[__idx]
-                && (grouping[__idx] > 0))
+        while (last - first > grouping[idx]
+                && (grouping[idx] > 0))
         {
-            __last -= grouping[__idx];
-            __idx < __gsize - 1 ? ++__idx : ++__ctr;
+            last -= grouping[idx];
+            idx < gsize - 1 ? ++idx : ++ctr;
         }
 
-        while (__first != __last)
-            *__s++ = *__first++;
+        while (first != last)
+            *s++ = *first++;
 
-        while (__ctr--)
+        while (ctr--)
         {
-            *__s++ = __sep;
-            for (char __i = grouping[__idx]; __i > 0; --__i)
-                *__s++ = *__first++;
+            *s++ = sep;
+            for (char i = grouping[idx]; i > 0; --i)
+                *s++ = *first++;
         }
 
-        while (__idx--)
+        while (idx--)
         {
-            *__s++ = __sep;
-            for (char __i = grouping[__idx]; __i > 0; --__i)
-                *__s++ = *__first++;
+            *s++ = sep;
+            for (char i = grouping[idx]; i > 0; --i)
+                *s++ = *first++;
         }
-        return __s;
+        return s;
     }
     
-    inline bool verify_grouping(const std::vector<uint8_t>& __grouping, 
-                                const std::string& __grouping_tmp)
+    inline bool verify_grouping(const std::vector<uint8_t>& grouping,
+                                const std::string& grouping_tmp)
     {
-        const size_t __n = __grouping_tmp.size() - 1;
-        const size_t __min = std::min(__n, size_t(__grouping.size() - 1));
-        size_t __i = __n;
-        bool __test = true;
-    
+        const size_t n = grouping_tmp.size() - 1;
+        const size_t min_val = std::min(n, size_t(grouping.size() - 1));
+        size_t i = n;
+        bool test = true;
+
         // Parsed number groupings have to match the
         // numpunct::grouping string exactly, starting at the
         // right-most point of the parsed sequence of elements ...
-        for (size_t __j = 0; __j < __min && __test; --__i, ++__j)
-            __test = __grouping_tmp[__i] == __grouping[__j];
-        for (; __i && __test; --__i)
-            __test = __grouping_tmp[__i] == __grouping[__min];
+        for (size_t j = 0; j < min_val && test; --i, ++j)
+            test = grouping_tmp[i] == grouping[j];
+        for (; i && test; --i)
+            test = grouping_tmp[i] == grouping[min_val];
         // ... but the first parsed grouping can be <= numpunct
         // grouping (only do the check if the numpunct char is > 0
         // because <= 0 means any size is ok).
-        if (static_cast<signed char>(__grouping[__min]) > 0
-            && __grouping[__min] != std::numeric_limits<char>::max())
-            __test &= __grouping_tmp[0] <= __grouping[__min];
-        return __test;
+        if (static_cast<signed char>(grouping[min_val]) > 0
+            && grouping[min_val] != std::numeric_limits<char>::max())
+            test &= grouping_tmp[0] <= grouping[min_val];
+        return test;
     }
 
     template <typename T>
@@ -94,15 +94,15 @@ namespace IOv2::FacetHelper
     }
     
     template <typename CharT>
-    requires std::is_same_v<CharT, wchar_t> || 
-        (std::is_same_v<CharT, char32_t> && 
-            (sizeof(char32_t) == sizeof(wchar_t)) && 
+    requires std::is_same_v<CharT, wchar_t> ||
+        (std::is_same_v<CharT, char32_t> &&
+            (sizeof(char32_t) == sizeof(wchar_t)) &&
             (static_cast<wchar_t>(U'李') == L'李') &&
             (static_cast<char32_t>(L'伟') == U'伟'))
     inline std::basic_string<CharT> nl_langinfo_w(nl_item item)
     {
-        union { char *__s; wchar_t *__w; } __u;
-        __u.__s = nl_langinfo(item);
-        return (CharT*)(__u.__w);
+        union { char *s; wchar_t *w; } u;
+        u.s = nl_langinfo(item);
+        return (CharT*)(u.w);
     }
 }

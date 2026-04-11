@@ -12,7 +12,7 @@ namespace IOv2
 {
 template <typename TIter, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
-TIter __ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::streamsize n)
+TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::streamsize n)
 {
     const std::streamsize w = io.width();
     if (w > n)
@@ -33,7 +33,7 @@ TIter __ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::str
 
 template <typename TIter, std::sentinel_for<TIter> TSent, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
-TIter __istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, std::streamsize num)
+TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, std::streamsize num)
 {
     std::streamsize width = io.width();
     if (0 < width && width < num)
@@ -78,7 +78,7 @@ struct writer<TChar, TChar>
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>&, TChar c)
     {
         if (io.width() != 0)
-            return __ostream_insert(iter, io, &c, 1);
+            return ostream_insert(iter, io, &c, 1);
         *iter++ = c;
         return iter;
     }
@@ -112,7 +112,7 @@ struct writer<TChar, char>
 
         TChar wc = mp->widen(c);
         if (io.width() != 0)
-            return __ostream_insert(iter, io, &wc, 1);
+            return ostream_insert(iter, io, &wc, 1);
         *iter++ = wc;
         return iter;
     }
@@ -131,7 +131,7 @@ struct writer<char, char>
 
         char wc = mp->widen(c);
         if (io.width() != 0)
-            return __ostream_insert(iter, io, &wc, 1);
+            return ostream_insert(iter, io, &wc, 1);
         *iter++ = wc;
         return iter;
     }
@@ -149,7 +149,7 @@ struct writer<TChar, TChar*>
         size_t n = 0;
         for (const TChar* ptr = c; *ptr != 0; ++ptr, ++n);
 
-        return __ostream_insert(iter, io, c, n);
+        return ostream_insert(iter, io, c, n);
     }
 };
 
@@ -174,7 +174,7 @@ struct reader<TChar, TChar*>
         if (c == nullptr) throw IOv2::stream_error("Cannot read NULL character sequence");
         
         std::streamsize n = std::numeric_limits<std::streamsize>::max();
-        return __istream_extract(iter, iter_end, io, loc, c, n);
+        return istream_extract(iter, iter_end, io, loc, c, n);
     }
 };
 
@@ -189,7 +189,7 @@ struct reader<TChar, TChar[N]>
             throw IOv2::stream_error("Character buffer not enough");
         
         std::streamsize n = N;
-        return __istream_extract(iter, iter_end, io, loc, c, n);
+        return istream_extract(iter, iter_end, io, loc, c, n);
     }
 };
 
@@ -214,7 +214,7 @@ struct reader<char, unsigned char[N]>
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
         std::streamsize n = N;
-        return __istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
+        return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }
 };
 
@@ -239,7 +239,7 @@ struct reader<char, signed char[N]>
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
         std::streamsize n = N;
-        return __istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
+        return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }
 };
 
@@ -278,7 +278,7 @@ struct writer<TChar, std::basic_string<TChar, TTraits, TAlloc>>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>&, const std::basic_string<TChar, TTraits, TAlloc>& str)
     {
-        return __ostream_insert(iter, io, str.data(), str.size());
+        return ostream_insert(iter, io, str.data(), str.size());
     }
 };
 
