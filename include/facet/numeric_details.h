@@ -108,13 +108,13 @@ public:
         clocale_wrapper inter_locale(name.c_str());
         clocale_user guard(inter_locale.c_locale);
         
-        union { char* s; CharT w; } __u;
-        
-        __u.s = nl_langinfo(_NL_NUMERIC_DECIMAL_POINT_WC);
-        m_decimal_point = __u.w;
-        
-        __u.s = nl_langinfo(_NL_NUMERIC_THOUSANDS_SEP_WC);
-        m_thousands_sep = __u.w;
+        union { char* s; CharT w; } u;
+
+        u.s = nl_langinfo(_NL_NUMERIC_DECIMAL_POINT_WC);
+        m_decimal_point = u.w;
+
+        u.s = nl_langinfo(_NL_NUMERIC_THOUSANDS_SEP_WC);
+        m_thousands_sep = u.w;
                 
         if (m_thousands_sep != '\0')
         {
