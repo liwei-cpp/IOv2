@@ -171,21 +171,21 @@ struct codecvt_kernel<char8_t, TInt>
         else if (c <= (uint32_t)0x3FFFFFF) [[unlikely]]
         {
             if (to_end - to < 5) return false;
-            *to++ = static_cast<char>((c >> 24) + 0xF8);
-            *to++ = static_cast<char>(((c >> 18) & 0x3F) + 0x80);
-            *to++ = static_cast<char>(((c >> 12) & 0x3F) + 0x80);
-            *to++ = static_cast<char>(((c >> 6) & 0x3F) + 0x80);
-            *to++ = static_cast<char>((c & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>((c >> 24) + 0xF8);
+            *to++ = static_cast<char8_t>(((c >> 18) & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>(((c >> 12) & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
         }
         else if (c <= (uint32_t)0x7FFFFFFF)
         {
             if (to_end - to < 6) return false;
-            *to++ = static_cast<char>((c >> 30) + 0xFC);
-            *to++ = static_cast<char>(((c >> 24) & 0x3F) + 0x80);
-            *to++ = static_cast<char>(((c >> 18) & 0x3F) + 0x80);
-            *to++ = static_cast<char>(((c >> 12) & 0x3F) + 0x80);
-            *to++ = static_cast<char>(((c >> 6) & 0x3F) + 0x80);
-            *to++ = static_cast<char>((c & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>((c >> 30) + 0xFC);
+            *to++ = static_cast<char8_t>(((c >> 24) & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>(((c >> 18) & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>(((c >> 12) & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
         }
         else [[unlikely]]
             return false;
