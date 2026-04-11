@@ -546,7 +546,7 @@ public:
 
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
         requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator_v<TIter>)
-    TIter get(TIter __beg, TSent __end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
+    TIter get(TIter beg, TSent end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
               char format, char modifier = 0) const
     {
         CharT fmt[4]; fmt[0] = static_cast<CharT>('%');
@@ -555,13 +555,13 @@ public:
             fmt[1] = modifier;
             fmt[2] = format;
             fmt[3] = static_cast<CharT>('\0');
-            return get(__beg, __end, ctx, fmt);
+            return get(beg, end, ctx, fmt);
         }
         else
         {
             fmt[1] = format;
             fmt[2] = static_cast<CharT>('\0');
-            return get(__beg, __end, ctx, fmt);
+            return get(beg, end, ctx, fmt);
         }
     }
 
@@ -704,10 +704,10 @@ private:
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 else if ((modifier == static_cast<CharT>('\0')) || (m_era_items.empty()))
                 {
-                    int __mem = 0;
-                    rp = extract_num(rp, rp_end, __mem, 0, 99, 2, succ);
+                    int mem = 0;
+                    rp = extract_num(rp, rp_end, mem, 0, 99, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_century = __mem;
+                    ctx.m_century = mem;
                     ctx.m_have_century = true;
                 }
                 else
@@ -738,13 +738,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 1, 31, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 31, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 1, 31, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 1, 31, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_mday = __mem;
+                    ctx.m_mday = mem;
                     ctx.m_have_mday = true;
                 }
                 break;
@@ -804,13 +804,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 0, 23, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 23, 2, succ);
                     else
-                        rp= extract_num(rp, rp_end, __mem, 0, 23, 2, succ);
+                        rp= extract_num(rp, rp_end, mem, 0, 23, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_hour = __mem;
+                    ctx.m_hour = mem;
                     ctx.m_have_I = false;
                 }
                 break;
@@ -820,13 +820,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 1, 12, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 12, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 1, 12, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 1, 12, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_hour = __mem % 12;
+                    ctx.m_hour = mem % 12;
                     ctx.m_have_I = true;
                 }
                 break;
@@ -837,10 +837,10 @@ private:
                 else if (modifier) goto bad_parse_format;
                 else
                 {
-                    int __mem = 0;
-                    rp = extract_num(rp, rp_end, __mem, 1, 366, 3, succ);
+                    int mem = 0;
+                    rp = extract_num(rp, rp_end, mem, 1, 366, 3, succ);
                     if (!succ) return rp;
-                    ctx.m_yday = __mem - 1;
+                    ctx.m_yday = mem - 1;
                     ctx.m_have_yday = true;
                 }
                 break;
@@ -851,13 +851,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 1, 12, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 12, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 1, 12, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 1, 12, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_month = __mem;
+                    ctx.m_month = mem;
                     ctx.m_have_mon = true;
                 }
                 break;
@@ -867,13 +867,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 0, 59, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 59, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 0, 59, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 0, 59, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_minute = __mem;
+                    ctx.m_minute = mem;
                 }
                 break;
 
@@ -929,13 +929,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 0, 59, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 59, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 0, 59, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 0, 59, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_second = __mem;
+                    ctx.m_second = mem;
                 }
                 break;
 
@@ -957,13 +957,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 1, 7, 1, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 7, 1, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 1, 7, 1, succ);
+                        rp = extract_num(rp, rp_end, mem, 1, 7, 1, succ);
                     if (!succ) return rp;
-                    ctx.m_wday = __mem % 7;
+                    ctx.m_wday = mem % 7;
                     ctx.m_have_wday = true;
                 }
                 break;
@@ -973,13 +973,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 0, 53, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 53, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 0, 53, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 0, 53, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_week_no = __mem;
+                    ctx.m_week_no = mem;
                     ctx.m_have_uweek = true;
                     ctx.m_have_wweek = false;
                 }
@@ -990,13 +990,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 1, 53, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 53, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 1, 53, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 1, 53, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_iso_8601_week = __mem;
+                    ctx.m_iso_8601_week = mem;
                     ctx.m_have_iso_8601_week = true;
                 }
                 break;
@@ -1007,13 +1007,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 0, 6, 1, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 6, 1, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 0, 6, 1, succ);
+                        rp = extract_num(rp, rp_end, mem, 0, 6, 1, succ);
                     if (!succ) return rp;
-                    ctx.m_wday = __mem;
+                    ctx.m_wday = mem;
                     ctx.m_have_wday = 1;
                 }
                 break;
@@ -1023,13 +1023,13 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 0, 53, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 53, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 0, 53, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 0, 53, 2, succ);
                     if (!succ) return rp;
-                    ctx.m_week_no = __mem;
+                    ctx.m_week_no = mem;
                     ctx.m_have_wweek = true;
                     ctx.m_have_uweek = false;
                 }
@@ -1094,15 +1094,15 @@ private:
                 }
                 else
                 {/* Match year within century.  */
-                    int __mem = -1;
+                    int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, __mem, 0, 99, 2, succ);
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 99, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, __mem, 0, 99, 2, succ);
+                        rp = extract_num(rp, rp_end, mem, 0, 99, 2, succ);
                     if (!succ) return rp;
                     /* The "Year 2000: The Millennium Rollover" paper suggests that
                     values in the range 69-99 refer to the twentieth century.  */
-                    ctx.m_year = __mem >= 69 ? __mem + 1900 : __mem + 2000;
+                    ctx.m_year = mem >= 69 ? mem + 1900 : mem + 2000;
                     ctx.m_have_year_in_century = 1;
                 }
                 break;
@@ -1817,36 +1817,36 @@ private:
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    static TIter extract_num(TIter __beg, TSent __end, int& __member, int __min, int __max, size_t __len, bool& succ)
+    static TIter extract_num(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ)
     {
-        size_t __i = 0;
-        int __value = 0;
-        for (; __beg != __end && __i < __len; ++__beg, (void)++__i)
+        size_t i = 0;
+        int value = 0;
+        for (; beg != end && i < len; ++beg, (void)++i)
         {
-            const CharT __c = *__beg;
-            if (__c >= static_cast<CharT>('0') && __c <= static_cast<CharT>('9'))
+            const CharT c = *beg;
+            if (c >= static_cast<CharT>('0') && c <= static_cast<CharT>('9'))
             {
-                __value = __value * 10 + (__c - static_cast<CharT>('0'));
-                if (__value > __max) break;
+                value = value * 10 + (c - static_cast<CharT>('0'));
+                if (value > max_val) break;
             }
             else
                 break;
         }
-        if (__i && __value >= __min && __value <= __max) __member = __value;
+        if (i && value >= min_val && value <= max_val) member = value;
         else succ = false;
-        return __beg;
+        return beg;
     }
     
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    TIter extract_num_with_alt_digits(TIter __beg, TSent __end, int& __member, int __min, int __max, size_t __len, bool& succ) const
+    TIter extract_num_with_alt_digits(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ) const
     {
-        __member = -1;
-        __beg = m_alt_digits_tree.max_match(__beg, __end, __member);
-        if (__member == -1)
-            __beg = extract_num(__beg, __end, __member, __min, __max, __len, succ);
-        else if ((__member < __min) || (__member > __max))
+        member = -1;
+        beg = m_alt_digits_tree.max_match(beg, end, member);
+        if (member == -1)
+            beg = extract_num(beg, end, member, min_val, max_val, len, succ);
+        else if ((member < min_val) || (member > max_val))
             succ = false;
-        return __beg;
+        return beg;
     }
 
 private:

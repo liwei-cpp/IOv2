@@ -469,10 +469,10 @@ public:
             m_abbr_month[11] = nl_langinfo_w<CharT>(_NL_WABMON_12);
 
             {// alternative digits
-                union { char* __s; CharT* __w; } __u;
-                __u.__s = nl_langinfo(_NL_WALT_DIGITS);
-                
-                CharT* ptr = __u.__w;
+                union { char* s; CharT* w; } u;
+                u.s = nl_langinfo(_NL_WALT_DIGITS);
+
+                CharT* ptr = u.w;
                 size_t i = 0;
                 for (; i < 100; ++i)
                 {

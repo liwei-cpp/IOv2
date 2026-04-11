@@ -105,8 +105,8 @@ public:
         , m_inter_locale(name.c_str())
     {
         clocale_user guard(m_inter_locale.c_locale);
-        for (size_t __j = 0; __j < sizeof(m_widen) / sizeof(wint_t); ++__j)
-          m_widen[__j] = btowc(__j);
+        for (size_t j = 0; j < sizeof(m_widen) / sizeof(wint_t); ++j)
+          m_widen[j] = btowc(j);
           
         m_wmask_upper  = wctype_l("upper",  m_inter_locale.c_locale);
         m_wmask_lower  = wctype_l("lower",  m_inter_locale.c_locale);

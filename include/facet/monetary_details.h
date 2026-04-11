@@ -24,165 +24,165 @@ public:
     
 protected:
     inline const static pattern s_default_pattern = {symbol, sign, none, value};
-    static pattern s_construct_pattern(int8_t __precedes, int8_t __space, int8_t __posn)
+    static pattern s_construct_pattern(int8_t precedes, int8_t sp, int8_t posn)
     {
-        pattern __ret;
+        pattern ret;
 
         // This insanely complicated routine attempts to construct a valid
         // pattern for use with monyepunct. A couple of invariants:
-    
-        // if (__precedes) symbol -> value
+
+        // if (precedes) symbol -> value
         // else value -> symbol
-    
-        // if (__space) space
+
+        // if (sp) space
         // else none
-    
+
         // none == never first
         // space never first or last
-        switch (__posn)
+        switch (posn)
         {
         case 0:
         case 1:
             // 1 The sign precedes the value and symbol.
-            __ret[0] = sign;
-            if (__space)
+            ret[0] = sign;
+            if (sp)
             {
                 // Pattern starts with sign.
-                if (__precedes)
+                if (precedes)
                 {
-                    __ret[1] = symbol;
-                    __ret[3] = value;
+                    ret[1] = symbol;
+                    ret[3] = value;
                 }
                 else
                 {
-                    __ret[1] = value;
-                    __ret[3] = symbol;
+                    ret[1] = value;
+                    ret[3] = symbol;
                 }
-                __ret[2] = space;
+                ret[2] = space;
             }
             else
             {
                 // Pattern starts with sign and ends with none.
-                if (__precedes)
+                if (precedes)
                 {
-                    __ret[1] = symbol;
-                    __ret[2] = value;
+                    ret[1] = symbol;
+                    ret[2] = value;
                 }
                 else
                 {
-                    __ret[1] = value;
-                    __ret[2] = symbol;
+                    ret[1] = value;
+                    ret[2] = symbol;
                 }
-                __ret[3] = none;
+                ret[3] = none;
             }
             break;
         case 2:
             // 2 The sign follows the value and symbol.
-            if (__space)
+            if (sp)
             {
                 // Pattern either ends with sign.
-                if (__precedes)
+                if (precedes)
                 {
-                    __ret[0] = symbol;
-                    __ret[2] = value;
+                    ret[0] = symbol;
+                    ret[2] = value;
                 }
                 else
                 {
-                    __ret[0] = value;
-                    __ret[2] = symbol;
+                    ret[0] = value;
+                    ret[2] = symbol;
                 }
-                __ret[1] = space;
-                __ret[3] = sign;
+                ret[1] = space;
+                ret[3] = sign;
             }
             else
             {
                 // Pattern ends with sign then none.
-                if (__precedes)
+                if (precedes)
                 {
-                    __ret[0] = symbol;
-                    __ret[1] = value;
+                    ret[0] = symbol;
+                    ret[1] = value;
                 }
                 else
                 {
-                    __ret[0] = value;
-                    __ret[1] = symbol;
+                    ret[0] = value;
+                    ret[1] = symbol;
                 }
-                __ret[2] = sign;
-                __ret[3] = none;
+                ret[2] = sign;
+                ret[3] = none;
             }
             break;
         case 3:
             // 3 The sign immediately precedes the symbol.
-            if (__precedes)
+            if (precedes)
             {
-                __ret[0] = sign;
-                __ret[1] = symbol;
-                if (__space)
+                ret[0] = sign;
+                ret[1] = symbol;
+                if (sp)
                 {
-                    __ret[2] = space;
-                    __ret[3] = value;
+                    ret[2] = space;
+                    ret[3] = value;
                 }
                 else
                 {
-                    __ret[2] = value;
-                    __ret[3] = none;
+                    ret[2] = value;
+                    ret[3] = none;
                 }
             }
             else
             {
-                __ret[0] = value;
-                if (__space)
+                ret[0] = value;
+                if (sp)
                 {
-                    __ret[1] = space;
-                    __ret[2] = sign;
-                    __ret[3] = symbol;
+                    ret[1] = space;
+                    ret[2] = sign;
+                    ret[3] = symbol;
                 }
                 else
                 {
-                    __ret[1] = sign;
-                    __ret[2] = symbol;
-                    __ret[3] = none;
+                    ret[1] = sign;
+                    ret[2] = symbol;
+                    ret[3] = none;
                 }
             }
             break;
         case 4:
             // 4 The sign immediately follows the symbol.
-            if (__precedes)
+            if (precedes)
             {
-                __ret[0] = symbol;
-                __ret[1] = sign;
-                if (__space)
+                ret[0] = symbol;
+                ret[1] = sign;
+                if (sp)
                 {
-                    __ret[2] = space;
-                    __ret[3] = value;
+                    ret[2] = space;
+                    ret[3] = value;
                 }
                 else
                 {
-                    __ret[2] = value;
-                    __ret[3] = none;
+                    ret[2] = value;
+                    ret[3] = none;
                 }
             }
             else
             {
-                __ret[0] = value;
-                if (__space)
+                ret[0] = value;
+                if (sp)
                 {
-                    __ret[1] = space;
-                    __ret[2] = symbol;
-                    __ret[3] = sign;
+                    ret[1] = space;
+                    ret[2] = symbol;
+                    ret[3] = sign;
                 }
                 else
                 {
-                    __ret[1] = symbol;
-                    __ret[2] = sign;
-                    __ret[3] = none;
+                    ret[1] = symbol;
+                    ret[2] = sign;
+                    ret[3] = none;
                 }
             }
             break;
         default:
-            __ret = s_default_pattern;
+            ret = s_default_pattern;
         }
-        return __ret;
+        return ret;
     }
 };
 
@@ -233,12 +233,12 @@ public:
             if (m_thousands_sep == '\0') m_thousands_sep = ',';
             else
             {
-                const char* __cgroup = nl_langinfo(__MON_GROUPING);
-                size_t len = strlen(__cgroup);
+                const char* cgroup = nl_langinfo(__MON_GROUPING);
+                size_t len = strlen(cgroup);
                 if (len != 0)
                 {
                     m_grouping.resize(len);
-                    for (size_t i = 0; i < len; ++i) m_grouping[i] = __cgroup[i];
+                    for (size_t i = 0; i < len; ++i) m_grouping[i] = cgroup[i];
                 }
             }
             
@@ -349,14 +349,14 @@ public:
         }
         else
         {
-            union { char *__s; wchar_t __w; } __u;
+            union { char *s; wchar_t w; } u;
             clocale_wrapper inter_locale(name.c_str());
             clocale_user guard(inter_locale.c_locale);
-            
-            __u.__s = nl_langinfo(_NL_MONETARY_DECIMAL_POINT_WC);
-            m_decimal_point = __u.__w;
-            __u.__s = nl_langinfo(_NL_MONETARY_THOUSANDS_SEP_WC);
-            m_thousands_sep = __u.__w;
+
+            u.s = nl_langinfo(_NL_MONETARY_DECIMAL_POINT_WC);
+            m_decimal_point = u.w;
+            u.s = nl_langinfo(_NL_MONETARY_THOUSANDS_SEP_WC);
+            m_thousands_sep = u.w;
             
             if (static_cast<int>(m_decimal_point) == 0)
             {
@@ -378,15 +378,15 @@ public:
             }
             else
             {
-                const char* __cgroup = nl_langinfo(__MON_GROUPING);
-                size_t len = strlen(__cgroup);
+                const char* cgroup = nl_langinfo(__MON_GROUPING);
+                size_t len = strlen(cgroup);
                 if (len != 0)
                 {
                     m_grouping.resize(len);
-                    for (size_t i = 0; i < len; ++i) m_grouping[i] = __cgroup[i];
+                    for (size_t i = 0; i < len; ++i) m_grouping[i] = cgroup[i];
                 }
             }
-            
+
             {
                 std::string input = nl_langinfo(__POSITIVE_SIGN);
                 if constexpr(std::is_same_v<CharT, wchar_t>)
