@@ -3,6 +3,7 @@
 #include <list>
 #include <optional>
 #include <unordered_map>
+#include <utility>
 
 namespace IOv2
 {
@@ -29,7 +30,8 @@ public:
         return m_it->second->second;
     }
     
-    void put(TK key, TV value)
+    template <typename K, typename V>
+    bool try_put(K&& key, V&& value)
     {
         auto m_it = m_cache_map.find(key);
 
@@ -38,7 +40,7 @@ public:
             auto l_it = m_it->second;
             m_cache_list.splice(m_cache_list.begin(), m_cache_list, l_it);
             m_it->second = m_cache_list.begin();
-            return;
+            return false;
         }
         
         if (m_cache_list.size() >= Capacity)
@@ -46,8 +48,32 @@ public:
             m_cache_map.erase(m_cache_list.back().first);
             m_cache_list.pop_back();
         }
-        m_cache_list.push_front({key, value});
-        m_cache_map.insert({key, m_cache_list.begin()});
+        m_cache_list.emplace_front(std::forward<K>(key), std::forward<V>(value));
+        m_cache_map.insert({m_cache_list.front().first, m_cache_list.begin()});
+        return true;
+    }
+
+    template <typename K, typename V>
+    void put(K&& key, V&& value)
+    {
+        auto m_it = m_cache_map.find(key);
+
+        if (m_it != m_cache_map.end())
+        {
+            auto l_it = m_it->second;
+            l_it->second = std::forward<V>(value);
+            m_cache_list.splice(m_cache_list.begin(), m_cache_list, l_it);
+            m_it->second = m_cache_list.begin();
+            return;
+        }
+
+        if (m_cache_list.size() >= Capacity)
+        {
+            m_cache_map.erase(m_cache_list.back().first);
+            m_cache_list.pop_back();
+        }
+        m_cache_list.emplace_front(std::forward<K>(key), std::forward<V>(value));
+        m_cache_map.insert({m_cache_list.front().first, m_cache_list.begin()});
     }
 private:
     std::list<std::pair<TK, TV>> m_cache_list;
