@@ -255,7 +255,7 @@ public:
 public:
     static size_t xalloc() noexcept
     {
-        return (ios_base<void>::s_top)++;
+        return ios_base<void>::s_top.fetch_add(1, std::memory_order_relaxed);
     }
 
     std::shared_ptr<void> set_pword(size_t id, std::shared_ptr<void> pword)
