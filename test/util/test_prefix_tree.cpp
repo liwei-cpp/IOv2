@@ -1,13 +1,14 @@
 #include <common/prefix_tree.h>
 #include <common/verify.h>
+#include <common/dump_info.h>
 #include <string>
 #include <vector>
-#include <iostream>
 
 using namespace IOv2;
 
 void test_prefix_tree_basic()
 {
+    dump_info("Test prefix_tree basic...");
     prefix_tree<char, int> tree;
     tree.add("hello", 1);
     tree.add("world", 2);
@@ -38,10 +39,12 @@ void test_prefix_tree_basic()
     auto it5 = tree.max_match(s5.begin(), s5.end(), out);
     VERIFY(out == -1); // root default value
     VERIFY(it5 == s5.begin());
+    dump_info("Done\n");
 }
 
 void test_prefix_tree_duplicate_handling()
 {
+    dump_info("Test prefix_tree duplicate handling...");
     prefix_tree<char, int> tree;
     tree.add("test", 10);
     
@@ -75,10 +78,12 @@ void test_prefix_tree_duplicate_handling()
     } catch (const std::runtime_error& e) {
         // Expected
     }
+    dump_info("Done\n");
 }
 
 void test_prefix_tree_sentinel_value()
 {
+    dump_info("Test prefix_tree sentinel value...");
     prefix_tree<char, int> tree(999); // Use 999 as sentinel
 
     // Should NOT be able to add the sentinel value
@@ -95,10 +100,12 @@ void test_prefix_tree_sentinel_value()
     std::string s = "good";
     tree.max_match(s.begin(), s.end(), out);
     VERIFY(out == 1);
+    dump_info("Done\n");
 }
 
 void test_prefix_tree_string_view()
 {
+    dump_info("Test prefix_tree string_view...");
     prefix_tree<char, int> tree;
     std::string_view sv = "view";
     tree.add(sv, 5);
@@ -107,10 +114,12 @@ void test_prefix_tree_string_view()
     auto it = tree.max_match(sv.begin(), sv.end(), out);
     VERIFY(out == 5);
     VERIFY(it == sv.end());
+    dump_info("Done\n");
 }
 
 void test_prefix_tree_vector_constructor()
 {
+    dump_info("Test prefix_tree vector constructor...");
     std::vector<const char*> strs = {"apple", "banana", "cherry"};
     prefix_tree<char, int> tree(strs);
 
@@ -118,6 +127,7 @@ void test_prefix_tree_vector_constructor()
     std::string s = "banana";
     tree.max_match(s.begin(), s.end(), out);
     VERIFY(out == 1); // Index 1 in the vector
+    dump_info("Done\n");
 }
 
 void test_prefix_tree()

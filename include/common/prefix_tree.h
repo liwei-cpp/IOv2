@@ -50,13 +50,6 @@ public:
         }
     }
     
-    void add(const CharT* str, TValue v)
-    {
-        if (str == nullptr)
-            throw std::runtime_error("Null input for prefix_tree:add");
-        return add(std::basic_string_view<CharT>(str), v);
-    }
-    
     void add(std::basic_string_view<CharT> str, TValue v)
     {
         return add(str.begin(), str.end(), v);
