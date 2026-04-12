@@ -3,12 +3,14 @@
 #include <common/dump_info.h>
 
 void test_prefix_tree();
+void test_lru_cache();
 
 int main()
 {
     try
     {
         test_prefix_tree();
+        test_lru_cache();
         return 0;
     }
     catch (const std::exception& e)
