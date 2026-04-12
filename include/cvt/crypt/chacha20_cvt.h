@@ -37,7 +37,7 @@ public:
         if (!hash)
             throw cvt_error("chacha20_cvt::bos fail: cannot create SHA-256 hash");
         
-        hash->update((const uint8_t*)m_key.data(), m_key.size());
+        hash->update((const uint8_t*)key.data(), key.size());
         m_key = hash->final();
     }
     
