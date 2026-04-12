@@ -65,6 +65,41 @@ void test_mem_device_char_gen_3()
     dump_info("Done\n");
 }
 
+void test_mem_device_char_drseek_boundary()
+{
+    dump_info("Test mem_device<char> drseek boundary...");
+    {
+        IOv2::mem_device<char> obj("12345"); // size 5
+        
+        // Boundary: 0 (end of string)
+        obj.drseek(0);
+        VERIFY(obj.dtell() == 5);
+        VERIFY(obj.deos());
+
+        // Boundary: 5 (start of string)
+        obj.drseek(5);
+        VERIFY(obj.dtell() == 0);
+        VERIFY(!obj.deos());
+
+        // Normal: 3 (middle)
+        obj.drseek(3);
+        VERIFY(obj.dtell() == 2);
+        
+        // Out of boundary: 6
+        FAIL_RSEEK(obj, 6);
+        VERIFY(obj.dtell() == 2); // Position should not change on failure
+
+        // Extreme: max size_t (would have underflowed before)
+        FAIL_RSEEK(obj, std::numeric_limits<size_t>::max());
+        VERIFY(obj.dtell() == 2);
+        
+        // Negative-like: (size_t)-1
+        FAIL_RSEEK(obj, (size_t)-1);
+        VERIFY(obj.dtell() == 2);
+    }
+    dump_info("Done\n");
+}
+
 void test_mem_device_char_in_1()
 {
     dump_info("Test mem_device<char> input case 1...");
