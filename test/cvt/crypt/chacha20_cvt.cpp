@@ -250,3 +250,44 @@ void test_chacha20_cvt_io_1()
     
     dump_info("Done\n");
 }
+
+void test_chacha20_cvt_key_1()
+{
+    using namespace IOv2;
+    dump_info("Test chacha20_cvt key difference...");
+
+    std::string msg = "Hello, world! This is a test message for ChaCha20.";
+    std::string enc_msg;
+
+    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>>;
+
+    {
+        CheckType obj(make_root_cvt<true>(mem_device("")), "key1");
+        obj.bos();
+        obj.main_cont_beg();
+        obj.put(msg.data(), msg.size());
+        enc_msg = obj.detach().str();
+    }
+
+    {
+        CheckType obj(make_root_cvt<true>(mem_device(enc_msg)), "key1");
+        obj.bos();
+        obj.main_cont_beg();
+        std::string dec_msg;
+        dec_msg.resize(msg.size());
+        obj.get(dec_msg.data(), dec_msg.size());
+        if (dec_msg != msg) throw std::runtime_error("chacha20 decryption with correct key failed");
+    }
+
+    {
+        CheckType obj(make_root_cvt<true>(mem_device(enc_msg)), "key2");
+        obj.bos();
+        obj.main_cont_beg();
+        std::string dec_msg;
+        dec_msg.resize(msg.size());
+        obj.get(dec_msg.data(), dec_msg.size());
+        if (dec_msg == msg) throw std::runtime_error("chacha20 decryption with WRONG key succeeded (unexpectedly)");
+    }
+
+    dump_info("Done\n");
+}

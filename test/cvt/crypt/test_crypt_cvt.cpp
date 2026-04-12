@@ -31,6 +31,7 @@ void test_chacha20_cvt_gen_1();
 void test_chacha20_cvt_gen_2();
 void test_chacha20_cvt_put_1();
 void test_chacha20_cvt_io_1();
+void test_chacha20_cvt_key_1();
 
 void test_chacha20_cvt_wchar_t_gen_1();
 void test_chacha20_cvt_wchar_t_gen_2();
@@ -72,6 +73,7 @@ void test_crypt_cvt()
     test_chacha20_cvt_gen_2();
     test_chacha20_cvt_put_1();
     test_chacha20_cvt_io_1();
+    test_chacha20_cvt_key_1();
 
     test_chacha20_cvt_wchar_t_gen_1();
     test_chacha20_cvt_wchar_t_gen_2();
