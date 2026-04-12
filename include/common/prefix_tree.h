@@ -4,6 +4,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -11,6 +12,15 @@
 
 namespace IOv2
 {
+/**
+ * @brief A prefix tree (Trie) used for internal IOv2 components.
+ * 
+ * Note:
+ * 1. This class is intended for internal use and does not provide a comprehensive
+ *    set of public interfaces (e.g., remove, clear, size).
+ * 2. It is designed to use a sentinel (default) value to represent "no value" at a node.
+ *    As a result, the default value itself cannot be stored as a legitimate value in the tree.
+ */
 template <typename CharT, typename TValue>
 class prefix_tree
 {
@@ -44,33 +54,10 @@ public:
     {
         if (str == nullptr)
             throw std::runtime_error("Null input for prefix_tree:add");
-        if (v == m_def)
-            throw std::runtime_error("cannot add with default value");
-            
-        node* node_ptr = &m_root;
-        while (*str != '\0')
-        {
-            CharT ch = *str;
-            
-            auto child = node_ptr->children.find(ch);
-            if (child == node_ptr->children.end())
-            {
-                bool insert_suc = false;
-                auto c = std::make_unique<node>(m_def, node_ptr->depth + 1);
-                std::tie(child, insert_suc) = node_ptr->children.insert(std::pair(ch, std::move(c)));
-                if (!insert_suc)
-                    throw std::runtime_error("prefix_tree insert fails");
-            }
-            node_ptr = child->second.get();
-            ++str;
-        }
-        
-        if (node_ptr->val != m_def)
-            throw std::runtime_error("duplicate items in prefix_tree");
-        node_ptr->val = v;
+        return add(std::basic_string_view<CharT>(str), v);
     }
     
-    void add(const std::basic_string<CharT> str, TValue v)
+    void add(std::basic_string_view<CharT> str, TValue v)
     {
         return add(str.begin(), str.end(), v);
     }

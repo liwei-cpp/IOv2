@@ -41,6 +41,7 @@ make test
 | `facet` | 仅构建 facet 测试 |
 | `locale` | 仅构建 locale 测试 |
 | `io` | 仅构建 io 测试 |
+| `util` | 仅构建 util 测试 |
 
 ### 单模块构建并运行
 
@@ -51,6 +52,7 @@ make test
 | `test-facet` | 构建并运行 facet 测试 |
 | `test-locale` | 构建并运行 locale 测试 |
 | `test-io` | 构建并运行 io 测试 |
+| `test-util` | 构建并运行 util 测试 |
 
 ### 单模块内存检测 (Valgrind)
 
@@ -61,6 +63,7 @@ make test
 | `valgrind-facet` | 使用 valgrind 构建并运行 facet 测试 |
 | `valgrind-locale` | 使用 valgrind 构建并运行 locale 测试 |
 | `valgrind-io` | 使用 valgrind 构建并运行 io 测试 |
+| `valgrind-util` | 使用 valgrind 构建并运行 util 测试 |
 
 ### 构建模式
 
@@ -144,6 +147,7 @@ make test
 | `facet` | Build facet tests only |
 | `locale` | Build locale tests only |
 | `io` | Build io tests only |
+| `util` | Build util tests only |
 
 ### Single Module Build and Run
 
@@ -154,6 +158,7 @@ make test
 | `test-facet` | Build and run facet tests |
 | `test-locale` | Build and run locale tests |
 | `test-io` | Build and run io tests |
+| `test-util` | Build and run util tests |
 
 ### Single Module Run with Valgrind
 
@@ -164,6 +169,7 @@ make test
 | `valgrind-facet` | Build and run facet tests with valgrind |
 | `valgrind-locale` | Build and run locale tests with valgrind |
 | `valgrind-io` | Build and run io tests with valgrind |
+| `valgrind-util` | Build and run util tests with valgrind |
 
 ### Build Modes
 
