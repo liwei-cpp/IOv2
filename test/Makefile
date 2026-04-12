@@ -18,7 +18,7 @@ endif
 LINK_FLAGS := -lz -lbotan-2
 
 # Module definitions
-MODULES := device cvt facet locale io
+MODULES := device cvt facet locale io util
 
 # Per-module source collection
 device_SOURCES := $(shell find ./device -name '*.cpp')
@@ -26,6 +26,7 @@ cvt_SOURCES := $(shell find ./cvt -name '*.cpp')
 facet_SOURCES := $(shell find ./facet -name '*.cpp')
 locale_SOURCES := $(shell find ./locale -name '*.cpp')
 io_SOURCES := $(shell find ./io -name '*.cpp')
+util_SOURCES := $(shell find ./util -name '*.cpp')
 
 # Per-module object files
 device_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(device_SOURCES))
@@ -33,6 +34,7 @@ cvt_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(cvt_SOURCES))
 facet_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(facet_SOURCES))
 locale_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(locale_SOURCES))
 io_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(io_SOURCES))
+util_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(util_SOURCES))
 
 # Target binaries
 TARGETS := $(addprefix $(BIN_DIR)/test_,$(MODULES))
@@ -61,12 +63,17 @@ $(BIN_DIR)/test_io: $(io_OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) -o $@ $^ $(LINK_FLAGS)
 
+$(BIN_DIR)/test_util: $(util_OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) -o $@ $^ $(LINK_FLAGS)
+
 # Convenience targets for building individual modules
 device: $(BIN_DIR)/test_device
 cvt: $(BIN_DIR)/test_cvt
 facet: $(BIN_DIR)/test_facet
 locale: $(BIN_DIR)/test_locale
 io: $(BIN_DIR)/test_io
+util: $(BIN_DIR)/test_util
 
 # Convenience targets for building and running individual modules
 test-device: device
@@ -84,6 +91,9 @@ test-locale: locale
 test-io: io
 	@echo "Running $(BIN_DIR)/test_io..."; $(BIN_DIR)/test_io
 
+test-util: util
+	@echo "Running $(BIN_DIR)/test_util..."; $(BIN_DIR)/test_util
+
 # Convenience targets for building and running individual modules with valgrind
 valgrind-device: device
 	@echo "Running $(BIN_DIR)/test_device with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_device
@@ -99,6 +109,9 @@ valgrind-locale: locale
 
 valgrind-io: io
 	@echo "Running $(BIN_DIR)/test_io with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_io
+
+valgrind-util: util
+	@echo "Running $(BIN_DIR)/test_util with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_util
 
 # Generic compilation rule
 $(OBJ_DIR)/%.o: ./%.cpp
