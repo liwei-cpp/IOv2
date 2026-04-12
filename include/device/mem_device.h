@@ -55,13 +55,11 @@ public:
         m_next_pos = v;
     }
 
-    void drseek(long offset)
+    void drseek(size_t offset)
     {
-        size_t tmp = m_str.size() - offset;
-
-        if (tmp > m_str.size())
+        if (offset > m_str.size())
             throw device_error("mem_device::rseek fail: out of boundary");
-        m_next_pos = tmp;
+        m_next_pos = m_str.size() - offset;
     }
     
     void dput(const char_type* ch, size_t n)
