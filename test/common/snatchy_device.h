@@ -49,17 +49,15 @@ public:
     void dseek(size_t v)
     {
         if (v > m_str.size())
-            throw IOv2::device_error("mem_device::seek fail: out of boundary");
+            throw IOv2::device_error("snatchy_device::seek fail: out of boundary");
         m_next_pos = v;
     }
 
-    void drseek(long offset)
+    void drseek(size_t offset)
     {
-        size_t tmp = m_str.size() - offset;
-
-        if (tmp > m_str.size())
-            throw IOv2::device_error("mem_device::rseek fail: out of boundary");
-        m_next_pos = tmp;
+        if (offset > m_str.size())
+            throw IOv2::device_error("snatchy_device::rseek fail: out of boundary");
+        m_next_pos = m_str.size() - offset;
     }
 private:
     std::basic_string<CharT> m_str;
