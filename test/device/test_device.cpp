@@ -8,6 +8,7 @@ void test_mem_device_char_gen_3();
 void test_mem_device_char_in_1();
 void test_mem_device_char_in_2();
 void test_mem_device_char_in_3();
+void test_mem_device_char_drseek_boundary();
 void test_mem_device_char_out_1();
 void test_mem_device_char_out_2();
 void test_mem_device_char_out_3();
@@ -99,6 +100,7 @@ int main()
         test_mem_device_char_in_1();
         test_mem_device_char_in_2();
         test_mem_device_char_in_3();
+        test_mem_device_char_drseek_boundary();
         test_mem_device_char_out_1();
         test_mem_device_char_out_2();
         test_mem_device_char_out_3();
