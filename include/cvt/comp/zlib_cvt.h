@@ -259,6 +259,10 @@ public:
         unsigned char* to = (unsigned char*)_to;
         to_max *= sizeof(internal_type);
 
+        // Note: We read one byte at a time intentionally. Decompression has
+        // unpredictable expansion ratio - a few compressed bytes could expand
+        // to overflow the output buffer. This keeps the code simple and correct.
+        // The underlying converter already buffers, so this doesn't cause syscalls.
         auto rd = this->reader(1);
         m_strm.avail_out = (int)(to_max);
         m_strm.next_out = reinterpret_cast<unsigned char*>(to);
