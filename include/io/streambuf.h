@@ -1,5 +1,5 @@
 #pragma once
-#include <list>
+#include <deque>
 #include <optional>
 #include <utility>
 #include <cvt/runtime_cvt.h>
@@ -199,7 +199,7 @@ private:
 
 private:
     runtime_cvt<TDevice, TChar> m_cvt;
-    std::list<char_type> m_read_buf;
+    std::deque<char_type> m_read_buf;
 };
 
 template <io_device TDevice, typename TChar>
@@ -348,7 +348,7 @@ private:
 
 private:
     runtime_cvt<TDevice, TChar> m_cvt;
-    std::list<char_type> m_read_buf;
+    std::deque<char_type> m_read_buf;
 };
 
 template <io_device TDevice, typename TChar>
