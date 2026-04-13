@@ -11,7 +11,7 @@ void test_vigenere_cvt_gen_1()
     dump_info("Test vigenere_cvt general case 1...");
     
     {
-        using CheckType = Crypt::vigenere_cvt<root_cvt<mem_device<char>, true>>;
+        using CheckType = Crypt::Classic::vigenere_cvt<root_cvt<mem_device<char>, true>>;
         static_assert(IOv2::io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
         static_assert(std::is_same_v<CheckType::internal_type, char>);
@@ -23,7 +23,7 @@ void test_vigenere_cvt_gen_1()
     }
     
     {
-        using CheckType = Crypt::vigenere_cvt<root_cvt<mem_device<char32_t>, false>>;
+        using CheckType = Crypt::Classic::vigenere_cvt<root_cvt<mem_device<char32_t>, false>>;
         static_assert(IOv2::io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char32_t>>);
         static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
@@ -42,7 +42,7 @@ void test_vigenere_cvt_gen_2()
     using namespace IOv2;
     dump_info("Test vigenere_cvt<mem_device> general case 2...");
     
-    using CheckType = Crypt::vigenere_cvt<root_cvt<mem_device<char>, true>>;
+    using CheckType = Crypt::Classic::vigenere_cvt<root_cvt<mem_device<char>, true>>;
     
     auto helper1 = [](auto& obj)
     {
@@ -81,7 +81,7 @@ void test_vigenere_cvt_gen_2()
     {
         if (obj.bos() != io_status::output) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
-        T obj2{Crypt::vigenere_cvt{make_root_cvt<true>(mem_device("")), "abcdef"}};
+        T obj2{Crypt::Classic::vigenere_cvt{make_root_cvt<true>(mem_device("")), "abcdef"}};
         obj2 = obj;
         if (obj2.device().str() != "hello") throw std::runtime_error("vigenere_cvt<mem_device> copy assignment response incorrect");
         
@@ -133,7 +133,7 @@ void test_vigenere_cvt_gen_2()
     {
         if (obj.bos() != io_status::output) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
-        T obj2{Crypt::vigenere_cvt{make_root_cvt<true>(mem_device("")), "abcdef"}};
+        T obj2{Crypt::Classic::vigenere_cvt{make_root_cvt<true>(mem_device("")), "abcdef"}};
         obj2 = std::move(obj);
         if (obj2.device().str() != "hello") throw std::runtime_error("vigenere_cvt<mem_device> move assignment response incorrect");
     };
@@ -155,7 +155,7 @@ void test_vigenere_cvt_get_1()
 {
     using namespace IOv2;
     dump_info("Test vigenere_cvt::get case 1...");
-    using CheckType = Crypt::vigenere_cvt<root_cvt<mem_device<char>, true>>;
+    using CheckType = Crypt::Classic::vigenere_cvt<root_cvt<mem_device<char>, true>>;
 
     std::string e_lit; e_lit.resize(4102);
     std::string i_lit; i_lit.resize(4102);
@@ -210,7 +210,7 @@ void test_vigenere_cvt_get_nra_1()
 {
     using namespace IOv2;
     dump_info("Test vigenere_cvt::get_nra case 1...");
-    using CheckType = Crypt::vigenere_cvt<root_cvt<mem_device<char>, false>>;
+    using CheckType = Crypt::Classic::vigenere_cvt<root_cvt<mem_device<char>, false>>;
 
     std::string e_lit; e_lit.resize(4102);
     std::string i_lit; i_lit.resize(4102);
@@ -266,7 +266,7 @@ void test_vigenere_cvt_put_1()
 {
     using namespace IOv2;
     dump_info("Test vigenere_cvt::put case 1...");
-    using CheckType = Crypt::vigenere_cvt<root_cvt<mem_device<char>, true>>;
+    using CheckType = Crypt::Classic::vigenere_cvt<root_cvt<mem_device<char>, true>>;
 
     std::string e_lit; e_lit.resize(4102);
     std::string i_lit; i_lit.resize(4102);
@@ -337,7 +337,7 @@ void test_vigenere_cvt_seek_1()
         if ((obj.get(&ch, 1) != 1) || (ch != '3' - 'w')) throw std::runtime_error("vigenere_cvt::get fail");
     };
     
-    using CheckType = Crypt::vigenere_cvt<root_cvt<mem_device<char>, true>>;
+    using CheckType = Crypt::Classic::vigenere_cvt<root_cvt<mem_device<char>, true>>;
     {
         mem_device dev("12345");
         CheckType obj(make_root_cvt<true>(dev), "liwei");
@@ -386,7 +386,7 @@ void test_vigenere_cvt_seek_2()
         if (obj.tell() != 5) throw std::runtime_error("vigenere_cvt::tell fail");
     };
 
-    Crypt::vigenere_cvt_creator<char> creator("liwei");
+    Crypt::Classic::vigenere_cvt_creator<char> creator("liwei");
     auto obj = creator.create(make_root_cvt<true>(mem_device("123abcdefg")));
     helper(obj);
 
