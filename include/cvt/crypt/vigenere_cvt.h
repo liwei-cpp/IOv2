@@ -6,8 +6,29 @@
 #include <cvt/abs_cvt.h>
 #include <cvt/root_cvt.h>
 
-namespace IOv2::Crypt
+namespace IOv2::Crypt::Classic
 {
+/// @brief Vigenère cipher converter for educational and demonstration purposes.
+///
+/// @warning **NOT FOR PRODUCTION SECURITY USE**
+///
+/// The Vigenère cipher is a historical polyalphabetic substitution cipher
+/// that has been completely broken since the 19th century. It provides
+/// NO cryptographic security and should NEVER be used to protect sensitive data.
+///
+/// Known vulnerabilities:
+/// - Kasiski examination can determine key length from ciphertext alone
+/// - Frequency analysis breaks each position as a simple Caesar cipher
+/// - No resistance to known-plaintext or chosen-plaintext attacks
+///
+/// For actual encryption needs, use `chacha20_cvt` or other modern ciphers.
+///
+/// This class is provided for:
+/// - Educational purposes (learning about classical ciphers)
+/// - Simple obfuscation (NOT security)
+/// - Historical/demonstration purposes
+///
+/// @see chacha20_cvt for cryptographically secure encryption
 template <io_converter KernelType>
     requires std::is_integral_v<typename KernelType::internal_type>
 class vigenere_cvt : public abs_cvt<KernelType, typename KernelType::internal_type, true, false, true>
