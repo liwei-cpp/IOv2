@@ -58,7 +58,7 @@ void test_cvt_pipe_creator_put_1()
         if (dev.str() != e_lit) throw std::runtime_error("cvt_pipe::put response incorrect");
     };
     
-    auto creator = Crypt::vigenere_cvt_creator("abcdefg") | 
+    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
     {
@@ -113,7 +113,7 @@ void test_cvt_pipe_creator_put_2()
     };
 
     {
-        auto creator = (Crypt::vigenere_cvt_creator("abcdefg") | 
+        auto creator = (Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                         Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5)) |
                        (Comp::zlib_cvt_creator<char>(6) | 
                         code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
@@ -123,7 +123,7 @@ void test_cvt_pipe_creator_put_2()
     }
 
     {
-        auto creator = Crypt::vigenere_cvt_creator("abcdefg") | 
+        auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                        Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
                        Comp::zlib_cvt_creator<char>(6) | 
                        code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
@@ -175,7 +175,7 @@ void test_cvt_pipe_creator_put_3()
     };
 
     {
-        auto creator = (Crypt::vigenere_cvt_creator("abcdefg") | 
+        auto creator = (Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                         Comp::zlib_cvt_creator<char>(6)) | 
                        (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
                         code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
@@ -185,7 +185,7 @@ void test_cvt_pipe_creator_put_3()
     }
 
     {
-        auto creator = (Crypt::vigenere_cvt_creator("abcdefg") | 
+        auto creator = (Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                         Comp::zlib_cvt_creator<char>(6)) | 
                        (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
                         code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
@@ -249,7 +249,7 @@ void test_cvt_pipe_creator_get_1()
         }
     };
     
-    auto creator = Crypt::vigenere_cvt_creator("abcdefg") | 
+    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
     {
@@ -279,7 +279,7 @@ void test_cvt_pipe_creator_io_1()
         i_lit.push_back((i / 3) % 127 + 1);
     }
 
-    auto creator = Crypt::vigenere_cvt_creator("abcdefg") | 
+    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                    Comp::zlib_cvt_creator<char>(6) | 
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
@@ -326,7 +326,7 @@ void test_cvt_pipe_creator_io_2()
         i_lit.push_back((i / 3) % 127 + 1);
     }
 
-    auto creator = Crypt::vigenere_cvt_creator("abcdefg") | 
+    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                    (Comp::zlib_cvt_creator<char>(6) | 
                     code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
 
