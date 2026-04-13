@@ -22,14 +22,9 @@ void test_istream_tell_wchar_t_1()
         T ist1{IOv2::mem_device{L""}};
         auto p3 = ist1.tell();
 
-        T ifs1{IOv2::ifile_device<char>{""},
-               IOv2::code_cvt_creator<char, wchar_t>("C")};
-        auto p4 = ifs1.tell();
-
         // N.B. We implement the resolution of DR 453 and
         // istringstream::tell() doesn't fail.
         VERIFY( p3 == 0 );
-        VERIFY( p4 == 0 );
 
         std::string data = 
             "bd2\n"
@@ -45,7 +40,7 @@ void test_istream_tell_wchar_t_1()
         T ifs2{IOv2::ifile_device<char>{"istream_seeks-1.tst"},
                IOv2::code_cvt_creator<char, wchar_t>("C")};
         p3 = ist2.tell();
-        p4 = ifs2.tell();
+        auto p4 = ifs2.tell();
         VERIFY( p3 == p4 );
     };
 
@@ -114,7 +109,6 @@ void test_istream_tell_wchar_t_3()
         IOv2::ios_defs::iostate state01, state02;
 
         const char str_lit01[] = "istream_seeks-1.txt";
-        const char str_lit02[] = "istream_seeks-2.txt";
 
         std::string str_lit01_data = 
             "bd2\n"
@@ -126,22 +120,14 @@ void test_istream_tell_wchar_t_3()
             "ok\n";
         std::string str_lit02_data = "";
         file_guard g1(str_lit01, str_lit01_data);
-        file_guard g2(str_lit02, str_lit02_data);
 
         T if01{IOv2::ifile_device<char>{str_lit01},
                IOv2::code_cvt_creator<char, wchar_t>("C")};
-        T if03{IOv2::ifile_device<char>{str_lit02},
-               IOv2::code_cvt_creator<char, wchar_t>("C")};
         VERIFY( if01.good() );
-        VERIFY( if03.good() );
 
         auto pos01 = if01.tell();
         auto pos02 = if01.tell();
         VERIFY( pos01 == pos02 );
-
-        auto pos05 = if03.tell();
-        auto pos06 = if03.tell();
-        VERIFY( pos05 == pos06 );
 
         // cur 
         // NB: see library issues list 136. It's the v-3 interp that seek

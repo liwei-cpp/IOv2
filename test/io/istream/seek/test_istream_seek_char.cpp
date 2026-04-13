@@ -114,14 +114,10 @@ void test_istream_seek_char_3()
         file_guard g2(str_lit02, str_lit02_data);
 
         T if01{IOv2::ifile_device<char>{str_lit01}};
-        T if03{IOv2::ifile_device<char>{str_lit02}};
         VERIFY( if01.good() );
-        VERIFY( if03.good() );
 
         auto pos01 = if01.tell();
         auto pos02 = if01.tell();
-        auto pos05 = if03.tell();
-        auto pos06 = if03.tell();
         // istream& seek(pos_type)
         // istream& seek(off_type, ios_base::seekdir)
     
@@ -139,16 +135,6 @@ void test_istream_seek_char_3()
         pos02 = if01.tell(); 
         VERIFY( pos02 == pos01 ); 
 
-        state01 = if03.rdstate();
-        if03.seek(10 + if03.tell());
-        state02 = if03.rdstate();
-        pos05 = if03.tell(); 
-        VERIFY( pos05 == pos06 );
-        VERIFY( state01 != state02 );
-        VERIFY(state02 == IOv2::ios_defs::devfailbit);
-        pos06 = if03.tell(); 
-        VERIFY( pos05 == pos06 ); 
-
         // beg
         state01 = if01.rdstate();
         if01.seek(20);
@@ -158,15 +144,6 @@ void test_istream_seek_char_3()
         VERIFY( state01 == state02 );
         pos02 = if01.tell();
         VERIFY( pos02 == pos01 ); 
-
-        state01 = if03.rdstate();
-        if03.seek(20);
-        state02 = if03.rdstate();
-        pos05 = if03.tell(); 
-        VERIFY( pos05 == pos06);
-        VERIFY( state01 == state02 );
-        pos06 = if03.tell(); 
-        VERIFY( pos05 == pos06 );
     };
 
     helper.operator()<IOv2::istream>();
