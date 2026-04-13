@@ -457,7 +457,6 @@ void test_file_device_char_seek_5()
     dump_info("Test file_device<char>::seek 5...");
 
     const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    const char name_03[] = "filebuf_members-1.tst"; // empty file
     
     {
         file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
@@ -472,13 +471,6 @@ void test_file_device_char_seek_5()
         FAIL_SEEK(fb, 0);
         FAIL_SEEK(fb, 0);
     }
-    
-    {
-        file_guard g(name_03);
-        basic_file_device<true, false, char> fb(name_03);
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
 
     dump_info("Done\n");
 }
@@ -490,7 +482,6 @@ void test_file_device_char_seek_6()
     dump_info("Test file_device<char>::seek 6...");
 
     const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    const char name_03[] = "filebuf_members-1.tst"; // empty file
     
     {
         file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
@@ -505,13 +496,6 @@ void test_file_device_char_seek_6()
         FAIL_SEEK(fb, 0);
         FAIL_SEEK(fb, 0);
     }
-    
-    {
-        file_guard g(name_03);
-        basic_file_device<true, true, char> fb(name_03);
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
 
     dump_info("Done\n");
 }
@@ -523,7 +507,6 @@ void test_file_device_char_seek_7()
     dump_info("Test file_device<char>::seek 7...");
 
     const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    const char name_03[] = "filebuf_members-1.tst"; // empty file
     
     {
         file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
@@ -537,13 +520,6 @@ void test_file_device_char_seek_7()
         basic_file_device<false, true, char> fb;
         FAIL_SEEK(fb, 0);
         FAIL_SEEK(fb, 0);
-    }
-    
-    {
-        file_guard g(name_03);
-        basic_file_device<false, true, char> fb(name_03);
-        fb.dseek(0);
-        fb.dseek(0);
     }
 
     dump_info("Done\n");
@@ -606,6 +582,53 @@ void test_file_device_char_seek_8()
     if (fb.dget(buf, 12) != 12) throw std::runtime_error("file_device::get fails");
     if (std::memcmp(buf, "ghcefijklmno", 12) != 0) throw std::runtime_error("file_device::get fails");
     VERIFY(fb.deos());
-  
+
+    dump_info("Done\n");
+}
+
+void test_file_device_char_error_1()
+{
+    using namespace IOv2;
+
+    dump_info("Test file_device<char> error 1...");
+
+    // Case 1: Constructor Read mode on non-existent file
+    try
+    {
+        basic_file_device<true, false, char> fb("non_existent_file.txt");
+        VERIFY(false);
+    }
+    catch (const device_error&) {}
+
+    // Case 2: try_open Read mode on non-existent file
+    {
+        auto res = file_device<char>::try_open("non_existent_file.txt");
+        VERIFY(!res);
+        // Verify error message exists
+        VERIFY(!res.error().empty());
+    }
+
+    // Case 3: Read/Write mode on non-existent file
+    try
+    {
+        basic_file_device<true, true, char> fb("non_existent_file.txt");
+        VERIFY(false);
+    }
+    catch (const device_error&) {}
+
+    // Case 4: Write mode with noreplace on existing file
+    {
+        file_guard g("existing_file.txt", "content");
+        try
+        {
+            basic_file_device<false, true, char> fb("existing_file.txt", file_open_flag::noreplace);
+            VERIFY(false);
+        }
+        catch (const device_error&) {}
+        
+        auto res = ofile_device<char>::try_open("existing_file.txt", file_open_flag::noreplace);
+        VERIFY(!res);
+    }
+
     dump_info("Done\n");
 }

@@ -1,13 +1,10 @@
 #pragma once
-#include <unistd.h>
-
-#include <cassert>
+#include <cerrno>
 #include <cstdio>
 #include <cstdint>
+#include <cstring>
 #include <exception>
-#include <filesystem>
-#include <limits>
-#include <optional>
+#include <expected>
 #include <string>
 
 #include <common/defs.h>
@@ -55,20 +52,41 @@ public:
     explicit basic_file_device(const std::string& file_name, file_open_flag flags = file_open_flag::none)
     {
         const char* mode = fopen_mode(flags);
-        m_file = std::fopen(file_name.c_str(), mode);
-        if (!m_file)
-            return;
+        FILE* fp = std::fopen(file_name.c_str(), mode);
+        if (!fp)
+            throw device_error("cannot open file \"" + file_name + "\": " + std::strerror(errno));
 
-        if (fseek_64(m_file, 0, SEEK_END) != 0)
-            throw device_error("file_device::constructor fail: cannot get file length");
-        int64_t len = ftell_64(m_file);
+        if (fseek_64(fp, 0, SEEK_END) != 0)
+        {
+            std::fclose(fp);
+            throw device_error("cannot get file length for \"" + file_name + "\"");
+        }
+        int64_t len = ftell_64(fp);
         if (len < 0)
-            throw device_error("file_device::constructor fail: cannot get file length.");
+        {
+            std::fclose(fp);
+            throw device_error("cannot get file length for \"" + file_name + "\"");
+        }
 
+        if (fseek_64(fp, 0, SEEK_SET) != 0)
+        {
+            std::fclose(fp);
+            throw device_error("cannot reset the file for \"" + file_name + "\"");
+        }
+        
+        m_file = fp;
         m_file_len = static_cast<size_t>(len);
+    }
 
-        if (fseek_64(m_file, 0, SEEK_SET) != 0)
-            throw device_error("file_device::constructor fail: cannot reset the file");
+    static std::expected<basic_file_device, std::string> try_open(const std::string& file_name, file_open_flag flags = file_open_flag::none) noexcept
+    {
+        try {
+            return basic_file_device(file_name, flags);
+        } catch (const std::exception& e) {
+            return std::unexpected(e.what());
+        } catch (...) {
+            return std::unexpected("unknown error occurred during try_open");
+        }
     }
     
     basic_file_device(const basic_file_device&) = delete;
