@@ -797,7 +797,7 @@ void test_root_cvt_file_attach_1()
         VERIFY(ch == '1');
         VERIFY(obj.device().dtell() == 8);
 
-        file_guard g("test_file2", "");
+        file_guard g("test_file2", "abcde");
         auto dev = obj.attach(ifile_device<char>("test_file2"));
         VERIFY(dev.dtell() == 1);
     };
