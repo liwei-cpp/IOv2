@@ -12,6 +12,7 @@ void test_root_cvt_mem_detach_1();
 void test_root_cvt_mem_detach_2();
 void test_root_cvt_mem_attach_1();
 void test_root_cvt_mem_attach_2();
+void test_root_cvt_mem_self_assignment();
 
 void test_root_cvt_std_gen_1();
 void test_root_cvt_std_gen_2();
@@ -51,6 +52,7 @@ void test_root_cvt()
     test_root_cvt_mem_detach_2();
     test_root_cvt_mem_attach_1();
     test_root_cvt_mem_attach_2();
+    test_root_cvt_mem_self_assignment();
     
     test_root_cvt_std_gen_1();
     test_root_cvt_std_gen_2();

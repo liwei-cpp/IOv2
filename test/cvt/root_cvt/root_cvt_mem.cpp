@@ -314,13 +314,13 @@ void test_root_cvt_mem_put_1()
         e_lit[i+6] = (i / 7) % 127 + 1;
     }
 
-    auto helper = [&e_lit](auto& obj)
+    auto helper = [] (const std::string& e_lit, auto& obj)
     {
         size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
 
         if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
-        char* cur_pos = e_lit.data();
+        const char* cur_pos = e_lit.data();
         int buffer_id = 0;
         while (cur_pos < e_lit.data() + 4102)
         {
@@ -338,10 +338,10 @@ void test_root_cvt_mem_put_1()
     };
 
     auto obj1 = make_root_cvt<true>(mem_device(""));
-    helper(obj1);
+    helper(e_lit, obj1);
     
     runtime_cvt obj2(make_root_cvt<true>(mem_device("")));
-    helper(obj2);
+    helper(e_lit, obj2);
 
     dump_info("Done\n");
 }
@@ -595,5 +595,52 @@ void test_root_cvt_mem_attach_2()
         runtime_cvt obj(make_root_cvt<true>(mem_device("")));
         helper(obj);
     }
+    dump_info("Done\n");
+}
+
+void test_root_cvt_mem_self_assignment()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<mem_device> self-assignment...");
+    
+    {
+        mem_device dev{"hello"}; dev.drseek(0);
+        auto obj = make_root_cvt<true>(std::move(dev));
+        VERIFY(obj.bos() == io_status::output); 
+        obj.main_cont_beg();
+        obj.put(" world", 6);
+        
+        // Self copy assignment
+        const auto& const_obj = obj;
+        obj = const_obj;
+        
+        obj.flush();
+        VERIFY(obj.device().str() == "hello world");
+        
+        // Self move assignment
+        auto* pObj = &obj;
+        obj = std::move(*pObj);
+        VERIFY(obj.device().str() == "hello world");
+    }
+    
+    {
+        mem_device dev{"hello"}; dev.drseek(0);
+        runtime_cvt obj(make_root_cvt<true>(std::move(dev)));
+        VERIFY(obj.bos() == io_status::output); 
+        obj.main_cont_beg();
+        obj.put(" world", 6);
+        
+        // Self copy assignment
+        const auto& const_obj = obj;
+        obj = const_obj;
+        obj.flush();
+        VERIFY(obj.device().str() == "hello world");
+        
+        // Self move assignment
+        auto* pObj = &obj;
+        obj = std::move(*pObj);
+        VERIFY(obj.device().str() == "hello world");
+    }
+
     dump_info("Done\n");
 }
