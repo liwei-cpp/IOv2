@@ -12,6 +12,15 @@
 
 namespace IOv2
 {
+/// @brief Root converter class for I/O operations, managing device buffers.
+///
+/// @note Moved-from objects: After a move operation (move construction or move
+///       assignment), the source object is left in a valid but unspecified state.
+///       The only safe operations on a moved-from object are:
+///       - Destruction
+///       - Assignment (copy or move)
+///       Calling any other method on a moved-from object results in undefined behavior.
+///       This follows standard C++ conventions for moved-from objects.
 template <io_device DeviceType, bool HasInBuffer>
 class root_cvt
 {
@@ -69,6 +78,8 @@ public:
     root_cvt& operator= (const root_cvt& val)
         requires (std::is_copy_assignable_v<device_type>)
     {
+        if (this == &val) return *this;
+
         if constexpr (dev_cpt::support_put<device_type>)
             flush();
 
@@ -88,6 +99,8 @@ public:
     
     root_cvt& operator= (root_cvt&& val)
     {
+        if (this == &val) return *this;
+
         if constexpr (dev_cpt::support_put<device_type>)
             flush();
 
