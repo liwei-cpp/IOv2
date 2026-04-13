@@ -40,7 +40,7 @@ public:
         if (const code_cvt_switch* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
         {
             if (!this->m_cvt_kernel.is_init_state())
-                throw cvt_error("codecvt switch encoder fail: invalid state");
+                throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
             m_code = ptr->code;
             this->m_cvt_kernel = codecvt_kernel<char, wchar_t>(m_code);
         }

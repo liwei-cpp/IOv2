@@ -256,7 +256,7 @@ public:
                 switch_to_put();
         }
         if (m_io_status != io_status::output)
-            throw cvt_error("root_cvt::get fails: invalid io status");
+            throw cvt_error("root_cvt::put fails: invalid io status");
 
         const size_t buf_used = m_buf_cur - m_buffer.data();
         const size_t remain = s_buffer_length - buf_used;
