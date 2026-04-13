@@ -50,72 +50,88 @@ public:
         : BT(val)
         , m_put_level(val.m_put_level)
         , m_bos_done(val.m_bos_done)
-        , m_io_status(val.m_io_status)
+        , m_io_status(io_status::neutral)
         , m_sync_flush(val.m_sync_flush)
     {
-        if (m_io_status == io_status::output)
+        if (val.m_io_status == io_status::output)
+        {
             zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
-        else if (m_io_status == io_status::input)
+            m_io_status = val.m_io_status;
+        }
+        else if (val.m_io_status == io_status::input)
+        {
             zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+            m_io_status = val.m_io_status;
+        }
     }
     
     zlib_cvt(zlib_cvt&& val)
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
         , m_bos_done(val.m_bos_done)
-        , m_io_status(val.m_io_status)
+        , m_io_status(io_status::neutral)
         , m_sync_flush(val.m_sync_flush)
     {
-        if (m_io_status == io_status::output)
+        if (val.m_io_status == io_status::output)
         {
-            zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, &val.m_strm));
+            zerr("zlib_cvt move constructor fail", deflateCopy(&m_strm, &val.m_strm));
             deflateEnd(&val.m_strm);
             val.m_io_status = io_status::neutral;
+            m_io_status = io_status::output;
         }
-        else if (m_io_status == io_status::input)
+        else if (val.m_io_status == io_status::input)
         {
-            zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, &val.m_strm));
+            zerr("zlib_cvt move constructor fail", inflateCopy(&m_strm, &val.m_strm));
             inflateEnd(&val.m_strm);
             val.m_io_status = io_status::neutral;
+            m_io_status = io_status::input;
         }
     }
     
     zlib_cvt& operator=(const zlib_cvt& val)
     {
+        if (this == &val) return *this;
         close_stream();
         BT::operator=(val);
         m_put_level = val.m_put_level;
         m_bos_done = val.m_bos_done;
-        m_io_status = val.m_io_status;
         m_sync_flush = val.m_sync_flush;
 
-        if (m_io_status == io_status::output)
-            zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
-        else if (m_io_status == io_status::input)
-            zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+        if (val.m_io_status == io_status::output)
+        {
+            zerr("zlib_cvt copy assignment fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+            m_io_status = val.m_io_status;
+        }
+        else if (val.m_io_status == io_status::input)
+        {
+            zerr("zlib_cvt copy assignment fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+            m_io_status = val.m_io_status;
+        }
         return *this;
     }
     
     zlib_cvt& operator=(zlib_cvt&& val)
     {
+        if (this == &val) return *this;
         close_stream();
         BT::operator=(std::move(val));
         m_put_level = val.m_put_level;
         m_bos_done = val.m_bos_done;
-        m_io_status = val.m_io_status;
         m_sync_flush = val.m_sync_flush;
 
-        if (m_io_status == io_status::output)
+        if (val.m_io_status == io_status::output)
         {
-            zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, &val.m_strm));
+            zerr("zlib_cvt move assignment fail", deflateCopy(&m_strm, &val.m_strm));
             deflateEnd(&val.m_strm);
             val.m_io_status = io_status::neutral;
+            m_io_status = io_status::output;
         }
-        else if (m_io_status == io_status::input)
+        else if (val.m_io_status == io_status::input)
         {
-            zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, &val.m_strm));
+            zerr("zlib_cvt move assignment fail", inflateCopy(&m_strm, &val.m_strm));
             inflateEnd(&val.m_strm);
             val.m_io_status = io_status::neutral;
+            m_io_status = io_status::input;
         }
         return *this;
     }
