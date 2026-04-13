@@ -431,13 +431,13 @@ public:
         size_t total_size = 0;
 
         size_t prev_rollback = 0;
-        size_t extra_read = 0;
         while (total_size < to_max)
         {
-            size_t dest_size = std::min<size_t>((to_max - total_size) + extra_read, s_max_buf_size);
+            size_t dest_size = std::min<size_t>(to_max - total_size, s_max_buf_size);
             dest_size = std::max(dest_size, prev_rollback + 1);
 
-            assert(dest_size <= s_max_buf_size);
+            if (dest_size > s_max_buf_size) [[unlikely]]
+                throw cvt_error("code_cvt::get fail, input sequence too long.");
 
             auto [ptr, cur_size] = rd.get_buf(dest_size);
             if (cur_size == prev_rollback)
@@ -454,14 +454,9 @@ public:
             if (!succ)
                 throw cvt_error("code_cvt::get fail, invalid external sequence.");
 
-            if (ext_cur == ptr)
-                ++extra_read;
-            else
-                extra_read = 0;
-
             if (ext_cur == ptr + cur_size)
                 prev_rollback = 0;
-            if (ext_cur != ptr + cur_size)
+            else
             {
                 prev_rollback = ptr + cur_size - ext_cur;
                 rd.rollback(prev_rollback);
