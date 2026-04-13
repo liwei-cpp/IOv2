@@ -391,7 +391,7 @@ public:
             if constexpr (cvt_cpt::support_io_switch<KernelType>)
                 switch_to_put();
             else
-                throw cvt_error("codecvt::put fail: cannot switch to output mode.");
+                throw cvt_error("code_cvt::put fail: cannot switch to output mode.");
         }
 
         auto wt = this->writer(s_max_buf_size);
@@ -424,7 +424,7 @@ public:
             if constexpr (cvt_cpt::support_io_switch<KernelType>)
                 switch_to_get();
             else
-                throw cvt_error("codecvt::get fail: cannot switch to input mode");
+                throw cvt_error("code_cvt::get fail: cannot switch to input mode");
         }
 
         auto rd = this->reader(s_max_buf_size);
@@ -482,7 +482,7 @@ public:
             if ((pos == 0) && (m_io_status != io_status::output))
                 m_cvt_kernel.init_state();
             else
-                throw cvt_error("codecvt::seek fail: cannot seek with dependent convertor");
+                throw cvt_error("code_cvt::seek fail: cannot seek with dependent convertor");
         }
 
         BT::m_kernel.seek(pos * m_cvt_kernel.epc());
@@ -494,12 +494,12 @@ public:
     {
         if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
         {
-            throw cvt_error("codecvt::rseek fail: cannot seek with dependent convertor");
+            throw cvt_error("code_cvt::rseek fail: cannot seek with dependent convertor");
         }
 
         BT::m_kernel.rseek(pos * m_cvt_kernel.epc());
         if (BT::m_kernel.tell() % m_cvt_kernel.epc() != 0)
-            throw cvt_error("codecvt::rseek fail: partial sequence.");
+            throw cvt_error("code_cvt::rseek fail: partial sequence.");
 
         m_accu_len = BT::m_kernel.tell() / m_cvt_kernel.epc();
         m_cvt_kernel.init_state();
@@ -519,12 +519,12 @@ public:
             return;
         default: // io_status::input
             if (!m_cvt_kernel.is_init_state())
-                throw cvt_error("codecvt::switch_to_put fail: internal state is not neutral");
+                throw cvt_error("code_cvt::switch_to_put fail: internal state is not neutral");
 
             if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
             {
                 if (!this->is_eos())
-                    throw cvt_error("codecvt::switch_to_put fail: internal buffer not empty");
+                    throw cvt_error("code_cvt::switch_to_put fail: internal buffer not empty");
             }
             BT::m_kernel.switch_to_put();
             m_io_status = io_status::output;
