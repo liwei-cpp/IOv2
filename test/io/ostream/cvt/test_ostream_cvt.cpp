@@ -21,7 +21,7 @@ void test_ostream_cvt_1()
 {
     dump_info("Test ostream cvt case 1...");
 
-    auto creator = IOv2::Crypt::vigenere_cvt_creator("abcdefg") | 
+    auto creator = IOv2::Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                    IOv2::code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
     auto helper = [&creator]<template<typename, typename> class T>()
@@ -57,7 +57,7 @@ void test_ostream_cvt_sync_1()
 {
     dump_info("Test ostream cvt (with sync) case 1...");
 
-    auto creator = IOv2::Crypt::vigenere_cvt_creator("abcdefg") | 
+    auto creator = IOv2::Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
                    IOv2::code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
     auto helper = [&creator]<template<typename, typename> class T>()
