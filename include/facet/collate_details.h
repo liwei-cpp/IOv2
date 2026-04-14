@@ -140,7 +140,7 @@ public:
                 }
             }
             else
-                static_assert(DependencyFalse<CharT>, "collate_sale::transform_length is not implemented.");
+                static_assert(DependencyFalse<CharT>, "collate_conf::transform_length is not implemented.");
         }
 
         return res;
@@ -209,7 +209,7 @@ public:
                                    (static_cast<char32_t>(L'伟') == U'伟')))
                     cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(dest), reinterpret_cast<const wchar_t*>(cur), static_cast<unsigned>(-1));
                 else
-                    static_assert(DependencyFalse<CharT>, "collate_sale::transform is not implemented.");
+                    static_assert(DependencyFalse<CharT>, "collate_conf::transform is not implemented.");
                     
                 dest += cur_trans;
                 trans_count += cur_trans;
@@ -227,7 +227,7 @@ public:
                                    (static_cast<char32_t>(L'伟') == U'伟')))
                     trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
                 else
-                    static_assert(DependencyFalse<CharT>, "collate_sale::transform is not implemented.");
+                    static_assert(DependencyFalse<CharT>, "collate_conf::transform is not implemented.");
                     
                 std::vector<CharT> buf2;
                 buf2.resize(trans_len + 1);
@@ -243,7 +243,7 @@ public:
                                    (static_cast<char32_t>(L'伟') == U'伟')))
                     cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()), reinterpret_cast<const wchar_t*>(cur), static_cast<unsigned>(-1));
                 else
-                    static_assert(DependencyFalse<CharT>, "collate_sale::transform is not implemented.");
+                    static_assert(DependencyFalse<CharT>, "collate_conf::transform is not implemented.");
                     
                 cur_trans = std::min(cur_trans, mx_len - trans_count);
                 dest = std::copy(buf2.data(), buf2.data() + cur_trans, dest);
