@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <botan/auto_rng.h>
 #include <botan/stream_cipher.h>
@@ -11,6 +12,19 @@
 
 namespace IOv2::Crypt
 {
+namespace chacha20_cvt_helpers
+{
+inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
+{
+    auto hash = Botan::HashFunction::create("SHA-256");
+    if (!hash)
+        throw cvt_error("chacha20 key generation fail: cannot create SHA-256 hash");
+    
+    hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size());
+    return hash->final();
+}
+}
+
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (std::is_integral_v<typename KernelType::internal_type> &&
               sizeof(typename KernelType::internal_type) == sizeof(uint8_t))
@@ -21,11 +35,13 @@ public:
     using internal_type = TInt;
     using external_type = typename KernelType::internal_type;
 
+    static constexpr size_t block_size = 64;
+
 private:
     using BT = abs_cvt<KernelType, TInt, true, false, false>;
 
 public:
-    chacha20_cvt(KernelType kernel, const std::string& key)
+    chacha20_cvt(KernelType kernel, std::string_view key)
         : BT(std::move(kernel))
         , m_cipher(Botan::StreamCipher::create("ChaCha20"))
         , m_bos_done(false)
@@ -33,12 +49,17 @@ public:
         if (!m_cipher)
             throw cvt_error("chacha20_cvt constructor fail: cannot create the stream cipher");
 
-        auto hash = Botan::HashFunction::create("SHA-256");
-        if (!hash)
-            throw cvt_error("chacha20_cvt::bos fail: cannot create SHA-256 hash");
-        
-        hash->update((const uint8_t*)key.data(), key.size());
-        m_key = hash->final();
+        m_key = chacha20_cvt_helpers::key_gen(key);
+    }
+
+    chacha20_cvt(KernelType kernel, const Botan::secure_vector<uint8_t>& key)
+        : BT(std::move(kernel))
+        , m_cipher(Botan::StreamCipher::create("ChaCha20"))
+        , m_key(key)
+        , m_bos_done(false)
+    {
+        if (!m_cipher)
+            throw cvt_error("chacha20_cvt constructor fail: cannot create the stream cipher");
     }
     
     chacha20_cvt(const chacha20_cvt&) = delete;
@@ -75,17 +96,17 @@ public:
             auto ptr = rd.template get_buf<true>(iv_len);
 
             m_cipher->set_key(m_key);
-            m_cipher->set_iv((uint8_t*)ptr, iv_len);
+            m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
         }
         else if (m_io_status == io_status::output)
         {
             Botan::AutoSeeded_RNG rng;
             auto wt = this->writer(iv_len);
             auto ptr = wt.put_buf(iv_len);
-            rng.randomize((uint8_t*)ptr, iv_len);
+            rng.randomize(reinterpret_cast<uint8_t*>(ptr), iv_len);
 
             m_cipher->set_key(m_key);
-            m_cipher->set_iv((uint8_t*)ptr, iv_len);
+            m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
         }
         else
             throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
@@ -108,17 +129,17 @@ public:
         if (m_io_status == io_status::output)
             throw cvt_error("chacha20_cvt::get fails: not available");
 
-        uint8_t* to = (uint8_t*)_to;
+        uint8_t* to = reinterpret_cast<uint8_t*>(_to);
         to_max *= sizeof(internal_type);
 
-        auto rd = this->reader(64);
+        auto rd = this->reader(block_size);
         size_t res = 0;
         while (res != to_max)
         {
-            size_t dest_size = std::min<size_t>(64, to_max - res);
+            size_t dest_size = std::min<size_t>(block_size, to_max - res);
             auto [ptr, cur_len] = rd.get_buf(dest_size);
             if (cur_len == 0) break;
-            m_cipher->cipher((uint8_t*)ptr, to, cur_len);
+            m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, cur_len);
             to += cur_len;
             res += cur_len;
         }
@@ -136,16 +157,16 @@ public:
         if (m_io_status == io_status::input)
             throw cvt_error("chacha20_cvt::put fails: not available");
 
-        auto wt = this->writer(64);
-        uint8_t* to = (uint8_t*)_to;
+        auto wt = this->writer(block_size);
+        const uint8_t* to = reinterpret_cast<const uint8_t*>(_to);
         to_size *= sizeof(internal_type);
 
         size_t to_i = 0;
         while (to_i != to_size)
         {
-            size_t dest_size = std::min<size_t>(64, to_size - to_i);
+            size_t dest_size = std::min<size_t>(block_size, to_size - to_i);
             auto ptr = wt.put_buf(dest_size);
-            m_cipher->cipher(to + to_i, (uint8_t *)ptr, dest_size);
+            m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size);
             to_i += dest_size;
         }
         return;
@@ -162,8 +183,8 @@ struct chacha20_cvt_creator
 {
 public:
     using category = CvtCreatorCategory;
-    chacha20_cvt_creator(const std::string& key)
-        : m_key(key) {}
+    chacha20_cvt_creator(std::string_view key)
+        : m_key(chacha20_cvt_helpers::key_gen(key)) {}
 
     template <io_converter TKernel>
     auto create(TKernel&& kernel) const
@@ -172,6 +193,6 @@ public:
     }
 
 private:
-    std::string m_key;
+    Botan::secure_vector<uint8_t> m_key;
 };
 }
