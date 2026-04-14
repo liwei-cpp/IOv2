@@ -407,7 +407,7 @@ private:
     io_status   m_io_status;
     bool        m_sync_flush;
     
-    z_stream    m_strm;
+    z_stream    m_strm{};
 };
 
 template <typename TInt>
