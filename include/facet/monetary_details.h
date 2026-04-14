@@ -214,7 +214,7 @@ public:
         else
         {
             clocale_wrapper inter_locale(name.c_str());
-            clocale_user guard(inter_locale.c_locale);
+            clocale_user guard(inter_locale);
             
             m_decimal_point = FacetHelper::string_to_char_convert(nl_langinfo(__MON_DECIMAL_POINT), name);
             m_thousands_sep = FacetHelper::string_to_char_convert(nl_langinfo(__MON_THOUSANDS_SEP), name);
@@ -351,7 +351,7 @@ public:
         {
             union { char *s; wchar_t w; } u;
             clocale_wrapper inter_locale(name.c_str());
-            clocale_user guard(inter_locale.c_locale);
+            clocale_user guard(inter_locale);
 
             u.s = nl_langinfo(_NL_MONETARY_DECIMAL_POINT_WC);
             m_decimal_point = u.w;

@@ -104,7 +104,7 @@ public:
         : ft_basic<ctype<CharT>>()
         , m_inter_locale(name.c_str())
     {
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
         for (size_t j = 0; j < sizeof(m_widen) / sizeof(wint_t); ++j)
           m_widen[j] = btowc(j);
           
@@ -152,7 +152,7 @@ public:
 
     virtual std::optional<char> narrow(CharT wc) const
     {
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
         const int c = wctob(wc);
         if (c == EOF) return std::nullopt;
         else return static_cast<char>(c);
