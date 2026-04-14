@@ -28,7 +28,7 @@ class prefix_tree
     {
         std::unordered_map<CharT, std::unique_ptr<node>> children;
         TValue val;
-        int depth;
+        size_t depth;
 
         node(TValue v, int d)
             : val(v)
@@ -87,7 +87,7 @@ public:
     TIter max_match(TIter b, TSent e, TValue& out) const
     {
         out = m_root.val;
-        int found_depth = 0;
+        size_t found_depth = 0;
         
         const node* node_ptr = &m_root;
         for (; b != e; ++b)
@@ -104,7 +104,11 @@ public:
         }
         
         if (node_ptr->depth != found_depth)
-            std::advance(b, found_depth - node_ptr->depth);
+        {
+            const size_t steps_back = node_ptr->depth - found_depth;
+            std::advance(b, -static_cast<std::ptrdiff_t>(steps_back));
+
+        }
         return b;
     }
 
