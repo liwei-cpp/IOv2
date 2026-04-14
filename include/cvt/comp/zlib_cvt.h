@@ -138,7 +138,11 @@ public:
 
     ~zlib_cvt()
     {
-        close_stream();
+        try
+        {
+            close_stream();
+        }
+        catch (...) {}
     }
 
 // mandatory methods
