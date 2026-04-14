@@ -30,7 +30,7 @@ struct codecvt_kernel<char, TInt>
     codecvt_kernel(const std::string& name)
         : m_inter_locale(name.c_str())
     {
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
 
         // there are no known constant length encodings
         // m_epc == 1 means fix len
@@ -51,7 +51,7 @@ struct codecvt_kernel<char, TInt>
     
     bool out_helper(TInt ch, char*& to, char* to_end)
     {
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
         if (to_end - to < m_epc)
             return false;
 
@@ -68,7 +68,7 @@ struct codecvt_kernel<char, TInt>
     std::pair<bool, size_t> in_helper(const char*& from, const char* from_end,
                                       TInt*& to, TInt* to_end)
     {
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
         wchar_t wch = 0;
         size_t i_count = 0;
 

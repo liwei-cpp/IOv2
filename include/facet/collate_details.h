@@ -31,7 +31,7 @@ public:
         std::vector<CharT> buf1; bool extra_eos1 = false;
         std::vector<CharT> buf2; bool extra_eos2 = false;
         
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
         
         while ((low1 != high1) && (low2 != high2))
         {
@@ -104,7 +104,7 @@ public:
         size_t res = 0;
         std::vector<CharT> buf;
         
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
         while (low != high)
         {
             const CharT* cur = low;
@@ -152,7 +152,7 @@ public:
         std::vector<CharT> buf;
         bool extra_eos = false;
         
-        clocale_user guard(m_inter_locale.c_locale);
+        clocale_user guard(m_inter_locale);
         while ((low != high) && ((mx_len == 0) || (trans_count < mx_len)))
         {
             const CharT* cur = low;

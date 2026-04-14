@@ -259,7 +259,7 @@ private:
 
         {
             clocale_wrapper inter_locale("C");
-            clocale_user guard(inter_locale.c_locale);
+            clocale_user guard(inter_locale);
             len = sprintf(cs, fbuf, prec, v);
         }
 
@@ -863,7 +863,7 @@ private:
         char* sanity;
 
         clocale_wrapper inter_locale("C");
-        clocale_user guard(inter_locale.c_locale);
+        clocale_user guard(inter_locale);
 
         if constexpr (std::is_same_v<TValue, float>)
             v = strtof(s, &sanity);

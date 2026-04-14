@@ -31,7 +31,7 @@ public:
         else
         {
             clocale_wrapper inter_locale(name.c_str());
-            clocale_user guard(inter_locale.c_locale);
+            clocale_user guard(inter_locale);
             
             m_decimal_point = FacetHelper::string_to_char_convert(nl_langinfo(DECIMAL_POINT), name);
             m_thousands_sep = FacetHelper::string_to_char_convert(nl_langinfo(THOUSANDS_SEP), name);
@@ -106,7 +106,7 @@ public:
         }
 
         clocale_wrapper inter_locale(name.c_str());
-        clocale_user guard(inter_locale.c_locale);
+        clocale_user guard(inter_locale);
         
         union { char* s; CharT w; } u;
 
