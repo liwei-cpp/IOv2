@@ -159,7 +159,7 @@ public:
         else
         {
             clocale_wrapper inter_locale(name.c_str());
-            clocale_user guard(inter_locale.c_locale);
+            clocale_user guard(inter_locale);
 
             m_date_format = nl_langinfo(D_FMT);
             m_era_date_format = nl_langinfo(ERA_D_FMT);  if (m_era_date_format.empty()) m_era_date_format = m_date_format;
@@ -409,7 +409,7 @@ public:
         else
         {
             clocale_wrapper inter_locale(name.c_str());
-            clocale_user guard(inter_locale.c_locale);
+            clocale_user guard(inter_locale);
             using namespace IOv2::FacetHelper;
             m_date_format = nl_langinfo_w<CharT>(_NL_WD_FMT);
             m_era_date_format = nl_langinfo_w<CharT>(_NL_WERA_D_FMT);  if (m_era_date_format.empty()) m_era_date_format = m_date_format;
