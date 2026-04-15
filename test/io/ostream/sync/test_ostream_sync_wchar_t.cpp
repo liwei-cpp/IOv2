@@ -28,7 +28,7 @@ void test_ostream_sync_wchar_t_1()
         std::vector<std::thread> tr_vec;
         tr_vec.reserve(thread_num);
 
-        for (size_t i = 0; i < thread_num; ++i)
+        for (size_t thread_ID = 0; thread_ID < thread_num; ++thread_ID)
         {
             std::thread tr([&ostr]()
             {
