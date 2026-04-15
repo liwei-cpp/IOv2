@@ -14,11 +14,11 @@ void test_lru_cache_basic()
     cache.put(3, "three");
 
     auto r1 = cache.get(1);
-    VERIFY(r1.has_value() && *r1 == "one");
+    VERIFY(r1 && *r1 == "one");
     auto r2 = cache.get(2);
-    VERIFY(r2.has_value() && *r2 == "two");
+    VERIFY(r2 && *r2 == "two");
     auto r3 = cache.get(3);
-    VERIFY(r3.has_value() && *r3 == "three");
+    VERIFY(r3 && *r3 == "three");
     dump_info("Done\n");
 }
 
@@ -30,7 +30,7 @@ void test_lru_cache_update()
     cache.put(1, "world"); // Should update existing key
 
     auto result = cache.get(1);
-    VERIFY(result.has_value() && *result == "world");
+    VERIFY(result && *result == "world");
     dump_info("Done\n");
 }
 
@@ -42,7 +42,7 @@ void test_lru_cache_try_put()
     VERIFY(cache.try_put(1, "world") == false); // Should NOT update
 
     auto result = cache.get(1);
-    VERIFY(result.has_value() && *result == "hello");
+    VERIFY(result && *result == "hello");
     dump_info("Done\n");
 }
 
@@ -60,13 +60,31 @@ void test_lru_cache_eviction()
     cache.put(3, "three"); 
 
     auto r1 = cache.get(1);
-    VERIFY(r1.has_value() && *r1 == "one");
+    VERIFY(r1 && *r1 == "one");
     
     auto r2 = cache.get(2);
-    VERIFY(!r2.has_value());
+    VERIFY(!r2);
     
     auto r3 = cache.get(3);
-    VERIFY(r3.has_value() && *r3 == "three");
+    VERIFY(r3 && *r3 == "three");
+    dump_info("Done\n");
+}
+
+void test_lru_cache_small_type()
+{
+    dump_info("Test lru_cache small type...");
+    lru_cache<int, int, 2> cache;
+    cache.put(1, 100);
+    cache.put(2, 200);
+
+    auto r1 = cache.get(1);
+    VERIFY(r1 && *r1 == 100);
+    
+    auto r2 = cache.get(2);
+    VERIFY(r2 && *r2 == 200);
+    
+    cache.put(3, 300);
+    VERIFY(!cache.get(1)); // 1 should be evicted
     dump_info("Done\n");
 }
 
@@ -76,4 +94,5 @@ void test_lru_cache()
     test_lru_cache_update();
     test_lru_cache_try_put();
     test_lru_cache_eviction();
+    test_lru_cache_small_type();
 }
