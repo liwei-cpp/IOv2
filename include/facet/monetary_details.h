@@ -472,7 +472,6 @@ public:
     virtual CharT thousands_sep() const { return m_thousands_sep; }
 
 private:
-    const std::string           name;
     std::vector<uint8_t>        m_grouping;
     std::basic_string<CharT>    m_curr_symbol_int;
     std::basic_string<CharT>    m_curr_symbol_nat;
@@ -586,7 +585,6 @@ public:
     virtual char8_t thousands_sep() const { return m_thousands_sep; }
 
 private:
-    const std::string           name;
     std::vector<uint8_t>        m_grouping;
     std::basic_string<char8_t>  m_curr_symbol_int;
     std::basic_string<char8_t>  m_curr_symbol_nat;

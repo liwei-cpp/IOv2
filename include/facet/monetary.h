@@ -79,7 +79,7 @@ public:
             uv = v;
         else
         {
-            bool negative = (v < 0);
+            negative = (v < 0);
             uv = negative ? static_cast<TU>(-(v + 1)) + 1
                           : static_cast<TU>(v);
         }
