@@ -283,7 +283,7 @@ void test_cvt_pipe_creator_io_1()
                    Comp::zlib_cvt_creator<char>(6) | 
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
-    auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& creator)
+    auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& p_creator)
     {
         std::string e_lit;
         if (obj.bos() != io_status::output) throw std::runtime_error("cvt_pipe::bos response incorrect");
@@ -293,7 +293,7 @@ void test_cvt_pipe_creator_io_1()
         auto dev = obj.detach();
         e_lit = dev.str();
         
-        T obj2 = creator.create(make_root_cvt<true>(mem_device(e_lit)));
+        T obj2 = p_creator.create(make_root_cvt<true>(mem_device(e_lit)));
         std::u32string ilit2; ilit2.resize(4102 * 2);
         if (obj2.bos() != io_status::input) throw std::runtime_error("cvt_pipe::bos response incorrect");
         obj2.main_cont_beg();
@@ -330,7 +330,7 @@ void test_cvt_pipe_creator_io_2()
                    (Comp::zlib_cvt_creator<char>(6) | 
                     code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
 
-    auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& creator)
+    auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& p_creator)
     {
         std::string e_lit;
         if (obj.bos() != io_status::output) throw std::runtime_error("cvt_pipe::bos response incorrect");
@@ -340,7 +340,7 @@ void test_cvt_pipe_creator_io_2()
         auto dev = obj.detach();
         e_lit = dev.str();
         
-        T obj2 = creator.create(make_root_cvt<true>(mem_device(e_lit)));
+        T obj2 = p_creator.create(make_root_cvt<true>(mem_device(e_lit)));
         std::u32string ilit2; ilit2.resize(4102 * 2);
         if (obj2.bos() != io_status::input) throw std::runtime_error("cvt_pipe::bos response incorrect");
         obj2.main_cont_beg();

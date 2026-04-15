@@ -314,7 +314,7 @@ void test_root_cvt_mem_put_1()
         e_lit[i+6] = (i / 7) % 127 + 1;
     }
 
-    auto helper = [] (const std::string& e_lit, auto& obj)
+    auto helper = [&e_lit = std::as_const(e_lit)] (auto& obj)
     {
         size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
 
@@ -338,10 +338,10 @@ void test_root_cvt_mem_put_1()
     };
 
     auto obj1 = make_root_cvt<true>(mem_device(""));
-    helper(e_lit, obj1);
+    helper(obj1);
     
     runtime_cvt obj2(make_root_cvt<true>(mem_device("")));
-    helper(e_lit, obj2);
+    helper(obj2);
 
     dump_info("Done\n");
 }

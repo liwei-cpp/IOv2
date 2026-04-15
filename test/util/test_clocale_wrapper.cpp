@@ -54,10 +54,17 @@ void test_clocale_wrapper_self_assignment()
     
     // Self copy assignment
     loc1 = loc1;
-    
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
     // Self move assignment
     loc1 = std::move(loc1);
-    
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
     dump_info("Done\n");
 }
 
