@@ -6,11 +6,11 @@ CXX := /usr/bin/g++
 # CXX := /usr/bin/clang++
 
 ifeq ($(MODE),debug)
-    COMP_FLAGS := -Wall -std=c++23 -g -O0 -I../include -I. -I/usr/include/botan-2/
+    COMP_FLAGS := -Wall -Wshadow -Wself-move -std=c++23 -g -O0 -I../include -I. -I/usr/include/botan-2/
     OBJ_DIR := obj_debug
     BIN_DIR := bin_debug
 else
-    COMP_FLAGS := -O3 -Wall -std=c++23 -g -DNDEBUG -I../include -I. -I/usr/include/botan-2/
+    COMP_FLAGS := -O3 -Wall -Wshadow -Wself-move -std=c++23 -g -DNDEBUG -I../include -I. -I/usr/include/botan-2/
     OBJ_DIR := obj_release
     BIN_DIR := bin_release
 endif

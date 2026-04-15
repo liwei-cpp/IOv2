@@ -118,7 +118,7 @@ public:
         std::forward_list<CharT> checking_chars;
 
         out = m_root.val;
-        int found_depth = 0;
+        size_t found_depth = 0;
         
         const node* node_ptr = &m_root;
         for (; b != e;)
