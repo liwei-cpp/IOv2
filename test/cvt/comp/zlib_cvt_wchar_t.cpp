@@ -502,21 +502,21 @@ void test_zlib_cvt_wchar_t_flush_1()
         
         {
             Comp::zlib_cvt_creator<wchar_t> creator{8};
-            T obj(creator.create(make_root_cvt<true>(mem_device(""))));
-            if (obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
-            obj.main_cont_beg();
+            T local_obj(creator.create(make_root_cvt<true>(mem_device(""))));
+            if (local_obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
+            local_obj.main_cont_beg();
             
             wchar_t* cur_pos = s_e_lit.data();
             int buffer_id = 0;
             while (cur_pos < s_e_lit.data() + 4102)
             {
                 size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
-                obj.flush();
+                local_obj.put(cur_pos, dest_size);
+                local_obj.flush();
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.detach();
+            auto dev = local_obj.detach();
             if (compress_res != dev.str()) throw std::runtime_error("zlib_cvt::flush response incorrect");
         }
     };
@@ -561,29 +561,29 @@ void test_zlib_cvt_wchar_t_flush_2()
         
         {
             Comp::zlib_cvt_creator<wchar_t> creator{8};
-            T obj(creator.create(make_root_cvt<true>(mem_device(""))));
-            if (obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
-            obj.main_cont_beg();
+            T local_obj(creator.create(make_root_cvt<true>(mem_device(""))));
+            if (local_obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
+            local_obj.main_cont_beg();
     
             Comp::zlib_sync_flush acc(true);
-            obj.adjust(acc);
+            local_obj.adjust(acc);
             
             wchar_t* cur_pos = s_e_lit.data();
             int buffer_id = 0;
             while (cur_pos < s_e_lit.data() + 4102)
             {
-                size_t ori_dev_size = obj.device().str().size();
+                size_t ori_dev_size = local_obj.device().str().size();
                 size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
+                local_obj.put(cur_pos, dest_size);
                 
-                if (obj.device().str().size() != ori_dev_size) throw std::runtime_error("zlib_cvt::put response incorrect");
-                obj.flush();
-                if (obj.device().str().size() == ori_dev_size) throw std::runtime_error("zlib_cvt::flush response incorrect");
+                if (local_obj.device().str().size() != ori_dev_size) throw std::runtime_error("zlib_cvt::put response incorrect");
+                local_obj.flush();
+                if (local_obj.device().str().size() == ori_dev_size) throw std::runtime_error("zlib_cvt::flush response incorrect");
                 
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.detach();
+            auto dev = local_obj.detach();
             if (compress_res == dev.str()) throw std::runtime_error("zlib_cvt::flush response incorrect");
             
             compress_res = dev.str();
@@ -591,12 +591,12 @@ void test_zlib_cvt_wchar_t_flush_2()
     
         {
             Comp::zlib_cvt_creator<wchar_t> creator{0};
-            T obj(creator.create(make_root_cvt<true>(mem_device(compress_res))));
-            if (obj.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
-            obj.main_cont_beg();
+            T local_obj(creator.create(make_root_cvt<true>(mem_device(compress_res))));
+            if (local_obj.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
+            local_obj.main_cont_beg();
     
             std::wstring out_buf; out_buf.resize(4200);
-            auto s = obj.get(out_buf.data(), 4200);
+            auto s = local_obj.get(out_buf.data(), 4200);
             if (s != 4102) throw std::runtime_error("zlib_cvt::get response incorrect");
             if (out_buf.substr(0, 4102) != s_e_lit) throw std::runtime_error("zlib_cvt::get response incorrect");
         }
@@ -642,21 +642,21 @@ void test_zlib_cvt_wchar_t_reset_1()
         
         {
             Comp::zlib_cvt_creator<wchar_t> creator{8};
-            T obj(creator.create(make_root_cvt<true>(mem_device(""))));
-            if (obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
-            obj.main_cont_beg();
+            T local_obj(creator.create(make_root_cvt<true>(mem_device(""))));
+            if (local_obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
+            local_obj.main_cont_beg();
             
             wchar_t* cur_pos = s_e_lit.data();
             int buffer_id = 0;
             while (cur_pos < s_e_lit.data() + 4102)
             {
                 size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
-                obj.flush();
+                local_obj.put(cur_pos, dest_size);
+                local_obj.flush();
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.detach();
+            auto dev = local_obj.detach();
             if (compress_res != dev.str()) throw std::runtime_error("zlib_cvt::flush response incorrect");
         }
     };
