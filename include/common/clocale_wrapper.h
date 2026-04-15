@@ -73,16 +73,38 @@ private:
     locale_t c_locale;
 };
 
+/// RAII guard for temporarily switching the current thread's C locale.
+///
+/// @note This class is NOT thread-safe in the sense that:
+///       - The object must be constructed and destructed in the SAME thread
+///       - Copy and move operations are disabled to prevent cross-thread usage
+///       - uselocale() only affects the calling thread's locale
+///
+/// @example
+///     clocale_wrapper zh_locale("zh_CN.UTF-8");
+///     {
+///         clocale_user guard(zh_locale);  // Switch to Chinese locale
+///         // ... locale-sensitive operations ...
+///     }  // Automatically restore previous locale
+///
 struct clocale_user
 {
-    clocale_user(const clocale_wrapper& wrapper)
+    /// Construct a locale guard that switches to the specified locale.
+    /// @param wrapper The locale to switch to
+    /// @note Captures the current thread's locale for later restoration
+    explicit clocale_user(const clocale_wrapper& wrapper) noexcept
         : old(uselocale(wrapper.c_locale))
     { }
-    
+
+    // Non-copyable and non-movable to prevent cross-thread usage
     clocale_user(const clocale_user&) = delete;
     clocale_user& operator= (const clocale_user&) = delete;
-    
-    ~clocale_user()
+    clocale_user(clocale_user&&) = delete;
+    clocale_user& operator= (clocale_user&&) = delete;
+
+    /// Restore the previous locale.
+    /// @note Must be called from the same thread that constructed this object
+    ~clocale_user() noexcept
     {
         uselocale(old);
     }
