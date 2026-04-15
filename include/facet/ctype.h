@@ -124,7 +124,7 @@ public:
     char narrow(CharT c, char def) const
     {
         auto res = narrow(c);
-        return res.has_value() ? res.value() : def;
+        return res ? *res : def;
     }
 
     template <typename InIt, typename OutIt>
@@ -253,7 +253,7 @@ public:
     char narrow(CharT c, char def) const
     {
         auto res = narrow(c);
-        return res.has_value() ? res.value() : def;
+        return res ? *res : def;
     }
 
     template <typename InIt, typename OutIt>
@@ -262,7 +262,7 @@ public:
         while (beg < end)
         {
             auto res = do_narrow(*beg++);
-            *dst++ = res.has_value() ? res.value() : dflt;
+            *dst++ = res ? *res : dflt;
         }
         return dst;
     }
@@ -275,13 +275,13 @@ private:
 
         std::lock_guard g(m_lru_mutex);
         auto res = m_table_cache.get(c);
-        if (!res.has_value())
+        if (!res)
         {
             auto v = m_obj->is(c);
             m_table_cache.try_put(c, v);
             return v;
         }
-        return res.value();
+        return *res;
     }
     
     CharT do_toupper(CharT c) const
@@ -291,13 +291,13 @@ private:
 
         std::lock_guard g(m_lru_mutex);
         auto res = m_upper_cache.get(c);
-        if (!res.has_value())
+        if (!res)
         {
             auto v = m_obj->toupper(c);
             m_upper_cache.try_put(c, v);
             return v;
         }
-        return res.value();
+        return *res;
     }
     
     CharT do_tolower(CharT c) const
@@ -307,13 +307,13 @@ private:
 
         std::lock_guard g(m_lru_mutex);
         auto res = m_lower_cache.get(c);
-        if (!res.has_value())
+        if (!res)
         {
             auto v = m_obj->tolower(c);
             m_lower_cache.try_put(c, v);
             return v;
         }
-        return res.value();
+        return *res;
     }
     
     std::optional<char> do_narrow(CharT c) const
@@ -323,13 +323,13 @@ private:
 
         std::lock_guard g(m_lru_mutex);
         auto res = m_narrow_cache.get(c);
-        if (!res.has_value())
+        if (!res)
         {
             auto v = m_obj->narrow(c);
             m_narrow_cache.try_put(c, v);
             return v;
         }
-        return res.value();
+        return *res;
     }
 private:
     std::shared_ptr<const ctype_conf<CharT>> m_obj;

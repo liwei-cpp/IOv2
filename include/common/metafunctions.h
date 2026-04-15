@@ -10,6 +10,9 @@ namespace IOv2
     template <auto... T>
     constexpr bool DependencyFalseV = false;
 
+    template <typename T>
+    inline constexpr bool is_small_type_v = sizeof(T) <= 2 * sizeof(void*);
+
     template<typename, typename>
     struct shared_ptr_to_impl : std::false_type {};
 
