@@ -1,6 +1,7 @@
 #pragma once
 #include <langinfo.h>
 #include <cstring>
+#include <bit>
 #include <string>
 #include <vector>
 
@@ -108,13 +109,13 @@ public:
         clocale_wrapper inter_locale(name.c_str());
         clocale_user guard(inter_locale);
         
-        union { char* s; CharT w; } u;
+        // glibc quirk: _NL_NUMERIC_*_WC returns wchar_t value encoded as char* (hack design).
+        // We use std::bit_cast to safely reinterpret the bits after converting to a 32-bit integer.
+        auto decimal_ptr = nl_langinfo(_NL_NUMERIC_DECIMAL_POINT_WC);
+        m_decimal_point = std::bit_cast<CharT>(static_cast<uint32_t>(reinterpret_cast<std::uintptr_t>(decimal_ptr)));
 
-        u.s = nl_langinfo(_NL_NUMERIC_DECIMAL_POINT_WC);
-        m_decimal_point = u.w;
-
-        u.s = nl_langinfo(_NL_NUMERIC_THOUSANDS_SEP_WC);
-        m_thousands_sep = u.w;
+        auto thousands_ptr = nl_langinfo(_NL_NUMERIC_THOUSANDS_SEP_WC);
+        m_thousands_sep = std::bit_cast<CharT>(static_cast<uint32_t>(reinterpret_cast<std::uintptr_t>(thousands_ptr)));
                 
         if (m_thousands_sep != '\0')
         {
