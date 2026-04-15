@@ -2,6 +2,7 @@
 #include <langinfo.h>
 #include <array>
 #include <cstring>
+#include <bit>
 #include <string>
 #include <vector>
 #include <common/clocale_wrapper.h>
@@ -349,14 +350,16 @@ public:
         }
         else
         {
-            union { char *s; wchar_t w; } u;
             clocale_wrapper inter_locale(name.c_str());
             clocale_user guard(inter_locale);
 
-            u.s = nl_langinfo(_NL_MONETARY_DECIMAL_POINT_WC);
-            m_decimal_point = u.w;
-            u.s = nl_langinfo(_NL_MONETARY_THOUSANDS_SEP_WC);
-            m_thousands_sep = u.w;
+            // glibc quirk: _NL_MONETARY_*_WC returns wchar_t value encoded as char* (hack design).
+            // We use std::bit_cast to safely reinterpret the bits after converting to a 32-bit integer.
+            auto decimal_ptr = nl_langinfo(_NL_MONETARY_DECIMAL_POINT_WC);
+            m_decimal_point = std::bit_cast<CharT>(static_cast<uint32_t>(reinterpret_cast<std::uintptr_t>(decimal_ptr)));
+
+            auto thousands_ptr = nl_langinfo(_NL_MONETARY_THOUSANDS_SEP_WC);
+            m_thousands_sep = std::bit_cast<CharT>(static_cast<uint32_t>(reinterpret_cast<std::uintptr_t>(thousands_ptr)));
             
             if (static_cast<int>(m_decimal_point) == 0)
             {
