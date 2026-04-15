@@ -83,7 +83,7 @@ void test_ostream_seek_wchar_t_2()
     const wchar_t* s = L" lootpack, peanut butter wolf, rob swift, madlib, quasimoto";
 
     // write_rewind
-    [&s](auto& stream)
+    [&s, &stream]()
     {
         for (int j = 0; j < times; j++) 
         {
@@ -95,11 +95,11 @@ void test_ostream_seek_wchar_t_2()
             stream.seek(begin);
         }
         VERIFY(stream.good());
-    }(stream);
+    }();
     stream.seek(0);
 
     //check_contents
-    [](auto& stream)
+    [&stream]()
     {
         stream.clear();
         stream.seek(0);
@@ -115,7 +115,7 @@ void test_ostream_seek_wchar_t_2()
         }
         VERIFY( i == times - 1 );
         VERIFY( stream.rdstate() == IOv2::ios_defs::eofbit );
-    }(stream);
+    }();
 
     dump_info("Done\n");
 }

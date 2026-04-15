@@ -82,9 +82,9 @@ void test_chacha20_cvt_wchar_t_gen_2()
         }
     
         {
-            T obj(creator.create(make_root_cvt<true>(mem_device(enc_msg))));
-            if (obj.bos() != io_status::input) throw std::runtime_error("chacha20::bos response incorrect");
-            obj.main_cont_beg();
+            T local_obj(creator.create(make_root_cvt<true>(mem_device(enc_msg))));
+            if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20::bos response incorrect");
+            local_obj.main_cont_beg();
             
             size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
         
@@ -94,14 +94,14 @@ void test_chacha20_cvt_wchar_t_gen_2()
             int out_buffer_id = 0;
             while (true)
             {
-                auto obj2(std::move(obj));
+                auto obj2(std::move(local_obj));
                 size_t dest_size = std::min<size_t>(4102 * 2 - total_count, out_buffer_size[out_buffer_id++]);
                 auto s = obj2.get(cur_pos, dest_size);
                 out_buffer_id %= std::size(out_buffer_size);
                 cur_pos += s;
                 total_count += s;
                 if (s == 0) break;
-                obj = std::move(obj2);
+                local_obj = std::move(obj2);
             }
         
             if (cur_pos - buf.data() != 4102) throw std::runtime_error("code_cvt<memory<char>>::get response incorrect");
@@ -225,13 +225,13 @@ void test_chacha20_cvt_wchar_t_io_1()
         }
     
         {
-            T obj(creator.create(make_root_cvt<true>(mem_device(enc_msg))));
-            if (obj.bos() != io_status::input) throw std::runtime_error("chacha20_cvt::bos response incorrect");
-            obj.main_cont_beg();
+            T local_obj(creator.create(make_root_cvt<true>(mem_device(enc_msg))));
+            if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20_cvt::bos response incorrect");
+            local_obj.main_cont_beg();
             
             std::wstring buf;
             buf.resize(4102 * 2);
-            if (obj.get(buf.data(), buf.size()) != 4102) throw std::runtime_error("chacha20_cvt::get response incorrect");
+            if (local_obj.get(buf.data(), buf.size()) != 4102) throw std::runtime_error("chacha20_cvt::get response incorrect");
             buf.resize(4102);
             if (buf != e_lit) throw std::runtime_error("chacha20_cvt io response incorrect");
         }
