@@ -2,6 +2,7 @@
 #include <langinfo.h>
 
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <chrono>
 #include <ctime>
@@ -349,202 +350,69 @@ public:
     timeio_conf(const std::string& name)
         : ft_basic<timeio<CharT>>()
     {
-        using namespace IOv2::FacetHelper;
-        if ((name == "C") || (name == "POSIX"))
+        timeio_conf<char> tmp_obj(name);
+
+        auto convert = [&name](const std::string& src) -> std::basic_string<CharT>
         {
-            m_date_format = string_convert<CharT>("%m/%d/%y");     m_era_date_format = m_date_format;
-            m_time_format = string_convert<CharT>("%H:%M:%S");     m_era_time_format = m_time_format;
+            if constexpr (std::is_same_v<CharT, wchar_t>)
+                return to_wstring(src.c_str(), name);
+            else
+                return to_u32string(src.c_str(), name);
+        };
 
-            m_date_time_format = m_date_format + static_cast<CharT>(' ') + m_time_format;
-            m_era_date_time_format = m_date_time_format;
+        m_date_format = convert(tmp_obj.date_format());
+        m_era_date_format = convert(tmp_obj.era_date_format());
+        m_time_format = convert(tmp_obj.time_format());
+        m_era_time_format = convert(tmp_obj.era_time_format());
+        m_date_time_format = convert(tmp_obj.date_time_format());
+        m_era_date_time_format = convert(tmp_obj.era_date_time_format());
 
-            m_am = string_convert<CharT>("AM");
-            m_pm = string_convert<CharT>("PM");
-            m_am_pm_format = string_convert<CharT>("%I:%M:%S %p");
+        m_am = convert(tmp_obj.am_name());
+        m_pm = convert(tmp_obj.pm_name());
+        m_am_pm_format = convert(tmp_obj.am_pm_format());
 
-            m_day[0] = string_convert<CharT>("Sunday");
-            m_day[1] = string_convert<CharT>("Monday");
-            m_day[2] = string_convert<CharT>("Tuesday");
-            m_day[3] = string_convert<CharT>("Wednesday");
-            m_day[4] = string_convert<CharT>("Thursday");
-            m_day[5] = string_convert<CharT>("Friday");
-            m_day[6] = string_convert<CharT>("Saturday");
-
-            m_abbr_day[0] = string_convert<CharT>("Sun");
-            m_abbr_day[1] = string_convert<CharT>("Mon");
-            m_abbr_day[2] = string_convert<CharT>("Tue");
-            m_abbr_day[3] = string_convert<CharT>("Wed");
-            m_abbr_day[4] = string_convert<CharT>("Thu");
-            m_abbr_day[5] = string_convert<CharT>("Fri");
-            m_abbr_day[6] = string_convert<CharT>("Sat");
-
-            // Month names, starting with "C"'s January.
-            m_month[0]  = string_convert<CharT>("January");
-            m_month[1]  = string_convert<CharT>("February");
-            m_month[2]  = string_convert<CharT>("March");
-            m_month[3]  = string_convert<CharT>("April");
-            m_month[4]  = string_convert<CharT>("May");
-            m_month[5]  = string_convert<CharT>("June");
-            m_month[6]  = string_convert<CharT>("July");
-            m_month[7]  = string_convert<CharT>("August");
-            m_month[8]  = string_convert<CharT>("September");
-            m_month[9]  = string_convert<CharT>("October");
-            m_month[10] = string_convert<CharT>("November");
-            m_month[11] = string_convert<CharT>("December");
-
-            // Abbreviated month names, starting with "C"'s Jan.
-            m_abbr_month[0]  = string_convert<CharT>("Jan");
-            m_abbr_month[1]  = string_convert<CharT>("Feb");
-            m_abbr_month[2]  = string_convert<CharT>("Mar");
-            m_abbr_month[3]  = string_convert<CharT>("Apr");
-            m_abbr_month[4]  = string_convert<CharT>("May");
-            m_abbr_month[5]  = string_convert<CharT>("Jun");
-            m_abbr_month[6]  = string_convert<CharT>("Jul");
-            m_abbr_month[7]  = string_convert<CharT>("Aug");
-            m_abbr_month[8]  = string_convert<CharT>("Sep");
-            m_abbr_month[9]  = string_convert<CharT>("Oct");
-            m_abbr_month[10] = string_convert<CharT>("Nov");
-            m_abbr_month[11] = string_convert<CharT>("Dec");
+        for (size_t i = 0; i < 7; ++i)
+        {
+            m_day[i] = convert(tmp_obj.day_names()[i]);
+            m_abbr_day[i] = convert(tmp_obj.abbr_day_names()[i]);
         }
-        else
+
+        for (size_t i = 0; i < 12; ++i)
         {
-            clocale_wrapper inter_locale(name.c_str());
-            clocale_user guard(inter_locale);
-            using namespace IOv2::FacetHelper;
-            m_date_format = nl_langinfo_w<CharT>(_NL_WD_FMT);
-            m_era_date_format = nl_langinfo_w<CharT>(_NL_WERA_D_FMT);  if (m_era_date_format.empty()) m_era_date_format = m_date_format;
-            m_time_format = nl_langinfo_w<CharT>(_NL_WT_FMT);
-            m_era_time_format = nl_langinfo_w<CharT>(_NL_WERA_T_FMT);  if (m_era_time_format.empty()) m_era_time_format = m_time_format;
+            m_month[i] = convert(tmp_obj.month_names()[i]);
+            m_abbr_month[i] = convert(tmp_obj.abbr_month_names()[i]);
+        }
 
-            m_date_time_format = nl_langinfo_w<CharT>(_NL_WD_T_FMT);
-            m_era_date_time_format = nl_langinfo_w<CharT>(_NL_WERA_D_T_FMT);
-            if (m_era_date_time_format.empty()) m_era_date_time_format = m_date_time_format;
+        for (size_t i = 0; i < 100; ++i)
+        {
+            m_alt_digits[i] = convert(tmp_obj.alt_digit_names()[i]);
+        }
 
-            m_am = nl_langinfo_w<CharT>(_NL_WAM_STR);
-            m_pm = nl_langinfo_w<CharT>(_NL_WPM_STR);
-            m_am_pm_format = nl_langinfo_w<CharT>(_NL_WT_FMT_AMPM);
-
-            m_day[0] = nl_langinfo_w<CharT>(_NL_WDAY_1);
-            m_day[1] = nl_langinfo_w<CharT>(_NL_WDAY_2);
-            m_day[2] = nl_langinfo_w<CharT>(_NL_WDAY_3);
-            m_day[3] = nl_langinfo_w<CharT>(_NL_WDAY_4);
-            m_day[4] = nl_langinfo_w<CharT>(_NL_WDAY_5);
-            m_day[5] = nl_langinfo_w<CharT>(_NL_WDAY_6);
-            m_day[6] = nl_langinfo_w<CharT>(_NL_WDAY_7);
-
-            m_abbr_day[0] = nl_langinfo_w<CharT>(_NL_WABDAY_1);
-            m_abbr_day[1] = nl_langinfo_w<CharT>(_NL_WABDAY_2);
-            m_abbr_day[2] = nl_langinfo_w<CharT>(_NL_WABDAY_3);
-            m_abbr_day[3] = nl_langinfo_w<CharT>(_NL_WABDAY_4);
-            m_abbr_day[4] = nl_langinfo_w<CharT>(_NL_WABDAY_5);
-            m_abbr_day[5] = nl_langinfo_w<CharT>(_NL_WABDAY_6);
-            m_abbr_day[6] = nl_langinfo_w<CharT>(_NL_WABDAY_7);
-
-            // Month names, starting with "C"'s January.
-            m_month[0]  = nl_langinfo_w<CharT>(_NL_WMON_1);
-            m_month[1]  = nl_langinfo_w<CharT>(_NL_WMON_2);
-            m_month[2]  = nl_langinfo_w<CharT>(_NL_WMON_3);
-            m_month[3]  = nl_langinfo_w<CharT>(_NL_WMON_4);
-            m_month[4]  = nl_langinfo_w<CharT>(_NL_WMON_5);
-            m_month[5]  = nl_langinfo_w<CharT>(_NL_WMON_6);
-            m_month[6]  = nl_langinfo_w<CharT>(_NL_WMON_7);
-            m_month[7]  = nl_langinfo_w<CharT>(_NL_WMON_8);
-            m_month[8]  = nl_langinfo_w<CharT>(_NL_WMON_9);
-            m_month[9]  = nl_langinfo_w<CharT>(_NL_WMON_10);
-            m_month[10] = nl_langinfo_w<CharT>(_NL_WMON_11);
-            m_month[11] = nl_langinfo_w<CharT>(_NL_WMON_12);
-
-            // Abbreviated month names, starting with "C"'s Jan.
-            m_abbr_month[0]  = nl_langinfo_w<CharT>(_NL_WABMON_1);
-            m_abbr_month[1]  = nl_langinfo_w<CharT>(_NL_WABMON_2);
-            m_abbr_month[2]  = nl_langinfo_w<CharT>(_NL_WABMON_3);
-            m_abbr_month[3]  = nl_langinfo_w<CharT>(_NL_WABMON_4);
-            m_abbr_month[4]  = nl_langinfo_w<CharT>(_NL_WABMON_5);
-            m_abbr_month[5]  = nl_langinfo_w<CharT>(_NL_WABMON_6);
-            m_abbr_month[6]  = nl_langinfo_w<CharT>(_NL_WABMON_7);
-            m_abbr_month[7]  = nl_langinfo_w<CharT>(_NL_WABMON_8);
-            m_abbr_month[8]  = nl_langinfo_w<CharT>(_NL_WABMON_9);
-            m_abbr_month[9]  = nl_langinfo_w<CharT>(_NL_WABMON_10);
-            m_abbr_month[10] = nl_langinfo_w<CharT>(_NL_WABMON_11);
-            m_abbr_month[11] = nl_langinfo_w<CharT>(_NL_WABMON_12);
-
-            {// alternative digits
-                union { char* s; CharT* w; } u;
-                u.s = nl_langinfo(_NL_WALT_DIGITS);
-
-                CharT* ptr = u.w;
-                size_t i = 0;
-                for (; i < 100; ++i)
-                {
-                    if (*ptr == CharT{}) break;
-                    m_alt_digits[i] = ptr;
-                    ptr += m_alt_digits[i].size() + 1;
-                }
-                if (i != 100)
-                {
-                    for (size_t j = 0; j< i; ++j)
-                        m_alt_digits[i].clear();
-                }
-            }
-
-            union
+        const auto& tmp_era = tmp_obj.era_items();
+        if (!tmp_era.empty())
+        {
+            m_era_items.reserve(tmp_era.size());
+            for (const auto& src : tmp_era)
             {
-                char *ptr;
-                int32_t word;
-            } u;
-
-            u.ptr = nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES);
-            int32_t era_item_num = u.word;
-            if (era_item_num > 0)
-            {
-                m_era_items.reserve(era_item_num);
-                const char *ptr = (const char*)nl_langinfo(_NL_TIME_ERA_ENTRIES);
-                for (int32_t cnt = 0; cnt < era_item_num; ++cnt)
-                {
-                    const char *base_ptr = ptr;
-                    era_entry cur_entry;
-                    
-                    int32_t buf[8];
-                    memcpy ((void *) (buf), (const void *)ptr, sizeof (int32_t) * 8);
-                    ptr += sizeof (uint32_t) * 8;
-                    
-                    cur_entry.from_year = buf[2] + 1900;
-                    cur_entry.from_month = buf[3] + 1;
-                    cur_entry.from_day = buf[4];
-                    cur_entry.to_year = (buf[5] > std::numeric_limits<int32_t>::max() - 1900) ? std::numeric_limits<int32_t>::max() : buf[5] + 1900;
-                    cur_entry.to_month = buf[6] + 1;
-                    cur_entry.to_day = buf[7];
-                    
-                    if (TimeioHelper::era_small_or_equal(cur_entry.from_year, cur_entry.from_month, cur_entry.from_day,
-                                                        cur_entry.to_year, cur_entry.to_month, cur_entry.to_day))
-                    {
-                        if (buf[0] == (uint32_t) '+') cur_entry.direction = 1;
-                        else cur_entry.direction = -1;
-                    }
-                    else
-                    {
-                        if (buf[0] == (uint32_t) '+') cur_entry.direction = -1;
-                        else cur_entry.direction = 1;
-                    }
-                    cur_entry.offset = buf[1];
-                    
-                    // skip char name and format
-                    ptr = strchr(ptr, '\0') + 1;
-                    ptr = strchr(ptr, '\0') + 1;
-                    
-                    // skip wchar_t name and format
-                    ptr += 3 - (((ptr - (const char *) base_ptr) + 3) & 3);
-                    cur_entry.name = (CharT *) ptr; ptr = (char *) (wcschr ((wchar_t *) ptr, L'\0') + 1);
-                    cur_entry.format = (CharT *) ptr; ptr = (char *) (wcschr ((wchar_t *) ptr, L'\0') + 1);
-
-                    m_era_items.push_back(std::move(cur_entry));
-                }
+                era_entry cur_entry;
+                cur_entry.name = convert(src.name);
+                cur_entry.format = convert(src.format);
+                cur_entry.from_year = src.from_year;
+                cur_entry.from_month = src.from_month;
+                cur_entry.from_day = src.from_day;
+                cur_entry.to_year = src.to_year;
+                cur_entry.to_month = src.to_month;
+                cur_entry.to_day = src.to_day;
+                cur_entry.offset = src.offset;
+                cur_entry.direction = src.direction;
+                m_era_items.push_back(std::move(cur_entry));
             }
         }
-        m_time_zone_format = m_time_format + (CharT*)(L" %Z");
-        m_era_time_zone_format = m_era_time_format + (CharT*)(L" %Z");
-        m_date_time_zone_format = m_date_time_format + (CharT*)(L" %Z");
-        m_era_date_time_zone_format = m_era_date_time_format + (CharT*)(L" %Z");
+
+        m_time_zone_format = convert(tmp_obj.time_zone_format());
+        m_era_time_zone_format = convert(tmp_obj.era_time_zone_format());
+        m_date_time_zone_format = convert(tmp_obj.date_time_zone_format());
+        m_era_date_time_zone_format = convert(tmp_obj.era_date_time_zone_format());
     }
 
     virtual const std::array<std::basic_string<CharT>, 7>& day_names() const { return m_day; }
