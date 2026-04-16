@@ -1,6 +1,6 @@
 #pragma once
 #include <algorithm>
-#include <bit>
+#include <cctype>
 #include <cwctype>
 #include <optional>
 
@@ -16,32 +16,24 @@ class base_ft<ctype> : public abs_ft
 {
 public:
     using abs_ft::abs_ft;
-    
+
 public:
     using mask = unsigned short;
 
-private:
-    template <unsigned bit>
-    struct ISBit
-    {
-        constexpr static mask value = (std::endian::native == std::endian::big) ?
-                                      (1 << (bit)) : 
-                                      (((bit) < 8 ? ((1 << (bit)) << 8) : ((1 << (bit)) >> 8)));
-    };
+    // Portable fixed mask values (implementation-independent)
+    constexpr static mask upper  = 0x0001;
+    constexpr static mask lower  = 0x0002;
+    constexpr static mask alpha  = 0x0004;
+    constexpr static mask digit  = 0x0008;
+    constexpr static mask xdigit = 0x0010;
+    constexpr static mask space  = 0x0020;
+    constexpr static mask print  = 0x0040;
+    constexpr static mask cntrl  = 0x0080;
+    constexpr static mask punct  = 0x0100;
 
-public:
-    constexpr static mask upper = ISBit<0>::value;  /* UPPERCASE.   */
-    constexpr static mask lower = ISBit<1>::value;  /* lowercase.   */
-    constexpr static mask alpha = ISBit<2>::value;  /* Alphabetic.  */
-    constexpr static mask digit = ISBit<3>::value;  /* Numeric.     */
-    constexpr static mask xdigit = ISBit<4>::value; /* Hexadecimal numeric.  */
-    constexpr static mask space = ISBit<5>::value;  /* Whitespace.  */
-    constexpr static mask print = ISBit<6>::value;  /* Printing.    */
-    constexpr static mask cntrl = ISBit<9>::value;  /* Control character.  */
-    constexpr static mask punct = ISBit<10>::value; /* Punctuation. */
     constexpr static mask alnum = alpha | digit;
     constexpr static mask graph = alnum | punct;
-    
+
     constexpr static mask all = upper | lower | alpha | digit | xdigit |
         space | print | graph | cntrl | punct;
 };
@@ -55,12 +47,24 @@ public:
     ctype_conf(const std::string& name)
         : ft_basic<ctype<char>>()
         , m_inter_locale(name.c_str())
-        , m_toupper(m_inter_locale.c_locale->__ctype_toupper)
-        , m_tolower(m_inter_locale.c_locale->__ctype_tolower)
     {
+        // Build lookup tables using standard POSIX functions
         for (unsigned c = 0; c <= std::numeric_limits<unsigned char>::max(); ++c)
         {
-            m_table[c] = (m_inter_locale.c_locale->__ctype_b[c] & base_ft<ctype>::all);
+            m_toupper_table[c] = toupper_l(static_cast<int>(c), m_inter_locale.c_locale);
+            m_tolower_table[c] = tolower_l(static_cast<int>(c), m_inter_locale.c_locale);
+
+            mask m = 0;
+            if (isupper_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::upper;
+            if (islower_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::lower;
+            if (isalpha_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::alpha;
+            if (isdigit_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::digit;
+            if (isxdigit_l(static_cast<int>(c), m_inter_locale.c_locale)) m |= base_ft<ctype>::xdigit;
+            if (isspace_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::space;
+            if (isprint_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::print;
+            if (iscntrl_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::cntrl;
+            if (ispunct_l(static_cast<int>(c), m_inter_locale.c_locale))  m |= base_ft<ctype>::punct;
+            m_table[c] = m;
         }
     }
 
@@ -69,25 +73,25 @@ public:
     {
         return m_table[static_cast<unsigned char>(c)];
     }
-    
+
     virtual char toupper(char c) const
     {
-        return m_toupper[static_cast<unsigned char>(c)];
+        return static_cast<char>(m_toupper_table[static_cast<unsigned char>(c)]);
     }
-    
+
     virtual char tolower(char c) const
     {
-        return m_tolower[static_cast<unsigned char>(c)];
+        return static_cast<char>(m_tolower_table[static_cast<unsigned char>(c)]);
     }
-    
+
     virtual char widen(char c) const { return c; }
-    
+
     virtual std::optional<char> narrow(char c) const { return c; }
-    
+
 private:
-    clocale_wrapper   m_inter_locale;
-    const int* const  m_toupper;
-    const int* const  m_tolower;
+    clocale_wrapper m_inter_locale;
+    int m_toupper_table[std::numeric_limits<unsigned char>::max() + 1];
+    int m_tolower_table[std::numeric_limits<unsigned char>::max() + 1];
     mask m_table[std::numeric_limits<unsigned char>::max() + 1];
 };
 

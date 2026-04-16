@@ -1,5 +1,4 @@
 #include <facet/ctype.h>
-#include <ios>
 #include <limits>
 #include <stdexcept>
 #include <type_traits>
@@ -34,19 +33,19 @@ void test_ctype_facet_wchar_t_2()
     const wchar_t c60 = L'f';
     const wchar_t c80 = L'x';
  
-    if (!obj.is_any(std::ctype_base::space, c30)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::upper, c00)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::lower, c10)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::digit, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::punct, c40)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::alpha, c50)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::alpha, c60)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::xdigit, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (obj.is_any(std::ctype_base::xdigit, c80)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::alnum, c50)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::alnum, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::graph, c40)) throw std::runtime_error("ctype<wchar_t> is_any fails");
-    if (!obj.is_any(std::ctype_base::graph, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::space, c30)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::upper, c00)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::lower, c10)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::digit, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::punct, c40)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::alpha, c50)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::alpha, c60)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::xdigit, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (obj.is_any(IOv2::base_ft<IOv2::ctype>::xdigit, c80)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::alnum, c50)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::alnum, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::graph, c40)) throw std::runtime_error("ctype<wchar_t> is_any fails");
+    if (!obj.is_any(IOv2::base_ft<IOv2::ctype>::graph, c20)) throw std::runtime_error("ctype<wchar_t> is_any fails");
 
     IOv2::base_ft<IOv2::ctype>::mask m00 = static_cast<IOv2::base_ft<IOv2::ctype>::mask>(0);
     IOv2::base_ft<IOv2::ctype>::mask m01[3];
