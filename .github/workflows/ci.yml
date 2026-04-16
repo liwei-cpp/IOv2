@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y zlib1g-dev libbotan2-dev valgrind
+        sudo apt-get install -y zlib1g-dev libbotan-2-dev valgrind
         # GCC 15 setup
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         sudo apt-get update
