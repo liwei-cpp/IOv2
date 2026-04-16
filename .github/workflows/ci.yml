@@ -1,0 +1,33 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all
+        # GCC 15 setup
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        sudo apt-get update
+        sudo apt-get install -y g++-15
+
+    - name: Run tests
+      run: |
+        cd test
+        make -j$(nproc) test CXX=g++-15 MODE=release
+
+    - name: Run memory check (valgrind)
+      run: |
+        cd test
+        make valgrind CXX=g++-15 MODE=release
