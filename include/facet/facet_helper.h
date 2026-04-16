@@ -92,17 +92,28 @@ namespace IOv2::FacetHelper
             res.push_back(static_cast<T>(c));
         return res;
     }
-    
+
+    // Portable nl_langinfo function (use narrow POSIX item and convert to wide)
     template <typename CharT>
     requires std::is_same_v<CharT, wchar_t> ||
         (std::is_same_v<CharT, char32_t> &&
             (sizeof(char32_t) == sizeof(wchar_t)) &&
             (static_cast<wchar_t>(U'李') == L'李') &&
             (static_cast<char32_t>(L'伟') == U'伟'))
-    inline std::basic_string<CharT> nl_langinfo_w(nl_item item)
+    inline CharT nl_langinfo_char(nl_item item, const std::string& locale_name, CharT default_char)
     {
-        union { char *s; wchar_t *w; } u;
-        u.s = nl_langinfo(item);
-        return (CharT*)(u.w);
+        const char* narrow = nl_langinfo(item);
+        if (!narrow || narrow[0] == '\0')
+            return default_char;
+        if constexpr (std::is_same_v<CharT, wchar_t>)
+        {
+            auto wide = to_wstring(narrow, locale_name);
+            return wide.empty() ? default_char : wide[0];
+        }
+        else
+        {
+            auto wide = to_u32string(narrow, locale_name);
+            return wide.empty() ? default_char : wide[0];
+        }
     }
 }
