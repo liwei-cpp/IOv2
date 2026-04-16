@@ -188,18 +188,41 @@ namespace IOv2
             : m_kernel(std::move(kernel)) {}
     
         abs_cvt(const abs_cvt&) = default;
-        abs_cvt(abs_cvt&&) = default;
-        abs_cvt& operator= (const abs_cvt& val) = default;
-        abs_cvt& operator= (abs_cvt&&) = default;
+        abs_cvt(abs_cvt&& val)
+            : m_kernel(std::move(val.m_kernel))
+            , m_io_status(val.m_io_status)
+            , m_cvt_io(std::move(val.m_cvt_io))
+        {
+            val.m_io_status = io_status::neutral;
+        }
+
+        abs_cvt& operator= (const abs_cvt&) = default;
+        abs_cvt& operator= (abs_cvt&& val)
+        {
+            if (this != &val)
+            {
+                m_kernel = std::move(val.m_kernel);
+                m_io_status = val.m_io_status;
+                val.m_io_status = io_status::neutral;
+                m_cvt_io = std::move(val.m_cvt_io);
+            }
+            return *this;
+        }
+
         ~abs_cvt() = default;
     
     // mandatory methods
     public:
         const device_type& device() const & { return m_kernel.device(); }
-        device_type detach() { return m_kernel.detach(); }
+        device_type detach()
+        {
+            m_io_status = io_status::neutral;
+            return m_kernel.detach();
+        }
     
         device_type attach(device_type&& dev = device_type{})
         {
+            m_io_status = io_status::neutral;
             return m_kernel.attach(std::move(dev));
         }
     
@@ -215,7 +238,11 @@ namespace IOv2
         
         io_status bos()
         {
-            return m_kernel.bos();
+            if (m_io_status != io_status::neutral)
+                throw cvt_error("abs_cvt::bos fail: Cannot call bos with un-neutral status.");
+
+            m_io_status = m_kernel.bos();
+            return m_io_status;
         }
 
         void main_cont_beg()
@@ -303,7 +330,8 @@ namespace IOv2
         }
 
     protected:
-        KernelType m_kernel;
+        KernelType  m_kernel;
+        io_status   m_io_status = io_status::neutral;
     private:
         cvt_io<KernelType> m_cvt_io;
     };
