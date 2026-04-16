@@ -77,11 +77,13 @@ public:
     
     device_type detach() override
     {
+        m_io_status = io_status::neutral;
         return m_kernel.detach();
     }
 
     device_type attach(device_type&& dev = device_type{}) override
     {
+        m_io_status = io_status::neutral;
         return m_kernel.attach(std::move(dev));
     }
 

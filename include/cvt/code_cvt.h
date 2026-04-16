@@ -298,7 +298,6 @@ public:
     code_cvt(KernelType kernel, TParams&&... params)
         : BT(std::move(kernel))
         , m_cvt_kernel(std::forward<TParams>(params)...)
-        , m_io_status(io_status::neutral)
         , m_is_bos_done(false)
         , m_accu_len(0)
     {}
@@ -307,7 +306,6 @@ public:
         requires (std::copy_constructible<KernelType>)
         : BT(val)
         , m_cvt_kernel(val.m_cvt_kernel)
-        , m_io_status(val.m_io_status)
         , m_is_bos_done(val.m_is_bos_done)
         , m_accu_len(val.m_accu_len)
     {}
@@ -317,7 +315,6 @@ public:
         close_stream();
         BT::operator=(val);
         m_cvt_kernel = val.m_cvt_kernel;
-        m_io_status = val.m_io_status;
         m_accu_len = val.m_accu_len;
         m_is_bos_done = val.m_is_bos_done;
         return *this;
@@ -326,20 +323,20 @@ public:
     code_cvt(code_cvt&& val)
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
-        , m_io_status(val.m_io_status)
         , m_is_bos_done(val.m_is_bos_done)
         , m_accu_len(std::move(val.m_accu_len))
-    {}
+    {
+        val.m_accu_len = 0;
+    }
 
     code_cvt& operator= (code_cvt&& val)
     {
         close_stream();
         BT::operator=(std::move(val));
         m_cvt_kernel = std::move(val.m_cvt_kernel);
-        m_io_status = val.m_io_status;
         m_is_bos_done = val.m_is_bos_done;
         m_accu_len = val.m_accu_len;
-
+        val.m_accu_len = 0;
         return *this;
     }
     
@@ -365,8 +362,7 @@ public:
     io_status bos()
     {
         m_is_bos_done = false;
-        m_io_status = BT::bos();
-        return m_io_status;
+        return BT::bos();
     }
 
     void main_cont_beg()
@@ -386,7 +382,7 @@ public:
         if (!m_is_bos_done)
             return BT::put_bos(to, to_size);
 
-        if (m_io_status != io_status::output)
+        if (BT::m_io_status != io_status::output)
         {
             if constexpr (cvt_cpt::support_io_switch<KernelType>)
                 switch_to_put();
@@ -419,7 +415,7 @@ public:
         if (!m_is_bos_done)
             return BT::get_bos(to, to_max);
 
-        if (m_io_status != io_status::input)
+        if (BT::m_io_status != io_status::input)
         {
             if constexpr (cvt_cpt::support_io_switch<KernelType>)
                 switch_to_get();
@@ -448,11 +444,11 @@ public:
 
             auto ext_cur = ptr;
             auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
-            m_accu_len += int_len;
-            total_size += int_len;
 
             if (!succ)
                 throw cvt_error("code_cvt::get fail, invalid external sequence.");
+            m_accu_len += int_len;
+            total_size += int_len;
 
             if (ext_cur == ptr + cur_size)
                 prev_rollback = 0;
@@ -479,7 +475,7 @@ public:
 
         if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
         {
-            if ((pos == 0) && (m_io_status != io_status::output))
+            if ((pos == 0) && (BT::m_io_status != io_status::output))
                 m_cvt_kernel.init_state();
             else
                 throw cvt_error("code_cvt::seek fail: cannot seek with dependent convertor");
@@ -509,13 +505,13 @@ public:
     void switch_to_put()
         requires (cvt_cpt::support_io_switch<KernelType>)
     {
-        switch(m_io_status)
+        switch(BT::m_io_status)
         {
         case io_status::output:
             return;
         case io_status::neutral:
             BT::m_kernel.switch_to_put();
-            m_io_status = io_status::output;
+            BT::m_io_status = io_status::output;
             return;
         default: // io_status::input
             if (!m_cvt_kernel.is_init_state())
@@ -527,7 +523,7 @@ public:
                     throw cvt_error("code_cvt::switch_to_put fail: internal buffer not empty");
             }
             BT::m_kernel.switch_to_put();
-            m_io_status = io_status::output;
+            BT::m_io_status = io_status::output;
             return;
         }
     }
@@ -535,18 +531,18 @@ public:
     void switch_to_get()
         requires (cvt_cpt::support_io_switch<KernelType>)
     {
-        switch(m_io_status)
+        switch(BT::m_io_status)
         {
         case io_status::input:
             return;
         case io_status::neutral:
             BT::m_kernel.switch_to_get();
-            m_io_status = io_status::input;
+            BT::m_io_status = io_status::input;
             return;
         default: // io_status::output
             assert(m_cvt_kernel.is_init_state());
             BT::m_kernel.switch_to_get();
-            m_io_status = io_status::input;
+            BT::m_io_status = io_status::input;
             return;
         }
     }
@@ -555,14 +551,13 @@ private:
     void close_stream()
     {
         m_cvt_kernel.init_state();
-        m_io_status = io_status::neutral;
+        BT::m_io_status = io_status::neutral;
         m_accu_len = 0;
         m_is_bos_done = false;
     }
 
 protected:
     codecvt_kernel<external_type, internal_type> m_cvt_kernel;
-    io_status                       m_io_status;
     bool                            m_is_bos_done;
     size_t                          m_accu_len;
 };
