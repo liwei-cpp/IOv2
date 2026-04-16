@@ -85,12 +85,9 @@ public:
     
     io_status bos()
     {
-        if (m_bos_done)
-            throw cvt_error("chacha20_cvt::bos fail: not in bos phase");
-
-        m_io_status = BT::bos();
+        BT::bos();
         const size_t iv_len = m_cipher->default_iv_length();
-        if (m_io_status == io_status::input)
+        if (BT::m_io_status == io_status::input)
         {
             auto rd = this->reader(iv_len);
             auto ptr = rd.template get_buf<true>(iv_len);
@@ -98,7 +95,7 @@ public:
             m_cipher->set_key(m_key);
             m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
         }
-        else if (m_io_status == io_status::output)
+        else if (BT::m_io_status == io_status::output)
         {
             Botan::AutoSeeded_RNG rng;
             auto wt = this->writer(iv_len);
@@ -110,7 +107,7 @@ public:
         }
         else
             throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
-        return m_io_status;
+        return BT::m_io_status;
     }
 
     void main_cont_beg()
@@ -126,7 +123,7 @@ public:
     {
         if (!m_bos_done) return BT::get_bos(_to, to_max);
 
-        if (m_io_status == io_status::output)
+        if (BT::m_io_status == io_status::output)
             throw cvt_error("chacha20_cvt::get fails: not available");
 
         uint8_t* to = reinterpret_cast<uint8_t*>(_to);
@@ -154,7 +151,7 @@ public:
     {
         if (!m_bos_done) return BT::put_bos(_to, to_size);
 
-        if (m_io_status == io_status::input)
+        if (BT::m_io_status == io_status::input)
             throw cvt_error("chacha20_cvt::put fails: not available");
 
         auto wt = this->writer(block_size);
@@ -175,7 +172,6 @@ private:
     std::unique_ptr<Botan::StreamCipher> m_cipher;
     Botan::secure_vector<uint8_t>        m_key;
     bool                                 m_bos_done;
-    io_status                            m_io_status;
 };
 
 template <typename TInt>

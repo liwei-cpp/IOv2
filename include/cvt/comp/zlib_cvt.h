@@ -39,7 +39,6 @@ public:
         : BT(std::move(kernel))
         , m_put_level(put_level)
         , m_bos_done(false)
-        , m_io_status(io_status::neutral)
         , m_sync_flush(false)
     {
         if (m_put_level > 9) m_put_level = 9;
@@ -50,18 +49,19 @@ public:
         : BT(val)
         , m_put_level(val.m_put_level)
         , m_bos_done(val.m_bos_done)
-        , m_io_status(io_status::neutral)
         , m_sync_flush(val.m_sync_flush)
     {
-        if (val.m_io_status == io_status::output)
+        try
         {
-            zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
-            m_io_status = val.m_io_status;
+            if (BT::m_io_status == io_status::output)
+                zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+            else if (BT::m_io_status == io_status::input)
+                zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
         }
-        else if (val.m_io_status == io_status::input)
+        catch(...)
         {
-            zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
-            m_io_status = val.m_io_status;
+            BT::m_io_status = io_status::neutral;
+            throw;
         }
     }
     
@@ -69,22 +69,27 @@ public:
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
         , m_bos_done(val.m_bos_done)
-        , m_io_status(io_status::neutral)
         , m_sync_flush(val.m_sync_flush)
     {
-        if (val.m_io_status == io_status::output)
+        try
         {
-            zerr("zlib_cvt move constructor fail", deflateCopy(&m_strm, &val.m_strm));
-            deflateEnd(&val.m_strm);
-            val.m_io_status = io_status::neutral;
-            m_io_status = io_status::output;
+            if (BT::m_io_status == io_status::output)
+            {
+                zerr("zlib_cvt move constructor fail", deflateCopy(&m_strm, &val.m_strm));
+                deflateEnd(&val.m_strm);
+                val.m_io_status = io_status::neutral;
+            }
+            else if (BT::m_io_status == io_status::input)
+            {
+                zerr("zlib_cvt move constructor fail", inflateCopy(&m_strm, &val.m_strm));
+                inflateEnd(&val.m_strm);
+                val.m_io_status = io_status::neutral;
+            }
         }
-        else if (val.m_io_status == io_status::input)
+        catch(...)
         {
-            zerr("zlib_cvt move constructor fail", inflateCopy(&m_strm, &val.m_strm));
-            inflateEnd(&val.m_strm);
-            val.m_io_status = io_status::neutral;
-            m_io_status = io_status::input;
+            BT::m_io_status = io_status::neutral;
+            throw;
         }
     }
     
@@ -97,17 +102,19 @@ public:
         m_bos_done = val.m_bos_done;
         m_sync_flush = val.m_sync_flush;
 
-        if (val.m_io_status == io_status::output)
+        try
         {
-            zerr("zlib_cvt copy assignment fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
-            m_io_status = val.m_io_status;
+            if (BT::m_io_status == io_status::output)
+                zerr("zlib_cvt copy assignment fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+            else if (BT::m_io_status == io_status::input)
+                zerr("zlib_cvt copy assignment fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+            return *this;            
         }
-        else if (val.m_io_status == io_status::input)
+        catch(...)
         {
-            zerr("zlib_cvt copy assignment fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
-            m_io_status = val.m_io_status;
+            BT::m_io_status = io_status::neutral;
+            throw;
         }
-        return *this;
     }
     
     zlib_cvt& operator=(zlib_cvt&& val)
@@ -119,21 +126,27 @@ public:
         m_bos_done = val.m_bos_done;
         m_sync_flush = val.m_sync_flush;
 
-        if (val.m_io_status == io_status::output)
+        try
         {
-            zerr("zlib_cvt move assignment fail", deflateCopy(&m_strm, &val.m_strm));
-            deflateEnd(&val.m_strm);
-            val.m_io_status = io_status::neutral;
-            m_io_status = io_status::output;
+            if (BT::m_io_status == io_status::output)
+            {
+                zerr("zlib_cvt move assignment fail", deflateCopy(&m_strm, &val.m_strm));
+                deflateEnd(&val.m_strm);
+                val.m_io_status = io_status::neutral;
+            }
+            else if (BT::m_io_status == io_status::input)
+            {
+                zerr("zlib_cvt move assignment fail", inflateCopy(&m_strm, &val.m_strm));
+                inflateEnd(&val.m_strm);
+                val.m_io_status = io_status::neutral;
+            }
+            return *this;
         }
-        else if (val.m_io_status == io_status::input)
+        catch(...)
         {
-            zerr("zlib_cvt move assignment fail", inflateCopy(&m_strm, &val.m_strm));
-            inflateEnd(&val.m_strm);
-            val.m_io_status = io_status::neutral;
-            m_io_status = io_status::input;
+            BT::m_io_status = io_status::neutral;
+            throw;
         }
-        return *this;
     }
 
     ~zlib_cvt()
@@ -172,22 +185,17 @@ public:
         BT::main_cont_beg();
 
         m_bos_done = true;
-        if (m_io_status == io_status::output)
+        if (BT::m_io_status == io_status::output)
             flush();
-        else if (m_io_status == io_status::neutral)
+        else if (BT::m_io_status == io_status::neutral)
             throw cvt_error("zlib_cvt::main_cont_beg fail: no get_bos or put_bos is called before calling main_cont_beg");
     }
     
     io_status bos()
     {
-        if (m_io_status != io_status::neutral)
-            throw cvt_error("zlib_cvt::bos fail: Cannot call bos with un-neutral status.");
-
-        auto res = BT::m_kernel.bos();
-        if (res == io_status::input)
+        BT::bos();
+        if (BT::m_io_status == io_status::input)
         {
-            m_io_status = io_status::input;
-
             m_strm.zalloc = Z_NULL;
             m_strm.zfree = Z_NULL;
             m_strm.opaque = Z_NULL;
@@ -217,10 +225,8 @@ public:
             m_strm.avail_out = 0;
             m_strm.next_out = nullptr;
         }
-        else if (res == io_status::output)
+        else if (BT::m_io_status == io_status::output)
         {
-            m_io_status = io_status::output;
-
             m_strm.zalloc = Z_NULL;
             m_strm.zfree = Z_NULL;
             m_strm.opaque = Z_NULL;
@@ -247,7 +253,7 @@ public:
         }
         else
             throw cvt_error("zlib_cvt::bos fail: invalid response value.");
-        return res;
+        return BT::m_io_status;
     }
 
 // optional methods
@@ -257,7 +263,7 @@ public:
     {
         if (!m_bos_done) return BT::get_bos(_to, to_max);
 
-        if (m_io_status != io_status::input)
+        if (BT::m_io_status != io_status::input)
             throw cvt_error("zlib_cvt::get fails: not available");
 
         unsigned char* to = (unsigned char*)_to;
@@ -301,7 +307,7 @@ public:
         unsigned char* to = (unsigned char*)_to;
         to_size *= sizeof(internal_type);
 
-        if (m_io_status != io_status::output)
+        if (BT::m_io_status != io_status::output)
             throw cvt_error("zlib_cvt::put fails: not available");
 
         size_t write_size = 0;
@@ -330,7 +336,7 @@ public:
         if (!m_bos_done)
             return BT::m_kernel.flush();
         
-        if (m_io_status != io_status::output)
+        if (BT::m_io_status != io_status::output)
             throw cvt_error("zlib_cvt::flush fails: not available");
 
         if (m_sync_flush)
@@ -375,7 +381,7 @@ private:
 
     void close_stream()
     {
-        if (m_io_status == io_status::output)
+        if (BT::m_io_status == io_status::output)
         {
             if (m_bos_done)
             {
@@ -396,11 +402,11 @@ private:
                 deflateEnd(&m_strm);
             }
         }
-        else if (m_io_status == io_status::input)
+        else if (BT::m_io_status == io_status::input)
             inflateEnd(&m_strm);
 
         m_bos_done = false;
-        m_io_status = io_status::neutral;
+        BT::m_io_status = io_status::neutral;
         m_sync_flush = false;
         m_strm.next_out = nullptr;
         m_strm.avail_out = 0;
@@ -408,7 +414,6 @@ private:
 private:
     unsigned    m_put_level;
     bool        m_bos_done;
-    io_status   m_io_status;
     bool        m_sync_flush;
     
     z_stream    m_strm{};
