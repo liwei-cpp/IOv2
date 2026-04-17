@@ -79,7 +79,7 @@ namespace TimeioHelper
         if (from_year < to_year) return true;
         if (from_year > to_year) return false;
         if (from_month < to_month) return true;
-        if (from_month > to_month) return true;
+        if (from_month > to_month) return false;
         return from_day <= to_day;
     }
     
