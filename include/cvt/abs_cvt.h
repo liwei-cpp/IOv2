@@ -2,6 +2,7 @@
 #include <cvt/cvt_concepts.h>
 #include <bit>
 #include <cstring>
+#include <exception>
 #include <vector>
 namespace IOv2 
 {
@@ -110,9 +111,13 @@ namespace IOv2
 
         ~cvt_writer()
         {
-            if (m_prev_len != 0)
-                m_refkernel.put(m_refbuffer.data(), m_prev_len);
-            m_refbuffer.clear();
+            try
+            {
+                commit();
+                m_refbuffer.clear();
+            }
+            catch(...)
+            {}
         }
     
         char_type* put_buf(size_t len)
@@ -142,6 +147,15 @@ namespace IOv2
             if (len > m_prev_len)
                 throw cvt_error("cvt_io::writer::rollback fail, rollback length too large.");
             m_prev_len -= len;
+        }
+
+        void commit()
+        {
+            if (m_prev_len != 0)
+            {
+                m_refkernel.put(m_refbuffer.data(), m_prev_len);
+                m_prev_len = 0;
+            }
         }
     
     private:
@@ -310,6 +324,7 @@ namespace IOv2
                 internal_type ch = *to++;
                 std::memcpy(wt.put_buf(ie_ratio), &ch, sizeof(ch));
             }
+            wt.commit();
         }
 
         size_t get_bos(internal_type* to, size_t to_max)

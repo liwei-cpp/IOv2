@@ -123,7 +123,13 @@ public:
     ~root_cvt()
     {
         if constexpr (dev_cpt::support_put<device_type>)
-            flush();
+        {
+            try
+            {
+                flush();
+            }
+            catch (...) {}
+        }
     }
 
 // mandatory methods
@@ -539,6 +545,8 @@ public:
             throw cvt_error("root_cvt_writer::rollback fail, rollback length too large.");
         m_kernel.m_buf_cur -= len;
     }
+
+    void commit() {}
 
 private:
     KernelType& m_kernel;

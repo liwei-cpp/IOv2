@@ -1,5 +1,5 @@
 #pragma once
-
+#include <exception>
 #include <io/fp_defs/base_fp.h>
 
 namespace IOv2
@@ -25,8 +25,12 @@ struct in_sentry
 
     ~in_sentry()
     {
-        if (!m_is.m_streambuf.sgetc().has_value())
-            m_is.handle_exception(std::make_exception_ptr(eof_error{}));
+        try
+        {
+            if (!m_is.m_streambuf.sgetc().has_value())
+                m_is.handle_exception(std::make_exception_ptr(eof_error{}));
+        }
+        catch (...) {}
     }
 
     in_sentry(const in_sentry&) = delete;
