@@ -59,6 +59,7 @@ void test_numeric_char_get_39();
 void test_numeric_char_get_40();
 void test_numeric_char_get_41();
 void test_numeric_char_get_42();
+void test_numeric_vulnerability_fix_char();
 
 void test_numeric_wchar_t_common_1();
 void test_numeric_wchar_t_put_1();
@@ -246,6 +247,7 @@ void test_numeric()
     test_numeric_char_get_40();
     test_numeric_char_get_41();
     test_numeric_char_get_42();
+    test_numeric_vulnerability_fix_char();
 
     test_numeric_wchar_t_common_1();
     test_numeric_wchar_t_put_1();
