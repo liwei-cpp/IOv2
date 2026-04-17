@@ -40,7 +40,7 @@ public:
     ft_basic(T&&... args)
         : base_ft<TFacet>(id(), std::forward<T>(args)...) {}
 
-    static size_t id() noexcept { return (size_t)(&s_id); }
+    static size_t id() noexcept { return reinterpret_cast<size_t>(&s_id); }
 private:
     inline static const void* s_id = nullptr;
 };
