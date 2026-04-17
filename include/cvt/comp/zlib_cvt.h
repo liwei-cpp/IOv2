@@ -77,13 +77,11 @@ public:
             {
                 zerr("zlib_cvt move constructor fail", deflateCopy(&m_strm, &val.m_strm));
                 deflateEnd(&val.m_strm);
-                val.m_io_status = io_status::neutral;
             }
             else if (BT::m_io_status == io_status::input)
             {
                 zerr("zlib_cvt move constructor fail", inflateCopy(&m_strm, &val.m_strm));
                 inflateEnd(&val.m_strm);
-                val.m_io_status = io_status::neutral;
             }
         }
         catch(...)
@@ -132,13 +130,11 @@ public:
             {
                 zerr("zlib_cvt move assignment fail", deflateCopy(&m_strm, &val.m_strm));
                 deflateEnd(&val.m_strm);
-                val.m_io_status = io_status::neutral;
             }
             else if (BT::m_io_status == io_status::input)
             {
                 zerr("zlib_cvt move assignment fail", inflateCopy(&m_strm, &val.m_strm));
                 inflateEnd(&val.m_strm);
-                val.m_io_status = io_status::neutral;
             }
             return *this;
         }
@@ -259,36 +255,44 @@ public:
 
 // optional methods
 public:
-    size_t get(internal_type* _to, size_t to_max)
+    size_t get(internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!m_bos_done) return BT::get_bos(_to, to_max);
+        if (!m_bos_done) return BT::get_bos(to, to_max);
 
         if (BT::m_io_status != io_status::input)
             throw cvt_error("zlib_cvt::get fails: not available");
-
-        unsigned char* to = (unsigned char*)_to;
-        to_max *= sizeof(internal_type);
 
         // Note: We read one byte at a time intentionally. Decompression has
         // unpredictable expansion ratio - a few compressed bytes could expand
         // to overflow the output buffer. This keeps the code simple and correct.
         // The underlying converter already buffers, so this doesn't cause syscalls.
         auto rd = this->reader(1);
-        m_strm.avail_out = (int)(to_max);
-        m_strm.next_out = reinterpret_cast<unsigned char*>(to);
-        zerr("zlib_cvt::get fail", inflate(&m_strm, Z_NO_FLUSH));
 
-        while (m_strm.avail_out)
+        constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm.avail_out)>::max();
+        constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
+
+        auto aim_output = (max_chunk / sizeof (internal_type) > to_max)
+                        ? static_cast<decltype(m_strm.avail_out)>(to_max * sizeof (internal_type))
+                        : static_cast<decltype(m_strm.avail_out)>(max_chunk);
+
+        m_strm.avail_out = aim_output;
+        m_strm.next_out = reinterpret_cast<unsigned char*>(to);
+        auto ret = inflate(&m_strm, Z_NO_FLUSH);
+        zerr("zlib_cvt::get fail", ret);
+
+        while (m_strm.avail_out && ret != Z_STREAM_END)
         {
             auto [ptr, len] = rd.get_buf(1);
             if (len == 0) break;
             m_strm.next_in = (unsigned char*)(ptr);
             m_strm.avail_in = 1;
-            zerr("zlib_cvt::get fail", inflate(&m_strm, Z_NO_FLUSH));
+            ret = inflate(&m_strm, Z_NO_FLUSH);
+            assert(m_strm.avail_in == 0);
+            zerr("zlib_cvt::get fail", ret);
         }
 
-        auto res = to_max - m_strm.avail_out;
+        auto res = aim_output - m_strm.avail_out;
         m_strm.next_in = nullptr;
         m_strm.avail_in = 0;
         m_strm.next_out = nullptr;
