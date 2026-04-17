@@ -5,6 +5,7 @@
 #include <vector>
 #include <facet/numeric.h>
 #include <io/streambuf_iterator.h>
+#include <common/verify.h>
 
 #include <common/dump_info.h>
 
@@ -3898,6 +3899,53 @@ void test_numeric_char_get_42()
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
                             s_ctype_c);
     helper(obj);
+
+    dump_info("Done\n");
+}
+
+void test_numeric_vulnerability_fix_char()
+{
+    dump_info("Test numeric<char> vulnerability fix...");
+
+    IOv2::numeric<char> nump(std::make_shared<IOv2::numeric_conf<char>>("C"), s_ctype_c);
+    IOv2::ios_base<char> ios;
+
+    // 1. Test precision support (20 digits)
+    {
+        ios.precision(20);
+        ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
+        std::string oss;
+        nump.put(std::back_inserter(oss), ios, 1.12345678901234567890);
+        
+        size_t dot_pos = oss.find('.');
+        VERIFY(dot_pos != std::string::npos);
+        // Now it should support the requested 20 digits instead of capping at 16
+        VERIFY(oss.length() - dot_pos - 1 == 20);
+    }
+
+    // 2. Test hexfloat fix
+    {
+        ios.precision(6);
+        ios.setf(IOv2::ios_defs::fixed | IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
+        std::string oss;
+        // This should not crash and should produce a valid hexfloat
+        nump.put(std::back_inserter(oss), ios, 1.2345);
+        VERIFY(!oss.empty());
+        VERIFY(oss.find("0x") == 0);
+    }
+
+    // 3. Test dynamic resizing (precision 500)
+    {
+        const int high_prec = 500;
+        ios.precision(high_prec);
+        ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
+        std::string oss;
+        // This will trigger the two-pass logic as it exceeds the initial 128/2048 buffer
+        nump.put(std::back_inserter(oss), ios, 1.0);
+        size_t dot_pos = oss.find('.');
+        VERIFY(dot_pos != std::string::npos);
+        VERIFY(oss.length() - dot_pos - 1 == high_prec);
+    }
 
     dump_info("Done\n");
 }
