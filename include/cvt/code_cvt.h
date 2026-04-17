@@ -406,6 +406,7 @@ public:
             if (out_next < out_beg + buf_len)
                 wt.rollback(out_beg + buf_len - out_next);
         }
+        wt.commit();
     }
 
     /// get

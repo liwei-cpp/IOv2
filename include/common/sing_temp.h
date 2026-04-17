@@ -1,5 +1,4 @@
 #pragma once
-#include <atomic>
 
 namespace IOv2
 {
@@ -7,13 +6,17 @@ template <typename T>
 class sing_temp
 {
 public:
+    // Note: This implementation assumes init objects are only created during
+    // static initialization before main(). Static initialization is single-threaded,
+    // so atomic operations are not needed.
+    // If init objects need to be created dynamically after main(), thread
+    // synchronization mechanisms must be added.
     struct init
     {
         init()
         {
             auto& count = RefCount();
-            auto ori = count.fetch_add(1);
-            if (ori == 0)
+            if (count++ == 0)
             {
                 T* ptr = sing_temp::ptr();
                 new (ptr) T();
@@ -23,8 +26,7 @@ public:
         ~init()
         {
             auto& count = RefCount();
-            auto ori = count.fetch_sub(1);
-            if (ori == 1)
+            if (--count == 0)
             {
                 T* ptr = sing_temp::ptr();
                 ptr->~T();
@@ -33,7 +35,7 @@ public:
 
         static auto& RefCount()
         {
-            static std::atomic<unsigned> count{0};
+            static unsigned count{0};
             return count;
         }
         

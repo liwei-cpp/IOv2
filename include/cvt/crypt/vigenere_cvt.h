@@ -122,6 +122,7 @@ public:
             }
             total_count += dest_size;
         }
+        wt.commit();
     }
     
     /// positioning

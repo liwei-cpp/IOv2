@@ -247,6 +247,7 @@ public:
             if (m_strm.avail_out != 1) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
 
             wt.rollback(1);
+            wt.commit();
 
             m_strm.avail_out = 0;
             m_strm.next_out = nullptr;
@@ -326,6 +327,7 @@ public:
             if (m_strm.avail_out)
                 wt.rollback(m_strm.avail_out);
         }
+        wt.commit();
         m_strm.next_out = nullptr;
         m_strm.avail_out = 0;
     }
@@ -355,6 +357,7 @@ public:
                     break;
                 }
             }
+            wt.commit();
             m_strm.next_out = nullptr;
             m_strm.avail_out = 0;
             BT::m_kernel.flush();
@@ -399,6 +402,7 @@ private:
                         break;
                     }
                 }
+                wt.commit();
                 deflateEnd(&m_strm);
             }
         }
