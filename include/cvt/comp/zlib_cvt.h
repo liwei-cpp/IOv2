@@ -279,7 +279,7 @@ public:
         m_strm.avail_out = aim_output;
         m_strm.next_out = reinterpret_cast<unsigned char*>(to);
         auto ret = inflate(&m_strm, Z_NO_FLUSH);
-        zerr("zlib_cvt::get fail", ret);
+        zerr<true>("zlib_cvt::get fail", ret);
 
         while (m_strm.avail_out && ret != Z_STREAM_END)
         {
@@ -289,7 +289,7 @@ public:
             m_strm.avail_in = 1;
             ret = inflate(&m_strm, Z_NO_FLUSH);
             assert(m_strm.avail_in == 0);
-            zerr("zlib_cvt::get fail", ret);
+            zerr<true>("zlib_cvt::get fail", ret);
         }
 
         auto res = aim_output - m_strm.avail_out;
@@ -308,32 +308,46 @@ public:
     {
         if (!m_bos_done) return BT::put_bos(_to, to_size);
 
-        auto wt = this->writer(CHUNK);
-        unsigned char* to = (unsigned char*)_to;
-        to_size *= sizeof(internal_type);
-
         if (BT::m_io_status != io_status::output)
             throw cvt_error("zlib_cvt::put fails: not available");
 
-        size_t write_size = 0;
-        while (to_size != write_size)
-        {
-            m_strm.next_in = to + write_size;
-            size_t cur_put_size = std::min<size_t>(std::numeric_limits<int>::max(), to_size - write_size);
-            m_strm.avail_in = cur_put_size;
-            m_strm.next_out = (unsigned char*)(wt.put_buf(CHUNK));
-            m_strm.avail_out = CHUNK;
-            
-            auto ret = deflate(&m_strm, Z_NO_FLUSH);
-            zerr("zlib_cvt::put fail", ret);
-            write_size += cur_put_size - m_strm.avail_in;
+        constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm.avail_out)>::max();
+        constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
-            if (m_strm.avail_out)
-                wt.rollback(m_strm.avail_out);
+        auto to = reinterpret_cast<const unsigned char*>(_to);
+
+        auto wt = this->writer(CHUNK);
+        while (to_size > 0)
+        {
+            auto aim_output = (max_chunk / sizeof (internal_type) > to_size)
+                            ? static_cast<decltype(m_strm.avail_out)>(to_size * sizeof (internal_type))
+                            : static_cast<decltype(m_strm.avail_out)>(max_chunk);
+
+            size_t write_size = 0;
+            while (aim_output != write_size)
+            {
+                m_strm.next_in = const_cast<unsigned char*>(to + write_size);
+                size_t cur_put_size = static_cast<size_t>(aim_output - write_size);
+                m_strm.avail_in = cur_put_size;
+                m_strm.next_out = (unsigned char*)(wt.put_buf(CHUNK));
+                m_strm.avail_out = CHUNK;
+
+                auto ret = deflate(&m_strm, Z_NO_FLUSH);
+                zerr("zlib_cvt::put fail", ret);
+                write_size += cur_put_size - m_strm.avail_in;
+
+                if (m_strm.avail_out)
+                    wt.rollback(m_strm.avail_out);
+            }
+            to += aim_output;
+            to_size -= aim_output / sizeof (internal_type);
         }
         wt.commit();
+
         m_strm.next_out = nullptr;
         m_strm.avail_out = 0;
+        m_strm.next_in = nullptr;
+        m_strm.avail_in = 0;
     }
     
     void flush()
@@ -364,11 +378,14 @@ public:
             wt.commit();
             m_strm.next_out = nullptr;
             m_strm.avail_out = 0;
+            m_strm.next_in = nullptr;
+            m_strm.avail_in = 0;
             BT::m_kernel.flush();
         }
     }
 
 private:
+    template <bool IgnoreBufError = false>
     void zerr(const char* info, int ret)
     {
         switch (ret)
@@ -383,6 +400,13 @@ private:
             throw cvt_error(std::string(info) + ": out of memory");
         case Z_VERSION_ERROR:
             throw cvt_error(std::string(info) + ": zlib version mismatch!");
+        case Z_BUF_ERROR:
+            if constexpr (!IgnoreBufError)
+                throw cvt_error(std::string(info) + ": no progress possible (Z_BUF_ERROR)");
+            break;
+        default:
+            if (ret < 0)
+                throw cvt_error(std::string(info) + ": unknown zlib error " + std::to_string(ret));
         }
     }
 
