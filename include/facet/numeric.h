@@ -238,30 +238,48 @@ private:
 
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
         int len;
-        // Long enough for the max format spec.
         char fbuf[16];
         _S_format_float(io.flags(), fbuf, mod);
 
-        // Consider the possibility of long ios_base::fixed outputs
-        const bool fixed = io.flags() & ios_defs::fixed;
-        const int max_exp = std::numeric_limits<TValue>::max_exponent10;
+        const ios_defs::fmtflags fltfield = io.flags() & ios_defs::floatfield;
 
-        // The size of the output string is computed as follows.
-        // ios_base::fixed outputs may need up to max_exp + 1 chars
-        // for the integer part + prec chars for the fractional part
-        // + 3 chars for sign, decimal point, '\0'. On the other hand,
-        // for non-fixed outputs max_digits * 2 + prec chars are
-        // largely sufficient.
-        const int cs_size = fixed ? max_exp + prec + 4
-                                  : max_digits * 2 + prec;
+        // Initial buffer size estimate (GCC style). 
+        // For non-fixed fields, max_digits * 3 is a safe heuristic.
+        size_t cs_size = static_cast<size_t>(max_digits) * 3 + 32;
+        if (fltfield == ios_defs::fixed)
+            cs_size = static_cast<size_t>(std::numeric_limits<TValue>::max_exponent10) + static_cast<size_t>(prec) + 32;
+        
+        // Cap initial allocation to a reasonable size (e.g., 2048) to avoid huge initial pressure.
+        if (cs_size > 2048) cs_size = 2048;
+
         std::vector<char> vec_cs(cs_size);
-        char* cs = vec_cs.data();
 
         {
             clocale_wrapper inter_locale("C");
             clocale_user guard(inter_locale);
-            len = sprintf(cs, fbuf, prec, v);
+
+            auto do_snprintf = [&](char* buf, size_t size) {
+                if (fltfield == (ios_defs::fixed | ios_defs::scientific))
+                    return snprintf(buf, size, fbuf, v);
+                else
+                    return snprintf(buf, size, fbuf, static_cast<int>(prec), v);
+            };
+
+            len = do_snprintf(vec_cs.data(), cs_size);
+
+            // If buffer was too small, snprintf returns required length.
+            if (len >= static_cast<int>(cs_size))
+            {
+                cs_size = static_cast<size_t>(len) + 1;
+                vec_cs.resize(cs_size);
+                len = do_snprintf(vec_cs.data(), cs_size);
+            }
         }
+
+        if (len < 0 || static_cast<size_t>(len) >= cs_size)
+            throw stream_error("numeric::put fail: floating-point conversion failed");
+
+        const char* cs = vec_cs.data();
 
         // [22.2.2.2.2] Stage 2, convert to char_type, using correct
         // numpunct.decimal_point() values for '.' and adding grouping.
