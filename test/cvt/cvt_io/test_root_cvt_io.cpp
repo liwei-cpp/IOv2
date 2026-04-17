@@ -144,6 +144,7 @@ void test_root_cvt_mem_output_1()
             ptr = writer.put_buf(2);
             str = "67";
             std::copy(str.begin(), str.end(), ptr);
+            writer.commit();
         }
 
         VERIFY(obj.detach().str() == "1234567");
@@ -185,6 +186,7 @@ void test_root_cvt_mem_output_2()
             str = "67";
             std::copy(str.begin(), str.end(), ptr);
             writer.rollback(1);
+            writer.commit();
         }
 
         VERIFY(obj.detach().str() == "1234567");
@@ -228,6 +230,7 @@ void test_root_cvt_mem_output_3()
                 get_len = (get_len % 10) + 1;
             }
             VERIFY(cur == 1024);
+            writer.commit();
         }
 
         VERIFY(obj.detach().str() == ref);

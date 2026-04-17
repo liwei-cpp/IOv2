@@ -104,6 +104,7 @@ public:
 
             m_cipher->set_key(m_key);
             m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
+            wt.commit();
         }
         else
             throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
@@ -166,6 +167,7 @@ public:
             m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size);
             to_i += dest_size;
         }
+        wt.commit();
         return;
     }
 private:

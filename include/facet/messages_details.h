@@ -130,7 +130,10 @@ protected:
             if (std::fread(buf, 1, 4, fp) != 4)
                 throw stream_error("get_translate_dictionary fail: invalid format");
 
-            std::uint16_t res = buf[0] + (buf[1] << 8) + (buf[2] << 16) + (buf[3] << 24);
+            std::uint32_t res = static_cast<std::uint32_t>(buf[0])
+                              + (static_cast<std::uint32_t>(buf[1] << 8))
+                              + (static_cast<std::uint32_t>(buf[2] << 16))
+                              + (static_cast<std::uint32_t>(buf[3] << 24));
             if (need_swap)
                 res = std::byteswap(res);
             return res;
