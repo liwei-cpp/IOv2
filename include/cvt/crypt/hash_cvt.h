@@ -155,7 +155,7 @@ public:
             m_out_fmt = shf_ptr->m_val;
         else if (const dump_hash* dh_ptr = dynamic_cast<const dump_hash*>(&acc); dh_ptr)
         {
-            (dh_ptr->m_delim) ? dump_stream((external_type*)(&dh_ptr->m_delim))
+            (dh_ptr->m_delim) ? dump_stream(reinterpret_cast<external_type*>(const_cast<uint8_t*>(&dh_ptr->m_delim)))
                               : dump_stream();
         }
 

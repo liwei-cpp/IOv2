@@ -46,7 +46,7 @@ namespace IOv2
 
         using char_type = CharT;
         
-        static size_t id() { return (size_t)(&s_id); }
+        static size_t id() { return reinterpret_cast<size_t>(&s_id); }
 
     public:
         inline static const prefix_tree<CharT, std::string> s_timezone_tree = 
@@ -245,14 +245,14 @@ public:
             if (era_item_num > 0)
             {
                 m_era_items.reserve(era_item_num);
-                const char *ptr = (const char*)nl_langinfo(_NL_TIME_ERA_ENTRIES);
+                const char *ptr = reinterpret_cast<const char*>(nl_langinfo(_NL_TIME_ERA_ENTRIES));
                 for (int32_t cnt = 0; cnt < era_item_num; ++cnt)
                 {
                     const char *base_ptr = ptr;
                     era_entry cur_entry;
                     
                     int32_t buf[8];
-                    memcpy ((void *) (buf), (const void *)ptr, sizeof (int32_t) * 8);
+                    memcpy (static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof (int32_t) * 8);
                     ptr += sizeof (uint32_t) * 8;
                     
                     cur_entry.from_year = buf[2] + 1900;
@@ -279,9 +279,9 @@ public:
                     cur_entry.format = ptr; ptr = strchr(ptr, '\0') + 1;
                     
                     // skip wchar_t name and format
-                    ptr += 3 - (((ptr - (const char *) base_ptr) + 3) & 3);
-                    ptr = (char *) (wcschr ((wchar_t *) ptr, L'\0') + 1);
-                    ptr = (char *) (wcschr ((wchar_t *) ptr, L'\0') + 1);
+                    ptr += 3 - (((ptr - base_ptr) + 3) & 3);
+                    ptr = reinterpret_cast<const char*>(wcschr(reinterpret_cast<const wchar_t*>(ptr), L'\0') + 1);
+                    ptr = reinterpret_cast<const char*>(wcschr(reinterpret_cast<const wchar_t*>(ptr), L'\0') + 1);
 
                     m_era_items.push_back(std::move(cur_entry));
                 }
