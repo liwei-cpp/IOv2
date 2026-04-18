@@ -23,7 +23,7 @@ struct type_id
 };
 
 template <typename T>
-static const size_t type_id_v = (size_t)(&(type_id<T>::s_id));
+static const size_t type_id_v = reinterpret_cast<size_t>(&(type_id<T>::s_id));
 
 template <typename TChar>
 class locale
