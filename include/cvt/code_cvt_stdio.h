@@ -30,9 +30,9 @@ public:
     {}
 
     code_cvt_stdio(const code_cvt_stdio& val) = default;
-    code_cvt_stdio& operator= (const code_cvt_stdio& val) = default;
+    code_cvt_stdio& operator=(const code_cvt_stdio& val) = default;
     code_cvt_stdio(code_cvt_stdio&& val) = default;
-    code_cvt_stdio& operator= (code_cvt_stdio&& val) = default;
+    code_cvt_stdio& operator=(code_cvt_stdio&& val) = default;
 
 public:
     void adjust(const cvt_behavior& acc)

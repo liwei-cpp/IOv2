@@ -90,7 +90,7 @@ public:
     }
     
     basic_file_device(const basic_file_device&) = delete;
-    basic_file_device& operator= (const basic_file_device&) = delete;
+    basic_file_device& operator=(const basic_file_device&) = delete;
     
     basic_file_device(basic_file_device&& obj)
         : m_file(obj.m_file)
@@ -100,7 +100,7 @@ public:
         obj.m_file_len = 0;
     }
     
-    basic_file_device& operator= (basic_file_device&& obj)
+    basic_file_device& operator=(basic_file_device&& obj)
     {
         close();
         m_file = obj.m_file;

@@ -383,7 +383,7 @@ T& operator >> (T& obj, std::function<void(U&)> pf)
 }
 
 template <istream_type T, typename TValue>
-T& operator>> (T& obj, TValue& value)
+T& operator>>(T& obj, TValue& value)
 {
     auto iter = obj.i_iter();
 

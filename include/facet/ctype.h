@@ -40,7 +40,7 @@ public:
     }
 
     ctype(const ctype&) = delete;
-    ctype& operator= (const ctype&) = delete;
+    ctype& operator=(const ctype&) = delete;
 
 public:
     mask is(CharT c) const
@@ -169,7 +169,7 @@ public:
     }
 
     ctype(const ctype&) = delete;
-    ctype& operator= (const ctype&) = delete;
+    ctype& operator=(const ctype&) = delete;
 
 public:
     mask is(CharT c) const

@@ -110,7 +110,7 @@ private:
     }
 
     __cin(const __cin&) = delete;
-    __cin& operator= (const __cin&) = delete;
+    __cin& operator=(const __cin&) = delete;
 };
 
 static __cin::init _cin_init;
@@ -131,7 +131,7 @@ private:
     }
 
     __wcin(const __wcin&) = delete;
-    __wcin& operator= (const __wcin&) = delete;
+    __wcin& operator=(const __wcin&) = delete;
 };
 
 static __wcin::init _wcin_init;

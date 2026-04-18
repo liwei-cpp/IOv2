@@ -187,7 +187,7 @@ T& operator << (T& obj, std::function<void(U&)> pf)
 }
 
 template <ostream_type T, typename TValue>
-T& operator<< (T& obj, const TValue& value)
+T& operator<<(T& obj, const TValue& value)
 {
     using TDecay = std::decay_t<TValue>;
     using TChar = typename T::char_type;
