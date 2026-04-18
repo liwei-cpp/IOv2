@@ -127,8 +127,13 @@ public:
         if (BT::m_io_status == io_status::output)
             throw cvt_error("chacha20_cvt::get fails: not available");
 
+        constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
+        constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
+        to_max = (max_chunk / sizeof(internal_type) > to_max)
+               ? (to_max * sizeof(internal_type))
+               : max_chunk;
+
         uint8_t* to = reinterpret_cast<uint8_t*>(_to);
-        to_max *= sizeof(internal_type);
 
         auto rd = this->reader(block_size);
         size_t res = 0;
@@ -155,17 +160,27 @@ public:
         if (BT::m_io_status == io_status::input)
             throw cvt_error("chacha20_cvt::put fails: not available");
 
-        auto wt = this->writer(block_size);
-        const uint8_t* to = reinterpret_cast<const uint8_t*>(_to);
-        to_size *= sizeof(internal_type);
+        constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
+        constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
-        size_t to_i = 0;
-        while (to_i != to_size)
+        const uint8_t* to = reinterpret_cast<const uint8_t*>(_to);
+
+        auto wt = this->writer(block_size);
+        while (to_size > 0)
         {
-            size_t dest_size = std::min<size_t>(block_size, to_size - to_i);
-            auto ptr = wt.put_buf(dest_size);
-            m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size);
-            to_i += dest_size;
+            size_t aim_output = (max_chunk / sizeof(internal_type) > to_size)
+                              ? (to_size * sizeof(internal_type))
+                              : max_chunk;
+            size_t to_i = 0;
+            while (to_i != aim_output)
+            {
+                size_t dest_size = std::min<size_t>(block_size, aim_output - to_i);
+                auto ptr = wt.put_buf(dest_size);
+                m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size);
+                to_i += dest_size;
+            }
+            to += aim_output;
+            to_size -= aim_output / sizeof(internal_type);
         }
         wt.commit();
         return;
