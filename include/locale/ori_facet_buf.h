@@ -63,7 +63,7 @@ public:
 private:
     ori_facet_buf() = default;
     ori_facet_buf(const ori_facet_buf&) = delete;
-    const ori_facet_buf& operator= (const ori_facet_buf&) = delete;
+    const ori_facet_buf& operator=(const ori_facet_buf&) = delete;
 
 private:
     std::unordered_map<size_t, std::unordered_map<std::string, std::shared_ptr<abs_ft>>> m_cache;

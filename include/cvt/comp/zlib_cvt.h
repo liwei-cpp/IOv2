@@ -272,8 +272,8 @@ public:
         constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm.avail_out)>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
-        auto aim_output = (max_chunk / sizeof (internal_type) > to_max)
-                        ? static_cast<decltype(m_strm.avail_out)>(to_max * sizeof (internal_type))
+        auto aim_output = (max_chunk / sizeof(internal_type) > to_max)
+                        ? static_cast<decltype(m_strm.avail_out)>(to_max * sizeof(internal_type))
                         : static_cast<decltype(m_strm.avail_out)>(max_chunk);
 
         m_strm.avail_out = aim_output;
@@ -319,8 +319,8 @@ public:
         auto wt = this->writer(CHUNK);
         while (to_size > 0)
         {
-            auto aim_output = (max_chunk / sizeof (internal_type) > to_size)
-                            ? static_cast<decltype(m_strm.avail_out)>(to_size * sizeof (internal_type))
+            auto aim_output = (max_chunk / sizeof(internal_type) > to_size)
+                            ? static_cast<decltype(m_strm.avail_out)>(to_size * sizeof(internal_type))
                             : static_cast<decltype(m_strm.avail_out)>(max_chunk);
 
             size_t write_size = 0;
@@ -340,7 +340,7 @@ public:
                     wt.rollback(m_strm.avail_out);
             }
             to += aim_output;
-            to_size -= aim_output / sizeof (internal_type);
+            to_size -= aim_output / sizeof(internal_type);
         }
         wt.commit();
 

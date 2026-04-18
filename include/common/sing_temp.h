@@ -40,14 +40,14 @@ public:
         }
         
         init(const init&) = delete;
-        init& operator= (const init&) = delete;
+        init& operator=(const init&) = delete;
     };
     
 protected:
     sing_temp() = default;
     ~sing_temp() = default;
     sing_temp(const sing_temp&) = delete;
-    sing_temp& operator= (const sing_temp&) = delete;
+    sing_temp& operator=(const sing_temp&) = delete;
     
 public:
     static T* ptr()
