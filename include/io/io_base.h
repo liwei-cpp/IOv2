@@ -48,7 +48,7 @@ namespace ios_defs
     class failure : public std::runtime_error
     {
     public:
-        explicit failure(const std::string& msg, const std::error_code& ec= std::io_errc::stream)
+        explicit failure(const std::string& msg, const std::error_code& ec = std::io_errc::stream)
             : std::runtime_error(msg)
             , m_ec(ec) {}
 

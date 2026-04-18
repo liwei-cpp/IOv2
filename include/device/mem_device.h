@@ -64,7 +64,7 @@ public:
     
     void dput(const char_type* ch, size_t n)
     {
-        if (m_next_pos + n >= m_str.size())
+        if (m_next_pos + n > m_str.size())
         {
             m_str.erase(m_str.begin() + m_next_pos, m_str.end());
             m_str.reserve(m_next_pos + n);

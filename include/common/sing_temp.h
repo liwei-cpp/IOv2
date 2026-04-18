@@ -7,7 +7,7 @@ class sing_temp
 {
 public:
     // Note: This implementation assumes init objects are only created during
-    // static initialization before main(). Static initialization is single-threaded,
+    // static initialization **before** main(). Static initialization is single-threaded,
     // so atomic operations are not needed.
     // If init objects need to be created dynamically after main(), thread
     // synchronization mechanisms must be added.
