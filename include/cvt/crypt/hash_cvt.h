@@ -56,7 +56,6 @@ public:
     hash_cvt(KernelType kernel, hash_algo algo)
         : BT(std::move(kernel))
         , m_hash(Botan::HashFunction::create_or_throw(algo_to_str(algo)))
-        , m_bos_done(false)
         , m_has_main_cont(false)
         , m_out_fmt(hash_fmt::lower_hex)
     {}
@@ -65,7 +64,6 @@ public:
         requires (std::copy_constructible<KernelType>)
         : BT(val)
         , m_hash(val.m_hash->copy_state())
-        , m_bos_done(val.m_bos_done)
         , m_has_main_cont(val.m_has_main_cont)
         , m_out_fmt(val.m_out_fmt)
     {}
@@ -73,7 +71,6 @@ public:
     hash_cvt(hash_cvt&& val)
         : BT(std::move(val))
         , m_hash(std::move(val.m_hash))
-        , m_bos_done(val.m_bos_done)
         , m_has_main_cont(val.m_has_main_cont)
         , m_out_fmt(val.m_out_fmt)
     {
@@ -87,7 +84,6 @@ public:
             if (m_has_main_cont)
                 dump_stream();
             m_hash = val.m_hash->copy_state();
-            m_bos_done = val.m_bos_done;
             m_has_main_cont = val.m_has_main_cont;
             m_out_fmt = val.m_out_fmt;
 
@@ -103,7 +99,6 @@ public:
             if (m_has_main_cont)
                 dump_stream();
             m_hash = std::move(val.m_hash);
-            m_bos_done = val.m_bos_done;
             m_has_main_cont = val.m_has_main_cont;
             m_out_fmt = val.m_out_fmt;
             val.m_has_main_cont = false;
@@ -131,7 +126,6 @@ public:
 
     void main_cont_beg()
     {
-        m_bos_done = true;
         BT::main_cont_beg();
     }
     
@@ -139,7 +133,6 @@ public:
     {
         if (m_has_main_cont)
             dump_stream();
-        m_bos_done = false;
         m_has_main_cont = false;
         m_out_fmt = hash_fmt::lower_hex;
         return BT::attach(std::move(dev));
@@ -149,7 +142,6 @@ public:
     {
         if (m_has_main_cont)
             dump_stream();
-        m_bos_done = false;
         m_has_main_cont = false;
         m_out_fmt = hash_fmt::lower_hex;
         return BT::detach();
@@ -172,7 +164,7 @@ public:
 public:
     void put(const internal_type* to, size_t to_size)
     {
-        if (!m_bos_done)
+        if (!BT::m_is_bos_done)
             return BT::m_kernel.put(to, to_size);
 
         m_has_main_cont = true;
@@ -228,7 +220,6 @@ private:
     }
 private:
     std::unique_ptr<Botan::HashFunction> m_hash;
-    bool         m_bos_done;
     bool         m_has_main_cont;
     hash_fmt     m_out_fmt;
 };
