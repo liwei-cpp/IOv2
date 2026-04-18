@@ -103,8 +103,8 @@ struct StampInputIterator<TIter>
     
     TIter internal() const { return m_internal; }
 private:
-    TIter m_internal;
-    int   m_pos;
+    TIter           m_internal;
+    difference_type m_pos;
 };
 
 template <is_istreambuf_iterator_v TIter>

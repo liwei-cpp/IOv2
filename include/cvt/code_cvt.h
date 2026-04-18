@@ -133,13 +133,13 @@ struct codecvt_kernel<char8_t, TInt>
 
     void init_state() { return; }
     bool is_init_state() const { return true; }
-    unsigned epc() const { return 6; }
+    unsigned epc() const { return 4; }
     bool is_var_length() const { return true; }
     bool is_state_dep() const { return false; }
 
     bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
     {
-        if (to_end - to < 6)
+        if (to_end - to < 4)
             return false;
         const uint32_t c = static_cast<uint32_t>(ch);
         if ((uint32_t)0xD800 <= c && c <= (uint32_t)0xDFFF) [[unlikely]]
@@ -160,29 +160,10 @@ struct codecvt_kernel<char8_t, TInt>
             *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
             *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
         }
-        else if (c <= (uint32_t)0x1FFFFF)
+        else if (c <= (uint32_t)0x10FFFF)
         {
             if (to_end - to < 4) return false;
             *to++ = static_cast<char8_t>((c >> 18) + 0xF0);
-            *to++ = static_cast<char8_t>(((c >> 12) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
-        }
-        else if (c <= (uint32_t)0x3FFFFFF) [[unlikely]]
-        {
-            if (to_end - to < 5) return false;
-            *to++ = static_cast<char8_t>((c >> 24) + 0xF8);
-            *to++ = static_cast<char8_t>(((c >> 18) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>(((c >> 12) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
-        }
-        else if (c <= (uint32_t)0x7FFFFFFF)
-        {
-            if (to_end - to < 6) return false;
-            *to++ = static_cast<char8_t>((c >> 30) + 0xFC);
-            *to++ = static_cast<char8_t>(((c >> 24) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>(((c >> 18) & 0x3F) + 0x80);
             *to++ = static_cast<char8_t>(((c >> 12) & 0x3F) + 0x80);
             *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
             *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
@@ -237,39 +218,12 @@ struct codecvt_kernel<char8_t, TInt>
                 if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80)) [[unlikely]]
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
                 auto c = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4 - 0x3C82080;
-                if (c < 0x10000) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                if (c < 0x10000 || c> 0x10FFFF) return std::pair{false, static_cast<size_t>(to - ori_to)};
                 *to++ = c;
                 from += 4;
             }
-            else if (c1 < 0xFC)
-            {
-                if (from_end - from < 5) break;
-                auto c2 = static_cast<uint32_t>(from[1]);
-                auto c3 = static_cast<uint32_t>(from[2]);
-                auto c4 = static_cast<uint32_t>(from[3]);
-                auto c5 = static_cast<uint32_t>(from[4]);
-                if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80) || ((c5 & 0xC0) != 0x80)) [[unlikely]]
-                    return std::pair{false, static_cast<size_t>(to - ori_to)};
-                auto c = ((c1 & 3) << 24) + (c2 << 18) + (c3 << 12) + (c4 << 6) + c5 - 0x2082080;
-                if (c < 0x200000) return std::pair{false, static_cast<size_t>(to - ori_to)};
-                *to++ = c;
-                from += 5;
-            }
             else
-            {
-                if (from_end - from < 6) break;
-                auto c2 = static_cast<uint32_t>(from[1]);
-                auto c3 = static_cast<uint32_t>(from[2]);
-                auto c4 = static_cast<uint32_t>(from[3]);
-                auto c5 = static_cast<uint32_t>(from[4]);
-                auto c6 = static_cast<uint32_t>(from[5]);
-                if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80) || ((c5 & 0xC0) != 0x80) || ((c6 & 0xC0) != 0x80)) [[unlikely]]
-                    return std::pair{false, static_cast<size_t>(to - ori_to)};
-                auto c = ((c1 & 1) << 30) + ((c2 & 0x3F) << 24) + (c3 << 18) + (c4 << 12) + (c5 << 6) + c6 - 0x2082080;
-                if (c < 0x4000000) return std::pair{false, static_cast<size_t>(to - ori_to)};
-                *to++ = c;
-                from += 6;
-            }
+                return std::pair{false, static_cast<size_t>(to - ori_to)};
         }
         
         return std::pair{true, static_cast<size_t>(to - ori_to)};
