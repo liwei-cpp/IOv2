@@ -210,8 +210,8 @@ namespace IOv2
             val.m_io_status = io_status::neutral;
         }
 
-        abs_cvt& operator= (const abs_cvt&) = default;
-        abs_cvt& operator= (abs_cvt&& val)
+        abs_cvt& operator=(const abs_cvt&) = default;
+        abs_cvt& operator=(abs_cvt&& val)
         {
             if (this != &val)
             {

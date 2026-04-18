@@ -53,7 +53,7 @@ struct clocale_wrapper
         return *this;
     }
 
-    clocale_wrapper& operator= (const clocale_wrapper& val)
+    clocale_wrapper& operator=(const clocale_wrapper& val)
     {
         if (this != &val)
         {
@@ -98,9 +98,9 @@ struct clocale_user
 
     // Non-copyable and non-movable to prevent cross-thread usage
     clocale_user(const clocale_user&) = delete;
-    clocale_user& operator= (const clocale_user&) = delete;
+    clocale_user& operator=(const clocale_user&) = delete;
     clocale_user(clocale_user&&) = delete;
-    clocale_user& operator= (clocale_user&&) = delete;
+    clocale_user& operator=(clocale_user&&) = delete;
 
     /// Restore the previous locale.
     /// @note Must be called from the same thread that constructed this object

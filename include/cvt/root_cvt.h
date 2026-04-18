@@ -75,7 +75,7 @@ public:
         val.m_io_status = io_status::neutral;
     }
 
-    root_cvt& operator= (const root_cvt& val)
+    root_cvt& operator=(const root_cvt& val)
         requires (std::is_copy_assignable_v<device_type>)
     {
         if (this == &val) return *this;
@@ -97,7 +97,7 @@ public:
         return *this;
     }
     
-    root_cvt& operator= (root_cvt&& val)
+    root_cvt& operator=(root_cvt&& val)
     {
         if (this == &val) return *this;
 

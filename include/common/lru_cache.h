@@ -19,7 +19,7 @@ public:
 
     lru_cache() = default;
     lru_cache(const lru_cache&) = delete;
-    lru_cache& operator= (const lru_cache&) = delete;
+    lru_cache& operator=(const lru_cache&) = delete;
 
 public:
     return_type get(key_param_type key)
