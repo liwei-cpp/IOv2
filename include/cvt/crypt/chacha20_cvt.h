@@ -65,7 +65,7 @@ public:
     chacha20_cvt(const chacha20_cvt&) = delete;
     chacha20_cvt& operator=(const chacha20_cvt&) = delete;
     chacha20_cvt(chacha20_cvt&& val) = default;
-    chacha20_cvt& operator= (chacha20_cvt&& val) = default;
+    chacha20_cvt& operator=(chacha20_cvt&& val) = default;
 
 // mandatory methods
 public:

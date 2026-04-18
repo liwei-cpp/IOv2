@@ -33,7 +33,7 @@ public:
         return res.value();
     }
 
-    istreambuf_iterator& operator++ ()
+    istreambuf_iterator& operator++()
     {
         if (m_streambuf)
             m_streambuf->sbumpc();

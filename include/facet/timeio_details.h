@@ -252,8 +252,8 @@ public:
                     era_entry cur_entry;
                     
                     int32_t buf[8];
-                    memcpy (static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof (int32_t) * 8);
-                    ptr += sizeof (uint32_t) * 8;
+                    std::memcpy(static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof(int32_t) * 8);
+                    ptr += sizeof(uint32_t) * 8;
                     
                     cur_entry.from_year = buf[2] + 1900;
                     cur_entry.from_month = buf[3] + 1;

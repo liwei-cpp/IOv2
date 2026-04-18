@@ -31,7 +31,7 @@ class base_ft<messages> : public abs_ft
         file_closer(std::FILE* fp)
             : m_fp(fp) {}
         file_closer(const file_closer&) = delete;
-        file_closer& operator= (const file_closer&) = delete;
+        file_closer& operator=(const file_closer&) = delete;
         ~file_closer() { fclose(m_fp); }
     private:
         std::FILE* m_fp;

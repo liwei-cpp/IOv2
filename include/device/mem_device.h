@@ -24,8 +24,8 @@ public:
 
     mem_device(const mem_device&) = default;
     mem_device(mem_device&&) = default;
-    mem_device& operator= (const mem_device&) = default;
-    mem_device& operator= (mem_device&&) = default;
+    mem_device& operator=(const mem_device&) = default;
+    mem_device& operator=(mem_device&&) = default;
 
     const std::basic_string<CharT, Traits, Allocator>& str() const { return m_str; }
 

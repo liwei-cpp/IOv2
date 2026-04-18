@@ -15,8 +15,8 @@ public:
 public:
     abs_runtime_cvt_imp() = default;
     abs_runtime_cvt_imp(const abs_runtime_cvt_imp&) = default;
-    abs_runtime_cvt_imp& operator= (const abs_runtime_cvt_imp&) = delete;
-    abs_runtime_cvt_imp& operator= (abs_runtime_cvt_imp&&) = delete;
+    abs_runtime_cvt_imp& operator=(const abs_runtime_cvt_imp&) = delete;
+    abs_runtime_cvt_imp& operator=(abs_runtime_cvt_imp&&) = delete;
     virtual ~abs_runtime_cvt_imp() = default;
     
 public:
@@ -213,7 +213,7 @@ public:
     runtime_cvt(const runtime_cvt& val)
         : m_ptr(val.m_ptr ? val.m_ptr->clone() : nullptr) {}
         
-    runtime_cvt& operator= (const runtime_cvt& val)
+    runtime_cvt& operator=(const runtime_cvt& val)
     {
         if (this != &val)
             m_ptr = val.m_ptr ? val.m_ptr->clone() : nullptr;
@@ -221,7 +221,7 @@ public:
     }
 
     runtime_cvt(runtime_cvt&&) = default;
-    runtime_cvt& operator= (runtime_cvt&&) = default;
+    runtime_cvt& operator=(runtime_cvt&&) = default;
 
 public:
     const device_type& device() const &

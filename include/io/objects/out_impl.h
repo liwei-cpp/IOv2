@@ -97,7 +97,7 @@ class __cout : public stdout_api<__cout, std_device<STDOUT_FILENO>, char>
 private:
     __cout() = default;
     __cout(const __cout&) = delete;
-    __cout& operator= (const __cout&) = delete;
+    __cout& operator=(const __cout&) = delete;
 
     ~__cout()
     {
@@ -125,7 +125,7 @@ private:
     }
 
     __cerr(const __cerr&) = delete;
-    __cerr& operator= (const __cerr&) = delete;
+    __cerr& operator=(const __cerr&) = delete;
 
     ~__cerr()
     {
@@ -147,7 +147,7 @@ private:
     __clog() = default;
 
     __clog(const __clog&) = delete;
-    __clog& operator= (const __clog&) = delete;
+    __clog& operator=(const __clog&) = delete;
 
     ~__clog()
     {
@@ -171,7 +171,7 @@ private:
     {}
 
     __wcout(const __wcout&) = delete;
-    __wcout& operator= (const __wcout&) = delete;
+    __wcout& operator=(const __wcout&) = delete;
 
     ~__wcout()
     {
@@ -198,7 +198,7 @@ private:
     }
 
     __wcerr(const __wcerr&) = delete;
-    __wcerr& operator= (const __wcerr&) = delete;
+    __wcerr& operator=(const __wcerr&) = delete;
 
     ~__wcerr()
     {
@@ -222,7 +222,7 @@ private:
     {}
 
     __wclog(const __wclog&) = delete;
-    __wclog& operator= (const __wclog&) = delete;
+    __wclog& operator=(const __wclog&) = delete;
 
     ~__wclog()
     {

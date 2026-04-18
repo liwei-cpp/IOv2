@@ -310,7 +310,7 @@ public:
         , m_accu_len(val.m_accu_len)
     {}
 
-    code_cvt& operator= (const code_cvt& val)
+    code_cvt& operator=(const code_cvt& val)
     {
         close_stream();
         BT::operator=(val);
@@ -329,7 +329,7 @@ public:
         val.m_accu_len = 0;
     }
 
-    code_cvt& operator= (code_cvt&& val)
+    code_cvt& operator=(code_cvt&& val)
     {
         close_stream();
         BT::operator=(std::move(val));

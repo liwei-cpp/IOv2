@@ -80,7 +80,7 @@ public:
         val.m_has_main_cont = false;
     }
 
-    hash_cvt& operator= (const hash_cvt& val)
+    hash_cvt& operator=(const hash_cvt& val)
     {
         if (m_has_main_cont)
             dump_stream();
@@ -93,7 +93,7 @@ public:
         return *this;
     }
     
-    hash_cvt& operator= (hash_cvt&& val)
+    hash_cvt& operator=(hash_cvt&& val)
     {
         if (m_has_main_cont)
             dump_stream();
