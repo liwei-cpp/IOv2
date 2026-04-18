@@ -205,9 +205,11 @@ namespace IOv2
         abs_cvt(abs_cvt&& val)
             : m_kernel(std::move(val.m_kernel))
             , m_io_status(val.m_io_status)
+            , m_is_bos_done(val.m_is_bos_done)
             , m_cvt_io(std::move(val.m_cvt_io))
         {
             val.m_io_status = io_status::neutral;
+            val.m_is_bos_done = false;
         }
 
         abs_cvt& operator=(const abs_cvt&) = default;
@@ -218,6 +220,8 @@ namespace IOv2
                 m_kernel = std::move(val.m_kernel);
                 m_io_status = val.m_io_status;
                 val.m_io_status = io_status::neutral;
+                m_is_bos_done = val.m_is_bos_done;
+                val.m_is_bos_done = false;
                 m_cvt_io = std::move(val.m_cvt_io);
             }
             return *this;
@@ -231,12 +235,14 @@ namespace IOv2
         device_type detach()
         {
             m_io_status = io_status::neutral;
+            m_is_bos_done = false;
             return m_kernel.detach();
         }
     
         device_type attach(device_type&& dev = device_type{})
         {
             m_io_status = io_status::neutral;
+            m_is_bos_done = false;
             return m_kernel.attach(std::move(dev));
         }
     
@@ -254,6 +260,8 @@ namespace IOv2
         {
             if (m_io_status != io_status::neutral)
                 throw cvt_error("abs_cvt::bos fail: Cannot call bos with un-neutral status.");
+            if (m_is_bos_done)
+                throw cvt_error("abs_cvt::bos fail: Cannot call bos multiple times.");
 
             m_io_status = m_kernel.bos();
             return m_io_status;
@@ -261,6 +269,7 @@ namespace IOv2
 
         void main_cont_beg()
         {
+            m_is_bos_done = true;
             m_kernel.main_cont_beg();
         }
 
@@ -347,6 +356,7 @@ namespace IOv2
     protected:
         KernelType  m_kernel;
         io_status   m_io_status = io_status::neutral;
+        bool        m_is_bos_done = false;
     private:
         cvt_io<KernelType> m_cvt_io;
     };

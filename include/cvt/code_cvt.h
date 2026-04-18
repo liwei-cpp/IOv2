@@ -252,7 +252,6 @@ public:
     code_cvt(KernelType kernel, TParams&&... params)
         : BT(std::move(kernel))
         , m_cvt_kernel(std::forward<TParams>(params)...)
-        , m_is_bos_done(false)
         , m_accu_len(0)
     {}
 
@@ -260,7 +259,6 @@ public:
         requires (std::copy_constructible<KernelType>)
         : BT(val)
         , m_cvt_kernel(val.m_cvt_kernel)
-        , m_is_bos_done(val.m_is_bos_done)
         , m_accu_len(val.m_accu_len)
     {}
 
@@ -270,14 +268,12 @@ public:
         BT::operator=(val);
         m_cvt_kernel = val.m_cvt_kernel;
         m_accu_len = val.m_accu_len;
-        m_is_bos_done = val.m_is_bos_done;
         return *this;
     }
 
     code_cvt(code_cvt&& val)
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
-        , m_is_bos_done(val.m_is_bos_done)
         , m_accu_len(std::move(val.m_accu_len))
     {
         val.m_accu_len = 0;
@@ -288,7 +284,6 @@ public:
         close_stream();
         BT::operator=(std::move(val));
         m_cvt_kernel = std::move(val.m_cvt_kernel);
-        m_is_bos_done = val.m_is_bos_done;
         m_accu_len = val.m_accu_len;
         val.m_accu_len = 0;
         return *this;
@@ -315,7 +310,6 @@ public:
 
     io_status bos()
     {
-        m_is_bos_done = false;
         return BT::bos();
     }
 
@@ -323,7 +317,6 @@ public:
     {
         m_cvt_kernel.init_state();
         m_accu_len = 0;
-        m_is_bos_done = true;
         BT::main_cont_beg();
     }
 
@@ -333,7 +326,7 @@ public:
     void put(const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!m_is_bos_done)
+        if (!BT::m_is_bos_done)
             return BT::put_bos(to, to_size);
 
         if (BT::m_io_status != io_status::output)
@@ -367,7 +360,7 @@ public:
     size_t get(internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!m_is_bos_done)
+        if (!BT::m_is_bos_done)
             return BT::get_bos(to, to_max);
 
         if (BT::m_io_status != io_status::input)
@@ -507,13 +500,12 @@ private:
     {
         m_cvt_kernel.init_state();
         BT::m_io_status = io_status::neutral;
+        BT::m_is_bos_done = false;
         m_accu_len = 0;
-        m_is_bos_done = false;
     }
 
 protected:
     codecvt_kernel<external_type, internal_type> m_cvt_kernel;
-    bool                            m_is_bos_done;
     size_t                          m_accu_len;
 };
 

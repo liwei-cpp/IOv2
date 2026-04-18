@@ -38,7 +38,6 @@ public:
     zlib_cvt(KernelType kernel, unsigned put_level = 6)
         : BT(std::move(kernel))
         , m_put_level(put_level)
-        , m_bos_done(false)
         , m_sync_flush(false)
     {
         if (m_put_level > 9) m_put_level = 9;
@@ -48,7 +47,6 @@ public:
         requires (std::copy_constructible<KernelType>)
         : BT(val)
         , m_put_level(val.m_put_level)
-        , m_bos_done(val.m_bos_done)
         , m_sync_flush(val.m_sync_flush)
     {
         try
@@ -68,7 +66,6 @@ public:
     zlib_cvt(zlib_cvt&& val)
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
-        , m_bos_done(val.m_bos_done)
         , m_sync_flush(val.m_sync_flush)
     {
         try
@@ -97,7 +94,6 @@ public:
         close_stream();
         BT::operator=(val);
         m_put_level = val.m_put_level;
-        m_bos_done = val.m_bos_done;
         m_sync_flush = val.m_sync_flush;
 
         try
@@ -121,7 +117,6 @@ public:
         close_stream();
         BT::operator=(std::move(val));
         m_put_level = val.m_put_level;
-        m_bos_done = val.m_bos_done;
         m_sync_flush = val.m_sync_flush;
 
         try
@@ -180,7 +175,6 @@ public:
     {
         BT::main_cont_beg();
 
-        m_bos_done = true;
         if (BT::m_io_status == io_status::output)
             flush();
         else if (BT::m_io_status == io_status::neutral)
@@ -258,7 +252,7 @@ public:
     size_t get(internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!m_bos_done) return BT::get_bos(to, to_max);
+        if (!BT::m_is_bos_done) return BT::get_bos(to, to_max);
 
         if (BT::m_io_status != io_status::input)
             throw cvt_error("zlib_cvt::get fails: not available");
@@ -306,7 +300,7 @@ public:
     void put(const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!m_bos_done) return BT::put_bos(_to, to_size);
+        if (!BT::m_is_bos_done) return BT::put_bos(_to, to_size);
 
         if (BT::m_io_status != io_status::output)
             throw cvt_error("zlib_cvt::put fails: not available");
@@ -353,7 +347,7 @@ public:
     void flush()
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!m_bos_done)
+        if (!BT::m_is_bos_done)
             return BT::m_kernel.flush();
         
         if (BT::m_io_status != io_status::output)
@@ -414,7 +408,7 @@ private:
     {
         if (BT::m_io_status == io_status::output)
         {
-            if (m_bos_done)
+            if (BT::m_is_bos_done)
             {
                 auto wt = this->writer(CHUNK);
                 m_strm.next_in = nullptr;
@@ -437,7 +431,7 @@ private:
         else if (BT::m_io_status == io_status::input)
             inflateEnd(&m_strm);
 
-        m_bos_done = false;
+        BT::m_is_bos_done = false;
         BT::m_io_status = io_status::neutral;
         m_sync_flush = false;
         m_strm.next_out = nullptr;
@@ -445,7 +439,6 @@ private:
     }
 private:
     unsigned    m_put_level;
-    bool        m_bos_done;
     bool        m_sync_flush;
     
     z_stream    m_strm{};
