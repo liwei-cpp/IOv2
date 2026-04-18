@@ -176,7 +176,7 @@ protected:
                 throw stream_error("get_translate_dictionary fail: invalid format");
         
             str_buf[length] = '\0';
-            oris.push_back((char8_t*)(str_buf.data()));
+            oris.push_back(reinterpret_cast<char8_t*>(str_buf.data()));
         
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
@@ -200,7 +200,7 @@ protected:
                 throw stream_error("get_translate_dictionary fail: invalid format");
         
             str_buf[length] = '\0';
-            res.insert({oris[i], (char8_t*)(str_buf.data())});
+            res.insert({oris[i], reinterpret_cast<char8_t*>(str_buf.data())});
         
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");

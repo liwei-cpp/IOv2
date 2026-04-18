@@ -71,7 +71,7 @@ struct date_parse_helper<CharT, true>
                     auto it = m_era_items.begin();
                     for (; it != m_era_items.end(); ++it)
                     {
-                        int est_year = (int)it->from_year + (m_year_of_era - (int)it->offset) * it->direction;
+                        int est_year = static_cast<int>(it->from_year) + (m_year_of_era - static_cast<int>(it->offset)) * it->direction;
                         bool cmp1 = era_small_or_equal(it->from_year, it->from_month, it->from_day,
                                                         est_year, m_month, m_mday) &&
                                     era_small_or_equal(est_year, m_month, m_mday,
@@ -94,7 +94,7 @@ struct date_parse_helper<CharT, true>
                     auto it = m_era_items.begin();
                     for (; it != m_era_items.end(); ++it)
                     {
-                        int est_year = (int)it->from_year + (m_year_of_era - (int)it->offset) * it->direction;
+                        int est_year = static_cast<int>(it->from_year) + (m_year_of_era - static_cast<int>(it->offset)) * it->direction;
                         bool cmp1 = era_small_or_equal(it->from_year, it->from_month, it->from_day,
                                                         est_year, m_month, m_mday) &&
                                     era_small_or_equal(est_year, m_month, m_mday,
@@ -117,7 +117,7 @@ struct date_parse_helper<CharT, true>
                     auto it = m_era_items.begin();
                     for (; it != m_era_items.end(); ++it)
                     {
-                        int est_year = (int)it->from_year + (m_year_of_era - (int)it->offset) * it->direction;
+                        int est_year = static_cast<int>(it->from_year) + (m_year_of_era - static_cast<int>(it->offset)) * it->direction;
                         if ((it->from_year > est_year) || (est_year > it->to_year)) continue;
                         deducted_year = est_year;
                         break;
@@ -401,7 +401,7 @@ struct time_parse_context
         bool isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
 
         const int days[12] = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
-        res.tm_yday = days[res.tm_mon] + res.tm_mday + (int)isLeap;
+        res.tm_yday = days[res.tm_mon] + res.tm_mday + static_cast<int>(isLeap);
 
         return res;
     }
@@ -1402,7 +1402,7 @@ private:
                     unsigned val = static_cast<unsigned>(ymd->day());
                     if (val < 1) val = 1;
                     if (val > 31) val = 31;
-                    out = put_dec<2>(out, (int)val, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<2>(out, static_cast<int>(val), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1423,7 +1423,7 @@ private:
                     unsigned val = static_cast<unsigned>(ymd->day());
                     if (val < 1) val = 1;
                     if (val > 31) val = 31;
-                    out = put_dec<2, static_cast<CharT>(' ')>(out, (int)val, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<2, static_cast<CharT>(' ')>(out, static_cast<int>(val), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1459,7 +1459,7 @@ private:
                     auto val = hms->hours().count();
                     if (val < 0) val = 0;
                     if (val > 23) val = 23;
-                    out = put_dec<2>(out, (int)val, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<2>(out, static_cast<int>(val), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1472,7 +1472,7 @@ private:
 
                     if (val > 12) val -= 12;
                     else if (val == 0) val = 12;
-                    out = put_dec<2>(out, (int)val, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<2>(out, static_cast<int>(val), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1491,7 +1491,7 @@ private:
                     auto val = hms->minutes().count();
                     if (val < 0) val = 0;
                     if (val > 59) val = 59;
-                    out = put_dec<2>(out, (int)val, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<2>(out, static_cast<int>(val), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1501,7 +1501,7 @@ private:
                     auto val = static_cast<unsigned>(ymd->month());
                     if (val < 1) val = 1;
                     if (val > 12) val = 12;
-                    out = put_dec<2>(out, (int)val, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<2>(out, static_cast<int>(val), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1539,7 +1539,7 @@ private:
                     auto val = hms->seconds().count();
                     if (val < 0) val = 0;
                     if (val > 59) val = 59;
-                    out = put_dec<2>(out, (int)val, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<2>(out, static_cast<int>(val), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1563,7 +1563,7 @@ private:
                 {
                     const auto index = wd->iso_encoding();
                     if ((index < 1) || (index > 7)) *out++ = static_cast<CharT>('?');
-                    out = put_dec<1>(out, (int)index, (modifier == static_cast<CharT>('O')));
+                    out = put_dec<1>(out, static_cast<int>(index), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
@@ -1646,7 +1646,7 @@ private:
             case static_cast<CharT>('y'):
                 if (!ymd) goto bad_format;
                 {
-                    int val = ((int)ymd->year() % 100 + 100) % 100;
+                    int val = (static_cast<int>(ymd->year()) % 100 + 100) % 100;
                     if (val < 0) val = 0;
                     if (val > 99) val = 99;
                     if (modifier == static_cast<CharT>('O'))
@@ -1663,7 +1663,7 @@ private:
                             era = get_era_entry(*ymd);
                         if (era)
                         {
-                            int delta = (int)ymd->year() - era->from_year;
+                            int delta = static_cast<int>(ymd->year()) - era->from_year;
                             out = put_dec<0>(out, era->offset + delta * era->direction);
                         }
                         else
@@ -1684,7 +1684,7 @@ private:
                         out = do_put(out, subfmt, ymd, wd, hms, tz);
                     }
                     else
-                        out = put_dec<4>(out, (int)ymd->year());
+                        out = put_dec<4>(out, static_cast<int>(ymd->year()));
                 }
                 break;
 

@@ -207,7 +207,7 @@ public:
             else throw cvt_error("zlib_cvt::bos fail: kernel does not support get.");
 
             m_strm.avail_in = 2;
-            m_strm.next_in = (unsigned char*)ptr;
+            m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<external_type*>(ptr));
             
             unsigned char ch;
             m_strm.avail_out = 1;
@@ -227,7 +227,7 @@ public:
             m_strm.zfree = Z_NULL;
             m_strm.opaque = Z_NULL;
 
-            auto ret = deflateInit(&m_strm, (int)m_put_level);
+            auto ret = deflateInit(&m_strm, static_cast<int>(m_put_level));
             if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
 
             auto wt = this->writer(3);
@@ -236,7 +236,7 @@ public:
             m_strm.avail_in = 0;
             m_strm.next_in = nullptr;
             m_strm.avail_out = 3;
-            m_strm.next_out = (unsigned char*)(ptr);
+            m_strm.next_out = reinterpret_cast<unsigned char*>(ptr);
             ret = deflate(&m_strm, Z_NO_FLUSH);
             assert(ret != Z_STREAM_ERROR);
 
@@ -285,7 +285,7 @@ public:
         {
             auto [ptr, len] = rd.get_buf(1);
             if (len == 0) break;
-            m_strm.next_in = (unsigned char*)(ptr);
+            m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<char*>(ptr));
             m_strm.avail_in = 1;
             ret = inflate(&m_strm, Z_NO_FLUSH);
             assert(m_strm.avail_in == 0);
@@ -329,7 +329,7 @@ public:
                 m_strm.next_in = const_cast<unsigned char*>(to + write_size);
                 size_t cur_put_size = static_cast<size_t>(aim_output - write_size);
                 m_strm.avail_in = cur_put_size;
-                m_strm.next_out = (unsigned char*)(wt.put_buf(CHUNK));
+                m_strm.next_out = reinterpret_cast<unsigned char*>(wt.put_buf(CHUNK));
                 m_strm.avail_out = CHUNK;
 
                 auto ret = deflate(&m_strm, Z_NO_FLUSH);
@@ -366,7 +366,7 @@ public:
             m_strm.avail_in = 0;
             while (true)
             {
-                m_strm.next_out = (unsigned char*)(wt.put_buf(CHUNK));
+                m_strm.next_out = reinterpret_cast<unsigned char*>(wt.put_buf(CHUNK));
                 m_strm.avail_out = CHUNK;
                 zerr("zlib_cvt::flush fail", deflate(&m_strm, Z_SYNC_FLUSH));
                 if (m_strm.avail_out)
@@ -421,7 +421,7 @@ private:
                 m_strm.avail_in = 0;
                 while (true)
                 {
-                    m_strm.next_out = (unsigned char*)(wt.put_buf(CHUNK));
+                    m_strm.next_out = reinterpret_cast<unsigned char*>(wt.put_buf(CHUNK));
                     m_strm.avail_out = CHUNK;
                     zerr("zlib_cvt::put_end fail", deflate(&m_strm, Z_FINISH));
                     if (m_strm.avail_out)
