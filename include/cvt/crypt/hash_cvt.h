@@ -82,28 +82,34 @@ public:
 
     hash_cvt& operator=(const hash_cvt& val)
     {
-        if (m_has_main_cont)
-            dump_stream();
-        m_hash = val.m_hash->copy_state();
-        m_bos_done = val.m_bos_done;
-        m_has_main_cont = val.m_has_main_cont;
-        m_out_fmt = val.m_out_fmt;
+        if (this != &val)
+        {
+            if (m_has_main_cont)
+                dump_stream();
+            m_hash = val.m_hash->copy_state();
+            m_bos_done = val.m_bos_done;
+            m_has_main_cont = val.m_has_main_cont;
+            m_out_fmt = val.m_out_fmt;
 
-        BT::operator=(val);
+            BT::operator=(val);
+        }
         return *this;
     }
     
     hash_cvt& operator=(hash_cvt&& val)
     {
-        if (m_has_main_cont)
-            dump_stream();
-        m_hash = std::move(val.m_hash);
-        m_bos_done = val.m_bos_done;
-        m_has_main_cont = val.m_has_main_cont;
-        m_out_fmt = val.m_out_fmt;
-        val.m_has_main_cont = false;
+        if (this != &val)
+        {
+            if (m_has_main_cont)
+                dump_stream();
+            m_hash = std::move(val.m_hash);
+            m_bos_done = val.m_bos_done;
+            m_has_main_cont = val.m_has_main_cont;
+            m_out_fmt = val.m_out_fmt;
+            val.m_has_main_cont = false;
 
-        BT::operator=(std::move(val));
+            BT::operator=(std::move(val));
+        }
         return *this;
     }
     

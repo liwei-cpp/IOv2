@@ -234,7 +234,7 @@ public:
 
     CharT widen(char c) const
     {
-        return m_widen[static_cast<unsigned>(c)];
+        return m_widen[static_cast<unsigned char>(c)];
     }
 
     template <typename InIt, typename OutIt>

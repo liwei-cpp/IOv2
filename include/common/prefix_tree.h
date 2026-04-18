@@ -30,7 +30,7 @@ class prefix_tree
         TValue val;
         size_t depth;
 
-        node(TValue v, int d)
+        node(TValue v, size_t d)
             : val(v)
             , depth(d) {}
     };
@@ -41,7 +41,7 @@ public:
         , m_root(dflt, 0)
     { }
 
-    prefix_tree(const std::vector<const CharT*>& strs, TValue dflt = (TValue)-1)
+    prefix_tree(const std::vector<const CharT*>& strs, TValue dflt = static_cast<TValue>(-1))
         : prefix_tree(dflt)
     {
         for (size_t i = 0; i < strs.size(); ++i)
