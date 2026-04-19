@@ -31,16 +31,15 @@ namespace IOv2::Crypt::Classic
 /// @see chacha20_cvt for cryptographically secure encryption
 template <io_converter KernelType>
     requires std::is_integral_v<typename KernelType::internal_type>
-class vigenere_cvt : public abs_cvt<KernelType, typename KernelType::internal_type, true, false, true>
+class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, false, true>
 {
+    using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, false, true>;
+    friend BT;  // for put_main and get_main
     constexpr static size_t s_buf_len = 16;
 public:
     using device_type = typename KernelType::device_type;
     using internal_type = typename KernelType::internal_type;
     using external_type = internal_type;
-
-private:
-    using BT = abs_cvt<KernelType, internal_type, true, false, true>;
 
 public:
     vigenere_cvt(KernelType dev, std::basic_string_view<internal_type> s)
@@ -73,12 +72,10 @@ public:
     }
 
 // optional methods
-public:
-    size_t get(internal_type* to, size_t to_max)
+private:
+    size_t get_main(internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!BT::m_is_bos_done) return BT::get_bos(to, to_max);
-
         size_t total_count = 0;
         auto rd = this->reader(s_buf_len);
         while (total_count != to_max)
@@ -98,11 +95,9 @@ public:
         return total_count;
     }
     
-    void put(const internal_type* to, size_t to_size)
+    void put_main(const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!BT::m_is_bos_done) return BT::put_bos(to, to_size);
-
         auto wt = this->writer(s_buf_len);
 
         size_t total_count = 0;
@@ -120,7 +115,8 @@ public:
         }
         wt.commit();
     }
-    
+
+public:
     /// positioning
     size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)

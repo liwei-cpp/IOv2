@@ -28,17 +28,16 @@ inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (std::is_integral_v<typename KernelType::internal_type> &&
               sizeof(typename KernelType::internal_type) == sizeof(uint8_t))
-class chacha20_cvt : public abs_cvt<KernelType, TInt, true, false, false>
+class chacha20_cvt : public abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, true, false, false>
 {
+    using BT = abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, true, false, false>;
+    friend BT; // for put_main and get_main
 public:
     using device_type = typename KernelType::device_type;
     using internal_type = TInt;
     using external_type = typename KernelType::internal_type;
 
     static constexpr size_t block_size = 64;
-
-private:
-    using BT = abs_cvt<KernelType, TInt, true, false, false>;
 
 public:
     chacha20_cvt(KernelType kernel, std::string_view key)
@@ -113,15 +112,10 @@ public:
     }
 
 // optional methods
-public:
-    size_t get(internal_type* _to, size_t to_max)
+private:
+    size_t get_main(internal_type* _to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!BT::m_is_bos_done) return BT::get_bos(_to, to_max);
-
-        if (BT::m_io_status == io_status::output)
-            throw cvt_error("chacha20_cvt::get fails: not available");
-
         constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
         to_max = (max_chunk / sizeof(internal_type) > to_max)
@@ -147,14 +141,9 @@ public:
         return res / sizeof(internal_type);
     }
     
-    void put(const internal_type* _to, size_t to_size)
+    void put_main(const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!BT::m_is_bos_done) return BT::put_bos(_to, to_size);
-
-        if (BT::m_io_status == io_status::input)
-            throw cvt_error("chacha20_cvt::put fails: not available");
-
         constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
@@ -178,7 +167,6 @@ public:
             to_size -= aim_output / sizeof(internal_type);
         }
         wt.commit();
-        return;
     }
 private:
     std::unique_ptr<Botan::StreamCipher> m_cipher;
