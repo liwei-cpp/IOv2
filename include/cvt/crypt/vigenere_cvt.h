@@ -45,7 +45,6 @@ private:
 public:
     vigenere_cvt(KernelType dev, std::basic_string_view<internal_type> s)
         : BT(std::move(dev))
-        , m_bos_done(false)
         , m_pos(0)
         , m_key(s.begin(), s.end())
     {
@@ -57,23 +56,20 @@ public:
 public:
     device_type attach(device_type&& dev = device_type{})
     {
-        m_bos_done = false;
         m_pos = 0;
-        return BT::m_kernel.attach(std::move(dev));
+        return BT::attach(std::move(dev));
     }
 
     device_type detach()
     {
-        m_bos_done = false;
         m_pos = 0;
         return BT::detach();
     }
 
     void main_cont_beg()
     {
-        m_bos_done = true;
         m_pos = 0;
-        return BT::m_kernel.main_cont_beg();
+        return BT::main_cont_beg();
     }
 
 // optional methods
@@ -81,7 +77,7 @@ public:
     size_t get(internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!m_bos_done) return BT::get_bos(to, to_max);
+        if (!BT::m_is_bos_done) return BT::get_bos(to, to_max);
 
         size_t total_count = 0;
         auto rd = this->reader(s_buf_len);
@@ -105,7 +101,7 @@ public:
     void put(const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!m_bos_done) return BT::put_bos(to, to_size);
+        if (!BT::m_is_bos_done) return BT::put_bos(to, to_size);
 
         auto wt = this->writer(s_buf_len);
 
@@ -146,7 +142,6 @@ public:
         m_pos = BT::m_kernel.tell();
     }
 private:
-    bool                       m_bos_done;
     size_t                     m_pos;
     std::vector<internal_type> m_key;
 };

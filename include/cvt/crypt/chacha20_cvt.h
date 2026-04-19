@@ -44,7 +44,6 @@ public:
     chacha20_cvt(KernelType kernel, std::string_view key)
         : BT(std::move(kernel))
         , m_cipher(Botan::StreamCipher::create("ChaCha20"))
-        , m_bos_done(false)
     {
         if (!m_cipher)
             throw cvt_error("chacha20_cvt constructor fail: cannot create the stream cipher");
@@ -56,7 +55,6 @@ public:
         : BT(std::move(kernel))
         , m_cipher(Botan::StreamCipher::create("ChaCha20"))
         , m_key(key)
-        , m_bos_done(false)
     {
         if (!m_cipher)
             throw cvt_error("chacha20_cvt constructor fail: cannot create the stream cipher");
@@ -72,14 +70,12 @@ public:
     device_type attach(device_type&& dev = device_type{})
     {
         m_cipher->clear();
-        m_bos_done = false;
         return BT::attach(std::move(dev));
     }
     
     device_type detach()
     {
         m_cipher->clear();
-        m_bos_done = false;
         return BT::detach();
     }
     
@@ -113,7 +109,6 @@ public:
 
     void main_cont_beg()
     {
-        m_bos_done = true;
         BT::main_cont_beg();
     }
 
@@ -122,7 +117,7 @@ public:
     size_t get(internal_type* _to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!m_bos_done) return BT::get_bos(_to, to_max);
+        if (!BT::m_is_bos_done) return BT::get_bos(_to, to_max);
 
         if (BT::m_io_status == io_status::output)
             throw cvt_error("chacha20_cvt::get fails: not available");
@@ -155,7 +150,7 @@ public:
     void put(const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!m_bos_done) return BT::put_bos(_to, to_size);
+        if (!BT::m_is_bos_done) return BT::put_bos(_to, to_size);
 
         if (BT::m_io_status == io_status::input)
             throw cvt_error("chacha20_cvt::put fails: not available");
@@ -188,7 +183,6 @@ public:
 private:
     std::unique_ptr<Botan::StreamCipher> m_cipher;
     Botan::secure_vector<uint8_t>        m_key;
-    bool                                 m_bos_done;
 };
 
 template <typename TInt>
