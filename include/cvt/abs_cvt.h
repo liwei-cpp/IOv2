@@ -185,7 +185,8 @@ namespace IOv2
         std::vector<char_type> m_buffer;
     };
 
-    template <io_converter KernelType,
+    template <typename CurrentType,
+              io_converter KernelType,
               typename InternalType,
               bool default_flush = true,
               bool default_positioning = true,
@@ -280,6 +281,46 @@ namespace IOv2
 
     // optional methods
     public:
+        size_t get(internal_type* to, size_t to_max)
+            requires requires(CurrentType& t, internal_type* data, size_t len) {
+                { t.get_main(data, len) } -> std::same_as<size_t>;
+            }
+        {
+            if (!m_is_bos_done)
+                return get_bos(to, to_max);
+            else
+            {
+                if (m_io_status != io_status::input)
+                {
+                    if constexpr (cvt_cpt::support_io_switch<CurrentType>)
+                        static_cast<CurrentType*>(this)->switch_to_get();
+                    else
+                        throw cvt_error("abs_cvt::get fail: cannot switch to input mode");
+                }
+                return static_cast<CurrentType*>(this)->get_main(to, to_max);
+            }
+        }
+
+        void put(const internal_type* to, size_t to_size)
+            requires requires(CurrentType& t, const internal_type* data, size_t len) {
+                { t.put_main(data, len) } -> std::same_as<void>;
+            }
+        {
+            if (!m_is_bos_done)
+                put_bos(to, to_size);
+            else
+            {
+                if (m_io_status != io_status::output)
+                {
+                    if constexpr (cvt_cpt::support_io_switch<CurrentType>)
+                        static_cast<CurrentType*>(this)->switch_to_put();
+                    else
+                        throw cvt_error("abs_cvt::put fail: cannot switch to output mode");
+                }
+                static_cast<CurrentType*>(this)->put_main(to, to_size);
+            }
+        }
+
         void flush()
             requires (default_flush && cvt_cpt::support_put<KernelType>)
         {
@@ -307,13 +348,15 @@ namespace IOv2
         void switch_to_get()
             requires (default_io_switch && cvt_cpt::support_io_switch<KernelType>)
         {
-            return m_kernel.switch_to_get();
+            m_kernel.switch_to_get();
+            m_io_status = io_status::input;
         }
 
         void switch_to_put()
             requires (default_io_switch && cvt_cpt::support_io_switch<KernelType>)
         {
-            return m_kernel.switch_to_put();
+            m_kernel.switch_to_put();
+            m_io_status = io_status::output;
         }
 
     protected:
