@@ -231,15 +231,17 @@ struct codecvt_kernel<char8_t, TInt>
 };
 
 template <io_converter KernelType, typename CharType>
-class code_cvt : public abs_cvt<KernelType, CharType, true, false, false>
+class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, false, false>
 {
+    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, false, false>;
+    friend BT; // for put_main, get_main
+
 public:
     using device_type = typename KernelType::device_type;
     using internal_type = CharType;
     using external_type = typename KernelType::internal_type;
 
 private:
-    using BT = abs_cvt<KernelType, CharType, true, false, false>;
     constexpr static size_t s_ie_ratio = sizeof(internal_type) / sizeof(external_type);
     constexpr static size_t s_max_buf_size = std::max<size_t>(MB_LEN_MAX * 16, s_ie_ratio);
 
@@ -321,22 +323,10 @@ public:
     }
 
 // optional methods
-public:
-    /// put
-    void put(const internal_type* to, size_t to_size)
+private:
+    void put_main(const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!BT::m_is_bos_done)
-            return BT::put_bos(to, to_size);
-
-        if (BT::m_io_status != io_status::output)
-        {
-            if constexpr (cvt_cpt::support_io_switch<KernelType>)
-                switch_to_put();
-            else
-                throw cvt_error("code_cvt::put fail: cannot switch to output mode.");
-        }
-
         auto wt = this->writer(s_max_buf_size);
         const size_t buf_len = m_cvt_kernel.epc();
         for (size_t i = 0; i < to_size; ++i)
@@ -356,21 +346,9 @@ public:
         wt.commit();
     }
 
-    /// get
-    size_t get(internal_type* to, size_t to_max)
+    size_t get_main(internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!BT::m_is_bos_done)
-            return BT::get_bos(to, to_max);
-
-        if (BT::m_io_status != io_status::input)
-        {
-            if constexpr (cvt_cpt::support_io_switch<KernelType>)
-                switch_to_get();
-            else
-                throw cvt_error("code_cvt::get fail: cannot switch to input mode");
-        }
-
         auto rd = this->reader(s_max_buf_size);
         size_t total_size = 0;
 
@@ -409,6 +387,7 @@ public:
         return total_size;
     }
 
+public:
     /// positioning
     size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)

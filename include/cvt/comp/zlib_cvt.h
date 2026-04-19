@@ -22,9 +22,10 @@ struct zlib_sync_flush : cvt_behavior
 
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (sizeof(typename KernelType::internal_type) == sizeof(unsigned char))
-class zlib_cvt : public abs_cvt<KernelType, TInt, false, false, false>
+class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false, false>
 {
-    using BT = abs_cvt<KernelType, TInt, false, false, false>;
+    using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false, false>;
+    friend BT;  // for put_main and get_main
 
 public:
     using device_type = typename KernelType::device_type;
@@ -248,15 +249,10 @@ public:
     }
 
 // optional methods
-public:
-    size_t get(internal_type* to, size_t to_max)
+private:
+    size_t get_main(internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        if (!BT::m_is_bos_done) return BT::get_bos(to, to_max);
-
-        if (BT::m_io_status != io_status::input)
-            throw cvt_error("zlib_cvt::get fails: not available");
-
         // Note: We read one byte at a time intentionally. Decompression has
         // unpredictable expansion ratio - a few compressed bytes could expand
         // to overflow the output buffer. This keeps the code simple and correct.
@@ -297,14 +293,9 @@ public:
         return res / sizeof(internal_type);
     }
 
-    void put(const internal_type* _to, size_t to_size)
+    void put_main(const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        if (!BT::m_is_bos_done) return BT::put_bos(_to, to_size);
-
-        if (BT::m_io_status != io_status::output)
-            throw cvt_error("zlib_cvt::put fails: not available");
-
         constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm.avail_out)>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
@@ -343,7 +334,7 @@ public:
         m_strm.next_in = nullptr;
         m_strm.avail_in = 0;
     }
-    
+public:    
     void flush()
         requires (cvt_cpt::support_put<KernelType>)
     {
