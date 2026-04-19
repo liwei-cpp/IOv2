@@ -198,6 +198,10 @@ namespace IOv2
         using external_type = typename KernelType::internal_type;
         using internal_type = InternalType;
 
+    private:
+        // for bos: write s_bos_chunk external type at once. This will avoid allocating large memory, and use memory efficiently.
+        constexpr static size_t s_bos_chunk = 16;  
+
     public:
         abs_cvt(KernelType kernel)
             : m_kernel(std::move(kernel)) {}
@@ -287,7 +291,36 @@ namespace IOv2
             }
         {
             if (!m_is_bos_done)
-                return get_bos(to, to_max);
+            {
+                if (to_max == 0) return 0;
+
+                constexpr size_t ext_size = sizeof(external_type);
+
+                auto rd = this->reader(s_bos_chunk);
+                char* dest_bytes = reinterpret_cast<char*>(to);
+                const char* dest_bytes_end = reinterpret_cast<const char*>(to + to_max);
+
+                // Read full external_type chunks
+                while (dest_bytes + ext_size <= dest_bytes_end)
+                {
+                    const size_t units_to_read_now = std::min((size_t)((dest_bytes_end - dest_bytes) / ext_size), s_bos_chunk);
+
+                    const auto* src_buf = rd.template get_buf<true>(units_to_read_now);
+                    std::memcpy(dest_bytes, src_buf, units_to_read_now * ext_size);
+                    dest_bytes += units_to_read_now * ext_size;
+                }
+
+                // Read the final partial internal_type if needed
+                const size_t final_remainder_bytes = dest_bytes_end - dest_bytes;
+                if (final_remainder_bytes > 0)
+                {
+                    const auto* src_buf = rd.template get_buf<true>(1);
+                    std::memcpy(dest_bytes, src_buf, final_remainder_bytes);
+                    dest_bytes += final_remainder_bytes;
+                }
+
+                return to_max;
+            }
             else
             {
                 if (m_io_status != io_status::input)
@@ -307,7 +340,32 @@ namespace IOv2
             }
         {
             if (!m_is_bos_done)
-                put_bos(to, to_size);
+            {
+                if (to_size == 0) return;
+
+                constexpr size_t ext_size = sizeof(external_type);
+
+                auto to_bytes = reinterpret_cast<const char*>(to);
+                auto to_bytes_end = reinterpret_cast<const char*>(to + to_size);
+
+                auto wt = this->writer(s_bos_chunk);
+                while (to_bytes + ext_size <= to_bytes_end)
+                {
+                    auto dest_count = std::min<size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
+                    auto ptr = wt.put_buf(dest_count);
+                    std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, dest_count * ext_size);
+                    to_bytes += dest_count * ext_size;
+                }
+
+                if (to_bytes < to_bytes_end)
+                {
+                    auto ptr = wt.put_buf(1);
+                    std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, to_bytes_end - to_bytes);
+                    std::memset(reinterpret_cast<char*>(ptr) + (to_bytes_end - to_bytes), 0, ext_size - (to_bytes_end - to_bytes));
+                }
+
+                wt.commit();
+            }
             else
             {
                 if (m_io_status != io_status::output)
@@ -362,39 +420,6 @@ namespace IOv2
     protected:
         auto reader(size_t buf_size) { return m_cvt_io.reader(m_kernel, buf_size); }
         auto writer(size_t buf_size) { return m_cvt_io.writer(m_kernel, buf_size); }
-
-        void put_bos(const internal_type* to, size_t to_size)
-            requires ((cvt_cpt::support_put<KernelType>) &&
-                      (sizeof(internal_type) % sizeof(external_type) == 0))
-        {
-            constexpr auto ie_ratio = sizeof(internal_type) / sizeof(external_type);
-
-            auto wt = this->writer(ie_ratio);
-
-            for (size_t i = 0; i < to_size; ++i)
-            {
-                internal_type ch = *to++;
-                std::memcpy(wt.put_buf(ie_ratio), &ch, sizeof(ch));
-            }
-            wt.commit();
-        }
-
-        size_t get_bos(internal_type* to, size_t to_max)
-            requires ((cvt_cpt::support_get<KernelType>) &&
-                      (sizeof(internal_type) % sizeof(external_type) == 0))
-        {
-            constexpr auto ie_ratio = sizeof(internal_type) / sizeof(external_type);
-            auto rd = this->reader(ie_ratio);
-
-            for (size_t i = 0; i < to_max; ++i)
-            {
-                auto ptr = rd.template get_buf<true>(ie_ratio);
-                internal_type ch;
-                std::memcpy(&ch, ptr, sizeof(ch));
-                *to++ = ch;
-            }
-            return to_max;
-        }
 
     protected:
         KernelType  m_kernel;
