@@ -33,10 +33,10 @@ void test_root_cvt_mem_input_1()
         VERIFY(std::string(ptr, ptr + len) == "456");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device{"123456"});
+    auto obj1 = rb_root_cvt{mem_device{"123456"}};
     helper(obj1);
 
-    auto obj2 = make_root_cvt<false>(mem_device{"123456"});
+    auto obj2 = no_rb_root_cvt{mem_device{"123456"}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -69,10 +69,10 @@ void test_root_cvt_mem_input_2()
         VERIFY(std::string(ptr, ptr + len) == "45678");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device{"0123456789"});
+    auto obj1 = rb_root_cvt{mem_device{"0123456789"}};
     helper(obj1);
 
-    auto obj2 = make_root_cvt<false>(mem_device{"0123456789"});
+    auto obj2 = no_rb_root_cvt{mem_device{"0123456789"}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -111,10 +111,10 @@ void test_root_cvt_mem_input_3()
         VERIFY(res == ref);
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device{ref});
+    auto obj1 = rb_root_cvt{mem_device{ref}};
     helper(obj1);
 
-    auto obj2 = make_root_cvt<false>(mem_device{ref});
+    auto obj2 = no_rb_root_cvt{mem_device{ref}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -150,10 +150,10 @@ void test_root_cvt_mem_output_1()
         VERIFY(obj.detach().str() == "1234567");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device{""});
+    auto obj1 = rb_root_cvt{mem_device{""}};
     helper(obj1);
 
-    auto obj2 = make_root_cvt<false>(mem_device{""});
+    auto obj2 = no_rb_root_cvt{mem_device{""}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -192,10 +192,10 @@ void test_root_cvt_mem_output_2()
         VERIFY(obj.detach().str() == "1234567");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device{""});
+    auto obj1 = rb_root_cvt{mem_device{""}};
     helper(obj1);
 
-    auto obj2 = make_root_cvt<false>(mem_device{""});
+    auto obj2 = no_rb_root_cvt{mem_device{""}};
     helper(obj2);
 
 
@@ -236,10 +236,10 @@ void test_root_cvt_mem_output_3()
         VERIFY(obj.detach().str() == ref);
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device{""});
+    auto obj1 = rb_root_cvt{mem_device{""}};
     helper(obj1);
 
-    auto obj2 = make_root_cvt<false>(mem_device{""});
+    auto obj2 = no_rb_root_cvt{mem_device{""}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -279,10 +279,10 @@ void test_root_cvt_mem_saturate_input_1()
         VERIFY(res == ref);
     };
 
-    auto obj1 = make_root_cvt<true>(snatchy_device<char, 3>{ref});
+    auto obj1 = rb_root_cvt{snatchy_device<char, 3>{ref}};
     helper(obj1);
 
-    auto obj2 = make_root_cvt<false>(snatchy_device<char, 3>{ref});
+    auto obj2 = no_rb_root_cvt{snatchy_device<char, 3>{ref}};
     helper(obj2);
 
     dump_info("Done\n");

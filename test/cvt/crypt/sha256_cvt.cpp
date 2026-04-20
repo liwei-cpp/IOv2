@@ -35,10 +35,10 @@ void test_sha256_cvt_gen_1()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -56,7 +56,7 @@ void test_sha256_cvt_gen_2()
         if (obj.bos() != io_status::output) throw std::runtime_error("sha256_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
         obj.put("he", 2);
-        T obj2(creator.create(make_root_cvt<true>(mem_device{""})));
+        T obj2(creator.create(rb_root_cvt{mem_device{""}}));
         obj2 = obj;
         obj2.put("llo", 3);
         auto dev = obj2.detach();
@@ -65,10 +65,10 @@ void test_sha256_cvt_gen_2()
         if (dev2.str() == hello_hex_low) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
     };
 
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -92,10 +92,10 @@ void test_sha256_cvt_gen_3()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -113,17 +113,17 @@ void test_sha256_cvt_gen_4()
         if (obj.bos() != io_status::output) throw std::runtime_error("sha256_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
         obj.put("he", 2);
-        T obj2(creator.create(make_root_cvt<true>(mem_device{""})));
+        T obj2(creator.create(rb_root_cvt{mem_device{""}}));
         obj2 = std::move(obj);
         obj2.put("llo", 3);
         auto dev = obj2.detach();
         if (dev.str() != hello_hex_low) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
     };
 
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -145,10 +145,10 @@ void test_sha256_cvt_put_1()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -199,10 +199,10 @@ void test_sha256_cvt_put_2()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -239,10 +239,10 @@ void test_sha256_cvt_put_3()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -265,10 +265,10 @@ void test_sha256_cvt_put_4()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -319,10 +319,10 @@ void test_sha256_cvt_put_5()
     };
 
     Crypt::hash_cvt_creator<char8_t> creator(Crypt::hash_algo::SHA256);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{u8""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{u8""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{u8""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{u8""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
     

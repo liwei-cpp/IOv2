@@ -14,7 +14,7 @@ void test_root_cvt_file_gen_1()
     dump_info("Test root_cvt<file_device> general case 1...");
     
     {
-        using CheckType = root_cvt<basic_file_device<true, true, char>, false>;
+        using CheckType = no_rb_root_cvt<basic_file_device<true, true, char>>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, basic_file_device<true, true, char>>);
         static_assert(std::is_same_v<CheckType::internal_type, char>);
@@ -27,7 +27,7 @@ void test_root_cvt_file_gen_1()
     }
     
     {
-        using CheckType = root_cvt<basic_file_device<true, true, char8_t>, true>;
+        using CheckType = rb_root_cvt<basic_file_device<true, true, char8_t>>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, basic_file_device<true, true, char8_t>>);
         static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
@@ -40,7 +40,7 @@ void test_root_cvt_file_gen_1()
     }
     
     {
-        using CheckType = root_cvt<basic_file_device<true, false, char>, false>;
+        using CheckType = no_rb_root_cvt<basic_file_device<true, false, char>>;
         static_assert(!cvt_cpt::support_put<CheckType>);
         static_assert(cvt_cpt::support_get<CheckType>);
         static_assert(cvt_cpt::support_positioning<CheckType>);
@@ -48,7 +48,7 @@ void test_root_cvt_file_gen_1()
     }
     
     {
-        using CheckType = root_cvt<basic_file_device<false, true, char>, true>;
+        using CheckType = rb_root_cvt<basic_file_device<false, true, char>>;
         static_assert(cvt_cpt::support_put<CheckType>);
         static_assert(!cvt_cpt::support_get<CheckType>);
         static_assert(cvt_cpt::support_positioning<CheckType>);
@@ -76,7 +76,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<true, true, char> dev("test_file");
         dev.drseek(0);
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper1(obj);
         if (g1.contents() != "hello world") throw std::runtime_error("root_cvt<file_device> output incorrect");
     }
@@ -85,7 +85,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<false, true, char> dev("test_file");
         dev.drseek(0);
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper1(obj);
         if (g1.contents() != " world") throw std::runtime_error("root_cvt<file_device> output incorrect");
     }
@@ -94,7 +94,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<true, true, char> dev("test_file");
         dev.drseek(0);
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper1(obj);
         if (g1.contents() != "hello world") throw std::runtime_error("root_cvt<file_device> output incorrect");
@@ -104,7 +104,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<false, true, char> dev("test_file");
         dev.drseek(0);
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper1(obj);
         if (g1.contents() != " world") throw std::runtime_error("root_cvt<file_device> output incorrect");
@@ -116,7 +116,7 @@ void test_root_cvt_file_gen_2()
         obj.main_cont_beg();
 
         using dev_type = typename T::device_type;
-        T obj2{make_root_cvt<true>(dev_type{})};
+        T obj2{rb_root_cvt{dev_type{}}};
         obj2 = std::move(obj);
         obj2.put(" world", 6);
     };
@@ -125,7 +125,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<true, true, char> dev("test_file");
         dev.drseek(0);
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper2(obj);
         if (g1.contents() != "hello world") throw std::runtime_error("root_cvt<file_device> output incorrect");
     }
@@ -134,7 +134,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<false, true, char> dev("test_file");
         dev.drseek(0);
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper2(obj);
         if (g1.contents() != " world") throw std::runtime_error("root_cvt<file_device> output incorrect");
     }
@@ -143,7 +143,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<true, true, char> dev("test_file");
         dev.drseek(0);
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper2(obj);
         if (g1.contents() != "hello world") throw std::runtime_error("root_cvt<file_device> output incorrect");
@@ -153,7 +153,7 @@ void test_root_cvt_file_gen_2()
         file_guard g1("test_file", "hello");
         basic_file_device<false, true, char> dev("test_file");
         dev.drseek(0);
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper2(obj);
         if (g1.contents() != " world") throw std::runtime_error("root_cvt<file_device> output incorrect");
@@ -187,21 +187,21 @@ void test_root_cvt_file_gen_3()
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, true, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper1(obj);
     }
     
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, false, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper1(obj);
     }
     
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, true, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper1(obj);
     }
@@ -209,7 +209,7 @@ void test_root_cvt_file_gen_3()
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, false, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper1(obj);
     }
@@ -224,7 +224,7 @@ void test_root_cvt_file_gen_3()
         if (obj.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
 
         using dev_type = typename T::device_type;
-        T obj2{make_root_cvt<true>(dev_type{})};
+        T obj2{rb_root_cvt{dev_type{}}};
         obj2 = std::move(obj);
 
         if (obj2.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
@@ -237,21 +237,21 @@ void test_root_cvt_file_gen_3()
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, true, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper2(obj);
     }
     
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, false, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper2(obj);
     }
     
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, true, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper2(obj);
     }
@@ -259,7 +259,7 @@ void test_root_cvt_file_gen_3()
     {
         file_guard g1("test_file", "hello world");
         basic_file_device<true, false, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper2(obj);
     }
@@ -312,21 +312,21 @@ void test_root_cvt_file_get_1()
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, true, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
     
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, false, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
     
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, true, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -334,7 +334,7 @@ void test_root_cvt_file_get_1()
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, false, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -387,21 +387,21 @@ void test_root_cvt_file_get_nra_1()
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, true, char> dev("test_file");
-        auto obj = make_root_cvt<false>(std::move(dev));
+        auto obj = no_rb_root_cvt{std::move(dev)};
         helper(obj);
     }
     
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, false, char> dev("test_file");
-        auto obj = make_root_cvt<false>(std::move(dev));
+        auto obj = no_rb_root_cvt{std::move(dev)};
         helper(obj);
     }
 
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, true, char> dev("test_file");
-        auto tmp = make_root_cvt<false>(std::move(dev));
+        auto tmp = no_rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -409,7 +409,7 @@ void test_root_cvt_file_get_nra_1()
     {
         file_guard g1("test_file", e_lit);
         basic_file_device<true, false, char> dev("test_file");
-        auto tmp = make_root_cvt<false>(std::move(dev));
+        auto tmp = no_rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -455,7 +455,7 @@ void test_root_cvt_file_put_1()
     {
         file_guard g1("test_file", "");
         basic_file_device<true, true, char> dev("test_file", file_open_flag::trunc);
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
         obj.detach();
         if (g1.contents() != e_lit) throw std::runtime_error("root_cvt<file_device>::put response incorrect");
@@ -464,7 +464,7 @@ void test_root_cvt_file_put_1()
     {
         file_guard g1("test_file");
         basic_file_device<false, true, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
         obj.detach();
         if (g1.contents() != e_lit) throw std::runtime_error("root_cvt<file_device>::put response incorrect");
@@ -473,7 +473,7 @@ void test_root_cvt_file_put_1()
     {
         file_guard g1("test_file", "");
         basic_file_device<true, true, char> dev("test_file", file_open_flag::trunc);
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         obj.detach();
@@ -483,7 +483,7 @@ void test_root_cvt_file_put_1()
     {
         file_guard g1("test_file");
         basic_file_device<false, true, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         obj.detach();
@@ -517,21 +517,21 @@ void test_root_cvt_file_seek_1()
     {
         file_guard g1("test_file", "12345");
         basic_file_device<true, true, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
     
     {
         file_guard g1("test_file", "12345");
         basic_file_device<true, false, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
 
     {
         file_guard g1("test_file", "12345");
         basic_file_device<true, true, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -539,7 +539,7 @@ void test_root_cvt_file_seek_1()
     {
         file_guard g1("test_file", "12345");
         basic_file_device<true, false, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -585,21 +585,21 @@ void test_root_cvt_file_seek_2()
     {
         file_guard g1("test_file", "123abcdefg");
         basic_file_device<true, true, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
     
     {
         file_guard g1("test_file", "123abcdefg");
         basic_file_device<true, false, char> dev("test_file");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
 
     {
         file_guard g1("test_file", "123abcdefg");
         basic_file_device<true, true, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -607,7 +607,7 @@ void test_root_cvt_file_seek_2()
     {
         file_guard g1("test_file", "123abcdefg");
         basic_file_device<true, false, char> dev("test_file");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -650,7 +650,7 @@ void test_root_cvt_file_reset_1()
         file_guard g1("test_file1", "");
         file_guard g2("test_file2", "");
         basic_file_device<false, true, char> dev("test_file1");
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj, g1, g2);
     }
     
@@ -658,7 +658,7 @@ void test_root_cvt_file_reset_1()
         file_guard g1("test_file1", "");
         file_guard g2("test_file2", "");
         basic_file_device<false, true, char> dev("test_file1");
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj, g1, g2);
     }
@@ -700,26 +700,26 @@ void test_root_cvt_file_device_1()
     };
     {
         basic_file_device<false, true, char> dev;
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
     
     {
         basic_file_device<false, true, char> dev;
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
 
     {
         basic_file_device<true, true, char> dev;
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         helper(obj);
     }
     
     {
         basic_file_device<true, true, char> dev;
-        auto tmp = make_root_cvt<true>(std::move(dev));
+        auto tmp = rb_root_cvt{std::move(dev)};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -745,12 +745,12 @@ void test_root_cvt_file_detach_1()
 
     file_guard g("test_file1", "12345678");
     {
-        auto obj = make_root_cvt<true>(ifile_device<char>("test_file1"));
+        auto obj = rb_root_cvt{ifile_device<char>("test_file1")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(ifile_device<char>("test_file1")));
+        runtime_cvt obj(rb_root_cvt{ifile_device<char>("test_file1")});
         helper(obj);
     }
     dump_info("Done\n");
@@ -773,12 +773,12 @@ void test_root_cvt_file_detach_2()
 
     file_guard g("test_file1", "");
     {
-        auto obj = make_root_cvt<true>(ofile_device<char>("test_file1"));
+        auto obj = rb_root_cvt{ofile_device<char>("test_file1")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(ofile_device<char>("test_file1")));
+        runtime_cvt obj(rb_root_cvt{ofile_device<char>("test_file1")});
         helper(obj);
     }
     dump_info("Done\n");
@@ -804,12 +804,12 @@ void test_root_cvt_file_attach_1()
 
     file_guard g("test_file1", "12345678");
     {
-        auto obj = make_root_cvt<true>(ifile_device<char>("test_file1"));
+        auto obj = rb_root_cvt{ifile_device<char>("test_file1")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(ifile_device<char>("test_file1")));
+        runtime_cvt obj(rb_root_cvt{ifile_device<char>("test_file1")});
         helper(obj);
     }
     dump_info("Done\n");
@@ -833,12 +833,12 @@ void test_root_cvt_file_attach_2()
 
     file_guard g("test_file1", "");
     {
-        auto obj = make_root_cvt<true>(ofile_device<char>("test_file1"));
+        auto obj = rb_root_cvt{ofile_device<char>("test_file1")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(ofile_device<char>("test_file1")));
+        runtime_cvt obj(rb_root_cvt{ofile_device<char>("test_file1")});
         helper(obj);
     }
     dump_info("Done\n");
