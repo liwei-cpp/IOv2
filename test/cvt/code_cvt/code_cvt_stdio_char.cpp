@@ -11,7 +11,7 @@ void test_code_cvt_stdio_char_gen_1()
     dump_info("Test code_cvt<std_device> general case 1...");
     
     {
-        using CheckType = code_cvt<root_cvt<std_device<STDIN_FILENO>, true>, char32_t>;
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, std_device<STDIN_FILENO>>);
         static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
@@ -24,7 +24,7 @@ void test_code_cvt_stdio_char_gen_1()
     }
     
     {
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, std_device<STDOUT_FILENO>>);
         static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
@@ -37,7 +37,7 @@ void test_code_cvt_stdio_char_gen_1()
     }
     
     {
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, wchar_t>;
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, wchar_t>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, std_device<STDERR_FILENO>>);
         static_assert(std::is_same_v<CheckType::internal_type, wchar_t>);
@@ -104,15 +104,15 @@ void test_code_cvt_stdio_char_gen_2()
         }
     };
 
-    using CheckType = code_cvt<root_cvt<std_device<STDIN_FILENO>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
     {
         iguard g(e_lit);
-        CheckType obj{make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8"};
+        CheckType obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
         helper(obj);
     }
     {
         iguard g(e_lit);
-        CheckType tmp{make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8"};
+        CheckType tmp{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
     }
@@ -168,24 +168,24 @@ void test_code_cvt_stdio_char_gen_3()
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
@@ -193,8 +193,8 @@ void test_code_cvt_stdio_char_gen_3()
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
@@ -214,15 +214,15 @@ void test_code_cvt_stdio_char_bos_1()
         obj.main_cont_beg();
     };
 
-    using CheckType = code_cvt<root_cvt<std_device<STDIN_FILENO>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
     {
         iguard g("12345");
-        CheckType obj(make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8");
+        CheckType obj(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
     }
     {
         iguard g("12345");
-        CheckType tmp(make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8");
+        CheckType tmp(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -251,15 +251,15 @@ void test_code_cvt_stdio_char_bos_2()
     info += '2'; info += '\x00'; info += '\x00'; info += '\x00';
     info += '3'; info += '\x00'; info += '\x00'; info += '\x00';
     
-    using CheckType = code_cvt<root_cvt<std_device<STDIN_FILENO>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
     {
         iguard g(info);
-        CheckType obj(make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8");
+        CheckType obj(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
     }
     {
         iguard g(info);
-        CheckType tmp(make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8");
+        CheckType tmp(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
     }
@@ -291,15 +291,15 @@ void test_code_cvt_stdio_char_bos_3()
     info += 'p'; info += '\x00'; info += '\x00'; info += '\x00';
     info += 'p'; info += '\x00'; info += '\x00'; info += '\x00';
 
-    using CheckType = code_cvt<root_cvt<std_device<STDIN_FILENO>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
     {
         iguard g(info);
-        CheckType obj(make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8");
+        CheckType obj(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
     }
     {
         iguard g(info);
-        CheckType tmp(make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8");
+        CheckType tmp(rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
     }
@@ -320,24 +320,24 @@ void test_code_cvt_stdio_char_bos_4()
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
     }
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
     }
     
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
@@ -345,8 +345,8 @@ void test_code_cvt_stdio_char_bos_4()
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
@@ -376,24 +376,24 @@ void test_code_cvt_stdio_char_bos_5()
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
     }
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
     }
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
@@ -401,8 +401,8 @@ void test_code_cvt_stdio_char_bos_5()
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
@@ -431,24 +431,24 @@ void test_code_cvt_stdio_char_bos_6()
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
     }
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
     }
     
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
@@ -456,8 +456,8 @@ void test_code_cvt_stdio_char_bos_6()
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
@@ -516,15 +516,15 @@ void test_code_cvt_stdio_char_get_1()
         }
     };
 
-    using CheckType = code_cvt<root_cvt<std_device<STDIN_FILENO>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<std_device<STDIN_FILENO>>, char32_t>;
     {
         iguard g(e_lit);
-        CheckType obj{make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8"};
+        CheckType obj{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
         helper(obj);
     }
     {
         iguard g(e_lit);
-        CheckType tmp{make_root_cvt<true>(std_device<STDIN_FILENO>{}), "zh_CN.UTF-8"};
+        CheckType tmp{rb_root_cvt{std_device<STDIN_FILENO>{}}, "zh_CN.UTF-8"};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -579,24 +579,24 @@ void test_code_cvt_stdio_char_put_1()
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
@@ -604,8 +604,8 @@ void test_code_cvt_stdio_char_put_1()
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
@@ -649,24 +649,24 @@ void test_code_cvt_stdio_char_put_2()
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType obj(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
 
     {
         oguard<true> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDOUT_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDOUT_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
@@ -674,8 +674,8 @@ void test_code_cvt_stdio_char_put_2()
     
     {
         oguard<false> g;
-        using CheckType = code_cvt<root_cvt<std_device<STDERR_FILENO>, true>, char32_t>;
-        CheckType tmp(make_root_cvt<true>(std_device<STDERR_FILENO>{}), "zh_CN.UTF-8");
+        using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
+        CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");

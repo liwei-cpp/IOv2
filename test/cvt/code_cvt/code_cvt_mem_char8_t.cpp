@@ -12,7 +12,7 @@ void test_code_cvt_mem_char8_t_gen_1()
     dump_info("Test code_cvt<memory<char8_t>> general case 1...");
     
     {
-        using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
+        using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
         static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
@@ -25,7 +25,7 @@ void test_code_cvt_mem_char8_t_gen_1()
     }
 
     {
-        using CheckType = code_cvt<root_cvt<mem_device<char8_t>, false>, char32_t>;
+        using CheckType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
         static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
@@ -87,12 +87,12 @@ void test_code_cvt_mem_char8_t_gen_2()
         }
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
 
-    CheckType obj1{make_root_cvt<true>(mem_device(e_lit))};
+    CheckType obj1{rb_root_cvt{mem_device(e_lit)}};
     helper(obj1);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(e_lit))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(e_lit)}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -150,11 +150,11 @@ void test_code_cvt_mem_char8_t_gen_3()
         }
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj1{make_root_cvt<true>(mem_device(e_lit))};
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj1{rb_root_cvt{mem_device(e_lit)}};
     helper(obj1);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(e_lit))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(e_lit)}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -209,11 +209,11 @@ void test_code_cvt_mem_char8_t_gen_4()
         if (obj.device().str() != e_lit) throw std::runtime_error("code_cvt<memory<char8_t>>::put response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -268,11 +268,11 @@ void test_code_cvt_mem_char8_t_gen_5()
         if (obj.device().str() != e_lit) throw std::runtime_error("code_cvt<memory<char8_t>>::put response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -292,11 +292,11 @@ void test_code_cvt_mem_char8_t_bos_1()
         if (obj.device().dtell() != 0) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -322,17 +322,17 @@ void test_code_cvt_mem_char8_t_bos_2()
         if (obj.detach().dtell() != 12) throw std::runtime_error("code_cvt<...char...>::bos fail");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
     std::u8string info;
     info += u8'1'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
     info += u8'2'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
     info += u8'3'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
     info += u8'4'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
     info += u8'5'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    CheckType obj(make_root_cvt<true>(mem_device(info)));
+    CheckType obj(rb_root_cvt{mem_device(info)});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(info))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(info)}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -356,7 +356,7 @@ void test_code_cvt_mem_char8_t_bos_3()
         if (obj.detach().dtell() != 12) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
     std::u8string info;
     info += u8'\x4e'; info += u8'\x67'; info += u8'\x00'; info += u8'\x00';
     info += u8'd';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
@@ -364,10 +364,10 @@ void test_code_cvt_mem_char8_t_bos_3()
     info += u8'c';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
     info += u8'p';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
     info += u8'p';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    CheckType obj(make_root_cvt<true>(mem_device(info)));
+    CheckType obj(rb_root_cvt{mem_device(info)});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(info))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(info)}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -396,11 +396,11 @@ void test_code_cvt_mem_char8_t_bos_4()
         if (dev.str() != info) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -430,11 +430,11 @@ void test_code_cvt_mem_char8_t_bos_5()
         if (dev.str() != info) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -490,11 +490,11 @@ void test_code_cvt_mem_char8_t_get_1()
         }
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj{make_root_cvt<true>(mem_device(e_lit))};
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj{rb_root_cvt{mem_device(e_lit)}};
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(e_lit))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(e_lit)}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -550,11 +550,11 @@ void test_code_cvt_mem_char8_t_get_nra_1()
         }
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, false>, char32_t>;
-    CheckType obj{make_root_cvt<false>(mem_device(e_lit))};
+    using CheckType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj{no_rb_root_cvt{mem_device(e_lit)}};
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<false>(mem_device(e_lit))}};
+    runtime_cvt obj2{CheckType{no_rb_root_cvt{mem_device(e_lit)}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -607,11 +607,11 @@ void test_code_cvt_mem_char8_t_put_1()
         if (obj.device().str() != e_lit) throw std::runtime_error("code_cvt<memory<char8_t>>::put response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -651,11 +651,11 @@ void test_code_cvt_mem_char8_t_put_2()
         if (obj.device().str() != e_lit) throw std::runtime_error("code_cvt<memory<char8_t>>::put response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -701,11 +701,11 @@ void test_code_cvt_mem_char8_t_flush_1()
         if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char8_t>>::put response incorrect");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -763,11 +763,11 @@ void test_code_cvt_mem_char8_t_flush_2()
         if (obj.device().str() != e_lit) throw std::runtime_error("code_cvt<memory<char8_t>>::put response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -796,11 +796,11 @@ void test_code_cvt_mem_char8_t_seek_1()
         if (str != U"123456") throw std::runtime_error("code_cvt<memory<char8_t>>::get response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"123456")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"123456")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8"123456"))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"123456")}}};
     helper(obj2);
     dump_info("Done\n");
 }
@@ -840,11 +840,11 @@ void test_code_cvt_mem_char8_t_seek_2()
         if (obj.device().str() != u8"李x伟xy") std::runtime_error("code_cvt<memory<char8_t>> response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -873,11 +873,11 @@ void test_code_cvt_mem_char8_t_rseek_1()
         if (obj.device().str() != u8"123456") std::runtime_error("code_cvt<memory<char8_t>> response incorrect");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"123456")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"123456")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8"123456"))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"123456")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -918,11 +918,11 @@ void test_code_cvt_mem_char8_t_rseek_2()
         if (obj.device().str() != u8"李x伟xy") std::runtime_error("code_cvt<memory<char8_t>> response incorrect");
     };
 
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -981,11 +981,11 @@ void test_code_cvt_mem_char8_t_io_1()
         if (obj.device().str() != info) throw std::runtime_error("code_cvt<memory<char8_t>> response incorrect");
     };
     
-    using CheckType = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-    CheckType obj(make_root_cvt<true>(mem_device(u8"")));
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    CheckType obj(rb_root_cvt{mem_device(u8"")});
     helper(obj);
 
-    runtime_cvt obj2{CheckType{make_root_cvt<true>(mem_device(u8""))}};
+    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
     helper(obj2);
 
     dump_info("Done\n");
@@ -1043,10 +1043,10 @@ void test_code_cvt_mem_char8_t_io_2()
     };
 
     code_cvt_creator<char8_t, char32_t> creator;
-    auto obj = creator.create(make_root_cvt<false>(mem_device(info)));
+    auto obj = creator.create(no_rb_root_cvt{mem_device(info)});
     helper(obj);
 
-    runtime_cvt obj2(creator.create(make_root_cvt<false>(mem_device(info))));
+    runtime_cvt obj2(creator.create(no_rb_root_cvt{mem_device(info)}));
     helper(obj2);
 
     dump_info("Done\n");
