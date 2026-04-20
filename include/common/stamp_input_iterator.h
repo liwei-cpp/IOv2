@@ -16,8 +16,8 @@ struct StampInputIterator<TIter>
         : m_internal()
         , m_pos(0) {}
     
-    StampInputIterator(TIter& internal)
-        : m_internal(internal)
+    StampInputIterator(TIter internal)
+        : m_internal(std::move(internal))
         , m_pos(0) {}
 
     StampInputIterator(std::default_sentinel_t)
@@ -99,6 +99,7 @@ struct StampInputIterator<TIter>
     void rollback()
     {
         if (m_pos) std::advance(m_internal, -m_pos);
+        m_pos = 0;
     }
     
     TIter internal() const { return m_internal; }
@@ -113,8 +114,8 @@ struct StampInputIterator<TIter>
     StampInputIterator()
         : m_internal() {}
     
-    StampInputIterator(TIter& internal)
-        : m_internal(internal) {}
+    StampInputIterator(TIter internal)
+        : m_internal(std::move(internal)) {}
 
     StampInputIterator(std::default_sentinel_t)
         : m_internal() {}
@@ -162,7 +163,7 @@ private:
 };
 
 template <typename TIter>
-StampInputIterator(TIter&) -> StampInputIterator<TIter>;
+StampInputIterator(TIter) -> StampInputIterator<std::remove_reference_t<TIter>>;
 
 template <typename TIter>
 StampInputIterator(StampInputIterator<TIter>&) -> StampInputIterator<TIter>;
