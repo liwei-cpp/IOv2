@@ -11,6 +11,14 @@ public:
     // so atomic operations are not needed.
     // If init objects need to be created dynamically after main(), thread
     // synchronization mechanisms must be added.
+    //
+    // IMPORTANT: If the derived class defines static members that are used during
+    // construction, they must be initialized BEFORE any ::init object:
+    //
+    //   Use `inline static`:
+    //      inline static Config s_config{...};
+    //      This ensures partial-ordered initialization before ::init.
+    //
     struct init
     {
         init()

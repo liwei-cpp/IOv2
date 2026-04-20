@@ -12,6 +12,8 @@ namespace IOv2
 template <typename TK, typename TV, size_t Capacity>
 class lru_cache
 {
+    static_assert(Capacity > 0, "Capacity must be greater than 0");
+
 public:
     using key_param_type = std::conditional_t<is_small_type_v<TK>, TK, const TK&>;
     using val_param_type = std::conditional_t<is_small_type_v<TV>, TV, const TV&>;
