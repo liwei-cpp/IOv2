@@ -9,7 +9,7 @@ namespace IOv2
 template <io_device TDevice, cvt_creator TCreator>
 struct ext_to_int_helper
 {
-    using RootCvt = decltype(make_root_cvt<true>(std::declval<TDevice>()));
+    using RootCvt = decltype(rb_root_cvt{std::declval<TDevice>()});
     using Kernel = decltype(std::declval<TCreator>().create(std::declval<RootCvt>()));
     using type = typename Kernel::internal_type;
 };

@@ -10,7 +10,7 @@ void test_chacha20_cvt_gen_1()
     dump_info("Test chacha20_cvt general case 1...");
     
     {
-        using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>>;
+        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
         static_assert(IOv2::io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
         static_assert(std::is_same_v<CheckType::internal_type, char>);
@@ -22,7 +22,7 @@ void test_chacha20_cvt_gen_1()
     }
     
     {
-        using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char8_t>, false>>;
+        using CheckType = Crypt::chacha20_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
         static_assert(IOv2::io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
         static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
@@ -81,7 +81,7 @@ void test_chacha20_cvt_gen_2()
         }
     
         {
-            T local_obj(Crypt::chacha20_cvt{make_root_cvt<true>(mem_device(enc_msg)), "liwei"});
+            T local_obj(Crypt::chacha20_cvt{rb_root_cvt{mem_device(enc_msg)}, "liwei"});
             if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20::bos response incorrect");
             local_obj.main_cont_beg();
             
@@ -109,11 +109,11 @@ void test_chacha20_cvt_gen_2()
         }
     };
 
-    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>>;
-    CheckType obj(make_root_cvt<true>(mem_device("")), "liwei");
+    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
+    CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
     helper(obj);
 
-    CheckType tmp(make_root_cvt<true>(mem_device("")), "liwei");
+    CheckType tmp(rb_root_cvt{mem_device("")}, "liwei");
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -137,7 +137,7 @@ void test_chacha20_cvt_put_1()
         e_lit[i+6] = (i / 7) % 127 + 1;
     }
 
-    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>>;
+    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
 
     auto out_helper = [&e_lit](auto& obj1, auto& obj2)
     {
@@ -169,15 +169,15 @@ void test_chacha20_cvt_put_1()
         if (r1 == r2) throw std::runtime_error("chacha20::put response incorrect");
     };
 
-    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>>;
+    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
     {
-        CheckType obj1(make_root_cvt<true>(mem_device("")), "liwei");
-        CheckType obj2(make_root_cvt<true>(mem_device("")), "liwei");
+        CheckType obj1(rb_root_cvt{mem_device("")}, "liwei");
+        CheckType obj2(rb_root_cvt{mem_device("")}, "liwei");
         out_helper(obj1, obj2);
     }
     {
-        CheckType tmp1(make_root_cvt<true>(mem_device("")), "liwei");
-        CheckType tmp2(make_root_cvt<true>(mem_device("")), "liwei");
+        CheckType tmp1(rb_root_cvt{mem_device("")}, "liwei");
+        CheckType tmp2(rb_root_cvt{mem_device("")}, "liwei");
         runtime_cvt obj1(std::move(tmp1));
         runtime_cvt obj2(std::move(tmp2));
         out_helper(obj1, obj2);
@@ -228,7 +228,7 @@ void test_chacha20_cvt_io_1()
         }
     
         {
-            T local_obj(Crypt::chacha20_cvt{make_root_cvt<true>(mem_device(enc_msg)), "liwei"});
+            T local_obj(Crypt::chacha20_cvt{rb_root_cvt{mem_device(enc_msg)}, "liwei"});
             if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20_cvt::bos response incorrect");
             local_obj.main_cont_beg();
             
@@ -240,11 +240,11 @@ void test_chacha20_cvt_io_1()
         }
     };
 
-    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>>;
-    CheckType obj(make_root_cvt<true>(mem_device("")), "liwei");
+    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
+    CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
     helper(obj);
 
-    CheckType tmp(make_root_cvt<true>(mem_device("")), "liwei");
+    CheckType tmp(rb_root_cvt{mem_device("")}, "liwei");
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
     
@@ -259,10 +259,10 @@ void test_chacha20_cvt_key_1()
     std::string msg = "Hello, world! This is a test message for ChaCha20.";
     std::string enc_msg;
 
-    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>>;
+    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
 
     {
-        CheckType obj(make_root_cvt<true>(mem_device("")), "key1");
+        CheckType obj(rb_root_cvt{mem_device("")}, "key1");
         obj.bos();
         obj.main_cont_beg();
         obj.put(msg.data(), msg.size());
@@ -270,7 +270,7 @@ void test_chacha20_cvt_key_1()
     }
 
     {
-        CheckType obj(make_root_cvt<true>(mem_device(enc_msg)), "key1");
+        CheckType obj(rb_root_cvt{mem_device(enc_msg)}, "key1");
         obj.bos();
         obj.main_cont_beg();
         std::string dec_msg;
@@ -280,7 +280,7 @@ void test_chacha20_cvt_key_1()
     }
 
     {
-        CheckType obj(make_root_cvt<true>(mem_device(enc_msg)), "key2");
+        CheckType obj(rb_root_cvt{mem_device(enc_msg)}, "key2");
         obj.bos();
         obj.main_cont_beg();
         std::string dec_msg;

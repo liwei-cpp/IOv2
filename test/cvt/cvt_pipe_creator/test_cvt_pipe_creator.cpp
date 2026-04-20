@@ -62,12 +62,12 @@ void test_cvt_pipe_creator_put_1()
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
     {
-        auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+        auto obj = creator.create(rb_root_cvt{mem_device("")});
         helper(obj);
     }
 
     {
-        auto tmp = creator.create(make_root_cvt<true>(mem_device("")));
+        auto tmp = creator.create(rb_root_cvt{mem_device("")});
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -118,7 +118,7 @@ void test_cvt_pipe_creator_put_2()
                        (Comp::zlib_cvt_creator<char>(6) | 
                         code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
 
-        auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+        auto obj = creator.create(rb_root_cvt{mem_device("")});
         hash_res = helper(obj);
     }
 
@@ -128,7 +128,7 @@ void test_cvt_pipe_creator_put_2()
                        Comp::zlib_cvt_creator<char>(6) | 
                        code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
-        auto tmp = creator.create(make_root_cvt<true>(mem_device("")));
+        auto tmp = creator.create(rb_root_cvt{mem_device("")});
         runtime_cvt obj{std::move(tmp)};
         if (hash_res != helper(obj)) throw std::runtime_error("cvt_pipe response incorrect");
     }
@@ -180,7 +180,7 @@ void test_cvt_pipe_creator_put_3()
                        (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
                         code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
 
-        auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+        auto obj = creator.create(rb_root_cvt{mem_device("")});
         hash_res = helper(obj);
     }
 
@@ -190,7 +190,7 @@ void test_cvt_pipe_creator_put_3()
                        (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
                         code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
 
-        auto tmp = creator.create(make_root_cvt<true>(mem_device("")));
+        auto tmp = creator.create(rb_root_cvt{mem_device("")});
         runtime_cvt obj{std::move(tmp)};
         if (hash_res != helper(obj)) throw std::runtime_error("cvt_pipe response incorrect");
     }
@@ -253,12 +253,12 @@ void test_cvt_pipe_creator_get_1()
                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
 
     {
-        auto obj = creator.create(make_root_cvt<true>(mem_device(e_lit)));
+        auto obj = creator.create(rb_root_cvt{mem_device(e_lit)});
         helper(obj);
     }
     
     {
-        auto tmp = creator.create(make_root_cvt<true>(mem_device(e_lit)));
+        auto tmp = creator.create(rb_root_cvt{mem_device(e_lit)});
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
     }
@@ -293,7 +293,7 @@ void test_cvt_pipe_creator_io_1()
         auto dev = obj.detach();
         e_lit = dev.str();
         
-        T obj2 = p_creator.create(make_root_cvt<true>(mem_device(e_lit)));
+        T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});
         std::u32string ilit2; ilit2.resize(4102 * 2);
         if (obj2.bos() != io_status::input) throw std::runtime_error("cvt_pipe::bos response incorrect");
         obj2.main_cont_beg();
@@ -302,10 +302,10 @@ void test_cvt_pipe_creator_io_1()
         if (ilit2.substr(0, 4102 / 7 * 3) != i_lit) throw std::runtime_error("cvt_pipe io response incorrect");
     };
     
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj, creator);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device("")));
+    auto tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt obj2{std::move(tmp)};
     helper(obj2, creator);
 
@@ -340,7 +340,7 @@ void test_cvt_pipe_creator_io_2()
         auto dev = obj.detach();
         e_lit = dev.str();
         
-        T obj2 = p_creator.create(make_root_cvt<true>(mem_device(e_lit)));
+        T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});
         std::u32string ilit2; ilit2.resize(4102 * 2);
         if (obj2.bos() != io_status::input) throw std::runtime_error("cvt_pipe::bos response incorrect");
         obj2.main_cont_beg();
@@ -349,10 +349,10 @@ void test_cvt_pipe_creator_io_2()
         if (ilit2.substr(0, 4102 / 7 * 3) != i_lit) throw std::runtime_error("cvt_pipe io response incorrect");
     };
 
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj, creator);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device("")));
+    auto tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt obj2{std::move(tmp)};
     helper(obj2, creator);
     

@@ -33,6 +33,7 @@ class root_cvt
 public:
     constexpr static size_t s_buffer_length = 2048;
 
+    constexpr static bool s_has_buffer = HasInBuffer;
     using device_type = DeviceType;
     using internal_type = typename device_type::char_type;
     using external_type = typename device_type::char_type;
@@ -402,19 +403,26 @@ private:
     io_status                   m_io_status;
 };
 
-template <bool HasInBuffer, io_device DeviceType>
-auto make_root_cvt(DeviceType dev)
+template <io_device DeviceType>
+class rb_root_cvt : public root_cvt<DeviceType, true>
 {
-    return root_cvt<DeviceType, HasInBuffer>(std::move(dev));
-}
+    using root_cvt<DeviceType, true>::root_cvt;
+};
+
+template <io_device DeviceType>
+class no_rb_root_cvt : public root_cvt<DeviceType, false>
+{
+    using root_cvt<DeviceType, false>::root_cvt;
+};
 
 template <io_converter KernelType>
 class root_cvt_reader;
 
-template <io_device DeviceType>
-class root_cvt_reader<root_cvt<DeviceType, true>>
+template <io_converter KernelType>
+    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType>)
+class root_cvt_reader<KernelType>
 {
-    using KernelType = root_cvt<DeviceType, true>;
+    using device_type = typename KernelType::device_type;
     using char_type = typename KernelType::internal_type;
 
 public:
@@ -431,7 +439,7 @@ public:
         if (to_max > m_buf_size)
             throw cvt_error("cvt_reader::get_buf fail, read size too large.");
 
-        if constexpr (dev_cpt::support_put<DeviceType>)
+        if constexpr (dev_cpt::support_put<device_type>)
         {
             if (m_kernel.m_io_status != io_status::input)
                 m_kernel.switch_to_get();
@@ -496,10 +504,11 @@ private:
 template <io_converter KernelType>
 class root_cvt_writer;
 
-template <io_device DeviceType, bool HasInBuffer>
-class root_cvt_writer<root_cvt<DeviceType, HasInBuffer>>
+template <io_converter KernelType>
+    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType>)
+class root_cvt_writer<KernelType>
 {
-    using KernelType = root_cvt<DeviceType, HasInBuffer>;
+    using device_type = typename KernelType::device_type;
     using char_type = typename KernelType::internal_type;
 
 public:
@@ -515,7 +524,7 @@ public:
         if (len > m_buf_size)
             throw cvt_error("root_cvt_writer::put_buf fail, write size too large.");
 
-        if constexpr (dev_cpt::support_get<DeviceType>)
+        if constexpr (dev_cpt::support_get<device_type>)
         {
             if (m_kernel.m_io_status != io_status::output)
                 m_kernel.switch_to_put();
@@ -553,16 +562,19 @@ private:
     const size_t m_buf_size;
 };
 
-template <io_device DeviceType, bool HasInBuffer>
-class cvt_io<root_cvt<DeviceType, HasInBuffer>>
+template <io_converter KernelType>
+class cvt_io;
+
+template <io_converter KernelType>
+    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType>)
+class cvt_io<KernelType>
 {
-    using KernelType = root_cvt<DeviceType, HasInBuffer>;
     using char_type = typename KernelType::internal_type;
 
 public:
     auto reader(KernelType& kernel, size_t buf_size)
     {
-        if constexpr (HasInBuffer)
+        if constexpr (KernelType::s_has_buffer)
         {
             if (buf_size > KernelType::s_buffer_length)
                 throw cvt_error("cvt_io::reader construction fail: buffer too large");

@@ -82,7 +82,7 @@ void test_chacha20_cvt_wchar_t_gen_2()
         }
     
         {
-            T local_obj(creator.create(make_root_cvt<true>(mem_device(enc_msg))));
+            T local_obj(creator.create(rb_root_cvt{mem_device(enc_msg)}));
             if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20::bos response incorrect");
             local_obj.main_cont_beg();
             
@@ -111,10 +111,10 @@ void test_chacha20_cvt_wchar_t_gen_2()
     };
 
     Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
 
-    runtime_cvt obj2(creator.create(make_root_cvt<true>(mem_device(""))));
+    runtime_cvt obj2(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj2);
 
     dump_info("Done\n");
@@ -169,13 +169,13 @@ void test_chacha20_cvt_wchar_t_put_1()
 
     Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
     {
-        auto obj1 = creator.create(make_root_cvt<true>(mem_device("")));
-        auto obj2 = creator.create(make_root_cvt<true>(mem_device("")));
+        auto obj1 = creator.create(rb_root_cvt{mem_device("")});
+        auto obj2 = creator.create(rb_root_cvt{mem_device("")});
         out_helper(obj1, obj2);
     }
     {
-        runtime_cvt obj1(creator.create(make_root_cvt<true>(mem_device(""))));
-        runtime_cvt obj2(creator.create(make_root_cvt<true>(mem_device(""))));
+        runtime_cvt obj1(creator.create(rb_root_cvt{mem_device("")}));
+        runtime_cvt obj2(creator.create(rb_root_cvt{mem_device("")}));
         out_helper(obj1, obj2);
     }
     dump_info("Done\n");
@@ -225,7 +225,7 @@ void test_chacha20_cvt_wchar_t_io_1()
         }
     
         {
-            T local_obj(creator.create(make_root_cvt<true>(mem_device(enc_msg))));
+            T local_obj(creator.create(rb_root_cvt{mem_device(enc_msg)}));
             if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20_cvt::bos response incorrect");
             local_obj.main_cont_beg();
             
@@ -238,10 +238,10 @@ void test_chacha20_cvt_wchar_t_io_1()
     };
 
     Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
 
-    runtime_cvt obj2(creator.create(make_root_cvt<true>(mem_device(""))));
+    runtime_cvt obj2(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj2);
     
     dump_info("Done\n");
