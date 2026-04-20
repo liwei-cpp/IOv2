@@ -153,8 +153,9 @@ public:
             m_out_fmt = shf_ptr->m_val;
         else if (const dump_hash* dh_ptr = dynamic_cast<const dump_hash*>(&acc); dh_ptr)
         {
-            (dh_ptr->m_delim) ? dump_stream(reinterpret_cast<const external_type*>(&dh_ptr->m_delim))
-                              : dump_stream();
+            dump_stream();
+            if (dh_ptr->m_delim)
+                BT::m_kernel.put(reinterpret_cast<const external_type*>(&dh_ptr->m_delim), 1);
         }
 
         return BT::adjust(acc);
@@ -180,7 +181,7 @@ private:
         }
     }
 
-    void dump_stream(const external_type* delim = nullptr)
+    void dump_stream()
     {
         if (!m_has_main_cont) return;
         if (!m_hash) return;
@@ -209,8 +210,6 @@ private:
         default:
             throw cvt_error("hash_cvt::dump_stream fail: invalid output format.");
         }
-        if (delim)
-            BT::m_kernel.put(delim, 1);
 
         m_hash->clear();
         m_has_main_cont = false;
