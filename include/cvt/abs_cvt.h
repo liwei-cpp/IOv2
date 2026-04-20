@@ -359,9 +359,13 @@ namespace IOv2
 
                 if (to_bytes < to_bytes_end)
                 {
+                    // The while loop above guarantees remaining < ext_size.
+                    // The modulo is logically redundant but helps the compiler's
+                    // static analyzer prove the bound for memset size calculation.
+                    size_t remaining = static_cast<size_t>(to_bytes_end - to_bytes) % ext_size;
                     auto ptr = wt.put_buf(1);
-                    std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, to_bytes_end - to_bytes);
-                    std::memset(reinterpret_cast<char*>(ptr) + (to_bytes_end - to_bytes), 0, ext_size - (to_bytes_end - to_bytes));
+                    std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, remaining);
+                    std::memset(reinterpret_cast<char*>(ptr) + remaining, 0, ext_size - remaining);
                 }
 
                 wt.commit();
