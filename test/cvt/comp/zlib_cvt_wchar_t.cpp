@@ -84,7 +84,7 @@ void test_zlib_cvt_wchar_t_gen_2()
     
         {
             Comp::zlib_cvt_creator<wchar_t> creator{8};
-            T obj2{creator.create(make_root_cvt<true>(mem_device(compress_res)))};
+            T obj2{creator.create(rb_root_cvt{mem_device(compress_res)})};
             if (obj2.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj2.main_cont_beg();
     
@@ -103,10 +103,10 @@ void test_zlib_cvt_wchar_t_gen_2()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
 
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
     dump_info("Done\n");
 }
@@ -125,7 +125,7 @@ void test_zlib_cvt_wchar_t_gen_3()
             obj.main_cont_beg();
             obj.put(s_e_lit.data(), 1024);
             
-            T obj2 = creator.create(make_root_cvt<true>(mem_device("")));
+            T obj2 = creator.create(rb_root_cvt{mem_device("")});
             obj2 = obj;
             obj.put(s_e_lit.data() + 1024, 4102 - 1024);
             obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
@@ -139,7 +139,7 @@ void test_zlib_cvt_wchar_t_gen_3()
         }
     
         {
-            T obj2{creator.create(make_root_cvt<true>(mem_device(compress_res)))};
+            T obj2{creator.create(rb_root_cvt{mem_device(compress_res)})};
             if (obj2.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj2.main_cont_beg();
     
@@ -148,7 +148,7 @@ void test_zlib_cvt_wchar_t_gen_3()
     
             if (obj2.get(out_buf1.data(), 1026) != 1026) throw std::runtime_error("zlib_cvt::get response incorrect");
     
-            T obj3{creator.create(make_root_cvt<true>(mem_device("")))};
+            T obj3{creator.create(rb_root_cvt{mem_device("")})};
             obj3 = obj2;
             
             if (obj2.get(out_buf1.data() + 1026, 4102 - 1026) != 4102 - 1026) throw std::runtime_error("zlib_cvt::get response incorrect");
@@ -160,10 +160,10 @@ void test_zlib_cvt_wchar_t_gen_3()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -191,7 +191,7 @@ void test_zlib_cvt_wchar_t_gen_4()
         }
     
         {
-            T obj2{creator.create(make_root_cvt<true>(mem_device(compress_res)))};
+            T obj2{creator.create(rb_root_cvt{mem_device(compress_res)})};
             if (obj2.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj2.main_cont_beg();
     
@@ -207,10 +207,10 @@ void test_zlib_cvt_wchar_t_gen_4()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -230,7 +230,7 @@ void test_zlib_cvt_wchar_t_gen_5()
             obj.main_cont_beg();
             obj.put(s_e_lit.data(), 1024);
 
-            T obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+            T obj2{creator.create(rb_root_cvt{mem_device("")})};
             obj2 = std::move(obj);
             obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
             auto dev = obj2.detach();
@@ -239,14 +239,14 @@ void test_zlib_cvt_wchar_t_gen_5()
         }
     
         {
-            T obj2{creator.create(make_root_cvt<true>(mem_device(compress_res)))};
+            T obj2{creator.create(rb_root_cvt{mem_device(compress_res)})};
             if (obj2.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj2.main_cont_beg();
     
             std::wstring out_buf; out_buf.resize(4102);
     
             if (obj2.get(out_buf.data(), 1026) != 1026) throw std::runtime_error("zlib_cvt::get response incorrect");
-            T obj3{creator.create(make_root_cvt<true>(mem_device("")))};
+            T obj3{creator.create(rb_root_cvt{mem_device("")})};
             obj3 = std::move(obj2);
             
             if (obj3.get(out_buf.data() + 1026, 4102 - 1026) != 4102 - 1026) throw std::runtime_error("zlib_cvt::get response incorrect");
@@ -256,10 +256,10 @@ void test_zlib_cvt_wchar_t_gen_5()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -279,10 +279,10 @@ void test_zlib_cvt_wchar_t_bos_1()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{6};
-    auto obj(creator.create(make_root_cvt<true>(mem_device(""))));
+    auto obj(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -306,10 +306,10 @@ void test_zlib_cvt_wchar_t_bos_2()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{6};
-    auto obj(creator.create(make_root_cvt<true>(mem_device(""))));
+    auto obj(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj);
 
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -345,7 +345,7 @@ void test_zlib_cvt_wchar_t_io_1()
         }
         
         {
-            T obj2{creator.create(make_root_cvt<true>(mem_device(compress_res)))};
+            T obj2{creator.create(rb_root_cvt{mem_device(compress_res)})};
             if (obj2.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj2.main_cont_beg();
     
@@ -357,10 +357,10 @@ void test_zlib_cvt_wchar_t_io_1()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj(creator.create(make_root_cvt<true>(mem_device(""))));
+    auto obj(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -396,7 +396,7 @@ void test_zlib_cvt_wchar_t_io_2()
         }
         
         {
-            T obj2{creator.create(make_root_cvt<true>(mem_device(compress_res)))};
+            T obj2{creator.create(rb_root_cvt{mem_device(compress_res)})};
             if (obj2.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj2.main_cont_beg();
     
@@ -408,10 +408,10 @@ void test_zlib_cvt_wchar_t_io_2()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{0};         // no compression
-    auto obj(creator.create(make_root_cvt<true>(mem_device(""))));
+    auto obj(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -436,7 +436,7 @@ void test_zlib_cvt_wchar_t_io_3()
         
         {
             Comp::zlib_cvt_creator<wchar_t> creator{0};
-            T obj2{creator.create(make_root_cvt<true>(mem_device(compress_res)))};
+            T obj2{creator.create(rb_root_cvt{mem_device(compress_res)})};
             if (obj2.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj2.main_cont_beg();
     
@@ -463,10 +463,10 @@ void test_zlib_cvt_wchar_t_io_3()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{6};
-    auto obj(creator.create(make_root_cvt<true>(mem_device(""))));
+    auto obj(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -502,7 +502,7 @@ void test_zlib_cvt_wchar_t_flush_1()
         
         {
             Comp::zlib_cvt_creator<wchar_t> creator{8};
-            T local_obj(creator.create(make_root_cvt<true>(mem_device(""))));
+            T local_obj(creator.create(rb_root_cvt{mem_device("")}));
             if (local_obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
             local_obj.main_cont_beg();
             
@@ -522,10 +522,10 @@ void test_zlib_cvt_wchar_t_flush_1()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj(creator.create(make_root_cvt<true>(mem_device(""))));
+    auto obj(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj);
 
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -561,7 +561,7 @@ void test_zlib_cvt_wchar_t_flush_2()
         
         {
             Comp::zlib_cvt_creator<wchar_t> creator{8};
-            T local_obj(creator.create(make_root_cvt<true>(mem_device(""))));
+            T local_obj(creator.create(rb_root_cvt{mem_device("")}));
             if (local_obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
             local_obj.main_cont_beg();
     
@@ -591,7 +591,7 @@ void test_zlib_cvt_wchar_t_flush_2()
     
         {
             Comp::zlib_cvt_creator<wchar_t> creator{0};
-            T local_obj(creator.create(make_root_cvt<true>(mem_device(compress_res))));
+            T local_obj(creator.create(rb_root_cvt{mem_device(compress_res)}));
             if (local_obj.bos() != io_status::input) throw std::runtime_error("zlib_cvt::bos response incorrect");
             local_obj.main_cont_beg();
     
@@ -603,10 +603,10 @@ void test_zlib_cvt_wchar_t_flush_2()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj(creator.create(make_root_cvt<true>(mem_device(""))));
+    auto obj(creator.create(rb_root_cvt{mem_device("")}));
     helper(obj);
     
-    runtime_cvt obj2{creator.create(make_root_cvt<true>(mem_device("")))};
+    runtime_cvt obj2{creator.create(rb_root_cvt{mem_device("")})};
     helper(obj2);
 
     dump_info("Done\n");
@@ -642,7 +642,7 @@ void test_zlib_cvt_wchar_t_reset_1()
         
         {
             Comp::zlib_cvt_creator<wchar_t> creator{8};
-            T local_obj(creator.create(make_root_cvt<true>(mem_device(""))));
+            T local_obj(creator.create(rb_root_cvt{mem_device("")}));
             if (local_obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
             local_obj.main_cont_beg();
             
@@ -662,10 +662,10 @@ void test_zlib_cvt_wchar_t_reset_1()
     };
 
     Comp::zlib_cvt_creator<wchar_t> creator{8};
-    auto obj = creator.create(make_root_cvt<true>(mem_device("")));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
     
-    auto tmp = creator.create(make_root_cvt<true>(mem_device("")));
+    auto tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 

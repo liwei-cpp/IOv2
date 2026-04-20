@@ -350,7 +350,7 @@ private:
                 std::unordered_map<std::string, std::string> res;
                 auto tmp_dict = get_translate_dictionary(get_domain_file(domain, lang));
 
-                auto cvt = IOv2::code_cvt_creator<char, wchar_t>(cvt_ft).create(make_root_cvt<true>(mem_device{""}));
+                auto cvt = IOv2::code_cvt_creator<char, wchar_t>(cvt_ft).create(rb_root_cvt{mem_device{""}});
 
                 for (const auto& [k, v] : tmp_dict)
                 {

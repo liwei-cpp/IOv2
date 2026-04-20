@@ -12,7 +12,7 @@ void test_root_cvt_mem_gen_1()
     dump_info("Test root_cvt<mem_device> general case 1...");
     
     {
-        using CheckType = root_cvt<mem_device<char>, false>;
+        using CheckType = no_rb_root_cvt<mem_device<char>>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
         static_assert(std::is_same_v<CheckType::internal_type, char>);
@@ -24,7 +24,7 @@ void test_root_cvt_mem_gen_1()
     }
     
     {
-        using CheckType = root_cvt<mem_device<char32_t>, true>;
+        using CheckType = rb_root_cvt<mem_device<char32_t>>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char32_t>>);
         static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
@@ -62,7 +62,7 @@ void test_root_cvt_mem_gen_2()
             auto obj = ori_obj;
             if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
             obj.main_cont_beg();
-            decltype(obj) obj2{make_root_cvt<true>(mem_device(""))};
+            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = obj;
             if (obj2.device().str() != "hello") throw std::runtime_error("root_cvt<mem_device> copy assignment response incorrect");
             
@@ -84,14 +84,14 @@ void test_root_cvt_mem_gen_2()
             auto obj = ori_obj;
             if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
             obj.main_cont_beg();
-            decltype(obj) obj2{make_root_cvt<true>(mem_device(""))};
+            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = std::move(obj);
             if (obj2.device().str() != "hello") throw std::runtime_error("root_cvt<mem_device> move assignment response incorrect");
         }
     };
 
     mem_device dev{"hello"}; dev.drseek(0);
-    auto obj1 = make_root_cvt<true>(std::move(dev));
+    auto obj1 = rb_root_cvt{std::move(dev)};
     helper(obj1);
     
     runtime_cvt obj2(std::move(obj1));
@@ -137,7 +137,7 @@ void test_root_cvt_mem_gen_3()
             if (str != "hello") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
             if (obj.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
             
-            decltype(obj) obj2{make_root_cvt<true>(mem_device(""))};
+            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = obj;
             if (obj2.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
             str.resize(6);
@@ -177,7 +177,7 @@ void test_root_cvt_mem_gen_3()
             if (str != "hello") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
             if (obj.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
             
-            decltype(obj) obj2{make_root_cvt<true>(mem_device(""))};
+            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = std::move(obj);
             if (obj2.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
             str.resize(6);
@@ -187,7 +187,7 @@ void test_root_cvt_mem_gen_3()
         }
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device("hello world"));
+    auto obj1 = rb_root_cvt{mem_device("hello world")};
     helper(obj1);
 
     runtime_cvt obj2(std::move(obj1));
@@ -237,10 +237,10 @@ void test_root_cvt_mem_get_1()
             if (out_buf[i] != e_lit[i]) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device(e_lit));
+    auto obj1 = rb_root_cvt{mem_device(e_lit)};
     helper(obj1);
     
-    runtime_cvt obj2(make_root_cvt<true>(mem_device(e_lit)));
+    runtime_cvt obj2(rb_root_cvt{mem_device(e_lit)});
     helper(obj2);
 
     dump_info("Done\n");
@@ -288,10 +288,10 @@ void test_root_cvt_mem_get_nra_1()
             if (out_buf[i] != e_lit[i]) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
     };
 
-    auto obj1 = make_root_cvt<false>(mem_device(e_lit));
+    auto obj1 = no_rb_root_cvt{mem_device(e_lit)};
     helper(obj1);
     
-    runtime_cvt obj2(make_root_cvt<false>(mem_device(e_lit)));
+    runtime_cvt obj2(no_rb_root_cvt{mem_device(e_lit)});
     helper(obj2);
 
     dump_info("Done\n");
@@ -337,10 +337,10 @@ void test_root_cvt_mem_put_1()
         if (dev.str() != e_lit) throw std::runtime_error("root_cvt<mem_device>::put response incorrect");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device(""));
+    auto obj1 = rb_root_cvt{mem_device("")};
     helper(obj1);
     
-    runtime_cvt obj2(make_root_cvt<true>(mem_device("")));
+    runtime_cvt obj2(rb_root_cvt{mem_device("")});
     helper(obj2);
 
     dump_info("Done\n");
@@ -366,10 +366,10 @@ void test_root_cvt_mem_seek_1()
         if ((obj.get(&ch, 1) != 1) || (ch != '3')) throw std::runtime_error("root_cvt<mem_device>::get fail");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device("12345"));
+    auto obj1 = rb_root_cvt{mem_device("12345")};
     helper(obj1);
 
-    runtime_cvt obj2(make_root_cvt<true>(mem_device("12345")));
+    runtime_cvt obj2(rb_root_cvt{mem_device("12345")});
     helper(obj2);
 
     dump_info("Done\n");
@@ -408,10 +408,10 @@ void test_root_cvt_mem_seek_2()
         VERIFY(obj.tell() == 5);
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device("123abcdefg"));
+    auto obj1 = rb_root_cvt{mem_device("123abcdefg")};
     helper(obj1);
 
-    runtime_cvt obj2(make_root_cvt<true>(mem_device("123abcdefg")));
+    runtime_cvt obj2(rb_root_cvt{mem_device("123abcdefg")});
     helper(obj2);
 
     dump_info("Done\n");
@@ -446,10 +446,10 @@ void test_root_cvt_mem_reset_1()
         if (new_dev.str() != "liwei cpp") throw std::runtime_error("root_cvt<mem_device>::put incorrect");
     };
 
-    auto obj1 = make_root_cvt<true>(mem_device(""));
+    auto obj1 = rb_root_cvt{mem_device("")};
     helper(obj1);
 
-    runtime_cvt obj2(make_root_cvt<true>(mem_device("")));
+    runtime_cvt obj2(rb_root_cvt{mem_device("")});
     helper(obj2);
     dump_info("Done\n");
 }
@@ -482,12 +482,12 @@ void test_root_cvt_mem_device_1()
         if (f2.str() != "123") throw std::runtime_error("root_cvt<file_device> output incorrect");
     };
     {
-        auto obj = make_root_cvt<true>(mem_device(""));
+        auto obj = rb_root_cvt{mem_device("")};
         helper(obj);
     }
     
     {
-        auto tmp = make_root_cvt<true>(mem_device(""));
+        auto tmp = rb_root_cvt{mem_device("")};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
     }
@@ -510,12 +510,12 @@ void test_root_cvt_mem_detach_1()
         VERIFY(dev.dtell() == 1);
     };
     {
-        auto obj = make_root_cvt<true>(mem_device("12345678"));
+        auto obj = rb_root_cvt{mem_device("12345678")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(mem_device("12345678")));
+        runtime_cvt obj(rb_root_cvt{mem_device("12345678")});
         helper(obj);
     }
     dump_info("Done\n");
@@ -535,12 +535,12 @@ void test_root_cvt_mem_detach_2()
         VERIFY(dev.dtell() == 3);
     };
     {
-        auto obj = make_root_cvt<true>(mem_device(""));
+        auto obj = rb_root_cvt{mem_device("")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(mem_device("")));
+        runtime_cvt obj(rb_root_cvt{mem_device("")});
         helper(obj);
     }
     dump_info("Done\n");
@@ -562,12 +562,12 @@ void test_root_cvt_mem_attach_1()
         VERIFY(dev.dtell() == 1);
     };
     {
-        auto obj = make_root_cvt<true>(mem_device("12345678"));
+        auto obj = rb_root_cvt{mem_device("12345678")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(mem_device("12345678")));
+        runtime_cvt obj(rb_root_cvt{mem_device("12345678")});
         helper(obj);
     }
     dump_info("Done\n");
@@ -587,12 +587,12 @@ void test_root_cvt_mem_attach_2()
         VERIFY(dev.dtell() == 3);
     };
     {
-        auto obj = make_root_cvt<true>(mem_device(""));
+        auto obj = rb_root_cvt{mem_device("")};
         helper(obj);
     }
     
     {
-        runtime_cvt obj(make_root_cvt<true>(mem_device("")));
+        runtime_cvt obj(rb_root_cvt{mem_device("")});
         helper(obj);
     }
     dump_info("Done\n");
@@ -605,7 +605,7 @@ void test_root_cvt_mem_self_assignment()
     
     {
         mem_device dev{"hello"}; dev.drseek(0);
-        auto obj = make_root_cvt<true>(std::move(dev));
+        auto obj = rb_root_cvt{std::move(dev)};
         VERIFY(obj.bos() == io_status::output); 
         obj.main_cont_beg();
         obj.put(" world", 6);
@@ -625,7 +625,7 @@ void test_root_cvt_mem_self_assignment()
     
     {
         mem_device dev{"hello"}; dev.drseek(0);
-        runtime_cvt obj(make_root_cvt<true>(std::move(dev)));
+        runtime_cvt obj(rb_root_cvt{std::move(dev)});
         VERIFY(obj.bos() == io_status::output); 
         obj.main_cont_beg();
         obj.put(" world", 6);

@@ -21,29 +21,29 @@ public:
 
 public:
     explicit base_streambuf(TDevice dev) requires (IsOut)
-        : m_cvt(make_root_cvt<false>(std::move(dev)))
+        : m_cvt(no_rb_root_cvt{std::move(dev)})
     {
         init_cvt();
     }
 
     template <cvt_creator TCreator>
     base_streambuf(TDevice dev, const TCreator& creator) requires (IsOut)
-        : m_cvt(creator.create(make_root_cvt<false>(std::move(dev))))
+        : m_cvt(creator.create(no_rb_root_cvt{std::move(dev)}))
     {
         init_cvt();
     }
 
     explicit base_streambuf(TDevice dev, bool has_in_buf = true) requires (IsIn && !IsOut)
-        : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(make_root_cvt<true>(std::move(dev)))
-                           : runtime_cvt<TDevice, TChar>(make_root_cvt<false>(std::move(dev))))
+        : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(rb_root_cvt{std::move(dev)})
+                           : runtime_cvt<TDevice, TChar>(no_rb_root_cvt{std::move(dev)}))
     {
         init_cvt();
     }
 
     template <cvt_creator TCreator>
     base_streambuf(TDevice dev, const TCreator& creator, bool has_in_buf = true) requires (IsIn && !IsOut)
-        : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(creator.create(make_root_cvt<true>(std::move(dev))))
-                           : runtime_cvt<TDevice, TChar>(creator.create(make_root_cvt<false>(std::move(dev)))))
+        : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(creator.create(rb_root_cvt{std::move(dev)}))
+                           : runtime_cvt<TDevice, TChar>(creator.create(no_rb_root_cvt{std::move(dev)})))
     {
         init_cvt();
     }

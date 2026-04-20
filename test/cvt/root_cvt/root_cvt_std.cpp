@@ -12,7 +12,7 @@ void test_root_cvt_std_gen_1()
     dump_info("Test root_cvt<std_device> general case 1...");
     
     {
-        using CheckType = root_cvt<std_device<STDIN_FILENO>, false>;
+        using CheckType = no_rb_root_cvt<std_device<STDIN_FILENO>>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, std_device<STDIN_FILENO>>);
         static_assert(std::is_same_v<CheckType::internal_type, char>);
@@ -25,7 +25,7 @@ void test_root_cvt_std_gen_1()
     }
     
     {
-        using CheckType = root_cvt<std_device<STDOUT_FILENO>, true>;
+        using CheckType = rb_root_cvt<std_device<STDOUT_FILENO>>;
         static_assert(io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, std_device<STDOUT_FILENO>>);
         static_assert(std::is_same_v<CheckType::internal_type, char>);
@@ -58,10 +58,10 @@ void test_root_cvt_std_gen_2()
         if (g.contents() != "hello world") throw std::runtime_error("root_cvt<std_device> move constructor response incorrect");
     };
     {
-        auto obj1 = make_root_cvt<true>(std_device<STDOUT_FILENO>{});
+        auto obj1 = rb_root_cvt{std_device<STDOUT_FILENO>{}};
         helper1(obj1);
 
-        runtime_cvt obj2(make_root_cvt<true>(std_device<STDOUT_FILENO>{}));
+        runtime_cvt obj2(rb_root_cvt{std_device<STDOUT_FILENO>{}});
         helper1(obj2);
     }
 
@@ -71,7 +71,7 @@ void test_root_cvt_std_gen_2()
         if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<std_device>::bos response incorrect");
         obj.main_cont_beg();
         obj.put("hello", 5);
-        T obj2{make_root_cvt<true>(std_device<STDOUT_FILENO>{})};
+        T obj2{rb_root_cvt{std_device<STDOUT_FILENO>{}}};
         obj2 = std::move(obj);
         
         obj2.put(" world", 6);
@@ -80,10 +80,10 @@ void test_root_cvt_std_gen_2()
     };
 
     {
-        auto obj1 = make_root_cvt<true>(std_device<STDOUT_FILENO>{});
+        auto obj1 = rb_root_cvt{std_device<STDOUT_FILENO>{}};
         helper2(obj1);
 
-        runtime_cvt obj2(make_root_cvt<true>(std_device<STDOUT_FILENO>{}));
+        runtime_cvt obj2(rb_root_cvt{std_device<STDOUT_FILENO>{}});
         helper2(obj2);
     }
     dump_info("Done\n");
@@ -109,10 +109,10 @@ void test_root_cvt_std_gen_3()
         if (str != " world") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
     };
     {
-        auto obj1 = make_root_cvt<true>(std_device<STDIN_FILENO>{});
+        auto obj1 = rb_root_cvt{std_device<STDIN_FILENO>{}};
         helper1(obj1);
 
-        runtime_cvt obj2(make_root_cvt<true>(std_device<STDIN_FILENO>{}));
+        runtime_cvt obj2(rb_root_cvt{std_device<STDIN_FILENO>{}});
         helper1(obj2);
     }
     
@@ -125,17 +125,17 @@ void test_root_cvt_std_gen_3()
         if (obj.get(str.data(), 5) != 5) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
         if (str != "hello") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
         
-        T obj2{make_root_cvt<true>(std_device<STDIN_FILENO>{})};
+        T obj2{rb_root_cvt{std_device<STDIN_FILENO>{}}};
         obj2 = std::move(obj);
         str.resize(6);
         if (obj2.get(str.data(), 6) != 6) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
         if (str != " world") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
     };
     {
-        auto obj1 = make_root_cvt<true>(std_device<STDIN_FILENO>{});
+        auto obj1 = rb_root_cvt{std_device<STDIN_FILENO>{}};
         helper2(obj1);
 
-        runtime_cvt obj2(make_root_cvt<true>(std_device<STDIN_FILENO>{}));
+        runtime_cvt obj2(rb_root_cvt{std_device<STDIN_FILENO>{}});
         helper2(obj2);
     }
     dump_info("Done\n");
@@ -186,12 +186,12 @@ void test_root_cvt_std_get_1()
 
     {
         iguard g(e_lit);
-        auto obj = make_root_cvt<true>(std_device<STDIN_FILENO>{});
+        auto obj = rb_root_cvt{std_device<STDIN_FILENO>{}};
         helper(obj);
     }
     {
         iguard g(e_lit);
-        runtime_cvt obj2{make_root_cvt<true>(std_device<STDIN_FILENO>{})};
+        runtime_cvt obj2{rb_root_cvt{std_device<STDIN_FILENO>{}}};
         helper(obj2);
     }
 
@@ -243,12 +243,12 @@ void test_root_cvt_std_get_nra_1()
 
     {
         iguard g(e_lit);
-        auto obj = make_root_cvt<false>(std_device<STDIN_FILENO>{});
+        auto obj = no_rb_root_cvt{std_device<STDIN_FILENO>{}};
         helper(obj);
     }
     {
         iguard g(e_lit);
-        runtime_cvt obj2{make_root_cvt<false>(std_device<STDIN_FILENO>{})};
+        runtime_cvt obj2{no_rb_root_cvt{std_device<STDIN_FILENO>{}}};
         helper(obj2);
     }
 
@@ -295,7 +295,7 @@ void test_root_cvt_std_put_1()
     {
         oguard<true> g;
         {
-            auto obj = make_root_cvt<false>(std_device<STDOUT_FILENO>{});
+            auto obj = no_rb_root_cvt{std_device<STDOUT_FILENO>{}};
             helper(obj);
         }
         if (g.contents() != e_lit) throw std::runtime_error("root_cvt<std_device>::put_bos fail");
@@ -303,7 +303,7 @@ void test_root_cvt_std_put_1()
 
     {
         oguard<false> g;
-        auto obj = make_root_cvt<false>(std_device<STDERR_FILENO>{});
+        auto obj = no_rb_root_cvt{std_device<STDERR_FILENO>{}};
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("root_cvt<std_device>::put_bos fail");
     }
@@ -311,7 +311,7 @@ void test_root_cvt_std_put_1()
     {
         oguard<true> g;
         {
-            runtime_cvt obj(make_root_cvt<false>(std_device<STDOUT_FILENO>{}));
+            runtime_cvt obj(no_rb_root_cvt{std_device<STDOUT_FILENO>{}});
             helper(obj);
         }
         if (g.contents() != e_lit) throw std::runtime_error("root_cvt<std_device>::put_bos fail");
@@ -319,7 +319,7 @@ void test_root_cvt_std_put_1()
 
     {
         oguard<false> g;
-        runtime_cvt obj(make_root_cvt<false>(std_device<STDERR_FILENO>{}));
+        runtime_cvt obj(no_rb_root_cvt{std_device<STDERR_FILENO>{}});
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("root_cvt<std_device>::put_bos fail");
     }

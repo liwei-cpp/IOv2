@@ -21,7 +21,7 @@ void test_md5_cvt_gen_1()
     dump_info("Test md5_cvt general case 1...");
     
     {
-        using CheckType = Crypt::hash_cvt<root_cvt<mem_device<char>, true>>;
+        using CheckType = Crypt::hash_cvt<rb_root_cvt<mem_device<char>>>;
         static_assert(IOv2::io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
         static_assert(std::is_same_v<CheckType::internal_type, char>);
@@ -33,7 +33,7 @@ void test_md5_cvt_gen_1()
     }
     
     {
-        using CheckType = Crypt::hash_cvt<root_cvt<mem_device<char8_t>, false>>;
+        using CheckType = Crypt::hash_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
         static_assert(IOv2::io_converter<CheckType>);
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
         static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
@@ -66,10 +66,10 @@ void test_md5_cvt_gen_2()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -87,7 +87,7 @@ void test_md5_cvt_gen_3()
         if (obj.bos() != io_status::output) throw std::runtime_error("md5_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
         obj.put("he", 2);
-        T obj2(creator.create(make_root_cvt<true>(mem_device{""})));
+        T obj2(creator.create(rb_root_cvt{mem_device{""}}));
         obj2 = obj;
         obj2.put("llo", 3);
         auto dev = obj2.detach();
@@ -96,10 +96,10 @@ void test_md5_cvt_gen_3()
         if (dev2.str() == hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -123,10 +123,10 @@ void test_md5_cvt_gen_4()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -144,17 +144,17 @@ void test_md5_cvt_gen_5()
         if (obj.bos() != io_status::output) throw std::runtime_error("md5_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
         obj.put("he", 2);
-        T obj2(creator.create(make_root_cvt<true>(mem_device{""})));
+        T obj2(creator.create(rb_root_cvt{mem_device{""}}));
         obj2 = std::move(obj);
         obj2.put("llo", 3);
         auto dev = obj2.detach();
         if (dev.str() != hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -176,10 +176,10 @@ void test_md5_cvt_put_1()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
     
@@ -230,10 +230,10 @@ void test_md5_cvt_put_2()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -270,10 +270,10 @@ void test_md5_cvt_put_3()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -296,10 +296,10 @@ void test_md5_cvt_put_4()
     };
 
     Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 
@@ -350,10 +350,10 @@ void test_md5_cvt_put_5()
     };
     
     Crypt::hash_cvt_creator<char8_t> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(make_root_cvt<true>(mem_device{u8""}));
+    auto obj = creator.create(rb_root_cvt{mem_device{u8""}});
     helper(obj);
 
-    auto tmp = creator.create(make_root_cvt<true>(mem_device{u8""}));
+    auto tmp = creator.create(rb_root_cvt{mem_device{u8""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
 

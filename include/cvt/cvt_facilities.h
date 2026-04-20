@@ -8,8 +8,8 @@ namespace IOv2
 {
     inline std::wstring to_wstring(const std::string& val, const std::string& locale_name)
     {
-        using cvt_type = code_cvt<root_cvt<mem_device<char>, true>, wchar_t>;
-        cvt_type tmp_cvt(make_root_cvt<true>(mem_device(val)), locale_name);
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char>>, wchar_t>;
+        cvt_type tmp_cvt(rb_root_cvt{mem_device(val)}, locale_name);
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
         
@@ -27,8 +27,8 @@ namespace IOv2
 
     inline std::u32string to_u32string(const char* val, const std::string& locale_name)
     {
-        using cvt_type = code_cvt<root_cvt<mem_device<char>, true>, char32_t>;
-        cvt_type tmp_cvt(make_root_cvt<true>(mem_device(val)), locale_name);
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+        cvt_type tmp_cvt(rb_root_cvt{mem_device(val)}, locale_name);
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
         
@@ -46,8 +46,8 @@ namespace IOv2
 
     inline std::u32string to_u32string(const char8_t* val)
     {
-        using cvt_type = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-        cvt_type tmp_cvt(make_root_cvt<true>(mem_device(val)));
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+        cvt_type tmp_cvt(rb_root_cvt{mem_device(val)});
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
         
@@ -65,8 +65,8 @@ namespace IOv2
 
     inline std::u8string to_u8string(const std::u32string& val)
     {
-        using cvt_type = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-        cvt_type tmp_cvt(make_root_cvt<true>(mem_device<char8_t>()));
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+        cvt_type tmp_cvt(rb_root_cvt{mem_device<char8_t>()});
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
 
@@ -76,8 +76,8 @@ namespace IOv2
 
     inline std::u8string to_u8string(char32_t val)
     {
-        using cvt_type = code_cvt<root_cvt<mem_device<char8_t>, true>, char32_t>;
-        cvt_type tmp_cvt(make_root_cvt<true>(mem_device(u8"")));
+        using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+        cvt_type tmp_cvt(rb_root_cvt{mem_device(u8"")});
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
         
