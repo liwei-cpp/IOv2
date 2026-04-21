@@ -108,6 +108,20 @@ private:
     difference_type m_pos;
 };
 
+/**
+ * @brief StampInputIterator specialization for IOv2 istreambuf_iterator.
+ *
+ * @note This specialization is designed specifically for IOv2::istreambuf_iterator
+ *       and is NOT compatible with std::istreambuf_iterator. Key differences:
+ *
+ *       1. IOv2's sputbackc() returns void and never fails (uses unlimited deque)
+ *       2. std::streambuf's sputbackc() returns int_type and may fail (limited putback area)
+ *
+ *       The is_istreambuf_iterator_v concept constraint ensures this specialization
+ *       only matches IOv2::istreambuf_iterator types.
+ *
+ * @tparam TIter Must satisfy is_istreambuf_iterator_v (IOv2::istreambuf_iterator only)
+ */
 template <is_istreambuf_iterator_v TIter>
 struct StampInputIterator<TIter>
 {
