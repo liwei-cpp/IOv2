@@ -641,11 +641,11 @@ private:
                 else if (modifier) goto bad_parse_format;
                 else
                 {
-                    int tmp_value = -1;
-                    rp = m_day_tree.max_match(rp, rp_end, tmp_value);
-                    if (tmp_value != -1)
+                    typename decltype(m_day_tree)::match_out_type tmp;
+                    rp = m_day_tree.max_match(rp, rp_end, tmp);
+                    if (tmp)
                     {
-                        ctx.m_wday = tmp_value;
+                        ctx.m_wday = *tmp;
                         ctx.m_have_wday = true;
                     }
                     else
@@ -663,11 +663,11 @@ private:
                 else if (modifier) goto bad_parse_format;
                 else 
                 {
-                    int tmp_value = -1;
-                    rp = m_month_tree.max_match(rp, rp_end, tmp_value);
-                    if ((tmp_value >= 0) && (tmp_value < 12))
+                    typename decltype(m_month_tree)::match_out_type tmp;
+                    rp = m_month_tree.max_match(rp, rp_end, tmp);
+                    if (tmp && (*tmp >= 0) && (*tmp < 12))
                     {
-                        ctx.m_month = (uint8_t)tmp_value + 1;
+                        ctx.m_month = (uint8_t)*tmp + 1;
                         ctx.m_have_mon = true;
                     }
                     else
@@ -712,15 +712,15 @@ private:
                 }
                 else
                 {
-                    std::basic_string<CharT> match_name;
-                    rp = m_era_tree.max_match(rp, rp_end, match_name);
-                    if (match_name.empty())
+                    typename decltype(m_era_tree)::match_out_type tmp;
+                    rp = m_era_tree.max_match(rp, rp_end, tmp);
+                    if (!tmp)
                         ctx.m_era_items.clear();
                     else
                     {
                         for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
                         {
-                            if (it->name == match_name) ++it;
+                            if (it->name == *tmp) ++it;
                             else it = ctx.m_era_items.erase(it);
                         }
                     }
@@ -890,10 +890,18 @@ private:
                 else if (modifier) goto bad_parse_format;
                 else
                 {
-                    int tmp_value = -1;
-                    rp = m_am_pm_tree.max_match(rp, rp_end, tmp_value);
-                    if (tmp_value == 0) ctx.m_is_pm = false;
-                    else if (tmp_value == 1) ctx.m_is_pm = true;
+                    typename decltype(m_am_pm_tree)::match_out_type tmp;
+                    rp = m_am_pm_tree.max_match(rp, rp_end, tmp);
+                    if (tmp)
+                    {
+                        if (*tmp == 0) ctx.m_is_pm = false;
+                        else if (*tmp == 1) ctx.m_is_pm = true;
+                        else
+                        {
+                            succ = false;
+                            return rp;
+                        }
+                    }
                     else
                     {
                         succ = false;
@@ -1219,15 +1227,15 @@ private:
                 /* Read timezone but perform no conversion.  */
                 else
                 {
-                    std::string zone_name;
-                    rp = ft_basic<timeio<CharT>>::s_timezone_tree.max_match(rp, rp_end, zone_name);
-                    if (zone_name.empty())
+                    typename decltype(ft_basic<timeio<CharT>>::s_timezone_tree)::match_out_type zone_res;
+                    rp = ft_basic<timeio<CharT>>::s_timezone_tree.max_match(rp, rp_end, zone_res);
+                    if (!zone_res)
                     {
                         succ = false;
                         return rp;
                     }
-                    else if (zone_name[0] != (CharT)'*')
-                        ctx.m_zone_name = std::move(zone_name);
+                    else if ((*zone_res)[0] != (CharT)'*')
+                        ctx.m_zone_name = *zone_res;
                 }
                 break;
 
@@ -1840,12 +1848,16 @@ private:
     template <typename TIter, std::sentinel_for<TIter> TSent>
     TIter extract_num_with_alt_digits(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ) const
     {
-        member = -1;
-        beg = m_alt_digits_tree.max_match(beg, end, member);
-        if (member == -1)
+        typename decltype(m_alt_digits_tree)::match_out_type match_res;
+        beg = m_alt_digits_tree.max_match(beg, end, match_res);
+        if (match_res)
+        {
+            member = *match_res;
+            if ((member < min_val) || (member > max_val))
+                succ = false;
+        }
+        else
             beg = extract_num(beg, end, member, min_val, max_val, len, succ);
-        else if ((member < min_val) || (member > max_val))
-            succ = false;
         return beg;
     }
 

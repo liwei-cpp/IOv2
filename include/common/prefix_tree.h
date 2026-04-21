@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <common/streambuf_defs.h>
+#include <common/metafunctions.h>
 
 namespace IOv2
 {
@@ -35,6 +36,8 @@ class prefix_tree
     };
 
 public:
+    using match_out_type = std::conditional_t<is_small_type_v<TValue>, std::optional<TValue>, const TValue*>;
+
     explicit prefix_tree()
         : m_root(std::nullopt, 0)
     { }
@@ -48,6 +51,8 @@ public:
 
         for (size_t i = 0; i < strs.size(); ++i)
         {
+            if (strs[i] == nullptr)
+                throw std::runtime_error("prefix_tree: null pointer in input vector");
             add(strs[i], static_cast<TValue>(i));
         }
     }
@@ -83,10 +88,20 @@ public:
     }
     
     template <std::bidirectional_iterator TIter, std::sentinel_for<TIter> TSent>
-    TIter max_match(TIter b, TSent e, TValue& out) const
+    TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
+        if constexpr (is_small_type_v<TValue>)
+            out = std::nullopt;
+        else
+            out = nullptr;
+
         if (m_root.val.has_value())
-            out = *m_root.val;
+        {
+            if constexpr (is_small_type_v<TValue>)
+                out = m_root.val;
+            else
+                out = &(*m_root.val);
+        }
             
         size_t found_depth = 0;
         
@@ -99,7 +114,10 @@ public:
             node_ptr = it->second.get();
             if (node_ptr->val.has_value())
             {
-                out = *node_ptr->val;
+                if constexpr (is_small_type_v<TValue>)
+                    out = node_ptr->val;
+                else
+                    out = &(*node_ptr->val);
                 found_depth = node_ptr->depth;
             }
         }
@@ -113,12 +131,22 @@ public:
     }
 
     template <is_istreambuf_iterator_v TIter, std::sentinel_for<TIter> TSent>
-    TIter max_match(TIter b, TSent e, TValue& out) const
+    TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
+        if constexpr (is_small_type_v<TValue>)
+            out = std::nullopt;
+        else
+            out = nullptr;
+
         std::forward_list<CharT> checking_chars;
 
         if (m_root.val.has_value())
-            out = *m_root.val;
+        {
+            if constexpr (is_small_type_v<TValue>)
+                out = m_root.val;
+            else
+                out = &(*m_root.val);
+        }
 
         size_t found_depth = 0;
         
@@ -131,7 +159,10 @@ public:
             node_ptr = it->second.get();
             if (node_ptr->val.has_value())
             {
-                out = *node_ptr->val;
+                if constexpr (is_small_type_v<TValue>)
+                    out = node_ptr->val;
+                else
+                    out = &(*node_ptr->val);
                 found_depth = node_ptr->depth;
             }
             checking_chars.push_front(ch);

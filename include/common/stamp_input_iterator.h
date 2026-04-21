@@ -21,16 +21,44 @@ struct StampInputIterator<TIter>
         , m_pos(0) {}
 
     StampInputIterator(std::default_sentinel_t)
-        : m_internal() {}
+        : m_internal()
+        , m_pos(0) {}
+
+    StampInputIterator(const StampInputIterator&) = default;
+    StampInputIterator& operator=(const StampInputIterator&) = default;
+
+    StampInputIterator(StampInputIterator&& val) noexcept
+        : m_internal(std::move(val.m_internal))
+        , m_pos(val.m_pos)
+    {
+        val.m_pos = 0;
+    }
+
+    StampInputIterator& operator=(StampInputIterator&& val) noexcept
+    {
+        if (this != &val)
+        {
+            m_internal = std::move(val.m_internal);
+            m_pos = val.m_pos;
+            val.m_pos = 0;
+        }
+        return *this;
+    }
     
-    using value_type        = typename TIter::value_type;
-    using difference_type   = typename TIter::difference_type;
-    using pointer           = typename TIter::pointer;
-    using reference         = typename TIter::reference;
-    using iterator_category = typename TIter::iterator_category;
+    using value_type        = typename std::iterator_traits<TIter>::value_type;
+    using difference_type   = typename std::iterator_traits<TIter>::difference_type;
+    using pointer           = typename std::iterator_traits<TIter>::pointer;
+    using reference         = typename std::iterator_traits<TIter>::reference;
+    using iterator_category = typename std::iterator_traits<TIter>::iterator_category;
 
     reference operator*() const { return *m_internal; }
-    pointer operator->() const { return m_internal; }
+    pointer operator->() const
+    {
+        if constexpr (std::is_pointer_v<TIter>)
+            return m_internal;
+        else
+            return m_internal.operator->();
+    }
 
     reference operator[](difference_type n) const
         requires (std::random_access_iterator<TIter>)
