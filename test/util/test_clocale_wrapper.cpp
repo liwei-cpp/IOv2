@@ -76,6 +76,11 @@ void test_clocale_wrapper_safety()
         clocale_wrapper loc2(std::move(loc1));
         // loc1 is now in a moved-from state. 
         // Its destructor should be safe (it is marked noexcept and we added a null check).
+
+        // Issue 4: Copying from moved-from object should not trigger UB (duplocale(nullptr))
+        clocale_wrapper loc3(loc1); // Copy constructor
+        clocale_wrapper loc4("C");
+        loc4 = loc1;              // Copy assignment
     }
     dump_info("Done\n");
 }
