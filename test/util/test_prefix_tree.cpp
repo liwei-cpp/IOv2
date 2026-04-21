@@ -3,6 +3,10 @@
 #include <common/dump_info.h>
 #include <string>
 #include <vector>
+#include <sstream>
+#include <device/mem_device.h>
+#include <io/streambuf.h>
+#include <io/streambuf_iterator.h>
 
 using namespace IOv2;
 
@@ -21,23 +25,27 @@ void test_prefix_tree_basic()
     VERIFY(it1 == s1.end());
 
     std::string s2 = "he";
+    out = -1;
     auto it2 = tree.max_match(s2.begin(), s2.end(), out);
     VERIFY(out == 3);
     VERIFY(it2 == s2.end());
 
     std::string s3 = "hell";
+    out = -1;
     auto it3 = tree.max_match(s3.begin(), s3.end(), out);
     VERIFY(out == 3); // "he" is the max match
     VERIFY(it3 == s3.begin() + 2);
 
     std::string s4 = "world";
+    out = -1;
     auto it4 = tree.max_match(s4.begin(), s4.end(), out);
     VERIFY(out == 2);
     VERIFY(it4 == s4.end());
 
     std::string s5 = "not_found";
+    out = -1;
     auto it5 = tree.max_match(s5.begin(), s5.end(), out);
-    VERIFY(out == -1); // root default value
+    VERIFY(out == -1); // remains -1 as no match found and no default in tree
     VERIFY(it5 == s5.begin());
     dump_info("Done\n");
 }
@@ -81,28 +89,6 @@ void test_prefix_tree_duplicate_handling()
     dump_info("Done\n");
 }
 
-void test_prefix_tree_sentinel_value()
-{
-    dump_info("Test prefix_tree sentinel value...");
-    prefix_tree<char, int> tree(999); // Use 999 as sentinel
-
-    // Should NOT be able to add the sentinel value
-    try {
-        tree.add("bad", 999);
-        VERIFY(false); // Should have thrown
-    } catch (const std::runtime_error& e) {
-        // Expected
-    }
-
-    // Should be able to add other values
-    tree.add("good", 1);
-    int out = -1;
-    std::string s = "good";
-    tree.max_match(s.begin(), s.end(), out);
-    VERIFY(out == 1);
-    dump_info("Done\n");
-}
-
 void test_prefix_tree_string_view()
 {
     dump_info("Test prefix_tree string_view...");
@@ -130,11 +116,85 @@ void test_prefix_tree_vector_constructor()
     dump_info("Done\n");
 }
 
+void test_prefix_tree_root_value()
+{
+    dump_info("Test prefix_tree root value...");
+    prefix_tree<char, int> tree;
+    tree.add("", 100); // Set value at root
+    tree.add("a", 1);
+
+    int out = -1;
+    std::string s = "b"; // Does not match any child
+    auto it = tree.max_match(s.begin(), s.end(), out);
+    VERIFY(out == 100); // Should pick root value
+    VERIFY(it == s.begin());
+    dump_info("Done\n");
+}
+
+void test_prefix_tree_greedy_match()
+{
+    dump_info("Test prefix_tree greedy match...");
+    prefix_tree<char, int> tree;
+    tree.add("abc", 1);
+    tree.add("abcd", 2);
+
+    int out = -1;
+    std::string s = "abcde"; 
+    auto it = tree.max_match(s.begin(), s.end(), out);
+    VERIFY(out == 2); // Should match longest "abcd"
+    VERIFY(it == s.begin() + 4);
+    dump_info("Done\n");
+}
+
+void test_prefix_tree_istreambuf()
+{
+    dump_info("Test prefix_tree istreambuf_iterator...");
+    prefix_tree<char, int> tree;
+    tree.add("abc", 1);
+    tree.add("abd", 2);
+
+    // "abxe" should fail to match "abc" or "abd" at 'x', and backtrack to 'a'
+    mem_device dev("abxe");
+    istreambuf sb(dev);
+    istreambuf_iterator beg(sb);
+    decltype(beg) end;
+    
+    int out = -1;
+    auto it = tree.max_match(beg, end, out);
+    
+    VERIFY(out == -1); // No valid word matched
+    VERIFY(*it == 'a'); // Should have backtracked to the beginning
+    dump_info("Done\n");
+}
+
+void test_prefix_tree_overflow()
+{
+    dump_info("Test prefix_tree TValue overflow check...");
+    
+    // int8_t max is 127. We provide 129 elements to trigger overflow.
+    std::vector<const char*> strs;
+    for (int i = 0; i < 129; ++i) {
+        strs.push_back("a"); 
+    }
+
+    try {
+        prefix_tree<char, int8_t> tree(strs);
+        VERIFY(false); // Should have thrown
+    } catch (const std::runtime_error& e) {
+        std::string msg = e.what();
+        VERIFY(msg.find("too many strings") != std::string::npos);
+    }
+    dump_info("Done\n");
+}
+
 void test_prefix_tree()
 {
     test_prefix_tree_basic();
     test_prefix_tree_duplicate_handling();
-    test_prefix_tree_sentinel_value();
     test_prefix_tree_string_view();
     test_prefix_tree_vector_constructor();
+    test_prefix_tree_root_value();
+    test_prefix_tree_greedy_match();
+    test_prefix_tree_istreambuf();
+    test_prefix_tree_overflow();
 }

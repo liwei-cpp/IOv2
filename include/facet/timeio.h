@@ -419,7 +419,7 @@ public:
 
     template <shared_ptr_to<timeio_conf<CharT>> TConfPtr>
     timeio(TConfPtr p_obj)
-        : m_era_tree(std::basic_string<CharT>())
+        : m_era_tree()
     {
         avail_ptr(p_obj);
         m_day = p_obj->day_names();
