@@ -5,6 +5,7 @@
 void test_prefix_tree();
 void test_lru_cache();
 void test_clocale_wrapper();
+void test_stamp_input_iterator();
 
 int main()
 {
@@ -13,6 +14,7 @@ int main()
         test_prefix_tree();
         test_lru_cache();
         test_clocale_wrapper();
+        test_stamp_input_iterator();
         return 0;
     }
     catch (const std::exception& e)

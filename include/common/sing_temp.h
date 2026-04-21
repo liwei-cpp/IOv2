@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdlib>
 
 namespace IOv2
 {
@@ -27,7 +28,15 @@ public:
             if (count++ == 0)
             {
                 T* ptr = sing_temp::ptr();
-                new (ptr) T();
+                try {
+                    new (ptr) T();
+                } catch (...) {
+                    // sing_temp is designed for static initialization before main().
+                    // If T() throws, the singleton cannot be constructed and there is
+                    // no safe recovery path. Abort explicitly to avoid leaving the
+                    // reference count in an inconsistent state.
+                    std::abort();
+                }
             }            
         }
 

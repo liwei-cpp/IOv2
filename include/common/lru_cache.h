@@ -41,7 +41,6 @@ public:
 
         auto l_it = m_it->second;
         m_cache_list.splice(m_cache_list.begin(), m_cache_list, l_it);
-        m_it->second = m_cache_list.begin();
 
         if constexpr (is_small_type_v<TV>)
         {
@@ -61,7 +60,6 @@ public:
         {
             auto l_it = m_it->second;
             m_cache_list.splice(m_cache_list.begin(), m_cache_list, l_it);
-            m_it->second = m_cache_list.begin();
             return false;
         }
 
@@ -84,7 +82,6 @@ public:
             auto l_it = m_it->second;
             l_it->second = value;
             m_cache_list.splice(m_cache_list.begin(), m_cache_list, l_it);
-            m_it->second = m_cache_list.begin();
             return;
         }
 
