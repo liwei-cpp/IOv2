@@ -1,7 +1,9 @@
 #pragma once
 #include <forward_list>
 #include <iterator>
+#include <limits>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -15,11 +17,8 @@ namespace IOv2
 /**
  * @brief A prefix tree (Trie) used for internal IOv2 components.
  * 
- * Note:
- * 1. This class is intended for internal use and does not provide a comprehensive
- *    set of public interfaces (e.g., remove, clear, size).
- * 2. It is designed to use a sentinel (default) value to represent "no value" at a node.
- *    As a result, the default value itself cannot be stored as a legitimate value in the tree.
+ * Note: This class is intended for internal use and does not provide a comprehensive
+ *       set of public interfaces (e.g., remove, clear, size).
  */
 template <typename CharT, typename TValue>
 class prefix_tree
@@ -27,26 +26,29 @@ class prefix_tree
     struct node
     {
         std::unordered_map<CharT, std::unique_ptr<node>> children;
-        TValue val;
+        std::optional<TValue> val;
         size_t depth;
 
-        node(TValue v, size_t d)
+        node(std::optional<TValue> v, size_t d)
             : val(v)
             , depth(d) {}
     };
 
 public:
-    explicit prefix_tree(TValue dflt = static_cast<TValue>(-1))
-        : m_def(dflt)
-        , m_root(dflt, 0)
+    explicit prefix_tree()
+        : m_root(std::nullopt, 0)
     { }
 
-    prefix_tree(const std::vector<const CharT*>& strs, TValue dflt = static_cast<TValue>(-1))
-        : prefix_tree(dflt)
+    prefix_tree(const std::vector<const CharT*>& strs)
+        : prefix_tree()
     {
+        if (strs.size() > 0 &&
+            strs.size() - 1 > static_cast<size_t>(std::numeric_limits<TValue>::max()))
+            throw std::runtime_error("prefix_tree: too many strings for TValue type");
+
         for (size_t i = 0; i < strs.size(); ++i)
         {
-            add(strs[i], (TValue)i);
+            add(strs[i], static_cast<TValue>(i));
         }
     }
     
@@ -58,9 +60,6 @@ public:
     template <typename TIter>
     void add(TIter b, TIter e, TValue v)
     {
-        if (v == m_def)
-            throw std::runtime_error("cannot add with default value");
-            
         node* node_ptr = &m_root;
         while (b != e)
         {
@@ -70,7 +69,7 @@ public:
             if (child == node_ptr->children.end())
             {
                 bool insert_suc = false;
-                auto c = std::make_unique<node>(m_def, node_ptr->depth + 1);
+                auto c = std::make_unique<node>(std::nullopt, node_ptr->depth + 1);
                 std::tie(child, insert_suc) = node_ptr->children.insert(std::pair(ch, std::move(c)));
                 if (!insert_suc)
                     throw std::runtime_error("prefix_tree insert fails");
@@ -78,7 +77,7 @@ public:
             node_ptr = child->second.get();
         }
         
-        if ((node_ptr->val != m_def) && (node_ptr->val != v))
+        if (node_ptr->val.has_value() && *node_ptr->val != v)
             throw std::runtime_error("duplicate items in prefix_tree");
         node_ptr->val = v;
     }
@@ -86,7 +85,9 @@ public:
     template <std::bidirectional_iterator TIter, std::sentinel_for<TIter> TSent>
     TIter max_match(TIter b, TSent e, TValue& out) const
     {
-        out = m_root.val;
+        if (m_root.val.has_value())
+            out = *m_root.val;
+            
         size_t found_depth = 0;
         
         const node* node_ptr = &m_root;
@@ -96,9 +97,9 @@ public:
             auto it = node_ptr->children.find(ch);
             if (it == node_ptr->children.end()) break;
             node_ptr = it->second.get();
-            if (node_ptr->val != m_def)
+            if (node_ptr->val.has_value())
             {
-                out = node_ptr->val;
+                out = *node_ptr->val;
                 found_depth = node_ptr->depth;
             }
         }
@@ -107,7 +108,6 @@ public:
         {
             const size_t steps_back = node_ptr->depth - found_depth;
             std::advance(b, -static_cast<std::ptrdiff_t>(steps_back));
-
         }
         return b;
     }
@@ -117,7 +117,9 @@ public:
     {
         std::forward_list<CharT> checking_chars;
 
-        out = m_root.val;
+        if (m_root.val.has_value())
+            out = *m_root.val;
+
         size_t found_depth = 0;
         
         const node* node_ptr = &m_root;
@@ -127,9 +129,9 @@ public:
             auto it = node_ptr->children.find(ch);
             if (it == node_ptr->children.end()) break;
             node_ptr = it->second.get();
-            if (node_ptr->val != m_def)
+            if (node_ptr->val.has_value())
             {
-                out = node_ptr->val;
+                out = *node_ptr->val;
                 found_depth = node_ptr->depth;
             }
             checking_chars.push_front(ch);
@@ -149,7 +151,6 @@ public:
     }
 
 private:
-    TValue m_def;
     node   m_root;
 };
 }
