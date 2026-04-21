@@ -52,7 +52,7 @@ namespace IOv2
         inline static const prefix_tree<CharT, std::string> s_timezone_tree = 
         []()
         {
-            prefix_tree<CharT, std::string> res("");
+            prefix_tree<CharT, std::string> res;
             
             const auto& tzdb = std::chrono::get_tzdb();
 
