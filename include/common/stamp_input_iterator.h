@@ -51,8 +51,8 @@ struct StampInputIterator<TIter>
     using reference         = typename std::iterator_traits<TIter>::reference;
     using iterator_category = typename std::iterator_traits<TIter>::iterator_category;
 
-    reference operator*() const { return *m_internal; }
-    pointer operator->() const
+    [[nodiscard]] reference operator*() const { return *m_internal; }
+    [[nodiscard]] pointer operator->() const
     {
         if constexpr (std::is_pointer_v<TIter>)
             return m_internal;
@@ -60,14 +60,14 @@ struct StampInputIterator<TIter>
             return m_internal.operator->();
     }
 
-    reference operator[](difference_type n) const
+    [[nodiscard]] reference operator[](difference_type n) const
         requires (std::random_access_iterator<TIter>)
     { return m_internal[n]; }
     
     StampInputIterator& operator++() { ++m_internal; ++m_pos; return *this; }
-    StampInputIterator operator++(int) { StampInputIterator tmp = *this; ++(*this); return tmp; }
+    [[nodiscard]] StampInputIterator operator++(int) { StampInputIterator tmp = *this; ++(*this); return tmp; }
     StampInputIterator& operator--() { --m_internal; --m_pos; return *this; }
-    StampInputIterator operator--(int) { StampInputIterator tmp = *this; --(*this); return tmp; }
+    [[nodiscard]] StampInputIterator operator--(int) { StampInputIterator tmp = *this; --(*this); return tmp; }
     
     StampInputIterator& operator+=(difference_type n)
         requires (std::random_access_iterator<TIter>)
@@ -96,7 +96,7 @@ struct StampInputIterator<TIter>
     friend bool operator>=(const StampInputIterator& a, const StampInputIterator& b)
         requires (std::random_access_iterator<TIter>) { return a.m_internal >= b.m_internal; };
     
-    friend StampInputIterator operator+(const StampInputIterator& it, difference_type n)
+    [[nodiscard]] friend StampInputIterator operator+(const StampInputIterator& it, difference_type n)
         requires (std::random_access_iterator<TIter>)
     {
         StampInputIterator tmp = it;
@@ -104,13 +104,13 @@ struct StampInputIterator<TIter>
         return tmp;
     }
     
-    friend StampInputIterator operator+(difference_type n, const StampInputIterator& it)
+    [[nodiscard]] friend StampInputIterator operator+(difference_type n, const StampInputIterator& it)
         requires (std::random_access_iterator<TIter>)
     {
         return it + n;
     }
 
-    friend StampInputIterator operator-(const StampInputIterator& it, difference_type n)
+    [[nodiscard]] friend StampInputIterator operator-(const StampInputIterator& it, difference_type n)
         requires (std::random_access_iterator<TIter>)
     {
         StampInputIterator tmp = it;
@@ -118,7 +118,7 @@ struct StampInputIterator<TIter>
         return tmp;
     }
     
-    friend difference_type operator-(const StampInputIterator& lhs, const StampInputIterator& rhs)
+    [[nodiscard]] friend difference_type operator-(const StampInputIterator& lhs, const StampInputIterator& rhs)
         requires (std::random_access_iterator<TIter>)
     {
         return lhs.m_internal - rhs.m_internal;
@@ -130,7 +130,7 @@ struct StampInputIterator<TIter>
         m_pos = 0;
     }
     
-    TIter internal() const { return m_internal; }
+    [[nodiscard]] TIter internal() const { return m_internal; }
 private:
     TIter           m_internal;
     difference_type m_pos;
@@ -165,8 +165,8 @@ struct StampInputIterator<TIter>
     using value_type        = typename TIter::value_type;
     using difference_type   = typename TIter::difference_type;
 
-    auto operator*() const { return *m_internal; }
-    auto operator->() const { return m_internal; }
+    [[nodiscard]] auto operator*() const { return *m_internal; }
+    [[nodiscard]] auto operator->() const { return m_internal; }
 
     StampInputIterator& operator++()
     {
@@ -174,7 +174,7 @@ struct StampInputIterator<TIter>
         ++m_internal;
         return *this;
     }
-    StampInputIterator operator++(int) { StampInputIterator tmp = *this; ++(*this); return tmp; }
+    [[nodiscard]] StampInputIterator operator++(int) { StampInputIterator tmp = *this; ++(*this); return tmp; }
 
     StampInputIterator& operator--()
     {
@@ -185,7 +185,7 @@ struct StampInputIterator<TIter>
         m_rec.pop_front();
         return *this;
     }
-    StampInputIterator operator--(int) { StampInputIterator tmp = *this; --(*this); return tmp; }
+    [[nodiscard]] StampInputIterator operator--(int) { StampInputIterator tmp = *this; --(*this); return tmp; }
 
     friend bool operator==(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal == b.m_internal; };
     friend bool operator!=(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal != b.m_internal; };  
@@ -198,7 +198,7 @@ struct StampInputIterator<TIter>
         }
     }
     
-    TIter internal() const { return m_internal; }
+    [[nodiscard]] TIter internal() const { return m_internal; }
 private:
     TIter m_internal;
     std::forward_list<value_type> m_rec;
