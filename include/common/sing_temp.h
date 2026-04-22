@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include <type_traits>
 
 namespace IOv2
 {
@@ -40,7 +41,7 @@ public:
                     // reference count in an inconsistent state.
                     std::abort();
                 }
-            }            
+            }
         }
 
         ~init()
@@ -58,17 +59,17 @@ public:
             static unsigned count{0};
             return count;
         }
-        
+
         init(const init&) = delete;
         init& operator=(const init&) = delete;
     };
-    
+
 protected:
     sing_temp() = default;
     ~sing_temp() = default;
     sing_temp(const sing_temp&) = delete;
     sing_temp& operator=(const sing_temp&) = delete;
-    
+
 public:
     [[nodiscard]] static T* ptr()
     {

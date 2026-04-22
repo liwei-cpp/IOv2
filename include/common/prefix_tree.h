@@ -1,31 +1,33 @@
 #pragma once
+#include <common/metafunctions.h>
+#include <common/streambuf_defs.h>
+
+#include <concepts>
 #include <forward_list>
 #include <iterator>
 #include <limits>
 #include <memory>
 #include <optional>
 #include <stdexcept>
-#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-
-#include <common/streambuf_defs.h>
-#include <common/metafunctions.h>
 
 namespace IOv2
 {
 /**
  * @brief A prefix tree (Trie) used for internal IOv2 components.
  * 
- * Note: This class is intended for internal use and does not provide a comprehensive
+ * @note This class is intended for internal use and does not provide a comprehensive
  *       set of public interfaces (e.g., remove, clear, size).
+ * @note This class is NOT thread-safe.
  */
 template <typename CharT, typename TValue>
 class prefix_tree
 {
-    // 🟡 Prevents confusing compile errors
+    // [NOTE] Prevents confusing compile errors
     static_assert(std::equality_comparable<CharT>, "CharT must be equality comparable");
+    static_assert(std::equality_comparable<TValue>, "TValue must be equality comparable");
     static_assert(requires { std::hash<CharT>{}; }, "CharT must be hashable");
 
     struct node
@@ -35,7 +37,7 @@ class prefix_tree
         size_t depth;
 
         node(std::optional<TValue> v, size_t d)
-            : val(v)
+            : val(std::move(v))
             , depth(d) {}
     };
 
@@ -135,7 +137,7 @@ public:
         return b;
     }
 
-    template <is_istreambuf_iterator_v TIter, std::sentinel_for<TIter> TSent>
+    template <is_istreambuf_iterator TIter, std::sentinel_for<TIter> TSent>
     [[nodiscard]] TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
         if constexpr (is_small_type_v<TValue>)

@@ -136,7 +136,7 @@ concept ostream_type =
     {
         typename T::out_sentry_type;
         typename T::char_type;
-        { a.o_iter() } -> is_ostreambuf_iterator_v;
+        { a.o_iter() } -> ostreambuf_iterator;
         { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
     } &&
     is_out_sentry<typename T::out_sentry_type> &&
@@ -201,7 +201,7 @@ T& operator<<(T& obj, const TValue& value)
         else if constexpr (is_writer_def<TChar, TDecay>)
             writer<TChar, TDecay>::swrite(obj.o_iter(), obj, obj.locale(), value);
         else
-            static_assert(DependencyFalse<TValue>, "No format method provided");
+            static_assert(dependent_false_v<TValue>, "No format method provided");
     }
     catch(...)
     {
