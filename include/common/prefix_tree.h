@@ -24,6 +24,10 @@ namespace IOv2
 template <typename CharT, typename TValue>
 class prefix_tree
 {
+    // 🟡 Prevents confusing compile errors
+    static_assert(std::equality_comparable<CharT>, "CharT must be equality comparable");
+    static_assert(requires { std::hash<CharT>{}; }, "CharT must be hashable");
+
     struct node
     {
         std::unordered_map<CharT, std::unique_ptr<node>> children;
@@ -43,6 +47,7 @@ public:
     { }
 
     prefix_tree(const std::vector<const CharT*>& strs)
+        requires std::is_integral_v<TValue>
         : prefix_tree()
     {
         if (strs.size() > 0 &&
@@ -88,7 +93,7 @@ public:
     }
     
     template <std::bidirectional_iterator TIter, std::sentinel_for<TIter> TSent>
-    TIter max_match(TIter b, TSent e, match_out_type& out) const
+    [[nodiscard]] TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
         if constexpr (is_small_type_v<TValue>)
             out = std::nullopt;
@@ -131,7 +136,7 @@ public:
     }
 
     template <is_istreambuf_iterator_v TIter, std::sentinel_for<TIter> TSent>
-    TIter max_match(TIter b, TSent e, match_out_type& out) const
+    [[nodiscard]] TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
         if constexpr (is_small_type_v<TValue>)
             out = std::nullopt;

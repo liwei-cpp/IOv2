@@ -24,6 +24,9 @@ public:
     {
         init()
         {
+            static_assert(std::is_class_v<T>, "sing_temp: T must be a class type");
+            static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
+
             auto& count = RefCount();
             if (count++ == 0)
             {
@@ -50,7 +53,7 @@ public:
             }
         }
 
-        static auto& RefCount()
+        [[nodiscard]] static auto& RefCount()
         {
             static unsigned count{0};
             return count;
@@ -67,8 +70,11 @@ protected:
     sing_temp& operator=(const sing_temp&) = delete;
     
 public:
-    static T* ptr()
+    [[nodiscard]] static T* ptr()
     {
+        static_assert(std::is_class_v<T>, "sing_temp: T must be a class type");
+        static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
+
         alignas(T) static char sing_buf[sizeof(T)];
         return reinterpret_cast<T*>(sing_buf);
     }
