@@ -107,7 +107,7 @@ void test_prefix_tree_vector_constructor()
 
     decltype(tree)::match_out_type out;
     std::string s = "banana";
-    tree.max_match(s.begin(), s.end(), out);
+    (void)tree.max_match(s.begin(), s.end(), out);
     VERIFY(out && *out == 1); // Index 1 in the vector
     dump_info("Done\n");
 }

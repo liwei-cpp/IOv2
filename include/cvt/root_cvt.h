@@ -197,7 +197,7 @@ public:
         else if constexpr (dev_cpt::support_put<device_type>)
             m_io_status = io_status::output;
         else
-            static_assert(DependencyFalse<device_type>, "device does not support get nor put");
+            static_assert(dependent_false_v<device_type>, "device does not support get nor put");
 
         return m_io_status;
     }

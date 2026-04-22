@@ -13,49 +13,49 @@ template <io_device TDevice, typename TChar>
 class ostreambuf;
 
 template <typename T>
-struct is_streambuf_imp
+struct is_streambuf_impl
 {
     constexpr static bool value = false;
 };
 
 template <io_device TDevice, typename TChar>
-struct is_streambuf_imp<streambuf<TDevice, TChar>>
+struct is_streambuf_impl<streambuf<TDevice, TChar>>
 {
     constexpr static bool value = true;
 };
 
 template <typename T>
-constexpr static bool is_streambuf = is_streambuf_imp<T>::value;
+constexpr static bool is_streambuf = is_streambuf_impl<T>::value;
 
 template <typename T>
-struct is_istreambuf_imp
+struct is_istreambuf_impl
 {
     constexpr static bool value = false;
 };
 
 template <io_device TDevice, typename TChar>
-struct is_istreambuf_imp<istreambuf<TDevice, TChar>>
+struct is_istreambuf_impl<istreambuf<TDevice, TChar>>
 {
     constexpr static bool value = true;
 };
 
 template <typename T>
-constexpr static bool is_istreambuf = is_istreambuf_imp<T>::value;
+constexpr static bool is_istreambuf = is_istreambuf_impl<T>::value;
 
 template <typename T>
-struct is_ostreambuf_imp
+struct is_ostreambuf_impl
 {
     constexpr static bool value = false;
 };
 
 template <io_device TDevice, typename TChar>
-struct is_ostreambuf_imp<ostreambuf<TDevice, TChar>>
+struct is_ostreambuf_impl<ostreambuf<TDevice, TChar>>
 {
     constexpr static bool value = true;
 };
 
 template <typename T>
-constexpr static bool is_ostreambuf = is_ostreambuf_imp<T>::value;
+constexpr static bool is_ostreambuf = is_ostreambuf_impl<T>::value;
 
 template <typename TStreamBuf>
     requires (is_streambuf<TStreamBuf> || is_istreambuf<TStreamBuf>)
@@ -66,32 +66,32 @@ template <typename TStreamBuf>
 class ostreambuf_iterator;
 
 template <typename T>
-struct is_istreambuf_iterator
+struct is_istreambuf_iterator_impl
 {
     constexpr static bool value = false;
 };
 
 template <typename TStreamBuf>
-struct is_istreambuf_iterator<istreambuf_iterator<TStreamBuf>>
+struct is_istreambuf_iterator_impl<istreambuf_iterator<TStreamBuf>>
 {
     constexpr static bool value = true;
 };
 
 template <typename T>
-concept is_istreambuf_iterator_v = is_istreambuf_iterator<T>::value;
+concept is_istreambuf_iterator = is_istreambuf_iterator_impl<T>::value;
 
 template <typename T>
-struct is_ostreambuf_iterator
+struct is_ostreambuf_iterator_impl
 {
     constexpr static bool value = false;
 };
 
 template <typename TStreamBuf>
-struct is_ostreambuf_iterator<ostreambuf_iterator<TStreamBuf>>
+struct is_ostreambuf_iterator_impl<ostreambuf_iterator<TStreamBuf>>
 {
     constexpr static bool value = true;
 };
 
 template <typename T>
-concept is_ostreambuf_iterator_v = is_ostreambuf_iterator<T>::value;
+concept is_ostreambuf_iterator = is_ostreambuf_iterator_impl<T>::value;
 }

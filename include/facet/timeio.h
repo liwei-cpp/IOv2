@@ -545,7 +545,7 @@ public:
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
-        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator_v<TIter>)
+        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
     TIter get(TIter beg, TSent end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
               char format, char modifier = 0) const
     {
@@ -566,7 +566,7 @@ public:
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
-        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator_v<TIter>)
+        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
     TIter get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
               std::basic_string_view<CharT> _fmt) const
     {
@@ -579,7 +579,7 @@ public:
 
 private:
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
-        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator_v<TIter>)
+        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
     TIter do_get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
                  bool& succ, std::basic_string_view<CharT> _fmt) const
     {
@@ -1121,7 +1121,7 @@ private:
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 else if ((modifier == static_cast<CharT>('E')) && (!m_era_items.empty()))
                 {
-                    if constexpr (IsStampInputIterator<TIter>)
+                    if constexpr (is_stamp_input_iterator_v<TIter>)
                     {
                         succ = false;
                         return rp;
