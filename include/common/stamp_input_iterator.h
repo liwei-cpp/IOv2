@@ -1,8 +1,10 @@
 #pragma once
+#include <common/streambuf_defs.h>
+
 #include <algorithm>
 #include <forward_list>
 #include <iterator>
-#include <common/streambuf_defs.h>
+#include <stdexcept>
 
 namespace IOv2
 {
@@ -145,12 +147,12 @@ private:
  *       1. IOv2's sputbackc() returns void and never fails (uses unlimited deque)
  *       2. std::streambuf's sputbackc() returns int_type and may fail (limited putback area)
  *
- *       The is_istreambuf_iterator_v concept constraint ensures this specialization
+ *       The istreambuf_iterator concept constraint ensures this specialization
  *       only matches IOv2::istreambuf_iterator types.
  *
- * @tparam TIter Must satisfy is_istreambuf_iterator_v (IOv2::istreambuf_iterator only)
+ * @tparam TIter Must satisfy istreambuf_iterator (IOv2::istreambuf_iterator only)
  */
-template <is_istreambuf_iterator_v TIter>
+template <is_istreambuf_iterator TIter>
 struct StampInputIterator<TIter>
 {
     StampInputIterator()
@@ -211,8 +213,8 @@ template <typename TIter>
 StampInputIterator(StampInputIterator<TIter>&) -> StampInputIterator<TIter>;
 
 template <typename T>
-constexpr static bool IsStampInputIterator = false;
+constexpr static bool is_stamp_input_iterator_v = false;
 
 template <typename T>
-constexpr static bool IsStampInputIterator<StampInputIterator<T>> = true;
+constexpr static bool is_stamp_input_iterator_v<StampInputIterator<T>> = true;
 }

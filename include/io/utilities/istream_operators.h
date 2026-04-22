@@ -332,7 +332,7 @@ concept istream_type =
     {
         typename T::in_sentry_type;
         typename T::char_type;
-        { a.i_iter() } -> is_istreambuf_iterator_v;
+        { a.i_iter() } -> istreambuf_iterator;
         { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
     } &&
     is_in_sentry<typename T::in_sentry_type> &&
@@ -408,7 +408,7 @@ T& operator>>(T& obj, TValue& value)
             }
         }
         else
-            static_assert(DependencyFalse<TValue>, "No parse method provided");
+            static_assert(dependent_false_v<TValue>, "No parse method provided");
     }
     catch(...)
     {

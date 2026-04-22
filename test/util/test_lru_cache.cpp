@@ -54,7 +54,7 @@ void test_lru_cache_eviction()
     cache.put(2, "two");
     
     // 1 is MRU, 2 is LRU
-    cache.get(1); 
+    (void)cache.get(1); 
     
     // 2 should be evicted
     cache.put(3, "three"); 

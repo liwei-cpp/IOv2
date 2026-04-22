@@ -2,13 +2,12 @@
 #include <memory>
 #include <type_traits>
 
-
 namespace IOv2
 {
     template <typename... T>
-    constexpr bool DependencyFalse = false;
+    constexpr bool dependent_false_v = false;
     template <auto... T>
-    constexpr bool DependencyFalseV = false;
+    constexpr bool dependent_false_nttp_v = false;
 
     template <typename T>
     inline constexpr bool is_small_type_v = sizeof(T) <= 2 * sizeof(void*);

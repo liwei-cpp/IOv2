@@ -1,14 +1,23 @@
 #pragma once
+#include <common/metafunctions.h>
 
 #include <list>
 #include <optional>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
-#include <type_traits>
-#include <common/metafunctions.h>
 
 namespace IOv2
 {
+/**
+ * @brief A simple Least Recently Used (LRU) cache.
+ * 
+ * @tparam TK Key type.
+ * @tparam TV Value type.
+ * @tparam Capacity Maximum number of items to store.
+ * 
+ * @note This class is NOT thread-safe.
+ */
 template <typename TK, typename TV, size_t Capacity>
     requires std::is_copy_constructible_v<TK>  // Key must be copyable for storage
           && std::is_copy_constructible_v<TV>  // Value must be copyable for storage

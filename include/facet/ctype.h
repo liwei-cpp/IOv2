@@ -278,7 +278,7 @@ private:
         if (!res)
         {
             auto v = m_obj->is(c);
-            m_table_cache.try_put(c, v);
+            m_table_cache.put(c, v);
             return v;
         }
         return *res;
@@ -294,7 +294,7 @@ private:
         if (!res)
         {
             auto v = m_obj->toupper(c);
-            m_upper_cache.try_put(c, v);
+            m_upper_cache.put(c, v);
             return v;
         }
         return *res;
@@ -310,7 +310,7 @@ private:
         if (!res)
         {
             auto v = m_obj->tolower(c);
-            m_lower_cache.try_put(c, v);
+            m_lower_cache.put(c, v);
             return v;
         }
         return *res;
@@ -326,7 +326,7 @@ private:
         if (!res)
         {
             auto v = m_obj->narrow(c);
-            m_narrow_cache.try_put(c, v);
+            m_narrow_cache.put(c, v);
             return v;
         }
         return *res;

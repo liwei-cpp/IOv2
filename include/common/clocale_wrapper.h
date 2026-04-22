@@ -1,11 +1,19 @@
 #pragma once
+#include <common/defs.h>
+
 #include <locale.h>
 #include <stdexcept>
-
-#include <common/defs.h>
+#include <string>
 
 namespace IOv2
 {
+/**
+ * @brief RAII wrapper for POSIX locale_t objects.
+ * 
+ * @note This class requires POSIX locale extensions (available on Linux, macOS).
+ *       Not available on Windows.
+ * @note This class is NOT thread-safe.
+ */
 struct clocale_wrapper
 {
     friend struct clocale_user;
@@ -41,7 +49,7 @@ struct clocale_wrapper
         val.c_locale = nullptr;
     }
 
-    clocale_wrapper& operator = (clocale_wrapper&& val) noexcept
+    clocale_wrapper& operator=(clocale_wrapper&& val) noexcept
     {
         if (this != &val)
         {
