@@ -277,7 +277,7 @@ private:
         }
         else
         {
-            static_assert(DependencyFalseV<IsIn, IsOut>, "file device cannot open with neither in nor out mode");
+            static_assert(dependent_false_nttp_v<IsIn, IsOut>, "file device cannot open with neither in nor out mode");
         }
     }
     

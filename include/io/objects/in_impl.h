@@ -52,7 +52,7 @@ public:
         else if constexpr (std::is_same_v<char_type, wchar_t>)
             m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(code()), !sync);
         else
-            static_assert(DependencyFalse<char_type>, "invalid character type");
+            static_assert(dependent_false_v<char_type>, "invalid character type");
         return old_sync_state;
     }
 
