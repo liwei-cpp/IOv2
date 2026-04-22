@@ -10,6 +10,10 @@
 namespace IOv2
 {
 template <typename TK, typename TV, size_t Capacity>
+    requires std::is_copy_constructible_v<TK>  // Key must be copyable for storage
+          && std::is_copy_constructible_v<TV>  // Value must be copyable for storage
+          && std::equality_comparable<TK>      // Key needs operator== for hash map
+          && requires { std::hash<TK>{}; }     // Key must be hashable
 class lru_cache
 {
     static_assert(Capacity > 0, "Capacity must be greater than 0");
@@ -24,7 +28,7 @@ public:
     lru_cache& operator=(const lru_cache&) = delete;
 
 public:
-    return_type get(key_param_type key)
+    [[nodiscard]] return_type get(key_param_type key)
     {
         auto m_it = m_cache_map.find(key);
         if (m_it == m_cache_map.end())
@@ -52,7 +56,7 @@ public:
         }
     }
 
-    bool try_put(key_param_type key, val_param_type value)
+    [[nodiscard]] bool try_put(key_param_type key, val_param_type value)
     {
         auto m_it = m_cache_map.find(key);
 
