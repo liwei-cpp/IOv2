@@ -1,0 +1,4 @@
+var structIOv2_1_1writer_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4 =
+[
+    [ "swrite", "structIOv2_1_1writer_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html#a5a8c4e8e572a52c2683c09664bc14fa4", null ]
+];

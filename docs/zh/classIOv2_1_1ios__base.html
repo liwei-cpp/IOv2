@@ -1,0 +1,934 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::ios_base&lt; TChar &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classIOv2_1_1ios__base.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="#pro-methods">Protected 成员函数</a> &#124;
+<a href="#pro-attribs">Protected 属性</a> &#124;
+<a href="classIOv2_1_1ios__base-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">IOv2::ios_base&lt; TChar &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="io__base_8h_source.html">io_base.h</a>&gt;</code></p>
+<div class="dynheader">
+类 IOv2::ios_base&lt; TChar &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classIOv2_1_1ios__base__inherit__graph.png" border="0" usemap="#aIOv2_1_1ios__base_3_01TChar_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="aIOv2_1_1ios__base_3_01TChar_01_4_inherit__map" id="aIOv2_1_1ios__base_3_01TChar_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="228,492,412,517"/>
+<area shape="rect" href="classIOv2_1_1stdin__api.html" title=" " alt="" coords="487,5,668,60"/>
+<area shape="poly" title=" " alt="" coords="319,478,326,399,346,290,364,231,387,173,419,118,458,69,485,50,488,55,462,73,423,121,392,175,369,233,351,291,331,400,325,478"/>
+<area shape="rect" href="classIOv2_1_1stdin__api.html" title=" " alt="" coords="481,84,673,139"/>
+<area shape="poly" title=" " alt="" coords="321,478,332,412,356,324,374,277,396,230,424,187,458,148,480,132,483,137,462,152,429,190,401,233,379,279,361,325,338,413,327,479"/>
+<area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="478,163,677,217"/>
+<area shape="poly" title=" " alt="" coords="325,478,340,426,367,359,406,289,430,257,458,228,476,215,479,220,462,232,434,260,410,292,372,361,345,428,330,479"/>
+<area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="478,241,677,296"/>
+<area shape="poly" title=" " alt="" coords="330,478,350,440,378,394,415,347,458,307,479,294,482,298,462,311,419,351,383,397,355,443,335,480"/>
+<area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="477,320,677,375"/>
+<area shape="poly" title=" " alt="" coords="341,480,392,433,424,407,459,385,484,373,486,377,461,390,427,412,395,437,344,484"/>
+<area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="461,399,693,453"/>
+<area shape="poly" title=" " alt="" coords="375,485,486,451,488,456,376,490"/>
+<area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="461,477,693,532"/>
+<area shape="poly" title=" " alt="" coords="426,502,461,502,461,507,426,507"/>
+<area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="460,556,695,611"/>
+<area shape="poly" title=" " alt="" coords="376,519,488,553,486,558,375,524"/>
+<area shape="rect" href="classIOv2_1_1iostream.html" title=" " alt="" coords="482,635,673,675"/>
+<area shape="poly" title=" " alt="" coords="344,526,394,574,427,599,461,621,488,633,486,638,459,626,424,604,391,578,340,529"/>
+<area shape="rect" href="classIOv2_1_1istream.html" title=" " alt="" coords="486,699,669,739"/>
+<area shape="poly" title=" " alt="" coords="336,529,356,564,384,607,419,649,461,685,487,699,485,703,459,690,416,653,380,610,351,567,331,531"/>
+<area shape="rect" href="classIOv2_1_1ostream.html" title=" " alt="" coords="484,763,671,803"/>
+<area shape="poly" title=" " alt="" coords="331,530,348,577,374,637,412,698,435,725,462,749,485,763,483,768,458,753,432,729,408,701,370,639,343,579,326,532"/>
+<area shape="rect" href="classIOv2_1_1stdin__api.html" title=" " alt="" coords="504,827,651,867"/>
+<area shape="poly" title=" " alt="" coords="328,530,341,589,365,666,383,706,405,745,431,782,462,813,482,826,505,835,503,840,479,831,458,817,427,785,400,748,378,708,360,667,336,590,323,531"/>
+<area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="500,891,655,931"/>
+<area shape="poly" title=" " alt="" coords="326,531,335,600,357,694,375,744,397,792,426,838,462,877,480,890,501,899,498,904,477,895,458,881,422,841,393,795,370,746,352,695,330,601,320,531"/>
+<area shape="rect" href="structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="5,492,180,517"/>
+<area shape="poly" title=" " alt="" coords="194,502,228,502,228,507,194,507"/>
+<area shape="rect" href="classIOv2_1_1____cin.html" title="cin" alt="" coords="753,20,846,45"/>
+<area shape="poly" title=" " alt="" coords="682,30,752,30,752,35,682,35"/>
+<area shape="rect" href="classIOv2_1_1____wcin.html" title="wcin" alt="" coords="747,99,851,124"/>
+<area shape="poly" title=" " alt="" coords="687,109,747,109,747,114,687,114"/>
+<area shape="rect" href="classIOv2_1_1____cerr.html" title="cerr" alt="" coords="750,177,849,203"/>
+<area shape="poly" title=" " alt="" coords="690,187,750,187,750,193,690,193"/>
+<area shape="rect" href="classIOv2_1_1____clog.html" title="clog" alt="" coords="749,256,850,281"/>
+<area shape="poly" title=" " alt="" coords="690,266,749,266,749,271,690,271"/>
+<area shape="rect" href="classIOv2_1_1____cout.html" title="__cout" alt="" coords="748,335,851,360"/>
+<area shape="poly" title=" " alt="" coords="691,345,748,345,748,350,691,350"/>
+<area shape="rect" href="classIOv2_1_1____wcerr.html" title="wcerr" alt="" coords="744,413,855,439"/>
+<area shape="poly" title=" " alt="" coords="707,423,744,423,744,429,707,429"/>
+<area shape="rect" href="classIOv2_1_1____wclog.html" title="wclog" alt="" coords="743,492,855,517"/>
+<area shape="poly" title=" " alt="" coords="707,502,743,502,743,507,707,507"/>
+<area shape="rect" href="classIOv2_1_1____wcout.html" title="wcout" alt="" coords="743,571,856,596"/>
+<area shape="poly" title=" " alt="" coords="708,581,743,581,743,586,708,586"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<div class="dynheader">
+IOv2::ios_base&lt; TChar &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classIOv2_1_1ios__base__coll__graph.png" border="0" usemap="#aIOv2_1_1ios__base_3_01TChar_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="aIOv2_1_1ios__base_3_01TChar_01_4_coll__map" id="aIOv2_1_1ios__base_3_01TChar_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="5,79,189,104"/>
+<area shape="rect" href="structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="10,5,185,31"/>
+<area shape="poly" title=" " alt="" coords="100,44,100,79,95,79,95,44"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a54104c455ab7f72dbaebef7b293e3ff0" id="r_a54104c455ab7f72dbaebef7b293e3ff0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a> = std::function&lt; std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;)&gt;</td></tr>
+<tr class="separator:a54104c455ab7f72dbaebef7b293e3ff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a12f1da1653653548185e97a1d9cfb8c2" id="r_a12f1da1653653548185e97a1d9cfb8c2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a12f1da1653653548185e97a1d9cfb8c2">ios_base</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:a12f1da1653653548185e97a1d9cfb8c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65a7c31c9e1f44d2ed6e4f4cdbfee69c" id="r_a65a7c31c9e1f44d2ed6e4f4cdbfee69c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a65a7c31c9e1f44d2ed6e4f4cdbfee69c">flags</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a65a7c31c9e1f44d2ed6e4f4cdbfee69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71ec0b8b535ac6a7ccf7a0d0d12c3c6c" id="r_a71ec0b8b535ac6a7ccf7a0d0d12c3c6c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a71ec0b8b535ac6a7ccf7a0d0d12c3c6c">flags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fmtfl</a>)</td></tr>
+<tr class="separator:a71ec0b8b535ac6a7ccf7a0d0d12c3c6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa2a4c377ee7cc8710068cfd8de3147c8" id="r_aa2a4c377ee7cc8710068cfd8de3147c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aa2a4c377ee7cc8710068cfd8de3147c8">setf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fmtfl</a>)</td></tr>
+<tr class="separator:aa2a4c377ee7cc8710068cfd8de3147c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a90c62abfea87b9e6991fe36c02a0a47d" id="r_a90c62abfea87b9e6991fe36c02a0a47d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a90c62abfea87b9e6991fe36c02a0a47d">setf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fmtfl</a>, <a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">msk</a>)</td></tr>
+<tr class="separator:a90c62abfea87b9e6991fe36c02a0a47d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5f7d547d8377526af80a156e9b65a2b" id="r_ac5f7d547d8377526af80a156e9b65a2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ac5f7d547d8377526af80a156e9b65a2b">unsetf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">msk</a>)</td></tr>
+<tr class="separator:ac5f7d547d8377526af80a156e9b65a2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff78d2737d3ee2700c339d208bbf0ddf" id="r_aff78d2737d3ee2700c339d208bbf0ddf"><td class="memItemLeft" align="right" valign="top">std::streamsize&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aff78d2737d3ee2700c339d208bbf0ddf">precision</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:aff78d2737d3ee2700c339d208bbf0ddf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeea4f223832e517d1c7f498a636acd23" id="r_aeea4f223832e517d1c7f498a636acd23"><td class="memItemLeft" align="right" valign="top">std::streamsize&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aeea4f223832e517d1c7f498a636acd23">precision</a> (std::streamsize <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">prec</a>)</td></tr>
+<tr class="separator:aeea4f223832e517d1c7f498a636acd23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64c323d24e9c7e379e63ee49d9b3bd64" id="r_a64c323d24e9c7e379e63ee49d9b3bd64"><td class="memItemLeft" align="right" valign="top">std::streamsize&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a64c323d24e9c7e379e63ee49d9b3bd64">width</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a64c323d24e9c7e379e63ee49d9b3bd64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa28022eb4b9f9761385d6dff9a170cbd" id="r_aa28022eb4b9f9761385d6dff9a170cbd"><td class="memItemLeft" align="right" valign="top">std::streamsize&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aa28022eb4b9f9761385d6dff9a170cbd">width</a> (std::streamsize <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wide</a>)</td></tr>
+<tr class="separator:aa28022eb4b9f9761385d6dff9a170cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07a854a549fe07ddd93a62830565576e" id="r_a07a854a549fe07ddd93a62830565576e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a07a854a549fe07ddd93a62830565576e">fill</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:a07a854a549fe07ddd93a62830565576e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac38a4bfcc74c8458a17dedaced1f89ed" id="r_ac38a4bfcc74c8458a17dedaced1f89ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ac38a4bfcc74c8458a17dedaced1f89ed">fill</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
+<tr class="separator:ac38a4bfcc74c8458a17dedaced1f89ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af38882ab0584ce24ff9cc1e2a7cc465b" id="r_af38882ab0584ce24ff9cc1e2a7cc465b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#af38882ab0584ce24ff9cc1e2a7cc465b">set_pword</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> id, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pword</a>)</td></tr>
+<tr class="separator:af38882ab0584ce24ff9cc1e2a7cc465b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f40137586900ea9cd15c5130a0285d5" id="r_a6f40137586900ea9cd15c5130a0285d5"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a6f40137586900ea9cd15c5130a0285d5">get_pword</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> id) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a6f40137586900ea9cd15c5130a0285d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bf0205647f825bfd823b63c43fd202e" id="r_a8bf0205647f825bfd823b63c43fd202e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a8bf0205647f825bfd823b63c43fd202e">register_callback</a> (<a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> id)</td></tr>
+<tr class="separator:a8bf0205647f825bfd823b63c43fd202e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_structIOv2_1_1io__state__and__exp"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_structIOv2_1_1io__state__and__exp')"><img src="closed.png" alt="-"/>&#160;Public 成员函数 继承自 <a class="el" href="structIOv2_1_1io__state__and__exp.html">IOv2::io_state_and_exp</a></td></tr>
+<tr class="memitem:ae5897909a71b7528e0208652b7a186e4 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_ae5897909a71b7528e0208652b7a186e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae5897909a71b7528e0208652b7a186e4">rdstate</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:ae5897909a71b7528e0208652b7a186e4 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ed0d764a9454f534852421a8eaadb35 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_a5ed0d764a9454f534852421a8eaadb35"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a5ed0d764a9454f534852421a8eaadb35">clear</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>=<a class="el" href="namespaceIOv2_1_1ios__defs.html#ad7b2ff595618d0c4bb8c13e591d3fe5c">ios_defs::goodbit</a>)</td></tr>
+<tr class="separator:a5ed0d764a9454f534852421a8eaadb35 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa7eef2ce9daaeb70093ea1b8362e460 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_aaa7eef2ce9daaeb70093ea1b8362e460"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#aaa7eef2ce9daaeb70093ea1b8362e460">setstate</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>)</td></tr>
+<tr class="separator:aaa7eef2ce9daaeb70093ea1b8362e460 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2096703a66a3b6e83ccf1c39f63fb9e7 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_a2096703a66a3b6e83ccf1c39f63fb9e7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a2096703a66a3b6e83ccf1c39f63fb9e7">good</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a2096703a66a3b6e83ccf1c39f63fb9e7 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae95ccde269ba8f474e1d8b0c1d1760e1 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_ae95ccde269ba8f474e1d8b0c1d1760e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae95ccde269ba8f474e1d8b0c1d1760e1">dev_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:ae95ccde269ba8f474e1d8b0c1d1760e1 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae74ef95d0a3862bf73d964a23d88ba0d inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_ae74ef95d0a3862bf73d964a23d88ba0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae74ef95d0a3862bf73d964a23d88ba0d">cvt_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:ae74ef95d0a3862bf73d964a23d88ba0d inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bd797fb2b9ba1ac3241e691f75cf097 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_a0bd797fb2b9ba1ac3241e691f75cf097"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a0bd797fb2b9ba1ac3241e691f75cf097">str_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a0bd797fb2b9ba1ac3241e691f75cf097 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae02907f048240aa1d71dfc2c4ffddd7b inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_ae02907f048240aa1d71dfc2c4ffddd7b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae02907f048240aa1d71dfc2c4ffddd7b">other_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:ae02907f048240aa1d71dfc2c4ffddd7b inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a173870002a71327e9e0c04c46ce9150f inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_a173870002a71327e9e0c04c46ce9150f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a173870002a71327e9e0c04c46ce9150f">eof</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a173870002a71327e9e0c04c46ce9150f inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24857dccb73bbcef98b1d1bcd2dc4a73 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_a24857dccb73bbcef98b1d1bcd2dc4a73"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a24857dccb73bbcef98b1d1bcd2dc4a73">operator bool</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a24857dccb73bbcef98b1d1bcd2dc4a73 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b08b8296be46a8374730a0cdd739843 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_a0b08b8296be46a8374730a0cdd739843"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a0b08b8296be46a8374730a0cdd739843">exceptions</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a0b08b8296be46a8374730a0cdd739843 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4df3ab67d81dc523203502df00df3a62 inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_a4df3ab67d81dc523203502df00df3a62"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a4df3ab67d81dc523203502df00df3a62">exceptions</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">e</a>)</td></tr>
+<tr class="separator:a4df3ab67d81dc523203502df00df3a62 inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affb4783d1a8acf591b9043e6893dfc2a inherit pub_methods_structIOv2_1_1io__state__and__exp" id="r_affb4783d1a8acf591b9043e6893dfc2a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#affb4783d1a8acf591b9043e6893dfc2a">handle_exception</a> (std::exception_ptr <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ex</a>)</td></tr>
+<tr class="separator:affb4783d1a8acf591b9043e6893dfc2a inherit pub_methods_structIOv2_1_1io__state__and__exp"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:a877c9e29409179fdc4383705094db6e1" id="r_a877c9e29409179fdc4383705094db6e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a877c9e29409179fdc4383705094db6e1">xalloc</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:a877c9e29409179fdc4383705094db6e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected 成员函数</h2></td></tr>
+<tr class="memitem:a2a323cb01f2656a4e4ce3217e844e967" id="r_a2a323cb01f2656a4e4ce3217e844e967"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2a323cb01f2656a4e4ce3217e844e967">access_callbacks</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">new_loc</a>)</td></tr>
+<tr class="separator:a2a323cb01f2656a4e4ce3217e844e967"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
+Protected 属性</h2></td></tr>
+<tr class="memitem:aa19d611acf7a916eaf3ce95181bc064b" id="r_aa19d611acf7a916eaf3ce95181bc064b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aa19d611acf7a916eaf3ce95181bc064b">m_flags</a> = <a class="el" href="namespaceIOv2_1_1ios__defs.html#a665eedb3f7f272fa1c920b33b51dcee0">ios_defs::skipws</a> | <a class="el" href="namespaceIOv2_1_1ios__defs.html#a7d3d8be8ada04d6802eb1f7ee17d45ea">ios_defs::dec</a></td></tr>
+<tr class="separator:aa19d611acf7a916eaf3ce95181bc064b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03130bf6f48f98da4858c65e9bacf0a5" id="r_a03130bf6f48f98da4858c65e9bacf0a5"><td class="memItemLeft" align="right" valign="top">std::streamsize&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a03130bf6f48f98da4858c65e9bacf0a5">m_precision</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;std::streamsize&gt;(6)</td></tr>
+<tr class="separator:a03130bf6f48f98da4858c65e9bacf0a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad57f4921f3ee09af46da5304a5210058" id="r_ad57f4921f3ee09af46da5304a5210058"><td class="memItemLeft" align="right" valign="top">std::streamsize&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ad57f4921f3ee09af46da5304a5210058">m_width</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;std::streamsize&gt;(0)</td></tr>
+<tr class="separator:ad57f4921f3ee09af46da5304a5210058"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a813f0647feaaf8491f850e01a5243f2f" id="r_a813f0647feaaf8491f850e01a5243f2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a813f0647feaaf8491f850e01a5243f2f">m_fill</a> = (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>)' '</td></tr>
+<tr class="separator:a813f0647feaaf8491f850e01a5243f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a699d0fd9502ae5772970e7f6b4803c97" id="r_a699d0fd9502ae5772970e7f6b4803c97"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a699d0fd9502ae5772970e7f6b4803c97">m_pwords</a></td></tr>
+<tr class="separator:a699d0fd9502ae5772970e7f6b4803c97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a7f2df7df55299255aee6af1fde9746" id="r_a2a7f2df7df55299255aee6af1fde9746"><td class="memItemLeft" align="right" valign="top">std::forward_list&lt; std::pair&lt; <a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2a7f2df7df55299255aee6af1fde9746">m_callbacks</a></td></tr>
+<tr class="separator:a2a7f2df7df55299255aee6af1fde9746"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a54104c455ab7f72dbaebef7b293e3ff0" name="a54104c455ab7f72dbaebef7b293e3ff0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54104c455ab7f72dbaebef7b293e3ff0">&#9670;&#160;</a></span>event_callback</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::event_callback =  std::function&lt;std::shared_ptr&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;&amp;, std::shared_ptr&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&gt;)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a12f1da1653653548185e97a1d9cfb8c2" name="a12f1da1653653548185e97a1d9cfb8c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12f1da1653653548185e97a1d9cfb8c2">&#9670;&#160;</a></span>ios_base()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::ios_base </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a2a323cb01f2656a4e4ce3217e844e967" name="a2a323cb01f2656a4e4ce3217e844e967"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a323cb01f2656a4e4ce3217e844e967">&#9670;&#160;</a></span>access_callbacks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::access_callbacks </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>new_loc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a07a854a549fe07ddd93a62830565576e" name="a07a854a549fe07ddd93a62830565576e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07a854a549fe07ddd93a62830565576e">&#9670;&#160;</a></span>fill() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::fill </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac38a4bfcc74c8458a17dedaced1f89ed" name="ac38a4bfcc74c8458a17dedaced1f89ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac38a4bfcc74c8458a17dedaced1f89ed">&#9670;&#160;</a></span>fill() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::fill </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td>
+          <td class="paramname"><em>ch</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a65a7c31c9e1f44d2ed6e4f4cdbfee69c" name="a65a7c31c9e1f44d2ed6e4f4cdbfee69c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65a7c31c9e1f44d2ed6e4f4cdbfee69c">&#9670;&#160;</a></span>flags() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::flags </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a71ec0b8b535ac6a7ccf7a0d0d12c3c6c" name="a71ec0b8b535ac6a7ccf7a0d0d12c3c6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71ec0b8b535ac6a7ccf7a0d0d12c3c6c">&#9670;&#160;</a></span>flags() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::flags </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td>
+          <td class="paramname"><em>fmtfl</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6f40137586900ea9cd15c5130a0285d5" name="a6f40137586900ea9cd15c5130a0285d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f40137586900ea9cd15c5130a0285d5">&#9670;&#160;</a></span>get_pword()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::get_pword </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>id</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aff78d2737d3ee2700c339d208bbf0ddf" name="aff78d2737d3ee2700c339d208bbf0ddf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff78d2737d3ee2700c339d208bbf0ddf">&#9670;&#160;</a></span>precision() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::streamsize <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::precision </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aeea4f223832e517d1c7f498a636acd23" name="aeea4f223832e517d1c7f498a636acd23"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeea4f223832e517d1c7f498a636acd23">&#9670;&#160;</a></span>precision() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::streamsize <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::precision </td>
+          <td>(</td>
+          <td class="paramtype">std::streamsize&#160;</td>
+          <td class="paramname"><em>prec</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8bf0205647f825bfd823b63c43fd202e" name="a8bf0205647f825bfd823b63c43fd202e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8bf0205647f825bfd823b63c43fd202e">&#9670;&#160;</a></span>register_callback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::register_callback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a>&#160;</td>
+          <td class="paramname"><em>fn</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af38882ab0584ce24ff9cc1e2a7cc465b" name="af38882ab0584ce24ff9cc1e2a7cc465b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af38882ab0584ce24ff9cc1e2a7cc465b">&#9670;&#160;</a></span>set_pword()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::set_pword </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;&#160;</td>
+          <td class="paramname"><em>pword</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa2a4c377ee7cc8710068cfd8de3147c8" name="aa2a4c377ee7cc8710068cfd8de3147c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2a4c377ee7cc8710068cfd8de3147c8">&#9670;&#160;</a></span>setf() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::setf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td>
+          <td class="paramname"><em>fmtfl</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a90c62abfea87b9e6991fe36c02a0a47d" name="a90c62abfea87b9e6991fe36c02a0a47d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a90c62abfea87b9e6991fe36c02a0a47d">&#9670;&#160;</a></span>setf() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::setf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td>
+          <td class="paramname"><em>fmtfl</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td>
+          <td class="paramname"><em>msk</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac5f7d547d8377526af80a156e9b65a2b" name="ac5f7d547d8377526af80a156e9b65a2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5f7d547d8377526af80a156e9b65a2b">&#9670;&#160;</a></span>unsetf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::unsetf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td>
+          <td class="paramname"><em>msk</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a64c323d24e9c7e379e63ee49d9b3bd64" name="a64c323d24e9c7e379e63ee49d9b3bd64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64c323d24e9c7e379e63ee49d9b3bd64">&#9670;&#160;</a></span>width() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::streamsize <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::width </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa28022eb4b9f9761385d6dff9a170cbd" name="aa28022eb4b9f9761385d6dff9a170cbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa28022eb4b9f9761385d6dff9a170cbd">&#9670;&#160;</a></span>width() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::streamsize <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::width </td>
+          <td>(</td>
+          <td class="paramtype">std::streamsize&#160;</td>
+          <td class="paramname"><em>wide</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a877c9e29409179fdc4383705094db6e1" name="a877c9e29409179fdc4383705094db6e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a877c9e29409179fdc4383705094db6e1">&#9670;&#160;</a></span>xalloc()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::xalloc </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a2a7f2df7df55299255aee6af1fde9746" name="a2a7f2df7df55299255aee6af1fde9746"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a7f2df7df55299255aee6af1fde9746">&#9670;&#160;</a></span>m_callbacks</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::forward_list&lt;std::pair&lt;<a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&gt; &gt; <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::m_callbacks</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a813f0647feaaf8491f850e01a5243f2f" name="a813f0647feaaf8491f850e01a5243f2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a813f0647feaaf8491f850e01a5243f2f">&#9670;&#160;</a></span>m_fill</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::m_fill = (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>)' '</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa19d611acf7a916eaf3ce95181bc064b" name="aa19d611acf7a916eaf3ce95181bc064b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa19d611acf7a916eaf3ce95181bc064b">&#9670;&#160;</a></span>m_flags</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::m_flags = <a class="el" href="namespaceIOv2_1_1ios__defs.html#a665eedb3f7f272fa1c920b33b51dcee0">ios_defs::skipws</a> | <a class="el" href="namespaceIOv2_1_1ios__defs.html#a7d3d8be8ada04d6802eb1f7ee17d45ea">ios_defs::dec</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a03130bf6f48f98da4858c65e9bacf0a5" name="a03130bf6f48f98da4858c65e9bacf0a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03130bf6f48f98da4858c65e9bacf0a5">&#9670;&#160;</a></span>m_precision</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::streamsize <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::m_precision = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;std::streamsize&gt;(6)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a699d0fd9502ae5772970e7f6b4803c97" name="a699d0fd9502ae5772970e7f6b4803c97"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a699d0fd9502ae5772970e7f6b4803c97">&#9670;&#160;</a></span>m_pwords</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>, std::shared_ptr&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&gt; &gt; <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::m_pwords</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad57f4921f3ee09af46da5304a5210058" name="ad57f4921f3ee09af46da5304a5210058"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad57f4921f3ee09af46da5304a5210058">&#9670;&#160;</a></span>m_width</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::streamsize <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::m_width = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;std::streamsize&gt;(0)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/io/<a class="el" href="io__base_8h_source.html">io_base.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>
