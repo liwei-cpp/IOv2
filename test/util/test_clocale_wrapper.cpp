@@ -53,7 +53,8 @@ void test_clocale_wrapper_self_assignment()
     clocale_wrapper loc1("C");
     
     // Self copy assignment
-    loc1 = loc1;
+    // Use pointer to bypass -Wself-assign-overloaded
+    [&loc1](clocale_wrapper* p) { loc1 = *p; }(&loc1);
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
