@@ -3,6 +3,7 @@
 #include <common/streambuf_defs.h>
 
 #include <concepts>
+#include <cstddef>
 #include <forward_list>
 #include <iterator>
 #include <limits>
@@ -109,7 +110,7 @@ public:
             else
                 out = &(*m_root.val);
         }
-            
+
         size_t found_depth = 0;
         
         const node* node_ptr = &m_root;

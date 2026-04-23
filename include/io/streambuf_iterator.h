@@ -28,9 +28,14 @@ public:
 public:
     value_type operator*() const
     {
-        auto res = get();
-        if (!res.has_value()) throw eof_error{};
-        return res.value();
+        if (!get().has_value()) throw eof_error{};
+        return m_c.value();
+    }
+
+    const value_type* operator->() const
+    {
+        if (!get().has_value()) throw eof_error{};
+        return m_c.operator->();
     }
 
     istreambuf_iterator& operator++()
@@ -72,18 +77,17 @@ public:
 private:
     std::optional<value_type> get() const
     {
-        auto ret = m_c;
-        if (m_streambuf && (!ret.has_value()))
+        if (m_streambuf && (!m_c.has_value()))
         {
-            ret = m_streambuf->sgetc();
-            if (!ret.has_value()) m_streambuf = nullptr;
+            m_c = m_streambuf->sgetc();
+            if (!m_c.has_value()) m_streambuf = nullptr;
         }
-        return ret;
+        return m_c;
     }
 
 private:
     mutable TStreamBuf* m_streambuf;
-    std::optional<value_type> m_c;
+    mutable std::optional<value_type> m_c;
 };
 
 template <typename TStreamBuf>
