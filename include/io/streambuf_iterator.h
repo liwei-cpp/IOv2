@@ -15,6 +15,13 @@ public:
     using value_type = typename TStreamBuf::char_type;
     using difference_type = std::ptrdiff_t;
 
+    struct proxy
+    {
+        value_type m_value;
+        const value_type* operator->() const { return &m_value; }
+        value_type operator*() const { return m_value; }
+    };
+
 public:
     constexpr istreambuf_iterator()
         : m_streambuf(nullptr) {}
@@ -28,14 +35,14 @@ public:
 public:
     value_type operator*() const
     {
-        if (!get().has_value()) throw eof_error{};
-        return m_c.value();
+        auto res = get();
+        if (!res.has_value()) throw eof_error{};
+        return res.value();
     }
 
-    const value_type* operator->() const
+    proxy operator->() const
     {
-        if (!get().has_value()) throw eof_error{};
-        return m_c.operator->();
+        return proxy{ operator*() };
     }
 
     istreambuf_iterator& operator++()
@@ -49,7 +56,8 @@ public:
     istreambuf_iterator operator++(int)
     {
         istreambuf_iterator old = *this;
-        old.m_c = m_streambuf->sbumpc();
+        if (m_streambuf)
+            old.m_c = m_streambuf->sbumpc();
         m_c = std::optional<value_type>{};
         return old;
     }
@@ -77,17 +85,18 @@ public:
 private:
     std::optional<value_type> get() const
     {
-        if (m_streambuf && (!m_c.has_value()))
+        auto ret = m_c;
+        if (m_streambuf && (!ret.has_value()))
         {
-            m_c = m_streambuf->sgetc();
-            if (!m_c.has_value()) m_streambuf = nullptr;
+            ret = m_streambuf->sgetc();
+            if (!ret.has_value()) m_streambuf = nullptr;
         }
-        return m_c;
+        return ret;
     }
 
 private:
     mutable TStreamBuf* m_streambuf;
-    mutable std::optional<value_type> m_c;
+    std::optional<value_type> m_c;
 };
 
 template <typename TStreamBuf>
