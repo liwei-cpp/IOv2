@@ -11,7 +11,7 @@
 #pragma once
 #include <common/defs.h>
 
-#include <locale.h>
+#include <clocale>
 #include <stdexcept>
 #include <string>
 
@@ -40,7 +40,7 @@ struct clocale_wrapper
     template <typename CharT> friend class ctype_conf;
 
     clocale_wrapper(const char* name)
-        : c_locale(name ? newlocale(LC_ALL_MASK, name, 0) : nullptr)
+        : c_locale(name ? newlocale(LC_ALL_MASK, name, nullptr) : nullptr)
     {
         if (!name)
             throw cvt_error("clocale_wrapper: name cannot be null");
@@ -157,7 +157,6 @@ struct clocale_user
      * @endif
      */
     explicit clocale_user(const clocale_wrapper& wrapper)
-        : old(nullptr)
     {
         if (!wrapper.c_locale)
             throw cvt_error("clocale_user: wrapper is in moved-from state");
@@ -186,6 +185,6 @@ struct clocale_user
         uselocale(old);
     }
 private:
-    locale_t old;
+    locale_t old = nullptr;
 };
 }

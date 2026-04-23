@@ -108,6 +108,8 @@ struct stamp_input_iterator<TIter>
         return *this;
     }
 
+    ~stamp_input_iterator() = default;
+
     using value_type        = typename std::iterator_traits<TIter>::value_type;
     using difference_type   = typename std::iterator_traits<TIter>::difference_type;
     using pointer           = typename std::iterator_traits<TIter>::pointer;
@@ -264,6 +266,12 @@ struct stamp_input_iterator<TIter>
 
     stamp_input_iterator(std::default_sentinel_t)
         : m_internal() {}
+
+    stamp_input_iterator(const stamp_input_iterator&) = default;
+    stamp_input_iterator& operator=(const stamp_input_iterator&) = default;
+    stamp_input_iterator(stamp_input_iterator&&) noexcept = default;
+    stamp_input_iterator& operator=(stamp_input_iterator&&) noexcept = default;
+    ~stamp_input_iterator() = default;
 
     using value_type        = typename TIter::value_type;
     using difference_type   = typename TIter::difference_type;
