@@ -292,11 +292,11 @@ void test_monetary_char_put_5()
     IOv2::ios_base<char> ios;
     ios.fill('*');
 
-    long double val = 1.0e50L;
+    int64_t val = 100000000LL;
 
     std::ostringstream fmt;
     std::ostreambuf_iterator<char> out(fmt);
-    obj.put(out, false, ios, (int64_t)val);
+    obj.put(out, false, ios, val);
     if (!fmt.good()) throw std::runtime_error("IOv2::monetary<char>::put fails");
   
     dump_info("Done\n");

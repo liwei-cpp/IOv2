@@ -291,11 +291,11 @@ void test_monetary_wchar_t_put_5()
     IOv2::ios_base<wchar_t> ios;
     ios.fill(L'*');
 
-    long double val = 1.0e50L;
+    int64_t val = 100000000LL;
 
     std::wostringstream fmt;
     std::ostreambuf_iterator<wchar_t> out(fmt);
-    obj.put(out, false, ios, (int64_t)val);
+    obj.put(out, false, ios, val);
     if (!fmt.good()) throw std::runtime_error("IOv2::monetary<wchar_t>::put fails");
   
     dump_info("Done\n");
