@@ -4,13 +4,13 @@
 namespace IOv2
 {
 template <io_device TDevice, typename TChar>
-class streambuf;
+struct streambuf;
 
 template <io_device TDevice, typename TChar>
-class istreambuf;
+struct istreambuf;
 
 template <io_device TDevice, typename TChar>
-class ostreambuf;
+struct ostreambuf;
 
 template <typename T>
 struct is_streambuf_impl
