@@ -7,8 +7,12 @@ INPUT                  = include
 RECURSIVE              = YES
 GENERATE_LATEX         = NO
 
-ALIASES               += "common/defs.h=\if"
-ALIASES               += "common/verify.h=\if"
+# 提取静态成员和所有变量
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+
+# 将 @lang{EN} 映射为 \if EN
+ALIASES               += "lang{1}=\if \1"
 
 # 开启 EN 部分
 ENABLED_SECTIONS       = EN
