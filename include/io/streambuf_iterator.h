@@ -15,6 +15,13 @@ public:
     using value_type = typename TStreamBuf::char_type;
     using difference_type = std::ptrdiff_t;
 
+    struct proxy
+    {
+        value_type m_value;
+        const value_type* operator->() const { return &m_value; }
+        value_type operator*() const { return m_value; }
+    };
+
 public:
     constexpr istreambuf_iterator()
         : m_streambuf(nullptr) {}
@@ -33,6 +40,11 @@ public:
         return res.value();
     }
 
+    proxy operator->() const
+    {
+        return proxy{ operator*() };
+    }
+
     istreambuf_iterator& operator++()
     {
         if (m_streambuf)
@@ -44,7 +56,8 @@ public:
     istreambuf_iterator operator++(int)
     {
         istreambuf_iterator old = *this;
-        old.m_c = m_streambuf->sbumpc();
+        if (m_streambuf)
+            old.m_c = m_streambuf->sbumpc();
         m_c = std::optional<value_type>{};
         return old;
     }
