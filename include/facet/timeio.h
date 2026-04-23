@@ -1128,7 +1128,7 @@ private:
                     }
                     else
                     {
-                        StampInputIterator rp_wrapper(rp);
+                        stamp_input_iterator rp_wrapper(rp);
                         decltype(rp_wrapper) rp_end_wrapper(rp_end);
                         
                         auto format_it = m_era_formats.begin();
