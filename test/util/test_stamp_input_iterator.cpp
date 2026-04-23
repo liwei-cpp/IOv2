@@ -5,6 +5,9 @@
 #include <io/streambuf_iterator.h>
 #include <device/mem_device.h>
 #include <io/streambuf.h>
+#include <common/dump_info.h>
+
+using namespace IOv2;
 
 struct TestPoint {
     int x;
@@ -38,6 +41,10 @@ void test_stamp_input_iterator() {
         
         char c = *s_it;
         VERIFY(c == 'a');
+        
+        // Testing operator-> if possible (istreambuf_iterator usually points to char)
+        // Here we just ensure it compiles and behaves correctly
+        VERIFY(*(s_it.operator->()) == 'a');
     }
     dump_info("Done\n");
 

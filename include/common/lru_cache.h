@@ -1,6 +1,7 @@
 #pragma once
 #include <common/metafunctions.h>
 
+#include <cstddef>
 #include <list>
 #include <optional>
 #include <type_traits>
@@ -76,13 +77,23 @@ public:
             return false;
         }
 
-        if (m_cache_list.size() >= Capacity)
+        m_cache_list.emplace_front(key, value);
+        try
+        {
+            m_cache_map.insert({m_cache_list.front().first, m_cache_list.begin()});
+        }
+        catch (...)
+        {
+            m_cache_list.pop_front();
+            throw;
+        }
+
+        if (m_cache_list.size() > Capacity)
         {
             m_cache_map.erase(m_cache_list.back().first);
             m_cache_list.pop_back();
         }
-        m_cache_list.emplace_front(key, value);
-        m_cache_map.insert({m_cache_list.front().first, m_cache_list.begin()});
+
         return true;
     }
 
@@ -98,13 +109,22 @@ public:
             return;
         }
 
-        if (m_cache_list.size() >= Capacity)
+        m_cache_list.emplace_front(key, value);
+        try
+        {
+            m_cache_map.insert({m_cache_list.front().first, m_cache_list.begin()});
+        }
+        catch (...)
+        {
+            m_cache_list.pop_front();
+            throw;
+        }
+
+        if (m_cache_list.size() > Capacity)
         {
             m_cache_map.erase(m_cache_list.back().first);
             m_cache_list.pop_back();
         }
-        m_cache_list.emplace_front(key, value);
-        m_cache_map.insert({m_cache_list.front().first, m_cache_list.begin()});
     }
 private:
     std::list<std::pair<TK, TV>> m_cache_list;
