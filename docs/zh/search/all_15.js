@@ -1,4 +1,24 @@
 var searchData=
 [
-  ['_7eclocale_5fuser_0',['~clocale_user',['../structIOv2_1_1clocale__user.html#a73a7707b4282873fc8ea1dcc3d4cf0b0',1,'IOv2::clocale_user']]]
+  ['wcerr_0',['wcerr',['../namespaceIOv2.html#abe4d0cd9111233940065a427bac23413',1,'IOv2']]],
+  ['wcin_1',['wcin',['../namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858',1,'IOv2']]],
+  ['wclog_2',['wclog',['../namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff',1,'IOv2']]],
+  ['wcout_3',['wcout',['../namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce',1,'IOv2']]],
+  ['widen_4',['widen',['../classIOv2_1_1ctype__conf_3_01char8__t_01_4.html#acea585daab3e6b3a7596c824d5a9c30a',1,'IOv2::ctype_conf&lt; char8_t &gt;::widen()'],['../classIOv2_1_1ctype__conf_3_01CharT_01_4.html#ab6adf57a4ebb038d83debcf05bf7a32d',1,'IOv2::ctype_conf&lt; CharT &gt;::widen()'],['../classIOv2_1_1ctype__conf_3_01char_01_4.html#a0e3f0c5cb2ab10bff200b5c4eddc61d7',1,'IOv2::ctype_conf&lt; char &gt;::widen()'],['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92',1,'IOv2::ctype&lt; CharT &gt;::widen(char c) const'],['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92',1,'IOv2::ctype&lt; CharT &gt;::widen(char c) const']]],
+  ['widen_5fseq_5',['widen_seq',['../classIOv2_1_1ctype_3_01CharT_01_4.html#ada1f629bf9b8bcf0f3385d22334fb85f',1,'IOv2::ctype&lt; CharT &gt;::widen_seq(InIt beg, InIt end, OutIt dst) const'],['../classIOv2_1_1ctype_3_01CharT_01_4.html#ada1f629bf9b8bcf0f3385d22334fb85f',1,'IOv2::ctype&lt; CharT &gt;::widen_seq(InIt beg, InIt end, OutIt dst) const']]],
+  ['width_6',['width',['../classIOv2_1_1ios__base.html#aa28022eb4b9f9761385d6dff9a170cbd',1,'IOv2::ios_base::width(std::streamsize wide)'],['../classIOv2_1_1ios__base.html#a64c323d24e9c7e379e63ee49d9b3bd64',1,'IOv2::ios_base::width() const']]],
+  ['write_7',['write',['../structIOv2_1_1ostream__operators.html#ac11f39d3e1390302ce83a86b96746f88',1,'IOv2::ostream_operators']]],
+  ['writer_8',['writer',['../classIOv2_1_1cvt__io.html#ac32f20c3605493346d63b7f403416aed',1,'IOv2::cvt_io::writer()'],['../classIOv2_1_1abs__cvt.html#a456eb81dbeed67d4f78685a48b18c962',1,'IOv2::abs_cvt::writer()'],['../classIOv2_1_1cvt__io_3_01KernelType_01_4.html#ac32f20c3605493346d63b7f403416aed',1,'IOv2::cvt_io&lt; KernelType &gt;::writer()'],['../structIOv2_1_1writer.html',1,'IOv2::writer&lt; TChar, T &gt;']]],
+  ['writer_3c_20char_2c_20char_20_3e_9',['writer&lt; char, char &gt;',['../structIOv2_1_1writer_3_01char_00_01char_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20_5fput_5fmoney_3c_20tmoney_20_3e_20_3e_10',['writer&lt; TChar, _Put_money&lt; TMoney &gt; &gt;',['../structIOv2_1_1writer_3_01TChar_00_01__Put__money_3_01TMoney_01_4_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20_5fput_5ftime_3c_20tchar_20_3e_20_3e_11',['writer&lt; TChar, _Put_time&lt; TChar &gt; &gt;',['../structIOv2_1_1writer_3_01TChar_00_01__Put__time_3_01TChar_01_4_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20char_20_3e_12',['writer&lt; TChar, char &gt;',['../structIOv2_1_1writer_3_01TChar_00_01char_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20const_20tchar_20_2a_20_3e_13',['writer&lt; TChar, const TChar * &gt;',['../structIOv2_1_1writer_3_01TChar_00_01const_01TChar_01_5_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20std_3a_3abasic_5fstring_3c_20tchar_2c_20ttraits_2c_20talloc_20_3e_20_3e_14',['writer&lt; TChar, std::basic_string&lt; TChar, TTraits, TAlloc &gt; &gt;',['../structIOv2_1_1writer_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20std_3a_3anullptr_5ft_20_3e_15',['writer&lt; TChar, std::nullptr_t &gt;',['../structIOv2_1_1writer_3_01TChar_00_01std_1_1nullptr__t_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20std_3a_3atm_20_3e_16',['writer&lt; TChar, std::tm &gt;',['../structIOv2_1_1writer_3_01TChar_00_01std_1_1tm_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20tchar_20_2a_20_3e_17',['writer&lt; TChar, TChar * &gt;',['../structIOv2_1_1writer_3_01TChar_00_01TChar_01_5_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20tchar_20_3e_18',['writer&lt; TChar, TChar &gt;',['../structIOv2_1_1writer_3_01TChar_00_01TChar_01_4.html',1,'IOv2']]],
+  ['writer_3c_20tchar_2c_20tvalue_20_3e_19',['writer&lt; TChar, TValue &gt;',['../structIOv2_1_1writer_3_01TChar_00_01TValue_01_4.html',1,'IOv2']]],
+  ['ws_20',['ws',['../namespaceIOv2.html#a55e7fa96eab2f6f5fc59cc138c3c1584',1,'IOv2']]]
 ];

@@ -1,0 +1,21 @@
+<map id="include/common/stamp_input_iterator.h" name="include/common/stamp_input_iterator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="335,5,509,45"/>
+<area shape="rect" id="Node000002" href="$streambuf__defs_8h.html" title=" " alt="" coords="42,93,239,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="355,48,195,92,194,87,354,43"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="263,93,349,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="395,48,336,88,333,83,392,43"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="373,93,471,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="425,46,425,79,419,79,419,46"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="496,93,567,119"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="450,43,506,83,503,87,447,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="591,93,677,119"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="474,43,591,86,589,91,472,48"/>
+<area shape="rect" id="Node000003" href="$device__concepts_8h.html" title=" " alt="" coords="46,167,235,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="143,119,143,153,138,153,138,119"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,240,76,265"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="126,194,70,234,67,230,123,190"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="101,240,181,265"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="143,192,143,226,138,226,138,192"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="205,240,265,265"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="157,190,210,229,207,234,154,194"/>
+</map>

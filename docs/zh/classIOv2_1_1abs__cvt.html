@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>IOv2</b></li><li class="navelem"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -82,6 +82,8 @@ $(function() {
   <div class="headertitle"><div class="title">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt; 模板类 参考</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="abs__cvt_8h_source.html">abs_cvt.h</a>&gt;</code></p>
 <div class="dynheader">
 类 IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt; 继承关系图:</div>
 <div class="dyncontent">
@@ -113,103 +115,882 @@ IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public 类型</h2></td></tr>
-<tr class="memitem:aaeb3fa47b8892cdb7aaad64054f7d887" id="r_aaeb3fa47b8892cdb7aaad64054f7d887"><td class="memItemLeft" align="right" valign="top"><a id="aaeb3fa47b8892cdb7aaad64054f7d887" name="aaeb3fa47b8892cdb7aaad64054f7d887"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>device_type</b> = typename KernelType::device_type</td></tr>
+<tr class="memitem:aaeb3fa47b8892cdb7aaad64054f7d887" id="r_aaeb3fa47b8892cdb7aaad64054f7d887"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type</td></tr>
 <tr class="separator:aaeb3fa47b8892cdb7aaad64054f7d887"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a876c94ea1a93e4625498012d0437b9e0" id="r_a876c94ea1a93e4625498012d0437b9e0"><td class="memItemLeft" align="right" valign="top"><a id="a876c94ea1a93e4625498012d0437b9e0" name="a876c94ea1a93e4625498012d0437b9e0"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>external_type</b> = typename KernelType::internal_type</td></tr>
+<tr class="memitem:a876c94ea1a93e4625498012d0437b9e0" id="r_a876c94ea1a93e4625498012d0437b9e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a876c94ea1a93e4625498012d0437b9e0">external_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type</td></tr>
 <tr class="separator:a876c94ea1a93e4625498012d0437b9e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bfdb62e754eecc88f4a991d65a92c36" id="r_a5bfdb62e754eecc88f4a991d65a92c36"><td class="memItemLeft" align="right" valign="top"><a id="a5bfdb62e754eecc88f4a991d65a92c36" name="a5bfdb62e754eecc88f4a991d65a92c36"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>internal_type</b> = InternalType</td></tr>
+<tr class="memitem:a5bfdb62e754eecc88f4a991d65a92c36" id="r_a5bfdb62e754eecc88f4a991d65a92c36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a></td></tr>
 <tr class="separator:a5bfdb62e754eecc88f4a991d65a92c36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
-<tr class="memitem:a6da880ecdf5d7f0010274bd4edeecbc6" id="r_a6da880ecdf5d7f0010274bd4edeecbc6"><td class="memItemLeft" align="right" valign="top"><a id="a6da880ecdf5d7f0010274bd4edeecbc6" name="a6da880ecdf5d7f0010274bd4edeecbc6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>abs_cvt</b> (KernelType kernel)</td></tr>
+<tr class="memitem:a6da880ecdf5d7f0010274bd4edeecbc6" id="r_a6da880ecdf5d7f0010274bd4edeecbc6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a6da880ecdf5d7f0010274bd4edeecbc6">abs_cvt</a> (KernelType <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>)</td></tr>
 <tr class="separator:a6da880ecdf5d7f0010274bd4edeecbc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a646b1fff93da050946d934d1168b63f8" id="r_a646b1fff93da050946d934d1168b63f8"><td class="memItemLeft" align="right" valign="top"><a id="a646b1fff93da050946d934d1168b63f8" name="a646b1fff93da050946d934d1168b63f8"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>abs_cvt</b> (const <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;)=default</td></tr>
+<tr class="memitem:a646b1fff93da050946d934d1168b63f8" id="r_a646b1fff93da050946d934d1168b63f8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a646b1fff93da050946d934d1168b63f8">abs_cvt</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a646b1fff93da050946d934d1168b63f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d12672faf20a3d37484bc564d3db938" id="r_a0d12672faf20a3d37484bc564d3db938"><td class="memItemLeft" align="right" valign="top"><a id="a0d12672faf20a3d37484bc564d3db938" name="a0d12672faf20a3d37484bc564d3db938"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>abs_cvt</b> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;val)</td></tr>
+<tr class="memitem:a0d12672faf20a3d37484bc564d3db938" id="r_a0d12672faf20a3d37484bc564d3db938"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a0d12672faf20a3d37484bc564d3db938">abs_cvt</a> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;val)</td></tr>
 <tr class="separator:a0d12672faf20a3d37484bc564d3db938"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa627905e6a1c5c63abe246a409bbcd28" id="r_aa627905e6a1c5c63abe246a409bbcd28"><td class="memItemLeft" align="right" valign="top"><a id="aa627905e6a1c5c63abe246a409bbcd28" name="aa627905e6a1c5c63abe246a409bbcd28"></a>
-<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;)=default</td></tr>
+<tr class="memitem:aa627905e6a1c5c63abe246a409bbcd28" id="r_aa627905e6a1c5c63abe246a409bbcd28"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aa627905e6a1c5c63abe246a409bbcd28">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:aa627905e6a1c5c63abe246a409bbcd28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7db5af1b0d6970697b8f90206227f4b7" id="r_a7db5af1b0d6970697b8f90206227f4b7"><td class="memItemLeft" align="right" valign="top"><a id="a7db5af1b0d6970697b8f90206227f4b7" name="a7db5af1b0d6970697b8f90206227f4b7"></a>
-<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;val)</td></tr>
+<tr class="memitem:a7db5af1b0d6970697b8f90206227f4b7" id="r_a7db5af1b0d6970697b8f90206227f4b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a7db5af1b0d6970697b8f90206227f4b7">operator=</a> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;val)</td></tr>
 <tr class="separator:a7db5af1b0d6970697b8f90206227f4b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78ef7454570aecefda37e8d5aa3f21e4" id="r_a78ef7454570aecefda37e8d5aa3f21e4"><td class="memItemLeft" align="right" valign="top"><a id="a78ef7454570aecefda37e8d5aa3f21e4" name="a78ef7454570aecefda37e8d5aa3f21e4"></a>
-const device_type &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>device</b> () const &amp;</td></tr>
+<tr class="memitem:a81950a7d9ee450832b84a845ba074c30" id="r_a81950a7d9ee450832b84a845ba074c30"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a81950a7d9ee450832b84a845ba074c30">~abs_cvt</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:a81950a7d9ee450832b84a845ba074c30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78ef7454570aecefda37e8d5aa3f21e4" id="r_a78ef7454570aecefda37e8d5aa3f21e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a78ef7454570aecefda37e8d5aa3f21e4">device</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> &amp;</td></tr>
 <tr class="separator:a78ef7454570aecefda37e8d5aa3f21e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae126ff7b6fcf651364c0e17d86cc074e" id="r_ae126ff7b6fcf651364c0e17d86cc074e"><td class="memItemLeft" align="right" valign="top"><a id="ae126ff7b6fcf651364c0e17d86cc074e" name="ae126ff7b6fcf651364c0e17d86cc074e"></a>
-device_type&#160;</td><td class="memItemRight" valign="bottom"><b>detach</b> ()</td></tr>
+<tr class="memitem:ae126ff7b6fcf651364c0e17d86cc074e" id="r_ae126ff7b6fcf651364c0e17d86cc074e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach</a> ()</td></tr>
 <tr class="separator:ae126ff7b6fcf651364c0e17d86cc074e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af246d3009e41c82b6312dff125d00120" id="r_af246d3009e41c82b6312dff125d00120"><td class="memItemLeft" align="right" valign="top"><a id="af246d3009e41c82b6312dff125d00120" name="af246d3009e41c82b6312dff125d00120"></a>
-device_type&#160;</td><td class="memItemRight" valign="bottom"><b>attach</b> (device_type &amp;&amp;dev=device_type{})</td></tr>
+<tr class="memitem:af246d3009e41c82b6312dff125d00120" id="r_af246d3009e41c82b6312dff125d00120"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a>{})</td></tr>
 <tr class="separator:af246d3009e41c82b6312dff125d00120"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec781512826b0c26f361aac77fe7d38a" id="r_aec781512826b0c26f361aac77fe7d38a"><td class="memItemLeft" align="right" valign="top"><a id="aec781512826b0c26f361aac77fe7d38a" name="aec781512826b0c26f361aac77fe7d38a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>adjust</b> (const <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;b)</td></tr>
+<tr class="memitem:aec781512826b0c26f361aac77fe7d38a" id="r_aec781512826b0c26f361aac77fe7d38a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>)</td></tr>
 <tr class="separator:aec781512826b0c26f361aac77fe7d38a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a0d7d39aa029926a6f6422c5fe8271a" id="r_a9a0d7d39aa029926a6f6422c5fe8271a"><td class="memItemLeft" align="right" valign="top"><a id="a9a0d7d39aa029926a6f6422c5fe8271a" name="a9a0d7d39aa029926a6f6422c5fe8271a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>retrieve</b> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;s) const</td></tr>
+<tr class="memitem:a9a0d7d39aa029926a6f6422c5fe8271a" id="r_a9a0d7d39aa029926a6f6422c5fe8271a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:a9a0d7d39aa029926a6f6422c5fe8271a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68345b91aeefe9061d49210cd3c910ad" id="r_a68345b91aeefe9061d49210cd3c910ad"><td class="memItemLeft" align="right" valign="top"><a id="a68345b91aeefe9061d49210cd3c910ad" name="a68345b91aeefe9061d49210cd3c910ad"></a>
-io_status&#160;</td><td class="memItemRight" valign="bottom"><b>bos</b> ()</td></tr>
+<tr class="memitem:a68345b91aeefe9061d49210cd3c910ad" id="r_a68345b91aeefe9061d49210cd3c910ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos</a> ()</td></tr>
 <tr class="separator:a68345b91aeefe9061d49210cd3c910ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2dea72ff6bf90ed52632ea474040ae8d" id="r_a2dea72ff6bf90ed52632ea474040ae8d"><td class="memItemLeft" align="right" valign="top"><a id="a2dea72ff6bf90ed52632ea474040ae8d" name="a2dea72ff6bf90ed52632ea474040ae8d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>main_cont_beg</b> ()</td></tr>
+<tr class="memitem:a2dea72ff6bf90ed52632ea474040ae8d" id="r_a2dea72ff6bf90ed52632ea474040ae8d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg</a> ()</td></tr>
 <tr class="separator:a2dea72ff6bf90ed52632ea474040ae8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a508672fce41795e146b21e26f69fc8f7" id="r_a508672fce41795e146b21e26f69fc8f7"><td class="memItemLeft" align="right" valign="top"><a id="a508672fce41795e146b21e26f69fc8f7" name="a508672fce41795e146b21e26f69fc8f7"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>is_eos</b> ()</td></tr>
+<tr class="memitem:a508672fce41795e146b21e26f69fc8f7" id="r_a508672fce41795e146b21e26f69fc8f7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a508672fce41795e146b21e26f69fc8f7">is_eos</a> ()</td></tr>
 <tr class="separator:a508672fce41795e146b21e26f69fc8f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56562a6832411d3f7d7edaa2d2eacf71" id="r_a56562a6832411d3f7d7edaa2d2eacf71"><td class="memItemLeft" align="right" valign="top"><a id="a56562a6832411d3f7d7edaa2d2eacf71" name="a56562a6832411d3f7d7edaa2d2eacf71"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>get</b> (internal_type *to, size_t to_max)</td></tr>
+<tr class="memitem:a56562a6832411d3f7d7edaa2d2eacf71" id="r_a56562a6832411d3f7d7edaa2d2eacf71"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a56562a6832411d3f7d7edaa2d2eacf71">get</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</td></tr>
 <tr class="separator:a56562a6832411d3f7d7edaa2d2eacf71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae07a9252fc26d3ab8143e1d4f74ef313" id="r_ae07a9252fc26d3ab8143e1d4f74ef313"><td class="memItemLeft" align="right" valign="top"><a id="ae07a9252fc26d3ab8143e1d4f74ef313" name="ae07a9252fc26d3ab8143e1d4f74ef313"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>put</b> (const internal_type *to, size_t to_size)</td></tr>
+<tr class="memitem:ae07a9252fc26d3ab8143e1d4f74ef313" id="r_ae07a9252fc26d3ab8143e1d4f74ef313"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae07a9252fc26d3ab8143e1d4f74ef313">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_size</a>)</td></tr>
 <tr class="separator:ae07a9252fc26d3ab8143e1d4f74ef313"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2a1a8668998cccee02d2fa11e35b1808" id="r_a2a1a8668998cccee02d2fa11e35b1808"><td class="memItemLeft" align="right" valign="top"><a id="a2a1a8668998cccee02d2fa11e35b1808" name="a2a1a8668998cccee02d2fa11e35b1808"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>flush</b> ()</td></tr>
+<tr class="memitem:a2a1a8668998cccee02d2fa11e35b1808" id="r_a2a1a8668998cccee02d2fa11e35b1808"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2a1a8668998cccee02d2fa11e35b1808">flush</a> ()</td></tr>
 <tr class="separator:a2a1a8668998cccee02d2fa11e35b1808"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:add78bcbcdde0e5e1c4798df008c7be38" id="r_add78bcbcdde0e5e1c4798df008c7be38"><td class="memItemLeft" align="right" valign="top"><a id="add78bcbcdde0e5e1c4798df008c7be38" name="add78bcbcdde0e5e1c4798df008c7be38"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><b>tell</b> () const</td></tr>
+<tr class="memitem:add78bcbcdde0e5e1c4798df008c7be38" id="r_add78bcbcdde0e5e1c4798df008c7be38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#add78bcbcdde0e5e1c4798df008c7be38">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:add78bcbcdde0e5e1c4798df008c7be38"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a098f53b4c197fe8643bea1cff71f6acb" id="r_a098f53b4c197fe8643bea1cff71f6acb"><td class="memItemLeft" align="right" valign="top"><a id="a098f53b4c197fe8643bea1cff71f6acb" name="a098f53b4c197fe8643bea1cff71f6acb"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>seek</b> (size_t pos)</td></tr>
+<tr class="memitem:a098f53b4c197fe8643bea1cff71f6acb" id="r_a098f53b4c197fe8643bea1cff71f6acb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a098f53b4c197fe8643bea1cff71f6acb">seek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
 <tr class="separator:a098f53b4c197fe8643bea1cff71f6acb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e584b918c30499efaf36d94d7ab6175" id="r_a1e584b918c30499efaf36d94d7ab6175"><td class="memItemLeft" align="right" valign="top"><a id="a1e584b918c30499efaf36d94d7ab6175" name="a1e584b918c30499efaf36d94d7ab6175"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>rseek</b> (size_t pos)</td></tr>
+<tr class="memitem:a1e584b918c30499efaf36d94d7ab6175" id="r_a1e584b918c30499efaf36d94d7ab6175"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a1e584b918c30499efaf36d94d7ab6175">rseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
 <tr class="separator:a1e584b918c30499efaf36d94d7ab6175"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82a759023e86faee8bf993ee3a894451" id="r_a82a759023e86faee8bf993ee3a894451"><td class="memItemLeft" align="right" valign="top"><a id="a82a759023e86faee8bf993ee3a894451" name="a82a759023e86faee8bf993ee3a894451"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>switch_to_get</b> ()</td></tr>
+<tr class="memitem:a82a759023e86faee8bf993ee3a894451" id="r_a82a759023e86faee8bf993ee3a894451"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a82a759023e86faee8bf993ee3a894451">switch_to_get</a> ()</td></tr>
 <tr class="separator:a82a759023e86faee8bf993ee3a894451"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17ce40096d37a0ebd6720bc54f9490f9" id="r_a17ce40096d37a0ebd6720bc54f9490f9"><td class="memItemLeft" align="right" valign="top"><a id="a17ce40096d37a0ebd6720bc54f9490f9" name="a17ce40096d37a0ebd6720bc54f9490f9"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>switch_to_put</b> ()</td></tr>
+<tr class="memitem:a17ce40096d37a0ebd6720bc54f9490f9" id="r_a17ce40096d37a0ebd6720bc54f9490f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9">switch_to_put</a> ()</td></tr>
 <tr class="separator:a17ce40096d37a0ebd6720bc54f9490f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected 成员函数</h2></td></tr>
-<tr class="memitem:a5dcabd8c860ce7b1a946d1d8f9a65d85" id="r_a5dcabd8c860ce7b1a946d1d8f9a65d85"><td class="memItemLeft" align="right" valign="top"><a id="a5dcabd8c860ce7b1a946d1d8f9a65d85" name="a5dcabd8c860ce7b1a946d1d8f9a65d85"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>reader</b> (size_t buf_size)</td></tr>
+<tr class="memitem:a5dcabd8c860ce7b1a946d1d8f9a65d85" id="r_a5dcabd8c860ce7b1a946d1d8f9a65d85"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a5dcabd8c860ce7b1a946d1d8f9a65d85">reader</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">buf_size</a>)</td></tr>
 <tr class="separator:a5dcabd8c860ce7b1a946d1d8f9a65d85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a456eb81dbeed67d4f78685a48b18c962" id="r_a456eb81dbeed67d4f78685a48b18c962"><td class="memItemLeft" align="right" valign="top"><a id="a456eb81dbeed67d4f78685a48b18c962" name="a456eb81dbeed67d4f78685a48b18c962"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>writer</b> (size_t buf_size)</td></tr>
+<tr class="memitem:a456eb81dbeed67d4f78685a48b18c962" id="r_a456eb81dbeed67d4f78685a48b18c962"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a456eb81dbeed67d4f78685a48b18c962">writer</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">buf_size</a>)</td></tr>
 <tr class="separator:a456eb81dbeed67d4f78685a48b18c962"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected 属性</h2></td></tr>
-<tr class="memitem:aa5780eac0f087afee64a176c112d1f99" id="r_aa5780eac0f087afee64a176c112d1f99"><td class="memItemLeft" align="right" valign="top"><a id="aa5780eac0f087afee64a176c112d1f99" name="aa5780eac0f087afee64a176c112d1f99"></a>
-KernelType&#160;</td><td class="memItemRight" valign="bottom"><b>m_kernel</b></td></tr>
+<tr class="memitem:aa5780eac0f087afee64a176c112d1f99" id="r_aa5780eac0f087afee64a176c112d1f99"><td class="memItemLeft" align="right" valign="top">KernelType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aa5780eac0f087afee64a176c112d1f99">m_kernel</a></td></tr>
 <tr class="separator:aa5780eac0f087afee64a176c112d1f99"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a34c8361a1fc9ccdc4be0fd7c8c3fba61" id="r_a34c8361a1fc9ccdc4be0fd7c8c3fba61"><td class="memItemLeft" align="right" valign="top"><a id="a34c8361a1fc9ccdc4be0fd7c8c3fba61" name="a34c8361a1fc9ccdc4be0fd7c8c3fba61"></a>
-io_status&#160;</td><td class="memItemRight" valign="bottom"><b>m_io_status</b> = io_status::neutral</td></tr>
+<tr class="memitem:a34c8361a1fc9ccdc4be0fd7c8c3fba61" id="r_a34c8361a1fc9ccdc4be0fd7c8c3fba61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a34c8361a1fc9ccdc4be0fd7c8c3fba61">m_io_status</a> = <a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a></td></tr>
 <tr class="separator:a34c8361a1fc9ccdc4be0fd7c8c3fba61"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bd59610c93180c31c6737ef3a746a06" id="r_a7bd59610c93180c31c6737ef3a746a06"><td class="memItemLeft" align="right" valign="top"><a id="a7bd59610c93180c31c6737ef3a746a06" name="a7bd59610c93180c31c6737ef3a746a06"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>m_is_bos_done</b> = false</td></tr>
+<tr class="memitem:a7bd59610c93180c31c6737ef3a746a06" id="r_a7bd59610c93180c31c6737ef3a746a06"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a7bd59610c93180c31c6737ef3a746a06">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:a7bd59610c93180c31c6737ef3a746a06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="aaeb3fa47b8892cdb7aaad64054f7d887" name="aaeb3fa47b8892cdb7aaad64054f7d887"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaeb3fa47b8892cdb7aaad64054f7d887">&#9670;&#160;</a></span>device_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::device_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a876c94ea1a93e4625498012d0437b9e0" name="a876c94ea1a93e4625498012d0437b9e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a876c94ea1a93e4625498012d0437b9e0">&#9670;&#160;</a></span>external_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::external_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5bfdb62e754eecc88f4a991d65a92c36" name="a5bfdb62e754eecc88f4a991d65a92c36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5bfdb62e754eecc88f4a991d65a92c36">&#9670;&#160;</a></span>internal_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::internal_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a6da880ecdf5d7f0010274bd4edeecbc6" name="a6da880ecdf5d7f0010274bd4edeecbc6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6da880ecdf5d7f0010274bd4edeecbc6">&#9670;&#160;</a></span>abs_cvt() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::abs_cvt </td>
+          <td>(</td>
+          <td class="paramtype">KernelType&#160;</td>
+          <td class="paramname"><em>kernel</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a646b1fff93da050946d934d1168b63f8" name="a646b1fff93da050946d934d1168b63f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a646b1fff93da050946d934d1168b63f8">&#9670;&#160;</a></span>abs_cvt() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::abs_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0d12672faf20a3d37484bc564d3db938" name="a0d12672faf20a3d37484bc564d3db938"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d12672faf20a3d37484bc564d3db938">&#9670;&#160;</a></span>abs_cvt() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::abs_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a81950a7d9ee450832b84a845ba074c30" name="a81950a7d9ee450832b84a845ba074c30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81950a7d9ee450832b84a845ba074c30">&#9670;&#160;</a></span>~abs_cvt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::~<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="aec781512826b0c26f361aac77fe7d38a" name="aec781512826b0c26f361aac77fe7d38a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec781512826b0c26f361aac77fe7d38a">&#9670;&#160;</a></span>adjust()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::adjust </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;&#160;</td>
+          <td class="paramname"><em>b</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af246d3009e41c82b6312dff125d00120" name="af246d3009e41c82b6312dff125d00120"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af246d3009e41c82b6312dff125d00120">&#9670;&#160;</a></span>attach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::attach </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a>{}</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a68345b91aeefe9061d49210cd3c910ad" name="a68345b91aeefe9061d49210cd3c910ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68345b91aeefe9061d49210cd3c910ad">&#9670;&#160;</a></span>bos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::bos </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae126ff7b6fcf651364c0e17d86cc074e" name="ae126ff7b6fcf651364c0e17d86cc074e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae126ff7b6fcf651364c0e17d86cc074e">&#9670;&#160;</a></span>detach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::detach </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a78ef7454570aecefda37e8d5aa3f21e4" name="a78ef7454570aecefda37e8d5aa3f21e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78ef7454570aecefda37e8d5aa3f21e4">&#9670;&#160;</a></span>device()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> &amp; <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::device </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const &amp;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2a1a8668998cccee02d2fa11e35b1808" name="a2a1a8668998cccee02d2fa11e35b1808"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a1a8668998cccee02d2fa11e35b1808">&#9670;&#160;</a></span>flush()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::flush </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a56562a6832411d3f7d7edaa2d2eacf71" name="a56562a6832411d3f7d7edaa2d2eacf71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56562a6832411d3f7d7edaa2d2eacf71">&#9670;&#160;</a></span>get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> *&#160;</td>
+          <td class="paramname"><em>to</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>to_max</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a508672fce41795e146b21e26f69fc8f7" name="a508672fce41795e146b21e26f69fc8f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a508672fce41795e146b21e26f69fc8f7">&#9670;&#160;</a></span>is_eos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::is_eos </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2dea72ff6bf90ed52632ea474040ae8d" name="a2dea72ff6bf90ed52632ea474040ae8d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dea72ff6bf90ed52632ea474040ae8d">&#9670;&#160;</a></span>main_cont_beg()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::main_cont_beg </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7db5af1b0d6970697b8f90206227f4b7" name="a7db5af1b0d6970697b8f90206227f4b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7db5af1b0d6970697b8f90206227f4b7">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp; <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa627905e6a1c5c63abe246a409bbcd28" name="aa627905e6a1c5c63abe246a409bbcd28"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa627905e6a1c5c63abe246a409bbcd28">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp; <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae07a9252fc26d3ab8143e1d4f74ef313" name="ae07a9252fc26d3ab8143e1d4f74ef313"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae07a9252fc26d3ab8143e1d4f74ef313">&#9670;&#160;</a></span>put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> *&#160;</td>
+          <td class="paramname"><em>to</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>to_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5dcabd8c860ce7b1a946d1d8f9a65d85" name="a5dcabd8c860ce7b1a946d1d8f9a65d85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5dcabd8c860ce7b1a946d1d8f9a65d85">&#9670;&#160;</a></span>reader()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::reader </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>buf_size</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a0d7d39aa029926a6f6422c5fe8271a" name="a9a0d7d39aa029926a6f6422c5fe8271a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a0d7d39aa029926a6f6422c5fe8271a">&#9670;&#160;</a></span>retrieve()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::retrieve </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;&#160;</td>
+          <td class="paramname"><em>s</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1e584b918c30499efaf36d94d7ab6175" name="a1e584b918c30499efaf36d94d7ab6175"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e584b918c30499efaf36d94d7ab6175">&#9670;&#160;</a></span>rseek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::rseek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>pos</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a098f53b4c197fe8643bea1cff71f6acb" name="a098f53b4c197fe8643bea1cff71f6acb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a098f53b4c197fe8643bea1cff71f6acb">&#9670;&#160;</a></span>seek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::seek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>pos</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a82a759023e86faee8bf993ee3a894451" name="a82a759023e86faee8bf993ee3a894451"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82a759023e86faee8bf993ee3a894451">&#9670;&#160;</a></span>switch_to_get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::switch_to_get </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a17ce40096d37a0ebd6720bc54f9490f9" name="a17ce40096d37a0ebd6720bc54f9490f9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17ce40096d37a0ebd6720bc54f9490f9">&#9670;&#160;</a></span>switch_to_put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::switch_to_put </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="add78bcbcdde0e5e1c4798df008c7be38" name="add78bcbcdde0e5e1c4798df008c7be38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add78bcbcdde0e5e1c4798df008c7be38">&#9670;&#160;</a></span>tell()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::tell </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a456eb81dbeed67d4f78685a48b18c962" name="a456eb81dbeed67d4f78685a48b18c962"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a456eb81dbeed67d4f78685a48b18c962">&#9670;&#160;</a></span>writer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::writer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>buf_size</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a34c8361a1fc9ccdc4be0fd7c8c3fba61" name="a34c8361a1fc9ccdc4be0fd7c8c3fba61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a34c8361a1fc9ccdc4be0fd7c8c3fba61">&#9670;&#160;</a></span>m_io_status</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::m_io_status = <a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7bd59610c93180c31c6737ef3a746a06" name="a7bd59610c93180c31c6737ef3a746a06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bd59610c93180c31c6737ef3a746a06">&#9670;&#160;</a></span>m_is_bos_done</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::m_is_bos_done = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa5780eac0f087afee64a176c112d1f99" name="aa5780eac0f087afee64a176c112d1f99"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5780eac0f087afee64a176c112d1f99">&#9670;&#160;</a></span>m_kernel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">KernelType <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::m_kernel</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>该类的文档由以下文件生成:<ul>
 <li>include/cvt/<a class="el" href="abs__cvt_8h_source.html">abs_cvt.h</a></li>
 </ul>

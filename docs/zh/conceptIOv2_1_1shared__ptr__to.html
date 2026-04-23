@@ -69,17 +69,20 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>IOv2</b></li><li class="navelem"><a class="el" href="conceptIOv2_1_1shared__ptr__to.html">shared_ptr_to</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="conceptIOv2_1_1shared__ptr__to.html">shared_ptr_to</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
   <div class="headertitle"><div class="title">IOv2::shared_ptr_to 概念引用</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="metafunctions_8h_source.html">metafunctions.h</a>&gt;</code></p>
 <h2 class="groupheader">概念定义</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> P, <span class="keyword">typename</span> T&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1shared__ptr__to.html">IOv2::shared_ptr_to</a> =  shared_ptr_to_impl&lt;std::decay_t&lt;P&gt;, T&gt;::value</div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1shared__ptr__to.html">IOv2::shared_ptr_to</a> =  <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">shared_ptr_to_impl&lt;std::decay_t&lt;P&gt;</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;::value</div>
 <div class="ttc" id="aconceptIOv2_1_1shared__ptr__to_html"><div class="ttname"><a href="conceptIOv2_1_1shared__ptr__to.html">IOv2::shared_ptr_to</a></div><div class="ttdef"><b>Definition</b> metafunctions.h:22</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:13</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

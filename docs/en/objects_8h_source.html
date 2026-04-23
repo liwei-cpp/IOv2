@@ -81,31 +81,51 @@ $(document).ready(function() { init_codefold(0); });
   <div class="headertitle"><div class="title">objects.h</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#pragma once</span></div>
+<a href="objects_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#pragma once</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;device/std_device.h&gt;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;io/istream.h&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;io/ostream.h&gt;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;<a class="code" href="std__device_8h.html">device/std_device.h</a>&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;<a class="code" href="istream_8h.html">io/istream.h</a>&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;<a class="code" href="ostream_8h.html">io/ostream.h</a>&gt;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;io/objects/in_impl.h&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;io/objects/out_impl.h&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;<a class="code" href="in__impl_8h.html">io/objects/in_impl.h</a>&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;<a class="code" href="out__impl_8h.html">io/objects/out_impl.h</a>&gt;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>IOv2</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>{</div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">inline</span> <span class="keywordtype">void</span> sync_with_stdio(<span class="keywordtype">bool</span> sync = <span class="keyword">true</span>)</div>
+<div class="foldopen" id="foldopen00012" data-start="{" data-end="}">
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#a6bdbad1d507a9b94931e610303c16862">   12</a></span><span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="namespaceIOv2.html#a6bdbad1d507a9b94931e610303c16862">sync_with_stdio</a>(<span class="keywordtype">bool</span> <a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a> = <span class="keyword">true</span>)</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>{</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    cout.sync_with_stdio(sync);</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    cerr.sync_with_stdio(sync);</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    clog.sync_with_stdio(sync);</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    <a class="code hl_variable" href="namespaceIOv2.html#ac22a1e03befce03f5bc24daf715b17fd">cout</a>.<a class="code hl_function" href="classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    <a class="code hl_variable" href="namespaceIOv2.html#a519979506fa67d583072afb518c5af54">cerr</a>.<a class="code hl_function" href="classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <a class="code hl_variable" href="namespaceIOv2.html#a438e1d87067cc8de82e8c307773257bf">clog</a>.<a class="code hl_function" href="classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    wcout.sync_with_stdio(sync);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    wcerr.sync_with_stdio(sync);</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    wclog.sync_with_stdio(sync);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    <a class="code hl_variable" href="namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce">wcout</a>.<a class="code hl_function" href="classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <a class="code hl_variable" href="namespaceIOv2.html#abe4d0cd9111233940065a427bac23413">wcerr</a>.<a class="code hl_function" href="classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <a class="code hl_variable" href="namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff">wclog</a>.<a class="code hl_function" href="classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    cin.sync_with_stdio(sync);</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    wcin.sync_with_stdio(sync);</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <a class="code hl_variable" href="namespaceIOv2.html#ab9eae818e689df763ff9620574fdde61">cin</a>.<a class="code hl_function" href="classIOv2_1_1stdin__api.html#aa2d13f0d1709df344da50515b537b112">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <a class="code hl_variable" href="namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858">wcin</a>.<a class="code hl_function" href="classIOv2_1_1stdin__api.html#aa2d13f0d1709df344da50515b537b112">sync_with_stdio</a>(<a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>);</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>}</div>
+</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>}</div>
+<div class="ttc" id="aclassIOv2_1_1stdin__api_html_aa2d13f0d1709df344da50515b537b112"><div class="ttname"><a href="classIOv2_1_1stdin__api.html#aa2d13f0d1709df344da50515b537b112">IOv2::stdin_api::sync_with_stdio</a></div><div class="ttdeci">bool sync_with_stdio(bool sync=true)</div><div class="ttdef"><b>Definition</b> in_impl.h:42</div></div>
+<div class="ttc" id="aclassIOv2_1_1stdout__api_html_aed7cc0bd1c0fbb83ee5ef0f715362420"><div class="ttname"><a href="classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420">IOv2::stdout_api::sync_with_stdio</a></div><div class="ttdeci">bool sync_with_stdio(bool sync=true)</div><div class="ttdef"><b>Definition</b> out_impl.h:45</div></div>
+<div class="ttc" id="ain__impl_8h_html"><div class="ttname"><a href="in__impl_8h.html">in_impl.h</a></div></div>
+<div class="ttc" id="aistream_8h_html"><div class="ttname"><a href="istream_8h.html">istream.h</a></div></div>
+<div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:19</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a438e1d87067cc8de82e8c307773257bf"><div class="ttname"><a href="namespaceIOv2.html#a438e1d87067cc8de82e8c307773257bf">IOv2::clog</a></div><div class="ttdeci">static __clog &amp; clog</div><div class="ttdef"><b>Definition</b> out_impl.h:159</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a4dd1077c4e549888709cb89332ba18ff"><div class="ttname"><a href="namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff">IOv2::wclog</a></div><div class="ttdeci">static __wclog &amp; wclog</div><div class="ttdef"><b>Definition</b> out_impl.h:234</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a519979506fa67d583072afb518c5af54"><div class="ttname"><a href="namespaceIOv2.html#a519979506fa67d583072afb518c5af54">IOv2::cerr</a></div><div class="ttdeci">static __cerr &amp; cerr</div><div class="ttdef"><b>Definition</b> out_impl.h:137</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a6bdbad1d507a9b94931e610303c16862"><div class="ttname"><a href="namespaceIOv2.html#a6bdbad1d507a9b94931e610303c16862">IOv2::sync_with_stdio</a></div><div class="ttdeci">void sync_with_stdio(bool sync=true)</div><div class="ttdef"><b>Definition</b> objects.h:12</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a821cdca20e6c3e84855cecb0d3f2cbce"><div class="ttname"><a href="namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce">IOv2::wcout</a></div><div class="ttdeci">static __wcout &amp; wcout</div><div class="ttdef"><b>Definition</b> out_impl.h:183</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ab9eae818e689df763ff9620574fdde61"><div class="ttname"><a href="namespaceIOv2.html#ab9eae818e689df763ff9620574fdde61">IOv2::cin</a></div><div class="ttdeci">static __cin &amp; cin</div><div class="ttdef"><b>Definition</b> in_impl.h:117</div></div>
+<div class="ttc" id="anamespaceIOv2_html_abe4d0cd9111233940065a427bac23413"><div class="ttname"><a href="namespaceIOv2.html#abe4d0cd9111233940065a427bac23413">IOv2::wcerr</a></div><div class="ttdeci">static __wcerr &amp; wcerr</div><div class="ttdef"><b>Definition</b> out_impl.h:210</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ac22a1e03befce03f5bc24daf715b17fd"><div class="ttname"><a href="namespaceIOv2.html#ac22a1e03befce03f5bc24daf715b17fd">IOv2::cout</a></div><div class="ttdeci">static __cout &amp; cout</div><div class="ttdef"><b>Definition</b> out_impl.h:109</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ac616b0d4e435e3ec086c9298b778e858"><div class="ttname"><a href="namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858">IOv2::wcin</a></div><div class="ttdeci">static __wcin &amp; wcin</div><div class="ttdef"><b>Definition</b> in_impl.h:138</div></div>
+<div class="ttc" id="aostream_8h_html"><div class="ttname"><a href="ostream_8h.html">ostream.h</a></div></div>
+<div class="ttc" id="aout__impl_8h_html"><div class="ttname"><a href="out__impl_8h.html">out_impl.h</a></div></div>
+<div class="ttc" id="astd__device_8h_html"><div class="ttname"><a href="std__device_8h.html">std_device.h</a></div></div>
+<div class="ttc" id="astructIOv2_1_1sync_html"><div class="ttname"><a href="structIOv2_1_1sync.html">IOv2::sync</a></div><div class="ttdef"><b>Definition</b> io_base.h:487</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

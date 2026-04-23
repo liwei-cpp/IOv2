@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>IOv2</b></li><li class="navelem"><a class="el" href="structIOv2_1_1reader_3_01TChar_00_01TValue_01_4.html">reader&lt; TChar, TValue &gt;</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="structIOv2_1_1reader_3_01TChar_00_01TValue_01_4.html">reader&lt; TChar, TValue &gt;</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -79,25 +79,202 @@ $(function() {
   <div class="headertitle"><div class="title">IOv2::reader&lt; TChar, TValue &gt; 模板结构体 参考</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="arithmetic_8h_source.html">arithmetic.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 静态 Public 成员函数</h2></td></tr>
-<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443" id="r_af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplParams" colspan="2"><a id="af0ed05509c093eed2d2e84151bf0f443" name="af0ed05509c093eed2d2e84151bf0f443"></a>
-template&lt;typename TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
-requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt;)</td></tr>
-<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><b>sread</b> (TIter s, TSent s_end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, TValue &amp;value)</td></tr>
+<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443" id="r_af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
+<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1reader_3_01TChar_00_01TValue_01_4.html#af0ed05509c093eed2d2e84151bf0f443">sread</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s_end</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
 <tr class="separator:af0ed05509c093eed2d2e84151bf0f443"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443" id="r_af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplParams" colspan="2"><a id="af0ed05509c093eed2d2e84151bf0f443" name="af0ed05509c093eed2d2e84151bf0f443"></a>
-template&lt;typename TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
-requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt;)</td></tr>
-<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><b>sread</b> (TIter s, TSent s_end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, TValue &amp;value)</td></tr>
+<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443" id="r_af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
+<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1reader_3_01TChar_00_01TValue_01_4.html#af0ed05509c093eed2d2e84151bf0f443">sread</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s_end</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
 <tr class="separator:af0ed05509c093eed2d2e84151bf0f443"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443" id="r_af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplParams" colspan="2"><a id="af0ed05509c093eed2d2e84151bf0f443" name="af0ed05509c093eed2d2e84151bf0f443"></a>
-template&lt;typename TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
-requires (std::is_same_v&lt;TChar, typename TIter::value_type&gt;)</td></tr>
-<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplItemLeft" align="right" valign="top">static TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><b>sread</b> (TIter s, TSent s_end, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; TChar &gt; &amp;io, const <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; TChar &gt; &amp;loc, TValue &amp;value)</td></tr>
+<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443" id="r_af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
+<tr class="memitem:af0ed05509c093eed2d2e84151bf0f443"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1reader_3_01TChar_00_01TValue_01_4.html#af0ed05509c093eed2d2e84151bf0f443">sread</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s_end</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
 <tr class="separator:af0ed05509c093eed2d2e84151bf0f443"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="af0ed05509c093eed2d2e84151bf0f443" name="af0ed05509c093eed2d2e84151bf0f443"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0ed05509c093eed2d2e84151bf0f443">&#9670;&#160;</a></span>sread() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter <a class="el" href="structIOv2_1_1reader.html">IOv2::reader</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt;::sread </td>
+          <td>(</td>
+          <td class="paramtype">TIter&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a>&#160;</td>
+          <td class="paramname"><em>s_end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>io</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>loc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af0ed05509c093eed2d2e84151bf0f443" name="af0ed05509c093eed2d2e84151bf0f443"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0ed05509c093eed2d2e84151bf0f443">&#9670;&#160;</a></span>sread() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter <a class="el" href="structIOv2_1_1reader.html">IOv2::reader</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt;::sread </td>
+          <td>(</td>
+          <td class="paramtype">TIter&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a>&#160;</td>
+          <td class="paramname"><em>s_end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>io</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>loc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af0ed05509c093eed2d2e84151bf0f443" name="af0ed05509c093eed2d2e84151bf0f443"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0ed05509c093eed2d2e84151bf0f443">&#9670;&#160;</a></span>sread() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter <a class="el" href="structIOv2_1_1reader.html">IOv2::reader</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt;::sread </td>
+          <td>(</td>
+          <td class="paramtype">TIter&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a>&#160;</td>
+          <td class="paramname"><em>s_end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>io</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>loc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>该结构体的文档由以下文件生成:<ul>
 <li>include/io/fp_defs/<a class="el" href="arithmetic_8h_source.html">arithmetic.h</a></li>
 <li>include/io/fp_defs/<a class="el" href="nullptr_8h_source.html">nullptr.h</a></li>

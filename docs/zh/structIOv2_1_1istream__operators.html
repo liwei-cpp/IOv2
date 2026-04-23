@@ -69,7 +69,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>IOv2</b></li><li class="navelem"><a class="el" href="structIOv2_1_1istream__operators.html">istream_operators</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="structIOv2_1_1istream__operators.html">istream_operators</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -79,6 +79,8 @@ $(function() {
   <div class="headertitle"><div class="title">IOv2::istream_operators&lt; T, TChar &gt; 模板结构体 参考</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p><code>#include &lt;<a class="el" href="istream__operators_8h_source.html">istream_operators.h</a>&gt;</code></p>
 <div class="dynheader">
 类 IOv2::istream_operators&lt; T, TChar &gt; 继承关系图:</div>
 <div class="dyncontent">
@@ -100,44 +102,390 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
-<tr class="memitem:ab0de131b8fc409f2df171e2886f52f69" id="r_ab0de131b8fc409f2df171e2886f52f69"><td class="memItemLeft" align="right" valign="top"><a id="ab0de131b8fc409f2df171e2886f52f69" name="ab0de131b8fc409f2df171e2886f52f69"></a>
-std::optional&lt; TChar &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>get</b> ()</td></tr>
+<tr class="memitem:ab0de131b8fc409f2df171e2886f52f69" id="r_ab0de131b8fc409f2df171e2886f52f69"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#ab0de131b8fc409f2df171e2886f52f69">get</a> ()</td></tr>
 <tr class="separator:ab0de131b8fc409f2df171e2886f52f69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1939af6e4b3b1aa7346acb845790d78" id="r_ad1939af6e4b3b1aa7346acb845790d78"><td class="memItemLeft" align="right" valign="top"><a id="ad1939af6e4b3b1aa7346acb845790d78" name="ad1939af6e4b3b1aa7346acb845790d78"></a>
-T &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>get</b> (TChar &amp;c)</td></tr>
+<tr class="memitem:ad1939af6e4b3b1aa7346acb845790d78" id="r_ad1939af6e4b3b1aa7346acb845790d78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#ad1939af6e4b3b1aa7346acb845790d78">get</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
 <tr class="separator:ad1939af6e4b3b1aa7346acb845790d78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a41d5a3e13e5a3b6a9aa4218502378beb" id="r_a41d5a3e13e5a3b6a9aa4218502378beb"><td class="memTemplParams" colspan="2"><a id="a41d5a3e13e5a3b6a9aa4218502378beb" name="a41d5a3e13e5a3b6a9aa4218502378beb"></a>
-template&lt;typename DelimPolicy , typename CStrPolicy , typename TOut &gt; <br />
-requires ((std::is_same_v&lt;DelimPolicy, cons_sep&gt; || std::is_same_v&lt;DelimPolicy, keep_sep&gt;) &amp;&amp; (std::is_same_v&lt;CStrPolicy, app_zt&gt; || std::is_same_v&lt;CStrPolicy, no_zt&gt;))</td></tr>
-<tr class="memitem:a41d5a3e13e5a3b6a9aa4218502378beb"><td class="memTemplItemLeft" align="right" valign="top">TOut&#160;</td><td class="memTemplItemRight" valign="bottom"><b>get</b> (TOut s, size_t n, TChar delim)</td></tr>
+<tr class="memitem:a41d5a3e13e5a3b6a9aa4218502378beb" id="r_a41d5a3e13e5a3b6a9aa4218502378beb"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> &gt; <br />
+requires ((std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cons_sep</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">keep_sep</a>&gt;) &amp;&amp; (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">app_zt</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">no_zt</a>&gt;))</td></tr>
+<tr class="memitem:a41d5a3e13e5a3b6a9aa4218502378beb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#a41d5a3e13e5a3b6a9aa4218502378beb">get</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delim</a>)</td></tr>
 <tr class="separator:a41d5a3e13e5a3b6a9aa4218502378beb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa6a0a8a247c3e348f8e74f2653982500" id="r_aa6a0a8a247c3e348f8e74f2653982500"><td class="memTemplParams" colspan="2"><a id="aa6a0a8a247c3e348f8e74f2653982500" name="aa6a0a8a247c3e348f8e74f2653982500"></a>
-template&lt;typename DelimPolicy , typename CStrPolicy , typename TOut &gt; <br />
-requires ((std::is_same_v&lt;DelimPolicy, cons_sep&gt; || std::is_same_v&lt;DelimPolicy, keep_sep&gt;) &amp;&amp; (std::is_same_v&lt;CStrPolicy, app_zt&gt; || std::is_same_v&lt;CStrPolicy, no_zt&gt;))</td></tr>
-<tr class="memitem:aa6a0a8a247c3e348f8e74f2653982500"><td class="memTemplItemLeft" align="right" valign="top">TOut&#160;</td><td class="memTemplItemRight" valign="bottom"><b>get</b> (TOut s, size_t n)</td></tr>
+<tr class="memitem:aa6a0a8a247c3e348f8e74f2653982500" id="r_aa6a0a8a247c3e348f8e74f2653982500"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> &gt; <br />
+requires ((std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cons_sep</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">keep_sep</a>&gt;) &amp;&amp; (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">app_zt</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">no_zt</a>&gt;))</td></tr>
+<tr class="memitem:aa6a0a8a247c3e348f8e74f2653982500"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#aa6a0a8a247c3e348f8e74f2653982500">get</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
 <tr class="separator:aa6a0a8a247c3e348f8e74f2653982500"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0a8ff39d0788724925bdc8c71a6ffa0" id="r_af0a8ff39d0788724925bdc8c71a6ffa0"><td class="memItemLeft" align="right" valign="top"><a id="af0a8ff39d0788724925bdc8c71a6ffa0" name="af0a8ff39d0788724925bdc8c71a6ffa0"></a>
-std::optional&lt; TChar &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>peek</b> ()</td></tr>
+<tr class="memitem:af0a8ff39d0788724925bdc8c71a6ffa0" id="r_af0a8ff39d0788724925bdc8c71a6ffa0"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#af0a8ff39d0788724925bdc8c71a6ffa0">peek</a> ()</td></tr>
 <tr class="separator:af0a8ff39d0788724925bdc8c71a6ffa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1383a0609244ca74e8c26ecea5b85cf4" id="r_a1383a0609244ca74e8c26ecea5b85cf4"><td class="memItemLeft" align="right" valign="top"><a id="a1383a0609244ca74e8c26ecea5b85cf4" name="a1383a0609244ca74e8c26ecea5b85cf4"></a>
-TChar *&#160;</td><td class="memItemRight" valign="bottom"><b>read</b> (TChar *s, size_t n)</td></tr>
+<tr class="memitem:a1383a0609244ca74e8c26ecea5b85cf4" id="r_a1383a0609244ca74e8c26ecea5b85cf4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#a1383a0609244ca74e8c26ecea5b85cf4">read</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
 <tr class="separator:a1383a0609244ca74e8c26ecea5b85cf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0" id="r_ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0"><td class="memItemLeft" align="right" valign="top"><a id="ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0" name="ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0"></a>
-T &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>ignore_ws</b> ()</td></tr>
+<tr class="memitem:ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0" id="r_ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0">ignore_ws</a> ()</td></tr>
 <tr class="separator:ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a16fffb22155f91ddbc277cebfcc37ab1" id="r_a16fffb22155f91ddbc277cebfcc37ab1"><td class="memItemLeft" align="right" valign="top"><a id="a16fffb22155f91ddbc277cebfcc37ab1" name="a16fffb22155f91ddbc277cebfcc37ab1"></a>
-T &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>ignore</b> (size_t n=1)</td></tr>
+<tr class="memitem:a16fffb22155f91ddbc277cebfcc37ab1" id="r_a16fffb22155f91ddbc277cebfcc37ab1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#a16fffb22155f91ddbc277cebfcc37ab1">ignore</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>=1)</td></tr>
 <tr class="separator:a16fffb22155f91ddbc277cebfcc37ab1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff126c4f0fa56022deb03dde9dae63c8" id="r_aff126c4f0fa56022deb03dde9dae63c8"><td class="memItemLeft" align="right" valign="top"><a id="aff126c4f0fa56022deb03dde9dae63c8" name="aff126c4f0fa56022deb03dde9dae63c8"></a>
-T &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>ignore</b> (size_t n, TChar delim)</td></tr>
+<tr class="memitem:aff126c4f0fa56022deb03dde9dae63c8" id="r_aff126c4f0fa56022deb03dde9dae63c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#aff126c4f0fa56022deb03dde9dae63c8">ignore</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delim</a>)</td></tr>
 <tr class="separator:aff126c4f0fa56022deb03dde9dae63c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a14dbb08d458e31d98415ff037b5b4c2f" id="r_a14dbb08d458e31d98415ff037b5b4c2f"><td class="memItemLeft" align="right" valign="top"><a id="a14dbb08d458e31d98415ff037b5b4c2f" name="a14dbb08d458e31d98415ff037b5b4c2f"></a>
-T &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>putback</b> (TChar c)</td></tr>
+<tr class="memitem:a14dbb08d458e31d98415ff037b5b4c2f" id="r_a14dbb08d458e31d98415ff037b5b4c2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#a14dbb08d458e31d98415ff037b5b4c2f">putback</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
 <tr class="separator:a14dbb08d458e31d98415ff037b5b4c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac5dcdf9b22eb5be5722dd6481a97c4e4" id="r_ac5dcdf9b22eb5be5722dd6481a97c4e4"><td class="memItemLeft" align="right" valign="top"><a id="ac5dcdf9b22eb5be5722dd6481a97c4e4" name="ac5dcdf9b22eb5be5722dd6481a97c4e4"></a>
-auto&#160;</td><td class="memItemRight" valign="bottom"><b>i_iter</b> ()</td></tr>
+<tr class="memitem:ac5dcdf9b22eb5be5722dd6481a97c4e4" id="r_ac5dcdf9b22eb5be5722dd6481a97c4e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#ac5dcdf9b22eb5be5722dd6481a97c4e4">i_iter</a> ()</td></tr>
 <tr class="separator:ac5dcdf9b22eb5be5722dd6481a97c4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="ab0de131b8fc409f2df171e2886f52f69" name="ab0de131b8fc409f2df171e2886f52f69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0de131b8fc409f2df171e2886f52f69">&#9670;&#160;</a></span>get() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad1939af6e4b3b1aa7346acb845790d78" name="ad1939af6e4b3b1aa7346acb845790d78"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1939af6e4b3b1aa7346acb845790d78">&#9670;&#160;</a></span>get() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &amp;&#160;</td>
+          <td class="paramname"><em>c</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa6a0a8a247c3e348f8e74f2653982500" name="aa6a0a8a247c3e348f8e74f2653982500"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6a0a8a247c3e348f8e74f2653982500">&#9670;&#160;</a></span>get() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> &gt; <br />
+requires ((std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cons_sep</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">keep_sep</a>&gt;) &amp;&amp; (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">app_zt</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">no_zt</a>&gt;))</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a>&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>n</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a41d5a3e13e5a3b6a9aa4218502378beb" name="a41d5a3e13e5a3b6a9aa4218502378beb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41d5a3e13e5a3b6a9aa4218502378beb">&#9670;&#160;</a></span>get() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> &gt; <br />
+requires ((std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cons_sep</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">DelimPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">keep_sep</a>&gt;) &amp;&amp; (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">app_zt</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CStrPolicy</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">no_zt</a>&gt;))</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a> <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TOut</a>&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td>
+          <td class="paramname"><em>delim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac5dcdf9b22eb5be5722dd6481a97c4e4" name="ac5dcdf9b22eb5be5722dd6481a97c4e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5dcdf9b22eb5be5722dd6481a97c4e4">&#9670;&#160;</a></span>i_iter()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a> <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::i_iter </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aff126c4f0fa56022deb03dde9dae63c8" name="aff126c4f0fa56022deb03dde9dae63c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff126c4f0fa56022deb03dde9dae63c8">&#9670;&#160;</a></span>ignore() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::ignore </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td>
+          <td class="paramname"><em>delim</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a16fffb22155f91ddbc277cebfcc37ab1" name="a16fffb22155f91ddbc277cebfcc37ab1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16fffb22155f91ddbc277cebfcc37ab1">&#9670;&#160;</a></span>ignore() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::ignore </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>n</em> = <code>1</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0" name="ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0">&#9670;&#160;</a></span>ignore_ws()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::ignore_ws </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af0a8ff39d0788724925bdc8c71a6ffa0" name="af0a8ff39d0788724925bdc8c71a6ffa0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af0a8ff39d0788724925bdc8c71a6ffa0">&#9670;&#160;</a></span>peek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::peek </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a14dbb08d458e31d98415ff037b5b4c2f" name="a14dbb08d458e31d98415ff037b5b4c2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14dbb08d458e31d98415ff037b5b4c2f">&#9670;&#160;</a></span>putback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::putback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td>
+          <td class="paramname"><em>c</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1383a0609244ca74e8c26ecea5b85cf4" name="a1383a0609244ca74e8c26ecea5b85cf4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1383a0609244ca74e8c26ecea5b85cf4">&#9670;&#160;</a></span>read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> * <a class="el" href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::read </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *&#160;</td>
+          <td class="paramname"><em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>n</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>该结构体的文档由以下文件生成:<ul>
 <li>include/io/utilities/<a class="el" href="istream__operators_8h_source.html">istream_operators.h</a></li>
 </ul>

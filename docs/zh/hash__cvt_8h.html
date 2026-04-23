@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: include/cvt/crypt/hash_cvt.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_8109607eec15c87e682e543a7517134d.html">cvt</a></li><li class="navelem"><a class="el" href="dir_2cf5cbb388a20b5d0f408f6bd17a0140.html">crypt</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#enum-members">枚举</a>  </div>
+  <div class="headertitle"><div class="title">hash_cvt.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;botan/hash.h&gt;</code><br />
+<code>#include &lt;botan/hex.h&gt;</code><br />
+<code>#include &lt;<a class="el" href="cvt__concepts_8h_source.html">cvt/cvt_concepts.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="abs__cvt_8h_source.html">cvt/abs_cvt.h</a>&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+hash_cvt.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="hash__cvt_8h__incl.png" border="0" usemap="#ainclude_2cvt_2crypt_2hash__cvt_8h" alt=""/></div>
+<map name="ainclude_2cvt_2crypt_2hash__cvt_8h" id="ainclude_2cvt_2crypt_2hash__cvt_8h">
+<area shape="rect" title=" " alt="" coords="204,5,369,45"/>
+<area shape="rect" title=" " alt="" coords="5,93,83,119"/>
+<area shape="poly" title=" " alt="" coords="229,48,93,92,92,86,228,43"/>
+<area shape="rect" title=" " alt="" coords="107,93,213,119"/>
+<area shape="poly" title=" " alt="" coords="257,48,191,88,189,84,255,43"/>
+<area shape="rect" title=" " alt="" coords="237,93,336,119"/>
+<area shape="poly" title=" " alt="" coords="289,46,289,79,284,79,284,46"/>
+<area shape="rect" href="cvt__concepts_8h.html" title=" " alt="" coords="247,167,390,192"/>
+<area shape="poly" title=" " alt="" coords="313,44,334,65,350,92,354,109,351,126,338,156,333,154,346,125,348,109,346,94,330,68,309,47"/>
+<area shape="rect" href="abs__cvt_8h.html" title=" " alt="" coords="429,93,537,119"/>
+<area shape="poly" title=" " alt="" coords="335,43,442,86,440,91,333,48"/>
+<area shape="rect" href="defs_8h.html" title=" " alt="" coords="12,240,135,265"/>
+<area shape="poly" title=" " alt="" coords="280,195,127,239,125,234,279,189"/>
+<area shape="rect" href="device__concepts_8h.html" title=" " alt="" coords="159,240,348,265"/>
+<area shape="poly" title=" " alt="" coords="310,194,275,232,271,228,306,191"/>
+<area shape="rect" title=" " alt="" coords="284,313,364,339"/>
+<area shape="poly" title=" " alt="" coords="332,191,349,212,363,239,365,257,361,274,346,303,341,301,356,272,359,256,357,241,344,215,328,194"/>
+<area shape="rect" title=" " alt="" coords="397,313,457,339"/>
+<area shape="poly" title=" " alt="" coords="335,190,358,212,382,238,402,269,418,299,413,302,398,272,378,242,354,215,331,194"/>
+<area shape="rect" title=" " alt="" coords="173,313,243,339"/>
+<area shape="poly" title=" " alt="" coords="96,263,175,304,173,309,94,268"/>
+<area shape="rect" title=" " alt="" coords="30,313,117,339"/>
+<area shape="poly" title=" " alt="" coords="76,266,76,300,71,300,71,266"/>
+<area shape="poly" title=" " alt="" coords="248,267,225,303,220,300,244,264"/>
+<area shape="poly" title=" " alt="" coords="267,264,305,302,301,306,263,268"/>
+<area shape="poly" title=" " alt="" coords="282,263,387,306,385,310,280,268"/>
+<area shape="poly" title=" " alt="" coords="457,121,359,164,357,159,455,116"/>
+<area shape="rect" title=" " alt="" coords="501,167,539,192"/>
+<area shape="poly" title=" " alt="" coords="491,118,510,153,505,156,486,120"/>
+<area shape="rect" title=" " alt="" coords="564,167,631,192"/>
+<area shape="poly" title=" " alt="" coords="502,116,568,157,566,162,500,121"/>
+<area shape="rect" title=" " alt="" coords="655,167,742,192"/>
+<area shape="poly" title=" " alt="" coords="518,116,652,160,650,165,517,121"/>
+<area shape="rect" title=" " alt="" coords="414,167,477,192"/>
+<area shape="poly" title=" " alt="" coords="479,120,460,156,455,153,474,118"/>
+</map>
+</div>
+</div>
+<p><a href="hash__cvt_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Crypt_1_1set__hash__fmt.html">IOv2::Crypt::set_hash_fmt</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Crypt_1_1dump__hash.html">IOv2::Crypt::dump_hash</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1hash__cvt.html">IOv2::Crypt::hash_cvt&lt; KernelType, TInt &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Crypt_1_1hash__cvt__creator.html">IOv2::Crypt::hash_cvt_creator&lt; TInt &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceIOv2_1_1Crypt" id="r_namespaceIOv2_1_1Crypt"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt.html">IOv2::Crypt</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+枚举</h2></td></tr>
+<tr class="memitem:a24635132a2a70cbc8e11b01042e5ea7a" id="r_a24635132a2a70cbc8e11b01042e5ea7a"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt.html#a24635132a2a70cbc8e11b01042e5ea7a">IOv2::Crypt::hash_algo</a> : unsigned short { <a class="el" href="namespaceIOv2_1_1Crypt.html#a24635132a2a70cbc8e11b01042e5ea7aa7f138a09169b250e9dcb378140907378">IOv2::Crypt::MD5</a>
+, <a class="el" href="namespaceIOv2_1_1Crypt.html#a24635132a2a70cbc8e11b01042e5ea7aab505df5aa812b4f320420b8a952f20e5">IOv2::Crypt::SHA256</a>
+ }</td></tr>
+<tr class="separator:a24635132a2a70cbc8e11b01042e5ea7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab610e7b924b9ef49d590172e82226a81" id="r_ab610e7b924b9ef49d590172e82226a81"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81">IOv2::Crypt::hash_fmt</a> : unsigned char { <a class="el" href="namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a9d7183f16acce70658f686ae7f1a4d20">IOv2::Crypt::binary</a>
+, <a class="el" href="namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a176269963cd8b49a66b3eb86e630adb3">IOv2::Crypt::upper_hex</a>
+, <a class="el" href="namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a57b0906500e5498742a5147495cadd91">IOv2::Crypt::lower_hex</a>
+ }</td></tr>
+<tr class="separator:ab610e7b924b9ef49d590172e82226a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+制作者&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8
+</small></address>
+</body>
+</html>
