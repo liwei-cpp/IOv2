@@ -6,6 +6,7 @@ OUTPUT_LANGUAGE        = English
 INPUT                  = include
 RECURSIVE              = YES
 GENERATE_LATEX         = NO
+GENERATE_TREEVIEW      = YES
 
 # 提取静态成员和所有变量
 EXTRACT_ALL            = YES
