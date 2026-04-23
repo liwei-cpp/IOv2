@@ -258,10 +258,19 @@ public:
                     cur_entry.from_year = buf[2] + 1900;
                     cur_entry.from_month = buf[3] + 1;
                     cur_entry.from_day = buf[4];
-                    cur_entry.to_year = (buf[5] > std::numeric_limits<int32_t>::max() - 1900) ? std::numeric_limits<int32_t>::max() : buf[5] + 1900;
-                    cur_entry.to_month = buf[6] + 1;
-                    cur_entry.to_day = buf[7];
-                    
+                    if (buf[5] > std::numeric_limits<int32_t>::max() - 1900)
+                    {
+                        cur_entry.to_year = std::numeric_limits<int32_t>::max();
+                        cur_entry.to_month = 12;
+                        cur_entry.to_day = 31;
+                    }
+                    else
+                    {
+                        cur_entry.to_year = buf[5] + 1900;
+                        cur_entry.to_month = buf[6] + 1;
+                        cur_entry.to_day = buf[7];
+                    }
+
                     if (TimeioHelper::era_small_or_equal(cur_entry.from_year, cur_entry.from_month, cur_entry.from_day,
                                                         cur_entry.to_year, cur_entry.to_month, cur_entry.to_day))
                     {
