@@ -18,7 +18,7 @@ void test_stamp_input_iterator() {
     dump_info("Test stamp_input_iterator basic...");
     {
         std::vector<TestPoint> points = {{1, 2}, {3, 4}};
-        IOv2::StampInputIterator it(points.begin());
+        IOv2::stamp_input_iterator it(points.begin());
         
         VERIFY(it->x == 1);
         VERIFY(it->y == 2);
@@ -37,7 +37,7 @@ void test_stamp_input_iterator() {
         IOv2::mem_device dev("abc");
         IOv2::istreambuf buf(dev);
         IOv2::istreambuf_iterator is_it(buf);
-        IOv2::StampInputIterator s_it(is_it);
+        IOv2::stamp_input_iterator s_it(is_it);
         
         char c = *s_it;
         VERIFY(c == 'a');
@@ -51,7 +51,7 @@ void test_stamp_input_iterator() {
     dump_info("Test stamp_input_iterator raw pointer...");
     {
         TestPoint points[] = {{10, 20}, {30, 40}};
-        IOv2::StampInputIterator it(&points[0]);
+        IOv2::stamp_input_iterator it(&points[0]);
         
         VERIFY(it->x == 10);
         VERIFY(it->y == 20);
@@ -65,7 +65,7 @@ void test_stamp_input_iterator() {
     dump_info("Test stamp_input_iterator move constructor...");
     {
         std::vector<int> vec = {1, 2, 3, 4};
-        IOv2::StampInputIterator it1(vec.begin());
+        IOv2::stamp_input_iterator it1(vec.begin());
         ++it1;
         ++it1; // m_pos = 2
         
@@ -82,12 +82,12 @@ void test_stamp_input_iterator() {
     dump_info("Test stamp_input_iterator move assignment...");
     {
         std::vector<int> vec = {1, 2, 3, 4};
-        IOv2::StampInputIterator it1(vec.begin());
+        IOv2::stamp_input_iterator it1(vec.begin());
         ++it1;
         ++it1; // m_pos = 2
         
         // Move assignment
-        auto it3 = IOv2::StampInputIterator(vec.begin());
+        auto it3 = IOv2::stamp_input_iterator(vec.begin());
         it3 = std::move(it1);
         
         it1.rollback(); // Should be no-op
@@ -99,7 +99,7 @@ void test_stamp_input_iterator() {
     dump_info("Test stamp_input_iterator self assignment...");
     {
         std::vector<int> vec = {1, 2, 3, 4};
-        IOv2::StampInputIterator it1(vec.begin());
+        IOv2::stamp_input_iterator it1(vec.begin());
         ++it1; // m_pos = 1
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -121,7 +121,7 @@ void test_stamp_input_iterator() {
         IOv2::mem_device dev("abc");
         IOv2::istreambuf buf(dev);
         IOv2::istreambuf_iterator is_it(buf);
-        IOv2::StampInputIterator s_it1(is_it);
+        IOv2::stamp_input_iterator s_it1(is_it);
         
         ++s_it1;
         ++s_it1; // m_rec has 2 elements
