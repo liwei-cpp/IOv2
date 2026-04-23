@@ -63,7 +63,7 @@ jobs:
 
     - name: Run clang-tidy
       run: |
-        find include -name '*.h' | xargs clang-tidy-19 \
+        clang-tidy-19 $(find include -name '*.h') \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables' \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -I include -I /usr/include -I /usr/include/botan-2
