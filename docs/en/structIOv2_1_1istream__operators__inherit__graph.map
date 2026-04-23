@@ -1,0 +1,13 @@
+<map id="IOv2::istream_operators&lt; T, TChar &gt;" name="IOv2::istream_operators&lt; T, TChar &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,91,184,131"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="237,5,419,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,84,245,58,247,63,168,89"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="232,84,424,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,109,232,109,232,114,198,114"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="255,163,401,203"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="174,133,263,161,262,166,172,138"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1____cin.html" title="cin" alt="" coords="477,20,571,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="433,30,477,30,477,35,433,35"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1____wcin.html" title="wcin" alt="" coords="472,99,576,124"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="438,109,472,109,472,114,438,114"/>
+</map>
