@@ -1,21 +1,26 @@
-# Build mode selection (debug/release)
+# Build mode selection (debug/release/sanitizer)
 MODE = debug
 
 # Compiler and flags
 CXX := /usr/bin/g++
 # CXX := /usr/bin/clang++
 
-ifeq ($(MODE),debug)
+ifeq ($(MODE),sanitizer)
+    COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2 -fsanitize=address,undefined
+    OBJ_DIR := obj_sanitizer
+    BIN_DIR := bin_sanitizer
+else ifeq ($(MODE),debug)
     COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O0 -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2
     OBJ_DIR := obj_debug
     BIN_DIR := bin_debug
 else
     COMP_FLAGS := -O3 -Wall -Werror -Wshadow -std=c++23 -g -DNDEBUG -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2
     OBJ_DIR := obj_release
     BIN_DIR := bin_release
 endif
-
-LINK_FLAGS := -lz -lbotan-2
 
 # Module definitions
 MODULES := device cvt facet locale io util
