@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include <array>
 #include <cstdlib>
 #include <type_traits>
 
@@ -171,15 +172,20 @@ public:
 
         init(const init&) = delete;
         init& operator=(const init&) = delete;
+        init(init&&) = delete;
+        init& operator=(init&&) = delete;
     };
 
 protected:
     sing_temp() = default;
     ~sing_temp() = default;
-    sing_temp(const sing_temp&) = delete;
-    sing_temp& operator=(const sing_temp&) = delete;
 
 public:
+    sing_temp(const sing_temp&) = delete;
+    sing_temp& operator=(const sing_temp&) = delete;
+    sing_temp(sing_temp&&) = delete;
+    sing_temp& operator=(sing_temp&&) = delete;
+
     /**
      * @lang{ZH}
      * 获取指向单例对象的指针。
@@ -205,8 +211,8 @@ public:
         static_assert(std::is_class_v<T>, "sing_temp: T must be a class type");
         static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
 
-        alignas(T) static char sing_buf[sizeof(T)];
-        return reinterpret_cast<T*>(sing_buf);
+        alignas(T) static std::array<char, sizeof(T)> sing_buf;
+        return reinterpret_cast<T*>(sing_buf.data());
     }
 };
 }

@@ -84,6 +84,9 @@ public:
     lru_cache() = default;
     lru_cache(const lru_cache&) = delete;
     lru_cache& operator=(const lru_cache&) = delete;
+    lru_cache(lru_cache&&) = default;
+    lru_cache& operator=(lru_cache&&) = default;
+    ~lru_cache() = default;
 
 public:
     /**
