@@ -45,7 +45,7 @@ namespace
             
             if constexpr (isOut)
             {
-                m_old_std = dup(STDERR_FILENO);
+                m_old_std = dup(STDOUT_FILENO);
                 if (freopen(m_dir_file_name, "w", stdout) == nullptr)
                     throw std::runtime_error("Cannot re-direct stdout");
                 setbuf(stdout, NULL);
