@@ -1,0 +1,39 @@
+name: Generate Doxygen Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Generate Docs
+        run: |
+          mkdir -p docs
+          doxygen Doxyfile.zh
+          doxygen Doxyfile.en
+
+      - name: Commit and Push Documentation
+        # 仅在 push（即合并）到主分支时才执行提交操作
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git commit -m "docs: auto-update documentation [skip ci]" || echo "No changes to commit"
+          git push
