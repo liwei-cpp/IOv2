@@ -136,7 +136,7 @@ concept ostream_type =
     {
         typename T::out_sentry_type;
         typename T::char_type;
-        { a.o_iter() } -> ostreambuf_iterator;
+        { a.o_iter() } -> is_ostreambuf_iterator;
         { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
     } &&
     is_out_sentry<typename T::out_sentry_type> &&

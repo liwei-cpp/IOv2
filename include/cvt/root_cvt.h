@@ -410,10 +410,16 @@ class rb_root_cvt : public root_cvt<DeviceType, true>
 };
 
 template <io_device DeviceType>
+rb_root_cvt(DeviceType) -> rb_root_cvt<DeviceType>;
+
+template <io_device DeviceType>
 class no_rb_root_cvt : public root_cvt<DeviceType, false>
 {
     using root_cvt<DeviceType, false>::root_cvt;
 };
+
+template <io_device DeviceType>
+no_rb_root_cvt(DeviceType) -> no_rb_root_cvt<DeviceType>;
 
 template <io_converter KernelType>
 class root_cvt_reader;
