@@ -1,21 +1,26 @@
-# Build mode selection (debug/release)
+# Build mode selection (debug/release/sanitizer)
 MODE = debug
 
 # Compiler and flags
-CXX := /usr/bin/g++
+CXX ?= g++
 # CXX := /usr/bin/clang++
 
-ifeq ($(MODE),debug)
+ifeq ($(MODE),sanitizer)
+    COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2 -fsanitize=address,undefined
+    OBJ_DIR := obj_sanitizer
+    BIN_DIR := bin_sanitizer
+else ifeq ($(MODE),debug)
     COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O0 -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2
     OBJ_DIR := obj_debug
     BIN_DIR := bin_debug
 else
     COMP_FLAGS := -O3 -Wall -Werror -Wshadow -std=c++23 -g -DNDEBUG -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2
     OBJ_DIR := obj_release
     BIN_DIR := bin_release
 endif
-
-LINK_FLAGS := -lz -lbotan-2
 
 # Module definitions
 MODULES := device cvt facet locale io util
@@ -128,49 +133,43 @@ valgrind: all
 
 # Clean up
 clean:
-	rm -rf $(OBJ_DIR) $(BIN_DIR)
+	rm -rf obj_debug bin_debug obj_release bin_release obj_sanitizer bin_sanitizer
 
 # Help target
 help:
-	@echo "Usage: make [TARGET] [MODE=debug|release]"
+	@echo "Usage: make [TARGET] [MODE=debug|release|sanitizer] [CXX=compiler]"
 	@echo ""
 	@echo "Targets:"
 	@echo "  all              Build all test binaries (default)"
 	@echo "  test             Build and run all tests"
 	@echo "  valgrind         Build and run all tests with valgrind"
-	@echo "  clean            Remove build artifacts for current MODE"
+	@echo "  clean            Remove all build artifacts (all modes)"
 	@echo ""
 	@echo "  device           Build device tests"
 	@echo "  cvt              Build cvt tests"
 	@echo "  facet            Build facet tests"
 	@echo "  locale           Build locale tests"
 	@echo "  io               Build io tests"
+	@echo "  util             Build util tests"
 	@echo ""
 	@echo "  test-device      Build and run device tests"
 	@echo "  test-cvt         Build and run cvt tests"
 	@echo "  test-facet       Build and run facet tests"
 	@echo "  test-locale      Build and run locale tests"
 	@echo "  test-io          Build and run io tests"
-	@echo ""
-	@echo "  valgrind-device  Build and run device tests with valgrind"
-	@echo "  valgrind-cvt     Build and run cvt tests with valgrind"
-	@echo "  valgrind-facet   Build and run facet tests with valgrind"
-	@echo "  valgrind-locale  Build and run locale tests with valgrind"
-	@echo "  valgrind-io      Build and run io tests with valgrind"
+	@echo "  test-util        Build and run util tests"
 	@echo ""
 	@echo "Options:"
-	@echo "  MODE=debug   Build with debug flags (default)"
-	@echo "  MODE=release Build with release flags (-O3, -DNDEBUG)"
+	@echo "  MODE=debug       Build with debug flags (default)"
+	@echo "  MODE=release     Build with release flags (-O3, -DNDEBUG)"
+	@echo "  MODE=sanitizer   Build with ASan/UBSan (-O1, -g)"
+	@echo "  CXX=...          Override compiler (e.g., CXX=clang++-19)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make                     Build all (debug)"
-	@echo "  make -j8                 Build all in parallel"
-	@echo "  make MODE=release        Build all (release)"
-	@echo "  make device              Build device tests only"
-	@echo "  make test-device         Build and run device tests"
-	@echo "  make test                Build and run all tests"
-	@echo "  make valgrind            Build and run all tests with valgrind"
-	@echo "  make valgrind-device     Build and run device tests with valgrind"
+	@echo "  make MODE=sanitizer      Build with sanitizers"
+	@echo "  make test MODE=release   Run release tests"
+	@echo "  make clean               Clean all build artifacts"
 
 # Phony targets
 .PHONY: all clean test valgrind help
