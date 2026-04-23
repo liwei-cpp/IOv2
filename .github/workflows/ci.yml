@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        compiler: [g++-15, clang++-21]
+        compiler: [g++-15, clang++-19]
 
     steps:
     - uses: actions/checkout@v4
@@ -20,13 +20,13 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all
-        # GCC 15 and Clang 21 setup
+        # GCC 15 and Clang 19 setup
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-        # Add LLVM repository for Clang 21
+        # Add LLVM repository for Clang 19
         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository "deb http://apt.llvm.org/noble/ llvm-toolchain-noble main" -y
+        sudo add-apt-repository "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" -y
         sudo apt-get update
-        sudo apt-get install -y g++-15 clang-21
+        sudo apt-get install -y g++-15 clang-19
 
     - name: Run tests
       run: |
