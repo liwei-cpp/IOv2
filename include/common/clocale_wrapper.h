@@ -20,12 +20,13 @@ struct clocale_wrapper
     template <typename CharT> friend class ctype_conf;
 
     clocale_wrapper(const char* name)
-        : c_locale(newlocale(LC_ALL_MASK, name, 0))
+        : c_locale(name ? newlocale(LC_ALL_MASK, name, 0) : nullptr)
     {
+        if (!name)
+            throw cvt_error("clocale_wrapper: name cannot be null");
+
         if (!c_locale)
-        {
             throw cvt_error(std::string("Cannot construct a C locale: ") + name);
-        }
     }
 
     ~clocale_wrapper() noexcept
@@ -33,7 +34,7 @@ struct clocale_wrapper
         if (c_locale)
             freelocale(c_locale);
     }
-    
+
     clocale_wrapper(const clocale_wrapper& val)
         : c_locale(val.c_locale ? duplocale(val.c_locale) : nullptr)
     {

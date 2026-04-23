@@ -88,7 +88,7 @@ struct StampInputIterator<TIter>
     }
 
     friend bool operator==(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal == b.m_internal; };
-    friend bool operator!=(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal != b.m_internal; }; 
+    friend bool operator!=(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal != b.m_internal; };
     friend bool operator<(const StampInputIterator& a, const StampInputIterator& b)
         requires (std::random_access_iterator<TIter>) { return a.m_internal < b.m_internal; };
     friend bool operator>(const StampInputIterator& a, const StampInputIterator& b)
@@ -168,7 +168,13 @@ struct StampInputIterator<TIter>
     using difference_type   = typename TIter::difference_type;
 
     [[nodiscard]] auto operator*() const { return *m_internal; }
-    [[nodiscard]] auto operator->() const { return m_internal; }
+    [[nodiscard]] auto operator->() const
+    {
+        if constexpr (std::is_pointer_v<TIter>)
+            return m_internal;
+        else
+            return m_internal.operator->();
+    }
 
     StampInputIterator& operator++()
     {
@@ -190,7 +196,7 @@ struct StampInputIterator<TIter>
     [[nodiscard]] StampInputIterator operator--(int) { StampInputIterator tmp = *this; --(*this); return tmp; }
 
     friend bool operator==(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal == b.m_internal; };
-    friend bool operator!=(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal != b.m_internal; };  
+    friend bool operator!=(const StampInputIterator& a, const StampInputIterator& b) { return a.m_internal != b.m_internal; };
     void rollback()
     {
         while (!m_rec.empty())

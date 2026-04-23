@@ -70,7 +70,7 @@ void test_clocale_wrapper_self_assignment()
 
 void test_clocale_wrapper_safety()
 {
-    dump_info("Test clocale_wrapper safety (moved-from state)...");
+    dump_info("Test clocale_wrapper safety (moved-from state and null checks)...");
     {
         clocale_wrapper loc1("C");
         clocale_wrapper loc2(std::move(loc1));
@@ -82,6 +82,15 @@ void test_clocale_wrapper_safety()
         clocale_wrapper loc4("C");
         loc4 = loc1;              // Copy assignment
     }
+
+    // Test nullptr check
+    try {
+        clocale_wrapper loc_null(nullptr);
+        VERIFY(false); // Should not reach here
+    } catch (const cvt_error& e) {
+        // Expected
+    }
+
     dump_info("Done\n");
 }
 
