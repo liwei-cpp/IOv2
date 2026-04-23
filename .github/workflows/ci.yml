@@ -36,7 +36,6 @@ jobs:
     - name: Run tests (Sanitizers)
       run: |
         cd test
-        make clean
         make -j$(nproc) test CXX=${{ matrix.compiler }} MODE=sanitizer
       env:
         ASAN_OPTIONS: halt_on_error=1
@@ -45,5 +44,4 @@ jobs:
     - name: Run memory check (Valgrind)
       run: |
         cd test
-        make clean
         make valgrind CXX=${{ matrix.compiler }} MODE=release
