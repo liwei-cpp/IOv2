@@ -2,7 +2,7 @@
 MODE = debug
 
 # Compiler and flags
-CXX := /usr/bin/g++
+CXX ?= g++
 # CXX := /usr/bin/clang++
 
 ifeq ($(MODE),sanitizer)
