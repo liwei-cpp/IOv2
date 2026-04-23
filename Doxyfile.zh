@@ -1,0 +1,15 @@
+# Doxyfile.zh
+PROJECT_NAME           = "IOv2"
+OUTPUT_DIRECTORY       = docs/zh
+HTML_OUTPUT            = .
+OUTPUT_LANGUAGE        = Chinese
+INPUT                  = include
+RECURSIVE              = YES
+GENERATE_LATEX         = NO
+
+# 将 @path/to/file.h ZH 映射为 \if ZH
+ALIASES               += "common/defs.h=\if"
+ALIASES               += "common/verify.h=\if"
+
+# 开启 ZH 部分
+ENABLED_SECTIONS       = ZH

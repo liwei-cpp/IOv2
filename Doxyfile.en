@@ -1,0 +1,14 @@
+# Doxyfile.en
+PROJECT_NAME           = "IOv2"
+OUTPUT_DIRECTORY       = docs
+HTML_OUTPUT            = en
+OUTPUT_LANGUAGE        = English
+INPUT                  = include
+RECURSIVE              = YES
+GENERATE_LATEX         = NO
+
+ALIASES               += "common/defs.h=\if"
+ALIASES               += "common/verify.h=\if"
+
+# 开启 EN 部分
+ENABLED_SECTIONS       = EN
