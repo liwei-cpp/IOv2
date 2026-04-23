@@ -20,15 +20,15 @@ namespace IOv2
 /**
  * @lang{ZH}
  * POSIX locale_t 对象的 RAII 包装类。
- * 
+ *
  * @note 此类需要 POSIX locale 扩展（在 Linux、macOS 上可用）。
  *       在 Windows 上不可用。
  * @note 此类不是线程安全的。
  * @endif
- * 
+ *
  * @lang{EN}
  * RAII wrapper for POSIX locale_t objects.
- * 
+ *
  * @note This class requires POSIX locale extensions (available on Linux, macOS).
  *       Not available on Windows.
  * @note This class is NOT thread-safe.
@@ -105,12 +105,12 @@ private:
 /**
  * @lang{ZH}
  * 用于临时切换当前线程的 C locale 的 RAII 守卫。
- * 
+ *
  * @note 此类不是线程安全的，因为：
  *       - 对象必须在同一个线程中构造和析构
  *       - 禁用复制和移动操作以防止跨线程使用
  *       - uselocale() 仅影响调用线程的语言环境
- * 
+ *
  * @par 示例
  * @code
  *     clocale_wrapper zh_locale("zh_CN.UTF-8");
@@ -120,7 +120,7 @@ private:
  *     }  // 自动恢复之前的语言环境
  * @endcode
  * @endif
- * 
+ *
  * @lang{EN}
  * RAII guard for temporarily switching the current thread's C locale.
  *
@@ -145,18 +145,24 @@ struct clocale_user
      * @lang{ZH}
      * 构造一个语言环境守卫，切换到指定的语言环境。
      * @param wrapper 要切换到的语言环境
+     * @throws cvt_error 如果 wrapper 处于 moved-from 状态
      * @note 捕获当前线程的语言环境以便稍后恢复
      * @endif
-     * 
+     *
      * @lang{EN}
      * Construct a locale guard that switches to the specified locale.
      * @param wrapper The locale to switch to
+     * @throws cvt_error If wrapper is in moved-from state
      * @note Captures the current thread's locale for later restoration
      * @endif
      */
-    explicit clocale_user(const clocale_wrapper& wrapper) noexcept
-        : old(uselocale(wrapper.c_locale))
-    { }
+    explicit clocale_user(const clocale_wrapper& wrapper)
+        : old(nullptr)
+    {
+        if (!wrapper.c_locale)
+            throw cvt_error("clocale_user: wrapper is in moved-from state");
+        old = uselocale(wrapper.c_locale);
+    }
 
     // Non-copyable and non-movable to prevent cross-thread usage
     clocale_user(const clocale_user&) = delete;
@@ -169,7 +175,7 @@ struct clocale_user
      * 恢复之前的语言环境。
      * @note 必须由构造此对象的同一个线程调用
      * @endif
-     * 
+     *
      * @lang{EN}
      * Restore the previous locale.
      * @note Must be called from the same thread that constructed this object
