@@ -212,7 +212,7 @@ public:
         static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
 
         alignas(T) static std::array<char, sizeof(T)> sing_buf;
-        return reinterpret_cast<T*>(sing_buf.data());
+        return reinterpret_cast<T*>(sing_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 };
 }
