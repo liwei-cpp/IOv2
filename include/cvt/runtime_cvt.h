@@ -27,7 +27,7 @@ public:
     virtual device_type attach(device_type&& dev = device_type{}) = 0;
     virtual void adjust(const cvt_behavior& acc) = 0;
     virtual void retrieve(cvt_status& acc) const = 0;
-    virtual bool is_eos() = 0;
+    virtual bool is_eof() = 0;
 
     virtual io_status bos() = 0;
     virtual void main_cont_beg() = 0;
@@ -97,9 +97,12 @@ public:
         return m_kernel.retrieve(acc);
     }
     
-    bool is_eos() override
+    bool is_eof() override
     {
-        return m_kernel.is_eos();
+        if constexpr(!cvt_cpt::support_get<KernelType>)
+            throw cvt_error("runtime_cvt fail: kernel does not support get");
+        else
+            return m_kernel.is_eof();
     }
 
     io_status bos() override
@@ -249,9 +252,9 @@ public:
         return m_ptr->retrieve(acc);
     }    
 
-    bool is_eos()
+    bool is_eof()
     {
-        return m_ptr->is_eos();
+        return m_ptr->is_eof();
     }
 
     io_status bos()

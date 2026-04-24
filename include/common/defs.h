@@ -76,11 +76,14 @@ namespace IOv2
 
     /**
      * @lang{ZH}
-     * 文件末尾（EOF）异常类。
+     * 输入流结束（EOF）异常类。
+     * 表示已到达输入流的末尾。为了与现有 C++ 标准语义保持一致，采用了 EOF (End-Of-File) 这一名称。
      * @endif
      *
      * @lang{EN}
      * Exception class for End-Of-File (EOF).
+     * This class indicates that the end of the input stream has been reached.
+     * The name EOF is used for consistency with existing C++ standards.
      * @endif
      */
     struct eof_error : io_error
