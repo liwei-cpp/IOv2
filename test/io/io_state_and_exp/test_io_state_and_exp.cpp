@@ -34,7 +34,7 @@ void test_io_state_and_exp_1()
             dump_info("Unreachable code\n");
             std::abort();
         }
-        catch (IOv2::ios_defs::failure&)
+        catch (IOv2::cvt_error&)
         {
             iostate02 = ios_01.exceptions();
         }
