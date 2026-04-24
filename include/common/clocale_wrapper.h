@@ -39,8 +39,8 @@ struct clocale_wrapper
     friend struct clocale_user;
     template <typename CharT> friend class ctype_conf;
 
-    clocale_wrapper(const char* name)
-        : c_locale(name ? newlocale(LC_ALL_MASK, name, nullptr) : nullptr)
+    explicit clocale_wrapper(const char* name)
+        : c_locale(name ? newlocale(LC_ALL_MASK, name, 0) : nullptr)
     {
         if (!name)
             throw cvt_error("clocale_wrapper: name cannot be null");

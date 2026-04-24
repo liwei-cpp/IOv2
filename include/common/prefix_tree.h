@@ -12,6 +12,7 @@
 #include <common/metafunctions.h>
 #include <common/streambuf_defs.h>
 
+#include <cassert>
 #include <concepts>
 #include <cstddef>
 #include <forward_list>
@@ -127,7 +128,7 @@ public:
      * Constructs an empty prefix tree.
      * @endif
      */
-    explicit prefix_tree()
+    prefix_tree()
         : m_root(std::nullopt, 0)
     { }
 
@@ -152,7 +153,7 @@ public:
      * @throw std::runtime_error If the array contains null pointers
      * @endif
      */
-    prefix_tree(const std::vector<const CharT*>& strs)
+    explicit prefix_tree(const std::vector<const CharT*>& strs)
         requires std::is_integral_v<TValue>
         : prefix_tree()
     {
@@ -187,7 +188,7 @@ public:
      */
     void add(std::basic_string_view<CharT> str, TValue v)
     {
-        return add(str.begin(), str.end(), v);
+        add(str.begin(), str.end(), v);
     }
 
     /**
@@ -268,6 +269,10 @@ public:
     template <std::bidirectional_iterator TIter, std::sentinel_for<TIter> TSent>
     [[nodiscard]] TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
+        // Debug assertion: check for valid range (only for random access iterators)
+        if constexpr (std::random_access_iterator<TIter> && std::same_as<TIter, TSent>)
+            assert(b <= e && "max_match: invalid iterator range (b > e)");
+
         if constexpr (is_small_type_v<TValue>)
             out = std::nullopt;
         else
@@ -387,6 +392,6 @@ public:
     }
 
 private:
-    node   m_root;
+    node m_root;
 };
 }
