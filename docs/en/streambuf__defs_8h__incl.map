@@ -1,11 +1,11 @@
 <map id="include/common/streambuf_defs.h" name="include/common/streambuf_defs.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="40,5,241,45"/>
-<area shape="rect" id="Node000002" href="$device__concepts_8h.html" title=" " alt="" coords="46,93,235,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,46,143,79,138,79,138,46"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,76,192"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,121,70,161,67,156,123,117"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="101,167,181,192"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="143,119,143,153,138,153,138,119"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="45,5,246,45"/>
+<area shape="rect" id="Node000002" href="$device__concepts_8h.html" title=" " alt="" coords="51,93,240,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,46,148,79,143,79,143,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,85,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="131,121,74,161,71,156,128,117"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="110,167,181,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="148,119,148,153,143,153,143,119"/>
 <area shape="rect" id="Node000005" title=" " alt="" coords="205,167,265,192"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="157,117,210,156,207,160,154,121"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="161,117,211,156,208,160,158,121"/>
 </map>

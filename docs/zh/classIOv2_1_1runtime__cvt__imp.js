@@ -13,7 +13,7 @@ var classIOv2_1_1runtime__cvt__imp =
     [ "device", "classIOv2_1_1runtime__cvt__imp.html#ad56eed7d29b64c370a0a2e7f76bfa8e4", null ],
     [ "flush", "classIOv2_1_1runtime__cvt__imp.html#a2bf1936f837cf1f275aaf4724d256b5b", null ],
     [ "get", "classIOv2_1_1runtime__cvt__imp.html#ae6ae8c19446799e57e5ca435534a27bb", null ],
-    [ "is_eos", "classIOv2_1_1runtime__cvt__imp.html#aee92a951528ce3b424883b0670da3b83", null ],
+    [ "is_eof", "classIOv2_1_1runtime__cvt__imp.html#ab02861a6505bfeec7d1303291ee9116e", null ],
     [ "main_cont_beg", "classIOv2_1_1runtime__cvt__imp.html#a90ab97af48d903177df717f0060abb97", null ],
     [ "put", "classIOv2_1_1runtime__cvt__imp.html#aa7e7ca9cba28463bfcae6002a0f6c167", null ],
     [ "retrieve", "classIOv2_1_1runtime__cvt__imp.html#aaeaf7183186b3af711a3698333b2a09a", null ],
