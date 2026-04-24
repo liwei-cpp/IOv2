@@ -192,7 +192,7 @@ public:
     }
 
     /// others
-    const device_type& device() const &
+    device_type& device()
     {
         return m_cvt.device();
     }

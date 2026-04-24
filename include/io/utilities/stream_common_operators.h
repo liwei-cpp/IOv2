@@ -57,9 +57,9 @@ struct stream_common_operators
         return obj;
     }
 
-    const TDevice& device() const &
+    TDevice& device()
     {
-        const T& obj = static_cast<const T&>(*this);
+        T& obj = static_cast<T&>(*this);
         return obj.m_streambuf.device();
     }
 
