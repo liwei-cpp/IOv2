@@ -11,7 +11,7 @@ var classIOv2_1_1base__streambuf =
     [ "adjust", "classIOv2_1_1base__streambuf.html#ad4e68f80557fee38531d41df0ca33857", null ],
     [ "attach", "classIOv2_1_1base__streambuf.html#ae540abd7ebe0bc6af1e444f969adbeef", null ],
     [ "detach", "classIOv2_1_1base__streambuf.html#abdcba6d0d5e071fb3a569a8701b1475f", null ],
-    [ "device", "classIOv2_1_1base__streambuf.html#a4ec8e1fafe9dcd28aaec9fa193badc0a", null ],
+    [ "device", "classIOv2_1_1base__streambuf.html#a2fb8afb8c7ad29e54d37f414128a1db7", null ],
     [ "flush", "classIOv2_1_1base__streambuf.html#a865696de011370078090792e6a08e3dc", null ],
     [ "operator=", "classIOv2_1_1base__streambuf.html#a8215fc9bf03e8901141ebc4cd7b8bf75", null ],
     [ "operator=", "classIOv2_1_1base__streambuf.html#a1890c3a10307b10df2b99b3ab8677c42", null ],

@@ -10,7 +10,7 @@ var classIOv2_1_1runtime__cvt__imp =
     [ "bos", "classIOv2_1_1runtime__cvt__imp.html#a7739bf686c4272c0d54158b7a8a5cf20", null ],
     [ "clone", "classIOv2_1_1runtime__cvt__imp.html#adad5273d967d867e41deddc45c316515", null ],
     [ "detach", "classIOv2_1_1runtime__cvt__imp.html#a7f9137ae54d03e8329d9afe827e75392", null ],
-    [ "device", "classIOv2_1_1runtime__cvt__imp.html#ada00362f218b6a83afc0d70e0509d47d", null ],
+    [ "device", "classIOv2_1_1runtime__cvt__imp.html#ad56eed7d29b64c370a0a2e7f76bfa8e4", null ],
     [ "flush", "classIOv2_1_1runtime__cvt__imp.html#a2bf1936f837cf1f275aaf4724d256b5b", null ],
     [ "get", "classIOv2_1_1runtime__cvt__imp.html#ae6ae8c19446799e57e5ca435534a27bb", null ],
     [ "is_eos", "classIOv2_1_1runtime__cvt__imp.html#aee92a951528ce3b424883b0670da3b83", null ],

@@ -11,7 +11,7 @@ var classIOv2_1_1root__cvt =
     [ "attach", "classIOv2_1_1root__cvt.html#a5b665771d2ba110d2c20ab806b7cf5b6", null ],
     [ "bos", "classIOv2_1_1root__cvt.html#af68256cc4d9cce034e2ad6b8b6074406", null ],
     [ "detach", "classIOv2_1_1root__cvt.html#afc60f67c1bf5674d75b3d63bc04515e7", null ],
-    [ "device", "classIOv2_1_1root__cvt.html#a365fe9fc12a74c13fd959c6266729e5c", null ],
+    [ "device", "classIOv2_1_1root__cvt.html#a254e05d0c607c014103dbf217f6d41f9", null ],
     [ "flush", "classIOv2_1_1root__cvt.html#a3b5c0e8a2ea1534611d283e41465d329", null ],
     [ "get", "classIOv2_1_1root__cvt.html#ac36116776d627d197b9664e53e9fdb16", null ],
     [ "is_eos", "classIOv2_1_1root__cvt.html#a02dce3d3f8d69d3a1aff11caf65d0d4c", null ],
