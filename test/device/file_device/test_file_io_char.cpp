@@ -214,7 +214,7 @@ void test_file_device_char_get_1()
     
     basic_file_device<true, false, char> fb_01(name_01);
     
-    VERIFY(!fb_01.deos());
+    VERIFY(!fb_01.deof());
     char ch;
     if ((fb_01.dget(&ch, 1) != 1) || (ch != '/')) throw std::runtime_error("file_device::get fail");
     if ((fb_01.dget(&ch, 1) != 1) || (ch != '/')) throw std::runtime_error("file_device::get fail");
@@ -536,52 +536,52 @@ void test_file_device_char_seek_8()
     char buf[12];
     file_guard g(name);
     basic_file_device<true, true, char> fb(name, file_open_flag::trunc);
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
     fb.dput("abcd", 4);
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
     
     fb.dseek(0);
-    VERIFY(!fb.deos());
+    VERIFY(!fb.deof());
     if (fb.dget(buf, 3) != 3) throw std::runtime_error("file_device::get fails");
     if (std::memcmp(buf, "abc", 3) != 0) throw std::runtime_error("file_device::get fails");
-    VERIFY(!fb.deos());
+    VERIFY(!fb.deof());
     
     // Check read => write without pubseekoff(0, ios_base::cur)
     fb.dput("ef", 2);
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
     fb.dseek(0);
-    VERIFY(!fb.deos());
+    VERIFY(!fb.deof());
     if (fb.dget(buf, 5) != 5) throw std::runtime_error("file_device::get fails");
     if (std::memcmp(buf, "abcef", 5) != 0) throw std::runtime_error("file_device::get fails");
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
     
     fb.dseek(0);
     fb.dput("gh", 2);
-    VERIFY(!fb.deos());
+    VERIFY(!fb.deof());
 
     // Check write => read without pubseekoff(0, ios_base::cur)
     if (fb.dget(buf, 3) != 3) throw std::runtime_error("file_device::get fails");
     if (std::memcmp(buf, "cef", 3) != 0) throw std::runtime_error("file_device::get fails");
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
     
     fb.dput("ijkl", 4);
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
     
     fb.dseek(0);
     if (fb.dget(buf, 2) != 2) throw std::runtime_error("file_device::get fails");
     if (std::memcmp(buf, "gh", 2) != 0) throw std::runtime_error("file_device::get fails");
-    VERIFY(!fb.deos());
+    VERIFY(!fb.deof());
 
     fb.drseek(0);
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
     fb.dput("mno", 3);
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
 
     fb.dseek(0);
-    VERIFY(!fb.deos());
+    VERIFY(!fb.deof());
     if (fb.dget(buf, 12) != 12) throw std::runtime_error("file_device::get fails");
     if (std::memcmp(buf, "ghcefijklmno", 12) != 0) throw std::runtime_error("file_device::get fails");
-    VERIFY(fb.deos());
+    VERIFY(fb.deof());
 
     dump_info("Done\n");
 }

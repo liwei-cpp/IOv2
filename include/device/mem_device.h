@@ -1,11 +1,12 @@
 #pragma once
+#include <common/defs.h>
+#include <device/device_concepts.h>
+
 #include <iterator>
 #include <memory>
 #include <string>
 #include <type_traits>
 
-#include <common/defs.h>
-#include <device/device_concepts.h>
 namespace IOv2
 {
 template <class CharT,
@@ -30,7 +31,7 @@ public:
     const std::basic_string<CharT, Traits, Allocator>& str() const { return m_str; }
 
 public:
-    bool deos() const
+    bool deof() const
     {
         return (m_next_pos >= m_str.size());
     }
@@ -46,6 +47,11 @@ public:
     size_t dtell() const
     {
         return m_next_pos;
+    }
+
+    size_t dsize() const
+    {
+        return m_str.size();
     }
     
     void dseek(size_t v)
