@@ -236,7 +236,7 @@ namespace IOv2
     
     // mandatory methods
     public:
-        const device_type& device() const & { return m_kernel.device(); }
+        device_type& device() { return m_kernel.device(); }
         device_type detach()
         {
             m_io_status = io_status::neutral;

@@ -15,7 +15,7 @@ public:
         , m_is_unit_buf(is_unit_buf)
     {
         if constexpr (is_std)
-            m_is_unit_buf = m_is_unit_buf || os.m_sync_with_stdio;
+            m_sync_with_stdio = os.m_sync_with_stdio;
 
         if constexpr (involve_input)
             os.m_streambuf.switch_to_put();
@@ -34,9 +34,17 @@ public:
 
     ~out_sentry()
     {
-        if (m_is_unit_buf && m_os.good())
+        if (m_os.good())
         {
-            m_os.m_streambuf.flush();
+            if (m_is_unit_buf || m_sync_with_stdio)
+            {
+                m_os.m_streambuf.flush();
+            }
+
+            if (m_is_unit_buf)
+            {
+                m_os.m_streambuf.device().dflush();
+            }
         }
     }
     
@@ -44,8 +52,9 @@ public:
     out_sentry& operator=(const out_sentry&) = delete;
 
 private:
-    TStream& m_os;
-    bool m_is_unit_buf;
+    TStream&    m_os;
+    bool        m_is_unit_buf;
+    bool        m_sync_with_stdio = false;
 };
 
 template <typename>
@@ -111,11 +120,18 @@ struct ostream_operators : public abs_ostream
     {
         T& obj = static_cast<T&>(*this);
         if (!obj.good()) return;
+
         try
         {
-            using sentry_type = typename T::out_sentry_type;
-            sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), false);
-            return obj.m_streambuf.flush();
+            if constexpr (dev_cpt::support_put<typename T::device_type>)
+            {
+                using sentry_type = typename T::out_sentry_type;
+                sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), false);
+                obj.m_streambuf.flush();
+                obj.m_streambuf.device().dflush();
+            }
+            else
+                throw stream_error("ostream_operators::flush fail: device does not support output");
         }
         catch(...)
         {
