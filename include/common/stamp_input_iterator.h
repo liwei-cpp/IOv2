@@ -14,6 +14,7 @@
 #include <forward_list>
 #include <iterator>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2
@@ -79,7 +80,7 @@ struct stamp_input_iterator<TIter>
         : m_internal()
         , m_pos(0) {}
 
-    stamp_input_iterator(TIter internal)
+    explicit stamp_input_iterator(TIter internal)
         : m_internal(std::move(internal))
         , m_pos(0) {}
 
@@ -150,16 +151,16 @@ struct stamp_input_iterator<TIter>
         return *this;
     }
 
-    friend bool operator==(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal == b.m_internal; };
-    friend bool operator!=(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal != b.m_internal; };
+    friend bool operator==(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal == b.m_internal; }
+    friend bool operator!=(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal != b.m_internal; }
     friend bool operator<(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal < b.m_internal; };
+        requires (std::random_access_iterator<TIter>) { return a.m_internal < b.m_internal; }
     friend bool operator>(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal > b.m_internal; };
+        requires (std::random_access_iterator<TIter>) { return a.m_internal > b.m_internal; }
     friend bool operator<=(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal <= b.m_internal; };
+        requires (std::random_access_iterator<TIter>) { return a.m_internal <= b.m_internal; }
     friend bool operator>=(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal >= b.m_internal; };
+        requires (std::random_access_iterator<TIter>) { return a.m_internal >= b.m_internal; }
 
     [[nodiscard]] friend stamp_input_iterator operator+(const stamp_input_iterator& it, difference_type n)
         requires (std::random_access_iterator<TIter>)
@@ -261,7 +262,7 @@ struct stamp_input_iterator<TIter>
     stamp_input_iterator()
         : m_internal() {}
 
-    stamp_input_iterator(TIter internal)
+    explicit stamp_input_iterator(TIter internal)
         : m_internal(std::move(internal)) {}
 
     stamp_input_iterator(std::default_sentinel_t)
@@ -279,10 +280,7 @@ struct stamp_input_iterator<TIter>
     [[nodiscard]] auto operator*() const { return *m_internal; }
     [[nodiscard]] auto operator->() const
     {
-        if constexpr (std::is_pointer_v<TIter>)
-            return m_internal;
-        else
-            return m_internal.operator->();
+        return m_internal.operator->();
     }
 
     stamp_input_iterator& operator++()
@@ -304,8 +302,8 @@ struct stamp_input_iterator<TIter>
     }
     [[nodiscard]] stamp_input_iterator operator--(int) { stamp_input_iterator tmp = *this; --(*this); return tmp; }
 
-    friend bool operator==(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal == b.m_internal; };
-    friend bool operator!=(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal != b.m_internal; };
+    friend bool operator==(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal == b.m_internal; }
+    friend bool operator!=(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal != b.m_internal; }
 
     /**
      * @lang{ZH}
@@ -370,10 +368,10 @@ stamp_input_iterator(stamp_input_iterator<TIter>&) -> stamp_input_iterator<TIter
  * @endif
  */
 template <typename T>
-constexpr static bool is_stamp_input_iterator_v = false;
+static constexpr bool is_stamp_input_iterator_v = false;
 
 /// @cond INTERNAL
 template <typename T>
-constexpr static bool is_stamp_input_iterator_v<stamp_input_iterator<T>> = true;
+static constexpr bool is_stamp_input_iterator_v<stamp_input_iterator<T>> = true;
 /// @endcond
 }

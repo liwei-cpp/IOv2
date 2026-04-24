@@ -36,7 +36,7 @@ namespace IOv2
      * @endif
      */
     template <typename... T>
-    constexpr bool dependent_false_v = false;
+    inline constexpr bool dependent_false_v = false;
 
     /**
      * @lang{ZH}
@@ -52,7 +52,7 @@ namespace IOv2
      * @endif
      */
     template <auto... T>
-    constexpr bool dependent_false_nttp_v = false;
+    inline constexpr bool dependent_false_nttp_v = false;
 
     /**
      * @lang{ZH}

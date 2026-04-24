@@ -11,6 +11,7 @@
 #pragma once
 #include <common/metafunctions.h>
 
+#include <concepts>
 #include <cstddef>
 #include <list>
 #include <optional>
@@ -88,7 +89,6 @@ public:
     lru_cache& operator=(lru_cache&&) = default;
     ~lru_cache() = default;
 
-public:
     /**
      * @lang{ZH}
      * 获取缓存中的值。

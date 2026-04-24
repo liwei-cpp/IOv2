@@ -30,7 +30,7 @@ namespace IOv2
      * these functions are at least 32 bytes larger than the actual data.
      * @endif
      */
-    constexpr static size_t SIMD_PADDING_BYTES = 32;
+    static constexpr size_t SIMD_PADDING_BYTES = 32;
 
     /**
      * @lang{ZH}
