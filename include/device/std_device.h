@@ -18,6 +18,10 @@ public:
     using char_type = char;
 
     std_device() = default;
+    std_device(const std_device&) = delete;
+    std_device& operator=(const std_device&) = delete;
+    std_device(std_device&&) = default;
+    std_device& operator=(std_device&&) = default;
 
     ~std_device()
     {
@@ -38,7 +42,10 @@ public:
     size_t dget(char* s, size_t n)
         requires (ID == STDIN_FILENO)
     {
+        if (s == nullptr && n > 0)
+            throw device_error("std_device::dget fail: null buffer");
         if (n == 0 || m_eof_hit) return 0;
+
         ssize_t ret;
         while (true)
         {
@@ -68,6 +75,10 @@ public:
     void dput(const char* ch, size_t n)
         requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
     {
+        if (ch == nullptr && n > 0)
+            throw device_error("std_device::dput fail: null buffer");
+        if (n == 0) return;
+
         bool put_res = false;
         if constexpr (ID == STDOUT_FILENO)
             put_res = (std::fwrite(ch, sizeof(char), n, stdout) == n);
