@@ -4,6 +4,7 @@ var classIOv2_1_1mem__device =
     [ "mem_device", "classIOv2_1_1mem__device.html#a110ad91c5f6e872daf7e72f0bb13cc2c", null ],
     [ "mem_device", "classIOv2_1_1mem__device.html#a077cb6206124be5452bccf48e9a65317", null ],
     [ "mem_device", "classIOv2_1_1mem__device.html#a7e1ed5285789e31bb7c7297ca314c9a5", null ],
+    [ "~mem_device", "classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5", null ],
     [ "deof", "classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f", null ],
     [ "dflush", "classIOv2_1_1mem__device.html#a192d0df35ccac5bd0df2ce9b596e2880", null ],
     [ "dget", "classIOv2_1_1mem__device.html#a8905f39ee5cb0eda934f5e18c307d256", null ],

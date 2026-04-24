@@ -241,11 +241,11 @@ var namespaceIOv2 =
     [ "file_device", "namespaceIOv2.html#af7fb797e580598b1f58546504aedc5c0", null ],
     [ "ifile_device", "namespaceIOv2.html#aa7467ff5eec785aa8f20ea4d00b3d923", null ],
     [ "ofile_device", "namespaceIOv2.html#a1c51b058a9fc1d8fb4bd5fa8e79d4aa3", null ],
-    [ "file_open_flag", "namespaceIOv2.html#a7879e05d19554e26b0cd383a858a666f", [
-      [ "none", "namespaceIOv2.html#a7879e05d19554e26b0cd383a858a666fa334c4a4c42fdb79d7ebc3e73b517e6f8", null ],
-      [ "binary", "namespaceIOv2.html#a7879e05d19554e26b0cd383a858a666fa9d7183f16acce70658f686ae7f1a4d20", null ],
-      [ "trunc", "namespaceIOv2.html#a7879e05d19554e26b0cd383a858a666fade5010661a527a7f3565e98f672eb896", null ],
-      [ "noreplace", "namespaceIOv2.html#a7879e05d19554e26b0cd383a858a666fa12e6b8ef04a12c5eb0069e1bee66cf9b", null ]
+    [ "file_open_flag", "namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1", [
+      [ "none", "namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a334c4a4c42fdb79d7ebc3e73b517e6f8", null ],
+      [ "binary", "namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a9d7183f16acce70658f686ae7f1a4d20", null ],
+      [ "trunc", "namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1ade5010661a527a7f3565e98f672eb896", null ],
+      [ "noreplace", "namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a12e6b8ef04a12c5eb0069e1bee66cf9b", null ]
     ] ],
     [ "io_status", "namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9", [
       [ "neutral", "namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89", null ],
@@ -280,7 +280,7 @@ var namespaceIOv2 =
     [ "istreambuf", "namespaceIOv2.html#a5fc17915e9ae170169833159fc1ec730", null ],
     [ "istreambuf", "namespaceIOv2.html#a1616531714109523be3a685ae879f3f7", null ],
     [ "left", "namespaceIOv2.html#a583e939dc20bb613178fe3fe2c1eb85b", null ],
-    [ "mem_device", "namespaceIOv2.html#ae8df620d22119d674e4553166a0aba0e", null ],
+    [ "mem_device", "namespaceIOv2.html#a0b0c661fdba6bbf7201ec03146cc5e86", null ],
     [ "messages", "namespaceIOv2.html#a54403b4cd04192a6b98cc5b5d225f336", null ],
     [ "monetary", "namespaceIOv2.html#a2c34fbb9f8deb9a975c438059aec54f3", null ],
     [ "no_rb_root_cvt", "namespaceIOv2.html#abfaa515bd3e86f438caf0a448e6905f9", null ],
