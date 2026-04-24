@@ -135,7 +135,7 @@ public:
 
 // mandatory methods
 public:
-    const device_type& device() const & { return m_device; }
+    device_type& device() { return m_device; }
     
     device_type detach()
     {
@@ -293,7 +293,6 @@ public:
             m_device.dput(m_buffer.data(), m_buf_cur - m_buffer.data());
             m_buf_cur = m_buffer.data();
         }
-        m_device.dflush();
     }
     
     /// positioning
