@@ -44,26 +44,6 @@ namespace ios_defs
     constexpr static iostate cvtfailbit     = 1L << 2;
     constexpr static iostate strfailbit     = 1L << 3;
     constexpr static iostate otherfailbit   = 1L << 4;
-
-    class failure : public std::runtime_error
-    {
-    public:
-        explicit failure(const std::string& msg, const std::error_code& ec = std::io_errc::stream)
-            : std::runtime_error(msg)
-            , m_ec(ec) {}
-
-        explicit failure(const char* msg, const std::error_code& ec = std::io_errc::stream)
-            : std::runtime_error(msg)
-            , m_ec(ec) {}
-
-        virtual const std::error_code& code() const noexcept
-        {
-            return m_ec;
-        }
-        
-    private:
-        std::error_code m_ec;
-    };
 };
 
 struct io_state_and_exp
@@ -79,39 +59,39 @@ struct io_state_and_exp
         if ((m_stream_state & ios_defs::otherfailbit) == ios_defs::goodbit) m_exp_other_fail = std::exception_ptr{};
 
         ios_defs::iostate state_in_exp = m_exception & m_stream_state;
-        bool need_throw_exp = false;
         if (state_in_exp & ios_defs::devfailbit)
         {
-            need_throw_exp = true;
             if (m_exp_dev_fail)
                 std::rethrow_exception(std::exchange(m_exp_dev_fail, nullptr));
+            else
+                throw device_error("device failure bit has been set");
         }
         else if (state_in_exp & ios_defs::cvtfailbit)
         {
-            need_throw_exp = true;
             if (m_exp_cvt_fail)
                 std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr));
+            else
+                throw cvt_error("converter failure bit has been set");
         }
         else if (state_in_exp & ios_defs::strfailbit)
         {
-            need_throw_exp = true;
             if (m_exp_str_fail)
                 std::rethrow_exception(std::exchange(m_exp_str_fail, nullptr));
+            else
+                throw stream_error("stream failure bit has been set");
         }
         else if (state_in_exp & ios_defs::otherfailbit)
         {
-            need_throw_exp = true;
             if (m_exp_other_fail)
                 std::rethrow_exception(std::exchange(m_exp_other_fail, nullptr));
+            else
+                throw stream_error("other failure bit has been set");
         }
         else if (state_in_exp & ios_defs::eofbit)
         {
             if (!std::current_exception())
                 throw eof_error{};
         }
-
-        if (need_throw_exp)
-            throw ios_defs::failure("failure bit has been set");
     }
 
     void setstate(ios_defs::iostate s) { clear(rdstate() | s); }
