@@ -45,3 +45,27 @@ jobs:
       run: |
         cd test
         make valgrind CXX=${{ matrix.compiler }} MODE=release
+
+  clang-tidy:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zlib1g-dev libbotan-2-dev
+        # GCC 15 and Clang 19 setup (needed for standard library headers)
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+        # Add LLVM repository for Clang 19
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" -y
+        sudo apt-get update
+        sudo apt-get install -y clang-tidy-19 clang-19 g++-15
+
+    - name: Run clang-tidy
+      run: |
+        clang-tidy-19 $(find include/common -name '*.h') \
+          --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-clang-diagnostic-pragma-once-outside-header' \
+          --warnings-as-errors='bugprone-*' \
+          -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
