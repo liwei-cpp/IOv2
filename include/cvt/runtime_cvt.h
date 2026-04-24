@@ -22,7 +22,7 @@ public:
 public:
     virtual std::unique_ptr<abs_runtime_cvt_imp> clone() const & = 0;
     
-    virtual const device_type& device() const & = 0;
+    virtual device_type& device() = 0;
     virtual device_type detach() = 0;
     virtual device_type attach(device_type&& dev = device_type{}) = 0;
     virtual void adjust(const cvt_behavior& acc) = 0;
@@ -70,7 +70,7 @@ public:
             throw cvt_error("runtime_cvt fail: kernel does not support copy construction");
     }
     
-    const device_type& device() const & override
+    device_type& device() override
     {
         return m_kernel.device();
     }
@@ -224,7 +224,7 @@ public:
     runtime_cvt& operator=(runtime_cvt&&) = default;
 
 public:
-    const device_type& device() const &
+    device_type& device()
     {
         return m_ptr->device();
     }

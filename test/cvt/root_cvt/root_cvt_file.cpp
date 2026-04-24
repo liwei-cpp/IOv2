@@ -642,6 +642,7 @@ void test_root_cvt_file_reset_1()
         obj.put(" cpp", 4);
         if (obj.tell() != 4) throw std::runtime_error("root_cvt<file_device>::tell incorrect");
         obj.flush();
+        obj.device().dflush();
 
         if (g2.contents() != "liwei cpp") throw std::runtime_error("root_cvt<file_device>::put incorrect");
     };

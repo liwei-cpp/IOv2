@@ -60,7 +60,7 @@ namespace IOv2
         concept mandatory_methods = requires(T a, const T& c,
                                              const cvt_behavior& b, cvt_status& s)
             {
-                { c.device() } -> std::same_as<const typename T::device_type&>;
+                { a.device() } -> std::same_as<typename T::device_type&>;
                 { a.detach() } -> std::same_as<typename T::device_type>;
                 { a.attach(std::declval<typename T::device_type>()) } -> std::same_as<typename T::device_type>;
 
