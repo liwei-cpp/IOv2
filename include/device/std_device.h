@@ -20,8 +20,8 @@ public:
     std_device() = default;
     std_device(const std_device&) = delete;
     std_device& operator=(const std_device&) = delete;
-    std_device(std_device&&) = default;
-    std_device& operator=(std_device&&) = default;
+    std_device(std_device&&) noexcept = default;
+    std_device& operator=(std_device&&) noexcept = default;
 
     ~std_device()
     {
@@ -29,11 +29,13 @@ public:
         {
             try {
                 dflush();
-            } catch (...) {}
+            } catch (...) { // NOLINT(bugprone-empty-catch)
+                // Ignore exceptions in destructor to prevent std::terminate
+            }
         }
     }
 
-    bool deof() const
+    [[nodiscard]] bool deof() const
         requires (ID == STDIN_FILENO)
     {
         return m_eof_hit;
@@ -46,7 +48,7 @@ public:
             throw device_error("std_device::dget fail: null buffer");
         if (n == 0 || m_eof_hit) return 0;
 
-        ssize_t ret;
+        ssize_t ret = 0;
         while (true)
         {
             ret = read(ID, s, n);

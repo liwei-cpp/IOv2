@@ -20,18 +20,18 @@ public:
 public:
     mem_device(std::basic_string<CharT, Traits, Allocator> info = std::basic_string<CharT, Traits, Allocator>{})
         : m_str(std::move(info))
-        , m_next_pos(0)
     {}
 
     mem_device(const mem_device&) = default;
     mem_device(mem_device&&) = default;
     mem_device& operator=(const mem_device&) = default;
     mem_device& operator=(mem_device&&) = default;
+    ~mem_device() = default;
 
-    const std::basic_string<CharT, Traits, Allocator>& str() const { return m_str; }
+    [[nodiscard]] const std::basic_string<CharT, Traits, Allocator>& str() const { return m_str; }
 
 public:
-    bool deof() const
+    [[nodiscard]] bool deof() const
     {
         return (m_next_pos >= m_str.size());
     }
@@ -48,12 +48,12 @@ public:
         return res;
     }
     
-    size_t dtell() const
+    [[nodiscard]] size_t dtell() const
     {
         return m_next_pos;
     }
 
-    size_t dsize() const
+    [[nodiscard]] size_t dsize() const
     {
         return m_str.size();
     }
@@ -99,5 +99,5 @@ private:
 };
 
 template <typename TChar>
-mem_device(const TChar []) -> mem_device<TChar>;
+mem_device(const TChar*) -> mem_device<TChar>;
 }
