@@ -37,6 +37,7 @@ namespace IOv2
         concept support_get = requires(T a)
             {
                 { a.get(std::declval<typename T::internal_type*>(), std::declval<size_t>()) } -> std::same_as<size_t>;
+                { a.is_eof() } -> std::same_as<bool>;
             };
 
         template <typename T>
@@ -66,7 +67,6 @@ namespace IOv2
 
                 { a.bos() } -> std::same_as<io_status>;
                 { a.main_cont_beg() } -> std::same_as<void>;
-                { a.is_eos() } -> std::same_as<bool>;
 
                 { a.adjust(b) } -> std::same_as<void>;
                 { c.retrieve(s) } -> std::same_as<void>;

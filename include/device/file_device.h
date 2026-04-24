@@ -1,15 +1,15 @@
 #pragma once
+#include <common/defs.h>
+#include <common/metafunctions.h>
+#include <device/device_concepts.h>
+
 #include <cerrno>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <exception>
 #include <expected>
 #include <string>
-
-#include <common/defs.h>
-#include <common/metafunctions.h>
-#include <device/device_concepts.h>
 
 namespace IOv2
 {
@@ -119,7 +119,7 @@ public:
     }
 
 public:
-    bool deos()
+    bool deof() const
     {
         if (!is_open())
             return true;
@@ -169,6 +169,11 @@ public:
         if (res < 0)
             throw device_error("file_device::dtell fail: got invalid position.");
         return static_cast<size_t>(res);
+    }
+
+    size_t dsize() const
+    {
+        return m_file_len;
     }
     
     void dseek(size_t v)

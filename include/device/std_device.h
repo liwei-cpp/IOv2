@@ -1,11 +1,12 @@
 #pragma once
-#include <unistd.h>
+#include <common/defs.h>
+#include <device/device_concepts.h>
+
 #include <cstdio>
 #include <cerrno>
 #include <poll.h>
 #include <stdexcept>
-#include <common/defs.h>
-#include <device/device_concepts.h>
+#include <unistd.h>
 
 namespace IOv2
 {
@@ -28,9 +29,10 @@ public:
         }
     }
 
-    bool deos() const
+    bool deof() const
+        requires (ID == STDIN_FILENO)
     {
-        return (ID != STDIN_FILENO) || m_eof_hit;
+        return m_eof_hit;
     }
 
     size_t dget(char* s, size_t n)

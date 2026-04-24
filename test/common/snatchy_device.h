@@ -27,7 +27,7 @@ public:
     const std::basic_string<CharT>& str() const { return m_str; }
 
 public:
-    bool deos() const
+    bool deof() const
     {
         return (m_next_pos >= m_str.size());
     }

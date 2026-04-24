@@ -50,7 +50,7 @@ struct reader<TChar, TValue>
             ++s;
         }
         
-        if (i != 7) throw eof_error{};
+        if (i != 7) throw end_of_input_error{};
         
         return s;
     }
