@@ -187,7 +187,7 @@ public:
         if constexpr (dev_cpt::support_get<device_type> &&
                       dev_cpt::support_put<device_type>)
         {
-            if (m_device.deos())
+            if (m_device.deof())
                 m_io_status = io_status::output;
             else
                 m_io_status = io_status::input;
@@ -202,7 +202,8 @@ public:
         return m_io_status;
     }
 
-    bool is_eos()
+    bool is_eof()
+        requires (dev_cpt::support_get<device_type>)
     {
         switch(m_io_status)
         {
@@ -212,12 +213,12 @@ public:
                 if (m_buf_cur != m_buffer.data())
                     flush();
             }
-            return m_device.deos();
+            return m_device.deof();
         case io_status::input:
             if (m_buf_cur != m_buf_end) return false;
-            return m_device.deos();
+            return m_device.deof();
         default:
-            return m_device.deos();
+            return m_device.deof();
         }
     }
 

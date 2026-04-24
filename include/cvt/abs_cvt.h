@@ -278,9 +278,10 @@ namespace IOv2
             m_kernel.main_cont_beg();
         }
 
-        bool is_eos()
+        bool is_eof()
+            requires (cvt_cpt::support_get<KernelType>)
         {
-            return m_kernel.is_eos();
+            return m_kernel.is_eof();
         }
 
     // optional methods

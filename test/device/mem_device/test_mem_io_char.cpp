@@ -74,12 +74,12 @@ void test_mem_device_char_drseek_boundary()
         // Boundary: 0 (end of string)
         obj.drseek(0);
         VERIFY(obj.dtell() == 5);
-        VERIFY(obj.deos());
+        VERIFY(obj.deof());
 
         // Boundary: 5 (start of string)
         obj.drseek(5);
         VERIFY(obj.dtell() == 0);
-        VERIFY(!obj.deos());
+        VERIFY(!obj.deof());
 
         // Normal: 3 (middle)
         obj.drseek(3);
@@ -105,20 +105,20 @@ void test_mem_device_char_in_1()
     dump_info("Test mem_device<char> input case 1...");
     
     IOv2::mem_device obj("12");
-    VERIFY(!obj.deos());
+    VERIFY(!obj.deof());
     char ch = 0;
     VERIFY(obj.dget(&ch, 1) == 1);
     VERIFY(ch == '1');
     VERIFY(obj.dtell() == 1);
-    VERIFY(!obj.deos());
+    VERIFY(!obj.deof());
 
     if ((obj.dget(&ch, 1) != 1) || (ch != '2')) throw std::runtime_error("mem_device<char> input get() fail");
     if (obj.dtell() != 2) throw std::runtime_error("mem_device<char> input tell fail");
-    VERIFY(obj.deos());
+    VERIFY(obj.deof());
 
     if (obj.dget(&ch, 1) != 0) throw std::runtime_error("mem_device<char> input get() fail");
     if (obj.dtell() != 2) throw std::runtime_error("mem_device<char> input tell fail");
-    VERIFY(obj.deos());
+    VERIFY(obj.deof());
     
     dump_info("Done\n");
 }
@@ -269,23 +269,23 @@ void test_mem_device_char_out_1()
     dump_info("Test mem_device<char> output case 1...");
 
     IOv2::mem_device obj("12"); obj.drseek(0);
-    VERIFY(obj.deos());
+    VERIFY(obj.deof());
     obj.dput("x", 1);
-    VERIFY(obj.deos());
+    VERIFY(obj.deof());
     VERIFY(obj.str() == "12x");
     VERIFY(obj.dtell() == 3);
     
     obj = IOv2::mem_device("12");
-    VERIFY(!obj.deos());
+    VERIFY(!obj.deof());
     obj.dput("x", 1);
-    VERIFY(!obj.deos());
+    VERIFY(!obj.deof());
     if (obj.str() != "x2") throw std::runtime_error("mem_device<char> output put() fail");
     if (obj.dtell() != 1) throw std::runtime_error("mem_device<char> output tell fail");
 
     obj = IOv2::mem_device("");
-    VERIFY(obj.deos());
+    VERIFY(obj.deof());
     obj.dput("y", 1);
-    VERIFY(obj.deos());
+    VERIFY(obj.deof());
     if (obj.str() != "y") throw std::runtime_error("mem_device<char> output put() fail");
     if (obj.dtell() != 1) throw std::runtime_error("mem_device<char> output tell fail");
     

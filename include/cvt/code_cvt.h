@@ -10,6 +10,7 @@
 #include <vector>
 
 #include <common/clocale_wrapper.h>
+#include <common/defs.h>
 #include <common/metafunctions.h>
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
@@ -446,7 +447,7 @@ public:
 
             if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
             {
-                if (!this->is_eos())
+                if (!this->is_eof())
                     throw cvt_error("code_cvt::switch_to_put fail: internal buffer not empty");
             }
             BT::m_kernel.switch_to_put();
