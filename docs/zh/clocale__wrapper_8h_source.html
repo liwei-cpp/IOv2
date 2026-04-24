@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('clocale__wrapper_8h_source.html',''); 
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#pragma once</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;<a class="code" href="defs_8h.html">common/defs.h</a>&gt;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &lt;<a class="code" href="locale_8h.html">locale.h</a>&gt;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &lt;clocale&gt;</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
@@ -116,7 +116,7 @@ $(document).ready(function(){initNavTree('clocale__wrapper_8h_source.html',''); 
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
 <div class="foldopen" id="foldopen00042" data-start="{" data-end="}">
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__wrapper.html#a3a0bf441d6973af41d08bc381c74d9a1">   42</a></span>    <a class="code hl_function" href="structIOv2_1_1clocale__wrapper.html#a3a0bf441d6973af41d08bc381c74d9a1">clocale_wrapper</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name)</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        : c_locale(name ? newlocale(LC_ALL_MASK, name, 0) : nullptr)</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>        : c_locale(name ? newlocale(LC_ALL_MASK, name, nullptr) : nullptr)</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    {</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        <span class="keywordflow">if</span> (!name)</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;clocale_wrapper: name cannot be null&quot;</span>);</div>
@@ -195,40 +195,38 @@ $(document).ready(function(){initNavTree('clocale__wrapper_8h_source.html',''); 
 <div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>{</div>
 <div class="foldopen" id="foldopen00159" data-start="{" data-end="}">
 <div class="line"><a id="l00159" name="l00159"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#aa4a5db79d578a0454c290a36f7228174">  159</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="structIOv2_1_1clocale__user.html#aa4a5db79d578a0454c290a36f7228174">clocale_user</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1clocale__wrapper.html">clocale_wrapper</a>&amp; wrapper)</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        : old(nullptr)</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    {</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>        <span class="keywordflow">if</span> (!wrapper.c_locale)</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;clocale_user: wrapper is in moved-from state&quot;</span>);</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>        old = uselocale(wrapper.c_locale);</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    }</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    {</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        <span class="keywordflow">if</span> (!wrapper.c_locale)</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;clocale_user: wrapper is in moved-from state&quot;</span>);</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        old = uselocale(wrapper.c_locale);</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    }</div>
 </div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    <span class="comment">// Non-copyable and non-movable to prevent cross-thread usage</span></div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a0ae7ed6bb1deee47d5128cb773b97a61">  168</a></span>    <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a0ae7ed6bb1deee47d5128cb773b97a61">clocale_user</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#ad6b9ec37337d4227cd3b4e2f7de8c85d">  169</a></span>    <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp; <a class="code hl_function" href="structIOv2_1_1clocale__user.html#ad6b9ec37337d4227cd3b4e2f7de8c85d">operator=</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a7e5ab18a53f57f3223fbbf3107d13abd">  170</a></span>    <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a7e5ab18a53f57f3223fbbf3107d13abd">clocale_user</a>(<a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a17298a47f2dace40f8d273f601ef6919">  171</a></span>    <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp; <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a17298a47f2dace40f8d273f601ef6919">operator=</a>(<a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span> </div>
-<div class="foldopen" id="foldopen00184" data-start="{" data-end="}">
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a73a7707b4282873fc8ea1dcc3d4cf0b0">  184</a></span>    <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a73a7707b4282873fc8ea1dcc3d4cf0b0">~clocale_user</a>() noexcept</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    {</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        uselocale(old);</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    }</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>    <span class="comment">// Non-copyable and non-movable to prevent cross-thread usage</span></div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a0ae7ed6bb1deee47d5128cb773b97a61">  167</a></span>    <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a0ae7ed6bb1deee47d5128cb773b97a61">clocale_user</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#ad6b9ec37337d4227cd3b4e2f7de8c85d">  168</a></span>    <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp; <a class="code hl_function" href="structIOv2_1_1clocale__user.html#ad6b9ec37337d4227cd3b4e2f7de8c85d">operator=</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a7e5ab18a53f57f3223fbbf3107d13abd">  169</a></span>    <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a7e5ab18a53f57f3223fbbf3107d13abd">clocale_user</a>(<a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a17298a47f2dace40f8d273f601ef6919">  170</a></span>    <a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp; <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a17298a47f2dace40f8d273f601ef6919">operator=</a>(<a class="code hl_struct" href="structIOv2_1_1clocale__user.html">clocale_user</a>&amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span> </div>
+<div class="foldopen" id="foldopen00183" data-start="{" data-end="}">
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="structIOv2_1_1clocale__user.html#a73a7707b4282873fc8ea1dcc3d4cf0b0">  183</a></span>    <a class="code hl_function" href="structIOv2_1_1clocale__user.html#a73a7707b4282873fc8ea1dcc3d4cf0b0">~clocale_user</a>() noexcept</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    {</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>        uselocale(old);</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    }</div>
 </div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    locale_t old;</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>};</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    locale_t old = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>};</div>
 </div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>}</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>}</div>
 </div>
 <div class="ttc" id="aclassIOv2_1_1ctype__conf_html"><div class="ttname"><a href="classIOv2_1_1ctype__conf.html">IOv2::ctype_conf</a></div><div class="ttdef"><b>Definition</b> ctype_details.h:41</div></div>
 <div class="ttc" id="adefs_8h_html"><div class="ttname"><a href="defs_8h.html">defs.h</a></div></div>
-<div class="ttc" id="alocale_8h_html"><div class="ttname"><a href="locale_8h.html">locale.h</a></div></div>
 <div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:19</div></div>
 <div class="ttc" id="astructIOv2_1_1clocale__user_html"><div class="ttname"><a href="structIOv2_1_1clocale__user.html">IOv2::clocale_user</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:143</div></div>
 <div class="ttc" id="astructIOv2_1_1clocale__user_html_a0ae7ed6bb1deee47d5128cb773b97a61"><div class="ttname"><a href="structIOv2_1_1clocale__user.html#a0ae7ed6bb1deee47d5128cb773b97a61">IOv2::clocale_user::clocale_user</a></div><div class="ttdeci">clocale_user(const clocale_user &amp;)=delete</div></div>
 <div class="ttc" id="astructIOv2_1_1clocale__user_html_a17298a47f2dace40f8d273f601ef6919"><div class="ttname"><a href="structIOv2_1_1clocale__user.html#a17298a47f2dace40f8d273f601ef6919">IOv2::clocale_user::operator=</a></div><div class="ttdeci">clocale_user &amp; operator=(clocale_user &amp;&amp;)=delete</div></div>
-<div class="ttc" id="astructIOv2_1_1clocale__user_html_a73a7707b4282873fc8ea1dcc3d4cf0b0"><div class="ttname"><a href="structIOv2_1_1clocale__user.html#a73a7707b4282873fc8ea1dcc3d4cf0b0">IOv2::clocale_user::~clocale_user</a></div><div class="ttdeci">~clocale_user() noexcept</div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:184</div></div>
+<div class="ttc" id="astructIOv2_1_1clocale__user_html_a73a7707b4282873fc8ea1dcc3d4cf0b0"><div class="ttname"><a href="structIOv2_1_1clocale__user.html#a73a7707b4282873fc8ea1dcc3d4cf0b0">IOv2::clocale_user::~clocale_user</a></div><div class="ttdeci">~clocale_user() noexcept</div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:183</div></div>
 <div class="ttc" id="astructIOv2_1_1clocale__user_html_a7e5ab18a53f57f3223fbbf3107d13abd"><div class="ttname"><a href="structIOv2_1_1clocale__user.html#a7e5ab18a53f57f3223fbbf3107d13abd">IOv2::clocale_user::clocale_user</a></div><div class="ttdeci">clocale_user(clocale_user &amp;&amp;)=delete</div></div>
 <div class="ttc" id="astructIOv2_1_1clocale__user_html_aa4a5db79d578a0454c290a36f7228174"><div class="ttname"><a href="structIOv2_1_1clocale__user.html#aa4a5db79d578a0454c290a36f7228174">IOv2::clocale_user::clocale_user</a></div><div class="ttdeci">clocale_user(const clocale_wrapper &amp;wrapper)</div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:159</div></div>
 <div class="ttc" id="astructIOv2_1_1clocale__user_html_ad6b9ec37337d4227cd3b4e2f7de8c85d"><div class="ttname"><a href="structIOv2_1_1clocale__user.html#ad6b9ec37337d4227cd3b4e2f7de8c85d">IOv2::clocale_user::operator=</a></div><div class="ttdeci">clocale_user &amp; operator=(const clocale_user &amp;)=delete</div></div>
