@@ -10,31 +10,32 @@
 #include <exception>
 #include <expected>
 #include <limits>
+#include <memory>
 #include <string>
 
 namespace IOv2
 {
-enum class file_open_flag : unsigned
+enum class file_open_flag : std::uint8_t
 {
     none        = 0,
-    binary      = (unsigned)1 << 0,
-    trunc       = (unsigned)1 << 1,
-    noreplace   = (unsigned)1 << 2
+    binary      = (std::uint8_t)1 << 0,
+    trunc       = (std::uint8_t)1 << 1,
+    noreplace   = (std::uint8_t)1 << 2
 };
 
 constexpr file_open_flag operator | (file_open_flag v1, file_open_flag v2)
 {
-    return (file_open_flag)((unsigned) v1 | (unsigned)v2);
+    return (file_open_flag)((std::uint8_t) v1 | (std::uint8_t)v2);
 }
 
 constexpr file_open_flag operator & (file_open_flag v1, file_open_flag v2)
 {
-    return (file_open_flag)((unsigned) v1 & (unsigned)v2);
+    return (file_open_flag)((std::uint8_t) v1 & (std::uint8_t)v2);
 }
 
 constexpr file_open_flag operator ~ (file_open_flag v1)
 {
-    return (file_open_flag)(~((unsigned) v1));
+    return (file_open_flag)(~((std::uint8_t) v1));
 }
 
 template <bool IsIn, bool IsOut, typename CharType>
@@ -47,39 +48,37 @@ class basic_file_device<IsIn, IsOut, CharType>
 public:
     using char_type = CharType;
     
+private:
+    struct file_deleter
+    {
+        void operator()(FILE* fp) const noexcept
+        {
+            if (fp) std::fclose(fp); // NOLINT(cppcoreguidelines-owning-memory)
+        }
+    };
+
 public:
     basic_file_device() = default;
 
     explicit basic_file_device(const std::string& file_name, file_open_flag flags = file_open_flag::none)
     {
         const char* mode = fopen_mode(flags);
-        FILE* fp = std::fopen(file_name.c_str(), mode);
-        if (!fp)
+        m_file.reset(std::fopen(file_name.c_str(), mode));
+        if (!m_file)
             throw device_error("cannot open file \"" + file_name + "\": " + std::strerror(errno));
 
-        if (fseek_64(fp, 0, SEEK_END) != 0)
-        {
-            std::fclose(fp);
+        if (fseek_64(m_file.get(), 0, SEEK_END) != 0)
             throw device_error("cannot get file length for \"" + file_name + "\"");
-        }
-        int64_t len = ftell_64(fp);
+        
+        int64_t len = ftell_64(m_file.get());
         if (len < 0)
-        {
-            std::fclose(fp);
             throw device_error("cannot get file length for \"" + file_name + "\"");
-        }
         else if (static_cast<uint64_t>(len) > std::numeric_limits<size_t>::max())
-        {
-            std::fclose(fp);
             throw device_error("file too large for this platform");
-        }
 
-        if (fseek_64(fp, 0, SEEK_SET) != 0)
-        {
-            std::fclose(fp);
+        if (fseek_64(m_file.get(), 0, SEEK_SET) != 0)
             throw device_error("cannot reset the file for \"" + file_name + "\"");
-        }        
-        m_file = fp;
+              
         m_file_len = static_cast<size_t>(len);
     }
 
@@ -97,37 +96,13 @@ public:
     basic_file_device(const basic_file_device&) = delete;
     basic_file_device& operator=(const basic_file_device&) = delete;
     
-    basic_file_device(basic_file_device&& obj)
-        : m_file(obj.m_file)
-        , m_file_len(obj.m_file_len)
-    {
-        obj.m_file = nullptr;
-        obj.m_file_len = 0;
-    }
+    basic_file_device(basic_file_device&&) noexcept = default;
+    basic_file_device& operator=(basic_file_device&&) noexcept = default;
     
-    basic_file_device& operator=(basic_file_device&& obj)
-    {
-        if (this != &obj)
-        {
-            close();
-            m_file = obj.m_file;
-            m_file_len = obj.m_file_len;
-
-            obj.m_file = nullptr;
-            obj.m_file_len = 0;
-        }
-        return *this;
-    }
-    
-    ~basic_file_device()
-    {
-        try {
-            close();
-        } catch (...) {}
-    }
+    ~basic_file_device() = default;
 
 public:
-    bool deof() const
+    [[nodiscard]] bool deof() const
     {
         if (!is_open())
             return true;
@@ -141,7 +116,7 @@ public:
         }
     }
 
-    bool is_open() const
+    [[nodiscard]] bool is_open() const
     {
         return m_file != nullptr;
     }
@@ -159,8 +134,7 @@ public:
                     ptr = std::current_exception();
                 }
             }
-            std::fclose(m_file);
-            m_file = nullptr;
+            m_file.reset();
             m_file_len = 0;
             if (ptr) std::rethrow_exception(ptr);
         }
@@ -175,24 +149,24 @@ public:
         if (n == 0) return 0;
 
         if (!is_open()) return 0;
-        size_t count = fread(s, sizeof(CharType), n, m_file);
-        if (count < n && ferror(m_file))
+        size_t count = std::fread(s, sizeof(CharType), n, m_file.get());
+        if (count < n && std::ferror(m_file.get()))
             throw device_error("file_device::dget fail: read error");
         return count;
     }
 
-    size_t dtell() const
+    [[nodiscard]] size_t dtell() const
     {
         if (!is_open())
             throw device_error("file_device::dtell fail: file is closed");
         
-        auto res = ftell_64(m_file);
+        auto res = ftell_64(m_file.get());
         if (res < 0)
             throw device_error("file_device::dtell fail: got invalid position.");
         return static_cast<size_t>(res);
     }
 
-    size_t dsize() const
+    [[nodiscard]] size_t dsize() const
     {
         return m_file_len;
     }
@@ -210,7 +184,7 @@ public:
         if (v > std::numeric_limits<int64_t>::max())
             throw device_error("file_device::dseek fail: position exceeds maximum seekable range");
 
-        if (fseek_64(m_file, static_cast<int64_t>(v), SEEK_SET) != 0)
+        if (fseek_64(m_file.get(), static_cast<int64_t>(v), SEEK_SET) != 0)
             throw device_error("file_device::dseek fail: fseek invalid response");
     }
 
@@ -223,7 +197,7 @@ public:
             throw device_error("file_device::drseek fail: invalid parameter");
         const int64_t l_off = -static_cast<int64_t>(offset);
 
-        if (fseek_64(m_file, l_off, SEEK_END) != 0)
+        if (fseek_64(m_file.get(), l_off, SEEK_END) != 0)
             throw device_error("file_device::drseek fail: fseek invalid response");
     }
     
@@ -235,7 +209,7 @@ public:
         if (!is_open())
             throw device_error("file_device::dput fail: file closed.");
         if (n == 0) return;
-        if (std::fwrite(ch, sizeof(CharType), n, m_file) != n)
+        if (std::fwrite(ch, sizeof(CharType), n, m_file.get()) != n)
             throw device_error("file_device::dput fail: partial success.");
         
         auto cur_pos = dtell();
@@ -247,7 +221,7 @@ public:
         requires (IsOut)
     {
         if (!is_open()) return;
-        if (fflush(m_file) == EOF)
+        if (std::fflush(m_file.get()) == EOF)
             throw device_error("file_device::dflush fail: fflush fail.");
     }
 
@@ -327,7 +301,7 @@ private:
     }
 
 private:
-    FILE*  m_file = nullptr;
+    std::unique_ptr<FILE, file_deleter> m_file;
     size_t m_file_len = 0;
 };
 
