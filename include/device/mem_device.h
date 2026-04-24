@@ -38,6 +38,10 @@ public:
 
     size_t dget(char_type* s, size_t n)
     {
+        if (s == nullptr && n > 0)
+            throw device_error("mem_device::dget fail: null buffer");
+        if (n == 0) return 0;
+
         std::size_t res = std::min(m_str.size() - m_next_pos, n);
         std::copy(m_str.data() + m_next_pos, m_str.data() + m_next_pos + res, s);
         m_next_pos += res;
@@ -70,6 +74,12 @@ public:
     
     void dput(const char_type* ch, size_t n)
     {
+        if (ch == nullptr && n > 0)
+            throw device_error("mem_device::dput fail: null buffer");
+
+        if (n > m_str.max_size() - m_next_pos)
+            throw device_error("mem_device::dput fail: size overflow");
+
         if (m_next_pos + n > m_str.size())
         {
             m_str.erase(m_str.begin() + m_next_pos, m_str.end());

@@ -9,6 +9,7 @@
 #include <cstring>
 #include <exception>
 #include <expected>
+#include <limits>
 #include <string>
 
 namespace IOv2
@@ -67,13 +68,17 @@ public:
             std::fclose(fp);
             throw device_error("cannot get file length for \"" + file_name + "\"");
         }
+        else if (static_cast<uint64_t>(len) > std::numeric_limits<size_t>::max())
+        {
+            std::fclose(fp);
+            throw device_error("file too large for this platform");
+        }
 
         if (fseek_64(fp, 0, SEEK_SET) != 0)
         {
             std::fclose(fp);
             throw device_error("cannot reset the file for \"" + file_name + "\"");
-        }
-        
+        }        
         m_file = fp;
         m_file_len = static_cast<size_t>(len);
     }
@@ -102,12 +107,15 @@ public:
     
     basic_file_device& operator=(basic_file_device&& obj)
     {
-        close();
-        m_file = obj.m_file;
-        m_file_len = obj.m_file_len;
+        if (this != &obj)
+        {
+            close();
+            m_file = obj.m_file;
+            m_file_len = obj.m_file_len;
 
-        obj.m_file = nullptr;
-        obj.m_file_len = 0;
+            obj.m_file = nullptr;
+            obj.m_file_len = 0;
+        }
         return *this;
     }
     
@@ -123,8 +131,14 @@ public:
     {
         if (!is_open())
             return true;
-
-        return (dtell() >= m_file_len);
+        try
+        {
+            return (dtell() >= m_file_len);
+        }
+        catch (...)
+        {
+            return true;
+        }
     }
 
     bool is_open() const
@@ -156,14 +170,21 @@ public:
     size_t dget(CharType* s, size_t n)
         requires (IsIn)
     {
+        if (s == nullptr && n > 0)
+            throw device_error("file_device::dget fail: null buffer");
+        if (n == 0) return 0;
+
         if (!is_open()) return 0;
         size_t count = fread(s, sizeof(CharType), n, m_file);
+        if (count < n && ferror(m_file))
+            throw device_error("file_device::dget fail: read error");
         return count;
     }
 
     size_t dtell() const
     {
-        if (!is_open()) return 0;
+        if (!is_open())
+            throw device_error("file_device::dtell fail: file is closed");
         
         auto res = ftell_64(m_file);
         if (res < 0)
@@ -185,7 +206,10 @@ public:
             if (v > m_file_len)
                 throw device_error("file_device::dseek fail: invalid parameter");
         }
-        
+
+        if (v > std::numeric_limits<int64_t>::max())
+            throw device_error("file_device::dseek fail: position exceeds maximum seekable range");
+
         if (fseek_64(m_file, static_cast<int64_t>(v), SEEK_SET) != 0)
             throw device_error("file_device::dseek fail: fseek invalid response");
     }
@@ -206,8 +230,11 @@ public:
     void dput(const CharType* ch, size_t n)
         requires (IsOut)
     {
+        if (ch == nullptr && n > 0)
+            throw device_error("file_device::dput fail: null buffer");
         if (!is_open())
             throw device_error("file_device::dput fail: file closed.");
+        if (n == 0) return;
         if (std::fwrite(ch, sizeof(CharType), n, m_file) != n)
             throw device_error("file_device::dput fail: partial success.");
         
@@ -237,17 +264,15 @@ private:
                 return "r+";
             else if (checkres == trunc)
                 return "w+";
-            else if (checkres == (trunc | noreplace))
-                return "w+x";
-            else if (checkres == noreplace)
-                return "w+x";
             else if (checkres == binary)
                 return "r+b";
             else if (checkres == (trunc | binary))
                 return "w+b";
-            else if (checkres == (trunc | binary | noreplace))
-                return "w+bx";
-            else if (checkres == (binary | noreplace))
+            // noreplace (O_EXCL) implies creating a new file, so it's always empty.
+            // Therefore, trunc is implicit in this mode.
+            else if (checkres == noreplace || checkres == (trunc | noreplace))
+                return "w+x";
+            else if (checkres == (binary | noreplace) || checkres == (binary | trunc | noreplace))
                 return "w+bx";
             else
                 throw device_error("Invalid open mode combination for read-write file");
@@ -263,20 +288,16 @@ private:
         }
         else if constexpr (IsOut)
         {
-           if (checkres == none)
+            // In write-only mode, "w" already truncates by default if noreplace is not present.
+            if (checkres == none || checkres == trunc)
                 return "w";
-            else if (checkres == noreplace)
-                return "wx";
-            else if (checkres == trunc)
-                return "w";
-            else if (checkres == (trunc | noreplace))
-                return "wx";
-            else if (checkres == binary)
+            else if (checkres == binary || checkres == (trunc | binary))
                 return "wb";
-            else if (checkres == (binary | noreplace))
+            // noreplace implies creation of a new file.
+            else if (checkres == noreplace || checkres == (trunc | noreplace))
+                return "wx";
+            else if (checkres == (binary | noreplace) || checkres == (binary | trunc | noreplace))
                 return "wbx";
-            else if (checkres == (trunc | binary))
-                return "wb";
             else
                 throw device_error("Invalid open mode combination for write-only file");
         }
