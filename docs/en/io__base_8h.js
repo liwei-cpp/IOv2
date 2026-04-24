@@ -1,6 +1,5 @@
 var io__base_8h =
 [
-    [ "IOv2::ios_defs::failure", "classIOv2_1_1ios__defs_1_1failure.html", "classIOv2_1_1ios__defs_1_1failure" ],
     [ "IOv2::io_state_and_exp", "structIOv2_1_1io__state__and__exp.html", "structIOv2_1_1io__state__and__exp" ],
     [ "IOv2::ios_base< void >", "classIOv2_1_1ios__base_3_01void_01_4.html", "classIOv2_1_1ios__base_3_01void_01_4" ],
     [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", "classIOv2_1_1ios__base" ],

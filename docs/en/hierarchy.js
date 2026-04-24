@@ -142,9 +142,6 @@ var hierarchy =
     [ "IOv2::date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper.html", null ],
     [ "IOv2::date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html", null ],
     [ "IOv2::ft_basic< timeio< CharT > >::era_entry", "structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html", null ],
-    [ "std::exception", null, [
-      [ "IOv2::eof_error", "structIOv2_1_1eof__error.html", null ]
-    ] ],
     [ "IOv2::ext_to_int_helper< TDevice, TCreator >", "structIOv2_1_1ext__to__int__helper.html", null ],
     [ "IOv2::facet_create_pack<... >", "structIOv2_1_1facet__create__pack.html", null ],
     [ "IOv2::facet_create_pack_head< T >", "structIOv2_1_1facet__create__pack__head.html", null ],
@@ -298,10 +295,12 @@ var hierarchy =
     [ "IOv2::runtime_cvt< TDevice, char_type >", "classIOv2_1_1runtime__cvt.html", null ],
     [ "IOv2::runtime_cvt< TDevice, TChar >", "classIOv2_1_1runtime__cvt.html", null ],
     [ "std::runtime_error", null, [
-      [ "IOv2::cvt_error", "structIOv2_1_1cvt__error.html", null ],
-      [ "IOv2::device_error", "structIOv2_1_1device__error.html", null ],
-      [ "IOv2::ios_defs::failure", "classIOv2_1_1ios__defs_1_1failure.html", null ],
-      [ "IOv2::stream_error", "structIOv2_1_1stream__error.html", null ]
+      [ "IOv2::io_error", "structIOv2_1_1io__error.html", [
+        [ "IOv2::cvt_error", "structIOv2_1_1cvt__error.html", null ],
+        [ "IOv2::device_error", "structIOv2_1_1device__error.html", null ],
+        [ "IOv2::eof_error", "structIOv2_1_1eof__error.html", null ],
+        [ "IOv2::stream_error", "structIOv2_1_1stream__error.html", null ]
+      ] ]
     ] ],
     [ "IOv2::sing_temp< T >", "classIOv2_1_1sing__temp.html", null ],
     [ "IOv2::sing_temp< __cerr >", "classIOv2_1_1sing__temp.html", [

@@ -18,9 +18,6 @@ var annotated_dup =
         [ "hash_cvt_creator", "structIOv2_1_1Crypt_1_1hash__cvt__creator.html", "structIOv2_1_1Crypt_1_1hash__cvt__creator" ],
         [ "set_hash_fmt", "structIOv2_1_1Crypt_1_1set__hash__fmt.html", "structIOv2_1_1Crypt_1_1set__hash__fmt" ]
       ] ],
-      [ "ios_defs", "namespaceIOv2_1_1ios__defs.html", [
-        [ "failure", "classIOv2_1_1ios__defs_1_1failure.html", "classIOv2_1_1ios__defs_1_1failure" ]
-      ] ],
       [ "__cerr", "classIOv2_1_1____cerr.html", null ],
       [ "__cin", "classIOv2_1_1____cin.html", null ],
       [ "__clog", "classIOv2_1_1____clog.html", null ],
@@ -91,7 +88,7 @@ var annotated_dup =
       [ "date_parse_helper", "structIOv2_1_1date__parse__helper.html", "structIOv2_1_1date__parse__helper" ],
       [ "date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4" ],
       [ "device_error", "structIOv2_1_1device__error.html", null ],
-      [ "eof_error", "structIOv2_1_1eof__error.html", null ],
+      [ "eof_error", "structIOv2_1_1eof__error.html", "structIOv2_1_1eof__error" ],
       [ "ext_to_int_helper", "structIOv2_1_1ext__to__int__helper.html", "structIOv2_1_1ext__to__int__helper" ],
       [ "facet_create_pack", "structIOv2_1_1facet__create__pack.html", null ],
       [ "facet_create_pack_head", "structIOv2_1_1facet__create__pack__head.html", null ],
@@ -103,6 +100,7 @@ var annotated_dup =
       [ "ft_basic< TFacet< CharT > >", "classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html", "classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4" ],
       [ "ft_basic< timeio< CharT > >", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4" ],
       [ "in_sentry", "structIOv2_1_1in__sentry.html", "structIOv2_1_1in__sentry" ],
+      [ "io_error", "structIOv2_1_1io__error.html", null ],
       [ "io_state_and_exp", "structIOv2_1_1io__state__and__exp.html", "structIOv2_1_1io__state__and__exp" ],
       [ "ios_base", "classIOv2_1_1ios__base.html", "classIOv2_1_1ios__base" ],
       [ "ios_base< void >", "classIOv2_1_1ios__base_3_01void_01_4.html", "classIOv2_1_1ios__base_3_01void_01_4" ],
