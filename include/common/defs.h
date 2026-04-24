@@ -34,6 +34,20 @@ namespace IOv2
 
     /**
      * @lang{ZH}
+     * IO 相关异常的基类。
+     * @endif
+     *
+     * @lang{EN}
+     * Base class for IO-related exceptions.
+     * @endif
+     */
+    struct io_error : std::runtime_error
+    {
+        using std::runtime_error::runtime_error;
+    };
+
+    /**
+     * @lang{ZH}
      * 设备相关错误的异常类。
      * @endif
      *
@@ -41,9 +55,9 @@ namespace IOv2
      * Exception class for device-related errors.
      * @endif
      */
-    struct device_error : std::runtime_error
+    struct device_error : io_error
     {
-        using std::runtime_error::runtime_error;
+        using io_error::io_error;
     };
 
     /**
@@ -55,9 +69,9 @@ namespace IOv2
      * Exception class for errors during conversion processes (e.g., code conversion, compression, encryption).
      * @endif
      */
-    struct cvt_error : std::runtime_error
+    struct cvt_error : io_error
     {
-        using std::runtime_error::runtime_error;
+        using io_error::io_error;
     };
 
     /**
@@ -69,9 +83,10 @@ namespace IOv2
      * Exception class for End-Of-File (EOF).
      * @endif
      */
-    struct eof_error : std::exception
+    struct eof_error : io_error
     {
-        using std::exception::exception;
+        eof_error() : io_error("end of file") {}
+        using io_error::io_error;
     };
 
     /**
@@ -83,8 +98,8 @@ namespace IOv2
      * Exception class for stream operation errors.
      * @endif
      */
-    struct stream_error : std::runtime_error
+    struct stream_error : io_error
     {
-        using std::runtime_error::runtime_error;
+        using io_error::io_error;
     };
 }
