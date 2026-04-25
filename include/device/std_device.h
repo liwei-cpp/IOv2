@@ -1,3 +1,15 @@
+/**
+ * @file std_device.h
+ * @lang{ZH}
+ * 定义了 `std_device` 类，用于封装标准 I/O 流（stdin, stdout, stderr）。
+ * 此设备提供了与标准输入、输出和错误流交互的统一接口。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the `std_device` class for wrapping standard I/O streams (stdin, stdout, stderr).
+ * This device provides a unified interface for interacting with standard input, output, and error streams.
+ * @endif
+ */
 #pragma once
 #include <common/defs.h>
 #include <device/device_concepts.h>
@@ -11,6 +23,27 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 封装标准 I/O 文件描述符的设备。
+ *
+ * 这个类模板通过文件描述符（`STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`）
+ * 来创建一个 I/O 设备。它为标准输入提供了非阻塞读取和 EOF 处理，
+ * 并为标准输出/错误提供了写入和刷新功能。
+ *
+ * @tparam ID 文件描述符。必须是 `STDIN_FILENO`、`STDOUT_FILENO` 或 `STDERR_FILENO` 之一。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief A device that encapsulates standard I/O file descriptors.
+ *
+ * This class template uses a file descriptor (`STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`)
+ * to create an I/O device. It provides non-blocking reads and EOF handling for standard input,
+ * and write/flush capabilities for standard output/error.
+ *
+ * @tparam ID The file descriptor. Must be one of `STDIN_FILENO`, `STDOUT_FILENO`, or `STDERR_FILENO`.
+ * @endif
+ */
 template <int ID>
     requires ((ID == STDIN_FILENO) || (ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
 class std_device
@@ -24,6 +57,15 @@ public:
     std_device(std_device&&) noexcept = default;
     std_device& operator=(std_device&&) noexcept = default;
 
+    /**
+     * @lang{ZH}
+     * @brief 析构函数，在销毁时刷新标准输出或标准错误流。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Destructor that flushes standard output or standard error upon destruction.
+     * @endif
+     */
     ~std_device()
     {
         if constexpr ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
@@ -36,12 +78,45 @@ public:
         }
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 检查标准输入流是否已到达文件末尾（EOF）。
+     * @return 如果已触发 EOF，则为 `true`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Checks if the standard input stream has reached the end-of-file (EOF).
+     * @return `true` if EOF has been triggered.
+     * @endif
+     */
     [[nodiscard]] bool deof() const
         requires (ID == STDIN_FILENO)
     {
         return m_eof_hit;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 从标准输入读取数据。
+     *
+     * 这是一个阻塞式读取操作，使用 `poll` 来等待数据可用，并能正确处理 `EINTR` 中断。
+     * @param s 存储数据的缓冲区。
+     * @param n 要读取的字节数。
+     * @return 实际读取的字节数。如果到达 EOF，则返回 0。
+     * @throw device_error 如果发生读取或轮询错误。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Reads data from standard input.
+     *
+     * This is a blocking read operation that uses `poll` to wait for data to become available
+     * and correctly handles `EINTR` interrupts.
+     * @param s The buffer to store the data.
+     * @param n The number of bytes to read.
+     * @return The number of bytes actually read. Returns 0 if EOF is reached.
+     * @throw device_error If a read or poll error occurs.
+     * @endif
+     */
     size_t dget(char* s, size_t n)
         requires (ID == STDIN_FILENO)
     {
@@ -83,6 +158,21 @@ public:
         return static_cast<size_t>(ret);
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 将数据写入标准输出或标准错误。
+     * @param ch 要写入的数据。
+     * @param n 要写入的字节数。
+     * @throw device_error 如果写入失败。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes data to standard output or standard error.
+     * @param ch The data to write.
+     * @param n The number of bytes to write.
+     * @throw device_error If the write fails.
+     * @endif
+     */
     void dput(const char* ch, size_t n)
         requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
     {
@@ -99,7 +189,18 @@ public:
         if (!put_res)
             throw device_error("std_device::dput fail: partial success.");
     }
-    
+
+    /**
+     * @lang{ZH}
+     * @brief 刷新标准输出或标准错误流。
+     * @throw device_error 如果刷新失败。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Flushes the standard output or standard error stream.
+     * @throw device_error If flushing fails.
+     * @endif
+     */
     void dflush()
         requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
     {
@@ -116,4 +217,27 @@ public:
 private:
     bool m_eof_hit = false;
 };
+
+/**
+ * @lang{ZH}
+ * @brief 标准输入设备的类型别名。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Type alias for the standard input device.
+ * @endif
+ */
+using std_input_device = std_device<STDIN_FILENO>;
+
+/**
+ * @lang{ZH}
+ * @brief 标准输出设备的类型别名。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Type alias for the standard output device.
+ * @endif
+ */
+using std_output_device = std_device<STDOUT_FILENO>;
+
 }
