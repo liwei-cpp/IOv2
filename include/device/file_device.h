@@ -156,7 +156,7 @@ public:
         const char* mode = fopen_mode(flags);
         m_file.reset(std::fopen(file_name.c_str(), mode));
         if (!m_file)
-            throw device_error("cannot open file \"" + file_name + "\": " + std::strerror(errno));
+            throw device_error("cannot open file \"" + file_name + "\" (errno=" + std::to_string(errno) + ")");
 
         if (fseek_64(m_file.get(), 0, SEEK_END) != 0)
             throw device_error("cannot get file length for \"" + file_name + "\"");
@@ -445,9 +445,9 @@ public:
         if (std::fwrite(ch, sizeof(CharType), n, m_file.get()) != n)
             throw device_error("file_device::dput fail: partial success.");
 
-        auto cur_pos = dtell();
-        if (cur_pos > m_file_len)
-            m_file_len = cur_pos;
+        auto res = ftell_64(m_file.get());
+        if (res >= 0 && static_cast<size_t>(res) > m_file_len)
+            m_file_len = static_cast<size_t>(res);
     }
 
     /**
