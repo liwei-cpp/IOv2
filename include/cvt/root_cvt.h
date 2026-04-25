@@ -336,22 +336,12 @@ public:
                 flush();
         }
 
-        if (m_bos_len == 0)
-        {
-            m_device.drseek(pos);
-            if (m_io_status == io_status::input)
-                m_buf_cur = m_buf_end;
-            return;
-        }
-
-        size_t cur_pos = m_device.dtell();
-        m_device.drseek(pos);
-        if (m_device.dtell() < m_bos_len)
-        {
-            m_device.dseek(cur_pos);
+        const size_t size_from_device = m_device.dsize();
+        assert(m_bos_len <= size_from_device);
+        if (size_from_device - m_bos_len < pos)
             throw cvt_error("root_cvt::rseek fails: out of boundary");
-        }
 
+        m_device.drseek(pos);
         if (m_io_status == io_status::input)
             m_buf_cur = m_buf_end;
     }
