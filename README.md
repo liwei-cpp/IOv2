@@ -1,5 +1,8 @@
 # IOv2: A Modern & Composable C++ I/O Framework
 
+[![C++ CI](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml/badge.svg)](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml)
+[![Docs](https://github.com/liwei-cpp/IOv2/actions/workflows/docs.yml/badge.svg)](https://github.com/liwei-cpp/IOv2/actions/workflows/docs.yml)
+
 [中文](#中文) | [English](#english)
 
 ---
