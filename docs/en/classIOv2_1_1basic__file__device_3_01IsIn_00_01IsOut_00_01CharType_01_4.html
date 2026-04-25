@@ -99,6 +99,9 @@ $(document).ready(function(){initNavTree('classIOv2_1_1basic__file__device_3_01I
 </div><!--header-->
 <div class="contents">
 
+<p>A file device template based on the C <code>FILE*</code>.  
+ <a href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="file__device_8h_source.html">file_device.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -109,8 +112,10 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a002a0b90443a9f59927e99f358714799" id="r_a002a0b90443a9f59927e99f358714799"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a002a0b90443a9f59927e99f358714799">basic_file_device</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="memdesc:a002a0b90443a9f59927e99f358714799"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor, creates a file device in a closed state. .  <br /></td></tr>
 <tr class="separator:a002a0b90443a9f59927e99f358714799"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4627c472f4567f464e234f2239476d96" id="r_a4627c472f4567f464e234f2239476d96"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a4627c472f4567f464e234f2239476d96">basic_file_device</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">file_name</a>, <a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1">file_open_flag</a> flags=<a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a334c4a4c42fdb79d7ebc3e73b517e6f8">file_open_flag::none</a>)</td></tr>
+<tr class="memdesc:a4627c472f4567f464e234f2239476d96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor that opens a file and prepares it for I/O operations.  <br /></td></tr>
 <tr class="separator:a4627c472f4567f464e234f2239476d96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21a0f0ab5c7faae4ce04608737f137dd" id="r_a21a0f0ab5c7faae4ce04608737f137dd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a21a0f0ab5c7faae4ce04608737f137dd">basic_file_device</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1basic__file__device.html">basic_file_device</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a21a0f0ab5c7faae4ce04608737f137dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -123,32 +128,47 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad700195c8cf34ca54ad599a9020d2539" id="r_ad700195c8cf34ca54ad599a9020d2539"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#ad700195c8cf34ca54ad599a9020d2539">~basic_file_device</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:ad700195c8cf34ca54ad599a9020d2539"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac705c35259bcd4a05b985037e392b3c0" id="r_ac705c35259bcd4a05b985037e392b3c0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#ac705c35259bcd4a05b985037e392b3c0">deof</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ac705c35259bcd4a05b985037e392b3c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the end of the file has been reached.  <br /></td></tr>
 <tr class="separator:ac705c35259bcd4a05b985037e392b3c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4d653742b994639088dab7cde512e21" id="r_ad4d653742b994639088dab7cde512e21"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#ad4d653742b994639088dab7cde512e21">is_open</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad4d653742b994639088dab7cde512e21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the file is successfully opened.  <br /></td></tr>
 <tr class="separator:ad4d653742b994639088dab7cde512e21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa03cb24d62899a80a66ea11b2869ea13" id="r_aa03cb24d62899a80a66ea11b2869ea13"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa03cb24d62899a80a66ea11b2869ea13">close</a> ()</td></tr>
+<tr class="memdesc:aa03cb24d62899a80a66ea11b2869ea13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Closes the file.  <br /></td></tr>
 <tr class="separator:aa03cb24d62899a80a66ea11b2869ea13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5419f7cc3d2d7741d0b78420344d21c5" id="r_a5419f7cc3d2d7741d0b78420344d21c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a5419f7cc3d2d7741d0b78420344d21c5">dget</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a5419f7cc3d2d7741d0b78420344d21c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads data from the device.  <br /></td></tr>
 <tr class="separator:a5419f7cc3d2d7741d0b78420344d21c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa10b45539afee6404979060cad77c2e0" id="r_aa10b45539afee6404979060cad77c2e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa10b45539afee6404979060cad77c2e0">dtell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aa10b45539afee6404979060cad77c2e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current position of the read/write pointer.  <br /></td></tr>
 <tr class="separator:aa10b45539afee6404979060cad77c2e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d35100d4afc9654a0b511d501901dde" id="r_a4d35100d4afc9654a0b511d501901dde"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a4d35100d4afc9654a0b511d501901dde">dsize</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a4d35100d4afc9654a0b511d501901dde"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the total size of the file.  <br /></td></tr>
 <tr class="separator:a4d35100d4afc9654a0b511d501901dde"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc8f92cde5b61710c22e827cc3234a95" id="r_acc8f92cde5b61710c22e827cc3234a95"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#acc8f92cde5b61710c22e827cc3234a95">dseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)</td></tr>
+<tr class="memdesc:acc8f92cde5b61710c22e827cc3234a95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the read/write pointer to a specified position.  <br /></td></tr>
 <tr class="separator:acc8f92cde5b61710c22e827cc3234a95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a419ea7141ae64050b3b4d354aede7b3b" id="r_a419ea7141ae64050b3b4d354aede7b3b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a419ea7141ae64050b3b4d354aede7b3b">drseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> offset)</td></tr>
+<tr class="memdesc:a419ea7141ae64050b3b4d354aede7b3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the read/write pointer forward from the end of the file.  <br /></td></tr>
 <tr class="separator:a419ea7141ae64050b3b4d354aede7b3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e933d4697667cb8a05227a091e4fbaf" id="r_a1e933d4697667cb8a05227a091e4fbaf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a1e933d4697667cb8a05227a091e4fbaf">dput</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a1e933d4697667cb8a05227a091e4fbaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes data to the device.  <br /></td></tr>
 <tr class="separator:a1e933d4697667cb8a05227a091e4fbaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4e7c5a2f890346e645105aa57319391" id="r_aa4e7c5a2f890346e645105aa57319391"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa4e7c5a2f890346e645105aa57319391">dflush</a> ()</td></tr>
+<tr class="memdesc:aa4e7c5a2f890346e645105aa57319391"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes the write buffer.  <br /></td></tr>
 <tr class="separator:aa4e7c5a2f890346e645105aa57319391"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:aa818f08290b8088e5f8dab7f80012308" id="r_aa818f08290b8088e5f8dab7f80012308"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> std::expected&lt; <a class="el" href="classIOv2_1_1basic__file__device.html">basic_file_device</a>, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa818f08290b8088e5f8dab7f80012308">try_open</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">file_name</a>, <a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1">file_open_flag</a> flags=<a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a334c4a4c42fdb79d7ebc3e73b517e6f8">file_open_flag::none</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:aa818f08290b8088e5f8dab7f80012308"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tries to open a file and returns the result as a <code>std::expected</code>.  <br /></td></tr>
 <tr class="separator:aa818f08290b8088e5f8dab7f80012308"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsOut, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a>&gt;<br />
+requires ((<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a> || <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a>) &amp;&amp; (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a>&gt;))<br />
+class IOv2::basic_file_device&lt; IsIn, IsOut, CharType &gt;</div><p>A file device template based on the C <code>FILE*</code>. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a49ba67316202a6c8658c68497ad3ea9b" name="a49ba67316202a6c8658c68497ad3ea9b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a49ba67316202a6c8658c68497ad3ea9b">&#9670;&#160;</a></span>char_type</h2>
 
@@ -191,6 +211,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Default constructor, creates a file device in a closed state. . </p>
+
 </div>
 </div>
 <a id="a4627c472f4567f464e234f2239476d96" name="a4627c472f4567f464e234f2239476d96"></a>
@@ -228,6 +250,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Constructor that opens a file and prepares it for I/O operations. </p>
 
 </div>
 </div>
@@ -340,6 +364,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Closes the file. </p>
+
 </div>
 </div>
 <a id="ac705c35259bcd4a05b985037e392b3c0" name="ac705c35259bcd4a05b985037e392b3c0"></a>
@@ -367,6 +393,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Checks if the end of the file has been reached. </p>
+
 </div>
 </div>
 <a id="aa4e7c5a2f890346e645105aa57319391" name="aa4e7c5a2f890346e645105aa57319391"></a>
@@ -393,6 +421,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Flushes the write buffer. </p>
 
 </div>
 </div>
@@ -432,6 +462,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Reads data from the device. </p>
+
 </div>
 </div>
 <a id="a1e933d4697667cb8a05227a091e4fbaf" name="a1e933d4697667cb8a05227a091e4fbaf"></a>
@@ -470,6 +502,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Writes data to the device. </p>
+
 </div>
 </div>
 <a id="a419ea7141ae64050b3b4d354aede7b3b" name="a419ea7141ae64050b3b4d354aede7b3b"></a>
@@ -497,6 +531,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Moves the read/write pointer forward from the end of the file. </p>
 
 </div>
 </div>
@@ -526,6 +562,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Moves the read/write pointer to a specified position. </p>
+
 </div>
 </div>
 <a id="a4d35100d4afc9654a0b511d501901dde" name="a4d35100d4afc9654a0b511d501901dde"></a>
@@ -552,6 +590,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Gets the total size of the file. </p>
 
 </div>
 </div>
@@ -580,6 +620,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Gets the current position of the read/write pointer. </p>
+
 </div>
 </div>
 <a id="ad4d653742b994639088dab7cde512e21" name="ad4d653742b994639088dab7cde512e21"></a>
@@ -606,6 +648,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Checks if the file is successfully opened. </p>
 
 </div>
 </div>
@@ -700,6 +744,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Tries to open a file and returns the result as a <code>std::expected</code>. </p>
 
 </div>
 </div>

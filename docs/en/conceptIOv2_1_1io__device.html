@@ -93,16 +93,21 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1io__device.html',''); i
 </div><!--header-->
 <div class="contents">
 
+<p>Unified concept for an I/O device.  
+<a href="conceptIOv2_1_1io__device.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="device__concepts_8h_source.html">device_concepts.h</a>&gt;</code></p>
 <h2 class="groupheader">Concept definition</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1io__device.html">IOv2::io_device</a> = </div>
 <div class="line">        <span class="keyword">requires</span>{ <span class="keyword">typename</span> T::char_type; } &amp;&amp;</div>
 <div class="line">        (<a class="code hl_concept" href="conceptIOv2_1_1dev__cpt_1_1support__put.html">dev_cpt::support_put&lt;T&gt;</a> || <a class="code hl_concept" href="conceptIOv2_1_1dev__cpt_1_1support__get.html">dev_cpt::support_get&lt;T&gt;</a>)</div>
-<div class="ttc" id="aconceptIOv2_1_1dev__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1dev__cpt_1_1support__get.html">IOv2::dev_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> device_concepts.h:27</div></div>
-<div class="ttc" id="aconceptIOv2_1_1dev__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1dev__cpt_1_1support__put.html">IOv2::dev_cpt::support_put</a></div><div class="ttdef"><b>Definition</b> device_concepts.h:20</div></div>
-<div class="ttc" id="aconceptIOv2_1_1io__device_html"><div class="ttname"><a href="conceptIOv2_1_1io__device.html">IOv2::io_device</a></div><div class="ttdef"><b>Definition</b> device_concepts.h:35</div></div>
-</div><!-- fragment --></div><!-- contents -->
+<div class="ttc" id="aconceptIOv2_1_1dev__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1dev__cpt_1_1support__get.html">IOv2::dev_cpt::support_get</a></div><div class="ttdoc">Concept for devices that support read operations.</div><div class="ttdef"><b>Definition</b> device_concepts.h:97</div></div>
+<div class="ttc" id="aconceptIOv2_1_1dev__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1dev__cpt_1_1support__put.html">IOv2::dev_cpt::support_put</a></div><div class="ttdoc">Concept for devices that support write operations.</div><div class="ttdef"><b>Definition</b> device_concepts.h:74</div></div>
+<div class="ttc" id="aconceptIOv2_1_1io__device_html"><div class="ttname"><a href="conceptIOv2_1_1io__device.html">IOv2::io_device</a></div><div class="ttdoc">Unified concept for an I/O device.</div><div class="ttdef"><b>Definition</b> device_concepts.h:122</div></div>
+</div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Unified concept for an I/O device. </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

@@ -97,6 +97,9 @@ $(document).ready(function(){initNavTree('classIOv2_1_1mem__device.html',''); in
 </div><!--header-->
 <div class="contents">
 
+<p>A device that performs I/O operations in memory.  
+ <a href="classIOv2_1_1mem__device.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="mem__device_8h_source.html">mem_device.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -107,6 +110,7 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a110ad91c5f6e872daf7e72f0bb13cc2c" id="r_a110ad91c5f6e872daf7e72f0bb13cc2c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a110ad91c5f6e872daf7e72f0bb13cc2c">mem_device</a> (std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">info</a>=std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;{})</td></tr>
+<tr class="memdesc:a110ad91c5f6e872daf7e72f0bb13cc2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor, optionally initializes the device from an existing <code>basic_string</code>.  <br /></td></tr>
 <tr class="separator:a110ad91c5f6e872daf7e72f0bb13cc2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a077cb6206124be5452bccf48e9a65317" id="r_a077cb6206124be5452bccf48e9a65317"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a077cb6206124be5452bccf48e9a65317">mem_device</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a077cb6206124be5452bccf48e9a65317"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -119,25 +123,37 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afae33ee5faee3ae4a8a8c8223eb4d0d5" id="r_afae33ee5faee3ae4a8a8c8223eb4d0d5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5">~mem_device</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:afae33ee5faee3ae4a8a8c8223eb4d0d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bb907180eef62a86da13cd91202144d" id="r_a3bb907180eef62a86da13cd91202144d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d">str</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a3bb907180eef62a86da13cd91202144d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a constant reference to the internal string.  <br /></td></tr>
 <tr class="separator:a3bb907180eef62a86da13cd91202144d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a12b14e593fb5d19db071b58103eff63f" id="r_a12b14e593fb5d19db071b58103eff63f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f">deof</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a12b14e593fb5d19db071b58103eff63f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the end of the memory buffer has been reached.  <br /></td></tr>
 <tr class="separator:a12b14e593fb5d19db071b58103eff63f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8905f39ee5cb0eda934f5e18c307d256" id="r_a8905f39ee5cb0eda934f5e18c307d256"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a8905f39ee5cb0eda934f5e18c307d256">dget</a> (<a class="el" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a8905f39ee5cb0eda934f5e18c307d256"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads data from the current position.  <br /></td></tr>
 <tr class="separator:a8905f39ee5cb0eda934f5e18c307d256"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa5234e7a489b586596901f49944ad15a" id="r_aa5234e7a489b586596901f49944ad15a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#aa5234e7a489b586596901f49944ad15a">dtell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aa5234e7a489b586596901f49944ad15a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the current read/write position.  <br /></td></tr>
 <tr class="separator:aa5234e7a489b586596901f49944ad15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa38796f17501dcb72ab4e6da005573d" id="r_afa38796f17501dcb72ab4e6da005573d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#afa38796f17501dcb72ab4e6da005573d">dsize</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:afa38796f17501dcb72ab4e6da005573d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the total size of the internal buffer.  <br /></td></tr>
 <tr class="separator:afa38796f17501dcb72ab4e6da005573d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a043bbc95c704665b9a47146117d5d09e" id="r_a043bbc95c704665b9a47146117d5d09e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a043bbc95c704665b9a47146117d5d09e">dseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)</td></tr>
+<tr class="memdesc:a043bbc95c704665b9a47146117d5d09e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the read/write pointer to an absolute position.  <br /></td></tr>
 <tr class="separator:a043bbc95c704665b9a47146117d5d09e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75fba6d207751486272febad22fd802d" id="r_a75fba6d207751486272febad22fd802d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a75fba6d207751486272febad22fd802d">drseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> offset)</td></tr>
+<tr class="memdesc:a75fba6d207751486272febad22fd802d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves the read/write pointer backwards from the end.  <br /></td></tr>
 <tr class="separator:a75fba6d207751486272febad22fd802d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb40d02acadb8ca860d3e81505b8cd93" id="r_aeb40d02acadb8ca860d3e81505b8cd93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#aeb40d02acadb8ca860d3e81505b8cd93">dput</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:aeb40d02acadb8ca860d3e81505b8cd93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes data at the current position.  <br /></td></tr>
 <tr class="separator:aeb40d02acadb8ca860d3e81505b8cd93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a192d0df35ccac5bd0df2ce9b596e2880" id="r_a192d0df35ccac5bd0df2ce9b596e2880"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a192d0df35ccac5bd0df2ce9b596e2880">dflush</a> ()</td></tr>
+<tr class="memdesc:a192d0df35ccac5bd0df2ce9b596e2880"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes the device. This is a no-op for a memory device. .  <br /></td></tr>
 <tr class="separator:a192d0df35ccac5bd0df2ce9b596e2880"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> = std::char_traits&lt;CharT&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> = std::allocator&lt;CharT&gt;&gt;<br />
+class IOv2::mem_device&lt; CharT, Traits, Allocator &gt;</div><p>A device that performs I/O operations in memory. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="af5fcd3b119b72b48bd54bfa09353a6d3" name="af5fcd3b119b72b48bd54bfa09353a6d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af5fcd3b119b72b48bd54bfa09353a6d3">&#9670;&#160;</a></span>char_type</h2>
 
@@ -180,6 +196,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Constructor, optionally initializes the device from an existing <code>basic_string</code>. </p>
 
 </div>
 </div>
@@ -292,6 +310,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Checks if the end of the memory buffer has been reached. </p>
+
 </div>
 </div>
 <a id="a192d0df35ccac5bd0df2ce9b596e2880" name="a192d0df35ccac5bd0df2ce9b596e2880"></a>
@@ -318,6 +338,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Flushes the device. This is a no-op for a memory device. . </p>
 
 </div>
 </div>
@@ -357,6 +379,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Reads data from the current position. </p>
+
 </div>
 </div>
 <a id="aeb40d02acadb8ca860d3e81505b8cd93" name="aeb40d02acadb8ca860d3e81505b8cd93"></a>
@@ -395,6 +419,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Writes data at the current position. </p>
+
 </div>
 </div>
 <a id="a75fba6d207751486272febad22fd802d" name="a75fba6d207751486272febad22fd802d"></a>
@@ -422,6 +448,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Moves the read/write pointer backwards from the end. </p>
 
 </div>
 </div>
@@ -451,6 +479,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Moves the read/write pointer to an absolute position. </p>
+
 </div>
 </div>
 <a id="afa38796f17501dcb72ab4e6da005573d" name="afa38796f17501dcb72ab4e6da005573d"></a>
@@ -478,6 +508,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Gets the total size of the internal buffer. </p>
+
 </div>
 </div>
 <a id="aa5234e7a489b586596901f49944ad15a" name="aa5234e7a489b586596901f49944ad15a"></a>
@@ -504,6 +536,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Gets the current read/write position. </p>
 
 </div>
 </div>
@@ -587,6 +621,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Gets a constant reference to the internal string. </p>
 
 </div>
 </div>

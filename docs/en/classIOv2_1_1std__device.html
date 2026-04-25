@@ -97,6 +97,9 @@ $(document).ready(function(){initNavTree('classIOv2_1_1std__device.html',''); in
 </div><!--header-->
 <div class="contents">
 
+<p>A device that encapsulates standard I/O file descriptors.  
+ <a href="classIOv2_1_1std__device.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="std__device_8h_source.html">std_device.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -117,17 +120,26 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acd9ca5e13e4d456cee8f590797a225be" id="r_acd9ca5e13e4d456cee8f590797a225be"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1std__device.html">std_device</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1std__device.html#acd9ca5e13e4d456cee8f590797a225be">operator=</a> (<a class="el" href="classIOv2_1_1std__device.html">std_device</a> &amp;&amp;) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:acd9ca5e13e4d456cee8f590797a225be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cc53231f91e408343bebd4a01f7f72f" id="r_a0cc53231f91e408343bebd4a01f7f72f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1std__device.html#a0cc53231f91e408343bebd4a01f7f72f">~std_device</a> ()</td></tr>
+<tr class="memdesc:a0cc53231f91e408343bebd4a01f7f72f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor that flushes standard output or standard error upon destruction. .  <br /></td></tr>
 <tr class="separator:a0cc53231f91e408343bebd4a01f7f72f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2cf2418ae59fce7ee27cc16f52b52f6b" id="r_a2cf2418ae59fce7ee27cc16f52b52f6b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1std__device.html#a2cf2418ae59fce7ee27cc16f52b52f6b">deof</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a2cf2418ae59fce7ee27cc16f52b52f6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the standard input stream has reached the end-of-file (EOF).  <br /></td></tr>
 <tr class="separator:a2cf2418ae59fce7ee27cc16f52b52f6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafa356f0924e3267a0e6aa834caac8cc" id="r_aafa356f0924e3267a0e6aa834caac8cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1std__device.html#aafa356f0924e3267a0e6aa834caac8cc">dget</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:aafa356f0924e3267a0e6aa834caac8cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads data from standard input.  <br /></td></tr>
 <tr class="separator:aafa356f0924e3267a0e6aa834caac8cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ee8984169104a16908d459b46a5bc24" id="r_a6ee8984169104a16908d459b46a5bc24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1std__device.html#a6ee8984169104a16908d459b46a5bc24">dput</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a6ee8984169104a16908d459b46a5bc24"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes data to standard output or standard error.  <br /></td></tr>
 <tr class="separator:a6ee8984169104a16908d459b46a5bc24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9bbe7aeeef021bf8b68e1a96368b45d2" id="r_a9bbe7aeeef021bf8b68e1a96368b45d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1std__device.html#a9bbe7aeeef021bf8b68e1a96368b45d2">dflush</a> ()</td></tr>
+<tr class="memdesc:a9bbe7aeeef021bf8b68e1a96368b45d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes the standard output or standard error stream.  <br /></td></tr>
 <tr class="separator:a9bbe7aeeef021bf8b68e1a96368b45d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a> ID&gt;<br />
+requires ((<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ID</a> == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">STDIN_FILENO</a>) || (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ID</a> == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">STDOUT_FILENO</a>) || (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ID</a> == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">STDERR_FILENO</a>))<br />
+class IOv2::std_device&lt; ID &gt;</div><p>A device that encapsulates standard I/O file descriptors. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a1f6ae5e8627e205de4c0e26bdb2df47d" name="a1f6ae5e8627e205de4c0e26bdb2df47d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1f6ae5e8627e205de4c0e26bdb2df47d">&#9670;&#160;</a></span>char_type</h2>
 
@@ -253,6 +265,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Destructor that flushes standard output or standard error upon destruction. . </p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -281,6 +295,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Checks if the standard input stream has reached the end-of-file (EOF). </p>
+
 </div>
 </div>
 <a id="a9bbe7aeeef021bf8b68e1a96368b45d2" name="a9bbe7aeeef021bf8b68e1a96368b45d2"></a>
@@ -307,6 +323,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Flushes the standard output or standard error stream. </p>
 
 </div>
 </div>
@@ -346,6 +364,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Reads data from standard input. </p>
+
 </div>
 </div>
 <a id="a6ee8984169104a16908d459b46a5bc24" name="a6ee8984169104a16908d459b46a5bc24"></a>
@@ -383,6 +403,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Writes data to standard output or standard error. </p>
 
 </div>
 </div>

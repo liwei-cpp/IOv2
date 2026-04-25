@@ -99,6 +99,9 @@ $(document).ready(function(){initNavTree('classIOv2_1_1basic__file__device_3_01I
 </div><!--header-->
 <div class="contents">
 
+<p>基于 C <code>FILE*</code> 的文件设备模板。  
+ <a href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#details">更多...</a></p>
+
 <p><code>#include &lt;<a class="el" href="file__device_8h_source.html">file_device.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -109,8 +112,10 @@ Public 类型</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
 <tr class="memitem:a002a0b90443a9f59927e99f358714799" id="r_a002a0b90443a9f59927e99f358714799"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a002a0b90443a9f59927e99f358714799">basic_file_device</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="memdesc:a002a0b90443a9f59927e99f358714799"><td class="mdescLeft">&#160;</td><td class="mdescRight">默认构造函数，创建一个关闭状态的文件设备。  <br /></td></tr>
 <tr class="separator:a002a0b90443a9f59927e99f358714799"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4627c472f4567f464e234f2239476d96" id="r_a4627c472f4567f464e234f2239476d96"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a4627c472f4567f464e234f2239476d96">basic_file_device</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">file_name</a>, <a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1">file_open_flag</a> flags=<a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a334c4a4c42fdb79d7ebc3e73b517e6f8">file_open_flag::none</a>)</td></tr>
+<tr class="memdesc:a4627c472f4567f464e234f2239476d96"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，打开一个文件并准备 I/O 操作。  <br /></td></tr>
 <tr class="separator:a4627c472f4567f464e234f2239476d96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21a0f0ab5c7faae4ce04608737f137dd" id="r_a21a0f0ab5c7faae4ce04608737f137dd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a21a0f0ab5c7faae4ce04608737f137dd">basic_file_device</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1basic__file__device.html">basic_file_device</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a21a0f0ab5c7faae4ce04608737f137dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -123,32 +128,47 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:ad700195c8cf34ca54ad599a9020d2539" id="r_ad700195c8cf34ca54ad599a9020d2539"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#ad700195c8cf34ca54ad599a9020d2539">~basic_file_device</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:ad700195c8cf34ca54ad599a9020d2539"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac705c35259bcd4a05b985037e392b3c0" id="r_ac705c35259bcd4a05b985037e392b3c0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#ac705c35259bcd4a05b985037e392b3c0">deof</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ac705c35259bcd4a05b985037e392b3c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">检查是否已到达文件末尾。  <br /></td></tr>
 <tr class="separator:ac705c35259bcd4a05b985037e392b3c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4d653742b994639088dab7cde512e21" id="r_ad4d653742b994639088dab7cde512e21"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#ad4d653742b994639088dab7cde512e21">is_open</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad4d653742b994639088dab7cde512e21"><td class="mdescLeft">&#160;</td><td class="mdescRight">检查文件是否已成功打开。  <br /></td></tr>
 <tr class="separator:ad4d653742b994639088dab7cde512e21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa03cb24d62899a80a66ea11b2869ea13" id="r_aa03cb24d62899a80a66ea11b2869ea13"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa03cb24d62899a80a66ea11b2869ea13">close</a> ()</td></tr>
+<tr class="memdesc:aa03cb24d62899a80a66ea11b2869ea13"><td class="mdescLeft">&#160;</td><td class="mdescRight">关闭文件。  <br /></td></tr>
 <tr class="separator:aa03cb24d62899a80a66ea11b2869ea13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5419f7cc3d2d7741d0b78420344d21c5" id="r_a5419f7cc3d2d7741d0b78420344d21c5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a5419f7cc3d2d7741d0b78420344d21c5">dget</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a5419f7cc3d2d7741d0b78420344d21c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">从设备读取数据。  <br /></td></tr>
 <tr class="separator:a5419f7cc3d2d7741d0b78420344d21c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa10b45539afee6404979060cad77c2e0" id="r_aa10b45539afee6404979060cad77c2e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa10b45539afee6404979060cad77c2e0">dtell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aa10b45539afee6404979060cad77c2e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取当前读/写指针的位置。  <br /></td></tr>
 <tr class="separator:aa10b45539afee6404979060cad77c2e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d35100d4afc9654a0b511d501901dde" id="r_a4d35100d4afc9654a0b511d501901dde"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a4d35100d4afc9654a0b511d501901dde">dsize</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a4d35100d4afc9654a0b511d501901dde"><td class="mdescLeft">&#160;</td><td class="mdescRight">获取文件的总大小。  <br /></td></tr>
 <tr class="separator:a4d35100d4afc9654a0b511d501901dde"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc8f92cde5b61710c22e827cc3234a95" id="r_acc8f92cde5b61710c22e827cc3234a95"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#acc8f92cde5b61710c22e827cc3234a95">dseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)</td></tr>
+<tr class="memdesc:acc8f92cde5b61710c22e827cc3234a95"><td class="mdescLeft">&#160;</td><td class="mdescRight">将读/写指针移动到指定位置。  <br /></td></tr>
 <tr class="separator:acc8f92cde5b61710c22e827cc3234a95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a419ea7141ae64050b3b4d354aede7b3b" id="r_a419ea7141ae64050b3b4d354aede7b3b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a419ea7141ae64050b3b4d354aede7b3b">drseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> offset)</td></tr>
+<tr class="memdesc:a419ea7141ae64050b3b4d354aede7b3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">将读/写指针从文件末尾向前移动。  <br /></td></tr>
 <tr class="separator:a419ea7141ae64050b3b4d354aede7b3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e933d4697667cb8a05227a091e4fbaf" id="r_a1e933d4697667cb8a05227a091e4fbaf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a1e933d4697667cb8a05227a091e4fbaf">dput</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a1e933d4697667cb8a05227a091e4fbaf"><td class="mdescLeft">&#160;</td><td class="mdescRight">将数据写入设备。  <br /></td></tr>
 <tr class="separator:a1e933d4697667cb8a05227a091e4fbaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4e7c5a2f890346e645105aa57319391" id="r_aa4e7c5a2f890346e645105aa57319391"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa4e7c5a2f890346e645105aa57319391">dflush</a> ()</td></tr>
+<tr class="memdesc:aa4e7c5a2f890346e645105aa57319391"><td class="mdescLeft">&#160;</td><td class="mdescRight">刷新写入缓冲区。  <br /></td></tr>
 <tr class="separator:aa4e7c5a2f890346e645105aa57319391"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 静态 Public 成员函数</h2></td></tr>
 <tr class="memitem:aa818f08290b8088e5f8dab7f80012308" id="r_aa818f08290b8088e5f8dab7f80012308"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> std::expected&lt; <a class="el" href="classIOv2_1_1basic__file__device.html">basic_file_device</a>, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#aa818f08290b8088e5f8dab7f80012308">try_open</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">file_name</a>, <a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1">file_open_flag</a> flags=<a class="el" href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a334c4a4c42fdb79d7ebc3e73b517e6f8">file_open_flag::none</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:aa818f08290b8088e5f8dab7f80012308"><td class="mdescLeft">&#160;</td><td class="mdescRight">尝试打开一个文件，并以 <code>std::expected</code> 返回结果。  <br /></td></tr>
 <tr class="separator:aa818f08290b8088e5f8dab7f80012308"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsOut, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a>&gt;<br />
+requires ((<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a> || <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a>) &amp;&amp; (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a>&gt;))<br />
+class IOv2::basic_file_device&lt; IsIn, IsOut, CharType &gt;</div><p>基于 C <code>FILE*</code> 的文件设备模板。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a49ba67316202a6c8658c68497ad3ea9b" name="a49ba67316202a6c8658c68497ad3ea9b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a49ba67316202a6c8658c68497ad3ea9b">&#9670;&#160;</a></span>char_type</h2>
 
@@ -191,6 +211,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>默认构造函数，创建一个关闭状态的文件设备。 </p>
+
 </div>
 </div>
 <a id="a4627c472f4567f464e234f2239476d96" name="a4627c472f4567f464e234f2239476d96"></a>
@@ -228,6 +250,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>构造函数，打开一个文件并准备 I/O 操作。 </p>
 
 </div>
 </div>
@@ -340,6 +364,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>关闭文件。 </p>
+
 </div>
 </div>
 <a id="ac705c35259bcd4a05b985037e392b3c0" name="ac705c35259bcd4a05b985037e392b3c0"></a>
@@ -367,6 +393,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>检查是否已到达文件末尾。 </p>
+
 </div>
 </div>
 <a id="aa4e7c5a2f890346e645105aa57319391" name="aa4e7c5a2f890346e645105aa57319391"></a>
@@ -393,6 +421,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>刷新写入缓冲区。 </p>
 
 </div>
 </div>
@@ -432,6 +462,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>从设备读取数据。 </p>
+
 </div>
 </div>
 <a id="a1e933d4697667cb8a05227a091e4fbaf" name="a1e933d4697667cb8a05227a091e4fbaf"></a>
@@ -470,6 +502,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>将数据写入设备。 </p>
+
 </div>
 </div>
 <a id="a419ea7141ae64050b3b4d354aede7b3b" name="a419ea7141ae64050b3b4d354aede7b3b"></a>
@@ -497,6 +531,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>将读/写指针从文件末尾向前移动。 </p>
 
 </div>
 </div>
@@ -526,6 +562,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>将读/写指针移动到指定位置。 </p>
+
 </div>
 </div>
 <a id="a4d35100d4afc9654a0b511d501901dde" name="a4d35100d4afc9654a0b511d501901dde"></a>
@@ -552,6 +590,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>获取文件的总大小。 </p>
 
 </div>
 </div>
@@ -580,6 +620,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>获取当前读/写指针的位置。 </p>
+
 </div>
 </div>
 <a id="ad4d653742b994639088dab7cde512e21" name="ad4d653742b994639088dab7cde512e21"></a>
@@ -606,6 +648,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>检查文件是否已成功打开。 </p>
 
 </div>
 </div>
@@ -700,6 +744,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>尝试打开一个文件，并以 <code>std::expected</code> 返回结果。 </p>
 
 </div>
 </div>
