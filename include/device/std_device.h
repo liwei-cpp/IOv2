@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <cerrno>
+#include <limits>
 #include <poll.h>
 #include <stdexcept>
 #include <unistd.h>
@@ -48,10 +49,11 @@ public:
             throw device_error("std_device::dget fail: null buffer");
         if (n == 0 || m_eof_hit) return 0;
 
+        constexpr size_t max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
         ssize_t ret = 0;
         while (true)
         {
-            ret = read(ID, s, n);
+            ret = read(ID, s, std::min(n, max_read));
             if (ret != -1) break;
 
             if (errno == EINTR) continue;
@@ -62,6 +64,13 @@ public:
                 {
                     if (errno == EINTR) continue;
                     throw device_error("std_device::dget fail: poll error");
+                }
+                if (pfd.revents & (POLLERR | POLLNVAL))
+                    throw device_error("std_device::dget fail: poll revents error");
+                if (pfd.revents & POLLHUP)
+                {
+                    m_eof_hit = true;
+                    return 0;
                 }
                 continue;
             }
