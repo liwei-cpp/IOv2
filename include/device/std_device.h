@@ -31,6 +31,9 @@ namespace IOv2
  * 来创建一个 I/O 设备。它为标准输入提供了非阻塞读取和 EOF 处理，
  * 并为标准输出/错误提供了写入和刷新功能。
  *
+ * @note 目前仅支持 Linux 系统。
+ * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
+ *
  * @warning 对于 stdin，此类使用底层的 POSIX `read()`，它会绕过 stdio 缓冲。
  * 请勿在 stdin 上将 `std_input_device` 与 C stdio 函数（`scanf`, `fgets`, `getchar` 等）
  * 混合使用，因为由于缓冲不一致，这可能会导致数据丢失或意外行为。
@@ -44,6 +47,9 @@ namespace IOv2
  * This class template uses a file descriptor (`STDIN_FILENO`, `STDOUT_FILENO`, `STDERR_FILENO`)
  * to create an I/O device. It provides non-blocking reads and EOF handling for standard input,
  * and write/flush capabilities for standard output/error.
+ *
+ * @note Currently, only Linux is supported.
+ * @note This class is not thread-safe; multi-threading is handled at a higher level.
  *
  * @warning For stdin, this class uses low-level POSIX read() which bypasses
  * stdio buffering. Do NOT mix usage of std_input_device with C stdio functions

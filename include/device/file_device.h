@@ -78,6 +78,9 @@ class basic_file_device;
  * 封装了 C 标准 I/O 库，提供了一个 RAII 风格的接口来管理文件。
  * 它可以通过模板参数配置为只读、只写或读写模式。
  *
+ * @note 目前仅支持 Linux 系统。
+ * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
+ *
  * @tparam IsIn 指定设备是否支持输入（读取）。
  * @tparam IsOut 指定设备是否支持输出（写入）。
  * @tparam CharType 字符类型，当前支持 `char` 和 `char8_t`。
@@ -88,6 +91,9 @@ class basic_file_device;
  *
  * This class wraps the C standard I/O library, providing an RAII-style interface for managing files.
  * It can be configured as read-only, write-only, or read-write via template parameters.
+ *
+ * @note Currently, only Linux is supported.
+ * @note This class is not thread-safe; multi-threading is handled at a higher level.
  *
  * @tparam IsIn Specifies if the device supports input (reading).
  * @tparam IsOut Specifies if the device supports output (writing).
@@ -453,6 +459,8 @@ public:
             if (static_cast<size_t>(res) > m_file_len)
                 m_file_len = static_cast<size_t>(res);
         }
+        else
+            throw device_error("file_device::dput fail: cannot determine file position");
 
         if (written != n)
             throw device_error("file_device::dput fail: partial success.");

@@ -16,6 +16,7 @@
 #include <common/defs.h>
 #include <device/device_concepts.h>
 
+#include <cassert>
 #include <cstring>
 #include <functional>
 #include <iterator>
@@ -32,6 +33,9 @@ namespace IOv2
  * `mem_device` 将 `std::basic_string` 封装成一个满足 `io_device` 概念的设备。
  * 它支持对内部字符串缓冲区的读、写和寻址操作，是实现 `stringstream` 功能的基础。
  *
+ * @note 目前仅支持 Linux 系统。
+ * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
+ *
  * @tparam CharT 字符类型。
  * @tparam Traits 字符类型的特性，默认为 `std::char_traits<CharT>`。
  * @tparam Allocator 内存分配器，默认为 `std::allocator<CharT>`。
@@ -44,6 +48,9 @@ namespace IOv2
  * It supports reading, writing, and seeking within its internal string buffer, forming the
  * basis for implementing features like `stringstream`.
  *
+ * @note Currently, only Linux is supported.
+ * @note This class is not thread-safe; multi-threading is handled at a higher level.
+ *
  * @tparam CharT The character type.
  * @tparam Traits The character traits, defaulting to `std::char_traits<CharT>`.
  * @tparam Allocator The memory allocator, defaulting to `std::allocator<CharT>`.
@@ -52,6 +59,7 @@ namespace IOv2
 template <class CharT,
           class Traits = std::char_traits<CharT>,
           class Allocator = std::allocator<CharT>>
+    requires std::is_trivially_copyable_v<CharT>
 class mem_device
 {
 public:
@@ -129,6 +137,7 @@ public:
         if (n == 0) return 0;
         if (s == nullptr && n > 0)
             throw device_error("mem_device::dget fail: null buffer");
+        assert(m_next_pos <= m_str.size());
 
         std::size_t res = std::min(m_str.size() - m_next_pos, n);
         std::memmove(s, m_str.data() + m_next_pos, res * sizeof(char_type));
