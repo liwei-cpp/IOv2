@@ -16,6 +16,8 @@
 #include <common/defs.h>
 #include <device/device_concepts.h>
 
+#include <cstring>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -124,12 +126,12 @@ public:
      */
     size_t dget(char_type* s, size_t n)
     {
+        if (n == 0) return 0;
         if (s == nullptr && n > 0)
             throw device_error("mem_device::dget fail: null buffer");
-        if (n == 0) return 0;
 
         std::size_t res = std::min(m_str.size() - m_next_pos, n);
-        std::copy(m_str.data() + m_next_pos, m_str.data() + m_next_pos + res, s);
+        std::memmove(s, m_str.data() + m_next_pos, res * sizeof(char_type));
         m_next_pos += res;
         return res;
     }
@@ -211,22 +213,38 @@ public:
      * @brief 向当前位置写入数据。
      *
      * 如果写入操作超出当前字符串大小，字符串会自动增长。
+     *
+     * @warning `ch` 不能指向设备的内部缓冲区（即 `str()` 返回的存储区域）。
+     * 在需要扩容的写入路径上，扩容可能使指向内部缓冲区的指针失效，因此一旦
+     * 检测到 `[ch, ch + n)` 与内部缓冲区重叠，就会抛出 `device_error`。
+     * 如果调用者需要从设备自身的数据进行写入，请先复制到独立缓冲区。
+     *
      * @param ch 要写入的数据。
      * @param n 要写入的字符数。
-     * @throw device_error 如果大小溢出。
+     * @throw device_error 当 `ch` 为 `nullptr` 且 `n > 0`、大小溢出，
+     * 或在扩容路径上 `ch` 与内部缓冲区别名时抛出。
      * @endif
      *
      * @lang{EN}
      * @brief Writes data at the current position.
      *
      * The string grows automatically if the write operation exceeds the current string size.
+     *
+     * @warning `ch` must not point into the device's internal buffer (the storage
+     * exposed via `str()`). On the grow path, growth may invalidate pointers into
+     * the internal buffer, so if `[ch, ch + n)` is detected to overlap the internal
+     * buffer the function throws `device_error`. Callers that need to write from
+     * the device's own data must copy it into an independent buffer first.
+     *
      * @param ch The data to write.
      * @param n The number of characters to write.
-     * @throw device_error If the size overflows.
+     * @throw device_error When `ch` is `nullptr` and `n > 0`, when the size overflows,
+     * or when `ch` aliases the internal buffer on the grow path.
      * @endif
      */
     void dput(const char_type* ch, size_t n)
     {
+        if (n == 0) return;
         if (ch == nullptr && n > 0)
             throw device_error("mem_device::dput fail: null buffer");
 
@@ -235,12 +253,22 @@ public:
 
         if (m_next_pos + n > m_str.size())
         {
+            // Reserve below may reallocate m_str's storage and invalidate any
+            // pointer that lives inside it. Reject aliased input up-front rather
+            // than risk a use-after-free. std::less is used because comparing
+            // unrelated pointers with raw `<` is unspecified.
+            const std::less<const char_type*> ptr_less;
+            const char_type* buf_beg = m_str.data();
+            const char_type* buf_end = buf_beg + m_str.capacity();
+            if (ptr_less(ch, buf_end) && ptr_less(buf_beg, ch + n))
+                throw device_error("mem_device::dput fail: ch aliases internal buffer");
+
             m_str.erase(m_str.begin() + m_next_pos, m_str.end());
             m_str.reserve(m_next_pos + n);
-            std::copy(ch, ch + n, std::back_inserter(m_str));
+            m_str.append(ch, n);
         }
         else
-            std::copy(ch, ch + n, m_str.data() + m_next_pos);
+            std::memmove(m_str.data() + m_next_pos, ch, n * sizeof(char_type));
         m_next_pos += n;
     }
 

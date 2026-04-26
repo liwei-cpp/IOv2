@@ -55,6 +55,7 @@ void test_std_device_gen_1();
 void test_std_device_input_1();
 void test_std_device_output_1();
 void test_std_device_output_2();
+void test_std_device_edge_cases();
 
 void test_file_device_char_gen_1();
 void test_file_device_char_close_1();
@@ -72,6 +73,7 @@ void test_file_device_char_seek_5();
 void test_file_device_char_seek_6();
 void test_file_device_char_seek_7();
 void test_file_device_char_seek_8();
+void test_file_device_char_edge_cases();
 void test_file_device_char_error_1();
 
 void test_file_device_char8_t_gen_1();
@@ -149,6 +151,7 @@ int main()
         test_std_device_input_1();
         test_std_device_output_1();
         test_std_device_output_2();
+        test_std_device_edge_cases();
 
         test_file_device_char_gen_1();
         test_file_device_char_close_1();
@@ -166,6 +169,7 @@ int main()
         test_file_device_char_seek_6();
         test_file_device_char_seek_7();
         test_file_device_char_seek_8();
+        test_file_device_char_edge_cases();
         test_file_device_char_error_1();
 
         test_file_device_char8_t_gen_1();

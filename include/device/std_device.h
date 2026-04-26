@@ -129,9 +129,9 @@ public:
     size_t dget(char* s, size_t n)
         requires (ID == STDIN_FILENO)
     {
+        if (n == 0 || m_eof_hit) return 0;
         if (s == nullptr && n > 0)
             throw device_error("std_device::dget fail: null buffer");
-        if (n == 0 || m_eof_hit) return 0;
 
         constexpr size_t max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
         ssize_t ret = 0;
@@ -151,11 +151,9 @@ public:
                 }
                 if (pfd.revents & (POLLERR | POLLNVAL))
                     throw device_error("std_device::dget fail: poll revents error");
-                if (pfd.revents & POLLHUP)
-                {
-                    m_eof_hit = true;
-                    return 0;
-                }
+                // POLLHUP is intentionally not treated as EOF: the peer may have
+                // closed while bytes remain buffered. Re-issue read(); it returns 0
+                // only when both the buffer is drained and the peer is gone.
                 continue;
             }
             throw device_error("std_device::dget fail: read error");
@@ -185,9 +183,9 @@ public:
     void dput(const char* ch, size_t n)
         requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
     {
+        if (n == 0) return;
         if (ch == nullptr && n > 0)
             throw device_error("std_device::dput fail: null buffer");
-        if (n == 0) return;
 
         bool put_res = false;
         if constexpr (ID == STDOUT_FILENO)
