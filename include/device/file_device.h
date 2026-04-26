@@ -313,9 +313,9 @@ public:
     size_t dget(CharType* s, size_t n)
         requires (IsIn)
     {
+        if (n == 0) return 0;
         if (s == nullptr && n > 0)
             throw device_error("file_device::dget fail: null buffer");
-        if (n == 0) return 0;
 
         if (!is_open()) return 0;
         size_t count = std::fread(s, sizeof(CharType), n, m_file.get());
@@ -438,11 +438,11 @@ public:
     void dput(const CharType* ch, size_t n)
         requires (IsOut)
     {
+        if (n == 0) return;
         if (ch == nullptr && n > 0)
             throw device_error("file_device::dput fail: null buffer");
         if (!is_open())
             throw device_error("file_device::dput fail: file closed.");
-        if (n == 0) return;
         size_t written = std::fwrite(ch, sizeof(CharType), n, m_file.get());
 
         auto res = ftell_64(m_file.get());

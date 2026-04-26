@@ -4,6 +4,7 @@
 
 #include <common/dump_info.h>
 #include <common/stdio_guard.h>
+#include <common/verify.h>
 
 void test_std_device_gen_1()
 {
@@ -124,6 +125,36 @@ void test_std_device_output_2()
         obj.dflush();
         obj.dput("bcdef", 5);
         if (g.contents() != "abcdef") throw std::runtime_error("std_device::put fails");
+    }
+
+    dump_info("Done\n");
+}
+void test_std_device_edge_cases()
+{
+    using namespace IOv2;
+
+    dump_info("Test std_device edge cases...");
+
+    {
+        std_output_device obj;
+        // Test dput(nullptr, 0)
+        obj.dput(nullptr, 0);
+    }
+
+    {
+        std_input_device obj;
+        // Test dget(nullptr, 0)
+        char ch;
+        iguard g("abc");
+        VERIFY(obj.dget(nullptr, 0) == 0);
+        
+        // Test dget(nullptr, 1) should throw
+        try {
+            obj.dget(nullptr, 1);
+            throw std::runtime_error("std_device::dget(nullptr, 1) should throw");
+        } catch (const device_error&) {}
+
+        VERIFY(obj.dget(&ch, 1) == 1 && ch == 'a');
     }
 
     dump_info("Done\n");
