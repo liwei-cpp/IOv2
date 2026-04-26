@@ -163,9 +163,9 @@ public:
                     m_eof_hit = true;
                     return 0;
                 }
-                continue;
             }
-            throw device_error("std_device::dget fail: read error");
+            else
+                throw device_error("std_device::dget fail: read error");
         }
 
         if (ret == 0)
