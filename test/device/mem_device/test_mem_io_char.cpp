@@ -477,3 +477,30 @@ void test_mem_device_char_io_2()
 
     dump_info("Done\n");
 }
+
+void test_mem_device_char_dput_alias_growth()
+{
+    dump_info("Test mem_device<char> dput alias growth...");
+    {
+        // 1. Initialize data
+        std::string initial_data = "OriginalData";
+        IOv2::mem_device<char> obj(initial_data);
+        
+        // 2. Setup aliasing: ch points into the internal buffer
+        // We want to write "Original" (first 8 chars) to the end.
+        // The current size is 12, seeking to the end.
+        obj.dseek(obj.dsize());
+        const char* alias_ptr = obj.str().data(); // Points to "OriginalData"
+        
+        // 3. Perform put, which triggers growth (m_next_pos + 8 > m_str.size())
+        // Your fix ensures this is safe by using a temporary buffer.
+        obj.dput(alias_ptr, 8); 
+        
+        // 4. Verify results
+        if (obj.str() != "OriginalDataOriginal") 
+            throw std::runtime_error("mem_device<char> dput alias growth fail: content mismatch");
+        if (obj.dtell() != 20) 
+            throw std::runtime_error("mem_device<char> dput alias growth fail: position mismatch");
+    }
+    dump_info("Done\n");
+}

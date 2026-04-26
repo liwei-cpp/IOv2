@@ -33,7 +33,6 @@ namespace IOv2
  * `mem_device` 将 `std::basic_string` 封装成一个满足 `io_device` 概念的设备。
  * 它支持对内部字符串缓冲区的读、写和寻址操作，是实现 `stringstream` 功能的基础。
  *
- * @note 目前仅支持 Linux 系统。
  * @note 此类不是线程安全的，多线程并发由更高层次的代码处理。
  *
  * @tparam CharT 字符类型。
@@ -239,12 +238,6 @@ public:
      *
      * The string grows automatically if the write operation exceeds the current string size.
      *
-     * @warning `ch` must not point into the device's internal buffer (the storage
-     * exposed via `str()`). On the grow path, growth may invalidate pointers into
-     * the internal buffer, so if `[ch, ch + n)` is detected to overlap the internal
-     * buffer the function throws `device_error`. Callers that need to write from
-     * the device's own data must copy it into an independent buffer first.
-     *
      * @param ch The data to write.
      * @param n The number of characters to write.
      * @throw device_error When `ch` is `nullptr` and `n > 0`, when the size overflows,
@@ -262,19 +255,23 @@ public:
 
         if (m_next_pos + n > m_str.size())
         {
-            // Reserve below may reallocate m_str's storage and invalidate any
-            // pointer that lives inside it. Reject aliased input up-front rather
-            // than risk a use-after-free. std::less is used because comparing
-            // unrelated pointers with raw `<` is unspecified.
             const std::less<const char_type*> ptr_less;
             const char_type* buf_beg = m_str.data();
             const char_type* buf_end = buf_beg + m_str.capacity();
-            if (ptr_less(ch, buf_end) && ptr_less(buf_beg, ch + n))
-                throw device_error("mem_device::dput fail: ch aliases internal buffer");
 
-            m_str.erase(m_str.begin() + m_next_pos, m_str.end());
-            m_str.reserve(m_next_pos + n);
-            m_str.append(ch, n);
+            if (ptr_less(ch, buf_end) && ptr_less(buf_beg, ch + n))
+            {
+                std::basic_string<char_type> tmp(ch, n);
+                m_str.erase(m_str.begin() + m_next_pos, m_str.end());
+                m_str.reserve(m_next_pos + n);
+                m_str.append(tmp);
+            }
+            else
+            {
+                m_str.erase(m_str.begin() + m_next_pos, m_str.end());
+                m_str.reserve(m_next_pos + n);
+                m_str.append(ch, n);
+            }
         }
         else
             std::memmove(m_str.data() + m_next_pos, ch, n * sizeof(char_type));
