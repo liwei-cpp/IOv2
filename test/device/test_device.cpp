@@ -14,6 +14,7 @@ void test_mem_device_char_out_2();
 void test_mem_device_char_out_3();
 void test_mem_device_char_io_1();
 void test_mem_device_char_io_2();
+void test_mem_device_char_dput_alias_growth();
 
 void test_mem_device_wchar_t_gen_1();
 void test_mem_device_wchar_t_gen_2();
@@ -110,6 +111,7 @@ int main()
         test_mem_device_char_out_3();
         test_mem_device_char_io_1();
         test_mem_device_char_io_2();
+        test_mem_device_char_dput_alias_growth();
 
         test_mem_device_wchar_t_gen_1();
         test_mem_device_wchar_t_gen_2();
