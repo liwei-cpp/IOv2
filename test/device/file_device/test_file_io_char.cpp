@@ -586,6 +586,41 @@ void test_file_device_char_seek_8()
     dump_info("Done\n");
 }
 
+void test_file_device_char_edge_cases()
+{
+    using namespace IOv2;
+
+    dump_info("Test file_device<char> edge cases...");
+
+    const char name[] = "edge_cases.txt";
+    file_guard g(name);
+
+    {
+        basic_file_device<true, true, char> fb(name, file_open_flag::trunc);
+        
+        // Test dput(nullptr, 0)
+        fb.dput(nullptr, 0);
+        VERIFY(fb.dsize() == 0);
+
+        // Test dget(nullptr, 0)
+        char ch;
+        VERIFY(fb.dget(nullptr, 0) == 0);
+        
+        // Test dget(nullptr, 1) should throw
+        try {
+            fb.dget(nullptr, 1);
+            throw std::runtime_error("file_device::dget(nullptr, 1) should throw");
+        } catch (const device_error&) {}
+
+        fb.dput("abc", 3);
+        fb.dseek(0);
+        VERIFY(fb.dget(nullptr, 0) == 0);
+        VERIFY(fb.dget(&ch, 1) == 1 && ch == 'a');
+    }
+
+    dump_info("Done\n");
+}
+
 void test_file_device_char_error_1()
 {
     using namespace IOv2;
