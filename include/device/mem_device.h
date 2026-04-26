@@ -18,7 +18,6 @@
 
 #include <cassert>
 #include <cstring>
-#include <functional>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -253,28 +252,7 @@ public:
         if (n > m_str.max_size() - m_next_pos)
             throw device_error("mem_device::dput fail: size overflow");
 
-        if (m_next_pos + n > m_str.size())
-        {
-            const std::less<const char_type*> ptr_less;
-            const char_type* buf_beg = m_str.data();
-            const char_type* buf_end = buf_beg + m_str.capacity();
-
-            if (ptr_less(ch, buf_end) && ptr_less(buf_beg, ch + n))
-            {
-                std::basic_string<char_type> tmp(ch, n);
-                m_str.erase(m_str.begin() + m_next_pos, m_str.end());
-                m_str.reserve(m_next_pos + n);
-                m_str.append(tmp);
-            }
-            else
-            {
-                m_str.erase(m_str.begin() + m_next_pos, m_str.end());
-                m_str.reserve(m_next_pos + n);
-                m_str.append(ch, n);
-            }
-        }
-        else
-            std::memmove(m_str.data() + m_next_pos, ch, n * sizeof(char_type));
+        m_str.replace(m_next_pos, n, ch, n);
         m_next_pos += n;
     }
 
