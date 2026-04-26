@@ -24,6 +24,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace IOv2
 {
@@ -164,7 +165,7 @@ public:
         int64_t len = ftell_64(m_file.get());
         if (len < 0)
             throw device_error("cannot get file length for \"" + file_name + "\"");
-        else if (static_cast<uint64_t>(len) > std::numeric_limits<size_t>::max())
+        else if (!std::in_range<size_t>(len))
             throw device_error("file too large for this platform");
 
         if (fseek_64(m_file.get(), 0, SEEK_SET) != 0)
@@ -442,12 +443,19 @@ public:
         if (!is_open())
             throw device_error("file_device::dput fail: file closed.");
         if (n == 0) return;
-        if (std::fwrite(ch, sizeof(CharType), n, m_file.get()) != n)
-            throw device_error("file_device::dput fail: partial success.");
+        size_t written = std::fwrite(ch, sizeof(CharType), n, m_file.get());
 
         auto res = ftell_64(m_file.get());
-        if (res >= 0 && static_cast<size_t>(res) > m_file_len)
-            m_file_len = static_cast<size_t>(res);
+        if (res >= 0)
+        {
+            if (!std::in_range<size_t>(res))
+                throw device_error("file_device::dput fail: file size overflow");
+            if (static_cast<size_t>(res) > m_file_len)
+                m_file_len = static_cast<size_t>(res);
+        }
+
+        if (written != n)
+            throw device_error("file_device::dput fail: partial success.");
     }
 
     /**
@@ -550,6 +558,22 @@ private:
 
 private:
     std::unique_ptr<FILE, file_deleter> m_file;
+
+    // Cached file length, in CharType units.
+    //
+    // Type is `size_t` (not `uint64_t`) because the public API — `dsize()`,
+    // `dseek(size_t)`, `drseek(size_t)` — is `size_t`-typed; using `size_t`
+    // here keeps the value lossless across the boundary on every platform
+    // (including 32-bit, where a `uint64_t` field could hold values that
+    // `dsize()` cannot return without truncation).
+    //
+    // Invariant: `m_file_len <= INT64_MAX`. All writes to this field source
+    // from a non-negative `int64_t` (the result of `ftell_64()`), narrowed
+    // through `std::in_range<size_t>` in the constructor and `dput()`.
+    // This invariant is what makes `-static_cast<int64_t>(offset)` in
+    // `drseek()` safe: any `offset <= m_file_len` fits in `int64_t`'s
+    // positive range, so the negation cannot overflow. Do not introduce
+    // setters or alternate sources that bypass the `int64_t`-derived path.
     size_t m_file_len = 0;
 };
 

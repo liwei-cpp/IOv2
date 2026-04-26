@@ -151,11 +151,9 @@ public:
                 }
                 if (pfd.revents & (POLLERR | POLLNVAL))
                     throw device_error("std_device::dget fail: poll revents error");
-                if (pfd.revents & POLLHUP)
-                {
-                    m_eof_hit = true;
-                    return 0;
-                }
+                // POLLHUP is intentionally not treated as EOF: the peer may have
+                // closed while bytes remain buffered. Re-issue read(); it returns 0
+                // only when both the buffer is drained and the peer is gone.
                 continue;
             }
             throw device_error("std_device::dget fail: read error");
