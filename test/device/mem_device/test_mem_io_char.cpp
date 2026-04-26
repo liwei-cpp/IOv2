@@ -308,6 +308,14 @@ void test_mem_device_char_out_2()
         obj.dput(nullptr, 0);
         if (obj.str() != "") throw std::runtime_error("mem_device<char> output put() fail");
         if (obj.dtell() != 0) throw std::runtime_error("mem_device<char> output tell fail");
+
+        // Test dget edge cases
+        if (obj.dget(nullptr, 0) != 0) throw std::runtime_error("mem_device<char> dget(nullptr, 0) fail");
+        
+        try {
+            obj.dget(nullptr, 1);
+            throw std::runtime_error("mem_device<char> dget(nullptr, 1) should throw");
+        } catch (const IOv2::device_error&) {}
     }
     
     {

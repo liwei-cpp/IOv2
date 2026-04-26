@@ -129,9 +129,9 @@ public:
     size_t dget(char* s, size_t n)
         requires (ID == STDIN_FILENO)
     {
+        if (n == 0 || m_eof_hit) return 0;
         if (s == nullptr && n > 0)
             throw device_error("std_device::dget fail: null buffer");
-        if (n == 0 || m_eof_hit) return 0;
 
         constexpr size_t max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
         ssize_t ret = 0;
@@ -183,9 +183,9 @@ public:
     void dput(const char* ch, size_t n)
         requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
     {
+        if (n == 0) return;
         if (ch == nullptr && n > 0)
             throw device_error("std_device::dput fail: null buffer");
-        if (n == 0) return;
 
         bool put_res = false;
         if constexpr (ID == STDOUT_FILENO)

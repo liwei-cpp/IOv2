@@ -126,9 +126,9 @@ public:
      */
     size_t dget(char_type* s, size_t n)
     {
+        if (n == 0) return 0;
         if (s == nullptr && n > 0)
             throw device_error("mem_device::dget fail: null buffer");
-        if (n == 0) return 0;
 
         std::size_t res = std::min(m_str.size() - m_next_pos, n);
         std::memmove(s, m_str.data() + m_next_pos, res * sizeof(char_type));
@@ -244,6 +244,7 @@ public:
      */
     void dput(const char_type* ch, size_t n)
     {
+        if (n == 0) return;
         if (ch == nullptr && n > 0)
             throw device_error("mem_device::dput fail: null buffer");
 
