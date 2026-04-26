@@ -157,12 +157,15 @@ public:
                 }
                 if (pfd.revents & (POLLERR | POLLNVAL))
                     throw device_error("std_device::dget fail: poll revents error");
-                // POLLHUP is intentionally not treated as EOF: the peer may have
-                // closed while bytes remain buffered. Re-issue read(); it returns 0
-                // only when both the buffer is drained and the peer is gone.
-                continue;
+                if (pfd.revents & POLLIN) continue;
+                if (pfd.revents & POLLHUP)
+                {
+                    m_eof_hit = true;
+                    return 0;
+                }
             }
-            throw device_error("std_device::dget fail: read error");
+            else
+                throw device_error("std_device::dget fail: read error");
         }
 
         if (ret == 0)
@@ -200,7 +203,10 @@ public:
             put_res = (std::fwrite(ch, sizeof(char), n, stderr) == n);
 
         if (!put_res)
+        {
+            std::clearerr(ID == STDOUT_FILENO ? stdout : stderr);
             throw device_error("std_device::dput fail: partial success.");
+        }
     }
 
     /**
@@ -224,7 +230,10 @@ public:
             flush_res = (std::fflush(stderr) != EOF);
 
         if (!flush_res)
+        {
+            std::clearerr(ID == STDOUT_FILENO ? stdout : stderr);
             throw device_error("std_device::dflush fail: fflush failed.");
+        }
     }
 
 private:
