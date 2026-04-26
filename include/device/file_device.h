@@ -268,15 +268,17 @@ public:
      * @lang{ZH}
      * @brief 关闭文件。
      *
-     * 对于输出设备，它会先尝试刷新缓冲区。然后释放文件句柄。
-     * 如果刷新失败，它会重抛异常。
+     * 该函数保证无论是否发生异常，文件句柄都会被释放。
+     * 对于输出设备，会首先尝试刷新缓冲区（dflush）。如果刷新过程中抛出异常，
+     * 会先确保文件句柄被正确关闭，然后再重新抛出捕获到的异常。
      * @endif
      *
      * @lang{EN}
      * @brief Closes the file.
      *
-     * For output devices, it first attempts to flush the buffer. Then, it releases the file handle.
-     * If flushing fails, it re-throws the exception.
+     * This function guarantees that the file handle is released regardless of whether an exception occurs.
+     * For output devices, it first attempts to flush the buffer (dflush). If an exception occurs
+     * during flushing, the file handle is still reset before the exception is re-thrown.
      * @endif
      */
     void close()
@@ -387,7 +389,11 @@ public:
     {
         if (!is_open())
             throw device_error("file_device::dseek fail: file is closed");
-        if constexpr (!IsOut)
+        
+        // In input-enabled modes, seeking is restricted to the current file length.
+        // This ensures that any subsequent read operation (dget) starts from a valid 
+        // position within the existing data bounds.
+        if constexpr (IsIn)
         {
             if (v > m_file_len)
                 throw device_error("file_device::dseek fail: invalid parameter");
