@@ -6,9 +6,10 @@
 
 #include <common/dump_info.h>
 
-inline void verify_impl(bool val, const char* expr, const char* file, int line)
+template <typename T>
+inline void verify_impl(const T& val, const char* expr, const char* file, int line)
 {
-    if (!val)
+    if (!static_cast<bool>(val))
     {
         std::string msg = "check fail: (";
         msg += expr;
@@ -21,7 +22,7 @@ inline void verify_impl(bool val, const char* expr, const char* file, int line)
     }
 }
 
-#define VERIFY(val) verify_impl(val, #val, __FILE__, __LINE__)
+#define VERIFY(...) verify_impl((__VA_ARGS__), #__VA_ARGS__, __FILE__, __LINE__)
 
 template <typename T>
 inline void FAIL_SEEK(T& obj, size_t pos)
