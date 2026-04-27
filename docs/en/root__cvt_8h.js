@@ -1,6 +1,7 @@
 var root__cvt_8h =
 [
     [ "IOv2::root_cvt< DeviceType, HasInBuffer >", "classIOv2_1_1root__cvt.html", "classIOv2_1_1root__cvt" ],
+    [ "IOv2::root_cvt< mem_device< CharT, Traits, Allocator >, HasInBuffer >", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4" ],
     [ "IOv2::rb_root_cvt< DeviceType >", "classIOv2_1_1rb__root__cvt.html", null ],
     [ "IOv2::no_rb_root_cvt< DeviceType >", "classIOv2_1_1no__rb__root__cvt.html", null ],
     [ "IOv2::root_cvt_reader< KernelType >", "classIOv2_1_1root__cvt__reader_3_01KernelType_01_4.html", "classIOv2_1_1root__cvt__reader_3_01KernelType_01_4" ],

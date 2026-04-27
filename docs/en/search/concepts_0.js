@@ -14,11 +14,12 @@ var searchData=
   ['iov2_3a_3aio_5fdevice_11',['io_device',['../conceptIOv2_1_1io__device.html',1,'IOv2']]],
   ['iov2_3a_3ais_5fin_5fsentry_12',['is_in_sentry',['../conceptIOv2_1_1is__in__sentry.html',1,'IOv2']]],
   ['iov2_3a_3ais_5fistreambuf_5fiterator_13',['is_istreambuf_iterator',['../conceptIOv2_1_1is__istreambuf__iterator.html',1,'IOv2']]],
-  ['iov2_3a_3ais_5fostreambuf_5fiterator_14',['is_ostreambuf_iterator',['../conceptIOv2_1_1is__ostreambuf__iterator.html',1,'IOv2']]],
-  ['iov2_3a_3ais_5fout_5fsentry_15',['is_out_sentry',['../conceptIOv2_1_1is__out__sentry.html',1,'IOv2']]],
-  ['iov2_3a_3ais_5freader_5fdef_16',['is_reader_def',['../conceptIOv2_1_1is__reader__def.html',1,'IOv2']]],
-  ['iov2_3a_3ais_5fwriter_5fdef_17',['is_writer_def',['../conceptIOv2_1_1is__writer__def.html',1,'IOv2']]],
-  ['iov2_3a_3aistream_5ftype_18',['istream_type',['../conceptIOv2_1_1istream__type.html',1,'IOv2']]],
-  ['iov2_3a_3aostream_5ftype_19',['ostream_type',['../conceptIOv2_1_1ostream__type.html',1,'IOv2']]],
-  ['iov2_3a_3ashared_5fptr_5fto_20',['shared_ptr_to',['../conceptIOv2_1_1shared__ptr__to.html',1,'IOv2']]]
+  ['iov2_3a_3ais_5fmem_5fdevice_14',['is_mem_device',['../conceptIOv2_1_1is__mem__device.html',1,'IOv2']]],
+  ['iov2_3a_3ais_5fostreambuf_5fiterator_15',['is_ostreambuf_iterator',['../conceptIOv2_1_1is__ostreambuf__iterator.html',1,'IOv2']]],
+  ['iov2_3a_3ais_5fout_5fsentry_16',['is_out_sentry',['../conceptIOv2_1_1is__out__sentry.html',1,'IOv2']]],
+  ['iov2_3a_3ais_5freader_5fdef_17',['is_reader_def',['../conceptIOv2_1_1is__reader__def.html',1,'IOv2']]],
+  ['iov2_3a_3ais_5fwriter_5fdef_18',['is_writer_def',['../conceptIOv2_1_1is__writer__def.html',1,'IOv2']]],
+  ['iov2_3a_3aistream_5ftype_19',['istream_type',['../conceptIOv2_1_1istream__type.html',1,'IOv2']]],
+  ['iov2_3a_3aostream_5ftype_20',['ostream_type',['../conceptIOv2_1_1ostream__type.html',1,'IOv2']]],
+  ['iov2_3a_3ashared_5fptr_5fto_21',['shared_ptr_to',['../conceptIOv2_1_1shared__ptr__to.html',1,'IOv2']]]
 ];

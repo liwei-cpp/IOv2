@@ -20,6 +20,7 @@ var concepts =
       [ "cvt_creator", "conceptIOv2_1_1cvt__creator.html", null ],
       [ "cpt_cvt_pipe_creator", "conceptIOv2_1_1cpt__cvt__pipe__creator.html", null ],
       [ "io_device", "conceptIOv2_1_1io__device.html", null ],
+      [ "is_mem_device", "conceptIOv2_1_1is__mem__device.html", null ],
       [ "is_writer_def", "conceptIOv2_1_1is__writer__def.html", null ],
       [ "is_reader_def", "conceptIOv2_1_1is__reader__def.html", null ],
       [ "is_in_sentry", "conceptIOv2_1_1is__in__sentry.html", null ],

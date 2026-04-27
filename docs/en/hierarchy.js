@@ -227,6 +227,8 @@ var hierarchy =
     [ "IOv2::ios_base< void >", "classIOv2_1_1ios__base_3_01void_01_4.html", null ],
     [ "IOv2::is_in_sentry_impl< typename >", "structIOv2_1_1is__in__sentry__impl.html", null ],
     [ "IOv2::is_in_sentry_impl< in_sentry< TStream, involve_output > >", "structIOv2_1_1is__in__sentry__impl_3_01in__sentry_3_01TStream_00_01involve__output_01_4_01_4.html", null ],
+    [ "IOv2::is_mem_device_impl< T >", "structIOv2_1_1is__mem__device__impl.html", null ],
+    [ "IOv2::is_mem_device_impl< mem_device< CharT, Traits, Allocator > >", "structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4.html", null ],
     [ "IOv2::is_out_sentry_impl< typename >", "structIOv2_1_1is__out__sentry__impl.html", null ],
     [ "IOv2::is_out_sentry_impl< out_sentry< TStream, involve_input, is_std > >", "structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html", null ],
     [ "IOv2::istream_operators< T, TChar >", "structIOv2_1_1istream__operators.html", [
@@ -249,6 +251,7 @@ var hierarchy =
     [ "IOv2::lru_cache< CharT, CharT, 1024 >", "classIOv2_1_1lru__cache.html", null ],
     [ "IOv2::lru_cache< CharT, mask, 1024 >", "classIOv2_1_1lru__cache.html", null ],
     [ "IOv2::lru_cache< CharT, std::optional< char >, 1024 >", "classIOv2_1_1lru__cache.html", null ],
+    [ "IOv2::mem_device< CharT, Traits, Allocator >", "classIOv2_1_1mem__device.html", null ],
     [ "IOv2::mem_device< CharT, Traits, Allocator >", "classIOv2_1_1mem__device.html", null ],
     [ "IOv2::messages< CharT >", "classIOv2_1_1messages.html", null ],
     [ "IOv2::messages_conf< CharT >", "classIOv2_1_1messages__conf.html", null ],
@@ -287,6 +290,7 @@ var hierarchy =
     [ "IOv2::root_cvt< DeviceType, true >", "classIOv2_1_1root__cvt.html", [
       [ "IOv2::rb_root_cvt< DeviceType >", "classIOv2_1_1rb__root__cvt.html", null ]
     ] ],
+    [ "IOv2::root_cvt< mem_device< CharT, Traits, Allocator >, HasInBuffer >", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html", null ],
     [ "IOv2::root_cvt_reader< KernelType >", "classIOv2_1_1root__cvt__reader.html", null ],
     [ "IOv2::root_cvt_reader< KernelType >", "classIOv2_1_1root__cvt__reader_3_01KernelType_01_4.html", null ],
     [ "IOv2::root_cvt_writer< KernelType >", "classIOv2_1_1root__cvt__writer.html", null ],

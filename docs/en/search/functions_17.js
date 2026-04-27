@@ -18,7 +18,7 @@ var searchData=
   ['_7elru_5fcache_15',['~lru_cache',['../classIOv2_1_1lru__cache.html#a5edc3d2e3980096d9bd56c673409275b',1,'IOv2::lru_cache']]],
   ['_7emem_5fdevice_16',['~mem_device',['../classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5',1,'IOv2::mem_device']]],
   ['_7eout_5fsentry_17',['~out_sentry',['../structIOv2_1_1out__sentry.html#ab118e27a80443d47901f4708240dfd15',1,'IOv2::out_sentry']]],
-  ['_7eroot_5fcvt_18',['~root_cvt',['../classIOv2_1_1root__cvt.html#a10dd06d5b5a1e8bf7a27589787834ac8',1,'IOv2::root_cvt']]],
+  ['_7eroot_5fcvt_18',['~root_cvt',['../classIOv2_1_1root__cvt.html#a10dd06d5b5a1e8bf7a27589787834ac8',1,'IOv2::root_cvt::~root_cvt()'],['../classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#afea9d88408ee9a248282b813bd610796',1,'IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;::~root_cvt()']]],
   ['_7esing_5ftemp_19',['~sing_temp',['../classIOv2_1_1sing__temp.html#ac7e67c7a4439be29255e7d48e117abeb',1,'IOv2::sing_temp']]],
   ['_7estamp_5finput_5fiterator_20',['~stamp_input_iterator',['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default'],['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default']]],
   ['_7estd_5fdevice_21',['~std_device',['../classIOv2_1_1std__device.html#a0cc53231f91e408343bebd4a01f7f72f',1,'IOv2::std_device']]],
