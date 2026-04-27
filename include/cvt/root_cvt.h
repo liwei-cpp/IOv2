@@ -9,6 +9,7 @@
 #include <cvt/cvt_concepts.h>
 #include <cvt/abs_cvt.h>
 #include <device/device_concepts.h>
+#include <device/mem_device.h>
 
 namespace IOv2
 {
@@ -393,6 +394,144 @@ private:
     io_status                   m_io_status;
 };
 
+template <typename CharT,
+          typename Traits,
+          typename Allocator,
+          bool HasInBuffer>
+class root_cvt<mem_device<CharT, Traits, Allocator>, HasInBuffer>
+{
+public:
+    using device_type = mem_device<CharT, Traits, Allocator>;
+    using internal_type = typename device_type::char_type;
+    using external_type = typename device_type::char_type;
+
+public:
+    explicit root_cvt(device_type device)
+        : m_device(std::move(device))
+        , m_bos_len(0)
+        , m_io_status(io_status::neutral) {}
+
+    root_cvt(const root_cvt& val)
+        : m_device(val.m_device)
+        , m_bos_len(val.m_bos_len)
+        , m_io_status(val.m_io_status)
+    {}
+
+    root_cvt(root_cvt&& val)
+        : m_device(std::move(val.m_device))
+        , m_bos_len(val.m_bos_len)
+        , m_io_status(val.m_io_status)
+    {}
+
+    root_cvt& operator=(const root_cvt& val)
+    {
+        if (this == &val) return *this;
+        m_device = val.m_device;
+        m_bos_len = val.m_bos_len;
+        m_io_status = val.m_io_status;
+        return *this;
+    }
+    
+    root_cvt& operator=(root_cvt&& val)
+    {
+        if (this == &val) return *this;
+        m_device = std::move(val.m_device);
+        m_bos_len = val.m_bos_len;
+        m_io_status = val.m_io_status;
+        val.m_io_status = io_status::neutral;
+        return *this;
+    }
+    
+    ~root_cvt() = default;
+
+public:
+    device_type& device() { return m_device; }
+    
+    device_type detach()
+    {
+        return std::move(m_device);
+    }
+
+    device_type attach(device_type&& dev = device_type{})
+    {
+        auto res = detach();
+        m_device = std::move(dev);
+        m_bos_len = 0;
+        
+        m_io_status = io_status::neutral;
+        return res;
+    }
+
+    void adjust(const cvt_behavior&) {}
+    void retrieve(cvt_status&) const {}
+    
+    void main_cont_beg()
+    {
+        m_bos_len = m_device.dtell();
+    }
+    
+    io_status bos()
+    {
+        m_io_status = (m_device.deof()) ? io_status::output : io_status::input;
+        return m_io_status;
+    }
+
+    bool is_eof()
+    {
+        return m_device.deof();
+    }
+
+    size_t get(internal_type* to, size_t to_max)
+    {
+        switch_to_get();
+        return m_device.dget(to, to_max);
+    }
+
+    void put(const internal_type* to, size_t to_size)
+    {
+        switch_to_put();
+        m_device.dput(to, to_size);
+    }
+
+    void flush() {}
+    
+    /// positioning
+    size_t tell() const
+    {
+        return m_device.dtell() - m_bos_len;
+    }
+    
+    void seek(size_t pos)
+    {
+        m_device.dseek(pos + m_bos_len);
+    }
+    
+    void rseek(size_t pos)
+    {
+        const size_t size_from_device = m_device.dsize();
+        assert(m_bos_len <= size_from_device);
+        if (size_from_device - m_bos_len < pos)
+            throw cvt_error("root_cvt::rseek fails: out of boundary");
+
+        m_device.drseek(pos);
+    }
+
+    // io switch
+    void switch_to_get()
+    {
+        m_io_status = io_status::input;
+    }
+    
+    void switch_to_put()
+    {
+        m_io_status = io_status::output;
+    }
+private:
+    device_type                 m_device;
+    size_t                      m_bos_len;
+    io_status                   m_io_status;
+};
+
 template <io_device DeviceType>
 class rb_root_cvt : public root_cvt<DeviceType, true>
 {
@@ -415,7 +554,8 @@ template <io_converter KernelType>
 class root_cvt_reader;
 
 template <io_converter KernelType>
-    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType>)
+    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> &&
+              !is_mem_device<typename KernelType::device_type>)
 class root_cvt_reader<KernelType>
 {
     using device_type = typename KernelType::device_type;
@@ -501,7 +641,8 @@ template <io_converter KernelType>
 class root_cvt_writer;
 
 template <io_converter KernelType>
-    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType>)
+    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType> &&
+              !is_mem_device<typename KernelType::device_type>)
 class root_cvt_writer<KernelType>
 {
     using device_type = typename KernelType::device_type;
@@ -562,7 +703,8 @@ template <io_converter KernelType>
 class cvt_io;
 
 template <io_converter KernelType>
-    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType>)
+    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType> &&
+              !is_mem_device<typename KernelType::device_type>)
 class cvt_io<KernelType>
 {
     using char_type = typename KernelType::internal_type;
