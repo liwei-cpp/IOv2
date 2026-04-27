@@ -80,9 +80,25 @@ public:
     {}
 
     mem_device(const mem_device&) = default;
-    mem_device(mem_device&&) = default;
     mem_device& operator=(const mem_device&) = default;
-    mem_device& operator=(mem_device&&) = default;
+    mem_device(mem_device&& other) noexcept
+        : m_str(std::move(other.m_str))
+        , m_next_pos(other.m_next_pos)
+    {
+        other.m_next_pos = 0;
+    }
+
+    mem_device& operator=(mem_device&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_str = std::move(other.m_str);
+            m_next_pos = other.m_next_pos;
+            other.m_next_pos = 0;
+        }
+        return *this;
+    }
+
     ~mem_device() = default;
 
     /**
