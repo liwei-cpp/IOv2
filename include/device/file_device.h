@@ -322,7 +322,7 @@ public:
         requires (IsIn)
     {
         if (n == 0) return 0;
-        if (s == nullptr && n > 0)
+        if (s == nullptr)
             throw device_error("file_device::dget fail: null buffer");
 
         if (!is_open()) return 0;
