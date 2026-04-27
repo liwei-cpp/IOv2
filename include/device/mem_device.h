@@ -239,7 +239,7 @@ public:
     void dput(const char_type* ch, size_t n)
     {
         if (n == 0) return;
-        if (ch == nullptr && n > 0)
+        if (ch == nullptr)
             throw device_error("mem_device::dput fail: null buffer");
 
         if (n > m_str.max_size() - m_next_pos)

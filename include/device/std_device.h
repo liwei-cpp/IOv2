@@ -140,7 +140,7 @@ public:
         requires (ID == STDIN_FILENO)
     {
         if (n == 0 || m_eof_hit) return 0;
-        if (s == nullptr && n > 0)
+        if (s == nullptr)
             throw device_error("std_device::dget fail: null buffer");
 
         constexpr size_t max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
