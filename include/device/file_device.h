@@ -452,7 +452,7 @@ public:
         requires (IsOut)
     {
         if (n == 0) return;
-        if (ch == nullptr && n > 0)
+        if (ch == nullptr)
             throw device_error("file_device::dput fail: null buffer");
         if (!is_open())
             throw device_error("file_device::dput fail: file closed.");
