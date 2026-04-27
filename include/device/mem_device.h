@@ -221,15 +221,9 @@ public:
      *
      * 如果写入操作超出当前字符串大小，字符串会自动增长。
      *
-     * @warning `ch` 不能指向设备的内部缓冲区（即 `str()` 返回的存储区域）。
-     * 在需要扩容的写入路径上，扩容可能使指向内部缓冲区的指针失效，因此一旦
-     * 检测到 `[ch, ch + n)` 与内部缓冲区重叠，就会抛出 `device_error`。
-     * 如果调用者需要从设备自身的数据进行写入，请先复制到独立缓冲区。
-     *
      * @param ch 要写入的数据。
      * @param n 要写入的字符数。
-     * @throw device_error 当 `ch` 为 `nullptr` 且 `n > 0`、大小溢出，
-     * 或在扩容路径上 `ch` 与内部缓冲区别名时抛出。
+     * @throw device_error 当 `ch` 为 `nullptr` 且 `n > 0` 或大小溢出时抛出。
      * @endif
      *
      * @lang{EN}
@@ -239,14 +233,13 @@ public:
      *
      * @param ch The data to write.
      * @param n The number of characters to write.
-     * @throw device_error When `ch` is `nullptr` and `n > 0`, when the size overflows,
-     * or when `ch` aliases the internal buffer on the grow path.
+     * @throw device_error When `ch` is `nullptr` and `n > 0`, or when the size overflows.
      * @endif
      */
     void dput(const char_type* ch, size_t n)
     {
         if (n == 0) return;
-        if (ch == nullptr && n > 0)
+        if (ch == nullptr)
             throw device_error("mem_device::dput fail: null buffer");
 
         if (n > m_str.max_size() - m_next_pos)
