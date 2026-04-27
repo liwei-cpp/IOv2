@@ -21,6 +21,7 @@
 #include <cstring>
 #include <exception>
 #include <expected>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <string>
@@ -351,7 +352,7 @@ public:
             throw device_error("file_device::dtell fail: file is closed");
 
         auto res = ftell_64(m_file.get());
-        if (res < 0)
+        if (!std::in_range<size_t>(res))
             throw device_error("file_device::dtell fail: got invalid position.");
         return static_cast<size_t>(res);
     }
