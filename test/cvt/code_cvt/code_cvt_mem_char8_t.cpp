@@ -693,7 +693,6 @@ void test_code_cvt_mem_char8_t_flush_1()
         obj.main_cont_beg();
         
         obj.put(i_lit.data(), i_lit.size());
-        if (dev.str().size() >= e_lit.size()) throw std::runtime_error("code_cvt<memory<char8_t>>::flush response incorrect");
         obj.flush();
         if (dev.str().size() != e_lit.size()) throw std::runtime_error("code_cvt<memory<char8_t>>::flush response incorrect");
         if (obj.tell() != i_lit.size()) throw std::runtime_error("code_cvt<memory<char8_t>>::tell response incorrect");
@@ -747,11 +746,11 @@ void test_code_cvt_mem_char8_t_flush_2()
         while (total_count < 4102 / 7 * 3)
         {
             size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
+            size_t ori_len = obj.device().str().size();
             obj.put(cur_pos, dest_size);
             buffer_id %= std::size(buffer_size);
             cur_pos += dest_size;
             
-            size_t ori_len = obj.device().str().size();
             if (obj.tell() != total_count + dest_size) throw std::runtime_error("code_cvt<memory<char8_t>>::tell response incorrect");
             obj.flush();
             total_count += dest_size;

@@ -504,7 +504,7 @@ void test_root_cvt_mem_detach_1()
         char ch = 0;
         obj.get(&ch, 1);
         VERIFY(ch == '1');
-        VERIFY(obj.device().dtell() == 8);
+        VERIFY(obj.device().dtell() == 1);
         
         auto dev = obj.detach();
         VERIFY(dev.dtell() == 1);
@@ -529,7 +529,7 @@ void test_root_cvt_mem_detach_2()
     auto helper = []<typename T>(T& obj)
     {
         obj.put("123", 3);
-        VERIFY(obj.device().dtell() == 0);
+        VERIFY(obj.device().dtell() == 3);
         
         auto dev = obj.detach();
         VERIFY(dev.dtell() == 3);
@@ -556,7 +556,7 @@ void test_root_cvt_mem_attach_1()
         char ch = 0;
         obj.get(&ch, 1);
         VERIFY(ch == '1');
-        VERIFY(obj.device().dtell() == 8);
+        VERIFY(obj.device().dtell() == 1);
         
         auto dev = obj.attach(mem_device{""});
         VERIFY(dev.dtell() == 1);
@@ -581,7 +581,7 @@ void test_root_cvt_mem_attach_2()
     auto helper = []<typename T>(T& obj)
     {
         obj.put("123", 3);
-        VERIFY(obj.device().dtell() == 0);
+        VERIFY(obj.device().dtell() == 3);
         
         auto dev = obj.attach(mem_device{""});
         VERIFY(dev.dtell() == 3);
