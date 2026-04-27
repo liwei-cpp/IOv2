@@ -269,4 +269,50 @@ private:
 template <typename TChar>
 mem_device(const TChar*) -> mem_device<TChar>;
 /// @endcond
+
+/**
+ * @lang{ZH}
+ * @brief 判断一个类型是否为 `mem_device` 的辅助模板。
+ * @tparam T 要检查的类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Helper template to determine if a type is `mem_device`.
+ * @tparam T The type to check.
+ * @endif
+ */
+template <typename T>
+struct is_mem_device_impl
+{
+    static constexpr bool value = false;
+};
+
+/**
+ * @lang{ZH}
+ * @brief `is_mem_device_impl` 的 `mem_device` 特化版本。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Specialization of `is_mem_device_impl` for `mem_device`.
+ * @endif
+ */
+template <typename CharT, typename Traits, typename Allocator>
+struct is_mem_device_impl<mem_device<CharT, Traits, Allocator>>
+{
+    static constexpr bool value = true;
+};
+
+/**
+ * @lang{ZH}
+ * @brief 判断一个类型是否为 `mem_device` 的概念（Concept）。
+ * @tparam T 要检查的类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Concept to determine if a type is `mem_device`.
+ * @tparam T The type to check.
+ * @endif
+ */
+template <typename T>
+concept is_mem_device = is_mem_device_impl<T>::value;
 }
