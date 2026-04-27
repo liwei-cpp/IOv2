@@ -199,7 +199,7 @@ public:
         requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
     {
         if (n == 0) return;
-        if (ch == nullptr && n > 0)
+        if (ch == nullptr)
             throw device_error("std_device::dput fail: null buffer");
 
         bool put_res = false;
