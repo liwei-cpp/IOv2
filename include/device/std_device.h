@@ -119,6 +119,8 @@ public:
      * @param n 要读取的字节数。
      * @return 实际读取的字节数。如果到达 EOF，则返回 0。
      * @throw device_error 如果发生读取或轮询错误。
+     * @note 遇到 EOF 时立即返回 0，符合 POSIX read() 语义。
+     *       后续调用也会继续返回 0
      * @endif
      *
      * @lang{EN}
@@ -130,13 +132,15 @@ public:
      * @param n The number of bytes to read.
      * @return The number of bytes actually read. Returns 0 if EOF is reached.
      * @throw device_error If a read or poll error occurs.
+     * @note Returns 0 immediately upon EOF, conforming to POSIX read() semantics.
+     *       Subsequent calls will continue to return 0.
      * @endif
      */
     size_t dget(char* s, size_t n)
         requires (ID == STDIN_FILENO)
     {
         if (n == 0 || m_eof_hit) return 0;
-        if (s == nullptr && n > 0)
+        if (s == nullptr)
             throw device_error("std_device::dget fail: null buffer");
 
         constexpr size_t max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
@@ -155,14 +159,16 @@ public:
                     if (errno == EINTR) continue;
                     throw device_error("std_device::dget fail: poll error");
                 }
-                if (pfd.revents & (POLLERR | POLLNVAL))
+                else if (pfd.revents & (POLLERR | POLLNVAL))
                     throw device_error("std_device::dget fail: poll revents error");
-                if (pfd.revents & POLLIN) continue;
-                if (pfd.revents & POLLHUP)
+                else if (pfd.revents & POLLIN) continue;
+                else if (pfd.revents & POLLHUP)
                 {
                     m_eof_hit = true;
                     return 0;
                 }
+                else
+                    throw device_error("std_device::dget fail: unexpected poll revents");
             }
             else
                 throw device_error("std_device::dget fail: read error");
