@@ -424,8 +424,9 @@ public:
         if (!is_open())
             throw device_error("file_device::drseek fail: file is closed");
 
-        if (offset > m_file_len)
+        if ((offset > m_file_len) || (offset > static_cast<size_t>(std::numeric_limits<int64_t>::max())))
             throw device_error("file_device::drseek fail: invalid parameter");
+
         const int64_t l_off = -static_cast<int64_t>(offset);
 
         if (fseek_64(m_file.get(), l_off, SEEK_END) != 0)
