@@ -114,8 +114,21 @@ void test_file_device_char_close_2()
         if (fb_01.dget(buffer, sizeof(buffer) - 1) != sizeof(buffer) - 1) throw std::runtime_error("file_device::get fails");
         
         fb_01.close();
-        if (fb_01.dget(&ch, 1) != 0) throw std::runtime_error("file_device::get fail");
-        if (fb_01.dget(buffer, sizeof(buffer)) != 0)  throw std::runtime_error("file_device::get fails");
+        try
+        {
+            fb_01.dget(&ch, 1);
+            dump_info("unreachable code");
+            std::abort();
+        }
+        catch (...) {}
+
+        try
+        {
+            fb_01.dget(buffer, sizeof(buffer));
+            dump_info("unreachable code");
+            std::abort();
+        }
+        catch (...) {}
     }
     
     // 'out'
