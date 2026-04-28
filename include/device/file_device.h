@@ -15,6 +15,7 @@
 #include <common/metafunctions.h>
 
 #include <cerrno>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <exception>
@@ -22,6 +23,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2
@@ -198,7 +200,7 @@ public:
      * @return A `std::expected` object containing either a `basic_file_device` or an error string.
      * @endif
      */
-    static std::expected<basic_file_device, std::string> try_open(const std::string& file_name, file_open_flag flags = file_open_flag::none) noexcept
+    static std::expected<basic_file_device, std::string> try_open(const std::string& file_name, file_open_flag flags = file_open_flag::none)
     {
         try {
             return basic_file_device(file_name, flags);
@@ -211,8 +213,22 @@ public:
 
     basic_file_device(const basic_file_device&) = delete;
     basic_file_device& operator=(const basic_file_device&) = delete;
-    basic_file_device(basic_file_device&&) noexcept = default;
-    basic_file_device& operator=(basic_file_device&&) noexcept = default;
+    basic_file_device(basic_file_device&& other) noexcept
+        : m_file(std::move(other.m_file))
+        , m_file_len(other.m_file_len)
+    {
+        other.m_file_len = 0;
+    }
+    basic_file_device& operator=(basic_file_device&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_file = std::move(other.m_file);
+            m_file_len = other.m_file_len;
+            other.m_file_len = 0;
+        }
+        return *this;
+    }
     ~basic_file_device() = default;
 
 public:
@@ -220,30 +236,25 @@ public:
      * @lang{ZH}
      * @brief 检查是否已到达文件末尾。
      *
-     * 通过比较当前位置和文件大小来判断。如果文件未打开或发生错误，也返回 `true`。
+     * 通过比较当前位置和文件大小来判断。如果文件未打开，返回 `true`。
      * @return 如果到达文件末尾，则为 `true`，否则为 `false`。
+     * @throw device_error 如果获取文件位置失败。
      * @endif
      *
      * @lang{EN}
      * @brief Checks if the end of the file has been reached.
      *
      * Determined by comparing the current position with the file size. Returns `true`
-     * if the file is not open or an error occurs.
+     * if the file is not open.
      * @return `true` if the end of the file is reached, otherwise `false`.
+     * @throw device_error If getting the file position fails.
      * @endif
      */
     [[nodiscard]] bool deof() const
     {
         if (!is_open())
             return true;
-        try
-        {
-            return (dtell() >= m_file_len);
-        }
-        catch (...)
-        {
-            return true;
-        }
+        return (dtell() >= m_file_len);
     }
 
     /**
@@ -305,7 +316,7 @@ public:
      * @param s 指向存储读取数据的缓冲区的指针。
      * @param n 要读取的字符数。
      * @return 实际读取的字符数。
-     * @throw device_error 如果缓冲区为空或发生读取错误。
+     * @throw device_error 如果文件未打开、缓冲区为空或发生读取错误。
      * @endif
      *
      * @lang{EN}
@@ -313,7 +324,7 @@ public:
      * @param s Pointer to the buffer where the read data will be stored.
      * @param n The number of characters to read.
      * @return The number of characters actually read.
-     * @throw device_error If the buffer is null or a read error occurs.
+     * @throw device_error If the file is not open, the buffer is null, or a read error occurs.
      * @endif
      */
     size_t dget(CharType* s, size_t n)
@@ -322,11 +333,15 @@ public:
         if (n == 0) return 0;
         if (s == nullptr)
             throw device_error("file_device::dget fail: null buffer");
+        if (!is_open())
+            throw device_error("file_device::dget fail: file is closed");
 
-        if (!is_open()) return 0;
         size_t count = std::fread(s, sizeof(CharType), n, m_file.get());
         if (count < n && std::ferror(m_file.get()))
+        {
+            std::clearerr(m_file.get());
             throw device_error("file_device::dget fail: read error");
+        }
         return count;
     }
 
@@ -358,15 +373,19 @@ public:
      * @lang{ZH}
      * @brief 获取文件的总大小。
      * @return 文件的字节大小。
+     * @throw device_error 如果文件未打开。
      * @endif
      *
      * @lang{EN}
      * @brief Gets the total size of the file.
      * @return The size of the file in bytes.
+     * @throw device_error If the file is not open.
      * @endif
      */
     [[nodiscard]] size_t dsize() const
     {
+        if (!is_open())
+            throw device_error("file_device::dsize fail: file is closed");
         return m_file_len;
     }
 
