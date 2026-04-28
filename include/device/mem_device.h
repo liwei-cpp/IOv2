@@ -17,10 +17,12 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 namespace IOv2
 {
@@ -86,7 +88,9 @@ public:
         other.m_next_pos = 0;
     }
 
-    mem_device& operator=(mem_device&& other) noexcept
+    mem_device& operator=(mem_device&& other)
+        noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
+                 std::allocator_traits<Allocator>::is_always_equal::value)
     {
         if (this != &other)
         {

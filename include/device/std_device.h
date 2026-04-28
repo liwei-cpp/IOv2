@@ -15,8 +15,10 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <cstddef>
 #include <cstdio>
 #include <limits>
+
 #include <poll.h>
 #include <unistd.h>
 
@@ -68,8 +70,20 @@ public:
     std_device() = default;
     std_device(const std_device&) = delete;
     std_device& operator=(const std_device&) = delete;
-    std_device(std_device&&) noexcept = default;
-    std_device& operator=(std_device&&) noexcept = default;
+    std_device(std_device&& other) noexcept
+        : m_eof_hit(other.m_eof_hit)
+    {
+        other.m_eof_hit = false;
+    }
+    std_device& operator=(std_device&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_eof_hit = other.m_eof_hit;
+            other.m_eof_hit = false;
+        }
+        return *this;
+    }
 
     /**
      * @lang{ZH}
@@ -266,5 +280,16 @@ using std_input_device = std_device<STDIN_FILENO>;
  * @endif
  */
 using std_output_device = std_device<STDOUT_FILENO>;
+
+/**
+ * @lang{ZH}
+ * @brief 标准错误设备的类型别名。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Type alias for the standard error device.
+ * @endif
+ */
+using std_error_device = std_device<STDERR_FILENO>;
 
 }
