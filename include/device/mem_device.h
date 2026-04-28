@@ -15,6 +15,7 @@
 #pragma once
 #include <common/defs.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <memory>
@@ -204,7 +205,7 @@ public:
     void dseek(size_t v)
     {
         if (v > m_str.size())
-            throw device_error("mem_device::seek fail: out of boundary");
+            throw device_error("mem_device::dseek fail: out of bounds");
         m_next_pos = v;
     }
 
@@ -224,7 +225,7 @@ public:
     void drseek(size_t offset)
     {
         if (offset > m_str.size())
-            throw device_error("mem_device::rseek fail: out of boundary");
+            throw device_error("mem_device::drseek fail: out of bounds");
         m_next_pos = m_str.size() - offset;
     }
 
