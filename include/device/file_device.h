@@ -350,7 +350,7 @@ public:
 
         auto res = ftell_64(m_file.get());
         if (!std::in_range<size_t>(res))
-            throw device_error("file_device::dtell fail: got invalid position.");
+            throw device_error("file_device::dtell fail: got invalid position");
         return static_cast<size_t>(res);
     }
 
@@ -412,7 +412,7 @@ public:
      * @endif
      *
      * @lang{EN}
-     * @brief Moves the read/write pointer forward from the end of the file.
+     * @brief Moves the read/write pointer backward from the end of the file.
      * @param offset The offset from the end of the file.
      * @throw device_error If the file is not open or seeking fails.
      * @endif
@@ -453,7 +453,7 @@ public:
         if (ch == nullptr)
             throw device_error("file_device::dput fail: null buffer");
         if (!is_open())
-            throw device_error("file_device::dput fail: file closed.");
+            throw device_error("file_device::dput fail: file is closed");
         size_t written = std::fwrite(ch, sizeof(CharType), n, m_file.get());
 
         auto res = ftell_64(m_file.get());
@@ -468,7 +468,7 @@ public:
             throw device_error("file_device::dput fail: cannot determine file position");
 
         if (written != n)
-            throw device_error("file_device::dput fail: partial success.");
+            throw device_error("file_device::dput fail: partial write");
     }
 
     /**
@@ -491,7 +491,7 @@ public:
     {
         if (!is_open()) return;
         if (std::fflush(m_file.get()) == EOF)
-            throw device_error("file_device::dflush fail: fflush fail.");
+            throw device_error("file_device::dflush fail: fflush error");
     }
 
 private:
