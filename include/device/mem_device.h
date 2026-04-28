@@ -14,11 +14,9 @@
  */
 #pragma once
 #include <common/defs.h>
-#include <device/device_concepts.h>
 
 #include <cassert>
 #include <cstring>
-#include <iterator>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -46,7 +44,6 @@ namespace IOv2
  * It supports reading, writing, and seeking within its internal string buffer, forming the
  * basis for implementing features like `stringstream`.
  *
- * @note Currently, only Linux is supported.
  * @note This class is not thread-safe; multi-threading is handled at a higher level.
  *
  * @tparam CharT The character type.
@@ -149,7 +146,7 @@ public:
     size_t dget(char_type* s, size_t n)
     {
         if (n == 0) return 0;
-        if (s == nullptr && n > 0)
+        if (s == nullptr)
             throw device_error("mem_device::dget fail: null buffer");
         assert(m_next_pos <= m_str.size());
 

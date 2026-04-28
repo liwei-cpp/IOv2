@@ -13,15 +13,12 @@
 #pragma once
 #include <common/defs.h>
 #include <common/metafunctions.h>
-#include <device/device_concepts.h>
 
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <exception>
 #include <expected>
-#include <functional>
 #include <limits>
 #include <memory>
 #include <string>
@@ -390,9 +387,9 @@ public:
     {
         if (!is_open())
             throw device_error("file_device::dseek fail: file is closed");
-        
+
         // In input-enabled modes, seeking is restricted to the current file length.
-        // This ensures that any subsequent read operation (dget) starts from a valid 
+        // This ensures that any subsequent read operation (dget) starts from a valid
         // position within the existing data bounds.
         if constexpr (IsIn)
         {
@@ -525,7 +522,7 @@ private:
         }
         else if constexpr (IsIn)
         {
-           if (checkres == none)
+            if (checkres == none)
                 return "r";
             else if (checkres == binary)
                 return "rb";
@@ -575,7 +572,7 @@ private:
 private:
     std::unique_ptr<FILE, file_deleter> m_file;
 
-    // Cached file length, in CharType units.
+    // Cached file length, in bytes.
     //
     // Type is `size_t` (not `uint64_t`) because the public API — `dsize()`,
     // `dseek(size_t)`, `drseek(size_t)` — is `size_t`-typed; using `size_t`
