@@ -245,6 +245,7 @@ var namespaceIOv2 =
     [ "file_device", "namespaceIOv2.html#af7fb797e580598b1f58546504aedc5c0", null ],
     [ "ifile_device", "namespaceIOv2.html#aa7467ff5eec785aa8f20ea4d00b3d923", null ],
     [ "ofile_device", "namespaceIOv2.html#a1c51b058a9fc1d8fb4bd5fa8e79d4aa3", null ],
+    [ "std_error_device", "namespaceIOv2.html#aea808e478da1169a394ddeb3072c45ec", null ],
     [ "std_input_device", "namespaceIOv2.html#aab89f6e0618933bd64600fb0707f8115", null ],
     [ "std_output_device", "namespaceIOv2.html#a763cdb75083e33a60ef051a8210427f4", null ],
     [ "file_open_flag", "namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1", [

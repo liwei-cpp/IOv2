@@ -14,6 +14,6 @@ var classIOv2_1_1mem__device =
     [ "dsize", "classIOv2_1_1mem__device.html#afa38796f17501dcb72ab4e6da005573d", null ],
     [ "dtell", "classIOv2_1_1mem__device.html#aa5234e7a489b586596901f49944ad15a", null ],
     [ "operator=", "classIOv2_1_1mem__device.html#ac166c2c30e6893c831da899ada79e073", null ],
-    [ "operator=", "classIOv2_1_1mem__device.html#a30e478bfea044e5521749a49282c394c", null ],
+    [ "operator=", "classIOv2_1_1mem__device.html#a23de5699230a6a5a58ac9bd5e67fa50f", null ],
     [ "str", "classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d", null ]
 ];
