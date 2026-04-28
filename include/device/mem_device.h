@@ -79,6 +79,23 @@ public:
         : m_str(std::move(info))
     {}
 
+    /**
+     * @lang{ZH}
+     * @brief 从 C 风格字符串构造设备。
+     * @param str 指向以 null 结尾的字符串的指针。
+     * @throw device_error 如果 str 为 nullptr。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs a device from a C-style string.
+     * @param str Pointer to a null-terminated string.
+     * @throw device_error If str is nullptr.
+     * @endif
+     */
+    explicit mem_device(const CharT* str)
+        : m_str(str ? str : throw device_error("mem_device: null string pointer"))
+    {}
+
     mem_device(const mem_device&) = default;
     mem_device& operator=(const mem_device&) = default;
     mem_device(mem_device&& other) noexcept
@@ -155,7 +172,7 @@ public:
             throw device_error("mem_device::dget fail: null buffer");
         assert(m_next_pos <= m_str.size());
 
-        std::size_t res = std::min(m_str.size() - m_next_pos, n);
+        size_t res = std::min(m_str.size() - m_next_pos, n);
         std::memmove(s, m_str.data() + m_next_pos, res * sizeof(char_type));
         m_next_pos += res;
         return res;
