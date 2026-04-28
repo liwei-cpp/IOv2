@@ -13,6 +13,7 @@
 #pragma once
 #include <common/defs.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <cstdio>
 #include <limits>
@@ -209,7 +210,7 @@ public:
         if (!put_res)
         {
             std::clearerr(ID == STDOUT_FILENO ? stdout : stderr);
-            throw device_error("std_device::dput fail: partial success.");
+            throw device_error("std_device::dput fail: partial write");
         }
     }
 
@@ -236,7 +237,7 @@ public:
         if (!flush_res)
         {
             std::clearerr(ID == STDOUT_FILENO ? stdout : stderr);
-            throw device_error("std_device::dflush fail: fflush failed.");
+            throw device_error("std_device::dflush fail: fflush error");
         }
     }
 
