@@ -112,6 +112,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a110ad91c5f6e872daf7e72f0bb13cc2c" id="r_a110ad91c5f6e872daf7e72f0bb13cc2c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a110ad91c5f6e872daf7e72f0bb13cc2c">mem_device</a> (std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">info</a>=std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;{})</td></tr>
 <tr class="memdesc:a110ad91c5f6e872daf7e72f0bb13cc2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，可以从一个现有的 <code>basic_string</code> 初始化设备。  <br /></td></tr>
 <tr class="separator:a110ad91c5f6e872daf7e72f0bb13cc2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a757a1e5429c422c6e908105ce86c68f8" id="r_a757a1e5429c422c6e908105ce86c68f8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a757a1e5429c422c6e908105ce86c68f8">mem_device</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d">str</a>)</td></tr>
+<tr class="memdesc:a757a1e5429c422c6e908105ce86c68f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">从 C 风格字符串构造设备。  <br /></td></tr>
+<tr class="separator:a757a1e5429c422c6e908105ce86c68f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a077cb6206124be5452bccf48e9a65317" id="r_a077cb6206124be5452bccf48e9a65317"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a077cb6206124be5452bccf48e9a65317">mem_device</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a077cb6206124be5452bccf48e9a65317"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac166c2c30e6893c831da899ada79e073" id="r_ac166c2c30e6893c831da899ada79e073"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1mem__device.html">mem_device</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#ac166c2c30e6893c831da899ada79e073">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1mem__device.html">mem_device</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
@@ -173,7 +176,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 <h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a110ad91c5f6e872daf7e72f0bb13cc2c" name="a110ad91c5f6e872daf7e72f0bb13cc2c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a110ad91c5f6e872daf7e72f0bb13cc2c">&#9670;&#160;</a></span>mem_device() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a110ad91c5f6e872daf7e72f0bb13cc2c">&#9670;&#160;</a></span>mem_device() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -202,8 +205,38 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
+<a id="a757a1e5429c422c6e908105ce86c68f8" name="a757a1e5429c422c6e908105ce86c68f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a757a1e5429c422c6e908105ce86c68f8">&#9670;&#160;</a></span>mem_device() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>  = std::char_traits&lt;CharT&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>  = std::allocator&lt;CharT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1mem__device.html">IOv2::mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;::mem_device </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *&#160;</td>
+          <td class="paramname"><em>str</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>从 C 风格字符串构造设备。 </p>
+
+</div>
+</div>
 <a id="a077cb6206124be5452bccf48e9a65317" name="a077cb6206124be5452bccf48e9a65317"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a077cb6206124be5452bccf48e9a65317">&#9670;&#160;</a></span>mem_device() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a077cb6206124be5452bccf48e9a65317">&#9670;&#160;</a></span>mem_device() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -231,7 +264,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 </div>
 <a id="aed508db6bfd6c2d02ea9b7ade21dc16f" name="aed508db6bfd6c2d02ea9b7ade21dc16f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed508db6bfd6c2d02ea9b7ade21dc16f">&#9670;&#160;</a></span>mem_device() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aed508db6bfd6c2d02ea9b7ade21dc16f">&#9670;&#160;</a></span>mem_device() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">

@@ -2,6 +2,7 @@ var classIOv2_1_1mem__device =
 [
     [ "char_type", "classIOv2_1_1mem__device.html#af5fcd3b119b72b48bd54bfa09353a6d3", null ],
     [ "mem_device", "classIOv2_1_1mem__device.html#a110ad91c5f6e872daf7e72f0bb13cc2c", null ],
+    [ "mem_device", "classIOv2_1_1mem__device.html#a757a1e5429c422c6e908105ce86c68f8", null ],
     [ "mem_device", "classIOv2_1_1mem__device.html#a077cb6206124be5452bccf48e9a65317", null ],
     [ "mem_device", "classIOv2_1_1mem__device.html#aed508db6bfd6c2d02ea9b7ade21dc16f", null ],
     [ "~mem_device", "classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5", null ],
