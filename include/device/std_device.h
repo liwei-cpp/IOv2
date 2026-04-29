@@ -18,6 +18,8 @@
 #include <cstddef>
 #include <cstdio>
 #include <limits>
+#include <type_traits>
+#include <variant>
 
 #include <poll.h>
 #include <unistd.h>
@@ -71,16 +73,22 @@ public:
     std_device(const std_device&) = delete;
     std_device& operator=(const std_device&) = delete;
     std_device(std_device&& other) noexcept
-        : m_eof_hit(other.m_eof_hit)
     {
-        other.m_eof_hit = false;
-    }
-    std_device& operator=(std_device&& other) noexcept
-    {
-        if (this != &other)
+        if constexpr (ID == STDIN_FILENO)
         {
             m_eof_hit = other.m_eof_hit;
             other.m_eof_hit = false;
+        }
+    }
+    std_device& operator=(std_device&& other) noexcept
+    {
+        if constexpr (ID == STDIN_FILENO)
+        {
+            if (this != &other)
+            {
+                m_eof_hit = other.m_eof_hit;
+                other.m_eof_hit = false;
+            }
         }
         return *this;
     }
@@ -256,7 +264,7 @@ public:
     }
 
 private:
-    bool m_eof_hit = false;
+    [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, bool, std::monostate> m_eof_hit{};
 };
 
 /**
