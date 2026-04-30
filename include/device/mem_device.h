@@ -14,6 +14,7 @@
  */
 #pragma once
 #include <common/defs.h>
+#include <device/device_concepts.h>
 
 #include <algorithm>
 #include <cassert>
@@ -295,9 +296,125 @@ public:
      */
     void dflush() {}
 
+    /**
+     * @lang{ZH}
+     * @brief 获取输入缓冲区中的一段连续内存。
+     * @tparam Saturate 如果为 true，则要求必须读取到请求的长度，否则抛出异常。
+     * @param to_max 请求获取的最大长度。
+     * @return 如果 Saturate 为 true，返回指向数据的指针；否则返回 std::pair，包含数据指针和实际获取的长度。
+     * @throw device_error 如果 Saturate 为 true 且剩余数据不足。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Retrieves a contiguous block of memory from the input buffer.
+     * @tparam Saturate If true, requires the exact requested length; otherwise, throws an exception.
+     * @param to_max The maximum requested length.
+     * @return If Saturate is true, returns a pointer to the data; otherwise, returns a std::pair containing the data pointer and actual length.
+     * @throw device_error If Saturate is true and there is insufficient data remaining.
+     * @endif
+     */
+    template <bool Saturate = false>
+    auto get_buf(size_t to_max)
+    {
+        assert(m_str.size() >= m_next_pos);
+        const size_t remain = m_str.size() - m_next_pos;
+        if constexpr (Saturate)
+        {
+            if (to_max > remain)
+                throw device_error("mem_device::get_but fail: not enough input");
+            auto res = const_cast<const CharT*>(m_str.c_str() + m_next_pos);
+            m_next_pos += to_max;
+            return res;
+        }
+        else
+        {
+            const size_t res_len = std::min(to_max, remain);
+            auto res = std::pair<const CharT*, size_t>{m_str.c_str() + m_next_pos, res_len};
+            m_next_pos += res_len;
+            return res;
+        }
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 回退输入流的读取位置。
+     * @param len 要回退的长度。
+     * @throw device_error 如果回退长度为零或超过当前已读取的位置。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Rolls back the read position of the input stream.
+     * @param len The length to roll back.
+     * @throw device_error If the rollback length is zero or exceeds the current read position.
+     * @endif
+     */
+    void get_rollback(size_t len)
+    {
+        if (len == 0)
+            throw device_error("mem_device::get_rollback fail, length cannot be zero");
+        if (m_next_pos < len)
+            throw device_error("mem_device::get_rollback fail, rollback length too large");
+        m_next_pos -= len;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 获取输出缓冲区中的一段可写入的连续内存。
+     * @param len 要请求的可写入长度。
+     * @return 指向可写入区域起始位置的指针。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Retrieves a contiguous block of writable memory from the output buffer.
+     * @param len The requested length to write.
+     * @return A pointer to the start of the writable area.
+     * @endif
+     */
+    CharT* put_buf(size_t len)
+    {
+        m_ori_size = m_str.size();
+        const size_t needed = m_next_pos + len;
+        if (needed > m_str.size())
+        {
+            if (needed > m_str.capacity())
+            {
+                const size_t cap = m_str.capacity();
+                m_str.reserve(std::max(needed, cap + cap / 2));
+            }
+            m_str.resize(needed);
+        }
+        CharT* res = m_str.data() + m_next_pos;
+        m_next_pos = needed;
+        return res;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 回退输出流的写入位置，并根据需要调整底层缓冲区大小。
+     * @param len 要回退的长度。
+     * @throw device_error 如果回退长度为零或超过当前写入的位置。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Rolls back the write position of the output stream and adjusts the internal buffer size if necessary.
+     * @param len The length to roll back.
+     * @throw device_error If the rollback length is zero or exceeds the current write position.
+     * @endif
+     */
+    void put_rollback(size_t len)
+    {
+        if (len == 0)
+            throw device_error("mem_device::put_rollback fail, length cannot be zero");
+        if (m_next_pos < len)
+            throw device_error("mem_device::put_rollback fail, rollback length too large");
+        m_next_pos -= len;
+        m_str.resize(std::max(m_next_pos, m_ori_size));
+    }
+
 private:
     std::basic_string<CharT, Traits, Allocator> m_str;
     size_t m_next_pos = 0;
+    size_t m_ori_size = 0;
 };
 
 /// @cond
