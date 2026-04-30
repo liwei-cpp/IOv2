@@ -164,7 +164,7 @@ public:
         if (s == nullptr)
             throw device_error("std_device::dget fail: null buffer");
 
-        constexpr size_t max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
+        constexpr auto max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
         ssize_t ret = 0;
         while (true)
         {

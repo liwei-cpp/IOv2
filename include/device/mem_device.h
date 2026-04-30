@@ -377,7 +377,10 @@ public:
         if (needed > m_str.size())
         {
             if (needed > m_str.capacity())
-                m_str.reserve(grow(m_str.capacity(), needed));
+            {
+                const size_t cap = m_str.capacity();
+                m_str.reserve(std::max(needed, cap + cap / 2));
+            }
             m_str.resize(needed);
         }
         CharT* res = m_str.data() + m_next_pos;
@@ -406,29 +409,6 @@ public:
             throw device_error("mem_device::put_rollback fail, rollback length too large");
         m_next_pos -= len;
         m_str.resize(std::max(m_next_pos, m_ori_size));
-    }
-
-private:
-    /**
-     * @lang{ZH}
-     * @brief 计算缓冲区增长后的新容量。
-     * @param current 当前容量。
-     * @param required 所需的最小容量。
-     * @return 增长后的新容量。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Calculates the new capacity for buffer growth.
-     * @param current The current capacity.
-     * @param required The minimum required capacity.
-     * @return The calculated new capacity.
-     * @endif
-     */
-    static size_t grow(size_t current, size_t required)
-    {
-        const size_t new_cap = current + current / 2;
-        if (new_cap < required) return required;
-        return new_cap;
     }
 
 private:
