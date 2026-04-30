@@ -1,15 +1,16 @@
 #pragma once
+#include <common/defs.h>
+#include <common/metafunctions.h>
+#include <cvt/abs_cvt.h>
+#include <cvt/cvt_concepts.h>
+#include <device/device_concepts.h>
+#include <device/mem_device.h>
+
 #include <cassert>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <common/defs.h>
-#include <common/metafunctions.h>
-#include <cvt/cvt_concepts.h>
-#include <cvt/abs_cvt.h>
-#include <device/device_concepts.h>
-#include <device/mem_device.h>
 
 namespace IOv2
 {
@@ -526,6 +527,7 @@ public:
     {
         m_io_status = io_status::output;
     }
+
 private:
     device_type                 m_device;
     size_t                      m_bos_len;
@@ -734,5 +736,70 @@ public:
 
 private:
     std::vector<char_type> buffer;
+};
+
+template <io_converter KernelType>
+    requires ((std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> ||
+               std::is_base_of_v<root_cvt<typename KernelType::device_type, false>, KernelType>) &&
+              is_mem_device<typename KernelType::device_type>)
+class cvt_io<KernelType>
+{
+    class direct_reader
+    {
+        using device_type = typename KernelType::device_type;
+    public:
+        direct_reader(device_type& device)
+            : m_device(device)
+        {}
+
+        template <bool Saturate = false>
+        auto get_buf(size_t to_max)
+        {
+            return m_device.template get_buf<Saturate>(to_max);
+        }
+
+        void rollback(size_t len)
+        {
+            m_device.get_rollback(len);
+        }
+
+    private:
+        device_type& m_device;
+    };
+
+    class direct_writer
+    {
+        using device_type = typename KernelType::device_type;
+    public:
+        direct_writer(device_type& device)
+            : m_device(device)
+        {}
+
+        auto put_buf(size_t len)
+        {
+            return m_device.put_buf(len);
+        }
+
+        void rollback(size_t len)
+        {
+            return m_device.put_rollback(len);
+        }
+
+        void commit() {}
+
+    private:
+        device_type& m_device;
+    };
+
+public:
+    auto reader(KernelType& kernel, size_t)
+    {
+        return direct_reader(kernel.device());
+    }
+
+    auto writer(KernelType& kernel, size_t)
+    {
+        return direct_writer(kernel.device());
+    }
 };
 }
