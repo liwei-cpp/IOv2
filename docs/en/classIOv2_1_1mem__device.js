@@ -14,7 +14,11 @@ var classIOv2_1_1mem__device =
     [ "dseek", "classIOv2_1_1mem__device.html#a043bbc95c704665b9a47146117d5d09e", null ],
     [ "dsize", "classIOv2_1_1mem__device.html#afa38796f17501dcb72ab4e6da005573d", null ],
     [ "dtell", "classIOv2_1_1mem__device.html#aa5234e7a489b586596901f49944ad15a", null ],
+    [ "get_buf", "classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024", null ],
+    [ "get_rollback", "classIOv2_1_1mem__device.html#abd8fe9ea775aa85215ff1d1334f1fdec", null ],
     [ "operator=", "classIOv2_1_1mem__device.html#ac166c2c30e6893c831da899ada79e073", null ],
     [ "operator=", "classIOv2_1_1mem__device.html#a23de5699230a6a5a58ac9bd5e67fa50f", null ],
+    [ "put_buf", "classIOv2_1_1mem__device.html#a7e0788e046ac0e319c22128419ac215d", null ],
+    [ "put_rollback", "classIOv2_1_1mem__device.html#adb7f21dbbc12340d6098e99bec8ca641", null ],
     [ "str", "classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d", null ]
 ];

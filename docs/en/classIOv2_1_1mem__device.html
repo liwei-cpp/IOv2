@@ -152,6 +152,19 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a192d0df35ccac5bd0df2ce9b596e2880" id="r_a192d0df35ccac5bd0df2ce9b596e2880"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a192d0df35ccac5bd0df2ce9b596e2880">dflush</a> ()</td></tr>
 <tr class="memdesc:a192d0df35ccac5bd0df2ce9b596e2880"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes the device. This is a no-op for a memory device. .  <br /></td></tr>
 <tr class="separator:a192d0df35ccac5bd0df2ce9b596e2880"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2043a1a7835882887309543c57526024" id="r_a2043a1a7835882887309543c57526024"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> Saturate = false&gt; </td></tr>
+<tr class="memitem:a2043a1a7835882887309543c57526024"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024">get_buf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</td></tr>
+<tr class="memdesc:a2043a1a7835882887309543c57526024"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves a contiguous block of memory from the input buffer.  <br /></td></tr>
+<tr class="separator:a2043a1a7835882887309543c57526024"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd8fe9ea775aa85215ff1d1334f1fdec" id="r_abd8fe9ea775aa85215ff1d1334f1fdec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#abd8fe9ea775aa85215ff1d1334f1fdec">get_rollback</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</td></tr>
+<tr class="memdesc:abd8fe9ea775aa85215ff1d1334f1fdec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rolls back the read position of the input stream.  <br /></td></tr>
+<tr class="separator:abd8fe9ea775aa85215ff1d1334f1fdec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7e0788e046ac0e319c22128419ac215d" id="r_a7e0788e046ac0e319c22128419ac215d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#a7e0788e046ac0e319c22128419ac215d">put_buf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</td></tr>
+<tr class="memdesc:a7e0788e046ac0e319c22128419ac215d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves a contiguous block of writable memory from the output buffer.  <br /></td></tr>
+<tr class="separator:a7e0788e046ac0e319c22128419ac215d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb7f21dbbc12340d6098e99bec8ca641" id="r_adb7f21dbbc12340d6098e99bec8ca641"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1mem__device.html#adb7f21dbbc12340d6098e99bec8ca641">put_rollback</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</td></tr>
+<tr class="memdesc:adb7f21dbbc12340d6098e99bec8ca641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Rolls back the write position of the output stream and adjusts the internal buffer size if necessary.  <br /></td></tr>
+<tr class="separator:adb7f21dbbc12340d6098e99bec8ca641"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a> = std::char_traits&lt;CharT&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> = std::allocator&lt;CharT&gt;&gt;<br />
@@ -575,6 +588,68 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
+<a id="a2043a1a7835882887309543c57526024" name="a2043a1a7835882887309543c57526024"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2043a1a7835882887309543c57526024">&#9670;&#160;</a></span>get_buf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>  = std::char_traits&lt;CharT&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>  = std::allocator&lt;CharT&gt;&gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> Saturate = false&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a> <a class="el" href="classIOv2_1_1mem__device.html">IOv2::mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;::get_buf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>to_max</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Retrieves a contiguous block of memory from the input buffer. </p>
+
+</div>
+</div>
+<a id="abd8fe9ea775aa85215ff1d1334f1fdec" name="abd8fe9ea775aa85215ff1d1334f1fdec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd8fe9ea775aa85215ff1d1334f1fdec">&#9670;&#160;</a></span>get_rollback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>  = std::char_traits&lt;CharT&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>  = std::allocator&lt;CharT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1mem__device.html">IOv2::mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;::get_rollback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>len</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Rolls back the read position of the input stream. </p>
+
+</div>
+</div>
 <a id="ac166c2c30e6893c831da899ada79e073" name="ac166c2c30e6893c831da899ada79e073"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac166c2c30e6893c831da899ada79e073">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
@@ -628,6 +703,66 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7e0788e046ac0e319c22128419ac215d" name="a7e0788e046ac0e319c22128419ac215d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7e0788e046ac0e319c22128419ac215d">&#9670;&#160;</a></span>put_buf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>  = std::char_traits&lt;CharT&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>  = std::allocator&lt;CharT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> * <a class="el" href="classIOv2_1_1mem__device.html">IOv2::mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;::put_buf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>len</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Retrieves a contiguous block of writable memory from the output buffer. </p>
+
+</div>
+</div>
+<a id="adb7f21dbbc12340d6098e99bec8ca641" name="adb7f21dbbc12340d6098e99bec8ca641"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb7f21dbbc12340d6098e99bec8ca641">&#9670;&#160;</a></span>put_rollback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>  = std::char_traits&lt;CharT&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>  = std::allocator&lt;CharT&gt;&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1mem__device.html">IOv2::mem_device</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a> &gt;::put_rollback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramname"><em>len</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Rolls back the write position of the output stream and adjusts the internal buffer size if necessary. </p>
 
 </div>
 </div>
