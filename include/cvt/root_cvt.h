@@ -782,7 +782,7 @@ class cvt_io<KernelType>
 
         void rollback(size_t len)
         {
-            return m_device.put_rollback(len);
+            m_device.put_rollback(len);
         }
 
         void commit() {}
