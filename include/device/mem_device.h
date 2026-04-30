@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -102,8 +103,10 @@ public:
     mem_device(mem_device&& other) noexcept
         : m_str(std::move(other.m_str))
         , m_next_pos(other.m_next_pos)
+        , m_put_buf_checkpoint(other.m_put_buf_checkpoint)
     {
         other.m_next_pos = 0;
+        other.m_put_buf_checkpoint.reset();
     }
 
     mem_device& operator=(mem_device&& other)
@@ -114,7 +117,9 @@ public:
         {
             m_str = std::move(other.m_str);
             m_next_pos = other.m_next_pos;
+            m_put_buf_checkpoint = other.m_put_buf_checkpoint;
             other.m_next_pos = 0;
+            other.m_put_buf_checkpoint.reset();
         }
         return *this;
     }
@@ -321,7 +326,7 @@ public:
         if constexpr (Saturate)
         {
             if (to_max > remain)
-                throw device_error("mem_device::get_but fail: not enough input");
+                throw device_error("mem_device::get_buf fail: not enough input");
             auto res = const_cast<const CharT*>(m_str.c_str() + m_next_pos);
             m_next_pos += to_max;
             return res;
@@ -360,19 +365,39 @@ public:
     /**
      * @lang{ZH}
      * @brief 获取输出缓冲区中的一段可写入的连续内存。
+     *
+     * 调用此函数后，可以选择性地调用 `put_rollback` 来回收未使用的写入空间。
+     * 如果实际写入的数据量小于请求的长度，应调用 `put_rollback` 回退多余部分。
+     *
+     * @note `put_rollback` 只能在 `put_buf` 之后调用，反之则会抛出异常。
+     *
      * @param len 要请求的可写入长度。
      * @return 指向可写入区域起始位置的指针。
+     * @throw device_error 如果请求的长度会导致大小溢出。
+     * @see put_rollback
      * @endif
      *
      * @lang{EN}
      * @brief Retrieves a contiguous block of writable memory from the output buffer.
+     *
+     * After calling this function, you may optionally call `put_rollback` to reclaim
+     * unused write space. If the actual data written is less than the requested length,
+     * `put_rollback` should be called to roll back the excess.
+     *
+     * @note `put_rollback` can only be called after `put_buf`; otherwise it will throw.
+     *
      * @param len The requested length to write.
      * @return A pointer to the start of the writable area.
+     * @throw device_error If the requested length would cause a size overflow.
+     * @see put_rollback
      * @endif
      */
     CharT* put_buf(size_t len)
     {
-        m_ori_size = m_str.size();
+        if (len > m_str.max_size() - m_next_pos)
+            throw device_error("mem_device::put_buf fail: size overflow");
+
+        m_put_buf_checkpoint = m_str.size();
         const size_t needed = m_next_pos + len;
         if (needed > m_str.size())
         {
@@ -391,30 +416,51 @@ public:
     /**
      * @lang{ZH}
      * @brief 回退输出流的写入位置，并根据需要调整底层缓冲区大小。
+     *
+     * 此函数只能在 `put_buf` 之后调用。调用后会清除 checkpoint 状态，
+     * 因此每次 `put_buf` 最多只能对应一次 `put_rollback`。
+     *
      * @param len 要回退的长度。
-     * @throw device_error 如果回退长度为零或超过当前写入的位置。
+     * @throw device_error 如果未先调用 `put_buf`、回退长度为零或超过当前写入的位置。
+     * @see put_buf
      * @endif
      *
      * @lang{EN}
      * @brief Rolls back the write position of the output stream and adjusts the internal buffer size if necessary.
+     *
+     * This function can only be called after `put_buf`. After calling, the checkpoint
+     * state is cleared, so each `put_buf` can correspond to at most one `put_rollback`.
+     *
      * @param len The length to roll back.
-     * @throw device_error If the rollback length is zero or exceeds the current write position.
+     * @throw device_error If `put_buf` was not called first, rollback length is zero, or exceeds the current write position.
+     * @see put_buf
      * @endif
      */
     void put_rollback(size_t len)
     {
+        if (!m_put_buf_checkpoint.has_value())
+            throw device_error("mem_device::put_rollback fail: no active put_buf");
         if (len == 0)
-            throw device_error("mem_device::put_rollback fail, length cannot be zero");
+            throw device_error("mem_device::put_rollback fail: length cannot be zero");
         if (m_next_pos < len)
-            throw device_error("mem_device::put_rollback fail, rollback length too large");
+            throw device_error("mem_device::put_rollback fail: rollback length too large");
+
+        const size_t saved_size = m_put_buf_checkpoint.value();
+        m_put_buf_checkpoint.reset();
+
         m_next_pos -= len;
-        m_str.resize(std::max(m_next_pos, m_ori_size));
+        m_str.resize(std::max(m_next_pos, saved_size));
     }
 
 private:
     std::basic_string<CharT, Traits, Allocator> m_str;
     size_t m_next_pos = 0;
-    size_t m_ori_size = 0;
+
+    // Checkpoint for put_buf/put_rollback pairing.
+    // Set by put_buf to record the string size before expansion;
+    // consumed and cleared by put_rollback to restore proper size.
+    // If empty (nullopt), put_rollback will throw.
+    std::optional<size_t> m_put_buf_checkpoint;
 };
 
 /// @cond
