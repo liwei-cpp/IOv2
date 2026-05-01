@@ -6,7 +6,6 @@
 #include <device/device_concepts.h>
 #include <device/mem_device.h>
 
-#include <cassert>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -63,17 +62,27 @@ public:
         m_buf_end = m_buffer.data() + ep;
     }
 
-    root_cvt(root_cvt&& val)
+    root_cvt(root_cvt&& val) noexcept(
+                std::is_nothrow_move_constructible_v<device_type> &&
+                std::is_nothrow_move_assignable_v<std::vector<external_type>>
+            )
         : m_device(std::move(val.m_device))
         , m_bos_len(val.m_bos_len)
         , m_io_status(val.m_io_status)
     {
-        size_t cp = val.m_buf_cur - val.m_buffer.data();
-        size_t ep = val.m_buf_end - val.m_buffer.data();
-        
+        size_t cp = 0;
+        size_t ep = 0;
+
+        if (val.m_buf_cur)
+        {
+            cp = val.m_buf_cur - val.m_buffer.data();
+            ep = val.m_buf_end - val.m_buffer.data();
+        }
+
         m_buffer = std::move(val.m_buffer);
         m_buf_cur = m_buffer.data() + cp;
         m_buf_end = m_buffer.data() + ep;
+
         val.m_buf_cur = val.m_buf_end = nullptr;
         val.m_io_status = io_status::neutral;
     }
@@ -99,7 +108,7 @@ public:
         m_io_status = val.m_io_status;
         return *this;
     }
-    
+
     root_cvt& operator=(root_cvt&& val)
     {
         if (this == &val) return *this;
@@ -109,15 +118,21 @@ public:
 
         m_device = std::move(val.m_device);
         m_bos_len = val.m_bos_len;
-        
-        size_t cp = val.m_buf_cur - val.m_buffer.data();
-        size_t ep = val.m_buf_end - val.m_buffer.data();
-        
+
+        size_t cp = 0;
+        size_t ep = 0;
+
+        if (val.m_buf_cur)
+        {
+            cp = val.m_buf_cur - val.m_buffer.data();
+            ep = val.m_buf_end - val.m_buffer.data();
+        }
+
         m_buffer = std::move(val.m_buffer);
         m_buf_cur = m_buffer.data() + cp;
         m_buf_end = m_buffer.data() + ep;
         val.m_buf_cur = val.m_buf_end = nullptr;
-        
+
         m_io_status = val.m_io_status;
         val.m_io_status = io_status::neutral;
         return *this;
@@ -131,7 +146,9 @@ public:
             {
                 flush();
             }
-            catch (...) {}
+            catch (...) {// NOLINT(bugprone-empty-catch)
+                // Ignore exceptions in destructor to prevent std::terminate
+            }
         }
     }
 
@@ -220,7 +237,7 @@ public:
             if (m_buf_cur != m_buf_end) return false;
             return m_device.deof();
         default:
-            return m_device.deof();
+            throw cvt_error("root_cvt::is_eof fails: invalid io status"); 
         }
     }
 
@@ -275,8 +292,17 @@ public:
             m_buf_cur = std::copy(to, to + to_size, m_buf_cur);
             return;
         }
-        
-        m_device.dput(m_buffer.data(), buf_used);
+
+        if (to_size == remain)
+        {
+            std::copy(to, to + to_size, m_buf_cur);
+            m_device.dput(m_buffer.data(), s_buffer_length);
+            m_buf_cur = m_buffer.data();
+            return;
+        }
+
+        if (buf_used > 0)
+            m_device.dput(m_buffer.data(), buf_used);
         if (to_size < s_buffer_length / 2)
             m_buf_cur = std::copy(to, to + to_size, m_buffer.data());
         else
@@ -339,7 +365,8 @@ public:
         }
 
         const size_t size_from_device = m_device.dsize();
-        assert(m_bos_len <= size_from_device);
+        if (m_bos_len > size_from_device)
+            throw cvt_error("root_cvt::rseek fails: bos_len exceeds device size");
         if (size_from_device - m_bos_len < pos)
             throw cvt_error("root_cvt::rseek fails: out of boundary");
 
@@ -389,12 +416,17 @@ public:
 private:
     device_type                 m_device;
     size_t                      m_bos_len;
+    // std::vector is intentionally used over std::array: move operations are O(1)
+    // (pointer swap), whereas std::array move degrades to a full element-wise copy.
     std::vector<external_type>  m_buffer;
     external_type*              m_buf_cur;
     external_type*              m_buf_end;
     io_status                   m_io_status;
 };
 
+// HasInBuffer is ignored for mem_device specialization:
+// mem_device directly exposes buffer pointers and never needs an internal buffer.
+// Both rb_root_cvt and no_rb_root_cvt are valid wrappers and behave identically here.
 template <typename CharT,
           typename Traits,
           typename Allocator,
@@ -510,7 +542,8 @@ public:
     void rseek(size_t pos)
     {
         const size_t size_from_device = m_device.dsize();
-        assert(m_bos_len <= size_from_device);
+        if (m_bos_len > size_from_device)
+            throw cvt_error("root_cvt::rseek fails: bos_len exceeds device size");
         if (size_from_device - m_bos_len < pos)
             throw cvt_error("root_cvt::rseek fails: out of boundary");
 
@@ -654,7 +687,10 @@ public:
     root_cvt_writer(KernelType& kernel, size_t buf_size)
         : m_kernel(kernel)
         , m_buf_size(buf_size)
-    {}
+    {
+        if (m_buf_size > KernelType::s_buffer_length)
+            throw cvt_error("root_cvt_writer: buf_size exceeds buffer capacity");
+    }
 
     char_type* put_buf(size_t len)
     {
@@ -735,6 +771,10 @@ public:
     }
 
 private:
+    // Buffer is reused across reader() calls to avoid repeated heap allocation.
+    // Consequently, the returned cvt_reader holds a reference to this buffer —
+    // callers must ensure this cvt_io instance outlives any cvt_reader it produces,
+    // and must not call reader() again while a previous cvt_reader is still in use.
     std::vector<char_type> buffer;
 };
 
