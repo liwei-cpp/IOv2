@@ -1,8 +1,10 @@
 #pragma once
 #include <cvt/cvt_concepts.h>
+
 #include <bit>
 #include <cstring>
 #include <exception>
+#include <span>
 #include <vector>
 namespace IOv2 
 {
@@ -11,18 +13,14 @@ namespace IOv2
     {
         using char_type = typename KernelType::internal_type;
     public:
-        cvt_reader(KernelType& kernel, std::vector<char_type>& buffer)
+        cvt_reader(KernelType& kernel, std::span<char_type> buffer)
             : m_refkernel(kernel)
             , m_refbuffer(buffer)
         {}
 
         cvt_reader(const cvt_reader&) = delete;
         cvt_reader(cvt_reader&&) = default;
-
-        ~cvt_reader()
-        {
-            m_refbuffer.clear();
-        }
+        ~cvt_reader() = default;
     
         template <bool Saturate = false>
         auto get_buf(size_t to_max)
@@ -91,7 +89,7 @@ namespace IOv2
 
     private:
         KernelType& m_refkernel;
-        std::vector<char_type>& m_refbuffer;
+        std::span<char_type> m_refbuffer;
         size_t m_cur_pos = 0;
         size_t m_end_pos = 0;
     };
@@ -101,7 +99,7 @@ namespace IOv2
     {
         using char_type = typename KernelType::internal_type;
     public:
-        cvt_writer(KernelType& kernel, std::vector<char_type>& buffer)
+        cvt_writer(KernelType& kernel, std::span<char_type> buffer)
             : m_refkernel(kernel)
             , m_refbuffer(buffer)
         {}
@@ -114,7 +112,6 @@ namespace IOv2
             try
             {
                 commit();
-                m_refbuffer.clear();
             }
             catch(...)
             {}
@@ -160,7 +157,7 @@ namespace IOv2
     
     private:
         KernelType& m_refkernel;
-        std::vector<char_type>& m_refbuffer;
+        std::span<char_type> m_refbuffer;
         size_t m_prev_len = 0;
     };
 
