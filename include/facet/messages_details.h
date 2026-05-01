@@ -80,20 +80,30 @@ public:
         if (p_lang.empty())
         {
             std::string res;
-            if (std::getenv("LANGUAGE") != nullptr)
+            if (const char* p = std::getenv("LANGUAGE"))
             {
-                res = match_lang(std::getenv("LANGUAGE"));
+                res = match_lang(p);
                 if (!res.empty()) return res;
             }
 
-            res = std::setlocale(LC_ALL, nullptr);
-            if ((!res.empty()) && (base_ft<messages>::available(domain, res))) return res;
+            if (const char* p = std::setlocale(LC_ALL, nullptr))
+            {
+                res = p;
+                if (base_ft<messages>::available(domain, res)) return res;
+            }
 
-            res = std::setlocale(LC_MESSAGES, nullptr);
-            if ((!res.empty()) && (base_ft<messages>::available(domain, res))) return res;
+            if (const char* p = std::setlocale(LC_MESSAGES, nullptr))
+            {
+                res = p;
+                if (base_ft<messages>::available(domain, res)) return res;
+            }
 
-            res = std::getenv("LANG");
-            if ((!res.empty()) && (base_ft<messages>::available(domain, res))) return res;
+            if (const char* p = std::getenv("LANG"))
+            {
+                res = p;
+                if (base_ft<messages>::available(domain, res)) return res;
+            }
+
             return "";
         }
         else
