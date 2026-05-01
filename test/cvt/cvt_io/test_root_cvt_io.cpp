@@ -16,8 +16,8 @@ void test_root_cvt_mem_input_1()
     {
         obj.bos(); obj.main_cont_beg();
 
-        cvt_io<T> io;
-        auto reader = io.reader(obj, 1024);
+        cvt_reader<T> reader(&obj);
+        reader.reset(1024);
 
         auto [ptr, len] = reader.get_buf(3);
         VERIFY(len == 3);
@@ -51,8 +51,8 @@ void test_root_cvt_mem_input_2()
     {
         obj.bos(); obj.main_cont_beg();
 
-        cvt_io<T> io;
-        auto reader = io.reader(obj, 5);
+        cvt_reader<T> reader(&obj);
+        reader.reset(5);
 
         auto [ptr, len] = reader.get_buf(5);
         VERIFY(len == 5);
@@ -93,8 +93,8 @@ void test_root_cvt_mem_input_3()
 
         std::string res;
         {
-            cvt_io<T> io;
-            auto reader = io.reader(obj, 7);
+            cvt_reader<T> reader(&obj);
+            reader.reset(7);
 
             size_t cur = 0;
             size_t get_len = 1;
@@ -130,8 +130,8 @@ void test_root_cvt_mem_output_1()
         obj.bos(); obj.main_cont_beg();
 
         {
-            cvt_io<T> io;
-            auto writer = io.writer(obj, 1024);
+            cvt_writer<T> writer(&obj);
+            writer.reset(1024);
 
             auto ptr = writer.put_buf(3);
             std::string str = "123";
@@ -169,8 +169,8 @@ void test_root_cvt_mem_output_2()
         obj.bos(); obj.main_cont_beg();
 
         {
-            cvt_io<T> io;
-            auto writer = io.writer(obj, 1024);
+            cvt_writer<T> writer(&obj);
+            writer.reset(1024);
 
             auto ptr = writer.put_buf(5);
             std::string str = "123";
@@ -216,8 +216,8 @@ void test_root_cvt_mem_output_3()
             ref += 'a' + (i % 26);
 
         {
-            cvt_io<T> io;
-            auto writer = io.writer(obj, 10);
+            cvt_writer<T> writer(&obj);
+            writer.reset(10);
 
             size_t cur = 0;
             size_t get_len = 1;
@@ -260,8 +260,8 @@ void test_root_cvt_mem_saturate_input_1()
 
         std::string res;
         {
-            cvt_io<T> io;
-            auto reader = io.reader(obj, 7);
+            cvt_reader<T> reader(&obj);
+            reader.reset(7);
 
             size_t cur = 0;
             size_t get_len = 1;

@@ -84,8 +84,8 @@ public:
         const size_t iv_len = m_cipher->default_iv_length();
         if (BT::m_io_status == io_status::input)
         {
-            auto rd = this->reader(iv_len);
-            auto ptr = rd.template get_buf<true>(iv_len);
+            this->m_reader.reset(iv_len);
+            auto ptr = this->m_reader.template get_buf<true>(iv_len);
 
             m_cipher->set_key(m_key);
             m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
@@ -93,13 +93,13 @@ public:
         else if (BT::m_io_status == io_status::output)
         {
             Botan::AutoSeeded_RNG rng;
-            auto wt = this->writer(iv_len);
-            auto ptr = wt.put_buf(iv_len);
+            this->m_writer.reset(iv_len);
+            auto ptr = this->m_writer.put_buf(iv_len);
             rng.randomize(reinterpret_cast<uint8_t*>(ptr), iv_len);
 
             m_cipher->set_key(m_key);
             m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
-            wt.commit();
+            this->m_writer.commit();
         }
         else
             throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
@@ -124,12 +124,12 @@ private:
 
         uint8_t* to = reinterpret_cast<uint8_t*>(_to);
 
-        auto rd = this->reader(block_size);
+        this->m_reader.reset(block_size);
         size_t res = 0;
         while (res != to_max)
         {
             size_t dest_size = std::min<size_t>(block_size, to_max - res);
-            auto [ptr, cur_len] = rd.get_buf(dest_size);
+            auto [ptr, cur_len] = this->m_reader.get_buf(dest_size);
             if (cur_len == 0) break;
             m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, cur_len);
             to += cur_len;
@@ -140,7 +140,7 @@ private:
             throw cvt_error("chacha20_cvt::get fails: partial sequence");
         return res / sizeof(internal_type);
     }
-    
+
     void put_main(const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
@@ -149,7 +149,7 @@ private:
 
         const uint8_t* to = reinterpret_cast<const uint8_t*>(_to);
 
-        auto wt = this->writer(block_size);
+        this->m_writer.reset(block_size);
         while (to_size > 0)
         {
             size_t aim_output = (max_chunk / sizeof(internal_type) > to_size)
@@ -159,14 +159,14 @@ private:
             while (to_i != aim_output)
             {
                 size_t dest_size = std::min<size_t>(block_size, aim_output - to_i);
-                auto ptr = wt.put_buf(dest_size);
+                auto ptr = this->m_writer.put_buf(dest_size);
                 m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size);
                 to_i += dest_size;
             }
             to += aim_output;
             to_size -= aim_output / sizeof(internal_type);
         }
-        wt.commit();
+        this->m_writer.commit();
     }
 private:
     std::unique_ptr<Botan::StreamCipher> m_cipher;

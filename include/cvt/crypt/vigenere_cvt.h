@@ -77,11 +77,11 @@ private:
         requires (cvt_cpt::support_get<KernelType>)
     {
         size_t total_count = 0;
-        auto rd = this->reader(s_buf_len);
+        this->m_reader.reset(s_buf_len);
         while (total_count != to_max)
         {
             const size_t dest_size = std::min(s_buf_len, to_max - total_count);
-            auto [ptr, cur_size] = rd.get_buf(dest_size);
+            auto [ptr, cur_size] = this->m_reader.get_buf(dest_size);
             if (cur_size == 0)
                 return total_count;
 
@@ -94,17 +94,17 @@ private:
         }
         return total_count;
     }
-    
+
     void put_main(const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        auto wt = this->writer(s_buf_len);
+        this->m_writer.reset(s_buf_len);
 
         size_t total_count = 0;
         while (total_count != to_size)
         {
             const size_t dest_size = std::min(s_buf_len, to_size - total_count);
-            auto ptr = wt.put_buf(dest_size);
+            auto ptr = this->m_writer.put_buf(dest_size);
 
             for (size_t i = 0; i < dest_size; ++i)
             {
@@ -113,7 +113,7 @@ private:
             }
             total_count += dest_size;
         }
-        wt.commit();
+        this->m_writer.commit();
     }
 
 public:

@@ -195,10 +195,10 @@ public:
             auto ret = inflateInit(&m_strm);
             if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
 
-            auto rd = this->reader(2);
+            this->m_reader.reset(2);
             const external_type* ptr = nullptr;
             if constexpr (cvt_cpt::support_get<KernelType>)
-                ptr = rd.template get_buf<true>(2);
+                ptr = this->m_reader.template get_buf<true>(2);
             else throw cvt_error("zlib_cvt::bos fail: kernel does not support get.");
 
             m_strm.avail_in = 2;
@@ -225,8 +225,8 @@ public:
             auto ret = deflateInit(&m_strm, static_cast<int>(m_put_level));
             if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
 
-            auto wt = this->writer(3);
-            auto ptr = wt.put_buf(3);
+            this->m_writer.reset(3);
+            auto ptr = this->m_writer.put_buf(3);
 
             m_strm.avail_in = 0;
             m_strm.next_in = nullptr;
@@ -237,8 +237,8 @@ public:
 
             if (m_strm.avail_out != 1) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
 
-            wt.rollback(1);
-            wt.commit();
+            this->m_writer.rollback(1);
+            this->m_writer.commit();
 
             m_strm.avail_out = 0;
             m_strm.next_out = nullptr;
@@ -257,7 +257,7 @@ private:
         // unpredictable expansion ratio - a few compressed bytes could expand
         // to overflow the output buffer. This keeps the code simple and correct.
         // The underlying converter already buffers, so this doesn't cause syscalls.
-        auto rd = this->reader(1);
+        this->m_reader.reset(1);
 
         constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm.avail_out)>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
@@ -273,7 +273,7 @@ private:
 
         while (m_strm.avail_out && ret != Z_STREAM_END)
         {
-            auto [ptr, len] = rd.get_buf(1);
+            auto [ptr, len] = this->m_reader.get_buf(1);
             if (len == 0) break;
             m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<char*>(ptr));
             m_strm.avail_in = 1;
@@ -301,7 +301,7 @@ private:
 
         auto to = reinterpret_cast<const unsigned char*>(_to);
 
-        auto wt = this->writer(CHUNK);
+        this->m_writer.reset(CHUNK);
         while (to_size > 0)
         {
             auto aim_output = (max_chunk / sizeof(internal_type) > to_size)
@@ -314,7 +314,7 @@ private:
                 m_strm.next_in = const_cast<unsigned char*>(to + write_size);
                 size_t cur_put_size = static_cast<size_t>(aim_output - write_size);
                 m_strm.avail_in = cur_put_size;
-                m_strm.next_out = reinterpret_cast<unsigned char*>(wt.put_buf(CHUNK));
+                m_strm.next_out = reinterpret_cast<unsigned char*>(this->m_writer.put_buf(CHUNK));
                 m_strm.avail_out = CHUNK;
 
                 auto ret = deflate(&m_strm, Z_NO_FLUSH);
@@ -322,12 +322,12 @@ private:
                 write_size += cur_put_size - m_strm.avail_in;
 
                 if (m_strm.avail_out)
-                    wt.rollback(m_strm.avail_out);
+                    this->m_writer.rollback(m_strm.avail_out);
             }
             to += aim_output;
             to_size -= aim_output / sizeof(internal_type);
         }
-        wt.commit();
+        this->m_writer.commit();
 
         m_strm.next_out = nullptr;
         m_strm.avail_out = 0;
@@ -346,21 +346,21 @@ public:
 
         if (m_sync_flush)
         {
-            auto wt = this->writer(CHUNK);
+            this->m_writer.reset(CHUNK);
             m_strm.next_in = nullptr;
             m_strm.avail_in = 0;
             while (true)
             {
-                m_strm.next_out = reinterpret_cast<unsigned char*>(wt.put_buf(CHUNK));
+                m_strm.next_out = reinterpret_cast<unsigned char*>(this->m_writer.put_buf(CHUNK));
                 m_strm.avail_out = CHUNK;
                 zerr("zlib_cvt::flush fail", deflate(&m_strm, Z_SYNC_FLUSH));
                 if (m_strm.avail_out)
                 {
-                    wt.rollback(m_strm.avail_out);
+                    this->m_writer.rollback(m_strm.avail_out);
                     break;
                 }
             }
-            wt.commit();
+            this->m_writer.commit();
             m_strm.next_out = nullptr;
             m_strm.avail_out = 0;
             m_strm.next_in = nullptr;
@@ -401,21 +401,21 @@ private:
         {
             if (BT::m_is_bos_done)
             {
-                auto wt = this->writer(CHUNK);
+                this->m_writer.reset(CHUNK);
                 m_strm.next_in = nullptr;
                 m_strm.avail_in = 0;
                 while (true)
                 {
-                    m_strm.next_out = reinterpret_cast<unsigned char*>(wt.put_buf(CHUNK));
+                    m_strm.next_out = reinterpret_cast<unsigned char*>(this->m_writer.put_buf(CHUNK));
                     m_strm.avail_out = CHUNK;
                     zerr("zlib_cvt::put_end fail", deflate(&m_strm, Z_FINISH));
                     if (m_strm.avail_out)
                     {
-                        wt.rollback(m_strm.avail_out);
+                        this->m_writer.rollback(m_strm.avail_out);
                         break;
                     }
                 }
-                wt.commit();
+                this->m_writer.commit();
                 deflateEnd(&m_strm);
             }
         }
