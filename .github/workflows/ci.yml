@@ -15,7 +15,7 @@ jobs:
           - compiler: g++
             image: gcc:15
           - compiler: clang++
-            image: silkeh/clang:19
+            image: silkeh/clang:19-unstable
 
     container:
       image: ${{ matrix.image }}
@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all make
+        apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all make tzdata
 
     - name: Run tests (Release)
       run: |
@@ -49,18 +49,17 @@ jobs:
   clang-tidy:
     runs-on: ubuntu-latest
     container:
-      image: silkeh/clang:19
+      image: silkeh/clang:19-unstable
     steps:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev make
+        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata
 
     - name: Run clang-tidy
       run: |
-        # In silkeh/clang:19, clang-tidy is available
         clang-tidy $(find include/common include/device -name '*.h') \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
