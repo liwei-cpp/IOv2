@@ -8,28 +8,25 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        compiler: [g++-15, clang++-19]
+        include:
+          - compiler: g++
+            image: gcc:15
+          - compiler: clang++
+            image: silkeh/clang:19
+
+    container:
+      image: ${{ matrix.image }}
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all curl gpg
-        # GCC 15 and Clang 19 setup
-        sudo mkdir -p /etc/apt/keyrings
-        # Toolchain PPA key
-        curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x60C315A74569103E357309220AD30582EB04A1F6" | sudo gpg --dearmor -o /etc/apt/keyrings/ubuntu-toolchain-r.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/ubuntu-toolchain-r.gpg] https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu/ noble main" | sudo tee /etc/apt/sources.list.d/ubuntu-toolchain-r.list
-        # LLVM repository key
-        curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/llvm.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/llvm.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
-        sudo apt-get update
-        sudo apt-get install -y g++-15 clang-19 libasan8 libubsan1
+        apt-get update
+        apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all make
 
     - name: Run tests (Release)
       run: |
@@ -50,28 +47,21 @@ jobs:
         make valgrind CXX=${{ matrix.compiler }} MODE=release
 
   clang-tidy:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    container:
+      image: silkeh/clang:19
     steps:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y zlib1g-dev libbotan-2-dev curl gpg
-        # GCC 15 and Clang 19 setup (needed for standard library headers)
-        sudo mkdir -p /etc/apt/keyrings
-        # Toolchain PPA key
-        curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x60C315A74569103E357309220AD30582EB04A1F6" | sudo gpg --dearmor -o /etc/apt/keyrings/ubuntu-toolchain-r.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/ubuntu-toolchain-r.gpg] https://ppa.launchpadcontent.net/ubuntu-toolchain-r/test/ubuntu/ noble main" | sudo tee /etc/apt/sources.list.d/ubuntu-toolchain-r.list
-        # LLVM repository key
-        curl -fsSL https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/llvm.gpg
-        echo "deb [signed-by=/etc/apt/keyrings/llvm.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm.list
-        sudo apt-get update
-        sudo apt-get install -y clang-tidy-19 clang-19 g++-15
+        apt-get update
+        apt-get install -y zlib1g-dev libbotan-2-dev make
 
     - name: Run clang-tidy
       run: |
-        clang-tidy-19 $(find include/common include/device -name '*.h') \
+        # In silkeh/clang:19, clang-tidy is available
+        clang-tidy $(find include/common include/device -name '*.h') \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
