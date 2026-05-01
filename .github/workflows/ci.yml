@@ -14,8 +14,10 @@ jobs:
         include:
           - compiler: g++
             image: gcc:15
+            extra_pkgs: ""
           - compiler: clang++
-            image: silkeh/clang:19-unstable
+            image: gcc:15 # Use same base to ensure latest libstdc++
+            extra_pkgs: "clang"
 
     container:
       image: ${{ matrix.image }}
@@ -26,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all make tzdata
+        apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all make tzdata ${{ matrix.extra_pkgs }}
 
     - name: Run tests (Release)
       run: |
@@ -49,17 +51,18 @@ jobs:
   clang-tidy:
     runs-on: ubuntu-latest
     container:
-      image: silkeh/clang:19-unstable
+      image: gcc:15
     steps:
     - uses: actions/checkout@v4
 
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata
+        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata clang-tidy clang
 
     - name: Run clang-tidy
       run: |
+        # Use default clang-tidy from the image (which will be a recent version)
         clang-tidy $(find include/common include/device -name '*.h') \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
