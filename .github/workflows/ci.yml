@@ -48,6 +48,40 @@ jobs:
         cd test
         make valgrind CXX=${{ matrix.compiler }} MODE=release
 
+  coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: gcc:15
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata lcov
+
+    - name: Generate Coverage Report
+      run: |
+        cd test
+        # 1. Build and run all tests in coverage mode
+        make -j$(nproc) test MODE=coverage
+        
+        # 2. Capture coverage data
+        lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
+        
+        # 3. Filter to include ONLY the 'include' directory and exclude system/test code
+        lcov --extract coverage.info '*/include/*' --output-file coverage.info --ignore-errors unused
+        
+        # 4. Print summary to console for quick check
+        lcov --list coverage.info
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: test/coverage.info
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+
   clang-tidy:
     runs-on: ubuntu-latest
     container:

@@ -43,11 +43,9 @@ public:
 public:
     explicit root_cvt(device_type device)
         : m_device(std::move(device))
-        , m_bos_len(0)
         , m_buffer(s_buffer_length)
         , m_buf_cur(m_buffer.data())
-        , m_buf_end(m_buffer.data())
-        , m_io_status(io_status::neutral) {}
+        , m_buf_end(m_buffer.data()) {}
         
     root_cvt(const root_cvt& val)
         requires (std::copy_constructible<device_type>)
@@ -342,7 +340,7 @@ public:
     }
     
     /// positioning
-    size_t tell() const
+    [[nodiscard]] size_t tell() const
         requires (dev_cpt::support_positioning<device_type>)
     {
         const size_t device_tell = m_device.dtell();
@@ -446,13 +444,13 @@ public:
 
 private:
     device_type                 m_device;
-    size_t                      m_bos_len;
+    size_t                      m_bos_len = 0;
     // std::vector is intentionally used over std::array: move operations are O(1)
     // (pointer swap), whereas std::array move degrades to a full element-wise copy.
     std::vector<external_type>  m_buffer;
     external_type*              m_buf_cur;
     external_type*              m_buf_end;
-    io_status                   m_io_status;
+    io_status                   m_io_status = io_status::neutral;
 };
 
 // HasInBuffer is ignored for mem_device specialization:
@@ -471,9 +469,7 @@ public:
 
 public:
     explicit root_cvt(device_type device)
-        : m_device(std::move(device))
-        , m_bos_len(0)
-        , m_io_status(io_status::neutral) {}
+        : m_device(std::move(device)) {}
 
     root_cvt(const root_cvt& val)
         : m_device(val.m_device)
@@ -564,7 +560,7 @@ public:
     void flush() {}
     
     /// positioning
-    size_t tell() const
+    [[nodiscard]] size_t tell() const
     {
         return m_device.dtell() - m_bos_len;
     }
@@ -598,8 +594,8 @@ public:
 
 private:
     device_type                 m_device;
-    size_t                      m_bos_len;
-    io_status                   m_io_status;
+    size_t                      m_bos_len = 0;
+    io_status                   m_io_status = io_status::neutral;
 };
 
 template <io_device DeviceType>
