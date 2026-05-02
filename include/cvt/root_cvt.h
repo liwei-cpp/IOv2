@@ -6,6 +6,7 @@
 #include <device/device_concepts.h>
 #include <device/mem_device.h>
 
+#include <cassert>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -55,11 +56,21 @@ public:
         , m_buffer(val.m_buffer)
         , m_io_status(val.m_io_status)
     {
-        size_t cp = val.m_buf_cur - val.m_buffer.data();
-        m_buf_cur = m_buffer.data() + cp;
-        
-        size_t ep = val.m_buf_end - val.m_buffer.data();
-        m_buf_end = m_buffer.data() + ep;
+        // Defensive: handle moved-from source gracefully to avoid UB from
+        // nullptr arithmetic. Moved-from objects have m_buf_cur == nullptr.
+        if (val.m_buf_cur == nullptr)
+        {
+            m_buf_cur = m_buffer.data();
+            m_buf_end = m_buffer.data();
+        }
+        else
+        {
+            size_t cp = val.m_buf_cur - val.m_buffer.data();
+            m_buf_cur = m_buffer.data() + cp;
+
+            size_t ep = val.m_buf_end - val.m_buffer.data();
+            m_buf_end = m_buffer.data() + ep;
+        }
     }
 
     root_cvt(root_cvt&& val) noexcept(
@@ -99,12 +110,22 @@ public:
         m_bos_len = val.m_bos_len;
         m_buffer = val.m_buffer;
 
-        size_t cp = val.m_buf_cur - val.m_buffer.data();
-        m_buf_cur = m_buffer.data() + cp;
-        
-        size_t ep = val.m_buf_end - val.m_buffer.data();
-        m_buf_end = m_buffer.data() + ep;
-        
+        // Defensive: handle moved-from source gracefully to avoid UB from
+        // nullptr arithmetic. Moved-from objects have m_buf_cur == nullptr.
+        if (val.m_buf_cur == nullptr)
+        {
+            m_buf_cur = m_buffer.data();
+            m_buf_end = m_buffer.data();
+        }
+        else
+        {
+            size_t cp = val.m_buf_cur - val.m_buffer.data();
+            m_buf_cur = m_buffer.data() + cp;
+
+            size_t ep = val.m_buf_end - val.m_buffer.data();
+            m_buf_end = m_buffer.data() + ep;
+        }
+
         m_io_status = val.m_io_status;
         return *this;
     }
@@ -198,9 +219,17 @@ public:
         }
 
         if constexpr (dev_cpt::support_positioning<device_type>)
-            m_bos_len = m_device.dtell() - (m_buf_end - m_buf_cur);
+        {
+            // Invariant: dtell() >= buffered data. The buffer is filled via dget(),
+            // which advances the device position by the amount read. Consuming data
+            // from the buffer only moves m_buf_cur forward, never increasing the
+            // buffered amount beyond what was read from the device.
+            const size_t buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
+            assert(m_device.dtell() >= buffered);
+            m_bos_len = m_device.dtell() - buffered;
+        }
     }
-    
+
     io_status bos()
     {
         if constexpr (dev_cpt::support_get<device_type> &&
@@ -328,14 +357,28 @@ public:
     size_t tell() const
         requires (dev_cpt::support_positioning<device_type>)
     {
-        size_t device_tell = m_device.dtell();
+        const size_t device_tell = m_device.dtell();
 
         switch(m_io_status)
         {
         case io_status::output:
-            return device_tell - m_bos_len + (m_buf_cur - m_buffer.data());
+        {
+            // Invariant: device_tell >= m_bos_len. The device position only advances
+            // via flush operations, never moving backward from the stream start.
+            assert(device_tell >= m_bos_len);
+            const size_t buf_used = static_cast<size_t>(m_buf_cur - m_buffer.data());
+            return device_tell - m_bos_len + buf_used;
+        }
         case io_status::input:
-            return device_tell - m_bos_len - (m_buf_end - m_buf_cur);
+        {
+            // Invariant: device_tell - m_bos_len >= buffered. Same invariant as
+            // main_cont_beg(): buffer data comes from dget(), which advances device
+            // position by the amount read.
+            const size_t buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
+            assert(device_tell >= m_bos_len);
+            assert(device_tell - m_bos_len >= buffered);
+            return device_tell - m_bos_len - buffered;
+        }
         default:
             throw cvt_error("root_cvt::tell fails: invalid io status");
         }
@@ -606,11 +649,21 @@ public:
 
     void set_kernel(KernelType* kernel) { m_kernel = kernel; }
 
-    void reset(size_t buf_size)
-    {
-        m_buf_size = buf_size;
-    }
+    void reset(size_t) {}
 
+    /// @brief Retrieves data from root_cvt's internal buffer, reading from device if needed.
+    ///
+    /// @tparam Saturate Controls behavior when insufficient data is available:
+    ///   - false (default): Returns available data (may be less than requested).
+    ///                      Return type: std::pair<const char_type*, size_t>
+    ///   - true: Requires exactly to_max chars; throws if not enough data.
+    ///           Return type: const char_type*
+    ///
+    /// @param to_max Number of characters to retrieve.
+    /// @return When Saturate=false: pair of (pointer, actual_count).
+    ///         When Saturate=true: pointer to exactly to_max chars.
+    /// @throws cvt_error If Saturate=true and end-of-stream is reached before
+    ///         reading to_max characters.
     template <bool Saturate = false>
     auto get_buf(size_t to_max)
     {
@@ -618,7 +671,7 @@ public:
             throw cvt_error("cvt_reader::get_buf fail, kernel is null.");
         if (to_max == 0)
             throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero.");
-        if (to_max > m_buf_size)
+        if (to_max > KernelType::s_buffer_length)
             throw cvt_error("cvt_reader::get_buf fail, read size too large.");
 
         if constexpr (dev_cpt::support_put<device_type>)
@@ -680,7 +733,6 @@ public:
 
 private:
     KernelType* m_kernel;
-    size_t m_buf_size = 0;
 };
 
 // cvt_writer specialization for root_cvt: directly use root_cvt's internal buffer
@@ -782,6 +834,9 @@ public:
 
     void reset(size_t) {}
 
+    /// @brief Forwards to mem_device::get_buf. See mem_device::get_buf for details.
+    /// @tparam Saturate When true, requires exact count and returns const char_type*.
+    ///                  When false (default), returns std::pair<const char_type*, size_t>.
     template <bool Saturate = false>
     auto get_buf(size_t to_max)
     {
