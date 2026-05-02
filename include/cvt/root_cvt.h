@@ -106,36 +106,21 @@ public:
         if constexpr (dev_cpt::support_put<device_type>)
             flush();
 
-        m_device = val.m_device;
-        m_bos_len = val.m_bos_len;
-        m_buffer = val.m_buffer;
-
-        // Defensive: handle moved-from source gracefully to avoid UB from
-        // nullptr arithmetic. Moved-from objects have m_buf_cur == nullptr.
-        if (val.m_buf_cur == nullptr)
-        {
-            m_buf_cur = m_buffer.data();
-            m_buf_end = m_buffer.data();
-        }
-        else
-        {
-            size_t cp = val.m_buf_cur - val.m_buffer.data();
-            m_buf_cur = m_buffer.data() + cp;
-
-            size_t ep = val.m_buf_end - val.m_buffer.data();
-            m_buf_end = m_buffer.data() + ep;
-        }
-
-        m_io_status = val.m_io_status;
+        root_cvt tmp(val);
+        *this = std::move(tmp);
         return *this;
     }
 
     root_cvt& operator=(root_cvt&& val)
+        noexcept(std::is_nothrow_move_assignable_v<device_type>)
     {
         if (this == &val) return *this;
 
         if constexpr (dev_cpt::support_put<device_type>)
-            flush();
+        {
+            try { flush(); }
+            catch (...) {} // NOLINT(bugprone-empty-catch)
+        }
 
         m_device = std::move(val.m_device);
         m_bos_len = val.m_bos_len;
@@ -227,7 +212,7 @@ public:
             // which advances the device position by the amount read. Consuming data
             // from the buffer only moves m_buf_cur forward, never increasing the
             // buffered amount beyond what was read from the device.
-            const size_t buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
+            const auto buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
             assert(m_device.dtell() >= buffered);
             m_bos_len = m_device.dtell() - buffered;
         }
@@ -369,7 +354,7 @@ public:
             // Invariant: device_tell >= m_bos_len. The device position only advances
             // via flush operations, never moving backward from the stream start.
             assert(device_tell >= m_bos_len);
-            const size_t buf_used = static_cast<size_t>(m_buf_cur - m_buffer.data());
+            const auto buf_used = static_cast<size_t>(m_buf_cur - m_buffer.data());
             return device_tell - m_bos_len + buf_used;
         }
         case io_status::input:
@@ -377,7 +362,7 @@ public:
             // Invariant: device_tell - m_bos_len >= buffered. Same invariant as
             // main_cont_beg(): buffer data comes from dget(), which advances device
             // position by the amount read.
-            const size_t buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
+            const auto buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
             assert(device_tell >= m_bos_len);
             assert(device_tell - m_bos_len >= buffered);
             return device_tell - m_bos_len - buffered;
@@ -497,6 +482,7 @@ public:
     {}
 
     root_cvt(root_cvt&& val)
+        noexcept(std::is_nothrow_move_constructible_v<device_type>)
         : m_device(std::move(val.m_device))
         , m_bos_len(val.m_bos_len)
         , m_io_status(val.m_io_status)
@@ -512,6 +498,7 @@ public:
     }
     
     root_cvt& operator=(root_cvt&& val)
+        noexcept(std::is_nothrow_move_assignable_v<device_type>)
     {
         if (this == &val) return *this;
         m_device = std::move(val.m_device);
