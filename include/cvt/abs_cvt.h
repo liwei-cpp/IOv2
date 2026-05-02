@@ -30,6 +30,19 @@ namespace IOv2
             m_end_pos = 0;
         }
 
+        /// @brief Retrieves data from the buffer, reading from kernel if needed.
+        ///
+        /// @tparam Saturate Controls behavior when insufficient data is available:
+        ///   - false (default): Returns available data (may be less than requested).
+        ///                      Return type: std::pair<const char_type*, size_t>
+        ///   - true: Requires exactly to_max chars; throws if not enough data.
+        ///           Return type: const char_type*
+        ///
+        /// @param to_max Number of characters to retrieve.
+        /// @return When Saturate=false: pair of (pointer, actual_count).
+        ///         When Saturate=true: pointer to exactly to_max chars.
+        /// @throws cvt_error If Saturate=true and end-of-stream is reached before
+        ///         reading to_max characters.
         template <bool Saturate = false>
         auto get_buf(size_t to_max)
         {
