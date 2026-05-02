@@ -1,9 +1,0 @@
-<map id="include/device/device_concepts.h" name="include/device/device_concepts.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="64,5,227,45"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,85,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,48,73,87,70,82,119,43"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="110,93,181,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="148,46,148,79,143,79,143,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="205,93,265,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="169,44,213,82,209,86,165,48"/>
-</map>

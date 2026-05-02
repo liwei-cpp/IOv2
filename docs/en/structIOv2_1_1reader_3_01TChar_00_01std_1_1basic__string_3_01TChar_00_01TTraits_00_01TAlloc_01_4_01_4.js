@@ -1,4 +1,0 @@
-var structIOv2_1_1reader_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4 =
-[
-    [ "sread", "structIOv2_1_1reader_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html#af9857ccb7b7478ec7d1f6a92d2e4c066", null ]
-];

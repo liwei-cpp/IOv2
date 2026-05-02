@@ -1,4 +1,0 @@
-var structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4 =
-[
-    [ "value", "structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html#a76a1f9db80e3963388a9546741ba2832", null ]
-];
