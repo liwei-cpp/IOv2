@@ -185,7 +185,7 @@ public:
                 flush();
         }
         else if ((m_io_status == io_status::input) &&
-                 (m_buf_end != m_buffer.data()))
+                 (m_buf_cur != m_buf_end))
         {
             if constexpr (dev_cpt::support_positioning<device_type>)
                 seek(tell());
@@ -212,6 +212,9 @@ public:
     
     void main_cont_beg()
     {
+        // bos() must be called before main_cont_beg() to establish io_status
+        assert(m_io_status != io_status::neutral);
+
         if constexpr (dev_cpt::support_put<device_type>)
         {
             if (m_io_status == io_status::output)
@@ -543,6 +546,8 @@ public:
     
     void main_cont_beg()
     {
+        // bos() must be called before main_cont_beg() to establish io_status
+        assert(m_io_status != io_status::neutral);
         m_bos_len = m_device.dtell();
     }
     
