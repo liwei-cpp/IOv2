@@ -58,7 +58,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata lcov
+        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata lcov locales-all
 
     - name: Generate Coverage Report
       run: |
