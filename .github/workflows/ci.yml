@@ -67,7 +67,7 @@ jobs:
         make -j$(nproc) test MODE=coverage
         
         # 2. Capture coverage data
-        lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
+        lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch,inconsistent,negative
         
         # 3. Filter to include ONLY the 'include' directory and exclude system/test code
         lcov --extract coverage.info '*/include/*' --output-file coverage.info --ignore-errors unused
