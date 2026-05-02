@@ -17,7 +17,7 @@ var classIOv2_1_1root__cvt =
     [ "is_eof", "classIOv2_1_1root__cvt.html#aac18da120cfc98b3e10e87c1fb15538a", null ],
     [ "main_cont_beg", "classIOv2_1_1root__cvt.html#a4bb288353223da3f1872ecbb2922c842", null ],
     [ "operator=", "classIOv2_1_1root__cvt.html#aebaf8efd2dccf7ebaa45fb86cd771589", null ],
-    [ "operator=", "classIOv2_1_1root__cvt.html#aa08ea516ebebd18a82cc099141c8150a", null ],
+    [ "operator=", "classIOv2_1_1root__cvt.html#abf09ca5dc1e2d500d9e5b0476f9ca99d", null ],
     [ "put", "classIOv2_1_1root__cvt.html#a659ea8527498c300f6e103affe493913", null ],
     [ "retrieve", "classIOv2_1_1root__cvt.html#a7da5eb70d93809e095805a09959d3df2", null ],
     [ "rseek", "classIOv2_1_1root__cvt.html#a18c77f15ed9f24274aa5217201dfe2b9", null ],
