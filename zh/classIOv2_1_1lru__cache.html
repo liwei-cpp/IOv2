@@ -1,0 +1,523 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::lru_cache&lt; TK, TV, Capacity &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classIOv2_1_1lru__cache.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="classIOv2_1_1lru__cache-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">IOv2::lru_cache&lt; TK, TV, Capacity &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="lru__cache_8h_source.html">lru_cache.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a9c6bc101928fbbb22e0cce2aa1e863ed" id="r_a9c6bc101928fbbb22e0cce2aa1e863ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a9c6bc101928fbbb22e0cce2aa1e863ed">key_param_type</a> = std::conditional_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_small_type_v</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> &amp; &gt;</td></tr>
+<tr class="separator:a9c6bc101928fbbb22e0cce2aa1e863ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00929fe7dceba8a3d7faf2fc7399c6af" id="r_a00929fe7dceba8a3d7faf2fc7399c6af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a00929fe7dceba8a3d7faf2fc7399c6af">val_param_type</a> = std::conditional_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_small_type_v</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> &amp; &gt;</td></tr>
+<tr class="separator:a00929fe7dceba8a3d7faf2fc7399c6af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17538b11bf2ed9be154006d32a7a9764" id="r_a17538b11bf2ed9be154006d32a7a9764"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a17538b11bf2ed9be154006d32a7a9764">return_type</a> = std::conditional_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_small_type_v</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> &gt;, std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> * &gt;</td></tr>
+<tr class="separator:a17538b11bf2ed9be154006d32a7a9764"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a0cde1d96f448583c5e743285927d3af6" id="r_a0cde1d96f448583c5e743285927d3af6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a0cde1d96f448583c5e743285927d3af6">lru_cache</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:a0cde1d96f448583c5e743285927d3af6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acef43e19b83dae43fab56eb247590838" id="r_acef43e19b83dae43fab56eb247590838"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#acef43e19b83dae43fab56eb247590838">lru_cache</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:acef43e19b83dae43fab56eb247590838"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab13fc135a87ff59706a3b84678d371fa" id="r_ab13fc135a87ff59706a3b84678d371fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#ab13fc135a87ff59706a3b84678d371fa">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:ab13fc135a87ff59706a3b84678d371fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa01a06cef7c6dc32cfc0fa11765a893b" id="r_aa01a06cef7c6dc32cfc0fa11765a893b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#aa01a06cef7c6dc32cfc0fa11765a893b">lru_cache</a> (<a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:aa01a06cef7c6dc32cfc0fa11765a893b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58c18c1c23a6097bbc5973ad18ef6def" id="r_a58c18c1c23a6097bbc5973ad18ef6def"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a58c18c1c23a6097bbc5973ad18ef6def">operator=</a> (<a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:a58c18c1c23a6097bbc5973ad18ef6def"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5edc3d2e3980096d9bd56c673409275b" id="r_a5edc3d2e3980096d9bd56c673409275b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a5edc3d2e3980096d9bd56c673409275b">~lru_cache</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:a5edc3d2e3980096d9bd56c673409275b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40894702b8befe170d5d0cf0194c9254" id="r_a40894702b8befe170d5d0cf0194c9254"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1lru__cache.html#a17538b11bf2ed9be154006d32a7a9764">return_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a40894702b8befe170d5d0cf0194c9254">get</a> (<a class="el" href="classIOv2_1_1lru__cache.html#a9c6bc101928fbbb22e0cce2aa1e863ed">key_param_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)</td></tr>
+<tr class="separator:a40894702b8befe170d5d0cf0194c9254"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a557adfa41ac5b557d858774d8c69fe4f" id="r_a557adfa41ac5b557d858774d8c69fe4f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a557adfa41ac5b557d858774d8c69fe4f">try_put</a> (<a class="el" href="classIOv2_1_1lru__cache.html#a9c6bc101928fbbb22e0cce2aa1e863ed">key_param_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>, <a class="el" href="classIOv2_1_1lru__cache.html#a00929fe7dceba8a3d7faf2fc7399c6af">val_param_type</a> value)</td></tr>
+<tr class="separator:a557adfa41ac5b557d858774d8c69fe4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a561bc4b108d5cd6452e2bbe9c8f417a3" id="r_a561bc4b108d5cd6452e2bbe9c8f417a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1lru__cache.html#a561bc4b108d5cd6452e2bbe9c8f417a3">put</a> (<a class="el" href="classIOv2_1_1lru__cache.html#a9c6bc101928fbbb22e0cce2aa1e863ed">key_param_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>, <a class="el" href="classIOv2_1_1lru__cache.html#a00929fe7dceba8a3d7faf2fc7399c6af">val_param_type</a> value)</td></tr>
+<tr class="separator:a561bc4b108d5cd6452e2bbe9c8f417a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt;<br />
+requires std::is_copy_constructible_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>&gt; &amp;&amp; std::is_copy_constructible_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>&gt; &amp;&amp; std::equality_comparable&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">requires</a> { std::hash&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>&gt;{}; }<br />
+class IOv2::lru_cache&lt; TK, TV, Capacity &gt;</div><p>简单的最近最少使用（LRU）缓存。</p>
+<p>当缓存达到容量上限时，最久未被访问的项将被驱逐。 <a class="el" href="classIOv2_1_1lru__cache.html#a40894702b8befe170d5d0cf0194c9254">get()</a> 和 <a class="el" href="classIOv2_1_1lru__cache.html#a561bc4b108d5cd6452e2bbe9c8f417a3">put()</a> 操作的平均时间复杂度为 <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a>。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TK</td><td>键类型，必须可复制、可比较且可哈希 </td></tr>
+    <tr><td class="paramname">TV</td><td>值类型，必须可复制 </td></tr>
+    <tr><td class="paramname">Capacity</td><td>缓存的最大容量</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>注解</dt><dd>此类不是线程安全的。</dd></dl>
+<dl class="section user"><dt>示例</dt><dd><div class="fragment"><div class="line"><a class="code hl_class" href="classIOv2_1_1lru__cache.html">lru_cache&lt;std::string, int, 100&gt;</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cache</a>;</div>
+<div class="line"><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cache</a>.<a class="code hl_function" href="classIOv2_1_1lru__cache.html#a561bc4b108d5cd6452e2bbe9c8f417a3">put</a>(<span class="stringliteral">&quot;key1&quot;</span>, 42);</div>
+<div class="line"><span class="keywordflow">if</span> (<span class="keyword">auto</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cache</a>.get(<span class="stringliteral">&quot;key1&quot;</span>)) {</div>
+<div class="line">    <span class="comment">// 对于小类型，val 是 std::optional&lt;int&gt;</span></div>
+<div class="line">    std::cout &lt;&lt; *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a> &lt;&lt; std::endl;</div>
+<div class="line">}</div>
+<div class="ttc" id="aclassIOv2_1_1lru__cache_html"><div class="ttname"><a href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a></div><div class="ttdef"><b>Definition</b> lru_cache.h:77</div></div>
+<div class="ttc" id="aclassIOv2_1_1lru__cache_html_a561bc4b108d5cd6452e2bbe9c8f417a3"><div class="ttname"><a href="classIOv2_1_1lru__cache.html#a561bc4b108d5cd6452e2bbe9c8f417a3">IOv2::lru_cache::put</a></div><div class="ttdeci">void put(key_param_type key, val_param_type value)</div><div class="ttdef"><b>Definition</b> lru_cache.h:237</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
+</div><!-- fragment --> </dd></dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
+<a id="a9c6bc101928fbbb22e0cce2aa1e863ed" name="a9c6bc101928fbbb22e0cce2aa1e863ed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c6bc101928fbbb22e0cce2aa1e863ed">&#9670;&#160;</a></span>key_param_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::key_param_type =  std::conditional_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_small_type_v</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>&amp;&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a17538b11bf2ed9be154006d32a7a9764" name="a17538b11bf2ed9be154006d32a7a9764"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17538b11bf2ed9be154006d32a7a9764">&#9670;&#160;</a></span>return_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::return_type =  std::conditional_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_small_type_v</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>&gt;, std::optional&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>*&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a00929fe7dceba8a3d7faf2fc7399c6af" name="a00929fe7dceba8a3d7faf2fc7399c6af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a00929fe7dceba8a3d7faf2fc7399c6af">&#9670;&#160;</a></span>val_param_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::val_param_type =  std::conditional_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_small_type_v</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>&amp;&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a0cde1d96f448583c5e743285927d3af6" name="a0cde1d96f448583c5e743285927d3af6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0cde1d96f448583c5e743285927d3af6">&#9670;&#160;</a></span>lru_cache() <span class="overload">[1/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::lru_cache </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acef43e19b83dae43fab56eb247590838" name="acef43e19b83dae43fab56eb247590838"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acef43e19b83dae43fab56eb247590838">&#9670;&#160;</a></span>lru_cache() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::lru_cache </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa01a06cef7c6dc32cfc0fa11765a893b" name="aa01a06cef7c6dc32cfc0fa11765a893b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa01a06cef7c6dc32cfc0fa11765a893b">&#9670;&#160;</a></span>lru_cache() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::lru_cache </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5edc3d2e3980096d9bd56c673409275b" name="a5edc3d2e3980096d9bd56c673409275b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5edc3d2e3980096d9bd56c673409275b">&#9670;&#160;</a></span>~lru_cache()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::~<a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a40894702b8befe170d5d0cf0194c9254" name="a40894702b8befe170d5d0cf0194c9254"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40894702b8befe170d5d0cf0194c9254">&#9670;&#160;</a></span>get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1lru__cache.html#a17538b11bf2ed9be154006d32a7a9764">return_type</a> <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::get </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1lru__cache.html#a9c6bc101928fbbb22e0cce2aa1e863ed">key_param_type</a>&#160;</td>
+          <td class="paramname"><em>key</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>获取缓存中的值。</p>
+<p>如果键存在，该项将被标记为最近使用（移动到缓存前端）。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>要查找的键 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>对于小类型返回 std::optional&lt;TV&gt;，对于大类型返回 const TV*； 如果键不存在，返回空 optional 或 nullptr</dd></dl>
+<dl class="section warning"><dt>警告</dt><dd>对于大类型（is_small_type_v&lt;TV&gt; == false），返回的指针指向内部存储。 后续调用 <a class="el" href="classIOv2_1_1lru__cache.html#a561bc4b108d5cd6452e2bbe9c8f417a3">put()</a> 或 <a class="el" href="classIOv2_1_1lru__cache.html#a557adfa41ac5b557d858774d8c69fe4f">try_put()</a> 可能导致该指针失效（当缓存驱逐该项时）。 如需长期持有值，请立即拷贝： <div class="fragment"><div class="line"><span class="keywordflow">if</span> (<span class="keyword">auto</span>* <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cache</a>.get(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)) {</div>
+<div class="line">    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">copy</a> = *<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p</a>;  <span class="comment">// 立即拷贝</span></div>
+<div class="line">    <span class="comment">// 现在可以安全地调用其他 cache 操作</span></div>
+<div class="line">}</div>
+</div><!-- fragment --> </dd></dl>
+
+</div>
+</div>
+<a id="ab13fc135a87ff59706a3b84678d371fa" name="ab13fc135a87ff59706a3b84678d371fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab13fc135a87ff59706a3b84678d371fa">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp; <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a58c18c1c23a6097bbc5973ad18ef6def" name="a58c18c1c23a6097bbc5973ad18ef6def"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a58c18c1c23a6097bbc5973ad18ef6def">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a> &amp; <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a561bc4b108d5cd6452e2bbe9c8f417a3" name="a561bc4b108d5cd6452e2bbe9c8f417a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a561bc4b108d5cd6452e2bbe9c8f417a3">&#9670;&#160;</a></span>put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::put </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1lru__cache.html#a9c6bc101928fbbb22e0cce2aa1e863ed">key_param_type</a>&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1lru__cache.html#a00929fe7dceba8a3d7faf2fc7399c6af">val_param_type</a>&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>将键值对放入缓存（更新已存在的值）。</p>
+<p>如果键已存在，更新其值并标记为最近使用。 如果键不存在，插入新项；如果缓存已满，驱逐最久未使用的项。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>键 </td></tr>
+    <tr><td class="paramname">value</td><td>值 </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a557adfa41ac5b557d858774d8c69fe4f" name="a557adfa41ac5b557d858774d8c69fe4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a557adfa41ac5b557d858774d8c69fe4f">&#9670;&#160;</a></span>try_put()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> Capacity&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1lru__cache.html">IOv2::lru_cache</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TK</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TV</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Capacity</a> &gt;::try_put </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1lru__cache.html#a9c6bc101928fbbb22e0cce2aa1e863ed">key_param_type</a>&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1lru__cache.html#a00929fe7dceba8a3d7faf2fc7399c6af">val_param_type</a>&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>尝试将键值对放入缓存（不更新已存在的值）。</p>
+<p>如果键已存在，仅将其标记为最近使用，不更新值。 如果键不存在，插入新项；如果缓存已满，驱逐最久未使用的项。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>键 </td></tr>
+    <tr><td class="paramname">value</td><td>值 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>如果插入了新项返回 true，如果键已存在返回 false </dd></dl>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/common/<a class="el" href="lru__cache_8h_source.html">lru_cache.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,618 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>IOv2: IOv2::Crypt::chacha20_cvt&lt; KernelType, TInt &gt; 模板类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">IOv2
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classIOv2_1_1Crypt_1_1chacha20__cvt.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pub-static-attribs">静态 Public 属性</a> &#124;
+<a href="classIOv2_1_1Crypt_1_1chacha20__cvt-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">IOv2::Crypt::chacha20_cvt&lt; KernelType, TInt &gt; 模板类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="chacha20__cvt_8h_source.html">chacha20_cvt.h</a>&gt;</code></p>
+<div class="dynheader">
+类 IOv2::Crypt::chacha20_cvt&lt; KernelType, TInt &gt; 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classIOv2_1_1Crypt_1_1chacha20__cvt__inherit__graph.png" border="0" usemap="#aIOv2_1_1Crypt_1_1chacha20__cvt_3_01KernelType_00_01TInt_01_4_inherit__map" alt="Inheritance graph"/></div>
+<map name="aIOv2_1_1Crypt_1_1chacha20__cvt_3_01KernelType_00_01TInt_01_4_inherit__map" id="aIOv2_1_1Crypt_1_1chacha20__cvt_3_01KernelType_00_01TInt_01_4_inherit__map">
+<area shape="rect" title=" " alt="" coords="300,20,483,60"/>
+<area shape="rect" href="classIOv2_1_1abs__cvt.html" title=" " alt="" coords="5,5,252,75"/>
+<area shape="poly" title=" " alt="" coords="266,37,300,37,300,43,266,43"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<div class="dynheader">
+IOv2::Crypt::chacha20_cvt&lt; KernelType, TInt &gt; 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><img src="classIOv2_1_1Crypt_1_1chacha20__cvt__coll__graph.png" border="0" usemap="#aIOv2_1_1Crypt_1_1chacha20__cvt_3_01KernelType_00_01TInt_01_4_coll__map" alt="Collaboration graph"/></div>
+<map name="aIOv2_1_1Crypt_1_1chacha20__cvt_3_01KernelType_00_01TInt_01_4_coll__map" id="aIOv2_1_1Crypt_1_1chacha20__cvt_3_01KernelType_00_01TInt_01_4_coll__map">
+<area shape="rect" title=" " alt="" coords="601,55,784,95"/>
+<area shape="rect" href="classIOv2_1_1abs__cvt.html" title=" " alt="" coords="305,41,552,110"/>
+<area shape="poly" title=" " alt="" coords="566,73,601,73,601,78,566,78"/>
+<area shape="rect" title=" " alt="" coords="51,5,145,31"/>
+<area shape="poly" title=" " alt="" coords="159,26,306,51,305,57,158,31"/>
+<area shape="rect" href="classIOv2_1_1cvt__reader_3_01KernelType_01_4.html" title=" " alt="" coords="5,55,191,95"/>
+<area shape="poly" title=" " alt="" coords="204,73,305,73,305,78,204,78"/>
+<area shape="rect" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html" title=" " alt="" coords="7,119,189,159"/>
+<area shape="poly" title=" " alt="" coords="202,117,305,97,306,102,203,122"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:aadc27620c64587b9909085314ee483d3" id="r_aadc27620c64587b9909085314ee483d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type</td></tr>
+<tr class="separator:aadc27620c64587b9909085314ee483d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b4f793077144a2b6a170128dc8e5112" id="r_a2b4f793077144a2b6a170128dc8e5112"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#a2b4f793077144a2b6a170128dc8e5112">internal_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a></td></tr>
+<tr class="separator:a2b4f793077144a2b6a170128dc8e5112"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabbae4b1529cf9f4e164ea44bfed88cf" id="r_aabbae4b1529cf9f4e164ea44bfed88cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aabbae4b1529cf9f4e164ea44bfed88cf">external_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type</td></tr>
+<tr class="separator:aabbae4b1529cf9f4e164ea44bfed88cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_types_classIOv2_1_1abs__cvt"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classIOv2_1_1abs__cvt')"><img src="closed.png" alt="-"/>&#160;Public 类型 继承自 <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt;</a></td></tr>
+<tr class="memitem:aaeb3fa47b8892cdb7aaad64054f7d887 inherit pub_types_classIOv2_1_1abs__cvt" id="r_aaeb3fa47b8892cdb7aaad64054f7d887"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type</td></tr>
+<tr class="separator:aaeb3fa47b8892cdb7aaad64054f7d887 inherit pub_types_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a876c94ea1a93e4625498012d0437b9e0 inherit pub_types_classIOv2_1_1abs__cvt" id="r_a876c94ea1a93e4625498012d0437b9e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a876c94ea1a93e4625498012d0437b9e0">external_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type</td></tr>
+<tr class="separator:a876c94ea1a93e4625498012d0437b9e0 inherit pub_types_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bfdb62e754eecc88f4a991d65a92c36 inherit pub_types_classIOv2_1_1abs__cvt" id="r_a5bfdb62e754eecc88f4a991d65a92c36"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a></td></tr>
+<tr class="separator:a5bfdb62e754eecc88f4a991d65a92c36 inherit pub_types_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:ae590f3abcb50737d83cb539b8f648898" id="r_ae590f3abcb50737d83cb539b8f648898"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#ae590f3abcb50737d83cb539b8f648898">chacha20_cvt</a> (KernelType <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>, std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)</td></tr>
+<tr class="separator:ae590f3abcb50737d83cb539b8f648898"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82af297df4dc40b0ab2b101b1dc1a78c" id="r_a82af297df4dc40b0ab2b101b1dc1a78c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#a82af297df4dc40b0ab2b101b1dc1a78c">chacha20_cvt</a> (KernelType <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> Botan::secure_vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)</td></tr>
+<tr class="separator:a82af297df4dc40b0ab2b101b1dc1a78c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76293ba1dac1dddfca6d173430d98b08" id="r_a76293ba1dac1dddfca6d173430d98b08"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#a76293ba1dac1dddfca6d173430d98b08">chacha20_cvt</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:a76293ba1dac1dddfca6d173430d98b08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a43bd2c85782996a73c62762eb6169cc0" id="r_a43bd2c85782996a73c62762eb6169cc0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#a43bd2c85782996a73c62762eb6169cc0">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
+<tr class="separator:a43bd2c85782996a73c62762eb6169cc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4111e98502b25f280a12c8372ed8510" id="r_ae4111e98502b25f280a12c8372ed8510"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#ae4111e98502b25f280a12c8372ed8510">chacha20_cvt</a> (<a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:ae4111e98502b25f280a12c8372ed8510"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada089d2e3bbd0a68aa2e67c6a5c851c3" id="r_ada089d2e3bbd0a68aa2e67c6a5c851c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#ada089d2e3bbd0a68aa2e67c6a5c851c3">operator=</a> (<a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:ada089d2e3bbd0a68aa2e67c6a5c851c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab295d34da10d60951f90b9c62f7413f4" id="r_ab295d34da10d60951f90b9c62f7413f4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#ab295d34da10d60951f90b9c62f7413f4">attach</a> (<a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a>{})</td></tr>
+<tr class="separator:ab295d34da10d60951f90b9c62f7413f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a217b9410f187920308da8008f09a5735" id="r_a217b9410f187920308da8008f09a5735"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#a217b9410f187920308da8008f09a5735">detach</a> ()</td></tr>
+<tr class="separator:a217b9410f187920308da8008f09a5735"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab545f1d72ea408b31782d193a566fc0f" id="r_ab545f1d72ea408b31782d193a566fc0f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#ab545f1d72ea408b31782d193a566fc0f">bos</a> ()</td></tr>
+<tr class="separator:ab545f1d72ea408b31782d193a566fc0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a103f88ae849b8954e36d0cce4db7b574" id="r_a103f88ae849b8954e36d0cce4db7b574"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#a103f88ae849b8954e36d0cce4db7b574">main_cont_beg</a> ()</td></tr>
+<tr class="separator:a103f88ae849b8954e36d0cce4db7b574"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classIOv2_1_1abs__cvt"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classIOv2_1_1abs__cvt')"><img src="closed.png" alt="-"/>&#160;Public 成员函数 继承自 <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt;</a></td></tr>
+<tr class="memitem:a6da880ecdf5d7f0010274bd4edeecbc6 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a6da880ecdf5d7f0010274bd4edeecbc6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a6da880ecdf5d7f0010274bd4edeecbc6">abs_cvt</a> (KernelType <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>)</td></tr>
+<tr class="separator:a6da880ecdf5d7f0010274bd4edeecbc6 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1dfd002d4a706a83a16c75798661037d inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a1dfd002d4a706a83a16c75798661037d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a1dfd002d4a706a83a16c75798661037d">abs_cvt</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="separator:a1dfd002d4a706a83a16c75798661037d inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d12672faf20a3d37484bc564d3db938 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a0d12672faf20a3d37484bc564d3db938"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a0d12672faf20a3d37484bc564d3db938">abs_cvt</a> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="separator:a0d12672faf20a3d37484bc564d3db938 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fe8dddc93e153c41a544fc813f1bd99 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a1fe8dddc93e153c41a544fc813f1bd99"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a1fe8dddc93e153c41a544fc813f1bd99">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="separator:a1fe8dddc93e153c41a544fc813f1bd99 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7db5af1b0d6970697b8f90206227f4b7 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a7db5af1b0d6970697b8f90206227f4b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a7db5af1b0d6970697b8f90206227f4b7">operator=</a> (<a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="separator:a7db5af1b0d6970697b8f90206227f4b7 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81950a7d9ee450832b84a845ba074c30 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a81950a7d9ee450832b84a845ba074c30"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a81950a7d9ee450832b84a845ba074c30">~abs_cvt</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="separator:a81950a7d9ee450832b84a845ba074c30 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44f8ea550f63b8c349d546a8c39ed8f2 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a44f8ea550f63b8c349d546a8c39ed8f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a44f8ea550f63b8c349d546a8c39ed8f2">device</a> ()</td></tr>
+<tr class="separator:a44f8ea550f63b8c349d546a8c39ed8f2 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae126ff7b6fcf651364c0e17d86cc074e inherit pub_methods_classIOv2_1_1abs__cvt" id="r_ae126ff7b6fcf651364c0e17d86cc074e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach</a> ()</td></tr>
+<tr class="separator:ae126ff7b6fcf651364c0e17d86cc074e inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af246d3009e41c82b6312dff125d00120 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_af246d3009e41c82b6312dff125d00120"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1abs__cvt.html#aaeb3fa47b8892cdb7aaad64054f7d887">device_type</a>{})</td></tr>
+<tr class="separator:af246d3009e41c82b6312dff125d00120 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec781512826b0c26f361aac77fe7d38a inherit pub_methods_classIOv2_1_1abs__cvt" id="r_aec781512826b0c26f361aac77fe7d38a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>)</td></tr>
+<tr class="separator:aec781512826b0c26f361aac77fe7d38a inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a0d7d39aa029926a6f6422c5fe8271a inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a9a0d7d39aa029926a6f6422c5fe8271a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:a9a0d7d39aa029926a6f6422c5fe8271a inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68345b91aeefe9061d49210cd3c910ad inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a68345b91aeefe9061d49210cd3c910ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos</a> ()</td></tr>
+<tr class="separator:a68345b91aeefe9061d49210cd3c910ad inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dea72ff6bf90ed52632ea474040ae8d inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a2dea72ff6bf90ed52632ea474040ae8d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg</a> ()</td></tr>
+<tr class="separator:a2dea72ff6bf90ed52632ea474040ae8d inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1308de70bb55a6c24f675c24f974b2b inherit pub_methods_classIOv2_1_1abs__cvt" id="r_af1308de70bb55a6c24f675c24f974b2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af1308de70bb55a6c24f675c24f974b2b">is_eof</a> ()</td></tr>
+<tr class="separator:af1308de70bb55a6c24f675c24f974b2b inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56562a6832411d3f7d7edaa2d2eacf71 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a56562a6832411d3f7d7edaa2d2eacf71"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a56562a6832411d3f7d7edaa2d2eacf71">get</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</td></tr>
+<tr class="separator:a56562a6832411d3f7d7edaa2d2eacf71 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae07a9252fc26d3ab8143e1d4f74ef313 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_ae07a9252fc26d3ab8143e1d4f74ef313"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae07a9252fc26d3ab8143e1d4f74ef313">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_size</a>)</td></tr>
+<tr class="separator:ae07a9252fc26d3ab8143e1d4f74ef313 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a1a8668998cccee02d2fa11e35b1808 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a2a1a8668998cccee02d2fa11e35b1808"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2a1a8668998cccee02d2fa11e35b1808">flush</a> ()</td></tr>
+<tr class="separator:a2a1a8668998cccee02d2fa11e35b1808 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add78bcbcdde0e5e1c4798df008c7be38 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_add78bcbcdde0e5e1c4798df008c7be38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#add78bcbcdde0e5e1c4798df008c7be38">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:add78bcbcdde0e5e1c4798df008c7be38 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a098f53b4c197fe8643bea1cff71f6acb inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a098f53b4c197fe8643bea1cff71f6acb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a098f53b4c197fe8643bea1cff71f6acb">seek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="separator:a098f53b4c197fe8643bea1cff71f6acb inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e584b918c30499efaf36d94d7ab6175 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a1e584b918c30499efaf36d94d7ab6175"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a1e584b918c30499efaf36d94d7ab6175">rseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="separator:a1e584b918c30499efaf36d94d7ab6175 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a82a759023e86faee8bf993ee3a894451 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a82a759023e86faee8bf993ee3a894451"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a82a759023e86faee8bf993ee3a894451">switch_to_get</a> ()</td></tr>
+<tr class="separator:a82a759023e86faee8bf993ee3a894451 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17ce40096d37a0ebd6720bc54f9490f9 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a17ce40096d37a0ebd6720bc54f9490f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9">switch_to_put</a> ()</td></tr>
+<tr class="separator:a17ce40096d37a0ebd6720bc54f9490f9 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+静态 Public 属性</h2></td></tr>
+<tr class="memitem:affdb6317432ec5c049dd063bac20cd70" id="r_affdb6317432ec5c049dd063bac20cd70"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#affdb6317432ec5c049dd063bac20cd70">block_size</a> = 64</td></tr>
+<tr class="separator:affdb6317432ec5c049dd063bac20cd70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
+额外继承的成员函数</h2></td></tr>
+<tr class="inherit_header pro_attribs_classIOv2_1_1abs__cvt"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classIOv2_1_1abs__cvt')"><img src="closed.png" alt="-"/>&#160;Protected 属性 继承自 <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt;</a></td></tr>
+<tr class="memitem:aa5780eac0f087afee64a176c112d1f99 inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_aa5780eac0f087afee64a176c112d1f99"><td class="memItemLeft" align="right" valign="top">KernelType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aa5780eac0f087afee64a176c112d1f99">m_kernel</a></td></tr>
+<tr class="separator:aa5780eac0f087afee64a176c112d1f99 inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34c8361a1fc9ccdc4be0fd7c8c3fba61 inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_a34c8361a1fc9ccdc4be0fd7c8c3fba61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a34c8361a1fc9ccdc4be0fd7c8c3fba61">m_io_status</a> = <a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89">io_status::neutral</a></td></tr>
+<tr class="separator:a34c8361a1fc9ccdc4be0fd7c8c3fba61 inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bd59610c93180c31c6737ef3a746a06 inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_a7bd59610c93180c31c6737ef3a746a06"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a7bd59610c93180c31c6737ef3a746a06">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
+<tr class="separator:a7bd59610c93180c31c6737ef3a746a06 inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6e87a9b132395e2e03ea4fe7bd178cd inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_aa6e87a9b132395e2e03ea4fe7bd178cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt; KernelType &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aa6e87a9b132395e2e03ea4fe7bd178cd">m_reader</a></td></tr>
+<tr class="separator:aa6e87a9b132395e2e03ea4fe7bd178cd inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11e26bc0f7500a64378d53c6d2ed4d93 inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_a11e26bc0f7500a64378d53c6d2ed4d93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt; KernelType &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a11e26bc0f7500a64378d53c6d2ed4d93">m_writer</a></td></tr>
+<tr class="separator:a11e26bc0f7500a64378d53c6d2ed4d93 inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="aadc27620c64587b9909085314ee483d3" name="aadc27620c64587b9909085314ee483d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aadc27620c64587b9909085314ee483d3">&#9670;&#160;</a></span>device_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::device_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aabbae4b1529cf9f4e164ea44bfed88cf" name="aabbae4b1529cf9f4e164ea44bfed88cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabbae4b1529cf9f4e164ea44bfed88cf">&#9670;&#160;</a></span>external_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::external_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2b4f793077144a2b6a170128dc8e5112" name="a2b4f793077144a2b6a170128dc8e5112"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b4f793077144a2b6a170128dc8e5112">&#9670;&#160;</a></span>internal_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::internal_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">构造及析构函数说明</h2>
+<a id="ae590f3abcb50737d83cb539b8f648898" name="ae590f3abcb50737d83cb539b8f648898"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae590f3abcb50737d83cb539b8f648898">&#9670;&#160;</a></span>chacha20_cvt() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::chacha20_cvt </td>
+          <td>(</td>
+          <td class="paramtype">KernelType&#160;</td>
+          <td class="paramname"><em>kernel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string_view&#160;</td>
+          <td class="paramname"><em>key</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a82af297df4dc40b0ab2b101b1dc1a78c" name="a82af297df4dc40b0ab2b101b1dc1a78c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a82af297df4dc40b0ab2b101b1dc1a78c">&#9670;&#160;</a></span>chacha20_cvt() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::chacha20_cvt </td>
+          <td>(</td>
+          <td class="paramtype">KernelType&#160;</td>
+          <td class="paramname"><em>kernel</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> Botan::secure_vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>key</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a76293ba1dac1dddfca6d173430d98b08" name="a76293ba1dac1dddfca6d173430d98b08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76293ba1dac1dddfca6d173430d98b08">&#9670;&#160;</a></span>chacha20_cvt() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::chacha20_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae4111e98502b25f280a12c8372ed8510" name="ae4111e98502b25f280a12c8372ed8510"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae4111e98502b25f280a12c8372ed8510">&#9670;&#160;</a></span>chacha20_cvt() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::chacha20_cvt </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="ab295d34da10d60951f90b9c62f7413f4" name="ab295d34da10d60951f90b9c62f7413f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab295d34da10d60951f90b9c62f7413f4">&#9670;&#160;</a></span>attach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::attach </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a>{}</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab545f1d72ea408b31782d193a566fc0f" name="ab545f1d72ea408b31782d193a566fc0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab545f1d72ea408b31782d193a566fc0f">&#9670;&#160;</a></span>bos()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::bos </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a217b9410f187920308da8008f09a5735" name="a217b9410f187920308da8008f09a5735"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a217b9410f187920308da8008f09a5735">&#9670;&#160;</a></span>detach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html#aadc27620c64587b9909085314ee483d3">device_type</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::detach </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a103f88ae849b8954e36d0cce4db7b574" name="a103f88ae849b8954e36d0cce4db7b574"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a103f88ae849b8954e36d0cce4db7b574">&#9670;&#160;</a></span>main_cont_beg()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::main_cont_beg </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ada089d2e3bbd0a68aa2e67c6a5c851c3" name="ada089d2e3bbd0a68aa2e67c6a5c851c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada089d2e3bbd0a68aa2e67c6a5c851c3">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp; <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a43bd2c85782996a73c62762eb6169cc0" name="a43bd2c85782996a73c62762eb6169cc0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43bd2c85782996a73c62762eb6169cc0">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> &amp; <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a>= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt; &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="affdb6317432ec5c049dd063bac20cd70" name="affdb6317432ec5c049dd063bac20cd70"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affdb6317432ec5c049dd063bac20cd70">&#9670;&#160;</a></span>block_size</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">IOv2::Crypt::chacha20_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::block_size = 64</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li>include/cvt/crypt/<a class="el" href="chacha20__cvt_8h_source.html">chacha20_cvt.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceIOv2.html">IOv2</a></li><li class="navelem"><a class="el" href="namespaceIOv2_1_1Crypt.html">Crypt</a></li><li class="navelem"><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>
