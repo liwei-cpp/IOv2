@@ -1,4 +1,10 @@
-# IOv2: A Modern & Composable C++ I/O Framework
+# IOv2
+
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://liwei-cpp.github.io/IOv2/)
+[![C++ CI](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml/badge.svg)](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/liwei-cpp/IOv2/graph/badge.svg?token=YOUR_TOKEN_HERE)](https://codecov.io/gh/liwei-cpp/IOv2)
+: A Modern & Composable C++ I/O Framework
+
 
 [![C++ CI](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml/badge.svg)](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml)
 [![Docs](https://github.com/liwei-cpp/IOv2/actions/workflows/docs.yml/badge.svg)](https://github.com/liwei-cpp/IOv2/actions/workflows/docs.yml)
