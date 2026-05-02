@@ -25,8 +25,8 @@ var classIOv2_1_1root__cvt =
     [ "switch_to_get", "classIOv2_1_1root__cvt.html#a3db2fbe9ada19983821d86b6100d105d", null ],
     [ "switch_to_put", "classIOv2_1_1root__cvt.html#ae0e4c39f42620b89115b289ce6bcee68", null ],
     [ "tell", "classIOv2_1_1root__cvt.html#a0f1d3b49c324cc50d440c078eec7a951", null ],
-    [ "root_cvt_reader", "classIOv2_1_1root__cvt.html#a3831238421eab873fa9325acd52768bb", null ],
-    [ "root_cvt_writer", "classIOv2_1_1root__cvt.html#adfcfd67316a1101f3d39c523f9cbd467", null ],
+    [ "cvt_reader", "classIOv2_1_1root__cvt.html#a29b90923074039a6a1f701c1a378c6bd", null ],
+    [ "cvt_writer", "classIOv2_1_1root__cvt.html#aaeabda58f059316b3c8e7fc31d8c4a3e", null ],
     [ "s_buffer_length", "classIOv2_1_1root__cvt.html#ab797d4f0ba2122473f8b0685bd575f68", null ],
     [ "s_has_buffer", "classIOv2_1_1root__cvt.html#a1d334215aa65530eb5537dc1dd733fb3", null ]
 ];

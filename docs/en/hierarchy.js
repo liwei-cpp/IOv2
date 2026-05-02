@@ -126,16 +126,16 @@ var hierarchy =
     [ "IOv2::cvt_creator_type_gen< cvt_pipe_creator< T1... >, T2 >", "structIOv2_1_1cvt__creator__type__gen_3_01cvt__pipe__creator_3_01T1_8_8_8_01_4_00_01T2_01_4.html", null ],
     [ "IOv2::cvt_creator_type_gen< T1, cvt_pipe_creator< T2... > >", "structIOv2_1_1cvt__creator__type__gen_3_01T1_00_01cvt__pipe__creator_3_01T2_8_8_8_01_4_01_4.html", null ],
     [ "IOv2::cvt_creator_type_gen< T1, T2 >", "structIOv2_1_1cvt__creator__type__gen_3_01T1_00_01T2_01_4.html", null ],
-    [ "IOv2::cvt_io< KernelType >", "classIOv2_1_1cvt__io.html", null ],
-    [ "IOv2::cvt_io< KernelType >", "classIOv2_1_1cvt__io_3_01KernelType_01_4.html", null ],
     [ "IOv2::cvt_pipe_creator< T >", "classIOv2_1_1cvt__pipe__creator.html", null ],
     [ "IOv2::cvt_pipe_creator< T... >", "classIOv2_1_1cvt__pipe__creator_3_01T_8_8_8_01_4.html", null ],
     [ "IOv2::cvt_pipe_creator< T1, T2 >", "classIOv2_1_1cvt__pipe__creator_3_01T1_00_01T2_01_4.html", null ],
     [ "IOv2::cvt_reader< KernelType >", "classIOv2_1_1cvt__reader.html", null ],
+    [ "IOv2::cvt_reader< KernelType >", "classIOv2_1_1cvt__reader_3_01KernelType_01_4.html", null ],
     [ "IOv2::cvt_status", "structIOv2_1_1cvt__status.html", [
       [ "IOv2::code_cvt_access", "structIOv2_1_1code__cvt__access.html", null ]
     ] ],
     [ "IOv2::cvt_writer< KernelType >", "classIOv2_1_1cvt__writer.html", null ],
+    [ "IOv2::cvt_writer< KernelType >", "classIOv2_1_1cvt__writer_3_01KernelType_01_4.html", null ],
     [ "IOv2::date_parse_helper< typename, bool >", "structIOv2_1_1date__parse__helper.html", [
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
@@ -291,10 +291,6 @@ var hierarchy =
       [ "IOv2::rb_root_cvt< DeviceType >", "classIOv2_1_1rb__root__cvt.html", null ]
     ] ],
     [ "IOv2::root_cvt< mem_device< CharT, Traits, Allocator >, HasInBuffer >", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html", null ],
-    [ "IOv2::root_cvt_reader< KernelType >", "classIOv2_1_1root__cvt__reader.html", null ],
-    [ "IOv2::root_cvt_reader< KernelType >", "classIOv2_1_1root__cvt__reader_3_01KernelType_01_4.html", null ],
-    [ "IOv2::root_cvt_writer< KernelType >", "classIOv2_1_1root__cvt__writer.html", null ],
-    [ "IOv2::root_cvt_writer< KernelType >", "classIOv2_1_1root__cvt__writer_3_01KernelType_01_4.html", null ],
     [ "IOv2::runtime_cvt< TDevice, TInt >", "classIOv2_1_1runtime__cvt.html", null ],
     [ "IOv2::runtime_cvt< TDevice, char_type >", "classIOv2_1_1runtime__cvt.html", null ],
     [ "IOv2::runtime_cvt< TDevice, TChar >", "classIOv2_1_1runtime__cvt.html", null ],

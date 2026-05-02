@@ -20,12 +20,8 @@ var searchData=
   ['root_5fcvt_3c_20devicetype_2c_20false_20_3e_17',['root_cvt&lt; DeviceType, false &gt;',['../classIOv2_1_1root__cvt.html',1,'IOv2']]],
   ['root_5fcvt_3c_20devicetype_2c_20true_20_3e_18',['root_cvt&lt; DeviceType, true &gt;',['../classIOv2_1_1root__cvt.html',1,'IOv2']]],
   ['root_5fcvt_3c_20mem_5fdevice_3c_20chart_2c_20traits_2c_20allocator_20_3e_2c_20hasinbuffer_20_3e_19',['root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;',['../classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html',1,'IOv2']]],
-  ['root_5fcvt_5freader_20',['root_cvt_reader',['../classIOv2_1_1root__cvt__reader.html',1,'IOv2']]],
-  ['root_5fcvt_5freader_3c_20kerneltype_20_3e_21',['root_cvt_reader&lt; KernelType &gt;',['../classIOv2_1_1root__cvt__reader_3_01KernelType_01_4.html',1,'IOv2']]],
-  ['root_5fcvt_5fwriter_22',['root_cvt_writer',['../classIOv2_1_1root__cvt__writer.html',1,'IOv2']]],
-  ['root_5fcvt_5fwriter_3c_20kerneltype_20_3e_23',['root_cvt_writer&lt; KernelType &gt;',['../classIOv2_1_1root__cvt__writer_3_01KernelType_01_4.html',1,'IOv2']]],
-  ['runtime_5fcvt_24',['runtime_cvt',['../classIOv2_1_1runtime__cvt.html',1,'IOv2']]],
-  ['runtime_5fcvt_3c_20tdevice_2c_20char_5ftype_20_3e_25',['runtime_cvt&lt; TDevice, char_type &gt;',['../classIOv2_1_1runtime__cvt.html',1,'IOv2']]],
-  ['runtime_5fcvt_3c_20tdevice_2c_20tchar_20_3e_26',['runtime_cvt&lt; TDevice, TChar &gt;',['../classIOv2_1_1runtime__cvt.html',1,'IOv2']]],
-  ['runtime_5fcvt_5fimp_27',['runtime_cvt_imp',['../classIOv2_1_1runtime__cvt__imp.html',1,'IOv2']]]
+  ['runtime_5fcvt_20',['runtime_cvt',['../classIOv2_1_1runtime__cvt.html',1,'IOv2']]],
+  ['runtime_5fcvt_3c_20tdevice_2c_20char_5ftype_20_3e_21',['runtime_cvt&lt; TDevice, char_type &gt;',['../classIOv2_1_1runtime__cvt.html',1,'IOv2']]],
+  ['runtime_5fcvt_3c_20tdevice_2c_20tchar_20_3e_22',['runtime_cvt&lt; TDevice, TChar &gt;',['../classIOv2_1_1runtime__cvt.html',1,'IOv2']]],
+  ['runtime_5fcvt_5fimp_23',['runtime_cvt_imp',['../classIOv2_1_1runtime__cvt__imp.html',1,'IOv2']]]
 ];
