@@ -26,10 +26,10 @@ template <io_device DeviceType, bool HasInBuffer>
 class root_cvt
 {
     template <io_converter KernelType>
-    friend class root_cvt_reader;
+    friend class cvt_reader;
 
     template <io_converter KernelType>
-    friend class root_cvt_writer;
+    friend class cvt_writer;
 
 public:
     constexpr static size_t s_buffer_length = 2048;
@@ -585,26 +585,37 @@ class no_rb_root_cvt : public root_cvt<DeviceType, false>
 template <io_device DeviceType>
 no_rb_root_cvt(DeviceType) -> no_rb_root_cvt<DeviceType>;
 
-template <io_converter KernelType>
-class root_cvt_reader;
-
+// cvt_reader specialization for root_cvt with buffer: directly use root_cvt's internal buffer
 template <io_converter KernelType>
     requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> &&
               !is_mem_device<typename KernelType::device_type>)
-class root_cvt_reader<KernelType>
+class cvt_reader<KernelType>
 {
     using device_type = typename KernelType::device_type;
     using char_type = typename KernelType::internal_type;
 
 public:
-    root_cvt_reader(KernelType& kernel, size_t buf_size)
-        : m_kernel(kernel)
-        , m_buf_size(buf_size)
-    {}
+    explicit cvt_reader(KernelType* kernel)
+        : m_kernel(kernel) {}
+
+    cvt_reader(const cvt_reader&) = delete;
+    cvt_reader& operator=(const cvt_reader&) = delete;
+    cvt_reader(cvt_reader&&) = default;
+    cvt_reader& operator=(cvt_reader&&) = default;
+    ~cvt_reader() = default;
+
+    void set_kernel(KernelType* kernel) { m_kernel = kernel; }
+
+    void reset(size_t buf_size)
+    {
+        m_buf_size = buf_size;
+    }
 
     template <bool Saturate = false>
     auto get_buf(size_t to_max)
     {
+        if (m_kernel == nullptr)
+            throw cvt_error("cvt_reader::get_buf fail, kernel is null.");
         if (to_max == 0)
             throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero.");
         if (to_max > m_buf_size)
@@ -612,48 +623,48 @@ public:
 
         if constexpr (dev_cpt::support_put<device_type>)
         {
-            if (m_kernel.m_io_status != io_status::input)
-                m_kernel.switch_to_get();
+            if (m_kernel->m_io_status != io_status::input)
+                m_kernel->switch_to_get();
         }
-        if (m_kernel.m_io_status != io_status::input)
+        if (m_kernel->m_io_status != io_status::input)
             throw cvt_error("cvt_reader::get_buf fail, invalid io status");
 
-        const size_t remain = m_kernel.m_buf_end - m_kernel.m_buf_cur;
+        const size_t remain = m_kernel->m_buf_end - m_kernel->m_buf_cur;
         // need to read, then read at most as it can
         if (remain < to_max)
         {
             if (remain != 0)
-                m_kernel.m_buf_end = std::copy(m_kernel.m_buf_cur, m_kernel.m_buf_end, m_kernel.m_buffer.data());
+                m_kernel->m_buf_end = std::copy(m_kernel->m_buf_cur, m_kernel->m_buf_end, m_kernel->m_buffer.data());
             else
-                m_kernel.m_buf_end = m_kernel.m_buffer.data();
+                m_kernel->m_buf_end = m_kernel->m_buffer.data();
 
-            m_kernel.m_buf_cur = m_kernel.m_buffer.data();
-            m_kernel.m_buf_end += m_kernel.m_device.dget(m_kernel.m_buf_end, KernelType::s_buffer_length - remain);
+            m_kernel->m_buf_cur = m_kernel->m_buffer.data();
+            m_kernel->m_buf_end += m_kernel->m_device.dget(m_kernel->m_buf_end, KernelType::s_buffer_length - remain);
         }
 
         if constexpr (Saturate)
         {
-            const auto aim_ptr = to_max + m_kernel.m_buf_cur;
-            while (m_kernel.m_buf_end < aim_ptr)
+            const auto aim_ptr = to_max + m_kernel->m_buf_cur;
+            while (m_kernel->m_buf_end < aim_ptr)
             {
-                auto new_size = m_kernel.m_device.dget(m_kernel.m_buf_end, aim_ptr - m_kernel.m_buf_end);
+                auto new_size = m_kernel->m_device.dget(m_kernel->m_buf_end, aim_ptr - m_kernel->m_buf_end);
                 if (new_size == 0)
                     throw cvt_error("get_buf<Saturate> fail: meet eos");
-                m_kernel.m_buf_end += new_size;
+                m_kernel->m_buf_end += new_size;
             }
         }
 
         if constexpr (!Saturate)
         {
-            auto res_len = std::min<size_t>(m_kernel.m_buf_end - m_kernel.m_buf_cur, to_max);
-            std::pair<const char_type*, size_t> res{m_kernel.m_buf_cur, res_len};
-            m_kernel.m_buf_cur += res_len;
+            auto res_len = std::min<size_t>(m_kernel->m_buf_end - m_kernel->m_buf_cur, to_max);
+            std::pair<const char_type*, size_t> res{m_kernel->m_buf_cur, res_len};
+            m_kernel->m_buf_cur += res_len;
             return res;
         }
         else
         {
-            const char_type* res = m_kernel.m_buf_cur;
-            m_kernel.m_buf_cur += to_max;
+            const char_type* res = m_kernel->m_buf_cur;
+            m_kernel->m_buf_cur += to_max;
             return res;
         }
     }
@@ -662,184 +673,175 @@ public:
     {
         if (len == 0)
             throw cvt_error("cvt_reader::rollback fail, length cannot be zero.");
-        if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
+        if ((m_kernel == nullptr) || (m_kernel->m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel->m_buf_cur - m_kernel->m_buffer.data())))
             throw cvt_error("cvt_reader::rollback fail, rollback length too large.");
-        m_kernel.m_buf_cur -= len;
+        m_kernel->m_buf_cur -= len;
     }
 
 private:
-    KernelType& m_kernel;
-    const size_t m_buf_size;
+    KernelType* m_kernel;
+    size_t m_buf_size = 0;
 };
 
-template <io_converter KernelType>
-class root_cvt_writer;
-
+// cvt_writer specialization for root_cvt: directly use root_cvt's internal buffer
 template <io_converter KernelType>
     requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType> &&
               !is_mem_device<typename KernelType::device_type>)
-class root_cvt_writer<KernelType>
+class cvt_writer<KernelType>
 {
     using device_type = typename KernelType::device_type;
     using char_type = typename KernelType::internal_type;
 
 public:
-    root_cvt_writer(KernelType& kernel, size_t buf_size)
-        : m_kernel(kernel)
-        , m_buf_size(buf_size)
+    explicit cvt_writer(KernelType* kernel)
+        : m_kernel(kernel) {}
+
+    cvt_writer(const cvt_writer&) = delete;
+    cvt_writer& operator=(const cvt_writer&) = delete;
+    cvt_writer(cvt_writer&&) = default;
+    cvt_writer& operator=(cvt_writer&&) = default;
+    ~cvt_writer() = default;
+
+    void set_kernel(KernelType* kernel) { m_kernel = kernel; }
+
+    void reset(size_t buf_size)
     {
+        m_buf_size = buf_size;
         if (m_buf_size > KernelType::s_buffer_length)
-            throw cvt_error("root_cvt_writer: buf_size exceeds buffer capacity");
+            throw cvt_error("cvt_writer::reset fail, buf_size exceeds buffer capacity");
     }
 
     char_type* put_buf(size_t len)
     {
+        if (m_kernel == nullptr)
+            throw cvt_error("cvt_writer::put_buf fail, kernel is null.");
         if (len == 0)
-            throw cvt_error("root_cvt_writer::put_buf fail, write size cannot be zero.");
+            throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero.");
         if (len > m_buf_size)
-            throw cvt_error("root_cvt_writer::put_buf fail, write size too large.");
+            throw cvt_error("cvt_writer::put_buf fail, write size too large.");
 
         if constexpr (dev_cpt::support_get<device_type>)
         {
-            if (m_kernel.m_io_status != io_status::output)
-                m_kernel.switch_to_put();
+            if (m_kernel->m_io_status != io_status::output)
+                m_kernel->switch_to_put();
         }
-        if (m_kernel.m_io_status != io_status::output)
-            throw cvt_error("root_cvt_writer::put_buf fail, invalid io status");
+        if (m_kernel->m_io_status != io_status::output)
+            throw cvt_error("cvt_writer::put_buf fail, invalid io status");
 
-        const size_t buf_used = m_kernel.m_buf_cur - m_kernel.m_buffer.data();
+        const size_t buf_used = m_kernel->m_buf_cur - m_kernel->m_buffer.data();
         const size_t remain = KernelType::s_buffer_length - buf_used;
         if (len < remain)
         {
-            auto res = m_kernel.m_buf_cur;
-            m_kernel.m_buf_cur += len;
+            auto res = m_kernel->m_buf_cur;
+            m_kernel->m_buf_cur += len;
             return res;
         }
-        
-        m_kernel.m_device.dput(m_kernel.m_buffer.data(), buf_used);
-        m_kernel.m_buf_cur = m_kernel.m_buffer.data() + len;
-        return m_kernel.m_buffer.data();
+
+        m_kernel->m_device.dput(m_kernel->m_buffer.data(), buf_used);
+        m_kernel->m_buf_cur = m_kernel->m_buffer.data() + len;
+        return m_kernel->m_buffer.data();
     }
 
     void rollback(size_t len)
     {
         if (len == 0)
-            throw cvt_error("root_cvt_writer::rollback fail, length cannot be zero.");
-        if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
-            throw cvt_error("root_cvt_writer::rollback fail, rollback length too large.");
-        m_kernel.m_buf_cur -= len;
+            throw cvt_error("cvt_writer::rollback fail, length cannot be zero.");
+        if ((m_kernel == nullptr) || (m_kernel->m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel->m_buf_cur - m_kernel->m_buffer.data())))
+            throw cvt_error("cvt_writer::rollback fail, rollback length too large.");
+        m_kernel->m_buf_cur -= len;
     }
 
     void commit() {}
 
 private:
-    KernelType& m_kernel;
-    const size_t m_buf_size;
+    KernelType* m_kernel;
+    size_t m_buf_size = 0;
 };
 
-template <io_converter KernelType>
-class cvt_io;
-
-template <io_converter KernelType>
-    requires (std::is_base_of_v<root_cvt<typename KernelType::device_type, KernelType::s_has_buffer>, KernelType> &&
-              !is_mem_device<typename KernelType::device_type>)
-class cvt_io<KernelType>
-{
-    using char_type = typename KernelType::internal_type;
-
-public:
-    auto reader(KernelType& kernel, size_t buf_size)
-    {
-        if constexpr (KernelType::s_has_buffer)
-        {
-            if (buf_size > KernelType::s_buffer_length)
-                throw cvt_error("cvt_io::reader construction fail: buffer too large");
-            return root_cvt_reader<KernelType>(kernel, buf_size);
-        }
-        else
-        {
-            buffer.resize(buf_size);
-            return cvt_reader(kernel, buffer);
-        }
-    }
-
-    auto writer(KernelType& kernel, size_t buf_size)
-    {
-        if (buf_size > KernelType::s_buffer_length)
-            throw cvt_error("cvt_io::writer construction fail: buffer too large");
-        return root_cvt_writer<KernelType>(kernel, buf_size);
-    }
-
-private:
-    // Buffer is reused across reader() calls to avoid repeated heap allocation.
-    // Consequently, the returned cvt_reader holds a reference to this buffer —
-    // callers must ensure this cvt_io instance outlives any cvt_reader it produces,
-    // and must not call reader() again while a previous cvt_reader is still in use.
-    std::vector<char_type> buffer;
-};
-
+// cvt_reader specialization for mem_device: directly access device buffer
 template <io_converter KernelType>
     requires ((std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> ||
                std::is_base_of_v<root_cvt<typename KernelType::device_type, false>, KernelType>) &&
               is_mem_device<typename KernelType::device_type>)
-class cvt_io<KernelType>
+class cvt_reader<KernelType>
 {
-    class direct_reader
-    {
-        using device_type = typename KernelType::device_type;
-    public:
-        direct_reader(device_type& device)
-            : m_device(device)
-        {}
-
-        template <bool Saturate = false>
-        auto get_buf(size_t to_max)
-        {
-            return m_device.template get_buf<Saturate>(to_max);
-        }
-
-        void rollback(size_t len)
-        {
-            m_device.get_rollback(len);
-        }
-
-    private:
-        device_type& m_device;
-    };
-
-    class direct_writer
-    {
-        using device_type = typename KernelType::device_type;
-    public:
-        direct_writer(device_type& device)
-            : m_device(device)
-        {}
-
-        auto put_buf(size_t len)
-        {
-            return m_device.put_buf(len);
-        }
-
-        void rollback(size_t len)
-        {
-            m_device.put_rollback(len);
-        }
-
-        void commit() {}
-
-    private:
-        device_type& m_device;
-    };
+    using device_type = typename KernelType::device_type;
+    using char_type = typename KernelType::internal_type;
 
 public:
-    auto reader(KernelType& kernel, size_t)
+    explicit cvt_reader(KernelType* kernel)
+        : m_kernel(kernel) {}
+
+    cvt_reader(const cvt_reader&) = delete;
+    cvt_reader& operator=(const cvt_reader&) = delete;
+    cvt_reader(cvt_reader&&) = default;
+    cvt_reader& operator=(cvt_reader&&) = default;
+    ~cvt_reader() = default;
+
+    void set_kernel(KernelType* kernel) { m_kernel = kernel; }
+
+    void reset(size_t) {}
+
+    template <bool Saturate = false>
+    auto get_buf(size_t to_max)
     {
-        return direct_reader(kernel.device());
+        if (m_kernel == nullptr)
+            throw cvt_error("cvt_reader::get_buf fail, kernel is null.");
+        return m_kernel->device().template get_buf<Saturate>(to_max);
     }
 
-    auto writer(KernelType& kernel, size_t)
+    void rollback(size_t len)
     {
-        return direct_writer(kernel.device());
+        if (m_kernel == nullptr)
+            throw cvt_error("cvt_reader::rollback fail, kernel is null.");
+        m_kernel->device().get_rollback(len);
     }
+
+private:
+    KernelType* m_kernel;
+};
+
+// cvt_writer specialization for mem_device: directly access device buffer
+template <io_converter KernelType>
+    requires ((std::is_base_of_v<root_cvt<typename KernelType::device_type, true>, KernelType> ||
+               std::is_base_of_v<root_cvt<typename KernelType::device_type, false>, KernelType>) &&
+              is_mem_device<typename KernelType::device_type>)
+class cvt_writer<KernelType>
+{
+    using device_type = typename KernelType::device_type;
+    using char_type = typename KernelType::internal_type;
+
+public:
+    explicit cvt_writer(KernelType* kernel)
+        : m_kernel(kernel) {}
+
+    cvt_writer(const cvt_writer&) = delete;
+    cvt_writer& operator=(const cvt_writer&) = delete;
+    cvt_writer(cvt_writer&&) = default;
+    cvt_writer& operator=(cvt_writer&&) = default;
+    ~cvt_writer() = default;
+
+    void set_kernel(KernelType* kernel) { m_kernel = kernel; }
+
+    void reset(size_t) {}
+
+    char_type* put_buf(size_t len)
+    {
+        if (m_kernel == nullptr)
+            throw cvt_error("cvt_writer::put_buf fail, kernel is null.");
+        return m_kernel->device().put_buf(len);
+    }
+
+    void rollback(size_t len)
+    {
+        if (m_kernel == nullptr)
+            throw cvt_error("cvt_writer::rollback fail, kernel is null.");
+        m_kernel->device().put_rollback(len);
+    }
+
+    void commit() {}
+
+private:
+    KernelType* m_kernel;
 };
 }
