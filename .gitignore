@@ -1,9 +1,13 @@
 # Build artifacts
-test/bin_debug/
-test/bin_release/
-test/obj_debug/
-test/obj_release/
+test/bin_*/
+test/obj_*/
 
-# Auto-generated documentation
+# Coverage data
+*.gcda
+*.gcno
+coverage.info
+
+# Auto-generated documentation (should not be committed to source tree)
 docs/en/
 docs/zh/
+docs/.nojekyll

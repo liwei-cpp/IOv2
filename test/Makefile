@@ -10,6 +10,11 @@ ifeq ($(MODE),sanitizer)
     LINK_FLAGS := -lz -lbotan-2 -fsanitize=address,undefined
     OBJ_DIR := obj_sanitizer
     BIN_DIR := bin_sanitizer
+else ifeq ($(MODE),coverage)
+    COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O0 --coverage -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2 --coverage
+    OBJ_DIR := obj_coverage
+    BIN_DIR := bin_coverage
 else ifeq ($(MODE),debug)
     COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O0 -I../include -I. -I/usr/include/botan-2/
     LINK_FLAGS := -lz -lbotan-2
@@ -133,7 +138,11 @@ valgrind: all
 
 # Clean up
 clean:
-	rm -rf obj_debug bin_debug obj_release bin_release obj_sanitizer bin_sanitizer
+	rm -rf obj_debug bin_debug obj_coverage bin_coverage obj_release bin_release obj_sanitizer bin_sanitizer
+	find . -name "*.gcda" -delete
+	find . -name "*.gcno" -delete
+	find . -name "*.gcov" -delete
+	rm -f coverage.info
 
 # Help target
 help:
@@ -163,6 +172,7 @@ help:
 	@echo "  MODE=debug       Build with debug flags (default)"
 	@echo "  MODE=release     Build with release flags (-O3, -DNDEBUG)"
 	@echo "  MODE=sanitizer   Build with ASan/UBSan (-O1, -g)"
+	@echo "  MODE=coverage    Build with coverage flags (--coverage)"
 	@echo "  CXX=...          Override compiler (e.g., CXX=clang++-19)"
 	@echo ""
 	@echo "Examples:"
