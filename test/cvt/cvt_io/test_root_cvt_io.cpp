@@ -16,7 +16,8 @@ void test_root_cvt_mem_input_1()
     {
         obj.bos(); obj.main_cont_beg();
 
-        cvt_reader<T> reader(&obj);
+        std::vector<typename T::internal_type> buf;
+        cvt_reader<T> reader(obj, buf);
         reader.reset(1024);
 
         auto [ptr, len] = reader.get_buf(3);
@@ -51,7 +52,8 @@ void test_root_cvt_mem_input_2()
     {
         obj.bos(); obj.main_cont_beg();
 
-        cvt_reader<T> reader(&obj);
+        std::vector<typename T::internal_type> buf;
+        cvt_reader<T> reader(obj, buf);
         reader.reset(5);
 
         auto [ptr, len] = reader.get_buf(5);
@@ -93,7 +95,8 @@ void test_root_cvt_mem_input_3()
 
         std::string res;
         {
-            cvt_reader<T> reader(&obj);
+            std::vector<typename T::internal_type> buf;
+            cvt_reader<T> reader(obj, buf);
             reader.reset(7);
 
             size_t cur = 0;
@@ -130,7 +133,8 @@ void test_root_cvt_mem_output_1()
         obj.bos(); obj.main_cont_beg();
 
         {
-            cvt_writer<T> writer(&obj);
+            std::vector<typename T::internal_type> buf;
+            cvt_writer<T> writer(obj, buf);
             writer.reset(1024);
 
             auto ptr = writer.put_buf(3);
@@ -169,7 +173,8 @@ void test_root_cvt_mem_output_2()
         obj.bos(); obj.main_cont_beg();
 
         {
-            cvt_writer<T> writer(&obj);
+            std::vector<typename T::internal_type> buf;
+            cvt_writer<T> writer(obj, buf);
             writer.reset(1024);
 
             auto ptr = writer.put_buf(5);
@@ -216,7 +221,8 @@ void test_root_cvt_mem_output_3()
             ref += 'a' + (i % 26);
 
         {
-            cvt_writer<T> writer(&obj);
+            std::vector<typename T::internal_type> buf;
+            cvt_writer<T> writer(obj, buf);
             writer.reset(10);
 
             size_t cur = 0;
@@ -260,7 +266,8 @@ void test_root_cvt_mem_saturate_input_1()
 
         std::string res;
         {
-            cvt_reader<T> reader(&obj);
+            std::vector<typename T::internal_type> buf;
+            cvt_reader<T> reader(obj, buf);
             reader.reset(7);
 
             size_t cur = 0;

@@ -12,16 +12,15 @@ namespace IOv2
     {
         using char_type = typename KernelType::internal_type;
     public:
-        explicit cvt_reader(KernelType* kernel)
-            : m_kernel(kernel) {}
+        explicit cvt_reader(KernelType& kernel, std::vector<char_type>& buffer)
+            : m_kernel(kernel)
+            , m_buffer(buffer) {}
 
         cvt_reader(const cvt_reader&) = delete;
         cvt_reader& operator=(const cvt_reader&) = delete;
-        cvt_reader(cvt_reader&&) = default;
-        cvt_reader& operator=(cvt_reader&&) = default;
+        cvt_reader(cvt_reader&&) = delete;
+        cvt_reader& operator=(cvt_reader&&) = delete;
         ~cvt_reader() = default;
-
-        void set_kernel(KernelType* kernel) { m_kernel = kernel; }
 
         void reset(size_t buf_size)
         {
@@ -46,8 +45,6 @@ namespace IOv2
         template <bool Saturate = false>
         auto get_buf(size_t to_max)
         {
-            if (m_kernel == nullptr)
-                throw cvt_error("cvt_reader::get_buf fail, kernel is null.");
             if (to_max == 0)
                 throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero.");
             if (to_max > m_buffer.size())
@@ -71,7 +68,7 @@ namespace IOv2
                 m_end_pos = rollback_size;
             }
             const size_t aim_size = to_max - rollback_size;
-            auto read_size = m_kernel->get(m_buffer.data() + m_end_pos, aim_size);
+            auto read_size = m_kernel.get(m_buffer.data() + m_end_pos, aim_size);
             m_end_pos += read_size;
 
             if constexpr (Saturate)
@@ -79,7 +76,7 @@ namespace IOv2
                 while (read_size < aim_size)
                 {
                     const size_t new_aim_size = aim_size - read_size;
-                    const auto new_read_size = m_kernel->get(m_buffer.data() + m_end_pos, new_aim_size);
+                    const auto new_read_size = m_kernel.get(m_buffer.data() + m_end_pos, new_aim_size);
                     if (new_read_size == 0)
                         throw cvt_error("get_buf<Saturate> fail: meet eos");
                     m_end_pos += new_read_size;
@@ -111,8 +108,8 @@ namespace IOv2
         }
 
     private:
-        KernelType* m_kernel;
-        std::vector<char_type> m_buffer;
+        KernelType& m_kernel;
+        std::vector<char_type>& m_buffer;
         size_t m_cur_pos = 0;
         size_t m_end_pos = 0;
     };
@@ -122,16 +119,15 @@ namespace IOv2
     {
         using char_type = typename KernelType::internal_type;
     public:
-        explicit cvt_writer(KernelType* kernel)
-            : m_kernel(kernel) {}
+        explicit cvt_writer(KernelType& kernel, std::vector<char_type>& buffer)
+            : m_kernel(kernel)
+            , m_buffer(buffer) {}
 
         cvt_writer(const cvt_writer&) = delete;
         cvt_writer& operator=(const cvt_writer&) = delete;
-        cvt_writer(cvt_writer&&) = default;
-        cvt_writer& operator=(cvt_writer&&) = default;
+        cvt_writer(cvt_writer&&) = delete;
+        cvt_writer& operator=(cvt_writer&&) = delete;
         ~cvt_writer() = default;
-
-        void set_kernel(KernelType* kernel) { m_kernel = kernel; }
 
         void reset(size_t buf_size)
         {
@@ -141,8 +137,6 @@ namespace IOv2
 
         char_type* put_buf(size_t len)
         {
-            if (m_kernel == nullptr)
-                throw cvt_error("cvt_writer::put_buf fail, kernel is null.");
             if (len == 0)
                 throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero.");
             if (len > m_buffer.size())
@@ -151,7 +145,7 @@ namespace IOv2
             size_t remain = m_buffer.size() - m_prev_len;
             if (remain < len)
             {
-                m_kernel->put(m_buffer.data(), m_prev_len);
+                m_kernel.put(m_buffer.data(), m_prev_len);
                 remain = m_buffer.size();
                 m_prev_len = 0;
             }
@@ -172,18 +166,16 @@ namespace IOv2
 
         void commit()
         {
-            if (m_kernel == nullptr)
-                throw cvt_error("cvt_writer::commit fail, kernel is null.");
             if (m_prev_len != 0)
             {
-                m_kernel->put(m_buffer.data(), m_prev_len);
+                m_kernel.put(m_buffer.data(), m_prev_len);
                 m_prev_len = 0;
             }
         }
 
     private:
-        KernelType* m_kernel;
-        std::vector<char_type> m_buffer;
+        KernelType& m_kernel;
+        std::vector<char_type>& m_buffer;
         size_t m_prev_len = 0;
     };
 
@@ -206,28 +198,18 @@ namespace IOv2
 
     public:
         abs_cvt(KernelType kernel)
-            : m_kernel(std::move(kernel))
-            , m_reader(&m_kernel)
-            , m_writer(&m_kernel) {}
+            : m_kernel(std::move(kernel)) {}
 
         abs_cvt(const abs_cvt& val)
             : m_kernel(val.m_kernel)
             , m_io_status(val.m_io_status)
-            , m_is_bos_done(val.m_is_bos_done)
-            , m_reader(&m_kernel)
-            , m_writer(&m_kernel) {}
+            , m_is_bos_done(val.m_is_bos_done) {}
 
         abs_cvt(abs_cvt&& val)
             : m_kernel(std::move(val.m_kernel))
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
-            , m_reader(std::move(val.m_reader))
-            , m_writer(std::move(val.m_writer))
         {
-            m_reader.set_kernel(&m_kernel);
-            m_writer.set_kernel(&m_kernel);
-            val.m_reader.set_kernel(nullptr);
-            val.m_writer.set_kernel(nullptr);
             val.m_io_status = io_status::neutral;
             val.m_is_bos_done = false;
         }
@@ -253,12 +235,6 @@ namespace IOv2
                 val.m_io_status = io_status::neutral;
                 m_is_bos_done = val.m_is_bos_done;
                 val.m_is_bos_done = false;
-                m_reader = std::move(val.m_reader);
-                m_writer = std::move(val.m_writer);
-                m_reader.set_kernel(&m_kernel);
-                m_writer.set_kernel(&m_kernel);
-                val.m_reader.set_kernel(nullptr);
-                val.m_writer.set_kernel(nullptr);
             }
             return *this;
         }
@@ -318,17 +294,19 @@ namespace IOv2
     // optional methods
     public:
         size_t get(internal_type* to, size_t to_max)
-            requires requires(CurrentType& t, internal_type* data, size_t len) {
-                { t.get_main(data, len) } -> std::same_as<size_t>;
+            requires requires(CurrentType& t, cvt_reader<KernelType>& r, internal_type* data, size_t len) {
+                { t.get_main(r, data, len) } -> std::same_as<size_t>;
             }
         {
+            cvt_reader<KernelType> reader(m_kernel, m_tmp_io_buffer);
+
             if (!m_is_bos_done)
             {
                 if (to_max == 0) return 0;
 
                 constexpr size_t ext_size = sizeof(external_type);
 
-                m_reader.reset(s_bos_chunk);
+                reader.reset(s_bos_chunk);
                 char* dest_bytes = reinterpret_cast<char*>(to);
                 const char* dest_bytes_end = reinterpret_cast<const char*>(to + to_max);
 
@@ -337,7 +315,7 @@ namespace IOv2
                 {
                     const size_t units_to_read_now = std::min((size_t)((dest_bytes_end - dest_bytes) / ext_size), s_bos_chunk);
 
-                    const auto* src_buf = m_reader.template get_buf<true>(units_to_read_now);
+                    const auto* src_buf = reader.template get_buf<true>(units_to_read_now);
                     std::memcpy(dest_bytes, src_buf, units_to_read_now * ext_size);
                     dest_bytes += units_to_read_now * ext_size;
                 }
@@ -346,7 +324,7 @@ namespace IOv2
                 const size_t final_remainder_bytes = dest_bytes_end - dest_bytes;
                 if (final_remainder_bytes > 0)
                 {
-                    const auto* src_buf = m_reader.template get_buf<true>(1);
+                    const auto* src_buf = reader.template get_buf<true>(1);
                     std::memcpy(dest_bytes, src_buf, final_remainder_bytes);
                     dest_bytes += final_remainder_bytes;
                 }
@@ -362,15 +340,16 @@ namespace IOv2
                     else
                         throw cvt_error("abs_cvt::get fail: cannot switch to input mode");
                 }
-                return static_cast<CurrentType*>(this)->get_main(to, to_max);
+                return static_cast<CurrentType*>(this)->get_main(reader, to, to_max);
             }
         }
 
         void put(const internal_type* to, size_t to_size)
-            requires requires(CurrentType& t, const internal_type* data, size_t len) {
-                { t.put_main(data, len) } -> std::same_as<void>;
+            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, size_t len) {
+                { t.put_main(w, data, len) } -> std::same_as<void>;
             }
         {
+            cvt_writer<KernelType> writer(m_kernel, m_tmp_io_buffer);
             if (!m_is_bos_done)
             {
                 if (to_size == 0) return;
@@ -380,11 +359,11 @@ namespace IOv2
                 auto to_bytes = reinterpret_cast<const char*>(to);
                 auto to_bytes_end = reinterpret_cast<const char*>(to + to_size);
 
-                m_writer.reset(s_bos_chunk);
+                writer.reset(s_bos_chunk);
                 while (to_bytes + ext_size <= to_bytes_end)
                 {
                     auto dest_count = std::min<size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
-                    auto ptr = m_writer.put_buf( dest_count);
+                    auto ptr = writer.put_buf( dest_count);
                     std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, dest_count * ext_size);
                     to_bytes += dest_count * ext_size;
                 }
@@ -395,12 +374,12 @@ namespace IOv2
                     // The modulo is logically redundant but helps the compiler's
                     // static analyzer prove the bound for memset size calculation.
                     size_t remaining = static_cast<size_t>(to_bytes_end - to_bytes) % ext_size;
-                    auto ptr = m_writer.put_buf( 1);
+                    auto ptr = writer.put_buf(1);
                     std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, remaining);
                     std::memset(reinterpret_cast<char*>(ptr) + remaining, 0, ext_size - remaining);
                 }
 
-                m_writer.commit();
+                writer.commit();
             }
             else
             {
@@ -411,7 +390,7 @@ namespace IOv2
                     else
                         throw cvt_error("abs_cvt::put fail: cannot switch to output mode");
                 }
-                static_cast<CurrentType*>(this)->put_main(to, to_size);
+                static_cast<CurrentType*>(this)->put_main(writer, to, to_size);
             }
         }
 
@@ -457,7 +436,6 @@ namespace IOv2
         KernelType  m_kernel;
         io_status   m_io_status = io_status::neutral;
         bool        m_is_bos_done = false;
-        cvt_reader<KernelType> m_reader;
-        cvt_writer<KernelType> m_writer;
+        std::vector<external_type> m_tmp_io_buffer;
     };
 }

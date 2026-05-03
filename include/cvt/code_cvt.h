@@ -325,14 +325,14 @@ public:
 
 // optional methods
 private:
-    void put_main(const internal_type* to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        this->m_writer.reset(s_max_buf_size);
+        writer.reset(s_max_buf_size);
         const size_t buf_len = m_cvt_kernel.epc();
         for (size_t i = 0; i < to_size; ++i)
         {
-            external_type* out_beg = this->m_writer.put_buf(buf_len);
+            external_type* out_beg = writer.put_buf(buf_len);
             external_type* out_next = out_beg;
 
             internal_type ch = *to++;
@@ -342,15 +342,15 @@ private:
 
             ++m_accu_len;
             if (out_next < out_beg + buf_len)
-                this->m_writer.rollback(out_beg + buf_len - out_next);
+                writer.rollback(out_beg + buf_len - out_next);
         }
-        this->m_writer.commit();
+        writer.commit();
     }
 
-    size_t get_main(internal_type* to, size_t to_max)
+    size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
-        this->m_reader.reset(s_max_buf_size);
+        reader.reset(s_max_buf_size);
         size_t total_size = 0;
 
         size_t prev_rollback = 0;
@@ -362,7 +362,7 @@ private:
             if (dest_size > s_max_buf_size) [[unlikely]]
                 throw cvt_error("code_cvt::get fail, input sequence too long.");
 
-            auto [ptr, cur_size] = this->m_reader.get_buf(dest_size);
+            auto [ptr, cur_size] = reader.get_buf(dest_size);
             if (cur_size == prev_rollback)
             {
                 if (cur_size == 0) return total_size;
@@ -382,7 +382,7 @@ private:
             else
             {
                 prev_rollback = ptr + cur_size - ext_cur;
-                this->m_reader.rollback(prev_rollback);
+                reader.rollback(prev_rollback);
             }
         }
         return total_size;

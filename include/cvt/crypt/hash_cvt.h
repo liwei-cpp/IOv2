@@ -163,7 +163,7 @@ public:
     
 // optional methods
 private:
-    void put_main(const internal_type* to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, size_t to_size)
     {
         m_has_main_cont = true;
         m_hash->update((const uint8_t*)to, to_size * sizeof(internal_type));
