@@ -23,7 +23,6 @@ void test_clocale_wrapper_move()
     // Move construction
     clocale_wrapper loc2(std::move(loc1));
     // loc1 should now be empty (c_locale == nullptr)
-    // We can't access c_locale directly as it's private, but we can test safety of destruction
     
     // Move assignment
     clocale_wrapper loc3("C");
@@ -76,18 +75,17 @@ void test_clocale_wrapper_safety()
         clocale_wrapper loc1("C");
         clocale_wrapper loc2(std::move(loc1));
         // loc1 is now in a moved-from state.
-        // Its destructor should be safe (it is marked noexcept and we added a null check).
 
-        // Issue 4: Copying from moved-from object should not trigger UB (duplocale(nullptr))
-        clocale_wrapper loc3(loc1); // Copy constructor
+        // Copying from moved-from object
+        clocale_wrapper loc3(loc1);
         clocale_wrapper loc4("C");
-        loc4 = loc1;              // Copy assignment
+        loc4 = loc1;
     }
 
     // Test nullptr check
     try {
         clocale_wrapper loc_null(nullptr);
-        VERIFY(false); // Should not reach here
+        VERIFY(false);
     } catch (const cvt_error& e) {
         // Expected
     }
@@ -99,22 +97,19 @@ void test_clocale_user_moved_from_wrapper()
 {
     dump_info("Test clocale_user with moved-from wrapper...");
 
-    // clocale_user should throw when given a moved-from clocale_wrapper
     clocale_wrapper loc1("C");
     clocale_wrapper loc2(std::move(loc1));
-    // loc1 is now in a moved-from state
 
     try {
-        clocale_user user(loc1); // Should throw
-        VERIFY(false); // Should not reach here
+        clocale_user user(loc1);
+        VERIFY(false);
     } catch (const cvt_error& e) {
-        // Expected: "clocale_user: wrapper is in moved-from state"
+        // Expected
     }
 
-    // Verify normal usage still works
     {
         clocale_wrapper loc3("C");
-        clocale_user user(loc3); // Should not throw
+        clocale_user user(loc3);
     }
 
     dump_info("Done\n");

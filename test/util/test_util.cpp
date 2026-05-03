@@ -5,6 +5,7 @@
 void test_prefix_tree();
 void test_lru_cache();
 void test_clocale_wrapper();
+void test_clocale_wrapper_exception_paths();
 void test_stamp_input_iterator();
 
 int main()
@@ -14,6 +15,7 @@ int main()
         test_prefix_tree();
         test_lru_cache();
         test_clocale_wrapper();
+        test_clocale_wrapper_exception_paths();
         test_stamp_input_iterator();
         return 0;
     }
