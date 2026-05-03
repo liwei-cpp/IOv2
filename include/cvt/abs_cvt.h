@@ -1,10 +1,9 @@
 #pragma once
 #include <cvt/cvt_concepts.h>
 
-#include <bit>
 #include <cstring>
-#include <exception>
 #include <vector>
+
 namespace IOv2
 {
     template <io_converter KernelType>
@@ -84,7 +83,7 @@ namespace IOv2
                 }
             }
 
-            if constexpr(!Saturate)
+            if constexpr (!Saturate)
             {
                 std::pair<const char_type*, size_t> res{m_buffer.data() + m_cur_pos, rollback_size + read_size};
                 m_cur_pos = m_end_pos;
@@ -310,6 +309,10 @@ namespace IOv2
                 char* dest_bytes = reinterpret_cast<char*>(to);
                 const char* dest_bytes_end = reinterpret_cast<const char*>(to + to_max);
 
+                // BOS phase requires complete data: if the stream ends unexpectedly
+                // before providing enough bytes, this is a format error and we throw.
+                // Unlike get_main() which may return partial data, BOS is all-or-nothing.
+
                 // Read full external_type chunks
                 while (dest_bytes + ext_size <= dest_bytes_end)
                 {
@@ -358,6 +361,9 @@ namespace IOv2
 
                 auto to_bytes = reinterpret_cast<const char*>(to);
                 auto to_bytes_end = reinterpret_cast<const char*>(to + to_size);
+
+                // BOS phase writes complete external_type units. If the input data
+                // is not a multiple of ext_size, pad the final unit with zeros.
 
                 writer.reset(s_bos_chunk);
                 while (to_bytes + ext_size <= to_bytes_end)

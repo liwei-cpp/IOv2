@@ -18,6 +18,7 @@
 #include <device/mem_device.h>
 
 #include <cassert>
+#include <limits>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -203,7 +204,7 @@ public:
      */
     root_cvt(root_cvt&& val) noexcept(
                 std::is_nothrow_move_constructible_v<device_type> &&
-                std::is_nothrow_move_assignable_v<std::vector<external_type>>
+                std::is_nothrow_move_constructible_v<std::vector<external_type>>
             )
         : m_device(std::move(val.m_device))
         , m_bos_len(val.m_bos_len)
@@ -307,7 +308,7 @@ public:
         val.m_io_status = io_status::neutral;
         return *this;
     }
-    
+
     /**
      * @lang{ZH}
      * 析构函数：若设备支持写入，则尝试将缓冲区数据刷入设备；异常被静默忽略以防止 std::terminate。
@@ -706,7 +707,7 @@ public:
             m_device.dput(to, to_size);
         }
     }
-    
+
     /**
      * @lang{ZH}
      * 将内部写缓冲区中未提交的数据刷入设备。
@@ -782,7 +783,7 @@ public:
             throw cvt_error("root_cvt::tell fails: invalid io status");
         }
     }
-    
+
     /**
      * @lang{ZH}
      * 绝对定位：将流位置移动到距流起点 pos 个字符处。
@@ -809,6 +810,9 @@ public:
             if (m_io_status == io_status::output)
                 flush();
         }
+
+        if (pos > std::numeric_limits<size_t>::max() - m_bos_len)
+            throw cvt_error("root_cvt::seek fails: position overflow");
 
         m_device.dseek(pos + m_bos_len);
         if (m_io_status == io_status::input)
@@ -1351,7 +1355,11 @@ public:
      */
     [[nodiscard]] size_t tell() const
     {
-        return m_device.dtell() - m_bos_len;
+        const size_t device_tell = m_device.dtell();
+        // Invariant: device_tell >= m_bos_len. The device position should never
+        // move before the stream origin established by main_cont_beg().
+        assert(device_tell >= m_bos_len);
+        return device_tell - m_bos_len;
     }
 
     /**
@@ -1372,6 +1380,9 @@ public:
      */
     void seek(size_t pos)
     {
+        if (pos > std::numeric_limits<size_t>::max() - m_bos_len)
+            throw cvt_error("root_cvt::seek fails: position overflow");
+
         m_device.dseek(pos + m_bos_len);
     }
 
