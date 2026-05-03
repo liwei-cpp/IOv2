@@ -145,7 +145,6 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:aec92cd46046310f4af8159d9b5c3fa93" id="r_aec92cd46046310f4af8159d9b5c3fa93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#aec92cd46046310f4af8159d9b5c3fa93">flush</a> ()</td></tr>
 <tr class="separator:aec92cd46046310f4af8159d9b5c3fa93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adeaa87a8fc7d28bc4033bb412ad656a6" id="r_adeaa87a8fc7d28bc4033bb412ad656a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#adeaa87a8fc7d28bc4033bb412ad656a6">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
-<tr class="memdesc:adeaa87a8fc7d28bc4033bb412ad656a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">positioning  <br /></td></tr>
 <tr class="separator:adeaa87a8fc7d28bc4033bb412ad656a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d08d663eea32a6ca9b3b2195ed05c7d" id="r_a5d08d663eea32a6ca9b3b2195ed05c7d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a5d08d663eea32a6ca9b3b2195ed05c7d">seek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
 <tr class="separator:a5d08d663eea32a6ca9b3b2195ed05c7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -156,7 +155,21 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a99d0d96cf9d2060d6f6c16556f6eecbc" id="r_a99d0d96cf9d2060d6f6c16556f6eecbc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a99d0d96cf9d2060d6f6c16556f6eecbc">switch_to_put</a> ()</td></tr>
 <tr class="separator:a99d0d96cf9d2060d6f6c16556f6eecbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt;<br />
+class IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;</div><p><a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 针对 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的偏特化。</p>
+<p><a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 直接暴露内部缓冲区指针，因此不需要额外的内部缓冲区。 HasInBuffer 参数被忽略：rb_root_cvt 和 <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a> 均可作为包装器，两者行为完全相同。</p>
+<p>由于 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 始终支持随机定位，且无需缓冲层，大多数方法直接转发给设备。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>字符类型，与 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的模板参数一致。  </td></tr>
+    <tr><td class="paramname">Traits</td><td>字符 traits 类型，与 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的模板参数一致。  </td></tr>
+    <tr><td class="paramname">Allocator</td><td>分配器类型，与 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的模板参数一致。  </td></tr>
+    <tr><td class="paramname">HasInBuffer</td><td>忽略。mem_device 直接暴露缓冲区指针，无需内部缓冲层。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a951316d230f79f214fd0ff1dd741b1b0" name="a951316d230f79f214fd0ff1dd741b1b0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a951316d230f79f214fd0ff1dd741b1b0">&#9670;&#160;</a></span>device_type</h2>
 
@@ -170,6 +183,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>底层设备类型（mem_device 特化）。   </p>
 
 </div>
 </div>
@@ -186,6 +200,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>设备侧的字符类型（与 internal_type 相同）。   </p>
 
 </div>
 </div>
@@ -202,6 +217,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>上层转换器所使用的字符类型。   </p>
 
 </div>
 </div>
@@ -231,6 +247,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数：接管给定的 mem_device。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">device</td><td>要接管的内存设备（按值传入，触发移动语义）。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -259,6 +282,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>拷贝构造函数：拷贝设备状态、流起点偏移量和 I/O 方向。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -287,6 +317,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>移动构造函数：转移设备所有权、流起点偏移量和 I/O 方向。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象，移动后处于有效但未指定的状态。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -314,6 +351,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>析构函数：mem_device 不需要刷新操作，因此为默认析构。 </p>
 
 </div>
 </div>
@@ -343,6 +381,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>调整转换器行为参数，对此特化为空操作。  </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1201  忽略的行为配置对象。   </p>
 
 </div>
 </div>
@@ -371,6 +417,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>分离当前 mem_device，附加新设备，并将内部状态重置为初始值。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>要附加的新设备，默认为默认构造的空设备。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>先前持有的设备对象（通过移动语义返回）。   </dd></dl>
 
 </div>
 </div>
@@ -398,6 +452,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>确定并设置初始 I/O 方向。当 deof() 为 true 时进入输出模式，否则进入输入模式。 </p>
+<dl class="section return"><dt>返回</dt><dd>确定后的 io_status（input 或 output）。   </dd></dl>
 
 </div>
 </div>
@@ -425,6 +481,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将底层 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 从 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 中分离并返回。 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 无需刷新，直接移动返回。 </p>
+<dl class="section return"><dt>返回</dt><dd>已分离的设备对象（通过移动语义返回）。   </dd></dl>
 
 </div>
 </div>
@@ -452,6 +510,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回底层 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的引用。  </p>
+<dl class="section return"><dt>返回</dt><dd>底层 device_type 的可变引用。   </dd></dl>
 
 </div>
 </div>
@@ -479,6 +539,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>刷新操作，对此特化为空操作。mem_device 是纯内存设备，写入即生效，无需刷新。 </p>
 
 </div>
 </div>
@@ -517,6 +578,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>从 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 读取最多 to_max 个字符到 to 指向的缓冲区。 先切换到输入模式，再直接转发给设备的 dget()。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>接收数据的目标缓冲区指针。   </td></tr>
+    <tr><td class="paramname">to_max</td><td>最多读取的字符数。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>实际读取的字符数。   </dd></dl>
 
 </div>
 </div>
@@ -544,6 +614,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>判断当前流是否已到达末尾（EOF），直接转发给 <a class="el" href="classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f" title="检查是否已到达内存缓冲区的末尾。">mem_device::deof()</a>。 </p>
+<dl class="section return"><dt>返回</dt><dd>若已到达 EOF 则返回 true。   </dd></dl>
 
 </div>
 </div>
@@ -571,6 +643,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>标记连续数据块的开始，将当前设备位置记录为流起点（m_bos_len）。 必须先调用 <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a4701ef74205dc08b857c0bc8cd1a6121">bos()</a> 建立 io_status。 </p>
 
 </div>
 </div>
@@ -599,6 +672,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>拷贝赋值运算符。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>*this 的引用。   </dd></dl>
 
 </div>
 </div>
@@ -627,6 +708,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>移动赋值运算符：转移设备所有权，源对象 io_status 重置为 neutral。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源对象，赋值后处于有效但未指定的状态。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>*this 的引用。   </dd></dl>
 
 </div>
 </div>
@@ -665,6 +754,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将 to_size 个字符写入 mem_device。 先切换到输出模式，再直接转发给设备的 dput()。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>要写入的数据来源指针。   </td></tr>
+    <tr><td class="paramname">to_size</td><td>要写入的字符数。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -693,6 +790,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>检索转换器状态，对此特化为空操作。  </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1211  忽略的状态输出对象。   </p>
 
 </div>
 </div>
@@ -721,6 +826,19 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>反向定位：将流位置移动到距流末尾 pos 个字符处。 验证 pos 未超出流范围，再对底层设备调用 drseek(pos)。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>目标位置，相对于流末尾的字符偏移量（0 表示末尾）。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>pos 超出流边界，或 m_bos_len 大于设备总大小时抛出。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -749,6 +867,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>绝对定位：将流位置移动到距流起点 pos 个字符处。 直接对底层设备调用 dseek(pos + m_bos_len)，无需刷新（mem_device 无写缓冲区）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>目标位置，相对于流起点的字符偏移量。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -776,6 +901,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>切换到读取模式，直接将 io_status 设置为 input。 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 支持随机访问，切换无需任何额外操作。 </p>
 
 </div>
 </div>
@@ -803,6 +929,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>切换到写入模式，直接将 io_status 设置为 output。 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 支持随机访问，切换无需任何额外操作。 </p>
 
 </div>
 </div>
@@ -830,8 +957,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>positioning </p>
+<p>返回当前流位置（相对于 m_bos_len 的偏移量）。 直接转发给 <a class="el" href="classIOv2_1_1mem__device.html#aa5234e7a489b586596901f49944ad15a" title="获取当前读/写位置。">mem_device::dtell()</a>，减去流起点偏移量。 </p>
+<dl class="section return"><dt>返回</dt><dd>相对于流起点的当前位置偏移（字符数）。   </dd></dl>
 
 </div>
 </div>

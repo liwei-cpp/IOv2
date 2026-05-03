@@ -145,7 +145,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aec92cd46046310f4af8159d9b5c3fa93" id="r_aec92cd46046310f4af8159d9b5c3fa93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#aec92cd46046310f4af8159d9b5c3fa93">flush</a> ()</td></tr>
 <tr class="separator:aec92cd46046310f4af8159d9b5c3fa93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adeaa87a8fc7d28bc4033bb412ad656a6" id="r_adeaa87a8fc7d28bc4033bb412ad656a6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#adeaa87a8fc7d28bc4033bb412ad656a6">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
-<tr class="memdesc:adeaa87a8fc7d28bc4033bb412ad656a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">positioning  <br /></td></tr>
 <tr class="separator:adeaa87a8fc7d28bc4033bb412ad656a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d08d663eea32a6ca9b3b2195ed05c7d" id="r_a5d08d663eea32a6ca9b3b2195ed05c7d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a5d08d663eea32a6ca9b3b2195ed05c7d">seek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
 <tr class="separator:a5d08d663eea32a6ca9b3b2195ed05c7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -156,7 +155,21 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a99d0d96cf9d2060d6f6c16556f6eecbc" id="r_a99d0d96cf9d2060d6f6c16556f6eecbc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a99d0d96cf9d2060d6f6c16556f6eecbc">switch_to_put</a> ()</td></tr>
 <tr class="separator:a99d0d96cf9d2060d6f6c16556f6eecbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt;<br />
+class IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;</div><p>Partial specialization of <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> for <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>.</p>
+<p><a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> directly exposes its internal buffer pointers and therefore never needs an additional internal buffer. The HasInBuffer parameter is ignored: both <a class="el" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a> and <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a> are valid wrappers and behave identically here.</p>
+<p>Because <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> always supports random positioning and requires no buffering layer, most methods forward directly to the device. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>Character type, matching the <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> template parameter. </td></tr>
+    <tr><td class="paramname">Traits</td><td>Character traits type, matching the <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> template parameter. </td></tr>
+    <tr><td class="paramname">Allocator</td><td>Allocator type, matching the <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> template parameter. </td></tr>
+    <tr><td class="paramname">HasInBuffer</td><td>Ignored. <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> directly exposes buffer pointers; no internal buffer layer is needed.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a951316d230f79f214fd0ff1dd741b1b0" name="a951316d230f79f214fd0ff1dd741b1b0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a951316d230f79f214fd0ff1dd741b1b0">&#9670;&#160;</a></span>device_type</h2>
 
@@ -170,6 +183,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Underlying device type (<a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> specialization).  </p>
 
 </div>
 </div>
@@ -186,6 +200,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Character type on the device side (same as internal_type).  </p>
 
 </div>
 </div>
@@ -202,6 +217,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Character type used by upper-level converters.  </p>
 
 </div>
 </div>
@@ -231,6 +247,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor: takes ownership of the given <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">device</td><td>The memory device to take ownership of (passed by value, triggering move semantics).  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -259,6 +282,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy constructor: copies device state, stream origin offset, and I/O direction. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Source object.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -287,6 +317,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Move constructor: transfers device ownership, stream origin offset, and I/O direction. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Source object, left in a valid but unspecified state after the move.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -314,6 +351,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Destructor: <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> requires no flush, so this is defaulted.  </p>
 
 </div>
 </div>
@@ -343,6 +381,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Adjusts converter behavior parameters; no-op for this specialization. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1202   Ignored behavior configuration object.  </p>
 
 </div>
 </div>
@@ -371,6 +417,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Detaches the current <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>, attaches a new device, and resets internal state to initial values. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>The new device to attach; defaults to a default-constructed empty device.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The previously held device object, returned via move semantics.  </dd></dl>
 
 </div>
 </div>
@@ -398,6 +452,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Determines and sets the initial I/O direction. Enters output mode when deof() is true, otherwise enters input mode. </p>
+<dl class="section return"><dt>Returns</dt><dd>The resolved io_status (input or output).  </dd></dl>
 
 </div>
 </div>
@@ -425,6 +481,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Detaches the underlying <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> from <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> and returns it. No flush is needed for <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>; the device is returned via move. </p>
+<dl class="section return"><dt>Returns</dt><dd>The detached device object, returned via move semantics.  </dd></dl>
 
 </div>
 </div>
@@ -452,6 +510,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns a reference to the underlying <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>. </p>
+<dl class="section return"><dt>Returns</dt><dd>Mutable reference to the underlying device_type.  </dd></dl>
 
 </div>
 </div>
@@ -479,6 +539,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Flush operation; no-op for this specialization. <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> is a pure in-memory device where writes take effect immediately, so no flush is needed.  </p>
 
 </div>
 </div>
@@ -517,6 +578,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Reads up to to_max characters from <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> into the buffer pointed to by to. Switches to input mode first, then forwards directly to the device's dget(). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>Pointer to the destination buffer that receives the data.  </td></tr>
+    <tr><td class="paramname">to_max</td><td>Maximum number of characters to read.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The actual number of characters read.  </dd></dl>
 
 </div>
 </div>
@@ -544,6 +614,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Tests whether the current stream has reached end of file (EOF), forwarding directly to <a class="el" href="classIOv2_1_1mem__device.html#a12b14e593fb5d19db071b58103eff63f" title="Checks if the end of the memory buffer has been reached.">mem_device::deof()</a>. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if end of file has been reached.  </dd></dl>
 
 </div>
 </div>
@@ -571,6 +643,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Marks the beginning of a contiguous data block by recording the current device position as the stream origin (m_bos_len). <a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a4701ef74205dc08b857c0bc8cd1a6121">bos()</a> must be called before this to establish io_status.  </p>
 
 </div>
 </div>
@@ -599,6 +672,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy assignment operator. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Source object.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Reference to *this.  </dd></dl>
 
 </div>
 </div>
@@ -627,6 +708,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Move assignment operator: transfers device ownership; the source object's io_status is reset to neutral. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Source object, left in a valid but unspecified state after the assignment.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Reference to *this.  </dd></dl>
 
 </div>
 </div>
@@ -665,6 +754,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Writes to_size characters to <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>. Switches to output mode first, then forwards directly to the device's dput(). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>Pointer to the source data to write.  </td></tr>
+    <tr><td class="paramname">to_size</td><td>Number of characters to write.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -693,6 +790,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Retrieves converter status; no-op for this specialization. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1212   Ignored status output object.  </p>
 
 </div>
 </div>
@@ -721,6 +826,19 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Reverse seek: moves the stream position to pos characters before the end of stream. Validates that pos is within bounds, then calls drseek(pos) on the underlying device. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>Target position as a character offset from the end of stream (0 = end).  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>Thrown when pos exceeds stream bounds or m_bos_len exceeds device size.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -749,6 +867,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Absolute seek: moves the stream position to pos characters from the stream origin. Calls dseek(pos + m_bos_len) on the underlying device directly; no flush is needed since <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> has no write buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>Target position as a character offset from the stream origin.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -776,6 +901,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switches to read (input) mode by setting io_status to input directly. <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> supports random access, so the switch requires no additional operations.  </p>
 
 </div>
 </div>
@@ -803,6 +929,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switches to write (output) mode by setting io_status to output directly. <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> supports random access, so the switch requires no additional operations.  </p>
 
 </div>
 </div>
@@ -830,8 +957,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>positioning </p>
+<p>Returns the current stream position (offset relative to m_bos_len). Forwards directly to <a class="el" href="classIOv2_1_1mem__device.html#aa5234e7a489b586596901f49944ad15a" title="Gets the current read/write position.">mem_device::dtell()</a> minus the stream origin offset. </p>
+<dl class="section return"><dt>Returns</dt><dd>Current position offset from the stream origin in characters.  </dd></dl>
 
 </div>
 </div>

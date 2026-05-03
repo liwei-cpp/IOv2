@@ -141,7 +141,24 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a42decc7a7d945d56a9bb9bdb5ab0fa17" id="r_a42decc7a7d945d56a9bb9bdb5ab0fa17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit</a> ()</td></tr>
 <tr class="separator:a42decc7a7d945d56a9bb9bdb5ab0fa17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType&gt;<br />
+requires (std::is_base_of_v&lt;<a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type, KernelType::s_has_buffer&gt;, KernelType&gt; &amp;&amp; !is_mem_device&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type&gt;)<br />
+class IOv2::cvt_writer&lt; KernelType &gt;</div><p><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a> specialization for <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> (any HasInBuffer, non-mem_device). Directly reuses <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>'s internal buffer without additional allocation, symmetric with the <a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a> specialization. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>Must derive from <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;DeviceType, s_has_buffer&gt; with a non-mem_device DeviceType. </td></tr>
+  </table>
+  </dd>
+</dl>
+<p><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a> specialization for <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> (applies to both <a class="el" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a> and <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a> kernels). All operations forward directly to <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>, writing zero-copy into the device's own buffer. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>Must derive from <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;DeviceType, true|false&gt; with a <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> DeviceType.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a8c3601ea4b7cd8a59784a959cf109b70" name="a8c3601ea4b7cd8a59784a959cf109b70"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8c3601ea4b7cd8a59784a959cf109b70">&#9670;&#160;</a></span>cvt_writer() <span class="overload">[1/6]</span></h2>
 
@@ -177,6 +194,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor: binds to the specified <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel. The external buffer argument is ignored; the kernel's internal buffer is used directly. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>Reference to the <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel to bind to.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -298,6 +322,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor: binds to the specified <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel (<a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> specialization). The external buffer argument is ignored. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>Reference to the <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel to bind to.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -409,6 +440,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Commits the write operation; no-op for this specialization. The pointer returned by <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> points directly into the internal buffer, so writes take effect immediately with no additional commit step required.  </p>
 
 </div>
 </div>
@@ -436,6 +468,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Commits the write operation; no-op for this specialization. <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> writes via <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> modify the device's internal state directly, so no explicit commit step is required.  </p>
 
 </div>
 </div>
@@ -576,6 +609,20 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Reserves space for len characters in <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>'s internal buffer and returns a pointer to the write start. If insufficient space remains, the existing buffer content is flushed to the device first, then the buffer start is returned. The caller writes data into the returned pointer, then calls <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit()</a> to finalize (<a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit()</a> is a no-op in this specialization). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of characters to write; must not exceed the buf_size set by <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#ac3650c77a20ca4c20e22f38a7fc800df">reset()</a>.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer into the buffer where len characters may be written.  </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>Thrown when len is 0, len exceeds buf_size, or io_status is not output and cannot be switched.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -604,6 +651,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Reserves space for len characters in <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>'s buffer and returns a zero-copy pointer to the write start. Forwards directly to <a class="el" href="classIOv2_1_1mem__device.html#a7e0788e046ac0e319c22128419ac215d" title="Retrieves a contiguous block of writable memory from the output buffer.">mem_device::put_buf()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of characters to write.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer into the device buffer where len characters may be written.  </dd></dl>
 
 </div>
 </div>
@@ -632,6 +687,19 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Sets the maximum number of characters that each <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> call may write. Must be called before the first <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> to inform the writer of the maximum output size for this conversion step. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buf_size</td><td>Maximum number of characters allowed per write; must not exceed s_buffer_length.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>Thrown when buf_size exceeds s_buffer_length.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -660,6 +728,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Resets write state; no-op for this specialization as <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> manages its own buffer size. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 2040   Ignored buffer size parameter.  </p>
 
 </div>
 </div>
@@ -688,6 +764,19 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Moves the write cursor back by len characters, undoing the most recent <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> reservation. Used to discard reserved but unused space after a conversion failure. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of characters to roll back; must not exceed the current cursor offset from the buffer start.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>Thrown when len is 0, len exceeds the rollback range, or the buffer pointer is nullptr.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -716,6 +805,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Moves the write cursor back by len characters, forwarding directly to <a class="el" href="classIOv2_1_1mem__device.html#adb7f21dbbc12340d6098e99bec8ca641" title="Rolls back the write position of the output stream and adjusts the internal buffer size if necessary.">mem_device::put_rollback()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of characters to roll back.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

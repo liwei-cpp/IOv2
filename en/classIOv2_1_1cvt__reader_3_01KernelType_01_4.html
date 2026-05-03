@@ -116,7 +116,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abab90b766a53a8fdf0c0390ed314f895"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cdb57c67ad38e00b8d43f2960c9c550" id="r_a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> Saturate = false&gt; </td></tr>
 <tr class="memitem:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a6cdb57c67ad38e00b8d43f2960c9c550">get_buf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</td></tr>
-<tr class="memdesc:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves data from <a class="el" href="classIOv2_1_1root__cvt.html" title="Root converter class for I/O operations, managing device buffers.">root_cvt</a>'s internal buffer, reading from device if needed.  <br /></td></tr>
 <tr class="separator:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8840905c5c8cfb7a9b5fde540ce59113" id="r_a8840905c5c8cfb7a9b5fde540ce59113"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a8840905c5c8cfb7a9b5fde540ce59113">rollback</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</td></tr>
 <tr class="separator:a8840905c5c8cfb7a9b5fde540ce59113"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -136,12 +135,28 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abab90b766a53a8fdf0c0390ed314f895"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cdb57c67ad38e00b8d43f2960c9c550" id="r_a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> Saturate = false&gt; </td></tr>
 <tr class="memitem:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a6cdb57c67ad38e00b8d43f2960c9c550">get_buf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</td></tr>
-<tr class="memdesc:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="mdescLeft">&#160;</td><td class="mdescRight">Forwards to <a class="el" href="classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024" title="Retrieves a contiguous block of memory from the input buffer.">mem_device::get_buf</a>. See <a class="el" href="classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024" title="Retrieves a contiguous block of memory from the input buffer.">mem_device::get_buf</a> for details.  <br /></td></tr>
 <tr class="separator:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8840905c5c8cfb7a9b5fde540ce59113" id="r_a8840905c5c8cfb7a9b5fde540ce59113"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a8840905c5c8cfb7a9b5fde540ce59113">rollback</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</td></tr>
 <tr class="separator:a8840905c5c8cfb7a9b5fde540ce59113"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType&gt;<br />
+requires (std::is_base_of_v&lt;<a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>&gt;, KernelType&gt; &amp;&amp; !is_mem_device&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type&gt;)<br />
+class IOv2::cvt_reader&lt; KernelType &gt;</div><p><a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a> specialization for <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> with an internal buffer (HasInBuffer = true, non-mem_device). Directly reuses <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>'s internal buffer to avoid extra data copies. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>Must derive from <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;DeviceType, true&gt; with a non-mem_device DeviceType. </td></tr>
+  </table>
+  </dd>
+</dl>
+<p><a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a> specialization for <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> (applies to both <a class="el" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a> and <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a> kernels). <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> directly exposes its internal buffer pointers, so all operations forward directly to the device without an additional buffering layer. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>Must derive from <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;DeviceType, true|false&gt; with a <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> DeviceType.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a7e19d9f20c5f7c9a869e0095729c568d" name="a7e19d9f20c5f7c9a869e0095729c568d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7e19d9f20c5f7c9a869e0095729c568d">&#9670;&#160;</a></span>cvt_reader() <span class="overload">[1/6]</span></h2>
 
@@ -177,6 +192,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor: binds to the specified <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel. The external buffer argument is ignored; the kernel's internal buffer is used directly. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>Reference to the <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel to bind to.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -298,6 +320,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor: binds to the specified <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel (<a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> specialization). The external buffer argument is ignored. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>Reference to the <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> kernel to bind to.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -412,13 +441,12 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Retrieves data from <a class="el" href="classIOv2_1_1root__cvt.html" title="Root converter class for I/O operations, managing device buffers.">root_cvt</a>'s internal buffer, reading from device if needed. </p>
+<p>Retrieves data from <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>'s internal buffer, reading from device if needed. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">Saturate</td><td>Controls behavior when insufficient data is available:<ul>
-<li>false (default): Returns available data (may be less than requested). Return type: std::pair&lt;const char_type*, size_t&gt;</li>
-<li>true: Requires exactly to_max chars; throws if not enough data. Return type: const char_type*</li>
+<li>false (default): Returns available data (may be less than requested). Return type: std::pair&lt;const char_type*, size_t&gt;.</li>
+<li>true: Requires exactly to_max chars; throws if not enough data. Return type: const char_type*. </li>
 </ul>
 </td></tr>
   </table>
@@ -426,14 +454,20 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">to_max</td><td>Number of characters to retrieve. </td></tr>
+    <tr><td class="paramname">to_max</td><td>Number of characters to retrieve; must not exceed s_buffer_length.  </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>When Saturate=false: pair of (pointer, actual_count). When Saturate=true: pointer to exactly to_max chars. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>When Saturate=false: pair of (pointer, actual_count). When Saturate=true: pointer to exactly to_max chars.  </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If Saturate=true and end-of-stream is reached before reading to_max characters. </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td><ul>
+<li>When to_max is 0.</li>
+<li>When to_max exceeds s_buffer_length.</li>
+<li>When io_status is not input and cannot be switched.</li>
+<li>When Saturate=true and end-of-stream is reached before reading to_max characters.  </li>
+</ul>
+</td></tr>
   </table>
   </dd>
 </dl>
@@ -467,14 +501,20 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Forwards to <a class="el" href="classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024" title="Retrieves a contiguous block of memory from the input buffer.">mem_device::get_buf</a>. See <a class="el" href="classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024" title="Retrieves a contiguous block of memory from the input buffer.">mem_device::get_buf</a> for details. </p>
+<p>Forwards directly to <a class="el" href="classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024" title="Retrieves a contiguous block of memory from the input buffer.">mem_device::get_buf()</a>, returning a zero-copy pointer into the device's own buffer. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Saturate</td><td>When true, requires exact count and returns const char_type*. When false (default), returns std::pair&lt;const char_type*, size_t&gt;. </td></tr>
+    <tr><td class="paramname">Saturate</td><td>When true, requires exact count and returns const char_type*; when false (default), returns std::pair&lt;const char_type*, size_t&gt;. </td></tr>
   </table>
   </dd>
 </dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to_max</td><td>Number of characters to retrieve.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>See <a class="el" href="classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024" title="Retrieves a contiguous block of memory from the input buffer.">mem_device::get_buf()</a> for return value details.  </dd></dl>
 
 </div>
 </div>
@@ -615,6 +655,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Resets read state; no-op for this specialization as the buffer is managed by the kernel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1555   Ignored buffer size parameter.  </p>
 
 </div>
 </div>
@@ -643,6 +691,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Resets read state; no-op for this specialization as <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> manages its own buffer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 1928   Ignored buffer size parameter.  </p>
 
 </div>
 </div>
@@ -671,6 +727,19 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Moves the read cursor back by len characters, making data previously consumed by <a class="el" href="classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a6cdb57c67ad38e00b8d43f2960c9c550">get_buf()</a> available to read again. Used for backtracking after a failed parse. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of characters to roll back; must not exceed the current cursor offset from the buffer start.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>Thrown when len is 0, len exceeds the rollback range, or the buffer pointer is nullptr.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -699,6 +768,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Moves the read cursor back by len characters, forwarding directly to <a class="el" href="classIOv2_1_1mem__device.html#abd8fe9ea775aa85215ff1d1334f1fdec" title="Rolls back the read position of the input stream.">mem_device::get_rollback()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of characters to roll back.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

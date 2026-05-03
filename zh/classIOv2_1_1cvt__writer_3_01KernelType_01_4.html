@@ -141,7 +141,24 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a42decc7a7d945d56a9bb9bdb5ab0fa17" id="r_a42decc7a7d945d56a9bb9bdb5ab0fa17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit</a> ()</td></tr>
 <tr class="separator:a42decc7a7d945d56a9bb9bdb5ab0fa17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType&gt;<br />
+requires (std::is_base_of_v&lt;<a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type, KernelType::s_has_buffer&gt;, KernelType&gt; &amp;&amp; !is_mem_device&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::device_type&gt;)<br />
+class IOv2::cvt_writer&lt; KernelType &gt;</div><p><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a> 针对 root_cvt（任意 HasInBuffer，非 mem_device）的偏特化。 直接复用 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 内部缓冲区，无需额外分配，与 <a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a> 对称。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>须派生自 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;DeviceType, s_has_buffer&gt; 且 DeviceType 非 mem_device。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<p><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a> 针对 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的偏特化（适用于 <a class="el" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a> 和 <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a> 两种内核）。 所有操作直接转发给 mem_device，零拷贝写入设备缓冲区。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>须派生自 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>&lt;DeviceType, true|false&gt; 且 DeviceType 须为 mem_device。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a8c3601ea4b7cd8a59784a959cf109b70" name="a8c3601ea4b7cd8a59784a959cf109b70"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8c3601ea4b7cd8a59784a959cf109b70">&#9670;&#160;</a></span>cvt_writer() <span class="overload">[1/6]</span></h2>
 
@@ -177,6 +194,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数：绑定到指定的 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 内核。外部缓冲区参数被忽略，直接使用内核的内部缓冲区。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>要绑定的 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 内核引用。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -298,6 +322,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数：绑定到指定的 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 内核（mem_device 特化）。外部缓冲区参数被忽略。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>要绑定的 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 内核引用。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -409,6 +440,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>提交写入操作，对此特化为空操作。 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> 返回的指针直接指向内部缓冲区，写入立即生效，无需额外的提交步骤。 </p>
 
 </div>
 </div>
@@ -436,6 +468,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>提交写入操作，对此特化为空操作。 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 的写入通过 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> 直接修改设备内部状态，无需显式提交。 </p>
 
 </div>
 </div>
@@ -576,6 +609,20 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>在 <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> 的内部缓冲区中为 len 个字符预留空间，并返回写入起始指针。 若缓冲区剩余空间不足，先将已有缓冲内容刷入设备，再返回缓冲区起始地址。 调用方将数据写入返回的指针后，调用 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit()</a> 提交（本特化中 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit()</a> 为空操作）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>要写入的字符数，不得超过 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#ac3650c77a20ca4c20e22f38a7fc800df">reset()</a> 设置的 buf_size。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>可写入 len 个字符的缓冲区指针。   </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>len 为 0、len 超过 buf_size、或 io_status 不为 output 且无法切换时抛出。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -604,6 +651,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>在 <a class="el" href="classIOv2_1_1mem__device.html" title="一个在内存中进行 I/O 操作的设备。">mem_device</a> 缓冲区中为 len 个字符预留空间，零拷贝返回写入起始指针。 直接转发给 <a class="el" href="classIOv2_1_1mem__device.html#a7e0788e046ac0e319c22128419ac215d" title="获取输出缓冲区中的一段可写入的连续内存。">mem_device::put_buf()</a>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>要写入的字符数。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>可写入 len 个字符的设备缓冲区指针。   </dd></dl>
 
 </div>
 </div>
@@ -632,6 +687,19 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>设置每次 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> 调用允许写入的最大字符数。 必须在首次调用 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> 之前调用，以通知写入器本次转换步骤的最大输出量。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buf_size</td><td>允许的最大写入字符数，不得超过 s_buffer_length。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>buf_size 超过 s_buffer_length 时抛出。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -660,6 +728,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>重置写入状态，对此特化为空操作（mem_device 自管理缓冲区大小）。  </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname"></td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<p>iline 2039  忽略的缓冲区大小参数。   </p>
 
 </div>
 </div>
@@ -688,6 +764,19 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将写入游标向后退 len 个字符，撤销最近一次 <a class="el" href="classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#a633b19b5d698d59ba25cd8801d4920f8">put_buf()</a> 写入的内容。 用于转换失败时丢弃已预留但未实际写入有效数据的空间。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>要回退的字符数，不得超过当前缓冲区游标距缓冲区起始的距离。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>len 为 0、len 超出可回退范围、或缓冲区指针为 nullptr 时抛出。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -716,6 +805,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将写入游标向后退 len 个字符，直接转发给 <a class="el" href="classIOv2_1_1mem__device.html#adb7f21dbbc12340d6098e99bec8ca641" title="回退输出流的写入位置，并根据需要调整底层缓冲区大小。">mem_device::put_rollback()</a>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>要回退的字符数。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
