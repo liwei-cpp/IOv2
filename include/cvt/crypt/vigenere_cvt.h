@@ -73,15 +73,15 @@ public:
 
 // optional methods
 private:
-    size_t get_main(internal_type* to, size_t to_max)
+    size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
         size_t total_count = 0;
-        this->m_reader.reset(s_buf_len);
+        reader.reset(s_buf_len);
         while (total_count != to_max)
         {
             const size_t dest_size = std::min(s_buf_len, to_max - total_count);
-            auto [ptr, cur_size] = this->m_reader.get_buf(dest_size);
+            auto [ptr, cur_size] = reader.get_buf(dest_size);
             if (cur_size == 0)
                 return total_count;
 
@@ -95,16 +95,16 @@ private:
         return total_count;
     }
 
-    void put_main(const internal_type* to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        this->m_writer.reset(s_buf_len);
+        writer.reset(s_buf_len);
 
         size_t total_count = 0;
         while (total_count != to_size)
         {
             const size_t dest_size = std::min(s_buf_len, to_size - total_count);
-            auto ptr = this->m_writer.put_buf(dest_size);
+            auto ptr = writer.put_buf(dest_size);
 
             for (size_t i = 0; i < dest_size; ++i)
             {
@@ -113,7 +113,7 @@ private:
             }
             total_count += dest_size;
         }
-        this->m_writer.commit();
+        writer.commit();
     }
 
 public:
