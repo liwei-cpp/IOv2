@@ -33,6 +33,12 @@ namespace std
     };
 }
 
+// Large type to trigger pointer return branch in get()
+struct LargeValue {
+    int val;
+    char padding[128]; 
+};
+
 void test_lru_cache_exception_safety()
 {
     dump_info("Test lru_cache exception safety...");
@@ -152,12 +158,109 @@ void test_lru_cache_small_type()
     dump_info("Done\n");
 }
 
+void test_lru_cache_try_put_eviction()
+{
+    dump_info("Test lru_cache try_put eviction...");
+    lru_cache<int, std::string, 2> cache;
+    VERIFY(cache.try_put(1, "one") == true);
+    VERIFY(cache.try_put(2, "two") == true);
+    
+    // 1 is MRU, 2 is LRU
+    (void)cache.get(1); 
+    
+    // 2 should be evicted
+    VERIFY(cache.try_put(3, "three") == true); 
+
+    auto r1 = cache.get(1);
+    VERIFY(r1 && *r1 == "one");
+    
+    auto r2 = cache.get(2);
+    VERIFY(!r2);
+    
+    auto r3 = cache.get(3);
+    VERIFY(r3 && *r3 == "three");
+    dump_info("Done\n");
+}
+
+void test_lru_cache_capacity_one()
+{
+    dump_info("Test lru_cache capacity one...");
+    lru_cache<int, int, 1> cache;
+    cache.put(1, 100);
+    VERIFY(cache.get(1) && *cache.get(1) == 100);
+    
+    cache.put(2, 200);
+    VERIFY(!cache.get(1));
+    VERIFY(cache.get(2) && *cache.get(2) == 200);
+    
+    VERIFY(cache.try_put(3, 300) == true);
+    VERIFY(!cache.get(2));
+    VERIFY(cache.get(3) && *cache.get(3) == 300);
+    dump_info("Done\n");
+}
+
+void test_lru_cache_remaining_coverage() {
+    dump_info("Test lru_cache remaining coverage...");
+
+    // 1. Large type branch coverage
+    {
+        lru_cache<int, LargeValue, 2> cache;
+        LargeValue lv{42, {0}};
+        cache.put(1, lv);
+        const LargeValue* ptr = cache.get(1);
+        VERIFY(ptr != nullptr && ptr->val == 42);
+        VERIFY(cache.get(2) == nullptr);
+    }
+
+    // 2. Move semantics coverage
+    {
+        lru_cache<int, int, 2> cache1;
+        cache1.put(1, 100);
+        lru_cache<int, int, 2> cache2(std::move(cache1));
+        VERIFY(cache2.get(1) && *cache2.get(1) == 100);
+
+        lru_cache<int, int, 2> cache3;
+        cache3 = std::move(cache2);
+        VERIFY(cache3.get(1) && *cache3.get(1) == 100);
+    }
+
+    // 3. Precise catch block coverage
+    {
+        lru_cache<ThrowingKey, int, 2> cache;
+        ThrowingKey::copy_count = 0;
+        ThrowingKey::throw_at = 2; // Success for list, throw for map
+        try {
+            cache.put(ThrowingKey(1), 100);
+            VERIFY(false);
+        } catch (const std::runtime_error&) {}
+        
+        ThrowingKey::throw_at = -1;
+        VERIFY(!cache.get(ThrowingKey(1)));
+
+        // Repeat for try_put
+        ThrowingKey::copy_count = 0;
+        ThrowingKey::throw_at = 2;
+        try {
+            (void)cache.try_put(ThrowingKey(2), 200);
+            VERIFY(false);
+        } catch (const std::runtime_error&) {}
+        
+        ThrowingKey::throw_at = -1;
+        VERIFY(!cache.get(ThrowingKey(2)));
+    }
+
+    dump_info("Done\n");
+}
+
 void test_lru_cache()
 {
     test_lru_cache_basic();
     test_lru_cache_update();
     test_lru_cache_try_put();
     test_lru_cache_eviction();
+    test_lru_cache_try_put_eviction();
+    test_lru_cache_capacity_one();
+    test_lru_cache_remaining_coverage();
     test_lru_cache_small_type();
     test_lru_cache_exception_safety();
 }
