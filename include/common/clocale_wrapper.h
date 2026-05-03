@@ -59,9 +59,7 @@ struct clocale_wrapper
         : c_locale(val.c_locale ? duplocale(val.c_locale) : nullptr)
     {
         if (val.c_locale && !c_locale)
-        {
             throw cvt_error("clocale_wrapper: duplocale failed during copy construction");
-        }
     }
 
     clocale_wrapper(clocale_wrapper&& val) noexcept
@@ -88,9 +86,8 @@ struct clocale_wrapper
         {
             locale_t tmp = val.c_locale ? duplocale(val.c_locale) : nullptr;
             if (val.c_locale && !tmp)
-            {
                 throw cvt_error("clocale_wrapper: duplocale failed during assignment");
-            }
+
             if (c_locale)
                 freelocale(c_locale);
             c_locale = tmp;
