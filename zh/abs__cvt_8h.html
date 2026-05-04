@@ -266,7 +266,14 @@ abs_cvt.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>抽象转换器基础设施。</p>
+<p>本文件提供三个核心组件：</p><ul>
+<li><code>cvt_reader</code>：带缓冲的读取辅助类，支持试探性读取与回退。</li>
+<li><code>cvt_writer</code>：带缓冲的写入辅助类，支持延迟刷出与回退。</li>
+<li><code>abs_cvt</code>：基于 CRTP 的抽象转换器基类，封装 BOS（流起始）处理逻辑 以及可选的 flush、定位、IO 方向切换能力。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

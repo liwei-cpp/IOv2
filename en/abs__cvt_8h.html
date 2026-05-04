@@ -266,7 +266,14 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Abstract converter infrastructure.</p>
+<p>This file provides three core components:</p><ul>
+<li><code>cvt_reader</code>: A buffered read helper that supports speculative reads and rollback.</li>
+<li><code>cvt_writer</code>: A buffered write helper that supports deferred flushing and rollback.</li>
+<li><code>abs_cvt</code>: A CRTP-based abstract converter base class that encapsulates BOS (Beginning-Of-Stream) handling and optional flush, positioning, and IO-direction switching capabilities.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

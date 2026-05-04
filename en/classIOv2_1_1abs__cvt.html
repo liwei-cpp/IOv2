@@ -195,7 +195,28 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a8886cdff2686ad46c31df99a5dceb8e8" id="r_a8886cdff2686ad46c31df99a5dceb8e8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classIOv2_1_1abs__cvt.html#a876c94ea1a93e4625498012d0437b9e0">external_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a8886cdff2686ad46c31df99a5dceb8e8">m_tmp_io_buffer</a></td></tr>
 <tr class="separator:a8886cdff2686ad46c31df99a5dceb8e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt;<br />
+class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt;</div><p>CRTP-based abstract converter base class.</p>
+<p><code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> provides a common skeleton for all concrete converters and is responsible for:</p><ul>
+<li><b>BOS (Beginning-Of-Stream) handling</b>: Between the <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code> call and the <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code> call, <code>get</code>/<code>put</code> pass data through as raw bytes without invoking the derived class's <code>get_main</code>/<code>put_main</code>. This allows reading and writing stream-leading data such as file headers and magic numbers. During BOS writes, if the input byte count is not a multiple of <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(external_type)</a></code>, the final partial unit is zero-padded.</li>
+<li>**Device management: Manages the underlying device via <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44f8ea550f63b8c349d546a8c39ed8f2">device()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach()</a></code>, and <code><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach()</a></code>.</li>
+<li><b>Behaviour and status</b>: Configures and queries conversion parameters via <code><a class="el" href="classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a">adjust()</a></code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a">retrieve()</a></code>.</li>
+<li><b>Optional capabilities</b>: Exposes flush, positioning (<code>tell</code>/<code>seek</code>/<code>rseek</code>), and IO-direction switching on demand through template parameters and <code>requires</code> clauses.</li>
+</ul>
+<p>Derived classes must implement <code>get_main(<a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt;KernelType&gt;&amp;, internal_type*, size_t)</code> and/or <code>put_main(<a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp;, const internal_type*, size_t)</code> to handle the actual conversion logic in the main-content phase. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CurrentType</td><td>The CRTP derived class type itself. </td></tr>
+    <tr><td class="paramname">KernelType</td><td>The underlying IO converter kernel type, which must satisfy the <code>io_converter</code> concept. </td></tr>
+    <tr><td class="paramname">InternalType</td><td>The character type exposed by the derived class (the element type used by the <code>get</code>/<code>put</code> interface). </td></tr>
+    <tr><td class="paramname">default_flush</td><td>When <code>true</code> (default) and the kernel supports put, the <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2a1a8668998cccee02d2fa11e35b1808">flush()</a></code> method is available. </td></tr>
+    <tr><td class="paramname">default_positioning</td><td>When <code>true</code> (default) and the kernel supports positioning, the <code><a class="el" href="classIOv2_1_1abs__cvt.html#add78bcbcdde0e5e1c4798df008c7be38">tell()</a></code>/<code><a class="el" href="classIOv2_1_1abs__cvt.html#a098f53b4c197fe8643bea1cff71f6acb">seek()</a></code>/<code><a class="el" href="classIOv2_1_1abs__cvt.html#a1e584b918c30499efaf36d94d7ab6175">rseek()</a></code> methods are available. </td></tr>
+    <tr><td class="paramname">default_io_switch</td><td>When <code>true</code> (default) and the kernel supports IO-direction switching, the <code><a class="el" href="classIOv2_1_1abs__cvt.html#a82a759023e86faee8bf993ee3a894451">switch_to_get()</a></code>/<code><a class="el" href="classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9">switch_to_put()</a></code> methods are available.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="aaeb3fa47b8892cdb7aaad64054f7d887" name="aaeb3fa47b8892cdb7aaad64054f7d887"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaeb3fa47b8892cdb7aaad64054f7d887">&#9670;&#160;</a></span>device_type</h2>
 
@@ -209,6 +230,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The underlying device type, provided by KernelType.  </p>
 
 </div>
 </div>
@@ -225,6 +247,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The external character type (the kernel's internal type), used for raw byte passthrough during the BOS phase.  </p>
 
 </div>
 </div>
@@ -241,6 +264,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The character type exposed by the derived class; the element type of the <code>get</code>/<code>put</code> interface.  </p>
 
 </div>
 </div>
@@ -270,6 +294,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Construct the converter from a kernel, taking ownership of it. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>The underlying conversion kernel; ownership is transferred via move.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -298,6 +329,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy constructor. Copies the kernel, IO status, and BOS-done flag; the temporary IO buffer is not copied.  </p>
 
 </div>
 </div>
@@ -326,6 +358,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Move constructor. Transfers ownership of the kernel; the source object's IO status is reset to <code>neutral</code> and its BOS-done flag is reset to <code>false</code>.  </p>
 
 </div>
 </div>
@@ -382,6 +415,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Adjust the converter's behaviour parameters.</p>
+<p>Forwards the behaviour configuration described in <code>b</code> to the underlying kernel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">b</td><td>A configuration object describing the desired behaviour.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -410,6 +451,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Attach a new device to the converter, returning the previously held device and resetting the converter state.</p>
+<p>Passing a default-constructed (empty) <code>dev</code> is equivalent to clearing the current device. After the call <code>m_io_status</code> is reset to <code>neutral</code> and <code>m_is_bos_done</code> is reset to <code>false</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>The new device to attach (ownership transferred via move); defaults to an empty device. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The previously held underlying device object (returned by value).  </dd></dl>
 
 </div>
 </div>
@@ -437,6 +487,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Start the stream and enter the BOS (Beginning-Of-Stream) phase.</p>
+<p>Sets the IO status to the initial state returned by the kernel. This method may only be called when <code>m_io_status</code> is <code>neutral</code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code> has not been called before; otherwise an exception is thrown. Until <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code> is called, <code>get</code>/<code>put</code> will pass data through in raw byte mode. </p>
+<dl class="section return"><dt>Returns</dt><dd>The initial <code>io_status</code> value reported by the kernel. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If the current IO status is not <code>neutral</code>, or if <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code> has already been called.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -464,6 +523,9 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Detach and return the underlying device, resetting the converter state to its initial state.</p>
+<p>After the call <code>m_io_status</code> is reset to <code>neutral</code> and <code>m_is_bos_done</code> is reset to <code>false</code>. </p>
+<dl class="section return"><dt>Returns</dt><dd>The underlying device object detached from the kernel (returned by value).  </dd></dl>
 
 </div>
 </div>
@@ -491,6 +553,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Return a reference to the underlying device. </p>
+<dl class="section return"><dt>Returns</dt><dd>An lvalue reference to the underlying device.  </dd></dl>
 
 </div>
 </div>
@@ -518,6 +582,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Force all buffered data in the kernel to be flushed to the underlying device.</p>
+<p>Only available when <code>default_flush</code> is <code>true</code> and the kernel supports the put operation.  </p>
 
 </div>
 </div>
@@ -556,6 +622,24 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Read up to <code>to_max</code> elements of <code>internal_type</code> from the stream.</p>
+<p>During the BOS phase (<code>m_is_bos_done == false</code>), data is read as raw bytes without going through the derived class's <code>get_main</code>, enabling reading of stream-leading data such as file headers. The BOS phase requires complete data: if end-of-stream is reached before enough bytes are available, it is treated as a format error and an exception is thrown (unlike <code>get_main</code>, which may return partial data, the BOS phase is all-or-nothing).</p>
+<p>Once in the main phase, if the current IO direction is not <code>input</code> and the derived class supports IO-direction switching, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a82a759023e86faee8bf993ee3a894451">switch_to_get()</a></code> is called automatically; otherwise an exception is thrown.</p>
+<p>This method is only enabled via a <code>requires</code> clause when the derived class provides a conforming <code>get_main</code> member function. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>Pointer to the destination buffer to write results into; must have capacity for at least <code>to_max</code> elements. </td></tr>
+    <tr><td class="paramname">to_max</td><td>Maximum number of elements to read. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Actual number of elements read; may be less than <code>to_max</code> (except during the BOS phase, which always returns <code>to_max</code>). </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If the BOS phase encounters end-of-stream before reading enough data; or if the main phase cannot switch to input direction.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -583,6 +667,9 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Check whether the end of the stream (EOF) has been reached.</p>
+<p>Only available when <code>KernelType</code> supports the get operation. </p>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the end of the stream has been reached; <code>false</code> otherwise.  </dd></dl>
 
 </div>
 </div>
@@ -610,6 +697,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Mark the end of the BOS phase and enter the main-content processing phase.</p>
+<p>After the call <code>m_is_bos_done</code> is set to <code>true</code>, and subsequent <code>get</code>/<code>put</code> calls will invoke the derived class's <code>get_main</code>/<code>put_main</code> to perform the actual encoding conversion logic.  </p>
 
 </div>
 </div>
@@ -638,6 +727,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Move assignment operator. Transfers ownership of the kernel; the source object's IO status and BOS-done flag are both reset.  </p>
 
 </div>
 </div>
@@ -666,6 +756,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy assignment operator. Copies the kernel, IO status, and BOS-done flag. <code><a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a></code>/<code><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a></code> always reference <code>&amp;m_kernel</code>, so no additional fixup is needed after assignment.  </p>
 
 </div>
 </div>
@@ -704,6 +795,23 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Write <code>to_size</code> elements of <code>internal_type</code> to the stream.</p>
+<p>During the BOS phase (<code>m_is_bos_done == false</code>), data is written as raw bytes without going through the derived class's <code>put_main</code>, enabling writing of stream-leading data such as file headers. The BOS phase writes complete <code>external_type</code> units (<code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(external_type)</a></code> bytes each); if the final unit is smaller than <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(external_type)</a></code> bytes, it is zero-padded.</p>
+<p>Once in the main phase, if the current IO direction is not <code>output</code> and the derived class supports IO-direction switching, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9">switch_to_put()</a></code> is called automatically; otherwise an exception is thrown.</p>
+<p>This method is only enabled via a <code>requires</code> clause when the derived class provides a conforming <code>put_main</code> member function. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">to</td><td>Pointer to the source data buffer; must contain at least <code>to_size</code> elements. </td></tr>
+    <tr><td class="paramname">to_size</td><td>Number of elements to write. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If the main phase cannot switch to output direction.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -732,6 +840,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Retrieve the current converter status information.</p>
+<p>Writes the kernel's status into <code>s</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>Output object to receive the status information.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -760,6 +876,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Seek to reverse absolute position <code>pos</code> measured backwards from the end of the stream in units of <code>external_type</code> elements.</p>
+<p>Only available when <code>default_positioning</code> is <code>true</code> and the kernel supports positioning. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>Target reverse position as an offset in <code>external_type</code> elements measured backwards from the end of the stream.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -788,6 +912,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Seek to absolute position <code>pos</code> measured from the start of the stream in units of <code>external_type</code> elements.</p>
+<p>Only available when <code>default_positioning</code> is <code>true</code> and the kernel supports positioning. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pos</td><td>Target absolute position as an offset in <code>external_type</code> elements from the start of the stream.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -815,6 +947,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switch the IO direction to input (read) mode and update <code>m_io_status</code> to <code>input</code>.</p>
+<p>Only available when <code>default_io_switch</code> is <code>true</code> and the kernel supports IO-direction switching.  </p>
 
 </div>
 </div>
@@ -842,6 +976,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switch the IO direction to output (write) mode and update <code>m_io_status</code> to <code>output</code>.</p>
+<p>Only available when <code>default_io_switch</code> is <code>true</code> and the kernel supports IO-direction switching.  </p>
 
 </div>
 </div>
@@ -869,6 +1005,9 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Return the current stream position in units of <code>external_type</code> elements.</p>
+<p>Only available when <code>default_positioning</code> is <code>true</code> and the kernel supports positioning. </p>
+<dl class="section return"><dt>Returns</dt><dd>The current stream position as an offset in <code>external_type</code> elements from the start of the stream.  </dd></dl>
 
 </div>
 </div>
@@ -894,6 +1033,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Current IO direction state: <code>neutral</code> (inactive), <code>input</code> (read mode), or <code>output</code> (write mode). Updated by <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a82a759023e86faee8bf993ee3a894451">switch_to_get()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9">switch_to_put()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach()</a></code>, and <code><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach()</a></code>.  </p>
 
 </div>
 </div>
@@ -918,6 +1058,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Indicates whether the BOS phase has been completed. <code>false</code> means still in the BOS phase (raw byte passthrough); <code>true</code> means the main-content phase has been entered (invoking the derived class's <code>get_main</code>/<code>put_main</code>). Set to <code>true</code> by <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code>; reset to <code>false</code> by <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach()</a></code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach()</a></code>.  </p>
 
 </div>
 </div>
@@ -942,6 +1083,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>The underlying IO conversion kernel, which owns the underlying device.  </p>
 
 </div>
 </div>
@@ -966,6 +1108,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Temporary IO buffer shared by <code><a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a></code> and <code><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a></code> across each <code>get</code>/<code>put</code> call. The buffer is sized on demand by <code>reset()</code> at first use.  </p>
 
 </div>
 </div>

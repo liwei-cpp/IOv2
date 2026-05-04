@@ -116,12 +116,25 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af28d50cf8ae06556a33462b7d303d696"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6cdb57c67ad38e00b8d43f2960c9c550" id="r_a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> Saturate = false&gt; </td></tr>
 <tr class="memitem:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__reader.html#a6cdb57c67ad38e00b8d43f2960c9c550">get_buf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)</td></tr>
-<tr class="memdesc:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves data from the buffer, reading from kernel if needed.  <br /></td></tr>
 <tr class="separator:a6cdb57c67ad38e00b8d43f2960c9c550"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8840905c5c8cfb7a9b5fde540ce59113" id="r_a8840905c5c8cfb7a9b5fde540ce59113"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__reader.html#a8840905c5c8cfb7a9b5fde540ce59113">rollback</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">len</a>)</td></tr>
 <tr class="separator:a8840905c5c8cfb7a9b5fde540ce59113"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType&gt;<br />
+class IOv2::cvt_reader&lt; KernelType &gt;</div><p>Buffered read helper class.</p>
+<p>Wraps buffered read operations against an underlying kernel. Two internal cursors are maintained:</p><ul>
+<li><code>m_cur_pos</code>: start of the next data to be consumed (current read position).</li>
+<li><code>m_end_pos</code>: end of valid data in the buffer.</li>
+</ul>
+<p>The class is neither copyable nor movable and is designed as a short-lived helper object used during conversion. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>The underlying IO converter kernel type, which must satisfy the <code>io_converter</code> concept.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4147a4fd2a40f0fc92c560ceb791ad03" name="a4147a4fd2a40f0fc92c560ceb791ad03"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4147a4fd2a40f0fc92c560ceb791ad03">&#9670;&#160;</a></span>cvt_reader() <span class="overload">[1/3]</span></h2>
 
@@ -157,6 +170,15 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor.</p>
+<p><code><a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a></code> does not own the kernel or buffer; the caller must ensure both remain valid for the lifetime of this object. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>Reference to the underlying conversion kernel. </td></tr>
+    <tr><td class="paramname">buffer</td><td>Reference to an externally provided buffer used to stage data read from the kernel.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -271,28 +293,28 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Retrieves data from the buffer, reading from kernel if needed. </p>
+<p>Retrieve data from the buffer, reading from the kernel if needed.</p>
+<p>The template parameter <code>Saturate</code> controls behaviour when insufficient data is available:</p><ul>
+<li><code>Saturate=false</code> (default): Best-effort; returns however much data is available, which may be less than <code>to_max</code>. Return type: <code>std::pair&lt;const char_type*, size_t&gt;</code> where <code>second</code> is the actual number of elements returned.</li>
+<li><code>Saturate=true</code>: Saturating mode; guarantees exactly <code>to_max</code> characters are returned; throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if end-of-stream is reached before <code>to_max</code> characters are available. Return type: <code>const char_type*</code>.</li>
+</ul>
+<p>The returned pointer refers to the internal buffer and is valid until the next call to <code>get_buf</code> or <code>reset</code>. </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">Saturate</td><td>Controls behavior when insufficient data is available:<ul>
-<li>false (default): Returns available data (may be less than requested). Return type: std::pair&lt;const char_type*, size_t&gt;</li>
-<li>true: Requires exactly to_max chars; throws if not enough data. Return type: const char_type*</li>
-</ul>
-</td></tr>
+    <tr><td class="paramname">Saturate</td><td>When <code>false</code> (default), returns available data; when <code>true</code>, requires exactly <code>to_max</code> characters and throws on short read. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">to_max</td><td>Number of characters to retrieve. </td></tr>
+    <tr><td class="paramname">to_max</td><td>Number of characters to retrieve; must not be zero and must not exceed the buffer capacity. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>When Saturate=false: pair of (pointer, actual_count). When Saturate=true: pointer to exactly to_max chars. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>When <code>Saturate=false</code>: <code>std::pair&lt;const char_type*, size_t&gt;</code> (pointer and actual count). When <code>Saturate=true</code>: <code>const char_type*</code> pointing to exactly <code>to_max</code> characters. </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If Saturate=true and end-of-stream is reached before reading to_max characters. </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>to_max</code> is zero; if <code>to_max</code> exceeds the buffer capacity; or, when <code>Saturate=true</code>, if end-of-stream is reached before <code>to_max</code> characters are available.  </td></tr>
   </table>
   </dd>
 </dl>
@@ -380,6 +402,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Resize the buffer and clear all position cursors.</p>
+<p>After the call the buffer capacity is set to <code>buf_size</code>, and both <code>m_cur_pos</code> and <code>m_end_pos</code> are reset to zero, discarding any previously buffered data. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buf_size</td><td>New buffer capacity in number of elements.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -408,6 +438,20 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Roll back consumed characters by advancing the current read position backwards by <code>len</code> elements.</p>
+<p>Supports the speculative-read-then-rollback pattern: the caller reads data via <code>get_buf</code>, and if the data does not satisfy a condition, calls <code>rollback</code> to undo the consumption so the same data can be read again. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of elements to roll back; must not be zero and must not exceed the number of already-consumed elements. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>len</code> is zero, or if <code>len</code> exceeds the number of consumed elements.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

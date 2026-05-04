@@ -121,7 +121,19 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a42decc7a7d945d56a9bb9bdb5ab0fa17" id="r_a42decc7a7d945d56a9bb9bdb5ab0fa17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__writer.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit</a> ()</td></tr>
 <tr class="separator:a42decc7a7d945d56a9bb9bdb5ab0fa17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType&gt;<br />
+class IOv2::cvt_writer&lt; KernelType &gt;</div><p>Buffered write helper class.</p>
+<p>Wraps buffered write operations against an underlying kernel. Data is first accumulated in an internal buffer and flushed to the kernel in bulk only when the buffer is full or <code><a class="el" href="classIOv2_1_1cvt__writer.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">commit()</a></code> is called explicitly, reducing the number of kernel write calls.</p>
+<p>The internal <code>m_prev_len</code> field tracks the amount of data that has been placed in the buffer but not yet flushed to the kernel.</p>
+<p>The class is neither copyable nor movable and is designed as a short-lived helper object used during conversion. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>The underlying IO converter kernel type, which must satisfy the <code>io_converter</code> concept.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a724cd1f99dc42302afdcee038b434927" name="a724cd1f99dc42302afdcee038b434927"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a724cd1f99dc42302afdcee038b434927">&#9670;&#160;</a></span>cvt_writer() <span class="overload">[1/3]</span></h2>
 
@@ -157,6 +169,15 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor.</p>
+<p><code><a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a></code> does not own the kernel or buffer; the caller must ensure both remain valid for the lifetime of this object. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>Reference to the underlying conversion kernel. </td></tr>
+    <tr><td class="paramname">buffer</td><td>Reference to an externally provided buffer used to stage data before writing to the kernel.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -268,6 +289,8 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Flush all buffered data that has not yet been written to the kernel.</p>
+<p>After the call <code>m_prev_len</code> is reset to zero. If the buffer is empty no kernel write is performed.  </p>
 
 </div>
 </div>
@@ -352,6 +375,21 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Allocate a write slot and return a pointer to the writable position in the buffer.</p>
+<p>If the remaining buffer space is insufficient to hold <code>len</code> elements, the accumulated data is first flushed to the kernel before the pointer is returned. The caller must write exactly <code>len</code> elements to the returned pointer; no further action is required after writing — the data will be handled correctly by the next <code>put_buf</code> call or by <code>commit</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of elements to write; must not be zero and must not exceed the buffer capacity. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to the start of a region in the buffer safe to write <code>len</code> elements into. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>len</code> is zero, or if <code>len</code> exceeds the buffer capacity.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -380,6 +418,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Resize the buffer and discard any accumulated unflushed data.</p>
+<p>After the call the buffer capacity is set to <code>buf_size</code> and <code>m_prev_len</code> is reset to zero. Any previously accumulated but unflushed data is discarded without being written to the kernel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">buf_size</td><td>New buffer capacity in number of elements.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -408,6 +454,20 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Roll back data that has been written into the buffer but not yet committed.</p>
+<p>Reduces <code>m_prev_len</code> by <code>len</code> elements, freeing those slots for reuse. Only data that has not yet been flushed to the kernel can be rolled back; data already flushed cannot be undone. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>Number of elements to roll back; must not be zero and must not exceed <code>m_prev_len</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>len</code> is zero, or if <code>len</code> exceeds <code>m_prev_len</code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
