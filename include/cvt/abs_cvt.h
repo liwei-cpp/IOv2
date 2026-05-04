@@ -144,7 +144,7 @@ namespace IOv2
          * @lang{EN}
          * Retrieve data from the buffer, reading from the kernel if needed.
          *
-         * The template parameter `Saturate` controls behaviour when insufficient
+         * The template parameter `Saturate` controls behavior when insufficient
          * data is available:
          * - `Saturate=false` (default): Best-effort; returns however much data is
          *   available, which may be less than `to_max`.
@@ -199,9 +199,9 @@ namespace IOv2
         auto get_buf(size_t to_max)
         {
             if (to_max == 0)
-                throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero.");
+                throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero");
             if (to_max > m_buffer.size())
-                throw cvt_error("cvt_reader::get_buf fail, read size too large.");
+                throw cvt_error("cvt_reader::get_buf fail, read size too large");
 
             const auto rollback_size = m_end_pos - m_cur_pos;
             if (to_max <= rollback_size)
@@ -280,9 +280,9 @@ namespace IOv2
         void rollback(size_t len)
         {
             if (len == 0)
-                throw cvt_error("cvt_reader::rollback fail, length cannot be zero.");
+                throw cvt_error("cvt_reader::rollback fail, length cannot be zero");
             if (len > m_cur_pos)
-                throw cvt_error("cvt_reader::rollback fail, rollback length too large.");
+                throw cvt_error("cvt_reader::rollback fail, rollback length too large");
             m_cur_pos -= len;
         }
 
@@ -441,9 +441,9 @@ namespace IOv2
         char_type* put_buf(size_t len)
         {
             if (len == 0)
-                throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero.");
+                throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero");
             if (len > m_buffer.size())
-                throw cvt_error("cvt_writer::put_buf fail, write size too large.");
+                throw cvt_error("cvt_writer::put_buf fail, write size too large");
 
             size_t remain = m_buffer.size() - m_prev_len;
             if (remain < len)
@@ -486,9 +486,9 @@ namespace IOv2
         void rollback(size_t len)
         {
             if (len == 0)
-                throw cvt_error("cvt_writer::rollback fail, length cannot be zero.");
+                throw cvt_error("cvt_writer::rollback fail, length cannot be zero");
             if (len > m_prev_len)
-                throw cvt_error("cvt_writer::rollback fail, rollback length too large.");
+                throw cvt_error("cvt_writer::rollback fail, rollback length too large");
             m_prev_len -= len;
         }
 
@@ -562,7 +562,7 @@ namespace IOv2
      *   `sizeof(external_type)`, the final partial unit is zero-padded.
      * - **Device management**: Manages the underlying device via `device()`,
      *   `detach()`, and `attach()`.
-     * - **Behaviour and status**: Configures and queries conversion parameters via
+     * - **Behavior and status**: Configures and queries conversion parameters via
      *   `adjust()` and `retrieve()`.
      * - **Optional capabilities**: Exposes flush, positioning (`tell`/`seek`/`rseek`),
      *   and IO-direction switching on demand through template parameters and
@@ -826,14 +826,14 @@ namespace IOv2
          * @endif
          *
          * @lang{EN}
-         * Adjust the converter's behaviour parameters.
+         * Adjust the converter's behavior parameters.
          *
-         * Forwards the behaviour configuration described in `b` to the underlying kernel.
+         * Forwards the behavior configuration described in `b` to the underlying kernel.
          * @endif
          *
          * @param b
          * @lang{ZH} 描述期望行为的配置对象。 @endif
-         * @lang{EN} A configuration object describing the desired behaviour. @endif
+         * @lang{EN} A configuration object describing the desired behavior. @endif
          */
         void adjust(const cvt_behavior& b)
         {
@@ -892,9 +892,9 @@ namespace IOv2
         io_status bos()
         {
             if (m_io_status != io_status::neutral)
-                throw cvt_error("abs_cvt::bos fail: Cannot call bos with un-neutral status.");
+                throw cvt_error("abs_cvt::bos fail: cannot call bos with un-neutral status");
             if (m_is_bos_done)
-                throw cvt_error("abs_cvt::bos fail: Cannot call bos multiple times.");
+                throw cvt_error("abs_cvt::bos fail: cannot call bos multiple times");
 
             m_io_status = m_kernel.bos();
             return m_io_status;
@@ -1123,7 +1123,7 @@ namespace IOv2
                 while (to_bytes + ext_size <= to_bytes_end)
                 {
                     auto dest_count = std::min<size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
-                    auto ptr = writer.put_buf( dest_count);
+                    auto ptr = writer.put_buf(dest_count);
                     std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, dest_count * ext_size);
                     to_bytes += dest_count * ext_size;
                 }
