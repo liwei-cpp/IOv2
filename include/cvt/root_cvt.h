@@ -357,7 +357,7 @@ public:
      * - 若当前处于输出状态，先将缓冲区刷入设备。
      * - 若当前处于输入状态且缓冲区中仍有未消费数据，则将设备位置倒回到未消费数据的起始处（需设备支持定位）。
      *
-     * 调用后，root_cvt 内部不再持有有效设备。
+     * 调用后，root_cvt 内部状态被重置为初始状态，不再持有有效设备。
      * @endif
      *
      * @lang{EN}
@@ -366,7 +366,7 @@ public:
      * - If currently in input mode with unconsumed buffered data, seeks the device
      *   back to the start of unconsumed data (requires the device to support positioning).
      *
-     * After this call, root_cvt no longer holds a valid device.
+     * After this call, root_cvt's internal state is reset and it no longer holds a valid device.
      * @endif
      *
      * @return
@@ -386,6 +386,11 @@ public:
             if constexpr (dev_cpt::support_positioning<device_type>)
                 seek(tell());
         }
+
+        m_bos_len = 0;
+        m_buf_cur = m_buffer.data();
+        m_buf_end = m_buffer.data();
+        m_io_status = io_status::neutral;
 
         return std::move(m_device);
     }
@@ -1154,11 +1159,13 @@ public:
      * @lang{ZH}
      * 将底层 mem_device 从 root_cvt 中分离并返回。
      * mem_device 无需刷新，直接移动返回。
+     * 调用后，root_cvt 内部状态被重置为初始状态。
      * @endif
      *
      * @lang{EN}
      * Detaches the underlying mem_device from root_cvt and returns it.
      * No flush is needed for mem_device; the device is returned via move.
+     * After this call, root_cvt's internal state is reset to initial values.
      * @endif
      *
      * @return
@@ -1167,6 +1174,8 @@ public:
      */
     device_type detach()
     {
+        m_bos_len = 0;
+        m_io_status = io_status::neutral;
         return std::move(m_device);
     }
 
@@ -1615,9 +1624,9 @@ public:
     auto get_buf(size_t to_max)
     {
         if (to_max == 0)
-            throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero.");
+            throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero");
         if (to_max > KernelType::s_buffer_length)
-            throw cvt_error("cvt_reader::get_buf fail, read size too large.");
+            throw cvt_error("cvt_reader::get_buf fail, read size too large");
 
         if constexpr (dev_cpt::support_put<device_type>)
         {
@@ -1690,9 +1699,9 @@ public:
     void rollback(size_t len)
     {
         if (len == 0)
-            throw cvt_error("cvt_reader::rollback fail, length cannot be zero.");
+            throw cvt_error("cvt_reader::rollback fail, length cannot be zero");
         if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
-            throw cvt_error("cvt_reader::rollback fail, rollback length too large.");
+            throw cvt_error("cvt_reader::rollback fail, rollback length too large");
         m_kernel.m_buf_cur -= len;
     }
 
@@ -1772,7 +1781,7 @@ public:
     {
         m_buf_size = buf_size;
         if (m_buf_size > KernelType::s_buffer_length)
-            throw cvt_error("cvt_writer::reset fail, buf_size exceeds buffer capacity");
+            throw cvt_error("cvt_writer::reset fail: buf_size exceeds buffer capacity");
     }
 
     /**
@@ -1804,9 +1813,9 @@ public:
     char_type* put_buf(size_t len)
     {
         if (len == 0)
-            throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero.");
+            throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero");
         if (len > m_buf_size)
-            throw cvt_error("cvt_writer::put_buf fail, write size too large.");
+            throw cvt_error("cvt_writer::put_buf fail, write size too large");
 
         if constexpr (dev_cpt::support_get<device_type>)
         {
@@ -1853,9 +1862,9 @@ public:
     void rollback(size_t len)
     {
         if (len == 0)
-            throw cvt_error("cvt_writer::rollback fail, length cannot be zero.");
+            throw cvt_error("cvt_writer::rollback fail, length cannot be zero");
         if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
-            throw cvt_error("cvt_writer::rollback fail, rollback length too large.");
+            throw cvt_error("cvt_writer::rollback fail, rollback length too large");
         m_kernel.m_buf_cur -= len;
     }
 
