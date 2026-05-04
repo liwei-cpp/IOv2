@@ -189,6 +189,8 @@ struct codecvt_kernel<char8_t, TInt>
             }
             else if (c1 < 0xE0)
             {
+                if (c1 < 0xC0) [[unlikely]]
+                    return std::pair{false, static_cast<size_t>(to - ori_to)};
                 if (from_end - from < 2) break;
                 auto c2 = static_cast<uint32_t>(from[1]);
                 if ((c2 & 0xC0) != 0x80) [[unlikely]]
@@ -207,6 +209,8 @@ struct codecvt_kernel<char8_t, TInt>
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
                 auto c = (c1 << 12) + (c2 << 6) + c3 - 0xE2080;
                 if (c < 0x800) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                if (c >= 0xD800 && c <= 0xDFFF) [[unlikely]]
+                    return std::pair{false, static_cast<size_t>(to - ori_to)};
                 *to++ = c;
                 from += 3;
             }
