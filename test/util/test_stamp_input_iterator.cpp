@@ -134,4 +134,123 @@ void test_stamp_input_iterator() {
         VERIFY(*s_it2 == 'a');
     }
     dump_info("Done\n");
+
+    dump_info("Test stamp_input_iterator arithmetic and comparisons...");
+    {
+        std::vector<int> vec = {1, 2, 3, 4, 5};
+        IOv2::stamp_input_iterator it1(vec.begin());
+        IOv2::stamp_input_iterator it2(vec.begin());
+        
+        VERIFY(it1 == it2);
+        VERIFY(!(it1 != it2));
+        
+        (void)it1++;
+        VERIFY(*it1 == 2);
+        VERIFY(it1 != it2);
+        VERIFY(it1 > it2);
+        VERIFY(it1 >= it2);
+        VERIFY(it2 < it1);
+        VERIFY(it2 <= it1);
+        
+        it1 += 2;
+        VERIFY(*it1 == 4);
+        
+        it1 -= 1;
+        VERIFY(*it1 == 3);
+        
+        auto it3 = it1 + 1;
+        VERIFY(*it3 == 4);
+        
+        auto it4 = 1 + it1;
+        VERIFY(*it4 == 4);
+        
+        auto it5 = it1 - 1;
+        VERIFY(*it5 == 2);
+        
+        VERIFY(it1 - it2 == 2);
+        
+        VERIFY(it1[1] == 4);
+        
+        (void)it1--;
+        VERIFY(*it1 == 2);
+        
+        it1.rollback();
+        VERIFY(*it1 == 1);
+        
+        VERIFY(it1.internal() == vec.begin());
+    }
+    dump_info("Done\n");
+
+    dump_info("Test stamp_input_iterator istreambuf_iterator backward...");
+    {
+        IOv2::mem_device dev("abc");
+        IOv2::istreambuf buf(dev);
+        IOv2::istreambuf_iterator is_it(buf);
+        IOv2::stamp_input_iterator s_it(is_it);
+        
+        (void)s_it++;
+        (void)s_it++;
+        VERIFY(*s_it == 'c');
+        
+        --s_it;
+        VERIFY(*s_it == 'b');
+        
+        (void)s_it--;
+        VERIFY(*s_it == 'a');
+        
+        try {
+            --s_it;
+            VERIFY(false); // Should throw
+        } catch (const std::runtime_error&) {
+            // OK
+        }
+        
+        (void)s_it++;
+        s_it.rollback();
+        VERIFY(*s_it == 'a');
+    }
+    dump_info("Done\n");
+
+    dump_info("Test stamp_input_iterator constructors...");
+    {
+        IOv2::stamp_input_iterator<std::vector<int>::iterator> it_default;
+        // it_default is default initialized, internal iterator is value initialized.
+        
+        IOv2::stamp_input_iterator<std::vector<int>::iterator> it_sentinel{std::default_sentinel};
+        // Similar to default
+        
+        std::vector<int> vec = {1};
+        IOv2::stamp_input_iterator it(vec.begin());
+        IOv2::stamp_input_iterator it_copy(it);
+        VERIFY(it_copy == it);
+        
+        IOv2::stamp_input_iterator it_assign = it;
+        VERIFY(it_assign == it);
+
+        // Test traits
+        VERIFY(is_stamp_input_iterator_v<decltype(it)>);
+        VERIFY(!is_stamp_input_iterator_v<int>);
+    }
+    dump_info("Done\n");
+
+    dump_info("Test stamp_input_iterator istreambuf_iterator additional...");
+    {
+        IOv2::mem_device dev("abc");
+        IOv2::istreambuf buf(dev);
+        IOv2::istreambuf_iterator is_it(buf);
+        IOv2::stamp_input_iterator s_it(is_it);
+        
+        // rollback when empty
+        s_it.rollback();
+        VERIFY(*s_it == 'a');
+        
+        // internal()
+        VERIFY(s_it.internal() == is_it);
+
+        // move assignment
+        IOv2::stamp_input_iterator s_it2(is_it);
+        s_it2 = std::move(s_it);
+        VERIFY(*s_it2 == 'a');
+    }
+    dump_info("Done\n");
 }
