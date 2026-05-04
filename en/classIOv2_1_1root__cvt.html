@@ -408,7 +408,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   </table>
   </dd>
 </dl>
-<p>iline 437   Ignored behavior configuration object.  </p>
+<p>iline 442   Ignored behavior configuration object.  </p>
 
 </div>
 </div>
@@ -510,7 +510,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
 <li>If currently in output mode, flushes buffered data to the device first.</li>
 <li>If currently in input mode with unconsumed buffered data, seeks the device back to the start of unconsumed data (requires the device to support positioning).</li>
 </ul>
-<p>After this call, <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> no longer holds a valid device. </p>
+<p>After this call, <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>'s internal state is reset and it no longer holds a valid device. </p>
 <dl class="section return"><dt>Returns</dt><dd>The detached device object, returned via move semantics.  </dd></dl>
 
 </div>
@@ -857,7 +857,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   </table>
   </dd>
 </dl>
-<p>iline 453   Ignored status output object.  </p>
+<p>iline 458   Ignored status output object.  </p>
 
 </div>
 </div>

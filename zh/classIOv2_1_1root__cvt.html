@@ -408,7 +408,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   </table>
   </dd>
 </dl>
-<p>iline 436  忽略的行为配置对象。   </p>
+<p>iline 441  忽略的行为配置对象。   </p>
 
 </div>
 </div>
@@ -510,7 +510,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
 <li>若当前处于输出状态，先将缓冲区刷入设备。</li>
 <li>若当前处于输入状态且缓冲区中仍有未消费数据，则将设备位置倒回到未消费数据的起始处（需设备支持定位）。</li>
 </ul>
-<p>调用后，root_cvt 内部不再持有有效设备。 </p>
+<p>调用后，root_cvt 内部状态被重置为初始状态，不再持有有效设备。 </p>
 <dl class="section return"><dt>返回</dt><dd>已分离的设备对象（通过移动语义返回）。   </dd></dl>
 
 </div>
@@ -857,7 +857,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   </table>
   </dd>
 </dl>
-<p>iline 452  忽略的状态输出对象。   </p>
+<p>iline 457  忽略的状态输出对象。   </p>
 
 </div>
 </div>

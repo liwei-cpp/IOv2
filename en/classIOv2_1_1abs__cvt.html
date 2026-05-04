@@ -201,7 +201,7 @@ class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, de
 <p><code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> provides a common skeleton for all concrete converters and is responsible for:</p><ul>
 <li><b>BOS (Beginning-Of-Stream) handling</b>: Between the <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code> call and the <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code> call, <code>get</code>/<code>put</code> pass data through as raw bytes without invoking the derived class's <code>get_main</code>/<code>put_main</code>. This allows reading and writing stream-leading data such as file headers and magic numbers. During BOS writes, if the input byte count is not a multiple of <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(external_type)</a></code>, the final partial unit is zero-padded.</li>
 <li>**Device management: Manages the underlying device via <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44f8ea550f63b8c349d546a8c39ed8f2">device()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach()</a></code>, and <code><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach()</a></code>.</li>
-<li><b>Behaviour and status</b>: Configures and queries conversion parameters via <code><a class="el" href="classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a">adjust()</a></code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a">retrieve()</a></code>.</li>
+<li><b>Behavior and status</b>: Configures and queries conversion parameters via <code><a class="el" href="classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a">adjust()</a></code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a">retrieve()</a></code>.</li>
 <li><b>Optional capabilities</b>: Exposes flush, positioning (<code>tell</code>/<code>seek</code>/<code>rseek</code>), and IO-direction switching on demand through template parameters and <code>requires</code> clauses.</li>
 </ul>
 <p>Derived classes must implement <code>get_main(<a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt;KernelType&gt;&amp;, internal_type*, size_t)</code> and/or <code>put_main(<a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp;, const internal_type*, size_t)</code> to handle the actual conversion logic in the main-content phase. </p>
@@ -415,11 +415,11 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Adjust the converter's behaviour parameters.</p>
-<p>Forwards the behaviour configuration described in <code>b</code> to the underlying kernel. </p>
+<p>Adjust the converter's behavior parameters.</p>
+<p>Forwards the behavior configuration described in <code>b</code> to the underlying kernel. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">b</td><td>A configuration object describing the desired behaviour.  </td></tr>
+    <tr><td class="paramname">b</td><td>A configuration object describing the desired behavior.  </td></tr>
   </table>
   </dd>
 </dl>

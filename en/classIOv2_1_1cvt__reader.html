@@ -294,7 +294,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <p>Retrieve data from the buffer, reading from the kernel if needed.</p>
-<p>The template parameter <code>Saturate</code> controls behaviour when insufficient data is available:</p><ul>
+<p>The template parameter <code>Saturate</code> controls behavior when insufficient data is available:</p><ul>
 <li><code>Saturate=false</code> (default): Best-effort; returns however much data is available, which may be less than <code>to_max</code>. Return type: <code>std::pair&lt;const char_type*, size_t&gt;</code> where <code>second</code> is the actual number of elements returned.</li>
 <li><code>Saturate=true</code>: Saturating mode; guarantees exactly <code>to_max</code> characters are returned; throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if end-of-stream is reached before <code>to_max</code> characters are available. Return type: <code>const char_type*</code>.</li>
 </ul>
