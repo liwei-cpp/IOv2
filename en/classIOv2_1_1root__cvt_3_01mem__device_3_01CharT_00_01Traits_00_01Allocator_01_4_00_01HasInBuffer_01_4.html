@@ -159,7 +159,14 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Traits</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Allocator</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HasInBuffer&gt;<br />
 class IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;</div><p>Partial specialization of <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> for <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a>.</p>
 <p><a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> directly exposes its internal buffer pointers and therefore never needs an additional internal buffer. The HasInBuffer parameter is ignored: both <a class="el" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a> and <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a> are valid wrappers and behave identically here.</p>
-<p>Because <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> always supports random positioning and requires no buffering layer, most methods forward directly to the device. </p>
+<p>Because <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> always supports random positioning and requires no buffering layer, most methods forward directly to the device.</p>
+<dl class="section note"><dt>Note</dt><dd>Calling sequence: Member functions must be called in the following order:<ol type="1">
+<li><b><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a4701ef74205dc08b857c0bc8cd1a6121">bos()</a></b>: Must be called first to establish the initial IO status.</li>
+<li><b>BOS phase</b>: May call <code><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#adc6028a10abb64fae41e20f4983e8c3e">get()</a></code> multiple times or <code><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#afdb4a95e471cfada7d4a681215429ff4">put()</a></code> multiple times, but must not mix get and put calls. This phase is for reading/writing stream-leading data (e.g., file headers).</li>
+<li><b><a class="el" href="classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ad4a4b6c156d4cb3497cc7e79ad4f5938">main_cont_beg()</a></b>: Marks the end of the BOS phase and enters the main-content phase.</li>
+<li><b>Main-content phase</b>: All other member functions may be called (<code>get</code>, <code>put</code>, <code>flush</code>, <code>tell</code>, <code>seek</code>, <code>rseek</code>, <code>switch_to_get</code>, <code>switch_to_put</code>, etc.). Violating this calling sequence results in undefined behavior. </li>
+</ol>
+</dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">CharT</td><td>Character type, matching the <a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a> template parameter. </td></tr>
@@ -388,7 +395,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </table>
   </dd>
 </dl>
-<p>iline 1215   Ignored behavior configuration object.  </p>
+<p>iline 1276   Ignored behavior configuration object.  </p>
 
 </div>
 </div>
@@ -452,7 +459,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Determines and sets the initial I/O direction. Enters output mode when deof() is true, otherwise enters input mode. </p>
+<p>Determines and sets the initial I/O direction. Enters output mode when deof() is true, otherwise enters input mode.</p>
+<dl class="section user"><dt>Design Rationale</dt><dd>The initial direction is determined by whether the stream contains data. This design protects data integrity:<ul>
+<li><b>Stream has content (deof() is false) → input mode</b>: Prevents accidental overwriting of existing data.</li>
+<li><b>Stream is empty (deof() is true) → output mode</b>: An empty stream has nothing to read, so writing is the only meaningful operation.</li>
+</ul>
+</dd></dl>
+<p>To overwrite a non-empty stream, clear its content first rather than forcing output mode. </p>
 <dl class="section return"><dt>Returns</dt><dd>The resolved io_status (input or output).  </dd></dl>
 
 </div>
@@ -797,7 +810,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </table>
   </dd>
 </dl>
-<p>iline 1225   Ignored status output object.  </p>
+<p>iline 1286   Ignored status output object.  </p>
 
 </div>
 </div>

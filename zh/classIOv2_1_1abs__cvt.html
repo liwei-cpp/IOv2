@@ -204,8 +204,15 @@ class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, de
 <li><b>**行为与状态**：通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a">adjust()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a">retrieve()</a></code> 配置和查询转换参数。</b></li>
 <li><b>**可选能力**：通过模板参数和 <code>requires</code> 子句按需暴露 flush、定位 (<code>tell</code>/<code>seek</code>/<code>rseek</code>) 和 IO 方向切换能力。</b></li>
 </ul>
-<p><b>派生类须实现 <code>get_main(<a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt;KernelType&gt;&amp;, internal_type*, size_t)</code> 和/或 <code>put_main(<a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp;, const internal_type*, size_t)</code> 来处理主内容阶段的实际转换逻辑。 </b></p>
-<p><b></b></p>
+<p><b>派生类须实现 <code>get_main(<a class="el" href="classIOv2_1_1cvt__reader.html">cvt_reader</a>&lt;KernelType&gt;&amp;, internal_type*, size_t)</code> 和/或 <code>put_main(<a class="el" href="classIOv2_1_1cvt__writer.html">cvt_writer</a>&lt;KernelType&gt;&amp;, const internal_type*, size_t)</code> 来处理主内容阶段的实际转换逻辑。</b></p>
+<p><b></p><dl class="section note"><dt>注解</dt><dd>调用顺序：成员函数必须按以下顺序调用：<ol type="1">
+<li>**bos()**：必须首先调用，以建立初始 IO 状态。</li>
+<li>**BOS 阶段**：可多次调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2514d75b1c449a1c7022edacc7bfd931">get()</a></code> 或多次调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a96ee8689cca553370c6f246ab546cef2">put()</a></code>，但不可混合调用。 此阶段用于读写流起始数据（如文件头、魔数）。</li>
+<li>**main_cont_beg()**：标记 BOS 阶段结束，进入主内容阶段。</li>
+<li>**主内容阶段**：可调用所有其他成员函数（<code>get</code>、<code>put</code>、<code>flush</code>、 <code>tell</code>、<code>seek</code>、<code>rseek</code>、<code>switch_to_get</code>、<code>switch_to_put</code> 等）。 违反此调用顺序将导致未定义行为。 </li>
+</ol>
+</dd></dl>
+<p></b></p>
 <p><b></p><dl class="tparams"><dt>模板参数</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">CurrentType</td><td>CRTP 派生类自身的类型。  </td></tr>
@@ -490,7 +497,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <p>启动流，进入 BOS（Beginning-Of-Stream）阶段。</p>
-<p>将 IO 状态设置为 kernel 返回的初始状态。此方法只能在 <code>m_io_status</code> 为 <code>neutral</code> 且尚未调用过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code> 时调用，否则抛出异常。 在调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code> 之前，<code>get</code>/<code>put</code> 将以原始字节模式直接传递数据。 </p>
+<p>将 IO 状态设置为 kernel 返回的初始状态。此方法只能在 <code>m_io_status</code> 为 <code>neutral</code> 且尚未调用过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code> 时调用，否则抛出异常。 在调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code> 之前，<code>get</code>/<code>put</code> 将以原始字节模式直接传递数据。</p>
+<dl class="section user"><dt>设计说明</dt><dd>初始 IO 方向由底层 kernel 基于流是否包含数据来确定，这是为了保护数据完整性：<ul>
+<li>**流有内容 → 输入模式**：避免意外覆盖现有数据。例如，覆盖 UTF-8 文件的 头部可能导致整个文件无法正确解析。</li>
+<li>**流无内容 → 输出模式**：空流没有可读内容，只能写入。</li>
+</ul>
+</dd></dl>
+<p>若需覆盖非空文件，应在打开前先清空（truncate）文件，而非强制进入输出模式。 </p>
 <dl class="section return"><dt>返回</dt><dd>kernel 报告的初始 <code>io_status</code> 值。  </dd></dl>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
