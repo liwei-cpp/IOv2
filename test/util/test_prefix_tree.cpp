@@ -82,6 +82,16 @@ void test_prefix_tree_duplicate_handling()
     } catch (const std::runtime_error& e) {
         // Expected
     }
+
+    // Duplicate test for large types
+    prefix_tree<char, std::string> tree_large;
+    tree_large.add("test", "val1");
+    try {
+        tree_large.add("test", "val2");
+        VERIFY(false);
+    } catch (const std::runtime_error& e) {
+        // Expected
+    }
     dump_info("Done\n");
 }
 
@@ -109,6 +119,10 @@ void test_prefix_tree_vector_constructor()
     std::string s = "banana";
     (void)tree.max_match(s.begin(), s.end(), out);
     VERIFY(out && *out == 1); // Index 1 in the vector
+
+    // Test empty vector
+    std::vector<const char*> empty_strs;
+    prefix_tree<char, int> empty_tree(empty_strs);
     dump_info("Done\n");
 }
 
@@ -146,20 +160,37 @@ void test_prefix_tree_istreambuf()
 {
     dump_info("Test prefix_tree istreambuf_iterator...");
     prefix_tree<char, int> tree;
+    tree.add("", 100); // Root value
     tree.add("abc", 1);
-    tree.add("abd", 2);
+    tree.add("ab", 2);
 
-    // "abxe" should fail to match "abc" or "abd" at 'x', and backtrack to 'a'
-    mem_device dev("abxe");
-    istreambuf sb(dev);
-    istreambuf_iterator beg(sb);
-    decltype(beg) end;
-    
-    decltype(tree)::match_out_type out;
-    auto it = tree.max_match(beg, end, out);
-    
-    VERIFY(!out); // No valid word matched
-    VERIFY(*it == 'a'); // Should have backtracked to the beginning
+    // Test partial match and backtracking
+    {
+        mem_device dev("abxe");
+        istreambuf sb(dev);
+        istreambuf_iterator beg(sb);
+        decltype(beg) end;
+        
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(beg, end, out);
+        
+        VERIFY(out && *out == 2); // Should match "ab"
+        VERIFY(*it == 'x');
+    }
+
+    // Test backtracking to root
+    {
+        mem_device dev("axe");
+        istreambuf sb(dev);
+        istreambuf_iterator beg(sb);
+        decltype(beg) end;
+        
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(beg, end, out);
+        
+        VERIFY(out && *out == 100); // Should match root
+        VERIFY(*it == 'a');
+    }
     dump_info("Done\n");
 }
 
@@ -212,6 +243,104 @@ void test_prefix_tree_nullptr_check()
     dump_info("Done\n");
 }
 
+void test_prefix_tree_large_value()
+{
+    dump_info("Test prefix_tree large value type...");
+    // std::string is a large type (> 16 bytes usually)
+    prefix_tree<char, std::string> tree;
+    tree.add("hello", "value1");
+    tree.add("world", "value2");
+    tree.add("", "root_value");
+
+    decltype(tree)::match_out_type out;
+    std::string s1 = "hello_suffix";
+    auto it1 = tree.max_match(s1.begin(), s1.end(), out);
+    VERIFY(out && *out == "value1");
+    VERIFY(it1 == s1.begin() + 5);
+
+    std::string s2 = "no_match";
+    auto it_s2 = tree.max_match(s2.begin(), s2.end(), out);
+    VERIFY(out && *out == "root_value");
+    VERIFY(it_s2 == s2.begin());
+    
+    // Test with const char*
+    const char* c_str = "world";
+    auto it_c = tree.max_match(c_str, c_str + 5, out);
+    VERIFY(out && *out == "value2");
+    VERIFY(it_c == c_str + 5);
+
+    dump_info("Done\n");
+}
+
+void test_prefix_tree_int8_normal()
+{
+    dump_info("Test prefix_tree int8_t normal usage...");
+    std::vector<const char*> strs = {"a", "b", "c"};
+    prefix_tree<char, int8_t> tree(strs);
+    
+    decltype(tree)::match_out_type out;
+    std::string s = "b";
+    (void)tree.max_match(s.begin(), s.end(), out);
+    VERIFY(out && *out == 1);
+    dump_info("Done\n");
+}
+
+void test_prefix_tree_backtracking_variants()
+{
+    dump_info("Test prefix_tree backtracking variants...");
+    
+    // Test small type backtracking with bidirectional iterator
+    {
+        prefix_tree<char, int> tree;
+        tree.add("ab", 1);
+        std::string s = "ax";
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(s.begin(), s.end(), out);
+        VERIFY(!out);
+        VERIFY(it == s.begin());
+    }
+
+    // Test large type backtracking with bidirectional iterator
+    {
+        prefix_tree<char, std::string> tree;
+        tree.add("ab", "val");
+        std::string s = "ax";
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(s.begin(), s.end(), out);
+        VERIFY(!out);
+        VERIFY(it == s.begin());
+    }
+
+    // Test large type with istreambuf_iterator backtracking
+    {
+        prefix_tree<char, std::string> tree;
+        tree.add("abc", "val"); // 'a' and 'ab' have no values
+        mem_device dev("abx");
+        istreambuf sb(dev);
+        istreambuf_iterator beg(sb);
+        decltype(beg) end;
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(beg, end, out);
+        VERIFY(!out);
+        VERIFY(*it == 'a'); // Should have backtracked 2 steps to 'a'
+    }
+    
+    // Test matching root for large type in istreambuf
+    {
+        prefix_tree<char, std::string> tree;
+        tree.add("", "root");
+        mem_device dev("x");
+        istreambuf sb(dev);
+        istreambuf_iterator beg(sb);
+        decltype(beg) end;
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(beg, end, out);
+        VERIFY(out && *out == "root");
+        VERIFY(*it == 'x');
+    }
+    dump_info("Done\n");
+}
+
 void test_prefix_tree()
 {
     test_prefix_tree_basic();
@@ -224,4 +353,7 @@ void test_prefix_tree()
     test_prefix_tree_overflow();
     test_prefix_tree_uninitialized_out();
     test_prefix_tree_nullptr_check();
+    test_prefix_tree_large_value();
+    test_prefix_tree_int8_normal();
+    test_prefix_tree_backtracking_variants();
 }
