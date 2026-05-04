@@ -547,6 +547,15 @@ namespace IOv2
      * 派生类须实现 `get_main(cvt_reader<KernelType>&, internal_type*, size_t)`
      * 和/或 `put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`
      * 来处理主内容阶段的实际转换逻辑。
+     *
+     * @note 调用顺序：成员函数必须按以下顺序调用：
+     *       1. **bos()**：必须首先调用，以建立初始 IO 状态。
+     *       2. **BOS 阶段**：可多次调用 `get()` 或多次调用 `put()`，但不可混合调用。
+     *          此阶段用于读写流起始数据（如文件头、魔数）。
+     *       3. **main_cont_beg()**：标记 BOS 阶段结束，进入主内容阶段。
+     *       4. **主内容阶段**：可调用所有其他成员函数（`get`、`put`、`flush`、
+     *          `tell`、`seek`、`rseek`、`switch_to_get`、`switch_to_put` 等）。
+     *       违反此调用顺序将导致未定义行为。
      * @endif
      *
      * @lang{EN}
@@ -571,6 +580,18 @@ namespace IOv2
      * Derived classes must implement `get_main(cvt_reader<KernelType>&, internal_type*, size_t)`
      * and/or `put_main(cvt_writer<KernelType>&, const internal_type*, size_t)` to
      * handle the actual conversion logic in the main-content phase.
+     *
+     * @note Calling sequence: Member functions must be called in the following order:
+     *       1. **bos()**: Must be called first to establish the initial IO status.
+     *       2. **BOS phase**: May call `get()` multiple times or `put()` multiple times,
+     *          but must not mix get and put calls. This phase is for reading/writing
+     *          stream-leading data (e.g., file headers, magic numbers).
+     *       3. **main_cont_beg()**: Marks the end of the BOS phase and enters the
+     *          main-content phase.
+     *       4. **Main-content phase**: All other member functions may be called
+     *          (`get`, `put`, `flush`, `tell`, `seek`, `rseek`, `switch_to_get`,
+     *          `switch_to_put`, etc.).
+     *       Violating this calling sequence results in undefined behavior.
      * @endif
      *
      * @tparam CurrentType
@@ -869,6 +890,14 @@ namespace IOv2
          * 将 IO 状态设置为 kernel 返回的初始状态。此方法只能在 `m_io_status` 为
          * `neutral` 且尚未调用过 `bos()` 时调用，否则抛出异常。
          * 在调用 `main_cont_beg()` 之前，`get`/`put` 将以原始字节模式直接传递数据。
+         *
+         * @par 设计说明
+         * 初始 IO 方向由底层 kernel 基于流是否包含数据来确定，这是为了保护数据完整性：
+         * - **流有内容 → 输入模式**：避免意外覆盖现有数据。例如，覆盖 UTF-8 文件的
+         *   头部可能导致整个文件无法正确解析。
+         * - **流无内容 → 输出模式**：空流没有可读内容，只能写入。
+         *
+         * 若需覆盖非空文件，应在打开前先清空（truncate）文件，而非强制进入输出模式。
          * @endif
          *
          * @lang{EN}
@@ -879,6 +908,18 @@ namespace IOv2
          * not been called before; otherwise an exception is thrown. Until
          * `main_cont_beg()` is called, `get`/`put` will pass data through in raw
          * byte mode.
+         *
+         * @par Design Rationale
+         * The initial IO direction is determined by the underlying kernel based on
+         * whether the stream contains data. This design protects data integrity:
+         * - **Stream has content → input mode**: Prevents accidental overwriting of
+         *   existing data. For example, overwriting the header of a UTF-8 file could
+         *   corrupt the entire file and make it unparseable.
+         * - **Stream is empty → output mode**: An empty stream has nothing to read,
+         *   so writing is the only meaningful operation.
+         *
+         * To overwrite a non-empty file, truncate it before opening rather than
+         * forcing output mode.
          * @endif
          *
          * @return

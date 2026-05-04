@@ -19,7 +19,6 @@
 
 #include <cassert>
 #include <limits>
-#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -38,6 +37,15 @@ namespace IOv2
  *       - 析构
  *       - 赋值（拷贝或移动）
  *       调用任何其他方法均为未定义行为（undefined behavior）。
+ *
+ * @note 调用顺序：成员函数必须按以下顺序调用：
+ *       1. **bos()**：必须首先调用，以建立初始 IO 状态。
+ *       2. **BOS 阶段**：可多次调用 `get()` 或多次调用 `put()`，但不可混合调用。
+ *          此阶段用于读写流起始数据（如文件头）。
+ *       3. **main_cont_beg()**：标记 BOS 阶段结束，进入主内容阶段。
+ *       4. **主内容阶段**：可调用所有其他成员函数（`get`、`put`、`flush`、
+ *          `tell`、`seek`、`rseek`、`switch_to_get`、`switch_to_put` 等）。
+ *       违反此调用顺序将导致未定义行为。
  * @endif
  *
  * @lang{EN}
@@ -55,6 +63,18 @@ namespace IOv2
  *       - Assignment (copy or move)
  *       Calling any other method on a moved-from object results in undefined behavior.
  *       This follows standard C++ conventions for moved-from objects.
+ *
+ * @note Calling sequence: Member functions must be called in the following order:
+ *       1. **bos()**: Must be called first to establish the initial IO status.
+ *       2. **BOS phase**: May call `get()` multiple times or `put()` multiple times,
+ *          but must not mix get and put calls. This phase is for reading/writing
+ *          stream-leading data (e.g., file headers).
+ *       3. **main_cont_beg()**: Marks the end of the BOS phase and enters the
+ *          main-content phase.
+ *       4. **Main-content phase**: All other member functions may be called
+ *          (`get`, `put`, `flush`, `tell`, `seek`, `rseek`, `switch_to_get`,
+ *          `switch_to_put`, etc.).
+ *       Violating this calling sequence results in undefined behavior.
  * @endif
  *
  * @tparam DeviceType
@@ -499,22 +519,42 @@ public:
     /**
      * @lang{ZH}
      * 确定并设置初始 I/O 方向（beginning of stream）。
-     * - 若设备同时支持读写：当 deof() 为 true 时进入输出模式（追加写），否则进入输入模式。
+     * - 若设备同时支持读写：当 deof() 为 true 时进入输出模式，否则进入输入模式。
      * - 若设备仅支持读：进入输入模式。
      * - 若设备仅支持写：进入输出模式。
      *
      * 通常在打开或重新附加设备后立即调用，之后调用 main_cont_beg() 记录流起点。
+     *
+     * @par 设计说明
+     * 对于读写设备，初始方向基于流是否包含数据来确定，这是为了保护数据完整性：
+     * - **流有内容（deof() 为 false）→ 输入模式**：避免意外覆盖现有数据。例如，
+     *   覆盖 UTF-8 文件的头部可能导致整个文件无法正确解析。
+     * - **流无内容（deof() 为 true）→ 输出模式**：空流没有可读内容，只能写入。
+     *
+     * 若需覆盖非空文件，应在打开前先清空（truncate）文件，而非强制进入输出模式。
      * @endif
      *
      * @lang{EN}
      * Determines and sets the initial I/O direction (beginning of stream).
-     * - For read-write devices: enters output (append) mode when deof() is true,
+     * - For read-write devices: enters output mode when deof() is true,
      *   otherwise enters input mode.
      * - For read-only devices: enters input mode.
      * - For write-only devices: enters output mode.
      *
      * Typically called immediately after opening or re-attaching a device; call
      * main_cont_beg() afterward to record the stream origin.
+     *
+     * @par Design Rationale
+     * For read-write devices, the initial direction is determined by whether the
+     * stream contains data. This design protects data integrity:
+     * - **Stream has content (deof() is false) → input mode**: Prevents accidental
+     *   overwriting of existing data. For example, overwriting the header of a
+     *   UTF-8 file could corrupt the entire file and make it unparseable.
+     * - **Stream is empty (deof() is true) → output mode**: An empty stream has
+     *   nothing to read, so writing is the only meaningful operation.
+     *
+     * To overwrite a non-empty file, truncate it before opening rather than
+     * forcing output mode.
      * @endif
      *
      * @return
@@ -967,6 +1007,15 @@ private:
  * HasInBuffer 参数被忽略：rb_root_cvt 和 no_rb_root_cvt 均可作为包装器，两者行为完全相同。
  *
  * 由于 mem_device 始终支持随机定位，且无需缓冲层，大多数方法直接转发给设备。
+ *
+ * @note 调用顺序：成员函数必须按以下顺序调用：
+ *       1. **bos()**：必须首先调用，以建立初始 IO 状态。
+ *       2. **BOS 阶段**：可多次调用 `get()` 或多次调用 `put()`，但不可混合调用。
+ *          此阶段用于读写流起始数据（如文件头）。
+ *       3. **main_cont_beg()**：标记 BOS 阶段结束，进入主内容阶段。
+ *       4. **主内容阶段**：可调用所有其他成员函数（`get`、`put`、`flush`、
+ *          `tell`、`seek`、`rseek`、`switch_to_get`、`switch_to_put` 等）。
+ *       违反此调用顺序将导致未定义行为。
  * @endif
  *
  * @lang{EN}
@@ -978,6 +1027,18 @@ private:
  *
  * Because mem_device always supports random positioning and requires no buffering layer,
  * most methods forward directly to the device.
+ *
+ * @note Calling sequence: Member functions must be called in the following order:
+ *       1. **bos()**: Must be called first to establish the initial IO status.
+ *       2. **BOS phase**: May call `get()` multiple times or `put()` multiple times,
+ *          but must not mix get and put calls. This phase is for reading/writing
+ *          stream-leading data (e.g., file headers).
+ *       3. **main_cont_beg()**: Marks the end of the BOS phase and enters the
+ *          main-content phase.
+ *       4. **Main-content phase**: All other member functions may be called
+ *          (`get`, `put`, `flush`, `tell`, `seek`, `rseek`, `switch_to_get`,
+ *          `switch_to_put`, etc.).
+ *       Violating this calling sequence results in undefined behavior.
  * @endif
  *
  * @tparam CharT
@@ -1248,11 +1309,29 @@ public:
     /**
      * @lang{ZH}
      * 确定并设置初始 I/O 方向。当 deof() 为 true 时进入输出模式，否则进入输入模式。
+     *
+     * @par 设计说明
+     * 初始方向基于流是否包含数据来确定，这是为了保护数据完整性：
+     * - **流有内容（deof() 为 false）→ 输入模式**：避免意外覆盖现有数据。
+     * - **流无内容（deof() 为 true）→ 输出模式**：空流没有可读内容，只能写入。
+     *
+     * 若需覆盖非空流，应先清空内容，而非强制进入输出模式。
      * @endif
      *
      * @lang{EN}
      * Determines and sets the initial I/O direction. Enters output mode when deof() is
      * true, otherwise enters input mode.
+     *
+     * @par Design Rationale
+     * The initial direction is determined by whether the stream contains data.
+     * This design protects data integrity:
+     * - **Stream has content (deof() is false) → input mode**: Prevents accidental
+     *   overwriting of existing data.
+     * - **Stream is empty (deof() is true) → output mode**: An empty stream has
+     *   nothing to read, so writing is the only meaningful operation.
+     *
+     * To overwrite a non-empty stream, clear its content first rather than
+     * forcing output mode.
      * @endif
      *
      * @return
