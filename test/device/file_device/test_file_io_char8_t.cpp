@@ -628,3 +628,143 @@ void test_file_device_char8_t_error_1()
 
     dump_info("Done\n");
 }
+
+void test_file_device_char8_t_move()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char8_t> move semantics...");
+    const char name[] = "move_test_u8.txt";
+    file_guard g(name, u8"move content");
+    
+    basic_file_device<true, true, char8_t> dev1(name);
+    VERIFY(dev1.is_open());
+    size_t len = dev1.dsize();
+    
+    // Move constructor
+    basic_file_device<true, true, char8_t> dev2(std::move(dev1));
+    VERIFY(dev2.is_open());
+    VERIFY(dev2.dsize() == len);
+    VERIFY(!dev1.is_open());
+    
+    // Move assignment
+    basic_file_device<true, true, char8_t> dev3;
+    dev3 = std::move(dev2);
+    VERIFY(dev3.is_open());
+    VERIFY(dev3.dsize() == len);
+    VERIFY(!dev2.is_open());
+
+    // Self-assignment
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+    dev3 = std::move(dev3);
+#pragma GCC diagnostic pop
+    VERIFY(dev3.is_open());
+    VERIFY(dev3.dsize() == len);
+    
+    dump_info("Done\n");
+}
+
+void test_file_device_char8_t_more_errors()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char8_t> more errors...");
+    
+    // Invalid seek in input mode
+    {
+        file_guard g("seek_err_u8.txt", u8"123");
+        ifile_device<char8_t> dev("seek_err_u8.txt");
+        try {
+            dev.dseek(10); // Beyond end in In mode
+            VERIFY(false);
+        } catch (const device_error&) {}
+    }
+    
+    // dtell/dsize/dseek on closed file
+    {
+        ifile_device<char8_t> dev;
+        try { (void)dev.dtell(); VERIFY(false); } catch (const device_error&) {}
+        try { (void)dev.dsize(); VERIFY(false); } catch (const device_error&) {}
+        try { dev.dseek(0); VERIFY(false); } catch (const device_error&) {}
+        try { dev.drseek(0); VERIFY(false); } catch (const device_error&) {}
+        try { (void)dev.deof(); VERIFY(true); } catch (...) { VERIFY(false); }
+    }
+
+    // dput on closed file or null buffer
+    {
+        ofile_device<char8_t> dev;
+        try { dev.dput(u8"a", 1); VERIFY(false); } catch (const device_error&) {}
+
+        file_guard g("put_err_u8.txt");
+        ofile_device<char8_t> dev2("put_err_u8.txt");
+        try { dev2.dput(nullptr, 1); VERIFY(false); } catch (const device_error&) {}
+    }
+
+    // Invalid open modes
+    try {
+        basic_file_device<true, false, char8_t> dev("test_u8.txt", file_open_flag::trunc);
+        VERIFY(false);
+    } catch (const device_error&) {}
+
+    // dflush on closed file
+    {
+        ofile_device<char8_t> dev;
+        dev.dflush();
+    }
+
+    // drseek: offset > m_file_len
+    {
+        file_guard g("drseek_err_u8.txt", u8"hello");
+        ifile_device<char8_t> dev("drseek_err_u8.txt");
+        try { dev.drseek(1000); VERIFY(false); } catch (const device_error&) {}
+    }
+
+    // dseek: position exceeds INT64_MAX
+    {
+        file_guard g("dseek_overflow_u8.txt", u8"hi");
+        ofile_device<char8_t> dev("dseek_overflow_u8.txt");
+        try {
+            dev.dseek(std::numeric_limits<size_t>::max());
+            VERIFY(false);
+        } catch (const device_error&) {}
+    }
+
+    dump_info("Done\n");
+}
+
+void test_file_device_char8_t_open_modes()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char8_t> open modes...");
+
+    const char name[] = "modes_test_u8.txt";
+    
+    // noreplace
+    {
+        file_guard g(name);
+        ofile_device<char8_t> dev(name, file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+
+    // rw + noreplace
+    {
+        file_guard g(name);
+        file_device<char8_t> dev(name, file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+
+    // in + binary  → fopen_mode "rb"
+    {
+        file_guard g(name, u8"existing");
+        ifile_device<char8_t> dev(name, file_open_flag::binary);
+        VERIFY(dev.is_open());
+    }
+
+    // out + binary  → fopen_mode "wb"
+    {
+        file_guard g(name);
+        ofile_device<char8_t> dev(name, file_open_flag::binary);
+        VERIFY(dev.is_open());
+    }
+
+    dump_info("Done\n");
+}
