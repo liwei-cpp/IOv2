@@ -680,3 +680,204 @@ void test_file_device_char_error_1()
 
     dump_info("Done\n");
 }
+
+void test_file_device_char_move()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char> move semantics...");
+    const char name[] = "move_test.txt";
+    file_guard g(name, "move content");
+    
+    basic_file_device<true, true, char> dev1(name);
+    VERIFY(dev1.is_open());
+    size_t len = dev1.dsize();
+    
+    // Move constructor
+    basic_file_device<true, true, char> dev2(std::move(dev1));
+    VERIFY(dev2.is_open());
+    VERIFY(dev2.dsize() == len);
+    VERIFY(!dev1.is_open());
+    
+    // Move assignment
+    basic_file_device<true, true, char> dev3;
+    dev3 = std::move(dev2);
+    VERIFY(dev3.is_open());
+    VERIFY(dev3.dsize() == len);
+    VERIFY(!dev2.is_open());
+
+    // Self-assignment
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+    dev3 = std::move(dev3);
+#pragma GCC diagnostic pop
+    VERIFY(dev3.is_open());
+    VERIFY(dev3.dsize() == len);
+    
+    dump_info("Done\n");
+}
+
+void test_file_device_char_more_errors()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char> more errors...");
+    
+    // Invalid seek in input mode
+    {
+        file_guard g("seek_err.txt", "123");
+        ifile_device<char> dev("seek_err.txt");
+        try {
+            dev.dseek(10); // Beyond end in In mode
+            VERIFY(false);
+        } catch (const device_error&) {}
+    }
+    
+    // dtell/dsize/dseek on closed file
+    {
+        ifile_device<char> dev;
+        try { (void)dev.dtell(); VERIFY(false); } catch (const device_error&) {}
+        try { (void)dev.dsize(); VERIFY(false); } catch (const device_error&) {}
+        try { dev.dseek(0); VERIFY(false); } catch (const device_error&) {}
+        try { dev.drseek(0); VERIFY(false); } catch (const device_error&) {}
+        try { (void)dev.deof(); VERIFY(true); } catch (...) { VERIFY(false); }
+    }
+    
+    // dput on closed file or null buffer
+    {
+        ofile_device<char> dev;
+        try { dev.dput("a", 1); VERIFY(false); } catch (const device_error&) {}
+        
+        file_guard g("put_err.txt");
+        ofile_device<char> dev2("put_err.txt");
+        try { dev2.dput(nullptr, 1); VERIFY(false); } catch (const device_error&) {}
+    }
+
+    // Invalid open modes
+    try {
+        basic_file_device<true, false, char> dev("test.txt", file_open_flag::trunc);
+        VERIFY(false);
+    } catch (const device_error&) {}
+
+    // dflush on closed file (should be no-op)
+    {
+        ofile_device<char> dev;
+        dev.dflush();
+    }
+
+    // drseek: offset > m_file_len  (covers the "invalid parameter" path in drseek)
+    {
+        file_guard g("drseek_err.txt", "hello"); // 5 bytes
+        ifile_device<char> dev("drseek_err.txt");
+        try { dev.drseek(1000); VERIFY(false); } catch (const device_error&) {}
+    }
+
+    // dseek: position exceeds INT64_MAX  (covers the overflow guard in dseek)
+    {
+        file_guard g("dseek_overflow.txt", "hi");
+        ofile_device<char> dev("dseek_overflow.txt");
+        try {
+            dev.dseek(std::numeric_limits<size_t>::max());
+            VERIFY(false);
+        } catch (const device_error&) {}
+    }
+
+    dump_info("Done\n");
+}
+
+void test_file_device_char_system_errors()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char> system errors...");
+
+    // dflush error on /dev/full
+    try {
+        ofile_device<char> dev("/dev/full");
+        dev.dput("some data", 9);
+        dev.dflush();
+    } catch (const device_error&) {
+        // Expected failure
+    }
+
+    // close error recovery
+    try {
+        ofile_device<char> dev("/dev/full");
+        dev.dput("some data", 9);
+        dev.close(); // Should throw because dflush fails, but file should still be closed
+    } catch (const device_error&) {
+        // Expected failure
+    }
+
+    dump_info("Done\n");
+}
+
+void test_file_device_char_open_modes()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char> open modes...");
+
+    const char name[] = "modes_test.txt";
+    
+    // noreplace
+    {
+        file_guard g(name);
+        ofile_device<char> dev(name, file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+
+    // noreplace + binary
+    {
+        file_guard g(name);
+        ofile_device<char> dev(name, file_open_flag::noreplace | file_open_flag::binary);
+        VERIFY(dev.is_open());
+    }
+
+    // rw + trunc
+    {
+        file_guard g(name, "existing");
+        file_device<char> dev(name, file_open_flag::trunc);
+        VERIFY(dev.dsize() == 0);
+    }
+
+    // rw + binary
+    {
+        file_guard g(name, "existing");
+        file_device<char> dev(name, file_open_flag::binary);
+        VERIFY(dev.dsize() == 8);
+    }
+
+    // rw + trunc + binary
+    {
+        file_guard g(name, "existing");
+        file_device<char> dev(name, file_open_flag::trunc | file_open_flag::binary);
+        VERIFY(dev.dsize() == 0);
+    }
+
+    // rw + noreplace
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+
+    // rw + noreplace + binary
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::noreplace | file_open_flag::binary);
+        VERIFY(dev.is_open());
+    }
+
+    // in + binary  → fopen_mode "rb"  (covers the previously-missed return "rb" path)
+    {
+        file_guard g(name, "existing");
+        ifile_device<char> dev(name, file_open_flag::binary);
+        VERIFY(dev.is_open());
+    }
+
+    // out + binary  → fopen_mode "wb"  (covers the previously-missed return "wb" path)
+    {
+        file_guard g(name);
+        ofile_device<char> dev(name, file_open_flag::binary);
+        VERIFY(dev.is_open());
+    }
+
+    dump_info("Done\n");
+}
