@@ -41,8 +41,10 @@ public:
         {
             if (!this->m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
+            // Construct new kernel first; if it throws, m_code remains unchanged
+            codecvt_kernel<char, wchar_t> new_kernel(ptr->code);
+            this->m_cvt_kernel = std::move(new_kernel);
             m_code = ptr->code;
-            this->m_cvt_kernel = codecvt_kernel<char, wchar_t>(m_code);
         }
 
         return BT::adjust(acc);

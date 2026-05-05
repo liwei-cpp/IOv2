@@ -16,7 +16,7 @@ namespace IOv2
     {
         virtual ~cvt_status() = default;
     };
-    
+
     enum class io_status : char
     {
         neutral,
