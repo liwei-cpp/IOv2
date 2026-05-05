@@ -84,5 +84,5 @@ namespace IOv2
     struct CvtCreatorCategory;
 
     template<typename T>
-    concept cvt_creator = std::is_same_v<typename T::category, CvtCreatorCategory>; 
+    concept cvt_creator = std::is_same_v<typename T::category, CvtCreatorCategory>;
 }

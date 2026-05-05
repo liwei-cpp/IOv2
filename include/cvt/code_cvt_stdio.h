@@ -1,7 +1,7 @@
 #pragma once
-
 #include <common/metafunctions.h>
 #include <cvt/code_cvt.h>
+
 namespace IOv2
 {
 struct code_cvt_switch : cvt_behavior
