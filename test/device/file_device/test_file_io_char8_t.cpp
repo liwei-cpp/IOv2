@@ -614,15 +614,45 @@ void test_file_device_char8_t_error_1()
 
     // Case 4: Write mode with noreplace on existing file
     {
-        file_guard g("existing_file.txt", "content");
+        file_guard g("existing_file_u8.txt", u8"content");
         try
         {
-            basic_file_device<false, true, char8_t> fb("existing_file.txt", file_open_flag::noreplace);
+            basic_file_device<false, true, char8_t> fb("existing_file_u8.txt", file_open_flag::noreplace);
             VERIFY(false);
         }
         catch (const device_error&) {}
         
-        auto res = ofile_device<char8_t>::try_open("existing_file.txt", file_open_flag::noreplace);
+        auto res = ofile_device<char8_t>::try_open("existing_file_u8.txt", file_open_flag::noreplace);
+        VERIFY(!res);
+    }
+
+    dump_info("Done\n");
+}
+
+void test_file_device_char8_t_coverage_extra()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char8_t> coverage extra...");
+
+    const char name[] = "extra_coverage_test_u8.txt";
+
+    // 1. Missing Flag Combinations (fopen_mode)
+    // IsIn && IsOut + trunc | noreplace
+    {
+        file_guard g(name);
+        file_device<char8_t> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+    // IsOut + trunc | binary
+    {
+        file_guard g(name);
+        ofile_device<char8_t> dev(name, file_open_flag::trunc | file_open_flag::binary);
+        VERIFY(dev.is_open());
+    }
+
+    // 2. try_open error path coverage
+    {
+        auto res = ifile_device<char8_t>::try_open(name, file_open_flag::trunc);
         VERIFY(!res);
     }
 
