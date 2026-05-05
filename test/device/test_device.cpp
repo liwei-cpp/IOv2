@@ -80,6 +80,7 @@ void test_file_device_char_move();
 void test_file_device_char_more_errors();
 void test_file_device_char_system_errors();
 void test_file_device_char_open_modes();
+void test_file_device_char_coverage_extra();
 
 void test_file_device_char8_t_gen_1();
 void test_file_device_char8_t_close_1();
@@ -101,6 +102,7 @@ void test_file_device_char8_t_error_1();
 void test_file_device_char8_t_move();
 void test_file_device_char8_t_more_errors();
 void test_file_device_char8_t_open_modes();
+void test_file_device_char8_t_coverage_extra();
 
 int main()
 {
@@ -184,6 +186,7 @@ int main()
         test_file_device_char_more_errors();
         test_file_device_char_system_errors();
         test_file_device_char_open_modes();
+        test_file_device_char_coverage_extra();
 
         test_file_device_char8_t_gen_1();
         test_file_device_char8_t_close_1();
@@ -205,6 +208,7 @@ int main()
         test_file_device_char8_t_move();
         test_file_device_char8_t_more_errors();
         test_file_device_char8_t_open_modes();
+        test_file_device_char8_t_coverage_extra();
 
         return 0;
     }

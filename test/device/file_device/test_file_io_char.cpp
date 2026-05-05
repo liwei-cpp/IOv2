@@ -881,3 +881,73 @@ void test_file_device_char_open_modes()
 
     dump_info("Done\n");
 }
+
+void test_file_device_char_coverage_extra()
+{
+    using namespace IOv2;
+    dump_info("Test file_device<char> coverage extra...");
+
+    const char name[] = "extra_coverage_test.txt";
+
+    // 1. Missing Flag Combinations (fopen_mode)
+    // IsIn && IsOut + trunc | noreplace
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+    // IsIn && IsOut + binary | trunc | noreplace
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc | file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+    // IsOut + trunc | noreplace
+    {
+        file_guard g(name);
+        ofile_device<char> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+    // IsOut + binary | trunc | noreplace
+    {
+        file_guard g(name);
+        ofile_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc | file_open_flag::noreplace);
+        VERIFY(dev.is_open());
+    }
+
+    // 2. Partial Write in dput (using /dev/full)
+    // Trigger line 490: throw device_error("file_device::dput fail: partial write");
+    try {
+        ofile_device<char> dev("/dev/full");
+        // Write a large buffer (1MB) to ensure we exceed internal FILE buffers
+        // and trigger a real syscall that fails on /dev/full.
+        std::string large_data(1024 * 1024, 'A');
+        dev.dput(large_data.data(), large_data.size());
+        VERIFY(false); 
+    } catch (const device_error&) {
+        // Expected: partial write or early failure
+    }
+
+    // 3. fseek failure in constructor (using /dev/stderr)
+    // /dev/stderr is usually a pipe or TTY, which is non-seekable (ESPIPE).
+    // Trigger line 169: throw device_error("cannot get file length...");
+    try {
+        ifile_device<char> dev("/dev/stderr");
+        // If constructor somehow succeeds (platform specific), try dseek
+        dev.dseek(1);
+    } catch (const device_error&) {
+        // Expected
+    }
+
+    // 4. try_open error path coverage
+    {
+        // Invalid mode for read-only (trunc) triggers exception in constructor,
+        // which try_open catches and returns as unexpected.
+        auto res = ifile_device<char>::try_open(name, file_open_flag::trunc);
+        VERIFY(!res);
+        VERIFY(!res.error().empty());
+    }
+
+    dump_info("Done\n");
+}
+
