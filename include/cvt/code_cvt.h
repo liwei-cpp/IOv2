@@ -5,15 +5,11 @@
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
-#include <bit>
-#include <cassert>
 #include <climits>
 #include <cstdint>
 #include <limits>
 #include <string>
-#include <tuple>
 #include <type_traits>
-#include <vector>
 
 namespace IOv2
 {
@@ -37,7 +33,7 @@ struct codecvt_kernel<char, TInt>
         clocale_user guard(m_inter_locale);
 
         // there are no known constant length encodings
-        // m_epc == 1 means fix len
+        // m_epc == 1 means fixed length
         m_epc = MB_CUR_MAX;
 
         // Note: mbtowc uses internal static state, so concurrent construction of
@@ -64,6 +60,7 @@ struct codecvt_kernel<char, TInt>
         const size_t conv = std::wcrtomb(to, ch, &m_state);
         if (conv == static_cast<size_t>(-1))
         {
+            init_state();  // Reset to known state per C standard
             return false;
         }
         to += conv;
@@ -116,9 +113,9 @@ struct codecvt_kernel<char, TInt>
             }
             else
             {
+                // mbrtowc returning > 0 guarantees a complete character was converted;
+                // no partial character can exist in m_state at this point
                 m_state = tmp_state;
-                if (!is_init_state()) [[unlikely]]
-                    return std::pair{false, i_count};
                 *to++ = wch;
                 from += conv;
                 ++i_count;
@@ -145,7 +142,7 @@ struct codecvt_kernel<char8_t, TInt>
 {
     codecvt_kernel() = default;
 
-    void init_state() { return; }
+    void init_state() { /* no-op for stateless UTF-8 */ }
     bool is_init_state() const { return true; }
     unsigned epc() const { return 4; }
     bool is_var_length() const { return true; }
@@ -281,6 +278,7 @@ public:
     {}
 
     code_cvt& operator=(const code_cvt& val)
+        requires (std::copy_constructible<KernelType>)
     {
         if (this == &val) return *this;
 
@@ -313,7 +311,7 @@ public:
         val.m_accu_len = 0;
         return *this;
     }
-    
+
     ~code_cvt()
     {
         close_stream();
