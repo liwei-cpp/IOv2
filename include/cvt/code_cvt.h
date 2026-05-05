@@ -4,6 +4,7 @@
 #include <cassert>
 #include <climits>
 #include <cstdint>
+#include <limits>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -90,7 +91,8 @@ struct codecvt_kernel<char, TInt>
             {
                 *to++ = static_cast<TInt>(0);
                 size_t n = 1;
-                for (; n <= static_cast<size_t>(from_end - from); ++n)
+                const size_t max_n = static_cast<size_t>(from_end - from);
+                for (; n <= max_n; ++n)
                 {
                     auto tmp_state2(m_state);
                     if (mbrtowc(nullptr, from, n, &tmp_state2) == 0)
@@ -99,6 +101,8 @@ struct codecvt_kernel<char, TInt>
                         break;
                     }
                 }
+                if (n > max_n)
+                    return std::pair{false, i_count};
                 from += n;
                 ++i_count;
             }
@@ -271,10 +275,16 @@ public:
 
     code_cvt& operator=(const code_cvt& val)
     {
+        if (this == &val) return *this;
+
+        // Create full copy first (all potentially-throwing operations)
+        code_cvt tmp(val);
+
+        // Move from tmp (should not throw)
         close_stream();
-        BT::operator=(val);
-        m_cvt_kernel = val.m_cvt_kernel;
-        m_accu_len = val.m_accu_len;
+        BT::operator=(std::move(tmp));
+        m_cvt_kernel = std::move(tmp.m_cvt_kernel);
+        m_accu_len = tmp.m_accu_len;
         return *this;
     }
 
@@ -288,6 +298,7 @@ public:
 
     code_cvt& operator=(code_cvt&& val)
     {
+        if (this == &val) return *this;
         close_stream();
         BT::operator=(std::move(val));
         m_cvt_kernel = std::move(val.m_cvt_kernel);
@@ -413,7 +424,11 @@ public:
                 throw cvt_error("code_cvt::seek fail: cannot seek with dependent convertor");
         }
 
-        BT::m_kernel.seek(pos * m_cvt_kernel.epc());
+        const unsigned epc = m_cvt_kernel.epc();
+        if (pos > std::numeric_limits<size_t>::max() / epc)
+            throw cvt_error("code_cvt::seek fail: position overflow");
+
+        BT::m_kernel.seek(pos * epc);
         m_accu_len = pos;
     }
 
@@ -425,11 +440,15 @@ public:
             throw cvt_error("code_cvt::rseek fail: cannot seek with dependent convertor");
         }
 
-        BT::m_kernel.rseek(pos * m_cvt_kernel.epc());
-        if (BT::m_kernel.tell() % m_cvt_kernel.epc() != 0)
+        const unsigned epc = m_cvt_kernel.epc();
+        if (pos > std::numeric_limits<size_t>::max() / epc)
+            throw cvt_error("code_cvt::rseek fail: position overflow");
+
+        BT::m_kernel.rseek(pos * epc);
+        if (BT::m_kernel.tell() % epc != 0)
             throw cvt_error("code_cvt::rseek fail: partial sequence.");
 
-        m_accu_len = BT::m_kernel.tell() / m_cvt_kernel.epc();
+        m_accu_len = BT::m_kernel.tell() / epc;
         m_cvt_kernel.init_state();
     }
 
