@@ -15,6 +15,7 @@ void test_mem_device_char_out_3();
 void test_mem_device_char_io_1();
 void test_mem_device_char_io_2();
 void test_mem_device_char_dput_alias_growth();
+void test_mem_device_char_extra();
 
 void test_mem_device_wchar_t_gen_1();
 void test_mem_device_wchar_t_gen_2();
@@ -57,6 +58,10 @@ void test_std_device_input_1();
 void test_std_device_output_1();
 void test_std_device_output_2();
 void test_std_device_edge_cases();
+void test_std_device_move();
+void test_std_device_eof();
+void test_std_device_errors();
+void test_std_device_nonblocking();
 
 void test_file_device_char_gen_1();
 void test_file_device_char_close_1();
@@ -121,6 +126,7 @@ int main()
         test_mem_device_char_io_1();
         test_mem_device_char_io_2();
         test_mem_device_char_dput_alias_growth();
+        test_mem_device_char_extra();
 
         test_mem_device_wchar_t_gen_1();
         test_mem_device_wchar_t_gen_2();
@@ -163,6 +169,10 @@ int main()
         test_std_device_output_1();
         test_std_device_output_2();
         test_std_device_edge_cases();
+        test_std_device_move();
+        test_std_device_eof();
+        test_std_device_errors();
+        test_std_device_nonblocking();
 
         test_file_device_char_gen_1();
         test_file_device_char_close_1();
