@@ -504,3 +504,121 @@ void test_mem_device_char_dput_alias_growth()
     }
     dump_info("Done\n");
 }
+
+void test_mem_device_char_extra()
+{
+    using namespace IOv2;
+    dump_info("Test mem_device<char> extra coverage...");
+
+    try {
+        mem_device<char> obj((const char*)nullptr);
+        VERIFY(false);
+    } catch (const device_error&) {}
+
+    {
+        mem_device<char> d1("abc");
+        d1.dseek(1);
+        mem_device<char> d2(std::move(d1));
+        VERIFY(d2.str() == "abc");
+        VERIFY(d2.dtell() == 1);
+        VERIFY(d1.dtell() == 0);
+        VERIFY(d1.str().empty());
+    }
+
+    {
+        mem_device<char> d1("abc");
+        mem_device<char> d2("xyz");
+        d2 = std::move(d1);
+        VERIFY(d2.str() == "abc");
+        VERIFY(d1.str().empty());
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+        d2 = std::move(d2);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+        VERIFY(d2.str() == "abc");
+    }
+
+    {
+        mem_device<char> obj("abc");
+        char ch;
+        VERIFY(obj.dget(&ch, 0) == 0);
+        try {
+            obj.dget(nullptr, 1);
+            VERIFY(false);
+        } catch (const device_error&) {}
+    }
+
+    {
+        mem_device<char> obj;
+        obj.dput("a", 0);
+        try {
+            obj.dput(nullptr, 1);
+            VERIFY(false);
+        } catch (const device_error&) {}
+        try {
+            obj.dput("a", std::numeric_limits<size_t>::max());
+            VERIFY(false);
+        } catch (const device_error&) {}
+    }
+
+    {
+        mem_device<char> obj("abc");
+        try {
+            obj.get_buf<true>(4);
+            VERIFY(false);
+        } catch (const device_error&) {}
+        auto [ptr, len] = obj.get_buf<false>(5);
+        VERIFY(len == 3);
+    }
+
+    {
+        mem_device<char> obj("abc");
+        obj.dseek(1);
+        try {
+            obj.get_rollback(0);
+            VERIFY(false);
+        } catch (const device_error&) {}
+        try {
+            obj.get_rollback(2);
+            VERIFY(false);
+        } catch (const device_error&) {}
+        obj.get_rollback(1);
+        VERIFY(obj.dtell() == 0);
+    }
+
+    {
+        mem_device<char> obj;
+        try {
+            obj.put_rollback(1);
+            VERIFY(false);
+        } catch (const device_error&) {}
+        obj.put_buf(5);
+        try {
+            obj.put_rollback(0);
+            VERIFY(false);
+        } catch (const device_error&) {}
+        try {
+            obj.put_rollback(6);
+            VERIFY(false);
+        } catch (const device_error&) {}
+        obj.put_rollback(2);
+        VERIFY(obj.dtell() == 3);
+        try {
+            obj.put_buf(std::numeric_limits<size_t>::max());
+            VERIFY(false);
+        } catch (const device_error&) {}
+    }
+
+    {
+        mem_device<char> obj("abc");
+        obj.dflush();
+        VERIFY(obj.dsize() == 3);
+    }
+
+    dump_info("Done\n");
+}
+

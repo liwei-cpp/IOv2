@@ -1,4 +1,8 @@
 #include <cstring>
+#include <unistd.h>
+#include <fcntl.h>
+#include <thread>
+#include <chrono>
 
 #include <device/std_device.h>
 
@@ -157,5 +161,195 @@ void test_std_device_edge_cases()
         VERIFY(obj.dget(&ch, 1) == 1 && ch == 'a');
     }
 
+    dump_info("Done\n");
+}
+
+void test_std_device_move() {
+    using namespace IOv2;
+    dump_info("Test std_device move semantics...");
+    
+    // Move for stdin
+    {
+        std_input_device d1;
+        // Mock EOF hit
+        {
+            iguard g(""); // empty input triggers EOF
+            char buf;
+            d1.dget(&buf, 1);
+        }
+        VERIFY(d1.deof());
+        
+        std_input_device d2(std::move(d1));
+        VERIFY(d2.deof());
+        
+        std_input_device d3;
+        d3 = std::move(d2);
+        VERIFY(d3.deof());
+    }
+    
+    // Move for stdout (no state but should work)
+    {
+        std_output_device d1;
+        std_output_device d2(std::move(d1));
+        std_output_device d3;
+        d3 = std::move(d2);
+    }
+    
+    dump_info("Done\n");
+}
+
+void test_std_device_eof() {
+    using namespace IOv2;
+    dump_info("Test std_device EOF...");
+    
+    std_input_device d1;
+    VERIFY(!d1.deof());
+    
+    {
+        iguard g("a");
+        char buf[2];
+        VERIFY(d1.dget(buf, 1) == 1);
+        VERIFY(!d1.deof());
+        VERIFY(d1.dget(buf, 1) == 0);
+        VERIFY(d1.deof());
+        // Subsequent calls
+        VERIFY(d1.dget(buf, 1) == 0);
+        VERIFY(d1.deof());
+    }
+    
+    dump_info("Done\n");
+}
+
+void test_std_device_errors() {
+    using namespace IOv2;
+    dump_info("Test std_device error paths...");
+    
+    // dput error (stdout)
+    {
+        oguard<true> g;
+        std_output_device d;
+        int saved_stdout = dup(STDOUT_FILENO);
+        close(STDOUT_FILENO);
+        
+        try {
+            d.dput("test", 4);
+        } catch (const device_error&) {
+            // Expected
+        }
+        
+        dup2(saved_stdout, STDOUT_FILENO);
+        close(saved_stdout);
+    }
+
+    // dput error (stderr)
+    {
+        oguard<false> g;
+        std_error_device d;
+        int saved_stderr = dup(STDERR_FILENO);
+        close(STDERR_FILENO);
+        
+        try {
+            d.dput("test", 4);
+        } catch (const device_error&) {
+            // Expected
+        }
+        
+        dup2(saved_stderr, STDERR_FILENO);
+        close(saved_stderr);
+    }
+
+    // dflush error (stdout)
+    {
+        oguard<true> g;
+        std_output_device d;
+        int saved_stdout = dup(STDOUT_FILENO);
+        close(STDOUT_FILENO);
+        
+        try {
+            d.dflush();
+        } catch (const device_error&) {
+            // Expected
+        }
+        
+        dup2(saved_stdout, STDOUT_FILENO);
+        close(saved_stdout);
+    }
+
+    // dflush error (stderr)
+    {
+        oguard<false> g;
+        std_error_device d;
+        int saved_stderr = dup(STDERR_FILENO);
+        close(STDERR_FILENO);
+        
+        try {
+            d.dflush();
+        } catch (const device_error&) {
+            // Expected
+        }
+        
+        dup2(saved_stderr, STDERR_FILENO);
+        close(saved_stderr);
+    }
+
+    // dget error
+    {
+        iguard g("abc");
+        std_input_device d;
+        int saved_stdin = dup(STDIN_FILENO);
+        close(STDIN_FILENO);
+        
+        try {
+            char buf;
+            d.dget(&buf, 1);
+        } catch (const device_error&) {
+            // Expected
+        }
+        
+        dup2(saved_stdin, STDIN_FILENO);
+        close(saved_stdin);
+    }
+    
+    dump_info("Done\n");
+}
+
+void test_std_device_nonblocking() {
+    using namespace IOv2;
+    dump_info("Test std_device non-blocking read...");
+    
+    int pipefds[2];
+    if (pipe(pipefds) == -1) return;
+    
+    int saved_stdin = dup(STDIN_FILENO);
+    dup2(pipefds[0], STDIN_FILENO);
+    
+    // Set non-blocking
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+    
+    std_input_device d;
+    char buf[5];
+    
+    std::thread t([&]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        if (write(pipefds[1], "hello", 5) != 5) {
+            // Ignore error
+        }
+    });
+    
+    VERIFY(d.dget(buf, 5) == 5);
+    VERIFY(std::memcmp(buf, "hello", 5) == 0);
+    
+    t.join();
+    
+    // Test POLLHUP by closing write end
+    close(pipefds[1]);
+    VERIFY(d.dget(buf, 1) == 0);
+    VERIFY(d.deof());
+    
+    dup2(saved_stdin, STDIN_FILENO);
+    close(saved_stdin);
+    close(pipefds[0]);
+    
     dump_info("Done\n");
 }
