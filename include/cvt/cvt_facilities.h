@@ -1,8 +1,9 @@
 #pragma once
-#include <string>
 #include <cvt/code_cvt.h>
 #include <cvt/root_cvt.h>
 #include <device/mem_device.h>
+
+#include <string>
 
 namespace IOv2
 {
@@ -27,6 +28,7 @@ namespace IOv2
 
     inline std::u32string to_u32string(const char* val, const std::string& locale_name)
     {
+        if (val == nullptr) [[unlikely]] return {};
         using cvt_type = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
         cvt_type tmp_cvt(rb_root_cvt{mem_device(val)}, locale_name);
         tmp_cvt.bos();
@@ -46,6 +48,7 @@ namespace IOv2
 
     inline std::u32string to_u32string(const char8_t* val)
     {
+        if (val == nullptr) [[unlikely]] return {};
         using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
         cvt_type tmp_cvt(rb_root_cvt{mem_device(val)});
         tmp_cvt.bos();
@@ -77,12 +80,11 @@ namespace IOv2
     inline std::u8string to_u8string(char32_t val)
     {
         using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-        cvt_type tmp_cvt(rb_root_cvt{mem_device(u8"")});
+        cvt_type tmp_cvt(rb_root_cvt{mem_device<char8_t>()});
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
-        
+
         tmp_cvt.put(&val, 1);
-        tmp_cvt.flush();
-        return tmp_cvt.device().str();
+        return tmp_cvt.detach().str();
     }
 }

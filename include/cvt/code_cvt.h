@@ -28,6 +28,9 @@ template <typename TInt>
                  (static_cast<char32_t>(L'伟') == U'伟'))
 struct codecvt_kernel<char, TInt>
 {
+    static_assert(MB_LEN_MAX <= std::numeric_limits<unsigned>::max(),
+                  "MB_LEN_MAX exceeds unsigned range");
+
     codecvt_kernel(const std::string& name)
         : m_inter_locale(name.c_str())
     {
@@ -37,9 +40,11 @@ struct codecvt_kernel<char, TInt>
         // m_epc == 1 means fix len
         m_epc = MB_CUR_MAX;
 
-        // Note: mbtowc might not thread-safe. But when checking the glibc source code, it only impact the internal mbstate_t.
-        // This means that the status of internal mbstate_t is undefined when called by multiple threads.
-        // But the return number can be used to determine whether it is state-dependend or not.
+        // Note: mbtowc uses internal static state, so concurrent construction of
+        // codecvt_kernel instances is NOT thread-safe. However, this is acceptable
+        // because this class does not support multi-threaded construction.
+        // Once constructed, instance-level operations use explicit mbstate_t (m_state)
+        // and are safe for single-instance usage.
         m_is_state_dep = (std::mbtowc(nullptr, nullptr, MB_CUR_MAX) != 0);
         init_state();
     }
@@ -88,7 +93,8 @@ struct codecvt_kernel<char, TInt>
             }
             else if (conv == 0)
             {
-                *to++ = static_cast<TInt>(0);
+                // Find the actual byte length of the null character encoding
+                // before writing to output buffer to ensure consistency
                 size_t n = 1;
                 const size_t max_n = static_cast<size_t>(from_end - from);
                 for (; n <= max_n; ++n)
@@ -102,13 +108,17 @@ struct codecvt_kernel<char, TInt>
                 }
                 if (n > max_n)
                     return std::pair{false, i_count};
+
+                // Only write to output after validation succeeds
+                *to++ = static_cast<TInt>(0);
                 from += n;
                 ++i_count;
             }
             else
             {
                 m_state = tmp_state;
-                assert(is_init_state());
+                if (!is_init_state()) [[unlikely]]
+                    return std::pair{false, i_count};
                 *to++ = wch;
                 from += conv;
                 ++i_count;
@@ -143,6 +153,7 @@ struct codecvt_kernel<char8_t, TInt>
 
     bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
     {
+        // Check for maximum UTF-8 length (4 bytes) upfront
         if (to_end - to < 4)
             return false;
         const uint32_t c = static_cast<uint32_t>(ch);
@@ -153,20 +164,17 @@ struct codecvt_kernel<char8_t, TInt>
             *to++ = static_cast<char8_t>(c);
         else if (c <= (uint32_t)0x7ff)
         {
-            if (to_end - to < 2) return false;
             *to++ = static_cast<char8_t>((c >> 6) + 0xC0);
             *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
         }
         else if (c <= (uint32_t)0xFFFF)
         {
-            if (to_end - to < 3) return false;
             *to++ = static_cast<char8_t>((c >> 12) + 0xE0);
             *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
             *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
         }
         else if (c <= (uint32_t)0x10FFFF)
         {
-            if (to_end - to < 4) return false;
             *to++ = static_cast<char8_t>((c >> 18) + 0xF0);
             *to++ = static_cast<char8_t>(((c >> 12) & 0x3F) + 0x80);
             *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
@@ -226,7 +234,7 @@ struct codecvt_kernel<char8_t, TInt>
                 if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80)) [[unlikely]]
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
                 auto c = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4 - 0x3C82080;
-                if (c < 0x10000 || c> 0x10FFFF) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                if (c < 0x10000 || c > 0x10FFFF) return std::pair{false, static_cast<size_t>(to - ori_to)};
                 *to++ = c;
                 from += 4;
             }
@@ -420,7 +428,7 @@ public:
             if ((pos == 0) && (BT::m_io_status != io_status::output))
                 m_cvt_kernel.init_state();
             else
-                throw cvt_error("code_cvt::seek fail: cannot seek with dependent convertor");
+                throw cvt_error("code_cvt::seek fail: cannot seek with dependent converter");
         }
 
         const unsigned epc = m_cvt_kernel.epc();
@@ -436,7 +444,7 @@ public:
     {
         if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
         {
-            throw cvt_error("code_cvt::rseek fail: cannot seek with dependent convertor");
+            throw cvt_error("code_cvt::rseek fail: cannot seek with dependent converter");
         }
 
         const unsigned epc = m_cvt_kernel.epc();
@@ -490,7 +498,8 @@ public:
             BT::m_io_status = io_status::input;
             return;
         default: // io_status::output
-            assert(m_cvt_kernel.is_init_state());
+            if (!m_cvt_kernel.is_init_state())
+                throw cvt_error("code_cvt::switch_to_get fail: converter not in initial state");
             BT::m_kernel.switch_to_get();
             BT::m_io_status = io_status::input;
             return;
