@@ -1,5 +1,5 @@
 <map id="IOv2::code_cvt_stdio&lt; KernelType &gt;" name="IOv2::code_cvt_stdio&lt; KernelType &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="556,20,713,60"/>
+<area shape="rect" id="Node000001" title="Character encoding converter with runtime locale switching support." alt="" coords="556,20,713,60"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1code__cvt.html" title=" " alt="" coords="300,20,508,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="522,37,556,37,556,43,522,43"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1abs__cvt.html" title=" " alt="" coords="5,5,252,75"/>
