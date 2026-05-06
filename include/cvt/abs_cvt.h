@@ -706,7 +706,7 @@ namespace IOv2
          * IO status is reset to `neutral` and its BOS-done flag is reset to `false`.
          * @endif
          */
-        abs_cvt(abs_cvt&& val)
+        abs_cvt(abs_cvt&& val) noexcept(std::is_nothrow_move_constructible_v<KernelType>)
             : m_kernel(std::move(val.m_kernel))
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
@@ -749,7 +749,7 @@ namespace IOv2
          * object's IO status and BOS-done flag are both reset.
          * @endif
          */
-        abs_cvt& operator=(abs_cvt&& val)
+        abs_cvt& operator=(abs_cvt&& val) noexcept(std::is_nothrow_move_assignable_v<KernelType>)
         {
             if (this != &val)
             {
@@ -1056,7 +1056,9 @@ namespace IOv2
                 constexpr size_t ext_size = sizeof(external_type);
 
                 reader.reset(s_bos_chunk);
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                 char* dest_bytes = reinterpret_cast<char*>(to);
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                 const char* dest_bytes_end = reinterpret_cast<const char*>(to + to_max);
 
                 // BOS phase requires complete data: if the stream ends unexpectedly
@@ -1154,7 +1156,9 @@ namespace IOv2
 
                 constexpr size_t ext_size = sizeof(external_type);
 
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                 auto to_bytes = reinterpret_cast<const char*>(to);
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                 auto to_bytes_end = reinterpret_cast<const char*>(to + to_size);
 
                 // BOS phase writes complete external_type units. If the input data
@@ -1165,6 +1169,7 @@ namespace IOv2
                 {
                     auto dest_count = std::min<size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
                     auto ptr = writer.put_buf(dest_count);
+                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                     std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, dest_count * ext_size);
                     to_bytes += dest_count * ext_size;
                 }
@@ -1176,7 +1181,9 @@ namespace IOv2
                     // static analyzer prove the bound for memset size calculation.
                     size_t remaining = static_cast<size_t>(to_bytes_end - to_bytes) % ext_size;
                     auto ptr = writer.put_buf(1);
+                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                     std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, remaining);
+                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                     std::memset(reinterpret_cast<char*>(ptr) + remaining, 0, ext_size - remaining);
                 }
 
@@ -1233,7 +1240,7 @@ namespace IOv2
          * @lang{ZH} 当前流位置（从流起始处的 `external_type` 元素偏移量）。 @endif
          * @lang{EN} The current stream position as an offset in `external_type` elements from the start of the stream. @endif
          */
-        size_t tell() const
+        [[nodiscard]] size_t tell() const
             requires (default_positioning && cvt_cpt::support_positioning<KernelType>)
         {
             return m_kernel.tell();
@@ -1334,6 +1341,7 @@ namespace IOv2
         }
 
     protected:
+        // NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes)
         /** @lang{ZH} 底层 IO 转换核心，持有对底层设备的所有权。 @endif
          *  @lang{EN} The underlying IO conversion kernel, which owns the underlying device. @endif */
         KernelType  m_kernel;
@@ -1360,7 +1368,9 @@ namespace IOv2
          *  Set to `true` by `main_cont_beg()`; reset to `false` by `detach()` and `attach()`.
          *  @endif */
         bool        m_is_bos_done = false;
+        // NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes)
 
+    private:
         /** @lang{ZH}
          *  临时 IO 缓冲区，供 `cvt_reader` 和 `cvt_writer` 在每次 `get`/`put` 调用时共用。
          *  缓冲区大小在首次使用时由 `reset()` 按需设置。

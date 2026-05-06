@@ -34,6 +34,7 @@ public:
 
 private:
     constexpr static unsigned CHUNK = std::max<unsigned>(16, sizeof(internal_type));
+    constexpr static size_t zlib_header_size = 2;
 
 public:
     zlib_cvt(KernelType kernel, unsigned put_level = 6)
@@ -187,63 +188,63 @@ public:
         BT::bos();
         if (BT::m_io_status == io_status::input)
         {
-            m_strm.zalloc = Z_NULL;
-            m_strm.zfree = Z_NULL;
-            m_strm.opaque = Z_NULL;
-            m_strm.avail_in = 0;
-            m_strm.next_in = Z_NULL;
-            auto ret = inflateInit(&m_strm);
-            if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
-
-            cvt_reader<KernelType> bos_reader(this->m_kernel, this->m_tmp_io_buffer);
-            bos_reader.reset(2);
-            const external_type* ptr = nullptr;
             if constexpr (cvt_cpt::support_get<KernelType>)
-                ptr = bos_reader.template get_buf<true>(2);
-            else throw cvt_error("zlib_cvt::bos fail: kernel does not support get.");
+            {
+                m_strm.zalloc = Z_NULL;
+                m_strm.zfree = Z_NULL;
+                m_strm.opaque = Z_NULL;
+                m_strm.avail_in = 0;
+                m_strm.next_in = Z_NULL;
+                auto ret = inflateInit(&m_strm);
+                if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
 
-            m_strm.avail_in = 2;
-            m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<external_type*>(ptr));
-            
-            unsigned char ch;
-            m_strm.avail_out = 1;
-            m_strm.next_out = &ch;
-            
-            ret = inflate(&m_strm, Z_NO_FLUSH);
-            zerr("zlib_cvt::bos fail", ret);
-            
-            if ((m_strm.avail_in != 0) || (m_strm.avail_out != 1)) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
-            m_strm.next_in = nullptr;
-            m_strm.avail_out = 0;
-            m_strm.next_out = nullptr;
+                external_type header_buf[zlib_header_size];
+                [[maybe_unused]] const size_t n = BT::m_kernel.get(header_buf, zlib_header_size);
+                assert(n == zlib_header_size);
+
+                m_strm.avail_in = zlib_header_size;
+                m_strm.next_in = reinterpret_cast<unsigned char*>(header_buf);
+
+                unsigned char ch;
+                m_strm.avail_out = 1;
+                m_strm.next_out = &ch;
+
+                ret = inflate(&m_strm, Z_NO_FLUSH);
+                zerr("zlib_cvt::bos fail", ret);
+
+                if ((m_strm.avail_in != 0) || (m_strm.avail_out != 1)) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
+                m_strm.next_in = nullptr;
+                m_strm.avail_out = 0;
+                m_strm.next_out = nullptr;
+            }
         }
         else if (BT::m_io_status == io_status::output)
         {
-            m_strm.zalloc = Z_NULL;
-            m_strm.zfree = Z_NULL;
-            m_strm.opaque = Z_NULL;
+            if constexpr (cvt_cpt::support_put<KernelType>)
+            {
+                m_strm.zalloc = Z_NULL;
+                m_strm.zfree = Z_NULL;
+                m_strm.opaque = Z_NULL;
 
-            auto ret = deflateInit(&m_strm, static_cast<int>(m_put_level));
-            if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
+                auto ret = deflateInit(&m_strm, static_cast<int>(m_put_level));
+                if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
 
-            cvt_writer<KernelType> bos_writer(this->m_kernel, this->m_tmp_io_buffer);
-            bos_writer.reset(3);
-            auto ptr = bos_writer.put_buf(3);
+                external_type header_buf[zlib_header_size + 1];
 
-            m_strm.avail_in = 0;
-            m_strm.next_in = nullptr;
-            m_strm.avail_out = 3;
-            m_strm.next_out = reinterpret_cast<unsigned char*>(ptr);
-            ret = deflate(&m_strm, Z_NO_FLUSH);
-            assert(ret != Z_STREAM_ERROR);
+                m_strm.avail_in = 0;
+                m_strm.next_in = nullptr;
+                m_strm.avail_out = zlib_header_size + 1;
+                m_strm.next_out = reinterpret_cast<unsigned char*>(header_buf);
+                ret = deflate(&m_strm, Z_NO_FLUSH);
+                assert(ret != Z_STREAM_ERROR);
 
-            if (m_strm.avail_out != 1) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
+                if (m_strm.avail_out != 1) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
 
-            bos_writer.rollback(1);
-            bos_writer.commit();
+                BT::m_kernel.put(header_buf, zlib_header_size);
 
-            m_strm.avail_out = 0;
-            m_strm.next_out = nullptr;
+                m_strm.avail_out = 0;
+                m_strm.next_out = nullptr;
+            }
         }
         else
             throw cvt_error("zlib_cvt::bos fail: invalid response value.");
@@ -348,22 +349,20 @@ public:
 
         if (m_sync_flush)
         {
-            cvt_writer<KernelType> writer(this->m_kernel, this->m_tmp_io_buffer);
-            writer.reset(CHUNK);
+            external_type local_buf[CHUNK];
             m_strm.next_in = nullptr;
             m_strm.avail_in = 0;
             while (true)
             {
-                m_strm.next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK));
+                m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf);
                 m_strm.avail_out = CHUNK;
                 zerr("zlib_cvt::flush fail", deflate(&m_strm, Z_SYNC_FLUSH));
+                const size_t written = CHUNK - m_strm.avail_out;
+                if (written > 0)
+                    BT::m_kernel.put(local_buf, written);
                 if (m_strm.avail_out)
-                {
-                    writer.rollback(m_strm.avail_out);
                     break;
-                }
             }
-            writer.commit();
             m_strm.next_out = nullptr;
             m_strm.avail_out = 0;
             m_strm.next_in = nullptr;
@@ -404,22 +403,20 @@ private:
         {
             if (BT::m_is_bos_done)
             {
-                cvt_writer<KernelType> writer(this->m_kernel, this->m_tmp_io_buffer);
-                writer.reset(CHUNK);
+                external_type local_buf[CHUNK];
                 m_strm.next_in = nullptr;
                 m_strm.avail_in = 0;
                 while (true)
                 {
-                    m_strm.next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK));
+                    m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf);
                     m_strm.avail_out = CHUNK;
                     zerr("zlib_cvt::put_end fail", deflate(&m_strm, Z_FINISH));
+                    const size_t written = CHUNK - m_strm.avail_out;
+                    if (written > 0)
+                        BT::m_kernel.put(local_buf, written);
                     if (m_strm.avail_out)
-                    {
-                        writer.rollback(m_strm.avail_out);
                         break;
-                    }
                 }
-                writer.commit();
                 deflateEnd(&m_strm);
             }
         }
