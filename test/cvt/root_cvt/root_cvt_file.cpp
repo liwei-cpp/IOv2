@@ -1,3 +1,4 @@
+#include <limits>
 #include <list>
 #include <iterator>
 #include <cvt/root_cvt.h>
@@ -826,7 +827,7 @@ void test_root_cvt_file_attach_2()
         obj.bos(); obj.main_cont_beg();
         obj.put("123", 3);
         VERIFY(obj.device().dtell() == 0);
-        
+
         file_guard g("test_file2", "");
         auto dev = obj.attach(ofile_device<char>("test_file2"));
         VERIFY(dev.dtell() == 3);
@@ -837,10 +838,232 @@ void test_root_cvt_file_attach_2()
         auto obj = rb_root_cvt{ofile_device<char>("test_file1")};
         helper(obj);
     }
-    
+
     {
         runtime_cvt obj(rb_root_cvt{ofile_device<char>("test_file1")});
         helper(obj);
     }
+    dump_info("Done\n");
+}
+
+// is_eof() for generic root_cvt<file_device> — all five branches
+void test_root_cvt_file_eof_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> is_eof case 1...");
+
+    using RWDev = basic_file_device<true, true, char>;
+
+    auto helper = [](auto& obj_input_rb, auto& obj_input_nrb,
+                     auto& obj_output_nonempty, auto& obj_output_empty,
+                     auto& obj_neutral)
+    {
+        // Branch: input mode, buffered data remains → false (no device query)
+        {
+            char ch = 0;
+            obj_input_rb.get(&ch, 1);  // HasInBuffer=true: loads file into buffer, consumes 1
+            VERIFY(!obj_input_rb.is_eof());
+        }
+
+        // Branch: input mode, buffer exhausted → query device deof()
+        {
+            char buf[2];
+            obj_input_nrb.get(buf, 2);  // HasInBuffer=false: direct read; device now at EOF
+            VERIFY(obj_input_nrb.is_eof());
+        }
+
+        // Branch: output mode, non-empty write buffer → flush first, then deof()
+        {
+            obj_output_nonempty.put("hello", 5);  // buffer holds 5 bytes (not yet flushed)
+            VERIFY(obj_output_nonempty.is_eof());  // flushes, device at end → true
+        }
+
+        // Branch: output mode, empty write buffer → deof() without flush
+        {
+            // m_buf_cur == m_buffer.data() (nothing written)
+            VERIFY(obj_output_empty.is_eof());  // no flush; empty file → true
+        }
+
+        // Branch: neutral mode → throws cvt_error
+        {
+            bool threw = false;
+            try { obj_neutral.is_eof(); } catch (const cvt_error&) { threw = true; }
+            VERIFY(threw);
+        }
+    };
+
+    {
+        file_guard g1("test_file1", "hello world");
+        file_guard g2("test_file2", "hi");
+        file_guard g3("test_file3", "");
+        file_guard g4("test_file4", "");
+        file_guard g5("test_file5", "hello");
+
+        auto o1 = rb_root_cvt{RWDev("test_file1")};
+        VERIFY(o1.bos() == io_status::input); o1.main_cont_beg();
+
+        auto o2 = no_rb_root_cvt{RWDev("test_file2")};
+        VERIFY(o2.bos() == io_status::input); o2.main_cont_beg();
+
+        auto o3 = rb_root_cvt{RWDev("test_file3", file_open_flag::trunc)};
+        VERIFY(o3.bos() == io_status::output); o3.main_cont_beg();
+
+        auto o4 = rb_root_cvt{RWDev("test_file4", file_open_flag::trunc)};
+        VERIFY(o4.bos() == io_status::output); o4.main_cont_beg();
+
+        auto o5 = rb_root_cvt{RWDev("test_file5")};
+        // No bos() → neutral
+
+        helper(o1, o2, o3, o4, o5);
+    }
+
+    dump_info("Done\n");
+}
+
+// Mode-switching paths in generic root_cvt<file_device>
+void test_root_cvt_file_mode_switch_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> mode switch case 1...");
+
+    using RWDev = basic_file_device<true, true, char>;
+
+    // switch_to_get(): neutral → input  (default branch)
+    {
+        file_guard g("test_file", "hello");
+        auto obj = rb_root_cvt{RWDev("test_file")};
+        // io_status = neutral; get() calls switch_to_get() → hits default case
+        char ch = 0;
+        VERIFY(obj.get(&ch, 1) == 1 && ch == 'h');
+    }
+
+    // switch_to_get(): output → flush → input
+    {
+        file_guard g("test_file", "");
+        auto obj = rb_root_cvt{RWDev("test_file", file_open_flag::trunc)};
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        obj.put("ABC", 3);           // buffer holds "ABC"; not yet on disk
+        char ch = 0;
+        size_t n = obj.get(&ch, 1);  // switch_to_get: flush "ABC", enter input, device at EOF
+        VERIFY(n == 0);              // device now at end of "ABC" → nothing to read
+        obj.detach();                // close file so g.contents() sees the data
+        VERIFY(g.contents() == "ABC"); // flush did happen
+    }
+
+    // switch_to_put(): neutral → output  (default branch)
+    {
+        file_guard g("test_file", "");
+        auto obj = rb_root_cvt{RWDev("test_file", file_open_flag::trunc)};
+        // io_status = neutral; put() calls switch_to_put() → hits default case
+        obj.put("X", 1);
+        obj.detach();  // flush + close so g.contents() sees the data
+        VERIFY(g.contents() == "X");
+    }
+
+    // switch_to_put(): input, no unconsumed buffer → just set output (no seek needed)
+    // HasInBuffer=false ensures m_buf_cur always equals m_buf_end
+    {
+        file_guard g("test_file", "hello");
+        auto obj = no_rb_root_cvt{RWDev("test_file")};
+        VERIFY(obj.bos() == io_status::input);
+        obj.main_cont_beg();
+        char buf[5];
+        obj.get(buf, 5);  // direct device read; device at pos 5; m_buf_cur == m_buf_end
+        obj.put("!", 1);  // switch_to_put: no buffered data → just set output
+        obj.detach();     // flush + close
+        VERIFY(g.contents() == "hello!");
+    }
+
+    // switch_to_put(): input, unconsumed buffered data → seek(tell()) to sync device
+    {
+        file_guard g("test_file", "hello world");
+        auto obj = rb_root_cvt{RWDev("test_file")};
+        VERIFY(obj.bos() == io_status::input);
+        obj.main_cont_beg();
+        char ch = 0;
+        obj.get(&ch, 1);      // loads 11 bytes into buffer; device at 11; consumes 1
+        VERIFY(ch == 'h');
+        VERIFY(obj.tell() == 1); // = device(11) - bos_len(0) - buffered(10)
+        // 10 unconsumed bytes sit in the read buffer
+        obj.put("X", 1);      // switch_to_put: seek(1) syncs device; then write "X"
+        obj.detach();         // flush + close
+        VERIFY(g.contents() == "hXllo world"); // byte at stream-pos 1 ('e') overwritten
+    }
+
+    dump_info("Done\n");
+}
+
+// Error-throw paths: wrong io_status for tell / get / put
+void test_root_cvt_file_error_paths_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> error paths case 1...");
+
+    // tell() in neutral state → throws cvt_error
+    {
+        file_guard g("test_file", "hello");
+        auto obj = rb_root_cvt{basic_file_device<true, true, char>("test_file")};
+        bool threw = false;
+        try { (void)obj.tell(); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // get() on a get-only device in neutral state → throws
+    // (support_put=false: switch_to_get not compiled; status check fires)
+    {
+        file_guard g("test_file", "hello");
+        auto obj = rb_root_cvt{ifile_device<char>("test_file")};
+        bool threw = false;
+        try { char ch = 0; obj.get(&ch, 1); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // put() on a put-only device in neutral state → throws
+    // (support_get=false: switch_to_put not compiled; status check fires)
+    {
+        file_guard g("test_file", "");
+        auto obj = rb_root_cvt{ofile_device<char>("test_file")};
+        bool threw = false;
+        try { obj.put("hi", 2); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}
+
+// seek() position-overflow detection for generic root_cvt<file_device>
+void test_root_cvt_file_seek_overflow_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> seek overflow case 1...");
+
+    // After get() + main_cont_beg(), m_bos_len = device(5) - buffered(4) = 1.
+    // Seeking SIZE_MAX triggers: SIZE_MAX > SIZE_MAX - 1 → overflow throw.
+    auto helper = [](auto& obj)
+    {
+        VERIFY(obj.bos() == io_status::input);
+        char ch = 0;
+        obj.get(&ch, 1);      // rb: loads 5 bytes into buffer; device at 5; consumes 1
+        obj.main_cont_beg();  // m_bos_len = 5 - 4 = 1
+        bool threw = false;
+        try {
+            obj.seek(std::numeric_limits<size_t>::max()); // SIZE_MAX > SIZE_MAX - 1
+        } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    };
+
+    {
+        file_guard g("test_file", "hello");
+        auto obj = rb_root_cvt{basic_file_device<true, true, char>("test_file")};
+        helper(obj);
+    }
+    {
+        file_guard g("test_file", "hello");
+        auto tmp = rb_root_cvt{basic_file_device<true, true, char>("test_file")};
+        runtime_cvt obj(std::move(tmp));
+        helper(obj);
+    }
+
     dump_info("Done\n");
 }

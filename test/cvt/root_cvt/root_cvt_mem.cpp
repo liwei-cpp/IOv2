@@ -1,3 +1,4 @@
+#include <limits>
 #include <typeinfo>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
@@ -602,44 +603,109 @@ void test_root_cvt_mem_self_assignment()
 {
     using namespace IOv2;
     dump_info("Test root_cvt<mem_device> self-assignment...");
-    
+
     {
         mem_device dev{"hello"}; dev.drseek(0);
         auto obj = rb_root_cvt{std::move(dev)};
-        VERIFY(obj.bos() == io_status::output); 
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         obj.put(" world", 6);
-        
+
         // Self copy assignment
         const auto& const_obj = obj;
         obj = const_obj;
-        
+
         obj.flush();
         VERIFY(obj.device().str() == "hello world");
-        
+
         // Self move assignment
         auto* pObj = &obj;
         obj = std::move(*pObj);
         VERIFY(obj.device().str() == "hello world");
     }
-    
+
     {
         mem_device dev{"hello"}; dev.drseek(0);
         runtime_cvt obj(rb_root_cvt{std::move(dev)});
-        VERIFY(obj.bos() == io_status::output); 
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         obj.put(" world", 6);
-        
+
         // Self copy assignment
         const auto& const_obj = obj;
         obj = const_obj;
         obj.flush();
         VERIFY(obj.device().str() == "hello world");
-        
+
         // Self move assignment
         auto* pObj = &obj;
         obj = std::move(*pObj);
         VERIFY(obj.device().str() == "hello world");
+    }
+
+    dump_info("Done\n");
+}
+
+// is_eof() for the mem_device partial specialisation
+void test_root_cvt_mem_eof_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<mem_device> is_eof case 1...");
+
+    // Non-empty stream → deof() returns false
+    {
+        auto obj = rb_root_cvt{mem_device("hello")};
+        obj.bos(); obj.main_cont_beg();
+        VERIFY(!obj.is_eof());
+    }
+
+    // Empty stream → deof() returns true
+    {
+        auto obj = rb_root_cvt{mem_device("")};
+        obj.bos(); obj.main_cont_beg();
+        VERIFY(obj.is_eof());
+    }
+
+    // After consuming all content → true
+    {
+        auto obj = rb_root_cvt{mem_device("ab")};
+        obj.bos(); obj.main_cont_beg();
+        char buf[2];
+        obj.get(buf, 2);
+        VERIFY(obj.is_eof());
+    }
+
+    dump_info("Done\n");
+}
+
+// seek() position-overflow for the mem_device specialisation
+void test_root_cvt_mem_seek_overflow_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<mem_device> seek overflow case 1...");
+
+    // After get() + main_cont_beg(), m_bos_len becomes 1.
+    // Seeking SIZE_MAX triggers: SIZE_MAX > SIZE_MAX - 1 → overflow throw.
+    auto helper = [](auto& obj)
+    {
+        obj.bos();
+        char ch = 0;
+        obj.get(&ch, 1);     // dtell() advances to 1
+        obj.main_cont_beg(); // m_bos_len = 1
+        bool threw = false;
+        try {
+            obj.seek(std::numeric_limits<size_t>::max());
+        } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    };
+
+    {
+        auto obj = rb_root_cvt{mem_device("hello")};
+        helper(obj);
+    }
+    {
+        runtime_cvt obj(rb_root_cvt{mem_device("hello")});
+        helper(obj);
     }
 
     dump_info("Done\n");
