@@ -82,26 +82,31 @@ public:
     {
         BT::bos();
         const size_t iv_len = m_cipher->default_iv_length();
+        std::vector<external_type> iv_buf(iv_len);
+
         if (BT::m_io_status == io_status::input)
         {
-            cvt_reader<KernelType> reader(this->m_kernel, this->m_tmp_io_buffer);
-            reader.reset(iv_len);
-            auto ptr = reader.template get_buf<true>(iv_len);
+            if constexpr (cvt_cpt::support_get<KernelType>)
+            {
+                [[maybe_unused]] const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
+                assert(n == iv_len);
 
-            m_cipher->set_key(m_key);
-            m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
+                m_cipher->set_key(m_key);
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+            }
         }
         else if (BT::m_io_status == io_status::output)
         {
-            Botan::AutoSeeded_RNG rng;
-            cvt_writer<KernelType> writer(this->m_kernel, this->m_tmp_io_buffer);
-            writer.reset(iv_len);
-            auto ptr = writer.put_buf(iv_len);
-            rng.randomize(reinterpret_cast<uint8_t*>(ptr), iv_len);
+            if constexpr (cvt_cpt::support_put<KernelType>)
+            {
+                Botan::AutoSeeded_RNG rng;
+                rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len);
 
-            m_cipher->set_key(m_key);
-            m_cipher->set_iv(reinterpret_cast<const uint8_t*>(ptr), iv_len);
-            writer.commit();
+                m_cipher->set_key(m_key);
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+
+                BT::m_kernel.put(iv_buf.data(), iv_len);
+            }
         }
         else
             throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
