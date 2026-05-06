@@ -3,6 +3,7 @@
 #include <cvt/root_cvt.h>
 #include <device/mem_device.h>
 
+#include <array>
 #include <string>
 
 namespace IOv2
@@ -15,12 +16,12 @@ namespace IOv2
         tmp_cvt.main_cont_beg();
 
         std::wstring res;
-        wchar_t res_buf[8];
+        std::array<wchar_t, 8> res_buf{};
         while (true)
         {
-            auto c = tmp_cvt.get(res_buf, 8);
+            auto c = tmp_cvt.get(res_buf.data(), res_buf.size());
             if (c == 0) break;
-            res.insert(res.size(), res_buf, c);
+            res.insert(res.size(), res_buf.data(), c);
         };
 
         return res;
@@ -35,12 +36,12 @@ namespace IOv2
         tmp_cvt.main_cont_beg();
 
         std::u32string res;
-        char32_t res_buf[8];
+        std::array<char32_t, 8> res_buf{};
         while (true)
         {
-            auto c = tmp_cvt.get(res_buf, 8);
+            auto c = tmp_cvt.get(res_buf.data(), res_buf.size());
             if (c == 0) break;
-            res.insert(res.size(), res_buf, c);
+            res.insert(res.size(), res_buf.data(), c);
         };
 
         return res;
@@ -55,12 +56,12 @@ namespace IOv2
         tmp_cvt.main_cont_beg();
 
         std::u32string res;
-        char32_t res_buf[8];
+        std::array<char32_t, 8> res_buf{};
         while (true)
         {
-            auto c = tmp_cvt.get(res_buf, 8);
+            auto c = tmp_cvt.get(res_buf.data(), res_buf.size());
             if (c == 0) break;
-            res.insert(res.size(), res_buf, c);
+            res.insert(res.size(), res_buf.data(), c);
         };
 
         return res;

@@ -9,11 +9,21 @@ namespace IOv2
 {
     struct cvt_behavior
     {
+        cvt_behavior() = default;
+        cvt_behavior(const cvt_behavior&) = default;
+        cvt_behavior& operator=(const cvt_behavior&) = default;
+        cvt_behavior(cvt_behavior&&) = default;
+        cvt_behavior& operator=(cvt_behavior&&) = default;
         virtual ~cvt_behavior() = default;
     };
 
     struct cvt_status
     {
+        cvt_status() = default;
+        cvt_status(const cvt_status&) = default;
+        cvt_status& operator=(const cvt_status&) = default;
+        cvt_status(cvt_status&&) = default;
+        cvt_status& operator=(cvt_status&&) = default;
         virtual ~cvt_status() = default;
     };
 
