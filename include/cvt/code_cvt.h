@@ -5,6 +5,7 @@
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
+#include <cassert>
 #include <climits>
 #include <cstdint>
 #include <limits>
@@ -16,10 +17,18 @@ namespace IOv2
 template <typename TExt, typename TInt>
 struct codecvt_kernel;
 
+/**
+ * @brief Locale-based character encoding conversion kernel (char <-> wchar_t/char32_t).
+ *
+ * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
+ *       instance from multiple threads requires external synchronization. Additionally,
+ *       concurrent construction of multiple instances is not thread-safe due to the
+ *       use of mbtowc's internal static state.
+ */
 template <typename TInt>
-    requires std::is_same_v<TInt, wchar_t> || 
-                (std::is_same_v<TInt, char32_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
+    requires std::is_same_v<TInt, wchar_t> ||
+                (std::is_same_v<TInt, char32_t> &&
+                 (sizeof(char32_t) == sizeof(wchar_t)) &&
                  (static_cast<wchar_t>(U'李') == L'李') &&
                  (static_cast<char32_t>(L'伟') == U'伟'))
 struct codecvt_kernel<char, TInt>
@@ -50,9 +59,10 @@ struct codecvt_kernel<char, TInt>
     unsigned epc() const { return m_epc; }
     bool is_var_length() const { return m_epc != 1; }
     bool is_state_dep() const { return m_is_state_dep; }
-    
+
     bool out_helper(TInt ch, char*& to, char* to_end)
     {
+        assert(to <= to_end && "out_helper: invalid pointer range");
         clocale_user guard(m_inter_locale);
         if (to_end - to < m_epc)
             return false;
@@ -67,10 +77,12 @@ struct codecvt_kernel<char, TInt>
 
         return true;
     }
-    
+
     std::pair<bool, size_t> in_helper(const char*& from, const char* from_end,
                                       TInt*& to, TInt* to_end)
     {
+        assert(from <= from_end && "in_helper: invalid input pointer range");
+        assert(to <= to_end && "in_helper: invalid output pointer range");
         clocale_user guard(m_inter_locale);
         wchar_t wch = 0;
         size_t i_count = 0;
@@ -132,10 +144,16 @@ private:
     bool            m_is_state_dep;
 };
 
+/**
+ * @brief UTF-8 encoding conversion kernel (char8_t <-> char32_t/wchar_t).
+ *
+ * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
+ *       instance from multiple threads requires external synchronization.
+ */
 template <typename TInt>
-    requires std::is_same_v<TInt, char32_t> || 
-                (std::is_same_v<TInt, wchar_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
+    requires std::is_same_v<TInt, char32_t> ||
+                (std::is_same_v<TInt, wchar_t> &&
+                 (sizeof(char32_t) == sizeof(wchar_t)) &&
                  (static_cast<wchar_t>(U'李') == L'李') &&
                  (static_cast<char32_t>(L'伟') == U'伟'))
 struct codecvt_kernel<char8_t, TInt>
@@ -150,6 +168,7 @@ struct codecvt_kernel<char8_t, TInt>
 
     bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
     {
+        assert(to <= to_end && "out_helper: invalid pointer range");
         // Check for maximum UTF-8 length (4 bytes) upfront
         if (to_end - to < 4)
             return false;
@@ -181,10 +200,12 @@ struct codecvt_kernel<char8_t, TInt>
             return false;
         return true;
     }
-    
+
     std::pair<bool, size_t> in_helper(const char8_t*& from, const char8_t* from_end,
                                       TInt*& to, TInt* to_end)
     {
+        assert(from <= from_end && "in_helper: invalid input pointer range");
+        assert(to <= to_end && "in_helper: invalid output pointer range");
         const TInt* const ori_to = to;
 
         while ((from != from_end) && (to != to_end))
@@ -238,11 +259,17 @@ struct codecvt_kernel<char8_t, TInt>
             else
                 return std::pair{false, static_cast<size_t>(to - ori_to)};
         }
-        
+
         return std::pair{true, static_cast<size_t>(to - ori_to)};
     }
 };
 
+/**
+ * @brief Character encoding converter that transforms between external and internal character types.
+ *
+ * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
+ *       instance from multiple threads requires external synchronization.
+ */
 template <io_converter KernelType, typename CharType>
 class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, false, false>
 {
@@ -522,9 +549,9 @@ template <typename TExt, typename TInt>
 class code_cvt_creator;
 
 template <typename TInt>
-    requires std::is_same_v<TInt, wchar_t> || 
-                (std::is_same_v<TInt, char32_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
+    requires std::is_same_v<TInt, wchar_t> ||
+                (std::is_same_v<TInt, char32_t> &&
+                 (sizeof(char32_t) == sizeof(wchar_t)) &&
                  (static_cast<wchar_t>(U'李') == L'李') &&
                  (static_cast<char32_t>(L'伟') == U'伟'))
 class code_cvt_creator<char, TInt>
@@ -545,9 +572,9 @@ private:
 };
 
 template <typename TInt>
-    requires std::is_same_v<TInt, char32_t> || 
-                (std::is_same_v<TInt, wchar_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
+    requires std::is_same_v<TInt, char32_t> ||
+                (std::is_same_v<TInt, wchar_t> &&
+                 (sizeof(char32_t) == sizeof(wchar_t)) &&
                  (static_cast<wchar_t>(U'李') == L'李') &&
                  (static_cast<char32_t>(L'伟') == U'伟'))
 class code_cvt_creator<char8_t, TInt>
