@@ -710,3 +710,39 @@ void test_root_cvt_mem_seek_overflow_1()
 
     dump_info("Done\n");
 }
+
+// retrieve() is a no-op on the mem_device specialization but must be reachable (line 1288).
+void test_root_cvt_mem_retrieve_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<mem_device> retrieve...");
+
+    auto obj = rb_root_cvt{mem_device("hello")};
+    obj.bos(); obj.main_cont_beg();
+
+    cvt_status stat;
+    obj.retrieve(stat);
+
+    dump_info("Done\n");
+}
+
+// rseek() when m_bos_len > device.dsize() must throw (line 1499).
+void test_root_cvt_mem_rseek_bos_overflow_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<mem_device> rseek bos_len-overflow...");
+
+    // Read 5 bytes in BOS phase; main_cont_beg() records m_bos_len = dtell() = 5.
+    // Replacing the device with an empty one makes dsize()=0 < m_bos_len=5.
+    auto obj = rb_root_cvt{mem_device("hello world")};
+    obj.bos();
+    char buf[5];
+    obj.get(buf, 5);     // dtell() advances to 5
+    obj.main_cont_beg(); // m_bos_len = 5
+    obj.device() = mem_device{""};  // dsize() = 0 < m_bos_len = 5
+    bool threw = false;
+    try { obj.rseek(0); } catch (const cvt_error&) { threw = true; }
+    VERIFY(threw);
+
+    dump_info("Done\n");
+}

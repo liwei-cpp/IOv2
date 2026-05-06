@@ -15,6 +15,8 @@ void test_root_cvt_mem_attach_2();
 void test_root_cvt_mem_self_assignment();
 void test_root_cvt_mem_eof_1();
 void test_root_cvt_mem_seek_overflow_1();
+void test_root_cvt_mem_retrieve_1();
+void test_root_cvt_mem_rseek_bos_overflow_1();
 
 void test_root_cvt_std_gen_1();
 void test_root_cvt_std_gen_2();
@@ -41,6 +43,12 @@ void test_root_cvt_file_eof_1();
 void test_root_cvt_file_mode_switch_1();
 void test_root_cvt_file_error_paths_1();
 void test_root_cvt_file_seek_overflow_1();
+void test_root_cvt_file_adjust_retrieve_1();
+void test_root_cvt_file_put_exact_and_large_1();
+void test_root_cvt_file_seek_rseek_output_1();
+void test_root_cvt_file_rseek_bos_overflow_1();
+void test_root_cvt_file_switch_noop_1();
+void test_root_cvt_file_flush_exception_catch_1();
 
 void test_root_cvt()
 {
@@ -61,6 +69,8 @@ void test_root_cvt()
     test_root_cvt_mem_self_assignment();
     test_root_cvt_mem_eof_1();
     test_root_cvt_mem_seek_overflow_1();
+    test_root_cvt_mem_retrieve_1();
+    test_root_cvt_mem_rseek_bos_overflow_1();
 
     test_root_cvt_std_gen_1();
     test_root_cvt_std_gen_2();
@@ -87,4 +97,10 @@ void test_root_cvt()
     test_root_cvt_file_mode_switch_1();
     test_root_cvt_file_error_paths_1();
     test_root_cvt_file_seek_overflow_1();
+    test_root_cvt_file_adjust_retrieve_1();
+    test_root_cvt_file_put_exact_and_large_1();
+    test_root_cvt_file_seek_rseek_output_1();
+    test_root_cvt_file_rseek_bos_overflow_1();
+    test_root_cvt_file_switch_noop_1();
+    test_root_cvt_file_flush_exception_catch_1();
 }
