@@ -294,3 +294,179 @@ void test_root_cvt_mem_saturate_input_1()
 
     dump_info("Done\n");
 }
+
+// Minimal write-only device for cvt_writer non-mem_device specialization tests.
+namespace {
+struct str_write_device {
+    using char_type = char;
+    std::string result;
+    void dput(const char_type* s, size_t n) { result.append(s, n); }
+    void dflush() {}
+};
+} // namespace
+
+// cvt_reader<rb_root_cvt<non-mem-device>> error paths:
+//   get_buf(0), get_buf(too_large), get_buf<Saturate=true> EOS throw,
+//   rollback() success, rollback(0) throw, rollback(too_large) throw.
+void test_root_cvt_file_reader_errors_1()
+{
+    using namespace IOv2;
+    dump_info("Test cvt_reader<non-mem-device> error paths...");
+
+    using ObjT = rb_root_cvt<snatchy_device<char, 3>>;
+
+    // get_buf(0) → throw (line 1706)
+    {
+        ObjT obj{snatchy_device<char, 3>{"hello"}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_reader<ObjT> reader(obj, buf);
+        reader.reset(10);
+        bool threw = false;
+        try { reader.get_buf(0); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // get_buf(too_large) → throw (line 1708)
+    {
+        ObjT obj{snatchy_device<char, 3>{"hello"}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_reader<ObjT> reader(obj, buf);
+        reader.reset(10);
+        bool threw = false;
+        try { reader.get_buf(ObjT::s_buffer_length + 1); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // get_buf<Saturate=true> hits EOS before filling → throw (line 1738)
+    {
+        ObjT obj{snatchy_device<char, 3>{"ab"}}; // only 2 bytes available
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_reader<ObjT> reader(obj, buf);
+        reader.reset(10);
+        bool threw = false;
+        try { reader.get_buf<true>(5); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // rollback() success path (line 1784)
+    {
+        ObjT obj{snatchy_device<char, 3>{"hello"}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_reader<ObjT> reader(obj, buf);
+        reader.reset(5);
+        auto [ptr, len] = reader.get_buf(3); // reads "hel" (snatchy max=3)
+        VERIFY(len == 3);
+        reader.rollback(2); // rolls back 2 → "el" re-exposed
+        auto [ptr2, len2] = reader.get_buf(3);
+        VERIFY(len2 == 3);
+        VERIFY(std::string(ptr2, len2) == "ell");
+    }
+
+    // rollback(0) → throw (line 1780-1781)
+    {
+        ObjT obj{snatchy_device<char, 3>{"hello"}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_reader<ObjT> reader(obj, buf);
+        reader.reset(5);
+        reader.get_buf(3);
+        bool threw = false;
+        try { reader.rollback(0); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // rollback(too_large) → throw (line 1782-1783)
+    {
+        ObjT obj{snatchy_device<char, 3>{"hello"}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_reader<ObjT> reader(obj, buf);
+        reader.reset(5);
+        reader.get_buf(3);
+        bool threw = false;
+        try { reader.rollback(100); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}
+
+// cvt_writer<rb_root_cvt<non-mem-device>> error paths:
+//   reset(too_large), put_buf(0), put_buf(too_large),
+//   rollback(0) throw, rollback(too_large) throw.
+void test_root_cvt_file_writer_errors_1()
+{
+    using namespace IOv2;
+    dump_info("Test cvt_writer<non-mem-device> error paths...");
+
+    using ObjT = rb_root_cvt<str_write_device>;
+
+    // reset(too_large) → throw (line 1863)
+    {
+        ObjT obj{str_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_writer<ObjT> writer(obj, buf);
+        bool threw = false;
+        try { writer.reset(ObjT::s_buffer_length + 1); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // put_buf(0) → throw (line 1895)
+    {
+        ObjT obj{str_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_writer<ObjT> writer(obj, buf);
+        writer.reset(10);
+        bool threw = false;
+        try { writer.put_buf(0); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // put_buf(too_large) → throw (line 1897)
+    {
+        ObjT obj{str_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_writer<ObjT> writer(obj, buf);
+        writer.reset(5);
+        bool threw = false;
+        try { writer.put_buf(6); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // rollback(0) → throw (line 1944)
+    {
+        ObjT obj{str_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_writer<ObjT> writer(obj, buf);
+        writer.reset(10);
+        auto ptr = writer.put_buf(5);
+        std::copy_n("hello", 5, ptr);
+        bool threw = false;
+        try { writer.rollback(0); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // rollback(too_large) → throw (line 1946)
+    {
+        ObjT obj{str_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        std::vector<char> buf;
+        cvt_writer<ObjT> writer(obj, buf);
+        writer.reset(10);
+        auto ptr = writer.put_buf(5);
+        std::copy_n("hello", 5, ptr);
+        bool threw = false;
+        try { writer.rollback(100); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}

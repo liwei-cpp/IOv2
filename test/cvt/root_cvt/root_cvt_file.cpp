@@ -9,6 +9,20 @@
 #include <common/file_guard.h>
 #include <common/verify.h>
 
+namespace {
+// Minimal write-only device that can be told to throw on the next dput().
+// Used to exercise the catch(...) blocks in move-assignment and destructor.
+struct throw_write_device {
+    using char_type = char;
+    bool should_throw = false;
+
+    void dput(const char_type*, size_t) {
+        if (should_throw) throw IOv2::device_error("forced throw");
+    }
+    void dflush() {}
+};
+} // namespace
+
 void test_root_cvt_file_gen_1()
 {
     using namespace IOv2;
@@ -1063,6 +1077,177 @@ void test_root_cvt_file_seek_overflow_1()
         auto tmp = rb_root_cvt{basic_file_device<true, true, char>("test_file")};
         runtime_cvt obj(std::move(tmp));
         helper(obj);
+    }
+
+    dump_info("Done\n");
+}
+// adjust() and retrieve() are no-ops on the generic template but must be reachable.
+void test_root_cvt_file_adjust_retrieve_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> adjust/retrieve...");
+
+    file_guard g("test_file", "hello");
+    auto obj = rb_root_cvt{ifile_device<char>("test_file")};
+    obj.bos(); obj.main_cont_beg();
+
+    cvt_behavior beh;
+    obj.adjust(beh);
+
+    cvt_status stat;
+    obj.retrieve(stat);
+
+    dump_info("Done\n");
+}
+
+// put() with to_size == remain (exact fill) and large-write bypass path.
+void test_root_cvt_file_put_exact_and_large_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> put exact-fill and large-bypass...");
+
+    constexpr size_t BUF = rb_root_cvt<ofile_device<char>>::s_buffer_length;
+
+    // Exact fill: to_size == remain == s_buffer_length (lines 739-742)
+    {
+        file_guard g("test_file", "");
+        std::string data(BUF, 'x');
+        {
+            auto obj = rb_root_cvt{ofile_device<char>("test_file")};
+            obj.bos(); obj.main_cont_beg();
+            obj.put(data.data(), BUF);
+        } // dtor flushes and closes file
+        VERIFY(g.contents() == data);
+    }
+
+    // Large bypass: buf_used > 0 AND to_size >= s_buffer_length/2 (lines 751-752)
+    {
+        file_guard g("test_file", "");
+        std::string small(100, 'a');
+        std::string large(BUF, 'b');
+        {
+            auto obj = rb_root_cvt{ofile_device<char>("test_file")};
+            obj.bos(); obj.main_cont_beg();
+            obj.put(small.data(), small.size());
+            obj.put(large.data(), large.size());
+        } // dtor flushes and closes file
+        VERIFY(g.contents() == small + large);
+    }
+
+    dump_info("Done\n");
+}
+
+// seek() and rseek() in output mode must flush the buffer first.
+void test_root_cvt_file_seek_rseek_output_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> seek/rseek in output mode...");
+
+    // seek() flushes first (line 856)
+    {
+        file_guard g("test_file", "");
+        auto obj = rb_root_cvt{ofile_device<char>("test_file")};
+        obj.bos();
+        obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.seek(0);
+        VERIFY(g.contents() == "hello");
+    }
+
+    // rseek() flushes first (line 893)
+    {
+        file_guard g("test_file", "");
+        auto obj = rb_root_cvt{ofile_device<char>("test_file")};
+        obj.bos();
+        obj.main_cont_beg();
+        obj.put("hello world", 11);
+        obj.rseek(6);
+        VERIFY(obj.tell() == 5);
+    }
+
+    dump_info("Done\n");
+}
+
+// rseek() when m_bos_len > device.dsize() must throw (line 898).
+void test_root_cvt_file_rseek_bos_overflow_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> rseek bos_len-overflow...");
+
+    file_guard g1("test_file1", "12345678");
+    file_guard g2("test_file2", "ab");
+    auto obj = rb_root_cvt{ifile_device<char>("test_file1")};
+    obj.bos();
+    char buf[3];
+    obj.get(buf, 3);     // buffer filled (8 bytes), returns 3; dtell=8, buffered=5
+    obj.main_cont_beg(); // m_bos_len = 8 - 5 = 3
+    obj.device() = ifile_device<char>("test_file2"); // dsize()=2 < m_bos_len=3
+    bool threw = false;
+    try { obj.rseek(0); } catch (const cvt_error&) { threw = true; }
+    VERIFY(threw);
+
+    dump_info("Done\n");
+}
+
+// switch_to_get() when already in input and switch_to_put() when already in output
+// are both no-ops (lines 926-927, 964-965).
+void test_root_cvt_file_switch_noop_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt<file_device> switch_to_get/put no-op...");
+
+    // switch_to_get() already input → no-op (lines 926-927)
+    {
+        file_guard g("test_file", "hello");
+        auto obj = rb_root_cvt{file_device<char>("test_file")};
+        VERIFY(obj.bos() == io_status::input);
+        obj.main_cont_beg();
+        obj.switch_to_get();
+        char buf[5] = {};
+        VERIFY(obj.get(buf, 5) == 5);
+        VERIFY(std::string(buf, 5) == "hello");
+    }
+
+    // switch_to_put() already output → no-op (lines 964-965)
+    {
+        file_guard g("test_file", "");
+        auto obj = rb_root_cvt{file_device<char>("test_file", file_open_flag::trunc)};
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        obj.switch_to_put();
+        obj.put("world", 5);
+        obj.detach();  // close file so g.contents() sees the data
+        VERIFY(g.contents() == "world");
+    }
+
+    dump_info("Done\n");
+}
+
+// catch(...) in move-assignment (line 307) and destructor (line 350) must swallow
+// exceptions thrown by flush() without propagating them.
+void test_root_cvt_file_flush_exception_catch_1()
+{
+    using namespace IOv2;
+    dump_info("Test root_cvt flush exception caught in move-assign and destructor...");
+
+    // Move assignment: flush on *this throws → caught silently (line 307)
+    {
+        auto obj = rb_root_cvt{throw_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.device().should_throw = true;
+
+        auto obj2 = rb_root_cvt{throw_write_device{}};
+        obj2.bos(); obj2.main_cont_beg();
+        obj = std::move(obj2);
+    }
+
+    // Destructor: flush throws → caught, no std::terminate (line 350)
+    {
+        auto obj = rb_root_cvt{throw_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.device().should_throw = true;
     }
 
     dump_info("Done\n");
