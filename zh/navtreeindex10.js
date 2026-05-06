@@ -1,7 +1,5 @@
 var NAVTREEINDEX10 =
 {
-"ori__facet__buf_8h.html#a95cfe067d7dce4b9768d23b4593342e5":[3,0,0,5,1,2],
-"ori__facet__buf_8h.html#af8167d487eb731f8a042d7bdb06bf8c3":[3,0,0,5,1,1],
 "ori__facet__buf_8h_source.html":[3,0,0,5,1],
 "ostream_8h.html":[3,0,0,4,8],
 "ostream_8h.html#a0f1816337fce241e934314c33faee8e6":[3,0,0,4,8,2],
@@ -249,5 +247,7 @@ var NAVTREEINDEX10 =
 "structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#ae6fe853858e734302649545f8b86af31":[2,0,0,42,6],
 "structIOv2_1_1cpt__cvt__pipe__creator__helper.html":[2,0,0,46],
 "structIOv2_1_1cpt__cvt__pipe__creator__helper.html":[0,0,0,51],
-"structIOv2_1_1cpt__cvt__pipe__creator__helper.html#a0366041ef4c8912f9f695d9547cce26a":[0,0,0,51,0]
+"structIOv2_1_1cpt__cvt__pipe__creator__helper.html#a0366041ef4c8912f9f695d9547cce26a":[0,0,0,51,0],
+"structIOv2_1_1cpt__cvt__pipe__creator__helper.html#a0366041ef4c8912f9f695d9547cce26a":[2,0,0,46,0],
+"structIOv2_1_1cpt__cvt__pipe__creator__helper_3_01cvt__pipe__creator_3_01T_8_8_8_01_4_01_4.html":[2,0,0,47]
 };

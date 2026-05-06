@@ -1,7 +1,5 @@
 var NAVTREEINDEX13 =
 {
-"structIOv2_1_1stream__error.html":[2,0,0,155],
-"structIOv2_1_1streambuf.html":[0,0,0,161],
 "structIOv2_1_1streambuf.html":[2,0,0,156],
 "structIOv2_1_1sync.html":[2,0,0,157],
 "structIOv2_1_1sync.html":[0,0,0,162],

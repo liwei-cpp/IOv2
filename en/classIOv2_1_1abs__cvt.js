@@ -5,7 +5,7 @@ var classIOv2_1_1abs__cvt =
     [ "internal_type", "classIOv2_1_1abs__cvt.html#a5bfdb62e754eecc88f4a991d65a92c36", null ],
     [ "abs_cvt", "classIOv2_1_1abs__cvt.html#a6da880ecdf5d7f0010274bd4edeecbc6", null ],
     [ "abs_cvt", "classIOv2_1_1abs__cvt.html#a1dfd002d4a706a83a16c75798661037d", null ],
-    [ "abs_cvt", "classIOv2_1_1abs__cvt.html#a0d12672faf20a3d37484bc564d3db938", null ],
+    [ "abs_cvt", "classIOv2_1_1abs__cvt.html#a78a0bf4b3cd6d2d984e15fe8315d6552", null ],
     [ "~abs_cvt", "classIOv2_1_1abs__cvt.html#a81950a7d9ee450832b84a845ba074c30", null ],
     [ "adjust", "classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a", null ],
     [ "attach", "classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120", null ],
@@ -16,7 +16,7 @@ var classIOv2_1_1abs__cvt =
     [ "get", "classIOv2_1_1abs__cvt.html#a2514d75b1c449a1c7022edacc7bfd931", null ],
     [ "is_eof", "classIOv2_1_1abs__cvt.html#af1308de70bb55a6c24f675c24f974b2b", null ],
     [ "main_cont_beg", "classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d", null ],
-    [ "operator=", "classIOv2_1_1abs__cvt.html#a7db5af1b0d6970697b8f90206227f4b7", null ],
+    [ "operator=", "classIOv2_1_1abs__cvt.html#ae99b3689ffd597205de1d667a9d0e22d", null ],
     [ "operator=", "classIOv2_1_1abs__cvt.html#a1fe8dddc93e153c41a544fc813f1bd99", null ],
     [ "put", "classIOv2_1_1abs__cvt.html#a96ee8689cca553370c6f246ab546cef2", null ],
     [ "retrieve", "classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a", null ],
@@ -27,6 +27,5 @@ var classIOv2_1_1abs__cvt =
     [ "tell", "classIOv2_1_1abs__cvt.html#add78bcbcdde0e5e1c4798df008c7be38", null ],
     [ "m_io_status", "classIOv2_1_1abs__cvt.html#a34c8361a1fc9ccdc4be0fd7c8c3fba61", null ],
     [ "m_is_bos_done", "classIOv2_1_1abs__cvt.html#a7bd59610c93180c31c6737ef3a746a06", null ],
-    [ "m_kernel", "classIOv2_1_1abs__cvt.html#aa5780eac0f087afee64a176c112d1f99", null ],
-    [ "m_tmp_io_buffer", "classIOv2_1_1abs__cvt.html#a8886cdff2686ad46c31df99a5dceb8e8", null ]
+    [ "m_kernel", "classIOv2_1_1abs__cvt.html#aa5780eac0f087afee64a176c112d1f99", null ]
 ];
