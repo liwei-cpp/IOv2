@@ -13,7 +13,7 @@ namespace IOv2
         cvt_type tmp_cvt(rb_root_cvt{mem_device(val)}, locale_name);
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
-        
+
         std::wstring res;
         wchar_t res_buf[8];
         while (true)
@@ -33,7 +33,7 @@ namespace IOv2
         cvt_type tmp_cvt(rb_root_cvt{mem_device(val)}, locale_name);
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
-        
+
         std::u32string res;
         char32_t res_buf[8];
         while (true)
@@ -53,7 +53,7 @@ namespace IOv2
         cvt_type tmp_cvt(rb_root_cvt{mem_device(val)});
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
-        
+
         std::u32string res;
         char32_t res_buf[8];
         while (true)

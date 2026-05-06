@@ -1,6 +1,7 @@
 #pragma once
-#include <common/metafunctions.h>
 #include <cvt/code_cvt.h>
+
+#include <string>
 
 namespace IOv2
 {
@@ -17,6 +18,12 @@ struct code_cvt_access : cvt_status
     std::string code;
 };
 
+/**
+ * @brief Character encoding converter with runtime locale switching support.
+ *
+ * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
+ *       instance from multiple threads requires external synchronization.
+ */
 template <io_converter KernelType>
 class code_cvt_stdio : public code_cvt<KernelType, wchar_t>
 {
