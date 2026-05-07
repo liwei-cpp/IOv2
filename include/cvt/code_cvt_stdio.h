@@ -7,10 +7,10 @@ namespace IOv2
 {
 struct code_cvt_switch : cvt_behavior
 {
-    code_cvt_switch(const std::string& p_code)
-        : code(p_code) {}
+    code_cvt_switch(std::string p_code)
+        : code(std::move(p_code)) {}
 
-    const std::string code;
+    std::string code;
 };
 
 struct code_cvt_access : cvt_status
@@ -40,11 +40,12 @@ public:
     code_cvt_stdio& operator=(const code_cvt_stdio& val) = default;
     code_cvt_stdio(code_cvt_stdio&& val) = default;
     code_cvt_stdio& operator=(code_cvt_stdio&& val) = default;
+    ~code_cvt_stdio() = default;
 
 public:
     void adjust(const cvt_behavior& acc)
     {
-        if (const code_cvt_switch* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
+        if (const auto* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
         {
             if (!this->m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
@@ -59,7 +60,7 @@ public:
 
     void retrieve(cvt_status& s) const
     {
-        if (code_cvt_access* ptr = dynamic_cast<code_cvt_access*>(&s); ptr)
+        if (auto* ptr = dynamic_cast<code_cvt_access*>(&s); ptr)
         {
             ptr->code = m_code;
             return;
@@ -75,8 +76,8 @@ class code_cvt_stdio_creator
 {
 public:
     using category = CvtCreatorCategory;
-    code_cvt_stdio_creator(const std::string& name)
-        : m_name(name) {}
+    code_cvt_stdio_creator(std::string name)
+        : m_name(std::move(name)) {}
 
     template <io_converter TKernel>
     auto create(TKernel&& kernel) const

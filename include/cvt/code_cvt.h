@@ -43,22 +43,23 @@ struct codecvt_kernel<char, TInt>
 
         // there are no known constant length encodings
         // m_epc == 1 means fixed length
-        m_epc = MB_CUR_MAX;
+        m_epc = MB_CUR_MAX;  // NOLINT(cppcoreguidelines-prefer-member-initializer)
 
         // Note: mbtowc uses internal static state, so concurrent construction of
         // codecvt_kernel instances is NOT thread-safe. However, this is acceptable
         // because this class does not support multi-threaded construction.
         // Once constructed, instance-level operations use explicit mbstate_t (m_state)
         // and are safe for single-instance usage.
+        // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
         m_is_state_dep = (std::mbtowc(nullptr, nullptr, MB_CUR_MAX) != 0);
         init_state();
     }
 
     void init_state() { m_state = std::mbstate_t{}; }
-    bool is_init_state() const { return std::mbsinit(&m_state); }
-    unsigned epc() const { return m_epc; }
-    bool is_var_length() const { return m_epc != 1; }
-    bool is_state_dep() const { return m_is_state_dep; }
+    [[nodiscard]] bool is_init_state() const { return std::mbsinit(&m_state); }
+    [[nodiscard]] unsigned epc() const { return m_epc; }
+    [[nodiscard]] bool is_var_length() const { return m_epc != 1; }
+    [[nodiscard]] bool is_state_dep() const { return m_is_state_dep; }
 
     bool out_helper(TInt ch, char*& to, char* to_end)
     {
@@ -105,7 +106,7 @@ struct codecvt_kernel<char, TInt>
                 // Find the actual byte length of the null character encoding
                 // before writing to output buffer to ensure consistency
                 size_t n = 1;
-                const size_t max_n = static_cast<size_t>(from_end - from);
+                const auto max_n = static_cast<size_t>(from_end - from);
                 for (; n <= max_n; ++n)
                 {
                     auto tmp_state2(m_state);
@@ -139,9 +140,9 @@ struct codecvt_kernel<char, TInt>
 
 private:
     clocale_wrapper m_inter_locale;
-    unsigned        m_epc;
-    std::mbstate_t  m_state;
-    bool            m_is_state_dep;
+    unsigned        m_epc = 0;
+    std::mbstate_t  m_state{};
+    bool            m_is_state_dep = false;
 };
 
 /**
@@ -161,10 +162,10 @@ struct codecvt_kernel<char8_t, TInt>
     codecvt_kernel() = default;
 
     void init_state() { /* no-op for stateless UTF-8 */ }
-    bool is_init_state() const { return true; }
-    unsigned epc() const { return 4; }
-    bool is_var_length() const { return true; }
-    bool is_state_dep() const { return false; }
+    [[nodiscard]] bool is_init_state() const { return true; }
+    [[nodiscard]] unsigned epc() const { return 4; }
+    [[nodiscard]] bool is_var_length() const { return true; }
+    [[nodiscard]] bool is_state_dep() const { return false; }
 
     bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
     {
@@ -172,7 +173,7 @@ struct codecvt_kernel<char8_t, TInt>
         // Check for maximum UTF-8 length (4 bytes) upfront
         if (to_end - to < 4)
             return false;
-        const uint32_t c = static_cast<uint32_t>(ch);
+        const auto c = static_cast<uint32_t>(ch);
         if ((uint32_t)0xD800 <= c && c <= (uint32_t)0xDFFF) [[unlikely]]
             return false;
 
@@ -294,7 +295,6 @@ public:
     code_cvt(KernelType kernel, TParams&&... params)
         : BT(std::move(kernel))
         , m_cvt_kernel(std::forward<TParams>(params)...)
-        , m_accu_len(0)
     {}
 
     code_cvt(const code_cvt& val)
@@ -320,7 +320,9 @@ public:
         return *this;
     }
 
-    code_cvt(code_cvt&& val)
+    code_cvt(code_cvt&& val) noexcept(
+        std::is_nothrow_move_constructible_v<BT> &&
+        std::is_nothrow_move_constructible_v<codecvt_kernel<external_type, internal_type>>)
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
         , m_accu_len(std::move(val.m_accu_len))
@@ -328,7 +330,9 @@ public:
         val.m_accu_len = 0;
     }
 
-    code_cvt& operator=(code_cvt&& val)
+    code_cvt& operator=(code_cvt&& val) noexcept(
+        std::is_nothrow_move_assignable_v<BT> &&
+        std::is_nothrow_move_assignable_v<codecvt_kernel<external_type, internal_type>>)
     {
         if (this == &val) return *this;
         close_stream();
@@ -437,7 +441,7 @@ private:
 
 public:
     /// positioning
-    size_t tell() const
+    [[nodiscard]] size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         return m_accu_len;
@@ -541,8 +545,11 @@ private:
     }
 
 protected:
+    // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
     codecvt_kernel<external_type, internal_type> m_cvt_kernel;
-    size_t                          m_accu_len;
+
+private:
+    size_t m_accu_len = 0;
 };
 
 template <typename TExt, typename TInt>
@@ -558,8 +565,8 @@ class code_cvt_creator<char, TInt>
 {
 public:
     using category = CvtCreatorCategory;
-    code_cvt_creator(const std::string& name)
-        : m_name(name) {}
+    code_cvt_creator(std::string name)
+        : m_name(std::move(name)) {}
 
     template <io_converter TKernel>
     auto create(TKernel&& kernel) const
