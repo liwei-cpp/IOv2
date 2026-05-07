@@ -580,8 +580,10 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memitem:a34b0d83e6ca06457d02cf1f779307f0a" id="r_a34b0d83e6ca06457d02cf1f779307f0a"><td class="memItemLeft" align="right" valign="top">std::u32string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a34b0d83e6ca06457d02cf1f779307f0a">to_u32string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
 <tr class="separator:a34b0d83e6ca06457d02cf1f779307f0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af86e0c4213d46c9fabdfccde0d9c31d9" id="r_af86e0c4213d46c9fabdfccde0d9c31d9"><td class="memItemLeft" align="right" valign="top">std::u8string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af86e0c4213d46c9fabdfccde0d9c31d9">to_u8string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::u32string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="memdesc:af86e0c4213d46c9fabdfccde0d9c31d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a UTF-32 string to UTF-8.  <br /></td></tr>
 <tr class="separator:af86e0c4213d46c9fabdfccde0d9c31d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc72ae5db29ed52490108d581dbdaf3d" id="r_abc72ae5db29ed52490108d581dbdaf3d"><td class="memItemLeft" align="right" valign="top">std::u8string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#abc72ae5db29ed52490108d581dbdaf3d">to_u8string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="memdesc:abc72ae5db29ed52490108d581dbdaf3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a single UTF-32 code point to UTF-8.  <br /></td></tr>
 <tr class="separator:abc72ae5db29ed52490108d581dbdaf3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4706d3fc7874459e05944e008873f67f" id="r_a4706d3fc7874459e05944e008873f67f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T1</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a> &gt; <br />
 requires (cvt_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T1</a>&gt; &amp;&amp; cvt_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a>&gt;)</td></tr>
@@ -4076,6 +4078,21 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Convert a single UTF-32 code point to UTF-8. </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>A Unicode Scalar Value: a code point in [0, 0x10FFFF] and outside the surrogate range [0xD800, 0xDFFF].</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>UTF-8 encoded representation of <code>val</code>.</dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> is not a USV. </td></tr>
+  </table>
+  </dd>
+</dl>
+
 </div>
 </div>
 <a id="af86e0c4213d46c9fabdfccde0d9c31d9" name="af86e0c4213d46c9fabdfccde0d9c31d9"></a>
@@ -4101,6 +4118,21 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Convert a UTF-32 string to UTF-8. </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Input string. Every element must be a Unicode Scalar Value: a code point in [0, 0x10FFFF] and outside the surrogate range [0xD800, 0xDFFF]. <code>std::u32string</code> does not enforce this — callers are responsible for sanitizing input.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>UTF-8 encoded string.</dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> contains any non-USV element. On throw, no partial result is observable. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
