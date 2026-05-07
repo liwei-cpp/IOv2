@@ -67,6 +67,19 @@ namespace IOv2
         return res;
     }
 
+    /**
+     * @brief Convert a UTF-32 string to UTF-8.
+     *
+     * @param val Input string. Every element must be a Unicode Scalar Value:
+     *            a code point in [0, 0x10FFFF] and outside the surrogate
+     *            range [0xD800, 0xDFFF]. `std::u32string` does not enforce
+     *            this — callers are responsible for sanitizing input.
+     *
+     * @return UTF-8 encoded string.
+     *
+     * @throws cvt_error If `val` contains any non-USV element. On throw,
+     *                   no partial result is observable.
+     */
     inline std::u8string to_u8string(const std::u32string& val)
     {
         using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
@@ -78,6 +91,16 @@ namespace IOv2
         return tmp_cvt.detach().str();
     }
 
+    /**
+     * @brief Convert a single UTF-32 code point to UTF-8.
+     *
+     * @param val A Unicode Scalar Value: a code point in [0, 0x10FFFF] and
+     *            outside the surrogate range [0xD800, 0xDFFF].
+     *
+     * @return UTF-8 encoded representation of `val`.
+     *
+     * @throws cvt_error If `val` is not a USV.
+     */
     inline std::u8string to_u8string(char32_t val)
     {
         using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
