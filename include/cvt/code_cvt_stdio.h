@@ -7,7 +7,7 @@ namespace IOv2
 {
 struct code_cvt_switch : cvt_behavior
 {
-    code_cvt_switch(std::string p_code)
+    explicit code_cvt_switch(std::string p_code)
         : code(std::move(p_code)) {}
 
     std::string code;
@@ -49,10 +49,11 @@ public:
         {
             if (!this->m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
-            // Construct new kernel first; if it throws, m_code remains unchanged
+            // Perform all potentially-throwing operations first, then commit with noexcept moves
             codecvt_kernel<char, wchar_t> new_kernel(ptr->code);
+            std::string new_code = ptr->code;
             this->m_cvt_kernel = std::move(new_kernel);
-            m_code = ptr->code;
+            m_code = std::move(new_code);
         }
 
         return BT::adjust(acc);
@@ -76,7 +77,7 @@ class code_cvt_stdio_creator
 {
 public:
     using category = CvtCreatorCategory;
-    code_cvt_stdio_creator(std::string name)
+    explicit code_cvt_stdio_creator(std::string name)
         : m_name(std::move(name)) {}
 
     template <io_converter TKernel>

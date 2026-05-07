@@ -1,13 +1,12 @@
 #pragma once
 #include <common/clocale_wrapper.h>
 #include <common/defs.h>
-#include <common/metafunctions.h>
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
-#include <cassert>
 #include <climits>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <string>
 #include <type_traits>
@@ -36,7 +35,7 @@ struct codecvt_kernel<char, TInt>
     static_assert(MB_LEN_MAX <= std::numeric_limits<unsigned>::max(),
                   "MB_LEN_MAX exceeds unsigned range");
 
-    codecvt_kernel(const std::string& name)
+    explicit codecvt_kernel(const std::string& name)
         : m_inter_locale(name.c_str())
     {
         clocale_user guard(m_inter_locale);
@@ -63,9 +62,8 @@ struct codecvt_kernel<char, TInt>
 
     bool out_helper(TInt ch, char*& to, char* to_end)
     {
-        assert(to <= to_end && "out_helper: invalid pointer range");
         clocale_user guard(m_inter_locale);
-        if (to_end - to < m_epc)
+        if (std::cmp_less(to_end - to, m_epc))
             return false;
 
         const size_t conv = std::wcrtomb(to, ch, &m_state);
@@ -82,8 +80,8 @@ struct codecvt_kernel<char, TInt>
     std::pair<bool, size_t> in_helper(const char*& from, const char* from_end,
                                       TInt*& to, TInt* to_end)
     {
-        assert(from <= from_end && "in_helper: invalid input pointer range");
-        assert(to <= to_end && "in_helper: invalid output pointer range");
+        if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
+            throw cvt_error("codecvt_kernel::in_helper fail: invalid pointer range");
         clocale_user guard(m_inter_locale);
         wchar_t wch = 0;
         size_t i_count = 0;
@@ -169,33 +167,32 @@ struct codecvt_kernel<char8_t, TInt>
 
     bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
     {
-        assert(to <= to_end && "out_helper: invalid pointer range");
         // Check for maximum UTF-8 length (4 bytes) upfront
-        if (to_end - to < 4)
+        if (std::cmp_less(to_end - to, 4))
             return false;
         const auto c = static_cast<uint32_t>(ch);
-        if ((uint32_t)0xD800 <= c && c <= (uint32_t)0xDFFF) [[unlikely]]
+        if (0xD800U <= c && c <= 0xDFFFU) [[unlikely]]
             return false;
 
-        if (c < 0x80)
+        if (c < 0x80U)
             *to++ = static_cast<char8_t>(c);
-        else if (c <= (uint32_t)0x7ff)
+        else if (c <= 0x7ffU)
         {
-            *to++ = static_cast<char8_t>((c >> 6) + 0xC0);
-            *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>((c >> 6) + 0xC0U);
+            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
         }
-        else if (c <= (uint32_t)0xFFFF)
+        else if (c <= 0xFFFFU)
         {
-            *to++ = static_cast<char8_t>((c >> 12) + 0xE0);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>((c >> 12) + 0xE0U);
+            *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
+            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
         }
-        else if (c <= (uint32_t)0x10FFFF)
+        else if (c <= 0x10FFFFU)
         {
-            *to++ = static_cast<char8_t>((c >> 18) + 0xF0);
-            *to++ = static_cast<char8_t>(((c >> 12) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>(((c >> 6) & 0x3F) + 0x80);
-            *to++ = static_cast<char8_t>((c & 0x3F) + 0x80);
+            *to++ = static_cast<char8_t>((c >> 18) + 0xF0U);
+            *to++ = static_cast<char8_t>(((c >> 12) & 0x3FU) + 0x80U);
+            *to++ = static_cast<char8_t>(((c >> 6) & 0x3FU) + 0x80U);
+            *to++ = static_cast<char8_t>((c & 0x3FU) + 0x80U);
         }
         else [[unlikely]]
             return false;
@@ -205,55 +202,55 @@ struct codecvt_kernel<char8_t, TInt>
     std::pair<bool, size_t> in_helper(const char8_t*& from, const char8_t* from_end,
                                       TInt*& to, TInt* to_end)
     {
-        assert(from <= from_end && "in_helper: invalid input pointer range");
-        assert(to <= to_end && "in_helper: invalid output pointer range");
+        if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
+            throw cvt_error("codecvt_kernel::in_helper fail: invalid pointer range");
         const TInt* const ori_to = to;
 
         while ((from != from_end) && (to != to_end))
         {
             auto c1 = static_cast<uint32_t>(*from);
-            if (c1 < 0x80) [[likely]]
+            if (c1 < 0x80U) [[likely]]
             {
                 ++from;
                 *to++ = static_cast<TInt>(c1);
             }
-            else if (c1 < 0xE0)
+            else if (c1 < 0xE0U)
             {
-                if (c1 < 0xC0) [[unlikely]]
+                if (c1 < 0xC0U) [[unlikely]]
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
                 if (from_end - from < 2) break;
                 auto c2 = static_cast<uint32_t>(from[1]);
-                if ((c2 & 0xC0) != 0x80) [[unlikely]]
+                if ((c2 & 0xC0U) != 0x80U) [[unlikely]]
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
-                auto c = (c1 << 6) + c2 - 0x3080;
-                if (c < 0x80) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                auto c = (c1 << 6) + c2 - 0x3080U;
+                if (c < 0x80U) return std::pair{false, static_cast<size_t>(to - ori_to)};
                 *to++ = c;
                 from += 2;
             }
-            else if (c1 < 0xF0)
+            else if (c1 < 0xF0U)
             {
                 if (from_end - from < 3) break;
                 auto c2 = static_cast<uint32_t>(from[1]);
                 auto c3 = static_cast<uint32_t>(from[2]);
-                if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80)) [[unlikely]]
+                if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U)) [[unlikely]]
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
-                auto c = (c1 << 12) + (c2 << 6) + c3 - 0xE2080;
-                if (c < 0x800) return std::pair{false, static_cast<size_t>(to - ori_to)};
-                if (c >= 0xD800 && c <= 0xDFFF) [[unlikely]]
+                auto c = (c1 << 12) + (c2 << 6) + c3 - 0xE2080U;
+                if (c < 0x800U) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                if (c >= 0xD800U && c <= 0xDFFFU) [[unlikely]]
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
                 *to++ = c;
                 from += 3;
             }
-            else if (c1 < 0xF8)
+            else if (c1 < 0xF8U)
             {
                 if (from_end - from < 4) break;
                 auto c2 = static_cast<uint32_t>(from[1]);
                 auto c3 = static_cast<uint32_t>(from[2]);
                 auto c4 = static_cast<uint32_t>(from[3]);
-                if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80)) [[unlikely]]
+                if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U) || ((c4 & 0xC0U) != 0x80U)) [[unlikely]]
                     return std::pair{false, static_cast<size_t>(to - ori_to)};
-                auto c = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4 - 0x3C82080;
-                if (c < 0x10000 || c > 0x10FFFF) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                auto c = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4 - 0x3C82080U;
+                if (c < 0x10000U || c > 0x10FFFFU) return std::pair{false, static_cast<size_t>(to - ori_to)};
                 *to++ = c;
                 from += 4;
             }
@@ -308,15 +305,8 @@ public:
         requires (std::copy_constructible<KernelType>)
     {
         if (this == &val) return *this;
-
-        // Create full copy first (all potentially-throwing operations)
         code_cvt tmp(val);
-
-        // Move from tmp (should not throw)
-        close_stream();
-        BT::operator=(std::move(tmp));
-        m_cvt_kernel = std::move(tmp.m_cvt_kernel);
-        m_accu_len = tmp.m_accu_len;
+        *this = std::move(tmp);
         return *this;
     }
 
@@ -325,7 +315,7 @@ public:
         std::is_nothrow_move_constructible_v<codecvt_kernel<external_type, internal_type>>)
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
-        , m_accu_len(std::move(val.m_accu_len))
+        , m_accu_len(val.m_accu_len)
     {
         val.m_accu_len = 0;
     }
@@ -389,7 +379,7 @@ private:
             internal_type ch = *to++;
 
             if (!m_cvt_kernel.out_helper(ch, out_next, out_beg + buf_len))
-                throw cvt_error("[code_cvt::overflow] code convert fail.");
+                throw cvt_error("code_cvt::put fail: code conversion error");
 
             ++m_accu_len;
             if (out_next < out_beg + buf_len)
@@ -411,20 +401,20 @@ private:
             dest_size = std::max(dest_size, prev_rollback + 1);
 
             if (dest_size > s_max_buf_size) [[unlikely]]
-                throw cvt_error("code_cvt::get fail, input sequence too long.");
+                throw cvt_error("code_cvt::get fail: input sequence too long");
 
             auto [ptr, cur_size] = reader.get_buf(dest_size);
             if (cur_size == prev_rollback)
             {
                 if (cur_size == 0) return total_size;
-                throw cvt_error("code_cvt::get fail, partial input sequence.");
+                throw cvt_error("code_cvt::get fail: partial input sequence");
             }
 
             auto ext_cur = ptr;
             auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
 
             if (!succ)
-                throw cvt_error("code_cvt::get fail, invalid external sequence.");
+                throw cvt_error("code_cvt::get fail: invalid external sequence");
             m_accu_len += int_len;
             total_size += int_len;
 
@@ -482,7 +472,7 @@ public:
 
         BT::m_kernel.rseek(pos * epc);
         if (BT::m_kernel.tell() % epc != 0)
-            throw cvt_error("code_cvt::rseek fail: partial sequence.");
+            throw cvt_error("code_cvt::rseek fail: partial sequence");
 
         m_accu_len = BT::m_kernel.tell() / epc;
         m_cvt_kernel.init_state();
@@ -565,7 +555,7 @@ class code_cvt_creator<char, TInt>
 {
 public:
     using category = CvtCreatorCategory;
-    code_cvt_creator(std::string name)
+    explicit code_cvt_creator(std::string name)
         : m_name(std::move(name)) {}
 
     template <io_converter TKernel>

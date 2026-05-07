@@ -22,7 +22,7 @@ namespace IOv2
             auto c = tmp_cvt.get(res_buf.data(), res_buf.size());
             if (c == 0) break;
             res.insert(res.size(), res_buf.data(), c);
-        };
+        }
 
         return res;
     }
@@ -42,7 +42,7 @@ namespace IOv2
             auto c = tmp_cvt.get(res_buf.data(), res_buf.size());
             if (c == 0) break;
             res.insert(res.size(), res_buf.data(), c);
-        };
+        }
 
         return res;
     }
@@ -62,7 +62,7 @@ namespace IOv2
             auto c = tmp_cvt.get(res_buf.data(), res_buf.size());
             if (c == 0) break;
             res.insert(res.size(), res_buf.data(), c);
-        };
+        }
 
         return res;
     }
