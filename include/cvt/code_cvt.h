@@ -42,7 +42,14 @@ struct codecvt_kernel<char, TInt>
 
         // there are no known constant length encodings
         // m_epc == 1 means fixed length
-        m_epc = MB_CUR_MAX;  // NOLINT(cppcoreguidelines-prefer-member-initializer)
+        // Defensive check: the C standard requires MB_CUR_MAX to be a positive
+        // integer, but a misconfigured CRT / exotic libc could report 0, which
+        // would lead to division-by-zero UB in seek / rseek. Reject it here so
+        // m_epc >= 1 holds as a class invariant for any constructed instance.
+        const auto cur_max = MB_CUR_MAX;
+        if (cur_max == 0) [[unlikely]]
+            throw cvt_error("codecvt_kernel: locale reports MB_CUR_MAX == 0");
+        m_epc = static_cast<unsigned>(cur_max);
 
         // Note: mbtowc uses internal static state, so concurrent construction of
         // codecvt_kernel instances is NOT thread-safe. However, this is acceptable
@@ -60,10 +67,16 @@ struct codecvt_kernel<char, TInt>
     [[nodiscard]] bool is_var_length() const { return m_epc != 1; }
     [[nodiscard]] bool is_state_dep() const { return m_is_state_dep; }
 
+    // Precondition: `to` and `to_end` must point into the same array.
+    // Behavior is undefined otherwise — std::greater enforces a total order
+    // across pointers regardless of provenance, but the pointer subtraction
+    // below requires same-object provenance per [expr.add]/5.
     bool out_helper(TInt ch, char*& to, char* to_end)
     {
+        if (std::greater<>{}(to, to_end)) [[unlikely]]
+            throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
         clocale_user guard(m_inter_locale);
-        if (std::cmp_less(to_end - to, m_epc))
+        if (static_cast<size_t>(to_end - to) < m_epc)
             return false;
 
         const size_t conv = std::wcrtomb(to, ch, &m_state);
@@ -77,6 +90,10 @@ struct codecvt_kernel<char, TInt>
         return true;
     }
 
+    // Precondition: `from`/`from_end` and `to`/`to_end` must each point into
+    // the same array. Behavior is undefined otherwise — std::greater enforces
+    // a total order across pointers regardless of provenance, but the pointer
+    // subtractions below require same-object provenance per [expr.add]/5.
     std::pair<bool, size_t> in_helper(const char*& from, const char* from_end,
                                       TInt*& to, TInt* to_end)
     {
@@ -165,10 +182,16 @@ struct codecvt_kernel<char8_t, TInt>
     [[nodiscard]] bool is_var_length() const { return true; }
     [[nodiscard]] bool is_state_dep() const { return false; }
 
+    // Precondition: `to` and `to_end` must point into the same array.
+    // Behavior is undefined otherwise — std::greater enforces a total order
+    // across pointers regardless of provenance, but the pointer subtraction
+    // below requires same-object provenance per [expr.add]/5.
     bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
     {
+        if (std::greater<>{}(to, to_end)) [[unlikely]]
+            throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
         // Check for maximum UTF-8 length (4 bytes) upfront
-        if (std::cmp_less(to_end - to, 4))
+        if (to_end - to < 4)
             return false;
         const auto c = static_cast<uint32_t>(ch);
         if (0xD800U <= c && c <= 0xDFFFU) [[unlikely]]
@@ -199,6 +222,10 @@ struct codecvt_kernel<char8_t, TInt>
         return true;
     }
 
+    // Precondition: `from`/`from_end` and `to`/`to_end` must each point into
+    // the same array. Behavior is undefined otherwise — std::greater enforces
+    // a total order across pointers regardless of provenance, but the pointer
+    // subtractions below require same-object provenance per [expr.add]/5.
     std::pair<bool, size_t> in_helper(const char8_t*& from, const char8_t* from_end,
                                       TInt*& to, TInt* to_end)
     {
@@ -325,7 +352,6 @@ public:
         std::is_nothrow_move_assignable_v<codecvt_kernel<external_type, internal_type>>)
     {
         if (this == &val) return *this;
-        close_stream();
         BT::operator=(std::move(val));
         m_cvt_kernel = std::move(val.m_cvt_kernel);
         m_accu_len = val.m_accu_len;
@@ -333,10 +359,7 @@ public:
         return *this;
     }
 
-    ~code_cvt()
-    {
-        close_stream();
-    }
+    ~code_cvt() = default;
 
 // mandatory methods
 public:
@@ -379,13 +402,18 @@ private:
             internal_type ch = *to++;
 
             if (!m_cvt_kernel.out_helper(ch, out_next, out_beg + buf_len))
-                throw cvt_error("code_cvt::put fail: code conversion error");
+            {
+                writer.rollback(buf_len);
+                writer.commit();
+                m_accu_len += i;
+                throw cvt_error("code_cvt::put fail: input character cannot be encoded");
+            }
 
-            ++m_accu_len;
             if (out_next < out_beg + buf_len)
                 writer.rollback(out_beg + buf_len - out_next);
         }
         writer.commit();
+        m_accu_len += to_size;
     }
 
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
@@ -413,10 +441,15 @@ private:
             auto ext_cur = ptr;
             auto [succ, int_len] = m_cvt_kernel.in_helper(ext_cur, ptr + cur_size, to, to + to_max - total_size);
 
-            if (!succ)
-                throw cvt_error("code_cvt::get fail: invalid external sequence");
+            // Update accumulated length BEFORE the failure check: in_helper may
+            // have written `int_len` chars into the caller's `to` buffer before
+            // hitting an invalid byte. Throwing without this update would leave
+            // m_accu_len inconsistent with the chars already produced.
             m_accu_len += int_len;
             total_size += int_len;
+
+            if (!succ)
+                throw cvt_error("code_cvt::get fail: invalid external sequence");
 
             if (ext_cur == ptr + cur_size)
                 prev_rollback = 0;
