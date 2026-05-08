@@ -480,6 +480,11 @@ public:
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         BT::assert_not_tainted();
+        // Fast path for no-op self-seek: skip validation and kernel work when
+        // pos already equals the current position. Intentional even in modes
+        // where the validation below would otherwise reject — callers using
+        // seek(saved_pos) for position-restore must not be rejected when
+        // saved_pos happens to equal tell().
         if (this->tell() == pos) return;
 
         const bool needs_state_reset =
