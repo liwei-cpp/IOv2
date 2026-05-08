@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <climits>
+#include <concepts>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <cwchar>
@@ -44,7 +46,7 @@ struct codecvt_kernel<char, TInt>
     {
         clocale_user guard(m_inter_locale);
 
-        // there are no known constant length encodings
+        // there are no known constant-length encodings
         // m_epc == 1 means fixed length
         // Defensive check: the C standard requires MB_CUR_MAX to be a positive
         // integer, but a misconfigured CRT / exotic libc could report 0, which
@@ -386,9 +388,9 @@ public:
 
     void main_cont_beg()
     {
+        BT::main_cont_beg();
         m_cvt_kernel.init_state();
         m_accu_len = 0;
-        BT::main_cont_beg();
     }
 
 // optional methods
@@ -406,23 +408,22 @@ private:
             internal_type ch = *to++;
 
             if (!m_cvt_kernel.out_helper(ch, out_next, out_beg + buf_len))
-            {
-                writer.rollback(buf_len);
-                writer.commit();
-                m_accu_len += i;
                 throw cvt_error("code_cvt::put fail: input character cannot be encoded");
-            }
 
             if (out_next < out_beg + buf_len)
                 writer.rollback(out_beg + buf_len - out_next);
         }
-        writer.commit();
+        // commit() is the responsibility of abs_cvt::put; m_accu_len is
+        // updated only on success so that a thrown encoding error leaves
+        // it untouched (the converter will be tainted by abs_cvt::put,
+        // so further reads of m_accu_len are blocked anyway).
         m_accu_len += to_size;
     }
 
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
+        if (to_max == 0) return 0;
         reader.reset(s_max_buf_size);
         size_t total_size = 0;
 
@@ -471,47 +472,64 @@ public:
     [[nodiscard]] size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
+        BT::assert_not_tainted();
         return m_accu_len;
     }
 
     void seek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
+        BT::assert_not_tainted();
         if (this->tell() == pos) return;
 
-        if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
-        {
-            if ((pos == 0) && (BT::m_io_status != io_status::output))
-                m_cvt_kernel.init_state();
-            else
-                throw cvt_error("code_cvt::seek fail: cannot seek with dependent converter");
-        }
+        const bool needs_state_reset =
+            m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep();
+
+        if (needs_state_reset && (pos != 0 || BT::m_io_status == io_status::output))
+            throw cvt_error("code_cvt::seek fail: cannot seek with dependent converter");
 
         const unsigned epc = m_cvt_kernel.epc();
         if (pos > std::numeric_limits<size_t>::max() / epc)
             throw cvt_error("code_cvt::seek fail: position overflow");
 
+        // Commit lower layer first. If it throws, this object is unchanged
+        // (strong exception guarantee). After this point the remaining
+        // mutations are noexcept (mbstate_t reset / scalar assignment), so
+        // we cannot end up half-updated.
         BT::m_kernel.seek(pos * epc);
+
+        if (needs_state_reset)
+            m_cvt_kernel.init_state();
         m_accu_len = pos;
     }
 
     void rseek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
+        BT::assert_not_tainted();
         if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
-        {
             throw cvt_error("code_cvt::rseek fail: cannot seek with dependent converter");
-        }
 
         const unsigned epc = m_cvt_kernel.epc();
         if (pos > std::numeric_limits<size_t>::max() / epc)
             throw cvt_error("code_cvt::rseek fail: position overflow");
 
+        const size_t saved_dev_pos = BT::m_kernel.tell();
         BT::m_kernel.rseek(pos * epc);
-        if (BT::m_kernel.tell() % epc != 0)
-            throw cvt_error("code_cvt::rseek fail: partial sequence");
+        const size_t new_dev_pos = BT::m_kernel.tell();
 
-        m_accu_len = BT::m_kernel.tell() / epc;
+        if (new_dev_pos % epc != 0)
+        {
+            // Restore device so this call appears atomic. If the restore
+            // itself throws, suppress it — the caller already gets a
+            // cvt_error and is expected to re-seek before further use;
+            // surfacing a different exception here would only obscure the
+            // failure mode.
+            try { BT::m_kernel.seek(saved_dev_pos); } catch (...) {} // NOLINT(bugprone-empty-catch)
+            throw cvt_error("code_cvt::rseek fail: partial sequence");
+        }
+
+        m_accu_len = new_dev_pos / epc;
         m_cvt_kernel.init_state();
     }
 
@@ -519,6 +537,7 @@ public:
     void switch_to_put()
         requires (cvt_cpt::support_io_switch<KernelType>)
     {
+        BT::assert_not_tainted();
         switch(BT::m_io_status)
         {
         case io_status::output:
@@ -545,6 +564,7 @@ public:
     void switch_to_get()
         requires (cvt_cpt::support_io_switch<KernelType>)
     {
+        BT::assert_not_tainted();
         switch(BT::m_io_status)
         {
         case io_status::input:

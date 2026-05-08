@@ -67,8 +67,8 @@ public:
 
     void main_cont_beg()
     {
+        BT::main_cont_beg();
         m_pos = 0;
-        return BT::main_cont_beg();
     }
 
 // optional methods
@@ -113,7 +113,7 @@ private:
             }
             total_count += dest_size;
         }
-        writer.commit();
+        // commit() is the responsibility of abs_cvt::put.
     }
 
 public:
@@ -121,19 +121,22 @@ public:
     size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
+        BT::assert_not_tainted();
         return m_pos;
     }
-    
+
     void seek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
+        BT::assert_not_tainted();
         BT::m_kernel.seek(pos);
         m_pos = pos;
     }
-    
+
     void rseek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
+        BT::assert_not_tainted();
         BT::m_kernel.rseek(pos);
         m_pos = BT::m_kernel.tell();
     }

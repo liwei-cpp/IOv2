@@ -556,6 +556,19 @@ namespace IOv2
      *       4. **主内容阶段**：可调用所有其他成员函数（`get`、`put`、`flush`、
      *          `tell`、`seek`、`rseek`、`switch_to_get`、`switch_to_put` 等）。
      *       违反此调用顺序将导致未定义行为。
+     *
+     * @note 派生类生命周期方法的执行顺序：派生类重写 `bos()`、`main_cont_beg()`、
+     *       `attach()`、`detach()`、`close_stream()` 等生命周期方法时，必须按
+     *       下列规则编排"修改本层成员"与"调用 `BT::xxx()`"的先后顺序，以保证
+     *       异常安全与层间状态一致：
+     *       - **起始/初始化操作**（`bos`、`main_cont_beg`）：**先调用 `BT::xxx()`，
+     *         再修改本层成员**。语义类比 C++ 构造函数的"基类先于派生类构造"：
+     *         若下层抛出异常，本层状态保持不变（强异常安全）；若下层成功，
+     *         下层已就绪可供本层读取（例如读取 `BT::m_io_status` 决定本层行为）。
+     *       - **结束/清理操作**（`detach`、`close_stream`、用于终结的 `flush`）：
+     *         **先冲刷/清理本层状态，再调用 `BT::xxx()`**。语义类比 C++ 析构函数
+     *         的"派生类先于基类析构"：本层须在下层关闭前把待写数据冲入下层，
+     *         否则冲入将无处可去。
      * @endif
      *
      * @lang{EN}
@@ -592,6 +605,57 @@ namespace IOv2
      *          (`get`, `put`, `flush`, `tell`, `seek`, `rseek`, `switch_to_get`,
      *          `switch_to_put`, etc.).
      *       Violating this calling sequence results in undefined behavior.
+     *
+     * @note Ordering rule for derived lifecycle methods: When a derived class
+     *       overrides `bos()`, `main_cont_beg()`, `attach()`, `detach()`,
+     *       `close_stream()`, or similar lifecycle methods, the order of
+     *       "mutate this layer's members" vs. "call `BT::xxx()`" must follow
+     *       the rule below to guarantee exception safety and inter-layer
+     *       state consistency:
+     *       - **Begin / init operations** (`bos`, `main_cont_beg`): **call
+     *         `BT::xxx()` first, then mutate this layer's members**. This
+     *         mirrors C++ constructor semantics ("base before derived"): if
+     *         the lower layer throws, this layer's state is unchanged (strong
+     *         exception guarantee); if it succeeds, the lower layer is ready
+     *         and this layer may inspect its state (e.g., read
+     *         `BT::m_io_status`) to decide what to do.
+     *       - **End / teardown operations** (`detach`, `close_stream`,
+     *         finalizing `flush`): **mutate/flush this layer first, then call
+     *         `BT::xxx()`**. This mirrors C++ destructor semantics ("derived
+     *         before base"): this layer must drain pending data into the
+     *         lower layer before the lower layer is torn down — otherwise the
+     *         drained data has nowhere to go.
+     *
+     * @par Exception Safety / Tainted State
+     * Output streaming cannot in general offer the strong exception
+     * guarantee: a single `put` may auto-flush several chunks to the kernel
+     * before encountering a malformed code unit, and those already-flushed
+     * bytes cannot be rolled back — the resulting byte sequence on the
+     * underlying device is therefore truncated or otherwise inconsistent.
+     * To prevent silent corruption from continued use after such a failure,
+     * `abs_cvt` maintains a *tainted* flag (`m_is_tainted`). The contract is:
+     *   - `put` wraps its entire body in a catch-all and sets
+     *     `m_is_tainted = true` on any exception before rethrowing. It also
+     *     calls `assert_not_tainted()` on entry, so a tainted converter
+     *     refuses further IO.
+     *   - `get` does NOT taint on its own failures: read errors only
+     *     advance the kernel cursor and may leave a per-call mbstate
+     *     undefined, but the underlying byte stream itself is unchanged
+     *     and the caller can reseek to recover. `get` does, however,
+     *     honour any pre-existing taint via `assert_not_tainted()`.
+     *   - Derived classes MUST NOT call `cvt_writer::commit()` themselves;
+     *     `abs_cvt::put` is the sole committer on the success path. Any
+     *     exception thrown out of `put_main` taints the converter, and
+     *     uncommitted buffer contents are dropped at writer destruction.
+     *     This is a deliberate semantic change from the old
+     *     "commit-the-prefix-then-throw" pattern: encoding errors discard
+     *     the in-progress batch instead of producing a partial commit.
+     *   - Derived classes MAY call `assert_not_tainted()` at the entry of
+     *     positioning, IO-direction switching, or any other operation whose
+     *     correctness depends on a known-good kernel state.
+     *   - The flag is cleared by `attach` and `detach`, and is propagated
+     *     by copy/move ctors and assignments (the source of a move is
+     *     reset to a clean, empty state).
      * @endif
      *
      * @tparam CurrentType
@@ -693,7 +757,8 @@ namespace IOv2
         abs_cvt(const abs_cvt& val)
             : m_kernel(val.m_kernel)
             , m_io_status(val.m_io_status)
-            , m_is_bos_done(val.m_is_bos_done) {}
+            , m_is_bos_done(val.m_is_bos_done)
+            , m_is_tainted(val.m_is_tainted) {}
 
         /**
          * @lang{ZH}
@@ -710,9 +775,11 @@ namespace IOv2
             : m_kernel(std::move(val.m_kernel))
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
+            , m_is_tainted(val.m_is_tainted)
         {
             val.m_io_status = io_status::neutral;
             val.m_is_bos_done = false;
+            val.m_is_tainted = false;
         }
 
         /**
@@ -734,6 +801,7 @@ namespace IOv2
                 m_kernel = val.m_kernel;
                 m_io_status = val.m_io_status;
                 m_is_bos_done = val.m_is_bos_done;
+                m_is_tainted = val.m_is_tainted;
                 // m_reader and m_writer keep pointing to &m_kernel, no change needed
             }
             return *this;
@@ -758,6 +826,8 @@ namespace IOv2
                 val.m_io_status = io_status::neutral;
                 m_is_bos_done = val.m_is_bos_done;
                 val.m_is_bos_done = false;
+                m_is_tainted = val.m_is_tainted;
+                val.m_is_tainted = false;
             }
             return *this;
         }
@@ -804,6 +874,7 @@ namespace IOv2
         {
             m_io_status = io_status::neutral;
             m_is_bos_done = false;
+            m_is_tainted = false;
             return m_kernel.detach();
         }
 
@@ -836,6 +907,7 @@ namespace IOv2
         {
             m_io_status = io_status::neutral;
             m_is_bos_done = false;
+            m_is_tainted = false;
             return m_kernel.attach(std::move(dev));
         }
 
@@ -959,8 +1031,8 @@ namespace IOv2
          */
         void main_cont_beg()
         {
-            m_is_bos_done = true;
             m_kernel.main_cont_beg();
+            m_is_bos_done = true;
         }
 
         /**
@@ -1047,6 +1119,13 @@ namespace IOv2
                 { t.get_main(r, data, len) } -> std::same_as<size_t>;
             }
         {
+            // Read failures do not taint: they only advance the kernel cursor
+            // and possibly leave a per-call mbstate undefined; the underlying
+            // stream content is unchanged, and callers can reseek to recover.
+            // We still honour any pre-existing taint so that a writer that
+            // corrupted the stream cannot then read back a confused image.
+            assert_not_tainted();
+
             cvt_reader<KernelType> reader(m_kernel, m_tmp_io_buffer);
 
             if (!m_is_bos_done)
@@ -1149,56 +1228,80 @@ namespace IOv2
                 { t.put_main(w, data, len) } -> std::same_as<void>;
             }
         {
-            cvt_writer<KernelType> writer(m_kernel, m_tmp_io_buffer);
-            if (!m_is_bos_done)
+            assert_not_tainted();
+
+            // IO-direction switching does not write bytes to the output stream:
+            // a failed switch_to_put() leaves the stream unchanged, so the
+            // converter is not corrupted and must not be tainted.  Perform the
+            // switch BEFORE entering the taint-on-exception region so that only
+            // actual kernel writes can cause tainting.
+            if (m_is_bos_done && m_io_status != io_status::output)
             {
-                if (to_size == 0) return;
-
-                constexpr size_t ext_size = sizeof(external_type);
-
-                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                auto to_bytes = reinterpret_cast<const char*>(to);
-                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                auto to_bytes_end = reinterpret_cast<const char*>(to + to_size);
-
-                // BOS phase writes complete external_type units. If the input data
-                // is not a multiple of ext_size, pad the final unit with zeros.
-
-                writer.reset(s_bos_chunk);
-                while (to_bytes + ext_size <= to_bytes_end)
-                {
-                    auto dest_count = std::min<size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
-                    auto ptr = writer.put_buf(dest_count);
-                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                    std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, dest_count * ext_size);
-                    to_bytes += dest_count * ext_size;
-                }
-
-                if (to_bytes < to_bytes_end)
-                {
-                    // The while loop above guarantees remaining < ext_size.
-                    // The modulo is logically redundant but helps the compiler's
-                    // static analyzer prove the bound for memset size calculation.
-                    size_t remaining = static_cast<size_t>(to_bytes_end - to_bytes) % ext_size;
-                    auto ptr = writer.put_buf(1);
-                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                    std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, remaining);
-                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                    std::memset(reinterpret_cast<char*>(ptr) + remaining, 0, ext_size - remaining);
-                }
-
-                writer.commit();
+                if constexpr (cvt_cpt::support_io_switch<CurrentType>)
+                    static_cast<CurrentType*>(this)->switch_to_put();
+                else
+                    throw cvt_error("abs_cvt::put fail: cannot switch to output mode");
             }
-            else
+
+            try
             {
-                if (m_io_status != io_status::output)
+                cvt_writer<KernelType> writer(m_kernel, m_tmp_io_buffer);
+                if (!m_is_bos_done)
                 {
-                    if constexpr (cvt_cpt::support_io_switch<CurrentType>)
-                        static_cast<CurrentType*>(this)->switch_to_put();
-                    else
-                        throw cvt_error("abs_cvt::put fail: cannot switch to output mode");
+                    if (to_size == 0) return;
+
+                    constexpr size_t ext_size = sizeof(external_type);
+
+                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                    auto to_bytes = reinterpret_cast<const char*>(to);
+                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                    auto to_bytes_end = reinterpret_cast<const char*>(to + to_size);
+
+                    // BOS phase writes complete external_type units. If the input data
+                    // is not a multiple of ext_size, pad the final unit with zeros.
+
+                    writer.reset(s_bos_chunk);
+                    while (to_bytes + ext_size <= to_bytes_end)
+                    {
+                        auto dest_count = std::min<size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
+                        auto ptr = writer.put_buf(dest_count);
+                        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                        std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, dest_count * ext_size);
+                        to_bytes += dest_count * ext_size;
+                    }
+
+                    if (to_bytes < to_bytes_end)
+                    {
+                        // The while loop above guarantees remaining < ext_size.
+                        // The modulo is logically redundant but helps the compiler's
+                        // static analyzer prove the bound for memset size calculation.
+                        size_t remaining = static_cast<size_t>(to_bytes_end - to_bytes) % ext_size;
+                        auto ptr = writer.put_buf(1);
+                        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                        std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, remaining);
+                        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                        std::memset(reinterpret_cast<char*>(ptr) + remaining, 0, ext_size - remaining);
+                    }
+
+                    writer.commit();
                 }
-                static_cast<CurrentType*>(this)->put_main(writer, to, to_size);
+                else
+                {
+                    // switch_to_put() was already called above if needed;
+                    // m_io_status is guaranteed to be output at this point.
+                    static_cast<CurrentType*>(this)->put_main(writer, to, to_size);
+                    // commit() is the sole responsibility of abs_cvt::put: derived
+                    // put_main implementations must NOT call writer.commit() themselves.
+                    // If put_main throws, this commit is skipped and any uncommitted
+                    // buffer contents are dropped at writer destruction; the catch
+                    // below taints the converter.
+                    writer.commit();
+                }
+            }
+            catch (...)
+            {
+                m_is_tainted = true;
+                throw;
             }
         }
 
@@ -1370,6 +1473,34 @@ namespace IOv2
         bool        m_is_bos_done = false;
         // NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes)
 
+        /**
+         * @lang{ZH}
+         * 若当前转换器已被标记为 tainted，则抛出 `cvt_error`；否则什么也不做。
+         *
+         * 派生类应在依赖底层 kernel 状态完整性的操作（如定位、IO 方向切换等）
+         * 入口处调用此函数，以快速失败、阻止在已损坏的状态上继续操作。
+         * @endif
+         *
+         * @lang{EN}
+         * Throws `cvt_error` if the converter has been marked tainted; otherwise
+         * does nothing.
+         *
+         * Derived classes should call this at the entry of any operation whose
+         * correctness depends on the kernel being in a known-good state — e.g.,
+         * positioning or IO-direction switching — so that further use after a
+         * partial-failure is refused fast rather than silently corrupting data.
+         * @endif
+         *
+         * @throws cvt_error
+         * @lang{ZH} 若 `m_is_tainted` 为 `true`。 @endif
+         * @lang{EN} If `m_is_tainted` is `true`. @endif
+         */
+        void assert_not_tainted() const
+        {
+            if (m_is_tainted)
+                throw cvt_error("abs_cvt: converter is in a tainted state; reattach a device to recover");
+        }
+
     private:
         /** @lang{ZH}
          *  临时 IO 缓冲区，供 `cvt_reader` 和 `cvt_writer` 在每次 `get`/`put` 调用时共用。
@@ -1380,5 +1511,23 @@ namespace IOv2
          *  The buffer is sized on demand by `reset()` at first use.
          *  @endif */
         std::vector<external_type> m_tmp_io_buffer;
+
+        /** @lang{ZH}
+         *  Tainted 标志：当 `put` 抛出异常时被置为 `true`，表示底层流的字节
+         *  序列可能已被部分写入（auto-flush 已写入的字节无法回退）。一旦置位，
+         *  后续的 `put`/`get` 会立即抛出，派生类亦可通过 `assert_not_tainted()`
+         *  在其它操作入口处显式拒绝执行。由 `attach()`/`detach()` 重置为 `false`。
+         *  注意：`get` 失败本身不会污染该标志。
+         *  @endif
+         *  @lang{EN}
+         *  Tainted flag: set to `true` whenever `put` propagates an exception.
+         *  Indicates that the underlying byte stream may have been partially
+         *  written (auto-flushed bytes are not rollback-able). Once set,
+         *  further `put`/`get` calls fail fast; derived classes may also
+         *  query it via `assert_not_tainted()` at the entry of other
+         *  state-dependent operations. Reset to `false` by `attach()`/`detach()`.
+         *  Note: failures inside `get` do NOT set this flag on their own.
+         *  @endif */
+        bool m_is_tainted = false;
     };
 }

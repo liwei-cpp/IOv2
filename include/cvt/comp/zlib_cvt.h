@@ -148,7 +148,7 @@ public:
         {
             close_stream();
         }
-        catch (...) {}
+        catch (...) {} // NOLINT(bugprone-empty-catch)
     }
 
 // mandatory methods
@@ -330,20 +330,21 @@ private:
             to += aim_output;
             to_size -= aim_output / sizeof(internal_type);
         }
-        writer.commit();
+        // commit() is the responsibility of abs_cvt::put.
 
         m_strm.next_out = nullptr;
         m_strm.avail_out = 0;
         m_strm.next_in = nullptr;
         m_strm.avail_in = 0;
     }
-public:    
+public:
     void flush()
         requires (cvt_cpt::support_put<KernelType>)
     {
+        BT::assert_not_tainted();
         if (!BT::m_is_bos_done)
             return BT::m_kernel.flush();
-        
+
         if (BT::m_io_status != io_status::output)
             throw cvt_error("zlib_cvt::flush fails: not available");
 

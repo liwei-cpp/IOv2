@@ -173,7 +173,7 @@ private:
             to += aim_output;
             to_size -= aim_output / sizeof(internal_type);
         }
-        writer.commit();
+        // commit() is the responsibility of abs_cvt::put.
     }
 private:
     std::unique_ptr<Botan::StreamCipher> m_cipher;
