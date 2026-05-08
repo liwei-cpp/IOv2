@@ -5,6 +5,7 @@
 
 #include <array>
 #include <string>
+#include <string_view>
 
 namespace IOv2
 {
@@ -27,11 +28,10 @@ namespace IOv2
         return res;
     }
 
-    inline std::u32string to_u32string(const char* val, const std::string& locale_name)
+    inline std::u32string to_u32string(std::string_view val, const std::string& locale_name)
     {
-        if (val == nullptr) [[unlikely]] return {};
         using cvt_type = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
-        cvt_type tmp_cvt(rb_root_cvt{mem_device(val)}, locale_name);
+        cvt_type tmp_cvt(rb_root_cvt{mem_device(std::string(val))}, locale_name);
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
 
@@ -47,11 +47,10 @@ namespace IOv2
         return res;
     }
 
-    inline std::u32string to_u32string(const char8_t* val)
+    inline std::u32string to_u32string(std::u8string_view val)
     {
-        if (val == nullptr) [[unlikely]] return {};
         using cvt_type = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-        cvt_type tmp_cvt(rb_root_cvt{mem_device(val)});
+        cvt_type tmp_cvt(rb_root_cvt{mem_device(std::u8string(val))});
         tmp_cvt.bos();
         tmp_cvt.main_cont_beg();
 

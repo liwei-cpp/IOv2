@@ -4,12 +4,16 @@
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
+#include <algorithm>
 #include <climits>
 #include <cstdint>
+#include <cstdlib>
+#include <cwchar>
 #include <functional>
 #include <limits>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 namespace IOv2
 {
