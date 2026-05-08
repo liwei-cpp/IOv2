@@ -3,6 +3,13 @@ var namespaceIOv2 =
     [ "Comp", "namespaceIOv2_1_1Comp.html", "namespaceIOv2_1_1Comp" ],
     [ "Crypt", "namespaceIOv2_1_1Crypt.html", "namespaceIOv2_1_1Crypt" ],
     [ "cvt_cpt", "namespaceIOv2_1_1cvt__cpt.html", "namespaceIOv2_1_1cvt__cpt" ],
+    [ "detail", "namespaceIOv2_1_1detail.html", [
+      [ "to_u32string", "namespaceIOv2_1_1detail.html#a801881577b5c1cb239a485b6fab5034b", null ],
+      [ "to_u32string", "namespaceIOv2_1_1detail.html#a4c8d5418a7c7dbf2bef67e91162ee5cb", null ],
+      [ "to_u8string", "namespaceIOv2_1_1detail.html#a5fcc1d87473297523fb387243e5b0950", null ],
+      [ "to_u8string", "namespaceIOv2_1_1detail.html#a9bad2cd50da6e91830cc4bc0b52d1385", null ],
+      [ "to_wstring", "namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1", null ]
+    ] ],
     [ "dev_cpt", "namespaceIOv2_1_1dev__cpt.html", "namespaceIOv2_1_1dev__cpt" ],
     [ "FacetHelper", "namespaceIOv2_1_1FacetHelper.html", [
       [ "add_grouping", "namespaceIOv2_1_1FacetHelper.html#a0faaf30b3a28b21f89f129297b1ad11f", null ],
@@ -351,11 +358,6 @@ var namespaceIOv2 =
     [ "streambuf", "namespaceIOv2.html#aae93936a83c4fe470eaa243e303633c3", null ],
     [ "sync_with_stdio", "namespaceIOv2.html#a6bdbad1d507a9b94931e610303c16862", null ],
     [ "timeio", "namespaceIOv2.html#a930112c12c6c584e3692edd601ee300e", null ],
-    [ "to_u32string", "namespaceIOv2.html#a9321c13f18b2103ce8a487f9ce61d810", null ],
-    [ "to_u32string", "namespaceIOv2.html#a65441021f6a0007eff4e06013b90255e", null ],
-    [ "to_u8string", "namespaceIOv2.html#abc72ae5db29ed52490108d581dbdaf3d", null ],
-    [ "to_u8string", "namespaceIOv2.html#af86e0c4213d46c9fabdfccde0d9c31d9", null ],
-    [ "to_wstring", "namespaceIOv2.html#af160fe6421a8485b466687b0f5a4718a", null ],
     [ "unitbuf", "namespaceIOv2.html#ad6bbf6428ff728f61543d172c78fce5a", null ],
     [ "uppercase", "namespaceIOv2.html#a272a91b2afe33a67fd3a700dda921419", null ],
     [ "ws", "namespaceIOv2.html#a55e7fa96eab2f6f5fc59cc138c3c1584", null ],

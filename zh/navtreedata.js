@@ -68,7 +68,7 @@ var NAVTREEINDEX =
 "classIOv2_1_1stdout__api.html#a8648b99abc6bf657e2548d1041de597a",
 "conceptIOv2_1_1is__ostreambuf__iterator.html",
 "istream__operators_8h.html#ab0ed08c14a8e0faf594f19b4ecb3f2f7",
-"ori__facet__buf_8h.html#a95cfe067d7dce4b9768d23b4593342e5",
+"ori__facet__buf_8h.html",
 "structIOv2_1_1cpt__cvt__pipe__creator__helper.html#a0366041ef4c8912f9f695d9547cce26a",
 "structIOv2_1_1istream__operators.html#ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0",
 "structIOv2_1_1stream__common__operators.html#a595b5e201c87aa20f82ac23c65b7e6fd"
