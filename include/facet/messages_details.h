@@ -305,8 +305,8 @@ private:
             std::unordered_map<TString, TString> res;
             auto tmp_dict = base_ft<messages>::get_translate_dictionary(base_ft<messages>::get_domain_file(domain, lang));
             for (const auto& [k, v] : tmp_dict)
-                res.insert({(const CharT *)(to_u32string(k.c_str()).c_str()),
-                            (const CharT *)(to_u32string(v.c_str()).c_str())});
+                res.insert({(const CharT *)(detail::to_u32string(k.c_str()).c_str()),
+                            (const CharT *)(detail::to_u32string(v.c_str()).c_str())});
             return res;
         }
         catch(...)
@@ -364,8 +364,8 @@ private:
 
                 for (const auto& [k, v] : tmp_dict)
                 {
-                    std::wstring wk = (const wchar_t *)(to_u32string(k.c_str()).c_str());
-                    std::wstring wv = (const wchar_t *)(to_u32string(v.c_str()).c_str());
+                    std::wstring wk = (const wchar_t *)(detail::to_u32string(k.c_str()).c_str());
+                    std::wstring wv = (const wchar_t *)(detail::to_u32string(v.c_str()).c_str());
 
                     cvt.bos(); cvt.main_cont_beg();
                     cvt.put(wk.data(), wk.size());

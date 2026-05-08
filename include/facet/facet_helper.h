@@ -17,7 +17,7 @@ namespace IOv2::FacetHelper
             return *ptr;
 
         // Convert char to wchar_t then narrow down
-        std::wstring wide_str = to_wstring(ptr, locale_name);
+        std::wstring wide_str = detail::to_wstring(ptr, locale_name);
         if (wide_str.empty()) return '\0';
         
         ctype_conf<wchar_t> tmp_ctype(locale_name);
@@ -107,12 +107,12 @@ namespace IOv2::FacetHelper
             return default_char;
         if constexpr (std::is_same_v<CharT, wchar_t>)
         {
-            auto wide = to_wstring(narrow, locale_name);
+            auto wide = detail::to_wstring(narrow, locale_name);
             return wide.empty() ? default_char : wide[0];
         }
         else
         {
-            auto wide = to_u32string(narrow, locale_name);
+            auto wide = detail::to_u32string(narrow, locale_name);
             return wide.empty() ? default_char : wide[0];
         }
     }

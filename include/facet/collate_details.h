@@ -79,8 +79,8 @@ public:
                                          reinterpret_cast<const wchar_t*>(cl2));
                 else if constexpr (std::is_same_v<CharT, char8_t>)
                 {
-                    auto ws1 = to_u32string(cl1);
-                    auto ws2 = to_u32string(cl2);
+                    auto ws1 = detail::to_u32string(cl1);
+                    auto ws2 = detail::to_u32string(cl2);
                     c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(ws1.c_str()),
                                          reinterpret_cast<const wchar_t*>(ws2.c_str()));
                 }
@@ -135,7 +135,7 @@ public:
                     res += wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
                 else if constexpr (std::is_same_v<CharT, char8_t>)
                 {
-                    auto ws = to_u32string(cur);
+                    auto ws = detail::to_u32string(cur);
                     res += wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0) * 6;
                 }
             }
@@ -174,7 +174,7 @@ public:
                           (static_cast<wchar_t>(U'李') == L'李') &&
                           (static_cast<char32_t>(L'伟') == U'伟'))
             {
-                auto ws = to_u32string(cur);
+                auto ws = detail::to_u32string(cur);
                 auto trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
                 std::vector<char32_t> buf2;
                 buf2.resize(trans_len + 1);
@@ -183,7 +183,7 @@ public:
                                          static_cast<unsigned>(-1));
                 buf2[cur_trans] = 0;
                 
-                auto char8s = to_u8string(buf2.data());
+                auto char8s = detail::to_u8string(buf2.data());
                 if (mx_len == 0)
                 {
                     dest = std::copy(char8s.data(), char8s.data() + char8s.size(), dest);
