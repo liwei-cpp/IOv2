@@ -134,9 +134,9 @@ public:
         else
         {
             if constexpr(std::is_same_v<CharT, wchar_t>)
-                m_true_name = to_wstring(yesStr, name);
+                m_true_name = detail::to_wstring(yesStr, name);
             else
-                m_true_name = to_u32string(yesStr, name);
+                m_true_name = detail::to_u32string(yesStr, name);
         }
         
         auto noStr = nl_langinfo(NOSTR);
@@ -150,9 +150,9 @@ public:
         else
         {
             if constexpr(std::is_same_v<CharT, wchar_t>)
-                m_false_name = to_wstring(noStr, name);
+                m_false_name = detail::to_wstring(noStr, name);
             else
-                m_false_name = to_u32string(noStr, name);
+                m_false_name = detail::to_u32string(noStr, name);
         }
     }
     
@@ -193,18 +193,18 @@ public:
         numeric_conf<char32_t> numeric_temp(name);
         {
             const auto input = numeric_temp.decimal_point();
-            auto output = to_u8string(input);
+            auto output = detail::to_u8string(input);
             m_decimal_point = (output.size() != 1) ? u8'.' : output[0];
         }
 
         {
             const auto input = numeric_temp.thousands_sep();
-            auto output = to_u8string(input);
+            auto output = detail::to_u8string(input);
             m_thousands_sep = (output.size() != 1) ? u8',' : output[0];
         }
 
-        m_true_name = to_u8string(numeric_temp.truename());
-        m_false_name = to_u8string(numeric_temp.falsename());
+        m_true_name = detail::to_u8string(numeric_temp.truename());
+        m_false_name = detail::to_u8string(numeric_temp.falsename());
 
         m_grouping = numeric_temp.grouping();
     }

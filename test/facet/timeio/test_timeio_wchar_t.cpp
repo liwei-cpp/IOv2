@@ -1333,7 +1333,7 @@ void test_timeio_wchar_t_put_14()
     std::strftime(time_buffer, 128, "%c", &time1);
     setlocale(LC_ALL, "C");
 
-    if (IOv2::to_wstring(time_buffer, "ta_IN.UTF-8") + std::wstring(L" America/Los_Angeles") != res) throw std::runtime_error("timeio::put fail");
+    if (IOv2::detail::to_wstring(time_buffer, "ta_IN.UTF-8") + std::wstring(L" America/Los_Angeles") != res) throw std::runtime_error("timeio::put fail");
 
     dump_info("Done\n");
 }

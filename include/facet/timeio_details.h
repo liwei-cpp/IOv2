@@ -364,9 +364,9 @@ public:
         auto convert = [&name](const std::string& src) -> std::basic_string<CharT>
         {
             if constexpr (std::is_same_v<CharT, wchar_t>)
-                return to_wstring(src.c_str(), name);
+                return detail::to_wstring(src.c_str(), name);
             else
-                return to_u32string(src.c_str(), name);
+                return detail::to_u32string(src.c_str(), name);
         };
 
         m_date_format = convert(tmp_obj.date_format());
@@ -475,33 +475,32 @@ public:
     {
         timeio_conf<char32_t> tmp_obj(name);
 
-        using namespace IOv2::FacetHelper;
-        m_date_format = to_u8string(tmp_obj.date_format());
-        m_era_date_format = to_u8string(tmp_obj.era_date_format());
-        m_time_format = to_u8string(tmp_obj.time_format());
-        m_era_time_format = to_u8string(tmp_obj.era_time_format());
-        m_date_time_format = to_u8string(tmp_obj.date_time_format());
-        m_era_date_time_format = to_u8string(tmp_obj.era_date_time_format());
+        m_date_format = detail::to_u8string(tmp_obj.date_format());
+        m_era_date_format = detail::to_u8string(tmp_obj.era_date_format());
+        m_time_format = detail::to_u8string(tmp_obj.time_format());
+        m_era_time_format = detail::to_u8string(tmp_obj.era_time_format());
+        m_date_time_format = detail::to_u8string(tmp_obj.date_time_format());
+        m_era_date_time_format = detail::to_u8string(tmp_obj.era_date_time_format());
 
-        m_am = to_u8string(tmp_obj.am_name());
-        m_pm = to_u8string(tmp_obj.pm_name());
-        m_am_pm_format = to_u8string(tmp_obj.am_pm_format());
+        m_am = detail::to_u8string(tmp_obj.am_name());
+        m_pm = detail::to_u8string(tmp_obj.pm_name());
+        m_am_pm_format = detail::to_u8string(tmp_obj.am_pm_format());
 
         for (size_t i = 0; i < 7; ++i)
         {
-            m_day[i] = to_u8string(tmp_obj.day_names()[i]);
-            m_abbr_day[i] = to_u8string(tmp_obj.abbr_day_names()[i]);
+            m_day[i] = detail::to_u8string(tmp_obj.day_names()[i]);
+            m_abbr_day[i] = detail::to_u8string(tmp_obj.abbr_day_names()[i]);
         }
 
         for (size_t i = 0; i < 12; ++i)
         {
-            m_month[i] = to_u8string(tmp_obj.month_names()[i]);
-            m_abbr_month[i] = to_u8string(tmp_obj.abbr_month_names()[i]);
+            m_month[i] = detail::to_u8string(tmp_obj.month_names()[i]);
+            m_abbr_month[i] = detail::to_u8string(tmp_obj.abbr_month_names()[i]);
         }
 
         for (size_t i = 0; i < 100; ++i)
         {
-            m_alt_digits[i] = to_u8string(tmp_obj.alt_digit_names()[i]);
+            m_alt_digits[i] = detail::to_u8string(tmp_obj.alt_digit_names()[i]);
         }
 
         const auto& tmp_era = tmp_obj.era_items();
@@ -512,8 +511,8 @@ public:
             {
                 const auto& src = tmp_era[i];
                 era_entry aim;
-                aim.name = to_u8string(src.name);
-                aim.format = to_u8string(src.format);
+                aim.name = detail::to_u8string(src.name);
+                aim.format = detail::to_u8string(src.format);
                 aim.from_year = src.from_year;
                 aim.from_month = src.from_month;
                 aim.from_day = src.from_day;

@@ -1333,7 +1333,7 @@ void test_timeio_char32_t_put_14()
     std::strftime(time_buffer, 128, "%c", &time1);
     setlocale(LC_ALL, "C");
 
-    if (IOv2::to_u32string(time_buffer, "ta_IN.UTF-8") + std::u32string(U" America/Los_Angeles") != res) throw std::runtime_error("timeio::put fail");
+    if (IOv2::detail::to_u32string(time_buffer, "ta_IN.UTF-8") + std::u32string(U" America/Los_Angeles") != res) throw std::runtime_error("timeio::put fail");
 
     dump_info("Done\n");
 }

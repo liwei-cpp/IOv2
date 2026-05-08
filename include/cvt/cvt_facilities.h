@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-namespace IOv2
+namespace IOv2::detail
 {
     /**
      * @brief Convert a locale-encoded narrow string to a wide string.
