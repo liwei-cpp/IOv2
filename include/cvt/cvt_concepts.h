@@ -1,8 +1,9 @@
 #pragma once
 #include <common/defs.h>
-#include <device/device_concepts.h>
 
 #include <concepts>
+#include <cstddef>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2

@@ -2,6 +2,7 @@
 #include <cvt/code_cvt.h>
 
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2
@@ -50,7 +51,17 @@ public:
         {
             if (!this->m_cvt_kernel.is_init_state())
                 throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
-            // Perform all potentially-throwing operations first, then commit with noexcept moves
+            // Perform all potentially-throwing operations first, then commit with
+            // noexcept moves. The two commit moves below MUST be noexcept; otherwise
+            // a partial-throw could leave m_cvt_kernel and m_code mutually
+            // inconsistent (mismatched locale handle vs. cached code string).
+            static_assert(
+                std::is_nothrow_move_assignable_v<codecvt_kernel<char, wchar_t>>,
+                "codecvt_kernel<char, wchar_t> move-assign must be noexcept; "
+                "otherwise code_cvt_stdio::adjust loses its strong exception guarantee");
+            static_assert(
+                std::is_nothrow_move_assignable_v<std::string>,
+                "std::string move-assign must be noexcept");
             codecvt_kernel<char, wchar_t> new_kernel(ptr->code);
             std::string new_code = ptr->code;
             this->m_cvt_kernel = std::move(new_kernel);
