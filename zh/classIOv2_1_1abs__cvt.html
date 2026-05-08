@@ -92,6 +92,7 @@ $(document).ready(function(){initNavTree('classIOv2_1_1abs__cvt.html',''); initR
   <div class="summary">
 <a href="#pub-types">Public 类型</a> &#124;
 <a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pro-methods">Protected 成员函数</a> &#124;
 <a href="#pro-attribs">Protected 属性</a> &#124;
 <a href="classIOv2_1_1abs__cvt-members.html">所有成员列表</a>  </div>
   <div class="headertitle"><div class="title">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt; 模板类 参考</div></div>
@@ -184,6 +185,11 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a17ce40096d37a0ebd6720bc54f9490f9" id="r_a17ce40096d37a0ebd6720bc54f9490f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9">switch_to_put</a> ()</td></tr>
 <tr class="separator:a17ce40096d37a0ebd6720bc54f9490f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected 成员函数</h2></td></tr>
+<tr class="memitem:ae3aebe475c23bb38ed1aac036635e811" id="r_ae3aebe475c23bb38ed1aac036635e811"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811">assert_not_tainted</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:ae3aebe475c23bb38ed1aac036635e811"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected 属性</h2></td></tr>
 <tr class="memitem:aa5780eac0f087afee64a176c112d1f99" id="r_aa5780eac0f087afee64a176c112d1f99"><td class="memItemLeft" align="right" valign="top">KernelType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aa5780eac0f087afee64a176c112d1f99">m_kernel</a></td></tr>
@@ -207,8 +213,14 @@ class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, de
 <li>**bos()**：必须首先调用，以建立初始 IO 状态。</li>
 <li>**BOS 阶段**：可多次调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2514d75b1c449a1c7022edacc7bfd931">get()</a></code> 或多次调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a96ee8689cca553370c6f246ab546cef2">put()</a></code>，但不可混合调用。 此阶段用于读写流起始数据（如文件头、魔数）。</li>
 <li>**main_cont_beg()**：标记 BOS 阶段结束，进入主内容阶段。</li>
-<li>**主内容阶段**：可调用所有其他成员函数（<code>get</code>、<code>put</code>、<code>flush</code>、 <code>tell</code>、<code>seek</code>、<code>rseek</code>、<code>switch_to_get</code>、<code>switch_to_put</code> 等）。 违反此调用顺序将导致未定义行为。 </li>
+<li>**主内容阶段**：可调用所有其他成员函数（<code>get</code>、<code>put</code>、<code>flush</code>、 <code>tell</code>、<code>seek</code>、<code>rseek</code>、<code>switch_to_get</code>、<code>switch_to_put</code> 等）。 违反此调用顺序将导致未定义行为。</li>
 </ol>
+</dd>
+<dd>
+派生类生命周期方法的执行顺序：派生类重写 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code>、 <code><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach()</a></code>、<code>close_stream()</code> 等生命周期方法时，必须按 下列规则编排"修改本层成员"与"调用 `BT::xxx()`"的先后顺序，以保证 异常安全与层间状态一致：<ul>
+<li>**起始/初始化操作**（<code>bos</code>、<code>main_cont_beg</code>）：**先调用 <code>BT::xxx()</code>， 再修改本层成员**。语义类比 C++ 构造函数的"基类先于派生类构造"： 若下层抛出异常，本层状态保持不变（强异常安全）；若下层成功， 下层已就绪可供本层读取（例如读取 <code>BT::m_io_status</code> 决定本层行为）。</li>
+<li>**结束/清理操作**（<code>detach</code>、<code>close_stream</code>、用于终结的 <code>flush</code>）： **先冲刷/清理本层状态，再调用 <code>BT::xxx()</code>**。语义类比 C++ 析构函数 的"派生类先于基类析构"：本层须在下层关闭前把待写数据冲入下层， 否则冲入将无处可去。 </li>
+</ul>
 </dd></dl>
 <p></b></p>
 <p><b></p><dl class="tparams"><dt>模板参数</dt><dd>
@@ -427,6 +439,41 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">b</td><td>描述期望行为的配置对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae3aebe475c23bb38ed1aac036635e811" name="ae3aebe475c23bb38ed1aac036635e811"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3aebe475c23bb38ed1aac036635e811">&#9670;&#160;</a></span>assert_not_tainted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::assert_not_tainted </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>若当前转换器已被标记为 tainted，则抛出 <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>；否则什么也不做。</p>
+<p>派生类应在依赖底层 kernel 状态完整性的操作（如定位、IO 方向切换等） 入口处调用此函数，以快速失败、阻止在已损坏的状态上继续操作。 </p>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>m_is_tainted</code> 为 <code>true</code>。   </td></tr>
   </table>
   </dd>
 </dl>

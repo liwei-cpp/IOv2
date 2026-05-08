@@ -355,7 +355,7 @@ var namespaceIOv2 =
     [ "to_u32string", "namespaceIOv2.html#a65441021f6a0007eff4e06013b90255e", null ],
     [ "to_u8string", "namespaceIOv2.html#abc72ae5db29ed52490108d581dbdaf3d", null ],
     [ "to_u8string", "namespaceIOv2.html#af86e0c4213d46c9fabdfccde0d9c31d9", null ],
-    [ "to_wstring", "namespaceIOv2.html#a66ff1de1b8c522b4487b991571396f12", null ],
+    [ "to_wstring", "namespaceIOv2.html#af160fe6421a8485b466687b0f5a4718a", null ],
     [ "unitbuf", "namespaceIOv2.html#ad6bbf6428ff728f61543d172c78fce5a", null ],
     [ "uppercase", "namespaceIOv2.html#a272a91b2afe33a67fd3a700dda921419", null ],
     [ "ws", "namespaceIOv2.html#a55e7fa96eab2f6f5fc59cc138c3c1584", null ],

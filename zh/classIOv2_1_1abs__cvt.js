@@ -8,6 +8,7 @@ var classIOv2_1_1abs__cvt =
     [ "abs_cvt", "classIOv2_1_1abs__cvt.html#a78a0bf4b3cd6d2d984e15fe8315d6552", null ],
     [ "~abs_cvt", "classIOv2_1_1abs__cvt.html#a81950a7d9ee450832b84a845ba074c30", null ],
     [ "adjust", "classIOv2_1_1abs__cvt.html#aec781512826b0c26f361aac77fe7d38a", null ],
+    [ "assert_not_tainted", "classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811", null ],
     [ "attach", "classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120", null ],
     [ "bos", "classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad", null ],
     [ "detach", "classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e", null ],

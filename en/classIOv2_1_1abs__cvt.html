@@ -92,6 +92,7 @@ $(document).ready(function(){initNavTree('classIOv2_1_1abs__cvt.html',''); initR
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="classIOv2_1_1abs__cvt-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch &gt; Class Template Reference</div></div>
@@ -184,6 +185,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a17ce40096d37a0ebd6720bc54f9490f9" id="r_a17ce40096d37a0ebd6720bc54f9490f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9">switch_to_put</a> ()</td></tr>
 <tr class="separator:a17ce40096d37a0ebd6720bc54f9490f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:ae3aebe475c23bb38ed1aac036635e811" id="r_ae3aebe475c23bb38ed1aac036635e811"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811">assert_not_tainted</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="separator:ae3aebe475c23bb38ed1aac036635e811"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:aa5780eac0f087afee64a176c112d1f99" id="r_aa5780eac0f087afee64a176c112d1f99"><td class="memItemLeft" align="right" valign="top">KernelType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#aa5780eac0f087afee64a176c112d1f99">m_kernel</a></td></tr>
@@ -207,8 +213,23 @@ class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_flush, de
 <li><b><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></b>: Must be called first to establish the initial IO status.</li>
 <li><b>BOS phase</b>: May call <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2514d75b1c449a1c7022edacc7bfd931">get()</a></code> multiple times or <code><a class="el" href="classIOv2_1_1abs__cvt.html#a96ee8689cca553370c6f246ab546cef2">put()</a></code> multiple times, but must not mix get and put calls. This phase is for reading/writing stream-leading data (e.g., file headers, magic numbers).</li>
 <li><b><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></b>: Marks the end of the BOS phase and enters the main-content phase.</li>
-<li><b>Main-content phase</b>: All other member functions may be called (<code>get</code>, <code>put</code>, <code>flush</code>, <code>tell</code>, <code>seek</code>, <code>rseek</code>, <code>switch_to_get</code>, <code>switch_to_put</code>, etc.). Violating this calling sequence results in undefined behavior. </li>
+<li><b>Main-content phase</b>: All other member functions may be called (<code>get</code>, <code>put</code>, <code>flush</code>, <code>tell</code>, <code>seek</code>, <code>rseek</code>, <code>switch_to_get</code>, <code>switch_to_put</code>, etc.). Violating this calling sequence results in undefined behavior.</li>
 </ol>
+</dd>
+<dd>
+Ordering rule for derived lifecycle methods: When a derived class overrides <code><a class="el" href="classIOv2_1_1abs__cvt.html#a68345b91aeefe9061d49210cd3c910ad">bos()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2dea72ff6bf90ed52632ea474040ae8d">main_cont_beg()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach()</a></code>, <code>close_stream()</code>, or similar lifecycle methods, the order of "mutate this layer's members" vs. "call `BT::xxx()`" must follow the rule below to guarantee exception safety and inter-layer state consistency:<ul>
+<li><b>Begin / init operations</b> (<code>bos</code>, <code>main_cont_beg</code>): <b>call <code>BT::xxx()</code> first, then mutate this layer's members</b>. This mirrors C++ constructor semantics ("base before derived"): if the lower layer throws, this layer's state is unchanged (strong exception guarantee); if it succeeds, the lower layer is ready and this layer may inspect its state (e.g., read <code>BT::m_io_status</code>) to decide what to do.</li>
+<li><b>End / teardown operations</b> (<code>detach</code>, <code>close_stream</code>, finalizing <code>flush</code>): <b>mutate/flush this layer first, then call <code>BT::xxx()</code></b>. This mirrors C++ destructor semantics ("derived
+        before base"): this layer must drain pending data into the lower layer before the lower layer is torn down — otherwise the drained data has nowhere to go.</li>
+</ul>
+</dd></dl>
+<dl class="section user"><dt>Exception Safety / Tainted State</dt><dd>Output streaming cannot in general offer the strong exception guarantee: a single <code>put</code> may auto-flush several chunks to the kernel before encountering a malformed code unit, and those already-flushed bytes cannot be rolled back — the resulting byte sequence on the underlying device is therefore truncated or otherwise inconsistent. To prevent silent corruption from continued use after such a failure, <code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> maintains a <em>tainted</em> flag (<code>m_is_tainted</code>). The contract is:<ul>
+<li><code>put</code> wraps its entire body in a catch-all and sets <code>m_is_tainted = true</code> on any exception before rethrowing. It also calls <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811">assert_not_tainted()</a></code> on entry, so a tainted converter refuses further IO.</li>
+<li><code>get</code> does NOT taint on its own failures: read errors only advance the kernel cursor and may leave a per-call mbstate undefined, but the underlying byte stream itself is unchanged and the caller can reseek to recover. <code>get</code> does, however, honour any pre-existing taint via <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811">assert_not_tainted()</a></code>.</li>
+<li>Derived classes MUST NOT call <code><a class="el" href="classIOv2_1_1cvt__writer.html#a42decc7a7d945d56a9bb9bdb5ab0fa17">cvt_writer::commit()</a></code> themselves; <code><a class="el" href="classIOv2_1_1abs__cvt.html#a96ee8689cca553370c6f246ab546cef2">abs_cvt::put</a></code> is the sole committer on the success path. Any exception thrown out of <code>put_main</code> taints the converter, and uncommitted buffer contents are dropped at writer destruction. This is a deliberate semantic change from the old "commit-the-prefix-then-throw" pattern: encoding errors discard the in-progress batch instead of producing a partial commit.</li>
+<li>Derived classes MAY call <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811">assert_not_tainted()</a></code> at the entry of positioning, IO-direction switching, or any other operation whose correctness depends on a known-good kernel state.</li>
+<li>The flag is cleared by <code>attach</code> and <code>detach</code>, and is propagated by copy/move ctors and assignments (the source of a move is reset to a clean, empty state). </li>
+</ul>
 </dd></dl>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
@@ -425,6 +446,41 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">b</td><td>A configuration object describing the desired behavior.  </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ae3aebe475c23bb38ed1aac036635e811" name="ae3aebe475c23bb38ed1aac036635e811"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3aebe475c23bb38ed1aac036635e811">&#9670;&#160;</a></span>assert_not_tainted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::assert_not_tainted </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the converter has been marked tainted; otherwise does nothing.</p>
+<p>Derived classes should call this at the entry of any operation whose correctness depends on the kernel being in a known-good state — e.g., positioning or IO-direction switching — so that further use after a partial-failure is refused fast rather than silently corrupting data. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>m_is_tainted</code> is <code>true</code>.  </td></tr>
   </table>
   </dd>
 </dl>

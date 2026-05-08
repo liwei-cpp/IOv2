@@ -573,11 +573,14 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a66ff1de1b8c522b4487b991571396f12" id="r_a66ff1de1b8c522b4487b991571396f12"><td class="memItemLeft" align="right" valign="top">std::wstring&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a66ff1de1b8c522b4487b991571396f12">to_wstring</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale_name</a>)</td></tr>
-<tr class="separator:a66ff1de1b8c522b4487b991571396f12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af160fe6421a8485b466687b0f5a4718a" id="r_af160fe6421a8485b466687b0f5a4718a"><td class="memItemLeft" align="right" valign="top">std::wstring&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af160fe6421a8485b466687b0f5a4718a">to_wstring</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale_name</a>)</td></tr>
+<tr class="memdesc:af160fe6421a8485b466687b0f5a4718a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a locale-encoded narrow string to a wide string.  <br /></td></tr>
+<tr class="separator:af160fe6421a8485b466687b0f5a4718a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9321c13f18b2103ce8a487f9ce61d810" id="r_a9321c13f18b2103ce8a487f9ce61d810"><td class="memItemLeft" align="right" valign="top">std::u32string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9321c13f18b2103ce8a487f9ce61d810">to_u32string</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale_name</a>)</td></tr>
+<tr class="memdesc:a9321c13f18b2103ce8a487f9ce61d810"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a locale-encoded narrow string to UTF-32.  <br /></td></tr>
 <tr class="separator:a9321c13f18b2103ce8a487f9ce61d810"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65441021f6a0007eff4e06013b90255e" id="r_a65441021f6a0007eff4e06013b90255e"><td class="memItemLeft" align="right" valign="top">std::u32string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a65441021f6a0007eff4e06013b90255e">to_u32string</a> (std::u8string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="memdesc:a65441021f6a0007eff4e06013b90255e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a UTF-8 string to UTF-32.  <br /></td></tr>
 <tr class="separator:a65441021f6a0007eff4e06013b90255e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af86e0c4213d46c9fabdfccde0d9c31d9" id="r_af86e0c4213d46c9fabdfccde0d9c31d9"><td class="memItemLeft" align="right" valign="top">std::u8string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af86e0c4213d46c9fabdfccde0d9c31d9">to_u8string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::u32string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
 <tr class="memdesc:af86e0c4213d46c9fabdfccde0d9c31d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a UTF-32 string to UTF-8.  <br /></td></tr>
@@ -4026,6 +4029,22 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Convert a locale-encoded narrow string to UTF-32. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Input bytes interpreted under <code>locale_name</code>. </td></tr>
+    <tr><td class="paramname">locale_name</td><td>Locale name passed to the underlying <a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Decoded UTF-32 string.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> ends in the middle of a multi-byte sequence (partial trailing bytes), or contains an invalid sequence under the locale. This is NOT a best-effort conversion — callers must pass a complete byte stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
 </div>
 </div>
 <a id="a65441021f6a0007eff4e06013b90255e" name="a65441021f6a0007eff4e06013b90255e"></a>
@@ -4051,6 +4070,21 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Convert a UTF-8 string to UTF-32. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Input UTF-8 bytes.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Decoded UTF-32 string.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> ends in the middle of a UTF-8 sequence (partial trailing bytes), or contains any invalid UTF-8 (overlong, surrogate, out-of-range, malformed continuation). This is NOT a best-effort conversion — callers must pass a complete, well-formed UTF-8 stream. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -4136,8 +4170,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
-<a id="a66ff1de1b8c522b4487b991571396f12" name="a66ff1de1b8c522b4487b991571396f12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66ff1de1b8c522b4487b991571396f12">&#9670;&#160;</a></span>to_wstring()</h2>
+<a id="af160fe6421a8485b466687b0f5a4718a" name="af160fe6421a8485b466687b0f5a4718a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af160fe6421a8485b466687b0f5a4718a">&#9670;&#160;</a></span>to_wstring()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4148,7 +4182,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         <tr>
           <td class="memname">std::wstring IOv2::to_wstring </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td>
+          <td class="paramtype">std::string_view&#160;</td>
           <td class="paramname"><em>val</em>, </td>
         </tr>
         <tr>
@@ -4169,6 +4203,22 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Convert a locale-encoded narrow string to a wide string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>Input bytes interpreted under <code>locale_name</code>. </td></tr>
+    <tr><td class="paramname">locale_name</td><td>Locale name passed to the underlying <a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Decoded wide string.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> ends in the middle of a multi-byte sequence (partial trailing bytes), or contains an invalid sequence under the locale. This is NOT a best-effort conversion — callers must pass a complete byte stream. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
