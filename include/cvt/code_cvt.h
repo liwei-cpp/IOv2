@@ -525,7 +525,7 @@ public:
             // cvt_error and is expected to re-seek before further use;
             // surfacing a different exception here would only obscure the
             // failure mode.
-            try { BT::m_kernel.seek(saved_dev_pos); } catch (...) {}
+            try { BT::m_kernel.seek(saved_dev_pos); } catch (...) {} // NOLINT(bugprone-empty-catch)
             throw cvt_error("code_cvt::rseek fail: partial sequence");
         }
 

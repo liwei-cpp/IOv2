@@ -30,7 +30,7 @@ struct in_sentry
             if (!m_is.m_streambuf.sgetc().has_value())
                 m_is.handle_exception(std::make_exception_ptr(eof_error{}));
         }
-        catch (...) {}
+        catch (...) {} // NOLINT(bugprone-empty-catch)
     }
 
     in_sentry(const in_sentry&) = delete;

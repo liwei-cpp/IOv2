@@ -148,7 +148,7 @@ public:
         {
             close_stream();
         }
-        catch (...) {}
+        catch (...) {} // NOLINT(bugprone-empty-catch)
     }
 
 // mandatory methods
