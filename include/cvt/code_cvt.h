@@ -1,3 +1,28 @@
+/**
+ * @file code_cvt.h
+ * @lang{ZH}
+ * 字符编码转换器（code_cvt）及底层编码内核（codecvt_kernel）的定义文件。
+ * 本文件提供两种编码内核实现：
+ * - `codecvt_kernel<char, TInt>`：基于区域设置（locale）的多字节编码内核，
+ *   通过 C 标准库的 mbrtowc / wcrtomb 在 char 与 wchar_t/char32_t 之间转换。
+ * - `codecvt_kernel<char8_t, TInt>`：无状态 UTF-8 编码内核，
+ *   直接在 char8_t 与 char32_t/wchar_t 之间转换。
+ * 以及基于上述内核的通用编码转换器 `code_cvt` 及其对应的工厂类 `code_cvt_creator`。
+ * @endif
+ *
+ * @lang{EN}
+ * Definition file for the character encoding converter (code_cvt) and its
+ * underlying encoding kernels (codecvt_kernel). This file provides two kernel
+ * implementations:
+ * - `codecvt_kernel<char, TInt>`: A locale-based multi-byte encoding kernel that
+ *   converts between char and wchar_t/char32_t via the C standard library's
+ *   mbrtowc / wcrtomb functions.
+ * - `codecvt_kernel<char8_t, TInt>`: A stateless UTF-8 encoding kernel that
+ *   converts directly between char8_t and char32_t/wchar_t.
+ * Along with the generic encoding converter `code_cvt` built on these kernels,
+ * and the corresponding factory class `code_cvt_creator`.
+ * @endif
+ */
 #pragma once
 #include <common/clocale_wrapper.h>
 #include <common/defs.h>
@@ -19,16 +44,50 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * 字符编码转换内核的主模板前向声明（不提供通用实现）。
+ * 仅为以下特化版本提供实现：
+ * - `codecvt_kernel<char, TInt>`：基于区域设置的多字节编码内核。
+ * - `codecvt_kernel<char8_t, TInt>`：无状态 UTF-8 编码内核。
+ * @endif
+ *
+ * @lang{EN}
+ * Primary template forward declaration for the character encoding conversion kernel
+ * (no generic implementation is provided). Only the following specializations
+ * are implemented:
+ * - `codecvt_kernel<char, TInt>`: Locale-based multi-byte encoding kernel.
+ * - `codecvt_kernel<char8_t, TInt>`: Stateless UTF-8 encoding kernel.
+ * @endif
+ */
 template <typename TExt, typename TInt>
 struct codecvt_kernel;
 
 /**
- * @brief Locale-based character encoding conversion kernel (char <-> wchar_t/char32_t).
+ * @lang{ZH}
+ * 基于区域设置（locale）的字符编码转换内核（char <-> wchar_t/char32_t）。
+ * 使用 C 标准库的 mbrtowc / wcrtomb 在多字节字符与宽字符之间进行转换，
+ * 编码方式由构造时指定的区域设置名称决定，通过 clocale_wrapper 在运行时切换。
+ *
+ * @note 线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。
+ *       此外，由于构造阶段调用了 `mbtowc`（其内部维护静态状态），并发构造多个实例同样不是
+ *       线程安全的。构造完成后，单实例的读写操作使用显式的 `mbstate_t`（`m_state`），
+ *       在单线程场景下是安全的。
+ * @endif
+ *
+ * @lang{EN}
+ * Locale-based character encoding conversion kernel (char <-> wchar_t/char32_t).
+ * Uses the C standard library's mbrtowc / wcrtomb functions to convert between
+ * multi-byte characters and wide characters. The encoding is determined by the
+ * locale name provided at construction time and is applied at runtime via
+ * clocale_wrapper.
  *
  * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
  *       instance from multiple threads requires external synchronization. Additionally,
  *       concurrent construction of multiple instances is not thread-safe due to the
- *       use of mbtowc's internal static state.
+ *       use of mbtowc's internal static state. Once constructed, single-instance
+ *       operations use explicit mbstate_t (m_state) and are safe for single-threaded use.
+ * @endif
  */
 template <typename TInt>
     requires std::is_same_v<TInt, wchar_t> ||
@@ -41,6 +100,25 @@ struct codecvt_kernel<char, TInt>
     static_assert(MB_LEN_MAX <= std::numeric_limits<unsigned>::max(),
                   "MB_LEN_MAX exceeds unsigned range");
 
+    /**
+     * @lang{ZH}
+     * 以指定的区域设置名称构造转换内核，并初始化编码转换状态。
+     *
+     * @param name 区域设置名称（如 "zh_CN.UTF-8"），传递给 clocale_wrapper。
+     *
+     * @throws cvt_error 若区域设置报告 `MB_CUR_MAX == 0`（通常意味着区域设置配置异常）。
+     * @endif
+     *
+     * @lang{EN}
+     * Construct the conversion kernel with the specified locale name and initialize
+     * the encoding conversion state.
+     *
+     * @param name Locale name (e.g., "zh_CN.UTF-8"), passed to clocale_wrapper.
+     *
+     * @throws cvt_error If the locale reports `MB_CUR_MAX == 0` (which typically
+     *                   indicates a misconfigured locale).
+     * @endif
+     */
     explicit codecvt_kernel(const std::string& name)
         : m_inter_locale(name.c_str())
     {
@@ -67,16 +145,114 @@ struct codecvt_kernel<char, TInt>
         init_state();
     }
 
+    /**
+     * @lang{ZH}
+     * 将编码转换状态（`mbstate_t`）重置为初始状态。
+     * @endif
+     *
+     * @lang{EN}
+     * Reset the encoding conversion state (`mbstate_t`) to its initial value.
+     * @endif
+     */
     void init_state() { m_state = std::mbstate_t{}; }
+
+    /**
+     * @lang{ZH}
+     * 判断编码转换状态是否处于初始状态。
+     *
+     * @return 若 `mbstate_t` 为初始状态，返回 `true`；否则返回 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * Check whether the encoding conversion state is in its initial state.
+     *
+     * @return `true` if `mbstate_t` is in its initial state; `false` otherwise.
+     * @endif
+     */
     [[nodiscard]] bool is_init_state() const { return std::mbsinit(&m_state); }
+
+    /**
+     * @lang{ZH}
+     * 返回每个内部字符对应的最大外部字节数（即当前区域设置的 `MB_CUR_MAX`）。
+     *
+     * @return 最大多字节字节数（External bytes Per internal Character，简称 epc）。
+     * @endif
+     *
+     * @lang{EN}
+     * Return the maximum number of external bytes per internal character
+     * (i.e., `MB_CUR_MAX` for the current locale).
+     *
+     * @return Maximum number of multi-byte bytes (External bytes Per internal Character, epc).
+     * @endif
+     */
     [[nodiscard]] unsigned epc() const { return m_epc; }
+
+    /**
+     * @lang{ZH}
+     * 判断当前区域设置的编码是否为变长编码。
+     * 当 `epc() > 1` 时，视为变长编码。
+     *
+     * @return 若为变长编码，返回 `true`；若为定长编码（每字符恰好 1 字节），返回 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * Check whether the encoding for the current locale is variable-length.
+     * When `epc() > 1`, the encoding is treated as variable-length.
+     *
+     * @return `true` if the encoding is variable-length; `false` if it is fixed-length
+     *         (exactly 1 byte per character).
+     * @endif
+     */
     [[nodiscard]] bool is_var_length() const { return m_epc != 1; }
+
+    /**
+     * @lang{ZH}
+     * 判断当前区域设置的编码是否为状态依赖编码（如 Shift-JIS）。
+     *
+     * @return 若为状态依赖编码，返回 `true`；否则返回 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * Check whether the encoding for the current locale is state-dependent
+     * (e.g., Shift-JIS).
+     *
+     * @return `true` if the encoding is state-dependent; `false` otherwise.
+     * @endif
+     */
     [[nodiscard]] bool is_state_dep() const { return m_is_state_dep; }
 
-    // Precondition: `to` and `to_end` must point into the same array.
-    // Behavior is undefined otherwise — std::greater enforces a total order
-    // across pointers regardless of provenance, but the pointer subtraction
-    // below requires same-object provenance per [expr.add]/5.
+    /**
+     * @lang{ZH}
+     * 将单个内部字符编码为外部字节序列，并追加写入输出缓冲区。
+     *
+     * @param ch      待编码的内部字符。
+     * @param to      指向输出缓冲区当前写入位置的指针（成功时向后推进）。
+     * @param to_end  输出缓冲区的结束指针（不可写入此位置）。
+     *
+     * @return 若成功编码并写入，返回 `true`；若缓冲区空间不足或字符无法编码，返回 `false`。
+     *
+     * @note 前置条件：`to` 和 `to_end` 必须指向同一个数组，否则行为未定义。
+     *       `std::greater` 可在任意指针间建立全序，但后续的指针减法要求两者同源（[expr.add]/5）。
+     * @endif
+     *
+     * @lang{EN}
+     * Encode a single internal character into the external byte sequence and
+     * append it to the output buffer.
+     *
+     * @param ch      Internal character to encode.
+     * @param to      Pointer to the current write position in the output buffer
+     *                (advanced on success).
+     * @param to_end  One-past-the-end pointer of the output buffer.
+     *
+     * @return `true` if the character was successfully encoded and written;
+     *         `false` if the buffer is too small or the character cannot be encoded.
+     *
+     * @note Precondition: `to` and `to_end` must point into the same array;
+     *       behavior is undefined otherwise. `std::greater` enforces a total order
+     *       across pointers regardless of provenance, but the pointer subtraction
+     *       below requires same-object provenance per [expr.add]/5.
+     * @endif
+     */
     bool out_helper(TInt ch, char*& to, char* to_end)
     {
         if (std::greater<>{}(to, to_end)) [[unlikely]]
@@ -96,10 +272,44 @@ struct codecvt_kernel<char, TInt>
         return true;
     }
 
-    // Precondition: `from`/`from_end` and `to`/`to_end` must each point into
-    // the same array. Behavior is undefined otherwise — std::greater enforces
-    // a total order across pointers regardless of provenance, but the pointer
-    // subtractions below require same-object provenance per [expr.add]/5.
+    /**
+     * @lang{ZH}
+     * 将外部字节序列解码为内部字符，并写入输出缓冲区。
+     *
+     * @param from      指向输入字节序列当前读取位置的指针（处理后向后推进）。
+     * @param from_end  输入字节序列的结束指针。
+     * @param to        指向输出缓冲区当前写入位置的指针（写入后向后推进）。
+     * @param to_end    输出缓冲区的结束指针。
+     *
+     * @return 一个 `std::pair<bool, size_t>`：
+     *         - `first`：转换是否成功（`false` 表示遇到无效字节序列）。
+     *         - `second`：已写入输出缓冲区的内部字符数量。
+     *
+     * @note 前置条件：`from`/`from_end` 和 `to`/`to_end` 各自必须指向同一数组，否则行为未定义。
+     * @endif
+     *
+     * @lang{EN}
+     * Decode external byte sequences into internal characters and write them to
+     * the output buffer.
+     *
+     * @param from      Pointer to the current read position in the input byte sequence
+     *                  (advanced as bytes are consumed).
+     * @param from_end  One-past-the-end pointer of the input byte sequence.
+     * @param to        Pointer to the current write position in the output buffer
+     *                  (advanced as characters are written).
+     * @param to_end    One-past-the-end pointer of the output buffer.
+     *
+     * @return A `std::pair<bool, size_t>`:
+     *         - `first`: Whether the conversion succeeded (`false` indicates an invalid
+     *           byte sequence).
+     *         - `second`: Number of internal characters written to the output buffer.
+     *
+     * @note Precondition: `from`/`from_end` and `to`/`to_end` must each point into
+     *       the same array; behavior is undefined otherwise. `std::greater` enforces
+     *       a total order across pointers regardless of provenance, but the pointer
+     *       subtractions below require same-object provenance per [expr.add]/5.
+     * @endif
+     */
     std::pair<bool, size_t> in_helper(const char*& from, const char* from_end,
                                       TInt*& to, TInt* to_end)
     {
@@ -160,17 +370,31 @@ struct codecvt_kernel<char, TInt>
     }
 
 private:
-    clocale_wrapper m_inter_locale;
-    unsigned        m_epc = 0;
-    std::mbstate_t  m_state{};
-    bool            m_is_state_dep = false;
+    clocale_wrapper m_inter_locale; ///< 当前区域设置的包装对象 / Wrapper for the current locale.
+    unsigned        m_epc = 0;      ///< 每个内部字符对应的最大外部字节数 / Max external bytes per internal character.
+    std::mbstate_t  m_state{};      ///< 多字节转换状态 / Multi-byte conversion state.
+    bool            m_is_state_dep = false; ///< 编码是否为状态依赖型 / Whether the encoding is state-dependent.
 };
 
 /**
- * @brief UTF-8 encoding conversion kernel (char8_t <-> char32_t/wchar_t).
+ * @lang{ZH}
+ * 无状态 UTF-8 编码转换内核（char8_t <-> char32_t/wchar_t）。
+ * 直接按照 UTF-8 规范对码点进行编解码，无需区域设置，无转换状态。
+ *
+ * @note 线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。
+ *       不同于 `codecvt_kernel<char, TInt>`，多实例的并发构造是安全的（无共享静态状态）。
+ * @endif
+ *
+ * @lang{EN}
+ * Stateless UTF-8 encoding conversion kernel (char8_t <-> char32_t/wchar_t).
+ * Encodes and decodes code points directly according to the UTF-8 specification,
+ * requiring neither a locale nor any conversion state.
  *
  * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
  *       instance from multiple threads requires external synchronization.
+ *       Unlike `codecvt_kernel<char, TInt>`, concurrent construction of multiple
+ *       instances is safe (no shared static state).
+ * @endif
  */
 template <typename TInt>
     requires std::is_same_v<TInt, char32_t> ||
@@ -182,16 +406,113 @@ struct codecvt_kernel<char8_t, TInt>
 {
     codecvt_kernel() = default;
 
+    /**
+     * @lang{ZH}
+     * 重置编码转换状态（UTF-8 无状态，为空操作）。
+     * @endif
+     *
+     * @lang{EN}
+     * Reset the encoding conversion state (no-op for stateless UTF-8).
+     * @endif
+     */
     void init_state() { /* no-op for stateless UTF-8 */ }
+
+    /**
+     * @lang{ZH}
+     * 判断编码转换状态是否处于初始状态（UTF-8 无状态，始终返回 `true`）。
+     *
+     * @return 始终返回 `true`。
+     * @endif
+     *
+     * @lang{EN}
+     * Check whether the encoding conversion state is in its initial state
+     * (always `true` for stateless UTF-8).
+     *
+     * @return Always `true`.
+     * @endif
+     */
     [[nodiscard]] bool is_init_state() const { return true; }
+
+    /**
+     * @lang{ZH}
+     * 返回每个内部字符对应的最大外部字节数（UTF-8 最长 4 字节）。
+     *
+     * @return 固定返回 `4`。
+     * @endif
+     *
+     * @lang{EN}
+     * Return the maximum number of external bytes per internal character
+     * (UTF-8 uses at most 4 bytes per code point).
+     *
+     * @return Always `4`.
+     * @endif
+     */
     [[nodiscard]] unsigned epc() const { return 4; }
+
+    /**
+     * @lang{ZH}
+     * 判断编码是否为变长编码（UTF-8 为变长编码，始终返回 `true`）。
+     *
+     * @return 始终返回 `true`。
+     * @endif
+     *
+     * @lang{EN}
+     * Check whether the encoding is variable-length (UTF-8 is always variable-length).
+     *
+     * @return Always `true`.
+     * @endif
+     */
     [[nodiscard]] bool is_var_length() const { return true; }
+
+    /**
+     * @lang{ZH}
+     * 判断编码是否为状态依赖编码（UTF-8 无状态，始终返回 `false`）。
+     *
+     * @return 始终返回 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * Check whether the encoding is state-dependent (UTF-8 is stateless).
+     *
+     * @return Always `false`.
+     * @endif
+     */
     [[nodiscard]] bool is_state_dep() const { return false; }
 
-    // Precondition: `to` and `to_end` must point into the same array.
-    // Behavior is undefined otherwise — std::greater enforces a total order
-    // across pointers regardless of provenance, but the pointer subtraction
-    // below requires same-object provenance per [expr.add]/5.
+    /**
+     * @lang{ZH}
+     * 将单个内部字符（UTF-32 码点）编码为 UTF-8 字节序列，并追加写入输出缓冲区。
+     * 拒绝代理码点（[0xD800, 0xDFFF]）及超出 Unicode 范围（> 0x10FFFF）的码点。
+     *
+     * @param ch      待编码的内部字符（UTF-32 码点）。
+     * @param to      指向输出缓冲区当前写入位置的指针（成功时向后推进）。
+     * @param to_end  输出缓冲区的结束指针（不可写入此位置）。
+     *
+     * @return 若成功编码并写入，返回 `true`；若缓冲区空间不足（< 4 字节）
+     *         或码点无效，返回 `false`。
+     *
+     * @note 前置条件：`to` 和 `to_end` 必须指向同一个数组，否则行为未定义。
+     * @endif
+     *
+     * @lang{EN}
+     * Encode a single internal character (UTF-32 code point) into the UTF-8 byte
+     * sequence and append it to the output buffer. Surrogate code points
+     * ([0xD800, 0xDFFF]) and values beyond the Unicode range (> 0x10FFFF) are rejected.
+     *
+     * @param ch      Internal character (UTF-32 code point) to encode.
+     * @param to      Pointer to the current write position in the output buffer
+     *                (advanced on success).
+     * @param to_end  One-past-the-end pointer of the output buffer.
+     *
+     * @return `true` if the code point was successfully encoded and written;
+     *         `false` if the buffer is too small (< 4 bytes) or the code point is invalid.
+     *
+     * @note Precondition: `to` and `to_end` must point into the same array;
+     *       behavior is undefined otherwise. `std::greater` enforces a total order
+     *       across pointers regardless of provenance, but the pointer subtraction
+     *       below requires same-object provenance per [expr.add]/5.
+     * @endif
+     */
     bool out_helper(TInt ch, char8_t*& to, char8_t* to_end)
     {
         if (std::greater<>{}(to, to_end)) [[unlikely]]
@@ -228,10 +549,47 @@ struct codecvt_kernel<char8_t, TInt>
         return true;
     }
 
-    // Precondition: `from`/`from_end` and `to`/`to_end` must each point into
-    // the same array. Behavior is undefined otherwise — std::greater enforces
-    // a total order across pointers regardless of provenance, but the pointer
-    // subtractions below require same-object provenance per [expr.add]/5.
+    /**
+     * @lang{ZH}
+     * 将 UTF-8 字节序列解码为内部字符（UTF-32 码点），并写入输出缓冲区。
+     * 严格验证 UTF-8 格式：拒绝超长编码、代理码点、超出范围的码点，以及格式错误的续接字节。
+     *
+     * @param from      指向输入 UTF-8 字节序列当前读取位置的指针（处理后向后推进）。
+     * @param from_end  输入字节序列的结束指针。
+     * @param to        指向输出缓冲区当前写入位置的指针（写入后向后推进）。
+     * @param to_end    输出缓冲区的结束指针。
+     *
+     * @return 一个 `std::pair<bool, size_t>`：
+     *         - `first`：转换是否成功（`false` 表示遇到无效 UTF-8 序列）。
+     *         - `second`：已写入输出缓冲区的内部字符数量。
+     *
+     * @note 前置条件：`from`/`from_end` 和 `to`/`to_end` 各自必须指向同一数组，否则行为未定义。
+     * @endif
+     *
+     * @lang{EN}
+     * Decode a UTF-8 byte sequence into internal characters (UTF-32 code points)
+     * and write them to the output buffer. Strictly validates UTF-8 format: rejects
+     * overlong encodings, surrogate code points, out-of-range values, and malformed
+     * continuation bytes.
+     *
+     * @param from      Pointer to the current read position in the input UTF-8 byte
+     *                  sequence (advanced as bytes are consumed).
+     * @param from_end  One-past-the-end pointer of the input byte sequence.
+     * @param to        Pointer to the current write position in the output buffer
+     *                  (advanced as characters are written).
+     * @param to_end    One-past-the-end pointer of the output buffer.
+     *
+     * @return A `std::pair<bool, size_t>`:
+     *         - `first`: Whether the conversion succeeded (`false` indicates an invalid
+     *           UTF-8 sequence).
+     *         - `second`: Number of internal characters written to the output buffer.
+     *
+     * @note Precondition: `from`/`from_end` and `to`/`to_end` must each point into
+     *       the same array; behavior is undefined otherwise. `std::greater` enforces
+     *       a total order across pointers regardless of provenance, but the pointer
+     *       subtractions below require same-object provenance per [expr.add]/5.
+     * @endif
+     */
     std::pair<bool, size_t> in_helper(const char8_t*& from, const char8_t* from_end,
                                       TInt*& to, TInt* to_end)
     {
@@ -296,10 +654,34 @@ struct codecvt_kernel<char8_t, TInt>
 };
 
 /**
- * @brief Character encoding converter that transforms between external and internal character types.
+ * @lang{ZH}
+ * 字符编码转换器，在底层内核的外部字符类型与本层的内部字符类型之间进行转换。
+ *
+ * `code_cvt` 通过 CRTP 继承自 `abs_cvt`，将编码转换任务委托给
+ * `codecvt_kernel<external_type, internal_type>` 实例。
+ *
+ * @tparam KernelType 底层 I/O 转换器类型，须满足 `io_converter` 概念；
+ *                    其 `internal_type` 须与 `codecvt_kernel` 所支持的外部类型匹配。
+ * @tparam CharType   本层的内部字符类型（如 `wchar_t`、`char32_t`）。
+ *
+ * @note 线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。
+ * @endif
+ *
+ * @lang{EN}
+ * Character encoding converter that transforms between the external character type
+ * of an underlying kernel and the internal character type at this layer.
+ *
+ * `code_cvt` inherits from `abs_cvt` via CRTP and delegates encoding conversion
+ * to a `codecvt_kernel<external_type, internal_type>` instance.
+ *
+ * @tparam KernelType Underlying I/O converter type, must satisfy the `io_converter`
+ *                    concept; its `internal_type` must match the external type
+ *                    supported by `codecvt_kernel`.
+ * @tparam CharType   Internal character type at this layer (e.g., `wchar_t`, `char32_t`).
  *
  * @note Thread Safety: This class is NOT thread-safe. Concurrent access to the same
  *       instance from multiple threads requires external synchronization.
+ * @endif
  */
 template <io_converter KernelType, typename CharType>
 class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, false, false>
@@ -308,12 +690,14 @@ class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, Char
     friend BT; // for put_main, get_main
 
 public:
-    using device_type = typename KernelType::device_type;
-    using internal_type = CharType;
-    using external_type = typename KernelType::internal_type;
+    using device_type = typename KernelType::device_type;   ///< 底层设备类型 / Underlying device type.
+    using internal_type = CharType;                          ///< 本层内部字符类型 / Internal character type at this layer.
+    using external_type = typename KernelType::internal_type; ///< 底层内核的内部类型（即本层外部类型）/ Internal type of the underlying kernel (external type at this layer).
 
 private:
+    /// 内部字符与外部字节的大小比（用于缓冲区计算）/ Size ratio of internal to external type (for buffer sizing).
     constexpr static size_t s_ie_ratio = sizeof(internal_type) / sizeof(external_type);
+    /// 内部缓冲区最大大小 / Maximum size of the internal buffer.
     constexpr static size_t s_max_buf_size = std::max<size_t>(MB_LEN_MAX * 16, s_ie_ratio);
 
     static_assert(sizeof(internal_type) >= sizeof(external_type));
@@ -321,12 +705,39 @@ private:
     static_assert(s_max_buf_size % s_ie_ratio == 0);
 
 public:
+    /**
+     * @lang{ZH}
+     * 以指定的底层内核和编码内核参数构造 `code_cvt`。
+     *
+     * @param kernel   底层 I/O 转换器实例（移动传入）。
+     * @param params   转发给 `codecvt_kernel` 构造函数的额外参数
+     *                 （例如，对于 locale-based 内核，为区域设置名称字符串）。
+     * @endif
+     *
+     * @lang{EN}
+     * Construct a `code_cvt` with the specified underlying kernel and encoding
+     * kernel parameters.
+     *
+     * @param kernel   Underlying I/O converter instance (moved in).
+     * @param params   Additional parameters forwarded to the `codecvt_kernel` constructor
+     *                 (e.g., a locale name string for the locale-based kernel).
+     * @endif
+     */
     template <typename ... TParams>
     code_cvt(KernelType kernel, TParams&&... params)
         : BT(std::move(kernel))
         , m_cvt_kernel(std::forward<TParams>(params)...)
     {}
 
+    /**
+     * @lang{ZH}
+     * 拷贝构造函数（仅当 `KernelType` 满足 `std::copy_constructible` 时可用）。
+     * @endif
+     *
+     * @lang{EN}
+     * Copy constructor (available only when `KernelType` satisfies `std::copy_constructible`).
+     * @endif
+     */
     code_cvt(const code_cvt& val)
         requires (std::copy_constructible<KernelType>)
         : BT(val)
@@ -334,6 +745,18 @@ public:
         , m_accu_len(val.m_accu_len)
     {}
 
+    /**
+     * @lang{ZH}
+     * 拷贝赋值运算符（仅当 `KernelType` 满足 `std::copy_constructible` 时可用）。
+     * 通过拷贝后移动实现强异常安全保证。
+     * @endif
+     *
+     * @lang{EN}
+     * Copy assignment operator (available only when `KernelType` satisfies
+     * `std::copy_constructible`). Implemented via copy-then-move to provide
+     * the strong exception safety guarantee.
+     * @endif
+     */
     code_cvt& operator=(const code_cvt& val)
         requires (std::copy_constructible<KernelType>)
     {
@@ -343,6 +766,16 @@ public:
         return *this;
     }
 
+    /**
+     * @lang{ZH}
+     * 移动构造函数。源对象移动后处于有效但未指定的状态（`m_accu_len` 重置为 0）。
+     * @endif
+     *
+     * @lang{EN}
+     * Move constructor. The source object is left in a valid but unspecified state
+     * after the move (`m_accu_len` is reset to 0).
+     * @endif
+     */
     code_cvt(code_cvt&& val) noexcept(
         std::is_nothrow_move_constructible_v<BT> &&
         std::is_nothrow_move_constructible_v<codecvt_kernel<external_type, internal_type>>)
@@ -353,6 +786,16 @@ public:
         val.m_accu_len = 0;
     }
 
+    /**
+     * @lang{ZH}
+     * 移动赋值运算符。源对象移动后处于有效但未指定的状态（`m_accu_len` 重置为 0）。
+     * @endif
+     *
+     * @lang{EN}
+     * Move assignment operator. The source object is left in a valid but unspecified
+     * state after the move (`m_accu_len` is reset to 0).
+     * @endif
+     */
     code_cvt& operator=(code_cvt&& val) noexcept(
         std::is_nothrow_move_assignable_v<BT> &&
         std::is_nothrow_move_assignable_v<codecvt_kernel<external_type, internal_type>>)
@@ -367,25 +810,84 @@ public:
 
     ~code_cvt() = default;
 
-// mandatory methods
+// 必选方法 / Mandatory methods
 public:
+    /**
+     * @lang{ZH}
+     * 关闭当前流并替换底层设备为 `dev`，返回被替换的旧设备。
+     *
+     * @param dev 新的底层设备（默认构造即为空设备）。
+     *
+     * @return 被替换的旧底层设备。
+     * @endif
+     *
+     * @lang{EN}
+     * Close the current stream, replace the underlying device with `dev`,
+     * and return the previously held device.
+     *
+     * @param dev New underlying device (default-constructed means an empty device).
+     *
+     * @return The previously held underlying device.
+     * @endif
+     */
     device_type attach(device_type&& dev = device_type{})
     {
         close_stream();
         return BT::attach(std::move(dev));
     }
 
+    /**
+     * @lang{ZH}
+     * 关闭当前流并移除底层设备，返回该设备的所有权。
+     *
+     * @return 底层设备的所有权。
+     * @endif
+     *
+     * @lang{EN}
+     * Close the current stream, remove the underlying device, and return
+     * ownership of it.
+     *
+     * @return Ownership of the underlying device.
+     * @endif
+     */
     device_type detach()
     {
         close_stream();
         return BT::detach();
     }
 
+    /**
+     * @lang{ZH}
+     * 建立初始 IO 状态（BOS：Beginning-Of-Stream）。
+     * 这是使用转换器之前必须首先调用的函数。
+     *
+     * @return 当前的 I/O 方向状态。
+     * @endif
+     *
+     * @lang{EN}
+     * Establish the initial IO state (BOS: Beginning-Of-Stream).
+     * This is the first function that must be called before using the converter.
+     *
+     * @return The current I/O direction state.
+     * @endif
+     */
     io_status bos()
     {
         return BT::bos();
     }
 
+    /**
+     * @lang{ZH}
+     * 结束 BOS 阶段，进入主内容阶段。
+     * 调用后编码转换状态将被重置，累计字符计数清零。
+     * @endif
+     *
+     * @lang{EN}
+     * End the BOS phase and transition into the main content phase.
+     * After this call, the encoding conversion state is reset and the
+     * accumulated character count is cleared.
+     * @endif
+     */
     void main_cont_beg()
     {
         BT::main_cont_beg();
@@ -393,8 +895,21 @@ public:
         m_accu_len = 0;
     }
 
-// optional methods
+// 可选方法（由 abs_cvt 通过 CRTP 调用）/ Optional methods (called by abs_cvt via CRTP)
 private:
+    /**
+     * @lang{ZH}
+     * 将内部字符序列编码为外部字节并写入底层缓冲区（由 `abs_cvt::put` 通过 CRTP 调用）。
+     * 依次对每个内部字符调用编码内核的 `out_helper()`，成功后更新累计字符计数。
+     * @endif
+     *
+     * @lang{EN}
+     * Encode the internal character sequence to external bytes and write them to
+     * the underlying buffer (called by `abs_cvt::put` via CRTP).
+     * Invokes the encoding kernel's `out_helper()` for each internal character
+     * in sequence, updating the accumulated character count on success.
+     * @endif
+     */
     void put_main(cvt_writer<KernelType>& writer, const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
@@ -420,6 +935,20 @@ private:
         m_accu_len += to_size;
     }
 
+    /**
+     * @lang{ZH}
+     * 从底层缓冲区读取外部字节并解码为内部字符（由 `abs_cvt::get` 通过 CRTP 调用）。
+     *
+     * @return 实际读取并解码的内部字符数量。
+     * @endif
+     *
+     * @lang{EN}
+     * Read external bytes from the underlying buffer and decode them into
+     * internal characters (called by `abs_cvt::get` via CRTP).
+     *
+     * @return Number of internal characters actually read and decoded.
+     * @endif
+     */
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
@@ -468,7 +997,22 @@ private:
     }
 
 public:
-    /// positioning
+    /// 定位操作 / Positioning operations
+
+    /**
+     * @lang{ZH}
+     * 返回当前流中已处理的内部字符总数（即逻辑位置）。
+     *
+     * @return 已处理的内部字符数量。
+     * @endif
+     *
+     * @lang{EN}
+     * Return the total number of internal characters processed so far in the stream
+     * (i.e., the logical position).
+     *
+     * @return Number of internal characters processed.
+     * @endif
+     */
     [[nodiscard]] size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
@@ -476,6 +1020,31 @@ public:
         return m_accu_len;
     }
 
+    /**
+     * @lang{ZH}
+     * 将流定位至指定的绝对内部字符位置。
+     * 对于变长或状态依赖编码，仅允许 `seek(0)`（定位至流起始）且须处于输入模式。
+     * 当目标位置等于当前位置时，直接返回（快速路径）。
+     *
+     * @param pos 目标内部字符位置。
+     *
+     * @throws cvt_error 若当前使用变长或状态依赖编码且不满足上述条件，
+     *                   或目标位置导致底层设备字节偏移溢出。
+     * @endif
+     *
+     * @lang{EN}
+     * Position the stream to the specified absolute internal character position.
+     * For variable-length or state-dependent encodings, only `seek(0)` (repositioning
+     * to the beginning of the stream) in input mode is permitted.
+     * Returns immediately when the target position equals the current position (fast path).
+     *
+     * @param pos Target internal character position.
+     *
+     * @throws cvt_error If the encoding is variable-length or state-dependent and the
+     *                   above conditions are not met, or if the target position causes
+     *                   a byte-offset overflow in the underlying device.
+     * @endif
+     */
     void seek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
@@ -508,6 +1077,30 @@ public:
         m_accu_len = pos;
     }
 
+    /**
+     * @lang{ZH}
+     * 将流重新定位至底层设备相对字节位置所对应的内部字符位置。
+     * 仅支持定长且状态无关的编码；否则抛出异常。
+     * 调用完成后验证底层设备新位置必须是编码单元大小的整数倍（对齐检查）。
+     *
+     * @param pos 传递给底层内核 `rseek` 的相对外部字节位置。
+     *
+     * @throws cvt_error 若编码为变长或状态依赖型、位置溢出，或底层设备新位置未对齐。
+     * @endif
+     *
+     * @lang{EN}
+     * Reposition the stream to the internal character position corresponding to the
+     * specified relative external byte position in the underlying device.
+     * Only fixed-length, state-independent encodings are supported; throws otherwise.
+     * After the call, validates that the resulting device byte position is aligned
+     * to the encoding unit size.
+     *
+     * @param pos Relative external byte position passed to the underlying kernel's `rseek`.
+     *
+     * @throws cvt_error If the encoding is variable-length or state-dependent, if the
+     *                   position overflows, or if the resulting device position is misaligned.
+     * @endif
+     */
     void rseek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
@@ -538,7 +1131,28 @@ public:
         m_cvt_kernel.init_state();
     }
 
-    /// io-switch
+    /// I/O 模式切换 / I/O mode switching
+
+    /**
+     * @lang{ZH}
+     * 切换至输出（写入）模式。
+     * 若已处于输出模式则为空操作。
+     * 从输入模式切换时，编码转换状态须为初始状态；对于变长或状态依赖编码，
+     * 还要求内部缓冲区为空（已到达 EOF）。
+     *
+     * @throws cvt_error 若不满足上述前置条件。
+     * @endif
+     *
+     * @lang{EN}
+     * Switch to output (writing) mode.
+     * No-op if already in output mode.
+     * When switching from input mode, the encoding conversion state must be in its
+     * initial state; for variable-length or state-dependent encodings, the internal
+     * buffer must also be empty (EOF reached).
+     *
+     * @throws cvt_error If the preconditions above are not met.
+     * @endif
+     */
     void switch_to_put()
         requires (cvt_cpt::support_io_switch<KernelType>)
     {
@@ -566,6 +1180,24 @@ public:
         }
     }
 
+    /**
+     * @lang{ZH}
+     * 切换至输入（读取）模式。
+     * 若已处于输入模式则为空操作。
+     * 从输出模式切换时，编码转换状态须为初始状态。
+     *
+     * @throws cvt_error 若不满足上述前置条件。
+     * @endif
+     *
+     * @lang{EN}
+     * Switch to input (reading) mode.
+     * No-op if already in input mode.
+     * When switching from output mode, the encoding conversion state must be
+     * in its initial state.
+     *
+     * @throws cvt_error If the preconditions above are not met.
+     * @endif
+     */
     void switch_to_get()
         requires (cvt_cpt::support_io_switch<KernelType>)
     {
@@ -588,6 +1220,20 @@ public:
     }
 
 private:
+    /**
+     * @lang{ZH}
+     * 关闭流：将编码转换状态重置为初始状态，将 I/O 方向恢复为 `neutral`，
+     * 并清除 BOS 标志和累计字符计数。
+     * 由 `attach()` 和 `detach()` 在替换底层设备前内部调用。
+     * @endif
+     *
+     * @lang{EN}
+     * Close the stream: reset the encoding conversion state to its initial value,
+     * revert the I/O direction to `neutral`, and clear both the BOS flag and the
+     * accumulated character count.
+     * Called internally by `attach()` and `detach()` before replacing the underlying device.
+     * @endif
+     */
     void close_stream()
     {
         m_cvt_kernel.init_state();
@@ -598,15 +1244,44 @@ private:
 
 protected:
     // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
-    codecvt_kernel<external_type, internal_type> m_cvt_kernel;
+    codecvt_kernel<external_type, internal_type> m_cvt_kernel; ///< 编码转换内核实例 / Encoding conversion kernel instance.
 
 private:
-    size_t m_accu_len = 0;
+    size_t m_accu_len = 0; ///< 已处理的内部字符总数（逻辑位置）/ Total internal characters processed (logical position).
 };
 
+/**
+ * @lang{ZH}
+ * 编码转换工厂类的主模板前向声明（不提供通用实现）。
+ * 仅为以下特化版本提供实现：
+ * - `code_cvt_creator<char, TInt>`：创建基于区域设置的 `code_cvt` 实例。
+ * - `code_cvt_creator<char8_t, TInt>`：创建 UTF-8 `code_cvt` 实例。
+ * @endif
+ *
+ * @lang{EN}
+ * Primary template forward declaration for the encoding converter factory class
+ * (no generic implementation is provided). Only the following specializations
+ * are implemented:
+ * - `code_cvt_creator<char, TInt>`: Creates locale-based `code_cvt` instances.
+ * - `code_cvt_creator<char8_t, TInt>`: Creates UTF-8 `code_cvt` instances.
+ * @endif
+ */
 template <typename TExt, typename TInt>
 class code_cvt_creator;
 
+/**
+ * @lang{ZH}
+ * 基于区域设置（locale）的 `code_cvt` 工厂类（char <-> wchar_t/char32_t）。
+ * 持有一个区域设置名称，并通过 `create()` 方法为给定底层内核生成 `code_cvt` 实例。
+ * 满足 `cvt_creator` 概念。
+ * @endif
+ *
+ * @lang{EN}
+ * Factory class for locale-based `code_cvt` instances (char <-> wchar_t/char32_t).
+ * Holds a locale name and creates `code_cvt` instances for a given underlying
+ * kernel via the `create()` method. Satisfies the `cvt_creator` concept.
+ * @endif
+ */
 template <typename TInt>
     requires std::is_same_v<TInt, wchar_t> ||
                 (std::is_same_v<TInt, char32_t> &&
@@ -617,9 +1292,45 @@ class code_cvt_creator<char, TInt>
 {
 public:
     using category = CvtCreatorCategory;
+
+    /**
+     * @lang{ZH}
+     * 以指定的区域设置名称构造工厂实例。
+     *
+     * @param name 区域设置名称，将在每次调用 `create()` 时传递给所创建的 `code_cvt`。
+     * @endif
+     *
+     * @lang{EN}
+     * Construct the factory with the specified locale name.
+     *
+     * @param name Locale name to be passed to each `code_cvt` instance created by `create()`.
+     * @endif
+     */
     explicit code_cvt_creator(std::string name)
         : m_name(std::move(name)) {}
 
+    /**
+     * @lang{ZH}
+     * 为指定的底层内核创建一个 `code_cvt` 实例。
+     * 要求 `TKernel::internal_type` 为 `char`（由 `static_assert` 在编译期强制检查）。
+     *
+     * @tparam TKernel 底层 I/O 转换器类型，须满足 `io_converter` 概念。
+     * @param  kernel  底层转换器实例（完美转发）。
+     *
+     * @return 已配置区域设置的 `code_cvt<TKernel, TInt>` 实例。
+     * @endif
+     *
+     * @lang{EN}
+     * Create a `code_cvt` instance for the specified underlying kernel.
+     * Requires `TKernel::internal_type` to be `char` (enforced by `static_assert`
+     * at compile time).
+     *
+     * @tparam TKernel Underlying I/O converter type, must satisfy the `io_converter` concept.
+     * @param  kernel  Underlying converter instance (perfect-forwarded).
+     *
+     * @return A `code_cvt<TKernel, TInt>` instance configured with the stored locale name.
+     * @endif
+     */
     template <io_converter TKernel>
     auto create(TKernel&& kernel) const
     {
@@ -627,9 +1338,22 @@ public:
         return code_cvt<TKernel, TInt>{std::forward<TKernel>(kernel), m_name};
     }
 private:
-    std::string m_name;
+    std::string m_name; ///< 区域设置名称 / Locale name.
 };
 
+/**
+ * @lang{ZH}
+ * UTF-8 编码的 `code_cvt` 工厂类（char8_t <-> char32_t/wchar_t）。
+ * 无状态，不需要区域设置。通过 `create()` 方法为给定底层内核生成 `code_cvt` 实例。
+ * 满足 `cvt_creator` 概念。
+ * @endif
+ *
+ * @lang{EN}
+ * Factory class for UTF-8 `code_cvt` instances (char8_t <-> char32_t/wchar_t).
+ * Stateless; no locale is required. Creates `code_cvt` instances for a given
+ * underlying kernel via the `create()` method. Satisfies the `cvt_creator` concept.
+ * @endif
+ */
 template <typename TInt>
     requires std::is_same_v<TInt, char32_t> ||
                 (std::is_same_v<TInt, wchar_t> &&
@@ -642,6 +1366,28 @@ public:
     using category = CvtCreatorCategory;
     code_cvt_creator() = default;
 
+    /**
+     * @lang{ZH}
+     * 为指定的底层内核创建一个 UTF-8 `code_cvt` 实例。
+     * 要求 `TKernel::internal_type` 为 `char8_t`（由 `static_assert` 在编译期强制检查）。
+     *
+     * @tparam TKernel 底层 I/O 转换器类型，须满足 `io_converter` 概念。
+     * @param  kernel  底层转换器实例（完美转发）。
+     *
+     * @return 使用无状态 UTF-8 内核的 `code_cvt<TKernel, TInt>` 实例。
+     * @endif
+     *
+     * @lang{EN}
+     * Create a UTF-8 `code_cvt` instance for the specified underlying kernel.
+     * Requires `TKernel::internal_type` to be `char8_t` (enforced by `static_assert`
+     * at compile time).
+     *
+     * @tparam TKernel Underlying I/O converter type, must satisfy the `io_converter` concept.
+     * @param  kernel  Underlying converter instance (perfect-forwarded).
+     *
+     * @return A `code_cvt<TKernel, TInt>` instance using the stateless UTF-8 kernel.
+     * @endif
+     */
     template <io_converter TKernel>
     auto create(TKernel&& kernel) const
     {
