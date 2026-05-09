@@ -1488,3 +1488,92 @@ void test_code_cvt_mem_char_io_4()
 
     dump_info("Done\n");
 }
+
+// Covers lines 267-268 (out_helper: wcrtomb returns -1, init_state + return false)
+// and line 926 (code_cvt::put throws encoding error).
+// Uses "C" locale (epc=1, ASCII only) and attempts to encode a Chinese character.
+void test_code_cvt_mem_char_put_err_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt<memory<char>, char32_t>::put encoding error case 1...");
+
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+
+    auto try_put = [](auto& obj, char32_t ch) {
+        if (obj.bos() != io_status::output)
+            throw std::runtime_error("test_code_cvt_mem_char_put_err_1: bos fail");
+        obj.main_cont_beg();
+        try {
+            obj.put(&ch, 1);
+            throw std::runtime_error("test_code_cvt_mem_char_put_err_1: expected throw");
+        } catch (const cvt_error&) {}
+    };
+
+    // In "C" locale, non-ASCII characters cannot be encoded (wcrtomb returns -1)
+    { CheckType o{rb_root_cvt{mem_device("")}, "C"}; try_put(o, U'李'); }
+    { CheckType o{rb_root_cvt{mem_device("")}, "C"}; try_put(o, U'伟'); }
+
+    dump_info("Done\n");
+}
+
+// Covers lines 339-340, 341, 343-344, 346-347, 350, 354-356 in in_helper:
+// null character ('\0') decoded via the special mbrtowc conv==0 path.
+void test_code_cvt_mem_char_get_null_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt<memory<char>, char32_t>::get null character case 1...");
+
+    // Content: 'a', '\0', 'b'  —  embed null byte using explicit construction
+    std::string buf;
+    buf += 'a'; buf += '\0'; buf += 'b';
+
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+
+    auto helper = [&](auto& obj) {
+        if (obj.bos() != io_status::input)
+            throw std::runtime_error("test_code_cvt_mem_char_get_null_1: bos fail");
+        obj.main_cont_beg();
+        char32_t out[3] = { 1, 1, 1 };
+        if (obj.get(out, 3) != 3)
+            throw std::runtime_error("test_code_cvt_mem_char_get_null_1: get count fail");
+        if (out[0] != U'a' || out[1] != U'\0' || out[2] != U'b')
+            throw std::runtime_error("test_code_cvt_mem_char_get_null_1: get content fail");
+    };
+
+    CheckType obj1{rb_root_cvt{mem_device(buf)}, "C"};
+    helper(obj1);
+    runtime_cvt obj1r{CheckType{rb_root_cvt{mem_device(buf)}, "C"}};
+    helper(obj1r);
+
+    dump_info("Done\n");
+}
+
+// Covers line 328 (in_helper: mbrtowc returns -1 for invalid byte)
+// and line 986 (code_cvt::get throws invalid external sequence).
+void test_code_cvt_mem_char_get_err_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt<memory<char>, char32_t>::get invalid sequence case 1...");
+
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+
+    // In "C" locale, 0xFF is not a valid single-byte character
+    auto run_err = [](const std::string& bad_bytes) {
+        CheckType obj{rb_root_cvt{mem_device(bad_bytes)}, "C"};
+        if (obj.bos() != io_status::input)
+            throw std::runtime_error("test_code_cvt_mem_char_get_err_1: bos fail");
+        obj.main_cont_beg();
+        char32_t buf[4];
+        try {
+            obj.get(buf, 4);
+            throw std::runtime_error("test_code_cvt_mem_char_get_err_1: expected throw");
+        } catch (const cvt_error&) {}
+    };
+
+    std::string inv1; inv1 += '\xff';
+    run_err(inv1);
+    std::string inv2; inv2 += '\xfe';
+    run_err(inv2);
+
+    dump_info("Done\n");
+}

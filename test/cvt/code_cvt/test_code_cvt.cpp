@@ -29,6 +29,9 @@ void test_code_cvt_mem_char_io_1();
 void test_code_cvt_mem_char_io_2();
 void test_code_cvt_mem_char_io_3();
 void test_code_cvt_mem_char_io_4();
+void test_code_cvt_mem_char_put_err_1();
+void test_code_cvt_mem_char_get_null_1();
+void test_code_cvt_mem_char_get_err_1();
 
 void test_code_cvt_mem_char8_t_gen_1();
 void test_code_cvt_mem_char8_t_gen_2();
@@ -52,6 +55,13 @@ void test_code_cvt_mem_char8_t_rseek_1();
 void test_code_cvt_mem_char8_t_rseek_2();
 void test_code_cvt_mem_char8_t_io_1();
 void test_code_cvt_mem_char8_t_io_2();
+void test_code_cvt_mem_char8_t_gen_6();
+void test_code_cvt_mem_char8_t_gen_7();
+void test_code_cvt_mem_char8_t_put_err_1();
+void test_code_cvt_mem_char8_t_get_err_1();
+void test_code_cvt_mem_char8_t_get_partial_1();
+void test_code_cvt_attach_1();
+void test_code_cvt_switch_1();
 
 void test_code_cvt_mem_char8_t_wchar_t_gen_1();
 void test_code_cvt_mem_char8_t_wchar_t_gen_2();
@@ -123,7 +133,10 @@ void test_code_cvt()
     test_code_cvt_mem_char_io_2();
     test_code_cvt_mem_char_io_3();
     test_code_cvt_mem_char_io_4();
-    
+    test_code_cvt_mem_char_put_err_1();
+    test_code_cvt_mem_char_get_null_1();
+    test_code_cvt_mem_char_get_err_1();
+
     test_code_cvt_mem_char8_t_gen_1();
     test_code_cvt_mem_char8_t_gen_2();
     test_code_cvt_mem_char8_t_gen_3();
@@ -146,6 +159,13 @@ void test_code_cvt()
     test_code_cvt_mem_char8_t_rseek_2();
     test_code_cvt_mem_char8_t_io_1();
     test_code_cvt_mem_char8_t_io_2();
+    test_code_cvt_mem_char8_t_gen_6();
+    test_code_cvt_mem_char8_t_gen_7();
+    test_code_cvt_mem_char8_t_put_err_1();
+    test_code_cvt_mem_char8_t_get_err_1();
+    test_code_cvt_mem_char8_t_get_partial_1();
+    test_code_cvt_attach_1();
+    test_code_cvt_switch_1();
 
     test_code_cvt_mem_char8_t_wchar_t_gen_1();
     test_code_cvt_mem_char8_t_wchar_t_gen_2();
