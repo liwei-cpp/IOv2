@@ -112,7 +112,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:abc31f46c07bdfa054e2156538ed532ce"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html#abc31f46c07bdfa054e2156538ed532ce">create</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TKernel</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:abc31f46c07bdfa054e2156538ed532ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p><code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code> 转换器的工厂类。 持有一个区域设置名称，并通过 <code><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html#abc31f46c07bdfa054e2156538ed532ce">create()</a></code> 方法为给定底层内核生成 <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code> 实例。满足 <code>cvt_creator</code> 概念。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="acf00e9042d26ca87e87ea7385b37e18c" name="acf00e9042d26ca87e87ea7385b37e18c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acf00e9042d26ca87e87ea7385b37e18c">&#9670;&#160;</a></span>category</h2>
 
@@ -151,6 +153,13 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>以指定的区域设置名称构造工厂实例。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>区域设置名称，将在每次调用 <code><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html#abc31f46c07bdfa054e2156538ed532ce">create()</a></code> 时传递给所创建的 <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code>。 </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -180,6 +189,20 @@ template&lt;io_converter TKernel&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>为指定的底层内核创建一个 <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code> 实例。 要求 <code>TKernel::internal_type</code> 为 <code>char</code>（由 <code>static_assert</code> 在编译期强制检查）。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TKernel</td><td>底层 I/O 转换器类型，须满足 <code>io_converter</code> 概念。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>底层转换器实例（完美转发）。</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>已配置区域设置的 <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a>&lt;TKernel&gt;</code> 实例。 </dd></dl>
 
 </div>
 </div>

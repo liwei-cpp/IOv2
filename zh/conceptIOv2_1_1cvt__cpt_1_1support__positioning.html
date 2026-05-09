@@ -102,9 +102,15 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1cvt__cpt_1_1support__po
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.seek(std::declval&lt;size_t&gt;()) } -&gt; std::same_as&lt;void&gt;;</div>
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.rseek(std::declval&lt;size_t&gt;()) } -&gt; std::same_as&lt;void&gt;;</div>
 <div class="line">            }</div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__positioning_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__positioning.html">IOv2::cvt_cpt::support_positioning</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:55</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__positioning_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__positioning.html">IOv2::cvt_cpt::support_positioning</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:173</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
-</div><!-- fragment --></div><!-- contents -->
+</div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>约束类型 T 支持流定位操作。 T 须提供以下成员函数，且签名须与规范完全一致：</p><ul>
+<li><code>tell() -&gt; size_t</code>（const）：返回当前流位置。</li>
+<li><code>seek(size_t) -&gt; void</code>：将流定位到指定的绝对位置。</li>
+<li><code>rseek(size_t) -&gt; void</code>：将流定位到指定的相对位置。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

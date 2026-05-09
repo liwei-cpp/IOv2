@@ -96,9 +96,6 @@ $(document).ready(function(){initNavTree('structIOv2_1_1codecvt__kernel_3_01char
 </div><!--header-->
 <div class="contents">
 
-<p>UTF-8 encoding conversion kernel (char8_t &lt;-&gt; char32_t/wchar_t).  
- <a href="structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#details">更多...</a></p>
-
 <p><code>#include &lt;<a class="el" href="code__cvt_8h_source.html">code_cvt.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -123,8 +120,8 @@ Public 成员函数</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
 requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt; || (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>)) &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>'))<br />
-struct IOv2::codecvt_kernel&lt; char8_t, TInt &gt;</div><p>UTF-8 encoding conversion kernel (char8_t &lt;-&gt; char32_t/wchar_t). </p>
-<dl class="section note"><dt>注解</dt><dd>Thread Safety: This class is NOT thread-safe. Concurrent access to the same instance from multiple threads requires external synchronization. </dd></dl>
+struct IOv2::codecvt_kernel&lt; char8_t, TInt &gt;</div><p>无状态 UTF-8 编码转换内核（char8_t &lt;-&gt; char32_t/wchar_t）。 直接按照 UTF-8 规范对码点进行编解码，无需区域设置，无转换状态。</p>
+<dl class="section note"><dt>注解</dt><dd>线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。 不同于 <code><a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>&lt;char, TInt&gt;</code>，多实例的并发构造是安全的（无共享静态状态）。 </dd></dl>
 </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a2bf2a4895e2a2310dc652f7f64368920" name="a2bf2a4895e2a2310dc652f7f64368920"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2bf2a4895e2a2310dc652f7f64368920">&#9670;&#160;</a></span>codecvt_kernel()</h2>
@@ -178,6 +175,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回每个内部字符对应的最大外部字节数（UTF-8 最长 4 字节）。</p>
+<dl class="section return"><dt>返回</dt><dd>固定返回 <code>4</code>。 </dd></dl>
 
 </div>
 </div>
@@ -228,6 +227,22 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将 UTF-8 字节序列解码为内部字符（UTF-32 码点），并写入输出缓冲区。 严格验证 UTF-8 格式：拒绝超长编码、代理码点、超出范围的码点，以及格式错误的续接字节。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">from</td><td>指向输入 UTF-8 字节序列当前读取位置的指针（处理后向后推进）。 </td></tr>
+    <tr><td class="paramname">from_end</td><td>输入字节序列的结束指针。 </td></tr>
+    <tr><td class="paramname">to</td><td>指向输出缓冲区当前写入位置的指针（写入后向后推进）。 </td></tr>
+    <tr><td class="paramname">to_end</td><td>输出缓冲区的结束指针。</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>一个 <code>std::pair&lt;bool, size_t&gt;</code>：<ul>
+<li><code>first</code>：转换是否成功（<code>false</code> 表示遇到无效 UTF-8 序列）。</li>
+<li><code>second</code>：已写入输出缓冲区的内部字符数量。</li>
+</ul>
+</dd></dl>
+<dl class="section note"><dt>注解</dt><dd>前置条件：<code>from</code>/<code>from_end</code> 和 <code>to</code>/<code>to_end</code> 各自必须指向同一数组，否则行为未定义。 </dd></dl>
 
 </div>
 </div>
@@ -255,6 +270,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>重置编码转换状态（UTF-8 无状态，为空操作）。 </p>
 
 </div>
 </div>
@@ -282,6 +298,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>判断编码转换状态是否处于初始状态（UTF-8 无状态，始终返回 <code>true</code>）。</p>
+<dl class="section return"><dt>返回</dt><dd>始终返回 <code>true</code>。 </dd></dl>
 
 </div>
 </div>
@@ -309,6 +327,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>判断编码是否为状态依赖编码（UTF-8 无状态，始终返回 <code>false</code>）。</p>
+<dl class="section return"><dt>返回</dt><dd>始终返回 <code>false</code>。 </dd></dl>
 
 </div>
 </div>
@@ -336,6 +356,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>判断编码是否为变长编码（UTF-8 为变长编码，始终返回 <code>true</code>）。</p>
+<dl class="section return"><dt>返回</dt><dd>始终返回 <code>true</code>。 </dd></dl>
 
 </div>
 </div>
@@ -380,6 +402,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将单个内部字符（UTF-32 码点）编码为 UTF-8 字节序列，并追加写入输出缓冲区。 拒绝代理码点（[0xD800, 0xDFFF]）及超出 Unicode 范围（&gt; 0x10FFFF）的码点。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ch</td><td>待编码的内部字符（UTF-32 码点）。 </td></tr>
+    <tr><td class="paramname">to</td><td>指向输出缓冲区当前写入位置的指针（成功时向后推进）。 </td></tr>
+    <tr><td class="paramname">to_end</td><td>输出缓冲区的结束指针（不可写入此位置）。</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>若成功编码并写入，返回 <code>true</code>；若缓冲区空间不足（&lt; 4 字节） 或码点无效，返回 <code>false</code>。</dd></dl>
+<dl class="section note"><dt>注解</dt><dd>前置条件：<code>to</code> 和 <code>to_end</code> 必须指向同一个数组，否则行为未定义。 </dd></dl>
 
 </div>
 </div>

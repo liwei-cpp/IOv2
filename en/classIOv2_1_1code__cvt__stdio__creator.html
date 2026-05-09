@@ -112,7 +112,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:abc31f46c07bdfa054e2156538ed532ce"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html#abc31f46c07bdfa054e2156538ed532ce">create</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TKernel</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:abc31f46c07bdfa054e2156538ed532ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Factory class for <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code> converters. Holds a locale name and creates <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code> instances for a given underlying kernel via the <code><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html#abc31f46c07bdfa054e2156538ed532ce">create()</a></code> method. Satisfies the <code>cvt_creator</code> concept.  </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="acf00e9042d26ca87e87ea7385b37e18c" name="acf00e9042d26ca87e87ea7385b37e18c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acf00e9042d26ca87e87ea7385b37e18c">&#9670;&#160;</a></span>category</h2>
 
@@ -151,6 +153,13 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Construct the factory with the specified locale name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>Locale name to be passed to each <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code> instance created by <code><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html#abc31f46c07bdfa054e2156538ed532ce">create()</a></code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -180,6 +189,20 @@ template&lt;io_converter TKernel&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Create a <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a></code> instance for the specified underlying kernel. Requires <code>TKernel::internal_type</code> to be <code>char</code> (enforced by <code>static_assert</code> at compile time).</p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TKernel</td><td>Underlying I/O converter type, must satisfy the <code>io_converter</code> concept. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>Underlying converter instance (perfect-forwarded).</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html">code_cvt_stdio</a>&lt;TKernel&gt;</code> instance configured with the stored locale name.  </dd></dl>
 
 </div>
 </div>

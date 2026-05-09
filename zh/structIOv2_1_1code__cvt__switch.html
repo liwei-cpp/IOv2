@@ -140,9 +140,12 @@ Public 成员函数</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public 属性</h2></td></tr>
 <tr class="memitem:a28697a9b4b1eb4c1c8e62b962d35c006" id="r_a28697a9b4b1eb4c1c8e62b962d35c006"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1code__cvt__switch.html#a28697a9b4b1eb4c1c8e62b962d35c006">code</a></td></tr>
+<tr class="memdesc:a28697a9b4b1eb4c1c8e62b962d35c006"><td class="mdescLeft">&#160;</td><td class="mdescRight">目标区域设置名称 / Target locale name.  <br /></td></tr>
 <tr class="separator:a28697a9b4b1eb4c1c8e62b962d35c006"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>运行时区域设置切换的行为策略。 将此策略传入 <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html#aa582ae31f411f98058d6a3492ec4455f">code_cvt_stdio::adjust()</a></code> 可在运行时动态更换字符编码（区域设置）。 切换时要求编码转换状态处于初始状态；切换操作提供强异常安全保证。 </p>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="acd5e09449e8dbb0bf7659b0b19492c1f" name="acd5e09449e8dbb0bf7659b0b19492c1f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acd5e09449e8dbb0bf7659b0b19492c1f">&#9670;&#160;</a></span>code_cvt_switch()</h2>
 
@@ -166,6 +169,13 @@ Public 属性</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>以指定的区域设置名称构造切换策略。</p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_code</td><td>目标区域设置名称（如 "zh_CN.UTF-8"）。 </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -181,6 +191,8 @@ Public 属性</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>目标区域设置名称 / Target locale name. </p>
 
 </div>
 </div>

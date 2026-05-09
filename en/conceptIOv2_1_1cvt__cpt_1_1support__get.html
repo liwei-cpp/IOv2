@@ -101,9 +101,14 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1cvt__cpt_1_1support__ge
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.get(std::declval&lt;typename T::internal_type*&gt;(), std::declval&lt;size_t&gt;()) } -&gt; std::same_as&lt;size_t&gt;;</div>
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.is_eof() } -&gt; std::same_as&lt;bool&gt;;</div>
 <div class="line">            }</div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:48</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:149</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
-</div><!-- fragment --></div><!-- contents -->
+</div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Constrains type T to support read operations. T must provide the following member functions with exact signatures:</p><ul>
+<li><code>get(internal_type*, size_t) -&gt; size_t</code>: Read data from the converter, returning the number of elements actually read.</li>
+<li><code>is_eof() -&gt; bool</code>: Query whether the converter has reached the end of data.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

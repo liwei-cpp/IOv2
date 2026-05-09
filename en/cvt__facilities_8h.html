@@ -301,22 +301,19 @@ Namespaces</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aa1babea415d6ad8be83c25bf553ba2c1" id="r_aa1babea415d6ad8be83c25bf553ba2c1"><td class="memItemLeft" align="right" valign="top">std::wstring&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">IOv2::detail::to_wstring</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale_name</a>)</td></tr>
-<tr class="memdesc:aa1babea415d6ad8be83c25bf553ba2c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a locale-encoded narrow string to a wide string.  <br /></td></tr>
 <tr class="separator:aa1babea415d6ad8be83c25bf553ba2c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a801881577b5c1cb239a485b6fab5034b" id="r_a801881577b5c1cb239a485b6fab5034b"><td class="memItemLeft" align="right" valign="top">std::u32string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a801881577b5c1cb239a485b6fab5034b">IOv2::detail::to_u32string</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale_name</a>)</td></tr>
-<tr class="memdesc:a801881577b5c1cb239a485b6fab5034b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a locale-encoded narrow string to UTF-32.  <br /></td></tr>
 <tr class="separator:a801881577b5c1cb239a485b6fab5034b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c8d5418a7c7dbf2bef67e91162ee5cb" id="r_a4c8d5418a7c7dbf2bef67e91162ee5cb"><td class="memItemLeft" align="right" valign="top">std::u32string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a4c8d5418a7c7dbf2bef67e91162ee5cb">IOv2::detail::to_u32string</a> (std::u8string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
-<tr class="memdesc:a4c8d5418a7c7dbf2bef67e91162ee5cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a UTF-8 string to UTF-32.  <br /></td></tr>
 <tr class="separator:a4c8d5418a7c7dbf2bef67e91162ee5cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9bad2cd50da6e91830cc4bc0b52d1385" id="r_a9bad2cd50da6e91830cc4bc0b52d1385"><td class="memItemLeft" align="right" valign="top">std::u8string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a9bad2cd50da6e91830cc4bc0b52d1385">IOv2::detail::to_u8string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::u32string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
-<tr class="memdesc:a9bad2cd50da6e91830cc4bc0b52d1385"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a UTF-32 string to UTF-8.  <br /></td></tr>
 <tr class="separator:a9bad2cd50da6e91830cc4bc0b52d1385"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5fcc1d87473297523fb387243e5b0950" id="r_a5fcc1d87473297523fb387243e5b0950"><td class="memItemLeft" align="right" valign="top">std::u8string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a5fcc1d87473297523fb387243e5b0950">IOv2::detail::to_u8string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
-<tr class="memdesc:a5fcc1d87473297523fb387243e5b0950"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a single UTF-32 code point to UTF-8.  <br /></td></tr>
 <tr class="separator:a5fcc1d87473297523fb387243e5b0950"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Conversion facility functions providing convenient interfaces for character encoding conversions. All functions reside in the <a class="el" href="namespaceIOv2_1_1detail.html">IOv2::detail</a> namespace and are internal implementation details, not part of the public API.  </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

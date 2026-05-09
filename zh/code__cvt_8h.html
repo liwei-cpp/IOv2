@@ -268,13 +268,10 @@ code_cvt.h 的引用(Include)关系图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html">IOv2::codecvt_kernel&lt; char, TInt &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Locale-based character encoding conversion kernel (char &lt;-&gt; wchar_t/char32_t).  <a href="structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html">IOv2::codecvt_kernel&lt; char8_t, TInt &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">UTF-8 encoding conversion kernel (char8_t &lt;-&gt; char32_t/wchar_t).  <a href="structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt.html">IOv2::code_cvt&lt; KernelType, CharType &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Character encoding converter that transforms between external and internal character types.  <a href="classIOv2_1_1code__cvt.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__creator_3_01char_00_01TInt_01_4.html">IOv2::code_cvt_creator&lt; char, TInt &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -286,7 +283,12 @@ code_cvt.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>字符编码转换器（code_cvt）及底层编码内核（codecvt_kernel）的定义文件。 本文件提供两种编码内核实现：</p><ul>
+<li><code>codecvt_kernel&lt;char, TInt&gt;</code>：基于区域设置（locale）的多字节编码内核， 通过 C 标准库的 mbrtowc / wcrtomb 在 char 与 wchar_t/char32_t 之间转换。</li>
+<li><code>codecvt_kernel&lt;char8_t, TInt&gt;</code>：无状态 UTF-8 编码内核， 直接在 char8_t 与 char32_t/wchar_t 之间转换。 以及基于上述内核的通用编码转换器 <code>code_cvt</code> 及其对应的工厂类 <code>code_cvt_creator</code>。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

@@ -103,11 +103,16 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1cvt__cpt_1_1support__io
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.switch_to_get() } -&gt; std::same_as&lt;void&gt;;</div>
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.switch_to_put() } -&gt; std::same_as&lt;void&gt;;</div>
 <div class="line">            }</div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:48</div></div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__io__switch_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">IOv2::cvt_cpt::support_io_switch</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:63</div></div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__put.html">IOv2::cvt_cpt::support_put</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:41</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:149</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__io__switch_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">IOv2::cvt_cpt::support_io_switch</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:197</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__put.html">IOv2::cvt_cpt::support_put</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:126</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
-</div><!-- fragment --></div><!-- contents -->
+</div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>约束类型 T 同时支持读写操作，并可在两种模式之间切换。 T 须同时满足 <code>support_put</code> 和 <code>support_get</code>，并额外提供：</p><ul>
+<li><code>switch_to_get() -&gt; void</code>：切换至输入（读取）模式。</li>
+<li><code>switch_to_put() -&gt; void</code>：切换至输出（写入）模式。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

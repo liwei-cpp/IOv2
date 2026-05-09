@@ -188,7 +188,6 @@ code_cvt_stdio.h 的引用(Include)关系图:</div>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1code__cvt__access.html">IOv2::code_cvt_access</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__stdio.html">IOv2::code_cvt_stdio&lt; KernelType &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Character encoding converter with runtime locale switching support.  <a href="classIOv2_1_1code__cvt__stdio.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html">IOv2::code_cvt_stdio_creator</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -198,7 +197,14 @@ code_cvt_stdio.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>支持运行时区域设置动态切换的字符编码转换器（code_cvt_stdio）及其配套类型定义文件。 本文件在 <code>code_cvt</code> 的基础上增加了以下能力：</p><ul>
+<li><code>code_cvt_switch</code>：行为策略，用于在运行时切换字符编码（区域设置）。</li>
+<li><code>code_cvt_access</code>：状态对象，用于查询转换器当前使用的区域设置名称。</li>
+<li><code>code_cvt_stdio</code>：继承自 <code>code_cvt&lt;KernelType, wchar_t&gt;</code>，通过 <code>adjust()</code>/<code>retrieve()</code> 接口支持编码的动态切换与查询。</li>
+<li><code>code_cvt_stdio_creator</code>：<code>code_cvt_stdio</code> 的工厂类，满足 <code>cvt_creator</code> 概念。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

@@ -268,13 +268,10 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html">IOv2::codecvt_kernel&lt; char, TInt &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Locale-based character encoding conversion kernel (char &lt;-&gt; wchar_t/char32_t).  <a href="structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html">IOv2::codecvt_kernel&lt; char8_t, TInt &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">UTF-8 encoding conversion kernel (char8_t &lt;-&gt; char32_t/wchar_t).  <a href="structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt.html">IOv2::code_cvt&lt; KernelType, CharType &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Character encoding converter that transforms between external and internal character types.  <a href="classIOv2_1_1code__cvt.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__creator_3_01char_00_01TInt_01_4.html">IOv2::code_cvt_creator&lt; char, TInt &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -286,7 +283,12 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Definition file for the character encoding converter (code_cvt) and its underlying encoding kernels (codecvt_kernel). This file provides two kernel implementations:</p><ul>
+<li><code>codecvt_kernel&lt;char, TInt&gt;</code>: A locale-based multi-byte encoding kernel that converts between char and wchar_t/char32_t via the C standard library's mbrtowc / wcrtomb functions.</li>
+<li><code>codecvt_kernel&lt;char8_t, TInt&gt;</code>: A stateless UTF-8 encoding kernel that converts directly between char8_t and char32_t/wchar_t. Along with the generic encoding converter <code>code_cvt</code> built on these kernels, and the corresponding factory class <code>code_cvt_creator</code>.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

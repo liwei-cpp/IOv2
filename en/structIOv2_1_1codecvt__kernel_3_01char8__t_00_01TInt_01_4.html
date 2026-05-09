@@ -96,9 +96,6 @@ $(document).ready(function(){initNavTree('structIOv2_1_1codecvt__kernel_3_01char
 </div><!--header-->
 <div class="contents">
 
-<p>UTF-8 encoding conversion kernel (char8_t &lt;-&gt; char32_t/wchar_t).  
- <a href="structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#details">More...</a></p>
-
 <p><code>#include &lt;<a class="el" href="code__cvt_8h_source.html">code_cvt.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -123,8 +120,8 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
 requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt; || (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>)) &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>'))<br />
-struct IOv2::codecvt_kernel&lt; char8_t, TInt &gt;</div><p>UTF-8 encoding conversion kernel (char8_t &lt;-&gt; char32_t/wchar_t). </p>
-<dl class="section note"><dt>Note</dt><dd>Thread Safety: This class is NOT thread-safe. Concurrent access to the same instance from multiple threads requires external synchronization. </dd></dl>
+struct IOv2::codecvt_kernel&lt; char8_t, TInt &gt;</div><p>Stateless UTF-8 encoding conversion kernel (char8_t &lt;-&gt; char32_t/wchar_t). Encodes and decodes code points directly according to the UTF-8 specification, requiring neither a locale nor any conversion state.</p>
+<dl class="section note"><dt>Note</dt><dd>Thread Safety: This class is NOT thread-safe. Concurrent access to the same instance from multiple threads requires external synchronization. Unlike <code><a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>&lt;char, TInt&gt;</code>, concurrent construction of multiple instances is safe (no shared static state).  </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2bf2a4895e2a2310dc652f7f64368920" name="a2bf2a4895e2a2310dc652f7f64368920"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2bf2a4895e2a2310dc652f7f64368920">&#9670;&#160;</a></span>codecvt_kernel()</h2>
@@ -178,6 +175,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Return the maximum number of external bytes per internal character (UTF-8 uses at most 4 bytes per code point).</p>
+<dl class="section return"><dt>Returns</dt><dd>Always <code>4</code>.  </dd></dl>
 
 </div>
 </div>
@@ -228,6 +227,22 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Decode a UTF-8 byte sequence into internal characters (UTF-32 code points) and write them to the output buffer. Strictly validates UTF-8 format: rejects overlong encodings, surrogate code points, out-of-range values, and malformed continuation bytes.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">from</td><td>Pointer to the current read position in the input UTF-8 byte sequence (advanced as bytes are consumed). </td></tr>
+    <tr><td class="paramname">from_end</td><td>One-past-the-end pointer of the input byte sequence. </td></tr>
+    <tr><td class="paramname">to</td><td>Pointer to the current write position in the output buffer (advanced as characters are written). </td></tr>
+    <tr><td class="paramname">to_end</td><td>One-past-the-end pointer of the output buffer.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <code>std::pair&lt;bool, size_t&gt;</code>:<ul>
+<li><code>first</code>: Whether the conversion succeeded (<code>false</code> indicates an invalid UTF-8 sequence).</li>
+<li><code>second</code>: Number of internal characters written to the output buffer.</li>
+</ul>
+</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Precondition: <code>from</code>/<code>from_end</code> and <code>to</code>/<code>to_end</code> must each point into the same array; behavior is undefined otherwise. <code>std::greater</code> enforces a total order across pointers regardless of provenance, but the pointer subtractions below require same-object provenance per [expr.add]/5.  </dd></dl>
 
 </div>
 </div>
@@ -255,6 +270,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Reset the encoding conversion state (no-op for stateless UTF-8).  </p>
 
 </div>
 </div>
@@ -282,6 +298,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Check whether the encoding conversion state is in its initial state (always <code>true</code> for stateless UTF-8).</p>
+<dl class="section return"><dt>Returns</dt><dd>Always <code>true</code>.  </dd></dl>
 
 </div>
 </div>
@@ -309,6 +327,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Check whether the encoding is state-dependent (UTF-8 is stateless).</p>
+<dl class="section return"><dt>Returns</dt><dd>Always <code>false</code>.  </dd></dl>
 
 </div>
 </div>
@@ -336,6 +356,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Check whether the encoding is variable-length (UTF-8 is always variable-length).</p>
+<dl class="section return"><dt>Returns</dt><dd>Always <code>true</code>.  </dd></dl>
 
 </div>
 </div>
@@ -380,6 +402,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Encode a single internal character (UTF-32 code point) into the UTF-8 byte sequence and append it to the output buffer. Surrogate code points ([0xD800, 0xDFFF]) and values beyond the Unicode range (&gt; 0x10FFFF) are rejected.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ch</td><td>Internal character (UTF-32 code point) to encode. </td></tr>
+    <tr><td class="paramname">to</td><td>Pointer to the current write position in the output buffer (advanced on success). </td></tr>
+    <tr><td class="paramname">to_end</td><td>One-past-the-end pointer of the output buffer.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if the code point was successfully encoded and written; <code>false</code> if the buffer is too small (&lt; 4 bytes) or the code point is invalid.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Precondition: <code>to</code> and <code>to_end</code> must point into the same array; behavior is undefined otherwise. <code>std::greater</code> enforces a total order across pointers regardless of provenance, but the pointer subtraction below requires same-object provenance per [expr.add]/5.  </dd></dl>
 
 </div>
 </div>

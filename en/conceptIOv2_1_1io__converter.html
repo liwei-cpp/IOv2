@@ -102,11 +102,17 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1io__converter.html','')
 <div class="line">            <span class="keyword">typename</span> T::internal_type;</div>
 <div class="line">            <span class="keyword">typename</span> T::external_type;</div>
 <div class="line">        }</div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1mandatory__methods_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html">IOv2::cvt_cpt::mandatory_methods</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:72</div></div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:48</div></div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__put.html">IOv2::cvt_cpt::support_put</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:41</div></div>
-<div class="ttc" id="aconceptIOv2_1_1io__converter_html"><div class="ttname"><a href="conceptIOv2_1_1io__converter.html">IOv2::io_converter</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:88</div></div>
-</div><!-- fragment --></div><!-- contents -->
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1mandatory__methods_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html">IOv2::cvt_cpt::mandatory_methods</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:223</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:149</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__put.html">IOv2::cvt_cpt::support_put</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:126</div></div>
+<div class="ttc" id="aconceptIOv2_1_1io__converter_html"><div class="ttname"><a href="conceptIOv2_1_1io__converter.html">IOv2::io_converter</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:257</div></div>
+</div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Top-level concept constraint for a complete I/O converter. A type T satisfying this concept must:</p><ul>
+<li>Support at least one of <code>support_get</code> (read) or <code>support_put</code> (write);</li>
+<li>Satisfy all mandatory interfaces defined by <code>mandatory_methods</code>;</li>
+<li>Expose both <code>internal_type</code> (internal data type) and <code>external_type</code> (external data type) as associated types.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

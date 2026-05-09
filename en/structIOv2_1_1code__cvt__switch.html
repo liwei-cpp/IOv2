@@ -140,9 +140,12 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a28697a9b4b1eb4c1c8e62b962d35c006" id="r_a28697a9b4b1eb4c1c8e62b962d35c006"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1code__cvt__switch.html#a28697a9b4b1eb4c1c8e62b962d35c006">code</a></td></tr>
+<tr class="memdesc:a28697a9b4b1eb4c1c8e62b962d35c006"><td class="mdescLeft">&#160;</td><td class="mdescRight">目标区域设置名称 / Target locale name.  <br /></td></tr>
 <tr class="separator:a28697a9b4b1eb4c1c8e62b962d35c006"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Behavior policy for runtime locale switching. Passing this policy to <code><a class="el" href="classIOv2_1_1code__cvt__stdio.html#aa582ae31f411f98058d6a3492ec4455f">code_cvt_stdio::adjust()</a></code> dynamically replaces the character encoding (locale) at runtime. The encoding conversion state must be in its initial state at the time of switching. The switch operation provides the strong exception safety guarantee.  </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="acd5e09449e8dbb0bf7659b0b19492c1f" name="acd5e09449e8dbb0bf7659b0b19492c1f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acd5e09449e8dbb0bf7659b0b19492c1f">&#9670;&#160;</a></span>code_cvt_switch()</h2>
 
@@ -166,6 +169,13 @@ Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Construct the switching policy with the specified locale name.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_code</td><td>Target locale name (e.g., "zh_CN.UTF-8").  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -181,6 +191,8 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>目标区域设置名称 / Target locale name. </p>
 
 </div>
 </div>

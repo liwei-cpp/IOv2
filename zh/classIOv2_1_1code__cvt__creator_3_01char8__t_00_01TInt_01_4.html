@@ -112,7 +112,11 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:aaee55bb556f5a24cfd633a5a49001ce6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__creator_3_01char8__t_00_01TInt_01_4.html#aaee55bb556f5a24cfd633a5a49001ce6">create</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TKernel</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:aaee55bb556f5a24cfd633a5a49001ce6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
+requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt; || (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>)) &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>'))<br />
+class IOv2::code_cvt_creator&lt; char8_t, TInt &gt;</div><p>UTF-8 编码的 <code><a class="el" href="classIOv2_1_1code__cvt.html">code_cvt</a></code> 工厂类（char8_t &lt;-&gt; char32_t/wchar_t）。 无状态，不需要区域设置。通过 <code><a class="el" href="classIOv2_1_1code__cvt__creator_3_01char8__t_00_01TInt_01_4.html#aaee55bb556f5a24cfd633a5a49001ce6">create()</a></code> 方法为给定底层内核生成 <code><a class="el" href="classIOv2_1_1code__cvt.html">code_cvt</a></code> 实例。 满足 <code>cvt_creator</code> 概念。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a55fcd259d8c14ae0209cf57f93ed1759" name="a55fcd259d8c14ae0209cf57f93ed1759"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a55fcd259d8c14ae0209cf57f93ed1759">&#9670;&#160;</a></span>category</h2>
 
@@ -185,6 +189,20 @@ template&lt;io_converter TKernel&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>为指定的底层内核创建一个 UTF-8 <code><a class="el" href="classIOv2_1_1code__cvt.html">code_cvt</a></code> 实例。 要求 <code>TKernel::internal_type</code> 为 <code>char8_t</code>（由 <code>static_assert</code> 在编译期强制检查）。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TKernel</td><td>底层 I/O 转换器类型，须满足 <code>io_converter</code> 概念。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>底层转换器实例（完美转发）。</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>使用无状态 UTF-8 内核的 <code><a class="el" href="classIOv2_1_1code__cvt.html">code_cvt</a>&lt;TKernel, TInt&gt;</code> 实例。 </dd></dl>
 
 </div>
 </div>

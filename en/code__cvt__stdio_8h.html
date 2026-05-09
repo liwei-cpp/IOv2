@@ -188,7 +188,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1code__cvt__access.html">IOv2::code_cvt_access</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__stdio.html">IOv2::code_cvt_stdio&lt; KernelType &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Character encoding converter with runtime locale switching support.  <a href="classIOv2_1_1code__cvt__stdio.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt__stdio__creator.html">IOv2::code_cvt_stdio_creator</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -198,7 +197,14 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Definition file for the character encoding converter with runtime locale switching support (code_cvt_stdio) and its companion types. This file extends <code>code_cvt</code> with the following capabilities:</p><ul>
+<li><code>code_cvt_switch</code>: Behavior policy for switching the character encoding (locale) at runtime.</li>
+<li><code>code_cvt_access</code>: Status object for querying the locale name currently in use by the converter.</li>
+<li><code>code_cvt_stdio</code>: Inherits from <code>code_cvt&lt;KernelType, wchar_t&gt;</code> and supports dynamic encoding switching and querying via the <code>adjust()</code>/<code>retrieve()</code> interface.</li>
+<li><code>code_cvt_stdio_creator</code>: Factory class for <code>code_cvt_stdio</code>, satisfying the <code>cvt_creator</code> concept.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

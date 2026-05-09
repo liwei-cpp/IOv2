@@ -98,19 +98,14 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 函数</h2></td></tr>
 <tr class="memitem:aa1babea415d6ad8be83c25bf553ba2c1" id="r_aa1babea415d6ad8be83c25bf553ba2c1"><td class="memItemLeft" align="right" valign="top">std::wstring&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">to_wstring</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale_name</a>)</td></tr>
-<tr class="memdesc:aa1babea415d6ad8be83c25bf553ba2c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a locale-encoded narrow string to a wide string.  <br /></td></tr>
 <tr class="separator:aa1babea415d6ad8be83c25bf553ba2c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a801881577b5c1cb239a485b6fab5034b" id="r_a801881577b5c1cb239a485b6fab5034b"><td class="memItemLeft" align="right" valign="top">std::u32string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a801881577b5c1cb239a485b6fab5034b">to_u32string</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">locale_name</a>)</td></tr>
-<tr class="memdesc:a801881577b5c1cb239a485b6fab5034b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a locale-encoded narrow string to UTF-32.  <br /></td></tr>
 <tr class="separator:a801881577b5c1cb239a485b6fab5034b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c8d5418a7c7dbf2bef67e91162ee5cb" id="r_a4c8d5418a7c7dbf2bef67e91162ee5cb"><td class="memItemLeft" align="right" valign="top">std::u32string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a4c8d5418a7c7dbf2bef67e91162ee5cb">to_u32string</a> (std::u8string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
-<tr class="memdesc:a4c8d5418a7c7dbf2bef67e91162ee5cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a UTF-8 string to UTF-32.  <br /></td></tr>
 <tr class="separator:a4c8d5418a7c7dbf2bef67e91162ee5cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9bad2cd50da6e91830cc4bc0b52d1385" id="r_a9bad2cd50da6e91830cc4bc0b52d1385"><td class="memItemLeft" align="right" valign="top">std::u8string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a9bad2cd50da6e91830cc4bc0b52d1385">to_u8string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::u32string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
-<tr class="memdesc:a9bad2cd50da6e91830cc4bc0b52d1385"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a UTF-32 string to UTF-8.  <br /></td></tr>
 <tr class="separator:a9bad2cd50da6e91830cc4bc0b52d1385"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5fcc1d87473297523fb387243e5b0950" id="r_a5fcc1d87473297523fb387243e5b0950"><td class="memItemLeft" align="right" valign="top">std::u8string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a5fcc1d87473297523fb387243e5b0950">to_u8string</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
-<tr class="memdesc:a5fcc1d87473297523fb387243e5b0950"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert a single UTF-32 code point to UTF-8.  <br /></td></tr>
 <tr class="separator:a5fcc1d87473297523fb387243e5b0950"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">函数说明</h2>
@@ -147,19 +142,18 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert a locale-encoded narrow string to UTF-32. </p>
+<p>将区域设置编码的窄字符串转换为 UTF-32 字符串。</p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">val</td><td>Input bytes interpreted under <code>locale_name</code>. </td></tr>
-    <tr><td class="paramname">locale_name</td><td>Locale name passed to the underlying <a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>.</td></tr>
+    <tr><td class="paramname">val</td><td>在 <code>locale_name</code> 区域设置下解释的输入字节序列。 </td></tr>
+    <tr><td class="paramname">locale_name</td><td>传递给底层 <a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a> 的区域设置名称。</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>返回</dt><dd>Decoded UTF-32 string.</dd></dl>
+<dl class="section return"><dt>返回</dt><dd>解码后的 UTF-32 字符串。</dd></dl>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> ends in the middle of a multi-byte sequence (partial trailing bytes), or contains an invalid sequence under the locale. This is NOT a best-effort conversion — callers must pass a complete byte stream. </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>val</code> 在多字节序列中途结束（末尾存在不完整字节）， 或在该区域设置下包含无效序列，则抛出此异常。 本函数不进行尽力转换（best-effort），调用方必须传入完整的字节流。 </td></tr>
   </table>
   </dd>
 </dl>
@@ -189,18 +183,17 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert a UTF-8 string to UTF-32. </p>
+<p>将 UTF-8 字符串转换为 UTF-32 字符串。</p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">val</td><td>Input UTF-8 bytes.</td></tr>
+    <tr><td class="paramname">val</td><td>输入的 UTF-8 字节序列。</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>返回</dt><dd>Decoded UTF-32 string.</dd></dl>
+<dl class="section return"><dt>返回</dt><dd>解码后的 UTF-32 字符串。</dd></dl>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> ends in the middle of a UTF-8 sequence (partial trailing bytes), or contains any invalid UTF-8 (overlong, surrogate, out-of-range, malformed continuation). This is NOT a best-effort conversion — callers must pass a complete, well-formed UTF-8 stream. </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>val</code> 在 UTF-8 序列中途结束（末尾存在不完整字节）， 或包含任何无效的 UTF-8 编码（超长编码、代理码点、超出范围、 格式错误的续接字节），则抛出此异常。 本函数不进行尽力转换（best-effort），调用方必须传入完整且格式正确的 UTF-8 流。 </td></tr>
   </table>
   </dd>
 </dl>
@@ -230,18 +223,17 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert a single UTF-32 code point to UTF-8. </p>
+<p>将单个 UTF-32 码点转换为 UTF-8 字符串。</p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">val</td><td>A Unicode Scalar Value: a code point in [0, 0x10FFFF] and outside the surrogate range [0xD800, 0xDFFF].</td></tr>
+    <tr><td class="paramname">val</td><td>一个 Unicode 标量值（USV）：码点值在 [0, 0x10FFFF] 范围内， 且不属于代理区间 [0xD800, 0xDFFF]。</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>返回</dt><dd>UTF-8 encoded representation of <code>val</code>.</dd></dl>
+<dl class="section return"><dt>返回</dt><dd><code>val</code> 对应的 UTF-8 编码表示。</dd></dl>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> is not a USV. </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>val</code> 不是有效的 USV，则抛出此异常。 </td></tr>
   </table>
   </dd>
 </dl>
@@ -271,18 +263,17 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert a UTF-32 string to UTF-8. </p>
+<p>将 UTF-32 字符串转换为 UTF-8 字符串。</p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">val</td><td>Input string. Every element must be a Unicode Scalar Value: a code point in [0, 0x10FFFF] and outside the surrogate range [0xD800, 0xDFFF]. <code>std::u32string</code> does not enforce this — callers are responsible for sanitizing input.</td></tr>
+    <tr><td class="paramname">val</td><td>输入字符串。每个元素必须是 Unicode 标量值（Unicode Scalar Value，USV）： 即码点值在 [0, 0x10FFFF] 范围内，且不属于代理区间 [0xD800, 0xDFFF]。 <code>std::u32string</code> 本身不强制此约束，调用方有责任在传入前完成输入校验。</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>返回</dt><dd>UTF-8 encoded string.</dd></dl>
+<dl class="section return"><dt>返回</dt><dd>UTF-8 编码的字符串。</dd></dl>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> contains any non-USV element. On throw, no partial result is observable. </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>val</code> 包含任何非 USV 元素，则抛出此异常。 抛出异常时，不会产生任何可观测的部分结果。 </td></tr>
   </table>
   </dd>
 </dl>
@@ -322,19 +313,18 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Convert a locale-encoded narrow string to a wide string. </p>
+<p>将区域设置编码的窄字符串转换为宽字符串。</p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">val</td><td>Input bytes interpreted under <code>locale_name</code>. </td></tr>
-    <tr><td class="paramname">locale_name</td><td>Locale name passed to the underlying <a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>.</td></tr>
+    <tr><td class="paramname">val</td><td>在 <code>locale_name</code> 区域设置下解释的输入字节序列。 </td></tr>
+    <tr><td class="paramname">locale_name</td><td>传递给底层 <a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a> 的区域设置名称。</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>返回</dt><dd>Decoded wide string.</dd></dl>
+<dl class="section return"><dt>返回</dt><dd>解码后的宽字符串。</dd></dl>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>val</code> ends in the middle of a multi-byte sequence (partial trailing bytes), or contains an invalid sequence under the locale. This is NOT a best-effort conversion — callers must pass a complete byte stream. </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>val</code> 在多字节序列中途结束（末尾存在不完整字节）， 或在该区域设置下包含无效序列，则抛出此异常。 本函数不进行尽力转换（best-effort），调用方必须传入完整的字节流。 </td></tr>
   </table>
   </dd>
 </dl>
