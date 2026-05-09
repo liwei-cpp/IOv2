@@ -11,6 +11,8 @@ void test_abs_cvt_base_reader_errors_1();
 void test_abs_cvt_base_writer_errors_1();
 void test_abs_cvt_optional_methods_1();
 void test_abs_cvt_bos_partial_1();
+void test_abs_cvt_tainted_state_1();
+void test_abs_cvt_bos_second_guard_1();
 
 void test_cvt_io()
 {
@@ -27,4 +29,6 @@ void test_cvt_io()
     test_abs_cvt_base_writer_errors_1();
     test_abs_cvt_optional_methods_1();
     test_abs_cvt_bos_partial_1();
+    test_abs_cvt_tainted_state_1();
+    test_abs_cvt_bos_second_guard_1();
 }

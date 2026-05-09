@@ -10,6 +10,50 @@
 
 namespace {
 
+// Converter whose put_main always throws — used to exercise abs_cvt's
+// catch block (m_is_tainted = true) and assert_not_tainted() throw.
+template <IOv2::io_converter KernelType>
+struct failing_put_cvt
+    : public IOv2::abs_cvt<failing_put_cvt<KernelType>, KernelType,
+                           typename KernelType::internal_type>
+{
+    using IT = typename KernelType::internal_type;
+    using BT = IOv2::abs_cvt<failing_put_cvt<KernelType>, KernelType, IT>;
+    friend BT;
+public:
+    using device_type   = typename KernelType::device_type;
+    using internal_type = IT;
+    using external_type = IT;
+    explicit failing_put_cvt(KernelType k) : BT(std::move(k)) {}
+    // get_main is only invoked after assert_not_tainted() passes; the stub
+    // returning 0 is never actually reached in the tainted-state test.
+    size_t get_main(IOv2::cvt_reader<KernelType>&, IT*, size_t) { return 0; }
+    void put_main(IOv2::cvt_writer<KernelType>&, const IT*, size_t)
+    {
+        throw IOv2::cvt_error("failing_put_cvt: simulated failure");
+    }
+};
+
+// Exposes force_neutral_status() so a test can set m_io_status back to
+// neutral after main_cont_beg(), triggering the second guard in bos().
+template <IOv2::io_converter KernelType>
+struct bos_guard_hack_cvt
+    : public IOv2::abs_cvt<bos_guard_hack_cvt<KernelType>, KernelType,
+                           typename KernelType::internal_type>
+{
+    using IT = typename KernelType::internal_type;
+    using BT = IOv2::abs_cvt<bos_guard_hack_cvt<KernelType>, KernelType, IT>;
+    friend BT;
+public:
+    using device_type   = typename KernelType::device_type;
+    using internal_type = IT;
+    using external_type = IT;
+    explicit bos_guard_hack_cvt(KernelType k) : BT(std::move(k)) {}
+    void force_neutral_status() { this->m_io_status = IOv2::io_status::neutral; }
+    size_t get_main(IOv2::cvt_reader<KernelType>&, IT*, size_t) { return 0; }
+    void put_main(IOv2::cvt_writer<KernelType>&, const IT*, size_t) {}
+};
+
 // Minimal CRTP cvt: exposes `char` as internal_type while the kernel uses
 // `wchar_t` units. Lets us exercise the BOS partial-unit code path in
 // abs_cvt::get / abs_cvt::put (triggered when to_max * sizeof(char) is not
@@ -787,6 +831,65 @@ void test_abs_cvt_bos_partial_1()
         VERIFY(cvt.bos() == io_status::output);
         const char src[3] = {'a', 'b', 'c'};
         cvt.put(src, 3);   // BOS phase, ext_size=4, partial path
+    }
+
+    dump_info("Done\n");
+}
+
+// Tests that a put_main exception sets m_is_tainted = true, and that
+// subsequent get()/put() calls fail via assert_not_tainted() (line 1501).
+void test_abs_cvt_tainted_state_1()
+{
+    using namespace IOv2;
+    dump_info("Test abs_cvt tainted state (put_main throws → taint → assert_not_tainted)...");
+
+    using KernelT = rb_root_cvt<mem_device<char>>;
+    using CvtT    = failing_put_cvt<KernelT>;
+
+    {
+        CvtT cvt{KernelT{mem_device<char>{""}}};  // empty → bos returns output
+        cvt.bos(); cvt.main_cont_beg();
+
+        // put() enters the try block, put_main throws → catch sets m_is_tainted
+        bool threw = false;
+        const char data[] = {'x'};
+        try { cvt.put(data, 1); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+
+        // get() on tainted converter → assert_not_tainted() throws
+        threw = false;
+        char buf[1];
+        try { cvt.get(buf, 1); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}
+
+// Tests the second guard in bos(): if m_is_bos_done is already true while
+// m_io_status happens to be neutral, bos() must refuse the second call.
+// This state is impossible via the public API alone, so we use the protected
+// member exposed by bos_guard_hack_cvt.
+void test_abs_cvt_bos_second_guard_1()
+{
+    using namespace IOv2;
+    dump_info("Test abs_cvt bos() second guard (m_is_bos_done)...");
+
+    using KernelT = rb_root_cvt<mem_device<char>>;
+    using CvtT    = bos_guard_hack_cvt<KernelT>;
+
+    {
+        CvtT cvt{KernelT{mem_device<char>{""}}};
+        cvt.bos();            // m_io_status = output (empty device)
+        cvt.main_cont_beg();  // m_is_bos_done = true
+
+        // Force m_io_status back to neutral while m_is_bos_done stays true
+        cvt.force_neutral_status();
+
+        // bos(): first check passes (neutral), second check fires (m_is_bos_done)
+        bool threw = false;
+        try { cvt.bos(); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
     }
 
     dump_info("Done\n");
