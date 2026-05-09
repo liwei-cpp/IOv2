@@ -12,7 +12,7 @@ var searchData=
   ['_7ecvt_5fbehavior_9',['~cvt_behavior',['../structIOv2_1_1cvt__behavior.html#a71d2805f3101622e76f8794b702165a2',1,'IOv2::cvt_behavior']]],
   ['_7ecvt_5freader_10',['~cvt_reader',['../classIOv2_1_1cvt__reader.html#a21e29926ac92c6c7f0ef3453338a3db5',1,'IOv2::cvt_reader::~cvt_reader()'],['../classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a21e29926ac92c6c7f0ef3453338a3db5',1,'IOv2::cvt_reader&lt; KernelType &gt;::~cvt_reader()=default'],['../classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a21e29926ac92c6c7f0ef3453338a3db5',1,'IOv2::cvt_reader&lt; KernelType &gt;::~cvt_reader()=default']]],
   ['_7ecvt_5fstatus_11',['~cvt_status',['../structIOv2_1_1cvt__status.html#ac04990397f353a90a2e1463618cbfd1b',1,'IOv2::cvt_status']]],
-  ['_7ecvt_5fwriter_12',['~cvt_writer',['../classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#aec0566941e5752f0acb86a8895f6825c',1,'IOv2::cvt_writer&lt; KernelType &gt;::~cvt_writer()=default'],['../classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#aec0566941e5752f0acb86a8895f6825c',1,'IOv2::cvt_writer&lt; KernelType &gt;::~cvt_writer()=default'],['../classIOv2_1_1cvt__writer.html#aec0566941e5752f0acb86a8895f6825c',1,'IOv2::cvt_writer::~cvt_writer()']]],
+  ['_7ecvt_5fwriter_12',['~cvt_writer',['../classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#aec0566941e5752f0acb86a8895f6825c',1,'IOv2::cvt_writer&lt; KernelType &gt;::~cvt_writer()'],['../classIOv2_1_1cvt__writer.html#aec0566941e5752f0acb86a8895f6825c',1,'IOv2::cvt_writer::~cvt_writer()'],['../classIOv2_1_1cvt__writer_3_01KernelType_01_4.html#aec0566941e5752f0acb86a8895f6825c',1,'IOv2::cvt_writer&lt; KernelType &gt;::~cvt_writer()']]],
   ['_7ehash_5fcvt_13',['~hash_cvt',['../classIOv2_1_1Crypt_1_1hash__cvt.html#a0f629f98a261cb3e2e16ef0f7ef94879',1,'IOv2::Crypt::hash_cvt']]],
   ['_7ein_5fsentry_14',['~in_sentry',['../structIOv2_1_1in__sentry.html#affa010d5f92eefc4d2625afb8dd9f552',1,'IOv2::in_sentry']]],
   ['_7einit_15',['~init',['../structIOv2_1_1sing__temp_1_1init.html#af70d7da2316b7dca30886571664bd6b4',1,'IOv2::sing_temp::init']]],
@@ -20,9 +20,10 @@ var searchData=
   ['_7emem_5fdevice_17',['~mem_device',['../classIOv2_1_1mem__device.html#afae33ee5faee3ae4a8a8c8223eb4d0d5',1,'IOv2::mem_device']]],
   ['_7eout_5fsentry_18',['~out_sentry',['../structIOv2_1_1out__sentry.html#ab118e27a80443d47901f4708240dfd15',1,'IOv2::out_sentry']]],
   ['_7eroot_5fcvt_19',['~root_cvt',['../classIOv2_1_1root__cvt.html#a10dd06d5b5a1e8bf7a27589787834ac8',1,'IOv2::root_cvt::~root_cvt()'],['../classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#afea9d88408ee9a248282b813bd610796',1,'IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;::~root_cvt()']]],
-  ['_7esing_5ftemp_20',['~sing_temp',['../classIOv2_1_1sing__temp.html#ac7e67c7a4439be29255e7d48e117abeb',1,'IOv2::sing_temp']]],
-  ['_7estamp_5finput_5fiterator_21',['~stamp_input_iterator',['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default'],['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default']]],
-  ['_7estd_5fdevice_22',['~std_device',['../classIOv2_1_1std__device.html#a0cc53231f91e408343bebd4a01f7f72f',1,'IOv2::std_device']]],
-  ['_7esync_23',['~sync',['../structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5',1,'IOv2::sync']]],
-  ['_7ezlib_5fcvt_24',['~zlib_cvt',['../classIOv2_1_1Comp_1_1zlib__cvt.html#a05f249461989fef4b583b6e71e6d52ef',1,'IOv2::Comp::zlib_cvt']]]
+  ['_7eruntime_5fcvt_20',['~runtime_cvt',['../classIOv2_1_1runtime__cvt.html#abd6b3b9ed7389eb6e3b412cb4756bc8e',1,'IOv2::runtime_cvt']]],
+  ['_7esing_5ftemp_21',['~sing_temp',['../classIOv2_1_1sing__temp.html#ac7e67c7a4439be29255e7d48e117abeb',1,'IOv2::sing_temp']]],
+  ['_7estamp_5finput_5fiterator_22',['~stamp_input_iterator',['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default'],['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default']]],
+  ['_7estd_5fdevice_23',['~std_device',['../classIOv2_1_1std__device.html#a0cc53231f91e408343bebd4a01f7f72f',1,'IOv2::std_device']]],
+  ['_7esync_24',['~sync',['../structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5',1,'IOv2::sync']]],
+  ['_7ezlib_5fcvt_25',['~zlib_cvt',['../classIOv2_1_1Comp_1_1zlib__cvt.html#a05f249461989fef4b583b6e71e6d52ef',1,'IOv2::Comp::zlib_cvt']]]
 ];
