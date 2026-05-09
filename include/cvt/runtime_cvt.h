@@ -20,10 +20,10 @@ public:
     abs_runtime_cvt_imp& operator=(const abs_runtime_cvt_imp&) = delete;
     abs_runtime_cvt_imp& operator=(abs_runtime_cvt_imp&&) = delete;
     virtual ~abs_runtime_cvt_imp() = default;
-    
+
 public:
     virtual std::unique_ptr<abs_runtime_cvt_imp> clone() const & = 0;
-    
+
     virtual device_type& device() = 0;
     virtual device_type detach() = 0;
     virtual device_type attach(device_type&& dev = device_type{}) = 0;
@@ -33,7 +33,7 @@ public:
 
     virtual io_status bos() = 0;
     virtual void main_cont_beg() = 0;
-    
+
     virtual size_t get(internal_type* to, size_t to_max) = 0;
     virtual void put(const internal_type* to, size_t to_size) = 0;
     virtual void flush() = 0;
@@ -71,12 +71,12 @@ public:
         else
             throw cvt_error("runtime_cvt fail: kernel does not support copy construction");
     }
-    
+
     device_type& device() override
     {
         return m_kernel.device();
     }
-    
+
     device_type detach() override
     {
         m_io_status = io_status::neutral;
@@ -98,7 +98,7 @@ public:
     {
         return m_kernel.retrieve(acc);
     }
-    
+
     bool is_eof() override
     {
         if constexpr(!cvt_cpt::support_get<KernelType>)
@@ -117,7 +117,7 @@ public:
     {
         return m_kernel.main_cont_beg();
     }
-    
+
     size_t get(internal_type* to, size_t to_max) override
     {
         if constexpr(!cvt_cpt::support_get<KernelType>)
@@ -217,7 +217,7 @@ public:
 
     runtime_cvt(const runtime_cvt& val)
         : m_ptr(val.m_ptr ? val.m_ptr->clone() : nullptr) {}
-        
+
     runtime_cvt& operator=(const runtime_cvt& val)
     {
         if (this != &val)
@@ -232,81 +232,97 @@ public:
 public:
     device_type& device()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->device();
     }
-    
+
     device_type detach()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->detach();
     }
 
     device_type attach(device_type&& dev = device_type{})
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->attach(std::move(dev));
     }
 
     void adjust(const cvt_behavior& acc)
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->adjust(acc);
     }
 
     void retrieve(cvt_status& acc) const
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->retrieve(acc);
-    }    
+    }
 
     bool is_eof()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->is_eof();
     }
 
     io_status bos()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->bos();
     }
 
     void main_cont_beg()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->main_cont_beg();
     }
-    
+
     size_t get(internal_type* to, size_t to_max)
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->get(to, to_max);
     }
 
     void put(const internal_type* to, size_t to_size)
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->put(to, to_size);
     }
 
     void flush()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->flush();
     }
 
     [[nodiscard]] size_t tell() const
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->tell();
     }
 
     void seek(size_t pos)
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         m_ptr->seek(pos);
     }
 
     void rseek(size_t pos)
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         m_ptr->rseek(pos);
     }
 
     void switch_to_get()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->switch_to_get();
     }
 
     void switch_to_put()
     {
+        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
         return m_ptr->switch_to_put();
     }
 private:
