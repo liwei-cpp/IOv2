@@ -2,6 +2,7 @@
 #include <zlib.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <limits>
 #include <stdexcept>
@@ -40,7 +41,6 @@ public:
     zlib_cvt(KernelType kernel, unsigned put_level = 6)
         : BT(std::move(kernel))
         , m_put_level(put_level)
-        , m_sync_flush(false)
     {
         if (m_put_level > 9) m_put_level = 9;
     }
@@ -54,9 +54,9 @@ public:
         try
         {
             if (BT::m_io_status == io_status::output)
-                zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+                zerr("zlib_cvt copy constructor fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm))); // NOLINT(cppcoreguidelines-pro-type-const-cast)
             else if (BT::m_io_status == io_status::input)
-                zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+                zerr("zlib_cvt copy constructor fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm))); // NOLINT(cppcoreguidelines-pro-type-const-cast)
         }
         catch(...)
         {
@@ -65,7 +65,7 @@ public:
         }
     }
     
-    zlib_cvt(zlib_cvt&& val)
+    zlib_cvt(zlib_cvt&& val) // NOLINT(cppcoreguidelines-noexcept-move-operations,performance-noexcept-move-constructor)
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
         , m_sync_flush(val.m_sync_flush)
@@ -101,9 +101,9 @@ public:
         try
         {
             if (BT::m_io_status == io_status::output)
-                zerr("zlib_cvt copy assignment fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+                zerr("zlib_cvt copy assignment fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm))); // NOLINT(cppcoreguidelines-pro-type-const-cast)
             else if (BT::m_io_status == io_status::input)
-                zerr("zlib_cvt copy assignment fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm)));
+                zerr("zlib_cvt copy assignment fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm))); // NOLINT(cppcoreguidelines-pro-type-const-cast)
             return *this;            
         }
         catch(...)
@@ -113,7 +113,7 @@ public:
         }
     }
     
-    zlib_cvt& operator=(zlib_cvt&& val)
+    zlib_cvt& operator=(zlib_cvt&& val) // NOLINT(cppcoreguidelines-noexcept-move-operations,performance-noexcept-move-constructor)
     {
         if (this == &val) return *this;
         close_stream();
@@ -167,7 +167,7 @@ public:
     
     void adjust(const cvt_behavior& acc)
     {
-        if (const zlib_sync_flush* ptr = dynamic_cast<const zlib_sync_flush*>(&acc); ptr)
+        if (auto* ptr = dynamic_cast<const zlib_sync_flush*>(&acc); ptr)
             m_sync_flush = ptr->m_sync_flush;
 
         return BT::adjust(acc);
@@ -198,14 +198,14 @@ public:
                 auto ret = inflateInit(&m_strm);
                 if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
 
-                external_type header_buf[zlib_header_size];
-                [[maybe_unused]] const size_t n = BT::m_kernel.get(header_buf, zlib_header_size);
+                std::array<external_type, zlib_header_size> header_buf{};
+                [[maybe_unused]] const size_t n = BT::m_kernel.get(header_buf.data(), zlib_header_size);
                 assert(n == zlib_header_size);
 
                 m_strm.avail_in = zlib_header_size;
-                m_strm.next_in = reinterpret_cast<unsigned char*>(header_buf);
+                m_strm.next_in = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
-                unsigned char ch;
+                unsigned char ch = 0;
                 m_strm.avail_out = 1;
                 m_strm.next_out = &ch;
 
@@ -229,18 +229,18 @@ public:
                 auto ret = deflateInit(&m_strm, static_cast<int>(m_put_level));
                 if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
 
-                external_type header_buf[zlib_header_size + 1];
+                std::array<external_type, zlib_header_size + 1> header_buf{};
 
                 m_strm.avail_in = 0;
                 m_strm.next_in = nullptr;
                 m_strm.avail_out = zlib_header_size + 1;
-                m_strm.next_out = reinterpret_cast<unsigned char*>(header_buf);
+                m_strm.next_out = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 ret = deflate(&m_strm, Z_NO_FLUSH);
                 assert(ret != Z_STREAM_ERROR);
 
                 if (m_strm.avail_out != 1) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
 
-                BT::m_kernel.put(header_buf, zlib_header_size);
+                BT::m_kernel.put(header_buf.data(), zlib_header_size);
 
                 m_strm.avail_out = 0;
                 m_strm.next_out = nullptr;
@@ -270,7 +270,7 @@ private:
                         : static_cast<decltype(m_strm.avail_out)>(max_chunk);
 
         m_strm.avail_out = aim_output;
-        m_strm.next_out = reinterpret_cast<unsigned char*>(to);
+        m_strm.next_out = reinterpret_cast<unsigned char*>(to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         auto ret = inflate(&m_strm, Z_NO_FLUSH);
         zerr<true>("zlib_cvt::get fail", ret);
 
@@ -278,7 +278,7 @@ private:
         {
             auto [ptr, len] = reader.get_buf(1);
             if (len == 0) break;
-            m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<char*>(ptr));
+            m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<char*>(ptr)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-type-const-cast)
             m_strm.avail_in = 1;
             ret = inflate(&m_strm, Z_NO_FLUSH);
             assert(m_strm.avail_in == 0);
@@ -302,7 +302,7 @@ private:
         constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm.avail_out)>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
-        auto to = reinterpret_cast<const unsigned char*>(_to);
+        auto to = reinterpret_cast<const unsigned char*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
         writer.reset(CHUNK);
         while (to_size > 0)
@@ -314,10 +314,10 @@ private:
             size_t write_size = 0;
             while (aim_output != write_size)
             {
-                m_strm.next_in = const_cast<unsigned char*>(to + write_size);
-                size_t cur_put_size = static_cast<size_t>(aim_output - write_size);
+                m_strm.next_in = const_cast<unsigned char*>(to + write_size); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+                auto cur_put_size = static_cast<size_t>(aim_output - write_size);
                 m_strm.avail_in = cur_put_size;
-                m_strm.next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK));
+                m_strm.next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 m_strm.avail_out = CHUNK;
 
                 auto ret = deflate(&m_strm, Z_NO_FLUSH);
@@ -350,17 +350,17 @@ public:
 
         if (m_sync_flush)
         {
-            external_type local_buf[CHUNK];
+            std::array<external_type, CHUNK> local_buf{};
             m_strm.next_in = nullptr;
             m_strm.avail_in = 0;
             while (true)
             {
-                m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf);
+                m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 m_strm.avail_out = CHUNK;
                 zerr("zlib_cvt::flush fail", deflate(&m_strm, Z_SYNC_FLUSH));
                 const size_t written = CHUNK - m_strm.avail_out;
                 if (written > 0)
-                    BT::m_kernel.put(local_buf, written);
+                    BT::m_kernel.put(local_buf.data(), written);
                 if (m_strm.avail_out)
                     break;
             }
@@ -404,17 +404,17 @@ private:
         {
             if (BT::m_is_bos_done)
             {
-                external_type local_buf[CHUNK];
+                std::array<external_type, CHUNK> local_buf{};
                 m_strm.next_in = nullptr;
                 m_strm.avail_in = 0;
                 while (true)
                 {
-                    m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf);
+                    m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                     m_strm.avail_out = CHUNK;
                     zerr("zlib_cvt::put_end fail", deflate(&m_strm, Z_FINISH));
                     const size_t written = CHUNK - m_strm.avail_out;
                     if (written > 0)
-                        BT::m_kernel.put(local_buf, written);
+                        BT::m_kernel.put(local_buf.data(), written);
                     if (m_strm.avail_out)
                         break;
                 }
@@ -432,7 +432,7 @@ private:
     }
 private:
     unsigned    m_put_level;
-    bool        m_sync_flush;
+    bool        m_sync_flush{false};
     
     z_stream    m_strm{};
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include <cvt/cvt_concepts.h>
+#include <device/device_concepts.h>
 #include <memory>
 
 namespace IOv2
@@ -15,6 +16,7 @@ public:
 public:
     abs_runtime_cvt_imp() = default;
     abs_runtime_cvt_imp(const abs_runtime_cvt_imp&) = default;
+    abs_runtime_cvt_imp(abs_runtime_cvt_imp&&) = delete;
     abs_runtime_cvt_imp& operator=(const abs_runtime_cvt_imp&) = delete;
     abs_runtime_cvt_imp& operator=(abs_runtime_cvt_imp&&) = delete;
     virtual ~abs_runtime_cvt_imp() = default;
@@ -36,7 +38,7 @@ public:
     virtual void put(const internal_type* to, size_t to_size) = 0;
     virtual void flush() = 0;
 
-    virtual size_t tell() const = 0;
+    [[nodiscard]] virtual size_t tell() const = 0;
     virtual void seek(size_t pos) = 0;
     virtual void rseek(size_t pos) = 0;
     virtual void switch_to_get() = 0;
@@ -140,7 +142,7 @@ public:
             return m_kernel.flush();
     }
 
-    size_t tell() const override
+    [[nodiscard]] size_t tell() const override
     {
         if constexpr (!cvt_cpt::support_positioning<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support positioning");
@@ -211,7 +213,7 @@ public:
     template <io_converter KernelType>
         requires (!std::is_same_v<KernelType, runtime_cvt>)
     runtime_cvt(KernelType&& kernel)
-        : m_ptr(std::make_unique<runtime_cvt_imp<KernelType>>(std::move(kernel))) {}
+        : m_ptr(std::make_unique<runtime_cvt_imp<KernelType>>(std::forward<KernelType>(kernel))) {}
 
     runtime_cvt(const runtime_cvt& val)
         : m_ptr(val.m_ptr ? val.m_ptr->clone() : nullptr) {}
@@ -225,6 +227,7 @@ public:
 
     runtime_cvt(runtime_cvt&&) = default;
     runtime_cvt& operator=(runtime_cvt&&) = default;
+    ~runtime_cvt() = default;
 
 public:
     device_type& device()
@@ -282,7 +285,7 @@ public:
         return m_ptr->flush();
     }
 
-    size_t tell() const
+    [[nodiscard]] size_t tell() const
     {
         return m_ptr->tell();
     }
