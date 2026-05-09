@@ -11,6 +11,7 @@
 #pragma once
 #include <common/streambuf_defs.h>
 
+#include <compare>
 #include <forward_list>
 #include <iterator>
 #include <stdexcept>
@@ -152,15 +153,8 @@ struct stamp_input_iterator<TIter>
     }
 
     friend bool operator==(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal == b.m_internal; }
-    friend bool operator!=(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal != b.m_internal; }
-    friend bool operator<(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal < b.m_internal; }
-    friend bool operator>(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal > b.m_internal; }
-    friend bool operator<=(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal <= b.m_internal; }
-    friend bool operator>=(const stamp_input_iterator& a, const stamp_input_iterator& b)
-        requires (std::random_access_iterator<TIter>) { return a.m_internal >= b.m_internal; }
+    friend auto operator<=>(const stamp_input_iterator& a, const stamp_input_iterator& b)
+        requires (std::random_access_iterator<TIter>) { return a.m_internal <=> b.m_internal; }
 
     [[nodiscard]] friend stamp_input_iterator operator+(const stamp_input_iterator& it, difference_type n)
         requires (std::random_access_iterator<TIter>)
@@ -303,7 +297,6 @@ struct stamp_input_iterator<TIter>
     [[nodiscard]] stamp_input_iterator operator--(int) { stamp_input_iterator tmp = *this; --(*this); return tmp; }
 
     friend bool operator==(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal == b.m_internal; }
-    friend bool operator!=(const stamp_input_iterator& a, const stamp_input_iterator& b) { return a.m_internal != b.m_internal; }
 
     /**
      * @lang{ZH}
