@@ -42,16 +42,11 @@ var structIOv2_1_1stamp__input__iterator_3_01TIter_01_4 =
     [ "operator[]", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a58d32964ebe3e0efd38734b932fb7e18", null ],
     [ "rollback", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a01742557f8100f96df2866c4c9705bfb", null ],
     [ "rollback", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a01742557f8100f96df2866c4c9705bfb", null ],
-    [ "operator!=", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#ae1af14efa30911c9268d7043eadbd725", null ],
-    [ "operator!=", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#ae1af14efa30911c9268d7043eadbd725", null ],
     [ "operator+", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a866951eb047212dfbb5e531cae3ca6f9", null ],
     [ "operator+", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a393f37feb67da7fcd9ee8533dc4f095d", null ],
     [ "operator-", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a870f4919d443788697c51014d7e83567", null ],
     [ "operator-", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#ac8308fa2f03f8ed4ac887415ae488540", null ],
-    [ "operator<", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a680cfd501129e839e90933306714a1ad", null ],
-    [ "operator<=", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#accbe17a8d5d3cd3f2144dd5bebe496ac", null ],
+    [ "operator<=>", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#af1319fdef594bb7daf4b2c70bcb5363d", null ],
     [ "operator==", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#adf4f131f67c101e4c6c2b01f191ca1bb", null ],
-    [ "operator==", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#adf4f131f67c101e4c6c2b01f191ca1bb", null ],
-    [ "operator>", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a4e52e7ca8149a2b3c3454a4346fe694a", null ],
-    [ "operator>=", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a3d8f5c3a56c13c3123f014087ea8243b", null ]
+    [ "operator==", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#adf4f131f67c101e4c6c2b01f191ca1bb", null ]
 ];
