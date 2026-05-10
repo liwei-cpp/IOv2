@@ -1,5 +1,7 @@
 #pragma once
-#include <zlib.h>
+
+#include <cvt/cvt_concepts.h>
+#include <cvt/root_cvt.h>
 
 #include <algorithm>
 #include <array>
@@ -8,8 +10,7 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <cvt/cvt_concepts.h>
-#include <cvt/root_cvt.h>
+#include <zlib.h>
 
 namespace IOv2::Comp
 {
@@ -27,6 +28,18 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
 {
     using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false, false>;
     friend BT;  // for put_main and get_main
+
+    struct inflate_guard
+    {
+        z_stream& strm;
+        ~inflate_guard() noexcept { inflateEnd(&strm); }
+    };
+
+    struct deflate_guard
+    {
+        z_stream& strm;
+        ~deflate_guard() noexcept { deflateEnd(&strm); }
+    };
 
 public:
     using device_type = typename KernelType::device_type;
@@ -64,32 +77,40 @@ public:
             throw;
         }
     }
-    
+
     zlib_cvt(zlib_cvt&& val) // NOLINT(cppcoreguidelines-noexcept-move-operations,performance-noexcept-move-constructor)
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
         , m_sync_flush(val.m_sync_flush)
     {
-        try
+        if (BT::m_io_status == io_status::output)
         {
-            if (BT::m_io_status == io_status::output)
+            deflate_guard g(val.m_strm);
+            try
             {
                 zerr("zlib_cvt move constructor fail", deflateCopy(&m_strm, &val.m_strm));
-                deflateEnd(&val.m_strm);
             }
-            else if (BT::m_io_status == io_status::input)
+            catch (...)
+            {
+                BT::m_io_status = io_status::neutral;
+                throw;
+            }
+        }
+        else if (BT::m_io_status == io_status::input)
+        {
+            inflate_guard g(val.m_strm);
+            try
             {
                 zerr("zlib_cvt move constructor fail", inflateCopy(&m_strm, &val.m_strm));
-                inflateEnd(&val.m_strm);
+            }
+            catch (...)
+            {
+                BT::m_io_status = io_status::neutral;
+                throw;
             }
         }
-        catch(...)
-        {
-            BT::m_io_status = io_status::neutral;
-            throw;
-        }
     }
-    
+
     zlib_cvt& operator=(const zlib_cvt& val)
     {
         if (this == &val) return *this;
@@ -104,7 +125,7 @@ public:
                 zerr("zlib_cvt copy assignment fail", deflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm))); // NOLINT(cppcoreguidelines-pro-type-const-cast)
             else if (BT::m_io_status == io_status::input)
                 zerr("zlib_cvt copy assignment fail", inflateCopy(&m_strm, const_cast<z_stream*>(&val.m_strm))); // NOLINT(cppcoreguidelines-pro-type-const-cast)
-            return *this;            
+            return *this;
         }
         catch(...)
         {
@@ -112,7 +133,7 @@ public:
             throw;
         }
     }
-    
+
     zlib_cvt& operator=(zlib_cvt&& val) // NOLINT(cppcoreguidelines-noexcept-move-operations,performance-noexcept-move-constructor)
     {
         if (this == &val) return *this;
@@ -121,25 +142,33 @@ public:
         m_put_level = val.m_put_level;
         m_sync_flush = val.m_sync_flush;
 
-        try
+        if (BT::m_io_status == io_status::output)
         {
-            if (BT::m_io_status == io_status::output)
+            deflate_guard g(val.m_strm);
+            try
             {
                 zerr("zlib_cvt move assignment fail", deflateCopy(&m_strm, &val.m_strm));
-                deflateEnd(&val.m_strm);
             }
-            else if (BT::m_io_status == io_status::input)
+            catch (...)
+            {
+                BT::m_io_status = io_status::neutral;
+                throw;
+            }
+        }
+        else if (BT::m_io_status == io_status::input)
+        {
+            inflate_guard g(val.m_strm);
+            try
             {
                 zerr("zlib_cvt move assignment fail", inflateCopy(&m_strm, &val.m_strm));
-                inflateEnd(&val.m_strm);
             }
-            return *this;
+            catch (...)
+            {
+                BT::m_io_status = io_status::neutral;
+                throw;
+            }
         }
-        catch(...)
-        {
-            BT::m_io_status = io_status::neutral;
-            throw;
-        }
+        return *this;
     }
 
     ~zlib_cvt()
@@ -158,13 +187,13 @@ public:
         close_stream();
         return BT::attach(std::move(dev));
     }
-    
+
     device_type detach()
     {
         close_stream();
         return BT::detach();
     }
-    
+
     void adjust(const cvt_behavior& acc)
     {
         if (auto* ptr = dynamic_cast<const zlib_sync_flush*>(&acc); ptr)
@@ -182,7 +211,7 @@ public:
         else if (BT::m_io_status == io_status::neutral)
             throw cvt_error("zlib_cvt::main_cont_beg fail: no get_bos or put_bos is called before calling main_cont_beg");
     }
-    
+
     io_status bos()
     {
         BT::bos();
@@ -200,7 +229,7 @@ public:
 
                 std::array<external_type, zlib_header_size> header_buf{};
                 [[maybe_unused]] const size_t n = BT::m_kernel.get(header_buf.data(), zlib_header_size);
-                assert(n == zlib_header_size);
+                assert(n == zlib_header_size); // kernel.get() either returns the full count or throws
 
                 m_strm.avail_in = zlib_header_size;
                 m_strm.next_in = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -236,7 +265,7 @@ public:
                 m_strm.avail_out = zlib_header_size + 1;
                 m_strm.next_out = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 ret = deflate(&m_strm, Z_NO_FLUSH);
-                assert(ret != Z_STREAM_ERROR);
+                zerr("zlib_cvt::bos fail", ret);
 
                 if (m_strm.avail_out != 1) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
 
@@ -404,6 +433,7 @@ private:
         {
             if (BT::m_is_bos_done)
             {
+                deflate_guard g(m_strm);
                 std::array<external_type, CHUNK> local_buf{};
                 m_strm.next_in = nullptr;
                 m_strm.avail_in = 0;
@@ -418,7 +448,6 @@ private:
                     if (m_strm.avail_out)
                         break;
                 }
-                deflateEnd(&m_strm);
             }
         }
         else if (BT::m_io_status == io_status::input)
@@ -433,7 +462,7 @@ private:
 private:
     unsigned    m_put_level;
     bool        m_sync_flush{false};
-    
+
     z_stream    m_strm{};
 };
 
