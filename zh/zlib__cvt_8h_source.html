@@ -107,7 +107,7 @@ $(document).ready(function(){initNavTree('zlib__cvt_8h_source.html',''); initRes
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;cassert&gt;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;limits&gt;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &lt;zlib.h&gt;</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
@@ -448,7 +448,7 @@ $(document).ready(function(){initNavTree('zlib__cvt_8h_source.html',''); initRes
 <div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>        m_strm.avail_out = 0;</div>
 <div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span> </div>
 <div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> % <span class="keyword">sizeof</span>(internal_type))</div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;zlib_cvt::get fails: partial sequence&quot;</span>);</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;zlib_cvt::get fail: partial sequence&quot;</span>);</div>
 <div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>        <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a> / <span class="keyword">sizeof</span>(internal_type);</div>
 <div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    }</div>
 <div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span> </div>
@@ -503,7 +503,7 @@ $(document).ready(function(){initNavTree('zlib__cvt_8h_source.html',''); initRes
 <div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>            <span class="keywordflow">return</span> BT::m_kernel.flush();</div>
 <div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span> </div>
 <div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>        <span class="keywordflow">if</span> (BT::m_io_status != <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>)</div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;zlib_cvt::flush fails: not available&quot;</span>);</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1cvt__error.html">cvt_error</a>(<span class="stringliteral">&quot;zlib_cvt::flush fail: not available&quot;</span>);</div>
 <div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span> </div>
 <div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>        <span class="keywordflow">if</span> (m_sync_flush)</div>
 <div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>        {</div>
@@ -560,9 +560,9 @@ $(document).ready(function(){initNavTree('zlib__cvt_8h_source.html',''); initRes
 <div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>    {</div>
 <div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>        <span class="keywordflow">if</span> (BT::m_io_status == <a class="code hl_enumvalue" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d">io_status::output</a>)</div>
 <div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>        {</div>
-<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>            <span class="keywordflow">if</span> (BT::m_is_bos_done)</div>
-<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>            {</div>
-<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>                deflate_guard <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(m_strm);</div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>            deflate_guard <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">g</a>(m_strm);</div>
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>            <span class="keywordflow">if</span> (BT::m_is_bos_done)</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>            {</div>
 <div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>                std::array&lt;external_type, CHUNK&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">local_buf</a>{};</div>
 <div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>                m_strm.next_in = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>                m_strm.avail_in = 0;</div>
