@@ -872,10 +872,11 @@ namespace IOv2
          */
         device_type detach()
         {
+            auto result = m_kernel.detach();
             m_io_status = io_status::neutral;
             m_is_bos_done = false;
             m_is_tainted = false;
-            return m_kernel.detach();
+            return result;
         }
 
         /**
@@ -905,10 +906,11 @@ namespace IOv2
          */
         device_type attach(device_type&& dev = device_type{})
         {
+            auto result = m_kernel.attach(std::move(dev));
             m_io_status = io_status::neutral;
             m_is_bos_done = false;
             m_is_tainted = false;
-            return m_kernel.attach(std::move(dev));
+            return result;
         }
 
         /**
