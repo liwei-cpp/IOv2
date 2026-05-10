@@ -8,7 +8,7 @@
 #include <cassert>
 #include <limits>
 #include <stdexcept>
-#include <type_traits>
+#include <string>
 
 #include <zlib.h>
 
@@ -321,7 +321,7 @@ private:
         m_strm.avail_out = 0;
 
         if (res % sizeof(internal_type))
-            throw cvt_error("zlib_cvt::get fails: partial sequence");
+            throw cvt_error("zlib_cvt::get fail: partial sequence");
         return res / sizeof(internal_type);
     }
 
@@ -375,7 +375,7 @@ public:
             return BT::m_kernel.flush();
 
         if (BT::m_io_status != io_status::output)
-            throw cvt_error("zlib_cvt::flush fails: not available");
+            throw cvt_error("zlib_cvt::flush fail: not available");
 
         if (m_sync_flush)
         {
@@ -431,9 +431,9 @@ private:
     {
         if (BT::m_io_status == io_status::output)
         {
+            deflate_guard g(m_strm);
             if (BT::m_is_bos_done)
             {
-                deflate_guard g(m_strm);
                 std::array<external_type, CHUNK> local_buf{};
                 m_strm.next_in = nullptr;
                 m_strm.avail_in = 0;
