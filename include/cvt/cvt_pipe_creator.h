@@ -1,9 +1,9 @@
 #pragma once
-#include <tuple>
-#include <type_traits>
-
 #include <common/metafunctions.h>
 #include <cvt/root_cvt.h>
+
+#include <tuple>
+#include <type_traits>
 
 namespace IOv2
 {
@@ -67,7 +67,7 @@ class cvt_pipe_creator<T1, T2>
 
 public:
     using category = CvtCreatorCategory;
-    
+
     cvt_pipe_creator(const T1& c1, const T2& c2)
         : m_creators(c1, c2) {}
 
@@ -110,7 +110,7 @@ public:
     {
         return create_helper<0>(std::forward<TKernel>(kernel));
     }
-    
+
 private:
     template <size_t N, typename TKernel>
     auto create_helper(TKernel&& kernel) const
