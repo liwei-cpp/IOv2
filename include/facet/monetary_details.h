@@ -1,5 +1,4 @@
 #pragma once
-#include <langinfo.h>
 #include <array>
 #include <cstring>
 #include <string>
@@ -215,9 +214,10 @@ public:
         {
             clocale_wrapper inter_locale(name.c_str());
             clocale_user guard(inter_locale);
-            
-            m_decimal_point = FacetHelper::string_to_char_convert(nl_langinfo(__MON_DECIMAL_POINT), name);
-            m_thousands_sep = FacetHelper::string_to_char_convert(nl_langinfo(__MON_THOUSANDS_SEP), name);
+            const lconv* lc = localeconv();
+
+            m_decimal_point = FacetHelper::string_to_char_convert(lc->mon_decimal_point, name);
+            m_thousands_sep = FacetHelper::string_to_char_convert(lc->mon_thousands_sep, name);
             if (m_decimal_point == '\0')
             {
                 m_frac_digits_int = 0;
@@ -226,14 +226,14 @@ public:
             }
             else
             {
-                m_frac_digits_nat = *(nl_langinfo(__FRAC_DIGITS));
-                m_frac_digits_int = *(nl_langinfo(__INT_FRAC_DIGITS));
+                m_frac_digits_nat = lc->frac_digits;
+                m_frac_digits_int = lc->int_frac_digits;
             }
 
             if (m_thousands_sep == '\0') m_thousands_sep = ',';
             else
             {
-                const char* cgroup = nl_langinfo(__MON_GROUPING);
+                const char* cgroup = lc->mon_grouping;
                 size_t len = strlen(cgroup);
                 if (len != 0)
                 {
@@ -241,36 +241,27 @@ public:
                     for (size_t i = 0; i < len; ++i) m_grouping[i] = cgroup[i];
                 }
             }
-            
-            m_positive_sign_nat = nl_langinfo(__POSITIVE_SIGN);
+
+            m_positive_sign_nat = lc->positive_sign;
             m_positive_sign_int = m_positive_sign_nat;
-            
-            if (const char nposn = *(nl_langinfo(__N_SIGN_POSN)); !nposn)
+
+            if (!lc->n_sign_posn)
                 m_negative_sign_nat = "()";
             else
-                m_negative_sign_nat = nl_langinfo(__NEGATIVE_SIGN);
-                
-            if (const char nposn = *(nl_langinfo(__INT_N_SIGN_POSN)); !nposn)
+                m_negative_sign_nat = lc->negative_sign;
+
+            if (!lc->int_n_sign_posn)
                 m_negative_sign_int = "()";
             else
-                m_negative_sign_int = nl_langinfo(__NEGATIVE_SIGN);
+                m_negative_sign_int = lc->negative_sign;
 
-            m_curr_symbol_nat = nl_langinfo(__CURRENCY_SYMBOL);
-            m_curr_symbol_int = nl_langinfo(__INT_CURR_SYMBOL);
-            
-            m_pos_format_nat = s_construct_pattern(*(nl_langinfo(__P_CS_PRECEDES)),
-                                                   *(nl_langinfo(__P_SEP_BY_SPACE)),
-                                                   *(nl_langinfo(__P_SIGN_POSN)));
-            m_neg_format_nat = s_construct_pattern(*(nl_langinfo(__N_CS_PRECEDES)),
-                                                   *(nl_langinfo(__N_SEP_BY_SPACE)),
-                                                   *(nl_langinfo(__N_SIGN_POSN)));
-                                                   
-            m_pos_format_int = s_construct_pattern(*(nl_langinfo(__INT_P_CS_PRECEDES)),
-                                                   *(nl_langinfo(__INT_P_SEP_BY_SPACE)),
-                                                   *(nl_langinfo(__INT_P_SIGN_POSN)));
-            m_neg_format_int = s_construct_pattern(*(nl_langinfo(__INT_N_CS_PRECEDES)),
-                                                   *(nl_langinfo(__INT_N_SEP_BY_SPACE)),
-                                                   *(nl_langinfo(__INT_N_SIGN_POSN)));
+            m_curr_symbol_nat = lc->currency_symbol;
+            m_curr_symbol_int = lc->int_curr_symbol;
+
+            m_pos_format_nat = s_construct_pattern(lc->p_cs_precedes, lc->p_sep_by_space, lc->p_sign_posn);
+            m_neg_format_nat = s_construct_pattern(lc->n_cs_precedes, lc->n_sep_by_space, lc->n_sign_posn);
+            m_pos_format_int = s_construct_pattern(lc->int_p_cs_precedes, lc->int_p_sep_by_space, lc->int_p_sign_posn);
+            m_neg_format_int = s_construct_pattern(lc->int_n_cs_precedes, lc->int_n_sep_by_space, lc->int_n_sign_posn);
         }
     }
     
@@ -351,9 +342,24 @@ public:
         {
             clocale_wrapper inter_locale(name.c_str());
             clocale_user guard(inter_locale);
+            const lconv* lc = localeconv();
 
-            m_decimal_point = FacetHelper::nl_langinfo_char<CharT>(__MON_DECIMAL_POINT, name, static_cast<CharT>('\0'));
-            m_thousands_sep = FacetHelper::nl_langinfo_char<CharT>(__MON_THOUSANDS_SEP, name, static_cast<CharT>('\0'));
+            auto to_charT = [&](const char* narrow) -> CharT {
+                if (!narrow || !narrow[0]) return static_cast<CharT>('\0');
+                if constexpr (std::is_same_v<CharT, wchar_t>)
+                {
+                    auto wide = detail::to_wstring(narrow, name);
+                    return wide.empty() ? static_cast<CharT>('\0') : wide[0];
+                }
+                else
+                {
+                    auto wide = detail::to_u32string(narrow, name);
+                    return wide.empty() ? static_cast<CharT>('\0') : wide[0];
+                }
+            };
+
+            m_decimal_point = to_charT(lc->mon_decimal_point);
+            m_thousands_sep = to_charT(lc->mon_thousands_sep);
             
             if (static_cast<int>(m_decimal_point) == 0)
             {
@@ -364,8 +370,8 @@ public:
             }
             else
             {
-                m_frac_digits_nat = *(nl_langinfo(__FRAC_DIGITS));
-                m_frac_digits_int = *(nl_langinfo(__INT_FRAC_DIGITS));
+                m_frac_digits_nat = lc->frac_digits;
+                m_frac_digits_int = lc->int_frac_digits;
             }
 
             if (static_cast<int>(m_thousands_sep) == 0)
@@ -375,7 +381,7 @@ public:
             }
             else
             {
-                const char* cgroup = nl_langinfo(__MON_GROUPING);
+                const char* cgroup = lc->mon_grouping;
                 size_t len = strlen(cgroup);
                 if (len != 0)
                 {
@@ -385,69 +391,55 @@ public:
             }
 
             {
-                std::string input = nl_langinfo(__POSITIVE_SIGN);
-                if constexpr(std::is_same_v<CharT, wchar_t>)
-                    m_positive_sign_nat = detail::to_wstring(input.c_str(), name);
+                if constexpr (std::is_same_v<CharT, wchar_t>)
+                    m_positive_sign_nat = detail::to_wstring(lc->positive_sign, name);
                 else
-                    m_positive_sign_nat = detail::to_u32string(input.c_str(), name);
+                    m_positive_sign_nat = detail::to_u32string(lc->positive_sign, name);
             }
-            
-            if (const char nposn = *(nl_langinfo(__N_SIGN_POSN)); !nposn)
+
+            if (!lc->n_sign_posn)
             {
                 if constexpr (std::is_same_v<CharT, wchar_t>) m_negative_sign_nat = L"()";
                 else m_negative_sign_nat = U"()";
             }
             else
             {
-                std::string input = nl_langinfo(__NEGATIVE_SIGN);
-                if constexpr(std::is_same_v<CharT, wchar_t>)
-                    m_negative_sign_nat = detail::to_wstring(input.c_str(), name);
+                if constexpr (std::is_same_v<CharT, wchar_t>)
+                    m_negative_sign_nat = detail::to_wstring(lc->negative_sign, name);
                 else
-                    m_negative_sign_nat = detail::to_u32string(input.c_str(), name);
+                    m_negative_sign_nat = detail::to_u32string(lc->negative_sign, name);
             }
-                
-            if (const char nposn = *(nl_langinfo(__INT_N_SIGN_POSN)); !nposn)
+
+            if (!lc->int_n_sign_posn)
             {
                 if constexpr (std::is_same_v<CharT, wchar_t>) m_negative_sign_int = L"()";
                 else m_negative_sign_int = U"()";
             }
             else
             {
-                std::string input = nl_langinfo(__NEGATIVE_SIGN);
-                if constexpr(std::is_same_v<CharT, wchar_t>)
-                    m_negative_sign_int = detail::to_wstring(input.c_str(), name);
+                if constexpr (std::is_same_v<CharT, wchar_t>)
+                    m_negative_sign_int = detail::to_wstring(lc->negative_sign, name);
                 else
-                    m_negative_sign_int = detail::to_u32string(input.c_str(), name);
+                    m_negative_sign_int = detail::to_u32string(lc->negative_sign, name);
             }
 
             {
-                std::string input = nl_langinfo(__CURRENCY_SYMBOL);
-                if constexpr(std::is_same_v<CharT, wchar_t>)
-                    m_curr_symbol_nat = detail::to_wstring(input.c_str(), name);
+                if constexpr (std::is_same_v<CharT, wchar_t>)
+                    m_curr_symbol_nat = detail::to_wstring(lc->currency_symbol, name);
                 else
-                    m_curr_symbol_nat = detail::to_u32string(input.c_str(), name);
+                    m_curr_symbol_nat = detail::to_u32string(lc->currency_symbol, name);
             }
             {
-                std::string input = nl_langinfo(__INT_CURR_SYMBOL);
-                if constexpr(std::is_same_v<CharT, wchar_t>)
-                    m_curr_symbol_int = detail::to_wstring(input.c_str(), name);
+                if constexpr (std::is_same_v<CharT, wchar_t>)
+                    m_curr_symbol_int = detail::to_wstring(lc->int_curr_symbol, name);
                 else
-                    m_curr_symbol_int = detail::to_u32string(input.c_str(), name);
+                    m_curr_symbol_int = detail::to_u32string(lc->int_curr_symbol, name);
             }
 
-            m_pos_format_nat = base_ft<monetary>::s_construct_pattern(*(nl_langinfo(__P_CS_PRECEDES)),
-                                                                  *(nl_langinfo(__P_SEP_BY_SPACE)),
-                                                                  *(nl_langinfo(__P_SIGN_POSN)));
-            m_neg_format_nat = base_ft<monetary>::s_construct_pattern(*(nl_langinfo(__N_CS_PRECEDES)),
-                                                                  *(nl_langinfo(__N_SEP_BY_SPACE)),
-                                                                  *(nl_langinfo(__N_SIGN_POSN)));
-                                                   
-            m_pos_format_int = base_ft<monetary>::s_construct_pattern(*(nl_langinfo(__INT_P_CS_PRECEDES)),
-                                                                  *(nl_langinfo(__INT_P_SEP_BY_SPACE)),
-                                                                  *(nl_langinfo(__INT_P_SIGN_POSN)));
-            m_neg_format_int = base_ft<monetary>::s_construct_pattern(*(nl_langinfo(__INT_N_CS_PRECEDES)),
-                                                                  *(nl_langinfo(__INT_N_SEP_BY_SPACE)),
-                                                                  *(nl_langinfo(__INT_N_SIGN_POSN)));
+            m_pos_format_nat = base_ft<monetary>::s_construct_pattern(lc->p_cs_precedes, lc->p_sep_by_space, lc->p_sign_posn);
+            m_neg_format_nat = base_ft<monetary>::s_construct_pattern(lc->n_cs_precedes, lc->n_sep_by_space, lc->n_sign_posn);
+            m_pos_format_int = base_ft<monetary>::s_construct_pattern(lc->int_p_cs_precedes, lc->int_p_sep_by_space, lc->int_p_sign_posn);
+            m_neg_format_int = base_ft<monetary>::s_construct_pattern(lc->int_n_cs_precedes, lc->int_n_sep_by_space, lc->int_n_sign_posn);
         }
     }
     
