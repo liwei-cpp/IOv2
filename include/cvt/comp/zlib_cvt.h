@@ -6,9 +6,10 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <concepts>
 #include <limits>
-#include <stdexcept>
 #include <string>
+#include <utility>
 
 #include <zlib.h>
 
@@ -209,7 +210,7 @@ public:
         if (BT::m_io_status == io_status::output)
             flush();
         else if (BT::m_io_status == io_status::neutral)
-            throw cvt_error("zlib_cvt::main_cont_beg fail: no get_bos or put_bos is called before calling main_cont_beg");
+            throw cvt_error("zlib_cvt::main_cont_beg fail: get_bos or put_bos has not been called before main_cont_beg");
     }
 
     io_status bos()
@@ -239,6 +240,8 @@ public:
                 m_strm.next_out = &ch;
 
                 ret = inflate(&m_strm, Z_NO_FLUSH);
+                if (ret == Z_NEED_DICT)
+                    throw cvt_error("zlib_cvt::bos fail: preset dictionary not supported");
                 zerr("zlib_cvt::bos fail", ret);
 
                 if ((m_strm.avail_in != 0) || (m_strm.avail_out != 1)) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
@@ -397,8 +400,8 @@ public:
             m_strm.avail_out = 0;
             m_strm.next_in = nullptr;
             m_strm.avail_in = 0;
-            BT::m_kernel.flush();
         }
+        BT::m_kernel.flush();
     }
 
 private:
@@ -408,7 +411,7 @@ private:
         switch (ret)
         {
         case Z_ERRNO:
-            throw cvt_error(std::string(info) + ": zlib_cvt IO error");
+            throw cvt_error(std::string(info) + ": zlib i/o error");
         case Z_STREAM_ERROR:
             throw cvt_error(std::string(info) + ": invalid compression level");
         case Z_DATA_ERROR:
@@ -416,7 +419,7 @@ private:
         case Z_MEM_ERROR:
             throw cvt_error(std::string(info) + ": out of memory");
         case Z_VERSION_ERROR:
-            throw cvt_error(std::string(info) + ": zlib version mismatch!");
+            throw cvt_error(std::string(info) + ": zlib version mismatch");
         case Z_BUF_ERROR:
             if constexpr (!IgnoreBufError)
                 throw cvt_error(std::string(info) + ": no progress possible (Z_BUF_ERROR)");
@@ -429,6 +432,19 @@ private:
 
     void close_stream()
     {
+        struct state_guard
+        {
+            zlib_cvt& self;
+            ~state_guard()
+            {
+                self.BT::m_is_bos_done = false;
+                self.BT::m_io_status = io_status::neutral;
+                self.m_sync_flush = false;
+                self.m_strm.next_out = nullptr;
+                self.m_strm.avail_out = 0;
+            }
+        } sg{*this};
+
         if (BT::m_io_status == io_status::output)
         {
             deflate_guard g(m_strm);
@@ -441,7 +457,7 @@ private:
                 {
                     m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                     m_strm.avail_out = CHUNK;
-                    zerr("zlib_cvt::put_end fail", deflate(&m_strm, Z_FINISH));
+                    zerr("zlib_cvt::close_stream fail", deflate(&m_strm, Z_FINISH));
                     const size_t written = CHUNK - m_strm.avail_out;
                     if (written > 0)
                         BT::m_kernel.put(local_buf.data(), written);
@@ -452,12 +468,6 @@ private:
         }
         else if (BT::m_io_status == io_status::input)
             inflateEnd(&m_strm);
-
-        BT::m_is_bos_done = false;
-        BT::m_io_status = io_status::neutral;
-        m_sync_flush = false;
-        m_strm.next_out = nullptr;
-        m_strm.avail_out = 0;
     }
 private:
     unsigned    m_put_level;
