@@ -31,11 +31,23 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
     using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false, false>;
     friend BT;  // for put_main and get_main
 
+    // On the failure path, clear next_in/next_out so they cannot outlive the
+    // local buffers (e.g. header_buf) they may point into.
     struct inflate_guard
     {
         z_stream* strm;
         explicit inflate_guard(z_stream& s) noexcept : strm(&s) {}
-        ~inflate_guard() noexcept { if (strm) inflateEnd(strm); }
+        ~inflate_guard() noexcept
+        {
+            if (strm)
+            {
+                inflateEnd(strm);
+                strm->next_in = nullptr;
+                strm->avail_in = 0;
+                strm->next_out = nullptr;
+                strm->avail_out = 0;
+            }
+        }
         void release() noexcept { strm = nullptr; }
 
         inflate_guard(const inflate_guard&) = delete;
@@ -48,7 +60,17 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
     {
         z_stream* strm;
         explicit deflate_guard(z_stream& s) noexcept : strm(&s) {}
-        ~deflate_guard() noexcept { if (strm) deflateEnd(strm); }
+        ~deflate_guard() noexcept
+        {
+            if (strm)
+            {
+                deflateEnd(strm);
+                strm->next_in = nullptr;
+                strm->avail_in = 0;
+                strm->next_out = nullptr;
+                strm->avail_out = 0;
+            }
+        }
         void release() noexcept { strm = nullptr; }
 
         deflate_guard(const deflate_guard&) = delete;
@@ -290,6 +312,14 @@ public:
                 if (ret != Z_OK) throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib.");
                 deflate_guard zlib_guard(m_strm);
 
+                // Contract enforced below: after this deflate() call we require
+                // exactly zlib_header_size bytes in the output buffer and zero
+                // bytes/bits still pending inside zlib. Z_NO_FLUSH on a fresh
+                // stream with no input is expected to flush the queued header
+                // and nothing else. The post-checks turn that expectation into
+                // a hard invariant: any future zlib behavior change (more
+                // bytes, fewer bytes, or bytes left buffered) surfaces here as
+                // a loud failure rather than silent framing corruption.
                 std::array<external_type, zlib_header_size + 1> header_buf{};
 
                 m_strm.avail_in = 0;
@@ -299,7 +329,14 @@ public:
                 ret = deflate(&m_strm, Z_NO_FLUSH);
                 zerr("zlib_cvt::bos fail", ret);
 
-                if (m_strm.avail_out != 1) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
+                if (m_strm.avail_out != 1)
+                    throw cvt_error("zlib_cvt::bos fail: zlib did not emit exactly the header");
+
+                unsigned pending_bytes = 0;
+                int pending_bits = 0;
+                if (deflatePending(&m_strm, &pending_bytes, &pending_bits) != Z_OK ||
+                    pending_bytes != 0 || pending_bits != 0)
+                    throw cvt_error("zlib_cvt::bos fail: zlib has unflushed bytes after header");
 
                 BT::m_kernel.put(header_buf.data(), zlib_header_size);
 
@@ -343,14 +380,29 @@ private:
             if (len == 0) break;
             m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<char*>(ptr)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-type-const-cast)
             m_strm.avail_in = 1;
+            // Snapshot before the call so we can prove zlib made progress on at
+            // least one axis (input consumed or output produced). The Z_OK
+            // contract guarantees this, but enforcing it here turns a
+            // hypothetical infinite loop into an explicit failure if the
+            // library ever diverges from its contract.
+            const auto prev_avail_in = m_strm.avail_in;
+            const auto prev_avail_out = m_strm.avail_out;
             ret = inflate(&m_strm, Z_NO_FLUSH);
             // Invariant: When output space is available, inflate() always consumes
             // all provided input into its internal state, even if no output is
             // produced yet. This assert guards against zlib misbehavior or memory
             // corruption during development.
             assert(m_strm.avail_in == 0);
-            zerr<true>("zlib_cvt::get fail", ret);
+            zerr("zlib_cvt::get fail", ret);
+            if (m_strm.avail_in == prev_avail_in && m_strm.avail_out == prev_avail_out)
+                throw cvt_error("zlib_cvt::get fail: zlib made no progress");
         }
+
+        // Exiting the loop with output space still available means the underlying
+        // kernel ran out of bytes before zlib reached Z_STREAM_END. The compressed
+        // stream is truncated and partial output would silently corrupt caller data.
+        if (ret != Z_STREAM_END && m_strm.avail_out != 0)
+            throw cvt_error("zlib_cvt::get fail: compressed stream truncated");
 
         auto res = aim_output - m_strm.avail_out;
         m_strm.next_in = nullptr;
@@ -387,8 +439,17 @@ private:
                 m_strm.next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 m_strm.avail_out = CHUNK;
 
+                // Snapshot before the call so we can prove zlib made progress on
+                // at least one axis (input consumed or output produced). The
+                // Z_OK contract guarantees this, but enforcing it here turns a
+                // hypothetical infinite loop into an explicit failure if the
+                // library ever diverges from its contract.
+                const auto prev_avail_in = m_strm.avail_in;
+                const auto prev_avail_out = m_strm.avail_out;
                 auto ret = deflate(&m_strm, Z_NO_FLUSH);
                 zerr("zlib_cvt::put fail", ret);
+                if (m_strm.avail_in == prev_avail_in && m_strm.avail_out == prev_avail_out)
+                    throw cvt_error("zlib_cvt::put fail: zlib made no progress");
                 write_size += cur_put_size - m_strm.avail_in;
 
                 if (m_strm.avail_out)

@@ -313,6 +313,41 @@ void test_zlib_cvt_bos_2()
     dump_info("Done\n");
 }
 
+void test_zlib_cvt_bos_3()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt::bos failure on malformed input header...");
+
+    auto helper = [](auto& obj)
+    {
+        bool got_exception = false;
+        try { obj.bos(); }
+        catch (...) { got_exception = true; }
+        if (!got_exception) throw std::runtime_error("zlib_cvt::bos failed to throw on malformed header");
+    };
+
+    // 0xFF 0xFF: invalid zlib header (CM bits = 15; only 8 / deflate is legal).
+    // inflate returns Z_DATA_ERROR before producing output, so bos() unwinds while
+    // m_strm.next_in still points into the dying header_buf stack frame.
+    // inflate_guard's destructor must scrub that pointer; this test exercises the
+    // failure path so any future regression that reads stale m_strm fields during
+    // teardown is caught here.
+    std::string malformed("\xFF\xFF", 2);
+
+    {
+        Comp::zlib_cvt obj{rb_root_cvt{mem_device(malformed)}, 6};
+        helper(obj);
+    }   // dtor runs here; must complete cleanly with no read of stale m_strm.next_in.
+
+    {
+        Comp::zlib_cvt tmp{rb_root_cvt{mem_device(malformed)}, 6};
+        runtime_cvt obj2(std::move(tmp));
+        helper(obj2);
+    }
+
+    dump_info("Done\n");
+}
+
 void test_zlib_cvt_io_1()
 {
     using namespace IOv2;

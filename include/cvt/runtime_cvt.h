@@ -213,13 +213,9 @@ public:
 
 public:
     template <io_converter KernelType>
-        requires ((!std::is_same_v<KernelType, runtime_cvt>) &&
-                  (std::copy_constructible<KernelType>))
-    runtime_cvt(const KernelType& kernel)
-        : m_ptr(std::make_unique<runtime_cvt_imp<KernelType>>(kernel)) {}
-
-    template <io_converter KernelType>
-        requires (!std::is_same_v<std::remove_cvref_t<KernelType>, runtime_cvt>)
+        requires (!std::is_same_v<std::remove_cvref_t<KernelType>, runtime_cvt> &&
+                  (!std::is_lvalue_reference_v<KernelType> ||
+                   std::copy_constructible<std::remove_cvref_t<KernelType>>))
     runtime_cvt(KernelType&& kernel)
         : m_ptr(std::make_unique<runtime_cvt_imp<std::remove_cvref_t<KernelType>>>(std::forward<KernelType>(kernel))) {}
 
@@ -338,8 +334,5 @@ private:
 };
 
 template <io_converter KernelType>
-runtime_cvt(const KernelType&) -> runtime_cvt<typename KernelType::device_type, typename KernelType::internal_type>;
-
-template <io_converter KernelType>
-runtime_cvt(KernelType&&) -> runtime_cvt<typename KernelType::device_type, typename KernelType::internal_type>;
+runtime_cvt(KernelType&&) -> runtime_cvt<typename std::remove_cvref_t<KernelType>::device_type, typename std::remove_cvref_t<KernelType>::internal_type>;
 }
