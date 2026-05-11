@@ -114,10 +114,10 @@ Public 成员函数</h2></td></tr>
 requires ((!std::is_same_v&lt;KernelType, <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a>&gt;) &amp;&amp; (std::copy_constructible&lt;KernelType&gt;))</td></tr>
 <tr class="memitem:af954e19e2899889d7691e7430902f89a"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#af954e19e2899889d7691e7430902f89a">runtime_cvt</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> KernelType &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>)</td></tr>
 <tr class="separator:af954e19e2899889d7691e7430902f89a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4407316bf6a86d7228e2cc7b67441617" id="r_a4407316bf6a86d7228e2cc7b67441617"><td class="memTemplParams" colspan="2">template&lt;io_converter KernelType&gt; <br />
-requires (!std::is_same_v&lt;KernelType, <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a>&gt;)</td></tr>
-<tr class="memitem:a4407316bf6a86d7228e2cc7b67441617"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#a4407316bf6a86d7228e2cc7b67441617">runtime_cvt</a> (KernelType &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>)</td></tr>
-<tr class="separator:a4407316bf6a86d7228e2cc7b67441617"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2f651f9ac821f816a2b84b01b5cf061" id="r_ab2f651f9ac821f816a2b84b01b5cf061"><td class="memTemplParams" colspan="2">template&lt;io_converter KernelType&gt; <br />
+requires (!std::is_same_v&lt;std::remove_cvref_t&lt;KernelType&gt;, <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a>&gt;)</td></tr>
+<tr class="memitem:ab2f651f9ac821f816a2b84b01b5cf061"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#ab2f651f9ac821f816a2b84b01b5cf061">runtime_cvt</a> (KernelType &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>)</td></tr>
+<tr class="separator:ab2f651f9ac821f816a2b84b01b5cf061"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a458de689309e154fbb206e98cd73036d" id="r_a458de689309e154fbb206e98cd73036d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#a458de689309e154fbb206e98cd73036d">runtime_cvt</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
 <tr class="separator:a458de689309e154fbb206e98cd73036d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72756df7d61406e7569de6986b7862e7" id="r_a72756df7d61406e7569de6986b7862e7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#a72756df7d61406e7569de6986b7862e7">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
@@ -242,8 +242,8 @@ requires ((!std::is_same_v&lt;KernelType, <a class="el" href="classIOv2_1_1runti
 
 </div>
 </div>
-<a id="a4407316bf6a86d7228e2cc7b67441617" name="a4407316bf6a86d7228e2cc7b67441617"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4407316bf6a86d7228e2cc7b67441617">&#9670;&#160;</a></span>runtime_cvt() <span class="overload">[2/4]</span></h2>
+<a id="ab2f651f9ac821f816a2b84b01b5cf061" name="ab2f651f9ac821f816a2b84b01b5cf061"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2f651f9ac821f816a2b84b01b5cf061">&#9670;&#160;</a></span>runtime_cvt() <span class="overload">[2/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -251,7 +251,7 @@ requires ((!std::is_same_v&lt;KernelType, <a class="el" href="classIOv2_1_1runti
 template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt; </div>
 <div class="memtemplate">
 template&lt;io_converter KernelType&gt; <br />
-requires (!std::is_same_v&lt;KernelType, <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a>&gt;)</div>
+requires (!std::is_same_v&lt;std::remove_cvref_t&lt;KernelType&gt;, <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
