@@ -1,4 +1,5 @@
 #pragma once
+
 #include <common/defs.h>
 #include <cvt/cvt_concepts.h>
 #include <device/device_concepts.h>
@@ -218,9 +219,9 @@ public:
         : m_ptr(std::make_unique<runtime_cvt_imp<KernelType>>(kernel)) {}
 
     template <io_converter KernelType>
-        requires (!std::is_same_v<KernelType, runtime_cvt>)
+        requires (!std::is_same_v<std::remove_cvref_t<KernelType>, runtime_cvt>)
     runtime_cvt(KernelType&& kernel)
-        : m_ptr(std::make_unique<runtime_cvt_imp<KernelType>>(std::forward<KernelType>(kernel))) {}
+        : m_ptr(std::make_unique<runtime_cvt_imp<std::remove_cvref_t<KernelType>>>(std::forward<KernelType>(kernel))) {}
 
     runtime_cvt(const runtime_cvt& val)
         : m_ptr(val.m_ptr ? val.m_ptr->clone() : nullptr) {}
