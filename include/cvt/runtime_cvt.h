@@ -212,8 +212,9 @@ public:
     using external_type = typename device_type::char_type;
 
 public:
-    template <io_converter KernelType>
+    template <typename KernelType>
         requires (!std::is_same_v<std::remove_cvref_t<KernelType>, runtime_cvt> &&
+                  io_converter<std::remove_cvref_t<KernelType>> &&
                   (!std::is_lvalue_reference_v<KernelType> ||
                    std::copy_constructible<std::remove_cvref_t<KernelType>>))
     runtime_cvt(KernelType&& kernel)

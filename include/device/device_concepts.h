@@ -14,6 +14,7 @@
 #pragma once
 #include <concepts>
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2
@@ -106,20 +107,24 @@ namespace IOv2
      * @brief I/O 设备的统一概念。
      *
      * 一个类型如果能被称为 I/O 设备，它必须定义 `char_type` 类型，
-     * 并且至少支持读取（support_get）或写入（support_put）操作之一。
+     * 至少支持读取（support_get）或写入（support_put）操作之一，
+     * 并且移动构造和移动赋值操作不能抛出异常。
      * @tparam T 要检查的设备类型。
      * @endif
      *
      * @lang{EN}
      * @brief Unified concept for an I/O device.
      *
-     * For a type to be considered an I/O device, it must define the `char_type` type
-     * and support at least one of read (support_get) or write (support_put) operations.
+     * For a type to be considered an I/O device, it must define the `char_type` type,
+     * support at least one of read (support_get) or write (support_put) operations,
+     * and have noexcept move construction and move assignment.
      * @tparam T The device type to check.
      * @endif
      */
     template <typename T>
     concept io_device =
         requires{ typename T::char_type; } &&
+        std::is_nothrow_move_constructible_v<T> &&
+        std::is_nothrow_move_assignable_v<T> &&
         (dev_cpt::support_put<T> || dev_cpt::support_get<T>);
 }

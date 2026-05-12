@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <type_traits>
 #include <botan/hash.h>
 #include <botan/hex.h>
 
@@ -68,7 +69,7 @@ public:
         , m_out_fmt(val.m_out_fmt)
     {}
 
-    hash_cvt(hash_cvt&& val)
+    hash_cvt(hash_cvt&& val) noexcept
         : BT(std::move(val))
         , m_hash(std::move(val.m_hash))
         , m_has_main_cont(val.m_has_main_cont)
@@ -92,12 +93,17 @@ public:
         return *this;
     }
     
-    hash_cvt& operator=(hash_cvt&& val)
+    hash_cvt& operator=(hash_cvt&& val) noexcept
     {
         if (this != &val)
         {
+            // Best-effort flush: if dump_stream fails, we accept data loss
+            // since the old state is being replaced anyway.
             if (m_has_main_cont)
-                dump_stream();
+            {
+                try { dump_stream(); }
+                catch (...) {} // NOLINT(bugprone-empty-catch)
+            }
             m_hash = std::move(val.m_hash);
             m_has_main_cont = val.m_has_main_cont;
             m_out_fmt = val.m_out_fmt;
@@ -111,7 +117,10 @@ public:
     ~hash_cvt()
     {
         if (m_has_main_cont)
-            dump_stream();
+        {
+            try { dump_stream(); }
+            catch (...) {} // NOLINT(bugprone-empty-catch)
+        }
     }
 
 // mandatory methods

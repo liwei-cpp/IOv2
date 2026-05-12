@@ -776,9 +776,7 @@ public:
      * after the move (`m_accu_len` is reset to 0).
      * @endif
      */
-    code_cvt(code_cvt&& val) noexcept(
-        std::is_nothrow_move_constructible_v<BT> &&
-        std::is_nothrow_move_constructible_v<codecvt_kernel<external_type, internal_type>>)
+    code_cvt(code_cvt&& val) noexcept
         : BT(std::move(val))
         , m_cvt_kernel(std::move(val.m_cvt_kernel))
         , m_accu_len(val.m_accu_len)
@@ -796,9 +794,7 @@ public:
      * state after the move (`m_accu_len` is reset to 0).
      * @endif
      */
-    code_cvt& operator=(code_cvt&& val) noexcept(
-        std::is_nothrow_move_assignable_v<BT> &&
-        std::is_nothrow_move_assignable_v<codecvt_kernel<external_type, internal_type>>)
+    code_cvt& operator=(code_cvt&& val) noexcept
     {
         if (this == &val) return *this;
         BT::operator=(std::move(val));
