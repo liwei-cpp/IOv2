@@ -1343,3 +1343,49 @@ void test_code_cvt_switch_1()
 
     dump_info("Done\n");
 }
+
+// Covers code_cvt.h lines 518-519 (out_helper reversed range),
+// 521-522 (out_helper buffer < 4 bytes), 596-597 (in_helper reversed range).
+void test_code_cvt_mem_char8_t_kernel_helpers_1()
+{
+    using namespace IOv2;
+    dump_info("Test codecvt_kernel<char8_t,char32_t> invalid range and small buffer...");
+
+    codecvt_kernel<char8_t, char32_t> kernel;
+
+    // out_helper: to > to_end → throws (lines 518-519)
+    {
+        char8_t buf[4];
+        char8_t* to = buf + 2;
+        char8_t* to_end = buf;
+        try {
+            kernel.out_helper(U'A', to, to_end);
+            throw std::runtime_error("out_helper reversed: expected throw");
+        } catch (const cvt_error&) {}
+    }
+
+    // out_helper: 2-byte buffer (2 < 4) → false (lines 521-522)
+    {
+        char8_t buf[2];
+        char8_t* to = buf;
+        char8_t* to_end = buf + 2;
+        bool r = kernel.out_helper(U'A', to, to_end);
+        if (r) throw std::runtime_error("out_helper small buf: expected false");
+    }
+
+    // in_helper: from > from_end → throws (lines 596-597)
+    {
+        const char8_t input[] = u8"hello";
+        const char8_t* from = input + 3;
+        const char8_t* from_end = input;
+        char32_t out[4];
+        char32_t* to = out;
+        char32_t* to_end = out + 4;
+        try {
+            kernel.in_helper(from, from_end, to, to_end);
+            throw std::runtime_error("in_helper reversed: expected throw");
+        } catch (const cvt_error&) {}
+    }
+
+    dump_info("Done\n");
+}

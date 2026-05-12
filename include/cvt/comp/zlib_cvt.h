@@ -465,7 +465,7 @@ private:
         m_strm.next_in = nullptr;
         m_strm.avail_in = 0;
     }
-public:
+
     void do_flush()
         requires (cvt_cpt::support_put<KernelType>)
     {
@@ -500,7 +500,6 @@ public:
         }
     }
 
-private:
     template <bool IgnoreBufError = false>
     void zerr(const char* info, int ret)
     {

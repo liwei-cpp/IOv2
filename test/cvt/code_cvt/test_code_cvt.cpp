@@ -100,6 +100,18 @@ void test_code_cvt_stdio_char_get_nra_1();
 void test_code_cvt_stdio_char_put_1();
 void test_code_cvt_stdio_char_put_2();
 
+void test_code_cvt_mem_char_flush_noop_1();
+void test_code_cvt_mem_char_flush_taint_1();
+void test_code_cvt_mem_char_set_tainted_1();
+void test_code_cvt_mem_char_kernel_helpers_1();
+void test_code_cvt_mem_char_switch_state_err_1();
+void test_code_cvt_mem_char8_t_kernel_helpers_1();
+void test_code_cvt_stdio_adjust_1();
+void test_code_cvt_stdio_adjust_2();
+void test_code_cvt_stdio_retrieve_1();
+void test_code_cvt_stdio_retrieve_2();
+void test_code_cvt_stdio_creator_1();
+
 void test_code_cvt()
 {
     test_code_cvt_mem_char_gen_1();
@@ -202,4 +214,16 @@ void test_code_cvt()
     test_code_cvt_stdio_char_get_1();
     test_code_cvt_stdio_char_put_1();
     test_code_cvt_stdio_char_put_2();
+
+    test_code_cvt_mem_char_flush_noop_1();
+    test_code_cvt_mem_char_flush_taint_1();
+    test_code_cvt_mem_char_set_tainted_1();
+    test_code_cvt_mem_char_kernel_helpers_1();
+    test_code_cvt_mem_char_switch_state_err_1();
+    test_code_cvt_mem_char8_t_kernel_helpers_1();
+    test_code_cvt_stdio_adjust_1();
+    test_code_cvt_stdio_adjust_2();
+    test_code_cvt_stdio_retrieve_1();
+    test_code_cvt_stdio_retrieve_2();
+    test_code_cvt_stdio_creator_1();
 }

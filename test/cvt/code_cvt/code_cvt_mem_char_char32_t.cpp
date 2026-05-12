@@ -1577,3 +1577,169 @@ void test_code_cvt_mem_char_get_err_1()
 
     dump_info("Done\n");
 }
+
+namespace {
+struct throw_on_put {
+    using char_type = char;
+    bool should_throw = false;
+    void dput(const char_type*, size_t) {
+        if (should_throw) throw IOv2::device_error("forced put error");
+    }
+    void dflush() {}
+};
+} // namespace
+
+// Covers abs_cvt.h line 1335: early return in flush() when m_io_status != output.
+void test_code_cvt_mem_char_flush_noop_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt<memory<char>>: flush in non-output state is noop...");
+
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+    std::string buf = "hello";
+
+    CheckType obj{rb_root_cvt{mem_device(buf)}, "C"};
+    obj.flush();  // neutral state: hits line 1335 early return
+
+    if (obj.bos() != io_status::input)
+        throw std::runtime_error("test_code_cvt_mem_char_flush_noop_1: bos fail");
+    obj.main_cont_beg();
+    obj.flush();  // input state: hits line 1335 early return again
+
+    dump_info("Done\n");
+}
+
+// Covers abs_cvt.h lines 1344-1347: catch block sets m_is_tainted on flush failure.
+void test_code_cvt_mem_char_flush_taint_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt<throw_on_put>: flush catch block taints converter...");
+
+    using CheckType = code_cvt<rb_root_cvt<throw_on_put>, char32_t>;
+    CheckType obj{rb_root_cvt{throw_on_put{}}, "C"};
+
+    if (obj.bos() != io_status::output)
+        throw std::runtime_error("test_code_cvt_mem_char_flush_taint_1: bos fail");
+    obj.main_cont_beg();
+
+    char32_t ch = U'A';
+    obj.put(&ch, 1);
+
+    obj.device().should_throw = true;
+
+    try {
+        obj.flush();
+        throw std::runtime_error("test_code_cvt_mem_char_flush_taint_1: expected throw");
+    } catch (const device_error&) {}  // abs_cvt catch block fires, sets m_is_tainted
+
+    // After taint, further flush should throw cvt_error via assert_not_tainted()
+    try {
+        obj.flush();
+        throw std::runtime_error("test_code_cvt_mem_char_flush_taint_1: expected taint throw");
+    } catch (const cvt_error&) {}
+
+    dump_info("Done\n");
+}
+
+// Covers abs_cvt.h lines 1558-1561: set_tainted() marks the converter as tainted.
+void test_code_cvt_mem_char_set_tainted_1()
+{
+    using namespace IOv2;
+    dump_info("Test abs_cvt::set_tainted() marks converter tainted...");
+
+    using BaseType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+    struct taintable : BaseType {
+        using BaseType::BaseType;
+        void expose_set_tainted() { set_tainted(); }
+    };
+
+    std::string empty;
+    taintable obj{rb_root_cvt{mem_device(empty)}, "C"};
+
+    if (obj.bos() != io_status::output)
+        throw std::runtime_error("test_code_cvt_mem_char_set_tainted_1: expected output mode");
+    obj.main_cont_beg();
+
+    obj.expose_set_tainted();  // covers abs_cvt.h lines 1558-1561
+
+    try {
+        obj.flush();
+        throw std::runtime_error("test_code_cvt_mem_char_set_tainted_1: expected throw");
+    } catch (const cvt_error&) {}
+
+    dump_info("Done\n");
+}
+
+// Covers code_cvt.h lines 258-259 (out_helper reversed range),
+// 261-262 (out_helper zero-size buffer), 316-317 (in_helper reversed range).
+void test_code_cvt_mem_char_kernel_helpers_1()
+{
+    using namespace IOv2;
+    dump_info("Test codecvt_kernel<char,char32_t> invalid range and small buffer...");
+
+    codecvt_kernel<char, char32_t> kernel("C");
+
+    // out_helper: to > to_end → throws (lines 258-259)
+    {
+        char buf[4];
+        char* to = buf + 2;
+        char* to_end = buf;
+        try {
+            kernel.out_helper(U'A', to, to_end);
+            throw std::runtime_error("out_helper reversed: expected throw");
+        } catch (const cvt_error&) {}
+    }
+
+    // out_helper: 0-byte buffer (to_end - to = 0 < m_epc = 1) → false (line 262)
+    {
+        char buf[1];
+        char* to = buf;
+        char* to_end = buf;
+        bool r = kernel.out_helper(U'A', to, to_end);
+        if (r) throw std::runtime_error("out_helper zero buf: expected false");
+    }
+
+    // in_helper: from > from_end → throws (lines 316-317)
+    {
+        const char input[] = "hello";
+        const char* from = input + 3;
+        const char* from_end = input;
+        char32_t out[4];
+        char32_t* to = out;
+        char32_t* to_end = out + 4;
+        try {
+            kernel.in_helper(from, from_end, to, to_end);
+            throw std::runtime_error("in_helper reversed: expected throw");
+        } catch (const cvt_error&) {}
+    }
+
+    dump_info("Done\n");
+}
+
+// Covers code_cvt.h line 1170: switch_to_put throws when m_state is non-initial.
+void test_code_cvt_mem_char_switch_state_err_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt::switch_to_put fails when m_state is non-initial...");
+
+    // 0xE6 is the first byte of a 3-byte UTF-8 sequence; mbrtowc returns -2 (incomplete)
+    std::string partial;
+    partial += '\xE6';
+
+    using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+    CheckType obj{rb_root_cvt{mem_device(partial)}, "zh_CN.UTF-8"};
+
+    if (obj.bos() != io_status::input)
+        throw std::runtime_error("test_code_cvt_mem_char_switch_state_err_1: bos fail");
+    obj.main_cont_beg();
+
+    char32_t buf[4];
+    obj.get(buf, 4);  // reads 0xE6, mbrtowc returns -2, m_state becomes non-initial
+
+    try {
+        obj.switch_to_put();
+        throw std::runtime_error("test_code_cvt_mem_char_switch_state_err_1: expected throw");
+    } catch (const cvt_error&) {}  // covers line 1170
+
+    dump_info("Done\n");
+}
