@@ -62,10 +62,10 @@ template <IOv2::io_converter KernelType>
     requires std::is_same_v<typename KernelType::internal_type, wchar_t>
 struct wext_char_cvt
     : public IOv2::abs_cvt<wext_char_cvt<KernelType>, KernelType, char,
-                           /*flush=*/true, /*position=*/false, /*io_switch=*/false>
+                           /*position=*/false, /*io_switch=*/false>
 {
     using BT = IOv2::abs_cvt<wext_char_cvt<KernelType>, KernelType, char,
-                              true, false, false>;
+                              false, false>;
     friend BT;
 public:
     using device_type  = typename KernelType::device_type;
@@ -84,11 +84,11 @@ template <IOv2::io_converter KernelType>
 struct no_switch_cvt
     : public IOv2::abs_cvt<no_switch_cvt<KernelType>, KernelType,
                            typename KernelType::internal_type,
-                           /*flush=*/true, /*position=*/false, /*io_switch=*/false>
+                           /*position=*/false, /*io_switch=*/false>
 {
     using IT = typename KernelType::internal_type;
     using BT = IOv2::abs_cvt<no_switch_cvt<KernelType>, KernelType, IT,
-                              true, false, false>;
+                              false, false>;
     friend BT;
 public:
     using device_type  = typename KernelType::device_type;

@@ -684,9 +684,9 @@ struct codecvt_kernel<char8_t, TInt>
  * @endif
  */
 template <io_converter KernelType, typename CharType>
-class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, false, false>
+class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, false>
 {
-    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, false, false>;
+    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, false>;
     friend BT; // for put_main, get_main
 
 public:

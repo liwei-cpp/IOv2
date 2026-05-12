@@ -40,9 +40,9 @@ struct dump_hash : cvt_behavior
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (std::is_integral_v<typename KernelType::internal_type> &&
               sizeof(typename KernelType::internal_type) == sizeof(uint8_t))
-class hash_cvt : public abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, true, false, false>
+class hash_cvt : public abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>
 {
-    using BT = abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, true, false, false>;
+    using BT = abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
     friend BT;  // fot put_main
 
     static_assert(cvt_cpt::support_put<KernelType>);

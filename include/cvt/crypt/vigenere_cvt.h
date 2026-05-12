@@ -31,9 +31,9 @@ namespace IOv2::Crypt::Classic
 /// @see chacha20_cvt for cryptographically secure encryption
 template <io_converter KernelType>
     requires std::is_integral_v<typename KernelType::internal_type>
-class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, false, true>
+class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, false, true>
 {
-    using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, false, true>;
+    using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, false, true>;
     friend BT;  // for put_main and get_main
     constexpr static size_t s_buf_len = 16;
 public:
