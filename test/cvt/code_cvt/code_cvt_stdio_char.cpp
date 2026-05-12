@@ -1,6 +1,8 @@
 #include <cvt/code_cvt.h>
+#include <cvt/code_cvt_stdio.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
+#include <device/mem_device.h>
 #include <device/std_device.h>
 
 #include <common/dump_info.h>
@@ -654,7 +656,7 @@ void test_code_cvt_stdio_char_put_2()
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
-    
+
     {
         oguard<false> g;
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
@@ -671,7 +673,7 @@ void test_code_cvt_stdio_char_put_2()
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
-    
+
     {
         oguard<false> g;
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
@@ -680,6 +682,107 @@ void test_code_cvt_stdio_char_put_2()
         helper(obj);
         if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
     }
+
+    dump_info("Done\n");
+}
+
+// Covers code_cvt_stdio.h lines 191-212: adjust() with a code_cvt_switch policy.
+void test_code_cvt_stdio_adjust_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt_stdio::adjust with code_cvt_switch...");
+
+    using CvtType = code_cvt_stdio<rb_root_cvt<mem_device<char>>>;
+
+    // Empty buffer → deof() true → bos() returns output
+    CvtType obj{rb_root_cvt{mem_device(std::string{})}, "C"};
+
+    obj.adjust(code_cvt_switch{"zh_CN.UTF-8"});  // covers lines 191-212
+
+    code_cvt_access status;
+    obj.retrieve(status);
+    if (status.code != "zh_CN.UTF-8")
+        throw std::runtime_error("test_code_cvt_stdio_adjust_1: locale not updated");
+
+    dump_info("Done\n");
+}
+
+// Covers code_cvt_stdio.h line 194: adjust() throws when m_state is non-initial.
+void test_code_cvt_stdio_adjust_2()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt_stdio::adjust throws with non-initial state...");
+
+    // 0xE6 is first byte of a 3-byte UTF-8 sequence; mbrtowc returns -2 (incomplete)
+    std::string partial;
+    partial += '\xE6';
+
+    using CvtType = code_cvt_stdio<rb_root_cvt<mem_device<char>>>;
+    CvtType obj{rb_root_cvt{mem_device(partial)}, "zh_CN.UTF-8"};
+
+    if (obj.bos() != io_status::input)
+        throw std::runtime_error("test_code_cvt_stdio_adjust_2: bos fail");
+    obj.main_cont_beg();
+
+    wchar_t buf[4];
+    obj.get(buf, 4);  // reads 0xE6, m_state becomes non-initial
+
+    try {
+        obj.adjust(code_cvt_switch{"C"});
+        throw std::runtime_error("test_code_cvt_stdio_adjust_2: expected throw");
+    } catch (const cvt_error&) {}  // covers line 194
+
+    dump_info("Done\n");
+}
+
+// Covers code_cvt_stdio.h lines 238-242: retrieve() with code_cvt_access.
+void test_code_cvt_stdio_retrieve_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt_stdio::retrieve with code_cvt_access...");
+
+    using CvtType = code_cvt_stdio<rb_root_cvt<mem_device<char>>>;
+    CvtType obj{rb_root_cvt{mem_device(std::string{})}, "zh_CN.UTF-8"};
+
+    code_cvt_access status;
+    obj.retrieve(status);  // covers lines 238-242
+
+    if (status.code != "zh_CN.UTF-8")
+        throw std::runtime_error("test_code_cvt_stdio_retrieve_1: wrong locale");
+
+    dump_info("Done\n");
+}
+
+// Covers code_cvt_stdio.h line 243: retrieve() with unknown type delegates to base.
+void test_code_cvt_stdio_retrieve_2()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt_stdio::retrieve with unknown status type...");
+
+    using CvtType = code_cvt_stdio<rb_root_cvt<mem_device<char>>>;
+    CvtType obj{rb_root_cvt{mem_device(std::string{})}, "C"};
+
+    cvt_status s;  // not code_cvt_access → delegates to base (line 243)
+    obj.retrieve(s);
+
+    dump_info("Done\n");
+}
+
+// Covers code_cvt_stdio_creator::create().
+void test_code_cvt_stdio_creator_1()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt_stdio_creator::create...");
+
+    static_assert(cvt_creator<code_cvt_stdio_creator>);
+
+    code_cvt_stdio_creator creator{"zh_CN.UTF-8"};
+    auto obj = creator.create(rb_root_cvt{mem_device(std::string{})});
+
+    code_cvt_access status;
+    obj.retrieve(status);
+    if (status.code != "zh_CN.UTF-8")
+        throw std::runtime_error("test_code_cvt_stdio_creator_1: wrong locale");
 
     dump_info("Done\n");
 }
