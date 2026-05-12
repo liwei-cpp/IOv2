@@ -202,28 +202,30 @@ $(document).ready(function(){initNavTree('cvt__concepts_8h_source.html',''); ini
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    }</div>
 </div>
 <div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="foldopen" id="foldopen00257" data-start="{" data-end="}">
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1io__converter.html">  257</a></span>    <span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1io__converter.html">io_converter</a> = (<a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__put.html">cvt_cpt::support_put&lt;T&gt;</a> || <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">cvt_cpt::support_get&lt;T&gt;</a>) &amp;&amp;</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html">cvt_cpt::mandatory_methods&lt;T&gt;</a> &amp;&amp;</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        <span class="keyword">requires</span> {</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>            <span class="keyword">typename</span> T::internal_type;</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>            <span class="keyword">typename</span> T::external_type;</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>        };</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="foldopen" id="foldopen00259" data-start="{" data-end="}">
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1io__converter.html">  259</a></span>    <span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1io__converter.html">io_converter</a> = (<a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__put.html">cvt_cpt::support_put&lt;T&gt;</a> || <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">cvt_cpt::support_get&lt;T&gt;</a>) &amp;&amp;</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>        <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html">cvt_cpt::mandatory_methods&lt;T&gt;</a> &amp;&amp;</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        std::is_nothrow_move_constructible_v&lt;T&gt; &amp;&amp;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>        std::is_nothrow_move_assignable_v&lt;T&gt; &amp;&amp;</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        <span class="keyword">requires</span> {</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>            <span class="keyword">typename</span> T::internal_type;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>            <span class="keyword">typename</span> T::external_type;</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        };</div>
 </div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    <span class="keyword">struct </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CvtCreatorCategory</a>;</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span> </div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1cvt__creator.html">  292</a></span>    <span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1cvt__creator.html">cvt_creator</a> = std::is_same_v&lt;typename T::category, CvtCreatorCategory&gt;;</div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>}</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span> </div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    <span class="keyword">struct </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CvtCreatorCategory</a>;</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1cvt__creator.html">  296</a></span>    <span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1cvt__creator.html">cvt_creator</a> = std::is_same_v&lt;typename T::category, CvtCreatorCategory&gt;;</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>}</div>
 <div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1mandatory__methods_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html">IOv2::cvt_cpt::mandatory_methods</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:223</div></div>
 <div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__get_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__get.html">IOv2::cvt_cpt::support_get</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:149</div></div>
 <div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__io__switch_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">IOv2::cvt_cpt::support_io_switch</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:197</div></div>
 <div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__positioning_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__positioning.html">IOv2::cvt_cpt::support_positioning</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:173</div></div>
 <div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__put_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__put.html">IOv2::cvt_cpt::support_put</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:126</div></div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__creator_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__creator.html">IOv2::cvt_creator</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:292</div></div>
-<div class="ttc" id="aconceptIOv2_1_1io__converter_html"><div class="ttname"><a href="conceptIOv2_1_1io__converter.html">IOv2::io_converter</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:257</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__creator_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__creator.html">IOv2::cvt_creator</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:296</div></div>
+<div class="ttc" id="aconceptIOv2_1_1io__converter_html"><div class="ttname"><a href="conceptIOv2_1_1io__converter.html">IOv2::io_converter</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:259</div></div>
 <div class="ttc" id="adefs_8h_html"><div class="ttname"><a href="defs_8h.html">defs.h</a></div></div>
 <div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:19</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>

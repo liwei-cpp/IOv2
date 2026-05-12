@@ -17,7 +17,7 @@ var classIOv2_1_1mem__device =
     [ "get_buf", "classIOv2_1_1mem__device.html#a2043a1a7835882887309543c57526024", null ],
     [ "get_rollback", "classIOv2_1_1mem__device.html#abd8fe9ea775aa85215ff1d1334f1fdec", null ],
     [ "operator=", "classIOv2_1_1mem__device.html#ac166c2c30e6893c831da899ada79e073", null ],
-    [ "operator=", "classIOv2_1_1mem__device.html#a23de5699230a6a5a58ac9bd5e67fa50f", null ],
+    [ "operator=", "classIOv2_1_1mem__device.html#a30e478bfea044e5521749a49282c394c", null ],
     [ "put_buf", "classIOv2_1_1mem__device.html#a7e0788e046ac0e319c22128419ac215d", null ],
     [ "put_rollback", "classIOv2_1_1mem__device.html#adb7f21dbbc12340d6098e99bec8ca641", null ],
     [ "str", "classIOv2_1_1mem__device.html#a3bb907180eef62a86da13cd91202144d", null ]
