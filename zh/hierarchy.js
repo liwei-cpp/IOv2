@@ -10,7 +10,7 @@ var hierarchy =
     [ "IOv2::_Setiosflags", "structIOv2_1_1__Setiosflags.html", null ],
     [ "IOv2::_Setprecision", "structIOv2_1_1__Setprecision.html", null ],
     [ "IOv2::_Setw", "structIOv2_1_1__Setw.html", null ],
-    [ "IOv2::abs_cvt< CurrentType, KernelType, InternalType, default_flush, default_positioning, default_io_switch >", "classIOv2_1_1abs__cvt.html", [
+    [ "IOv2::abs_cvt< CurrentType, KernelType, InternalType, default_positioning, default_io_switch >", "classIOv2_1_1abs__cvt.html", [
       [ "IOv2::code_cvt< KernelType, wchar_t >", "classIOv2_1_1code__cvt.html", [
         [ "IOv2::code_cvt_stdio< KernelType >", "classIOv2_1_1code__cvt__stdio.html", null ]
       ] ],
@@ -18,16 +18,16 @@ var hierarchy =
       [ "IOv2::Crypt::chacha20_cvt< KernelType, TInt >", "classIOv2_1_1Crypt_1_1chacha20__cvt.html", null ],
       [ "IOv2::Crypt::hash_cvt< KernelType, TInt >", "classIOv2_1_1Crypt_1_1hash__cvt.html", null ]
     ] ],
-    [ "IOv2::abs_cvt< chacha20_cvt< KernelType, typename KernelType::internal_type >, KernelType, typename KernelType::internal_type, true, false, false >", "classIOv2_1_1abs__cvt.html", null ],
-    [ "IOv2::abs_cvt< code_cvt< KernelType, CharType >, KernelType, CharType, true, false, false >", "classIOv2_1_1abs__cvt.html", [
+    [ "IOv2::abs_cvt< chacha20_cvt< KernelType, typename KernelType::internal_type >, KernelType, typename KernelType::internal_type, false, false >", "classIOv2_1_1abs__cvt.html", null ],
+    [ "IOv2::abs_cvt< code_cvt< KernelType, CharType >, KernelType, CharType, false, false >", "classIOv2_1_1abs__cvt.html", [
       [ "IOv2::code_cvt< KernelType, CharType >", "classIOv2_1_1code__cvt.html", null ]
     ] ],
-    [ "IOv2::abs_cvt< code_cvt< KernelType, wchar_t >, KernelType, wchar_t, true, false, false >", "classIOv2_1_1abs__cvt.html", null ],
-    [ "IOv2::abs_cvt< hash_cvt< KernelType, typename KernelType::internal_type >, KernelType, typename KernelType::internal_type, true, false, false >", "classIOv2_1_1abs__cvt.html", null ],
-    [ "IOv2::abs_cvt< vigenere_cvt< KernelType >, KernelType, KernelType::internal_type, true, false, true >", "classIOv2_1_1abs__cvt.html", [
+    [ "IOv2::abs_cvt< code_cvt< KernelType, wchar_t >, KernelType, wchar_t, false, false >", "classIOv2_1_1abs__cvt.html", null ],
+    [ "IOv2::abs_cvt< hash_cvt< KernelType, typename KernelType::internal_type >, KernelType, typename KernelType::internal_type, false, false >", "classIOv2_1_1abs__cvt.html", null ],
+    [ "IOv2::abs_cvt< vigenere_cvt< KernelType >, KernelType, KernelType::internal_type, false, true >", "classIOv2_1_1abs__cvt.html", [
       [ "IOv2::Crypt::Classic::vigenere_cvt< KernelType >", "classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt.html", null ]
     ] ],
-    [ "IOv2::abs_cvt< zlib_cvt< KernelType, typename KernelType::internal_type >, KernelType, typename KernelType::internal_type, false, false, false >", "classIOv2_1_1abs__cvt.html", null ],
+    [ "IOv2::abs_cvt< zlib_cvt< KernelType, typename KernelType::internal_type >, KernelType, typename KernelType::internal_type, false, false >", "classIOv2_1_1abs__cvt.html", null ],
     [ "IOv2::abs_ft", "structIOv2_1_1abs__ft.html", [
       [ "IOv2::base_ft< timeio >", "classIOv2_1_1base__ft.html", [
         [ "IOv2::ft_basic< timeio< CharT > >", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html", [
