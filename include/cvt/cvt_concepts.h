@@ -241,7 +241,8 @@ namespace IOv2
      * 满足此概念的类型 T 须同时具备：
      * - 至少支持读取（`support_get`）或写入（`support_put`）操作之一；
      * - 满足 `mandatory_methods` 所规定的全部基础接口；
-     * - 定义 `internal_type`（内部数据类型）和 `external_type`（外部数据类型）关联类型。
+     * - 定义 `internal_type`（内部数据类型）和 `external_type`（外部数据类型）关联类型；
+     * - 移动构造和移动赋值操作不能抛出异常。
      * @endif
      *
      * @lang{EN}
@@ -250,12 +251,15 @@ namespace IOv2
      * - Support at least one of `support_get` (read) or `support_put` (write);
      * - Satisfy all mandatory interfaces defined by `mandatory_methods`;
      * - Expose both `internal_type` (internal data type) and `external_type`
-     *   (external data type) as associated types.
+     *   (external data type) as associated types;
+     * - Have noexcept move construction and move assignment.
      * @endif
      */
     template<typename T>
     concept io_converter = (cvt_cpt::support_put<T> || cvt_cpt::support_get<T>) &&
         cvt_cpt::mandatory_methods<T> &&
+        std::is_nothrow_move_constructible_v<T> &&
+        std::is_nothrow_move_assignable_v<T> &&
         requires {
             typename T::internal_type;
             typename T::external_type;

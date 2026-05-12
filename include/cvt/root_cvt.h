@@ -222,10 +222,7 @@ public:
      * @lang{ZH} 源对象，移动后处于有效但未指定的状态。 @endif
      * @lang{EN} Source object, left in a valid but unspecified state after the move. @endif
      */
-    root_cvt(root_cvt&& val) noexcept(
-                std::is_nothrow_move_constructible_v<device_type> &&
-                std::is_nothrow_move_constructible_v<std::vector<external_type>>
-            )
+    root_cvt(root_cvt&& val) noexcept
         : m_device(std::move(val.m_device))
         , m_bos_len(val.m_bos_len)
         , m_io_status(val.m_io_status)
@@ -296,8 +293,7 @@ public:
      * @lang{ZH} *this 的引用。 @endif
      * @lang{EN} Reference to *this. @endif
      */
-    root_cvt& operator=(root_cvt&& val)
-        noexcept(std::is_nothrow_move_assignable_v<device_type>)
+    root_cvt& operator=(root_cvt&& val) noexcept
     {
         if (this == &val) return *this;
 
@@ -1134,8 +1130,7 @@ public:
      * @lang{ZH} 源对象，移动后处于有效但未指定的状态。 @endif
      * @lang{EN} Source object, left in a valid but unspecified state after the move. @endif
      */
-    root_cvt(root_cvt&& val)
-        noexcept(std::is_nothrow_move_constructible_v<device_type>)
+    root_cvt(root_cvt&& val) noexcept
         : m_device(std::move(val.m_device))
         , m_bos_len(val.m_bos_len)
         , m_io_status(val.m_io_status)
@@ -1183,8 +1178,7 @@ public:
      * @lang{ZH} *this 的引用。 @endif
      * @lang{EN} Reference to *this. @endif
      */
-    root_cvt& operator=(root_cvt&& val)
-        noexcept(std::is_nothrow_move_assignable_v<device_type>)
+    root_cvt& operator=(root_cvt&& val) noexcept
     {
         if (this == &val) return *this;
         m_device = std::move(val.m_device);

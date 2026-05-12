@@ -762,7 +762,7 @@ namespace IOv2
          * IO status is reset to `neutral` and its BOS-done flag is reset to `false`.
          * @endif
          */
-        abs_cvt(abs_cvt&& val) noexcept(std::is_nothrow_move_constructible_v<KernelType>)
+        abs_cvt(abs_cvt&& val) noexcept
             : m_kernel(std::move(val.m_kernel))
             , m_io_status(val.m_io_status)
             , m_is_bos_done(val.m_is_bos_done)
@@ -808,7 +808,7 @@ namespace IOv2
          * object's IO status and BOS-done flag are both reset.
          * @endif
          */
-        abs_cvt& operator=(abs_cvt&& val) noexcept(std::is_nothrow_move_assignable_v<KernelType>)
+        abs_cvt& operator=(abs_cvt&& val) noexcept
         {
             if (this != &val)
             {

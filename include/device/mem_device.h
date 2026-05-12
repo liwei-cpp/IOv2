@@ -40,6 +40,8 @@ namespace IOv2
  * @tparam CharT 字符类型。
  * @tparam Traits 字符类型的特性，默认为 `std::char_traits<CharT>`。
  * @tparam Allocator 内存分配器，默认为 `std::allocator<CharT>`。
+ *         必须满足 `is_always_equal` 或 `propagate_on_container_move_assignment`，
+ *         以确保移动赋值操作为 noexcept。
  * @endif
  *
  * @lang{EN}
@@ -54,12 +56,16 @@ namespace IOv2
  * @tparam CharT The character type.
  * @tparam Traits The character traits, defaulting to `std::char_traits<CharT>`.
  * @tparam Allocator The memory allocator, defaulting to `std::allocator<CharT>`.
+ *         Must satisfy `is_always_equal` or `propagate_on_container_move_assignment`
+ *         to ensure noexcept move assignment.
  * @endif
  */
 template <class CharT,
           class Traits = std::char_traits<CharT>,
           class Allocator = std::allocator<CharT>>
-    requires std::is_trivially_copyable_v<CharT>
+    requires std::is_trivially_copyable_v<CharT> &&
+             (std::allocator_traits<Allocator>::is_always_equal::value ||
+              std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value)
 class mem_device
 {
 public:
@@ -109,9 +115,7 @@ public:
         other.m_put_buf_checkpoint.reset();
     }
 
-    mem_device& operator=(mem_device&& other)
-        noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
-                 std::allocator_traits<Allocator>::is_always_equal::value)
+    mem_device& operator=(mem_device&& other) noexcept
     {
         if (this != &other)
         {

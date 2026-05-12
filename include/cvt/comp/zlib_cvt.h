@@ -117,39 +117,18 @@ public:
         }
     }
 
-    zlib_cvt(zlib_cvt&& val) // NOLINT(cppcoreguidelines-noexcept-move-operations,performance-noexcept-move-constructor)
+    zlib_cvt(zlib_cvt&& val) noexcept
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
         , m_sync_flush(val.m_sync_flush)
+        , m_strm(val.m_strm)
     {
-        if (BT::m_io_status == io_status::output)
-        {
-            m_strm.state = Z_NULL;  // Ensure state is NULL if deflateCopy fails partway
-            deflate_guard g(val.m_strm);
-            try
-            {
-                zerr("zlib_cvt move constructor fail", deflateCopy(&m_strm, &val.m_strm));
-            }
-            catch (...)
-            {
-                BT::m_io_status = io_status::neutral;
-                throw;
-            }
-        }
-        else if (BT::m_io_status == io_status::input)
-        {
-            m_strm.state = Z_NULL;  // Ensure state is NULL if inflateCopy fails partway
-            inflate_guard g(val.m_strm);
-            try
-            {
-                zerr("zlib_cvt move constructor fail", inflateCopy(&m_strm, &val.m_strm));
-            }
-            catch (...)
-            {
-                BT::m_io_status = io_status::neutral;
-                throw;
-            }
-        }
+        // Transfer ownership: null out source's state to prevent double-free.
+        // deflateEnd/inflateEnd will return Z_STREAM_ERROR on NULL state,
+        // which is safe (no cleanup performed, no crash).
+        val.m_strm.state = Z_NULL;
+        val.m_strm.next_in = nullptr;
+        val.m_strm.next_out = nullptr;
     }
 
     zlib_cvt& operator=(const zlib_cvt& val)
@@ -175,40 +154,25 @@ public:
         }
     }
 
-    zlib_cvt& operator=(zlib_cvt&& val) // NOLINT(cppcoreguidelines-noexcept-move-operations,performance-noexcept-move-constructor)
+    zlib_cvt& operator=(zlib_cvt&& val) noexcept
     {
         if (this == &val) return *this;
-        close_stream();
+
+        // Best-effort cleanup of current stream; ignore exceptions since we're
+        // replacing the state anyway.
+        try { close_stream(); }
+        catch (...) {} // NOLINT(bugprone-empty-catch)
+
         BT::operator=(std::move(val));
         m_put_level = val.m_put_level;
         m_sync_flush = val.m_sync_flush;
+        m_strm = val.m_strm;
 
-        if (BT::m_io_status == io_status::output)
-        {
-            deflate_guard g(val.m_strm);
-            try
-            {
-                zerr("zlib_cvt move assignment fail", deflateCopy(&m_strm, &val.m_strm));
-            }
-            catch (...)
-            {
-                BT::set_tainted();
-                throw;
-            }
-        }
-        else if (BT::m_io_status == io_status::input)
-        {
-            inflate_guard g(val.m_strm);
-            try
-            {
-                zerr("zlib_cvt move assignment fail", inflateCopy(&m_strm, &val.m_strm));
-            }
-            catch (...)
-            {
-                BT::set_tainted();
-                throw;
-            }
-        }
+        // Transfer ownership: null out source's state to prevent double-free.
+        val.m_strm.state = Z_NULL;
+        val.m_strm.next_in = nullptr;
+        val.m_strm.next_out = nullptr;
+
         return *this;
     }
 
