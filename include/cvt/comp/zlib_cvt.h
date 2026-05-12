@@ -170,7 +170,7 @@ public:
         }
         catch(...)
         {
-            BT::m_io_status = io_status::neutral;
+            BT::set_tainted();
             throw;
         }
     }
@@ -192,7 +192,7 @@ public:
             }
             catch (...)
             {
-                BT::m_io_status = io_status::neutral;
+                BT::set_tainted();
                 throw;
             }
         }
@@ -205,7 +205,7 @@ public:
             }
             catch (...)
             {
-                BT::m_io_status = io_status::neutral;
+                BT::set_tainted();
                 throw;
             }
         }
@@ -378,7 +378,7 @@ private:
         {
             auto [ptr, len] = reader.get_buf(1);
             if (len == 0) break;
-            m_strm.next_in = reinterpret_cast<unsigned char*>(const_cast<char*>(ptr)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-type-const-cast)
+            m_strm.next_in = const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(ptr)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-pro-type-const-cast)
             m_strm.avail_in = 1;
             // Snapshot before the call so we can prove zlib made progress on at
             // least one axis (input consumed or output produced). The Z_OK
@@ -478,6 +478,18 @@ public:
 
         if (m_sync_flush)
         {
+            struct buf_guard
+            {
+                z_stream& strm;
+                ~buf_guard() noexcept
+                {
+                    strm.next_in = nullptr;
+                    strm.avail_in = 0;
+                    strm.next_out = nullptr;
+                    strm.avail_out = 0;
+                }
+            } guard{m_strm};
+
             std::array<external_type, CHUNK> local_buf{};
             m_strm.next_in = nullptr;
             m_strm.avail_in = 0;
@@ -492,10 +504,6 @@ public:
                 if (m_strm.avail_out)
                     break;
             }
-            m_strm.next_out = nullptr;
-            m_strm.avail_out = 0;
-            m_strm.next_in = nullptr;
-            m_strm.avail_in = 0;
         }
         BT::m_kernel.flush();
     }
