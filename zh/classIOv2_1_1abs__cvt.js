@@ -23,6 +23,7 @@ var classIOv2_1_1abs__cvt =
     [ "retrieve", "classIOv2_1_1abs__cvt.html#a9a0d7d39aa029926a6f6422c5fe8271a", null ],
     [ "rseek", "classIOv2_1_1abs__cvt.html#a1e584b918c30499efaf36d94d7ab6175", null ],
     [ "seek", "classIOv2_1_1abs__cvt.html#a098f53b4c197fe8643bea1cff71f6acb", null ],
+    [ "set_tainted", "classIOv2_1_1abs__cvt.html#a092352123df6dfd3eaf671ef776d360a", null ],
     [ "switch_to_get", "classIOv2_1_1abs__cvt.html#a82a759023e86faee8bf993ee3a894451", null ],
     [ "switch_to_put", "classIOv2_1_1abs__cvt.html#a17ce40096d37a0ebd6720bc54f9490f9", null ],
     [ "tell", "classIOv2_1_1abs__cvt.html#add78bcbcdde0e5e1c4798df008c7be38", null ],

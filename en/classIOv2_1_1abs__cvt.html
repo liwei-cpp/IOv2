@@ -189,6 +189,8 @@ Public Member Functions</h2></td></tr>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:ae3aebe475c23bb38ed1aac036635e811" id="r_ae3aebe475c23bb38ed1aac036635e811"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811">assert_not_tainted</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:ae3aebe475c23bb38ed1aac036635e811"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a092352123df6dfd3eaf671ef776d360a" id="r_a092352123df6dfd3eaf671ef776d360a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a092352123df6dfd3eaf671ef776d360a">set_tainted</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:a092352123df6dfd3eaf671ef776d360a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -987,6 +989,36 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a092352123df6dfd3eaf671ef776d360a" name="a092352123df6dfd3eaf671ef776d360a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a092352123df6dfd3eaf671ef776d360a">&#9670;&#160;</a></span>set_tainted()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a> , io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_flush = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_positioning = true, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> default_io_switch = true&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_flush</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::set_tainted </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Marks the current converter as tainted. Once set, any subsequent operation that relies on a known-good internal state will throw <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> via <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae3aebe475c23bb38ed1aac036635e811">assert_not_tainted()</a></code>; the only recovery path is to call <code><a class="el" href="classIOv2_1_1abs__cvt.html#af246d3009e41c82b6312dff125d00120">attach()</a></code> or <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae126ff7b6fcf651364c0e17d86cc074e">detach()</a></code>, both of which clear the flag.</p>
+<p>Derived classes should call this when a mutating operation has failed midway and the object is left in an inconsistent state, so that "broken-but-not-destroyed" objects are distinguished from healthy ones.</p>
+<p>Note: this function only sets <code>m_is_tainted = true</code>; it deliberately does not touch any other state field (including <code>m_io_status</code> and <code>m_is_bos_done</code>). The fewer writes on the error path, the fewer potential side effects.  </p>
 
 </div>
 </div>
