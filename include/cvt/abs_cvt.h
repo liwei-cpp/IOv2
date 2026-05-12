@@ -1503,6 +1503,42 @@ namespace IOv2
                 throw cvt_error("abs_cvt: converter is in a tainted state; reattach a device to recover");
         }
 
+        /**
+         * @lang{ZH}
+         * 将当前转换器标记为 tainted。一旦置位，后续依赖完整内部状态的操作将
+         * 通过 `assert_not_tainted()` 立即抛出 `cvt_error`；唯一的恢复路径是
+         * 调用 `attach()` 或 `detach()`（二者均会重置该标志）。
+         *
+         * 派生类应在某个变更操作中途失败、对象处于不一致状态时调用此函数，
+         * 从而把"已损坏但尚未销毁"的对象与正常对象区分开。
+         *
+         * 注意：本函数仅置 `m_is_tainted = true`，不会触碰任何其他状态字段
+         * （包括 `m_io_status` 和 `m_is_bos_done`）。这样做避免任何潜在的
+         * 副作用——错误路径上越少的状态写入越好。
+         * @endif
+         *
+         * @lang{EN}
+         * Marks the current converter as tainted. Once set, any subsequent
+         * operation that relies on a known-good internal state will throw
+         * `cvt_error` via `assert_not_tainted()`; the only recovery path is
+         * to call `attach()` or `detach()`, both of which clear the flag.
+         *
+         * Derived classes should call this when a mutating operation has
+         * failed midway and the object is left in an inconsistent state, so
+         * that "broken-but-not-destroyed" objects are distinguished from
+         * healthy ones.
+         *
+         * Note: this function only sets `m_is_tainted = true`; it deliberately
+         * does not touch any other state field (including `m_io_status` and
+         * `m_is_bos_done`). The fewer writes on the error path, the fewer
+         * potential side effects.
+         * @endif
+         */
+        void set_tainted() noexcept
+        {
+            m_is_tainted = true;
+        }
+
     private:
         /** @lang{ZH}
          *  临时 IO 缓冲区，供 `cvt_reader` 和 `cvt_writer` 在每次 `get`/`put` 调用时共用。
