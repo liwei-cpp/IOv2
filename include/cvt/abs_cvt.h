@@ -670,14 +670,6 @@ namespace IOv2
      * @lang{ZH} 派生类对外暴露的字符类型（即 `get`/`put` 接口所使用的元素类型）。 @endif
      * @lang{EN} The character type exposed by the derived class (the element type used by the `get`/`put` interface). @endif
      *
-     * @tparam default_flush
-     * @lang{ZH}
-     * 若为 `true`（默认），且 kernel 支持 put，则 `flush()` 方法可用。
-     * @endif
-     * @lang{EN}
-     * When `true` (default) and the kernel supports put, the `flush()` method is available.
-     * @endif
-     *
      * @tparam default_positioning
      * @lang{ZH}
      * 若为 `true`（默认），且 kernel 支持定位，则 `tell()`/`seek()`/`rseek()` 方法可用。
@@ -697,7 +689,6 @@ namespace IOv2
     template <typename CurrentType,
               io_converter KernelType,
               typename InternalType,
-              bool default_flush = true,
               bool default_positioning = true,
               bool default_io_switch = true>
     class abs_cvt
@@ -1309,22 +1300,52 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 将 kernel 中所有缓冲数据强制刷出到底层设备。
+         * 将所有缓冲数据强制刷出到底层设备。
          *
-         * 仅在 `default_flush` 为 `true` 且 kernel 支持 put 操作时可用。
+         * 仅在派生类实现了 `put_main` 时可用。若当前不处于输出模式，则为空操作直接返回。
+         *
+         * 若派生类实现了 `do_flush()`，则先调用 `do_flush()` 执行派生类特定的刷出逻辑
+         * （例如 zlib 的 sync flush），再调用 `m_kernel.flush()` 将数据推送至底层设备。
+         * 若派生类未实现 `do_flush()`，则直接调用 `m_kernel.flush()`。
+         *
+         * 若刷出过程中抛出异常，转换器将进入污染状态，后续操作均不可用。
          * @endif
          *
          * @lang{EN}
-         * Force all buffered data in the kernel to be flushed to the underlying device.
+         * Force all buffered data to be flushed to the underlying device.
          *
-         * Only available when `default_flush` is `true` and the kernel supports the
-         * put operation.
+         * Only available when the derived class implements `put_main`. If the converter
+         * is not currently in output mode, this is a no-op and returns immediately.
+         *
+         * If the derived class implements `do_flush()`, it is called first to perform
+         * any derived-class-specific flushing (e.g., a zlib sync flush), after which
+         * `m_kernel.flush()` is called to push data through to the underlying device.
+         * If no `do_flush()` is provided, `m_kernel.flush()` is called directly.
+         *
+         * If an exception is thrown during flushing, the converter enters a tainted
+         * state and further operations are unavailable.
          * @endif
          */
         void flush()
-            requires (default_flush && cvt_cpt::support_put<KernelType>)
+            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, size_t len) {
+                { t.put_main(w, data, len) } -> std::same_as<void>;
+            }
         {
-            m_kernel.flush();
+            if (m_io_status != io_status::output)
+                return;
+
+            assert_not_tainted();
+            try
+            {
+                if constexpr (requires(CurrentType& t) { t.do_flush(); })
+                    static_cast<CurrentType*>(this)->do_flush();
+                m_kernel.flush();
+            }
+            catch (...)
+            {
+                m_is_tainted = true;
+                throw;
+            }
         }
 
         /**

@@ -28,9 +28,9 @@ inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (std::is_integral_v<typename KernelType::internal_type> &&
               sizeof(typename KernelType::internal_type) == sizeof(uint8_t))
-class chacha20_cvt : public abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, true, false, false>
+class chacha20_cvt : public abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, false, false>
 {
-    using BT = abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, true, false, false>;
+    using BT = abs_cvt<chacha20_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
     friend BT; // for put_main and get_main
 public:
     using device_type = typename KernelType::device_type;

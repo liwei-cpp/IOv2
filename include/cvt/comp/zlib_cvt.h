@@ -26,9 +26,9 @@ struct zlib_sync_flush : cvt_behavior
 
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (sizeof(typename KernelType::internal_type) == sizeof(unsigned char))
-class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false, false>
+class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>
 {
-    using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false, false>;
+    using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
     friend BT;  // for put_main and get_main
 
     // On the failure path, clear next_in/next_out so they cannot outlive the
@@ -248,7 +248,7 @@ public:
         BT::main_cont_beg();
 
         if (BT::m_io_status == io_status::output)
-            flush();
+            BT::flush();
         else if (BT::m_io_status == io_status::neutral)
             throw cvt_error("zlib_cvt::main_cont_beg fail: bos() has not been called before main_cont_beg");
     }
@@ -466,16 +466,9 @@ private:
         m_strm.avail_in = 0;
     }
 public:
-    void flush()
+    void do_flush()
         requires (cvt_cpt::support_put<KernelType>)
     {
-        BT::assert_not_tainted();
-        if (!BT::m_is_bos_done)
-            return BT::m_kernel.flush();
-
-        if (BT::m_io_status != io_status::output)
-            throw cvt_error("zlib_cvt::flush fail: not available");
-
         if (m_sync_flush)
         {
             struct buf_guard
@@ -497,7 +490,7 @@ public:
             {
                 m_strm.next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 m_strm.avail_out = CHUNK;
-                zerr("zlib_cvt::flush fail", deflate(&m_strm, Z_SYNC_FLUSH));
+                zerr("zlib_cvt::do_flush fail", deflate(&m_strm, Z_SYNC_FLUSH));
                 const size_t written = CHUNK - m_strm.avail_out;
                 if (written > 0)
                     BT::m_kernel.put(local_buf.data(), written);
@@ -505,7 +498,6 @@ public:
                     break;
             }
         }
-        BT::m_kernel.flush();
     }
 
 private:
