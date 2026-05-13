@@ -432,7 +432,8 @@ void test_root_cvt_mem_reset_1()
         obj.put(" world", 6);
         if (obj.tell() != 6) throw std::runtime_error("root_cvt<mem_device>::tell incorrect");
 
-        mem_device<char> ori = obj.attach(mem_device(""));
+        auto [ori, ori_err] = obj.detach();
+        obj.attach(mem_device(""));
         if (ori.str() != "hello world") throw std::runtime_error("root_cvt<mem_device>::reset incorrect");
         
         obj.bos();
@@ -475,7 +476,8 @@ void test_root_cvt_mem_device_1()
         obj.bos(); obj.main_cont_beg();
         obj.put("123", 3);
 
-        device_type f2 = obj.attach(std::move(f1));
+        auto [f2, f2_err] = obj.detach();
+        obj.attach(std::move(f1));
         obj.bos(); obj.main_cont_beg();
         obj.put("def", 3);
 
@@ -561,7 +563,8 @@ void test_root_cvt_mem_attach_1()
         VERIFY(ch == '1');
         VERIFY(obj.device().dtell() == 1);
         
-        auto dev = obj.attach(mem_device{""});
+        auto [dev, err] = obj.detach();
+        obj.attach(mem_device{""});
         VERIFY(dev.dtell() == 1);
     };
     {
@@ -586,7 +589,8 @@ void test_root_cvt_mem_attach_2()
         obj.put("123", 3);
         VERIFY(obj.device().dtell() == 3);
         
-        auto dev = obj.attach(mem_device{""});
+        auto [dev, err] = obj.detach();
+        obj.attach(mem_device{""});
         VERIFY(dev.dtell() == 3);
     };
     {

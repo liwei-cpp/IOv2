@@ -369,11 +369,17 @@ private:
 
                     cvt.bos(); cvt.main_cont_beg();
                     cvt.put(wk.data(), wk.size());
-                    std::string ck = cvt.attach(mem_device{""}).str();
+                    auto [dev_k, err_k] = cvt.detach();
+                    cvt.attach(mem_device{""});
+                    if (err_k) std::rethrow_exception(err_k);
+                    std::string ck = dev_k.str();
 
                     cvt.bos(); cvt.main_cont_beg();
                     cvt.put(wv.data(), wv.size());
-                    std::string cv = cvt.attach(mem_device{""}).str();
+                    auto [dev_v, err_v] = cvt.detach();
+                    cvt.attach(mem_device{""});
+                    if (err_v) std::rethrow_exception(err_v);
+                    std::string cv = dev_v.str();
 
                     res.insert({std::move(ck), std::move(cv)});
                 }

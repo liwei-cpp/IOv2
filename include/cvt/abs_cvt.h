@@ -883,36 +883,49 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 将新设备附加到转换器，返回先前持有的设备，并重置转换器状态。
+         * 将新设备附加到转换器，并重置转换器状态。
          *
          * 若 `dev` 为默认构造值（空设备），则等效于清除当前设备。
-         * 调用后 `m_io_status` 恢复为 `neutral`，`m_is_bos_done` 恢复为 `false`。
+         * 调用后 `m_io_status` 恢复为 `neutral`，`m_is_bos_done` 恢复为 `false`，
+         * `m_is_tainted` 恢复为 `false`。
+         *
+         * 原设备在本函数内部由 kernel 在其 `detach()` 阶段静默析构。若需要保留
+         * 原设备，调用方应先单独调用 `detach()` 取得设备，再调用本函数装入新设备。
+         *
+         * 异常：若底层 kernel 的 `detach()` 在清理原设备时捕获到异常，kernel 的
+         * `attach()` 会将其重新抛出，本函数透传该异常；此时本层的状态字段
+         * （`m_io_status`、`m_is_bos_done`、`m_is_tainted`）不会被本层重置。
          * @endif
          *
          * @lang{EN}
-         * Attach a new device to the converter, returning the previously held
-         * device and resetting the converter state.
+         * Attach a new device to the converter and reset the converter state.
          *
          * Passing a default-constructed (empty) `dev` is equivalent to clearing
-         * the current device. After the call `m_io_status` is reset to `neutral`
-         * and `m_is_bos_done` is reset to `false`.
+         * the current device. After the call `m_io_status` is reset to `neutral`,
+         * `m_is_bos_done` is reset to `false`, and `m_is_tainted` is reset to `false`.
+         *
+         * The previously held device is silently destroyed by the kernel inside
+         * its `detach()` step. Callers who need to preserve the old device must
+         * call `detach()` first to retrieve it, then call this function to install
+         * the new one.
+         *
+         * Exceptions: if the underlying kernel's `detach()` captures an exception
+         * while cleaning up the old device, the kernel's `attach()` rethrows it
+         * and this function propagates it through; in that case this layer's
+         * state fields (`m_io_status`, `m_is_bos_done`, `m_is_tainted`) are not
+         * reset by this layer.
          * @endif
          *
          * @param dev
          * @lang{ZH} 要附加的新设备（以移动方式转交所有权），默认为空设备。 @endif
          * @lang{EN} The new device to attach (ownership transferred via move); defaults to an empty device. @endif
-         *
-         * @return
-         * @lang{ZH} 先前持有的底层设备对象（右值）。 @endif
-         * @lang{EN} The previously held underlying device object (returned by value). @endif
          */
-        device_type attach(device_type&& dev = device_type{})
+        void attach(device_type&& dev = device_type{})
         {
-            auto result = m_kernel.attach(std::move(dev));
+            m_kernel.attach(std::move(dev));
             m_io_status = io_status::neutral;
             m_is_bos_done = false;
             m_is_tainted = false;
-            return result;
         }
 
         /**

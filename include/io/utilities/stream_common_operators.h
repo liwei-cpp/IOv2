@@ -72,10 +72,10 @@ struct stream_common_operators
         return obj.m_streambuf.detach();
     }
 
-    TDevice attach(TDevice&& dev = TDevice{})
+    void attach(TDevice&& dev = TDevice{})
     {
         T& obj = static_cast<T&>(*this);
-        return obj.m_streambuf.attach(std::move(dev));
+        obj.m_streambuf.attach(std::move(dev));
     }
 
     void adjust(const cvt_behavior& acc)

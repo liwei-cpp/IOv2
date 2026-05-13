@@ -634,8 +634,9 @@ void test_zlib_cvt_wchar_t_reset_1()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.attach(mem_device(""));
-    
+            auto [dev, err] = obj.detach();
+            obj.attach(mem_device(""));
+
             if (cur_pos != s_e_lit.data() + 4102) throw std::runtime_error("zlib_cvt::put response incorrect");
             compress_res = dev.str();
         }

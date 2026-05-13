@@ -817,7 +817,8 @@ void test_root_cvt_file_attach_1()
         VERIFY(obj.device().dtell() == 8);
 
         file_guard g("test_file2", "abcde");
-        auto dev = obj.attach(ifile_device<char>("test_file2"));
+        auto [dev, err] = obj.detach();
+        obj.attach(ifile_device<char>("test_file2"));
         VERIFY(dev.dtell() == 1);
     };
 
@@ -846,7 +847,8 @@ void test_root_cvt_file_attach_2()
         VERIFY(obj.device().dtell() == 0);
 
         file_guard g("test_file2", "");
-        auto dev = obj.attach(ofile_device<char>("test_file2"));
+        auto [dev, err] = obj.detach();
+        obj.attach(ofile_device<char>("test_file2"));
         VERIFY(dev.dtell() == 3);
     };
 

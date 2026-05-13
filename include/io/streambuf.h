@@ -205,13 +205,12 @@ public:
         return m_cvt.detach();
     }
 
-    device_type attach(device_type&& dev = device_type{})
+    void attach(device_type&& dev = device_type{})
     {
         if constexpr (IsIn)
             m_read_buf.clear();
-        auto res = m_cvt.attach(std::move(dev));
+        m_cvt.attach(std::move(dev));
         init_cvt();
-        return res;
     }
 
     void adjust(const cvt_behavior& acc)

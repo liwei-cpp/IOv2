@@ -140,13 +140,13 @@ public:
         BT::main_cont_beg();
     }
     
-    device_type attach(device_type&& dev = device_type{})
+    void attach(device_type&& dev = device_type{})
     {
         if (m_has_main_cont)
             dump_stream();
         m_has_main_cont = false;
         m_out_fmt = hash_fmt::lower_hex;
-        return BT::attach(std::move(dev));
+        BT::attach(std::move(dev));
     }
 
     std::pair<device_type, std::exception_ptr> detach() noexcept

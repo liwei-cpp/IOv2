@@ -166,7 +166,8 @@ void test_sha256_cvt_put_2()
             if (obj.bos() != io_status::output) throw std::runtime_error("sha256_cvt<mem_device>::bos response incorrect");
             obj.main_cont_beg();
             obj.put("hello", 5);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != hello_hex_low) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
         
@@ -175,7 +176,8 @@ void test_sha256_cvt_put_2()
             obj.main_cont_beg();
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::lower_hex));
             obj.put("hello", 5);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != hello_hex_low) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
         
@@ -184,7 +186,8 @@ void test_sha256_cvt_put_2()
             obj.main_cont_beg();
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
             obj.put("hello", 5);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != hello_hex_up) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
         
@@ -193,7 +196,8 @@ void test_sha256_cvt_put_2()
             obj.main_cont_beg();
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::binary));
             obj.put("hello", 5);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != hello_binary) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
     };
@@ -222,7 +226,8 @@ void test_sha256_cvt_put_3()
             obj.put("hello", 5);
             obj.adjust(Crypt::dump_hash('\n'));
             obj.put("hello", 5);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != hello_hex_low + '\n' + hello_hex_low) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
 
@@ -233,7 +238,8 @@ void test_sha256_cvt_put_3()
             obj.adjust(Crypt::dump_hash('*'));
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
             obj.put("hello", 5);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != hello_hex_low + '*' + hello_hex_up) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
     };
@@ -286,7 +292,8 @@ void test_sha256_cvt_put_5()
             if (obj.bos() != io_status::output) throw std::runtime_error("sha256_cvt<mem_device>::bos response incorrect");
             obj.main_cont_beg();
             obj.put(u8"李伟", 6);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != liwei_hex_low) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
 
@@ -295,7 +302,8 @@ void test_sha256_cvt_put_5()
             obj.main_cont_beg();
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::lower_hex));
             obj.put(u8"李伟", 6);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != liwei_hex_low) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
     
@@ -304,7 +312,8 @@ void test_sha256_cvt_put_5()
             obj.main_cont_beg();
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
             obj.put(u8"李伟", 6);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != liwei_hex_up) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
     
@@ -313,7 +322,8 @@ void test_sha256_cvt_put_5()
             obj.main_cont_beg();
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::binary));
             obj.put(u8"李伟", 6);
-            auto dev = obj.attach();
+            auto [dev, err] = obj.detach();
+            obj.attach();
             if (dev.str() != liwei_binary) throw std::runtime_error("sha256_cvt<mem_device>::put response incorrect");
         }
     };

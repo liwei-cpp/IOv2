@@ -68,10 +68,10 @@ public:
 
 // mandatory methods
 public:
-    device_type attach(device_type&& dev = device_type{})
+    void attach(device_type&& dev = device_type{})
     {
         m_cipher->clear();
-        return BT::attach(std::move(dev));
+        BT::attach(std::move(dev));
     }
     
     std::pair<device_type, std::exception_ptr> detach() noexcept
