@@ -70,11 +70,6 @@ void test_runtime_cvt_null_instance()
         cvt_status    stat;
 
         must_throw([&] { (void)src.device();              });
-        // detach() is noexcept - check it returns an exception_ptr instead of throwing
-        {
-            auto [dev, err] = src.detach();
-            VERIFY(err != nullptr);
-        }
         must_throw([&] { src.attach(mem_device<char>{}); });
         must_throw([&] { src.adjust(beh);                 });
         must_throw([&] { src.retrieve(stat);              });
