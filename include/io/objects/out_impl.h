@@ -70,7 +70,7 @@ public:
     }
 
     std::pair<device_type, std::exception_ptr> detach() = delete;
-    device_type attach(device_type&& dev = device_type{}) = delete;
+    void attach(device_type&& dev = device_type{}) = delete;
 
     void reset() // mainly used for unit-test
     {

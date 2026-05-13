@@ -226,7 +226,7 @@ namespace IOv2
             {
                 { a.device() } -> std::same_as<typename T::device_type&>;
                 { a.detach() } noexcept -> std::same_as<std::pair<typename T::device_type, std::exception_ptr>>;
-                { a.attach(std::declval<typename T::device_type>()) } -> std::same_as<typename T::device_type>;
+                { a.attach(std::declval<typename T::device_type>()) } -> std::same_as<void>;
 
                 { a.bos() } -> std::same_as<io_status>;
                 { a.main_cont_beg() } -> std::same_as<void>;

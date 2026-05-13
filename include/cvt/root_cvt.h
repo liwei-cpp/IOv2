@@ -428,23 +428,41 @@ public:
     /**
      * @lang{ZH}
      * 分离当前设备，将新设备附加到 root_cvt，并将内部状态重置为初始状态。
-     * 等价于先调用 detach()，再接管新设备。
+     * 等价于先调用 `detach()` 清理原设备，再接管新设备。
+     *
+     * 与 `detach()` 不同的是，本函数**不**将原设备归还给调用方——原设备在
+     * 函数内部被静默析构。如需保留原设备，调用方应先单独调用 `detach()` 取得
+     * 设备，再调用本函数装入新设备。
+     *
+     * 异常：若 `detach()` 在清理原设备时捕获到异常（详见 `detach()` 文档），
+     * 本函数会在新设备装入并完成所有状态重置之后将该异常重新抛出。换言之，
+     * 即使抛出异常，root_cvt 也已切换到新设备并处于可用的 `neutral` 状态——
+     * 不提供强异常安全保证（不会回滚到调用前状态）。
      * @endif
      *
      * @lang{EN}
      * Detaches the current device, attaches a new device to root_cvt, and resets
-     * internal state to its initial values. Equivalent to calling detach() followed
-     * by taking ownership of the new device.
+     * internal state to its initial values. Equivalent to calling `detach()` to
+     * clean up the old device, followed by taking ownership of the new device.
+     *
+     * Unlike `detach()`, this function does NOT hand the old device back to the
+     * caller — the old device is silently destroyed inside this function. Callers
+     * who need to preserve the old device must call `detach()` first to retrieve
+     * it, then call this function to install the new device.
+     *
+     * Exceptions: if `detach()` captures an exception while cleaning up the old
+     * device (see `detach()` for details), this function rethrows that exception
+     * after the new device has been installed and all state has been reset. In
+     * other words, even when the function throws, root_cvt has already switched
+     * to the new device and is in a usable `neutral` state — this provides no
+     * strong exception safety guarantee (no rollback to pre-call state).
      * @endif
      *
      * @param dev
      * @lang{ZH} 要附加的新设备，默认为默认构造的空设备。 @endif
      * @lang{EN} The new device to attach; defaults to a default-constructed empty device. @endif
-     * @return
-     * @lang{ZH} 先前持有的设备对象（通过移动语义返回）。 @endif
-     * @lang{EN} The previously held device object, returned via move semantics. @endif
      */
-    device_type attach(device_type&& dev = device_type{})
+    void attach(device_type&& dev = device_type{})
     {
         auto detach_res = detach();
         m_device = std::move(dev);
@@ -455,7 +473,6 @@ public:
         m_buf_end = m_buffer.data();
         m_io_status = io_status::neutral;
         if (detach_res.second) std::rethrow_exception(detach_res.second);
-        return std::move(detach_res.first);
     }
 
     /**
@@ -1253,28 +1270,38 @@ public:
     /**
      * @lang{ZH}
      * 分离当前 mem_device，附加新设备，并将内部状态重置为初始值。
+     *
+     * 与 `detach()` 不同的是，本函数**不**将原 mem_device 归还给调用方——
+     * 原 mem_device 通过移动赋值被新设备覆盖（即静默析构）。如需保留原
+     * mem_device（例如取出其缓冲区内容），调用方应先单独调用 `detach()`
+     * 取得设备，再调用本函数装入新设备。
+     *
+     * mem_device 无清理动作，本函数不会抛出异常。
      * @endif
      *
      * @lang{EN}
      * Detaches the current mem_device, attaches a new device, and resets
      * internal state to initial values.
+     *
+     * Unlike `detach()`, this function does NOT hand the old mem_device back
+     * to the caller — the old mem_device is overwritten by move-assignment
+     * with the new device (i.e. silently destroyed). Callers who need to
+     * preserve the old mem_device (e.g. to extract its buffered contents) must
+     * call `detach()` first to retrieve it, then call this function to install
+     * the new device.
+     *
+     * mem_device has no cleanup step, so this function never throws.
      * @endif
      *
      * @param dev
      * @lang{ZH} 要附加的新设备，默认为默认构造的空设备。 @endif
      * @lang{EN} The new device to attach; defaults to a default-constructed empty device. @endif
-     * @return
-     * @lang{ZH} 先前持有的设备对象（通过移动语义返回）。 @endif
-     * @lang{EN} The previously held device object, returned via move semantics. @endif
      */
-    device_type attach(device_type&& dev = device_type{})
+    void attach(device_type&& dev = device_type{})
     {
-        auto detach_res = detach();  // detach_res.second is always nullptr for mem_device
         m_device = std::move(dev);
         m_bos_len = 0;
-
         m_io_status = io_status::neutral;
-        return std::move(detach_res.first);
     }
 
     /**

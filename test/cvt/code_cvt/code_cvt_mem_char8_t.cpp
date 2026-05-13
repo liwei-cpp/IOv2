@@ -1293,7 +1293,8 @@ void test_code_cvt_attach_1()
     VERIFY(obj.tell() == 1);
 
     // attach() resets to neutral (lines 833-836, close_stream)
-    auto old_dev = obj.attach(mem_device(std::u8string{}));
+    auto [old_dev, old_err] = obj.detach();
+    obj.attach(mem_device(std::u8string{}));
     VERIFY(old_dev.str().size() >= 1);
 
     // switch_to_put from neutral (lines 1164-1167); skip bos() since

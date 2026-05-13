@@ -33,7 +33,7 @@ public:
 
     virtual device_type& device() = 0;
     virtual std::pair<device_type, std::exception_ptr> detach() noexcept = 0;
-    virtual device_type attach(device_type&& dev = device_type{}) = 0;
+    virtual void attach(device_type&& dev = device_type{}) = 0;
     virtual void adjust(const cvt_behavior& acc) = 0;
     virtual void retrieve(cvt_status& acc) const = 0;
     virtual bool is_eof() = 0;
@@ -91,11 +91,10 @@ public:
         return result;
     }
 
-    device_type attach(device_type&& dev = device_type{}) override
+    void attach(device_type&& dev = device_type{}) override
     {
-        auto result = m_kernel.attach(std::move(dev));
+        m_kernel.attach(std::move(dev));
         m_io_status = io_status::neutral;
-        return result;
     }
 
     void adjust(const cvt_behavior& acc) override
@@ -250,10 +249,10 @@ public:
         return m_ptr->detach();
     }
 
-    device_type attach(device_type&& dev = device_type{})
+    void attach(device_type&& dev = device_type{})
     {
         if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
-        return m_ptr->attach(std::move(dev));
+        m_ptr->attach(std::move(dev));
     }
 
     void adjust(const cvt_behavior& acc)
