@@ -156,8 +156,8 @@ Public 成员函数</h2></td></tr>
 <tr class="separator:af7ce4cb12a890b46db2ab56f0acfa33e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83929fa8c06efb0ea5bf4141466acada" id="r_a83929fa8c06efb0ea5bf4141466acada"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:a83929fa8c06efb0ea5bf4141466acada"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a7e33da2875be401af85f20fb06925c" id="r_a3a7e33da2875be401af85f20fb06925c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>{})</td></tr>
-<tr class="separator:a3a7e33da2875be401af85f20fb06925c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28c7bf5cb37b185045b65d31ed09a09d" id="r_a28c7bf5cb37b185045b65d31ed09a09d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>{})</td></tr>
+<tr class="separator:a28c7bf5cb37b185045b65d31ed09a09d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2df54313bc6736819b23456675bd1d8a" id="r_a2df54313bc6736819b23456675bd1d8a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2df54313bc6736819b23456675bd1d8a">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>)</td></tr>
 <tr class="separator:a2df54313bc6736819b23456675bd1d8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9c7ca786c7ffab671674f5dd586da0d" id="r_af9c7ca786c7ffab671674f5dd586da0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af9c7ca786c7ffab671674f5dd586da0d">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
@@ -206,7 +206,7 @@ Protected 属性</h2></td></tr>
 class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_positioning, default_io_switch &gt;</div><p>基于 CRTP 的抽象转换器基类。</p>
 <p><code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> 为所有具体转换器提供公共骨架，负责：</p><ul>
 <li><b>BOS（Beginning-Of-Stream）处理**：在 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> 调用后、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code> 调用前的阶段，<code>get</code>/<code>put</code> 直接以原始字节方式传递数据（不经过派生类的 <code>get_main</code>/<code>put_main</code>），用于读写文件头、魔数等流起始特殊数据。 BOS 阶段写入时，若输入数据字节数不是 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(external_type)</a></code> 的整数倍， 末尾不足部分将以零填充。</b></li>
-<li><b>**设备管理**：通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#af7ce4cb12a890b46db2ab56f0acfa33e">device()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code> 管理底层设备。</b></li>
+<li><b>**设备管理**：通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#af7ce4cb12a890b46db2ab56f0acfa33e">device()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> 管理底层设备。</b></li>
 <li><b>**行为与状态**：通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2df54313bc6736819b23456675bd1d8a">adjust()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#af9c7ca786c7ffab671674f5dd586da0d">retrieve()</a></code> 配置和查询转换参数。</b></li>
 <li><b>**可选能力**：通过模板参数和 <code>requires</code> 子句按需暴露 flush、定位 (<code>tell</code>/<code>seek</code>/<code>rseek</code>) 和 IO 方向切换能力。</b></li>
 </ul>
@@ -219,7 +219,7 @@ class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_positioni
 </ol>
 </dd>
 <dd>
-派生类生命周期方法的执行顺序：派生类重写 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code>、 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>、<code>close_stream()</code> 等生命周期方法时，必须按 下列规则编排"修改本层成员"与"调用 `BT::xxx()`"的先后顺序，以保证 异常安全与层间状态一致：<ul>
+派生类生命周期方法的执行顺序：派生类重写 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code>、 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>、<code>close_stream()</code> 等生命周期方法时，必须按 下列规则编排"修改本层成员"与"调用 `BT::xxx()`"的先后顺序，以保证 异常安全与层间状态一致：<ul>
 <li>**起始/初始化操作**（<code>bos</code>、<code>main_cont_beg</code>）：**先调用 <code>BT::xxx()</code>， 再修改本层成员**。语义类比 C++ 构造函数的"基类先于派生类构造"： 若下层抛出异常，本层状态保持不变（强异常安全）；若下层成功， 下层已就绪可供本层读取（例如读取 <code>BT::m_io_status</code> 决定本层行为）。</li>
 <li>**结束/清理操作**（<code>detach</code>、<code>close_stream</code>、用于终结的 <code>flush</code>）： **先冲刷/清理本层状态，再调用 <code>BT::xxx()</code>**。语义类比 C++ 析构函数 的"派生类先于基类析构"：本层须在下层关闭前把待写数据冲入下层， 否则冲入将无处可去。 </li>
 </ul>
@@ -481,8 +481,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
-<a id="a3a7e33da2875be401af85f20fb06925c" name="a3a7e33da2875be401af85f20fb06925c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a7e33da2875be401af85f20fb06925c">&#9670;&#160;</a></span>attach()</h2>
+<a id="a28c7bf5cb37b185045b65d31ed09a09d" name="a28c7bf5cb37b185045b65d31ed09a09d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28c7bf5cb37b185045b65d31ed09a09d">&#9670;&#160;</a></span>attach()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -493,7 +493,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::attach </td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::attach </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>{}</code></td><td>)</td>
@@ -506,15 +506,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>将新设备附加到转换器，返回先前持有的设备，并重置转换器状态。</p>
-<p>若 <code>dev</code> 为默认构造值（空设备），则等效于清除当前设备。 调用后 <code>m_io_status</code> 恢复为 <code>neutral</code>，<code>m_is_bos_done</code> 恢复为 <code>false</code>。 </p>
+<p>将新设备附加到转换器，并重置转换器状态。</p>
+<p>若 <code>dev</code> 为默认构造值（空设备），则等效于清除当前设备。 调用后 <code>m_io_status</code> 恢复为 <code>neutral</code>，<code>m_is_bos_done</code> 恢复为 <code>false</code>， <code>m_is_tainted</code> 恢复为 <code>false</code>。</p>
+<p>原设备在本函数内部由 kernel 在其 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 阶段静默析构。若需要保留 原设备，调用方应先单独调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 取得设备，再调用本函数装入新设备。</p>
+<p>异常：若底层 kernel 的 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 在清理原设备时捕获到异常，kernel 的 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> 会将其重新抛出，本函数透传该异常；此时本层的状态字段 （<code>m_io_status</code>、<code>m_is_bos_done</code>、<code>m_is_tainted</code>）不会被本层重置。 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dev</td><td>要附加的新设备（以移动方式转交所有权），默认为空设备。  </td></tr>
+    <tr><td class="paramname">dev</td><td>要附加的新设备（以移动方式转交所有权），默认为空设备。   </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>返回</dt><dd>先前持有的底层设备对象（右值）。   </dd></dl>
 
 </div>
 </div>
@@ -1011,7 +1012,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>将当前转换器标记为 tainted。一旦置位，后续依赖完整内部状态的操作将 通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2ed71aa2bc1b581e871dd4f18e6572fa">assert_not_tainted()</a></code> 立即抛出 <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>；唯一的恢复路径是 调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code> 或 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>（二者均会重置该标志）。</p>
+<p>将当前转换器标记为 tainted。一旦置位，后续依赖完整内部状态的操作将 通过 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2ed71aa2bc1b581e871dd4f18e6572fa">assert_not_tainted()</a></code> 立即抛出 <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>；唯一的恢复路径是 调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> 或 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>（二者均会重置该标志）。</p>
 <p>派生类应在某个变更操作中途失败、对象处于不一致状态时调用此函数， 从而把"已损坏但尚未销毁"的对象与正常对象区分开。</p>
 <p>注意：本函数仅置 <code>m_is_tainted = true</code>，不会触碰任何其他状态字段 （包括 <code>m_io_status</code> 和 <code>m_is_bos_done</code>）。这样做避免任何潜在的 副作用——错误路径上越少的状态写入越好。 </p>
 
@@ -1127,7 +1128,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>当前 IO 方向状态：<code>neutral</code>（未激活）、<code>input</code>（读取模式）或 <code>output</code>（写入模式）。 由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a404fab8cb7b51a00387b6b2df7bf9ba2">switch_to_get()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#adc61ad67f958e7fe77b01e0909fca796">switch_to_put()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code> 更新。   </p>
+<p>当前 IO 方向状态：<code>neutral</code>（未激活）、<code>input</code>（读取模式）或 <code>output</code>（写入模式）。 由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a404fab8cb7b51a00387b6b2df7bf9ba2">switch_to_get()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#adc61ad67f958e7fe77b01e0909fca796">switch_to_put()</a></code>、<code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> 更新。   </p>
 
 </div>
 </div>
@@ -1152,7 +1153,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>标记 BOS 阶段是否已完成。<code>false</code> 表示仍处于 BOS 阶段（直接传递原始字节）； <code>true</code> 表示已进入主内容阶段（调用派生类的 <code>get_main</code>/<code>put_main</code>）。 由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code> 置为 <code>true</code>，由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code> 重置为 <code>false</code>。   </p>
+<p>标记 BOS 阶段是否已完成。<code>false</code> 表示仍处于 BOS 阶段（直接传递原始字节）； <code>true</code> 表示已进入主内容阶段（调用派生类的 <code>get_main</code>/<code>put_main</code>）。 由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code> 置为 <code>true</code>，由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 和 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> 重置为 <code>false</code>。   </p>
 
 </div>
 </div>

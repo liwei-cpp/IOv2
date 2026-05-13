@@ -156,8 +156,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af7ce4cb12a890b46db2ab56f0acfa33e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83929fa8c06efb0ea5bf4141466acada" id="r_a83929fa8c06efb0ea5bf4141466acada"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:a83929fa8c06efb0ea5bf4141466acada"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a7e33da2875be401af85f20fb06925c" id="r_a3a7e33da2875be401af85f20fb06925c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>{})</td></tr>
-<tr class="separator:a3a7e33da2875be401af85f20fb06925c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28c7bf5cb37b185045b65d31ed09a09d" id="r_a28c7bf5cb37b185045b65d31ed09a09d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach</a> (<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>{})</td></tr>
+<tr class="separator:a28c7bf5cb37b185045b65d31ed09a09d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2df54313bc6736819b23456675bd1d8a" id="r_a2df54313bc6736819b23456675bd1d8a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2df54313bc6736819b23456675bd1d8a">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>)</td></tr>
 <tr class="separator:a2df54313bc6736819b23456675bd1d8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9c7ca786c7ffab671674f5dd586da0d" id="r_af9c7ca786c7ffab671674f5dd586da0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#af9c7ca786c7ffab671674f5dd586da0d">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
@@ -206,7 +206,7 @@ Protected Attributes</h2></td></tr>
 class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_positioning, default_io_switch &gt;</div><p>CRTP-based abstract converter base class.</p>
 <p><code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> provides a common skeleton for all concrete converters and is responsible for:</p><ul>
 <li><b>BOS (Beginning-Of-Stream) handling</b>: Between the <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> call and the <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code> call, <code>get</code>/<code>put</code> pass data through as raw bytes without invoking the derived class's <code>get_main</code>/<code>put_main</code>. This allows reading and writing stream-leading data such as file headers and magic numbers. During BOS writes, if the input byte count is not a multiple of <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(external_type)</a></code>, the final partial unit is zero-padded.</li>
-<li>**Device management: Manages the underlying device via <code><a class="el" href="classIOv2_1_1abs__cvt.html#af7ce4cb12a890b46db2ab56f0acfa33e">device()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code>.</li>
+<li>**Device management: Manages the underlying device via <code><a class="el" href="classIOv2_1_1abs__cvt.html#af7ce4cb12a890b46db2ab56f0acfa33e">device()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code>.</li>
 <li><b>Behavior and status</b>: Configures and queries conversion parameters via <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2df54313bc6736819b23456675bd1d8a">adjust()</a></code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#af9c7ca786c7ffab671674f5dd586da0d">retrieve()</a></code>.</li>
 <li><b>Optional capabilities</b>: Exposes flush, positioning (<code>tell</code>/<code>seek</code>/<code>rseek</code>), and IO-direction switching on demand through template parameters and <code>requires</code> clauses.</li>
 </ul>
@@ -219,7 +219,7 @@ class IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_positioni
 </ol>
 </dd>
 <dd>
-Ordering rule for derived lifecycle methods: When a derived class overrides <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, <code>close_stream()</code>, or similar lifecycle methods, the order of "mutate this layer's members" vs. "call `BT::xxx()`" must follow the rule below to guarantee exception safety and inter-layer state consistency:<ul>
+Ordering rule for derived lifecycle methods: When a derived class overrides <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, <code>close_stream()</code>, or similar lifecycle methods, the order of "mutate this layer's members" vs. "call `BT::xxx()`" must follow the rule below to guarantee exception safety and inter-layer state consistency:<ul>
 <li><b>Begin / init operations</b> (<code>bos</code>, <code>main_cont_beg</code>): <b>call <code>BT::xxx()</code> first, then mutate this layer's members</b>. This mirrors C++ constructor semantics ("base before derived"): if the lower layer throws, this layer's state is unchanged (strong exception guarantee); if it succeeds, the lower layer is ready and this layer may inspect its state (e.g., read <code>BT::m_io_status</code>) to decide what to do.</li>
 <li><b>End / teardown operations</b> (<code>detach</code>, <code>close_stream</code>, finalizing <code>flush</code>): <b>mutate/flush this layer first, then call <code>BT::xxx()</code></b>. This mirrors C++ destructor semantics ("derived
         before base"): this layer must drain pending data into the lower layer before the lower layer is torn down — otherwise the drained data has nowhere to go.</li>
@@ -488,8 +488,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
-<a id="a3a7e33da2875be401af85f20fb06925c" name="a3a7e33da2875be401af85f20fb06925c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a7e33da2875be401af85f20fb06925c">&#9670;&#160;</a></span>attach()</h2>
+<a id="a28c7bf5cb37b185045b65d31ed09a09d" name="a28c7bf5cb37b185045b65d31ed09a09d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28c7bf5cb37b185045b65d31ed09a09d">&#9670;&#160;</a></span>attach()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -500,7 +500,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::attach </td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CurrentType</a>, KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InternalType</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_positioning</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default_io_switch</a> &gt;::attach </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1abs__cvt.html#ab871afcc05c85da3758330a245ae8314">device_type</a>{}</code></td><td>)</td>
@@ -513,15 +513,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Attach a new device to the converter, returning the previously held device and resetting the converter state.</p>
-<p>Passing a default-constructed (empty) <code>dev</code> is equivalent to clearing the current device. After the call <code>m_io_status</code> is reset to <code>neutral</code> and <code>m_is_bos_done</code> is reset to <code>false</code>. </p>
+<p>Attach a new device to the converter and reset the converter state.</p>
+<p>Passing a default-constructed (empty) <code>dev</code> is equivalent to clearing the current device. After the call <code>m_io_status</code> is reset to <code>neutral</code>, <code>m_is_bos_done</code> is reset to <code>false</code>, and <code>m_is_tainted</code> is reset to <code>false</code>.</p>
+<p>The previously held device is silently destroyed by the kernel inside its <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> step. Callers who need to preserve the old device must call <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> first to retrieve it, then call this function to install the new one.</p>
+<p>Exceptions: if the underlying kernel's <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> captures an exception while cleaning up the old device, the kernel's <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> rethrows it and this function propagates it through; in that case this layer's state fields (<code>m_io_status</code>, <code>m_is_bos_done</code>, <code>m_is_tainted</code>) are not reset by this layer. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">dev</td><td>The new device to attach (ownership transferred via move); defaults to an empty device. </td></tr>
+    <tr><td class="paramname">dev</td><td>The new device to attach (ownership transferred via move); defaults to an empty device.  </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>The previously held underlying device object (returned by value).  </dd></dl>
 
 </div>
 </div>
@@ -1018,7 +1019,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Marks the current converter as tainted. Once set, any subsequent operation that relies on a known-good internal state will throw <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> via <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2ed71aa2bc1b581e871dd4f18e6572fa">assert_not_tainted()</a></code>; the only recovery path is to call <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code> or <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, both of which clear the flag.</p>
+<p>Marks the current converter as tainted. Once set, any subsequent operation that relies on a known-good internal state will throw <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> via <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2ed71aa2bc1b581e871dd4f18e6572fa">assert_not_tainted()</a></code>; the only recovery path is to call <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> or <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, both of which clear the flag.</p>
 <p>Derived classes should call this when a mutating operation has failed midway and the object is left in an inconsistent state, so that "broken-but-not-destroyed" objects are distinguished from healthy ones.</p>
 <p>Note: this function only sets <code>m_is_tainted = true</code>; it deliberately does not touch any other state field (including <code>m_io_status</code> and <code>m_is_bos_done</code>). The fewer writes on the error path, the fewer potential side effects.  </p>
 
@@ -1134,7 +1135,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Current IO direction state: <code>neutral</code> (inactive), <code>input</code> (read mode), or <code>output</code> (write mode). Updated by <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a404fab8cb7b51a00387b6b2df7bf9ba2">switch_to_get()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#adc61ad67f958e7fe77b01e0909fca796">switch_to_put()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code>.  </p>
+<p>Current IO direction state: <code>neutral</code> (inactive), <code>input</code> (read mode), or <code>output</code> (write mode). Updated by <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a404fab8cb7b51a00387b6b2df7bf9ba2">switch_to_get()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#adc61ad67f958e7fe77b01e0909fca796">switch_to_put()</a></code>, <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code>, and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code>.  </p>
 
 </div>
 </div>
@@ -1159,7 +1160,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Indicates whether the BOS phase has been completed. <code>false</code> means still in the BOS phase (raw byte passthrough); <code>true</code> means the main-content phase has been entered (invoking the derived class's <code>get_main</code>/<code>put_main</code>). Set to <code>true</code> by <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code>; reset to <code>false</code> by <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a3a7e33da2875be401af85f20fb06925c">attach()</a></code>.  </p>
+<p>Indicates whether the BOS phase has been completed. <code>false</code> means still in the BOS phase (raw byte passthrough); <code>true</code> means the main-content phase has been entered (invoking the derived class's <code>get_main</code>/<code>put_main</code>). Set to <code>true</code> by <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">main_cont_beg()</a></code>; reset to <code>false</code> by <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> and <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code>.  </p>
 
 </div>
 </div>

@@ -5,7 +5,7 @@ var classIOv2_1_1stdin__api =
     [ "in_sentry_type", "classIOv2_1_1stdin__api.html#acf29f10a40d6cf803b49591be685519d", null ],
     [ "stdin_api", "classIOv2_1_1stdin__api.html#a07f02f768c6d0df586661de71696e5a0", null ],
     [ "stdin_api", "classIOv2_1_1stdin__api.html#a11d6a8b85323179f744bdf50c306cc7e", null ],
-    [ "attach", "classIOv2_1_1stdin__api.html#a5e33b71e2445d963c2f67f25ada22b30", null ],
+    [ "attach", "classIOv2_1_1stdin__api.html#a7905862d244ef5af2b49d439af596bc1", null ],
     [ "code", "classIOv2_1_1stdin__api.html#a11bc212f1a94c714af78c05ad88fc4b8", null ],
     [ "detach", "classIOv2_1_1stdin__api.html#a6da19665f0bb1c3bcf6af72af08dd4aa", null ],
     [ "reset", "classIOv2_1_1stdin__api.html#a9efe994f2434fd22d5f2ad76c39d49b4", null ],
