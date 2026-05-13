@@ -19,6 +19,7 @@
 
 #include <concepts>
 #include <cstddef>
+#include <exception>
 #include <type_traits>
 #include <utility>
 
@@ -224,7 +225,7 @@ namespace IOv2
                                              const cvt_behavior& b, cvt_status& s)
             {
                 { a.device() } -> std::same_as<typename T::device_type&>;
-                { a.detach() } -> std::same_as<typename T::device_type>;
+                { a.detach() } noexcept -> std::same_as<std::pair<typename T::device_type, std::exception_ptr>>;
                 { a.attach(std::declval<typename T::device_type>()) } -> std::same_as<typename T::device_type>;
 
                 { a.bos() } -> std::same_as<io_status>;

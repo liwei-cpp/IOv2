@@ -263,11 +263,13 @@ void test_istream_extractors_character_char_4()
         const std::string data = prepare(666, nchunks);
         IOv2::ostream ofstream(IOv2::ofile_device<char>{filename});
         ofstream.write(data.data(), data.size());
-        ofstream.detach().close();
+        auto [odev, oerr] = ofstream.detach();
+        odev.close();
 
         T ifstrm(IOv2::ifile_device<char>{filename});
         check(ifstrm, data, nchunks);
-        ifstrm.detach().close();
+        auto [idev, ierr] = ifstrm.detach();
+        idev.close();
     };
 
     helper.operator()<IOv2::istream>();

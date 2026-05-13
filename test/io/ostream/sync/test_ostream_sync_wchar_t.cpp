@@ -46,7 +46,8 @@ void test_ostream_sync_wchar_t_1()
         for (size_t i = 0; i < loop_num * thread_num; ++i)
             ref += L"123 456\n";
 
-        VERIFY(ostr.detach().str() == ref);
+        auto [dev, err] = ostr.detach();
+        VERIFY(dev.str() == ref);
     };
 
     helper.operator()<IOv2::ostream>();

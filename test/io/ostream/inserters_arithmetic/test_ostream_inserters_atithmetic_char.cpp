@@ -134,14 +134,16 @@ void test_ostream_inserters_arithmetic_char_1()
                 T os(IOv2::mem_device{""}, loc);
                 apply_formatting<char>(tc, os);
                 os << tc.val;
-                VERIFY(os.detach().str() == tc.result);
+                auto [dev1, err1] = os.detach();
+                VERIFY(dev1.str() == tc.result);
             }
             // test long double with char type
             {
                 T os(IOv2::mem_device{""}, loc);
                 apply_formatting<char>(tc, os);
                 os << (long double)tc.val;
-                VERIFY(os.detach().str() == tc.result);
+                auto [dev2, err2] = os.detach();
+                VERIFY(dev2.str() == tc.result);
             }
         }
     };
@@ -194,11 +196,12 @@ void test_ostream_inserters_arithmetic_char_3()
             expect = "wow, you've got some big numbers here";
 
         o << IOv2::oct << n << ' ' << IOv2::hex << n;
-        
-        auto str = o.detach().str();
+
+        auto [dev3, err3] = o.detach();
+        auto str = dev3.str();
         VERIFY(str == expect);
     };
-    
+
     helper.operator()<IOv2::ostream>(static_cast<short>(-1));
     helper.operator()<IOv2::ostream>(static_cast<int>(-1));
     helper.operator()<IOv2::ostream>(static_cast<long>(-1));
@@ -220,10 +223,12 @@ void test_ostream_inserters_arithmetic_char_4()
         T o2(IOv2::mem_device{""});
 
         o1 << IOv2::hex << IOv2::showbase << IOv2::setw(6) << IOv2::internal << 0xff;
-        VERIFY(o1.detach().str() == "0x  ff");
+        auto [dev4, err4] = o1.detach();
+        VERIFY(dev4.str() == "0x  ff");
 
         o2 << IOv2::hex << IOv2::showbase << IOv2::setw(6) << IOv2::internal << "0xff";
-        VERIFY(o2.detach().str() == "  0xff");
+        auto [dev5, err5] = o2.detach();
+        VERIFY(dev5.str() == "  0xff");
     };
 
     helper.operator()<IOv2::ostream>();
@@ -242,7 +247,8 @@ void test_ostream_inserters_arithmetic_char_5()
         T ostr(IOv2::mem_device{""});
         ostr.precision(20);
         ostr << pi;
-        std::string sval = ostr.detach().str();
+        auto [dev6, err6] = ostr.detach();
+        std::string sval = dev6.str();
         IOv2::istream istr(IOv2::mem_device{sval});
         double d;
         istr >> d;
@@ -267,11 +273,12 @@ void test_ostream_inserters_arithmetic_char_6()
         T ostr(IOv2::mem_device{""});
         ostr.precision(prec);
         ostr << oval;
-        auto sval = ostr.detach().str();
+        auto [dev7, err7] = ostr.detach();
+        auto sval = dev7.str();
         IOv2::istream istr{IOv2::mem_device{sval}};
         double ival;
         istr >> ival;
-        VERIFY( std::abs(oval-ival)/oval < DBL_EPSILON ); 
+        VERIFY( std::abs(oval-ival)/oval < DBL_EPSILON );
     };
 
     helper.operator()<IOv2::ostream>();
@@ -295,28 +302,32 @@ void test_ostream_inserters_arithmetic_char_7()
         ostr1.setf(IOv2::ios_defs::hex);
         short s = -1;
         ostr1 << s;
-        VERIFY(ostr1.detach().str() == "-1");
+        auto [dev8, err8] = ostr1.detach();
+        VERIFY(dev8.str() == "-1");
 
         ostr2.setf(IOv2::ios_defs::oct);
         ostr2.setf(IOv2::ios_defs::hex);
 
         int i = -1;
         ostr2 << i;
-        VERIFY(ostr2.detach().str() == "-1");
+        auto [dev9, err9] = ostr2.detach();
+        VERIFY(dev9.str() == "-1");
 
         ostr3.setf(IOv2::ios_defs::oct);
         ostr3.setf(IOv2::ios_defs::hex);
-    
+
         long l = -1;
         ostr3 << l;
-        VERIFY(ostr3.detach().str() == "-1");
+        auto [dev10, err10] = ostr3.detach();
+        VERIFY(dev10.str() == "-1");
 
         ostr4.setf(IOv2::ios_defs::oct);
         ostr4.setf(IOv2::ios_defs::hex);
 
         long long ll = -1LL;
         ostr4 << ll;
-        VERIFY(ostr4.detach().str() == "-1");
+        auto [dev11, err11] = ostr4.detach();
+        VERIFY(dev11.str() == "-1");
     };
 
     helper.operator()<IOv2::ostream>();
@@ -367,29 +378,31 @@ void test_ostream_inserters_arithmetic_char_9()
         // make sure we can output a very long float
         long double val = std::numeric_limits<long double>::max();
         int prec = std::numeric_limits<long double>::digits10;
-    
+
         T os(IOv2::mem_device{""});
         os.precision(prec);
         os.setf(IOv2::ios_defs::scientific);
         os << val;
-    
+
         char largebuf[512];
         sprintf(largebuf, "%.*Le", prec, val);
         VERIFY(static_cast<bool>(os));
-        VERIFY(os.detach().str() == largebuf);
-    
+        auto [dev12, err12] = os.detach();
+        VERIFY(dev12.str() == largebuf);
+
         // Make sure we can output a long float in fixed format
         // without seg-faulting (libstdc++/4402)
         double val2 = std::numeric_limits<double>::max();
-    
+
         T os2(IOv2::mem_device{""});
         os2.precision(3);
         os2.setf(IOv2::ios_defs::fixed);
         os2 << val2;
-    
+
         sprintf(largebuf, "%.*f", 3, val2);
         VERIFY(static_cast<bool>(os2));
-        VERIFY(os2.detach().str() == largebuf);
+        auto [dev13, err13] = os2.detach();
+        VERIFY(dev13.str() == largebuf);
     };
 
     helper.operator()<IOv2::ostream>();
@@ -411,7 +424,8 @@ void test_ostream_inserters_arithmetic_char_10()
         os << d;
 
         VERIFY(static_cast<bool>(os));
-        auto str = os.detach().str();
+        auto [dev14, err14] = os.detach();
+        auto str = dev14.str();
         VERIFY(std::stod(str) == d);
         VERIFY(str.substr(0, 2) == "0x");
         VERIFY(str.find('p') != std::string::npos);
@@ -423,7 +437,7 @@ void test_ostream_inserters_arithmetic_char_10()
         VERIFY(std::stod(os.device().str()) == d);
         VERIFY(os.device().str().substr(0, 2) == "0X");
         VERIFY(os.device().str().find('P') != std::string::npos);
-    
+
         os << IOv2::nouppercase;
         os.attach(IOv2::mem_device{""});
         os << IOv2::defaultfloat << IOv2::setprecision(6);
@@ -431,26 +445,29 @@ void test_ostream_inserters_arithmetic_char_10()
         os.flush();
         VERIFY(static_cast<bool>(os));
         VERIFY(os.device().str() == "272");
-    
+
         os.attach(IOv2::mem_device{""});
         d = 15.; //0x1.ep+3;
         os << IOv2::hexfloat << IOv2::setprecision(1);
         os << d;
         VERIFY(static_cast<bool>(os));
-        VERIFY(std::stod(os.detach().str()) == d);
-    
+        auto [dev15, err15] = os.detach();
+        VERIFY(std::stod(dev15.str()) == d);
+
         os.attach(IOv2::mem_device{""});
         os << IOv2::uppercase << IOv2::setprecision(1);
         os << d;
         VERIFY(static_cast<bool>(os));
-        VERIFY(std::stod(os.detach().str()) == d);
+        auto [dev16, err16] = os.detach();
+        VERIFY(std::stod(dev16.str()) == d);
 
         os << IOv2::nouppercase;
         os.attach(IOv2::mem_device{""});
         os << IOv2::defaultfloat << IOv2::setprecision(6);
         os << d;
         VERIFY(static_cast<bool>(os));
-        VERIFY(os.detach().str() == "15");
+        auto [dev17, err17] = os.detach();
+        VERIFY(dev17.str() == "15");
     };
   
     helper.template operator()<IOv2::ostream, double>();
@@ -470,7 +487,8 @@ void test_ostream_inserters_arithmetic_char_11()
         float nan = std::numeric_limits<float>::quiet_NaN();
         T os(IOv2::mem_device{""});
         os << -nan;
-        VERIFY(os.detach().str()[0] == '-');
+        auto [dev18, err18] = os.detach();
+        VERIFY(dev18.str()[0] == '-');
     };
 
     helper.template operator()<IOv2::ostream>();

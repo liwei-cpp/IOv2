@@ -17,12 +17,14 @@ void test_io_base_boolalpha_1()
     ostr01.flags(IOv2::ios_defs::boolalpha);
 
     ostr01 << true;
-    std::string str02 = ostr01.detach().str();
+    auto [dev1, err1] = ostr01.detach();
+    std::string str02 = dev1.str();
     if (str02 != strue) throw std::runtime_error("ios_base::boolalpha check fail");
 
     ostr01.attach(IOv2::mem_device{""});
     ostr01 << false;
-    str02 = ostr01.detach().str();
+    auto [dev2, err2] = ostr01.detach();
+    str02 = dev2.str();
     if (str02 != sfalse) throw std::runtime_error("ios_base::boolalpha check fail");
 
     dump_info("Done\n");

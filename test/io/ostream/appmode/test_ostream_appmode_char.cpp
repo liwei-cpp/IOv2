@@ -105,7 +105,8 @@ void test_ostream_appmode_char_2()
         ostr << IOv2::appmode;
         ostr.flush();
         VERIFY(static_cast<bool>(ostr));
-        ostr.detach().close();
+        auto [dev1, err1] = ostr.detach();
+        dev1.close();
 
         VERIFY(g.contents() == "LYcdeWX");
     };
@@ -135,7 +136,8 @@ void test_ostream_appmode_char_sync_2()
         IOv2::sync(ostr).stream << IOv2::appmode;
         IOv2::sync(ostr).stream.flush();
         VERIFY(static_cast<bool>(IOv2::sync(ostr).stream));
-        IOv2::sync(ostr).stream.detach().close();
+        auto [dev2, err2] = IOv2::sync(ostr).stream.detach();
+        dev2.close();
 
         VERIFY(g.contents() == "LYcdeWX");
     };
@@ -164,7 +166,8 @@ void test_ostream_appmode_char_3()
 
     str << " hello";
 
-    VERIFY(str.detach().str() == "abcdeW hello");
+    auto [dev3, err3] = str.detach();
+    VERIFY(dev3.str() == "abcdeW hello");
 
     dump_info("Done\n");
 }
@@ -186,7 +189,8 @@ void test_ostream_appmode_char_sync_3()
 
     IOv2::sync(str).stream << " hello";
 
-    VERIFY(IOv2::sync(str).stream.detach().str() == "abcdeW hello");
+    auto [dev4, err4] = IOv2::sync(str).stream.detach();
+    VERIFY(dev4.str() == "abcdeW hello");
 
     dump_info("Done\n");
 }

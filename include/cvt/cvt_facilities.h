@@ -17,8 +17,10 @@
 #include <device/mem_device.h>
 
 #include <array>
+#include <exception>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace IOv2::detail
 {
@@ -199,7 +201,9 @@ namespace IOv2::detail
         tmp_cvt.main_cont_beg();
 
         tmp_cvt.put(val.data(), val.size());
-        return tmp_cvt.detach().str();
+        auto res = tmp_cvt.detach();
+        if (res.second) std::rethrow_exception(res.second);
+        return std::move(res.first).str();
     }
 
     /**
@@ -233,6 +237,8 @@ namespace IOv2::detail
         tmp_cvt.main_cont_beg();
 
         tmp_cvt.put(&val, 1);
-        return tmp_cvt.detach().str();
+        auto res = tmp_cvt.detach();
+        if (res.second) std::rethrow_exception(res.second);
+        return std::move(res.first).str();
     }
 }

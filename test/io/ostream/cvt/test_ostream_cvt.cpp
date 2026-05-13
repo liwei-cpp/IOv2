@@ -30,8 +30,9 @@ void test_ostream_cvt_1()
         static_assert(std::is_same_v<typename decltype(os)::char_type, char32_t>);
     
         os << 1024 << U' ' << U"李伟";
-    
-        auto str = os.detach().str();
+
+        auto [dev1, err1] = os.detach();
+        auto str = dev1.str();
         VERIFY(os.good());
         VERIFY(str.size() == 11);
         VERIFY((unsigned char)str[ 0] == (unsigned char)('1' + 'a'));
@@ -66,8 +67,9 @@ void test_ostream_cvt_sync_1()
         static_assert(std::is_same_v<typename decltype(os)::char_type, char32_t>);
     
         IOv2::sync(os).stream << 1024 << U' ' << U"李伟";
-    
-        auto str = IOv2::sync(os).stream.detach().str();
+
+        auto [dev2, err2] = IOv2::sync(os).stream.detach();
+        auto str = dev2.str();
         VERIFY(os.good());
         VERIFY(str.size() == 11);
         VERIFY((unsigned char)str[ 0] == (unsigned char)('1' + 'a'));

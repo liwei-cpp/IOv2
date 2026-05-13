@@ -59,9 +59,9 @@ void test_md5_cvt_gen_2()
         obj.put("he", 2);
         auto obj2(obj);
         obj2.put("llo", 3);
-        auto dev = obj2.detach();
+        auto [dev, err] = obj2.detach();
         if (dev.str() != hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
-        auto dev2 = obj.detach();
+        auto [dev2, err2] = obj.detach();
         if (dev2.str() == hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 
@@ -90,9 +90,9 @@ void test_md5_cvt_gen_3()
         T obj2(creator.create(rb_root_cvt{mem_device{""}}));
         obj2 = obj;
         obj2.put("llo", 3);
-        auto dev = obj2.detach();
+        auto [dev, err] = obj2.detach();
         if (dev.str() != hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
-        auto dev2 = obj.detach();
+        auto [dev2, err2] = obj.detach();
         if (dev2.str() == hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 
@@ -118,7 +118,7 @@ void test_md5_cvt_gen_4()
         obj.put("he", 2);
         auto obj2(std::move(obj));
         obj2.put("llo", 3);
-        auto dev = obj2.detach();
+        auto [dev, err] = obj2.detach();
         if (dev.str() != hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 
@@ -147,7 +147,7 @@ void test_md5_cvt_gen_5()
         T obj2(creator.create(rb_root_cvt{mem_device{""}}));
         obj2 = std::move(obj);
         obj2.put("llo", 3);
-        auto dev = obj2.detach();
+        auto [dev, err] = obj2.detach();
         if (dev.str() != hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 
@@ -171,7 +171,7 @@ void test_md5_cvt_put_1()
         if (obj.bos() != io_status::output) throw std::runtime_error("md5_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (!dev.str().empty()) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 
@@ -264,7 +264,7 @@ void test_md5_cvt_put_3()
             obj.adjust(Crypt::dump_hash('*'));
             obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
             obj.put("hello", 5);
-            auto dev = obj.detach();
+            auto [dev, err] = obj.detach();
             if (dev.str() != hello_md5_hex_low + '*' + hello_md5_hex_up) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
         }
     };
@@ -291,7 +291,7 @@ void test_md5_cvt_put_4()
         obj.main_cont_beg();
         obj.put("he", 2);
         obj.put("llo", 3);
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != hello_md5_hex_low) throw std::runtime_error("md5_cvt<mem_device>::put response incorrect");
     };
 

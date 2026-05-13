@@ -58,7 +58,8 @@ void test_iostream_switch_to_get_char_2()
                        IOv2::Comp::zlib_cvt_creator<char>{6});
     ostr << s_e_lit;
     VERIFY(static_cast<bool>(ostr));
-    std::string compress_res = ostr.detach().str();
+    auto [dev, err] = ostr.detach();
+    std::string compress_res = dev.str();
 
     VERIFY(!compress_res.empty());
     VERIFY(compress_res.size() < s_e_lit.size());

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <exception>
+#include <utility>
+
 #include <io/utilities/istream_operators.h>
 #include <io/utilities/ostream_operators.h>
 
@@ -63,7 +66,7 @@ struct stream_common_operators
         return obj.m_streambuf.device();
     }
 
-    TDevice detach()
+    std::pair<TDevice, std::exception_ptr> detach() noexcept
     {
         T& obj = static_cast<T&>(*this);
         return obj.m_streambuf.detach();

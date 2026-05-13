@@ -54,7 +54,7 @@ void test_cvt_pipe_creator_put_1()
             if (obj.tell() != total_count) throw std::runtime_error("cvt_pipe::tell response incorrect");
         }
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != e_lit) throw std::runtime_error("cvt_pipe::put response incorrect");
     };
     
@@ -108,7 +108,7 @@ void test_cvt_pipe_creator_put_2()
             total_count += dest_size;
         }
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         return dev.str();
     };
 
@@ -170,7 +170,7 @@ void test_cvt_pipe_creator_put_3()
             total_count += dest_size;
         }
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         return dev.str();
     };
 
@@ -290,7 +290,7 @@ void test_cvt_pipe_creator_io_1()
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
     
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         e_lit = dev.str();
         
         T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});
@@ -337,7 +337,7 @@ void test_cvt_pipe_creator_io_2()
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
     
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         e_lit = dev.str();
         
         T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});

@@ -1,6 +1,8 @@
 #pragma once
+#include <exception>
 #include <stdexcept>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include <cvt/cvt_concepts.h>
 #include <cvt/abs_cvt.h>
@@ -59,7 +61,7 @@ public:
         return BT::attach(std::move(dev));
     }
 
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         m_pos = 0;
         return BT::detach();

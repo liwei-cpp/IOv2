@@ -7,6 +7,7 @@
 #include <array>
 #include <cassert>
 #include <concepts>
+#include <exception>
 #include <limits>
 #include <memory>
 #include <string>
@@ -198,10 +199,13 @@ public:
         return BT::attach(std::move(dev));
     }
 
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        close_stream();
-        return BT::detach();
+        std::exception_ptr local_err;
+        try { close_stream(); }
+        catch (...) { local_err = std::current_exception(); }
+        auto [dev, inner_err] = BT::detach();
+        return { std::move(dev), local_err ? local_err : inner_err };
     }
 
     void adjust(const cvt_behavior& acc)

@@ -76,7 +76,7 @@ void test_chacha20_cvt_gen_2()
                 obj = std::move(obj2);
             }
     
-            auto dev = obj.detach();
+            auto [dev, err] = obj.detach();
             enc_msg = dev.str();
         }
     
@@ -160,7 +160,7 @@ void test_chacha20_cvt_put_1()
                 total_count += dest_size;
             }
     
-            auto dev = obj.detach();
+            auto [dev, err] = obj.detach();
             return dev.str();
         };
         
@@ -223,7 +223,7 @@ void test_chacha20_cvt_io_1()
                 total_count += dest_size;
             }
     
-            auto dev = obj.detach();
+            auto [dev, err] = obj.detach();
             enc_msg = dev.str();
         }
     
@@ -266,7 +266,8 @@ void test_chacha20_cvt_key_1()
         obj.bos();
         obj.main_cont_beg();
         obj.put(msg.data(), msg.size());
-        enc_msg = obj.detach().str();
+        auto [dev, err] = obj.detach();
+        enc_msg = dev.str();
     }
 
     {

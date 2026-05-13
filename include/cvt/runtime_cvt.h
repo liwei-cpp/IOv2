@@ -5,6 +5,7 @@
 #include <device/device_concepts.h>
 
 #include <concepts>
+#include <exception>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -31,7 +32,7 @@ public:
     virtual std::unique_ptr<abs_runtime_cvt_imp> clone() const & = 0;
 
     virtual device_type& device() = 0;
-    virtual device_type detach() = 0;
+    virtual std::pair<device_type, std::exception_ptr> detach() noexcept = 0;
     virtual device_type attach(device_type&& dev = device_type{}) = 0;
     virtual void adjust(const cvt_behavior& acc) = 0;
     virtual void retrieve(cvt_status& acc) const = 0;
@@ -83,7 +84,7 @@ public:
         return m_kernel.device();
     }
 
-    device_type detach() override
+    std::pair<device_type, std::exception_ptr> detach() noexcept override
     {
         auto result = m_kernel.detach();
         m_io_status = io_status::neutral;
@@ -241,9 +242,11 @@ public:
         return m_ptr->device();
     }
 
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr)
+            return { device_type{},
+                     std::make_exception_ptr(cvt_error("runtime_cvt: null instance")) };
         return m_ptr->detach();
     }
 

@@ -469,7 +469,8 @@ void test_root_cvt_mem_device_1()
         obj.bos(); obj.main_cont_beg();
         obj.put("abc", 3);
 
-        f1 = obj.detach();
+        auto [detach1_dev, detach1_err] = obj.detach();
+        f1 = std::move(detach1_dev);
         obj.attach(device_type(""));
         obj.bos(); obj.main_cont_beg();
         obj.put("123", 3);
@@ -477,8 +478,9 @@ void test_root_cvt_mem_device_1()
         device_type f2 = obj.attach(std::move(f1));
         obj.bos(); obj.main_cont_beg();
         obj.put("def", 3);
-        
-        f1 = obj.detach();
+
+        auto [detach2_dev, detach2_err] = obj.detach();
+        f1 = std::move(detach2_dev);
         if (f1.str() != "abcdef") throw std::runtime_error("root_cvt<file_device> output incorrect");
         if (f2.str() != "123") throw std::runtime_error("root_cvt<file_device> output incorrect");
     };
@@ -507,7 +509,7 @@ void test_root_cvt_mem_detach_1()
         VERIFY(ch == '1');
         VERIFY(obj.device().dtell() == 1);
         
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         VERIFY(dev.dtell() == 1);
     };
     {
@@ -532,7 +534,7 @@ void test_root_cvt_mem_detach_2()
         obj.put("123", 3);
         VERIFY(obj.device().dtell() == 3);
         
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         VERIFY(dev.dtell() == 3);
     };
     {
