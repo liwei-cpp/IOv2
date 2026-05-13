@@ -256,7 +256,8 @@ void test_root_cvt_mem_output_1()
             writer.commit();
         }
 
-        VERIFY(obj.detach().str() == "1234567");
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.str() == "1234567");
     };
 
     auto obj1 = rb_root_cvt{mem_device{""}};
@@ -299,7 +300,8 @@ void test_root_cvt_mem_output_2()
             writer.commit();
         }
 
-        VERIFY(obj.detach().str() == "1234567");
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.str() == "1234567");
     };
 
     auto obj1 = rb_root_cvt{mem_device{""}};
@@ -344,7 +346,8 @@ void test_root_cvt_mem_output_3()
             writer.commit();
         }
 
-        VERIFY(obj.detach().str() == ref);
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.str() == ref);
     };
 
     auto obj1 = rb_root_cvt{mem_device{""}};

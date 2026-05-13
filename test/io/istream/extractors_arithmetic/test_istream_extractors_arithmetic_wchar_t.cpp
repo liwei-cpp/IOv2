@@ -130,7 +130,7 @@ void test_istream_extractors_arithmetic_wchar_t_3()
     {
         IOv2::ostream ostr(IOv2::mem_device{L""});
         ostr << L"12220101";
-        auto dev = ostr.detach();
+        auto [dev, err] = ostr.detach();
         dev.dseek(0);
 
         T istr(std::move(dev));
@@ -652,7 +652,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         short s1 = 0;
         IOv2::ostream oss1{IOv2::mem_device{L""}};
         oss1 << std::numeric_limits<short>::max();
-        auto dev = oss1.detach(); dev.dseek(0);
+        auto [dev, err] = oss1.detach(); dev.dseek(0);
         T iss1{std::move(dev)};
         iss1 >> s1;
         VERIFY(s1 == std::numeric_limits<short>::max());
@@ -662,7 +662,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         short s2 = 0;
         IOv2::ostream oss2{IOv2::mem_device{L""}};
         oss2 << static_cast<long long>(std::numeric_limits<short>::max()) + 1;
-        auto dev2 = oss2.detach(); dev2.dseek(0);
+        auto [dev2, err2] = oss2.detach(); dev2.dseek(0);
         T iss2{std::move(dev2)};
         iss2 >> s2;
         VERIFY(s2 == std::numeric_limits<short>::max());
@@ -672,7 +672,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         short s3 = 0;
         IOv2::ostream oss3{IOv2::mem_device{L""}};
         oss3 << std::numeric_limits<short>::min();
-        auto dev3 = oss3.detach(); dev3.dseek(0);
+        auto [dev3, err3] = oss3.detach(); dev3.dseek(0);
         T iss3{std::move(dev3)};
         iss3 >> s3;
         VERIFY(s3 == std::numeric_limits<short>::min());
@@ -682,7 +682,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         short s4 = 0;
         IOv2::ostream oss4{IOv2::mem_device{L""}};
         oss4 << static_cast<long long>(std::numeric_limits<short>::min()) - 1;
-        auto dev4 = oss4.detach(); dev4.dseek(0);
+        auto [dev4, err4] = oss4.detach(); dev4.dseek(0);
         T iss4{std::move(dev4)};
         iss4 >> s4;
         VERIFY(s4 == std::numeric_limits<short>::min());
@@ -692,7 +692,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         int i1 = 0;
         IOv2::ostream oss5{IOv2::mem_device{L""}};
         oss5 << std::numeric_limits<int>::max();
-        auto dev5 = oss5.detach(); dev5.dseek(0);
+        auto [dev5, err5] = oss5.detach(); dev5.dseek(0);
         T iss5{std::move(dev5)};
         iss5 >> i1;
         VERIFY(i1 == std::numeric_limits<int>::max());
@@ -702,7 +702,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         int i2 = 0;
         IOv2::ostream oss6{IOv2::mem_device{L""}};
         oss6 << static_cast<long long>(std::numeric_limits<int>::max()) + 1;
-        auto dev6 = oss6.detach(); dev6.dseek(0);
+        auto [dev6, err6] = oss6.detach(); dev6.dseek(0);
         T iss6{std::move(dev6)};
         iss6 >> i2;
         VERIFY(i2 == std::numeric_limits<int>::max());
@@ -712,7 +712,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         int i3 = 0;
         IOv2::ostream oss7{IOv2::mem_device{L""}};
         oss7 << std::numeric_limits<int>::min();
-        auto dev7 = oss7.detach(); dev7.dseek(0);
+        auto [dev7, err7] = oss7.detach(); dev7.dseek(0);
         T iss7{std::move(dev7)};
         iss7 >> i3;
         VERIFY(i3 == std::numeric_limits<int>::min());
@@ -722,7 +722,7 @@ void test_istream_extractors_arithmetic_wchar_t_13()
         int i4 = 0;
         IOv2::ostream oss8{IOv2::mem_device{L""}};
         oss8 << static_cast<long long>(std::numeric_limits<int>::min()) - 1;
-        auto dev8 = oss8.detach(); dev8.dseek(0);
+        auto [dev8, err8] = oss8.detach(); dev8.dseek(0);
         T iss8{std::move(dev8)};
         iss8 >> i4;
         VERIFY(i4 == std::numeric_limits<int>::min());

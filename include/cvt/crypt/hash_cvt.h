@@ -1,6 +1,8 @@
 #pragma once
+#include <exception>
 #include <memory>
 #include <type_traits>
+#include <utility>
 #include <botan/hash.h>
 #include <botan/hex.h>
 
@@ -147,13 +149,15 @@ public:
         return BT::attach(std::move(dev));
     }
 
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        if (m_has_main_cont)
-            dump_stream();
+        std::exception_ptr local_err;
+        try { if (m_has_main_cont) dump_stream(); }
+        catch (...) { local_err = std::current_exception(); }
         m_has_main_cont = false;
         m_out_fmt = hash_fmt::lower_hex;
-        return BT::detach();
+        auto [dev, inner_err] = BT::detach();
+        return { std::move(dev), local_err ? local_err : inner_err };
     }
     
     void adjust(const cvt_behavior& acc)

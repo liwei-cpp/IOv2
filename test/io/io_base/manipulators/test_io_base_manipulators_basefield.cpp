@@ -105,7 +105,8 @@ void test_io_base_manipulators_basefield_char_1()
     oss << 0x12345678l << "|" << IOv2::endl;
     
     if (!oss.good()) throw std::runtime_error("ios_base<char> adjustfield check fail");
-    if (oss.detach().str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
+    auto [dev, err] = oss.detach();
+    if (dev.str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
     dump_info("Done\n");
 }
 
@@ -175,6 +176,7 @@ void test_io_base_manipulators_basefield_wchar_t_1()
     oss << 0x12345678l << L"|" << IOv2::endl;
     
     if (!oss.good()) throw std::runtime_error("ios_base<char> adjustfield check fail");
-    if (oss.detach().str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
+    auto [dev, err] = oss.detach();
+    if (dev.str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
     dump_info("Done\n");
 }

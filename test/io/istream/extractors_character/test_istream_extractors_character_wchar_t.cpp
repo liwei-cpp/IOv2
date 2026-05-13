@@ -213,12 +213,14 @@ void test_istream_extractors_character_wchar_t_4()
         IOv2::ostream ofstream(IOv2::ofile_device<char>{filename},
                             IOv2::code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
         ofstream.write(data.data(), data.size());
-        ofstream.detach().close();
+        auto [odev, oerr] = ofstream.detach();
+        odev.close();
 
         T ifstrm(IOv2::ifile_device<char>{filename},
                  IOv2::code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
         check(ifstrm, data, nchunks);
-        ifstrm.detach().close();
+        auto [idev, ierr] = ifstrm.detach();
+        idev.close();
     };
 
     helper.operator()<IOv2::istream>();

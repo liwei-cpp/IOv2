@@ -26,6 +26,8 @@
 #include <cvt/cvt_concepts.h>
 
 #include <cstring>
+#include <exception>
+#include <utility>
 #include <vector>
 
 namespace IOv2
@@ -847,6 +849,10 @@ namespace IOv2
          * 分离并返回底层设备，同时将转换器状态重置为初始状态。
          *
          * 调用后 `m_io_status` 恢复为 `neutral`，`m_is_bos_done` 恢复为 `false`。
+         *
+         * 本函数为 `noexcept`：底层 kernel `detach()` 的清理异常通过其返回值的 `exception_ptr`
+         * 透传，本层不再额外捕获或转换（first-failure-wins）。设备始终通过返回值的 `first`
+         * 无条件交还给调用方。
          * @endif
          *
          * @lang{EN}
@@ -855,13 +861,18 @@ namespace IOv2
          *
          * After the call `m_io_status` is reset to `neutral` and `m_is_bos_done`
          * is reset to `false`.
+         *
+         * This function is `noexcept`: the kernel's cleanup exception (if any) is
+         * forwarded unchanged via the returned `exception_ptr` (first-failure-wins);
+         * this layer does not capture or rewrap it. The device is always handed back
+         * unconditionally via `first`.
          * @endif
          *
          * @return
-         * @lang{ZH} 已从 kernel 中分离的底层设备对象（右值）。 @endif
-         * @lang{EN} The underlying device object detached from the kernel (returned by value). @endif
+         * @lang{ZH} pair：`first` 为已从 kernel 中分离的底层设备对象（右值），`second` 为底层清理捕获的首个异常（`nullptr` 表示无异常）。 @endif
+         * @lang{EN} A pair: `first` is the device detached from the kernel (rvalue); `second` is the first exception captured by the underlying cleanup (`nullptr` if none). @endif
          */
-        device_type detach()
+        std::pair<device_type, std::exception_ptr> detach() noexcept
         {
             auto result = m_kernel.detach();
             m_io_status = io_status::neutral;

@@ -68,7 +68,8 @@ void test_ostream_derive_2()
     MyLogger logger;
     logger << Level{"DEBUG"} << "User login\n"
            << Level{"WARN"} << "something happened";
-    auto str = logger.detach().str();
+    auto [dev, err] = logger.detach();
+    auto str = dev.str();
     VERIFY(str == "[DEBUG] User login\n[WARN] something happened");
 }
 

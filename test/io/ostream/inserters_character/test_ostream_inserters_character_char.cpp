@@ -56,7 +56,8 @@ void test_ostream_inserters_character_char_2()
         oss01.fill('0');
         oss01.flags(IOv2::ios_defs::left);
         oss01 << str01;
-        VERIFY(oss01.detach().str() == "00000");
+        auto [dev01, err01] = oss01.detach();
+        VERIFY(dev01.str() == "00000");
 
         std::string str02 = "1";
         T oss02{IOv2::mem_device{""}};
@@ -64,7 +65,8 @@ void test_ostream_inserters_character_char_2()
         oss02.fill('0');
         oss02.flags(std::ios_base::left);
         oss02 << str02;
-        VERIFY(oss02.detach().str() == "10000");
+        auto [dev02, err02] = oss02.detach();
+        VERIFY(dev02.str() == "10000");
 
         std::string str03 = "909909";
         T oss03{IOv2::mem_device{""}};
@@ -72,7 +74,8 @@ void test_ostream_inserters_character_char_2()
         oss03.fill('0');
         oss03.flags(std::ios_base::left);
         oss03 << str03;
-        VERIFY(oss03.detach().str() == "909909");
+        auto [dev03, err03] = oss03.detach();
+        VERIFY(dev03.str() == "909909");
     };
 
     helper.template operator()<IOv2::ostream>();
@@ -93,7 +96,8 @@ void test_ostream_inserters_character_char_3()
         oss01.fill('0');
         oss01.flags(IOv2::ios_defs::right);
         oss01 << str01;
-        VERIFY(oss01.detach().str() == "00000");
+        auto [dev04, err04] = oss01.detach();
+        VERIFY(dev04.str() == "00000");
 
         std::string str02 = "1";
         T oss02{IOv2::mem_device{""}};
@@ -101,7 +105,8 @@ void test_ostream_inserters_character_char_3()
         oss02.fill('0');
         oss02.flags(std::ios_base::right);
         oss02 << str02;
-        VERIFY(oss02.detach().str() == "00001");
+        auto [dev05, err05] = oss02.detach();
+        VERIFY(dev05.str() == "00001");
 
         std::string str03 = "909909";
         T oss03{IOv2::mem_device{""}};
@@ -109,7 +114,8 @@ void test_ostream_inserters_character_char_3()
         oss03.fill('0');
         oss03.flags(std::ios_base::right);
         oss03 << str03;
-        VERIFY(oss03.detach().str() == "909909");
+        auto [dev06, err06] = oss03.detach();
+        VERIFY(dev06.str() == "909909");
     };
 
     helper.operator()<IOv2::ostream>();
@@ -129,11 +135,12 @@ void test_ostream_inserters_character_char_4()
         const int i_max=250;
 
         T oss_02(IOv2::mem_device{str_01});
-        for (int i = 0; i < i_max; ++i) 
+        for (int i = 0; i < i_max; ++i)
             oss_02 << "Test: " << i << IOv2::endl;
         VERIFY((bool)oss_02);
         VERIFY(oss_02.good());
-        str_tmp = oss_02.detach().str();
+        auto [dev07, err07] = oss_02.detach();
+        str_tmp = dev07.str();
         VERIFY(str_tmp.size() == 2390);
     };
 
@@ -177,21 +184,24 @@ void test_ostream_inserters_character_char_6()
             oss.width(-60);
             oss << 'C';
             VERIFY(oss.good());
-            VERIFY(oss.detach().str() == "C");
+            auto [dev08, err08] = oss.detach();
+            VERIFY(dev08.str() == "C");
         }
         {
             T oss{IOv2::mem_device{""}};
             oss.width(-60);
             oss << "Consoli";
             VERIFY(oss.good());
-            VERIFY(oss.detach().str() == "Consoli");
+            auto [dev09, err09] = oss.detach();
+            VERIFY(dev09.str() == "Consoli");
         }
         {
             T oss{IOv2::mem_device{""}};
             oss.width(-60);
             oss << std::string("Consoli");
             VERIFY(oss.good());
-            VERIFY(oss.detach().str() == "Consoli");
+            auto [dev10, err10] = oss.detach();
+            VERIFY(dev10.str() == "Consoli");
         }
     };
 
@@ -214,7 +224,8 @@ void test_ostream_inserters_character_char_7()
             const std::streamsize width = oss_01.width();
             oss_01 << 'a';
             VERIFY(oss_01.good());
-            VERIFY(oss_01.detach().str().size() == std::string::size_type(width));
+            auto [dev11, err11] = oss_01.detach();
+            VERIFY(dev11.str().size() == std::string::size_type(width));
         }
         {
             const std::string str_01(50, 'a');
@@ -223,7 +234,8 @@ void test_ostream_inserters_character_char_7()
             const std::streamsize width = oss_01.width();
             oss_01 << str_01.c_str();
             VERIFY(oss_01.good());
-            VERIFY(oss_01.detach().str().size() == std::string::size_type(width));
+            auto [dev12, err12] = oss_01.detach();
+            VERIFY(dev12.str().size() == std::string::size_type(width));
         }
     };
 

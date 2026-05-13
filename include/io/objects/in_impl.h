@@ -46,17 +46,18 @@ public:
             return old_sync_state;
         m_sync_with_stdio = sync;
 
-        auto dev = m_streambuf.detach();
+        auto [dev, err] = m_streambuf.detach();
         if constexpr (std::is_same_v<char_type, char>)
             m_streambuf = istreambuf<device_type, char_type>(std::move(dev), !sync);
         else if constexpr (std::is_same_v<char_type, wchar_t>)
             m_streambuf = istreambuf<device_type, wchar_t>(std::move(dev), code_cvt_stdio_creator(code()), !sync);
         else
             static_assert(dependent_false_v<char_type>, "invalid character type");
+        if (err) std::rethrow_exception(err);
         return old_sync_state;
     }
 
-    device_type detach()= delete;
+    std::pair<device_type, std::exception_ptr> detach() = delete;
     device_type attach(device_type&&) = delete;
 
     void reset() // mainly used for unit-test

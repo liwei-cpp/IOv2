@@ -1,7 +1,9 @@
 #pragma once
+#include <exception>
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include <botan/auto_rng.h>
 #include <botan/stream_cipher.h>
@@ -72,10 +74,13 @@ public:
         return BT::attach(std::move(dev));
     }
     
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        m_cipher->clear();
-        return BT::detach();
+        std::exception_ptr local_err;
+        try { m_cipher->clear(); }
+        catch (...) { local_err = std::current_exception(); }
+        auto [dev, inner_err] = BT::detach();
+        return { std::move(dev), local_err ? local_err : inner_err };
     }
     
     io_status bos()

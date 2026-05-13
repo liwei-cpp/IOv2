@@ -41,7 +41,8 @@ void test_ostream_seek_wchar_t_1()
             }
             VERIFY(stream.good());
         }(ofstrm);
-        ofstrm.detach().close();
+        auto [odev, oerr] = ofstrm.detach();
+        odev.close();
 
         IOv2::istream ifstrm{IOv2::ifile_device<char>{"istream_seeks-3.txt"}};
 
@@ -63,7 +64,8 @@ void test_ostream_seek_wchar_t_1()
             VERIFY( i == times - 1 );
             VERIFY( stream.rdstate() == IOv2::ios_defs::eofbit );
         }(ifstrm);
-        ifstrm.detach().close();
+        auto [idev, ierr] = ifstrm.detach();
+        idev.close();
     };
 
     helper.template operator()<IOv2::ostream>();

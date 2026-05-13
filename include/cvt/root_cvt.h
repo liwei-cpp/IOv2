@@ -18,6 +18,7 @@
 #include <device/mem_device.h>
 
 #include <cassert>
+#include <exception>
 #include <limits>
 #include <type_traits>
 #include <utility>
@@ -370,37 +371,50 @@ public:
     /**
      * @lang{ZH}
      * 将底层设备从 root_cvt 中分离并返回。
-     * - 若当前处于输出状态，先将缓冲区刷入设备。
+     * - 若当前处于输出状态，先尝试将缓冲区刷入设备。
      * - 若当前处于输入状态且缓冲区中仍有未消费数据，则将设备位置倒回到未消费数据的起始处（需设备支持定位）。
      *
+     * 本函数为 `noexcept`：清理阶段的异常会被捕获并存入返回值的 `second`（`exception_ptr`），
+     * 设备始终通过返回值的 `first` 无条件交还给调用方，即便清理失败。
      * 调用后，root_cvt 内部状态被重置为初始状态，不再持有有效设备。
      * @endif
      *
      * @lang{EN}
      * Detaches the underlying device from root_cvt and returns it.
-     * - If currently in output mode, flushes buffered data to the device first.
+     * - If currently in output mode, attempts to flush buffered data to the device.
      * - If currently in input mode with unconsumed buffered data, seeks the device
      *   back to the start of unconsumed data (requires the device to support positioning).
      *
+     * This function is `noexcept`: any exception thrown during cleanup is captured
+     * into the returned pair's `second` (`exception_ptr`); the device is always
+     * handed back unconditionally via `first` even if cleanup failed.
      * After this call, root_cvt's internal state is reset and it no longer holds a valid device.
      * @endif
      *
      * @return
-     * @lang{ZH} 已分离的设备对象（通过移动语义返回）。 @endif
-     * @lang{EN} The detached device object, returned via move semantics. @endif
+     * @lang{ZH} pair：`first` 为已分离的设备对象（通过移动语义返回），`second` 为清理阶段捕获的首个异常（`nullptr` 表示无异常）。 @endif
+     * @lang{EN} A pair: `first` is the detached device (returned via move); `second` is the first exception captured during cleanup (`nullptr` if none). @endif
      */
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        if (m_io_status == io_status::output)
+        std::exception_ptr err;
+        try
         {
-            if constexpr (dev_cpt::support_put<device_type>)
-                flush();
+            if (m_io_status == io_status::output)
+            {
+                if constexpr (dev_cpt::support_put<device_type>)
+                    flush();
+            }
+            else if ((m_io_status == io_status::input) &&
+                     (m_buf_cur != m_buf_end))
+            {
+                if constexpr (dev_cpt::support_positioning<device_type>)
+                    seek(tell());
+            }
         }
-        else if ((m_io_status == io_status::input) &&
-                 (m_buf_cur != m_buf_end))
+        catch (...)
         {
-            if constexpr (dev_cpt::support_positioning<device_type>)
-                seek(tell());
+            err = std::current_exception();
         }
 
         m_bos_len = 0;
@@ -408,7 +422,7 @@ public:
         m_buf_end = m_buffer.data();
         m_io_status = io_status::neutral;
 
-        return std::move(m_device);
+        return {std::move(m_device), err};
     }
 
     /**
@@ -432,7 +446,7 @@ public:
      */
     device_type attach(device_type&& dev = device_type{})
     {
-        auto res = detach();
+        auto detach_res = detach();
         m_device = std::move(dev);
         m_bos_len = 0;
 
@@ -440,7 +454,8 @@ public:
         m_buf_cur = m_buffer.data();
         m_buf_end = m_buffer.data();
         m_io_status = io_status::neutral;
-        return res;
+        if (detach_res.second) std::rethrow_exception(detach_res.second);
+        return std::move(detach_res.first);
     }
 
     /**
@@ -1213,25 +1228,26 @@ public:
     /**
      * @lang{ZH}
      * 将底层 mem_device 从 root_cvt 中分离并返回。
-     * mem_device 无需刷新，直接移动返回。
-     * 调用后，root_cvt 内部状态被重置为初始状态。
+     * mem_device 无需刷新，无清理动作可抛出异常；返回 pair 的 `second` 始终为 `nullptr`。
+     * 调用后，root_cvt 内部状态被重置为初始状态。本函数为 `noexcept`。
      * @endif
      *
      * @lang{EN}
      * Detaches the underlying mem_device from root_cvt and returns it.
-     * No flush is needed for mem_device; the device is returned via move.
-     * After this call, root_cvt's internal state is reset to initial values.
+     * No flush is needed for mem_device and no cleanup step can throw; the returned
+     * pair's `second` is always `nullptr`. After this call, root_cvt's internal state
+     * is reset to initial values. This function is `noexcept`.
      * @endif
      *
      * @return
-     * @lang{ZH} 已分离的设备对象（通过移动语义返回）。 @endif
-     * @lang{EN} The detached device object, returned via move semantics. @endif
+     * @lang{ZH} pair：`first` 为已分离的设备对象（通过移动语义返回），`second` 始终为 `nullptr`。 @endif
+     * @lang{EN} A pair: `first` is the detached device (returned via move); `second` is always `nullptr`. @endif
      */
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         m_bos_len = 0;
         m_io_status = io_status::neutral;
-        return std::move(m_device);
+        return {std::move(m_device), nullptr};
     }
 
     /**
@@ -1253,12 +1269,12 @@ public:
      */
     device_type attach(device_type&& dev = device_type{})
     {
-        auto res = detach();
+        auto detach_res = detach();  // detach_res.second is always nullptr for mem_device
         m_device = std::move(dev);
         m_bos_len = 0;
 
         m_io_status = io_status::neutral;
-        return res;
+        return std::move(detach_res.first);
     }
 
     /**

@@ -79,8 +79,9 @@ void test_io_base_manipulators_adjustfield_char_1()
     oss << ":" << IOv2::setw(6) << IOv2::right << false << ":" << IOv2::endl;
 
     if (!oss.good()) throw std::runtime_error("ios_base<char> adjustfield check fail");
-    
-    if (oss.detach().str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
+
+    auto [dev1, err1] = oss.detach();
+    if (dev1.str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
     dump_info("Done\n");
 }
 
@@ -89,16 +90,19 @@ void test_io_base_manipulators_adjustfield_char_2()
     dump_info("Test ios_base<char> adjustfield case 2...");
     IOv2::ostream o{IOv2::mem_device{""}};
     o << IOv2::setw(6) << IOv2::right << "san";
-    if (o.detach().str() != "   san") throw std::runtime_error("ios_base<char> adjustfield check fail");
+    auto [dev2, err2] = o.detach();
+    if (dev2.str() != "   san") throw std::runtime_error("ios_base<char> adjustfield check fail");
     o.attach(IOv2::mem_device{""});
 
     o << IOv2::setw(6) << IOv2::internal << "fran";
-    if (o.detach().str() != "  fran") throw std::runtime_error("ios_base<char> adjustfield check fail");
+    auto [dev3, err3] = o.detach();
+    if (dev3.str() != "  fran") throw std::runtime_error("ios_base<char> adjustfield check fail");
     o.attach(IOv2::mem_device{""});
 
     o << IOv2::setw(6) << IOv2::left << "cisco";
-    if (o.detach().str() != "cisco ") throw std::runtime_error("ios_base<char> adjustfield check fail");
-    
+    auto [dev4, err4] = o.detach();
+    if (dev4.str() != "cisco ") throw std::runtime_error("ios_base<char> adjustfield check fail");
+
     dump_info("Done\n");
 }
 
@@ -142,7 +146,8 @@ void test_io_base_manipulators_adjustfield_wchar_t_1()
     oss << L":" << IOv2::setw(6) << IOv2::right << false << L":" << IOv2::endl;
 
     if (!oss.good()) throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
-    if (oss.detach().str() != lit) throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
+    auto [dev5, err5] = oss.detach();
+    if (dev5.str() != lit) throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
     dump_info("Done\n");
 }
 
@@ -151,15 +156,18 @@ void test_io_base_manipulators_adjustfield_wchar_t_2()
     dump_info("Test ios_base<wchar_t> adjustfield case 2...");
     IOv2::ostream o{IOv2::mem_device{L""}};
     o << IOv2::setw(6) << IOv2::right << L"san";
-    if (o.detach().str() != L"   san") throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
+    auto [dev6, err6] = o.detach();
+    if (dev6.str() != L"   san") throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
     o.attach(IOv2::mem_device{L""});
 
     o << IOv2::setw(6) << IOv2::internal << L"fran";
-    if (o.detach().str() != L"  fran") throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
+    auto [dev7, err7] = o.detach();
+    if (dev7.str() != L"  fran") throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
     o.attach(IOv2::mem_device{L""});
 
     o << IOv2::setw(6) << IOv2::left << L"cisco";
-    if (o.detach().str() != L"cisco ") throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
-    
+    auto [dev8, err8] = o.detach();
+    if (dev8.str() != L"cisco ") throw std::runtime_error("ios_base<wchar_t> adjustfield check fail");
+
     dump_info("Done\n");
 }

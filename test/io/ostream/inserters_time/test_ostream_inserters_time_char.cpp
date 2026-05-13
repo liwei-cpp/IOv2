@@ -38,7 +38,8 @@ void test_ostream_inserters_time_char_1()
 
         f << tp;
         VERIFY((bool)f);
-        const std::string res = f.detach().str();
+        auto [dev, err] = f.detach();
+        const std::string res = dev.str();
         VERIFY(res == "09/04/24 13:33:18");
     };
 

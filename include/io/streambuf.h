@@ -1,5 +1,6 @@
 #pragma once
 #include <deque>
+#include <exception>
 #include <optional>
 #include <type_traits>
 #include <utility>
@@ -197,7 +198,7 @@ public:
         return m_cvt.device();
     }
 
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         if constexpr (IsIn)
             m_read_buf.clear();

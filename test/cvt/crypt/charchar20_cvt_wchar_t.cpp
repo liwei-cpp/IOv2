@@ -77,7 +77,7 @@ void test_chacha20_cvt_wchar_t_gen_2()
                 obj = std::move(obj2);
             }
     
-            auto dev = obj.detach();
+            auto [dev, err] = obj.detach();
             enc_msg = dev.str();
         }
     
@@ -158,7 +158,7 @@ void test_chacha20_cvt_wchar_t_put_1()
                 total_count += dest_size;
             }
     
-            auto dev = obj.detach();
+            auto [dev, err] = obj.detach();
             return dev.str();
         };
         
@@ -220,7 +220,7 @@ void test_chacha20_cvt_wchar_t_io_1()
                 total_count += dest_size;
             }
     
-            auto dev = obj.detach();
+            auto [dev, err] = obj.detach();
             enc_msg = dev.str();
         }
     

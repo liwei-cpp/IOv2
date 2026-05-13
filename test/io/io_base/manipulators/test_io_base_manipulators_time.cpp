@@ -35,7 +35,8 @@ void test_io_base_manipulators_put_time_char_1()
     IOv2::ostream oss{IOv2::mem_device{""}};
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, "%a %Y");
-    if (oss.detach().str() != "Sun 1971") throw std::runtime_error("ios_base<char> put_time check fail");
+    auto [dev1, err1] = oss.detach();
+    if (dev1.str() != "Sun 1971") throw std::runtime_error("ios_base<char> put_time check fail");
 
     dump_info("Done\n");
 }
@@ -47,7 +48,8 @@ void test_io_base_manipulators_put_time_char_2()
     IOv2::ostream oss{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.UTF-8")};
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, "%A %Y");
-    if (oss.detach().str() != "Sonntag 1971") throw std::runtime_error("ios_base<char> put_time check fail");
+    auto [dev2, err2] = oss.detach();
+    if (dev2.str() != "Sonntag 1971") throw std::runtime_error("ios_base<char> put_time check fail");
 
     dump_info("Done\n");
 }
@@ -59,7 +61,8 @@ void test_io_base_manipulators_put_time_wchar_t_1()
     IOv2::ostream oss{IOv2::mem_device{L""}};
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, L"%a %Y");
-    if (oss.detach().str() != L"Sun 1971") throw std::runtime_error("ios_base<wchar_t> put_time check fail");
+    auto [dev3, err3] = oss.detach();
+    if (dev3.str() != L"Sun 1971") throw std::runtime_error("ios_base<wchar_t> put_time check fail");
 
     dump_info("Done\n");
 }
@@ -71,7 +74,8 @@ void test_io_base_manipulators_put_time_wchar_t_2()
     IOv2::ostream oss{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("de_DE.UTF-8")};
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, L"%A %Y");
-    if (oss.detach().str() != L"Sonntag 1971") throw std::runtime_error("ios_base<wchar_t> put_time check fail");
+    auto [dev4, err4] = oss.detach();
+    if (dev4.str() != L"Sonntag 1971") throw std::runtime_error("ios_base<wchar_t> put_time check fail");
 
     dump_info("Done\n");
 }

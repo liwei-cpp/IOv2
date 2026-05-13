@@ -74,9 +74,9 @@ void test_zlib_cvt_wchar_t_gen_2()
             obj.put(s_e_lit.data() + 1024, 4102 - 1024);
             obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
             
-            auto dev1 = obj.detach();
-            auto dev2 = obj2.detach();
-            
+            auto [dev1, err1] = obj.detach();
+            auto [dev2, err2] = obj2.detach();
+
             if (dev1.str() != dev2.str())
                 throw std::runtime_error("zlib_cvt copy constructor response incorrect");
             compress_res = dev1.str();
@@ -130,9 +130,9 @@ void test_zlib_cvt_wchar_t_gen_3()
             obj.put(s_e_lit.data() + 1024, 4102 - 1024);
             obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
             
-            auto dev1 = obj.detach();
-            auto dev2 = obj2.detach();
-            
+            auto [dev1, err1] = obj.detach();
+            auto [dev2, err2] = obj2.detach();
+
             if (dev1.str() != dev2.str())
                 throw std::runtime_error("zlib_cvt copy assignment response incorrect");
             compress_res = dev1.str();
@@ -185,8 +185,8 @@ void test_zlib_cvt_wchar_t_gen_4()
     
             T obj2(std::move(obj));
             obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
-            auto dev = obj2.detach();
-            
+            auto [dev, err] = obj2.detach();
+
             compress_res = dev.str();
         }
     
@@ -233,8 +233,8 @@ void test_zlib_cvt_wchar_t_gen_5()
             T obj2{creator.create(rb_root_cvt{mem_device("")})};
             obj2 = std::move(obj);
             obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
-            auto dev = obj2.detach();
-            
+            auto [dev, err] = obj2.detach();
+
             compress_res = dev.str();
         }
     
@@ -338,8 +338,8 @@ void test_zlib_cvt_wchar_t_io_1()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.detach();
-    
+            auto [dev, err] = obj.detach();
+
             if (cur_pos != s_e_lit.data() + 4102) throw std::runtime_error("zlib_cvt::put response incorrect");
             compress_res = dev.str();
         }
@@ -389,8 +389,8 @@ void test_zlib_cvt_wchar_t_io_2()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.detach();
-    
+            auto [dev, err] = obj.detach();
+
             if (cur_pos != s_e_lit.data() + 4102) throw std::runtime_error("zlib_cvt::put response incorrect");
             compress_res = dev.str();
         }
@@ -429,8 +429,8 @@ void test_zlib_cvt_wchar_t_io_3()
             if (obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj.main_cont_beg();
             obj.put(s_e_lit.data(), 4102);
-            auto dev = obj.detach();
-    
+            auto [dev, err] = obj.detach();
+
             compress_res = dev.str();
         }
         
@@ -494,8 +494,8 @@ void test_zlib_cvt_wchar_t_flush_1()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.detach();
-    
+            auto [dev, err] = obj.detach();
+
             if (cur_pos != s_e_lit.data() + 4102) throw std::runtime_error("zlib_cvt::put response incorrect");
             compress_res = dev.str();
         }
@@ -516,7 +516,7 @@ void test_zlib_cvt_wchar_t_flush_1()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = local_obj.detach();
+            auto [dev, err] = local_obj.detach();
             if (compress_res != dev.str()) throw std::runtime_error("zlib_cvt::flush response incorrect");
         }
     };
@@ -553,8 +553,8 @@ void test_zlib_cvt_wchar_t_flush_2()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = obj.detach();
-    
+            auto [dev, err] = obj.detach();
+
             if (cur_pos != s_e_lit.data() + 4102) throw std::runtime_error("zlib_cvt::put response incorrect");
             compress_res = dev.str();
         }
@@ -583,7 +583,7 @@ void test_zlib_cvt_wchar_t_flush_2()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = local_obj.detach();
+            auto [dev, err] = local_obj.detach();
             if (compress_res == dev.str()) throw std::runtime_error("zlib_cvt::flush response incorrect");
             
             compress_res = dev.str();
@@ -656,7 +656,7 @@ void test_zlib_cvt_wchar_t_reset_1()
                 buffer_id %= std::size(buffer_size);
                 cur_pos += dest_size;
             }
-            auto dev = local_obj.detach();
+            auto [dev, err] = local_obj.detach();
             if (compress_res != dev.str()) throw std::runtime_error("zlib_cvt::flush response incorrect");
         }
     };

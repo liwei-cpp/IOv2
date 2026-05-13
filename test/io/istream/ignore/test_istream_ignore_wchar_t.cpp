@@ -106,7 +106,8 @@ void test_istream_ignore_wchar_t_2()
         T ifstrm(IOv2::ifile_device<char>{filename},
                  IOv2::code_cvt_creator<char, wchar_t>("C"));
         check(ifstrm, wdata, nchunks, delim);
-        ifstrm.detach().close();
+        auto [dev, err] = ifstrm.detach();
+        dev.close();
     };
 
     helper.operator()<IOv2::istream>();

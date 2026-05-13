@@ -36,6 +36,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cwchar>
+#include <exception>
 #include <functional>
 #include <limits>
 #include <string>
@@ -836,20 +837,32 @@ public:
      * @lang{ZH}
      * 关闭当前流并移除底层设备，返回该设备的所有权。
      *
-     * @return 底层设备的所有权。
+     * 本函数为 `noexcept`：`close_stream()` 的清理异常被捕获为返回值 `second`
+     * 中的 `exception_ptr`，并按 first-failure-wins 与底层 `BT::detach()` 返回的
+     * 异常合并（本层捕获到的异常优先）。设备始终通过返回值 `first` 无条件交还。
+     *
+     * @return pair：`first` 为底层设备所有权，`second` 为捕获的首个清理异常（`nullptr` 表示无异常）。
      * @endif
      *
      * @lang{EN}
      * Close the current stream, remove the underlying device, and return
      * ownership of it.
      *
-     * @return Ownership of the underlying device.
+     * This function is `noexcept`: any exception from `close_stream()` is captured
+     * into the returned pair's `second` (`exception_ptr`) and merged under
+     * first-failure-wins with the one returned by `BT::detach()` (local exception
+     * wins). The device is always handed back unconditionally via `first`.
+     *
+     * @return A pair: `first` is ownership of the underlying device; `second` is the first captured cleanup exception (`nullptr` if none).
      * @endif
      */
-    device_type detach()
+    std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        close_stream();
-        return BT::detach();
+        std::exception_ptr local_err;
+        try { close_stream(); }
+        catch (...) { local_err = std::current_exception(); }
+        auto [dev, inner_err] = BT::detach();
+        return { std::move(dev), local_err ? local_err : inner_err };
     }
 
     /**

@@ -214,7 +214,7 @@ void test_code_cvt_mem_char_gen_4()
             obj = obj2;
         }
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
     };
 
@@ -274,7 +274,7 @@ void test_code_cvt_mem_char_gen_5()
             obj = std::move(obj2);
         }
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
     };
 
@@ -367,7 +367,7 @@ void test_code_cvt_mem_char_bos_3()
         obj.main_cont_beg();
         if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
 
-        const auto& dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.dtell() != 12) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
     };
     
@@ -618,7 +618,7 @@ void test_code_cvt_mem_char_put_1()
             if (obj.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
         }
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
     };
 
@@ -661,7 +661,7 @@ void test_code_cvt_mem_char_put_2()
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");        
     };
 
@@ -718,7 +718,8 @@ void test_code_cvt_mem_char_put_3()
             if (obj.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
         }
 
-        if (obj.detach().str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        auto [detach_dev, detach_err] = obj.detach();
+        if (detach_dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
     };
 
     using CheckType = code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t>;
@@ -759,7 +760,8 @@ void test_code_cvt_mem_char_put_4()
         if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
-        if (obj.detach().str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        auto [detach_dev, detach_err] = obj.detach();
+        if (detach_dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1025,7 +1027,7 @@ void test_code_cvt_mem_char_seek_3()
         char32_t c[] = U"xy";
         obj.put(c, 2);
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != "李x伟xy") throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
     };
 
@@ -1068,7 +1070,7 @@ void test_code_cvt_mem_char_seek_4()
         char32_t c[] = U"xy";
         obj.put(c, 2);
 
-        auto dev = obj.detach();
+        auto [dev, err] = obj.detach();
         if (dev.str() != "axy") throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
     };
 

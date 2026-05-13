@@ -302,7 +302,8 @@ void test_istream_getline_char_5()
 
         T ifstrm(IOv2::ifile_device<char>{filename});
         check(ifstrm, data, nchunks, delim);
-        ifstrm.detach().close();
+        auto [dev, err] = ifstrm.detach();
+        dev.close();
     };
 
     helper.operator()<IOv2::istream>();

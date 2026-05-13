@@ -319,7 +319,8 @@ void test_code_cvt_mem_char8_t_wchar_t_bos_2()
         obj.main_cont_beg();
         if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
 
-        if (obj.detach().dtell() != 12) throw std::runtime_error("code_cvt<...char...>::bos fail");
+        auto [detach_dev, detach_err] = obj.detach();
+        if (detach_dev.dtell() != 12) throw std::runtime_error("code_cvt<...char...>::bos fail");
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, wchar_t>;
@@ -353,7 +354,8 @@ void test_code_cvt_mem_char8_t_wchar_t_bos_3()
         obj.main_cont_beg();
         if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
 
-        if (obj.detach().dtell() != 12) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
+        auto [detach_dev, detach_err] = obj.detach();
+        if (detach_dev.dtell() != 12) throw std::runtime_error("code_cvt<memory<char8_t>>::bos fail");
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, wchar_t>;

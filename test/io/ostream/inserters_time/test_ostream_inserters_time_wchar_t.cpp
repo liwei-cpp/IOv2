@@ -38,7 +38,8 @@ void test_ostream_inserters_time_wchar_t_1()
 
         f << tp;
         VERIFY((bool)f);
-        const std::wstring res = f.detach().str();
+        auto [dev, err] = f.detach();
+        const std::wstring res = dev.str();
         VERIFY(res == L"09/04/24 13:33:18");
     };
 
