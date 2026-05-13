@@ -126,8 +126,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a10dd06d5b5a1e8bf7a27589787834ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a254e05d0c607c014103dbf217f6d41f9" id="r_a254e05d0c607c014103dbf217f6d41f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt.html#a254e05d0c607c014103dbf217f6d41f9">device</a> ()</td></tr>
 <tr class="separator:a254e05d0c607c014103dbf217f6d41f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc60f67c1bf5674d75b3d63bc04515e7" id="r_afc60f67c1bf5674d75b3d63bc04515e7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt.html#afc60f67c1bf5674d75b3d63bc04515e7">detach</a> ()</td></tr>
-<tr class="separator:afc60f67c1bf5674d75b3d63bc04515e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad60bb2b5832e6d6c8fdc75d34d9ae0b1" id="r_ad60bb2b5832e6d6c8fdc75d34d9ae0b1"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt.html#ad60bb2b5832e6d6c8fdc75d34d9ae0b1">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:ad60bb2b5832e6d6c8fdc75d34d9ae0b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b665771d2ba110d2c20ab806b7cf5b6" id="r_a5b665771d2ba110d2c20ab806b7cf5b6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt.html#a5b665771d2ba110d2c20ab806b7cf5b6">attach</a> (<a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a>{})</td></tr>
 <tr class="separator:a5b665771d2ba110d2c20ab806b7cf5b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a4d075f5f8f9617876d44928690ce0c" id="r_a3a4d075f5f8f9617876d44928690ce0c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1root__cvt.html#a3a4d075f5f8f9617876d44928690ce0c">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;)</td></tr>
@@ -416,7 +416,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   </table>
   </dd>
 </dl>
-<p>iline 458   Ignored behavior configuration object.  </p>
+<p>iline 473   Ignored behavior configuration object.  </p>
 
 </div>
 </div>
@@ -445,7 +445,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Detaches the current device, attaches a new device to <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>, and resets internal state to its initial values. Equivalent to calling <a class="el" href="classIOv2_1_1root__cvt.html#afc60f67c1bf5674d75b3d63bc04515e7">detach()</a> followed by taking ownership of the new device. </p>
+<p>Detaches the current device, attaches a new device to <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>, and resets internal state to its initial values. Equivalent to calling <a class="el" href="classIOv2_1_1root__cvt.html#ad60bb2b5832e6d6c8fdc75d34d9ae0b1">detach()</a> followed by taking ownership of the new device. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">dev</td><td>The new device to attach; defaults to a default-constructed empty device.  </td></tr>
@@ -496,8 +496,8 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
 
 </div>
 </div>
-<a id="afc60f67c1bf5674d75b3d63bc04515e7" name="afc60f67c1bf5674d75b3d63bc04515e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc60f67c1bf5674d75b3d63bc04515e7">&#9670;&#160;</a></span>detach()</h2>
+<a id="ad60bb2b5832e6d6c8fdc75d34d9ae0b1" name="ad60bb2b5832e6d6c8fdc75d34d9ae0b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad60bb2b5832e6d6c8fdc75d34d9ae0b1">&#9670;&#160;</a></span>detach()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -508,7 +508,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a> <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; DeviceType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::detach </td>
+          <td class="memname">std::pair&lt; <a class="el" href="classIOv2_1_1root__cvt.html#a07c8fc4a7bb26c06291f5fcda8918ff4">device_type</a>, std::exception_ptr &gt; <a class="el" href="classIOv2_1_1root__cvt.html">IOv2::root_cvt</a>&lt; DeviceType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HasInBuffer</a> &gt;::detach </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -516,16 +516,16 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 <p>Detaches the underlying device from <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a> and returns it.</p><ul>
-<li>If currently in output mode, flushes buffered data to the device first.</li>
+<li>If currently in output mode, attempts to flush buffered data to the device.</li>
 <li>If currently in input mode with unconsumed buffered data, seeks the device back to the start of unconsumed data (requires the device to support positioning).</li>
 </ul>
-<p>After this call, <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>'s internal state is reset and it no longer holds a valid device. </p>
-<dl class="section return"><dt>Returns</dt><dd>The detached device object, returned via move semantics.  </dd></dl>
+<p>This function is <code>noexcept</code>: any exception thrown during cleanup is captured into the returned pair's <code>second</code> (<code>exception_ptr</code>); the device is always handed back unconditionally via <code>first</code> even if cleanup failed. After this call, <a class="el" href="classIOv2_1_1root__cvt.html">root_cvt</a>'s internal state is reset and it no longer holds a valid device. </p>
+<dl class="section return"><dt>Returns</dt><dd>A pair: <code>first</code> is the detached device (returned via move); <code>second</code> is the first exception captured during cleanup (<code>nullptr</code> if none).  </dd></dl>
 
 </div>
 </div>
@@ -871,7 +871,7 @@ template&lt;io_device DeviceType, <a class="el" href="namespaceIOv2.html#a09b310
   </table>
   </dd>
 </dl>
-<p>iline 474   Ignored status output object.  </p>
+<p>iline 489   Ignored status output object.  </p>
 
 </div>
 </div>

@@ -7,7 +7,7 @@ var classIOv2_1_1stdout__api =
     [ "stdout_api", "classIOv2_1_1stdout__api.html#a10d9e4ee1eacb7738d8d95f58cad421d", null ],
     [ "attach", "classIOv2_1_1stdout__api.html#a19fecfef0db759397e20187437e864b2", null ],
     [ "code", "classIOv2_1_1stdout__api.html#aaf53fb516934f66374f853e432f371bd", null ],
-    [ "detach", "classIOv2_1_1stdout__api.html#adb971b28a3564ea71d4b32969c2cae7d", null ],
+    [ "detach", "classIOv2_1_1stdout__api.html#a7b4a888315039df906fb27eee3574c47", null ],
     [ "reset", "classIOv2_1_1stdout__api.html#aadd584edcd379865c932d9ec45d7c2ea", null ],
     [ "switch_code", "classIOv2_1_1stdout__api.html#af38c53cfe3b69aa1f91f0e7375424441", null ],
     [ "sync_with_stdio", "classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420", null ],

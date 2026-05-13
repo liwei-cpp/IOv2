@@ -10,7 +10,7 @@ var classIOv2_1_1runtime__cvt =
     [ "adjust", "classIOv2_1_1runtime__cvt.html#aae991001e8f5bcd4246083a2a719ffdd", null ],
     [ "attach", "classIOv2_1_1runtime__cvt.html#acb05e397d7d6363b5382edae1fb0da39", null ],
     [ "bos", "classIOv2_1_1runtime__cvt.html#af8743cfb2f0ad85fe5051111f6bc7698", null ],
-    [ "detach", "classIOv2_1_1runtime__cvt.html#af1a434d25ec1d427301e840feb8ef862", null ],
+    [ "detach", "classIOv2_1_1runtime__cvt.html#ad4df084eace0f8b15d0fec59425f382c", null ],
     [ "device", "classIOv2_1_1runtime__cvt.html#a54b0ac83c76942330619fdcf7bfecafc", null ],
     [ "flush", "classIOv2_1_1runtime__cvt.html#a7d09a2ee0542419236f194ce27e552ed", null ],
     [ "get", "classIOv2_1_1runtime__cvt.html#a3d652b7a9b9ed6475c6ee9e0c50e82c8", null ],

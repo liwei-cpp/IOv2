@@ -126,8 +126,8 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;KernelType&gt;, <a class="el
 <tr class="separator:abd6b3b9ed7389eb6e3b412cb4756bc8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54b0ac83c76942330619fdcf7bfecafc" id="r_a54b0ac83c76942330619fdcf7bfecafc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#a54b0ac83c76942330619fdcf7bfecafc">device</a> ()</td></tr>
 <tr class="separator:a54b0ac83c76942330619fdcf7bfecafc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1a434d25ec1d427301e840feb8ef862" id="r_af1a434d25ec1d427301e840feb8ef862"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#af1a434d25ec1d427301e840feb8ef862">detach</a> ()</td></tr>
-<tr class="separator:af1a434d25ec1d427301e840feb8ef862"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4df084eace0f8b15d0fec59425f382c" id="r_ad4df084eace0f8b15d0fec59425f382c"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#ad4df084eace0f8b15d0fec59425f382c">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:ad4df084eace0f8b15d0fec59425f382c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb05e397d7d6363b5382edae1fb0da39" id="r_acb05e397d7d6363b5382edae1fb0da39"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#acb05e397d7d6363b5382edae1fb0da39">attach</a> (<a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a>{})</td></tr>
 <tr class="separator:acb05e397d7d6363b5382edae1fb0da39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae991001e8f5bcd4246083a2a719ffdd" id="r_aae991001e8f5bcd4246083a2a719ffdd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#aae991001e8f5bcd4246083a2a719ffdd">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>)</td></tr>
@@ -405,8 +405,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="af1a434d25ec1d427301e840feb8ef862" name="af1a434d25ec1d427301e840feb8ef862"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af1a434d25ec1d427301e840feb8ef862">&#9670;&#160;</a></span>detach()</h2>
+<a id="ad4df084eace0f8b15d0fec59425f382c" name="ad4df084eace0f8b15d0fec59425f382c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad4df084eace0f8b15d0fec59425f382c">&#9670;&#160;</a></span>detach()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -417,7 +417,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a> <a class="el" href="classIOv2_1_1runtime__cvt.html">IOv2::runtime_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::detach </td>
+          <td class="memname">std::pair&lt; <a class="el" href="classIOv2_1_1runtime__cvt.html#ae557e522ee9c2fd48660b9eea6304294">device_type</a>, std::exception_ptr &gt; <a class="el" href="classIOv2_1_1runtime__cvt.html">IOv2::runtime_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::detach </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -425,7 +425,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

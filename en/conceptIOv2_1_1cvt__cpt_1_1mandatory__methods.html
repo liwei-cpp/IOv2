@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1cvt__cpt_1_1mandatory__
 <div class="line">                                             <span class="keyword">const</span> cvt_behavior&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>, cvt_status&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>)</div>
 <div class="line">            {</div>
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.device() } -&gt; std::same_as&lt;typename T::device_type&amp;&gt;;</div>
-<div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.detach() } -&gt; std::same_as&lt;typename T::device_type&gt;;</div>
+<div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.detach() } <span class="keyword">noexcept</span> -&gt; std::same_as&lt;std::pair&lt;typename T::device_type, std::exception_ptr&gt;&gt;;</div>
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.attach(std::declval&lt;typename T::device_type&gt;()) } -&gt; std::same_as&lt;typename T::device_type&gt;;</div>
 <div class="line"> </div>
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.bos() } -&gt; std::same_as&lt;io_status&gt;;</div>
@@ -109,7 +109,7 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1cvt__cpt_1_1mandatory__
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>.adjust(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>) } -&gt; std::same_as&lt;void&gt;;</div>
 <div class="line">                { <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>.retrieve(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>) } -&gt; std::same_as&lt;void&gt;;</div>
 <div class="line">            }</div>
-<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1mandatory__methods_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html">IOv2::cvt_cpt::mandatory_methods</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:223</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1mandatory__methods_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html">IOv2::cvt_cpt::mandatory_methods</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:224</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
 </div><!-- fragment --><a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Constrains type T to provide all mandatory interfaces required by a converter:</p><ul>
