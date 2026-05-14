@@ -114,7 +114,9 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
 <tr class="memitem:a26a0b91f19003a2657cae9bcb805a94d" id="r_a26a0b91f19003a2657cae9bcb805a94d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a26a0b91f19003a2657cae9bcb805a94d">runtime_cvt_null_err</a></td></tr>
 <tr class="separator:a26a0b91f19003a2657cae9bcb805a94d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>内部实现细节命名空间。 </p>
+</div><h2 class="groupheader">函数说明</h2>
 <a id="a801881577b5c1cb239a485b6fab5034b" name="a801881577b5c1cb239a485b6fab5034b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a801881577b5c1cb239a485b6fab5034b">&#9670;&#160;</a></span>to_u32string() <span class="overload">[1/2]</span></h2>
 
@@ -359,7 +361,8 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1detail.html',''); ini
 </div><div class="memdoc">
 <b>初始值:</b><div class="fragment"><div class="line">=</div>
 <div class="line">    std::make_exception_ptr(cvt_error(<span class="stringliteral">&quot;runtime_cvt: null instance&quot;</span>))</div>
-</div><!-- fragment -->
+</div><!-- fragment --><p>预构造的异常指针，用于在 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 持有空实例时抛出。 预先构造可避免在可能无法分配内存的场景中重复创建异常对象。 </p>
+
 </div>
 </div>
 </div><!-- contents -->

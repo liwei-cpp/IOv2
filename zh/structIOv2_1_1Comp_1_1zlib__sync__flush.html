@@ -142,7 +142,16 @@ Public 属性</h2></td></tr>
 <tr class="memitem:ac5f2799bc33722283e93c18a7954419d" id="r_ac5f2799bc33722283e93c18a7954419d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Comp_1_1zlib__sync__flush.html#ac5f2799bc33722283e93c18a7954419d">m_sync_flush</a></td></tr>
 <tr class="separator:ac5f2799bc33722283e93c18a7954419d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>控制 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a7bcf353e0b89b81a31acbeaf4b344896">zlib_cvt::flush()</a></code> 是否触发 <code>Z_SYNC_FLUSH</code> 语义的行为策略类。</p>
+<p><code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">zlib_cvt</a></code> 的默认行为是 <code>sync_flush == false</code>，此时 <code><a class="el" href="namespaceIOv2.html#a4980fffb02a1ec303bd5f692363fc7f5">flush()</a></code> 不向下游写入任何 同步标记——先前 <code>put()</code> 已送入 zlib 但尚未完成 LZ77 窗口匹配的数据仍保留在 zlib 内部缓冲区中，等到 <code>close_stream</code> 以 <code>Z_FINISH</code> 最终化时才写出。</p>
+<p>默认采用此语义是有意为之：<code>Z_SYNC_FLUSH</code> 并非免费——每次调用会插入一个 5 字节的空存储块（<code>00 00 00 FF FF</code>）作为流同步点，并强制 zlib 放弃尚在 优化中的 LZ77 部分匹配，频繁同步刷会使压缩率趋近 1:1。不需要流级同步的 调用方不应承担这一开销。</p>
+<p>当确实需要同步点时，可通过 <code>cvt.adjust(<a class="el" href="structIOv2_1_1Comp_1_1zlib__sync__flush.html">zlib_sync_flush</a>{true})</code> 启用：</p><ul>
+<li>通过网络流式传输，接收方需要在明确边界处开始解压；</li>
+<li>需要字节级延迟的交互式工具（以压缩率换取低延迟）；</li>
+<li>任何下游可能在流中途开始解压的分帧场景。 </li>
+</ul>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="ae72ccf647fe57462c6da7c58ddc74090" name="ae72ccf647fe57462c6da7c58ddc74090"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae72ccf647fe57462c6da7c58ddc74090">&#9670;&#160;</a></span>zlib_sync_flush()</h2>
 

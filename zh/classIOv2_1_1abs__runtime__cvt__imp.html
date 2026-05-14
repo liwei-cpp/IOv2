@@ -125,39 +125,65 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a66a9c43fe02a058a1a660569eea08498" id="r_a66a9c43fe02a058a1a660569eea08498"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> std::unique_ptr&lt; <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html">abs_runtime_cvt_imp</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a66a9c43fe02a058a1a660569eea08498">clone</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> &amp;=0</td></tr>
 <tr class="separator:a66a9c43fe02a058a1a660569eea08498"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a407041b0296510a2abe3e3117de91831" id="r_a407041b0296510a2abe3e3117de91831"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a0b8429c229fdb2cef7e993fa1112c464">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a407041b0296510a2abe3e3117de91831">device</a> ()=0</td></tr>
+<tr class="memdesc:a407041b0296510a2abe3e3117de91831"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回底层设备的引用。    <br /></td></tr>
 <tr class="separator:a407041b0296510a2abe3e3117de91831"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae732eb6be97117184295785efc4d48c" id="r_aae732eb6be97117184295785efc4d48c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> std::pair&lt; <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a0b8429c229fdb2cef7e993fa1112c464">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#aae732eb6be97117184295785efc4d48c">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a>=0</td></tr>
+<tr class="memdesc:aae732eb6be97117184295785efc4d48c"><td class="mdescLeft">&#160;</td><td class="mdescRight">分离底层设备，重置 I/O 状态为 <code>neutral</code>，不抛出异常。    <br /></td></tr>
 <tr class="separator:aae732eb6be97117184295785efc4d48c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57c57ea24cda0073909c616477ab6f73" id="r_a57c57ea24cda0073909c616477ab6f73"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a57c57ea24cda0073909c616477ab6f73">attach</a> (<a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a0b8429c229fdb2cef7e993fa1112c464">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a0b8429c229fdb2cef7e993fa1112c464">device_type</a>{})=0</td></tr>
+<tr class="memdesc:a57c57ea24cda0073909c616477ab6f73"><td class="mdescLeft">&#160;</td><td class="mdescRight">将设备绑定到此转换器，同时重置 I/O 状态为 <code>neutral</code>。    <br /></td></tr>
 <tr class="separator:a57c57ea24cda0073909c616477ab6f73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a070d19150bd45ccc4d516bb361be40c1" id="r_a070d19150bd45ccc4d516bb361be40c1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a070d19150bd45ccc4d516bb361be40c1">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>)=0</td></tr>
+<tr class="memdesc:a070d19150bd45ccc4d516bb361be40c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">向转换器应用行为策略。    <br /></td></tr>
 <tr class="separator:a070d19150bd45ccc4d516bb361be40c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af29ef319b7eaeb0b89d7b3d48d84d030" id="r_af29ef319b7eaeb0b89d7b3d48d84d030"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#af29ef319b7eaeb0b89d7b3d48d84d030">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> =0</td></tr>
+<tr class="memdesc:af29ef319b7eaeb0b89d7b3d48d84d030"><td class="mdescLeft">&#160;</td><td class="mdescRight">提取转换器的内部状态。    <br /></td></tr>
 <tr class="separator:af29ef319b7eaeb0b89d7b3d48d84d030"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a399962c0307431a5481b2fb3f983b7" id="r_a2a399962c0307431a5481b2fb3f983b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a2a399962c0307431a5481b2fb3f983b7">is_eof</a> ()=0</td></tr>
+<tr class="memdesc:a2a399962c0307431a5481b2fb3f983b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询是否已到达数据末尾。    <br /></td></tr>
 <tr class="separator:a2a399962c0307431a5481b2fb3f983b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae798c92740051adfc8b9a6019d12826b" id="r_ae798c92740051adfc8b9a6019d12826b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ae798c92740051adfc8b9a6019d12826b">bos</a> ()=0</td></tr>
+<tr class="memdesc:ae798c92740051adfc8b9a6019d12826b"><td class="mdescLeft">&#160;</td><td class="mdescRight">建立初始 I/O 状态，返回确定的方向。    <br /></td></tr>
 <tr class="separator:ae798c92740051adfc8b9a6019d12826b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5888bcb135a1a1185a9759cffe5d40f" id="r_ab5888bcb135a1a1185a9759cffe5d40f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ab5888bcb135a1a1185a9759cffe5d40f">main_cont_beg</a> ()=0</td></tr>
+<tr class="memdesc:ab5888bcb135a1a1185a9759cffe5d40f"><td class="mdescLeft">&#160;</td><td class="mdescRight">通知转换器进入主内容阶段。    <br /></td></tr>
 <tr class="separator:ab5888bcb135a1a1185a9759cffe5d40f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80350bae9d5c22571324fdcd0b5f77df" id="r_a80350bae9d5c22571324fdcd0b5f77df"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a80350bae9d5c22571324fdcd0b5f77df">get</a> (<a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a48e9066f93f47a69248cc6e7daab1106">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>)=0</td></tr>
+<tr class="memdesc:a80350bae9d5c22571324fdcd0b5f77df"><td class="mdescLeft">&#160;</td><td class="mdescRight">从转换器读取至多 <code>to_max</code> 个元素，返回实际读取数量。    <br /></td></tr>
 <tr class="separator:a80350bae9d5c22571324fdcd0b5f77df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28ad5a903f6a992a93f3ac637eaea1b7" id="r_a28ad5a903f6a992a93f3ac637eaea1b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a28ad5a903f6a992a93f3ac637eaea1b7">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a48e9066f93f47a69248cc6e7daab1106">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_size</a>)=0</td></tr>
+<tr class="memdesc:a28ad5a903f6a992a93f3ac637eaea1b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">向转换器写入 <code>to_size</code> 个元素。    <br /></td></tr>
 <tr class="separator:a28ad5a903f6a992a93f3ac637eaea1b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94cb4df125ff2760869d6226bc87eaa4" id="r_a94cb4df125ff2760869d6226bc87eaa4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a94cb4df125ff2760869d6226bc87eaa4">flush</a> ()=0</td></tr>
+<tr class="memdesc:a94cb4df125ff2760869d6226bc87eaa4"><td class="mdescLeft">&#160;</td><td class="mdescRight">将所有缓冲数据刷出转换器。    <br /></td></tr>
 <tr class="separator:a94cb4df125ff2760869d6226bc87eaa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a947cfd09e6922d25da1102ed4e96f6bd" id="r_a947cfd09e6922d25da1102ed4e96f6bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a947cfd09e6922d25da1102ed4e96f6bd">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> =0</td></tr>
+<tr class="memdesc:a947cfd09e6922d25da1102ed4e96f6bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回当前流位置。    <br /></td></tr>
 <tr class="separator:a947cfd09e6922d25da1102ed4e96f6bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac7b9631556514dd1c9ed532bf22c2349" id="r_ac7b9631556514dd1c9ed532bf22c2349"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ac7b9631556514dd1c9ed532bf22c2349">seek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)=0</td></tr>
+<tr class="memdesc:ac7b9631556514dd1c9ed532bf22c2349"><td class="mdescLeft">&#160;</td><td class="mdescRight">将流定位到指定绝对位置。    <br /></td></tr>
 <tr class="separator:ac7b9631556514dd1c9ed532bf22c2349"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae17a300f2732e3e4df1b293b73511cbc" id="r_ae17a300f2732e3e4df1b293b73511cbc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ae17a300f2732e3e4df1b293b73511cbc">rseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)=0</td></tr>
+<tr class="memdesc:ae17a300f2732e3e4df1b293b73511cbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">将流定位到指定相对位置。    <br /></td></tr>
 <tr class="separator:ae17a300f2732e3e4df1b293b73511cbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93cb1be80322c640a777449b2bc4597a" id="r_a93cb1be80322c640a777449b2bc4597a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a93cb1be80322c640a777449b2bc4597a">switch_to_get</a> ()=0</td></tr>
+<tr class="memdesc:a93cb1be80322c640a777449b2bc4597a"><td class="mdescLeft">&#160;</td><td class="mdescRight">切换至输入（读取）模式。    <br /></td></tr>
 <tr class="separator:a93cb1be80322c640a777449b2bc4597a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a267de0dd54d179a4a559855dd5c79adf" id="r_a267de0dd54d179a4a559855dd5c79adf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a267de0dd54d179a4a559855dd5c79adf">switch_to_put</a> ()=0</td></tr>
+<tr class="memdesc:a267de0dd54d179a4a559855dd5c79adf"><td class="mdescLeft">&#160;</td><td class="mdescRight">切换至输出（写入）模式。    <br /></td></tr>
 <tr class="separator:a267de0dd54d179a4a559855dd5c79adf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
+class IOv2::abs_runtime_cvt_imp&lt; TDevice, TInt &gt;</div><p>类型擦除转换器实现的抽象基类。 声明了转换器所需的完整虚函数接口，使 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 可通过基类指针操作任意具体转换器。 此类禁止拷贝赋值和移动，避免切片问题；多态拷贝应通过 <code><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a66a9c43fe02a058a1a660569eea08498">clone()</a></code> 完成。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TDevice</td><td>底层设备类型，须满足 <code>io_device</code>。 / The underlying device type, must satisfy <code>io_device</code>. </td></tr>
+    <tr><td class="paramname">TInt</td><td>转换器内部数据类型。 / The converter's internal data type. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a0b8429c229fdb2cef7e993fa1112c464" name="a0b8429c229fdb2cef7e993fa1112c464"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0b8429c229fdb2cef7e993fa1112c464">&#9670;&#160;</a></span>device_type</h2>
 
@@ -344,6 +370,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>向转换器应用行为策略。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a7b031e76d7bbce14738a2c72c6895a84">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -374,6 +402,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>将设备绑定到此转换器，同时重置 I/O 状态为 <code>neutral</code>。   </p>
+
 </div>
 </div>
 <a id="ae798c92740051adfc8b9a6019d12826b" name="ae798c92740051adfc8b9a6019d12826b"></a>
@@ -400,6 +430,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>建立初始 I/O 状态，返回确定的方向。   </p>
 
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a7739bf686c4272c0d54158b7a8a5cf20">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
@@ -429,6 +461,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>多态拷贝：克隆当前实现对象，返回指向新实例的 <code>unique_ptr</code>。 若具体内核不支持拷贝构造，实现类应抛出 <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>。 </p>
+<dl class="section return"><dt>返回</dt><dd>指向新克隆实例的 <code>unique_ptr</code>。 / A <code>unique_ptr</code> to the newly cloned instance. </dd></dl>
 
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#adad5273d967d867e41deddc45c316515">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
@@ -459,6 +493,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>分离底层设备，重置 I/O 状态为 <code>neutral</code>，不抛出异常。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ad7196601680d86c566bf46d03d1ed18c">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -488,6 +524,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>返回底层设备的引用。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ad56eed7d29b64c370a0a2e7f76bfa8e4">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -516,6 +554,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>将所有缓冲数据刷出转换器。   </p>
 
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a2bf1936f837cf1f275aaf4724d256b5b">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
@@ -557,6 +597,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>从转换器读取至多 <code>to_max</code> 个元素，返回实际读取数量。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ae6ae8c19446799e57e5ca435534a27bb">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -586,6 +628,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>查询是否已到达数据末尾。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ab02861a6505bfeec7d1303291ee9116e">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -614,6 +658,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>通知转换器进入主内容阶段。   </p>
 
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a90ab97af48d903177df717f0060abb97">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
@@ -711,6 +757,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>向转换器写入 <code>to_size</code> 个元素。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#aa7e7ca9cba28463bfcae6002a0f6c167">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -740,6 +788,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>提取转换器的内部状态。   </p>
 
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#aaeaf7183186b3af711a3698333b2a09a">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
@@ -771,6 +821,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>将流定位到指定相对位置。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#aa7c4b65897ad4ac0b63515042dbdd729">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -801,6 +853,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>将流定位到指定绝对位置。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a2ab66bb649bd71a3f70ebd2902cbbaf7">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -829,6 +883,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>切换至输入（读取）模式。   </p>
 
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a9da548f2b8a5530f8c0137969d3f2849">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
@@ -859,6 +915,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>切换至输出（写入）模式。   </p>
+
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a1407ded35ab7518712e0d99e37a57fa2">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 
 </div>
@@ -887,6 +945,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回当前流位置。   </p>
 
 <p>在 <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#acffef3cf98673f211b9f675355cfbac4">IOv2::runtime_cvt_imp&lt; KernelType &gt;</a> 内被实现.</p>
 

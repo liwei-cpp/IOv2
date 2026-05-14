@@ -103,7 +103,18 @@ Public Types</h2></td></tr>
 <tr class="memitem:ab9f584c2839a371a7f9ef34adf45968c" id="r_ab9f584c2839a371a7f9ef34adf45968c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1cvt__creator__type__gen_3_01cvt__pipe__creator_3_01T1_8_8_8_01_4_00_01T2_01_4.html#ab9f584c2839a371a7f9ef34adf45968c">type</a> = <a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt; T1..., <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a> &gt;</td></tr>
 <tr class="separator:ab9f584c2839a371a7f9ef34adf45968c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename... T1, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a>&gt;<br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T2::category, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CvtCreatorCategory</a>&gt; &amp;&amp; !cpt_cvt_pipe_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a>&gt;)<br />
+struct IOv2::cvt_creator_type_gen&lt; cvt_pipe_creator&lt; T1... &gt;, T2 &gt;</div><p><code><a class="el" href="structIOv2_1_1cvt__creator__type__gen.html">cvt_creator_type_gen</a></code> specialization: a non-pipe creator T2 is appended to an existing pipeline <code><a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt;T1...&gt;</code>, yielding <code><a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt;T1..., T2&gt;</code>. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T1</td><td>左侧管道工厂所含的各转换器工厂类型。 / The converter creator types contained in the left-hand pipeline. </td></tr>
+    <tr><td class="paramname">T2</td><td>右侧非管道转换器工厂类型。 / Right-hand non-pipe converter creator type. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ab9f584c2839a371a7f9ef34adf45968c" name="ab9f584c2839a371a7f9ef34adf45968c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab9f584c2839a371a7f9ef34adf45968c">&#9670;&#160;</a></span>type</h2>
 

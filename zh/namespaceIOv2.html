@@ -3211,6 +3211,22 @@ requires (cvt_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb54
         </tr>
       </table>
 </div><div class="memdoc">
+<p>管道组合运算符，将两个 <code>cvt_creator</code> 类型组合为一个管道工厂。 若两个操作数均为非管道工厂，则生成 <code><a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt;T1, T2&gt;</code>； 若其中一个或两个已为 <code><a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a></code>，则通过 <code><a class="el" href="structIOv2_1_1cvt__creator__type__gen.html">cvt_creator_type_gen</a></code> 将内部工厂列表展平拼接，避免嵌套管道，始终保持线性扁平结构。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T1</td><td>左操作数类型，须满足 <code>cvt_creator</code> 且可拷贝构造。 / Left operand type, must satisfy <code>cvt_creator</code> and be copy-constructible. </td></tr>
+    <tr><td class="paramname">T2</td><td>右操作数类型，须满足 <code>cvt_creator</code> 且可拷贝构造。 / Right operand type, must satisfy <code>cvt_creator</code> and be copy-constructible. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">t1</td><td>左侧转换器工厂实例。 / Left-hand converter creator instance. </td></tr>
+    <tr><td class="paramname">t2</td><td>右侧转换器工厂实例。 / Right-hand converter creator instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>由 T1 和 T2 组合而成的管道工厂。 / A pipeline creator composed of T1 and T2. </dd></dl>
 
 </div>
 </div>
@@ -3592,6 +3608,13 @@ template&lt;io_converter KernelType&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+<p><code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 的推导指引：从内核类型自动推导 <code>TDevice</code> 和 <code>TInt</code>。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>转换器内核类型，须满足 <code>io_converter</code>。 / The converter kernel type, must satisfy <code>io_converter</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

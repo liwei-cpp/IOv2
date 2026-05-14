@@ -119,7 +119,17 @@ Friends</h2></td></tr>
 <tr class="memitem:aacd30f0922affce860a0f4b769874011"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__pipe__creator_3_01T1_00_01T2_01_4.html#aacd30f0922affce860a0f4b769874011">cvt_pipe_creator</a></td></tr>
 <tr class="separator:aacd30f0922affce860a0f4b769874011"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a>&gt;<br />
+class IOv2::cvt_pipe_creator&lt; T1, T2 &gt;</div><p>Two-element pipeline creator (binary specialization). When <code>create(kernel)</code> is called, it first wraps <code>kernel</code> with T1, then wraps the result with T2, producing a two-layer conversion chain. When data is written into the resulting converter, it passes through T2, then T1, and finally reaches <code>kernel</code>. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T1</td><td>第一个（内层）转换器工厂类型。 / The first (inner) converter creator type. </td></tr>
+    <tr><td class="paramname">T2</td><td>第二个（外层）转换器工厂类型。 / The second (outer) converter creator type. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a1397534b5b62b8c3c95e2e4af46a2ff9" name="a1397534b5b62b8c3c95e2e4af46a2ff9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1397534b5b62b8c3c95e2e4af46a2ff9">&#9670;&#160;</a></span>category</h2>
 
@@ -172,6 +182,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs a binary pipeline creator, storing copies of both creator instances. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c1</td><td>第一个（内层）转换器工厂。 / The first (inner) converter creator. </td></tr>
+    <tr><td class="paramname">c2</td><td>第二个（外层）转换器工厂。 / The second (outer) converter creator. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -203,6 +221,20 @@ template&lt;io_converter TKernel&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Creates a converter using this pipeline creator by successively wrapping <code>kernel</code> inside T1 and then inside T2. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TKernel</td><td>满足 <code>io_converter</code> 的内核转换器类型。 / The kernel converter type satisfying <code>io_converter</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>最内层的转换器内核。 / The innermost converter kernel. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>经过两层包装后的转换器。 / The converter after two layers of wrapping. </dd></dl>
 
 </div>
 </div>

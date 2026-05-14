@@ -157,7 +157,17 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;KernelType&gt;, <a class="el
 <tr class="memitem:ab52f606e2159be8b0988a081b260fb38" id="r_ab52f606e2159be8b0988a081b260fb38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#ab52f606e2159be8b0988a081b260fb38">switch_to_put</a> ()</td></tr>
 <tr class="separator:ab52f606e2159be8b0988a081b260fb38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
+class IOv2::runtime_cvt&lt; TDevice, TInt &gt;</div><p>User-facing runtime type-erased converter. Holds the concrete converter implementation via <code>unique_ptr&lt;<a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html">abs_runtime_cvt_imp</a>&gt;</code>, keeping the concrete type invisible to callers. Supports both copy (via polymorphic <code>clone()</code>) and move semantics. All member functions check the internal pointer before forwarding the call: a null pointer throws an exception, except for the <code>noexcept</code> function <code>detach</code>, which calls <code>std::terminate</code> on null. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TDevice</td><td>底层设备类型，须满足 <code>io_device</code>。 / The underlying device type, must satisfy <code>io_device</code>. </td></tr>
+    <tr><td class="paramname">TInt</td><td>转换器内部数据类型。 / The converter's internal data type. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ae557e522ee9c2fd48660b9eea6304294" name="ae557e522ee9c2fd48660b9eea6304294"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae557e522ee9c2fd48660b9eea6304294">&#9670;&#160;</a></span>device_type</h2>
 
@@ -235,6 +245,23 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;KernelType&gt;, <a class="el
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs from any compatible converter kernel, accepting both lvalue (copy) and rvalue (move) forms. Constraints:</p><ul>
+<li><code>KernelType</code> must not be <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> itself (prevents hijacking copy/move construction);</li>
+<li><code>KernelType</code> must satisfy <code>io_converter</code>;</li>
+<li>If an lvalue reference is passed, the kernel type must be copy-constructible (because the kernel will be stored on the heap). </li>
+</ul>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>转换器内核类型。 / The converter kernel type. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>待包装的转换器内核。 / The converter kernel to wrap. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -263,6 +290,13 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy constructor: performs a polymorphic copy of the internal implementation via <code>clone()</code>. If the source is null, the copy is also null. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 实例。 / The source <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -347,6 +381,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Apply a behavior policy to the converter; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -375,6 +410,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Attach a device to this converter; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -402,6 +438,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Establish the initial I/O state; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -429,6 +466,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Detach the underlying device and reset I/O status to <code>neutral</code>. This function is <code>noexcept</code>: if the internal pointer is null, it calls <code>std::terminate</code> rather than throwing. </p>
+<dl class="section return"><dt>Returns</dt><dd>包含设备和任意待传播异常的 pair。 / A pair containing the device and any pending exception to propagate. </dd></dl>
 
 </div>
 </div>
@@ -456,6 +495,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Return a reference to the underlying device; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -483,6 +523,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Flush all buffered data out of the converter; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -521,6 +562,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Read up to <code>to_max</code> elements from the converter; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -548,6 +590,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Query whether the end of data has been reached; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -575,6 +618,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Notify the converter to enter the main content phase; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -603,6 +647,14 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy assignment: performs a polymorphic copy of the internal implementation via <code>clone()</code>. If the source is null, the target is set to null. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 实例。 / The source <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>对 <code>*this</code> 的引用。 / A reference to <code>*this</code>. </dd></dl>
 
 </div>
 </div>
@@ -669,6 +721,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Write <code>to_size</code> elements into the converter; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -697,6 +750,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Extract the converter's internal status; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -725,6 +779,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Seek the stream to the specified relative position; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -753,6 +808,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Seek the stream to the specified absolute position; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -780,6 +836,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switch to input (reading) mode; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -807,6 +864,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switch to output (writing) mode; throws if the internal pointer is null.  </p>
 
 </div>
 </div>
@@ -834,6 +892,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Return the current stream position; throws if the internal pointer is null.  </p>
 
 </div>
 </div>

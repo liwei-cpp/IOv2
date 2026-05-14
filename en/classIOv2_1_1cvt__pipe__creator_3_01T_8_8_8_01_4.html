@@ -128,7 +128,17 @@ Friends</h2></td></tr>
 <tr class="memitem:aacd30f0922affce860a0f4b769874011"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__pipe__creator_3_01T_8_8_8_01_4.html#aacd30f0922affce860a0f4b769874011">cvt_pipe_creator</a></td></tr>
 <tr class="separator:aacd30f0922affce860a0f4b769874011"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename... T&gt;<br />
+requires (sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>) &gt; 2)<br />
+class IOv2::cvt_pipe_creator&lt; T... &gt;</div><p>Multi-element pipeline creator (variadic specialization, requires more than two elements). Internally, all creators are stored flattened in a single <code>std::tuple</code>. When <code>create(kernel)</code> is called, it wraps <code>kernel</code> with each creator in index order, yielding a multi-layer nested converter. The outermost layer corresponds to the last creator (highest index), and the innermost layer (directly wrapping <code>kernel</code>) corresponds to the first creator (index 0). </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>组成管道的各转换器工厂类型（至少三个）。 / The converter creator types forming the pipeline (at least three). </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ac8f89976182ce81d7fa4b854aa0f9954" name="ac8f89976182ce81d7fa4b854aa0f9954"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac8f89976182ce81d7fa4b854aa0f9954">&#9670;&#160;</a></span>category</h2>
 
@@ -183,6 +193,21 @@ template&lt;cpt_cvt_pipe_creator T1, cpt_cvt_pipe_creator T2&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs by merging two pipeline creators, concatenating their internal creator lists into a single flat list. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T1</td><td>左侧管道工厂类型（须满足 <code>cpt_cvt_pipe_creator</code>）。 / Left-hand pipeline creator type (must satisfy <code>cpt_cvt_pipe_creator</code>). </td></tr>
+    <tr><td class="paramname">T2</td><td>右侧管道工厂类型（须满足 <code>cpt_cvt_pipe_creator</code>）。 / Right-hand pipeline creator type (must satisfy <code>cpt_cvt_pipe_creator</code>). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">t1</td><td>左侧管道工厂实例。 / Left-hand pipeline creator instance. </td></tr>
+    <tr><td class="paramname">t2</td><td>右侧管道工厂实例。 / Right-hand pipeline creator instance. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -224,6 +249,21 @@ requires (!cpt_cvt_pipe_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs by prepending a single non-pipe creator to an existing pipeline creator's internal creator list. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TH</td><td>左侧非管道转换器工厂类型。 / Left-hand non-pipe converter creator type. </td></tr>
+    <tr><td class="paramname">TR</td><td>右侧管道工厂类型（须满足 <code>cpt_cvt_pipe_creator</code>）。 / Right-hand pipeline creator type (must satisfy <code>cpt_cvt_pipe_creator</code>). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">h</td><td>左侧非管道工厂实例。 / Left-hand non-pipe creator instance. </td></tr>
+    <tr><td class="paramname">hr</td><td>右侧管道工厂实例。 / Right-hand pipeline creator instance. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -265,6 +305,21 @@ requires (!cpt_cvt_pipe_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs by appending a single non-pipe creator to an existing pipeline creator's internal creator list. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TR</td><td>左侧管道工厂类型（须满足 <code>cpt_cvt_pipe_creator</code>）。 / Left-hand pipeline creator type (must satisfy <code>cpt_cvt_pipe_creator</code>). </td></tr>
+    <tr><td class="paramname">TT</td><td>右侧非管道转换器工厂类型。 / Right-hand non-pipe converter creator type. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tr</td><td>左侧管道工厂实例。 / Left-hand pipeline creator instance. </td></tr>
+    <tr><td class="paramname">t</td><td>右侧非管道工厂实例。 / Right-hand non-pipe creator instance. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -296,6 +351,20 @@ template&lt;io_converter TKernel&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Creates a converter using this pipeline creator by successively wrapping <code>kernel</code> through all contained creators in index order. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TKernel</td><td>满足 <code>io_converter</code> 的内核转换器类型。 / The kernel converter type satisfying <code>io_converter</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>最内层的转换器内核。 / The innermost converter kernel. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>经过所有工厂逐层包装后的转换器。 / The converter after being wrapped by all creators layer by layer. </dd></dl>
 
 </div>
 </div>

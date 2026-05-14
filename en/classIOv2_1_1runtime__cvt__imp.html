@@ -144,20 +144,26 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:adad5273d967d867e41deddc45c316515" id="r_adad5273d967d867e41deddc45c316515"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html">BT</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#adad5273d967d867e41deddc45c316515">clone</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
 <tr class="separator:adad5273d967d867e41deddc45c316515"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad56eed7d29b64c370a0a2e7f76bfa8e4" id="r_ad56eed7d29b64c370a0a2e7f76bfa8e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ab6dfdd4e040427ecd92ff3939548017d">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ad56eed7d29b64c370a0a2e7f76bfa8e4">device</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
+<tr class="memdesc:ad56eed7d29b64c370a0a2e7f76bfa8e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a reference to the underlying device.   <br /></td></tr>
 <tr class="separator:ad56eed7d29b64c370a0a2e7f76bfa8e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad7196601680d86c566bf46d03d1ed18c" id="r_ad7196601680d86c566bf46d03d1ed18c"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ab6dfdd4e040427ecd92ff3939548017d">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ad7196601680d86c566bf46d03d1ed18c">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
+<tr class="memdesc:ad7196601680d86c566bf46d03d1ed18c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detach the underlying device and reset I/O status to <code>neutral</code>, without throwing.   <br /></td></tr>
 <tr class="separator:ad7196601680d86c566bf46d03d1ed18c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a696230365c72c0aa9edc186af97ed41a" id="r_a696230365c72c0aa9edc186af97ed41a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a696230365c72c0aa9edc186af97ed41a">attach</a> (<a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ab6dfdd4e040427ecd92ff3939548017d">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ab6dfdd4e040427ecd92ff3939548017d">device_type</a>{}) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
 <tr class="separator:a696230365c72c0aa9edc186af97ed41a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b031e76d7bbce14738a2c72c6895a84" id="r_a7b031e76d7bbce14738a2c72c6895a84"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a7b031e76d7bbce14738a2c72c6895a84">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
+<tr class="memdesc:a7b031e76d7bbce14738a2c72c6895a84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Apply a behavior policy to the converter.   <br /></td></tr>
 <tr class="separator:a7b031e76d7bbce14738a2c72c6895a84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaeaf7183186b3af711a3698333b2a09a" id="r_aaeaf7183186b3af711a3698333b2a09a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#aaeaf7183186b3af711a3698333b2a09a">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
+<tr class="memdesc:aaeaf7183186b3af711a3698333b2a09a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract the converter's internal status.   <br /></td></tr>
 <tr class="separator:aaeaf7183186b3af711a3698333b2a09a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab02861a6505bfeec7d1303291ee9116e" id="r_ab02861a6505bfeec7d1303291ee9116e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ab02861a6505bfeec7d1303291ee9116e">is_eof</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
 <tr class="separator:ab02861a6505bfeec7d1303291ee9116e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7739bf686c4272c0d54158b7a8a5cf20" id="r_a7739bf686c4272c0d54158b7a8a5cf20"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a7739bf686c4272c0d54158b7a8a5cf20">bos</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
+<tr class="memdesc:a7739bf686c4272c0d54158b7a8a5cf20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Establish the initial I/O state and return the determined direction.   <br /></td></tr>
 <tr class="separator:a7739bf686c4272c0d54158b7a8a5cf20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90ab97af48d903177df717f0060abb97" id="r_a90ab97af48d903177df717f0060abb97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#a90ab97af48d903177df717f0060abb97">main_cont_beg</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
+<tr class="memdesc:a90ab97af48d903177df717f0060abb97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Notify the converter to transition into the main content phase.   <br /></td></tr>
 <tr class="separator:a90ab97af48d903177df717f0060abb97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6ae8c19446799e57e5ca435534a27bb" id="r_ae6ae8c19446799e57e5ca435534a27bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#ae6ae8c19446799e57e5ca435534a27bb">get</a> (<a class="el" href="classIOv2_1_1runtime__cvt__imp.html#aa988190fd8db86cceabeead75b4fe0c1">internal_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">to_max</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">override</a></td></tr>
 <tr class="separator:ae6ae8c19446799e57e5ca435534a27bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -189,9 +195,19 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aa8ad0975dd1060d637081bd2d80fb61c inherit pub_methods_classIOv2_1_1abs__runtime__cvt__imp" id="r_aa8ad0975dd1060d637081bd2d80fb61c"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#aa8ad0975dd1060d637081bd2d80fb61c">~abs_runtime_cvt_imp</a> ()=default</td></tr>
 <tr class="separator:aa8ad0975dd1060d637081bd2d80fb61c inherit pub_methods_classIOv2_1_1abs__runtime__cvt__imp"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57c57ea24cda0073909c616477ab6f73 inherit pub_methods_classIOv2_1_1abs__runtime__cvt__imp" id="r_a57c57ea24cda0073909c616477ab6f73"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a57c57ea24cda0073909c616477ab6f73">attach</a> (<a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a0b8429c229fdb2cef7e993fa1112c464">device_type</a> &amp;&amp;dev=<a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a0b8429c229fdb2cef7e993fa1112c464">device_type</a>{})=0</td></tr>
+<tr class="memdesc:a57c57ea24cda0073909c616477ab6f73 inherit pub_methods_classIOv2_1_1abs__runtime__cvt__imp"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attach a device to this converter and reset I/O status to <code>neutral</code>.   <br /></td></tr>
 <tr class="separator:a57c57ea24cda0073909c616477ab6f73 inherit pub_methods_classIOv2_1_1abs__runtime__cvt__imp"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType&gt;<br />
+class IOv2::runtime_cvt_imp&lt; KernelType &gt;</div><p>Type-erased implementation class that holds a concrete converter kernel. Inherits from <code><a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html">abs_runtime_cvt_imp</a></code> and forwards all virtual interface calls to the internal kernel instance. Optional capabilities (read, write, positioning, I/O switch) that the kernel may not support are detected at compile time via <code>if constexpr</code>; calling an unsupported interface throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> at runtime. <code>switch_to_get</code> and <code>switch_to_put</code> track the current direction via <code>m_io_status</code> to make repeated calls idempotent. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>被包装的具体转换器内核类型，须满足 <code>io_converter</code>。 / The concrete converter kernel type being wrapped, must satisfy <code>io_converter</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ab6dfdd4e040427ecd92ff3939548017d" name="ab6dfdd4e040427ecd92ff3939548017d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab6dfdd4e040427ecd92ff3939548017d">&#9670;&#160;</a></span>device_type</h2>
 
@@ -266,6 +282,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy-constructs from a const kernel reference; I/O status is initialized to <code>neutral</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>待包装的转换器内核（拷贝）。 / The converter kernel to wrap (copied). </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -294,6 +317,13 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Move-constructs from a kernel rvalue reference; I/O status is initialized to <code>neutral</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>待包装的转换器内核（移动）。 / The converter kernel to wrap (moved). </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -323,6 +353,8 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Apply a behavior policy to the converter.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a070d19150bd45ccc4d516bb361be40c1">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -381,6 +413,8 @@ template&lt;io_converter KernelType&gt; </div>
 </table>
 </div><div class="memdoc">
 
+<p>Establish the initial I/O state and return the determined direction.  </p>
+
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ae798c92740051adfc8b9a6019d12826b">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
 </div>
@@ -409,6 +443,14 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Polymorphic copy implementation. Clones the current instance if the kernel type supports copy construction; otherwise throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>. </p>
+<dl class="section return"><dt>Returns</dt><dd>指向新克隆实例的 <code>unique_ptr</code>。 / A <code>unique_ptr</code> to the newly cloned instance. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若内核不支持拷贝构造。 / If the kernel does not support copy construction. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a66a9c43fe02a058a1a660569eea08498">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -439,6 +481,8 @@ template&lt;io_converter KernelType&gt; </div>
 </table>
 </div><div class="memdoc">
 
+<p>Detach the underlying device and reset I/O status to <code>neutral</code>, without throwing.  </p>
+
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#aae732eb6be97117184295785efc4d48c">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
 </div>
@@ -468,6 +512,8 @@ template&lt;io_converter KernelType&gt; </div>
 </table>
 </div><div class="memdoc">
 
+<p>Return a reference to the underlying device.  </p>
+
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a407041b0296510a2abe3e3117de91831">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
 </div>
@@ -496,6 +542,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support write operations; otherwise delegates to the kernel.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a94cb4df125ff2760869d6226bc87eaa4">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -536,6 +583,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support read operations; otherwise delegates to the kernel.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a80350bae9d5c22571324fdcd0b5f77df">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -565,6 +613,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support read operations; otherwise delegates to the kernel.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a2a399962c0307431a5481b2fb3f983b7">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -594,6 +643,8 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Notify the converter to transition into the main content phase.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ab5888bcb135a1a1185a9759cffe5d40f">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -634,6 +685,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support write operations; otherwise delegates to the kernel.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a28ad5a903f6a992a93f3ac637eaea1b7">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -665,6 +717,8 @@ template&lt;io_converter KernelType&gt; </div>
 </table>
 </div><div class="memdoc">
 
+<p>Extract the converter's internal status.  </p>
+
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#af29ef319b7eaeb0b89d7b3d48d84d030">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
 </div>
@@ -694,6 +748,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support positioning; otherwise delegates to the kernel.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ae17a300f2732e3e4df1b293b73511cbc">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -724,6 +779,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support positioning; otherwise delegates to the kernel.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#ac7b9631556514dd1c9ed532bf22c2349">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -753,6 +809,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switch to input mode. Returns immediately if already in input mode (idempotent). Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support I/O switching.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a93cb1be80322c640a777449b2bc4597a">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -782,6 +839,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switch to output mode. Returns immediately if already in output mode (idempotent). Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support I/O switching.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a267de0dd54d179a4a559855dd5c79adf">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 
@@ -811,6 +869,7 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if the kernel does not support positioning; otherwise delegates to the kernel.  </p>
 
 <p>Implements <a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html#a947cfd09e6922d25da1102ed4e96f6bd">IOv2::abs_runtime_cvt_imp&lt; KernelType::device_type, KernelType::internal_type &gt;</a>.</p>
 

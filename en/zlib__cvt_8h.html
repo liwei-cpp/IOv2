@@ -215,7 +215,9 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2_1_1Comp" id="r_namespaceIOv2_1_1Comp"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Comp.html">IOv2::Comp</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>zlib compression/decompression converter definition file. This file implements <code>zlib_cvt</code>, a deflate (compression) and inflate (decompression) converter based on zlib, together with <code>zlib_cvt_creator</code>, a factory class for constructing it in streaming pipelines. <code>zlib_cvt</code> derives from <code>abs_cvt</code> with default positioning and IO-direction switching both disabled. During the BOS phase it reads or writes the 2-byte zlib stream header; the main-content phase performs actual decompression/compression through <code>get_main</code>/<code>put_main</code>.  </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

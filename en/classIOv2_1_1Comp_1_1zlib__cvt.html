@@ -225,7 +225,31 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:a482bf71984118856a1eb726902853bea inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_a482bf71984118856a1eb726902853bea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a482bf71984118856a1eb726902853bea">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:a482bf71984118856a1eb726902853bea inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> = typename KernelType::internal_type&gt;<br />
+requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">unsigned</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>) &amp;&amp; std::is_trivially_copyable_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;)<br />
+class IOv2::Comp::zlib_cvt&lt; KernelType, TInt &gt;</div><p>zlib-based compression/decompression converter.</p>
+<p>Derives from <code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> with both <code>default_positioning</code> and <code>default_io_switch</code> set to <code>false</code>: compressed streams are stateful and support neither random seeking nor switching between compression and decompression directions.</p>
+<p><b>BOS phase</b> (after <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code>, before <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg()</a></code>):</p><ul>
+<li>Output (compression) mode: calls <code>deflateInit</code>, immediately triggers a <code>Z_NO_FLUSH</code> call to make zlib emit the 2-byte stream header, and writes it through the kernel.</li>
+<li>Input (decompression) mode: calls <code>inflateInit</code>, reads the 2-byte stream header from the kernel, and feeds it to <code>inflate</code> for header validation.</li>
+</ul>
+<p><b>Main-content phase</b> (after <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg()</a></code>):</p><ul>
+<li>Compression: <code>put_main</code> calls <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">deflate(Z_NO_FLUSH)</a></code> to compress user data and write it through the kernel.</li>
+<li>Decompression: <code>get_main</code> calls <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">inflate(Z_NO_FLUSH)</a></code> to read compressed data from the kernel and decompress it for the caller.</li>
+</ul>
+<p><b>Stream finalization</b> (<code>close_stream()</code>):</p><ul>
+<li>Compression: loops <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">deflate(Z_FINISH)</a></code> until <code>Z_STREAM_END</code>, flushing all remaining compressed bytes through the kernel, then calls <code>deflateEnd</code>.</li>
+<li>Decompression: calls <code>inflateEnd</code> directly.</li>
+</ul>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>The kernel converter type, must satisfy <code>io_converter</code>; its <code>internal_type</code> must have the same size as <code>unsigned char</code> (byte-level kernel). </td></tr>
+    <tr><td class="paramname">TInt</td><td>The internal type exposed by this converter (the element type of the <code>get</code>/<code>put</code> interface). Must satisfy <code>std::is_trivially_copyable</code>. Defaults to the kernel's <code>internal_type</code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a63d46ed3e80a42d3ee84003c624f77ef" name="a63d46ed3e80a42d3ee84003c624f77ef"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a63d46ed3e80a42d3ee84003c624f77ef">&#9670;&#160;</a></span>device_type</h2>
 
@@ -310,6 +334,14 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Construct the zlib converter from a kernel and compression level. A level greater than 9 is silently clamped to 9; the level is ignored on the decompression path as it only affects <code>deflateInit</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>底层内核转换器（移动接管所有权）。 / The underlying kernel converter (ownership transferred via move). </td></tr>
+    <tr><td class="paramname">put_level</td><td>deflate 压缩等级（0–9，默认 6）。 / deflate compression level (0–9, default 6). </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -338,6 +370,7 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy constructor. Copies the kernel, compression level, <code>m_sync_flush</code>, and <code>m_stream_ended</code> flag. If currently in output mode, calls <code>deflateCopy</code> to deep-copy the deflate state; if in input mode, calls <code>inflateCopy</code> to deep-copy the inflate state. In <code>neutral</code> mode no zlib state needs to be copied (<code>m_strm</code> is null). If <code>deflateCopy</code>/<code>inflateCopy</code> throws, <code>m_strm</code> is reset and IO status is restored to <code>neutral</code>, leaving the object in a consistent state.  </p>
 
 </div>
 </div>
@@ -366,6 +399,7 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Move constructor. Transfers ownership of the <code>m_strm</code> <code>unique_ptr</code>, keeping the address of the <code>z_stream</code> object unchanged. zlib's internal state holds a back-pointer (<code>state-&gt;strm</code>) to the <code>z_stream</code> struct; a shallow struct copy would leave that pointer stale, causing <code>deflate</code>/<code>inflate</code> to return <code>Z_STREAM_ERROR</code>. Transferring the <code>unique_ptr</code> preserves the address and keeps the back-pointer valid.  </p>
 
 </div>
 </div>
@@ -393,6 +427,7 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Destructor (<code>noexcept</code>). Calls <code>close_stream()</code> to finalize the output stream; any exception thrown is silently discarded.  </p>
 
 </div>
 </div>
@@ -422,6 +457,13 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Adjust converter behavior parameters. If <code>acc</code> is a <code><a class="el" href="structIOv2_1_1Comp_1_1zlib__sync__flush.html">zlib_sync_flush</a></code> instance, updates the <code>m_sync_flush</code> flag; also forwards <code>acc</code> to the base-class <code><a class="el" href="classIOv2_1_1abs__cvt.html#a2df54313bc6736819b23456675bd1d8a">BT::adjust()</a></code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">acc</td><td>行为策略对象。 / The behavior policy object. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -450,6 +492,19 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Attach a new device to the converter, closing the current zlib stream first. The current stream is closed before the new device is installed (any close error is captured); the error is rethrown only after the new device has been installed. This ordering prevents <code>dev</code> (already moved into the parameter) from being silently destroyed during stack unwinding. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>要绑定的新设备（移动接管所有权），默认为空设备。 / The new device to attach (ownership transferred via move); defaults to an empty device. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若旧流的 <code>close_stream()</code> 失败。 / If <code>close_stream()</code> fails for the old stream. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -477,6 +532,19 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Start the zlib stream by initializing inflate or deflate state and processing the 2-byte zlib stream header.</p>
+<p>After calling the base-class <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">BT::bos()</a></code> to determine IO direction:</p><ul>
+<li><b>Output (compression) mode</b>: calls <code>deflateInit</code>, triggers deflate with <code>Z_NO_FLUSH</code> and zero input to emit the 2-byte stream header, verifies exactly 2 bytes were emitted with no pending bytes remaining, then writes the header through the kernel.</li>
+<li><b>Input (decompression) mode</b>: calls <code>inflateInit</code>, reads the 2-byte stream header from the kernel, and feeds it to <code>inflate</code> for header validation. Preset dictionaries (<code>Z_NEED_DICT</code>) are not supported and cause a throw.</li>
+</ul>
+<p>If any step fails, <code>m_strm</code> has already been reset to <code>nullptr</code> by the guards (<code>inflate_guard</code>/<code>deflate_guard</code>) or manually; the IO status is then reset to <code>neutral</code> and the converter is marked tainted before rethrowing. </p>
+<dl class="section return"><dt>Returns</dt><dd>确定的初始 IO 方向。 / The determined initial IO direction. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 zlib 初始化失败、流头格式非法或内核不支持所需的读写方向。 / If zlib initialization fails, the stream header is invalid, or the kernel does not support the required read/write direction. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -504,6 +572,8 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Detach the underlying device while finalizing the current zlib stream (<code>noexcept</code>). Calls <code>close_stream()</code> first (capturing any exception), then calls the base-class <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">BT::detach()</a></code> to detach the device. The <code>close_stream</code> error takes precedence over the kernel's error (first-failure-wins). </p>
+<dl class="section return"><dt>Returns</dt><dd>包含已分离设备和首个捕获异常的 pair（<code>nullptr</code> 表示无异常）。 / A pair containing the detached device and the first captured exception (<code>nullptr</code> if none). </dd></dl>
 
 </div>
 </div>
@@ -531,6 +601,8 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Query whether the end of the zlib compressed stream has been reached. <code>m_stream_ended</code> is the zlib-level EOF latch, set by <code>get_main</code> when <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">inflate()</a></code> reports <code>Z_STREAM_END</code>. <code><a class="el" href="classIOv2_1_1abs__cvt.html#af347a0a67feb1ffe883e89c494f78f40">BT::is_eof()</a></code> reflects the kernel's bytes-available view, which can lag behind the zlib stream end (zlib's trailer/checksum may still reside in the kernel buffer after the decompressed payload is exhausted). Either condition represents a true end-of-stream from the caller's perspective, so they are OR'd together. </p>
+<dl class="section return"><dt>Returns</dt><dd>若已到达流末尾（zlib 流已结束或内核无更多数据），返回 <code>true</code>。 / <code>true</code> if the end of the stream has been reached (zlib stream ended or kernel has no more data). </dd></dl>
 
 </div>
 </div>
@@ -558,6 +630,16 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Mark the end of the BOS phase and enter the main-content phase. Calls the base-class <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">BT::main_cont_beg()</a></code> first, then:</p><ul>
+<li>If currently in output mode, calls <code><a class="el" href="classIOv2_1_1abs__cvt.html#a7bcf353e0b89b81a31acbeaf4b344896">BT::flush()</a></code> to flush the zlib stream header (written into the kernel buffer during the BOS phase) to the underlying device. At this point <code>m_strm</code> is guaranteed to be a valid zlib stream by the <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> invariant.</li>
+<li>If currently in <code>neutral</code> mode, <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> has not been called and an exception is thrown. </li>
+</ul>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> 尚未被调用（IO 状态为 <code>neutral</code>）。 / If <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> has not yet been called (IO status is <code>neutral</code>). </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -586,6 +668,7 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy assignment operator. Closes the old stream first (capturing any error), then copies the new state (including <code>deflateCopy</code>/<code>inflateCopy</code>). If copying the new state fails, the object is marked tainted before rethrowing. If copying succeeds but the old stream close failed, the <code>close_stream</code> exception is rethrown before returning — ensuring the assignment result is always usable while not silently discarding the close failure.  </p>
 
 </div>
 </div>
@@ -614,6 +697,7 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Move assignment operator (<code>noexcept</code>). Closes the old stream first (discarding any error), then transfers all members, including the <code>m_strm</code> <code>unique_ptr</code>. Transferring the <code>unique_ptr</code> rather than copying the <code>z_stream</code> struct preserves the validity of zlib's internal back-pointer (see the move constructor for details).  </p>
 
 </div>
 </div>

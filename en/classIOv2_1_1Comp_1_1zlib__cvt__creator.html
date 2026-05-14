@@ -112,7 +112,16 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:afce430e82e0918fe4c313ba3a516ab21"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt__creator.html#afce430e82e0918fe4c313ba3a516ab21">create</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TKernel</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:afce430e82e0918fe4c313ba3a516ab21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
+class IOv2::Comp::zlib_cvt_creator&lt; TInt &gt;</div><p>Factory class for <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">zlib_cvt</a></code>, used to construct compression/decompression converters in a pipeline. Stores the compression level and wraps any compatible kernel into a <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">zlib_cvt</a></code> instance via <code>create(kernel)</code>. Typically composed with other factories via <code>operator|</code>. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TInt</td><td>目标转换器的内部数据类型。 / The internal data type of the target converter. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a2dc1a5495870076e414d0a2c9212800f" name="a2dc1a5495870076e414d0a2c9212800f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2dc1a5495870076e414d0a2c9212800f">&#9670;&#160;</a></span>category</h2>
 
@@ -155,6 +164,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Construct the factory with the specified compression level. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">level</td><td>deflate 压缩等级（0–9）。 / deflate compression level (0–9). </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -186,6 +202,20 @@ template&lt;io_converter TKernel&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Wrap a kernel into a <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">zlib_cvt</a></code> instance. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TKernel</td><td>满足 <code>io_converter</code> 的内核类型。 / The kernel type satisfying <code>io_converter</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>待包装的内核（完美转发）。 / The kernel to wrap (perfect-forwarded). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>以 <code>kernel</code> 和存储的压缩等级构造的 <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">zlib_cvt</a></code> 实例。 / A <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">zlib_cvt</a></code> instance constructed from <code>kernel</code> and the stored compression level. </dd></dl>
 
 </div>
 </div>

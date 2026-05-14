@@ -114,7 +114,9 @@ Variables</h2></td></tr>
 <tr class="memitem:a26a0b91f19003a2657cae9bcb805a94d" id="r_a26a0b91f19003a2657cae9bcb805a94d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a26a0b91f19003a2657cae9bcb805a94d">runtime_cvt_null_err</a></td></tr>
 <tr class="separator:a26a0b91f19003a2657cae9bcb805a94d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Namespace for internal implementation details.  </p>
+</div><h2 class="groupheader">Function Documentation</h2>
 <a id="a801881577b5c1cb239a485b6fab5034b" name="a801881577b5c1cb239a485b6fab5034b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a801881577b5c1cb239a485b6fab5034b">&#9670;&#160;</a></span>to_u32string() <span class="overload">[1/2]</span></h2>
 
@@ -359,7 +361,8 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
 <div class="line">    std::make_exception_ptr(cvt_error(<span class="stringliteral">&quot;runtime_cvt: null instance&quot;</span>))</div>
-</div><!-- fragment -->
+</div><!-- fragment --><p>Pre-constructed exception pointer thrown when a <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> holds a null implementation. Pre-constructing it avoids repeated allocation in contexts where memory may be unavailable.  </p>
+
 </div>
 </div>
 </div><!-- contents -->

@@ -215,7 +215,9 @@ zlib_cvt.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2_1_1Comp" id="r_namespaceIOv2_1_1Comp"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Comp.html">IOv2::Comp</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>zlib 压缩/解压转换器定义文件。 本文件实现了基于 zlib 的 deflate（压缩）和 inflate（解压）转换器 <code>zlib_cvt</code>， 以及用于流式管道构造的工厂类 <code>zlib_cvt_creator</code>。 <code>zlib_cvt</code> 继承自 <code>abs_cvt</code>（禁用默认定位与 IO 方向切换），BOS 阶段负责读写 2 字节的 zlib 流头，主内容阶段通过 <code>get_main</code>/<code>put_main</code> 执行实际的解压/压缩。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

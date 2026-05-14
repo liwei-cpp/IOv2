@@ -210,7 +210,13 @@ runtime_cvt.h 的引用(Include)关系图:</div>
 <tr class="memitem:a26a0b91f19003a2657cae9bcb805a94d" id="r_a26a0b91f19003a2657cae9bcb805a94d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a26a0b91f19003a2657cae9bcb805a94d">IOv2::detail::runtime_cvt_null_err</a></td></tr>
 <tr class="separator:a26a0b91f19003a2657cae9bcb805a94d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>运行时类型擦除转换器定义文件。 本文件通过经典的虚函数类型擦除模式，将任意满足 <code>io_converter</code> 约束的转换器 包装为统一的 <code>runtime_cvt&lt;TDevice, TInt&gt;</code> 类型，使转换器可以在运行时多态地存储与操作。 主要包含以下三层结构：</p><ul>
+<li><code>abs_runtime_cvt_imp</code>：定义类型擦除接口的抽象基类；</li>
+<li><code>runtime_cvt_imp</code>：持有具体转换器内核的实现类；</li>
+<li><code>runtime_cvt</code>：面向用户的类型擦除转换器包装类。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

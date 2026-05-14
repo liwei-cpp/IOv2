@@ -142,7 +142,16 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac5f2799bc33722283e93c18a7954419d" id="r_ac5f2799bc33722283e93c18a7954419d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Comp_1_1zlib__sync__flush.html#ac5f2799bc33722283e93c18a7954419d">m_sync_flush</a></td></tr>
 <tr class="separator:ac5f2799bc33722283e93c18a7954419d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Behavior policy class that controls whether <code><a class="el" href="classIOv2_1_1abs__cvt.html#a7bcf353e0b89b81a31acbeaf4b344896">zlib_cvt::flush()</a></code> triggers <code>Z_SYNC_FLUSH</code> semantics.</p>
+<p>The default for <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">zlib_cvt</a></code> is <code>sync_flush == false</code>, in which case <code><a class="el" href="namespaceIOv2.html#a4980fffb02a1ec303bd5f692363fc7f5">flush()</a></code> does NOT emit a sync marker — data that has been passed to <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">deflate()</a></code> on previous <code>put()</code> calls but is still inside zlib's LZ77 window stays buffered until <code>close_stream</code> finalizes the stream with <code>Z_FINISH</code>.</p>
+<p>This default is deliberate: <code>Z_SYNC_FLUSH</code> is not free. Each invocation inserts a 5-byte empty stored block (<code>00 00 00 FF FF</code>) as a stream sync point AND forces zlib to abandon partial LZ77 matches it was still trying to optimize — frequent sync-flushing can degrade the compression ratio toward 1:1. Callers who do not need stream-level synchronization should not pay that cost.</p>
+<p>Enable it via <code>cvt.adjust(<a class="el" href="structIOv2_1_1Comp_1_1zlib__sync__flush.html">zlib_sync_flush</a>{true})</code> when synchronization points are required:</p><ul>
+<li>Streaming over a network where the receiver must start decompression at well-defined boundaries;</li>
+<li>Interactive tools that need byte-level latency at the cost of compression ratio;</li>
+<li>Any framing where downstream may begin decompression mid-stream.  </li>
+</ul>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ae72ccf647fe57462c6da7c58ddc74090" name="ae72ccf647fe57462c6da7c58ddc74090"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae72ccf647fe57462c6da7c58ddc74090">&#9670;&#160;</a></span>zlib_sync_flush()</h2>
 

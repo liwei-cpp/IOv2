@@ -103,7 +103,17 @@ Public 类型</h2></td></tr>
 <tr class="memitem:a225f9acd2a9ca81d16708f2963562c24" id="r_a225f9acd2a9ca81d16708f2963562c24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1cvt__creator__type__gen_3_01cvt__pipe__creator_3_01T1_8_8_8_01_4_00_01cvt__pipe__creator_3_01T2_8_8_8_01_4_01_4.html#a225f9acd2a9ca81d16708f2963562c24">type</a> = <a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt; T1..., T2... &gt;</td></tr>
 <tr class="separator:a225f9acd2a9ca81d16708f2963562c24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;typename... T1, typename... T2&gt;<br />
+struct IOv2::cvt_creator_type_gen&lt; cvt_pipe_creator&lt; T1... &gt;, cvt_pipe_creator&lt; T2... &gt; &gt;</div><p><code><a class="el" href="structIOv2_1_1cvt__creator__type__gen.html">cvt_creator_type_gen</a></code> 特化：两个管道工厂合并，将各自内部的工厂列表依序拼接， 生成 <code><a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt;T1..., T2...&gt;</code>。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T1</td><td>左侧管道工厂所含的各转换器工厂类型。 / The converter creator types in the left-hand pipeline. </td></tr>
+    <tr><td class="paramname">T2</td><td>右侧管道工厂所含的各转换器工厂类型。 / The converter creator types in the right-hand pipeline. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a225f9acd2a9ca81d16708f2963562c24" name="a225f9acd2a9ca81d16708f2963562c24"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a225f9acd2a9ca81d16708f2963562c24">&#9670;&#160;</a></span>type</h2>
 

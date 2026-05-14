@@ -103,7 +103,18 @@ Public 类型</h2></td></tr>
 <tr class="memitem:aa79c6490995785a69325e3ca5c01fd58" id="r_aa79c6490995785a69325e3ca5c01fd58"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1cvt__creator__type__gen_3_01T1_00_01T2_01_4.html#aa79c6490995785a69325e3ca5c01fd58">type</a> = <a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a> &gt;</td></tr>
 <tr class="separator:aa79c6490995785a69325e3ca5c01fd58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a>&gt;<br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T1::category, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CvtCreatorCategory</a>&gt; &amp;&amp; std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T2::category, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CvtCreatorCategory</a>&gt; &amp;&amp; !cpt_cvt_pipe_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T1</a>&gt; &amp;&amp; !cpt_cvt_pipe_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a>&gt;)<br />
+struct IOv2::cvt_creator_type_gen&lt; T1, T2 &gt;</div><p><code><a class="el" href="structIOv2_1_1cvt__creator__type__gen.html">cvt_creator_type_gen</a></code> 特化：两个非管道的 <code>cvt_creator</code> 类型合并， 生成 <code><a class="el" href="classIOv2_1_1cvt__pipe__creator.html">cvt_pipe_creator</a>&lt;T1, T2&gt;</code>。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T1</td><td>左侧非管道转换器工厂类型。 / Left-hand non-pipe converter creator type. </td></tr>
+    <tr><td class="paramname">T2</td><td>右侧非管道转换器工厂类型。 / Right-hand non-pipe converter creator type. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="aa79c6490995785a69325e3ca5c01fd58" name="aa79c6490995785a69325e3ca5c01fd58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa79c6490995785a69325e3ca5c01fd58">&#9670;&#160;</a></span>type</h2>
 

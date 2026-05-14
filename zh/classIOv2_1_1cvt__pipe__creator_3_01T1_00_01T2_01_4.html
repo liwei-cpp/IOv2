@@ -119,7 +119,17 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:aacd30f0922affce860a0f4b769874011"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1cvt__pipe__creator_3_01T1_00_01T2_01_4.html#aacd30f0922affce860a0f4b769874011">cvt_pipe_creator</a></td></tr>
 <tr class="separator:aacd30f0922affce860a0f4b769874011"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T2</a>&gt;<br />
+class IOv2::cvt_pipe_creator&lt; T1, T2 &gt;</div><p>由两个转换器工厂组成的管道工厂（二元特化）。 调用 <code>create(kernel)</code> 时，先以 T1 包装 <code>kernel</code>，再以 T2 包装上一步的结果， 形成双层转换链路。向最终转换器写入数据时，数据依次流经 T2 和 T1 的处理，最终到达 <code>kernel</code>。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T1</td><td>第一个（内层）转换器工厂类型。 / The first (inner) converter creator type. </td></tr>
+    <tr><td class="paramname">T2</td><td>第二个（外层）转换器工厂类型。 / The second (outer) converter creator type. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a1397534b5b62b8c3c95e2e4af46a2ff9" name="a1397534b5b62b8c3c95e2e4af46a2ff9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1397534b5b62b8c3c95e2e4af46a2ff9">&#9670;&#160;</a></span>category</h2>
 
@@ -172,6 +182,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造二元管道工厂，保存两个工厂实例的副本。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c1</td><td>第一个（内层）转换器工厂。 / The first (inner) converter creator. </td></tr>
+    <tr><td class="paramname">c2</td><td>第二个（外层）转换器工厂。 / The second (outer) converter creator. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -203,6 +221,20 @@ template&lt;io_converter TKernel&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>以此管道工厂创建转换器，将 <code>kernel</code> 依次包装进 T1 和 T2 中。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TKernel</td><td>满足 <code>io_converter</code> 的内核转换器类型。 / The kernel converter type satisfying <code>io_converter</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>最内层的转换器内核。 / The innermost converter kernel. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>经过两层包装后的转换器。 / The converter after two layers of wrapping. </dd></dl>
 
 </div>
 </div>

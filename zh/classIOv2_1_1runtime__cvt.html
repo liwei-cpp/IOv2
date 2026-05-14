@@ -157,7 +157,17 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;KernelType&gt;, <a class="el
 <tr class="memitem:ab52f606e2159be8b0988a081b260fb38" id="r_ab52f606e2159be8b0988a081b260fb38"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1runtime__cvt.html#ab52f606e2159be8b0988a081b260fb38">switch_to_put</a> ()</td></tr>
 <tr class="separator:ab52f606e2159be8b0988a081b260fb38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
+class IOv2::runtime_cvt&lt; TDevice, TInt &gt;</div><p>面向用户的运行时类型擦除转换器。 通过 <code>unique_ptr&lt;<a class="el" href="classIOv2_1_1abs__runtime__cvt__imp.html">abs_runtime_cvt_imp</a>&gt;</code> 持有具体转换器实现，使具体类型对外不可见。 支持拷贝（通过 <code>clone()</code> 实现多态拷贝）与移动语义。 所有成员函数在转发调用前均检查内部指针是否为空： 若为空则抛出异常（<code>noexcept</code> 函数 <code>detach</code> 除外，其在空指针时调用 <code>std::terminate</code>）。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TDevice</td><td>底层设备类型，须满足 <code>io_device</code>。 / The underlying device type, must satisfy <code>io_device</code>. </td></tr>
+    <tr><td class="paramname">TInt</td><td>转换器内部数据类型。 / The converter's internal data type. </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="ae557e522ee9c2fd48660b9eea6304294" name="ae557e522ee9c2fd48660b9eea6304294"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae557e522ee9c2fd48660b9eea6304294">&#9670;&#160;</a></span>device_type</h2>
 
@@ -235,6 +245,23 @@ requires (!std::is_same_v&lt;std::remove_cvref_t&lt;KernelType&gt;, <a class="el
   </tr>
 </table>
 </div><div class="memdoc">
+<p>从任意兼容的转换器内核构造。接受左值（拷贝）和右值（移动）两种形式。 约束要求：</p><ul>
+<li><code>KernelType</code> 不得为 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 自身（防止此构造函数拦截拷贝/移动构造）；</li>
+<li><code>KernelType</code> 须满足 <code>io_converter</code>；</li>
+<li>若传入左值引用，则内核类型须支持拷贝构造（因内核将被存储于堆上）。 </li>
+</ul>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>转换器内核类型。 / The converter kernel type. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>待包装的转换器内核。 / The converter kernel to wrap. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -263,6 +290,13 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>拷贝构造：通过 <code>clone()</code> 对内部实现进行多态拷贝。若源对象为空则拷贝结果也为空。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 实例。 / The source <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -347,6 +381,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>向转换器应用行为策略；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -375,6 +410,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将设备绑定到此转换器；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -402,6 +438,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>建立初始 I/O 状态；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -429,6 +466,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>分离底层设备，重置 I/O 状态为 <code>neutral</code>。 此函数声明为 <code>noexcept</code>：若内部指针为空，调用 <code>std::terminate</code> 而非抛出异常。 </p>
+<dl class="section return"><dt>返回</dt><dd>包含设备和任意待传播异常的 pair。 / A pair containing the device and any pending exception to propagate. </dd></dl>
 
 </div>
 </div>
@@ -456,6 +495,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回底层设备的引用；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -483,6 +523,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将所有缓冲数据刷出转换器；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -521,6 +562,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>从转换器读取至多 <code>to_max</code> 个元素；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -548,6 +590,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>查询是否已到达数据末尾；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -575,6 +618,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>通知转换器进入主内容阶段；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -603,6 +647,14 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>拷贝赋值：通过 <code>clone()</code> 对内部实现进行多态拷贝。若源对象为空则目标也置为空。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">val</td><td>源 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 实例。 / The source <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>对 <code>*this</code> 的引用。 / A reference to <code>*this</code>. </dd></dl>
 
 </div>
 </div>
@@ -669,6 +721,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>向转换器写入 <code>to_size</code> 个元素；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -697,6 +750,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>提取转换器的内部状态；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -725,6 +779,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将流定位到指定相对位置；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -753,6 +808,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将流定位到指定绝对位置；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -780,6 +836,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>切换至输入（读取）模式；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -807,6 +864,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>切换至输出（写入）模式；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
@@ -834,6 +892,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回当前流位置；若内部指针为空则抛出异常。   </p>
 
 </div>
 </div>
