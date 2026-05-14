@@ -2,6 +2,7 @@
 
 #include <cvt/cvt_concepts.h>
 
+#include <concepts>
 #include <cstddef>
 #include <tuple>
 #include <type_traits>
@@ -130,7 +131,8 @@ private:
 };
 
 template <typename T1, typename T2>
-    requires (cvt_creator<T1> && cvt_creator<T2>)
+    requires (cvt_creator<T1> && cvt_creator<T2> &&
+              std::copy_constructible<T1> && std::copy_constructible<T2>)
 auto operator | (const T1& t1, const T2& t2)
 {
     using type = typename cvt_creator_type_gen<T1, T2>::type;

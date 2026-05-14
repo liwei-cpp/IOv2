@@ -49,7 +49,8 @@ struct zlib_sync_flush : cvt_behavior
 };
 
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
-    requires (sizeof(typename KernelType::internal_type) == sizeof(unsigned char))
+    requires (sizeof(typename KernelType::internal_type) == sizeof(unsigned char) &&
+              std::is_trivially_copyable_v<TInt>)
 class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>
 {
     using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
