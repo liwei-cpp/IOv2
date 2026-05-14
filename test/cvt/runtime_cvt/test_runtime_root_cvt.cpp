@@ -1,5 +1,6 @@
 #include <typeinfo>
 #include <cvt/cvt_concepts.h>
+#include <cvt/comp/zlib_cvt.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
@@ -108,6 +109,126 @@ void test_runtime_cvt_null_instance()
         must_throw([&] { (void)target.bos();   });
         must_throw([&] { (void)target.tell();  });
         must_throw([&] { (void)target.flush(); });
+    }
+
+    dump_info("Done\n");
+}
+
+void test_runtime_cvt_full_ops()
+{
+    using namespace IOv2;
+    dump_info("Test runtime_cvt: tell/seek/rseek/switch/is_eof/retrieve...");
+
+    {
+        runtime_cvt obj(rb_root_cvt{mem_device(std::string("hello world"))});
+
+        VERIFY(obj.bos() == io_status::input);
+
+        // retrieve must not throw
+        cvt_status stat;
+        obj.retrieve(stat);
+
+        obj.main_cont_beg();
+
+        // is_eof: not at end yet
+        VERIFY(!obj.is_eof());
+
+        // read some bytes
+        char buf[5] = {};
+        VERIFY(obj.get(buf, 5) == 5);
+
+        // tell: position should have advanced
+        VERIFY(obj.tell() > 0);
+
+        // seek back to start
+        obj.seek(0);
+        VERIFY(obj.tell() == 0);
+
+        // rseek(3): reverse-seek to 3 chars before end of stream; just verify no throw
+        obj.rseek(3);
+        VERIFY(obj.tell() > 0);
+
+        // switch_to_put: m_io_status is input → actual switch (non-idempotent)
+        obj.switch_to_put();
+        // switch_to_put again: m_io_status is now output → idempotent early return
+        obj.switch_to_put();
+
+        // switch_to_get: m_io_status is output → actual switch (non-idempotent)
+        obj.switch_to_get();
+        // switch_to_get again: m_io_status is now input → idempotent early return
+        obj.switch_to_get();
+
+        obj.detach();
+    }
+
+    dump_info("Done\n");
+}
+
+void test_runtime_cvt_unsupported_ops()
+{
+    using namespace IOv2;
+    dump_info("Test runtime_cvt: unsupported ops throw, idempotent switch...");
+
+    auto must_throw = [](auto fn) {
+        bool threw = false;
+        try { fn(); } catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    };
+
+    using ZCvt = Comp::zlib_cvt<rb_root_cvt<mem_device<char>>>;
+
+    // tell/seek/rseek on a zlib_cvt-wrapping runtime_cvt (no positioning support) → throw
+    {
+        runtime_cvt obj(ZCvt{rb_root_cvt{mem_device("")}, 6});
+        must_throw([&] { (void)obj.tell(); });
+        must_throw([&] { obj.seek(0); });
+        must_throw([&] { obj.rseek(0); });
+    }
+
+    // switch_to_get throws when m_io_status is output and kernel has no io_switch
+    {
+        runtime_cvt obj(ZCvt{rb_root_cvt{mem_device("")}, 6});
+        obj.bos();  // returns output; m_io_status = output in runtime_cvt_imp
+        must_throw([&] { obj.switch_to_get(); });
+    }
+
+    // switch_to_put throws when m_io_status is input and kernel has no io_switch
+    {
+        std::string compressed;
+        {
+            ZCvt comp{rb_root_cvt{mem_device("")}, 6};
+            comp.bos(); comp.main_cont_beg();
+            char data[] = "hi";
+            comp.put(data, 2);
+            auto [dev, err] = comp.detach();
+            compressed = dev.str();
+        }
+        runtime_cvt obj(ZCvt{rb_root_cvt{mem_device(compressed)}, 6});
+        obj.bos();  // returns input; m_io_status = input in runtime_cvt_imp
+        must_throw([&] { obj.switch_to_put(); });
+    }
+
+    // switch_to_get is idempotent when m_io_status is already input (no throw)
+    {
+        std::string compressed;
+        {
+            ZCvt comp{rb_root_cvt{mem_device("")}, 6};
+            comp.bos(); comp.main_cont_beg();
+            char data[] = "hi";
+            comp.put(data, 2);
+            auto [dev, err] = comp.detach();
+            compressed = dev.str();
+        }
+        runtime_cvt obj(ZCvt{rb_root_cvt{mem_device(compressed)}, 6});
+        obj.bos();           // m_io_status = input
+        obj.switch_to_get(); // idempotent: m_io_status == input → returns immediately
+    }
+
+    // switch_to_put is idempotent when m_io_status is already output (no throw)
+    {
+        runtime_cvt obj(ZCvt{rb_root_cvt{mem_device("")}, 6});
+        obj.bos();           // m_io_status = output
+        obj.switch_to_put(); // idempotent: m_io_status == output → returns immediately
     }
 
     dump_info("Done\n");

@@ -665,10 +665,107 @@ void test_zlib_cvt_wchar_t_reset_1()
     Comp::zlib_cvt_creator<wchar_t> creator{8};
     auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
-    
+
     auto tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
+
+    dump_info("Done\n");
+}
+
+void test_zlib_cvt_wchar_t_gen_6()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt<wchar_t> gen 6: level clamp, adjust base behavior, self-assignment...");
+
+    // compression level > 9 is silently clamped to 9
+    {
+        Comp::zlib_cvt<rb_root_cvt<mem_device<char>>, wchar_t> obj{rb_root_cvt{mem_device("")}, 15};
+        if (obj.bos() != io_status::output) throw std::runtime_error("level clamp: bos fail");
+        obj.main_cont_beg();
+        wchar_t data[] = L"hi";
+        obj.put(data, 2);
+        obj.detach();
+    }
+
+    // adjust() with base cvt_behavior: dynamic_cast returns nullptr, only BT::adjust() is called
+    {
+        Comp::zlib_cvt<rb_root_cvt<mem_device<char>>, wchar_t> obj{rb_root_cvt{mem_device("")}, 6};
+        obj.bos();
+        obj.main_cont_beg();
+        cvt_behavior base_acc;
+        obj.adjust(base_acc);
+        obj.detach();
+    }
+
+    // self-assignment in copy-assignment operator: 'this == &val' guard
+    {
+        Comp::zlib_cvt<rb_root_cvt<mem_device<char>>, wchar_t> obj{rb_root_cvt{mem_device("")}, 6};
+        obj.bos();
+        obj.main_cont_beg();
+        wchar_t data[] = L"abc";
+        obj.put(data, 3);
+        obj = obj;  // NOLINT(clang-diagnostic-self-assign-overloaded)
+        obj.detach();
+    }
+
+    dump_info("Done\n");
+}
+
+void test_zlib_cvt_wchar_t_error_1()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt<wchar_t> error paths: truncated stream...");
+
+    // Truncated stream: only the 2-byte zlib header, no compressed payload.
+    {
+        std::string just_header("\x78\x9c", 2);
+        Comp::zlib_cvt<rb_root_cvt<mem_device<char>>, wchar_t> obj{rb_root_cvt{mem_device(just_header)}, 6};
+        if (obj.bos() != io_status::input) throw std::runtime_error("bos should return input");
+        obj.main_cont_beg();
+        wchar_t buf[16] = {};
+        bool threw = false;
+        try { obj.get(buf, 16); }
+        catch (const cvt_error&) { threw = true; }
+        if (!threw) throw std::runtime_error("truncated stream should throw");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_zlib_cvt_wchar_t_eof_1()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt<wchar_t> is_eof and m_stream_ended early-return...");
+
+    // compress a small wstring
+    std::string compressed;
+    {
+        Comp::zlib_cvt<rb_root_cvt<mem_device<char>>, wchar_t> comp{rb_root_cvt{mem_device("")}, 6};
+        comp.bos();
+        comp.main_cont_beg();
+        wchar_t data[] = L"hi";
+        comp.put(data, 2);
+        auto [dev, err] = comp.detach();
+        if (err) std::rethrow_exception(err);
+        compressed = dev.str();
+    }
+
+    // decompress with a buffer larger than the payload
+    {
+        Comp::zlib_cvt<rb_root_cvt<mem_device<char>>, wchar_t> decomp{rb_root_cvt{mem_device(compressed)}, 6};
+        if (decomp.bos() != io_status::input) throw std::runtime_error("bos fail");
+        decomp.main_cont_beg();
+
+        wchar_t buf[64] = {};
+        auto n = decomp.get(buf, 64);
+        if (n != 2) throw std::runtime_error("expected 2 decompressed wchar_t");
+
+        if (!decomp.is_eof()) throw std::runtime_error("is_eof should be true after Z_STREAM_END");
+
+        auto n2 = decomp.get(buf, 64);
+        if (n2 != 0) throw std::runtime_error("get after stream end should return 0");
+    }
 
     dump_info("Done\n");
 }
