@@ -29,7 +29,7 @@ namespace IOv2::Comp
 // stream with Z_FINISH.
 //
 // This default is deliberate: Z_SYNC_FLUSH is not free.  Each invocation
-// inserts a 5-byte empty stored block (00 00 FF FF) as a stream sync point
+// inserts a 5-byte empty stored block (00 00 00 FF FF) as a stream sync point
 // AND forces zlib to abandon partial LZ77 matches it was still trying to
 // optimize - frequent sync-flushing can degrade the compression ratio toward
 // 1:1.  Callers who do not need stream-level synchronization should not pay
@@ -147,6 +147,7 @@ public:
         : BT(val)
         , m_put_level(val.m_put_level)
         , m_sync_flush(val.m_sync_flush)
+        , m_stream_ended(val.m_stream_ended)
     {
         try
         {
@@ -165,6 +166,7 @@ public:
         {
             m_strm.reset();
             BT::m_io_status = io_status::neutral;
+            m_stream_ended = false;
             throw;
         }
     }
@@ -178,6 +180,7 @@ public:
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
         , m_sync_flush(val.m_sync_flush)
+        , m_stream_ended(val.m_stream_ended)
         , m_strm(std::move(val.m_strm))
     {}
 
@@ -199,6 +202,7 @@ public:
             BT::operator=(val);
             m_put_level = val.m_put_level;
             m_sync_flush = val.m_sync_flush;
+            m_stream_ended = val.m_stream_ended;
 
             if (BT::m_io_status == io_status::output)
             {
@@ -214,6 +218,7 @@ public:
         catch(...)
         {
             m_strm.reset();
+            m_stream_ended = false;
             BT::set_tainted();
             throw;
         }
@@ -232,6 +237,7 @@ public:
         BT::operator=(std::move(val));
         m_put_level = val.m_put_level;
         m_sync_flush = val.m_sync_flush;
+        m_stream_ended = val.m_stream_ended;
         m_strm = std::move(val.m_strm);  // preserves z_stream address; see move ctor
 
         return *this;
@@ -284,12 +290,32 @@ public:
         return BT::adjust(acc);
     }
 
+    bool is_eof()
+        requires (cvt_cpt::support_get<KernelType>)
+    {
+        // m_stream_ended is the zlib-level EOF latch set by get_main when
+        // inflate() reports Z_STREAM_END.  BT::is_eof() reflects the
+        // underlying kernel's bytes-available view, which can lag behind the
+        // zlib stream end (zlib's trailer/footer may sit inside the kernel
+        // buffer even after the decompressed payload is exhausted).  Either
+        // condition is a true end-of-stream for the caller, so OR them.
+        return m_stream_ended || BT::is_eof();
+    }
+
     void main_cont_beg()
     {
         BT::main_cont_beg();
 
         if (BT::m_io_status == io_status::output)
+        {
+            // Invariant: bos() either allocates m_strm and leaves m_io_status as
+            // input/output, or restores neutral and taints the converter on failure.
+            // Reaching here with m_io_status == output therefore implies m_strm is
+            // a fully-initialized zlib stream; if the converter were tainted,
+            // BT::flush() would throw before do_flush() dereferences m_strm.
+            assert(m_strm);
             BT::flush();
+        }
         else if (BT::m_io_status == io_status::neutral)
             throw cvt_error("zlib_cvt::main_cont_beg fail: bos() has not been called before main_cont_beg");
     }
@@ -349,6 +375,10 @@ public:
 
                     zlib_guard.release();
                 }
+                else
+                {
+                    throw cvt_error("zlib_cvt::bos fail: BT returned input but KernelType lacks get support");
+                }
             }
             else if (BT::m_io_status == io_status::output)
             {
@@ -397,6 +427,10 @@ public:
 
                     zlib_guard.release();
                 }
+                else
+                {
+                    throw cvt_error("zlib_cvt::bos fail: BT returned output but KernelType lacks put support");
+                }
             }
             else
                 throw cvt_error("zlib_cvt::bos fail: invalid response value.");
@@ -418,6 +452,14 @@ private:
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
+        // Once inflate() has reported Z_STREAM_END on this stream, further
+        // inflate() calls on the same z_stream would either fail with
+        // Z_DATA_ERROR or attempt to interpret trailing bytes as a new
+        // concatenated zlib stream.  Both are wrong for a single-stream
+        // contract.  Surface end-of-stream as a zero-byte read so callers
+        // see a clean EOF instead.  Reset by close_stream's state_guard.
+        if (m_stream_ended) return 0;
+
         // Note: We read one byte at a time intentionally. Decompression has
         // unpredictable expansion ratio - a few compressed bytes could expand
         // to overflow the output buffer. This keeps the code simple and correct.
@@ -465,6 +507,14 @@ private:
                 throw cvt_error("zlib_cvt::get fail: zlib made no progress");
         }
 
+        // Latch end-of-stream as soon as inflate() observes it, before any
+        // post-condition checks below.  If a check throws afterwards, this
+        // ensures is_eof() still reports true and any future get_main call
+        // short-circuits to 0 instead of re-entering inflate() on a finished
+        // stream.  The latch is a pure value write and cannot throw.
+        if (ret == Z_STREAM_END)
+            m_stream_ended = true;
+
         // Exiting the loop with output space still available means the underlying
         // kernel ran out of bytes before zlib reached Z_STREAM_END. The compressed
         // stream is truncated and partial output would silently corrupt caller data.
@@ -476,6 +526,7 @@ private:
 
         if (res % sizeof(internal_type))
             throw cvt_error("zlib_cvt::get fail: partial sequence");
+
         return res / sizeof(internal_type);
     }
 
@@ -628,6 +679,7 @@ private:
                 self.BT::m_is_bos_done = false;
                 self.BT::m_io_status = io_status::neutral;
                 self.m_sync_flush = false;
+                self.m_stream_ended = false;
             }
         } sg{*this};
 
@@ -639,10 +691,10 @@ private:
 
         if (BT::m_io_status == io_status::output)
         {
-            deflate_guard g(m_strm);  // calls deflateEnd + resets m_strm on scope exit
             if (BT::m_is_bos_done)
             {
                 std::array<external_type, CHUNK> local_buf{};
+                deflate_guard g(m_strm);  // calls deflateEnd + resets m_strm on scope exit
                 m_strm->next_in = nullptr;
                 m_strm->avail_in = 0;
                 while (true)
@@ -687,6 +739,13 @@ private:
     // Toggled via adjust(zlib_sync_flush{...}).  See zlib_sync_flush doc for
     // the cost trade-off behind the default.
     bool        m_sync_flush{false};
+    // Set to true inside get_main when inflate() returns Z_STREAM_END.  Any
+    // subsequent get_main entry short-circuits to 0 instead of feeding more
+    // compressed bytes into a finished stream (which would otherwise produce
+    // Z_DATA_ERROR or be misinterpreted as a new concatenated zlib stream).
+    // Reset by close_stream's state_guard and by copy/move/assignment paths
+    // that install a fresh stream.
+    bool        m_stream_ended{false};
 
     std::unique_ptr<z_stream> m_strm;
 };
