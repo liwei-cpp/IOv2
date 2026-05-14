@@ -92,7 +92,8 @@ $(document).ready(function(){initNavTree('runtime__cvt_8h.html',''); initResizab
   <div class="summary">
 <a href="#nested-classes">类</a> &#124;
 <a href="#namespaces">命名空间</a> &#124;
-<a href="#func-members">函数</a>  </div>
+<a href="#func-members">函数</a> &#124;
+<a href="#var-members">变量</a>  </div>
   <div class="headertitle"><div class="title">runtime_cvt.h 文件参考</div></div>
 </div><!--header-->
 <div class="contents">
@@ -100,6 +101,7 @@ $(document).ready(function(){initNavTree('runtime__cvt_8h.html',''); initResizab
 <code>#include &lt;<a class="el" href="cvt__concepts_8h_source.html">cvt/cvt_concepts.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="device__concepts_8h_source.html">device/device_concepts.h</a>&gt;</code><br />
 <code>#include &lt;concepts&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;exception&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
@@ -109,37 +111,38 @@ runtime_cvt.h 的引用(Include)关系图:</div>
 <div class="dyncontent">
 <div class="center"><img src="runtime__cvt_8h__incl.png" border="0" usemap="#ainclude_2cvt_2runtime__cvt_8h" alt=""/></div>
 <map name="ainclude_2cvt_2runtime__cvt_8h" id="ainclude_2cvt_2runtime__cvt_8h">
-<area shape="rect" title=" " alt="" coords="318,5,466,45"/>
+<area shape="rect" title=" " alt="" coords="361,5,509,45"/>
 <area shape="rect" href="defs_8h.html" title=" " alt="" coords="5,167,128,192"/>
-<area shape="poly" title=" " alt="" coords="318,42,242,63,202,78,164,96,122,126,88,158,84,154,118,122,161,91,200,73,240,58,317,37"/>
-<area shape="rect" href="cvt__concepts_8h.html" title=" " alt="" coords="186,93,329,119"/>
-<area shape="poly" title=" " alt="" coords="361,48,290,89,288,84,358,43"/>
-<area shape="rect" title=" " alt="" coords="315,167,395,192"/>
-<area shape="poly" title=" " alt="" coords="390,46,363,154,358,152,385,45"/>
-<area shape="rect" title=" " alt="" coords="153,167,239,192"/>
-<area shape="poly" title=" " alt="" coords="318,31,280,37,240,48,204,67,176,95,170,109,170,124,183,154,178,156,165,125,165,108,171,92,201,63,238,43,278,31,317,25"/>
-<area shape="rect" title=" " alt="" coords="419,167,511,192"/>
-<area shape="poly" title=" " alt="" coords="404,45,456,153,451,155,399,47"/>
-<area shape="rect" title=" " alt="" coords="587,167,647,192"/>
-<area shape="poly" title=" " alt="" coords="467,33,579,54,627,71,646,81,658,92,665,108,662,126,642,157,637,155,657,124,659,109,654,95,643,85,625,76,578,59,466,38"/>
-<area shape="rect" href="device__concepts_8h.html" title=" " alt="" coords="455,93,644,119"/>
-<area shape="poly" title=" " alt="" coords="431,43,515,85,513,89,429,48"/>
-<area shape="rect" title=" " alt="" coords="719,93,796,119"/>
-<area shape="poly" title=" " alt="" coords="467,40,706,91,704,96,466,45"/>
-<area shape="rect" title=" " alt="" coords="242,240,313,265"/>
-<area shape="poly" title=" " alt="" coords="101,189,231,233,230,238,100,195"/>
+<area shape="poly" title=" " alt="" coords="361,35,311,42,256,54,200,71,148,96,112,125,84,157,80,153,108,121,145,91,199,66,255,48,310,37,360,29"/>
+<area shape="rect" title=" " alt="" coords="213,240,283,265"/>
+<area shape="poly" title=" " alt="" coords="361,39,293,59,260,75,230,95,207,117,192,139,187,163,193,191,206,212,223,230,219,233,202,215,188,193,181,163,187,137,203,114,226,91,257,70,291,54,360,34"/>
+<area shape="rect" href="cvt__concepts_8h.html" title=" " alt="" coords="254,93,397,119"/>
+<area shape="poly" title=" " alt="" coords="410,48,354,87,351,83,407,43"/>
+<area shape="rect" title=" " alt="" coords="365,167,445,192"/>
+<area shape="poly" title=" " alt="" coords="434,46,413,154,408,153,428,45"/>
+<area shape="rect" title=" " alt="" coords="203,167,290,192"/>
+<area shape="poly" title=" " alt="" coords="361,34,328,42,296,54,267,71,244,95,237,108,235,123,240,153,235,154,230,123,232,107,239,92,264,67,294,49,327,37,360,29"/>
+<area shape="rect" title=" " alt="" coords="470,167,562,192"/>
+<area shape="poly" title=" " alt="" coords="447,45,506,153,501,155,443,47"/>
+<area shape="rect" title=" " alt="" coords="638,167,698,192"/>
+<area shape="poly" title=" " alt="" coords="509,31,572,39,636,52,691,69,712,79,726,92,732,110,727,128,714,145,698,160,694,156,710,142,722,126,727,110,722,95,709,84,689,74,635,57,571,44,509,36"/>
+<area shape="rect" href="device__concepts_8h.html" title=" " alt="" coords="523,93,712,119"/>
+<area shape="poly" title=" " alt="" coords="479,43,579,85,577,90,477,48"/>
+<area shape="rect" title=" " alt="" coords="787,93,864,119"/>
+<area shape="poly" title=" " alt="" coords="510,39,774,92,773,97,509,44"/>
+<area shape="poly" title=" " alt="" coords="97,190,207,232,205,237,95,195"/>
 <area shape="rect" title=" " alt="" coords="23,240,110,265"/>
 <area shape="poly" title=" " alt="" coords="69,192,69,226,64,226,64,192"/>
-<area shape="poly" title=" " alt="" coords="228,121,112,164,110,159,226,116"/>
-<area shape="poly" title=" " alt="" coords="262,119,276,226,271,227,256,119"/>
-<area shape="poly" title=" " alt="" coords="275,117,329,156,326,160,271,121"/>
-<area shape="poly" title=" " alt="" coords="249,121,217,158,213,154,245,117"/>
-<area shape="poly" title=" " alt="" coords="292,116,419,160,418,165,290,121"/>
-<area shape="poly" title=" " alt="" coords="316,116,574,167,573,172,315,121"/>
-<area shape="poly" title=" " alt="" coords="552,119,546,156,538,176,524,194,490,213,438,228,327,248,326,243,437,223,488,208,521,190,533,174,541,154,546,119"/>
-<area shape="poly" title=" " alt="" coords="519,121,400,164,398,159,517,116"/>
-<area shape="poly" title=" " alt="" coords="538,121,491,160,488,155,534,117"/>
-<area shape="poly" title=" " alt="" coords="562,117,599,155,595,158,559,121"/>
+<area shape="poly" title=" " alt="" coords="284,121,122,166,121,160,283,116"/>
+<area shape="poly" title=" " alt="" coords="326,119,319,154,304,193,273,232,269,229,299,191,314,152,321,118"/>
+<area shape="poly" title=" " alt="" coords="340,117,384,156,380,160,336,121"/>
+<area shape="poly" title=" " alt="" coords="314,121,271,159,268,156,311,117"/>
+<area shape="poly" title=" " alt="" coords="357,116,473,159,471,164,355,121"/>
+<area shape="poly" title=" " alt="" coords="381,116,625,166,624,172,380,121"/>
+<area shape="poly" title=" " alt="" coords="617,120,604,157,592,177,575,194,553,206,524,216,449,232,297,250,297,245,448,227,522,211,551,201,572,190,588,174,599,154,612,118"/>
+<area shape="poly" title=" " alt="" coords="584,121,453,165,452,160,582,116"/>
+<area shape="poly" title=" " alt="" coords="603,121,545,161,542,156,600,116"/>
+<area shape="poly" title=" " alt="" coords="628,117,654,154,650,157,624,121"/>
 </map>
 </div>
 </div><div class="textblock"><div class="dynheader">
@@ -193,12 +196,19 @@ runtime_cvt.h 的引用(Include)关系图:</div>
 命名空间</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceIOv2_1_1detail" id="r_namespaceIOv2_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html">IOv2::detail</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 函数</h2></td></tr>
 <tr class="memitem:adb26bde61c727117aca84bdc3927eee5" id="r_adb26bde61c727117aca84bdc3927eee5"><td class="memTemplParams" colspan="2">template&lt;io_converter KernelType&gt; </td></tr>
 <tr class="memitem:adb26bde61c727117aca84bdc3927eee5"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#adb26bde61c727117aca84bdc3927eee5">IOv2::runtime_cvt</a> (KernelType &amp;&amp;) -&gt; <a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> std::remove_cvref_t&lt; KernelType &gt;::device_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> std::remove_cvref_t&lt; KernelType &gt;::internal_type &gt;</td></tr>
 <tr class="separator:adb26bde61c727117aca84bdc3927eee5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+变量</h2></td></tr>
+<tr class="memitem:a26a0b91f19003a2657cae9bcb805a94d" id="r_a26a0b91f19003a2657cae9bcb805a94d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a26a0b91f19003a2657cae9bcb805a94d">IOv2::detail::runtime_cvt_null_err</a></td></tr>
+<tr class="separator:a26a0b91f19003a2657cae9bcb805a94d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
