@@ -1,3 +1,24 @@
+/**
+ * @file zlib_cvt.h
+ * @lang{ZH}
+ * zlib 压缩/解压转换器定义文件。
+ * 本文件实现了基于 zlib 的 deflate（压缩）和 inflate（解压）转换器 `zlib_cvt`，
+ * 以及用于流式管道构造的工厂类 `zlib_cvt_creator`。
+ * `zlib_cvt` 继承自 `abs_cvt`（禁用默认定位与 IO 方向切换），BOS 阶段负责读写
+ * 2 字节的 zlib 流头，主内容阶段通过 `get_main`/`put_main` 执行实际的解压/压缩。
+ * @endif
+ *
+ * @lang{EN}
+ * zlib compression/decompression converter definition file.
+ * This file implements `zlib_cvt`, a deflate (compression) and inflate (decompression)
+ * converter based on zlib, together with `zlib_cvt_creator`, a factory class for
+ * constructing it in streaming pipelines.
+ * `zlib_cvt` derives from `abs_cvt` with default positioning and IO-direction switching
+ * both disabled. During the BOS phase it reads or writes the 2-byte zlib stream header;
+ * the main-content phase performs actual decompression/compression through
+ * `get_main`/`put_main`.
+ * @endif
+ */
 #pragma once
 
 #include <cvt/cvt_concepts.h>
@@ -19,27 +40,48 @@
 
 namespace IOv2::Comp
 {
-// adjust() behavior that toggles Z_SYNC_FLUSH semantics on zlib_cvt::flush().
-//
-// Default for zlib_cvt is sync_flush == false, in which case flush() does NOT
-// emit a sync marker - bytes already deflate()'d on previous put() calls are
-// still resident in the downstream kernel buffer chain and will reach the
-// device through subsequent put / close_stream paths, but data still sitting
-// inside zlib's LZ77 window stays buffered until close_stream finalizes the
-// stream with Z_FINISH.
-//
-// This default is deliberate: Z_SYNC_FLUSH is not free.  Each invocation
-// inserts a 5-byte empty stored block (00 00 00 FF FF) as a stream sync point
-// AND forces zlib to abandon partial LZ77 matches it was still trying to
-// optimize - frequent sync-flushing can degrade the compression ratio toward
-// 1:1.  Callers who do not need stream-level synchronization should not pay
-// that cost.
-//
-// Set sync_flush == true via cvt.adjust(zlib_sync_flush{true}) when you do
-// need synchronization points: streaming over a network where the receiver
-// must be able to start decompression at well-defined boundaries, interactive
-// tools that need byte-level latency at the cost of ratio, or any framing
-// where downstream may begin decompression mid-stream.
+/**
+ * @lang{ZH}
+ * 控制 `zlib_cvt::flush()` 是否触发 `Z_SYNC_FLUSH` 语义的行为策略类。
+ *
+ * `zlib_cvt` 的默认行为是 `sync_flush == false`，此时 `flush()` 不向下游写入任何
+ * 同步标记——先前 `put()` 已送入 zlib 但尚未完成 LZ77 窗口匹配的数据仍保留在
+ * zlib 内部缓冲区中，等到 `close_stream` 以 `Z_FINISH` 最终化时才写出。
+ *
+ * 默认采用此语义是有意为之：`Z_SYNC_FLUSH` 并非免费——每次调用会插入一个
+ * 5 字节的空存储块（`00 00 00 FF FF`）作为流同步点，并强制 zlib 放弃尚在
+ * 优化中的 LZ77 部分匹配，频繁同步刷会使压缩率趋近 1:1。不需要流级同步的
+ * 调用方不应承担这一开销。
+ *
+ * 当确实需要同步点时，可通过 `cvt.adjust(zlib_sync_flush{true})` 启用：
+ * - 通过网络流式传输，接收方需要在明确边界处开始解压；
+ * - 需要字节级延迟的交互式工具（以压缩率换取低延迟）；
+ * - 任何下游可能在流中途开始解压的分帧场景。
+ * @endif
+ *
+ * @lang{EN}
+ * Behavior policy class that controls whether `zlib_cvt::flush()` triggers
+ * `Z_SYNC_FLUSH` semantics.
+ *
+ * The default for `zlib_cvt` is `sync_flush == false`, in which case `flush()` does
+ * NOT emit a sync marker — data that has been passed to `deflate()` on previous `put()`
+ * calls but is still inside zlib's LZ77 window stays buffered until `close_stream`
+ * finalizes the stream with `Z_FINISH`.
+ *
+ * This default is deliberate: `Z_SYNC_FLUSH` is not free. Each invocation inserts a
+ * 5-byte empty stored block (`00 00 00 FF FF`) as a stream sync point AND forces zlib
+ * to abandon partial LZ77 matches it was still trying to optimize — frequent
+ * sync-flushing can degrade the compression ratio toward 1:1. Callers who do not need
+ * stream-level synchronization should not pay that cost.
+ *
+ * Enable it via `cvt.adjust(zlib_sync_flush{true})` when synchronization points are
+ * required:
+ * - Streaming over a network where the receiver must start decompression at
+ *   well-defined boundaries;
+ * - Interactive tools that need byte-level latency at the cost of compression ratio;
+ * - Any framing where downstream may begin decompression mid-stream.
+ * @endif
+ */
 struct zlib_sync_flush : cvt_behavior
 {
     explicit zlib_sync_flush(bool sync_flush)
@@ -48,6 +90,71 @@ struct zlib_sync_flush : cvt_behavior
     bool m_sync_flush;
 };
 
+/**
+ * @lang{ZH}
+ * 基于 zlib 的压缩/解压转换器。
+ *
+ * 继承自 `abs_cvt`，将 `default_positioning` 和 `default_io_switch` 均设为 `false`：
+ * 压缩流具有状态性，既不支持随机定位，也不支持在压缩和解压方向之间切换。
+ *
+ * **BOS 阶段**（`bos()` 后、`main_cont_beg()` 前）：
+ * - 输出（压缩）模式：调用 `deflateInit`，立即以 `Z_NO_FLUSH` 触发 zlib 输出
+ *   2 字节流头，并通过内核写出。
+ * - 输入（解压）模式：调用 `inflateInit`，从内核读取 2 字节流头并送入 `inflate`
+ *   以完成头部验证。
+ *
+ * **主内容阶段**（`main_cont_beg()` 后）：
+ * - 压缩：`put_main` 调用 `deflate(Z_NO_FLUSH)` 将用户数据压缩后写入内核。
+ * - 解压：`get_main` 调用 `inflate(Z_NO_FLUSH)` 从内核读取压缩数据并解压给调用方。
+ *
+ * **流的终结**（`close_stream()`）：
+ * - 压缩：调用 `deflate(Z_FINISH)` 循环直到 `Z_STREAM_END`，将所有剩余压缩字节
+ *   写入内核，最后调用 `deflateEnd`。
+ * - 解压：直接调用 `inflateEnd`。
+ *
+ * @tparam KernelType 内核转换器类型，须满足 `io_converter`；其 `internal_type` 的
+ *                   大小须等于 `unsigned char`（即字节级内核）。
+ *                   / The kernel converter type, must satisfy `io_converter`; its
+ *                   `internal_type` must have the same size as `unsigned char` (byte-level kernel).
+ * @tparam TInt       本转换器对外暴露的内部类型（即 `get`/`put` 接口的元素类型）。
+ *                   须满足 `std::is_trivially_copyable`。默认等于内核的 `internal_type`。
+ *                   / The internal type exposed by this converter (the element type of the
+ *                   `get`/`put` interface). Must satisfy `std::is_trivially_copyable`.
+ *                   Defaults to the kernel's `internal_type`.
+ * @endif
+ *
+ * @lang{EN}
+ * zlib-based compression/decompression converter.
+ *
+ * Derives from `abs_cvt` with both `default_positioning` and `default_io_switch` set
+ * to `false`: compressed streams are stateful and support neither random seeking nor
+ * switching between compression and decompression directions.
+ *
+ * **BOS phase** (after `bos()`, before `main_cont_beg()`):
+ * - Output (compression) mode: calls `deflateInit`, immediately triggers a `Z_NO_FLUSH`
+ *   call to make zlib emit the 2-byte stream header, and writes it through the kernel.
+ * - Input (decompression) mode: calls `inflateInit`, reads the 2-byte stream header
+ *   from the kernel, and feeds it to `inflate` for header validation.
+ *
+ * **Main-content phase** (after `main_cont_beg()`):
+ * - Compression: `put_main` calls `deflate(Z_NO_FLUSH)` to compress user data and
+ *   write it through the kernel.
+ * - Decompression: `get_main` calls `inflate(Z_NO_FLUSH)` to read compressed data
+ *   from the kernel and decompress it for the caller.
+ *
+ * **Stream finalization** (`close_stream()`):
+ * - Compression: loops `deflate(Z_FINISH)` until `Z_STREAM_END`, flushing all
+ *   remaining compressed bytes through the kernel, then calls `deflateEnd`.
+ * - Decompression: calls `inflateEnd` directly.
+ *
+ * @tparam KernelType The kernel converter type, must satisfy `io_converter`; its
+ *                   `internal_type` must have the same size as `unsigned char`
+ *                   (byte-level kernel).
+ * @tparam TInt       The internal type exposed by this converter (the element type of
+ *                   the `get`/`put` interface). Must satisfy `std::is_trivially_copyable`.
+ *                   Defaults to the kernel's `internal_type`.
+ * @endif
+ */
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (sizeof(typename KernelType::internal_type) == sizeof(unsigned char) &&
               std::is_trivially_copyable_v<TInt>)
@@ -56,10 +163,25 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
     using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
     friend BT;  // for put_main and get_main
 
-    // On the failure path, call inflateEnd/deflateEnd and reset the unique_ptr
-    // so that close_stream() (and the destructor) see a null m_strm and skip
-    // redundant cleanup.  release() prevents the guard from running End on the
-    // success path (the stream remains alive, owned by m_strm).
+    /**
+     * @lang{ZH}
+     * `inflateInit` 失败路径上的 RAII 守卫。
+     * 若在 `inflateInit` 成功后、流被正式接管前发生异常，析构函数自动调用
+     * `inflateEnd` 并将 `m_strm` 重置为 `nullptr`，确保 `close_stream`
+     * 和析构函数在后续调用中看到空指针并跳过重复清理。
+     * 成功路径上调用 `release()` 可阻止守卫执行清理（流转由 `m_strm` 管理）。
+     * @endif
+     *
+     * @lang{EN}
+     * RAII guard for the `inflateInit` failure path.
+     * If an exception occurs after `inflateInit` succeeds but before the stream is
+     * formally taken over, the destructor automatically calls `inflateEnd` and resets
+     * `m_strm` to `nullptr`, ensuring that subsequent calls to `close_stream` and the
+     * destructor see a null pointer and skip redundant cleanup.
+     * Calling `release()` on the success path prevents the guard from running cleanup
+     * (ownership is retained by `m_strm`).
+     * @endif
+     */
     struct inflate_guard
     {
         std::unique_ptr<z_stream>& strm_ref;
@@ -82,6 +204,25 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
         inflate_guard& operator=(inflate_guard&&) = delete;
     };
 
+    /**
+     * @lang{ZH}
+     * `deflateInit` 失败路径上的 RAII 守卫。
+     * 若在 `deflateInit` 成功后、流被正式接管前发生异常，析构函数自动调用
+     * `deflateEnd` 并将 `m_strm` 重置为 `nullptr`，确保 `close_stream`
+     * 和析构函数在后续调用中看到空指针并跳过重复清理。
+     * 成功路径上调用 `release()` 可阻止守卫执行清理（流转由 `m_strm` 管理）。
+     * @endif
+     *
+     * @lang{EN}
+     * RAII guard for the `deflateInit` failure path.
+     * If an exception occurs after `deflateInit` succeeds but before the stream is
+     * formally taken over, the destructor automatically calls `deflateEnd` and resets
+     * `m_strm` to `nullptr`, ensuring that subsequent calls to `close_stream` and the
+     * destructor see a null pointer and skip redundant cleanup.
+     * Calling `release()` on the success path prevents the guard from running cleanup
+     * (ownership is retained by `m_strm`).
+     * @endif
+     */
     struct deflate_guard
     {
         std::unique_ptr<z_stream>& strm_ref;
@@ -104,11 +245,24 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
         deflate_guard& operator=(deflate_guard&&) = delete;
     };
 
-    // Resets next_in / avail_in / next_out / avail_out on scope exit so that
-    // any throw from get_main / put_main / do_flush cannot leave m_strm holding
-    // pointers into reader / writer / user buffers that have since gone out of
-    // scope.  Does NOT touch m_strm itself - cleanup of the zlib stream object
-    // is the job of close_stream / inflate_guard / deflate_guard.
+    /**
+     * @lang{ZH}
+     * 作用域退出时将 `m_strm` 的输入/输出指针和计数清零的 RAII 守卫。
+     * 确保 `get_main`、`put_main`、`do_flush` 抛出异常时，`m_strm` 不会
+     * 持有指向已离开作用域的读缓冲区、写缓冲区或用户缓冲区的悬空指针。
+     * 不触及 `m_strm` 自身——zlib 流对象的清理由 `close_stream`、
+     * `inflate_guard` 和 `deflate_guard` 负责。
+     * @endif
+     *
+     * @lang{EN}
+     * RAII guard that clears `m_strm`'s input/output pointers and counts on scope exit.
+     * Ensures that when `get_main`, `put_main`, or `do_flush` throw an exception,
+     * `m_strm` is not left holding dangling pointers into reader, writer, or user
+     * buffers that have since gone out of scope.
+     * Does NOT touch `m_strm` itself — cleanup of the zlib stream object is the
+     * responsibility of `close_stream`, `inflate_guard`, and `deflate_guard`.
+     * @endif
+     */
     struct io_buf_guard
     {
         z_stream& strm;
@@ -132,10 +286,30 @@ public:
     using external_type = typename KernelType::internal_type;
 
 private:
+    /// @lang{ZH} deflate/inflate 输出缓冲区的最小字节容量，至少为 16 且不小于 sizeof(internal_type)。 @endif
+    /// @lang{EN} Minimum byte capacity of the deflate/inflate output buffer; at least 16 and no less than sizeof(internal_type). @endif
     constexpr static unsigned CHUNK = std::max<unsigned>(16, sizeof(internal_type));
+
+    /// @lang{ZH} zlib 流头的字节长度（固定为 2 字节）。 @endif
+    /// @lang{EN} Byte length of the zlib stream header (fixed at 2 bytes). @endif
     constexpr static size_t zlib_header_size = 2;
 
 public:
+    /**
+     * @lang{ZH}
+     * 从内核和压缩等级构造 zlib 转换器。
+     * 压缩等级超过 9 时自动截断为 9；解压方向忽略此参数（等级仅影响 `deflateInit`）。
+     * @endif
+     *
+     * @lang{EN}
+     * Construct the zlib converter from a kernel and compression level.
+     * A level greater than 9 is silently clamped to 9; the level is ignored on the
+     * decompression path as it only affects `deflateInit`.
+     * @endif
+     *
+     * @param kernel    底层内核转换器（移动接管所有权）。 / The underlying kernel converter (ownership transferred via move).
+     * @param put_level deflate 压缩等级（0–9，默认 6）。 / deflate compression level (0–9, default 6).
+     */
     zlib_cvt(KernelType kernel, unsigned put_level = 6)
         : BT(std::move(kernel))
         , m_put_level(put_level)
@@ -143,6 +317,26 @@ public:
         if (m_put_level > 9) m_put_level = 9;
     }
 
+    /**
+     * @lang{ZH}
+     * 拷贝构造函数。复制内核、压缩等级、`m_sync_flush` 及 `m_stream_ended` 标志。
+     * 若当前处于输出模式，调用 `deflateCopy` 深拷贝 zlib deflate 状态；
+     * 若处于输入模式，调用 `inflateCopy` 深拷贝 inflate 状态。
+     * 若处于 `neutral` 模式，则无需拷贝 zlib 状态（`m_strm` 为空）。
+     * `deflateCopy`/`inflateCopy` 抛出异常时，`m_strm` 被重置、IO 状态恢复为
+     * `neutral`，确保对象处于一致状态。
+     * @endif
+     *
+     * @lang{EN}
+     * Copy constructor. Copies the kernel, compression level, `m_sync_flush`,
+     * and `m_stream_ended` flag.
+     * If currently in output mode, calls `deflateCopy` to deep-copy the deflate state;
+     * if in input mode, calls `inflateCopy` to deep-copy the inflate state.
+     * In `neutral` mode no zlib state needs to be copied (`m_strm` is null).
+     * If `deflateCopy`/`inflateCopy` throws, `m_strm` is reset and IO status is
+     * restored to `neutral`, leaving the object in a consistent state.
+     * @endif
+     */
     zlib_cvt(const zlib_cvt& val)
         requires (std::copy_constructible<KernelType>)
         : BT(val)
@@ -172,11 +366,23 @@ public:
         }
     }
 
-    // Move constructor: transfer the unique_ptr so the z_stream address is
-    // unchanged.  zlib's internal state keeps a back-pointer (state->strm) to
-    // the z_stream struct; a shallow struct copy would leave that pointer
-    // stale, causing deflate/inflate to return Z_STREAM_ERROR.  Moving the
-    // unique_ptr preserves the address and keeps the back-pointer valid.
+    /**
+     * @lang{ZH}
+     * 移动构造函数。转移 `m_strm` 的 `unique_ptr` 所有权，使 `z_stream` 对象的
+     * 地址保持不变。zlib 内部状态通过 `state->strm` 反向引用 `z_stream` 结构体；
+     * 若浅拷贝结构体会使该指针悬空，`deflate`/`inflate` 将返回 `Z_STREAM_ERROR`。
+     * 转移 `unique_ptr` 可保留原地址，使反向指针持续有效。
+     * @endif
+     *
+     * @lang{EN}
+     * Move constructor. Transfers ownership of the `m_strm` `unique_ptr`, keeping
+     * the address of the `z_stream` object unchanged. zlib's internal state holds a
+     * back-pointer (`state->strm`) to the `z_stream` struct; a shallow struct copy
+     * would leave that pointer stale, causing `deflate`/`inflate` to return
+     * `Z_STREAM_ERROR`. Transferring the `unique_ptr` preserves the address and
+     * keeps the back-pointer valid.
+     * @endif
+     */
     zlib_cvt(zlib_cvt&& val) noexcept
         : BT(std::move(val))
         , m_put_level(val.m_put_level)
@@ -185,6 +391,25 @@ public:
         , m_strm(std::move(val.m_strm))
     {}
 
+    /**
+     * @lang{ZH}
+     * 拷贝赋值运算符。
+     * 先关闭旧流（捕获可能的错误），再拷贝新状态（包括 `deflateCopy`/`inflateCopy`）。
+     * 若新状态拷贝失败，将对象标记为 tainted 后重新抛出。若新状态拷贝成功但旧流
+     * 关闭失败，则在返回前重新抛出 `close_stream` 的异常——确保赋值结果始终可用，
+     * 同时不丢失关闭失败的错误信息。
+     * @endif
+     *
+     * @lang{EN}
+     * Copy assignment operator.
+     * Closes the old stream first (capturing any error), then copies the new state
+     * (including `deflateCopy`/`inflateCopy`).
+     * If copying the new state fails, the object is marked tainted before rethrowing.
+     * If copying succeeds but the old stream close failed, the `close_stream` exception
+     * is rethrown before returning — ensuring the assignment result is always usable
+     * while not silently discarding the close failure.
+     * @endif
+     */
     zlib_cvt& operator=(const zlib_cvt& val)
     {
         if (this == &val) return *this;
@@ -228,6 +453,22 @@ public:
         return *this;
     }
 
+    /**
+     * @lang{ZH}
+     * 移动赋值运算符（`noexcept`）。
+     * 先关闭旧流（忽略任何错误），再转移所有成员，包括 `m_strm` 的 `unique_ptr`。
+     * 转移 `unique_ptr` 而非拷贝 `z_stream` 结构体，可保留 zlib 内部反向指针的有效性
+     * （详见移动构造函数的说明）。
+     * @endif
+     *
+     * @lang{EN}
+     * Move assignment operator (`noexcept`).
+     * Closes the old stream first (discarding any error), then transfers all members,
+     * including the `m_strm` `unique_ptr`.
+     * Transferring the `unique_ptr` rather than copying the `z_stream` struct preserves
+     * the validity of zlib's internal back-pointer (see the move constructor for details).
+     * @endif
+     */
     zlib_cvt& operator=(zlib_cvt&& val) noexcept
     {
         if (this == &val) return *this;
@@ -244,6 +485,16 @@ public:
         return *this;
     }
 
+    /**
+     * @lang{ZH}
+     * 析构函数（`noexcept`）。调用 `close_stream()` 最终化输出流；若抛出异常则静默忽略。
+     * @endif
+     *
+     * @lang{EN}
+     * Destructor (`noexcept`). Calls `close_stream()` to finalize the output stream;
+     * any exception thrown is silently discarded.
+     * @endif
+     */
     ~zlib_cvt() noexcept
     {
         try
@@ -255,6 +506,25 @@ public:
 
 // mandatory methods
 public:
+    /**
+     * @lang{ZH}
+     * 将新设备绑定到转换器，同时关闭当前 zlib 流。
+     * 先关闭当前流（捕获可能的错误），再安装新设备；关闭错误在新设备安装完成后才抛出。
+     * 这一顺序是为了防止 `dev`（已移入函数参数）在栈回绕时被析构而悄然丢失。
+     * @endif
+     *
+     * @lang{EN}
+     * Attach a new device to the converter, closing the current zlib stream first.
+     * The current stream is closed before the new device is installed (any close error
+     * is captured); the error is rethrown only after the new device has been installed.
+     * This ordering prevents `dev` (already moved into the parameter) from being
+     * silently destroyed during stack unwinding.
+     * @endif
+     *
+     * @param dev 要绑定的新设备（移动接管所有权），默认为空设备。
+     *            / The new device to attach (ownership transferred via move); defaults to an empty device.
+     * @throws cvt_error 若旧流的 `close_stream()` 失败。 / If `close_stream()` fails for the old stream.
+     */
     void attach(device_type&& dev = device_type{})
     {
         // close_stream failure only means the OLD output stream could not be
@@ -274,6 +544,23 @@ public:
         if (close_err) std::rethrow_exception(close_err);
     }
 
+    /**
+     * @lang{ZH}
+     * 分离底层设备，同时最终化当前 zlib 流（`noexcept`）。
+     * 先调用 `close_stream()`（捕获异常），再调用基类 `BT::detach()` 分离设备。
+     * `close_stream` 的错误优先于内核的错误返回（first-failure-wins）。
+     * @endif
+     *
+     * @lang{EN}
+     * Detach the underlying device while finalizing the current zlib stream (`noexcept`).
+     * Calls `close_stream()` first (capturing any exception), then calls the base-class
+     * `BT::detach()` to detach the device.
+     * The `close_stream` error takes precedence over the kernel's error (first-failure-wins).
+     * @endif
+     *
+     * @return 包含已分离设备和首个捕获异常的 pair（`nullptr` 表示无异常）。
+     *         / A pair containing the detached device and the first captured exception (`nullptr` if none).
+     */
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         std::exception_ptr local_err;
@@ -283,6 +570,21 @@ public:
         return { std::move(dev), local_err ? local_err : inner_err };
     }
 
+    /**
+     * @lang{ZH}
+     * 调整转换器行为参数。
+     * 若 `acc` 为 `zlib_sync_flush` 实例，则更新 `m_sync_flush` 标志；
+     * 同时将 `acc` 转发给基类 `BT::adjust()`。
+     * @endif
+     *
+     * @lang{EN}
+     * Adjust converter behavior parameters.
+     * If `acc` is a `zlib_sync_flush` instance, updates the `m_sync_flush` flag;
+     * also forwards `acc` to the base-class `BT::adjust()`.
+     * @endif
+     *
+     * @param acc 行为策略对象。 / The behavior policy object.
+     */
     void adjust(const cvt_behavior& acc)
     {
         if (auto* ptr = dynamic_cast<const zlib_sync_flush*>(&acc); ptr)
@@ -291,6 +593,28 @@ public:
         return BT::adjust(acc);
     }
 
+    /**
+     * @lang{ZH}
+     * 查询是否已到达 zlib 压缩流末尾。
+     * `m_stream_ended` 是 zlib 级别的 EOF 锁存位，在 `get_main` 中 `inflate()` 返回
+     * `Z_STREAM_END` 时置位。`BT::is_eof()` 反映内核的可读字节数视图，可能滞后于
+     * zlib 流结束（zlib 的尾部/校验字段可能仍驻留在内核缓冲区中）。
+     * 两个条件任一为真均代表调用方视角的真实流结束，因此取逻辑或。
+     * @endif
+     *
+     * @lang{EN}
+     * Query whether the end of the zlib compressed stream has been reached.
+     * `m_stream_ended` is the zlib-level EOF latch, set by `get_main` when `inflate()`
+     * reports `Z_STREAM_END`. `BT::is_eof()` reflects the kernel's bytes-available
+     * view, which can lag behind the zlib stream end (zlib's trailer/checksum may still
+     * reside in the kernel buffer after the decompressed payload is exhausted).
+     * Either condition represents a true end-of-stream from the caller's perspective,
+     * so they are OR'd together.
+     * @endif
+     *
+     * @return 若已到达流末尾（zlib 流已结束或内核无更多数据），返回 `true`。
+     *         / `true` if the end of the stream has been reached (zlib stream ended or kernel has no more data).
+     */
     bool is_eof()
         requires (cvt_cpt::support_get<KernelType>)
     {
@@ -303,6 +627,30 @@ public:
         return m_stream_ended || BT::is_eof();
     }
 
+    /**
+     * @lang{ZH}
+     * 标记 BOS 阶段结束，进入主内容阶段。
+     * 先调用基类 `BT::main_cont_beg()`，然后：
+     * - 若当前为输出模式，调用 `BT::flush()` 将已在 BOS 阶段写入内核缓冲区的
+     *   zlib 流头刷出到底层设备。此时 `m_strm` 必须为有效的 zlib 流（由 `bos()`
+     *   的不变量保证）。
+     * - 若当前为 `neutral` 模式，说明 `bos()` 未被调用，抛出异常。
+     * @endif
+     *
+     * @lang{EN}
+     * Mark the end of the BOS phase and enter the main-content phase.
+     * Calls the base-class `BT::main_cont_beg()` first, then:
+     * - If currently in output mode, calls `BT::flush()` to flush the zlib stream
+     *   header (written into the kernel buffer during the BOS phase) to the underlying
+     *   device. At this point `m_strm` is guaranteed to be a valid zlib stream by the
+     *   `bos()` invariant.
+     * - If currently in `neutral` mode, `bos()` has not been called and an exception
+     *   is thrown.
+     * @endif
+     *
+     * @throws cvt_error 若 `bos()` 尚未被调用（IO 状态为 `neutral`）。
+     *                   / If `bos()` has not yet been called (IO status is `neutral`).
+     */
     void main_cont_beg()
     {
         BT::main_cont_beg();
@@ -321,6 +669,44 @@ public:
             throw cvt_error("zlib_cvt::main_cont_beg fail: bos() has not been called before main_cont_beg");
     }
 
+    /**
+     * @lang{ZH}
+     * 启动 zlib 流，初始化 inflate 或 deflate 状态，并处理 2 字节 zlib 流头。
+     *
+     * 调用基类 `BT::bos()` 确定 IO 方向后：
+     * - **输出（压缩）模式**：调用 `deflateInit`，以 `Z_NO_FLUSH` 和零输入触发
+     *   deflate 输出 2 字节流头，验证恰好输出 2 字节且无残余待发字节，
+     *   然后通过内核写出该头部。
+     * - **输入（解压）模式**：调用 `inflateInit`，从内核读取 2 字节流头，
+     *   送入 `inflate` 验证头部格式；不支持预置字典（`Z_NEED_DICT`），遇到时抛出。
+     *
+     * 若任何步骤失败，`m_strm` 已被守卫（`inflate_guard`/`deflate_guard`）或手动
+     * 重置为 `nullptr`，然后将 IO 状态重置为 `neutral` 并标记 tainted 后重新抛出。
+     * @endif
+     *
+     * @lang{EN}
+     * Start the zlib stream by initializing inflate or deflate state and processing
+     * the 2-byte zlib stream header.
+     *
+     * After calling the base-class `BT::bos()` to determine IO direction:
+     * - **Output (compression) mode**: calls `deflateInit`, triggers deflate with
+     *   `Z_NO_FLUSH` and zero input to emit the 2-byte stream header, verifies
+     *   exactly 2 bytes were emitted with no pending bytes remaining, then writes
+     *   the header through the kernel.
+     * - **Input (decompression) mode**: calls `inflateInit`, reads the 2-byte stream
+     *   header from the kernel, and feeds it to `inflate` for header validation.
+     *   Preset dictionaries (`Z_NEED_DICT`) are not supported and cause a throw.
+     *
+     * If any step fails, `m_strm` has already been reset to `nullptr` by the guards
+     * (`inflate_guard`/`deflate_guard`) or manually; the IO status is then reset to
+     * `neutral` and the converter is marked tainted before rethrowing.
+     * @endif
+     *
+     * @return 确定的初始 IO 方向。 / The determined initial IO direction.
+     * @throws cvt_error 若 zlib 初始化失败、流头格式非法或内核不支持所需的读写方向。
+     *                   / If zlib initialization fails, the stream header is invalid, or
+     *                   the kernel does not support the required read/write direction.
+     */
     io_status bos()
     {
         BT::bos();
@@ -450,6 +836,35 @@ public:
 
 // optional methods
 private:
+    /**
+     * @lang{ZH}
+     * 主内容阶段的解压实现（由 `abs_cvt::get` 调用）。
+     * 调用 `inflate(Z_NO_FLUSH)` 将内核提供的压缩数据解压至 `to` 缓冲区。
+     * 若 `m_stream_ended` 已置位（inflate 曾报告 `Z_STREAM_END`），直接返回 0，
+     * 不再向已结束的 z_stream 送入更多数据。
+     * 每次从内核一次读取一字节（有意为之：解压膨胀比不可预测，批量读取可能溢出输出缓冲区；
+     * 内核已有缓冲，单字节读取不会产生额外系统调用）。
+     * @endif
+     *
+     * @lang{EN}
+     * Main-content-phase decompression implementation (called by `abs_cvt::get`).
+     * Calls `inflate(Z_NO_FLUSH)` to decompress data provided by the kernel into the
+     * `to` buffer.
+     * If `m_stream_ended` is already set (inflate previously reported `Z_STREAM_END`),
+     * returns 0 immediately without feeding more data into the finished z_stream.
+     * Reads one byte at a time from the kernel (intentional: the decompression expansion
+     * ratio is unpredictable and bulk reads could overflow the output buffer; the kernel
+     * already buffers, so single-byte reads do not incur extra syscalls).
+     * @endif
+     *
+     * @param reader 封装内核读取的缓冲读取辅助对象。 / Buffered read helper wrapping the kernel.
+     * @param to     解压结果的输出缓冲区。 / Output buffer for the decompressed data.
+     * @param to_max 期望解压的最大元素数量。 / Maximum number of elements to decompress.
+     * @return 实际解压的元素数量。 / Actual number of elements decompressed.
+     * @throws cvt_error 若压缩流被截断，或 zlib 报告致命错误，或输出字节数不是 sizeof(internal_type) 的整数倍。
+     *                   / If the compressed stream is truncated, zlib reports a fatal error,
+     *                   or the output byte count is not a multiple of sizeof(internal_type).
+     */
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
@@ -531,6 +946,32 @@ private:
         return res / sizeof(internal_type);
     }
 
+    /**
+     * @lang{ZH}
+     * 主内容阶段的压缩实现（由 `abs_cvt::put` 调用）。
+     * 调用 `deflate(Z_NO_FLUSH)` 将 `_to` 中的数据压缩后写入内核（通过 `cvt_writer`）。
+     * 按 `CHUNK` 大小申请输出缓冲区槽，若压缩未用完整个槽，调用 `writer.rollback`
+     * 回退未使用的部分，防止未初始化数据被提交到内核。
+     * 发生异常时同样回退未使用的槽位，确保内核缓冲区末尾始终指向最后一个有效压缩字节。
+     * @endif
+     *
+     * @lang{EN}
+     * Main-content-phase compression implementation (called by `abs_cvt::put`).
+     * Calls `deflate(Z_NO_FLUSH)` to compress data from `_to` and writes it into the
+     * kernel through `cvt_writer`.
+     * Allocates output buffer slots in `CHUNK`-sized chunks; if deflate does not fill
+     * an entire slot, calls `writer.rollback` to release the unused portion, preventing
+     * uninitialized data from being committed to the kernel.
+     * On exception, also rolls back any unused slot to ensure the kernel buffer tail
+     * always points to the last valid compressed byte.
+     * @endif
+     *
+     * @param writer  封装内核写入的缓冲写入辅助对象。 / Buffered write helper wrapping the kernel.
+     * @param _to     待压缩的源数据缓冲区。 / Source data buffer to compress.
+     * @param to_size 待压缩的元素数量。 / Number of elements to compress.
+     * @throws cvt_error 若 zlib 报告致命错误或 zlib 未取得进展。
+     *                   / If zlib reports a fatal error or zlib makes no progress.
+     */
     void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
@@ -608,14 +1049,27 @@ private:
         // m_strm in/out fields are cleared by io_buf_guard on scope exit.
     }
 
-    // flush() entry from abs_cvt.  Honours the m_sync_flush toggle:
-    //   - sync_flush == true  -> emit Z_SYNC_FLUSH so the downstream
-    //     decompressor can resume from a well-defined boundary.
-    //   - sync_flush == false -> no-op for zlib's internal LZ77 state.
-    //     Bytes already deflate()'d on previous put() calls remain in the
-    //     downstream kernel buffer chain and reach the device through
-    //     subsequent put / close_stream paths; no user data is lost.
-    // See the comment on zlib_sync_flush for why this is opt-in.
+    /**
+     * @lang{ZH}
+     * 由 `abs_cvt::flush()` 调用的 zlib 层刷出逻辑。
+     * 依据 `m_sync_flush` 标志决定行为：
+     * - `m_sync_flush == true`：向下游发出 `Z_SYNC_FLUSH` 边界，使接收方能够在
+     *   明确边界处开始解压。
+     * - `m_sync_flush == false`：空操作；zlib 内部待发字节仍保留在缓冲区中，
+     *   等到 `close_stream` 或后续 `put` 时才写出。
+     * 关于此选项的成本权衡，参见 `zlib_sync_flush` 的说明。
+     * @endif
+     *
+     * @lang{EN}
+     * zlib-layer flush logic called by `abs_cvt::flush()`.
+     * Behavior is determined by the `m_sync_flush` flag:
+     * - `m_sync_flush == true`: emits a `Z_SYNC_FLUSH` boundary downstream so that
+     *   the receiver can begin decompression at a well-defined point.
+     * - `m_sync_flush == false`: no-op; zlib's internal pending bytes remain buffered
+     *   until `close_stream` or a subsequent `put` writes them out.
+     * For the cost trade-off of this option, see the `zlib_sync_flush` documentation.
+     * @endif
+     */
     void do_flush()
         requires (cvt_cpt::support_put<KernelType>)
     {
@@ -640,6 +1094,31 @@ private:
         }
     }
 
+    /**
+     * @lang{ZH}
+     * 将 zlib 返回码转换为 `cvt_error` 异常。
+     * 仅对非负返回码（`Z_OK`、`Z_STREAM_END` 等）不抛出。
+     * 模板参数 `IgnoreBufError` 控制 `Z_BUF_ERROR` 的处理：
+     * - `false`（默认）：`Z_BUF_ERROR` 作为错误抛出；
+     * - `true`：`Z_BUF_ERROR` 被静默忽略（用于 `get_main` 中，`Z_BUF_ERROR` 表示
+     *   "当前无可用输入"，这是正常情况而非错误）。
+     * @endif
+     *
+     * @lang{EN}
+     * Translate a zlib return code into a `cvt_error` exception.
+     * Non-negative return codes (`Z_OK`, `Z_STREAM_END`, etc.) do not throw.
+     * The template parameter `IgnoreBufError` controls handling of `Z_BUF_ERROR`:
+     * - `false` (default): `Z_BUF_ERROR` is treated as an error and throws;
+     * - `true`: `Z_BUF_ERROR` is silently ignored (used in `get_main` where
+     *   `Z_BUF_ERROR` means "no input available right now", which is normal).
+     * @endif
+     *
+     * @tparam IgnoreBufError 若为 `true`，`Z_BUF_ERROR` 不抛出异常。 / If `true`, `Z_BUF_ERROR` does not throw.
+     * @param info 异常消息的前缀，用于标识调用位置。 / Prefix for the exception message, identifying the call site.
+     * @param ret  zlib 函数返回的状态码。 / The status code returned by a zlib function.
+     * @throws cvt_error 若 `ret` 为负值（`IgnoreBufError` 控制 `Z_BUF_ERROR` 的处理）。
+     *                   / If `ret` is negative (with `IgnoreBufError` controlling `Z_BUF_ERROR`).
+     */
     template <bool IgnoreBufError = false>
     void zerr(const char* info, int ret)
     {
@@ -670,6 +1149,37 @@ private:
         }
     }
 
+    /**
+     * @lang{ZH}
+     * 最终化并关闭当前 zlib 流。
+     * `state_guard` 在作用域退出时无条件将 `m_is_bos_done`、`m_io_status`、
+     * `m_sync_flush`、`m_stream_ended` 重置为初始值。
+     * - 若 `m_strm` 为空（`bos()` 从未被调用，或已被守卫/手动重置），直接返回。
+     * - **输出模式**（且 BOS 已完成）：循环调用 `deflate(Z_FINISH)` 直到 `Z_STREAM_END`，
+     *   将所有剩余压缩字节写入内核；`deflate_guard` 在作用域退出时调用 `deflateEnd`
+     *   并重置 `m_strm`。
+     * - **输入模式**：先调用 `inflateEnd`（并重置 `m_strm`），再检查返回值——
+     *   确保即使 `inflateEnd` 返回 `Z_STREAM_ERROR`，`m_strm` 已置空，
+     *   防止后续调用重复 `inflateEnd` 已释放的状态。
+     * @endif
+     *
+     * @lang{EN}
+     * Finalize and close the current zlib stream.
+     * A `state_guard` unconditionally resets `m_is_bos_done`, `m_io_status`,
+     * `m_sync_flush`, and `m_stream_ended` to their initial values on scope exit.
+     * - If `m_strm` is null (`bos()` was never called, or it was reset by guards/manually),
+     *   returns immediately.
+     * - **Output mode** (and BOS completed): loops `deflate(Z_FINISH)` until `Z_STREAM_END`,
+     *   writing all remaining compressed bytes to the kernel; `deflate_guard` calls
+     *   `deflateEnd` and resets `m_strm` on scope exit.
+     * - **Input mode**: calls `inflateEnd` first (resetting `m_strm`), then checks the
+     *   return code — ensures that even if `inflateEnd` returns `Z_STREAM_ERROR`,
+     *   `m_strm` is already null, preventing a subsequent call from calling `inflateEnd`
+     *   again on already-freed state.
+     * @endif
+     *
+     * @throws cvt_error 若 deflate/inflate 最终化失败。 / If deflate/inflate finalization fails.
+     */
     void close_stream()
     {
         struct state_guard
@@ -734,37 +1244,106 @@ private:
         }
     }
 private:
-    unsigned    m_put_level;
-    // false (default) -> flush() is a no-op for zlib's internal pending bytes;
-    // true            -> flush() emits Z_SYNC_FLUSH boundary.
-    // Toggled via adjust(zlib_sync_flush{...}).  See zlib_sync_flush doc for
-    // the cost trade-off behind the default.
-    bool        m_sync_flush{false};
-    // Set to true inside get_main when inflate() returns Z_STREAM_END.  Any
-    // subsequent get_main entry short-circuits to 0 instead of feeding more
-    // compressed bytes into a finished stream (which would otherwise produce
-    // Z_DATA_ERROR or be misinterpreted as a new concatenated zlib stream).
-    // Reset by close_stream's state_guard and by copy/move/assignment paths
-    // that install a fresh stream.
-    bool        m_stream_ended{false};
+    unsigned m_put_level; ///< @lang{ZH} deflate 压缩等级（0–9），在构造时截断至 9。 @endif @lang{EN} deflate compression level (0–9), clamped to 9 at construction. @endif
 
+    /**
+     * @lang{ZH}
+     * `flush()` 的同步刷模式标志。
+     * `false`（默认）：`flush()` 是 zlib 内部待发字节的空操作；
+     * `true`：`flush()` 发出 `Z_SYNC_FLUSH` 边界。
+     * 通过 `adjust(zlib_sync_flush{...})` 切换。详见 `zlib_sync_flush` 的成本权衡说明。
+     * @endif
+     *
+     * @lang{EN}
+     * Sync-flush mode flag for `flush()`.
+     * `false` (default): `flush()` is a no-op for zlib's internal pending bytes;
+     * `true`: `flush()` emits a `Z_SYNC_FLUSH` boundary.
+     * Toggled via `adjust(zlib_sync_flush{...})`. See `zlib_sync_flush` for the
+     * cost trade-off rationale.
+     * @endif
+     */
+    bool m_sync_flush{false};
+
+    /**
+     * @lang{ZH}
+     * 流结束锁存位。在 `get_main` 中 `inflate()` 返回 `Z_STREAM_END` 时置 `true`。
+     * 后续 `get_main` 调用直接返回 0，不再向已结束的流送入压缩数据
+     * （否则会产生 `Z_DATA_ERROR` 或被误解为新的拼接 zlib 流）。
+     * 由 `close_stream` 的 `state_guard` 及拷贝/移动/赋值路径安装新流时重置。
+     * @endif
+     *
+     * @lang{EN}
+     * End-of-stream latch. Set to `true` inside `get_main` when `inflate()` returns
+     * `Z_STREAM_END`. Subsequent `get_main` calls short-circuit to 0 instead of
+     * feeding more compressed bytes into the finished stream (which would otherwise
+     * produce `Z_DATA_ERROR` or be misinterpreted as a new concatenated zlib stream).
+     * Reset by `close_stream`'s `state_guard` and by copy/move/assignment paths
+     * that install a fresh stream.
+     * @endif
+     */
+    bool m_stream_ended{false};
+
+    /// @lang{ZH} 当前活跃的 zlib 流对象；在 `bos()` 中初始化，在 `close_stream()` 中释放。 @endif
+    /// @lang{EN} The currently active zlib stream object; initialized in `bos()` and released in `close_stream()`. @endif
     std::unique_ptr<z_stream> m_strm;
 };
 
+/**
+ * @lang{ZH}
+ * `zlib_cvt` 的工厂类，用于在管道中构造压缩/解压转换器。
+ * 持有压缩等级，通过 `create(kernel)` 将任意内核包装为 `zlib_cvt` 实例。
+ * 通常通过 `operator|` 与其他工厂组合使用。
+ * @endif
+ *
+ * @lang{EN}
+ * Factory class for `zlib_cvt`, used to construct compression/decompression converters
+ * in a pipeline. Stores the compression level and wraps any compatible kernel into a
+ * `zlib_cvt` instance via `create(kernel)`.
+ * Typically composed with other factories via `operator|`.
+ * @endif
+ *
+ * @tparam TInt 目标转换器的内部数据类型。 / The internal data type of the target converter.
+ */
 template <typename TInt>
 class zlib_cvt_creator
 {
 public:
     using category = CvtCreatorCategory;
+
+    /**
+     * @lang{ZH}
+     * 以指定压缩等级构造工厂。
+     * @endif
+     *
+     * @lang{EN}
+     * Construct the factory with the specified compression level.
+     * @endif
+     *
+     * @param level deflate 压缩等级（0–9）。 / deflate compression level (0–9).
+     */
     explicit zlib_cvt_creator(unsigned level)
         : m_level(level) {}
 
+    /**
+     * @lang{ZH}
+     * 将内核包装为 `zlib_cvt` 实例。
+     * @endif
+     *
+     * @lang{EN}
+     * Wrap a kernel into a `zlib_cvt` instance.
+     * @endif
+     *
+     * @tparam TKernel 满足 `io_converter` 的内核类型。 / The kernel type satisfying `io_converter`.
+     * @param kernel  待包装的内核（完美转发）。 / The kernel to wrap (perfect-forwarded).
+     * @return 以 `kernel` 和存储的压缩等级构造的 `zlib_cvt` 实例。
+     *         / A `zlib_cvt` instance constructed from `kernel` and the stored compression level.
+     */
     template <io_converter TKernel>
     auto create(TKernel&& kernel) const
     {
         return zlib_cvt<std::remove_cvref_t<TKernel>, TInt>{std::forward<TKernel>(kernel), m_level};
     }
 private:
-    unsigned m_level;
+    unsigned m_level; ///< @lang{ZH} 传递给 `deflateInit` 的压缩等级。 @endif @lang{EN} Compression level passed to `deflateInit`. @endif
 };
 }
