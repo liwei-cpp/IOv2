@@ -734,7 +734,8 @@ void test_zlib_cvt_gen_6()
         obj.main_cont_beg();
         char data[] = "abc";
         obj.put(data, 3);
-        obj = obj;  // NOLINT(clang-diagnostic-self-assign-overloaded)
+        const auto& const_obj = obj;
+        obj = const_obj;
         obj.detach();
     }
 

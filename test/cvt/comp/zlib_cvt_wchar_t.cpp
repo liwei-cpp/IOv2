@@ -705,7 +705,8 @@ void test_zlib_cvt_wchar_t_gen_6()
         obj.main_cont_beg();
         wchar_t data[] = L"abc";
         obj.put(data, 3);
-        obj = obj;  // NOLINT(clang-diagnostic-self-assign-overloaded)
+        const auto& const_obj = obj;
+        obj = const_obj;
         obj.detach();
     }
 
