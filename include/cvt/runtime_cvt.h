@@ -5,6 +5,7 @@
 #include <device/device_concepts.h>
 
 #include <concepts>
+#include <cstddef>
 #include <exception>
 #include <memory>
 #include <type_traits>
@@ -12,6 +13,12 @@
 
 namespace IOv2
 {
+namespace detail
+{
+inline const std::exception_ptr runtime_cvt_null_err =
+    std::make_exception_ptr(cvt_error("runtime_cvt: null instance"));
+}
+
 template <io_device TDevice, typename TInt>
 class abs_runtime_cvt_imp
 {
@@ -237,99 +244,97 @@ public:
 public:
     device_type& device()
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->device();
     }
 
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        if (!m_ptr)
-            return { device_type{},
-                     std::make_exception_ptr(cvt_error("runtime_cvt: null instance")) };
+        if (!m_ptr) std::terminate();
         return m_ptr->detach();
     }
 
     void attach(device_type&& dev = device_type{})
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         m_ptr->attach(std::move(dev));
     }
 
     void adjust(const cvt_behavior& acc)
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->adjust(acc);
     }
 
     void retrieve(cvt_status& acc) const
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->retrieve(acc);
     }
 
     bool is_eof()
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->is_eof();
     }
 
     io_status bos()
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->bos();
     }
 
     void main_cont_beg()
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->main_cont_beg();
     }
 
     size_t get(internal_type* to, size_t to_max)
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->get(to, to_max);
     }
 
     void put(const internal_type* to, size_t to_size)
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->put(to, to_size);
     }
 
     void flush()
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->flush();
     }
 
     [[nodiscard]] size_t tell() const
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->tell();
     }
 
     void seek(size_t pos)
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         m_ptr->seek(pos);
     }
 
     void rseek(size_t pos)
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         m_ptr->rseek(pos);
     }
 
     void switch_to_get()
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->switch_to_get();
     }
 
     void switch_to_put()
     {
-        if (!m_ptr) throw cvt_error("runtime_cvt: null instance");
+        if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->switch_to_put();
     }
 private:
