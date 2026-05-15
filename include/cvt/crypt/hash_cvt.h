@@ -2,6 +2,7 @@
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
+#include <cstdint>
 #include <exception>
 #include <memory>
 #include <string>
@@ -86,9 +87,14 @@ public:
     {
         if (this != &val)
         {
+            // Copy new state first (may throw) before modifying *this
+            auto new_hash = val.m_hash->copy_state();
+
+            // New state prepared successfully, now safe to modify *this
             if (m_has_main_cont)
                 dump_stream();
-            m_hash = val.m_hash->copy_state();
+
+            m_hash = std::move(new_hash);
             m_has_main_cont = val.m_has_main_cont;
             m_out_fmt = val.m_out_fmt;
 
