@@ -1155,9 +1155,12 @@ private:
      * `state_guard` 在作用域退出时无条件将 `m_is_bos_done`、`m_io_status`、
      * `m_sync_flush`、`m_stream_ended` 重置为初始值。
      * - 若 `m_strm` 为空（`bos()` 从未被调用，或已被守卫/手动重置），直接返回。
-     * - **输出模式**（且 BOS 已完成）：循环调用 `deflate(Z_FINISH)` 直到 `Z_STREAM_END`，
-     *   将所有剩余压缩字节写入内核；`deflate_guard` 在作用域退出时调用 `deflateEnd`
-     *   并重置 `m_strm`。
+     * - **输出模式，BOS 已完成**（`m_is_bos_done == true`）：循环调用 `deflate(Z_FINISH)`
+     *   直到 `Z_STREAM_END`，将所有剩余压缩字节写入内核；`deflate_guard` 在作用域退出时
+     *   调用 `deflateEnd` 并重置 `m_strm`。
+     * - **输出模式，BOS 未完成**（`m_is_bos_done == false`）：`bos()` 已通过 `deflateInit`
+     *   初始化 `m_strm`，但 `main_cont_beg()` 未曾调用；跳过 `Z_FINISH` 循环，直接调用
+     *   `deflateEnd` 释放 zlib 状态。
      * - **输入模式**：先调用 `inflateEnd`（并重置 `m_strm`），再检查返回值——
      *   确保即使 `inflateEnd` 返回 `Z_STREAM_ERROR`，`m_strm` 已置空，
      *   防止后续调用重复 `inflateEnd` 已释放的状态。
@@ -1169,9 +1172,12 @@ private:
      * `m_sync_flush`, and `m_stream_ended` to their initial values on scope exit.
      * - If `m_strm` is null (`bos()` was never called, or it was reset by guards/manually),
      *   returns immediately.
-     * - **Output mode** (and BOS completed): loops `deflate(Z_FINISH)` until `Z_STREAM_END`,
-     *   writing all remaining compressed bytes to the kernel; `deflate_guard` calls
-     *   `deflateEnd` and resets `m_strm` on scope exit.
+     * - **Output mode, BOS completed** (`m_is_bos_done == true`): loops `deflate(Z_FINISH)`
+     *   until `Z_STREAM_END`, writing all remaining compressed bytes to the kernel;
+     *   `deflate_guard` calls `deflateEnd` and resets `m_strm` on scope exit.
+     * - **Output mode, BOS not completed** (`m_is_bos_done == false`): `bos()` initialized
+     *   `m_strm` via `deflateInit` but `main_cont_beg()` was never called; skips the
+     *   `Z_FINISH` loop and calls `deflateEnd` directly to free the zlib state.
      * - **Input mode**: calls `inflateEnd` first (resetting `m_strm`), then checks the
      *   return code — ensures that even if `inflateEnd` returns `Z_STREAM_ERROR`,
      *   `m_strm` is already null, preventing a subsequent call from calling `inflateEnd`
@@ -1202,7 +1208,15 @@ private:
 
         if (BT::m_io_status == io_status::output)
         {
-            if (BT::m_is_bos_done)
+            if (!BT::m_is_bos_done)
+            {
+                // bos() ran (m_strm is valid) but main_cont_beg() was never called.
+                // No user data was written, so skip the Z_FINISH loop and just free
+                // the zlib state.
+                deflateEnd(m_strm.get());
+                m_strm.reset();
+            }
+            else
             {
                 std::array<external_type, CHUNK> local_buf{};
                 deflate_guard g(m_strm);  // calls deflateEnd + resets m_strm on scope exit

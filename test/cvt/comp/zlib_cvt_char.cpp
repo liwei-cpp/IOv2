@@ -654,7 +654,7 @@ void test_zlib_cvt_reset_1()
         {
             if (obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
             obj.main_cont_beg();
-            
+
             char* cur_pos = s_e_lit.data();
             int buffer_id = 0;
             while (cur_pos < s_e_lit.data() + 4102)
@@ -670,12 +670,12 @@ void test_zlib_cvt_reset_1()
             if (cur_pos != s_e_lit.data() + 4102) throw std::runtime_error("zlib_cvt::put response incorrect");
             compress_res = dev.str();
         }
-        
+
         {
             T local_obj{Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8}};
             if (local_obj.bos() != io_status::output) throw std::runtime_error("zlib_cvt::bos response incorrect");
             local_obj.main_cont_beg();
-            
+
             char* cur_pos = s_e_lit.data();
             int buffer_id = 0;
             while (cur_pos < s_e_lit.data() + 4102)
@@ -694,10 +694,115 @@ void test_zlib_cvt_reset_1()
     Comp::zlib_cvt_creator<char> creator{8};
     auto obj = creator.create(rb_root_cvt{mem_device("")});
     helper(obj);
-    
+
     auto tmp = creator.create(rb_root_cvt{mem_device("")});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
+
+    dump_info("Done\n");
+}
+
+void test_zlib_cvt_gen_6()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt gen 6: level clamp, adjust base behavior, self-assignment...");
+
+    // compression level > 9 is silently clamped to 9
+    {
+        Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 15};
+        if (obj.bos() != io_status::output) throw std::runtime_error("level clamp: bos fail");
+        obj.main_cont_beg();
+        char data[] = "test data";
+        obj.put(data, 9);
+        obj.detach();
+    }
+
+    // adjust() with base cvt_behavior: dynamic_cast returns nullptr, only BT::adjust() is called
+    {
+        Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 6};
+        obj.bos();
+        obj.main_cont_beg();
+        cvt_behavior base_acc;
+        obj.adjust(base_acc);
+        obj.detach();
+    }
+
+    // self-assignment in copy-assignment operator: 'this == &val' guard → return *this immediately
+    {
+        Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 6};
+        obj.bos();
+        obj.main_cont_beg();
+        char data[] = "abc";
+        obj.put(data, 3);
+        const auto& const_obj = obj;
+        obj = const_obj;
+        obj.detach();
+    }
+
+    dump_info("Done\n");
+}
+
+void test_zlib_cvt_error_1()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt error paths: truncated stream...");
+
+    // Truncated stream: only the 2-byte zlib header "\x78\x9c", no compressed payload.
+    // bos() consumes the header successfully; get() finds no more input and throws
+    // "compressed stream truncated" (ret != Z_STREAM_END && avail_out != 0 after reader
+    // returns len == 0).
+    {
+        std::string just_header("\x78\x9c", 2);
+        Comp::zlib_cvt obj{rb_root_cvt{mem_device(just_header)}, 6};
+        if (obj.bos() != io_status::input) throw std::runtime_error("bos should return input");
+        obj.main_cont_beg();
+        char buf[16] = {};
+        bool threw = false;
+        try { obj.get(buf, 16); }
+        catch (const cvt_error&) { threw = true; }
+        if (!threw) throw std::runtime_error("truncated stream should throw");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_zlib_cvt_eof_1()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt is_eof and m_stream_ended early-return...");
+
+    // compress a small string
+    std::string compressed;
+    {
+        Comp::zlib_cvt comp{rb_root_cvt{mem_device("")}, 6};
+        comp.bos();
+        comp.main_cont_beg();
+        char data[] = "hello";
+        comp.put(data, 5);
+        auto [dev, err] = comp.detach();
+        if (err) std::rethrow_exception(err);
+        compressed = dev.str();
+    }
+
+    // decompress with a buffer larger than the payload
+    {
+        Comp::zlib_cvt decomp{rb_root_cvt{mem_device(compressed)}, 6};
+        if (decomp.bos() != io_status::input) throw std::runtime_error("bos fail");
+        decomp.main_cont_beg();
+
+        char buf[64] = {};
+        // request 64 bytes: inflate will produce 5 then hit Z_STREAM_END → m_stream_ended = true
+        auto n = decomp.get(buf, 64);
+        if (n != 5) throw std::runtime_error("expected 5 decompressed bytes");
+        if (buf[0] != 'h' || buf[4] != 'o') throw std::runtime_error("wrong decompressed data");
+
+        // is_eof() should return true now (m_stream_ended is latched)
+        if (!decomp.is_eof()) throw std::runtime_error("is_eof should be true after Z_STREAM_END");
+
+        // calling get() again should hit the 'm_stream_ended' early-return and produce 0
+        auto n2 = decomp.get(buf, 64);
+        if (n2 != 0) throw std::runtime_error("get after stream end should return 0");
+    }
 
     dump_info("Done\n");
 }
