@@ -1,13 +1,15 @@
 #pragma once
+#include <cvt/abs_cvt.h>
+#include <cvt/cvt_concepts.h>
+
 #include <exception>
 #include <memory>
+#include <string>
 #include <type_traits>
 #include <utility>
+
 #include <botan/hash.h>
 #include <botan/hex.h>
-
-#include <cvt/cvt_concepts.h>
-#include <cvt/abs_cvt.h>
 
 namespace IOv2::Crypt
 {
@@ -46,7 +48,7 @@ template <io_converter KernelType, typename TInt = typename KernelType::internal
 class hash_cvt : public abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>
 {
     using BT = abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
-    friend BT;  // fot put_main
+    friend BT;  // for put_main
 
     static_assert(cvt_cpt::support_put<KernelType>);
 
@@ -94,7 +96,7 @@ public:
         }
         return *this;
     }
-    
+
     hash_cvt& operator=(hash_cvt&& val) noexcept
     {
         if (this != &val)
@@ -115,7 +117,7 @@ public:
         }
         return *this;
     }
-    
+
     ~hash_cvt()
     {
         if (m_has_main_cont)
@@ -139,7 +141,7 @@ public:
     {
         BT::main_cont_beg();
     }
-    
+
     void attach(device_type&& dev = device_type{})
     {
         if (m_has_main_cont)
@@ -159,7 +161,7 @@ public:
         auto [dev, inner_err] = BT::detach();
         return { std::move(dev), local_err ? local_err : inner_err };
     }
-    
+
     void adjust(const cvt_behavior& acc)
     {
         if (const set_hash_fmt* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
@@ -173,7 +175,7 @@ public:
 
         return BT::adjust(acc);
     }
-    
+
 // optional methods
 private:
     void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, size_t to_size)
@@ -181,7 +183,7 @@ private:
         m_has_main_cont = true;
         m_hash->update((const uint8_t*)to, to_size * sizeof(internal_type));
     }
-    
+
 private:
     static const char* algo_to_str(hash_algo algo)
     {
@@ -198,10 +200,13 @@ private:
     {
         if (!m_has_main_cont) return;
         if (!m_hash) return;
-        
+
         auto digest = m_hash->final();
         if (digest.empty())
             throw cvt_error("hash_cvt::dump_stream fail: cannot get hash result.");
+
+        m_has_main_cont = false;
+        m_hash->clear();
 
         switch (m_out_fmt)
         {
@@ -223,9 +228,6 @@ private:
         default:
             throw cvt_error("hash_cvt::dump_stream fail: invalid output format.");
         }
-
-        m_hash->clear();
-        m_has_main_cont = false;
     }
 private:
     std::unique_ptr<Botan::HashFunction> m_hash;
