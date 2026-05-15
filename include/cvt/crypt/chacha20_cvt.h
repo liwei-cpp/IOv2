@@ -1,7 +1,6 @@
 #pragma once
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
-#include <cvt/root_cvt.h>
 
 #include <cstdint>
 #include <exception>
@@ -43,6 +42,9 @@ public:
     using internal_type = TInt;
     using external_type = typename KernelType::internal_type;
 
+    static_assert(sizeof(external_type) == 1,
+        "chacha20_cvt requires external_type (kernel's internal_type) to be 1 byte");
+
     static constexpr size_t block_size = 64;
 
 public:
@@ -63,6 +65,8 @@ public:
     {
         if (!m_cipher)
             throw cvt_error("chacha20_cvt constructor fail: cannot create the stream cipher");
+        if (!m_cipher->valid_keylength(key.size()))
+            throw cvt_error("chacha20_cvt constructor fail: invalid key length");
     }
 
     chacha20_cvt(const chacha20_cvt&) = delete;
@@ -99,6 +103,9 @@ public:
 
     io_status bos()
     {
+        if (!m_cipher)
+            throw cvt_error("chacha20_cvt::bos fail: cipher not initialized (moved-from object?)");
+
         BT::bos();
         const size_t iv_len = m_cipher->default_iv_length();
         std::vector<external_type> iv_buf(iv_len);
@@ -143,6 +150,9 @@ private:
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
+        if (!m_cipher)
+            throw cvt_error("chacha20_cvt::get_main fail: cipher not initialized (moved-from object?)");
+
         constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
         to_max = (max_chunk / sizeof(internal_type) > to_max)
@@ -164,13 +174,16 @@ private:
         }
 
         if (res % sizeof(internal_type))
-            throw cvt_error("chacha20_cvt::get fails: partial sequence");
+            throw cvt_error("chacha20_cvt::get_main fail: partial sequence");
         return res / sizeof(internal_type);
     }
 
     void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
+        if (!m_cipher)
+            throw cvt_error("chacha20_cvt::put_main fail: cipher not initialized (moved-from object?)");
+
         constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
