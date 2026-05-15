@@ -89,13 +89,13 @@ public:
     {
         if (this != &val)
         {
-            // Copy-and-move idiom for strong exception safety:
-            // 1. Construct full copy (may throw, *this unchanged)
-            hash_cvt temp(val);
-
-            // 2. Flush current data (may throw, but strong exception safe)
+            // 1. Flush current data first to avoid double-dump if temp's
+            //    destructor runs due to exception during copy construction
             if (m_has_main_cont)
                 dump_stream();
+
+            // 2. Construct full copy (may throw, but avoids wrong-data-dump bug)
+            hash_cvt temp(val);
 
             // 3. Move-assign from temp (noexcept, per io_converter concept)
             *this = std::move(temp);
@@ -152,7 +152,6 @@ public:
     {
         if (m_has_main_cont)
             dump_stream();
-        m_has_main_cont = false;
         m_out_fmt = hash_fmt::lower_hex;
         BT::attach(std::move(dev));
     }
@@ -161,8 +160,11 @@ public:
     {
         std::exception_ptr local_err;
         try { if (m_has_main_cont) dump_stream(); }
-        catch (...) { local_err = std::current_exception(); }
-        m_has_main_cont = false;
+        catch (...)
+        {
+            local_err = std::current_exception();
+            m_has_main_cont = false;
+        }
         m_out_fmt = hash_fmt::lower_hex;
         auto [dev, inner_err] = BT::detach();
         return { std::move(dev), local_err ? local_err : inner_err };

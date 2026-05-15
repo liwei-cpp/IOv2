@@ -134,7 +134,7 @@ public:
     {
         BT::assert_not_tainted();
         BT::m_kernel.seek(pos);
-        m_pos = pos;
+        m_pos = BT::m_kernel.tell();
     }
 
     void rseek(size_t pos)
