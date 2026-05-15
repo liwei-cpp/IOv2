@@ -154,8 +154,12 @@ class vigenere_cvt_creator
 {
 public:
     using category = CvtCreatorCategory;
-    vigenere_cvt_creator(const std::basic_string<TChar>& key)
-        : m_key(key) {}
+    explicit vigenere_cvt_creator(const std::basic_string<TChar>& key)
+        : m_key(key)
+    {
+        if (key.empty())
+            throw cvt_error("Cannot create vigenere_cvt_creator with empty key");
+    }
 
     template <io_converter TKernel>
     auto create(TKernel&& kernel) const

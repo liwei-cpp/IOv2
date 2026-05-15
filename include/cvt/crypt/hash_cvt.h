@@ -2,8 +2,10 @@
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
+#include <concepts>
 #include <cstdint>
 #include <exception>
+#include <limits>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -29,7 +31,7 @@ enum class hash_fmt : unsigned char
 
 struct set_hash_fmt : cvt_behavior
 {
-    set_hash_fmt(hash_fmt val)
+    explicit set_hash_fmt(hash_fmt val)
         : m_val(val) {}
 
     hash_fmt m_val;
@@ -37,7 +39,7 @@ struct set_hash_fmt : cvt_behavior
 
 struct dump_hash : cvt_behavior
 {
-    dump_hash(uint8_t delim)
+    explicit dump_hash(uint8_t delim)
         : m_delim(delim) {}
 
     uint8_t m_delim;
@@ -187,6 +189,11 @@ private:
         if (!m_hash)
             throw cvt_error("hash_cvt::put_main fail: hash not initialized (moved-from object?)");
 
+        // Overflow check: ensure to_size * sizeof(internal_type) won't wrap
+        constexpr size_t max_safe = std::numeric_limits<size_t>::max() / sizeof(internal_type);
+        if (to_size > max_safe)
+            throw cvt_error("hash_cvt::put_main fail: size overflow");
+
         m_has_main_cont = true;
         m_hash->update((const uint8_t*)to, to_size * sizeof(internal_type));
     }
@@ -251,7 +258,7 @@ struct hash_cvt_creator
 {
 public:
     using category = CvtCreatorCategory;
-    hash_cvt_creator(hash_algo algo)
+    explicit hash_cvt_creator(hash_algo algo)
         : m_algo(algo)
     {}
 
