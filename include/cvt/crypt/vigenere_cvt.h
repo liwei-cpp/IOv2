@@ -1,12 +1,16 @@
 #pragma once
+#include <cvt/abs_cvt.h>
+#include <cvt/cvt_concepts.h>
+#include <cvt/root_cvt.h>
+
+#include <algorithm>
 #include <exception>
 #include <stdexcept>
+#include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <vector>
-#include <cvt/cvt_concepts.h>
-#include <cvt/abs_cvt.h>
-#include <cvt/root_cvt.h>
 
 namespace IOv2::Crypt::Classic
 {
@@ -50,7 +54,7 @@ public:
         , m_key(s.begin(), s.end())
     {
         if (s.empty())
-            throw cvt_error("Cannot create vigener converter with empty key");
+            throw cvt_error("Cannot create vigenere converter with empty key");
     }
 
 // mandatory methods
