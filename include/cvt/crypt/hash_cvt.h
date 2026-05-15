@@ -69,8 +69,8 @@ public:
     hash_cvt(const hash_cvt& val)
         requires (std::copy_constructible<KernelType>)
         : BT(val)
-        , m_hash(val.m_hash->copy_state())
-        , m_has_main_cont(val.m_has_main_cont)
+        , m_hash(val.m_hash ? val.m_hash->copy_state() : nullptr)
+        , m_has_main_cont(val.m_hash ? val.m_has_main_cont : false)
         , m_out_fmt(val.m_out_fmt)
     {}
 
@@ -87,18 +87,16 @@ public:
     {
         if (this != &val)
         {
-            // Copy new state first (may throw) before modifying *this
-            auto new_hash = val.m_hash->copy_state();
+            // Copy-and-move idiom for strong exception safety:
+            // 1. Construct full copy (may throw, *this unchanged)
+            hash_cvt temp(val);
 
-            // New state prepared successfully, now safe to modify *this
+            // 2. Flush current data (may throw, but strong exception safe)
             if (m_has_main_cont)
                 dump_stream();
 
-            m_hash = std::move(new_hash);
-            m_has_main_cont = val.m_has_main_cont;
-            m_out_fmt = val.m_out_fmt;
-
-            BT::operator=(val);
+            // 3. Move-assign from temp (noexcept, per io_converter concept)
+            *this = std::move(temp);
         }
         return *this;
     }
@@ -139,7 +137,7 @@ public:
     {
         auto res = BT::bos();
         if (res != io_status::output)
-            throw cvt_error("hash_cvt::bos fail: only output mode is supported.");
+            throw cvt_error("hash_cvt::bos fail: only output mode is supported");
         return io_status::output;
     }
 
@@ -186,6 +184,9 @@ public:
 private:
     void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, size_t to_size)
     {
+        if (!m_hash)
+            throw cvt_error("hash_cvt::put_main fail: hash not initialized (moved-from object?)");
+
         m_has_main_cont = true;
         m_hash->update((const uint8_t*)to, to_size * sizeof(internal_type));
     }
@@ -207,12 +208,12 @@ private:
         if (!m_has_main_cont) return;
         if (!m_hash) return;
 
-        auto digest = m_hash->final();
+        // Use copy_state()->final() to preserve original state until put() succeeds.
+        // This provides strong exception safety: if put() fails, state is unchanged
+        // and the operation can be retried.
+        auto digest = m_hash->copy_state()->final();
         if (digest.empty())
-            throw cvt_error("hash_cvt::dump_stream fail: cannot get hash result.");
-
-        m_has_main_cont = false;
-        m_hash->clear();
+            throw cvt_error("hash_cvt::dump_stream fail: cannot get hash result");
 
         switch (m_out_fmt)
         {
@@ -232,8 +233,12 @@ private:
             }
             break;
         default:
-            throw cvt_error("hash_cvt::dump_stream fail: invalid output format.");
+            throw cvt_error("hash_cvt::dump_stream fail: invalid output format");
         }
+
+        // Only clear state after successful output
+        m_has_main_cont = false;
+        m_hash->clear();
     }
 private:
     std::unique_ptr<Botan::HashFunction> m_hash;
