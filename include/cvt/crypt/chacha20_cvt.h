@@ -1,16 +1,20 @@
 #pragma once
+#include <cvt/abs_cvt.h>
+#include <cvt/cvt_concepts.h>
+#include <cvt/root_cvt.h>
+
+#include <cstdint>
 #include <exception>
+#include <limits>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-#include <botan/auto_rng.h>
-#include <botan/stream_cipher.h>
-#include <botan/hash.h>
 
-#include <cvt/cvt_concepts.h>
-#include <cvt/root_cvt.h>
+#include <botan/auto_rng.h>
+#include <botan/hash.h>
+#include <botan/stream_cipher.h>
 
 namespace IOv2::Crypt
 {
@@ -21,7 +25,7 @@ inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
     auto hash = Botan::HashFunction::create("SHA-256");
     if (!hash)
         throw cvt_error("chacha20 key generation fail: cannot create SHA-256 hash");
-    
+
     hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size());
     return hash->final();
 }
@@ -60,7 +64,7 @@ public:
         if (!m_cipher)
             throw cvt_error("chacha20_cvt constructor fail: cannot create the stream cipher");
     }
-    
+
     chacha20_cvt(const chacha20_cvt&) = delete;
     chacha20_cvt& operator=(const chacha20_cvt&) = delete;
     chacha20_cvt(chacha20_cvt&& val) = default;
@@ -70,19 +74,29 @@ public:
 public:
     void attach(device_type&& dev = device_type{})
     {
-        m_cipher->clear();
+        if (!m_cipher)
+        {
+            m_cipher = Botan::StreamCipher::create("ChaCha20");
+            if (!m_cipher)
+                throw cvt_error("chacha20_cvt::attach fail: cannot recreate the stream cipher");
+        }
+        else
+            m_cipher->clear();
         BT::attach(std::move(dev));
     }
-    
+
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         std::exception_ptr local_err;
-        try { m_cipher->clear(); }
-        catch (...) { local_err = std::current_exception(); }
+        if (m_cipher)
+        {
+            try { m_cipher->clear(); }
+            catch (...) { local_err = std::current_exception(); }
+        }
         auto [dev, inner_err] = BT::detach();
         return { std::move(dev), local_err ? local_err : inner_err };
     }
-    
+
     io_status bos()
     {
         BT::bos();
@@ -93,8 +107,9 @@ public:
         {
             if constexpr (cvt_cpt::support_get<KernelType>)
             {
-                [[maybe_unused]] const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
-                assert(n == iv_len);
+                const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
+                if (n != iv_len)
+                    throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
 
                 m_cipher->set_key(m_key);
                 m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
