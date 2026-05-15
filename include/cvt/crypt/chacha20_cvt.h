@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -121,6 +122,8 @@ public:
                 m_cipher->set_key(m_key);
                 m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
             }
+            else
+                throw cvt_error("chacha20_cvt::bos fail: input mode but kernel does not support get");
         }
         else if (BT::m_io_status == io_status::output)
         {
@@ -134,6 +137,8 @@ public:
 
                 BT::m_kernel.put(iv_buf.data(), iv_len);
             }
+            else
+                throw cvt_error("chacha20_cvt::bos fail: output mode but kernel does not support put");
         }
         else
             throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
@@ -218,7 +223,7 @@ struct chacha20_cvt_creator
 {
 public:
     using category = CvtCreatorCategory;
-    chacha20_cvt_creator(std::string_view key)
+    explicit chacha20_cvt_creator(std::string_view key)
         : m_key(chacha20_cvt_helpers::key_gen(key)) {}
 
     template <io_converter TKernel>
