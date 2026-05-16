@@ -230,8 +230,9 @@ private:
         if (to_size > max_safe)
             throw cvt_error("hash_cvt::put_main fail: size overflow");
 
-        m_has_main_cont = true;
+        if (to_size == 0) return;
         m_hash->update((const uint8_t*)to, to_size * sizeof(internal_type));
+        m_has_main_cont = true;
     }
 
 private:
@@ -281,7 +282,15 @@ private:
 
         // Only clear state after successful output
         m_has_main_cont = false;
-        m_hash->clear();
+        try
+        {
+            m_hash->clear();
+        }
+        catch (...)
+        {
+            BT::set_tainted();
+            throw;
+        }
     }
 private:
     std::unique_ptr<Botan::HashFunction> m_hash;

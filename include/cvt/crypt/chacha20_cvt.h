@@ -82,14 +82,21 @@ public:
 public:
     void attach(device_type&& dev = device_type{})
     {
-        if (!m_cipher)
-        {
-            m_cipher = Botan::StreamCipher::create("ChaCha20");
-            if (!m_cipher)
-                throw cvt_error("chacha20_cvt::attach fail: cannot recreate the stream cipher");
-        }
+        if (!m_cipher || m_key.empty())
+            throw cvt_error("chacha20_cvt::attach fail: cipher or key missing (moved-from object?)");
         else
-            m_cipher->clear();
+        {
+            try
+            {
+                m_cipher->clear();
+            }
+            catch (...)
+            {
+                BT::set_tainted();
+                throw;
+            }
+        }
+
         BT::attach(std::move(dev));
     }
 
@@ -122,8 +129,17 @@ public:
                 if (n != iv_len)
                     throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
 
-                m_cipher->set_key(m_key);
-                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+                try
+                {
+                    m_cipher->set_key(m_key);
+                    m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+                }
+                catch (...)
+                {
+                    try { m_cipher->clear(); } catch (...) {}
+                    BT::set_tainted();
+                    throw;
+                }
             }
             else
                 throw cvt_error("chacha20_cvt::bos fail: input mode but kernel does not support get");
@@ -135,10 +151,19 @@ public:
                 Botan::AutoSeeded_RNG rng;
                 rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len);
 
-                m_cipher->set_key(m_key);
-                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+                try
+                {
+                    m_cipher->set_key(m_key);
+                    m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
 
-                BT::m_kernel.put(iv_buf.data(), iv_len);
+                    BT::m_kernel.put(iv_buf.data(), iv_len);
+                }
+                catch (...)
+                {
+                    try { m_cipher->clear(); } catch (...) {}
+                    BT::set_tainted();
+                    throw;
+                }
             }
             else
                 throw cvt_error("chacha20_cvt::bos fail: output mode but kernel does not support put");
