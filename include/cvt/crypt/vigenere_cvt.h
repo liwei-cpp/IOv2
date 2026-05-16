@@ -139,16 +139,44 @@ public:
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         BT::assert_not_tainted();
+        // The kernel is not required to land exactly on `pos` (e.g. clamping,
+        // alignment, internal buffering), so the keystream index must be
+        // resynced via tell() rather than using `pos` directly.
+        //
+        // If seek() itself throws, the kernel position is expected to be
+        // unchanged (strong exception guarantee of positioning kernels), so
+        // m_pos remains valid and we propagate without tainting.
+        //
+        // If seek() succeeds but tell() throws, the kernel has moved while
+        // m_pos has not — that desync would silently corrupt the keystream,
+        // so taint and propagate.
         BT::m_kernel.seek(pos);
-        m_pos = BT::m_kernel.tell();
+        try
+        {
+            m_pos = BT::m_kernel.tell();
+        }
+        catch (...)
+        {
+            BT::set_tainted();
+            throw;
+        }
     }
 
     void rseek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         BT::assert_not_tainted();
+        // See seek() above: only taint when rseek() succeeds but tell() fails.
         BT::m_kernel.rseek(pos);
-        m_pos = BT::m_kernel.tell();
+        try
+        {
+            m_pos = BT::m_kernel.tell();
+        }
+        catch (...)
+        {
+            BT::set_tainted();
+            throw;
+        }
     }
 private:
     size_t                     m_pos;

@@ -210,9 +210,12 @@ public:
             m_out_fmt = shf_ptr->m_val;
         else if (const dump_hash* dh_ptr = dynamic_cast<const dump_hash*>(&acc); dh_ptr)
         {
-            dump_stream();
-            if (dh_ptr->m_delim)
-                BT::m_kernel.put(reinterpret_cast<const external_type*>(&dh_ptr->m_delim), 1);
+            if (m_has_main_cont)
+            {
+                dump_stream();
+                if (dh_ptr->m_delim)
+                    BT::m_kernel.put(reinterpret_cast<const external_type*>(&dh_ptr->m_delim), 1);
+            }
         }
 
         return BT::adjust(acc);
@@ -231,7 +234,7 @@ private:
             throw cvt_error("hash_cvt::put_main fail: size overflow");
 
         if (to_size == 0) return;
-        m_hash->update((const uint8_t*)to, to_size * sizeof(internal_type));
+        m_hash->update(reinterpret_cast<const uint8_t*>(to), to_size * sizeof(internal_type));
         m_has_main_cont = true;
     }
 
@@ -262,18 +265,18 @@ private:
         switch (m_out_fmt)
         {
         case hash_fmt::binary:
-            BT::m_kernel.put((const external_type*)digest.data(), digest.size());
+            BT::m_kernel.put(reinterpret_cast<const external_type*>(digest.data()), digest.size());
             break;
         case hash_fmt::upper_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest);
-                BT::m_kernel.put((const external_type*)hex_string.data(), hex_string.size());
+                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size());
             }
             break;
         case hash_fmt::lower_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest, false);
-                BT::m_kernel.put((const external_type*)hex_string.data(), hex_string.size());
+                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size());
             }
             break;
         default:

@@ -21,15 +21,18 @@ namespace chacha20_cvt_helpers
 {
 inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
 {
+    // Reject empty input: hashing an empty string would silently yield the
+    // publicly known constant SHA-256("") and use it as the ChaCha20 key,
+    // providing zero confidentiality. The secure_vector-based constructor
+    // already rejects invalid key lengths; mirror that contract here.
+    if (key.empty())
+        throw cvt_error("chacha20 key generation fail: key must not be empty");
+
     auto hash = Botan::HashFunction::create("SHA-256");
     if (!hash)
         throw cvt_error("chacha20 key generation fail: cannot create SHA-256 hash");
 
-    // Guard against passing a possibly-null pointer to update(): for an empty
-    // string_view, data() is allowed to return nullptr, and feeding (nullptr, 0)
-    // into a C API that may internally use memcpy is UB in the C standard.
-    if (!key.empty())
-        hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size());
+    hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size());
     return hash->final();
 }
 }
@@ -119,18 +122,20 @@ public:
 
         BT::bos();
         const size_t iv_len = m_cipher->default_iv_length();
+        if (iv_len == 0)
+            throw cvt_error("chacha20_cvt::bos fail: cipher reports zero IV length");
         std::vector<external_type> iv_buf(iv_len);
 
         if (BT::m_io_status == io_status::input)
         {
             if constexpr (cvt_cpt::support_get<KernelType>)
             {
-                const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
-                if (n != iv_len)
-                    throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
-
                 try
                 {
+                    const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
+                    if (n != iv_len)
+                        throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
+
                     m_cipher->set_key(m_key);
                     m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
                 }
@@ -188,27 +193,40 @@ private:
 
         constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
-        to_max = (max_chunk / sizeof(internal_type) > to_max)
-               ? (to_max * sizeof(internal_type))
-               : max_chunk;
 
         uint8_t* to = reinterpret_cast<uint8_t*>(_to);
 
         reader.reset(block_size);
-        size_t res = 0;
-        while (res != to_max)
+        size_t total_res = 0;   // total bytes decrypted across all outer iterations
+
+        // Mirrors put_main: the outer loop splits a large request into
+        // max_chunk-sized slices so that (to_max * sizeof) never overflows.
+        // Each inner loop fills one slice or stops on EOF.
+        while (to_max > 0)
         {
-            size_t dest_size = std::min<size_t>(block_size, to_max - res);
-            auto [ptr, cur_len] = reader.get_buf(dest_size);
-            if (cur_len == 0) break;
-            m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, cur_len);
-            to += cur_len;
-            res += cur_len;
+            const size_t aim = (max_chunk / sizeof(internal_type) > to_max)
+                             ? (to_max * sizeof(internal_type))
+                             : max_chunk;
+
+            size_t chunk_res = 0;   // bytes decrypted in this slice
+            bool eof = false;
+            while (chunk_res != aim)
+            {
+                const size_t dest_size = std::min<size_t>(block_size, aim - chunk_res);
+                auto [ptr, cur_len] = reader.get_buf(dest_size);
+                if (cur_len == 0) { eof = true; break; }
+                m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, cur_len);
+                to += cur_len;
+                chunk_res += cur_len;
+            }
+            total_res += chunk_res;
+            to_max -= aim / sizeof(internal_type);
+            if (eof) break;
         }
 
-        if (res % sizeof(internal_type))
+        if (total_res % sizeof(internal_type))
             throw cvt_error("chacha20_cvt::get_main fail: partial sequence");
-        return res / sizeof(internal_type);
+        return total_res / sizeof(internal_type);
     }
 
     void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, size_t to_size)
