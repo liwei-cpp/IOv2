@@ -80,6 +80,9 @@ private:
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
+        if (m_key.empty())
+            throw cvt_error("vigenere_cvt: key not initialized (moved-from object?)");
+
         size_t total_count = 0;
         reader.reset(s_buf_len);
         while (total_count != to_max)
@@ -102,6 +105,9 @@ private:
     void put_main(cvt_writer<KernelType>& writer, const internal_type* to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
+        if (m_key.empty())
+            throw cvt_error("vigenere_cvt: key not initialized (moved-from object?)");
+
         writer.reset(s_buf_len);
 
         size_t total_count = 0;
