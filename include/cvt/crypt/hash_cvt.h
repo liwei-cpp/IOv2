@@ -150,10 +150,34 @@ public:
 
     void attach(device_type&& dev = device_type{})
     {
-        if (m_has_main_cont)
-            dump_stream();
+        // 1. Try to finalize the old session; capture any failure so we can
+        //    still install the new device (zlib_cvt::attach convention:
+        //    propagating here would let `dev`, already moved into our
+        //    parameter, be destroyed during stack unwinding).
+        std::exception_ptr dump_err;
+        try { if (m_has_main_cont) dump_stream(); }
+        catch (...) { dump_err = std::current_exception(); }
+
+        m_has_main_cont = false;
         m_out_fmt = hash_fmt::lower_hex;
+
+        // 2. Defense-in-depth: clear any residual hash state. If clear()
+        //    throws, the converter is in an unknown state — mark it tainted
+        //    and propagate immediately; BT::attach() will not be called and
+        //    the incoming device will be lost.
+        if (m_hash)
+        {
+            try { m_hash->clear(); }
+            catch (...)
+            {
+                BT::set_tainted();
+                throw;
+            }
+        }
+
         BT::attach(std::move(dev));
+
+        if (dump_err)  std::rethrow_exception(dump_err);
     }
 
     std::pair<device_type, std::exception_ptr> detach() noexcept
@@ -164,6 +188,16 @@ public:
         {
             local_err = std::current_exception();
             m_has_main_cont = false;
+            // Clear any residual hash state so a subsequent attach()+put()
+            // does not accumulate on top of half-finished data.  If clear()
+            // itself fails, swallow the exception — we are already in error
+            // recovery from a failed dump_stream(), and surfacing a secondary
+            // failure here would only obscure the primary error.
+            if (m_hash)
+            {
+                try { m_hash->clear(); }
+                catch (...) {} // NOLINT(bugprone-empty-catch)
+            }
         }
         m_out_fmt = hash_fmt::lower_hex;
         auto [dev, inner_err] = BT::detach();

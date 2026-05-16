@@ -6,7 +6,6 @@
 #include <exception>
 #include <limits>
 #include <memory>
-#include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -26,7 +25,11 @@ inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
     if (!hash)
         throw cvt_error("chacha20 key generation fail: cannot create SHA-256 hash");
 
-    hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size());
+    // Guard against passing a possibly-null pointer to update(): for an empty
+    // string_view, data() is allowed to return nullptr, and feeding (nullptr, 0)
+    // into a C API that may internally use memcpy is UB in the C standard.
+    if (!key.empty())
+        hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size());
     return hash->final();
 }
 }
