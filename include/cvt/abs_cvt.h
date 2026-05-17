@@ -922,10 +922,18 @@ namespace IOv2
          */
         void attach(device_type&& dev = device_type{})
         {
-            m_kernel.attach(std::move(dev));
-            m_io_status = io_status::neutral;
-            m_is_bos_done = false;
-            m_is_tainted = false;
+            try
+            {
+                m_kernel.attach(std::move(dev));
+                m_io_status = io_status::neutral;
+                m_is_bos_done = false;
+                m_is_tainted = false;
+            }
+            catch (...)
+            {
+                m_is_tainted = true;
+                throw;
+            }
         }
 
         /**

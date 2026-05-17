@@ -85,6 +85,8 @@ public:
 public:
     void attach(device_type&& dev = device_type{})
     {
+        BT::attach(std::move(dev));
+
         if (!m_cipher || m_key.empty())
             throw cvt_error("chacha20_cvt::attach fail: cipher or key missing (moved-from object?)");
         else
@@ -99,8 +101,6 @@ public:
                 throw;
             }
         }
-
-        BT::attach(std::move(dev));
     }
 
     std::pair<device_type, std::exception_ptr> detach() noexcept
@@ -117,10 +117,11 @@ public:
 
     io_status bos()
     {
-        if (!m_cipher)
-            throw cvt_error("chacha20_cvt::bos fail: cipher not initialized (moved-from object?)");
-
         BT::bos();
+
+        if (!m_cipher || m_key.empty())
+            throw cvt_error("chacha20_cvt::bos fail: cipher or key missing (moved-from object?)");
+
         const size_t iv_len = m_cipher->default_iv_length();
         if (iv_len == 0)
             throw cvt_error("chacha20_cvt::bos fail: cipher reports zero IV length");
@@ -153,11 +154,11 @@ public:
         {
             if constexpr (cvt_cpt::support_put<KernelType>)
             {
-                Botan::AutoSeeded_RNG rng;
-                rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len);
-
                 try
                 {
+                    Botan::AutoSeeded_RNG rng;
+                    rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len);
+
                     m_cipher->set_key(m_key);
                     m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
 
@@ -176,11 +177,6 @@ public:
         else
             throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
         return BT::m_io_status;
-    }
-
-    void main_cont_beg()
-    {
-        BT::main_cont_beg();
     }
 
 // optional methods

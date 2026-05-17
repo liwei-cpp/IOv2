@@ -49,24 +49,37 @@ public:
     vigenere_cvt(KernelType dev, std::basic_string_view<internal_type> s)
         : BT(std::move(dev))
         , m_pos(0)
-        , m_key(s.begin(), s.end())
-    {
-        if (s.empty())
-            throw cvt_error("Cannot create vigenere converter with empty key");
-    }
+        , m_key([s]
+                {
+                    if (s.empty())
+                        throw cvt_error("vigenere_cvt: cannot create vigenere converter with empty key");
+                    return std::vector<internal_type>(s.begin(), s.end());
+                }())
+    {}
 
 // mandatory methods
 public:
     void attach(device_type&& dev = device_type{})
     {
-        m_pos = 0;
         BT::attach(std::move(dev));
+        try
+        {
+            m_pos = 0;
+            if (m_key.empty())
+                throw cvt_error("vigenere_cvt::attach fail: empty key");
+        }
+        catch (...)
+        {
+            BT::set_tainted();
+            throw;
+        }
     }
 
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
+        auto res = BT::detach();
         m_pos = 0;
-        return BT::detach();
+        return res;
     }
 
     void main_cont_beg()
@@ -77,6 +90,23 @@ public:
 
 // optional methods
 private:
+    // Vigenère arithmetic is performed in the unsigned domain to avoid
+    // signed integer overflow UB when internal_type is a signed multi-byte
+    // type (e.g. int32_t). Unsigned subtraction/addition is well-defined
+    // (modulo 2^N wrap), and the back-cast to internal_type is well-defined
+    // under C++20's two's-complement guarantee. Encryption (add_wrap) and
+    // decryption (sub_wrap) remain exact inverses in the mod-2^N group.
+    static constexpr internal_type sub_wrap(internal_type a, internal_type b) noexcept
+    {
+        using U = std::make_unsigned_t<internal_type>;
+        return static_cast<internal_type>(static_cast<U>(a) - static_cast<U>(b));
+    }
+    static constexpr internal_type add_wrap(internal_type a, internal_type b) noexcept
+    {
+        using U = std::make_unsigned_t<internal_type>;
+        return static_cast<internal_type>(static_cast<U>(a) + static_cast<U>(b));
+    }
+
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
@@ -95,7 +125,8 @@ private:
             for (size_t i = 0; i < cur_size; ++i)
             {
                 size_t pos = (m_pos++) % m_key.size();
-                *to++ = (*ptr++) - m_key[pos];
+                const internal_type src = *ptr++;
+                *to++ = sub_wrap(src, m_key[pos]);
             }
             total_count += cur_size;
         }
@@ -119,7 +150,8 @@ private:
             for (size_t i = 0; i < dest_size; ++i)
             {
                 size_t pos = (m_pos++) % m_key.size();
-                *ptr++ = (*to++) + m_key[pos];
+                const internal_type src = *to++;
+                *ptr++ = add_wrap(src, m_key[pos]);
             }
             total_count += dest_size;
         }
