@@ -997,18 +997,31 @@ namespace IOv2
          */
         void attach(device_type&& dev = device_type{})
         {
+            std::exception_ptr local_err = nullptr;
+            if constexpr (requires(CurrentType& t) { t.detach_impl(); })
+            {
+                static_assert(noexcept(std::declval<CurrentType&>().detach_impl()),
+                              "detach_impl() must be noexcept");
+                local_err = static_cast<CurrentType*>(this)->detach_impl();
+            }
+
             try
             {
                 m_kernel.attach(std::move(dev));
                 m_io_status = io_status::neutral;
                 m_is_bos_done = false;
                 m_is_tainted = false;
+
+                if constexpr (requires(CurrentType& t) { t.attach_impl(); })
+                    static_cast<CurrentType*>(this)->attach_impl();
             }
             catch (...)
             {
                 m_is_tainted = true;
                 throw;
             }
+
+            if (local_err) std::rethrow_exception(local_err);
         }
 
         /**

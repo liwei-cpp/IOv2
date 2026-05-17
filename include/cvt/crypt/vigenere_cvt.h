@@ -59,22 +59,6 @@ public:
 
 // mandatory methods
 public:
-    void attach(device_type&& dev = device_type{})
-    {
-        BT::attach(std::move(dev));
-        try
-        {
-            m_pos = 0;
-            if (m_key.empty())
-                throw cvt_error("vigenere_cvt::attach fail: empty key");
-        }
-        catch (...)
-        {
-            BT::set_tainted();
-            throw;
-        }
-    }
-
     void main_cont_beg()
     {
         BT::main_cont_beg();
@@ -109,6 +93,12 @@ private:
     {
         m_pos = 0;
         return nullptr;
+    }
+
+    void attach_impl()
+    {
+        if (m_key.empty())
+            throw cvt_error("vigenere_cvt::attach fail: empty key");
     }
 
     // Vigenère arithmetic is performed in the unsigned domain to avoid

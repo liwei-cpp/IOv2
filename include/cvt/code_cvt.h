@@ -811,43 +811,6 @@ public:
 public:
     /**
      * @lang{ZH}
-     * 关闭当前流并替换底层设备为 `dev`。
-     *
-     * 本函数不归还原设备——原设备由 `BT::attach()` 在内部静默析构。如需保留
-     * 原设备，调用方应先调用 `detach()` 取得设备，再调用本函数装入新设备。
-     *
-     * 异常：`close_stream()` 或 `BT::attach()` 抛出的异常会透传给调用方。
-     *
-     * @param dev 新的底层设备（默认构造即为空设备）。
-     * @endif
-     *
-     * @lang{EN}
-     * Close the current stream and replace the underlying device with `dev`.
-     *
-     * This function does NOT hand the old device back to the caller — the old
-     * device is silently destroyed inside `BT::attach()`. Callers who need to
-     * preserve the old device must call `detach()` first to retrieve it, then
-     * call this function to install the new device.
-     *
-     * Exceptions: any exception thrown by `close_stream()` or `BT::attach()`
-     * is propagated to the caller.
-     *
-     * @param dev New underlying device (default-constructed means an empty device).
-     * @endif
-     */
-    void attach(device_type&& dev = device_type{})
-    {
-        std::exception_ptr close_err;
-        try { close_stream(); }
-        catch (...) { close_err = std::current_exception(); }
-
-        BT::attach(std::move(dev));
-
-        if (close_err) std::rethrow_exception(close_err);
-    }
-
-    /**
-     * @lang{ZH}
      * 建立初始 IO 状态（BOS：Beginning-Of-Stream）。
      * 这是使用转换器之前必须首先调用的函数。
      *
