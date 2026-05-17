@@ -508,44 +508,6 @@ public:
 public:
     /**
      * @lang{ZH}
-     * 将新设备绑定到转换器，同时关闭当前 zlib 流。
-     * 先关闭当前流（捕获可能的错误），再安装新设备；关闭错误在新设备安装完成后才抛出。
-     * 这一顺序是为了防止 `dev`（已移入函数参数）在栈回绕时被析构而悄然丢失。
-     * @endif
-     *
-     * @lang{EN}
-     * Attach a new device to the converter, closing the current zlib stream first.
-     * The current stream is closed before the new device is installed (any close error
-     * is captured); the error is rethrown only after the new device has been installed.
-     * This ordering prevents `dev` (already moved into the parameter) from being
-     * silently destroyed during stack unwinding.
-     * @endif
-     *
-     * @param dev 要绑定的新设备（移动接管所有权），默认为空设备。
-     *            / The new device to attach (ownership transferred via move); defaults to an empty device.
-     * @throws cvt_error 若旧流的 `close_stream()` 失败。 / If `close_stream()` fails for the old stream.
-     */
-    void attach(device_type&& dev = device_type{})
-    {
-        // close_stream failure only means the OLD output stream could not be
-        // finalized on its old device.  Its state_guard resets m_io_status /
-        // m_is_bos_done / m_sync_flush, and the inflate_guard / deflate_guard
-        // inside close_stream have already released m_strm.  So the failure
-        // does NOT prevent us from installing the new device.  If we let it
-        // propagate here, the caller's `dev` (already moved into our parameter)
-        // would be destroyed during stack unwinding and silently lost.  Capture
-        // the exception, install the new device first, then rethrow.
-        std::exception_ptr close_err;
-        try { close_stream(); }
-        catch (...) { close_err = std::current_exception(); }
-
-        BT::attach(std::move(dev));
-
-        if (close_err) std::rethrow_exception(close_err);
-    }
-
-    /**
-     * @lang{ZH}
      * 调整转换器行为参数。
      * 若 `acc` 为 `zlib_sync_flush` 实例，则更新 `m_sync_flush` 标志；
      * 同时将 `acc` 转发给基类 `BT::adjust()`。

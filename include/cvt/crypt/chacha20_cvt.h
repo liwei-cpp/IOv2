@@ -83,26 +83,6 @@ public:
 
 // mandatory methods
 public:
-    void attach(device_type&& dev = device_type{})
-    {
-        BT::attach(std::move(dev));
-
-        if (!m_cipher || m_key.empty())
-            throw cvt_error("chacha20_cvt::attach fail: cipher or key missing (moved-from object?)");
-        else
-        {
-            try
-            {
-                m_cipher->clear();
-            }
-            catch (...)
-            {
-                BT::set_tainted();
-                throw;
-            }
-        }
-    }
-
     io_status bos()
     {
         BT::bos();
@@ -200,6 +180,13 @@ private:
             catch (...) { local_err = std::current_exception(); }
         }
         return local_err;
+    }
+
+    void attach_impl()
+    {
+        if (!m_cipher || m_key.empty())
+            throw cvt_error("chacha20_cvt::attach fail: cipher or key missing (moved-from object?)");
+        m_cipher->clear();
     }
 
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, size_t to_max)

@@ -157,30 +157,6 @@ public:
         return io_status::output;
     }
 
-    void attach(device_type&& dev = device_type{})
-    {
-        std::exception_ptr dump_err;
-        try { if (m_has_main_cont) dump_stream(); }
-        catch (...) { dump_err = std::current_exception(); }
-
-        BT::attach(std::move(dev));
-
-        m_has_main_cont = false;
-        m_out_fmt = hash_fmt::lower_hex;
-
-        if (m_hash)
-        {
-            try { m_hash->clear(); }
-            catch (...)
-            {
-                BT::set_tainted();
-                throw;
-            }
-        }
-
-        if (dump_err)  std::rethrow_exception(dump_err);
-    }
-
     void adjust(const cvt_behavior& acc)
     {
         if (const set_hash_fmt* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
@@ -257,6 +233,13 @@ private:
         }
         m_out_fmt = hash_fmt::lower_hex;
         return local_err;
+    }
+
+    void attach_impl()
+    {
+        if (!m_hash)
+            throw cvt_error("hash_cvt::attach fail: hash not initialized (moved-from object?)");
+        m_hash->clear();
     }
 
     void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, size_t to_size)
