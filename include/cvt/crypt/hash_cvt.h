@@ -181,30 +181,6 @@ public:
         if (dump_err)  std::rethrow_exception(dump_err);
     }
 
-    std::pair<device_type, std::exception_ptr> detach() noexcept
-    {
-        std::exception_ptr local_err;
-        try { if (m_has_main_cont) dump_stream(); }
-        catch (...)
-        {
-            local_err = std::current_exception();
-            m_has_main_cont = false;
-            // Clear any residual hash state so a subsequent attach()+put()
-            // does not accumulate on top of half-finished data.  If clear()
-            // itself fails, swallow the exception — we are already in error
-            // recovery from a failed dump_stream(), and surfacing a secondary
-            // failure here would only obscure the primary error.
-            if (m_hash)
-            {
-                try { m_hash->clear(); }
-                catch (...) {} // NOLINT(bugprone-empty-catch)
-            }
-        }
-        m_out_fmt = hash_fmt::lower_hex;
-        auto [dev, inner_err] = BT::detach();
-        return { std::move(dev), local_err ? local_err : inner_err };
-    }
-
     void adjust(const cvt_behavior& acc)
     {
         if (const set_hash_fmt* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
@@ -227,6 +203,62 @@ public:
 
 // optional methods
 private:
+    /**
+     * @lang{ZH}
+     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     *
+     * 若当前处于主内容阶段（`m_has_main_cont`），尝试调用 `dump_stream()` 将哈希结果写出；
+     * 若 `dump_stream()` 抛出异常，则手动将 `m_has_main_cont` 置为 `false` 并尝试
+     * `m_hash->clear()` 清除残余状态（`clear()` 的异常被吞掉，避免掩盖首要错误）。
+     * 成功路径下 `dump_stream()` 自行置 `m_has_main_cont = false`。
+     * 最后将 `m_out_fmt` 重置为默认值。
+     *
+     * 异常以 `exception_ptr` 形式返回，由调用方（`abs_cvt::detach()`）按 first-failure-wins
+     * 与 kernel 层异常合并。本函数为 `noexcept`，此约束由 `abs_cvt` 的 `static_assert` 强制。
+     *
+     * @return 捕获到的首个清理异常；无异常时为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     *
+     * If currently in the main-content phase (`m_has_main_cont`), attempts to call
+     * `dump_stream()` to write out the hash result. If `dump_stream()` throws, resets
+     * `m_has_main_cont` to `false` and attempts `m_hash->clear()` to wipe residual
+     * state (the `clear()` exception is swallowed to avoid obscuring the primary error).
+     * On the success path, `dump_stream()` itself resets `m_has_main_cont`.
+     * Finally, `m_out_fmt` is reset to its default value.
+     *
+     * Any captured exception is returned as an `exception_ptr`; the caller
+     * (`abs_cvt::detach()`) merges it with the kernel-layer exception under
+     * first-failure-wins. Must be `noexcept` — enforced by a `static_assert` in `abs_cvt`.
+     *
+     * @return The first captured cleanup exception, or `nullptr` if none.
+     * @endif
+     */
+    std::exception_ptr detach_impl() noexcept
+    {
+        std::exception_ptr local_err = nullptr;
+        try { if (m_has_main_cont) dump_stream(); }
+        catch (...)
+        {
+            local_err = std::current_exception();
+            m_has_main_cont = false;
+            // Clear any residual hash state so a subsequent attach()+put()
+            // does not accumulate on top of half-finished data.  If clear()
+            // itself fails, swallow the exception — we are already in error
+            // recovery from a failed dump_stream(), and surfacing a secondary
+            // failure here would only obscure the primary error.
+            if (m_hash)
+            {
+                try { m_hash->clear(); }
+                catch (...) {} // NOLINT(bugprone-empty-catch)
+            }
+        }
+        m_out_fmt = hash_fmt::lower_hex;
+        return local_err;
+    }
+
     void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, size_t to_size)
     {
         if (!m_hash)

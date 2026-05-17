@@ -848,38 +848,6 @@ public:
 
     /**
      * @lang{ZH}
-     * 关闭当前流并移除底层设备，返回该设备的所有权。
-     *
-     * 本函数为 `noexcept`：`close_stream()` 的清理异常被捕获为返回值 `second`
-     * 中的 `exception_ptr`，并按 first-failure-wins 与底层 `BT::detach()` 返回的
-     * 异常合并（本层捕获到的异常优先）。设备始终通过返回值 `first` 无条件交还。
-     *
-     * @return pair：`first` 为底层设备所有权，`second` 为捕获的首个清理异常（`nullptr` 表示无异常）。
-     * @endif
-     *
-     * @lang{EN}
-     * Close the current stream, remove the underlying device, and return
-     * ownership of it.
-     *
-     * This function is `noexcept`: any exception from `close_stream()` is captured
-     * into the returned pair's `second` (`exception_ptr`) and merged under
-     * first-failure-wins with the one returned by `BT::detach()` (local exception
-     * wins). The device is always handed back unconditionally via `first`.
-     *
-     * @return A pair: `first` is ownership of the underlying device; `second` is the first captured cleanup exception (`nullptr` if none).
-     * @endif
-     */
-    std::pair<device_type, std::exception_ptr> detach() noexcept
-    {
-        std::exception_ptr local_err;
-        try { close_stream(); }
-        catch (...) { local_err = std::current_exception(); }
-        auto [dev, inner_err] = BT::detach();
-        return { std::move(dev), local_err ? local_err : inner_err };
-    }
-
-    /**
-     * @lang{ZH}
      * 建立初始 IO 状态（BOS：Beginning-Of-Stream）。
      * 这是使用转换器之前必须首先调用的函数。
      *
@@ -919,6 +887,36 @@ public:
 
 // 可选方法（由 abs_cvt 通过 CRTP 调用）/ Optional methods (called by abs_cvt via CRTP)
 private:
+    /**
+     * @lang{ZH}
+     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     *
+     * 负责执行 `code_cvt` 层面的清理（`close_stream()`），并将捕获到的异常以
+     * `exception_ptr` 形式返回；调用方（`abs_cvt::detach()`）负责按 first-failure-wins
+     * 与 kernel 层异常合并。本函数为 `noexcept`，此约束由 `abs_cvt` 的 `static_assert` 强制。
+     *
+     * @return 捕获到的首个清理异常；无异常时为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     *
+     * Performs `code_cvt`-layer cleanup (`close_stream()`) and returns any captured
+     * exception as an `exception_ptr`; the caller (`abs_cvt::detach()`) merges it
+     * with the kernel-layer exception under first-failure-wins.
+     * Must be `noexcept` — enforced by a `static_assert` in `abs_cvt`.
+     *
+     * @return The first captured cleanup exception, or `nullptr` if none.
+     * @endif
+     */
+    std::exception_ptr detach_impl() noexcept
+    {
+        std::exception_ptr local_err = nullptr;
+        try { close_stream(); }
+        catch (...) { local_err = std::current_exception(); }
+        return local_err;
+    }
+
     /**
      * @lang{ZH}
      * 将内部字符序列编码为外部字节并写入底层缓冲区（由 `abs_cvt::put` 通过 CRTP 调用）。

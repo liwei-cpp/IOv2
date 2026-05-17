@@ -103,18 +103,6 @@ public:
         }
     }
 
-    std::pair<device_type, std::exception_ptr> detach() noexcept
-    {
-        std::exception_ptr local_err;
-        if (m_cipher)
-        {
-            try { m_cipher->clear(); }
-            catch (...) { local_err = std::current_exception(); }
-        }
-        auto [dev, inner_err] = BT::detach();
-        return { std::move(dev), local_err ? local_err : inner_err };
-    }
-
     io_status bos()
     {
         BT::bos();
@@ -181,6 +169,39 @@ public:
 
 // optional methods
 private:
+    /**
+     * @lang{ZH}
+     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     *
+     * 若 `m_cipher` 有效（非 moved-from 状态），调用 `m_cipher->clear()` 清除密钥和 IV 状态；
+     * 异常以 `exception_ptr` 形式返回，由调用方（`abs_cvt::detach()`）按 first-failure-wins
+     * 与 kernel 层异常合并。本函数为 `noexcept`，此约束由 `abs_cvt` 的 `static_assert` 强制。
+     *
+     * @return 捕获到的首个清理异常；无异常时为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     *
+     * If `m_cipher` is valid (not a moved-from object), calls `m_cipher->clear()` to
+     * wipe the key and IV state. Any captured exception is returned as an `exception_ptr`;
+     * the caller (`abs_cvt::detach()`) merges it with the kernel-layer exception under
+     * first-failure-wins. Must be `noexcept` — enforced by a `static_assert` in `abs_cvt`.
+     *
+     * @return The first captured cleanup exception, or `nullptr` if none.
+     * @endif
+     */
+    std::exception_ptr detach_impl() noexcept
+    {
+        std::exception_ptr local_err = nullptr;
+        if (m_cipher)
+        {
+            try { m_cipher->clear(); }
+            catch (...) { local_err = std::current_exception(); }
+        }
+        return local_err;
+    }
+
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {

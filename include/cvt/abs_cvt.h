@@ -628,6 +628,65 @@ namespace IOv2
      *         lower layer before the lower layer is torn down — otherwise the
      *         drained data has nowhere to go.
      *
+     * @par CRTP 可选钩子 / CRTP Optional Hooks
+     * @lang{ZH}
+     * 派生类可实现以下零个或多个私有钩子函数。`abs_cvt` 通过
+     * `if constexpr (requires { ... })` 在编译期检测各钩子是否存在，并在对应的
+     * 生命周期节点调用。所有钩子须声明为 `private`，并在派生类中添加
+     * `friend BT` 授权 `abs_cvt` 访问。
+     *
+     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) -> size_t`**
+     *   由 `abs_cvt::get` 在主内容阶段调用，执行解码逻辑。
+     *   返回值为实际解码的 `internal_type` 元素个数。
+     *   允许抛出异常；调用方会正确传播。
+     *
+     * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
+     *   由 `abs_cvt::put` 在主内容阶段调用，执行编码逻辑。
+     *   禁止自行调用 `cvt_writer::commit()`；commit 由 `abs_cvt::put` 在成功路径统一负责。
+     *   允许抛出异常；调用方会设置污染标志并传播。
+     *
+     * - **`flush_impl()`**
+     *   由 `abs_cvt::flush` 在调用 `m_kernel.flush()` 之前调用，执行派生层特有的冲刷逻辑
+     *   （例如 zlib sync flush）。允许抛出异常；调用方会设置污染标志并传播。
+     *
+     * - **`detach_impl() noexcept -> std::exception_ptr`**
+     *   由 `abs_cvt::detach` 在调用 `m_kernel.detach()` 之前调用，执行派生层清理。
+     *   **必须声明为 `noexcept`**（由 `abs_cvt` 内的 `static_assert` 强制）。
+     *   捕获到的异常须以 `std::exception_ptr` 形式返回；调用方按 first-failure-wins
+     *   与 kernel 层异常合并后统一透传。无异常时返回 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * Derived classes may implement zero or more of the following private hooks.
+     * `abs_cvt` detects each hook at compile time via `if constexpr (requires { ... })`
+     * and invokes it at the documented lifecycle point. All hooks must be declared
+     * `private`; the derived class must add `friend BT` to grant `abs_cvt` access.
+     *
+     * - **`get_main(cvt_reader<KernelType>&, internal_type*, size_t) -> size_t`**
+     *   Called by `abs_cvt::get` during the main-content phase to perform decoding.
+     *   Returns the number of `internal_type` elements actually decoded.
+     *   May throw; the caller propagates the exception normally.
+     *
+     * - **`put_main(cvt_writer<KernelType>&, const internal_type*, size_t)`**
+     *   Called by `abs_cvt::put` during the main-content phase to perform encoding.
+     *   Must NOT call `cvt_writer::commit()` itself; `abs_cvt::put` is the sole
+     *   committer on the success path. May throw; the caller sets the taint flag
+     *   and rethrows.
+     *
+     * - **`flush_impl()`**
+     *   Called by `abs_cvt::flush` before `m_kernel.flush()`, to perform any
+     *   derived-layer flushing (e.g., a zlib sync flush).
+     *   May throw; the caller sets the taint flag and rethrows.
+     *
+     * - **`detach_impl() noexcept -> std::exception_ptr`**
+     *   Called by `abs_cvt::detach` before `m_kernel.detach()`, to perform
+     *   derived-layer cleanup. **Must be declared `noexcept`** (enforced by a
+     *   `static_assert` inside `abs_cvt`). Any captured exception must be returned
+     *   as a `std::exception_ptr`; the caller merges it with the kernel-layer
+     *   exception under first-failure-wins and forwards the combined result.
+     *   Return `nullptr` if none.
+     * @endif
+     *
      * @par Exception Safety / Tainted State
      * Output streaming cannot in general offer the strong exception
      * guarantee: a single `put` may auto-flush several chunks to the kernel
@@ -848,37 +907,53 @@ namespace IOv2
          * @lang{ZH}
          * 分离并返回底层设备，同时将转换器状态重置为初始状态。
          *
-         * 调用后 `m_io_status` 恢复为 `neutral`，`m_is_bos_done` 恢复为 `false`。
+         * 调用后 `m_io_status` 恢复为 `neutral`，`m_is_bos_done` 与 `m_is_tainted`
+         * 恢复为 `false`。
          *
-         * 本函数为 `noexcept`：底层 kernel `detach()` 的清理异常通过其返回值的 `exception_ptr`
-         * 透传，本层不再额外捕获或转换（first-failure-wins）。设备始终通过返回值的 `first`
-         * 无条件交还给调用方。
+         * 本函数为 `noexcept`，清理异常通过返回值的 `exception_ptr` 透传（first-failure-wins）：
+         * - 若派生类实现了 `detach_impl() noexcept`，则先调用之；其异常优先于 kernel 的异常。
+         *   编译器会通过 `static_assert` 强制要求 `detach_impl()` 必须声明为 `noexcept`。
+         * - 随后调用 `m_kernel.detach()` 完成 kernel 层的分离与清理。
+         *
+         * 设备始终通过返回值的 `first` 无条件交还给调用方。
          * @endif
          *
          * @lang{EN}
          * Detach and return the underlying device, resetting the converter state
          * to its initial state.
          *
-         * After the call `m_io_status` is reset to `neutral` and `m_is_bos_done`
-         * is reset to `false`.
+         * After the call `m_io_status` is reset to `neutral`, and both `m_is_bos_done`
+         * and `m_is_tainted` are reset to `false`.
          *
-         * This function is `noexcept`: the kernel's cleanup exception (if any) is
-         * forwarded unchanged via the returned `exception_ptr` (first-failure-wins);
-         * this layer does not capture or rewrap it. The device is always handed back
-         * unconditionally via `first`.
+         * This function is `noexcept`; cleanup exceptions are forwarded via the returned
+         * `exception_ptr` (first-failure-wins):
+         * - If the derived class implements `detach_impl() noexcept`, it is called first;
+         *   its exception (if any) takes priority over the kernel's exception.
+         *   A `static_assert` enforces that `detach_impl()` must be declared `noexcept`.
+         * - `m_kernel.detach()` is then called to complete kernel-level detachment and cleanup.
+         *
+         * The device is always handed back unconditionally via `first`.
          * @endif
          *
          * @return
-         * @lang{ZH} pair：`first` 为已从 kernel 中分离的底层设备对象（右值），`second` 为底层清理捕获的首个异常（`nullptr` 表示无异常）。 @endif
-         * @lang{EN} A pair: `first` is the device detached from the kernel (rvalue); `second` is the first exception captured by the underlying cleanup (`nullptr` if none). @endif
+         * @lang{ZH} pair：`first` 为已从 kernel 中分离的底层设备对象（右值），`second` 为清理过程中捕获的首个异常（`nullptr` 表示无异常）。 @endif
+         * @lang{EN} A pair: `first` is the device detached from the kernel (rvalue); `second` is the first exception captured during cleanup (`nullptr` if none). @endif
          */
         std::pair<device_type, std::exception_ptr> detach() noexcept
         {
-            auto result = m_kernel.detach();
+            std::exception_ptr local_err = nullptr;
+            if constexpr (requires(CurrentType& t) { t.detach_impl(); })
+            {
+                static_assert(noexcept(std::declval<CurrentType&>().detach_impl()),
+                              "detach_impl() must be noexcept");
+                local_err = static_cast<CurrentType*>(this)->detach_impl();
+            }
+
+            auto [dev, inner_err] = m_kernel.detach();
             m_io_status = io_status::neutral;
             m_is_bos_done = false;
             m_is_tainted = false;
-            return result;
+            return { std::move(dev), local_err ? local_err : inner_err };
         }
 
         /**
@@ -1336,9 +1411,9 @@ namespace IOv2
          *
          * 仅在派生类实现了 `put_main` 时可用。若当前不处于输出模式，则为空操作直接返回。
          *
-         * 若派生类实现了 `do_flush()`，则先调用 `do_flush()` 执行派生类特定的刷出逻辑
+         * 若派生类实现了 `flush_impl()`，则先调用 `flush_impl()` 执行派生类特定的刷出逻辑
          * （例如 zlib 的 sync flush），再调用 `m_kernel.flush()` 将数据推送至底层设备。
-         * 若派生类未实现 `do_flush()`，则直接调用 `m_kernel.flush()`。
+         * 若派生类未实现 `flush_impl()`，则直接调用 `m_kernel.flush()`。
          *
          * 若刷出过程中抛出异常，转换器将进入污染状态，后续操作均不可用。
          * @endif
@@ -1349,10 +1424,10 @@ namespace IOv2
          * Only available when the derived class implements `put_main`. If the converter
          * is not currently in output mode, this is a no-op and returns immediately.
          *
-         * If the derived class implements `do_flush()`, it is called first to perform
+         * If the derived class implements `flush_impl()`, it is called first to perform
          * any derived-class-specific flushing (e.g., a zlib sync flush), after which
          * `m_kernel.flush()` is called to push data through to the underlying device.
-         * If no `do_flush()` is provided, `m_kernel.flush()` is called directly.
+         * If no `flush_impl()` is provided, `m_kernel.flush()` is called directly.
          *
          * If an exception is thrown during flushing, the converter enters a tainted
          * state and further operations are unavailable.
@@ -1369,8 +1444,8 @@ namespace IOv2
             assert_not_tainted();
             try
             {
-                if constexpr (requires(CurrentType& t) { t.do_flush(); })
-                    static_cast<CurrentType*>(this)->do_flush();
+                if constexpr (requires(CurrentType& t) { t.flush_impl(); })
+                    static_cast<CurrentType*>(this)->flush_impl();
                 m_kernel.flush();
             }
             catch (...)
