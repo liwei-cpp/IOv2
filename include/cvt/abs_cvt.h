@@ -650,10 +650,17 @@ namespace IOv2
      *   （例如 zlib sync flush）。允许抛出异常；调用方会设置污染标志并传播。
      *
      * - **`detach_impl() noexcept -> std::exception_ptr`**
-     *   由 `abs_cvt::detach` 在调用 `m_kernel.detach()` 之前调用，执行派生层清理。
+     *   由 `abs_cvt::detach` 在调用 `m_kernel.detach()` 之前、以及 `abs_cvt::attach`
+     *   在安装新设备之前调用，执行派生层清理（如关闭旧流、重置内部状态）。
      *   **必须声明为 `noexcept`**（由 `abs_cvt` 内的 `static_assert` 强制）。
      *   捕获到的异常须以 `std::exception_ptr` 形式返回；调用方按 first-failure-wins
      *   与 kernel 层异常合并后统一透传。无异常时返回 `nullptr`。
+     *
+     * - **`attach_impl()`**
+     *   由 `abs_cvt::attach` 在新设备安装并重置状态字段之后调用，执行派生层的
+     *   初始化（如验证配置、重置加密上下文）。允许抛出异常；调用方会设置污染
+     *   标志并传播。`detach_impl()` 捕获到的旧流错误会在 `attach_impl()` 成功
+     *   返回后再抛出。
      * @endif
      *
      * @lang{EN}
@@ -679,12 +686,22 @@ namespace IOv2
      *   May throw; the caller sets the taint flag and rethrows.
      *
      * - **`detach_impl() noexcept -> std::exception_ptr`**
-     *   Called by `abs_cvt::detach` before `m_kernel.detach()`, to perform
-     *   derived-layer cleanup. **Must be declared `noexcept`** (enforced by a
-     *   `static_assert` inside `abs_cvt`). Any captured exception must be returned
-     *   as a `std::exception_ptr`; the caller merges it with the kernel-layer
-     *   exception under first-failure-wins and forwards the combined result.
-     *   Return `nullptr` if none.
+     *   Called by `abs_cvt::detach` before `m_kernel.detach()`, and by
+     *   `abs_cvt::attach` before installing the new device, to perform
+     *   derived-layer cleanup (e.g., closing the old stream, resetting internal
+     *   state). **Must be declared `noexcept`** (enforced by a `static_assert`
+     *   inside `abs_cvt`). Any captured exception must be returned as a
+     *   `std::exception_ptr`; the caller merges it with the kernel-layer exception
+     *   under first-failure-wins and forwards the combined result. Return `nullptr`
+     *   if none.
+     *
+     * - **`attach_impl()`**
+     *   Called by `abs_cvt::attach` after the new device has been installed and
+     *   the state fields reset, to perform derived-layer initialization (e.g.,
+     *   validating configuration, resetting a cipher context). May throw; the
+     *   caller sets the taint flag and rethrows. Any error captured by
+     *   `detach_impl()` for the old stream is rethrown only after `attach_impl()`
+     *   returns successfully.
      * @endif
      *
      * @par Exception Safety / Tainted State
@@ -958,37 +975,41 @@ namespace IOv2
 
         /**
          * @lang{ZH}
-         * 将新设备附加到转换器，并重置转换器状态。
+         * 将新设备附加到转换器，并重置转换器状态。执行顺序如下：
          *
+         * 1. 若派生类实现了 `detach_impl() noexcept`，先调用之，捕获并暂存其异常
+         *    （first-failure-wins）。
+         * 2. 调用 `m_kernel.attach()` 安装新设备，并将 `m_io_status`、`m_is_bos_done`、
+         *    `m_is_tainted` 重置为初始值。若此步抛出，异常直接传播，`m_is_tainted` 被设置。
+         * 3. 若派生类实现了 `attach_impl()`，调用之执行派生层初始化。若此步抛出，
+         *    `m_is_tainted` 被设置并传播。
+         * 4. 若步骤 1 捕获到异常，在步骤 2–3 均成功后重新抛出。
+         *
+         * 原设备在 `m_kernel.attach()` 内部静默析构，不会归还调用方。若需要保留
+         * 原设备，应先单独调用 `detach()` 取得设备，再调用本函数装入新设备。
          * 若 `dev` 为默认构造值（空设备），则等效于清除当前设备。
-         * 调用后 `m_io_status` 恢复为 `neutral`，`m_is_bos_done` 恢复为 `false`，
-         * `m_is_tainted` 恢复为 `false`。
-         *
-         * 原设备在本函数内部由 kernel 在其 `detach()` 阶段静默析构。若需要保留
-         * 原设备，调用方应先单独调用 `detach()` 取得设备，再调用本函数装入新设备。
-         *
-         * 异常：若底层 kernel 的 `detach()` 在清理原设备时捕获到异常，kernel 的
-         * `attach()` 会将其重新抛出，本函数透传该异常；此时本层的状态字段
-         * （`m_io_status`、`m_is_bos_done`、`m_is_tainted`）不会被本层重置。
          * @endif
          *
          * @lang{EN}
          * Attach a new device to the converter and reset the converter state.
+         * The call sequence is:
          *
-         * Passing a default-constructed (empty) `dev` is equivalent to clearing
-         * the current device. After the call `m_io_status` is reset to `neutral`,
-         * `m_is_bos_done` is reset to `false`, and `m_is_tainted` is reset to `false`.
+         * 1. If the derived class implements `detach_impl() noexcept`, call it first
+         *    and stash any returned exception (first-failure-wins).
+         * 2. Call `m_kernel.attach()` to install the new device and reset
+         *    `m_io_status`, `m_is_bos_done`, and `m_is_tainted` to their initial
+         *    values. If this step throws, the exception propagates and
+         *    `m_is_tainted` is set.
+         * 3. If the derived class implements `attach_impl()`, call it to perform
+         *    derived-layer initialization. If this step throws, `m_is_tainted` is
+         *    set and the exception propagates.
+         * 4. If step 1 captured an exception, rethrow it after steps 2–3 succeed.
          *
-         * The previously held device is silently destroyed by the kernel inside
-         * its `detach()` step. Callers who need to preserve the old device must
-         * call `detach()` first to retrieve it, then call this function to install
-         * the new one.
-         *
-         * Exceptions: if the underlying kernel's `detach()` captures an exception
-         * while cleaning up the old device, the kernel's `attach()` rethrows it
-         * and this function propagates it through; in that case this layer's
-         * state fields (`m_io_status`, `m_is_bos_done`, `m_is_tainted`) are not
-         * reset by this layer.
+         * The previously held device is silently destroyed inside `m_kernel.attach()`
+         * and is not returned to the caller. Callers who need to preserve the old
+         * device must call `detach()` first to retrieve it, then call this function
+         * to install the new one. Passing a default-constructed (empty) `dev` is
+         * equivalent to clearing the current device.
          * @endif
          *
          * @param dev
