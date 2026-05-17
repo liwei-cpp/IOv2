@@ -154,8 +154,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4fa8ee29a310d108dd9b07b9b50e8c3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6d8e255661793bfe55e43009be2d5a5" id="r_ac6d8e255661793bfe55e43009be2d5a5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#ac6d8e255661793bfe55e43009be2d5a5">attach</a> (<a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a63d46ed3e80a42d3ee84003c624f77ef">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a63d46ed3e80a42d3ee84003c624f77ef">device_type</a>{})</td></tr>
 <tr class="separator:ac6d8e255661793bfe55e43009be2d5a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae2d0efbf05c735706dc31f7952188c76" id="r_ae2d0efbf05c735706dc31f7952188c76"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a63d46ed3e80a42d3ee84003c624f77ef">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#ae2d0efbf05c735706dc31f7952188c76">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
-<tr class="separator:ae2d0efbf05c735706dc31f7952188c76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab01f73dcdac4ba0d2b212c0b7d32712f" id="r_ab01f73dcdac4ba0d2b212c0b7d32712f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#ab01f73dcdac4ba0d2b212c0b7d32712f">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>)</td></tr>
 <tr class="separator:ab01f73dcdac4ba0d2b212c0b7d32712f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aabf2d36ccb8fa53fff532e3d89e3c0e1" id="r_aabf2d36ccb8fa53fff532e3d89e3c0e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#aabf2d36ccb8fa53fff532e3d89e3c0e1">is_eof</a> ()</td></tr>
@@ -545,35 +543,6 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="ae2d0efbf05c735706dc31f7952188c76" name="ae2d0efbf05c735706dc31f7952188c76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae2d0efbf05c735706dc31f7952188c76">&#9670;&#160;</a></span>detach()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::pair&lt; <a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a63d46ed3e80a42d3ee84003c624f77ef">device_type</a>, std::exception_ptr &gt; <a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">IOv2::Comp::zlib_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::detach </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Detach the underlying device while finalizing the current zlib stream (<code>noexcept</code>). Calls <code>close_stream()</code> first (capturing any exception), then calls the base-class <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">BT::detach()</a></code> to detach the device. The <code>close_stream</code> error takes precedence over the kernel's error (first-failure-wins). </p>
-<dl class="section return"><dt>Returns</dt><dd>包含已分离设备和首个捕获异常的 pair（<code>nullptr</code> 表示无异常）。 / A pair containing the detached device and the first captured exception (<code>nullptr</code> if none). </dd></dl>
 
 </div>
 </div>

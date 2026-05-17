@@ -586,9 +586,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <p>分离并返回底层设备，同时将转换器状态重置为初始状态。</p>
-<p>调用后 <code>m_io_status</code> 恢复为 <code>neutral</code>，<code>m_is_bos_done</code> 恢复为 <code>false</code>。</p>
-<p>本函数为 <code>noexcept</code>：底层 kernel <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 的清理异常通过其返回值的 <code>exception_ptr</code> 透传，本层不再额外捕获或转换（first-failure-wins）。设备始终通过返回值的 <code>first</code> 无条件交还给调用方。 </p>
-<dl class="section return"><dt>返回</dt><dd>pair：<code>first</code> 为已从 kernel 中分离的底层设备对象（右值），<code>second</code> 为底层清理捕获的首个异常（<code>nullptr</code> 表示无异常）。   </dd></dl>
+<p>调用后 <code>m_io_status</code> 恢复为 <code>neutral</code>，<code>m_is_bos_done</code> 与 <code>m_is_tainted</code> 恢复为 <code>false</code>。</p>
+<p>本函数为 <code>noexcept</code>，清理异常通过返回值的 <code>exception_ptr</code> 透传（first-failure-wins）：</p><ul>
+<li>若派生类实现了 <code>detach_impl() noexcept</code>，则先调用之；其异常优先于 kernel 的异常。 编译器会通过 <code>static_assert</code> 强制要求 <code>detach_impl()</code> 必须声明为 <code>noexcept</code>。</li>
+<li>随后调用 <code>m_kernel.detach()</code> 完成 kernel 层的分离与清理。</li>
+</ul>
+<p>设备始终通过返回值的 <code>first</code> 无条件交还给调用方。 </p>
+<dl class="section return"><dt>返回</dt><dd>pair：<code>first</code> 为已从 kernel 中分离的底层设备对象（右值），<code>second</code> 为清理过程中捕获的首个异常（<code>nullptr</code> 表示无异常）。   </dd></dl>
 
 </div>
 </div>
@@ -647,7 +651,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div><div class="memdoc">
 <p>将所有缓冲数据强制刷出到底层设备。</p>
 <p>仅在派生类实现了 <code>put_main</code> 时可用。若当前不处于输出模式，则为空操作直接返回。</p>
-<p>若派生类实现了 <code>do_flush()</code>，则先调用 <code>do_flush()</code> 执行派生类特定的刷出逻辑 （例如 zlib 的 sync flush），再调用 <code>m_kernel.flush()</code> 将数据推送至底层设备。 若派生类未实现 <code>do_flush()</code>，则直接调用 <code>m_kernel.flush()</code>。</p>
+<p>若派生类实现了 <code>flush_impl()</code>，则先调用 <code>flush_impl()</code> 执行派生类特定的刷出逻辑 （例如 zlib 的 sync flush），再调用 <code>m_kernel.flush()</code> 将数据推送至底层设备。 若派生类未实现 <code>flush_impl()</code>，则直接调用 <code>m_kernel.flush()</code>。</p>
 <p>若刷出过程中抛出异常，转换器将进入污染状态，后续操作均不可用。 </p>
 
 </div>

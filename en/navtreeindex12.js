@@ -1,15 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"structIOv2_1_1istream__operators.html#ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0":[0,0,0,102,7],
-"structIOv2_1_1istream__operators.html#ac2a3ddc3ba13ceb3f2c7a1b40c88d0f0":[2,0,0,96,7],
-"structIOv2_1_1istream__operators.html#ac5dcdf9b22eb5be5722dd6481a97c4e4":[2,0,0,96,4],
-"structIOv2_1_1istream__operators.html#ac5dcdf9b22eb5be5722dd6481a97c4e4":[0,0,0,102,4],
-"structIOv2_1_1istream__operators.html#ad1939af6e4b3b1aa7346acb845790d78":[2,0,0,96,1],
-"structIOv2_1_1istream__operators.html#ad1939af6e4b3b1aa7346acb845790d78":[0,0,0,102,1],
-"structIOv2_1_1istream__operators.html#af0a8ff39d0788724925bdc8c71a6ffa0":[2,0,0,96,8],
-"structIOv2_1_1istream__operators.html#af0a8ff39d0788724925bdc8c71a6ffa0":[0,0,0,102,8],
-"structIOv2_1_1istream__operators.html#aff126c4f0fa56022deb03dde9dae63c8":[2,0,0,96,5],
-"structIOv2_1_1istream__operators.html#aff126c4f0fa56022deb03dde9dae63c8":[0,0,0,102,5],
 "structIOv2_1_1istreambuf.html":[2,0,0,97],
 "structIOv2_1_1istreambuf.html":[0,0,0,103],
 "structIOv2_1_1istreambuf__iterator_1_1proxy.html":[2,0,0,98,0],
@@ -249,5 +239,15 @@ var NAVTREEINDEX12 =
 "structIOv2_1_1stream__common__operators.html#a7254829920b38dff1f3ea09ee43d6900":[0,0,0,160,0],
 "structIOv2_1_1stream__common__operators.html#a7254829920b38dff1f3ea09ee43d6900":[2,0,0,154,0],
 "structIOv2_1_1stream__common__operators.html#a7a5f5f0c2968ce1b1382bde500c31714":[2,0,0,154,6],
-"structIOv2_1_1stream__common__operators.html#a7a5f5f0c2968ce1b1382bde500c31714":[0,0,0,160,6]
+"structIOv2_1_1stream__common__operators.html#a7a5f5f0c2968ce1b1382bde500c31714":[0,0,0,160,6],
+"structIOv2_1_1stream__common__operators.html#aaa3ef1f4026f2f842a44de572855fbf6":[2,0,0,154,7],
+"structIOv2_1_1stream__common__operators.html#aaa3ef1f4026f2f842a44de572855fbf6":[0,0,0,160,7],
+"structIOv2_1_1stream__common__operators.html#ac18e8db9fb4f58fdf93892b7fbba05d2":[0,0,0,160,1],
+"structIOv2_1_1stream__common__operators.html#ac18e8db9fb4f58fdf93892b7fbba05d2":[2,0,0,154,1],
+"structIOv2_1_1stream__common__operators.html#acfd85da3960d6c7d41ec0e5510dde033":[0,0,0,160,5],
+"structIOv2_1_1stream__common__operators.html#acfd85da3960d6c7d41ec0e5510dde033":[2,0,0,154,5],
+"structIOv2_1_1stream__common__operators.html#adc63f7cce88d403913f750870d302bd3":[0,0,0,160,3],
+"structIOv2_1_1stream__common__operators.html#adc63f7cce88d403913f750870d302bd3":[2,0,0,154,3],
+"structIOv2_1_1stream__common__operators.html#ae803bf47535f030c09cf9b07cd2566ef":[2,0,0,154,12],
+"structIOv2_1_1stream__common__operators.html#ae803bf47535f030c09cf9b07cd2566ef":[0,0,0,160,12]
 };
