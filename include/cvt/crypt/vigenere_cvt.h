@@ -75,13 +75,6 @@ public:
         }
     }
 
-    std::pair<device_type, std::exception_ptr> detach() noexcept
-    {
-        auto res = BT::detach();
-        m_pos = 0;
-        return res;
-    }
-
     void main_cont_beg()
     {
         BT::main_cont_beg();
@@ -90,6 +83,34 @@ public:
 
 // optional methods
 private:
+    /**
+     * @lang{ZH}
+     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     *
+     * 将密钥偏移量 `m_pos` 归零，确保后续 `attach()` 后从密钥起始位置开始加解密。
+     * 本操作不会抛出异常，始终返回 `nullptr`。
+     * 本函数为 `noexcept`，此约束由 `abs_cvt` 的 `static_assert` 强制。
+     *
+     * @return 始终为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     *
+     * Resets the key-offset position `m_pos` to zero so that a subsequent `attach()`
+     * starts encryption/decryption from the beginning of the key.
+     * This operation never throws and always returns `nullptr`.
+     * Must be `noexcept` — enforced by a `static_assert` in `abs_cvt`.
+     *
+     * @return Always `nullptr`.
+     * @endif
+     */
+    std::exception_ptr detach_impl() noexcept
+    {
+        m_pos = 0;
+        return nullptr;
+    }
+
     // Vigenère arithmetic is performed in the unsigned domain to avoid
     // signed integer overflow UB when internal_type is a signed multi-byte
     // type (e.g. int32_t). Unsigned subtraction/addition is well-defined

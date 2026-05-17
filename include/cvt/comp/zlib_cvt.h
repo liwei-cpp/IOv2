@@ -248,7 +248,7 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
     /**
      * @lang{ZH}
      * 作用域退出时将 `m_strm` 的输入/输出指针和计数清零的 RAII 守卫。
-     * 确保 `get_main`、`put_main`、`do_flush` 抛出异常时，`m_strm` 不会
+     * 确保 `get_main`、`put_main`、`flush_impl` 抛出异常时，`m_strm` 不会
      * 持有指向已离开作用域的读缓冲区、写缓冲区或用户缓冲区的悬空指针。
      * 不触及 `m_strm` 自身——zlib 流对象的清理由 `close_stream`、
      * `inflate_guard` 和 `deflate_guard` 负责。
@@ -256,7 +256,7 @@ class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, fa
      *
      * @lang{EN}
      * RAII guard that clears `m_strm`'s input/output pointers and counts on scope exit.
-     * Ensures that when `get_main`, `put_main`, or `do_flush` throw an exception,
+     * Ensures that when `get_main`, `put_main`, or `flush_impl` throw an exception,
      * `m_strm` is not left holding dangling pointers into reader, writer, or user
      * buffers that have since gone out of scope.
      * Does NOT touch `m_strm` itself — cleanup of the zlib stream object is the
@@ -546,32 +546,6 @@ public:
 
     /**
      * @lang{ZH}
-     * 分离底层设备，同时最终化当前 zlib 流（`noexcept`）。
-     * 先调用 `close_stream()`（捕获异常），再调用基类 `BT::detach()` 分离设备。
-     * `close_stream` 的错误优先于内核的错误返回（first-failure-wins）。
-     * @endif
-     *
-     * @lang{EN}
-     * Detach the underlying device while finalizing the current zlib stream (`noexcept`).
-     * Calls `close_stream()` first (capturing any exception), then calls the base-class
-     * `BT::detach()` to detach the device.
-     * The `close_stream` error takes precedence over the kernel's error (first-failure-wins).
-     * @endif
-     *
-     * @return 包含已分离设备和首个捕获异常的 pair（`nullptr` 表示无异常）。
-     *         / A pair containing the detached device and the first captured exception (`nullptr` if none).
-     */
-    std::pair<device_type, std::exception_ptr> detach() noexcept
-    {
-        std::exception_ptr local_err;
-        try { close_stream(); }
-        catch (...) { local_err = std::current_exception(); }
-        auto [dev, inner_err] = BT::detach();
-        return { std::move(dev), local_err ? local_err : inner_err };
-    }
-
-    /**
-     * @lang{ZH}
      * 调整转换器行为参数。
      * 若 `acc` 为 `zlib_sync_flush` 实例，则更新 `m_sync_flush` 标志；
      * 同时将 `acc` 转发给基类 `BT::adjust()`。
@@ -661,7 +635,7 @@ public:
             // input/output, or restores neutral and taints the converter on failure.
             // Reaching here with m_io_status == output therefore implies m_strm is
             // a fully-initialized zlib stream; if the converter were tainted,
-            // BT::flush() would throw before do_flush() dereferences m_strm.
+            // BT::flush() would throw before flush_impl() dereferences m_strm.
             assert(m_strm);
             BT::flush();
         }
@@ -713,7 +687,7 @@ public:
         // After BT::bos() succeeds, m_io_status is no longer neutral. Any failure
         // from here on must restore the invariant "m_io_status != neutral implies
         // m_strm is a fully-initialized zlib stream" before propagating, otherwise
-        // copy/assign, do_flush, and the direction-switch branches in
+        // copy/assign, flush_impl, and the direction-switch branches in
         // abs_cvt::get/put will dereference a null m_strm. Reset the status and
         // taint the converter so subsequent get/put/flush refuse to run until
         // the caller reattaches a device.
@@ -836,6 +810,36 @@ public:
 
 // optional methods
 private:
+    /**
+     * @lang{ZH}
+     * `abs_cvt::detach()` 的 CRTP 钩子，在 kernel 层 `detach()` 之前调用。
+     *
+     * 负责执行 `zlib_cvt` 层的清理（`close_stream()`），并将捕获到的异常以
+     * `exception_ptr` 形式返回；调用方（`abs_cvt::detach()`）负责按 first-failure-wins
+     * 与 kernel 层异常合并。本函数为 `noexcept`，此约束由 `abs_cvt` 的 `static_assert` 强制。
+     *
+     * @return 捕获到的首个清理异常；无异常时为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::detach()`, called before the kernel-level `detach()`.
+     *
+     * Performs `zlib_cvt`-layer cleanup (`close_stream()`) and returns any captured
+     * exception as an `exception_ptr`; the caller (`abs_cvt::detach()`) merges it
+     * with the kernel-layer exception under first-failure-wins.
+     * Must be `noexcept` — enforced by a `static_assert` in `abs_cvt`.
+     *
+     * @return The first captured cleanup exception, or `nullptr` if none.
+     * @endif
+     */
+    std::exception_ptr detach_impl() noexcept
+    {
+        std::exception_ptr local_err = nullptr;
+        try { close_stream(); }
+        catch (...) { local_err = std::current_exception(); }
+        return local_err;
+    }
+
     /**
      * @lang{ZH}
      * 主内容阶段的解压实现（由 `abs_cvt::get` 调用）。
@@ -1070,7 +1074,7 @@ private:
      * For the cost trade-off of this option, see the `zlib_sync_flush` documentation.
      * @endif
      */
-    void do_flush()
+    void flush_impl()
         requires (cvt_cpt::support_put<KernelType>)
     {
         if (m_sync_flush)
@@ -1084,7 +1088,7 @@ private:
             {
                 m_strm->next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 m_strm->avail_out = CHUNK;
-                zerr("zlib_cvt::do_flush fail", deflate(m_strm.get(), Z_SYNC_FLUSH));
+                zerr("zlib_cvt::flush_impl fail", deflate(m_strm.get(), Z_SYNC_FLUSH));
                 const size_t written = CHUNK - m_strm->avail_out;
                 if (written > 0)
                     BT::m_kernel.put(local_buf.data(), written);
