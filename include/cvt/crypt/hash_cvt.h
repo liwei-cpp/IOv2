@@ -7,6 +7,7 @@
 #include <exception>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -39,21 +40,22 @@ struct set_hash_fmt : cvt_behavior
 
 struct dump_hash : cvt_behavior
 {
-    explicit dump_hash(uint8_t delim)
+    explicit dump_hash(std::optional<uint8_t> delim = std::nullopt)
         : m_delim(delim) {}
 
-    uint8_t m_delim;
+    std::optional<uint8_t> m_delim;
 };
 
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (std::is_integral_v<typename KernelType::internal_type> &&
-              sizeof(typename KernelType::internal_type) == sizeof(uint8_t))
+              sizeof(typename KernelType::internal_type) == sizeof(uint8_t) &&
+              std::is_trivially_copyable_v<TInt> &&
+              std::has_unique_object_representations_v<TInt> &&
+              cvt_cpt::support_put<KernelType>)
 class hash_cvt : public abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>
 {
     using BT = abs_cvt<hash_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
     friend BT;  // for put_main
-
-    static_assert(cvt_cpt::support_put<KernelType>);
 
 public:
     using device_type = typename KernelType::device_type;
@@ -138,33 +140,34 @@ public:
     io_status bos()
     {
         auto res = BT::bos();
-        if (res != io_status::output)
-            throw cvt_error("hash_cvt::bos fail: only output mode is supported");
-        return io_status::output;
-    }
+        try
+        {
+            if (res != io_status::output)
+                throw cvt_error("hash_cvt::bos fail: only output mode is supported");
 
-    void main_cont_beg()
-    {
-        BT::main_cont_beg();
+            if (!m_hash)
+                throw cvt_error("hash_cvt::bos fail: hash not initialized (moved-from object?)");
+            m_hash->clear();
+        }
+        catch (...)
+        {
+            BT::set_tainted();
+            throw;
+        }
+        return io_status::output;
     }
 
     void attach(device_type&& dev = device_type{})
     {
-        // 1. Try to finalize the old session; capture any failure so we can
-        //    still install the new device (zlib_cvt::attach convention:
-        //    propagating here would let `dev`, already moved into our
-        //    parameter, be destroyed during stack unwinding).
         std::exception_ptr dump_err;
         try { if (m_has_main_cont) dump_stream(); }
         catch (...) { dump_err = std::current_exception(); }
 
+        BT::attach(std::move(dev));
+
         m_has_main_cont = false;
         m_out_fmt = hash_fmt::lower_hex;
 
-        // 2. Defense-in-depth: clear any residual hash state. If clear()
-        //    throws, the converter is in an unknown state — mark it tainted
-        //    and propagate immediately; BT::attach() will not be called and
-        //    the incoming device will be lost.
         if (m_hash)
         {
             try { m_hash->clear(); }
@@ -174,8 +177,6 @@ public:
                 throw;
             }
         }
-
-        BT::attach(std::move(dev));
 
         if (dump_err)  std::rethrow_exception(dump_err);
     }
@@ -214,7 +215,10 @@ public:
             {
                 dump_stream();
                 if (dh_ptr->m_delim)
-                    BT::m_kernel.put(reinterpret_cast<const external_type*>(&dh_ptr->m_delim), 1);
+                {
+                    const uint8_t delim = *dh_ptr->m_delim;
+                    BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1);
+                }
             }
         }
 
@@ -258,7 +262,10 @@ private:
         // Use copy_state()->final() to preserve original state until put() succeeds.
         // This provides strong exception safety: if put() fails, state is unchanged
         // and the operation can be retried.
-        auto digest = m_hash->copy_state()->final();
+        auto cp_state = m_hash->copy_state();
+        if (!cp_state)
+            throw cvt_error("hash_cvt::dump_stream fail: cannot copy hash state");
+        auto digest = cp_state->final();
         if (digest.empty())
             throw cvt_error("hash_cvt::dump_stream fail: cannot get hash result");
 

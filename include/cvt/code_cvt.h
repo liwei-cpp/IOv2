@@ -837,8 +837,13 @@ public:
      */
     void attach(device_type&& dev = device_type{})
     {
-        close_stream();
+        std::exception_ptr close_err;
+        try { close_stream(); }
+        catch (...) { close_err = std::current_exception(); }
+
         BT::attach(std::move(dev));
+
+        if (close_err) std::rethrow_exception(close_err);
     }
 
     /**
