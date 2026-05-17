@@ -1,15 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"structIOv2_1_1istreambuf.html":[2,0,0,97],
-"structIOv2_1_1istreambuf.html":[0,0,0,103],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html":[2,0,0,98,0],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html":[0,0,0,104,0],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html#a1c17b1010545a8c08cbeaa8451e5105c":[2,0,0,98,0,1],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html#a1c17b1010545a8c08cbeaa8451e5105c":[0,0,0,104,0,1],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html#a28d55ec7f0e03ed62989ae19305026fa":[2,0,0,98,0,2],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html#a28d55ec7f0e03ed62989ae19305026fa":[0,0,0,104,0,2],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html#ae02b03529d94499cdd0dceeac03cd51f":[2,0,0,98,0,0],
-"structIOv2_1_1istreambuf__iterator_1_1proxy.html#ae02b03529d94499cdd0dceeac03cd51f":[0,0,0,104,0,0],
 "structIOv2_1_1ostream__operators.html":[0,0,0,126],
 "structIOv2_1_1ostream__operators.html":[2,0,0,120],
 "structIOv2_1_1ostream__operators.html#a91afbd191e44295ce1a76d477a666f19":[0,0,0,126,2],
@@ -249,5 +239,15 @@ var NAVTREEINDEX12 =
 "structIOv2_1_1stream__common__operators.html#adc63f7cce88d403913f750870d302bd3":[0,0,0,160,3],
 "structIOv2_1_1stream__common__operators.html#adc63f7cce88d403913f750870d302bd3":[2,0,0,154,3],
 "structIOv2_1_1stream__common__operators.html#ae803bf47535f030c09cf9b07cd2566ef":[2,0,0,154,12],
-"structIOv2_1_1stream__common__operators.html#ae803bf47535f030c09cf9b07cd2566ef":[0,0,0,160,12]
+"structIOv2_1_1stream__common__operators.html#ae803bf47535f030c09cf9b07cd2566ef":[0,0,0,160,12],
+"structIOv2_1_1stream__error.html":[2,0,0,155],
+"structIOv2_1_1stream__error.html":[0,0,0,161],
+"structIOv2_1_1streambuf.html":[2,0,0,156],
+"structIOv2_1_1streambuf.html":[0,0,0,162],
+"structIOv2_1_1sync.html":[2,0,0,157],
+"structIOv2_1_1sync.html":[0,0,0,163],
+"structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d":[2,0,0,157,4],
+"structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d":[0,0,0,163,4],
+"structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5":[0,0,0,163,1],
+"structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5":[2,0,0,157,1]
 };

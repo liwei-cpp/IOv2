@@ -158,8 +158,6 @@ Public 成员函数</h2></td></tr>
 <tr class="separator:a921695ee9bf70e057c8e29e733651d15"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9a45aebeee2815a96f5067ad3fe36866" id="r_a9a45aebeee2815a96f5067ad3fe36866"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt.html#a9a45aebeee2815a96f5067ad3fe36866">~code_cvt</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a9a45aebeee2815a96f5067ad3fe36866"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f55dd0beb13d8dc7913f536c182ea26" id="r_a5f55dd0beb13d8dc7913f536c182ea26"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt.html#a5f55dd0beb13d8dc7913f536c182ea26">attach</a> (<a class="el" href="classIOv2_1_1code__cvt.html#ad084f6a17436894036907b809cb49c3b">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1code__cvt.html#ad084f6a17436894036907b809cb49c3b">device_type</a>{})</td></tr>
-<tr class="separator:a5f55dd0beb13d8dc7913f536c182ea26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf9e39b9469f34a2d6df134d38c25df1" id="r_aaf9e39b9469f34a2d6df134d38c25df1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt.html#aaf9e39b9469f34a2d6df134d38c25df1">bos</a> ()</td></tr>
 <tr class="separator:aaf9e39b9469f34a2d6df134d38c25df1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8db7ccffe392b4dfc00d63a7c3d5e81" id="r_af8db7ccffe392b4dfc00d63a7c3d5e81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1code__cvt.html#af8db7ccffe392b4dfc00d63a7c3d5e81">main_cont_beg</a> ()</td></tr>
@@ -445,43 +443,6 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
 </div>
 </div>
 <h2 class="groupheader">成员函数说明</h2>
-<a id="a5f55dd0beb13d8dc7913f536c182ea26" name="a5f55dd0beb13d8dc7913f536c182ea26"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f55dd0beb13d8dc7913f536c182ea26">&#9670;&#160;</a></span>attach()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a> &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1code__cvt.html">IOv2::code_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharType</a> &gt;::attach </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classIOv2_1_1code__cvt.html#ad084f6a17436894036907b809cb49c3b">device_type</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>dev</em> = <code><a class="el" href="classIOv2_1_1code__cvt.html#ad084f6a17436894036907b809cb49c3b">device_type</a>{}</code></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>关闭当前流并替换底层设备为 <code>dev</code>。</p>
-<p>本函数不归还原设备——原设备由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">BT::attach()</a></code> 在内部静默析构。如需保留 原设备，调用方应先调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 取得设备，再调用本函数装入新设备。</p>
-<p>异常：<code>close_stream()</code> 或 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">BT::attach()</a></code> 抛出的异常会透传给调用方。</p>
-<dl class="params"><dt>参数</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dev</td><td>新的底层设备（默认构造即为空设备）。 </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="aaf9e39b9469f34a2d6df134d38c25df1" name="aaf9e39b9469f34a2d6df134d38c25df1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaf9e39b9469f34a2d6df134d38c25df1">&#9670;&#160;</a></span>bos()</h2>
 

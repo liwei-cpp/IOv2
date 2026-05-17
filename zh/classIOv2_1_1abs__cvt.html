@@ -506,10 +506,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>将新设备附加到转换器，并重置转换器状态。</p>
-<p>若 <code>dev</code> 为默认构造值（空设备），则等效于清除当前设备。 调用后 <code>m_io_status</code> 恢复为 <code>neutral</code>，<code>m_is_bos_done</code> 恢复为 <code>false</code>， <code>m_is_tainted</code> 恢复为 <code>false</code>。</p>
-<p>原设备在本函数内部由 kernel 在其 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 阶段静默析构。若需要保留 原设备，调用方应先单独调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 取得设备，再调用本函数装入新设备。</p>
-<p>异常：若底层 kernel 的 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 在清理原设备时捕获到异常，kernel 的 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a28c7bf5cb37b185045b65d31ed09a09d">attach()</a></code> 会将其重新抛出，本函数透传该异常；此时本层的状态字段 （<code>m_io_status</code>、<code>m_is_bos_done</code>、<code>m_is_tainted</code>）不会被本层重置。 </p>
+<p>将新设备附加到转换器，并重置转换器状态。执行顺序如下：</p>
+<ol type="1">
+<li>若派生类实现了 <code>detach_impl() noexcept</code>，先调用之，捕获并暂存其异常 （first-failure-wins）。</li>
+<li>调用 <code>m_kernel.attach()</code> 安装新设备，并将 <code>m_io_status</code>、<code>m_is_bos_done</code>、 <code>m_is_tainted</code> 重置为初始值。若此步抛出，异常直接传播，<code>m_is_tainted</code> 被设置。</li>
+<li>若派生类实现了 <code>attach_impl()</code>，调用之执行派生层初始化。若此步抛出， <code>m_is_tainted</code> 被设置并传播。</li>
+<li>若步骤 1 捕获到异常，在步骤 2–3 均成功后重新抛出。</li>
+</ol>
+<p>原设备在 <code>m_kernel.attach()</code> 内部静默析构，不会归还调用方。若需要保留 原设备，应先单独调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a83929fa8c06efb0ea5bf4141466acada">detach()</a></code> 取得设备，再调用本函数装入新设备。 若 <code>dev</code> 为默认构造值（空设备），则等效于清除当前设备。 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">dev</td><td>要附加的新设备（以移动方式转交所有权），默认为空设备。   </td></tr>
