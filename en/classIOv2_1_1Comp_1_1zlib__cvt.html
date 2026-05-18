@@ -158,8 +158,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aabf2d36ccb8fa53fff532e3d89e3c0e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97c80078824f99deb7f0884718a5141f" id="r_a97c80078824f99deb7f0884718a5141f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg</a> ()</td></tr>
 <tr class="separator:a97c80078824f99deb7f0884718a5141f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05fd0bd7e837c831169f6ef0221acec7" id="r_a05fd0bd7e837c831169f6ef0221acec7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos</a> ()</td></tr>
-<tr class="separator:a05fd0bd7e837c831169f6ef0221acec7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classIOv2_1_1abs__cvt"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classIOv2_1_1abs__cvt')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_positioning, default_io_switch &gt;</a></td></tr>
 <tr class="memitem:a2b155aa3fce9a2cc3b4db4e2ee0d2355 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a2b155aa3fce9a2cc3b4db4e2ee0d2355"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2b155aa3fce9a2cc3b4db4e2ee0d2355">abs_cvt</a> (KernelType <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>)</td></tr>
 <tr class="separator:a2b155aa3fce9a2cc3b4db4e2ee0d2355 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -226,7 +224,7 @@ Additional Inherited Members</h2></td></tr>
 requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">unsigned</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>) &amp;&amp; std::is_trivially_copyable_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;)<br />
 class IOv2::Comp::zlib_cvt&lt; KernelType, TInt &gt;</div><p>zlib-based compression/decompression converter.</p>
 <p>Derives from <code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code> with both <code>default_positioning</code> and <code>default_io_switch</code> set to <code>false</code>: compressed streams are stateful and support neither random seeking nor switching between compression and decompression directions.</p>
-<p><b>BOS phase</b> (after <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code>, before <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg()</a></code>):</p><ul>
+<p><b>BOS phase</b> (after <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code>, before <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg()</a></code>):</p><ul>
 <li>Output (compression) mode: calls <code>deflateInit</code>, immediately triggers a <code>Z_NO_FLUSH</code> call to make zlib emit the 2-byte stream header, and writes it through the kernel.</li>
 <li>Input (decompression) mode: calls <code>inflateInit</code>, reads the 2-byte stream header from the kernel, and feeds it to <code>inflate</code> for header validation.</li>
 </ul>
@@ -463,46 +461,6 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
 
 </div>
 </div>
-<a id="a05fd0bd7e837c831169f6ef0221acec7" name="a05fd0bd7e837c831169f6ef0221acec7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05fd0bd7e837c831169f6ef0221acec7">&#9670;&#160;</a></span>bos()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">IOv2::Comp::zlib_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::bos </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Start the zlib stream by initializing inflate or deflate state and processing the 2-byte zlib stream header.</p>
-<p>After calling the base-class <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">BT::bos()</a></code> to determine IO direction:</p><ul>
-<li><b>Output (compression) mode</b>: calls <code>deflateInit</code>, triggers deflate with <code>Z_NO_FLUSH</code> and zero input to emit the 2-byte stream header, verifies exactly 2 bytes were emitted with no pending bytes remaining, then writes the header through the kernel.</li>
-<li><b>Input (decompression) mode</b>: calls <code>inflateInit</code>, reads the 2-byte stream header from the kernel, and feeds it to <code>inflate</code> for header validation. Preset dictionaries (<code>Z_NEED_DICT</code>) are not supported and cause a throw.</li>
-</ul>
-<p>If any step fails, <code>m_strm</code> has already been reset to <code>nullptr</code> by the guards (<code>inflate_guard</code>/<code>deflate_guard</code>) or manually; the IO status is then reset to <code>neutral</code> and the converter is marked tainted before rethrowing. </p>
-<dl class="section return"><dt>Returns</dt><dd>确定的初始 IO 方向。 / The determined initial IO direction. </dd></dl>
-<dl class="exception"><dt>Exceptions</dt><dd>
-  <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 zlib 初始化失败、流头格式非法或内核不支持所需的读写方向。 / If zlib initialization fails, the stream header is invalid, or the kernel does not support the required read/write direction. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="aabf2d36ccb8fa53fff532e3d89e3c0e1" name="aabf2d36ccb8fa53fff532e3d89e3c0e1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aabf2d36ccb8fa53fff532e3d89e3c0e1">&#9670;&#160;</a></span>is_eof()</h2>
 
@@ -557,12 +515,12 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
 </table>
 </div><div class="memdoc">
 <p>Mark the end of the BOS phase and enter the main-content phase. Calls the base-class <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">BT::main_cont_beg()</a></code> first, then:</p><ul>
-<li>If currently in output mode, calls <code><a class="el" href="classIOv2_1_1abs__cvt.html#a7bcf353e0b89b81a31acbeaf4b344896">BT::flush()</a></code> to flush the zlib stream header (written into the kernel buffer during the BOS phase) to the underlying device. At this point <code>m_strm</code> is guaranteed to be a valid zlib stream by the <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> invariant.</li>
-<li>If currently in <code>neutral</code> mode, <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> has not been called and an exception is thrown. </li>
+<li>If currently in output mode, calls <code><a class="el" href="classIOv2_1_1abs__cvt.html#a7bcf353e0b89b81a31acbeaf4b344896">BT::flush()</a></code> to flush the zlib stream header (written into the kernel buffer during the BOS phase) to the underlying device. At this point <code>m_strm</code> is guaranteed to be a valid zlib stream by the <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> invariant.</li>
+<li>If currently in <code>neutral</code> mode, <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> has not been called and an exception is thrown. </li>
 </ul>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> 尚未被调用（IO 状态为 <code>neutral</code>）。 / If <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> has not yet been called (IO status is <code>neutral</code>). </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> 尚未被调用（IO 状态为 <code>neutral</code>）。 / If <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> has not yet been called (IO status is <code>neutral</code>). </td></tr>
   </table>
   </dd>
 </dl>

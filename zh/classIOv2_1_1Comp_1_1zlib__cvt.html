@@ -158,8 +158,6 @@ Public 成员函数</h2></td></tr>
 <tr class="separator:aabf2d36ccb8fa53fff532e3d89e3c0e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97c80078824f99deb7f0884718a5141f" id="r_a97c80078824f99deb7f0884718a5141f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg</a> ()</td></tr>
 <tr class="separator:a97c80078824f99deb7f0884718a5141f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05fd0bd7e837c831169f6ef0221acec7" id="r_a05fd0bd7e837c831169f6ef0221acec7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos</a> ()</td></tr>
-<tr class="separator:a05fd0bd7e837c831169f6ef0221acec7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classIOv2_1_1abs__cvt"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classIOv2_1_1abs__cvt')"><img src="closed.png" alt="-"/>&#160;Public 成员函数 继承自 <a class="el" href="classIOv2_1_1abs__cvt.html">IOv2::abs_cvt&lt; CurrentType, KernelType, InternalType, default_positioning, default_io_switch &gt;</a></td></tr>
 <tr class="memitem:a2b155aa3fce9a2cc3b4db4e2ee0d2355 inherit pub_methods_classIOv2_1_1abs__cvt" id="r_a2b155aa3fce9a2cc3b4db4e2ee0d2355"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#a2b155aa3fce9a2cc3b4db4e2ee0d2355">abs_cvt</a> (KernelType <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>)</td></tr>
 <tr class="separator:a2b155aa3fce9a2cc3b4db4e2ee0d2355 inherit pub_methods_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -226,7 +224,7 @@ Public 成员函数</h2></td></tr>
 requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">unsigned</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>) &amp;&amp; std::is_trivially_copyable_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;)<br />
 class IOv2::Comp::zlib_cvt&lt; KernelType, TInt &gt;</div><p>基于 zlib 的压缩/解压转换器。</p>
 <p>继承自 <code><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></code>，将 <code>default_positioning</code> 和 <code>default_io_switch</code> 均设为 <code>false</code>： 压缩流具有状态性，既不支持随机定位，也不支持在压缩和解压方向之间切换。</p>
-<p>**BOS 阶段**（<code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> 后、<code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg()</a></code> 前）：</p><ul>
+<p>**BOS 阶段**（<code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> 后、<code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a97c80078824f99deb7f0884718a5141f">main_cont_beg()</a></code> 前）：</p><ul>
 <li>输出（压缩）模式：调用 <code>deflateInit</code>，立即以 <code>Z_NO_FLUSH</code> 触发 zlib 输出 2 字节流头，并通过内核写出。</li>
 <li>输入（解压）模式：调用 <code>inflateInit</code>，从内核读取 2 字节流头并送入 <code>inflate</code> 以完成头部验证。</li>
 </ul>
@@ -463,46 +461,6 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
 
 </div>
 </div>
-<a id="a05fd0bd7e837c831169f6ef0221acec7" name="a05fd0bd7e837c831169f6ef0221acec7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05fd0bd7e837c831169f6ef0221acec7">&#9670;&#160;</a></span>bos()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>  = typename KernelType::internal_type&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9">io_status</a> <a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html">IOv2::Comp::zlib_cvt</a>&lt; KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> &gt;::bos </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>启动 zlib 流，初始化 inflate 或 deflate 状态，并处理 2 字节 zlib 流头。</p>
-<p>调用基类 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">BT::bos()</a></code> 确定 IO 方向后：</p><ul>
-<li>**输出（压缩）模式**：调用 <code>deflateInit</code>，以 <code>Z_NO_FLUSH</code> 和零输入触发 deflate 输出 2 字节流头，验证恰好输出 2 字节且无残余待发字节， 然后通过内核写出该头部。</li>
-<li>**输入（解压）模式**：调用 <code>inflateInit</code>，从内核读取 2 字节流头， 送入 <code>inflate</code> 验证头部格式；不支持预置字典（<code>Z_NEED_DICT</code>），遇到时抛出。</li>
-</ul>
-<p>若任何步骤失败，<code>m_strm</code> 已被守卫（<code>inflate_guard</code>/<code>deflate_guard</code>）或手动 重置为 <code>nullptr</code>，然后将 IO 状态重置为 <code>neutral</code> 并标记 tainted 后重新抛出。 </p>
-<dl class="section return"><dt>返回</dt><dd>确定的初始 IO 方向。 / The determined initial IO direction. </dd></dl>
-<dl class="exception"><dt>异常</dt><dd>
-  <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 zlib 初始化失败、流头格式非法或内核不支持所需的读写方向。 / If zlib initialization fails, the stream header is invalid, or the kernel does not support the required read/write direction. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="aabf2d36ccb8fa53fff532e3d89e3c0e1" name="aabf2d36ccb8fa53fff532e3d89e3c0e1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aabf2d36ccb8fa53fff532e3d89e3c0e1">&#9670;&#160;</a></span>is_eof()</h2>
 
@@ -557,12 +515,12 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
 </table>
 </div><div class="memdoc">
 <p>标记 BOS 阶段结束，进入主内容阶段。 先调用基类 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a44fdbe3dce21dd3d02260594cda9b9f3">BT::main_cont_beg()</a></code>，然后：</p><ul>
-<li>若当前为输出模式，调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a7bcf353e0b89b81a31acbeaf4b344896">BT::flush()</a></code> 将已在 BOS 阶段写入内核缓冲区的 zlib 流头刷出到底层设备。此时 <code>m_strm</code> 必须为有效的 zlib 流（由 <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> 的不变量保证）。</li>
-<li>若当前为 <code>neutral</code> 模式，说明 <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> 未被调用，抛出异常。 </li>
+<li>若当前为输出模式，调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#a7bcf353e0b89b81a31acbeaf4b344896">BT::flush()</a></code> 将已在 BOS 阶段写入内核缓冲区的 zlib 流头刷出到底层设备。此时 <code>m_strm</code> 必须为有效的 zlib 流（由 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> 的不变量保证）。</li>
+<li>若当前为 <code>neutral</code> 模式，说明 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> 未被调用，抛出异常。 </li>
 </ul>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> 尚未被调用（IO 状态为 <code>neutral</code>）。 / If <code><a class="el" href="classIOv2_1_1Comp_1_1zlib__cvt.html#a05fd0bd7e837c831169f6ef0221acec7">bos()</a></code> has not yet been called (IO status is <code>neutral</code>). </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> 尚未被调用（IO 状态为 <code>neutral</code>）。 / If <code><a class="el" href="classIOv2_1_1abs__cvt.html#ae06c075a6b98ea38eb320989f35cc804">bos()</a></code> has not yet been called (IO status is <code>neutral</code>). </td></tr>
   </table>
   </dd>
 </dl>
