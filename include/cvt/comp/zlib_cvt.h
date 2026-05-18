@@ -1136,6 +1136,7 @@ private:
         struct state_guard
         {
             zlib_cvt& self; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+            state_guard(zlib_cvt& p_self) : self(p_self) {}
             state_guard(const state_guard&) = delete;
             state_guard& operator=(const state_guard&) = delete;
             state_guard(state_guard&&) = delete;
