@@ -605,171 +605,6 @@ public:
             throw cvt_error("zlib_cvt::main_cont_beg fail: bos() has not been called before main_cont_beg");
     }
 
-    /**
-     * @lang{ZH}
-     * 启动 zlib 流，初始化 inflate 或 deflate 状态，并处理 2 字节 zlib 流头。
-     *
-     * 调用基类 `BT::bos()` 确定 IO 方向后：
-     * - **输出（压缩）模式**：调用 `deflateInit`，以 `Z_NO_FLUSH` 和零输入触发
-     *   deflate 输出 2 字节流头，验证恰好输出 2 字节且无残余待发字节，
-     *   然后通过内核写出该头部。
-     * - **输入（解压）模式**：调用 `inflateInit`，从内核读取 2 字节流头，
-     *   送入 `inflate` 验证头部格式；不支持预置字典（`Z_NEED_DICT`），遇到时抛出。
-     *
-     * 若任何步骤失败，`m_strm` 已被守卫（`inflate_guard`/`deflate_guard`）或手动
-     * 重置为 `nullptr`，然后将 IO 状态重置为 `neutral` 并标记 tainted 后重新抛出。
-     * @endif
-     *
-     * @lang{EN}
-     * Start the zlib stream by initializing inflate or deflate state and processing
-     * the 2-byte zlib stream header.
-     *
-     * After calling the base-class `BT::bos()` to determine IO direction:
-     * - **Output (compression) mode**: calls `deflateInit`, triggers deflate with
-     *   `Z_NO_FLUSH` and zero input to emit the 2-byte stream header, verifies
-     *   exactly 2 bytes were emitted with no pending bytes remaining, then writes
-     *   the header through the kernel.
-     * - **Input (decompression) mode**: calls `inflateInit`, reads the 2-byte stream
-     *   header from the kernel, and feeds it to `inflate` for header validation.
-     *   Preset dictionaries (`Z_NEED_DICT`) are not supported and cause a throw.
-     *
-     * If any step fails, `m_strm` has already been reset to `nullptr` by the guards
-     * (`inflate_guard`/`deflate_guard`) or manually; the IO status is then reset to
-     * `neutral` and the converter is marked tainted before rethrowing.
-     * @endif
-     *
-     * @return 确定的初始 IO 方向。 / The determined initial IO direction.
-     * @throws cvt_error 若 zlib 初始化失败、流头格式非法或内核不支持所需的读写方向。
-     *                   / If zlib initialization fails, the stream header is invalid, or
-     *                   the kernel does not support the required read/write direction.
-     */
-    io_status bos()
-    {
-        BT::bos();
-        // After BT::bos() succeeds, m_io_status is no longer neutral. Any failure
-        // from here on must restore the invariant "m_io_status != neutral implies
-        // m_strm is a fully-initialized zlib stream" before propagating, otherwise
-        // copy/assign, flush_impl, and the direction-switch branches in
-        // abs_cvt::get/put will dereference a null m_strm. Reset the status and
-        // taint the converter so subsequent get/put/flush refuse to run until
-        // the caller reattaches a device.
-        try
-        {
-            if (BT::m_io_status == io_status::input)
-            {
-                if constexpr (cvt_cpt::support_get<KernelType>)
-                {
-                    m_strm = std::make_unique<z_stream>();
-                    m_strm->zalloc = Z_NULL;
-                    m_strm->zfree = Z_NULL;
-                    m_strm->opaque = Z_NULL;
-                    m_strm->avail_in = 0;
-                    m_strm->next_in = Z_NULL;
-                    m_strm->state = Z_NULL;
-                    auto ret = inflateInit(m_strm.get());
-                    if (ret != Z_OK) { m_strm.reset(); throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib."); }
-                    inflate_guard zlib_guard(m_strm);
-
-                    // Contract: kernel.get() on BOS path guarantees to return exactly the
-                    // requested byte count, or throw an exception if insufficient data is
-                    // available. The assert below is purely defensive, verifying this
-                    // invariant during development. It is intentionally compiled out in
-                    // release builds.
-                    std::array<external_type, zlib_header_size> header_buf{};
-                    [[maybe_unused]] const size_t n = BT::m_kernel.get(header_buf.data(), zlib_header_size);
-                    assert(n == zlib_header_size);
-
-                    m_strm->avail_in = zlib_header_size;
-                    m_strm->next_in = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-
-                    unsigned char ch = 0;
-                    m_strm->avail_out = 1;
-                    m_strm->next_out = &ch;
-
-                    ret = inflate(m_strm.get(), Z_NO_FLUSH);
-                    if (ret == Z_NEED_DICT)
-                        throw cvt_error("zlib_cvt::bos fail: preset dictionary not supported");
-                    zerr("zlib_cvt::bos fail", ret);
-
-                    if ((m_strm->avail_in != 0) || (m_strm->avail_out != 1)) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
-                    m_strm->next_in = nullptr;
-                    m_strm->avail_out = 0;
-                    m_strm->next_out = nullptr;
-
-                    zlib_guard.release();
-                }
-                else
-                {
-                    throw cvt_error("zlib_cvt::bos fail: BT returned input but KernelType lacks get support");
-                }
-            }
-            else if (BT::m_io_status == io_status::output)
-            {
-                if constexpr (cvt_cpt::support_put<KernelType>)
-                {
-                    m_strm = std::make_unique<z_stream>();
-                    m_strm->zalloc = Z_NULL;
-                    m_strm->zfree = Z_NULL;
-                    m_strm->opaque = Z_NULL;
-                    m_strm->state = Z_NULL;
-
-                    auto ret = deflateInit(m_strm.get(), static_cast<int>(m_put_level));
-                    if (ret != Z_OK) { m_strm.reset(); throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib."); }
-                    deflate_guard zlib_guard(m_strm);
-
-                    // Contract enforced below: after this deflate() call we require
-                    // exactly zlib_header_size bytes in the output buffer and zero
-                    // bytes/bits still pending inside zlib. Z_NO_FLUSH on a fresh
-                    // stream with no input is expected to flush the queued header
-                    // and nothing else. The post-checks turn that expectation into
-                    // a hard invariant: any future zlib behavior change (more
-                    // bytes, fewer bytes, or bytes left buffered) surfaces here as
-                    // a loud failure rather than silent framing corruption.
-                    std::array<external_type, zlib_header_size + 1> header_buf{};
-
-                    m_strm->avail_in = 0;
-                    m_strm->next_in = nullptr;
-                    m_strm->avail_out = zlib_header_size + 1;
-                    m_strm->next_out = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                    ret = deflate(m_strm.get(), Z_NO_FLUSH);
-                    zerr("zlib_cvt::bos fail", ret);
-
-                    if (m_strm->avail_out != 1)
-                        throw cvt_error("zlib_cvt::bos fail: zlib did not emit exactly the header");
-
-                    unsigned pending_bytes = 0;
-                    int pending_bits = 0;
-                    if (deflatePending(m_strm.get(), &pending_bytes, &pending_bits) != Z_OK ||
-                        pending_bytes != 0 || pending_bits != 0)
-                        throw cvt_error("zlib_cvt::bos fail: zlib has unflushed bytes after header");
-
-                    BT::m_kernel.put(header_buf.data(), zlib_header_size);
-
-                    m_strm->avail_out = 0;
-                    m_strm->next_out = nullptr;
-
-                    zlib_guard.release();
-                }
-                else
-                {
-                    throw cvt_error("zlib_cvt::bos fail: BT returned output but KernelType lacks put support");
-                }
-            }
-            else
-                throw cvt_error("zlib_cvt::bos fail: invalid response value.");
-        }
-        catch (...)
-        {
-            // m_strm has already been reset to nullptr by inflate_guard /
-            // deflate_guard (or by the manual reset on inflateInit/deflateInit
-            // failure) before the exception reaches here.
-            BT::m_io_status = io_status::neutral;
-            BT::set_tainted();
-            throw;
-        }
-        return BT::m_io_status;
-    }
-
 // optional methods
 private:
     /**
@@ -800,6 +635,149 @@ private:
         try { close_stream(); }
         catch (...) { local_err = std::current_exception(); }
         return local_err;
+    }
+
+    /**
+     * @lang{ZH}
+     * `abs_cvt::bos()` 的 CRTP 钩子，在 kernel `bos()` 返回后调用。
+     *
+     * 此时 `BT::m_io_status` 已被更新为 kernel 确定的初始方向，本函数根据该方向
+     * 初始化 zlib 状态并处理 2 字节流头：
+     * - **输出（压缩）模式**：调用 `deflateInit`，以 `Z_NO_FLUSH` 和零输入触发
+     *   deflate 输出 2 字节流头，验证恰好输出 2 字节且无残余待发字节，
+     *   然后通过内核写出该头部。
+     * - **输入（解压）模式**：调用 `inflateInit`，从内核读取 2 字节流头，
+     *   送入 `inflate` 验证头部格式；不支持预置字典（`Z_NEED_DICT`），遇到时抛出。
+     *
+     * 若任何步骤失败，`m_strm` 已被守卫（`inflate_guard`/`deflate_guard`）或手动
+     * 重置为 `nullptr`；异常由调用方 `abs_cvt::bos()` 捕获，并负责将 IO 状态重置
+     * 为 `neutral`、标记 tainted 后重新抛出。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::bos()`, called after the kernel's `bos()` returns.
+     *
+     * At this point `BT::m_io_status` has already been updated to the initial
+     * direction determined by the kernel. This hook initializes zlib state and
+     * processes the 2-byte stream header accordingly:
+     * - **Output (compression) mode**: calls `deflateInit`, triggers deflate with
+     *   `Z_NO_FLUSH` and zero input to emit the 2-byte stream header, verifies
+     *   exactly 2 bytes were emitted with no pending bytes remaining, then writes
+     *   the header through the kernel.
+     * - **Input (decompression) mode**: calls `inflateInit`, reads the 2-byte stream
+     *   header from the kernel, and feeds it to `inflate` for header validation.
+     *   Preset dictionaries (`Z_NEED_DICT`) are not supported and cause a throw.
+     *
+     * If any step fails, `m_strm` has already been reset to `nullptr` by the guards
+     * (`inflate_guard`/`deflate_guard`) or manually. The exception propagates to
+     * `abs_cvt::bos()`, which resets `m_io_status` to `neutral` and marks the
+     * converter tainted before rethrowing.
+     * @endif
+     *
+     * @throws cvt_error 若 zlib 初始化失败、流头格式非法或内核不支持所需的读写方向。
+     *                   / If zlib initialization fails, the stream header is invalid, or
+     *                   the kernel does not support the required read/write direction.
+     */
+    void bos_impl()
+    {
+        if (BT::m_io_status == io_status::input)
+        {
+            if constexpr (cvt_cpt::support_get<KernelType>)
+            {
+                m_strm = std::make_unique<z_stream>();
+                m_strm->zalloc = Z_NULL;
+                m_strm->zfree = Z_NULL;
+                m_strm->opaque = Z_NULL;
+                m_strm->avail_in = 0;
+                m_strm->next_in = Z_NULL;
+                m_strm->state = Z_NULL;
+                auto ret = inflateInit(m_strm.get());
+                if (ret != Z_OK) { m_strm.reset(); throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib."); }
+                inflate_guard zlib_guard(m_strm);
+
+                // Contract: kernel.get() on BOS path guarantees to return exactly the
+                // requested byte count, or throw an exception if insufficient data is
+                // available. The assert below is purely defensive, verifying this
+                // invariant during development. It is intentionally compiled out in
+                // release builds.
+                std::array<external_type, zlib_header_size> header_buf{};
+                [[maybe_unused]] const size_t n = BT::m_kernel.get(header_buf.data(), zlib_header_size);
+                assert(n == zlib_header_size);
+
+                m_strm->avail_in = zlib_header_size;
+                m_strm->next_in = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+
+                unsigned char ch = 0;
+                m_strm->avail_out = 1;
+                m_strm->next_out = &ch;
+
+                ret = inflate(m_strm.get(), Z_NO_FLUSH);
+                if (ret == Z_NEED_DICT)
+                    throw cvt_error("zlib_cvt::bos fail: preset dictionary not supported");
+                zerr("zlib_cvt::bos fail", ret);
+
+                if ((m_strm->avail_in != 0) || (m_strm->avail_out != 1)) throw cvt_error("zlib_cvt::bos fail: Invalid zlib header");
+                m_strm->next_in = nullptr;
+                m_strm->avail_out = 0;
+                m_strm->next_out = nullptr;
+
+                zlib_guard.release();
+            }
+            else
+                throw cvt_error("zlib_cvt::bos fail: BT returned input but KernelType lacks get support");
+        }
+        else if (BT::m_io_status == io_status::output)
+        {
+            if constexpr (cvt_cpt::support_put<KernelType>)
+            {
+                m_strm = std::make_unique<z_stream>();
+                m_strm->zalloc = Z_NULL;
+                m_strm->zfree = Z_NULL;
+                m_strm->opaque = Z_NULL;
+                m_strm->state = Z_NULL;
+
+                auto ret = deflateInit(m_strm.get(), static_cast<int>(m_put_level));
+                if (ret != Z_OK) { m_strm.reset(); throw cvt_error("zlib_cvt::bos fail: Cannot initialize zlib."); }
+                deflate_guard zlib_guard(m_strm);
+
+                // Contract enforced below: after this deflate() call we require
+                // exactly zlib_header_size bytes in the output buffer and zero
+                // bytes/bits still pending inside zlib. Z_NO_FLUSH on a fresh
+                // stream with no input is expected to flush the queued header
+                // and nothing else. The post-checks turn that expectation into
+                // a hard invariant: any future zlib behavior change (more
+                // bytes, fewer bytes, or bytes left buffered) surfaces here as
+                // a loud failure rather than silent framing corruption.
+                std::array<external_type, zlib_header_size + 1> header_buf{};
+
+                m_strm->avail_in = 0;
+                m_strm->next_in = nullptr;
+                m_strm->avail_out = zlib_header_size + 1;
+                m_strm->next_out = reinterpret_cast<unsigned char*>(header_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                ret = deflate(m_strm.get(), Z_NO_FLUSH);
+                zerr("zlib_cvt::bos fail", ret);
+
+                if (m_strm->avail_out != 1)
+                    throw cvt_error("zlib_cvt::bos fail: zlib did not emit exactly the header");
+
+                unsigned pending_bytes = 0;
+                int pending_bits = 0;
+                if (deflatePending(m_strm.get(), &pending_bytes, &pending_bits) != Z_OK ||
+                    pending_bytes != 0 || pending_bits != 0)
+                    throw cvt_error("zlib_cvt::bos fail: zlib has unflushed bytes after header");
+
+                BT::m_kernel.put(header_buf.data(), zlib_header_size);
+
+                m_strm->avail_out = 0;
+                m_strm->next_out = nullptr;
+
+                zlib_guard.release();
+            }
+            else
+                throw cvt_error("zlib_cvt::bos fail: BT returned output but KernelType lacks put support");
+        }
+        else
+            throw cvt_error("zlib_cvt::bos fail: invalid response value.");
     }
 
     /**
