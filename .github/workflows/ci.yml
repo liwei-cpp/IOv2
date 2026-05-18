@@ -100,12 +100,7 @@ jobs:
     - name: Run clang-tidy
       run: |
         # Use default clang-tidy from the image (which will be a recent version)
-        clang-tidy $(find include/common include/device -name '*.h') \
-          include/cvt/root_cvt.h include/cvt/abs_cvt.h \
-          include/cvt/cvt_concepts.h include/cvt/code_cvt.h \
-          include/cvt/code_cvt_stdio.h include/cvt/cvt_facilities.h \
-          include/cvt/cvt_pipe_creator.h include/cvt/runtime_cvt.h \
-          include/cvt/comp/zlib_cvt.h \
+        clang-tidy $(find include/common include/device include/cvt -name '*.h') \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2

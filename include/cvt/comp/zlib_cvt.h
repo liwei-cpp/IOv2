@@ -161,7 +161,7 @@ template <io_converter KernelType, typename TInt = typename KernelType::internal
 class zlib_cvt : public abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>
 {
     using BT = abs_cvt<zlib_cvt<KernelType, TInt>, KernelType, TInt, false, false>;
-    friend BT;  // for put_main and get_main
+    friend BT;  // for put_main, get_main, and private CRTP hooks
 
     /**
      * @lang{ZH}
@@ -563,49 +563,6 @@ public:
         return m_stream_ended || BT::is_eof();
     }
 
-    /**
-     * @lang{ZH}
-     * 标记 BOS 阶段结束，进入主内容阶段。
-     * 先调用基类 `BT::main_cont_beg()`，然后：
-     * - 若当前为输出模式，调用 `BT::flush()` 将已在 BOS 阶段写入内核缓冲区的
-     *   zlib 流头刷出到底层设备。此时 `m_strm` 必须为有效的 zlib 流（由 `bos()`
-     *   的不变量保证）。
-     * - 若当前为 `neutral` 模式，说明 `bos()` 未被调用，抛出异常。
-     * @endif
-     *
-     * @lang{EN}
-     * Mark the end of the BOS phase and enter the main-content phase.
-     * Calls the base-class `BT::main_cont_beg()` first, then:
-     * - If currently in output mode, calls `BT::flush()` to flush the zlib stream
-     *   header (written into the kernel buffer during the BOS phase) to the underlying
-     *   device. At this point `m_strm` is guaranteed to be a valid zlib stream by the
-     *   `bos()` invariant.
-     * - If currently in `neutral` mode, `bos()` has not been called and an exception
-     *   is thrown.
-     * @endif
-     *
-     * @throws cvt_error 若 `bos()` 尚未被调用（IO 状态为 `neutral`）。
-     *                   / If `bos()` has not yet been called (IO status is `neutral`).
-     */
-    void main_cont_beg()
-    {
-        BT::main_cont_beg();
-
-        if (BT::m_io_status == io_status::output)
-        {
-            // Invariant: bos() either allocates m_strm and leaves m_io_status as
-            // input/output, or restores neutral and taints the converter on failure.
-            // Reaching here with m_io_status == output therefore implies m_strm is
-            // a fully-initialized zlib stream; if the converter were tainted,
-            // BT::flush() would throw before flush_impl() dereferences m_strm.
-            assert(m_strm);
-            BT::flush();
-        }
-        else if (BT::m_io_status == io_status::neutral)
-            throw cvt_error("zlib_cvt::main_cont_beg fail: bos() has not been called before main_cont_beg");
-    }
-
-// optional methods
 private:
     /**
      * @lang{ZH}
@@ -778,6 +735,50 @@ private:
         }
         else
             throw cvt_error("zlib_cvt::bos fail: invalid response value.");
+    }
+
+    /**
+     * @lang{ZH}
+     * `abs_cvt::main_cont_beg()` 的 CRTP 钩子，在 kernel 层 `main_cont_beg()` 之后调用。
+     *
+     * - 若当前为输出模式，调用 `BT::flush()` 将已在 BOS 阶段写入内核缓冲区的
+     *   zlib 流头刷出到底层设备。此时 `m_strm` 必须为有效的 zlib 流（由 `bos()`
+     *   的不变量保证）。
+     * - 若当前为 `neutral` 模式，说明 `bos()` 未被调用，抛出异常。
+     * 允许抛出异常；调用方会将 `m_io_status` 重置为 `neutral` 并设置污染标志后透传。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
+     * `main_cont_beg()`.
+     *
+     * - If currently in output mode, calls `BT::flush()` to flush the zlib stream
+     *   header (written into the kernel buffer during the BOS phase) to the underlying
+     *   device. At this point `m_strm` is guaranteed to be a valid zlib stream by the
+     *   `bos()` invariant.
+     * - If currently in `neutral` mode, `bos()` has not been called and an exception
+     *   is thrown.
+     * May throw; the caller resets `m_io_status` to `neutral` and sets the taint
+     * flag before rethrowing.
+     * @endif
+     *
+     * @throws cvt_error 若 `bos()` 尚未被调用（IO 状态为 `neutral`）。
+     *                   / If `bos()` has not yet been called (IO status is `neutral`).
+     */
+    void main_cont_beg_impl()
+    {
+        if (BT::m_io_status == io_status::output)
+        {
+            // Invariant: bos() either allocates m_strm and leaves m_io_status as
+            // input/output, or restores neutral and taints the converter on failure.
+            // Reaching here with m_io_status == output therefore implies m_strm is
+            // a fully-initialized zlib stream; if the converter were tainted,
+            // BT::flush() would throw before flush_impl() dereferences m_strm.
+            assert(m_strm);
+            BT::flush();
+        }
+        else if (BT::m_io_status == io_status::neutral)
+            throw cvt_error("zlib_cvt::main_cont_beg fail: bos() has not been called before main_cont_beg");
     }
 
     /**
@@ -1134,7 +1135,12 @@ private:
     {
         struct state_guard
         {
-            zlib_cvt& self;
+            zlib_cvt& self; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+            state_guard(zlib_cvt& p_self) : self(p_self) {}
+            state_guard(const state_guard&) = delete;
+            state_guard& operator=(const state_guard&) = delete;
+            state_guard(state_guard&&) = delete;
+            state_guard& operator=(state_guard&&) = delete;
             ~state_guard()
             {
                 self.BT::m_is_bos_done = false;

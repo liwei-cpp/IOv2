@@ -667,6 +667,11 @@ namespace IOv2
      *   kernel 确定的初始方向，派生类可直接读取。可用于依赖初始 IO 方向的派生层初始化
      *   （如按输入/输出方向选择不同的处理路径）。允许抛出异常；调用方会将 `m_io_status`
      *   重置为 `neutral` 并设置污染标志后透传。
+     *
+     * - **`main_cont_beg_impl()`**
+     *   由 `abs_cvt::main_cont_beg` 在 kernel `main_cont_beg()` 返回后调用，执行派生层
+     *   从 BOS 阶段切换到主内容阶段时所需的初始化（如重置编码状态机、清零计数器）。
+     *   允许抛出异常；调用方会将 `m_io_status` 重置为 `neutral` 并设置污染标志后透传。
      * @endif
      *
      * @lang{EN}
@@ -716,6 +721,13 @@ namespace IOv2
      *   derived-layer initialization that depends on the initial IO direction (e.g.,
      *   selecting a decoder vs. encoder path). May throw; the caller resets
      *   `m_io_status` to `neutral` and sets the taint flag before rethrowing.
+     *
+     * - **`main_cont_beg_impl()`**
+     *   Called by `abs_cvt::main_cont_beg` after the kernel's `main_cont_beg()`
+     *   returns, to perform derived-layer initialization needed when transitioning
+     *   from the BOS phase into the main-content phase (e.g., resetting a codec
+     *   state machine, clearing counters). May throw; the caller resets `m_io_status`
+     *   to `neutral` and sets the taint flag before rethrowing.
      * @endif
      *
      * @par Exception Safety / Tainted State
@@ -1193,8 +1205,21 @@ namespace IOv2
          */
         void main_cont_beg()
         {
-            m_kernel.main_cont_beg();
-            m_is_bos_done = true;
+            assert_not_tainted();
+
+            try
+            {
+                m_kernel.main_cont_beg();
+                if constexpr (requires(CurrentType& t) { t.main_cont_beg_impl(); })
+                    static_cast<CurrentType*>(this)->main_cont_beg_impl();
+                m_is_bos_done = true;
+            }
+            catch (...)
+            {
+                m_io_status = io_status::neutral;
+                m_is_tainted = true;
+                throw;
+            }
         }
 
         /**

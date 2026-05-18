@@ -38,7 +38,7 @@ template <io_converter KernelType>
 class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, false, true>
 {
     using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, false, true>;
-    friend BT;  // for put_main and get_main
+    friend BT;  // for put_main, get_main, and private CRTP hooks
     constexpr static size_t s_buf_len = 16;
 public:
     using device_type = typename KernelType::device_type;
@@ -48,7 +48,6 @@ public:
 public:
     vigenere_cvt(KernelType dev, std::basic_string_view<internal_type> s)
         : BT(std::move(dev))
-        , m_pos(0)
         , m_key([s]
                 {
                     if (s.empty())
@@ -57,15 +56,6 @@ public:
                 }())
     {}
 
-// mandatory methods
-public:
-    void main_cont_beg()
-    {
-        BT::main_cont_beg();
-        m_pos = 0;
-    }
-
-// optional methods
 private:
     /**
      * @lang{ZH}
@@ -99,6 +89,18 @@ private:
     {
         if (m_key.empty())
             throw cvt_error("vigenere_cvt::attach fail: empty key");
+    }
+
+    /**
+     * CRTP hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
+     * `main_cont_beg()`.
+     *
+     * Resets the key-offset position `m_pos` to zero so that main-content
+     * encryption/decryption starts from the beginning of the key.
+     */
+    void main_cont_beg_impl()
+    {
+        m_pos = 0;
     }
 
     // Vigenère arithmetic is performed in the unsigned domain to avoid
@@ -171,7 +173,7 @@ private:
 
 public:
     /// positioning
-    size_t tell() const
+    [[nodiscard]] size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         BT::assert_not_tainted();
@@ -222,7 +224,7 @@ public:
         }
     }
 private:
-    size_t                     m_pos;
+    size_t                     m_pos{0};
     std::vector<internal_type> m_key;
 };
 
@@ -249,5 +251,5 @@ private:
 };
 
 template <typename TChar>
-vigenere_cvt_creator(const TChar []) -> vigenere_cvt_creator<TChar>;
+vigenere_cvt_creator(const TChar*) -> vigenere_cvt_creator<TChar>;
 }
