@@ -10,9 +10,9 @@ var namespaceIOv2_1_1Crypt =
     [ "hash_cvt", "classIOv2_1_1Crypt_1_1hash__cvt.html", "classIOv2_1_1Crypt_1_1hash__cvt" ],
     [ "hash_cvt_creator", "structIOv2_1_1Crypt_1_1hash__cvt__creator.html", "structIOv2_1_1Crypt_1_1hash__cvt__creator" ],
     [ "set_hash_fmt", "structIOv2_1_1Crypt_1_1set__hash__fmt.html", "structIOv2_1_1Crypt_1_1set__hash__fmt" ],
-    [ "hash_algo", "namespaceIOv2_1_1Crypt.html#a24635132a2a70cbc8e11b01042e5ea7a", [
-      [ "MD5", "namespaceIOv2_1_1Crypt.html#a24635132a2a70cbc8e11b01042e5ea7aa7f138a09169b250e9dcb378140907378", null ],
-      [ "SHA256", "namespaceIOv2_1_1Crypt.html#a24635132a2a70cbc8e11b01042e5ea7aab505df5aa812b4f320420b8a952f20e5", null ]
+    [ "hash_algo", "namespaceIOv2_1_1Crypt.html#ac448d23bf350eb1b1ca37a4b6e162d83", [
+      [ "MD5", "namespaceIOv2_1_1Crypt.html#ac448d23bf350eb1b1ca37a4b6e162d83a7f138a09169b250e9dcb378140907378", null ],
+      [ "SHA256", "namespaceIOv2_1_1Crypt.html#ac448d23bf350eb1b1ca37a4b6e162d83ab505df5aa812b4f320420b8a952f20e5", null ]
     ] ],
     [ "hash_fmt", "namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81", [
       [ "binary", "namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a9d7183f16acce70658f686ae7f1a4d20", null ],
