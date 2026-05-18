@@ -259,11 +259,11 @@ struct codecvt_kernel<char, TInt>
         if (std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
         clocale_user guard(m_inter_locale);
-        if (static_cast<size_t>(to_end - to) < m_epc)
+        if (static_cast<size_t>(to_end - to) < m_epc) // NOLINT(modernize-use-integer-sign-comparison)
             return false;
 
         const size_t conv = std::wcrtomb(to, ch, &m_state);
-        if (conv == static_cast<size_t>(-1))
+        if (conv == static_cast<size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
         {
             init_state();  // Reset to known state per C standard
             return false;
@@ -325,9 +325,9 @@ struct codecvt_kernel<char, TInt>
         {
             auto tmp_state = m_state;
             size_t conv = mbrtowc(&wch, from, from_end - from, &tmp_state);
-            if (conv == static_cast<size_t>(-1))
+            if (conv == static_cast<size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
                 return std::pair{false, i_count};
-            else if (conv == static_cast<size_t>(-2))
+            else if (conv == static_cast<size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
             {
                 from = from_end;
                 m_state = tmp_state;

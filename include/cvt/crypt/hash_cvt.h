@@ -17,7 +17,7 @@
 
 namespace IOv2::Crypt
 {
-enum class hash_algo : unsigned short
+enum class hash_algo : uint8_t
 {
     MD5,
     SHA256,
@@ -66,8 +66,6 @@ public:
     hash_cvt(KernelType kernel, hash_algo algo)
         : BT(std::move(kernel))
         , m_hash(Botan::HashFunction::create_or_throw(algo_to_str(algo)))
-        , m_has_main_cont(false)
-        , m_out_fmt(hash_fmt::lower_hex)
     {}
 
     hash_cvt(const hash_cvt& val)
@@ -139,9 +137,9 @@ public:
 public:
     void adjust(const cvt_behavior& acc)
     {
-        if (const set_hash_fmt* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
+        if (const auto* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
             m_out_fmt = shf_ptr->m_val;
-        else if (const dump_hash* dh_ptr = dynamic_cast<const dump_hash*>(&acc); dh_ptr)
+        else if (const auto* dh_ptr = dynamic_cast<const dump_hash*>(&acc); dh_ptr)
         {
             if (m_has_main_cont)
             {
@@ -149,7 +147,7 @@ public:
                 if (dh_ptr->m_delim)
                 {
                     const uint8_t delim = *dh_ptr->m_delim;
-                    BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1);
+                    BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 }
             }
         }
@@ -243,7 +241,7 @@ private:
             throw cvt_error("hash_cvt::put_main fail: size overflow");
 
         if (to_size == 0) return;
-        m_hash->update(reinterpret_cast<const uint8_t*>(to), to_size * sizeof(internal_type));
+        m_hash->update(reinterpret_cast<const uint8_t*>(to), to_size * sizeof(internal_type)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         m_has_main_cont = true;
     }
 
@@ -277,18 +275,18 @@ private:
         switch (m_out_fmt)
         {
         case hash_fmt::binary:
-            BT::m_kernel.put(reinterpret_cast<const external_type*>(digest.data()), digest.size());
+            BT::m_kernel.put(reinterpret_cast<const external_type*>(digest.data()), digest.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             break;
         case hash_fmt::upper_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest);
-                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size());
+                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             break;
         case hash_fmt::lower_hex:
             {
                 std::string hex_string = Botan::hex_encode(digest, false);
-                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size());
+                BT::m_kernel.put(reinterpret_cast<const external_type*>(hex_string.data()), hex_string.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             break;
         default:
@@ -309,8 +307,8 @@ private:
     }
 private:
     std::unique_ptr<Botan::HashFunction> m_hash;
-    bool         m_has_main_cont;
-    hash_fmt     m_out_fmt;
+    bool         m_has_main_cont{false};
+    hash_fmt     m_out_fmt{hash_fmt::lower_hex};
 };
 
 template <typename TInt>
@@ -329,6 +327,6 @@ public:
     }
 
 private:
-    const hash_algo m_algo;
+    hash_algo m_algo;
 };
 }

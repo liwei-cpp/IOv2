@@ -32,7 +32,7 @@ inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
     if (!hash)
         throw cvt_error("chacha20 key generation fail: cannot create SHA-256 hash");
 
-    hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size());
+    hash->update(reinterpret_cast<const uint8_t*>(key.data()), key.size()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     return hash->final();
 }
 }
@@ -80,6 +80,7 @@ public:
     chacha20_cvt& operator=(const chacha20_cvt&) = delete;
     chacha20_cvt(chacha20_cvt&& val) = default;
     chacha20_cvt& operator=(chacha20_cvt&& val) = default;
+    ~chacha20_cvt() = default;
 
 // optional methods
 private:
@@ -142,7 +143,7 @@ private:
                     throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
 
                 m_cipher->set_key(m_key);
-                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             }
             else
                 throw cvt_error("chacha20_cvt::bos fail: input mode but kernel does not support get");
@@ -152,10 +153,10 @@ private:
             if constexpr (cvt_cpt::support_put<KernelType>)
             {
                 Botan::AutoSeeded_RNG rng;
-                rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len);
+                rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
                 m_cipher->set_key(m_key);
-                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
                 BT::m_kernel.put(iv_buf.data(), iv_len);
             }
@@ -175,7 +176,7 @@ private:
         constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
-        uint8_t* to = reinterpret_cast<uint8_t*>(_to);
+        auto* to = reinterpret_cast<uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
         reader.reset(block_size);
         size_t total_res = 0;   // total bytes decrypted across all outer iterations
@@ -196,7 +197,7 @@ private:
                 const size_t dest_size = std::min<size_t>(block_size, aim - chunk_res);
                 auto [ptr, cur_len] = reader.get_buf(dest_size);
                 if (cur_len == 0) { eof = true; break; }
-                m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, cur_len);
+                m_cipher->cipher(reinterpret_cast<const uint8_t*>(ptr), to, cur_len); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 to += cur_len;
                 chunk_res += cur_len;
             }
@@ -219,7 +220,7 @@ private:
         constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
         constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
-        const uint8_t* to = reinterpret_cast<const uint8_t*>(_to);
+        const auto* to = reinterpret_cast<const uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
         writer.reset(block_size);
         while (to_size > 0)
@@ -232,7 +233,7 @@ private:
             {
                 size_t dest_size = std::min<size_t>(block_size, aim_output - to_i);
                 auto ptr = writer.put_buf(dest_size);
-                m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size);
+                m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 to_i += dest_size;
             }
             to += aim_output;

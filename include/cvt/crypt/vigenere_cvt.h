@@ -48,7 +48,6 @@ public:
 public:
     vigenere_cvt(KernelType dev, std::basic_string_view<internal_type> s)
         : BT(std::move(dev))
-        , m_pos(0)
         , m_key([s]
                 {
                     if (s.empty())
@@ -174,7 +173,7 @@ private:
 
 public:
     /// positioning
-    size_t tell() const
+    [[nodiscard]] size_t tell() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         BT::assert_not_tainted();
@@ -225,7 +224,7 @@ public:
         }
     }
 private:
-    size_t                     m_pos;
+    size_t                     m_pos{0};
     std::vector<internal_type> m_key;
 };
 
@@ -252,5 +251,5 @@ private:
 };
 
 template <typename TChar>
-vigenere_cvt_creator(const TChar []) -> vigenere_cvt_creator<TChar>;
+vigenere_cvt_creator(const TChar*) -> vigenere_cvt_creator<TChar>;
 }

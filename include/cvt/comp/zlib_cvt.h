@@ -1135,7 +1135,11 @@ private:
     {
         struct state_guard
         {
-            zlib_cvt& self;
+            zlib_cvt& self; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
+            state_guard(const state_guard&) = delete;
+            state_guard& operator=(const state_guard&) = delete;
+            state_guard(state_guard&&) = delete;
+            state_guard& operator=(state_guard&&) = delete;
             ~state_guard()
             {
                 self.BT::m_is_bos_done = false;
