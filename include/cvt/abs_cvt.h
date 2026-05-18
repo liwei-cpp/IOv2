@@ -661,6 +661,12 @@ namespace IOv2
      *   初始化（如验证配置、重置加密上下文）。允许抛出异常；调用方会设置污染
      *   标志并传播。`detach_impl()` 捕获到的旧流错误会在 `attach_impl()` 成功
      *   返回后再抛出。
+     *
+     * - **`bos_impl()`**
+     *   由 `abs_cvt::bos` 在 kernel `bos()` 返回后调用。此时 `m_io_status` 已被更新为
+     *   kernel 确定的初始方向，派生类可直接读取。可用于依赖初始 IO 方向的派生层初始化
+     *   （如按输入/输出方向选择不同的处理路径）。允许抛出异常；调用方会将 `m_io_status`
+     *   重置为 `neutral` 并设置污染标志后透传。
      * @endif
      *
      * @lang{EN}
@@ -702,6 +708,14 @@ namespace IOv2
      *   caller sets the taint flag and rethrows. Any error captured by
      *   `detach_impl()` for the old stream is rethrown only after `attach_impl()`
      *   returns successfully.
+     *
+     * - **`bos_impl()`**
+     *   Called by `abs_cvt::bos` after the kernel's `bos()` returns. At the point
+     *   of invocation `m_io_status` has already been updated to the initial direction
+     *   determined by the kernel, so the hook can read it directly. Use it for
+     *   derived-layer initialization that depends on the initial IO direction (e.g.,
+     *   selecting a decoder vs. encoder path). May throw; the caller resets
+     *   `m_io_status` to `neutral` and sets the taint flag before rethrowing.
      * @endif
      *
      * @par Exception Safety / Tainted State
@@ -1138,13 +1152,27 @@ namespace IOv2
          */
         io_status bos()
         {
-            if (m_io_status != io_status::neutral)
-                throw cvt_error("abs_cvt::bos fail: cannot call bos with un-neutral status");
-            if (m_is_bos_done)
-                throw cvt_error("abs_cvt::bos fail: cannot call bos multiple times");
+            assert_not_tainted();
 
-            m_io_status = m_kernel.bos();
-            return m_io_status;
+            try
+            {
+                if (m_io_status != io_status::neutral)
+                    throw cvt_error("abs_cvt::bos fail: cannot call bos with un-neutral status");
+                if (m_is_bos_done)
+                    throw cvt_error("abs_cvt::bos fail: cannot call bos multiple times");
+
+                m_io_status = m_kernel.bos();
+
+                if constexpr (requires(CurrentType& t) { t.bos_impl(); })
+                    static_cast<CurrentType*>(this)->bos_impl();
+                return m_io_status;
+            }
+            catch (...)
+            {
+                m_io_status = io_status::neutral;
+                m_is_tainted = true;
+                throw;
+            }
         }
 
         /**

@@ -811,26 +811,6 @@ public:
 public:
     /**
      * @lang{ZH}
-     * 建立初始 IO 状态（BOS：Beginning-Of-Stream）。
-     * 这是使用转换器之前必须首先调用的函数。
-     *
-     * @return 当前的 I/O 方向状态。
-     * @endif
-     *
-     * @lang{EN}
-     * Establish the initial IO state (BOS: Beginning-Of-Stream).
-     * This is the first function that must be called before using the converter.
-     *
-     * @return The current I/O direction state.
-     * @endif
-     */
-    io_status bos()
-    {
-        return BT::bos();
-    }
-
-    /**
-     * @lang{ZH}
      * 结束 BOS 阶段，进入主内容阶段。
      * 调用后编码转换状态将被重置，累计字符计数清零。
      * @endif

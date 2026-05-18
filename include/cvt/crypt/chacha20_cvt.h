@@ -81,72 +81,6 @@ public:
     chacha20_cvt(chacha20_cvt&& val) = default;
     chacha20_cvt& operator=(chacha20_cvt&& val) = default;
 
-// mandatory methods
-public:
-    io_status bos()
-    {
-        BT::bos();
-
-        if (!m_cipher || m_key.empty())
-            throw cvt_error("chacha20_cvt::bos fail: cipher or key missing (moved-from object?)");
-
-        const size_t iv_len = m_cipher->default_iv_length();
-        if (iv_len == 0)
-            throw cvt_error("chacha20_cvt::bos fail: cipher reports zero IV length");
-        std::vector<external_type> iv_buf(iv_len);
-
-        if (BT::m_io_status == io_status::input)
-        {
-            if constexpr (cvt_cpt::support_get<KernelType>)
-            {
-                try
-                {
-                    const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
-                    if (n != iv_len)
-                        throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
-
-                    m_cipher->set_key(m_key);
-                    m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
-                }
-                catch (...)
-                {
-                    try { m_cipher->clear(); } catch (...) {}
-                    BT::set_tainted();
-                    throw;
-                }
-            }
-            else
-                throw cvt_error("chacha20_cvt::bos fail: input mode but kernel does not support get");
-        }
-        else if (BT::m_io_status == io_status::output)
-        {
-            if constexpr (cvt_cpt::support_put<KernelType>)
-            {
-                try
-                {
-                    Botan::AutoSeeded_RNG rng;
-                    rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len);
-
-                    m_cipher->set_key(m_key);
-                    m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
-
-                    BT::m_kernel.put(iv_buf.data(), iv_len);
-                }
-                catch (...)
-                {
-                    try { m_cipher->clear(); } catch (...) {}
-                    BT::set_tainted();
-                    throw;
-                }
-            }
-            else
-                throw cvt_error("chacha20_cvt::bos fail: output mode but kernel does not support put");
-        }
-        else
-            throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
-        return BT::m_io_status;
-    }
-
 // optional methods
 private:
     /**
@@ -187,6 +121,49 @@ private:
         if (!m_cipher || m_key.empty())
             throw cvt_error("chacha20_cvt::attach fail: cipher or key missing (moved-from object?)");
         m_cipher->clear();
+    }
+
+    void bos_impl()
+    {
+        if (!m_cipher || m_key.empty())
+            throw cvt_error("chacha20_cvt::bos fail: cipher or key missing (moved-from object?)");
+
+        const size_t iv_len = m_cipher->default_iv_length();
+        if (iv_len == 0)
+            throw cvt_error("chacha20_cvt::bos fail: cipher reports zero IV length");
+        std::vector<external_type> iv_buf(iv_len);
+
+        if (BT::m_io_status == io_status::input)
+        {
+            if constexpr (cvt_cpt::support_get<KernelType>)
+            {
+                const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
+                if (n != iv_len)
+                    throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
+
+                m_cipher->set_key(m_key);
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+            }
+            else
+                throw cvt_error("chacha20_cvt::bos fail: input mode but kernel does not support get");
+        }
+        else if (BT::m_io_status == io_status::output)
+        {
+            if constexpr (cvt_cpt::support_put<KernelType>)
+            {
+                Botan::AutoSeeded_RNG rng;
+                rng.randomize(reinterpret_cast<uint8_t*>(iv_buf.data()), iv_len);
+
+                m_cipher->set_key(m_key);
+                m_cipher->set_iv(reinterpret_cast<const uint8_t*>(iv_buf.data()), iv_len);
+
+                BT::m_kernel.put(iv_buf.data(), iv_len);
+            }
+            else
+                throw cvt_error("chacha20_cvt::bos fail: output mode but kernel does not support put");
+        }
+        else
+            throw cvt_error("chacha20_cvt::bos fail: neither in input nor output mode");
     }
 
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, size_t to_max)

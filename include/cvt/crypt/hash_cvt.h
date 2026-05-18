@@ -137,26 +137,6 @@ public:
 
 // mandatory methods
 public:
-    io_status bos()
-    {
-        auto res = BT::bos();
-        try
-        {
-            if (res != io_status::output)
-                throw cvt_error("hash_cvt::bos fail: only output mode is supported");
-
-            if (!m_hash)
-                throw cvt_error("hash_cvt::bos fail: hash not initialized (moved-from object?)");
-            m_hash->clear();
-        }
-        catch (...)
-        {
-            BT::set_tainted();
-            throw;
-        }
-        return io_status::output;
-    }
-
     void adjust(const cvt_behavior& acc)
     {
         if (const set_hash_fmt* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
@@ -239,6 +219,16 @@ private:
     {
         if (!m_hash)
             throw cvt_error("hash_cvt::attach fail: hash not initialized (moved-from object?)");
+        m_hash->clear();
+    }
+
+    void bos_impl()
+    {
+        if (BT::m_io_status != io_status::output)
+            throw cvt_error("hash_cvt::bos fail: only output mode is supported");
+
+        if (!m_hash)
+            throw cvt_error("hash_cvt::bos fail: hash not initialized (moved-from object?)");
         m_hash->clear();
     }
 
