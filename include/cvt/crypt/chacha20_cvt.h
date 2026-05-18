@@ -2,6 +2,7 @@
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <exception>
 #include <limits>
@@ -13,6 +14,7 @@
 
 #include <botan/auto_rng.h>
 #include <botan/hash.h>
+#include <botan/secmem.h>
 #include <botan/stream_cipher.h>
 
 namespace IOv2::Crypt
