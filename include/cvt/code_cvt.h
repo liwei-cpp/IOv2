@@ -688,7 +688,7 @@ template <io_converter KernelType, typename CharType>
 class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, false>
 {
     using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, false>;
-    friend BT; // for put_main, get_main
+    friend BT; // for put_main, get_main, and private CRTP hooks
 
 public:
     using device_type = typename KernelType::device_type;   ///< 底层设备类型 / Underlying device type.
@@ -807,28 +807,6 @@ public:
 
     ~code_cvt() = default;
 
-// 必选方法 / Mandatory methods
-public:
-    /**
-     * @lang{ZH}
-     * 结束 BOS 阶段，进入主内容阶段。
-     * 调用后编码转换状态将被重置，累计字符计数清零。
-     * @endif
-     *
-     * @lang{EN}
-     * End the BOS phase and transition into the main content phase.
-     * After this call, the encoding conversion state is reset and the
-     * accumulated character count is cleared.
-     * @endif
-     */
-    void main_cont_beg()
-    {
-        BT::main_cont_beg();
-        m_cvt_kernel.init_state();
-        m_accu_len = 0;
-    }
-
-// 可选方法（由 abs_cvt 通过 CRTP 调用）/ Optional methods (called by abs_cvt via CRTP)
 private:
     /**
      * @lang{ZH}
@@ -858,6 +836,30 @@ private:
         try { close_stream(); }
         catch (...) { local_err = std::current_exception(); }
         return local_err;
+    }
+
+    /**
+     * @lang{ZH}
+     * `abs_cvt::main_cont_beg()` 的 CRTP 钩子，在 kernel 层 `main_cont_beg()` 之后调用。
+     *
+     * 负责重置编码转换状态并清零累计字符计数，使主内容阶段从干净状态开始。
+     * 允许抛出异常；调用方会将 `m_io_status` 重置为 `neutral` 并设置污染标志后透传。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::main_cont_beg()`, called after the kernel-level
+     * `main_cont_beg()`.
+     *
+     * Resets the codec conversion state and clears the accumulated character count
+     * so the main-content phase begins from a clean state.
+     * May throw; the caller resets `m_io_status` to `neutral` and sets the taint
+     * flag before rethrowing.
+     * @endif
+     */
+    void main_cont_beg_impl()
+    {
+        m_cvt_kernel.init_state();
+        m_accu_len = 0;
     }
 
     /**
