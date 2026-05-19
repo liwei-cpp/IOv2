@@ -685,9 +685,9 @@ struct codecvt_kernel<char8_t, TInt>
  * @endif
  */
 template <io_converter KernelType, typename CharType>
-class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, true>
+class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, true>
 {
-    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, true>;
+    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, true, true>;
     friend BT; // for put_main, get_main, and private CRTP hooks
 
 public:
@@ -1021,7 +1021,6 @@ private:
         }
     }
 
-public:
     /**
      * @lang{ZH}
      * 返回当前流中已处理的内部字符总数（即逻辑位置）。
@@ -1036,10 +1035,9 @@ public:
      * @return Number of internal characters processed.
      * @endif
      */
-    [[nodiscard]] size_t tell() const
+    [[nodiscard]] size_t tell_impl() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
-        BT::assert_not_tainted();
         return m_accu_len;
     }
 
@@ -1047,7 +1045,6 @@ public:
      * @lang{ZH}
      * 将流定位至指定的绝对内部字符位置。
      * 对于变长或状态依赖编码，仅允许 `seek(0)`（定位至流起始）且须处于输入模式。
-     * 当目标位置等于当前位置时，直接返回（快速路径）。
      *
      * @param pos 目标内部字符位置。
      *
@@ -1059,7 +1056,6 @@ public:
      * Position the stream to the specified absolute internal character position.
      * For variable-length or state-dependent encodings, only `seek(0)` (repositioning
      * to the beginning of the stream) in input mode is permitted.
-     * Returns immediately when the target position equals the current position (fast path).
      *
      * @param pos Target internal character position.
      *
@@ -1068,17 +1064,9 @@ public:
      *                   a byte-offset overflow in the underlying device.
      * @endif
      */
-    void seek(size_t pos)
+    void seek_impl(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
-        BT::assert_not_tainted();
-        // Fast path for no-op self-seek: skip validation and kernel work when
-        // pos already equals the current position. Intentional even in modes
-        // where the validation below would otherwise reject — callers using
-        // seek(saved_pos) for position-restore must not be rejected when
-        // saved_pos happens to equal tell().
-        if (this->tell() == pos) return;
-
         const bool needs_state_reset =
             m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep();
 
@@ -1124,10 +1112,9 @@ public:
      *                   position overflows, or if the resulting device position is misaligned.
      * @endif
      */
-    void rseek(size_t pos)
+    void rseek_impl(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
-        BT::assert_not_tainted();
         if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
             throw cvt_error("code_cvt::rseek fail: cannot seek with dependent converter");
 
