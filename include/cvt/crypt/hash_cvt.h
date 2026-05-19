@@ -213,6 +213,7 @@ private:
 
     void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, size_t to_size)
     {
+        if (to_size == 0) return;
         if (!m_hash)
             throw cvt_error("hash_cvt::put_main fail: hash not initialized (moved-from object?)");
 
@@ -221,7 +222,6 @@ private:
         if (to_size > max_safe)
             throw cvt_error("hash_cvt::put_main fail: size overflow");
 
-        if (to_size == 0) return;
         m_hash->update(reinterpret_cast<const uint8_t*>(to), to_size * sizeof(internal_type)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         m_has_main_cont = true;
     }
@@ -277,6 +277,15 @@ private:
         // Use copy_state()->final() to preserve original state until put() succeeds.
         // This provides strong exception safety: if put() fails, state is unchanged
         // and the operation can be retried.
+        //
+        // Intentional: a failure inside `BT::m_kernel.put(...)` is the kernel's
+        // own concern — the kernel layer must taint itself per the abs_cvt
+        // contract. hash_cvt deliberately does NOT mirror that taint upward,
+        // because (a) hash_cvt's own invariants remain intact on a kernel-side
+        // partial write (`m_has_main_cont` stays true, `m_hash` is untouched
+        // via copy_state), and (b) leaving hash_cvt clean allows the caller to
+        // recover the kernel transiently and retry `dump_stream()` without
+        // losing the accumulated `update()` history.
         auto cp_state = m_hash->copy_state();
         if (!cp_state)
             throw cvt_error("hash_cvt::dump_stream fail: cannot copy hash state");
