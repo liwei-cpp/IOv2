@@ -680,6 +680,26 @@ namespace IOv2
      *   **仅适用于直接派生自 `abs_cvt` 的类**；若派生类经由中间层（如
      *   `code_cvt`）继承，则 `CurrentType` 为中间层类型，`adjust_impl` 不可达，
      *   应改为直接覆写公开的 `adjust()` 并链式调用 `BT::adjust()`。
+     *
+     * - **`retrieve_impl(cvt_status&)`**
+     *   由 `abs_cvt::retrieve` 在调用 `m_kernel.retrieve()` 之前调用，用于将派生层
+     *   特有的状态信息写入 `s`。允许抛出异常；调用方直接透传，不设置污染标志。
+     *   **仅适用于直接派生自 `abs_cvt` 的类**；若经由中间层继承，应覆写公开的
+     *   `retrieve()` 并链式调用 `BT::retrieve()`。
+     *
+     * - **`switch_to_get_impl()`**
+     *   由 `abs_cvt::switch_to_get` 在调用 `m_kernel.switch_to_get()` 及更新
+     *   `m_io_status` 之前调用，用于执行派生层的前置条件检查或状态调整。此时切换
+     *   尚未发生，`m_io_status` 仍为切换前的值。允许抛出异常；调用方直接透传，
+     *   不设置污染标志（状态未变，一致性可保证）。
+     *   **仅适用于直接派生自 `abs_cvt` 的类**。
+     *
+     * - **`switch_to_put_impl()`**
+     *   由 `abs_cvt::switch_to_put` 在调用 `m_kernel.switch_to_put()` 及更新
+     *   `m_io_status` 之前调用，用于执行派生层的前置条件检查或状态调整。此时切换
+     *   尚未发生，`m_io_status` 仍为切换前的值。允许抛出异常；调用方直接透传，
+     *   不设置污染标志（状态未变，一致性可保证）。
+     *   **仅适用于直接派生自 `abs_cvt` 的类**。
      * @endif
      *
      * @lang{EN}
@@ -747,6 +767,32 @@ namespace IOv2
      *   `CurrentType` is the intermediate type and `adjust_impl` on the leaf class
      *   is unreachable; such classes must override the public `adjust()` directly
      *   and forward to `BT::adjust()`.
+     *
+     * - **`retrieve_impl(cvt_status&)`**
+     *   Called by `abs_cvt::retrieve` before `m_kernel.retrieve()`, to write any
+     *   derived-layer status information into `s`. May throw; the caller propagates
+     *   the exception directly without setting the taint flag.
+     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
+     *   Classes inheriting through an intermediate layer must override the public
+     *   `retrieve()` and forward to `BT::retrieve()`.
+     *
+     * - **`switch_to_get_impl()`**
+     *   Called by `abs_cvt::switch_to_get` before `m_kernel.switch_to_get()` and
+     *   before `m_io_status` is updated, to perform any derived-layer precondition
+     *   checks or state preparation needed before switching to input mode. At the
+     *   point of invocation the switch has not yet occurred and `m_io_status` still
+     *   reflects the previous mode. May throw; the caller propagates the exception
+     *   directly without setting the taint flag (state is still consistent).
+     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
+     *
+     * - **`switch_to_put_impl()`**
+     *   Called by `abs_cvt::switch_to_put` before `m_kernel.switch_to_put()` and
+     *   before `m_io_status` is updated, to perform any derived-layer precondition
+     *   checks or state preparation needed before switching to output mode. At the
+     *   point of invocation the switch has not yet occurred and `m_io_status` still
+     *   reflects the previous mode. May throw; the caller propagates the exception
+     *   directly without setting the taint flag (state is still consistent).
+     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
      * @endif
      *
      * @par Exception Safety / Tainted State
@@ -801,7 +847,7 @@ namespace IOv2
      * When `true` (default) and the kernel supports positioning, the `tell()`/`seek()`/`rseek()` methods are available.
      * @endif
      *
-     * @tparam default_io_switch
+     * @tparam enable_io_switch
      * @lang{ZH}
      * 若为 `true`（默认），且 kernel 支持 IO 方向切换，则 `switch_to_get()`/`switch_to_put()` 方法可用。
      * @endif
@@ -813,7 +859,7 @@ namespace IOv2
               io_converter KernelType,
               typename InternalType,
               bool default_positioning = true,
-              bool default_io_switch = true>
+              bool enable_io_switch = true>
     class abs_cvt
     {
     public:
@@ -1651,20 +1697,37 @@ namespace IOv2
          * @lang{ZH}
          * 将 IO 方向切换为输入（读取）模式，并将 `m_io_status` 更新为 `input`。
          *
-         * 仅在 `default_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
+         * 若已处于输入模式则立即返回（空操作）；否则先调用 `assert_not_tainted()`，
+         * 再调用 `switch_to_get_impl()`（若派生类实现了该 hook），最后切换底层 kernel
+         * 并更新 `m_io_status`。
+         *
+         * 仅在 `enable_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
          * @endif
          *
          * @lang{EN}
          * Switch the IO direction to input (read) mode and update `m_io_status`
          * to `input`.
          *
-         * Only available when `default_io_switch` is `true` and the kernel supports
+         * Returns immediately if already in input mode (no-op). Otherwise calls
+         * `assert_not_tainted()`, then `switch_to_get_impl()` if the derived class
+         * implements it, then switches the underlying kernel and updates `m_io_status`.
+         *
+         * Only available when `enable_io_switch` is `true` and the kernel supports
          * IO-direction switching.
          * @endif
          */
         void switch_to_get()
-            requires (default_io_switch && cvt_cpt::support_io_switch<KernelType>)
+            requires (enable_io_switch && cvt_cpt::support_io_switch<KernelType>)
         {
+            if (m_io_status == io_status::input)
+                return;
+
+            assert_not_tainted();
+
+            // Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.
+            if constexpr (requires(CurrentType& t) { t.switch_to_get_impl(); })
+                static_cast<CurrentType*>(this)->switch_to_get_impl();
+
             m_kernel.switch_to_get();
             m_io_status = io_status::input;
         }
@@ -1673,20 +1736,37 @@ namespace IOv2
          * @lang{ZH}
          * 将 IO 方向切换为输出（写入）模式，并将 `m_io_status` 更新为 `output`。
          *
-         * 仅在 `default_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
+         * 若已处于输出模式则立即返回（空操作）；否则先调用 `assert_not_tainted()`，
+         * 再调用 `switch_to_put_impl()`（若派生类实现了该 hook），最后切换底层 kernel
+         * 并更新 `m_io_status`。
+         *
+         * 仅在 `enable_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
          * @endif
          *
          * @lang{EN}
          * Switch the IO direction to output (write) mode and update `m_io_status`
          * to `output`.
          *
-         * Only available when `default_io_switch` is `true` and the kernel supports
+         * Returns immediately if already in output mode (no-op). Otherwise calls
+         * `assert_not_tainted()`, then `switch_to_put_impl()` if the derived class
+         * implements it, then switches the underlying kernel and updates `m_io_status`.
+         *
+         * Only available when `enable_io_switch` is `true` and the kernel supports
          * IO-direction switching.
          * @endif
          */
         void switch_to_put()
-            requires (default_io_switch && cvt_cpt::support_io_switch<KernelType>)
+            requires (enable_io_switch && cvt_cpt::support_io_switch<KernelType>)
         {
+            if (m_io_status == io_status::output)
+                return;
+
+            assert_not_tainted();
+
+            // Note: invoke the derived-layer hook first (e.g. precondition checks), then switch the lower level.
+            if constexpr (requires(CurrentType& t) { t.switch_to_put_impl(); })
+                static_cast<CurrentType*>(this)->switch_to_put_impl();
+
             m_kernel.switch_to_put();
             m_io_status = io_status::output;
         }
