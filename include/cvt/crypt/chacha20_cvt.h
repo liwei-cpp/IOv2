@@ -1,3 +1,27 @@
+/**
+ * @file chacha20_cvt.h
+ * @lang{ZH}
+ * ChaCha20 流加密转换器。
+ *
+ * 本文件提供两个组件：
+ * - `chacha20_cvt`：基于 Botan ChaCha20 的流加密/解密转换器。写入（加密）模式下
+ *   随机生成 IV 并将其前置于密文流；读取（解密）模式下从流头部读取 IV 进行初始化。
+ * - `chacha20_cvt_creator`：工厂类，用于在管道中统一构造 `chacha20_cvt` 实例。
+ * @endif
+ *
+ * @lang{EN}
+ * ChaCha20 stream-cipher converter.
+ *
+ * This file provides two components:
+ * - `chacha20_cvt`: A stream encryption/decryption converter backed by Botan's
+ *   ChaCha20 implementation. In write (encryption) mode the IV is randomly generated
+ *   and prepended to the ciphertext stream; in read (decryption) mode the IV is read
+ *   from the stream head.
+ * - `chacha20_cvt_creator`: A factory class for constructing `chacha20_cvt` instances
+ *   uniformly within a pipeline.
+ * @endif
+ */
+
 #pragma once
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
@@ -22,8 +46,44 @@
 
 namespace IOv2::Crypt
 {
+/**
+ * @lang{ZH}
+ * `chacha20_cvt` 的内部辅助命名空间，不作为公开 API 使用。
+ * @endif
+ *
+ * @lang{EN}
+ * Internal helper namespace for `chacha20_cvt`; not part of the public API.
+ * @endif
+ */
 namespace chacha20_cvt_helpers
 {
+/**
+ * @lang{ZH}
+ * 将任意字符串密码通过 SHA-256 哈希派生为 ChaCha20 密钥。
+ *
+ * 拒绝空字符串：对空串哈希会得到公开常量 `SHA-256("")`，
+ * 将其用作流密码密钥意味着零保密性，因此直接抛出异常。
+ * @endif
+ *
+ * @lang{EN}
+ * Derives a ChaCha20 key from an arbitrary passphrase string by hashing it with SHA-256.
+ *
+ * Empty input is rejected: hashing an empty string yields the publicly known constant
+ * `SHA-256("")`, which provides zero confidentiality when used as a stream-cipher key.
+ * @endif
+ *
+ * @param key
+ * @lang{ZH} 原始密码字符串，不得为空。 @endif
+ * @lang{EN} The raw passphrase string; must not be empty. @endif
+ *
+ * @return
+ * @lang{ZH} 长度为 32 字节的 SHA-256 摘要，可直接用作 ChaCha20 密钥。 @endif
+ * @lang{EN} A 32-byte SHA-256 digest suitable for direct use as a ChaCha20 key. @endif
+ *
+ * @throws cvt_error
+ * @lang{ZH} 若 `key` 为空；或无法创建 SHA-256 哈希对象。 @endif
+ * @lang{EN} If `key` is empty, or if the SHA-256 hash object cannot be created. @endif
+ */
 inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
 {
     // Reject empty input: hashing an empty string would silently yield the
@@ -42,6 +102,51 @@ inline Botan::secure_vector<uint8_t> key_gen(std::string_view key)
 }
 }
 
+/**
+ * @lang{ZH}
+ * 基于 ChaCha20 的流加密/解密转换器。
+ *
+ * 将上游 kernel 的字节流透明地进行 ChaCha20 加解密：
+ * - **写入（加密）模式**：`bos_impl()` 随机生成 IV，将 IV 明文写入 kernel，
+ *   随后 `put_main()` 对用户数据加密后写出。
+ * - **读取（解密）模式**：`bos_impl()` 从 kernel 读取 IV，随后 `get_main()`
+ *   从 kernel 读取密文并解密后交付给用户。
+ *
+ * `internal_type` 须为单字节整数类型，以保证每个用户元素在字节流中的偏移
+ * 与密钥流偏移精确对齐。跨调用的非对齐残留字节由 `m_leftover` 缓冲区管理。
+ * @endif
+ *
+ * @lang{EN}
+ * ChaCha20-based stream encryption/decryption converter.
+ *
+ * Transparently applies ChaCha20 to the byte stream of the upstream kernel:
+ * - **Write (encryption) mode**: `bos_impl()` generates a random IV, writes it
+ *   verbatim to the kernel, and subsequent `put_main()` calls encrypt user data
+ *   before forwarding it.
+ * - **Read (decryption) mode**: `bos_impl()` reads the IV from the kernel, and
+ *   subsequent `get_main()` calls decrypt ciphertext read from the kernel before
+ *   delivering it to the user.
+ *
+ * `internal_type` must be a single-byte integral type so that every user element
+ * maps exactly onto one byte in the keystream. Sub-element ciphertext fragments
+ * carried across calls are managed by the `m_leftover` buffer.
+ * @endif
+ *
+ * @tparam KernelType
+ * @lang{ZH} 底层 IO 转换核心类型，须满足 `io_converter` concept。 @endif
+ * @lang{EN} The underlying IO converter kernel type, which must satisfy the `io_converter` concept. @endif
+ *
+ * @tparam TInt
+ * @lang{ZH}
+ * 用户侧元素类型（`internal_type`），默认与 kernel 的 `internal_type` 相同。
+ * 须为单字节平凡可复制类型，且具有唯一对象表示。
+ * @endif
+ * @lang{EN}
+ * The user-facing element type (`internal_type`), defaulting to the kernel's
+ * `internal_type`. Must be a single-byte, trivially copyable type with unique
+ * object representations.
+ * @endif
+ */
 template <io_converter KernelType, typename TInt = typename KernelType::internal_type>
     requires (std::is_integral_v<typename KernelType::internal_type> &&
               sizeof(typename KernelType::internal_type) == sizeof(uint8_t) &&
@@ -65,6 +170,34 @@ public:
         "internal_type must fit within a single chacha20 block");
 
 public:
+    /**
+     * @lang{ZH}
+     * 从字符串密码构造 ChaCha20 转换器。
+     *
+     * 内部调用 `chacha20_cvt_helpers::key_gen(key)` 将 `key` 通过 SHA-256
+     * 派生为实际密钥材料。
+     * @endif
+     *
+     * @lang{EN}
+     * Constructs a ChaCha20 converter from a passphrase string.
+     *
+     * Internally calls `chacha20_cvt_helpers::key_gen(key)` to derive actual
+     * key material from `key` via SHA-256.
+     * @endif
+     *
+     * @param kernel
+     * @lang{ZH} 底层 IO 转换核心，以移动语义传入。 @endif
+     * @lang{EN} The underlying IO converter kernel, transferred by move. @endif
+     *
+     * @param key
+     * @lang{ZH} 原始密码字符串，不得为空。 @endif
+     * @lang{EN} The raw passphrase string; must not be empty. @endif
+     *
+     * @throws cvt_error
+     * @lang{ZH} 若无法创建 ChaCha20 流密码对象；或 `key` 为空；或 SHA-256 不可用。 @endif
+     * @lang{EN} If the ChaCha20 stream cipher cannot be created, if `key` is empty,
+     * or if SHA-256 is unavailable. @endif
+     */
     chacha20_cvt(KernelType kernel, std::string_view key)
         : BT(std::move(kernel))
         , m_cipher(Botan::StreamCipher::create("ChaCha20"))
@@ -75,6 +208,35 @@ public:
         m_key = chacha20_cvt_helpers::key_gen(key);
     }
 
+    /**
+     * @lang{ZH}
+     * 从原始密钥字节构造 ChaCha20 转换器。
+     *
+     * 直接使用 `key` 作为 ChaCha20 密钥，不再进行哈希派生。
+     * 调用方须确保 `key` 的长度对 ChaCha20 有效（通常为 16 或 32 字节）。
+     * @endif
+     *
+     * @lang{EN}
+     * Constructs a ChaCha20 converter from raw key bytes.
+     *
+     * Uses `key` directly as the ChaCha20 key without any additional hashing.
+     * The caller must ensure that `key` has a valid length for ChaCha20
+     * (typically 16 or 32 bytes).
+     * @endif
+     *
+     * @param kernel
+     * @lang{ZH} 底层 IO 转换核心，以移动语义传入。 @endif
+     * @lang{EN} The underlying IO converter kernel, transferred by move. @endif
+     *
+     * @param key
+     * @lang{ZH} 原始 ChaCha20 密钥字节序列；长度须为 ChaCha20 所支持的合法值。 @endif
+     * @lang{EN} Raw ChaCha20 key bytes; length must be valid for ChaCha20. @endif
+     *
+     * @throws cvt_error
+     * @lang{ZH} 若无法创建 ChaCha20 流密码对象；或 `key` 长度不合法。 @endif
+     * @lang{EN} If the ChaCha20 stream cipher cannot be created, or if `key` has an
+     * invalid length. @endif
+     */
     chacha20_cvt(KernelType kernel, const Botan::secure_vector<uint8_t>& key)
         : BT(std::move(kernel))
         , m_cipher(Botan::StreamCipher::create("ChaCha20"))
@@ -163,6 +325,26 @@ private:
         return local_err;
     }
 
+    /**
+     * @lang{ZH}
+     * `abs_cvt::attach()` 的 CRTP 钩子，在 kernel 层 `attach()` 之后调用。
+     *
+     * 调用 `m_cipher->clear()` 重置密码器状态，并清零跨调用残留缓冲区，
+     * 确保新会话从干净状态开始，不受前次会话的密钥流影响。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::attach()`, called after the kernel-level `attach()`.
+     *
+     * Calls `m_cipher->clear()` to reset cipher state and zeroes the cross-call
+     * leftover buffer. Ensures a new session starts from a clean state, independent
+     * of any previous session's keystream.
+     * @endif
+     *
+     * @throws cvt_error
+     * @lang{ZH} 若 `m_cipher` 为空或密钥缺失（已移动走的对象）。 @endif
+     * @lang{EN} If `m_cipher` is null or the key is missing (moved-from object). @endif
+     */
     void attach_impl()
     {
         if (!m_cipher || m_key.empty())
@@ -175,6 +357,39 @@ private:
         m_leftover_len = 0;
     }
 
+    /**
+     * @lang{ZH}
+     * `abs_cvt::bos()` 的 CRTP 钩子，处理流起始（BOS）的 IV 协商。
+     *
+     * - **输出模式**：随机生成 IV，设置密码器密钥与 IV，然后将 IV 明文写入 kernel。
+     * - **输入模式**：从 kernel 读取 IV，设置密码器密钥与 IV。
+     *
+     * 调用前会清零残留缓冲区，确保新流的解密不受前次流尾部残留的影响。
+     * @endif
+     *
+     * @lang{EN}
+     * CRTP hook for `abs_cvt::bos()`, handling IV negotiation at the beginning
+     * of stream (BOS).
+     *
+     * - **Output mode**: generates a random IV, initializes the cipher with the key
+     *   and IV, then writes the IV in plaintext to the kernel.
+     * - **Input mode**: reads the IV from the kernel and initializes the cipher.
+     *
+     * The leftover buffer is zeroed before processing to ensure decryption of the
+     * new stream is not contaminated by residual bytes from a previous stream.
+     * @endif
+     *
+     * @throws cvt_error
+     * @lang{ZH}
+     * 若 `m_cipher` 为空或密钥缺失；若密码器报告 IV 长度为零；
+     * 若 IV 读取不完整；或 IO 方向既非输入也非输出。
+     * @endif
+     * @lang{EN}
+     * If `m_cipher` is null or the key is missing; if the cipher reports a zero IV
+     * length; if the IV read is incomplete; or if the IO direction is neither input
+     * nor output.
+     * @endif
+     */
     void bos_impl()
     {
         if (!m_cipher || m_key.empty())
@@ -380,6 +595,39 @@ private:
         return elements_delivered;
     }
 
+    /**
+     * @lang{ZH}
+     * 加密主内容流并以 `block_size` 为单位批量写入 kernel。
+     *
+     * 以 `block_size`（64 字节）为块大小，逐块从用户缓冲区读取数据，
+     * 调用 `m_cipher->cipher()` 原地加密后通过 `writer` 提交到 kernel。
+     * 若 `to_size` 超过 `size_t` 所能安全表示的最大字节数，则分批处理。
+     *
+     * 本函数无需本地 taint 处理：`abs_cvt::put` 已将整个 `put_main`
+     * 包裹在 taint-on-throw 的 catch-all 中。详见 `get_main` 的文档。
+     * @endif
+     *
+     * @lang{EN}
+     * Encrypts the main-content stream and submits it to the kernel in
+     * `block_size`-aligned chunks.
+     *
+     * Reads from the user buffer in blocks of `block_size` (64 bytes), encrypts
+     * each block in-place via `m_cipher->cipher()`, and commits it to the kernel
+     * through `writer`. If `to_size` would overflow the safe byte-count range of
+     * `size_t`, it is processed in multiple passes.
+     *
+     * No local taint handling is needed: `abs_cvt::put` already wraps the entire
+     * `put_main` in a taint-on-throw catch-all. See `get_main` for the full rationale.
+     * @endif
+     *
+     * @param[in,out] writer  The buffered writer.
+     * @param[in]     _to     The user input buffer to encrypt.
+     * @param[in]     to_size The number of `internal_type` elements to encrypt.
+     *
+     * @throws cvt_error
+     * @lang{ZH} 若 `m_cipher` 为空（已移动走的对象）。 @endif
+     * @lang{EN} If `m_cipher` is null (moved-from object). @endif
+     */
     void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
@@ -426,6 +674,27 @@ private:
     size_t                                      m_leftover_len{0};
 };
 
+/**
+ * @lang{ZH}
+ * `chacha20_cvt` 的工厂类，用于在转换器管道中统一构造加密转换器实例。
+ *
+ * 在构造时通过 `chacha20_cvt_helpers::key_gen()` 将字符串密码预先派生为密钥，
+ * 之后每次调用 `create()` 均复用该密钥，无需重复哈希。
+ * @endif
+ *
+ * @lang{EN}
+ * Factory class for `chacha20_cvt`, for uniform construction of encryption
+ * converter instances within a pipeline.
+ *
+ * Derives key material from a passphrase via `chacha20_cvt_helpers::key_gen()`
+ * at construction time; subsequent `create()` calls reuse the derived key without
+ * re-hashing.
+ * @endif
+ *
+ * @tparam TInt
+ * @lang{ZH} 用户侧元素类型，透传给 `chacha20_cvt`。 @endif
+ * @lang{EN} The user-facing element type, forwarded to `chacha20_cvt`. @endif
+ */
 template <typename TInt>
 struct chacha20_cvt_creator
 {
