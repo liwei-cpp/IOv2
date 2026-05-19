@@ -11,8 +11,6 @@ var classIOv2_1_1code__cvt =
     [ "operator=", "classIOv2_1_1code__cvt.html#a7ca23b73308cc60169f108db40f496fb", null ],
     [ "rseek", "classIOv2_1_1code__cvt.html#a8b8c4e55df6f66131ae280e76c557941", null ],
     [ "seek", "classIOv2_1_1code__cvt.html#afe9d09a7bdcf2f4d2951992f72fe96bd", null ],
-    [ "switch_to_get", "classIOv2_1_1code__cvt.html#a8bb4221f87e6979a600177a12ffa981b", null ],
-    [ "switch_to_put", "classIOv2_1_1code__cvt.html#aaa187a1579970b30407245187f4e7584", null ],
     [ "tell", "classIOv2_1_1code__cvt.html#af5d389e48a47f2f66e7185cff1479afb", null ],
     [ "m_cvt_kernel", "classIOv2_1_1code__cvt.html#aff656b12ec339870d2b9b6637d76c7e4", null ]
 ];
