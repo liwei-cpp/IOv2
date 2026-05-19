@@ -685,9 +685,9 @@ struct codecvt_kernel<char8_t, TInt>
  * @endif
  */
 template <io_converter KernelType, typename CharType>
-class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, false>
+class code_cvt : public abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, true>
 {
-    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, false>;
+    using BT = abs_cvt<code_cvt<KernelType, CharType>, KernelType, CharType, false, true>;
     friend BT; // for put_main, get_main, and private CRTP hooks
 
 public:
@@ -961,9 +961,67 @@ private:
         return total_size;
     }
 
-public:
-    /// 定位操作 / Positioning operations
+    /**
+     * @lang{ZH}
+     * 切换至输入（读取）模式的派生层前置检查 hook。
+     * 从输出模式切换时，要求编码转换状态为初始状态。
+     *
+     * @throws cvt_error 若不满足上述前置条件。
+     * @endif
+     *
+     * @lang{EN}
+     * Derived-layer precondition hook for switching to input (reading) mode.
+     * When switching from output mode, the encoding conversion state must be
+     * in its initial state.
+     *
+     * @throws cvt_error If the preconditions above are not met.
+     * @endif
+     */
+    void switch_to_get_impl()
+        requires (cvt_cpt::support_io_switch<KernelType>)
+    {
+        if (BT::m_io_status == io_status::output)
+        {
+            if (!m_cvt_kernel.is_init_state())
+                throw cvt_error("code_cvt::switch_to_get fail: converter not in initial state");
+        }
+    }
 
+    /**
+     * @lang{ZH}
+     * 切换至输出（写入）模式的派生层前置检查 hook。
+     * 从输入模式切换时，要求编码转换状态为初始状态；对于变长或状态依赖编码，
+     * 还要求内部缓冲区为空（已到达 EOF）。
+     *
+     * @throws cvt_error 若不满足上述前置条件。
+     * @endif
+     *
+     * @lang{EN}
+     * Derived-layer precondition hook for switching to output (writing) mode.
+     * When switching from input mode, the encoding conversion state must be in its
+     * initial state; for variable-length or state-dependent encodings, the internal
+     * buffer must also be empty (EOF reached).
+     *
+     * @throws cvt_error If the preconditions above are not met.
+     * @endif
+     */
+    void switch_to_put_impl()
+        requires (cvt_cpt::support_io_switch<KernelType>)
+    {
+        if (BT::m_io_status == io_status::input)
+        {
+            if (!m_cvt_kernel.is_init_state())
+                throw cvt_error("code_cvt::switch_to_put fail: internal state is not neutral");
+
+            if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
+            {
+                if (!this->is_eof())
+                    throw cvt_error("code_cvt::switch_to_put fail: internal buffer not empty");
+            }
+        }
+    }
+
+public:
     /**
      * @lang{ZH}
      * 返回当前流中已处理的内部字符总数（即逻辑位置）。
@@ -1094,94 +1152,6 @@ public:
 
         m_accu_len = new_dev_pos / epc;
         m_cvt_kernel.init_state();
-    }
-
-    /// I/O 模式切换 / I/O mode switching
-
-    /**
-     * @lang{ZH}
-     * 切换至输出（写入）模式。
-     * 若已处于输出模式则为空操作。
-     * 从输入模式切换时，编码转换状态须为初始状态；对于变长或状态依赖编码，
-     * 还要求内部缓冲区为空（已到达 EOF）。
-     *
-     * @throws cvt_error 若不满足上述前置条件。
-     * @endif
-     *
-     * @lang{EN}
-     * Switch to output (writing) mode.
-     * No-op if already in output mode.
-     * When switching from input mode, the encoding conversion state must be in its
-     * initial state; for variable-length or state-dependent encodings, the internal
-     * buffer must also be empty (EOF reached).
-     *
-     * @throws cvt_error If the preconditions above are not met.
-     * @endif
-     */
-    void switch_to_put()
-        requires (cvt_cpt::support_io_switch<KernelType>)
-    {
-        BT::assert_not_tainted();
-        switch(BT::m_io_status)
-        {
-        case io_status::output:
-            return;
-        case io_status::neutral:
-            BT::m_kernel.switch_to_put();
-            BT::m_io_status = io_status::output;
-            return;
-        default: // io_status::input
-            if (!m_cvt_kernel.is_init_state())
-                throw cvt_error("code_cvt::switch_to_put fail: internal state is not neutral");
-
-            if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
-            {
-                if (!this->is_eof())
-                    throw cvt_error("code_cvt::switch_to_put fail: internal buffer not empty");
-            }
-            BT::m_kernel.switch_to_put();
-            BT::m_io_status = io_status::output;
-            return;
-        }
-    }
-
-    /**
-     * @lang{ZH}
-     * 切换至输入（读取）模式。
-     * 若已处于输入模式则为空操作。
-     * 从输出模式切换时，编码转换状态须为初始状态。
-     *
-     * @throws cvt_error 若不满足上述前置条件。
-     * @endif
-     *
-     * @lang{EN}
-     * Switch to input (reading) mode.
-     * No-op if already in input mode.
-     * When switching from output mode, the encoding conversion state must be
-     * in its initial state.
-     *
-     * @throws cvt_error If the preconditions above are not met.
-     * @endif
-     */
-    void switch_to_get()
-        requires (cvt_cpt::support_io_switch<KernelType>)
-    {
-        BT::assert_not_tainted();
-        switch(BT::m_io_status)
-        {
-        case io_status::input:
-            return;
-        case io_status::neutral:
-            BT::m_kernel.switch_to_get();
-            BT::m_io_status = io_status::input;
-            return;
-        default: // io_status::output
-            if (!m_cvt_kernel.is_init_state())
-                throw cvt_error("code_cvt::switch_to_get fail: converter not in initial state");
-            BT::m_kernel.switch_to_get();
-            BT::m_io_status = io_status::input;
-            return;
-        }
     }
 
 private:
