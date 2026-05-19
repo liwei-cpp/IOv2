@@ -3,6 +3,7 @@
 #include <cvt/cvt_concepts.h>
 
 #include <concepts>
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <limits>
@@ -72,7 +73,11 @@ public:
         requires (std::copy_constructible<KernelType>)
         : BT(val)
         , m_hash(val.m_hash ? val.m_hash->copy_state() : nullptr)
-        , m_has_main_cont(val.m_hash ? val.m_has_main_cont : false)
+        // Gate on `m_hash` (this object's, already initialized due to member
+        // declaration order) rather than `val.m_hash`: if copy_state() returned
+        // nullptr without throwing, we have no hash to dump, so the invariant
+        // "m_has_main_cont == true ⟹ m_hash != nullptr" must be preserved.
+        , m_has_main_cont(m_hash ? val.m_has_main_cont : false)
         , m_out_fmt(val.m_out_fmt)
     {}
 
@@ -86,6 +91,7 @@ public:
     }
 
     hash_cvt& operator=(const hash_cvt& val)
+        requires (std::copy_constructible<KernelType>)
     {
         if (this != &val)
         {
@@ -105,22 +111,20 @@ public:
 
     hash_cvt& operator=(hash_cvt&& val) noexcept
     {
-        if (this != &val)
-        {
-            // Best-effort flush: if dump_stream fails, we accept data loss
-            // since the old state is being replaced anyway.
-            if (m_has_main_cont)
-            {
-                try { dump_stream(); }
-                catch (...) {} // NOLINT(bugprone-empty-catch)
-            }
-            m_hash = std::move(val.m_hash);
-            m_has_main_cont = val.m_has_main_cont;
-            m_out_fmt = val.m_out_fmt;
-            val.m_has_main_cont = false;
+        if (this == &val) return *this;
 
-            BT::operator=(std::move(val));
+        if (m_has_main_cont)
+        {
+            try { dump_stream(); }
+            catch (...) {} // NOLINT(bugprone-empty-catch)
         }
+
+        BT::operator=(std::move(val));
+        m_hash = std::move(val.m_hash);
+        m_has_main_cont = val.m_has_main_cont;
+        m_out_fmt = val.m_out_fmt;
+        val.m_has_main_cont = false;
+
         return *this;
     }
 
@@ -147,7 +151,20 @@ public:
                 if (dh_ptr->m_delim)
                 {
                     const uint8_t delim = *dh_ptr->m_delim;
-                    BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                    // If the delimiter write fails, the digest is already on
+                    // the kernel without its separator; subsequent dumps would
+                    // produce concatenated digests with no boundary. Taint so
+                    // the user is forced to detach/attach instead of silently
+                    // emitting corrupted output.
+                    try
+                    {
+                        BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                    }
+                    catch (...)
+                    {
+                        BT::set_tainted();
+                        throw;
+                    }
                 }
             }
         }

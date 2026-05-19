@@ -3,6 +3,7 @@
 #include <cvt/cvt_concepts.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <exception>
 #include <string>
 #include <string_view>
@@ -188,40 +189,50 @@ public:
         // alignment, internal buffering), so the keystream index must be
         // resynced via tell() rather than using `pos` directly.
         //
-        // If seek() itself throws, the kernel position is expected to be
-        // unchanged (strong exception guarantee of positioning kernels), so
-        // m_pos remains valid and we propagate without tainting.
+        // The kernel only needs to provide a basic exception guarantee on
+        // seek(): if seek throws, the kernel position may have moved. Either
+        // way, the kernel is in *some* well-defined position, and tell() will
+        // report it. So we always attempt to resync m_pos via tell(), even
+        // when seek throws — that keeps the keystream index aligned with the
+        // kernel's real position and lets the user safely retry or continue.
         //
-        // If seek() succeeds but tell() throws, the kernel has moved while
-        // m_pos has not — that desync would silently corrupt the keystream,
-        // so taint and propagate.
-        BT::m_kernel.seek(pos);
-        try
-        {
-            m_pos = BT::m_kernel.tell();
-        }
+        // Only when tell() itself throws can we no longer determine where the
+        // kernel landed; that desync would silently corrupt the keystream, so
+        // we taint. If both seek() and tell() throw, the seek exception wins
+        // (it is what the user actually invoked).
+        std::exception_ptr seek_err;
+        try { BT::m_kernel.seek(pos); }
+        catch (...) { seek_err = std::current_exception(); }
+
+        try { m_pos = BT::m_kernel.tell(); }
         catch (...)
         {
             BT::set_tainted();
+            if (seek_err) std::rethrow_exception(seek_err);
             throw;
         }
+
+        if (seek_err) std::rethrow_exception(seek_err);
     }
 
     void rseek(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         BT::assert_not_tainted();
-        // See seek() above: only taint when rseek() succeeds but tell() fails.
-        BT::m_kernel.rseek(pos);
-        try
-        {
-            m_pos = BT::m_kernel.tell();
-        }
+        // See seek() above for the same resync-via-tell rationale.
+        std::exception_ptr rseek_err;
+        try { BT::m_kernel.rseek(pos); }
+        catch (...) { rseek_err = std::current_exception(); }
+
+        try { m_pos = BT::m_kernel.tell(); }
         catch (...)
         {
             BT::set_tainted();
+            if (rseek_err) std::rethrow_exception(rseek_err);
             throw;
         }
+
+        if (rseek_err) std::rethrow_exception(rseek_err);
     }
 private:
     size_t                     m_pos{0};
