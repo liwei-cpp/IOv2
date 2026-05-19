@@ -196,7 +196,17 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="separator:ab610e7b924b9ef49d590172e82226a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Hash-digest converter.</p>
+<p>This file provides the following components:</p><ul>
+<li><code>hash_algo</code>: Enumeration of supported hash algorithms (MD5, SHA-256).</li>
+<li><code>hash_fmt</code>: Enumeration of hash-digest output formats (binary, upper-hex, lower-hex).</li>
+<li><code>set_hash_fmt</code>: Behavior object for dynamically switching the output format via <code>adjust()</code>.</li>
+<li><code>dump_hash</code>: Behavior object for manually flushing the hash output before the main-content phase ends.</li>
+<li><code>hash_cvt</code>: A write-only hash-digest converter that writes the current hash result to the underlying kernel on <code>detach()</code> or in response to a <code>dump_hash</code> behavior.</li>
+<li><code>hash_cvt_creator</code>: A factory class for constructing <code>hash_cvt</code> instances within a pipeline.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

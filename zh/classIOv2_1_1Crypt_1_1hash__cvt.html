@@ -212,7 +212,23 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_adec12a3e0eecd7718b5b1c15b7fd116f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#adec12a3e0eecd7718b5b1c15b7fd116f">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> = typename KernelType::internal_type&gt;<br />
+requires (std::is_integral_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a>) &amp;&amp; std::is_trivially_copyable_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt; &amp;&amp; std::has_unique_object_representations_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt; &amp;&amp; cvt_cpt::support_put&lt;KernelType&gt;)<br />
+class IOv2::Crypt::hash_cvt&lt; KernelType, TInt &gt;</div><p>只写哈希摘要转换器。</p>
+<p>接收用户写入的数据并持续更新内部哈希状态（通过 <code>put_main()</code>）， 在以下时机将摘要写入底层 kernel：</p><ul>
+<li>调用 <code><a class="el" href="classIOv2_1_1abs__cvt.html#acd7681a8eb90b397c5570e73e40023fb">detach()</a></code>（或对象析构）时，若存在未输出的主内容。</li>
+<li>通过 <code>adjust(<a class="el" href="structIOv2_1_1Crypt_1_1dump__hash.html">dump_hash</a>{})</code> 手动触发时。</li>
+</ul>
+<p>默认输出格式为小写十六进制（<code><a class="el" href="namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a57b0906500e5498742a5147495cadd91" title="小写十六进制字符串（如 &quot;a1b2c3...&quot;），为默认格式。">hash_fmt::lower_hex</a></code>）， 可通过 <code>adjust(<a class="el" href="structIOv2_1_1Crypt_1_1set__hash__fmt.html">set_hash_fmt</a>{...})</code> 切换。 仅支持输出模式（<code>put</code>），不支持 <code>get</code>。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>底层 IO 转换核心类型，须满足 <code>io_converter</code> concept 且支持 <code>put</code>。  </td></tr>
+    <tr><td class="paramname">TInt</td><td>用户侧元素类型（<code>internal_type</code>），默认与 kernel 的 <code>internal_type</code> 相同。 须为单字节平凡可复制类型，且具有唯一对象表示。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="aa617ee9ba8cee547911722f93f52d29b" name="aa617ee9ba8cee547911722f93f52d29b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa617ee9ba8cee547911722f93f52d29b">&#9670;&#160;</a></span>device_type</h2>
 
@@ -297,6 +313,20 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造 <code><a class="el" href="classIOv2_1_1Crypt_1_1hash__cvt.html">hash_cvt</a></code>，指定底层 kernel 与哈希算法。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>底层 IO 转换核心，以移动语义传入。  </td></tr>
+    <tr><td class="paramname">algo</td><td>要使用的哈希算法。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">Botan::Lookup_Error</td><td>若无法创建对应的哈希函数对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -325,6 +355,8 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>拷贝构造函数。复制 kernel 与哈希状态（通过 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">copy_state()</a></code>），不会触发摘要输出。</p>
+<p>若 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">copy_state()</a></code> 返回 <code>nullptr</code>，<code>m_has_main_cont</code> 被强制置为 <code>false</code>， 防止析构时对无效哈希对象调用 <code>dump_stream()</code>。 </p>
 
 </div>
 </div>

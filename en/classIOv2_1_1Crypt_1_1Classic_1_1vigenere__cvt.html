@@ -97,16 +97,13 @@ $(document).ready(function(){initNavTree('classIOv2_1_1Crypt_1_1Classic_1_1vigen
 </div><!--header-->
 <div class="contents">
 
-<p>Vigenère cipher converter for educational and demonstration purposes.  
- <a href="classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt.html#details">More...</a></p>
-
 <p><code>#include &lt;<a class="el" href="vigenere__cvt_8h_source.html">vigenere_cvt.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::Crypt::Classic::vigenere_cvt&lt; KernelType &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt__inherit__graph.png" border="0" usemap="#aIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt_3_01KernelType_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt_3_01KernelType_01_4_inherit__map" id="aIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt_3_01KernelType_01_4_inherit__map">
-<area shape="rect" title="Vigenère cipher converter for educational and demonstration purposes." alt="" coords="287,20,501,60"/>
+<area shape="rect" title=" " alt="" coords="287,20,501,60"/>
 <area shape="rect" href="classIOv2_1_1abs__cvt.html" title=" " alt="" coords="5,5,239,75"/>
 <area shape="poly" title=" " alt="" coords="252,37,286,37,286,43,252,43"/>
 </map>
@@ -116,7 +113,7 @@ Collaboration diagram for IOv2::Crypt::Classic::vigenere_cvt&lt; KernelType &gt;
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt__coll__graph.png" border="0" usemap="#aIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt_3_01KernelType_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="aIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt_3_01KernelType_01_4_coll__map" id="aIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt_3_01KernelType_01_4_coll__map">
-<area shape="rect" title="Vigenère cipher converter for educational and demonstration purposes." alt="" coords="495,20,709,60"/>
+<area shape="rect" title=" " alt="" coords="495,20,709,60"/>
 <area shape="rect" href="classIOv2_1_1abs__cvt.html" title=" " alt="" coords="212,5,445,75"/>
 <area shape="poly" title=" " alt="" coords="459,37,494,37,494,43,459,43"/>
 <area shape="rect" title=" " alt="" coords="5,27,99,53"/>
@@ -208,21 +205,21 @@ Additional Inherited Members</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType&gt;<br />
 requires std::is_integral_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type&gt;<br />
-class IOv2::Crypt::Classic::vigenere_cvt&lt; KernelType &gt;</div><p>Vigenère cipher converter for educational and demonstration purposes. </p>
-<dl class="section warning"><dt>Warning</dt><dd><b>NOT FOR PRODUCTION SECURITY USE</b></dd></dl>
+class IOv2::Crypt::Classic::vigenere_cvt&lt; KernelType &gt;</div><p>Vigenère cipher converter, for educational and demonstration purposes only.</p>
+<dl class="section warning"><dt>Warning</dt><dd><b>NOT FOR PRODUCTION SECURITY USE.</b></dd></dl>
 <p>The Vigenère cipher is a historical polyalphabetic substitution cipher that has been completely broken since the 19th century. It provides NO cryptographic security and should NEVER be used to protect sensitive data.</p>
 <p>Known vulnerabilities:</p><ul>
-<li>Kasiski examination can determine key length from ciphertext alone</li>
-<li>Frequency analysis breaks each position as a simple Caesar cipher</li>
-<li>No resistance to known-plaintext or chosen-plaintext attacks</li>
+<li>Kasiski examination can determine key length from ciphertext alone.</li>
+<li>Frequency analysis breaks each position as a simple Caesar cipher.</li>
+<li>No resistance to known-plaintext or chosen-plaintext attacks.</li>
 </ul>
 <p>For actual encryption needs, use <code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></code> or other modern ciphers.</p>
 <p>This class is provided for:</p><ul>
-<li>Educational purposes (learning about classical ciphers)</li>
-<li>Simple obfuscation (NOT security)</li>
-<li>Historical/demonstration purposes</li>
+<li>Educational purposes (learning about classical ciphers).</li>
+<li>Simple obfuscation (NOT security).</li>
+<li>Historical/demonstration purposes.</li>
 </ul>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">for</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cryptographically</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">secure</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">encryption</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a>  </dd></dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="abf1e703b43e2e9026f3bded61de51825" name="abf1e703b43e2e9026f3bded61de51825"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abf1e703b43e2e9026f3bded61de51825">&#9670;&#160;</a></span>device_type</h2>
@@ -308,6 +305,20 @@ template&lt;io_converter KernelType&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs a Vigenère cipher converter. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dev</td><td>The underlying IO converter kernel, transferred by move. </td></tr>
+    <tr><td class="paramname">s</td><td>The key string; must not be empty; its character type must match <code>internal_type</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>s</code> is empty.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

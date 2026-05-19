@@ -198,7 +198,13 @@ Functions</h2></td></tr>
 <tr class="memitem:a3e8c2109050cfdaf933207451a5366eb" id="r_a3e8c2109050cfdaf933207451a5366eb"><td class="memItemLeft" align="right" valign="top">Botan::secure_vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt_1_1chacha20__cvt__helpers.html#a3e8c2109050cfdaf933207451a5366eb">IOv2::Crypt::chacha20_cvt_helpers::key_gen</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)</td></tr>
 <tr class="separator:a3e8c2109050cfdaf933207451a5366eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>ChaCha20 stream-cipher converter.</p>
+<p>This file provides two components:</p><ul>
+<li><code>chacha20_cvt</code>: A stream encryption/decryption converter backed by Botan's ChaCha20 implementation. In write (encryption) mode the IV is randomly generated and prepended to the ciphertext stream; in read (decryption) mode the IV is read from the stream head.</li>
+<li><code>chacha20_cvt_creator</code>: A factory class for constructing <code>chacha20_cvt</code> instances uniformly within a pipeline.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

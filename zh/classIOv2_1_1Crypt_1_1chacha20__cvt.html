@@ -220,7 +220,23 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_adec12a3e0eecd7718b5b1c15b7fd116f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#adec12a3e0eecd7718b5b1c15b7fd116f">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> = typename KernelType::internal_type&gt;<br />
+requires (std::is_integral_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a>) &amp;&amp; std::is_trivially_copyable_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt; &amp;&amp; std::has_unique_object_representations_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;)<br />
+class IOv2::Crypt::chacha20_cvt&lt; KernelType, TInt &gt;</div><p>基于 ChaCha20 的流加密/解密转换器。</p>
+<p>将上游 kernel 的字节流透明地进行 ChaCha20 加解密：</p><ul>
+<li>**写入（加密）模式**：<code>bos_impl()</code> 随机生成 IV，将 IV 明文写入 kernel， 随后 <code>put_main()</code> 对用户数据加密后写出。</li>
+<li>**读取（解密）模式**：<code>bos_impl()</code> 从 kernel 读取 IV，随后 <code>get_main()</code> 从 kernel 读取密文并解密后交付给用户。</li>
+</ul>
+<p><code>internal_type</code> 须为单字节整数类型，以保证每个用户元素在字节流中的偏移 与密钥流偏移精确对齐。跨调用的非对齐残留字节由 <code>m_leftover</code> 缓冲区管理。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>底层 IO 转换核心类型，须满足 <code>io_converter</code> concept。  </td></tr>
+    <tr><td class="paramname">TInt</td><td>用户侧元素类型（<code>internal_type</code>），默认与 kernel 的 <code>internal_type</code> 相同。 须为单字节平凡可复制类型，且具有唯一对象表示。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="aadc27620c64587b9909085314ee483d3" name="aadc27620c64587b9909085314ee483d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aadc27620c64587b9909085314ee483d3">&#9670;&#160;</a></span>device_type</h2>
 
@@ -305,6 +321,21 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>从字符串密码构造 ChaCha20 转换器。</p>
+<p>内部调用 <code>chacha20_cvt_helpers::key_gen(key)</code> 将 <code>key</code> 通过 SHA-256 派生为实际密钥材料。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>底层 IO 转换核心，以移动语义传入。  </td></tr>
+    <tr><td class="paramname">key</td><td>原始密码字符串，不得为空。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若无法创建 ChaCha20 流密码对象；或 <code>key</code> 为空；或 SHA-256 不可用。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -343,6 +374,21 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>从原始密钥字节构造 ChaCha20 转换器。</p>
+<p>直接使用 <code>key</code> 作为 ChaCha20 密钥，不再进行哈希派生。 调用方须确保 <code>key</code> 的长度对 ChaCha20 有效（通常为 16 或 32 字节）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>底层 IO 转换核心，以移动语义传入。  </td></tr>
+    <tr><td class="paramname">key</td><td>原始 ChaCha20 密钥字节序列；长度须为 ChaCha20 所支持的合法值。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若无法创建 ChaCha20 流密码对象；或 <code>key</code> 长度不合法。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

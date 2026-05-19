@@ -100,7 +100,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a3e8c2109050cfdaf933207451a5366eb" id="r_a3e8c2109050cfdaf933207451a5366eb"><td class="memItemLeft" align="right" valign="top">Botan::secure_vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt_1_1chacha20__cvt__helpers.html#a3e8c2109050cfdaf933207451a5366eb">key_gen</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)</td></tr>
 <tr class="separator:a3e8c2109050cfdaf933207451a5366eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Internal helper namespace for <code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></code>; not part of the public API.  </p>
+</div><h2 class="groupheader">Function Documentation</h2>
 <a id="a3e8c2109050cfdaf933207451a5366eb" name="a3e8c2109050cfdaf933207451a5366eb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3e8c2109050cfdaf933207451a5366eb">&#9670;&#160;</a></span>key_gen()</h2>
 
@@ -124,6 +126,21 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Derives a ChaCha20 key from an arbitrary passphrase string by hashing it with SHA-256.</p>
+<p>Empty input is rejected: hashing an empty string yields the publicly known constant <code>SHA-256("")</code>, which provides zero confidentiality when used as a stream-cipher key. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>The raw passphrase string; must not be empty. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A 32-byte SHA-256 digest suitable for direct use as a ChaCha20 key. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>key</code> is empty, or if the SHA-256 hash object cannot be created.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

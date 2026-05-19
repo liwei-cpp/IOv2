@@ -220,7 +220,23 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_adec12a3e0eecd7718b5b1c15b7fd116f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#adec12a3e0eecd7718b5b1c15b7fd116f">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> = typename KernelType::internal_type&gt;<br />
+requires (std::is_integral_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a>) &amp;&amp; std::is_trivially_copyable_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt; &amp;&amp; std::has_unique_object_representations_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;)<br />
+class IOv2::Crypt::chacha20_cvt&lt; KernelType, TInt &gt;</div><p>ChaCha20-based stream encryption/decryption converter.</p>
+<p>Transparently applies ChaCha20 to the byte stream of the upstream kernel:</p><ul>
+<li><b>Write (encryption) mode</b>: <code>bos_impl()</code> generates a random IV, writes it verbatim to the kernel, and subsequent <code>put_main()</code> calls encrypt user data before forwarding it.</li>
+<li><b>Read (decryption) mode</b>: <code>bos_impl()</code> reads the IV from the kernel, and subsequent <code>get_main()</code> calls decrypt ciphertext read from the kernel before delivering it to the user.</li>
+</ul>
+<p><code>internal_type</code> must be a single-byte integral type so that every user element maps exactly onto one byte in the keystream. Sub-element ciphertext fragments carried across calls are managed by the <code>m_leftover</code> buffer. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>The underlying IO converter kernel type, which must satisfy the <code>io_converter</code> concept. </td></tr>
+    <tr><td class="paramname">TInt</td><td>The user-facing element type (<code>internal_type</code>), defaulting to the kernel's <code>internal_type</code>. Must be a single-byte, trivially copyable type with unique object representations.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="aadc27620c64587b9909085314ee483d3" name="aadc27620c64587b9909085314ee483d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aadc27620c64587b9909085314ee483d3">&#9670;&#160;</a></span>device_type</h2>
 
@@ -305,6 +321,21 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs a ChaCha20 converter from a passphrase string.</p>
+<p>Internally calls <code>chacha20_cvt_helpers::key_gen(key)</code> to derive actual key material from <code>key</code> via SHA-256. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>The underlying IO converter kernel, transferred by move. </td></tr>
+    <tr><td class="paramname">key</td><td>The raw passphrase string; must not be empty. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If the ChaCha20 stream cipher cannot be created, if <code>key</code> is empty, or if SHA-256 is unavailable.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -343,6 +374,21 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs a ChaCha20 converter from raw key bytes.</p>
+<p>Uses <code>key</code> directly as the ChaCha20 key without any additional hashing. The caller must ensure that <code>key</code> has a valid length for ChaCha20 (typically 16 or 32 bytes). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>The underlying IO converter kernel, transferred by move. </td></tr>
+    <tr><td class="paramname">key</td><td>Raw ChaCha20 key bytes; length must be valid for ChaCha20. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If the ChaCha20 stream cipher cannot be created, or if <code>key</code> has an invalid length.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

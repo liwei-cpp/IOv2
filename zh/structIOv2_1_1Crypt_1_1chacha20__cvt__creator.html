@@ -112,7 +112,17 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:ab983c6327b28ee67a990b69c2cfbf0da"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Crypt_1_1chacha20__cvt__creator.html#ab983c6327b28ee67a990b69c2cfbf0da">create</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TKernel</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:ab983c6327b28ee67a990b69c2cfbf0da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
+struct IOv2::Crypt::chacha20_cvt_creator&lt; TInt &gt;</div><p><code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></code> 的工厂类，用于在转换器管道中统一构造加密转换器实例。</p>
+<p>在构造时通过 <code><a class="el" href="namespaceIOv2_1_1Crypt_1_1chacha20__cvt__helpers.html#a3e8c2109050cfdaf933207451a5366eb">chacha20_cvt_helpers::key_gen()</a></code> 将字符串密码预先派生为密钥， 之后每次调用 <code><a class="el" href="structIOv2_1_1Crypt_1_1chacha20__cvt__creator.html#ab983c6327b28ee67a990b69c2cfbf0da">create()</a></code> 均复用该密钥，无需重复哈希。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TInt</td><td>用户侧元素类型，透传给 <code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></code>。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a2617630510e44bc34ec8f42027b88cfa" name="a2617630510e44bc34ec8f42027b88cfa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2617630510e44bc34ec8f42027b88cfa">&#9670;&#160;</a></span>category</h2>
 

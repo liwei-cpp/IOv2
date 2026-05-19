@@ -100,7 +100,9 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1Crypt_1_1chacha20__cv
 <tr class="memitem:a3e8c2109050cfdaf933207451a5366eb" id="r_a3e8c2109050cfdaf933207451a5366eb"><td class="memItemLeft" align="right" valign="top">Botan::secure_vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt_1_1chacha20__cvt__helpers.html#a3e8c2109050cfdaf933207451a5366eb">key_gen</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)</td></tr>
 <tr class="separator:a3e8c2109050cfdaf933207451a5366eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p><code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></code> 的内部辅助命名空间，不作为公开 API 使用。 </p>
+</div><h2 class="groupheader">函数说明</h2>
 <a id="a3e8c2109050cfdaf933207451a5366eb" name="a3e8c2109050cfdaf933207451a5366eb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3e8c2109050cfdaf933207451a5366eb">&#9670;&#160;</a></span>key_gen()</h2>
 
@@ -124,6 +126,21 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1Crypt_1_1chacha20__cv
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将任意字符串密码通过 SHA-256 哈希派生为 ChaCha20 密钥。</p>
+<p>拒绝空字符串：对空串哈希会得到公开常量 <code>SHA-256("")</code>， 将其用作流密码密钥意味着零保密性，因此直接抛出异常。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>原始密码字符串，不得为空。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>长度为 32 字节的 SHA-256 摘要，可直接用作 ChaCha20 密钥。  </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>key</code> 为空；或无法创建 SHA-256 哈希对象。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

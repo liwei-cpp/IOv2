@@ -157,7 +157,6 @@ vigenere_cvt.h 的引用(Include)关系图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt.html">IOv2::Crypt::Classic::vigenere_cvt&lt; KernelType &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vigenère cipher converter for educational and demonstration purposes.  <a href="classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt__creator.html">IOv2::Crypt::Classic::vigenere_cvt_creator&lt; TChar &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,7 +176,14 @@ vigenere_cvt.h 的引用(Include)关系图:</div>
 <tr class="memitem:afc14b1fd1e033f12ffd518d209b9d179"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt_1_1Classic.html#afc14b1fd1e033f12ffd518d209b9d179">IOv2::Crypt::Classic::vigenere_cvt_creator</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *) -&gt; <a class="el" href="classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt__creator.html">vigenere_cvt_creator</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
 <tr class="separator:afc14b1fd1e033f12ffd518d209b9d179"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>维吉尼亚密码转换器（仅供教学和演示用途）。</p>
+<dl class="section warning"><dt>警告</dt><dd><b>请勿用于生产安全场景。</b></dd></dl>
+<p>本文件提供两个组件：</p><ul>
+<li><code>vigenere_cvt</code>：基于维吉尼亚多表替换密码的双向流转换器， 支持读（解密）和写（加密）两种方向，以及可选的定位操作。</li>
+<li><code>vigenere_cvt_creator</code>：工厂类，用于在管道中统一构造 <code>vigenere_cvt</code> 实例。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

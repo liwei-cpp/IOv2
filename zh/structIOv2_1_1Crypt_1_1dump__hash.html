@@ -142,7 +142,10 @@ Public 属性</h2></td></tr>
 <tr class="memitem:ac9dcf5f99446f9f780a396c274ae97d9" id="r_ac9dcf5f99446f9f780a396c274ae97d9"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Crypt_1_1dump__hash.html#ac9dcf5f99446f9f780a396c274ae97d9">m_delim</a></td></tr>
 <tr class="separator:ac9dcf5f99446f9f780a396c274ae97d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>触发 <code><a class="el" href="classIOv2_1_1Crypt_1_1hash__cvt.html">hash_cvt</a></code> 在主内容阶段中途手动输出当前哈希摘要的行为对象。</p>
+<p>通过 <code>cvt.adjust(<a class="el" href="structIOv2_1_1Crypt_1_1dump__hash.html">dump_hash</a>{})</code> 触发，输出后哈希状态被清零， 后续写入的数据将参与新一轮哈希计算。可携带一个可选的分隔符字节， 在摘要写出之后立即将其写入 kernel。 </p>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a4c2e1ecf75161a253d87047472557b64" name="a4c2e1ecf75161a253d87047472557b64"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4c2e1ecf75161a253d87047472557b64">&#9670;&#160;</a></span>dump_hash()</h2>
 

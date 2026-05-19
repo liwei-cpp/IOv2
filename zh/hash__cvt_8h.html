@@ -196,7 +196,17 @@ hash_cvt.h 的引用(Include)关系图:</div>
  }</td></tr>
 <tr class="separator:ab610e7b924b9ef49d590172e82226a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>哈希摘要转换器。</p>
+<p>本文件提供以下组件：</p><ul>
+<li><code>hash_algo</code>：支持的哈希算法枚举（MD5、SHA-256）。</li>
+<li><code>hash_fmt</code>：哈希摘要输出格式枚举（二进制、大写十六进制、小写十六进制）。</li>
+<li><code>set_hash_fmt</code>：用于通过 <code>adjust()</code> 动态切换输出格式的行为对象。</li>
+<li><code>dump_hash</code>：用于在主内容阶段结束前手动触发哈希输出的行为对象。</li>
+<li><code>hash_cvt</code>：只写哈希摘要转换器，在 <code>detach()</code> 或 <code>dump_hash</code> 行为触发时 将当前哈希结果写入底层 kernel。</li>
+<li><code>hash_cvt_creator</code>：工厂类，用于在管道中统一构造 <code>hash_cvt</code> 实例。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

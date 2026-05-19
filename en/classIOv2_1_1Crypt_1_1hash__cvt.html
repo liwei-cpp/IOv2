@@ -212,7 +212,23 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt" id="r_adec12a3e0eecd7718b5b1c15b7fd116f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html#adec12a3e0eecd7718b5b1c15b7fd116f">m_is_bos_done</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:adec12a3e0eecd7718b5b1c15b7fd116f inherit pro_attribs_classIOv2_1_1abs__cvt"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a> = typename KernelType::internal_type&gt;<br />
+requires (std::is_integral_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> KernelType::internal_type) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a>) &amp;&amp; std::is_trivially_copyable_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt; &amp;&amp; std::has_unique_object_representations_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt; &amp;&amp; cvt_cpt::support_put&lt;KernelType&gt;)<br />
+class IOv2::Crypt::hash_cvt&lt; KernelType, TInt &gt;</div><p>Write-only hash-digest converter.</p>
+<p>Accepts data written by the user and continuously updates the internal hash state via <code>put_main()</code>. The digest is written to the underlying kernel at the following points:</p><ul>
+<li>On <code><a class="el" href="classIOv2_1_1abs__cvt.html#acd7681a8eb90b397c5570e73e40023fb">detach()</a></code> (or object destruction) if there is unwritten main content.</li>
+<li>When manually triggered via <code>adjust(<a class="el" href="structIOv2_1_1Crypt_1_1dump__hash.html">dump_hash</a>{})</code>.</li>
+</ul>
+<p>The default output format is lowercase hexadecimal (<code><a class="el" href="namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a57b0906500e5498742a5147495cadd91" title="Lowercase hexadecimal string (e.g. &quot;a1b2c3...&quot;); the default format.">hash_fmt::lower_hex</a></code>), switchable via <code>adjust(<a class="el" href="structIOv2_1_1Crypt_1_1set__hash__fmt.html">set_hash_fmt</a>{...})</code>. Only write (output) mode is supported; <code>get</code> is not available. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">KernelType</td><td>The underlying IO converter kernel type; must satisfy <code>io_converter</code> and support <code>put</code>. </td></tr>
+    <tr><td class="paramname">TInt</td><td>The user-facing element type (<code>internal_type</code>), defaulting to the kernel's <code>internal_type</code>. Must be a single-byte, trivially copyable type with unique object representations.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="aa617ee9ba8cee547911722f93f52d29b" name="aa617ee9ba8cee547911722f93f52d29b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa617ee9ba8cee547911722f93f52d29b">&#9670;&#160;</a></span>device_type</h2>
 
@@ -297,6 +313,20 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructs a <code><a class="el" href="classIOv2_1_1Crypt_1_1hash__cvt.html">hash_cvt</a></code> with the given underlying kernel and hash algorithm. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kernel</td><td>The underlying IO converter kernel, transferred by move. </td></tr>
+    <tr><td class="paramname">algo</td><td>The hash algorithm to use. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">Botan::Lookup_Error</td><td>If the hash function object cannot be created.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -325,6 +355,8 @@ template&lt;io_converter KernelType, <a class="el" href="namespaceIOv2.html#a09b
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Copy constructor. Copies the kernel and hash state (via <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">copy_state()</a></code>), without triggering any digest output.</p>
+<p>If <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">copy_state()</a></code> returns <code>nullptr</code>, <code>m_has_main_cont</code> is forced to <code>false</code> to prevent <code>dump_stream()</code> being called on a null hash object at destruction.  </p>
 
 </div>
 </div>

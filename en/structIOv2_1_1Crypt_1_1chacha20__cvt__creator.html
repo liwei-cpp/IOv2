@@ -112,7 +112,17 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab983c6327b28ee67a990b69c2cfbf0da"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Crypt_1_1chacha20__cvt__creator.html#ab983c6327b28ee67a990b69c2cfbf0da">create</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TKernel</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">kernel</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:ab983c6327b28ee67a990b69c2cfbf0da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
+struct IOv2::Crypt::chacha20_cvt_creator&lt; TInt &gt;</div><p>Factory class for <code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></code>, for uniform construction of encryption converter instances within a pipeline.</p>
+<p>Derives key material from a passphrase via <code><a class="el" href="namespaceIOv2_1_1Crypt_1_1chacha20__cvt__helpers.html#a3e8c2109050cfdaf933207451a5366eb">chacha20_cvt_helpers::key_gen()</a></code> at construction time; subsequent <code><a class="el" href="structIOv2_1_1Crypt_1_1chacha20__cvt__creator.html#ab983c6327b28ee67a990b69c2cfbf0da">create()</a></code> calls reuse the derived key without re-hashing. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TInt</td><td>The user-facing element type, forwarded to <code><a class="el" href="classIOv2_1_1Crypt_1_1chacha20__cvt.html">chacha20_cvt</a></code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a2617630510e44bc34ec8f42027b88cfa" name="a2617630510e44bc34ec8f42027b88cfa"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2617630510e44bc34ec8f42027b88cfa">&#9670;&#160;</a></span>category</h2>
 

@@ -142,7 +142,10 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:ac9dcf5f99446f9f780a396c274ae97d9" id="r_ac9dcf5f99446f9f780a396c274ae97d9"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1Crypt_1_1dump__hash.html#ac9dcf5f99446f9f780a396c274ae97d9">m_delim</a></td></tr>
 <tr class="separator:ac9dcf5f99446f9f780a396c274ae97d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Behavior object that causes <code><a class="el" href="classIOv2_1_1Crypt_1_1hash__cvt.html">hash_cvt</a></code> to flush the current hash digest mid-stream without waiting for <code>detach()</code>.</p>
+<p>Triggered via <code>cvt.adjust(<a class="el" href="structIOv2_1_1Crypt_1_1dump__hash.html">dump_hash</a>{})</code>. After flushing, the hash state is cleared and subsequent writes contribute to a fresh digest. An optional delimiter byte can be supplied; if present, it is written to the kernel immediately after the digest.  </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4c2e1ecf75161a253d87047472557b64" name="a4c2e1ecf75161a253d87047472557b64"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4c2e1ecf75161a253d87047472557b64">&#9670;&#160;</a></span>dump_hash()</h2>
 

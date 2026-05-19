@@ -198,7 +198,13 @@ chacha20_cvt.h 的引用(Include)关系图:</div>
 <tr class="memitem:a3e8c2109050cfdaf933207451a5366eb" id="r_a3e8c2109050cfdaf933207451a5366eb"><td class="memItemLeft" align="right" valign="top">Botan::secure_vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1Crypt_1_1chacha20__cvt__helpers.html#a3e8c2109050cfdaf933207451a5366eb">IOv2::Crypt::chacha20_cvt_helpers::key_gen</a> (std::string_view <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">key</a>)</td></tr>
 <tr class="separator:a3e8c2109050cfdaf933207451a5366eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>ChaCha20 流加密转换器。</p>
+<p>本文件提供两个组件：</p><ul>
+<li><code>chacha20_cvt</code>：基于 Botan ChaCha20 的流加密/解密转换器。写入（加密）模式下 随机生成 IV 并将其前置于密文流；读取（解密）模式下从流头部读取 IV 进行初始化。</li>
+<li><code>chacha20_cvt_creator</code>：工厂类，用于在管道中统一构造 <code>chacha20_cvt</code> 实例。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
