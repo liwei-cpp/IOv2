@@ -1114,7 +1114,7 @@ namespace IOv2
         void adjust(const cvt_behavior& b)
         {
             assert_not_tainted();
-            if constexpr (requires(CurrentType& t, const cvt_behavior& b) { t.adjust_impl(b); })
+            if constexpr (requires(CurrentType& t, const cvt_behavior& behavior) { t.adjust_impl(behavior); })
                 static_cast<CurrentType*>(this)->adjust_impl(b);
             m_kernel.adjust(b);
         }
