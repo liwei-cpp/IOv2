@@ -154,66 +154,6 @@ public:
 public:
     /**
      * @lang{ZH}
-     * 响应行为策略调用，支持运行时切换字符编码。
-     *
-     * 若 `acc` 为 `code_cvt_switch` 类型，则执行区域设置切换：
-     * 用 `acc.code` 构造新的 `codecvt_kernel` 并原子地替换当前内核，
-     * 同时更新缓存的区域设置名称 `m_code`。
-     * 切换时要求编码转换状态（`m_cvt_kernel`）处于初始状态，否则抛出异常。
-     * 所有可能抛出异常的操作均在提交前完成，确保强异常安全保证。
-     * 若 `acc` 不是 `code_cvt_switch` 类型，则将调用委托给基类 `adjust()`。
-     *
-     * @param acc 行为策略对象。
-     *
-     * @throws cvt_error 若当前编码转换状态不处于初始状态。
-     * @endif
-     *
-     * @lang{EN}
-     * Respond to a behavior policy call, supporting runtime character encoding switching.
-     *
-     * If `acc` is of type `code_cvt_switch`, performs a locale switch: constructs a
-     * new `codecvt_kernel` from `acc.code` and atomically replaces the current kernel,
-     * also updating the cached locale name `m_code`.
-     * The encoding conversion state (`m_cvt_kernel`) must be in its initial state at
-     * the time of switching; otherwise an exception is thrown.
-     * All potentially-throwing operations are completed before any commit, ensuring
-     * the strong exception safety guarantee.
-     * If `acc` is not of type `code_cvt_switch`, the call is delegated to the base
-     * class `adjust()`.
-     *
-     * @param acc Behavior policy object.
-     *
-     * @throws cvt_error If the encoding conversion state is not in its initial state.
-     * @endif
-     */
-    void adjust(const cvt_behavior& acc)
-    {
-        if (const auto* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
-        {
-            if (!this->m_cvt_kernel.is_init_state())
-                throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
-            // Perform all potentially-throwing operations first, then commit with
-            // noexcept moves. The two commit moves below MUST be noexcept; otherwise
-            // a partial-throw could leave m_cvt_kernel and m_code mutually
-            // inconsistent (mismatched locale handle vs. cached code string).
-            static_assert(
-                std::is_nothrow_move_assignable_v<codecvt_kernel<char, wchar_t>>,
-                "codecvt_kernel<char, wchar_t> move-assign must be noexcept; "
-                "otherwise code_cvt_stdio::adjust loses its strong exception guarantee");
-            static_assert(
-                std::is_nothrow_move_assignable_v<std::string>,
-                "std::string move-assign must be noexcept");
-            codecvt_kernel<char, wchar_t> new_kernel(ptr->code);
-            std::string new_code = ptr->code;
-            this->m_cvt_kernel = std::move(new_kernel);
-            m_code = std::move(new_code);
-        }
-
-        return BT::adjust(acc);
-    }
-
-    /**
-     * @lang{ZH}
      * 响应状态查询调用，支持查询当前区域设置名称。
      *
      * 若 `s` 为 `code_cvt_access` 类型，则将当前区域设置名称（`m_code`）
@@ -243,6 +183,64 @@ public:
         BT::retrieve(s);
     }
 
+public:
+    /**
+     * @lang{ZH}
+     * 响应行为策略调用，支持运行时切换字符编码。
+     *
+     * 若 `acc` 为 `code_cvt_switch` 类型，则执行区域设置切换：
+     * 用 `acc.code` 构造新的 `codecvt_kernel` 并原子地替换当前内核，
+     * 同时更新缓存的区域设置名称 `m_code`。
+     * 切换时要求编码转换状态（`m_cvt_kernel`）处于初始状态，否则抛出异常。
+     * 所有可能抛出异常的操作均在提交前完成，确保强异常安全保证。
+     * 无论 `acc` 类型如何，最终均链式调用基类 `BT::adjust(acc)`。
+     *
+     * @param acc 行为策略对象。
+     *
+     * @throws cvt_error 若当前编码转换状态不处于初始状态。
+     * @endif
+     *
+     * @lang{EN}
+     * Respond to a behavior policy call, supporting runtime character encoding switching.
+     *
+     * If `acc` is of type `code_cvt_switch`, performs a locale switch: constructs a
+     * new `codecvt_kernel` from `acc.code` and atomically replaces the current kernel,
+     * also updating the cached locale name `m_code`.
+     * The encoding conversion state (`m_cvt_kernel`) must be in its initial state at
+     * the time of switching; otherwise an exception is thrown.
+     * All potentially-throwing operations are completed before any commit, ensuring
+     * the strong exception safety guarantee.
+     * In all cases the call is forwarded to the base-class `BT::adjust(acc)`.
+     *
+     * @param acc Behavior policy object.
+     *
+     * @throws cvt_error If the encoding conversion state is not in its initial state.
+     * @endif
+     */
+    void adjust(const cvt_behavior& acc)
+    {
+        if (const auto* ptr = dynamic_cast<const code_cvt_switch*>(&acc); ptr)
+        {
+            if (!this->m_cvt_kernel.is_init_state())
+                throw cvt_error("code_cvt_stdio::adjust fail: invalid state");
+            // Perform all potentially-throwing operations first, then commit with
+            // noexcept moves. The two commit moves below MUST be noexcept; otherwise
+            // a partial-throw could leave m_cvt_kernel and m_code mutually
+            // inconsistent (mismatched locale handle vs. cached code string).
+            static_assert(
+                std::is_nothrow_move_assignable_v<codecvt_kernel<char, wchar_t>>,
+                "codecvt_kernel<char, wchar_t> move-assign must be noexcept; "
+                "otherwise code_cvt_stdio::adjust loses its strong exception guarantee");
+            static_assert(
+                std::is_nothrow_move_assignable_v<std::string>,
+                "std::string move-assign must be noexcept");
+            codecvt_kernel<char, wchar_t> new_kernel(ptr->code);
+            std::string new_code = ptr->code;
+            this->m_cvt_kernel = std::move(new_kernel);
+            m_code = std::move(new_code);
+        }
+        return BT::adjust(acc);
+    }
 private:
     std::string m_code; ///< 当前使用的区域设置名称 / Currently active locale name.
 };

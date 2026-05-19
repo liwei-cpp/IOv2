@@ -672,6 +672,14 @@ namespace IOv2
      *   由 `abs_cvt::main_cont_beg` 在 kernel `main_cont_beg()` 返回后调用，执行派生层
      *   从 BOS 阶段切换到主内容阶段时所需的初始化（如重置编码状态机、清零计数器）。
      *   允许抛出异常；调用方会将 `m_io_status` 重置为 `neutral` 并设置污染标志后透传。
+     *
+     * - **`adjust_impl(const cvt_behavior&)`**
+     *   由 `abs_cvt::adjust` 在调用 `m_kernel.adjust()` 之前调用，执行派生层特有的
+     *   行为配置逻辑（如解析自定义 `cvt_behavior` 子类并更新内部状态）。
+     *   允许抛出异常；调用方直接透传，不设置污染标志。
+     *   **仅适用于直接派生自 `abs_cvt` 的类**；若派生类经由中间层（如
+     *   `code_cvt`）继承，则 `CurrentType` 为中间层类型，`adjust_impl` 不可达，
+     *   应改为直接覆写公开的 `adjust()` 并链式调用 `BT::adjust()`。
      * @endif
      *
      * @lang{EN}
@@ -728,6 +736,17 @@ namespace IOv2
      *   from the BOS phase into the main-content phase (e.g., resetting a codec
      *   state machine, clearing counters). May throw; the caller resets `m_io_status`
      *   to `neutral` and sets the taint flag before rethrowing.
+     *
+     * - **`adjust_impl(const cvt_behavior&)`**
+     *   Called by `abs_cvt::adjust` before `m_kernel.adjust()`, to perform any
+     *   derived-layer behavior configuration (e.g., inspecting a custom
+     *   `cvt_behavior` subclass and updating internal state). May throw; the caller
+     *   propagates the exception directly without setting the taint flag.
+     *   **Only applicable to classes that directly inherit from `abs_cvt`.**
+     *   If a class inherits through an intermediate layer (e.g., `code_cvt`),
+     *   `CurrentType` is the intermediate type and `adjust_impl` on the leaf class
+     *   is unreachable; such classes must override the public `adjust()` directly
+     *   and forward to `BT::adjust()`.
      * @endif
      *
      * @par Exception Safety / Tainted State
@@ -1075,13 +1094,17 @@ namespace IOv2
          * @lang{ZH}
          * 调整转换器的行为参数。
          *
-         * 将 `b` 中描述的行为配置转发给底层 kernel。
+         * 先调用 `assert_not_tainted()` 检查污染标志；若派生类实现了
+         * `adjust_impl(const cvt_behavior&)`，则先调用之执行派生层特有的配置逻辑；
+         * 最后将 `b` 转发给底层 kernel。
          * @endif
          *
          * @lang{EN}
          * Adjust the converter's behavior parameters.
          *
-         * Forwards the behavior configuration described in `b` to the underlying kernel.
+         * First calls `assert_not_tainted()`; if the derived class implements
+         * `adjust_impl(const cvt_behavior&)`, calls it to perform any derived-layer
+         * configuration; then forwards `b` to the underlying kernel.
          * @endif
          *
          * @param b
@@ -1090,6 +1113,9 @@ namespace IOv2
          */
         void adjust(const cvt_behavior& b)
         {
+            assert_not_tainted();
+            if constexpr (requires(CurrentType& t, const cvt_behavior& behavior) { t.adjust_impl(behavior); })
+                static_cast<CurrentType*>(this)->adjust_impl(b);
             m_kernel.adjust(b);
         }
 
