@@ -1123,13 +1123,16 @@ namespace IOv2
          * @lang{ZH}
          * 获取当前转换器的状态信息。
          *
-         * 将 kernel 的状态写入 `s` 中。
+         * 若派生类实现了 `retrieve_impl(cvt_status&)`，则先调用之执行派生层特有的
+         * 状态收集逻辑；最后从底层 kernel 读取状态写入 `s`。
          * @endif
          *
          * @lang{EN}
          * Retrieve the current converter status information.
          *
-         * Writes the kernel's status into `s`.
+         * If the derived class implements `retrieve_impl(cvt_status&)`, calls it to
+         * perform any derived-layer status collection; then reads the kernel's status
+         * into `s`.
          * @endif
          *
          * @param s
@@ -1138,6 +1141,8 @@ namespace IOv2
          */
         void retrieve(cvt_status& s) const
         {
+            if constexpr (requires(const CurrentType& t, cvt_status& status) { t.retrieve_impl(status); })
+                static_cast<const CurrentType*>(this)->retrieve_impl(s);
             m_kernel.retrieve(s);
         }
 
