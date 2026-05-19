@@ -99,6 +99,7 @@ $(document).ready(function(){initNavTree('vigenere__cvt_8h.html',''); initResiza
 <div class="textblock"><code>#include &lt;<a class="el" href="abs__cvt_8h_source.html">cvt/abs_cvt.h</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="cvt__concepts_8h_source.html">cvt/cvt_concepts.h</a>&gt;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;exception&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
@@ -110,43 +111,44 @@ Include dependency graph for vigenere_cvt.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="vigenere__cvt_8h__incl.png" border="0" usemap="#ainclude_2cvt_2crypt_2vigenere__cvt_8h" alt=""/></div>
 <map name="ainclude_2cvt_2crypt_2vigenere__cvt_8h" id="ainclude_2cvt_2crypt_2vigenere__cvt_8h">
-<area shape="rect" title=" " alt="" coords="509,5,700,45"/>
-<area shape="rect" href="abs__cvt_8h.html" title=" " alt="" coords="444,93,552,119"/>
-<area shape="poly" title=" " alt="" coords="580,48,527,87,524,83,577,43"/>
-<area shape="rect" href="cvt__concepts_8h.html" title=" " alt="" coords="163,167,305,192"/>
-<area shape="poly" title=" " alt="" coords="509,40,418,60,371,75,326,96,285,125,254,158,250,154,282,121,323,91,369,70,416,55,508,34"/>
-<area shape="rect" title=" " alt="" coords="424,240,511,265"/>
-<area shape="poly" title=" " alt="" coords="528,48,482,66,436,91,397,124,382,145,371,168,368,180,371,191,392,215,420,232,417,237,389,219,366,193,362,180,366,166,378,142,394,121,433,86,480,61,526,43"/>
-<area shape="rect" title=" " alt="" coords="5,240,97,265"/>
-<area shape="poly" title=" " alt="" coords="510,42,401,63,342,78,286,96,216,127,152,169,110,201,75,232,72,228,107,197,148,164,213,122,284,91,341,72,399,57,509,36"/>
-<area shape="rect" title=" " alt="" coords="535,240,595,265"/>
-<area shape="poly" title=" " alt="" coords="620,44,638,74,653,111,660,153,658,173,651,193,631,218,606,236,603,231,628,214,646,191,653,172,655,153,648,113,633,76,616,47"/>
-<area shape="rect" title=" " alt="" coords="573,167,636,192"/>
-<area shape="poly" title=" " alt="" coords="607,46,607,153,602,153,602,46"/>
-<area shape="rect" title=" " alt="" coords="702,93,787,119"/>
-<area shape="poly" title=" " alt="" coords="639,43,713,84,711,89,637,48"/>
-<area shape="rect" title=" " alt="" coords="811,93,870,119"/>
-<area shape="poly" title=" " alt="" coords="662,43,799,88,798,93,660,48"/>
-<area shape="rect" title=" " alt="" coords="895,93,992,119"/>
-<area shape="poly" title=" " alt="" coords="686,43,882,88,881,93,685,48"/>
-<area shape="poly" title=" " alt="" coords="456,121,291,166,289,160,455,116"/>
-<area shape="poly" title=" " alt="" coords="498,120,475,227,470,226,493,119"/>
-<area shape="poly" title=" " alt="" coords="506,118,556,226,551,229,501,120"/>
-<area shape="rect" title=" " alt="" coords="381,167,447,192"/>
-<area shape="poly" title=" " alt="" coords="486,121,440,160,437,155,483,117"/>
-<area shape="poly" title=" " alt="" coords="517,116,577,157,574,161,514,121"/>
-<area shape="rect" href="defs_8h.html" title=" " alt="" coords="173,240,295,265"/>
-<area shape="poly" title=" " alt="" coords="237,192,237,226,231,226,231,192"/>
-<area shape="rect" title=" " alt="" coords="100,313,171,339"/>
-<area shape="poly" title=" " alt="" coords="215,194,188,214,163,241,149,271,141,300,136,299,144,269,158,239,184,210,212,190"/>
-<area shape="rect" title=" " alt="" coords="319,240,399,265"/>
-<area shape="poly" title=" " alt="" coords="255,190,328,231,326,235,253,194"/>
-<area shape="poly" title=" " alt="" coords="272,189,417,233,416,239,271,195"/>
-<area shape="poly" title=" " alt="" coords="206,195,95,237,93,232,204,190"/>
-<area shape="poly" title=" " alt="" coords="296,189,522,237,521,242,295,195"/>
-<area shape="poly" title=" " alt="" coords="220,268,164,307,161,303,217,263"/>
-<area shape="rect" title=" " alt="" coords="195,313,281,339"/>
-<area shape="poly" title=" " alt="" coords="237,266,239,300,234,300,232,266"/>
+<area shape="rect" title=" " alt="" coords="425,5,616,45"/>
+<area shape="rect" href="abs__cvt_8h.html" title=" " alt="" coords="165,93,273,119"/>
+<area shape="poly" title=" " alt="" coords="449,48,277,92,276,87,448,43"/>
+<area shape="rect" href="cvt__concepts_8h.html" title=" " alt="" coords="368,167,511,192"/>
+<area shape="poly" title=" " alt="" coords="513,47,454,155,450,153,508,45"/>
+<area shape="rect" title=" " alt="" coords="429,313,500,339"/>
+<area shape="poly" title=" " alt="" coords="540,44,574,86,608,143,619,174,625,206,623,237,610,267,590,288,566,303,515,321,513,316,564,298,587,284,605,264,617,236,620,206,614,175,603,145,570,89,536,47"/>
+<area shape="rect" title=" " alt="" coords="5,240,92,265"/>
+<area shape="poly" title=" " alt="" coords="425,31,355,37,276,48,194,67,115,96,62,123,43,140,27,168,23,182,25,198,36,227,31,229,19,199,18,182,22,166,39,137,58,118,113,91,192,62,275,43,354,32,425,26"/>
+<area shape="rect" title=" " alt="" coords="503,240,595,265"/>
+<area shape="poly" title=" " alt="" coords="526,45,548,226,543,227,520,46"/>
+<area shape="rect" title=" " alt="" coords="116,240,176,265"/>
+<area shape="poly" title=" " alt="" coords="502,48,420,117,364,158,306,194,246,222,190,242,188,236,244,217,303,190,361,153,416,113,498,44"/>
+<area shape="rect" title=" " alt="" coords="37,167,100,192"/>
+<area shape="poly" title=" " alt="" coords="425,31,362,37,292,48,221,67,154,96,116,125,87,157,83,154,112,121,151,91,219,62,291,43,362,32,425,26"/>
+<area shape="rect" title=" " alt="" coords="653,93,738,119"/>
+<area shape="poly" title=" " alt="" coords="564,43,658,85,656,90,561,48"/>
+<area shape="rect" title=" " alt="" coords="762,93,821,119"/>
+<area shape="poly" title=" " alt="" coords="586,43,749,90,748,95,585,48"/>
+<area shape="rect" title=" " alt="" coords="845,93,943,119"/>
+<area shape="poly" title=" " alt="" coords="611,43,833,89,832,94,610,48"/>
+<area shape="poly" title=" " alt="" coords="255,116,392,160,390,165,254,121"/>
+<area shape="poly" title=" " alt="" coords="207,121,75,233,71,229,204,117"/>
+<area shape="poly" title=" " alt="" coords="216,120,160,229,156,226,211,118"/>
+<area shape="rect" title=" " alt="" coords="226,167,293,192"/>
+<area shape="poly" title=" " alt="" coords="228,118,248,153,244,156,224,120"/>
+<area shape="poly" title=" " alt="" coords="196,121,107,163,105,158,194,116"/>
+<area shape="rect" href="defs_8h.html" title=" " alt="" coords="201,240,323,265"/>
+<area shape="poly" title=" " alt="" coords="412,194,304,237,302,232,410,190"/>
+<area shape="poly" title=" " alt="" coords="444,192,463,299,458,300,439,193"/>
+<area shape="rect" title=" " alt="" coords="347,240,427,265"/>
+<area shape="poly" title=" " alt="" coords="433,194,406,230,402,227,429,191"/>
+<area shape="poly" title=" " alt="" coords="372,195,106,242,105,237,371,189"/>
+<area shape="poly" title=" " alt="" coords="458,190,521,230,518,235,455,194"/>
+<area shape="poly" title=" " alt="" coords="390,195,190,242,189,237,389,189"/>
+<area shape="poly" title=" " alt="" coords="295,263,420,306,418,311,294,268"/>
+<area shape="rect" title=" " alt="" coords="219,313,305,339"/>
+<area shape="poly" title=" " alt="" coords="265,266,265,300,259,300,259,266"/>
 </map>
 </div>
 </div>
