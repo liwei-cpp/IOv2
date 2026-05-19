@@ -839,7 +839,7 @@ namespace IOv2
      * @lang{ZH} 派生类对外暴露的字符类型（即 `get`/`put` 接口所使用的元素类型）。 @endif
      * @lang{EN} The character type exposed by the derived class (the element type used by the `get`/`put` interface). @endif
      *
-     * @tparam default_positioning
+     * @tparam enable_positioning
      * @lang{ZH}
      * 若为 `true`（默认），且 kernel 支持定位，则 `tell()`/`seek()`/`rseek()` 方法可用。
      * @endif
@@ -858,7 +858,7 @@ namespace IOv2
     template <typename CurrentType,
               io_converter KernelType,
               typename InternalType,
-              bool default_positioning = true,
+              bool enable_positioning = true,
               bool enable_io_switch = true>
     class abs_cvt
     {
@@ -1304,22 +1304,28 @@ namespace IOv2
          * 检查是否已到达流末尾（EOF）。
          *
          * 仅在 `KernelType` 支持 get 操作时可用。
+         * 若派生类实现了 `is_eof_impl()`，则调用它；否则直接调用 `m_kernel.is_eof()`。
          * @endif
          *
          * @lang{EN}
          * Check whether the end of the stream (EOF) has been reached.
          *
          * Only available when `KernelType` supports the get operation.
+         * Dispatches to `is_eof_impl()` if the derived class implements it;
+         * otherwise calls `m_kernel.is_eof()` directly.
          * @endif
          *
          * @return
          * @lang{ZH} 若已到达流末尾则返回 `true`，否则返回 `false`。 @endif
          * @lang{EN} `true` if the end of the stream has been reached; `false` otherwise. @endif
          */
-        bool is_eof()
+        [[nodiscard]] bool is_eof()
             requires (cvt_cpt::support_get<KernelType>)
         {
-            return m_kernel.is_eof();
+            if constexpr (requires(CurrentType& t) { { t.is_eof_impl() } -> std::same_as<bool>; })
+                return static_cast<CurrentType*>(this)->is_eof_impl();
+            else
+                return m_kernel.is_eof();
         }
 
     // optional methods
@@ -1623,14 +1629,17 @@ namespace IOv2
          * @lang{ZH}
          * 返回当前流位置（以 `external_type` 元素为单位）。
          *
-         * 仅在 `default_positioning` 为 `true` 且 kernel 支持定位时可用。
+         * 仅在 `enable_positioning` 为 `true` 且 kernel 支持定位时可用。
+         * 若派生类实现了 `tell_impl()`，则调用它；否则直接调用 `m_kernel.tell()`。
          * @endif
          *
          * @lang{EN}
          * Return the current stream position in units of `external_type` elements.
          *
-         * Only available when `default_positioning` is `true` and the kernel
+         * Only available when `enable_positioning` is `true` and the kernel
          * supports positioning.
+         * Dispatches to `tell_impl()` if the derived class implements it;
+         * otherwise calls `m_kernel.tell()` directly.
          * @endif
          *
          * @return
@@ -1638,24 +1647,32 @@ namespace IOv2
          * @lang{EN} The current stream position as an offset in `external_type` elements from the start of the stream. @endif
          */
         [[nodiscard]] size_t tell() const
-            requires (default_positioning && cvt_cpt::support_positioning<KernelType>)
+            requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
-            return m_kernel.tell();
+            if constexpr (requires(const CurrentType& t) { { t.tell_impl() } -> std::same_as<size_t>; })
+                return static_cast<const CurrentType*>(this)->tell_impl();
+            else
+                return m_kernel.tell();
         }
 
         /**
          * @lang{ZH}
          * 将流位置移动到绝对位置 `pos`（从流起始处计算，以 `external_type` 元素为单位）。
          *
-         * 仅在 `default_positioning` 为 `true` 且 kernel 支持定位时可用。
+         * 仅在 `enable_positioning` 为 `true` 且 kernel 支持定位时可用。
+         * 若 `pos` 已等于当前位置则立即返回（快速路径）；否则调用 `assert_not_tainted()`，
+         * 再分发到 `seek_impl()`（若派生类实现了该 hook），或直接调用 `m_kernel.seek()`。
          * @endif
          *
          * @lang{EN}
          * Seek to absolute position `pos` measured from the start of the stream in
          * units of `external_type` elements.
          *
-         * Only available when `default_positioning` is `true` and the kernel
+         * Only available when `enable_positioning` is `true` and the kernel
          * supports positioning.
+         * Returns immediately if `pos` already equals the current position (fast path).
+         * Otherwise calls `assert_not_tainted()`, then dispatches to `seek_impl()` if
+         * the derived class implements it, or calls `m_kernel.seek()` directly.
          * @endif
          *
          * @param pos
@@ -1663,24 +1680,39 @@ namespace IOv2
          * @lang{EN} Target absolute position as an offset in `external_type` elements from the start of the stream. @endif
          */
         void seek(size_t pos)
-            requires (default_positioning && cvt_cpt::support_positioning<KernelType>)
+            requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
-            m_kernel.seek(pos);
+            // Fast path for no-op self-seek: skip validation and kernel work when
+            // pos already equals the current position. Intentional even in modes
+            // where the validation below would otherwise reject — callers using
+            // seek(saved_pos) for position-restore must not be rejected when
+            // saved_pos happens to equal tell().
+            if (this->tell() == pos) return;
+
+            assert_not_tainted();
+
+            if constexpr (requires(CurrentType& t, size_t p) { t.seek_impl(p); })
+                static_cast<CurrentType*>(this)->seek_impl(pos);
+            else m_kernel.seek(pos);
         }
 
         /**
          * @lang{ZH}
          * 将流位置移动到反向绝对位置 `pos`（从流末尾处向前计算，以 `external_type` 元素为单位）。
          *
-         * 仅在 `default_positioning` 为 `true` 且 kernel 支持定位时可用。
+         * 仅在 `enable_positioning` 为 `true` 且 kernel 支持定位时可用。
+         * 调用 `assert_not_tainted()`，再分发到 `rseek_impl()`（若派生类实现了该 hook），
+         * 或直接调用 `m_kernel.rseek()`。
          * @endif
          *
          * @lang{EN}
          * Seek to reverse absolute position `pos` measured backwards from the end
          * of the stream in units of `external_type` elements.
          *
-         * Only available when `default_positioning` is `true` and the kernel
+         * Only available when `enable_positioning` is `true` and the kernel
          * supports positioning.
+         * Calls `assert_not_tainted()`, then dispatches to `rseek_impl()` if the
+         * derived class implements it, or calls `m_kernel.rseek()` directly.
          * @endif
          *
          * @param pos
@@ -1688,9 +1720,13 @@ namespace IOv2
          * @lang{EN} Target reverse position as an offset in `external_type` elements measured backwards from the end of the stream. @endif
          */
         void rseek(size_t pos)
-            requires (default_positioning && cvt_cpt::support_positioning<KernelType>)
+            requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
-            m_kernel.rseek(pos);
+            assert_not_tainted();
+
+            if constexpr (requires(CurrentType& t, size_t p) { t.rseek_impl(p); })
+                static_cast<CurrentType*>(this)->rseek_impl(pos);
+            else m_kernel.rseek(pos);
         }
 
         /**

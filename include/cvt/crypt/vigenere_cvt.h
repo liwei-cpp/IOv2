@@ -36,9 +36,9 @@ namespace IOv2::Crypt::Classic
 /// @see chacha20_cvt for cryptographically secure encryption
 template <io_converter KernelType>
     requires std::is_integral_v<typename KernelType::internal_type>
-class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, false, true>
+class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, true>
 {
-    using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, false, true>;
+    using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, true>;
     friend BT;  // for put_main, get_main, and private CRTP hooks
     constexpr static size_t s_buf_len = 16;
 public:
@@ -172,19 +172,16 @@ private:
         // commit() is the responsibility of abs_cvt::put.
     }
 
-public:
     /// positioning
-    [[nodiscard]] size_t tell() const
+    [[nodiscard]] size_t tell_impl() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
-        BT::assert_not_tainted();
         return m_pos;
     }
 
-    void seek(size_t pos)
+    void seek_impl(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
-        BT::assert_not_tainted();
         // The kernel is not required to land exactly on `pos` (e.g. clamping,
         // alignment, internal buffering), so the keystream index must be
         // resynced via tell() rather than using `pos` directly.
@@ -215,10 +212,9 @@ public:
         if (seek_err) std::rethrow_exception(seek_err);
     }
 
-    void rseek(size_t pos)
+    void rseek_impl(size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
-        BT::assert_not_tainted();
         // See seek() above for the same resync-via-tell rationale.
         std::exception_ptr rseek_err;
         try { BT::m_kernel.rseek(pos); }
