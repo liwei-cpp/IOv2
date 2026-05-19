@@ -914,7 +914,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <p>获取当前转换器的状态信息。</p>
-<p>将 kernel 的状态写入 <code>s</code> 中。 </p>
+<p>若派生类实现了 <code>retrieve_impl(<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a>&amp;)</code>，则先调用之执行派生层特有的 状态收集逻辑；最后从底层 kernel 读取状态写入 <code>s</code>。 </p>
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">s</td><td>用于接收状态信息的输出对象。   </td></tr>

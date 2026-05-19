@@ -933,7 +933,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <p>Retrieve the current converter status information.</p>
-<p>Writes the kernel's status into <code>s</code>. </p>
+<p>If the derived class implements <code>retrieve_impl(<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a>&amp;)</code>, calls it to perform any derived-layer status collection; then reads the kernel's status into <code>s</code>. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">s</td><td>Output object to receive the status information.  </td></tr>
