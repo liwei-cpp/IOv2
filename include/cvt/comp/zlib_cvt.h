@@ -508,29 +508,6 @@ public:
 public:
     /**
      * @lang{ZH}
-     * 调整转换器行为参数。
-     * 若 `acc` 为 `zlib_sync_flush` 实例，则更新 `m_sync_flush` 标志；
-     * 同时将 `acc` 转发给基类 `BT::adjust()`。
-     * @endif
-     *
-     * @lang{EN}
-     * Adjust converter behavior parameters.
-     * If `acc` is a `zlib_sync_flush` instance, updates the `m_sync_flush` flag;
-     * also forwards `acc` to the base-class `BT::adjust()`.
-     * @endif
-     *
-     * @param acc 行为策略对象。 / The behavior policy object.
-     */
-    void adjust(const cvt_behavior& acc)
-    {
-        if (auto* ptr = dynamic_cast<const zlib_sync_flush*>(&acc); ptr)
-            m_sync_flush = ptr->m_sync_flush;
-
-        return BT::adjust(acc);
-    }
-
-    /**
-     * @lang{ZH}
      * 查询是否已到达 zlib 压缩流末尾。
      * `m_stream_ended` 是 zlib 级别的 EOF 锁存位，在 `get_main` 中 `inflate()` 返回
      * `Z_STREAM_END` 时置位。`BT::is_eof()` 反映内核的可读字节数视图，可能滞后于
@@ -1039,6 +1016,28 @@ private:
         }
     }
 
+    /**
+     * @lang{ZH}
+     * 调整转换器行为参数。
+     * 若 `acc` 为 `zlib_sync_flush` 实例，则更新 `m_sync_flush` 标志；
+     * 同时将 `acc` 转发给基类 `BT::adjust()`。
+     * @endif
+     *
+     * @lang{EN}
+     * Adjust converter behavior parameters.
+     * If `acc` is a `zlib_sync_flush` instance, updates the `m_sync_flush` flag;
+     * also forwards `acc` to the base-class `BT::adjust()`.
+     * @endif
+     *
+     * @param acc 行为策略对象。 / The behavior policy object.
+     */
+    void adjust_impl(const cvt_behavior& acc)
+    {
+        if (auto* ptr = dynamic_cast<const zlib_sync_flush*>(&acc); ptr)
+            m_sync_flush = ptr->m_sync_flush;
+    }
+
+private:
     /**
      * @lang{ZH}
      * 将 zlib 返回码转换为 `cvt_error` 异常。

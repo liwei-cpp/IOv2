@@ -137,42 +137,6 @@ public:
         }
     }
 
-// mandatory methods
-public:
-    void adjust(const cvt_behavior& acc)
-    {
-        if (const auto* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
-            m_out_fmt = shf_ptr->m_val;
-        else if (const auto* dh_ptr = dynamic_cast<const dump_hash*>(&acc); dh_ptr)
-        {
-            if (m_has_main_cont)
-            {
-                dump_stream();
-                if (dh_ptr->m_delim)
-                {
-                    const uint8_t delim = *dh_ptr->m_delim;
-                    // If the delimiter write fails, the digest is already on
-                    // the kernel without its separator; subsequent dumps would
-                    // produce concatenated digests with no boundary. Taint so
-                    // the user is forced to detach/attach instead of silently
-                    // emitting corrupted output.
-                    try
-                    {
-                        BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-                    }
-                    catch (...)
-                    {
-                        BT::set_tainted();
-                        throw;
-                    }
-                }
-            }
-        }
-
-        return BT::adjust(acc);
-    }
-
-// optional methods
 private:
     /**
      * @lang{ZH}
@@ -260,6 +224,37 @@ private:
         if (to_size == 0) return;
         m_hash->update(reinterpret_cast<const uint8_t*>(to), to_size * sizeof(internal_type)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         m_has_main_cont = true;
+    }
+
+    void adjust_impl(const cvt_behavior& acc)
+    {
+        if (const auto* shf_ptr = dynamic_cast<const set_hash_fmt*>(&acc); shf_ptr)
+            m_out_fmt = shf_ptr->m_val;
+        else if (const auto* dh_ptr = dynamic_cast<const dump_hash*>(&acc); dh_ptr)
+        {
+            if (m_has_main_cont)
+            {
+                dump_stream();
+                if (dh_ptr->m_delim)
+                {
+                    const uint8_t delim = *dh_ptr->m_delim;
+                    // If the delimiter write fails, the digest is already on
+                    // the kernel without its separator; subsequent dumps would
+                    // produce concatenated digests with no boundary. Taint so
+                    // the user is forced to detach/attach instead of silently
+                    // emitting corrupted output.
+                    try
+                    {
+                        BT::m_kernel.put(reinterpret_cast<const external_type*>(&delim), 1); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                    }
+                    catch (...)
+                    {
+                        BT::set_tainted();
+                        throw;
+                    }
+                }
+            }
+        }
     }
 
 private:
