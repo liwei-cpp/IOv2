@@ -195,6 +195,10 @@ private:
         {
             if constexpr (cvt_cpt::support_get<KernelType>)
             {
+                // Contract: kernel.get() on BOS path guarantees to return exactly the
+                // requested byte count, or throw an exception if insufficient data is
+                // available. The check below is purely defensive, verifying this
+                // invariant at runtime.
                 const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
                 if (n != iv_len)
                     throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
@@ -291,9 +295,9 @@ private:
     size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
+        if (to_max == 0) return 0;
         if (!m_cipher)
             throw cvt_error("chacha20_cvt::get_main fail: cipher not initialized (moved-from object?)");
-        if (to_max == 0) return 0;
 
         constexpr size_t isize = sizeof(internal_type);
         constexpr size_t bulk_chunk = (block_size / isize) * isize;
@@ -379,6 +383,7 @@ private:
     void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
+        if (to_size == 0) return;
         if (!m_cipher)
             throw cvt_error("chacha20_cvt::put_main fail: cipher not initialized (moved-from object?)");
 
