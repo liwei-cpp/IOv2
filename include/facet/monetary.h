@@ -470,7 +470,7 @@ private:
                 res.insert(res.begin(), '-');
 
             // Test for grouping fidelity.
-            if (grouping_tmp.size())
+            if (!grouping_tmp.empty())
             {
                 // Add the ending grouping.
                 grouping_tmp += static_cast<char>(testdecfound ? last_pos : n);
