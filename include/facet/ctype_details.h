@@ -1,11 +1,12 @@
 #pragma once
+#include <common/clocale_wrapper.h>
+#include <facet/facet_common.h>
+
 #include <algorithm>
 #include <cctype>
 #include <cwctype>
+#include <limits>
 #include <optional>
-
-#include <facet/facet_common.h>
-#include <common/clocale_wrapper.h>
 
 namespace IOv2
 {
@@ -96,9 +97,9 @@ private:
 };
 
 template <typename CharT>
-    requires std::is_same_v<CharT, wchar_t> || 
-                (std::is_same_v<CharT, char32_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
+    requires std::is_same_v<CharT, wchar_t> ||
+                (std::is_same_v<CharT, char32_t> &&
+                 (sizeof(char32_t) == sizeof(wchar_t)) &&
                  (static_cast<wchar_t>(U'李') == L'李') &&
                  (static_cast<char32_t>(L'伟') == U'伟'))
 class ctype_conf<CharT> : public ft_basic<ctype<CharT>>
@@ -111,7 +112,7 @@ public:
         clocale_user guard(m_inter_locale);
         for (size_t j = 0; j < sizeof(m_widen) / sizeof(wint_t); ++j)
           m_widen[j] = btowc(j);
-          
+
         m_wmask_upper  = wctype_l("upper",  m_inter_locale.c_locale);
         m_wmask_lower  = wctype_l("lower",  m_inter_locale.c_locale);
         m_wmask_alpha  = wctype_l("alpha",  m_inter_locale.c_locale);
@@ -122,7 +123,7 @@ public:
         m_wmask_cntrl  = wctype_l("cntrl",  m_inter_locale.c_locale);
         m_wmask_punct  = wctype_l("punct",  m_inter_locale.c_locale);
     }
-    
+
     virtual base_ft<ctype>::mask is(CharT _c) const
     {
         base_ft<ctype>::mask res = 0;
@@ -193,7 +194,7 @@ public:
             return static_cast<mask>(0);
         return m_internal.is(static_cast<char>(c));
     }
-    
+
     virtual char8_t toupper(char8_t c) const
     {
         if (c & 0x80) return c;
@@ -207,13 +208,13 @@ public:
     }
 
     virtual char8_t widen(char c) const { return static_cast<char8_t>(c); }
-    
+
     virtual std::optional<char> narrow(char8_t c) const
     {
         if (c & 0x80) return std::nullopt;
         return static_cast<char>(c);
     }
-    
+
 private:
     ctype_conf<char> m_internal;
 };

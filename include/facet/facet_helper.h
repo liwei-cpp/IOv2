@@ -1,11 +1,13 @@
 #pragma once
-#include <langinfo.h>
-#include <nl_types.h>
-#include <limits>
-#include <string>
 #include <cvt/cvt_facilities.h>
 #include <facet/ctype_details.h>
 #include <io/io_base.h>
+
+#include <cassert>
+#include <limits>
+#include <string>
+#include <langinfo.h>
+#include <nl_types.h>
 
 namespace IOv2::FacetHelper
 {
@@ -19,16 +21,20 @@ namespace IOv2::FacetHelper
         // Convert char to wchar_t then narrow down
         std::wstring wide_str = detail::to_wstring(ptr, locale_name);
         if (wide_str.empty()) return '\0';
-        
+
         ctype_conf<wchar_t> tmp_ctype(locale_name);
         auto res = tmp_ctype.narrow(wide_str[0]);
         return res.has_value() ? res.value() : '\0';
     }
-    
+
+    // Internal helper function. Callers are responsible for ensuring that
+    // grouping is non-empty; this function does not validate that precondition.
     template <typename CharT>
     inline CharT* add_grouping(CharT* s, CharT sep, const std::vector<uint8_t>& grouping,
                                const CharT* first, const CharT* last)
     {
+        assert(!grouping.empty());
+
         size_t idx = 0;
         size_t ctr = 0;
         size_t gsize = grouping.size();
@@ -46,22 +52,30 @@ namespace IOv2::FacetHelper
         while (ctr--)
         {
             *s++ = sep;
-            for (char i = grouping[idx]; i > 0; --i)
+            for (uint8_t i = grouping[idx]; i > 0; --i)
                 *s++ = *first++;
         }
 
         while (idx--)
         {
             *s++ = sep;
-            for (char i = grouping[idx]; i > 0; --i)
+            for (uint8_t i = grouping[idx]; i > 0; --i)
                 *s++ = *first++;
         }
         return s;
     }
-    
+
+    // Internal helper function. Callers are responsible for ensuring that both
+    // grouping and grouping_tmp are non-empty; this function does not validate
+    // those preconditions. Callers guarantee grouping is non-empty because
+    // grouping_tmp is only populated inside !grouping.empty() branches, so
+    // the non-emptiness of grouping_tmp implies the non-emptiness of grouping.
     inline bool verify_grouping(const std::vector<uint8_t>& grouping,
                                 const std::string& grouping_tmp)
     {
+        assert(!grouping.empty());
+        assert(!grouping_tmp.empty());
+
         const size_t n = grouping_tmp.size() - 1;
         const size_t min_val = std::min(n, size_t(grouping.size() - 1));
         size_t i = n;

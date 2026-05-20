@@ -1,11 +1,10 @@
 #pragma once
 
+#include <common/lru_cache.h>
+#include <common/metafunctions.h>
+#include <facet/ctype_details.h>
 #include <memory>
 #include <mutex>
-
-#include <common/metafunctions.h>
-#include <common/lru_cache.h>
-#include <facet/ctype_details.h>
 
 namespace IOv2
 {
@@ -47,7 +46,7 @@ public:
     {
         return m_table[static_cast<unsigned char>(c)];
     }
-    
+
     bool is_any(mask m, CharT c) const
     {
         return is(c) & m;
@@ -81,7 +80,7 @@ public:
     {
         return m_toupper[static_cast<unsigned char>(c)];
     }
-    
+
     template <typename InIt, typename OutIt>
     OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const
     {
@@ -107,7 +106,7 @@ public:
     {
         return m_widen[static_cast<unsigned char>(c)];
     }
-    
+
     template <typename InIt, typename OutIt>
     OutIt widen_seq(InIt beg, InIt end, OutIt dst) const
     {
@@ -266,7 +265,7 @@ public:
         }
         return dst;
     }
-    
+
 private:
     mask do_is(CharT c) const
     {
@@ -283,7 +282,7 @@ private:
         }
         return *res;
     }
-    
+
     CharT do_toupper(CharT c) const
     {
         if (static_cast<unsigned>(c) < s_len)
@@ -299,7 +298,7 @@ private:
         }
         return *res;
     }
-    
+
     CharT do_tolower(CharT c) const
     {
         if (static_cast<unsigned>(c) < s_len)
@@ -315,7 +314,7 @@ private:
         }
         return *res;
     }
-    
+
     std::optional<char> do_narrow(CharT c) const
     {
         if (static_cast<unsigned>(c) < s_len)

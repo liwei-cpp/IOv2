@@ -862,7 +862,7 @@ private:
         bool success = true;
         // Digit grouping is checked. If grouping and found_grouping don't
         // match, then get very very upset, and set failbit.
-        if (found_grouping.size())
+        if (!found_grouping.empty())
         {
             // Add the ending grouping if a decimal or 'e'/'E' wasn't found.
             if (!found_dec && !found_sci)
