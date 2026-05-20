@@ -3,6 +3,9 @@
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
+
+#include <botan/secmem.h>
 
 void test_chacha20_cvt_gen_1()
 {
@@ -288,6 +291,159 @@ void test_chacha20_cvt_key_1()
         dec_msg.resize(msg.size());
         obj.get(dec_msg.data(), dec_msg.size());
         if (dec_msg == msg) throw std::runtime_error("chacha20 decryption with WRONG key succeeded (unexpectedly)");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_chacha20_cvt_raw_key_1()
+{
+    using namespace IOv2;
+    dump_info("Test chacha20_cvt raw-key constructor and error paths...");
+
+    // key_gen with empty string throws
+    {
+        bool threw = false;
+        try { Crypt::chacha20_cvt_helpers::key_gen(""); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // Raw key constructor with valid 32-byte key: encrypt then decrypt
+    {
+        Botan::secure_vector<uint8_t> key(32, 0xAB);
+        std::string msg = "raw-key test message";
+        std::string enc_msg;
+
+        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
+        {
+            CheckType obj(rb_root_cvt{mem_device("")}, key);
+            obj.bos();
+            obj.main_cont_beg();
+            obj.put(msg.data(), msg.size());
+            auto [dev, err] = obj.detach();
+            VERIFY(!err);
+            enc_msg = dev.str();
+        }
+        {
+            CheckType obj(rb_root_cvt{mem_device(enc_msg)}, key);
+            obj.bos();
+            obj.main_cont_beg();
+            std::string dec;
+            dec.resize(msg.size() * 2);
+            auto n = obj.get(dec.data(), dec.size());
+            dec.resize(n);
+            VERIFY(dec == msg);
+        }
+    }
+
+    // Raw key constructor with invalid key length throws
+    {
+        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
+        Botan::secure_vector<uint8_t> bad_key(5, 0x00);
+        bool threw = false;
+        try { CheckType obj(rb_root_cvt{mem_device("")}, bad_key); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // Move assignment operator
+    {
+        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
+        std::string msg = "move assign test";
+        CheckType obj1(rb_root_cvt{mem_device("")}, "movekey");
+        CheckType obj2(rb_root_cvt{mem_device("")}, "movekey");
+
+        obj1.bos();
+        obj1.main_cont_beg();
+        obj2 = std::move(obj1);
+        obj2.put(msg.data(), msg.size());
+        auto [dev, err] = obj2.detach();
+        VERIFY(!err);
+        VERIFY(!dev.str().empty());
+    }
+
+    dump_info("Done\n");
+}
+
+void test_chacha20_cvt_attach_1()
+{
+    using namespace IOv2;
+    dump_info("Test chacha20_cvt attach/detach cycle...");
+
+    std::string msg = "attach-cycle test message for chacha20";
+    std::string enc1, enc2;
+
+    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
+    CheckType obj(rb_root_cvt{mem_device("")}, "attachkey");
+
+    // First session
+    obj.bos();
+    obj.main_cont_beg();
+    obj.put(msg.data(), msg.size());
+    {
+        auto [dev, err] = obj.detach();
+        VERIFY(!err);
+        enc1 = dev.str();
+    }
+
+    // attach() exercises attach_impl(): resets cipher state
+    obj.attach();
+    obj.bos();
+    obj.main_cont_beg();
+    obj.put(msg.data(), msg.size());
+    {
+        auto [dev, err] = obj.detach();
+        VERIFY(!err);
+        enc2 = dev.str();
+    }
+
+    // Both sessions produce different ciphertext (different random IVs)
+    VERIFY(enc1 != enc2);
+
+    // Both decrypt correctly
+    auto decrypt = [&msg](const std::string& enc)
+    {
+        CheckType dec_obj(rb_root_cvt{mem_device(enc)}, "attachkey");
+        dec_obj.bos();
+        dec_obj.main_cont_beg();
+        std::string out;
+        out.resize(msg.size() * 2);
+        auto n = dec_obj.get(out.data(), out.size());
+        out.resize(n);
+        VERIFY(out == msg);
+    };
+    decrypt(enc1);
+    decrypt(enc2);
+
+    // bos_impl() on moved-from (null m_cipher) — hits line 396
+    {
+        CheckType src(rb_root_cvt{mem_device("")}, "attachkey");
+        auto moved = std::move(src);
+        bool threw = false;
+        try { src.bos(); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // attach_impl() on moved-from (null m_cipher) — hits line 351
+    {
+        CheckType src(rb_root_cvt{mem_device("")}, "attachkey");
+        auto moved = std::move(src);
+        bool threw = false;
+        try { src.attach(); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // bos_impl() input mode with too-short device data — incomplete IV read (hits line 419)
+    {
+        // ChaCha20 IV is 12 bytes; a 5-byte device has less than that
+        CheckType dec_obj(rb_root_cvt{mem_device("hello")}, "attachkey");
+        bool threw = false;
+        try { dec_obj.bos(); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
     }
 
     dump_info("Done\n");
