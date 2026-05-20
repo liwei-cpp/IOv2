@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cwchar>
 #include <cwctype>
 #include <limits>
 #include <optional>

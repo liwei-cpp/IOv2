@@ -4,6 +4,7 @@
 #include <common/metafunctions.h>
 #include <facet/ctype.h>
 #include <facet/numeric_details.h>
+#include <io/io_base.h>
 #include <type_traits>
 
 namespace IOv2

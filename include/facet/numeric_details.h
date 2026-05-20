@@ -105,12 +105,12 @@ public:
             return;
         }
 
+        m_decimal_point = FacetHelper::nl_langinfo_char<CharT>(DECIMAL_POINT, name, static_cast<CharT>('.'));
+        m_thousands_sep = FacetHelper::nl_langinfo_char<CharT>(THOUSANDS_SEP, name, static_cast<CharT>('\0'));
+
         clocale_wrapper inter_locale(name.c_str());
         clocale_user guard(inter_locale);
 
-        m_decimal_point = FacetHelper::nl_langinfo_char<CharT>(DECIMAL_POINT, name, static_cast<CharT>('.'));
-        m_thousands_sep = FacetHelper::nl_langinfo_char<CharT>(THOUSANDS_SEP, name, static_cast<CharT>('\0'));
-                
         if (m_thousands_sep != '\0')
         {
             const char* src = nl_langinfo(GROUPING);
