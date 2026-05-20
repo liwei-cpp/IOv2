@@ -112,6 +112,8 @@ void test_code_cvt_stdio_retrieve_1();
 void test_code_cvt_stdio_retrieve_2();
 void test_code_cvt_stdio_creator_1();
 
+void test_cvt_facilities_1();
+
 void test_code_cvt()
 {
     test_code_cvt_mem_char_gen_1();
@@ -226,4 +228,6 @@ void test_code_cvt()
     test_code_cvt_stdio_retrieve_1();
     test_code_cvt_stdio_retrieve_2();
     test_code_cvt_stdio_creator_1();
+
+    test_cvt_facilities_1();
 }

@@ -3,6 +3,7 @@
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 namespace
 {
@@ -335,6 +336,151 @@ void test_sha256_cvt_put_5()
     auto tmp = creator.create(rb_root_cvt{mem_device{u8""}});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
-    
+
+    dump_info("Done\n");
+}
+
+void test_sha256_cvt_adjust_1()
+{
+    using namespace IOv2;
+    dump_info("Test sha256_cvt adjust edge cases...");
+
+    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
+
+    // adjust(dump_hash) when no main content yet → no-op (m_has_main_cont == false)
+    {
+        auto obj = creator.create(rb_root_cvt{mem_device{""}});
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        // No put() before dump_hash → m_has_main_cont is false → adjust is a no-op
+        obj.adjust(Crypt::dump_hash{});
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.str().empty());
+    }
+
+    // adjust(dump_hash) without delimiter when there IS main content
+    {
+        auto obj = creator.create(rb_root_cvt{mem_device{""}});
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.adjust(Crypt::dump_hash{});      // no delimiter
+        obj.put("hello", 5);
+        auto [dev, err] = obj.detach();
+        // Two SHA-256 digests of "hello" concatenated, lower-hex format
+        VERIFY(dev.str() == hello_hex_low + hello_hex_low);
+    }
+
+    // adjust(unrecognised cvt_behavior) → silently ignored
+    {
+        struct unknown_behavior : cvt_behavior {};
+        auto obj = creator.create(rb_root_cvt{mem_device{""}});
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.adjust(unknown_behavior{});
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.str() == hello_hex_low);
+    }
+
+    // bos_impl() in input mode → hash_cvt only supports output mode, must throw
+    {
+        // Device with content → bos() detects input mode → bos_impl() throws
+        auto obj = creator.create(rb_root_cvt{mem_device{hello_hex_low}});
+        bool threw = false;
+        try { obj.bos(); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // attach_impl() with null m_hash (moved-from object) → throws
+    {
+        auto src = creator.create(rb_root_cvt{mem_device{""}});
+        auto moved = std::move(src);
+        // src is now moved-from: m_hash is null
+        bool threw = false;
+        try { src.attach(); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}
+
+void test_sha256_cvt_assign_1()
+{
+    using namespace IOv2;
+    dump_info("Test sha256_cvt assignment/destructor edge cases...");
+
+    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::SHA256);
+
+    // Copy-assign to object with m_has_main_cont == true (hits line 265: dump_stream in copy-assign)
+    {
+        auto obj1 = creator.create(rb_root_cvt{mem_device{""}});
+        auto obj2 = creator.create(rb_root_cvt{mem_device{""}});
+        obj1.bos(); obj1.main_cont_beg(); obj1.put("hello", 5);
+        obj2.bos(); obj2.main_cont_beg(); obj2.put("hello", 5);
+        // Copy-assign: obj2.m_has_main_cont == true → dump_stream() flushed first
+        obj2 = obj1;
+        auto [dev, err] = obj2.detach();
+        VERIFY(!err);
+        VERIFY(dev.str() == hello_hex_low);
+    }
+
+    // Move-assign to object with m_has_main_cont == true (hits line 282: try{dump_stream} in move-assign)
+    {
+        auto obj1 = creator.create(rb_root_cvt{mem_device{""}});
+        auto obj2 = creator.create(rb_root_cvt{mem_device{""}});
+        obj1.bos(); obj1.main_cont_beg(); obj1.put("hello", 5);
+        obj2.bos(); obj2.main_cont_beg(); obj2.put("hello", 5);
+        // Move-assign: obj2.m_has_main_cont == true → dump_stream() called first
+        obj2 = std::move(obj1);
+        auto [dev, err] = obj2.detach();
+        VERIFY(!err);
+        VERIFY(dev.str() == hello_hex_low);
+    }
+
+    // Destructor with m_has_main_cont == true (hits line 299: try{dump_stream} in destructor)
+    {
+        auto obj = creator.create(rb_root_cvt{mem_device{""}});
+        obj.bos(); obj.main_cont_beg(); obj.put("hello", 5);
+        // obj goes out of scope here; destructor calls dump_stream
+    }
+
+    // bos_impl() with null m_hash (moved-from object) — hits line 412
+    {
+        auto src = creator.create(rb_root_cvt{mem_device{""}});
+        auto moved = std::move(src);
+        bool threw = false;
+        try { src.bos(); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // algo_to_str default case (invalid hash_algo) — hits lines 550-551
+    {
+        bool threw = false;
+        try
+        {
+            using KernelType = rb_root_cvt<mem_device<char>>;
+            Crypt::hash_cvt<KernelType> bad(rb_root_cvt{mem_device{""}},
+                                            static_cast<Crypt::hash_algo>(255));
+        }
+        catch (...) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // detach_impl error path via dump_stream with invalid fmt — hits lines 342-354 and 635-636
+    {
+        auto obj = creator.create(rb_root_cvt{mem_device{""}});
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        obj.put("hello", 5);
+        // Set an invalid output format so dump_stream throws inside detach_impl
+        obj.adjust(Crypt::set_hash_fmt{static_cast<Crypt::hash_fmt>(255)});
+        auto [dev, err] = obj.detach();
+        VERIFY(err != nullptr);
+    }
+
     dump_info("Done\n");
 }

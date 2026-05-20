@@ -1,4 +1,5 @@
 #include <cvt/code_cvt.h>
+#include <cvt/cvt_facilities.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
@@ -1388,6 +1389,74 @@ void test_code_cvt_mem_char8_t_kernel_helpers_1()
             kernel.in_helper(from, from_end, to, to_end);
             throw std::runtime_error("in_helper reversed: expected throw");
         } catch (const cvt_error&) {}
+    }
+
+    dump_info("Done\n");
+}
+
+void test_cvt_facilities_1()
+{
+    using namespace IOv2;
+    dump_info("Test cvt_facilities...");
+
+    // to_u32string(u8string_view): UTF-8 → UTF-32
+    {
+        auto r = detail::to_u32string(u8"hello");
+        VERIFY(r == U"hello");
+    }
+    {
+        auto r = detail::to_u32string(u8"李伟");
+        VERIFY(r.size() == 2);
+        VERIFY(r[0] == U'李');
+        VERIFY(r[1] == U'伟');
+    }
+    {
+        auto r = detail::to_u32string(u8"");
+        VERIFY(r.empty());
+    }
+
+    // to_u8string(const std::u32string&): UTF-32 → UTF-8
+    {
+        auto r = detail::to_u8string(U"hello");
+        VERIFY(r == u8"hello");
+    }
+    {
+        auto r = detail::to_u8string(std::u32string{U'李', U'伟'});
+        VERIFY(r == u8"李伟");
+    }
+    {
+        auto r = detail::to_u8string(std::u32string{});
+        VERIFY(r.empty());
+    }
+
+    // to_u8string(char32_t): single code point → UTF-8
+    {
+        auto r = detail::to_u8string(U'A');
+        VERIFY(r == u8"A");
+    }
+    {
+        auto r = detail::to_u8string(U'李');
+        VERIFY(r == u8"李");
+    }
+
+    // to_wstring(string_view, locale_name): narrow → wide using C locale
+    {
+        auto r = detail::to_wstring("hello", "C");
+        VERIFY(r == L"hello");
+    }
+    {
+        auto r = detail::to_wstring("", "C");
+        VERIFY(r.empty());
+    }
+
+    // to_u32string(string_view, locale_name): narrow → UTF-32 using C locale
+    {
+        auto r = detail::to_u32string("hello", "C");
+        VERIFY(r == U"hello");
+    }
+    {
+        auto r = detail::to_u32string("", "C");
+        VERIFY(r.empty());
     }
 
     dump_info("Done\n");

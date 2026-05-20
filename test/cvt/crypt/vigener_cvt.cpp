@@ -381,9 +381,13 @@ void test_vigenere_cvt_seek_2()
 
         FAIL_RSEEK(obj, 60);
         if (obj.tell() != 5) throw std::runtime_error("vigenere_cvt::tell fail");
-        
+
         FAIL_RSEEK(obj, 9);
         if (obj.tell() != 5) throw std::runtime_error("vigenere_cvt::tell fail");
+
+        // seek out-of-bounds → seek_impl catches, tell() still works, rethrows (line 419)
+        FAIL_SEEK(obj, 100);
+        if (obj.tell() != 5) throw std::runtime_error("vigenere_cvt::tell fail after failed seek");
     };
 
     Crypt::Classic::vigenere_cvt_creator<char> creator("liwei");
@@ -393,6 +397,75 @@ void test_vigenere_cvt_seek_2()
     auto tmp = creator.create(rb_root_cvt{mem_device("123abcdefg")});
     runtime_cvt obj2(std::move(tmp));
     helper(obj2);
+
+    dump_info("Done\n");
+}
+
+void test_vigenere_cvt_error_1()
+{
+    using namespace IOv2;
+    dump_info("Test vigenere_cvt error paths...");
+
+    // vigenere_cvt_creator with empty key throws
+    {
+        bool threw = false;
+        try { Crypt::Classic::vigenere_cvt_creator<char> bad_creator(""); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // vigenere_cvt constructor with empty key throws
+    {
+        bool threw = false;
+        try
+        {
+            using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
+            std::string_view empty_key{};
+            CheckType obj(rb_root_cvt{mem_device("")}, empty_key);
+        }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // attach_impl() empty key: move-from then call attach() — hits line 183
+    {
+        using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
+        CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
+        auto moved = std::move(obj);
+        // obj is moved-from: m_key is empty
+        bool threw = false;
+        try { obj.attach(); }
+        catch (const cvt_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // detach_impl() resets m_pos; attach_impl() validates key on re-use
+    {
+        using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
+        CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.seek(3);
+        VERIFY(obj.tell() == 3);
+        auto [dev2, err] = obj.detach();
+        // detach_impl() was called: m_pos reset to 0
+        // attach_impl() validates key is non-empty
+        obj.attach();
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        obj.put("world", 5);
+        auto [dev3, err3] = obj.detach();
+        // "world" encrypted from m_pos=0 (reset by detach_impl)
+        const std::string expected = {
+            static_cast<char>('w' + 'l'),
+            static_cast<char>('o' + 'i'),
+            static_cast<char>('r' + 'w'),
+            static_cast<char>('l' + 'e'),
+            static_cast<char>('d' + 'i'),
+        };
+        VERIFY(dev3.str() == expected);
+    }
 
     dump_info("Done\n");
 }

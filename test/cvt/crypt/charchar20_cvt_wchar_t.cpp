@@ -246,3 +246,43 @@ void test_chacha20_cvt_wchar_t_io_1()
     
     dump_info("Done\n");
 }
+void test_chacha20_cvt_wchar_t_err_1()
+{
+    using namespace IOv2;
+    dump_info("Test chacha20_cvt<wchar_t> error paths...");
+
+    // Encrypt 1 wchar_t element, then truncate ciphertext by 1 byte so it is not
+    // wchar_t-aligned. Decrypting triggers the EOF-on-non-aligned-boundary path
+    // (lines 533-535 splice entry + line 567 taint-and-throw).
+    {
+        Crypt::chacha20_cvt_creator<wchar_t> creator("errkey");
+        std::string enc_msg;
+        {
+            auto enc_obj = creator.create(rb_root_cvt{mem_device("")});
+            enc_obj.bos();
+            enc_obj.main_cont_beg();
+            wchar_t ch = L'A';
+            enc_obj.put(&ch, 1);
+            auto [dev, err] = enc_obj.detach();
+            enc_msg = dev.str(); // IV_len bytes + 4 bytes ciphertext
+        }
+
+        // Truncate last byte: IV_len + 3 bytes = non-aligned for wchar_t
+        if (enc_msg.size() > 4)
+        {
+            enc_msg.resize(enc_msg.size() - 1);
+
+            using WcharType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>, wchar_t>;
+            WcharType dec_obj(rb_root_cvt{mem_device(enc_msg)}, "errkey");
+            dec_obj.bos();          // reads IV successfully
+            dec_obj.main_cont_beg();
+            wchar_t buf[2];
+            bool threw = false;
+            try { dec_obj.get(buf, 1); } // 3 bytes available, needs 4 → EOF mid-element
+            catch (const cvt_error&) { threw = true; }
+            if (!threw) throw std::runtime_error("chacha20_cvt wchar_t EOF non-aligned should throw");
+        }
+    }
+
+    dump_info("Done\n");
+}
