@@ -1,7 +1,7 @@
 #pragma once
+#include <common/clocale_wrapper.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/ctype_details.h>
-#include <io/io_base.h>
 
 #include <cassert>
 #include <limits>
@@ -116,6 +116,9 @@ namespace IOv2::FacetHelper
             (static_cast<char32_t>(L'伟') == U'伟'))
     inline CharT nl_langinfo_char(nl_item item, const std::string& locale_name, CharT default_char)
     {
+        clocale_wrapper inter_locale(locale_name.c_str());
+        clocale_user guard(inter_locale);
+
         const char* narrow = nl_langinfo(item);
         if (!narrow || narrow[0] == '\0')
             return default_char;
