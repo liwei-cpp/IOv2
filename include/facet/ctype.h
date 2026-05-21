@@ -3,8 +3,11 @@
 #include <common/lru_cache.h>
 #include <common/metafunctions.h>
 #include <facet/ctype_details.h>
+
+#include <limits>
 #include <memory>
 #include <mutex>
+#include <optional>
 
 namespace IOv2
 {

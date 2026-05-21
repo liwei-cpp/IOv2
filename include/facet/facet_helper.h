@@ -3,16 +3,30 @@
 #include <cvt/cvt_facilities.h>
 #include <facet/ctype_details.h>
 
+#include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <limits>
 #include <string>
+#include <string_view>
+#include <type_traits>
+#include <vector>
+
 #include <langinfo.h>
 #include <nl_types.h>
 
 namespace IOv2::FacetHelper
 {
-    inline char string_to_char_convert(char* ptr, const std::string& locale_name)
+    // Convert the first character of a (possibly multibyte) C string `ptr`
+    // to a narrow char in the given locale, returning '\0' if conversion
+    // is not representable.
+    //
+    // Preconditions (not validated):
+    //   - `ptr` is non-null.
+    //   - `ptr` points to a NUL-terminated C string.
+    inline char string_to_char_convert(const char* ptr, const std::string& locale_name)
     {
+        assert(ptr != nullptr);
         if (*ptr == '\0')
             return '\0';
         if (ptr[1] == '\0')
@@ -27,40 +41,51 @@ namespace IOv2::FacetHelper
         return res.has_value() ? res.value() : '\0';
     }
 
-    // Internal helper function. Callers are responsible for ensuring that
-    // grouping is non-empty; this function does not validate that precondition.
+    // Internal helper function.
+    //
+    // Preconditions (not validated):
+    //   - `grouping` is non-empty (only the first precondition is asserted).
+    //   - `[first, last)` is a valid range, i.e. `first <= last`. Passing
+    //     `first > last` causes the inner copy loop to never terminate and
+    //     write past the output buffer.
+    //   - `s` points to an output buffer with sufficient capacity to hold
+    //     `(last - first)` characters plus one separator per non-leading
+    //     group; callers are responsible for sizing the buffer.
     template <typename CharT>
     inline CharT* add_grouping(CharT* s, CharT sep, const std::vector<uint8_t>& grouping,
                                const CharT* first, const CharT* last)
     {
         assert(!grouping.empty());
+        assert(first <= last);
 
         size_t idx = 0;
         size_t ctr = 0;
-        size_t gsize = grouping.size();
+        const size_t max_idx = grouping.size() - 1;
 
         while (last - first > grouping[idx]
                 && (grouping[idx] > 0))
         {
             last -= grouping[idx];
-            idx < gsize - 1 ? ++idx : ++ctr;
+            idx < max_idx ? ++idx : ++ctr;
         }
 
-        while (first != last)
-            *s++ = *first++;
+        s = std::copy(first, last, s);
+        first = last;
 
+        const uint8_t n = grouping[idx];
         while (ctr--)
         {
             *s++ = sep;
-            for (uint8_t i = grouping[idx]; i > 0; --i)
-                *s++ = *first++;
+            s = std::copy_n(first, n, s);
+            first += n;
         }
 
         while (idx--)
         {
             *s++ = sep;
-            for (uint8_t i = grouping[idx]; i > 0; --i)
-                *s++ = *first++;
+            const uint8_t m = grouping[idx];
+            s = std::copy_n(first, m, s);
+            first += m;
         }
         return s;
     }
@@ -76,9 +101,8 @@ namespace IOv2::FacetHelper
         assert(!grouping.empty());
         assert(!grouping_tmp.empty());
 
-        const size_t n = grouping_tmp.size() - 1;
-        const size_t min_val = std::min(n, size_t(grouping.size() - 1));
-        size_t i = n;
+        size_t i = grouping_tmp.size() - 1;
+        const size_t min_val = std::min(i, grouping.size() - 1);
         bool test = true;
 
         // Parsed number groupings have to match the
@@ -95,16 +119,6 @@ namespace IOv2::FacetHelper
             && grouping[min_val] != std::numeric_limits<char>::max())
             test &= grouping_tmp[0] <= grouping[min_val];
         return test;
-    }
-
-    template <typename T>
-    inline auto string_convert(std::string_view str)
-    {
-        std::basic_string<T> res;
-        res.reserve(str.size());
-        for (char c : str)
-            res.push_back(static_cast<T>(c));
-        return res;
     }
 
     // Portable nl_langinfo function (use narrow POSIX item and convert to wide)

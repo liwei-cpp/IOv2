@@ -2,12 +2,13 @@
 #include <common/clocale_wrapper.h>
 #include <facet/facet_common.h>
 
-#include <algorithm>
 #include <cctype>
 #include <cwchar>
 #include <cwctype>
 #include <limits>
 #include <optional>
+#include <string>
+#include <type_traits>
 
 namespace IOv2
 {
