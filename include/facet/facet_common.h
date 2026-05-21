@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 namespace IOv2
 {
