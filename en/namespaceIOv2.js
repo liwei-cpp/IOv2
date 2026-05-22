@@ -14,9 +14,10 @@ var namespaceIOv2 =
     [ "dev_cpt", "namespaceIOv2_1_1dev__cpt.html", "namespaceIOv2_1_1dev__cpt" ],
     [ "FacetHelper", "namespaceIOv2_1_1FacetHelper.html", [
       [ "add_grouping", "namespaceIOv2_1_1FacetHelper.html#a0faaf30b3a28b21f89f129297b1ad11f", null ],
+      [ "adjust_grouping", "namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28", null ],
       [ "nl_langinfo_char", "namespaceIOv2_1_1FacetHelper.html#a9420e0b2dc58669ff4655a58f59841fc", null ],
       [ "string_to_char_convert", "namespaceIOv2_1_1FacetHelper.html#a35831b9f9e679edd6978c063d68d2714", null ],
-      [ "verify_grouping", "namespaceIOv2_1_1FacetHelper.html#a749d65ec9cbe78a668bf260399ce939a", null ]
+      [ "verify_grouping", "namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b", null ]
     ] ],
     [ "ios_defs", "namespaceIOv2_1_1ios__defs.html", [
       [ "fmtflags", "namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca", null ],
