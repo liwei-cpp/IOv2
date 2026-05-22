@@ -45,7 +45,7 @@ public:
         , m_decimal_point(p_obj->decimal_point())
         , m_thousands_sep(p_obj->thousands_sep())
     {
-        adjust_grouping();
+        FacetHelper::adjust_grouping(m_grouping);
     }
 
     const std::vector<uint8_t>& grouping() const { return m_grouping; }
@@ -144,21 +144,6 @@ public:
         if (!succ)
             throw stream_error("monetary parse fail");
         return beg;
-    }
-
-private:
-    // this trys to solve the case: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=39168
-    // Following the code in gcc: https://github.com/gcc-mirror/gcc/blob/19b98410eb43be60f7e2673afeaabd016321c625/libstdc%2B%2B-v3/include/bits/locale_facets.tcc#L91
-    // however, I don't know whether this is appropriate or not, since it does not consider the number except grouping[0]
-    // what's more: I don't know whether c++ standard has this limitation is resonable or not...
-    void adjust_grouping()
-    {
-        if ((!m_grouping.empty()) && 
-            (m_grouping[0] > 0) &&
-            (m_grouping[0] != std::numeric_limits<char>::max()))
-            return;
-        else
-            m_grouping.clear();
     }
 
 private:
@@ -319,8 +304,8 @@ private:
         int sign_size = 0;
         // True if sign is mandatory.
         const bool mandatory_sign = (!info.m_positive_sign.empty() && !info.m_negative_sign.empty());
-        // String of grouping info from thousands_sep plucked from units.
-        std::string grouping_tmp;
+        // Vector of grouping info from thousands_sep plucked from units.
+        std::vector<uint8_t> grouping_tmp;
         if (!m_grouping.empty())
             grouping_tmp.reserve(32);
         // Last position before the decimal point.
@@ -414,7 +399,7 @@ private:
                         if (n)
                         {
                             // Mark position for later analysis.
-                            grouping_tmp += static_cast<char>(n);
+                            grouping_tmp.push_back(static_cast<uint8_t>(n));
                             n = 0;
                         }
                         else
@@ -475,7 +460,7 @@ private:
             if (!grouping_tmp.empty())
             {
                 // Add the ending grouping.
-                grouping_tmp += static_cast<char>(testdecfound ? last_pos : n);
+                grouping_tmp.push_back(static_cast<uint8_t>(testdecfound ? last_pos : n));
                 succ = FacetHelper::verify_grouping(m_grouping, grouping_tmp);
             }
 
