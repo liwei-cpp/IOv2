@@ -26,7 +26,7 @@ public:
         m_true_name = p_obj->truename();
         m_false_name = p_obj->falsename();
         m_grouping = p_obj->grouping();
-        adjust_grouping();
+        FacetHelper::adjust_grouping(m_grouping);
 
         char in_atoms_c[] = "-+xX0123456789abcdefABCDEF";
         m_ctype->widen_seq(in_atoms_c, in_atoms_c + 26, m_in_atoms);
@@ -632,7 +632,7 @@ private:
         const size_t len = (base == 16 ? s_iend - s_izero : base);
 
         // Extract.
-        std::string found_grouping;
+        std::vector<uint8_t> found_grouping;
         if (!m_grouping.empty()) found_grouping.reserve(32);
         bool testfail = false;
         bool testoverflow = false;
@@ -653,7 +653,7 @@ private:
                 // is a no-no, as is two consecutive thousands separators.
                 if (sep_pos)
                 {
-                    found_grouping += static_cast<char>(sep_pos);
+                    found_grouping.push_back(static_cast<uint8_t>(sep_pos));
                     sep_pos = 0;
                 }
                 else
@@ -690,7 +690,7 @@ private:
         if (!found_grouping.empty())
         {
             // Add the ending grouping.
-            found_grouping += static_cast<char>(sep_pos);
+            found_grouping.push_back(static_cast<uint8_t>(sep_pos));
 
             success = FacetHelper::verify_grouping(m_grouping, found_grouping);
         }
@@ -768,7 +768,7 @@ private:
         // Only need acceptable digits for floating point numbers.
         bool found_dec = false;
         bool found_sci = false;
-        std::string found_grouping;
+        std::vector<uint8_t> found_grouping;
         if (!m_grouping.empty())
             found_grouping.reserve(32);
         const char_type* lit_zero = m_in_atoms + s_izero;
@@ -785,7 +785,7 @@ private:
                     // is a no-no, as is two consecutive thousands separators.
                     if (sep_pos)
                     {
-                        found_grouping += static_cast<char>(sep_pos);
+                        found_grouping.push_back(static_cast<uint8_t>(sep_pos));
                         sep_pos = 0;
                     }
                     else
@@ -807,7 +807,7 @@ private:
                     // is applied. Therefore found_grouping is adjusted
                     // only if decimal_point comes after some thousands_sep.
                     if (found_grouping.size())
-                        found_grouping += static_cast<char>(sep_pos);
+                        found_grouping.push_back(static_cast<uint8_t>(sep_pos));
                     xtrc += '.';
                     found_dec = true;
                 }
@@ -828,7 +828,7 @@ private:
                 {
                     // Scientific notation.
                     if (found_grouping.size() && !found_dec)
-                        found_grouping += static_cast<char>(sep_pos);
+                        found_grouping.push_back(static_cast<uint8_t>(sep_pos));
                     xtrc += 'e';
                     found_sci = true;
 
@@ -867,7 +867,7 @@ private:
         {
             // Add the ending grouping if a decimal or 'e'/'E' wasn't found.
             if (!found_dec && !found_sci)
-                found_grouping += static_cast<char>(sep_pos);
+                found_grouping.push_back(static_cast<uint8_t>(sep_pos));
 
             success = FacetHelper::verify_grouping(m_grouping, found_grouping);
         }
@@ -909,18 +909,6 @@ private:
             res = false;
         }
         return res;
-    }
-
-private:
-    // this trys to solve the case: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=39168
-    void adjust_grouping()
-    {
-        if ((!m_grouping.empty()) && 
-            (m_grouping[0] > 0) &&
-            (m_grouping[0] < std::numeric_limits<char>::max()))
-            return;
-        else
-            m_grouping.clear();
     }
 
 private:

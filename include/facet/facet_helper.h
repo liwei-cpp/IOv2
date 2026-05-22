@@ -90,13 +90,41 @@ namespace IOv2::FacetHelper
         return s;
     }
 
+    // Normalise a raw grouping vector and discard it if it carries no usable
+    // constraint. Sentinel convention (internal, platform-independent):
+    //   0   — repeat the previous group size indefinitely
+    //   255 — no further grouping
+    //   1–254 — explicit group size
+    //
+    // POSIX CHAR_MAX (127 on signed-char platforms) is normalised to 255 so
+    // that callers never need to know the platform's char signedness.
+    inline void adjust_grouping(std::vector<uint8_t>& grouping)
+    {
+        constexpr uint8_t posix_sentinel = static_cast<uint8_t>(std::numeric_limits<char>::max());
+        if constexpr (posix_sentinel != std::numeric_limits<uint8_t>::max())
+            for (auto& g : grouping)
+                if (g == posix_sentinel) g = std::numeric_limits<uint8_t>::max();
+
+        if ((!grouping.empty()) &&
+            (grouping[0] > 0) &&
+            (grouping[0] != std::numeric_limits<uint8_t>::max()))
+            return;
+        else
+            grouping.clear();
+    }
+
     // Internal helper function. Callers are responsible for ensuring that both
     // grouping and grouping_tmp are non-empty; this function does not validate
     // those preconditions. Callers guarantee grouping is non-empty because
     // grouping_tmp is only populated inside !grouping.empty() branches, so
     // the non-emptiness of grouping_tmp implies the non-emptiness of grouping.
+    //
+    // grouping uses an internal uint8_t sentinel convention:
+    //   0   — repeat the previous group size for all remaining groups
+    //   255 — no further grouping (normalised from POSIX CHAR_MAX at load time)
+    //   1–254 — explicit group size
     inline bool verify_grouping(const std::vector<uint8_t>& grouping,
-                                const std::string& grouping_tmp)
+                                const std::vector<uint8_t>& grouping_tmp)
     {
         assert(!grouping.empty());
         assert(!grouping_tmp.empty());
@@ -112,11 +140,11 @@ namespace IOv2::FacetHelper
             test = grouping_tmp[i] == grouping[j];
         for (; i && test; --i)
             test = grouping_tmp[i] == grouping[min_val];
-        // ... but the first parsed grouping can be <= numpunct
-        // grouping (only do the check if the numpunct char is > 0
-        // because <= 0 means any size is ok).
-        if (static_cast<signed char>(grouping[min_val]) > 0
-            && grouping[min_val] != std::numeric_limits<char>::max())
+        // ... but the first parsed grouping can be <= numpunct grouping.
+        // Skip this check when grouping[min_val] is 0 (repeat-last, no bound)
+        // or 255 (no-further-grouping sentinel).
+        if (grouping[min_val] > 0
+            && grouping[min_val] != std::numeric_limits<uint8_t>::max())
             test &= grouping_tmp[0] <= grouping[min_val];
         return test;
     }

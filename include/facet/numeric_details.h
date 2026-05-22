@@ -44,7 +44,11 @@ public:
                 {
                     m_grouping.resize(len);
                     for (size_t i = 0; i < len; ++i)
-                        m_grouping[i] = (uint8_t)(src[i]);
+                    {
+                        const uint8_t byte = static_cast<uint8_t>(src[i]);
+                        m_grouping[i] = (byte == static_cast<uint8_t>(std::numeric_limits<char>::max()))
+                            ? std::numeric_limits<uint8_t>::max() : byte;
+                    }
                 }
             }
             
