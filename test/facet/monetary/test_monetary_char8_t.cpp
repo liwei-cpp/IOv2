@@ -330,7 +330,7 @@ void test_monetary_char8_t_put_7()
     IOv2::ios_base<char8_t> ios;
     
     auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({CHAR_MAX});
+    tmp_io->set_grouping({});
     IOv2::monetary<char8_t> obj(tmp_io);
     
     std::u8string  digits(300, L'1');
@@ -1295,7 +1295,7 @@ void test_monetary_char8_t_get_23()
     IOv2::ios_base<char8_t> ios;
     
     auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({CHAR_MAX});
+    tmp_io->set_grouping({});
     IOv2::monetary<char8_t> obj(tmp_io);
     
     std::u8string  ss = u8"123,456";

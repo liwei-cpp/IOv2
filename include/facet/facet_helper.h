@@ -90,27 +90,57 @@ namespace IOv2::FacetHelper
         return s;
     }
 
-    // Normalise a raw grouping vector and discard it if it carries no usable
-    // constraint. Sentinel convention (internal, platform-independent):
-    //   0   — repeat the previous group size indefinitely
-    //   255 — no further grouping
-    //   1–254 — explicit group size
+    // Normalise a raw POSIX-style grouping vector to the internal convention,
+    // or discard it if it carries no usable constraint.
     //
-    // POSIX CHAR_MAX (127 on signed-char platforms) is normalised to 255 so
-    // that callers never need to know the platform's char signedness.
+    // Internal convention (uint8_t, platform-independent):
+    //   1–255 — explicit group size.
+    //   0     — stop: no further grouping after this point (the ONLY sentinel).
+    //   The LAST element (if in 1–255) is implicitly repeated for all
+    //   remaining groups. If the last element is 0, the explicit stop wins.
+    //
+    // Conversions applied to raw POSIX input:
+    //   - POSIX "0 = repeat previous": the 0 and everything after it is
+    //     dropped. POSIX [N1, ..., Nk, 0, ...] becomes [N1, ..., Nk] in our
+    //     convention, because last-element implicit repeat already covers
+    //     that semantic exactly.
+    //   - POSIX CHAR_MAX (= stop): rewritten to internal 0. CHAR_MAX is 127
+    //     on signed-char platforms and 255 on unsigned-char platforms;
+    //     callers do not need to know the platform's char signedness after
+    //     this step.
+    //
+    // Order matters: stripping POSIX "0 = repeat" MUST happen before
+    // CHAR_MAX → 0 rewrite, otherwise our newly-introduced internal stop
+    // would be mistaken for a POSIX repeat-previous marker and dropped.
     inline void adjust_grouping(std::vector<uint8_t>& grouping)
     {
-        constexpr uint8_t posix_sentinel = static_cast<uint8_t>(std::numeric_limits<char>::max());
-        if constexpr (posix_sentinel != std::numeric_limits<uint8_t>::max())
-            for (auto& g : grouping)
-                if (g == posix_sentinel) g = std::numeric_limits<uint8_t>::max();
+        // Step 1: POSIX "0 = repeat previous" → drop the 0 and the tail.
+        auto zero = std::find(grouping.begin(), grouping.end(), uint8_t{0});
+        grouping.erase(zero, grouping.end());
 
-        if ((!grouping.empty()) &&
-            (grouping[0] > 0) &&
-            (grouping[0] != std::numeric_limits<uint8_t>::max()))
-            return;
-        else
+        // Step 2: POSIX CHAR_MAX (= stop) → internal 0 sentinel, plus
+        // canonical-form cleanup. After step 1 there are no 0s in the vector,
+        // so the FIRST CHAR_MAX is the only point at which we introduce one,
+        // and three cases fully cover the outcome:
+        //   - at begin():   grouping would start with the stop sentinel,
+        //                   i.e. no usable leading group ⇒ discard.
+        //                   (This also subsumes the empty-vector case left
+        //                   by step 1, since find on an empty range returns
+        //                   end() == begin().)
+        //   - in the tail:  rewrite to 0 and drop everything after it; those
+        //                   bytes are dead code anyway because add_grouping
+        //                   short-circuits on 0.
+        //   - not found:    nothing to do.
+        constexpr uint8_t posix_sentinel =
+            static_cast<uint8_t>(std::numeric_limits<char>::max());
+        auto stop = std::find(grouping.begin(), grouping.end(), posix_sentinel);
+        if (stop == grouping.begin())
             grouping.clear();
+        else if (stop != grouping.end())
+        {
+            *stop = 0;
+            grouping.erase(std::next(stop), grouping.end());
+        }
     }
 
     // Internal helper function. Callers are responsible for ensuring that both
@@ -119,10 +149,10 @@ namespace IOv2::FacetHelper
     // grouping_tmp is only populated inside !grouping.empty() branches, so
     // the non-emptiness of grouping_tmp implies the non-emptiness of grouping.
     //
-    // grouping uses an internal uint8_t sentinel convention:
-    //   0   — repeat the previous group size for all remaining groups
-    //   255 — no further grouping (normalised from POSIX CHAR_MAX at load time)
-    //   1–254 — explicit group size
+    // grouping uses the internal uint8_t convention established by
+    // adjust_grouping(): 1–255 are explicit group sizes, 0 is the sole
+    // "stop" sentinel, and the last 1–255 element is implicitly repeated
+    // for all remaining groups.
     inline bool verify_grouping(const std::vector<uint8_t>& grouping,
                                 const std::vector<uint8_t>& grouping_tmp)
     {
@@ -141,10 +171,9 @@ namespace IOv2::FacetHelper
         for (; i && test; --i)
             test = grouping_tmp[i] == grouping[min_val];
         // ... but the first parsed grouping can be <= numpunct grouping.
-        // Skip this check when grouping[min_val] is 0 (repeat-last, no bound)
-        // or 255 (no-further-grouping sentinel).
-        if (grouping[min_val] > 0
-            && grouping[min_val] != std::numeric_limits<uint8_t>::max())
+        // Skip this check when grouping[min_val] is 0 (stop sentinel,
+        // no upper bound on the first parsed group).
+        if (grouping[min_val] > 0)
             test &= grouping_tmp[0] <= grouping[min_val];
         return test;
     }

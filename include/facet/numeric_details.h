@@ -42,16 +42,17 @@ public:
                 const size_t len = strlen(src);
                 if (len != 0)
                 {
+                    // Copy raw POSIX grouping bytes, then normalise into the
+                    // internal convention here at the POSIX boundary.
+                    // Downstream (numeric, user-derived numeric_conf) sees
+                    // only the internal form.
                     m_grouping.resize(len);
                     for (size_t i = 0; i < len; ++i)
-                    {
-                        const uint8_t byte = static_cast<uint8_t>(src[i]);
-                        m_grouping[i] = (byte == static_cast<uint8_t>(std::numeric_limits<char>::max()))
-                            ? std::numeric_limits<uint8_t>::max() : byte;
-                    }
+                        m_grouping[i] = static_cast<uint8_t>(src[i]);
+                    FacetHelper::adjust_grouping(m_grouping);
                 }
             }
-            
+
             auto yesStr = nl_langinfo(YESSTR);
             m_true_name = yesStr ? yesStr : "true";
             
@@ -121,12 +122,15 @@ public:
             const size_t len = strlen(src);
             if (len != 0)
             {
+                // Copy raw POSIX grouping bytes, then normalise into the
+                // internal convention here at the POSIX boundary.
                 m_grouping.resize(len);
                 for (size_t i = 0; i < len; ++i)
                     m_grouping[i] = (uint8_t)(src[i]);
+                FacetHelper::adjust_grouping(m_grouping);
             }
         }
-        
+
         auto yesStr = nl_langinfo(YESSTR);
         if (yesStr == nullptr)
         {

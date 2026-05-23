@@ -668,9 +668,9 @@ void test_numeric_wchar_t_put_15()
 void test_numeric_wchar_t_put_16()
 {
     dump_info("Test numeric<wchar_t>::put 16...");
-    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping(std::vector{(uint8_t)-1});
-    auto p2 = std::make_shared<Punct>("C"); p2->set_grouping(std::vector{(uint8_t)2, (uint8_t)-1});
-    auto p3 = std::make_shared<Punct>("C"); p3->set_grouping(std::vector{(uint8_t)1, (uint8_t)2, (uint8_t)-1});
+    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping(std::vector<uint8_t>{});
+    auto p2 = std::make_shared<Punct>("C"); p2->set_grouping(std::vector<uint8_t>{(uint8_t)2, (uint8_t)0});
+    auto p3 = std::make_shared<Punct>("C"); p3->set_grouping(std::vector<uint8_t>{(uint8_t)1, (uint8_t)2, (uint8_t)0});
     
     IOv2::numeric<wchar_t> ng1(p1, s_ctype_c);
     IOv2::numeric<wchar_t> ng2(p2, s_ctype_c);
@@ -2176,7 +2176,7 @@ void test_numeric_wchar_t_get_20()
     IOv2::ios_base<wchar_t> ios;
     long double l = -1;
     
-    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({CHAR_MAX});
+    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({});
     const IOv2::numeric<wchar_t> obj(p1, s_ctype_c);
      
     std::wstring iss = L"123,456";

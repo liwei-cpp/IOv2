@@ -3,6 +3,7 @@
 #include <memory>
 #include <common/metafunctions.h>
 #include <facet/ctype.h>
+#include <facet/facet_helper.h>
 #include <facet/numeric_details.h>
 #include <io/io_base.h>
 #include <type_traits>
@@ -25,8 +26,12 @@ public:
         m_thousands_sep = p_obj->thousands_sep();
         m_true_name = p_obj->truename();
         m_false_name = p_obj->falsename();
+        // grouping() is contracted to return the INTERNAL convention
+        // (1–255 = group size, 0 = stop, last element implicitly repeats).
+        // numeric_conf and any user-derived override are both expected to
+        // satisfy this contract — POSIX-style normalisation is done at the
+        // POSIX boundary in numeric_conf, not here.
         m_grouping = p_obj->grouping();
-        FacetHelper::adjust_grouping(m_grouping);
 
         char in_atoms_c[] = "-+xX0123456789abcdefABCDEF";
         m_ctype->widen_seq(in_atoms_c, in_atoms_c + 26, m_in_atoms);

@@ -679,9 +679,9 @@ void test_numeric_char32_t_put_15()
 void test_numeric_char32_t_put_16()
 {
     dump_info("Test numeric<char32_t>::put 16...");
-    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping(std::vector{(uint8_t)-1});
-    auto p2 = std::make_shared<Punct>("C"); p2->set_grouping(std::vector{(uint8_t)2, (uint8_t)-1});
-    auto p3 = std::make_shared<Punct>("C"); p3->set_grouping(std::vector{(uint8_t)1, (uint8_t)2, (uint8_t)-1});
+    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping(std::vector<uint8_t>{});
+    auto p2 = std::make_shared<Punct>("C"); p2->set_grouping(std::vector<uint8_t>{(uint8_t)2, (uint8_t)0});
+    auto p3 = std::make_shared<Punct>("C"); p3->set_grouping(std::vector<uint8_t>{(uint8_t)1, (uint8_t)2, (uint8_t)0});
     
     IOv2::numeric<char32_t> ng1(p1, s_ctype_c);
     IOv2::numeric<char32_t> ng2(p2, s_ctype_c);
@@ -2198,7 +2198,7 @@ void test_numeric_char32_t_get_20()
     IOv2::ios_base<char32_t> ios;
     long double l = -1;
     
-    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({CHAR_MAX});
+    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({});
     const IOv2::numeric<char32_t> obj(p1, s_ctype_c);
      
     std::u32string  iss = U"123,456";

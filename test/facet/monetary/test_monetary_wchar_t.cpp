@@ -330,7 +330,7 @@ void test_monetary_wchar_t_put_7()
     IOv2::ios_base<wchar_t> ios;
     
     auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({CHAR_MAX});
+    tmp_io->set_grouping({});
     IOv2::monetary<wchar_t> obj(tmp_io);
     
     std::wstring digits(300, L'1');
@@ -1294,7 +1294,7 @@ void test_monetary_wchar_t_get_23()
     IOv2::ios_base<wchar_t> ios;
     
     auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({CHAR_MAX});
+    tmp_io->set_grouping({});
     IOv2::monetary<wchar_t> obj(tmp_io);
     
     std::wstring ss = L"123,456";
