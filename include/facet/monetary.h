@@ -1,5 +1,6 @@
 #pragma once
 #include <common/metafunctions.h>
+#include <facet/facet_helper.h>
 #include <facet/monetary_details.h>
 #include <io/io_base.h>
 
@@ -45,7 +46,11 @@ public:
         , m_decimal_point(p_obj->decimal_point())
         , m_thousands_sep(p_obj->thousands_sep())
     {
-        FacetHelper::adjust_grouping(m_grouping);
+        // grouping() is contracted to return the INTERNAL convention
+        // (1–255 = group size, 0 = stop, last element implicitly repeats).
+        // monetary_conf and any user-derived override are both expected to
+        // satisfy this contract — POSIX-style normalisation is done at the
+        // POSIX boundary in monetary_conf, not here.
     }
 
     const std::vector<uint8_t>& grouping() const { return m_grouping; }

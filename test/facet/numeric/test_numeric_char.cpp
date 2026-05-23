@@ -678,9 +678,9 @@ void test_numeric_char_put_15()
 void test_numeric_char_put_16()
 {
     dump_info("Test numeric<char>::put 16...");
-    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping(std::vector{(uint8_t)-1});
-    auto p2 = std::make_shared<Punct>("C"); p2->set_grouping(std::vector{(uint8_t)2, (uint8_t)-1});
-    auto p3 = std::make_shared<Punct>("C"); p3->set_grouping(std::vector{(uint8_t)1, (uint8_t)2, (uint8_t)-1});
+    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping(std::vector<uint8_t>{});
+    auto p2 = std::make_shared<Punct>("C"); p2->set_grouping(std::vector<uint8_t>{(uint8_t)2, (uint8_t)0});
+    auto p3 = std::make_shared<Punct>("C"); p3->set_grouping(std::vector<uint8_t>{(uint8_t)1, (uint8_t)2, (uint8_t)0});
     
     IOv2::numeric<char> ng1(p1, s_ctype_c);
     IOv2::numeric<char> ng2(p2, s_ctype_c);
@@ -2205,7 +2205,7 @@ void test_numeric_char_get_20()
     IOv2::ios_base<char> ios;
     long double l = -1;
     
-    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({CHAR_MAX});
+    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({});
     const IOv2::numeric<char> obj(p1, s_ctype_c);
      
     std::string iss = "123,456";
@@ -3829,7 +3829,7 @@ void test_numeric_char_get_41()
     IOv2::ios_base<char> ios;
     long double l = -1;
     
-    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({CHAR_MAX});
+    auto p1 = std::make_shared<Punct>("C"); p1->set_grouping({});
     const IOv2::numeric<char> obj(p1, s_ctype_c);
 
     using namespace IOv2;

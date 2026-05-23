@@ -331,7 +331,7 @@ void test_monetary_char_put_7()
     IOv2::ios_base<char> ios;
     
     auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({CHAR_MAX});
+    tmp_io->set_grouping({});
     IOv2::monetary<char> obj(tmp_io);
     
     std::string digits(300, '1');
@@ -1296,7 +1296,7 @@ void test_monetary_char_get_23()
     IOv2::ios_base<char> ios;
     
     auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({CHAR_MAX});
+    tmp_io->set_grouping({});
     IOv2::monetary<char> obj(tmp_io);
     
     std::string ss = "123,456";
@@ -2371,7 +2371,7 @@ void test_monetary_char_get_46()
     IOv2::ios_base<char> ios;
     
     auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({CHAR_MAX});
+    tmp_io->set_grouping({});
     IOv2::monetary<char> obj(tmp_io);
 
     std::string digits;
