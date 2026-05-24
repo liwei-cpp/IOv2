@@ -62,7 +62,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt is_seq(InIt low, InIt high, OutIt vec) const
     {
-        while (low < high)
+        while (low != high)
             *vec++ = is(*low++);
         return vec;
     }
@@ -70,7 +70,7 @@ public:
     template <typename InIt>
     InIt scan_is_any(mask m, InIt beg, InIt end) const
     {
-        while ((beg < end) && (!(is(*beg) & m)))
+        while ((beg != end) && (!(is(*beg) & m)))
             ++beg;
         return beg;
     }
@@ -78,7 +78,7 @@ public:
     template <typename InIt>
     InIt scan_not_any(mask m, InIt beg, InIt end) const
     {
-        while ((beg < end) && (is(*beg) & m))
+        while ((beg != end) && (is(*beg) & m))
             ++beg;
         return beg;
     }
@@ -91,7 +91,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = toupper(*beg++);
         return dst;
     }
@@ -104,7 +104,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt tolower_seq(InIt beg, InIt end, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = tolower(*beg++);
         return dst;
     }
@@ -117,7 +117,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt widen_seq(InIt beg, InIt end, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = widen(*beg++);
         return dst;
     }
@@ -136,7 +136,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = narrow(*beg++, dflt);
         return dst;
     }
@@ -192,7 +192,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt is_seq(InIt low, InIt high, OutIt vec) const
     {
-        while (low < high)
+        while (low != high)
             *vec++ = do_is(*low++);
         return vec;
     }
@@ -200,7 +200,7 @@ public:
     template <typename InIt>
     InIt scan_is_any(mask m, InIt beg, InIt end) const
     {
-        while ((beg < end) && (!(do_is(*beg) & m)))
+        while ((beg != end) && (!(do_is(*beg) & m)))
             ++beg;
         return beg;
     }
@@ -208,7 +208,7 @@ public:
     template <typename InIt>
     InIt scan_not_any(mask m, InIt beg, InIt end) const
     {
-        while ((beg < end) && (do_is(*beg) & m))
+        while ((beg != end) && (do_is(*beg) & m))
             ++beg;
         return beg;
     }
@@ -221,7 +221,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = do_toupper(*beg++);
         return dst;
     }
@@ -234,20 +234,36 @@ public:
     template <typename InIt, typename OutIt>
     OutIt tolower_seq(InIt beg, InIt end, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = do_tolower(*beg++);
         return dst;
     }
 
+    // Default behaviour (inherited from ctype_conf<CharT>::widen at
+    // construction time): matches std::ctype<wchar_t>::widen() semantics
+    // -- only guaranteed to be correct for the basic source character
+    // set. For multi-byte locales (e.g. UTF-8), high bytes are not
+    // standalone characters and btowc() returns WEOF for them at
+    // table-build time; the corresponding entries of m_widen hold WEOF
+    // cast to CharT (a sentinel-looking but unspecified value), and
+    // callers must not widen() such bytes under this default.
+    //
+    // This is only the default. A user may derive from ctype_conf<CharT>
+    // and override widen() to supply a different mapping; the lookup
+    // table held here is then rebuilt from that override when the
+    // owning ctype<CharT> is constructed, and the caveat above no
+    // longer applies under that derived behaviour.
     CharT widen(char c) const
     {
         return m_widen[static_cast<unsigned char>(c)];
     }
 
+    // See widen() above for the WEOF caveat applicable under the
+    // default ctype_conf<CharT>::widen behaviour.
     template <typename InIt, typename OutIt>
     OutIt widen_seq(InIt beg, InIt end, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = widen(*beg++);
         return dst;
     }
@@ -266,7 +282,7 @@ public:
     template <typename InIt, typename OutIt>
     OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const
     {
-        while (beg < end)
+        while (beg != end)
             *dst++ = narrow(*beg++, dflt);
         return dst;
     }

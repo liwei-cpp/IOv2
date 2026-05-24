@@ -216,8 +216,18 @@ public:
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
 
-            m_decimal_point = FacetHelper::string_to_char_convert(lc->mon_decimal_point, name);
-            m_thousands_sep = FacetHelper::string_to_char_convert(lc->mon_thousands_sep, name);
+            // Snapshot lconv string fields before invoking
+            // string_to_char_convert: that function transitively calls
+            // setlocale()/uselocale() (via detail::to_wstring), which
+            // may invalidate libc-owned lconv pointers. Both snapshots
+            // are taken before any conversion, so the second pointer
+            // cannot be invalidated by the first call.
+            std::string mdp_raw, mts_raw;
+            if (lc->mon_decimal_point) mdp_raw = lc->mon_decimal_point;
+            if (lc->mon_thousands_sep) mts_raw = lc->mon_thousands_sep;
+
+            m_decimal_point = FacetHelper::string_to_char_convert(mdp_raw, name);
+            m_thousands_sep = FacetHelper::string_to_char_convert(mts_raw, name);
             if (m_decimal_point == '\0')
             {
                 m_frac_digits_int = 0;

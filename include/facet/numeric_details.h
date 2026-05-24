@@ -48,8 +48,8 @@ public:
             if (auto* p = nl_langinfo(NOSTR))  { no_raw  = p; no_set  = true; }
         }
 
-        m_decimal_point = FacetHelper::string_to_char_convert(dp_raw.c_str(), name);
-        m_thousands_sep = FacetHelper::string_to_char_convert(ts_raw.c_str(), name);
+        m_decimal_point = FacetHelper::string_to_char_convert(dp_raw, name);
+        m_thousands_sep = FacetHelper::string_to_char_convert(ts_raw, name);
 
         if (m_thousands_sep != '\0' && !grp_raw.empty())
         {

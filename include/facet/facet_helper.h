@@ -4,7 +4,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <limits>
 #include <string>
 #include <type_traits>
@@ -12,23 +14,29 @@
 
 namespace IOv2::FacetHelper
 {
-    // Convert the first character of a (possibly multibyte) C string `ptr`
-    // to a narrow char in the given locale, returning '\0' if conversion
-    // is not representable.
+    // Convert the first character of a (possibly multibyte) narrow string
+    // `narrow` to a `char` in the given locale, returning '\0' if `narrow`
+    // is empty or conversion is not representable.
     //
-    // Preconditions (not validated):
-    //   - `ptr` is non-null.
-    //   - `ptr` points to a NUL-terminated C string.
-    inline char string_to_char_convert(const char* ptr, const std::string& locale_name)
+    // Suitable for fields read out of `lconv` / `nl_langinfo()` that
+    // semantically represent a single user-visible character (e.g.
+    // decimal_point, thousands_sep, mon_decimal_point, mon_thousands_sep).
+    //
+    // Why `const std::string&` and not `const char*`: `lconv*` and
+    // `nl_langinfo()` pointers may be invalidated by any setlocale() /
+    // uselocale() call. The conversion below transitively performs such
+    // calls (via detail::to_wstring), so the input must be a caller-owned
+    // snapshot rather than a borrowed pointer into the libc-owned locale
+    // data. Taking std::string makes this contract unmissable at every
+    // call site.
+    inline char string_to_char_convert(const std::string& narrow,
+                                       const std::string& locale_name)
     {
-        assert(ptr != nullptr);
-        if (*ptr == '\0')
-            return '\0';
-        if (ptr[1] == '\0')
-            return *ptr;
+        if (narrow.empty()) return '\0';
+        if (narrow.size() == 1) return narrow[0];
 
-        // Convert char to wchar_t then narrow down
-        std::wstring wide_str = detail::to_wstring(ptr, locale_name);
+        // Convert (multi-byte) narrow to wchar_t then narrow down
+        std::wstring wide_str = detail::to_wstring(narrow.c_str(), locale_name);
         if (wide_str.empty()) return '\0';
 
         ctype_conf<wchar_t> tmp_ctype(locale_name);
