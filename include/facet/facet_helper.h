@@ -1,5 +1,4 @@
 #pragma once
-#include <common/clocale_wrapper.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/ctype_details.h>
 
@@ -8,12 +7,8 @@
 #include <cstdint>
 #include <limits>
 #include <string>
-#include <string_view>
 #include <type_traits>
 #include <vector>
-
-#include <langinfo.h>
-#include <nl_types.h>
 
 namespace IOv2::FacetHelper
 {
@@ -39,6 +34,45 @@ namespace IOv2::FacetHelper
         ctype_conf<wchar_t> tmp_ctype(locale_name);
         auto res = tmp_ctype.narrow(wide_str[0]);
         return res.has_value() ? res.value() : '\0';
+    }
+
+    // Convert the first character of a (possibly multibyte) narrow string
+    // `narrow` to a wide character `CharT` in the given locale, returning
+    // `default_char` when `narrow` is empty or conversion produces no
+    // characters.
+    //
+    // Suitable for fields read out of `lconv` / `nl_langinfo()` that
+    // semantically represent a single user-visible character (e.g.
+    // decimal_point, thousands_sep, mon_decimal_point, mon_thousands_sep).
+    //
+    // Why `const std::string&` and not `const char*`: `lconv*` and
+    // `nl_langinfo()` pointers may be invalidated by any setlocale() /
+    // uselocale() call. The conversion below transitively performs such
+    // calls (via detail::to_wstring/to_u32string), so the input must be a
+    // caller-owned snapshot rather than a borrowed pointer into the
+    // libc-owned locale data. Taking std::string makes this contract
+    // unmissable at every call site.
+    template <typename CharT>
+        requires std::is_same_v<CharT, wchar_t> ||
+            (std::is_same_v<CharT, char32_t> &&
+                (sizeof(char32_t) == sizeof(wchar_t)) &&
+                (static_cast<wchar_t>(U'李') == L'李') &&
+                (static_cast<char32_t>(L'伟') == U'伟'))
+    inline CharT string_to_widechar_convert(const std::string& narrow,
+                                            const std::string& locale_name,
+                                            CharT default_char)
+    {
+        if (narrow.empty()) return default_char;
+        if constexpr (std::is_same_v<CharT, wchar_t>)
+        {
+            auto wide = detail::to_wstring(narrow.c_str(), locale_name);
+            return wide.empty() ? default_char : wide[0];
+        }
+        else
+        {
+            auto wide = detail::to_u32string(narrow.c_str(), locale_name);
+            return wide.empty() ? default_char : wide[0];
+        }
     }
 
     // Internal helper function.
@@ -176,32 +210,5 @@ namespace IOv2::FacetHelper
         if (grouping[min_val] > 0)
             test &= grouping_tmp[0] <= grouping[min_val];
         return test;
-    }
-
-    // Portable nl_langinfo function (use narrow POSIX item and convert to wide)
-    template <typename CharT>
-    requires std::is_same_v<CharT, wchar_t> ||
-        (std::is_same_v<CharT, char32_t> &&
-            (sizeof(char32_t) == sizeof(wchar_t)) &&
-            (static_cast<wchar_t>(U'李') == L'李') &&
-            (static_cast<char32_t>(L'伟') == U'伟'))
-    inline CharT nl_langinfo_char(nl_item item, const std::string& locale_name, CharT default_char)
-    {
-        clocale_wrapper inter_locale(locale_name.c_str());
-        clocale_user guard(inter_locale);
-
-        const char* narrow = nl_langinfo(item);
-        if (!narrow || narrow[0] == '\0')
-            return default_char;
-        if constexpr (std::is_same_v<CharT, wchar_t>)
-        {
-            auto wide = detail::to_wstring(narrow, locale_name);
-            return wide.empty() ? default_char : wide[0];
-        }
-        else
-        {
-            auto wide = detail::to_u32string(narrow, locale_name);
-            return wide.empty() ? default_char : wide[0];
-        }
     }
 }

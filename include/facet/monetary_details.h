@@ -348,22 +348,19 @@ public:
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
 
-            auto to_charT = [&](const char* narrow) -> CharT {
-                if (!narrow || !narrow[0]) return static_cast<CharT>('\0');
-                if constexpr (std::is_same_v<CharT, wchar_t>)
-                {
-                    auto wide = detail::to_wstring(narrow, name);
-                    return wide.empty() ? static_cast<CharT>('\0') : wide[0];
-                }
-                else
-                {
-                    auto wide = detail::to_u32string(narrow, name);
-                    return wide.empty() ? static_cast<CharT>('\0') : wide[0];
-                }
-            };
+            // Snapshot the single-character fields before the wide-char
+            // converter is called: it transitively invokes setlocale/
+            // uselocale, which may invalidate every string pointer inside
+            // `lc`.
+            const std::string mon_dp_raw =
+                lc->mon_decimal_point ? lc->mon_decimal_point : "";
+            const std::string mon_ts_raw =
+                lc->mon_thousands_sep ? lc->mon_thousands_sep : "";
 
-            m_decimal_point = to_charT(lc->mon_decimal_point);
-            m_thousands_sep = to_charT(lc->mon_thousands_sep);
+            m_decimal_point = FacetHelper::string_to_widechar_convert<CharT>(
+                mon_dp_raw, name, static_cast<CharT>('\0'));
+            m_thousands_sep = FacetHelper::string_to_widechar_convert<CharT>(
+                mon_ts_raw, name, static_cast<CharT>('\0'));
             
             if (static_cast<int>(m_decimal_point) == 0)
             {
