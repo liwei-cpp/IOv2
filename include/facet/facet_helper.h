@@ -77,14 +77,15 @@ namespace IOv2::FacetHelper
 
     // Internal helper function.
     //
-    // Preconditions (not validated):
-    //   - `grouping` is non-empty (only the first precondition is asserted).
+    // Preconditions:
+    //   - `grouping` is non-empty. [asserted in debug builds]
     //   - `[first, last)` is a valid range, i.e. `first <= last`. Passing
     //     `first > last` causes the inner copy loop to never terminate and
-    //     write past the output buffer.
+    //     write past the output buffer. [asserted in debug builds]
     //   - `s` points to an output buffer with sufficient capacity to hold
     //     `(last - first)` characters plus one separator per non-leading
     //     group; callers are responsible for sizing the buffer.
+    //     [not validated]
     template <typename CharT>
     inline CharT* add_grouping(CharT* s, CharT sep, const std::vector<uint8_t>& grouping,
                                const CharT* first, const CharT* last)
@@ -178,10 +179,13 @@ namespace IOv2::FacetHelper
     }
 
     // Internal helper function. Callers are responsible for ensuring that both
-    // grouping and grouping_tmp are non-empty; this function does not validate
-    // those preconditions. Callers guarantee grouping is non-empty because
-    // grouping_tmp is only populated inside !grouping.empty() branches, so
-    // the non-emptiness of grouping_tmp implies the non-emptiness of grouping.
+    // grouping and grouping_tmp are non-empty; non-emptiness is validated only
+    // by assert() in debug builds, release builds rely on the caller. Violating
+    // the precondition in release causes `size() - 1` to underflow to SIZE_MAX
+    // and subsequent indexing to read out of bounds. Callers guarantee grouping
+    // is non-empty because grouping_tmp is only populated inside
+    // !grouping.empty() branches, so the non-emptiness of grouping_tmp implies
+    // the non-emptiness of grouping.
     //
     // grouping uses the internal uint8_t convention established by
     // adjust_grouping(): 1–255 are explicit group sizes, 0 is the sole

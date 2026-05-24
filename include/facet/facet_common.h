@@ -1,4 +1,5 @@
 #pragma once
+#include <concepts>
 #include <cstddef>
 #include <memory>
 #include <stdexcept>
@@ -8,7 +9,7 @@ namespace IOv2
 {
 struct abs_ft
 {
-    abs_ft(size_t id)
+    explicit abs_ft(size_t id)
         : m_id(id) {}
 
     abs_ft(const abs_ft&) = delete;
@@ -34,10 +35,12 @@ template <typename TFacet> class ft_basic;
 template <template<typename> class TFacet, typename CharT>
 class ft_basic<TFacet<CharT>> : public base_ft<TFacet>
 {
+    static_assert(sizeof(void*) <= sizeof(size_t));
 public:
     using char_type = CharT;
 public:
     template <typename... T>
+        requires std::constructible_from<base_ft<TFacet>, size_t, T...>
     ft_basic(T&&... args)
         : base_ft<TFacet>(id(), std::forward<T>(args)...) {}
 

@@ -5,6 +5,14 @@ MODE = debug
 CXX ?= g++
 # CXX := /usr/bin/clang++
 
+# Feature-test macros (applied to all build modes via CPPFLAGS)
+# _POSIX_C_SOURCE=200809L exposes POSIX.1-2008 APIs required by this project:
+#   - locale_t, newlocale(), uselocale()  (clocale_wrapper)
+#   - isupper_l / islower_l / isalpha_l / isdigit_l / isxdigit_l /
+#     isspace_l / isprint_l / iscntrl_l / ispunct_l / toupper_l / tolower_l
+#   - wctype_l / iswctype_l / towupper_l / towlower_l  (ctype_details.h)
+CPPFLAGS := -D_POSIX_C_SOURCE=200809L
+
 ifeq ($(MODE),sanitizer)
     COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O1 -fsanitize=address,undefined -fno-omit-frame-pointer -I../include -I. -I/usr/include/botan-2/
     LINK_FLAGS := -lz -lbotan-2 -fsanitize=address,undefined
@@ -126,7 +134,7 @@ valgrind-util: util
 # Generic compilation rule
 $(OBJ_DIR)/%.o: ./%.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(COMP_FLAGS) -c $< -o $@
+	$(CXX) $(COMP_FLAGS) $(CPPFLAGS) -c $< -o $@
 
 # Run all tests
 test: all
