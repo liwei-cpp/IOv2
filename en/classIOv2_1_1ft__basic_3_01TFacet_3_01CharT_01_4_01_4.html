@@ -131,9 +131,10 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0d1ece82f8886297278f904cfd14b7e7" id="r_a0d1ece82f8886297278f904cfd14b7e7"><td class="memTemplParams" colspan="2">template&lt;typename... T&gt; </td></tr>
-<tr class="memitem:a0d1ece82f8886297278f904cfd14b7e7"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#a0d1ece82f8886297278f904cfd14b7e7">ft_basic</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&amp;... <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">args</a>)</td></tr>
-<tr class="separator:a0d1ece82f8886297278f904cfd14b7e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af18e12730941712a585190e0d12f5e41" id="r_af18e12730941712a585190e0d12f5e41"><td class="memTemplParams" colspan="2">template&lt;typename... T&gt; <br />
+requires std::constructible_from&lt;<a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFacet</a>&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>, T...&gt;</td></tr>
+<tr class="memitem:af18e12730941712a585190e0d12f5e41"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#af18e12730941712a585190e0d12f5e41">ft_basic</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&amp;... <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">args</a>)</td></tr>
+<tr class="separator:af18e12730941712a585190e0d12f5e41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classIOv2_1_1base__ft"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classIOv2_1_1base__ft')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classIOv2_1_1base__ft.html">IOv2::base_ft&lt; TFacet &gt;</a></td></tr>
 <tr class="memitem:a5c8c9bdf9a0fe832e170172cf48631cd inherit pub_methods_classIOv2_1_1base__ft" id="r_a5c8c9bdf9a0fe832e170172cf48631cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft.html#a5c8c9bdf9a0fe832e170172cf48631cd">abs_ft</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">id</a>)</td></tr>
 <tr class="separator:a5c8c9bdf9a0fe832e170172cf48631cd inherit pub_methods_classIOv2_1_1base__ft"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -174,15 +175,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a0d1ece82f8886297278f904cfd14b7e7" name="a0d1ece82f8886297278f904cfd14b7e7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d1ece82f8886297278f904cfd14b7e7">&#9670;&#160;</a></span>ft_basic()</h2>
+<a id="af18e12730941712a585190e0d12f5e41" name="af18e12730941712a585190e0d12f5e41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af18e12730941712a585190e0d12f5e41">&#9670;&#160;</a></span>ft_basic()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">template</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> TFacet, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; </div>
 <div class="memtemplate">
-template&lt;typename... T&gt; </div>
+template&lt;typename... T&gt; <br />
+requires std::constructible_from&lt;<a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFacet</a>&gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>, T...&gt;</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
