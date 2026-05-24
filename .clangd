@@ -1,0 +1,12 @@
+CompileFlags:
+  Add:
+    - -std=c++23
+    - -D_POSIX_C_SOURCE=200809L
+    - -Iinclude
+    - -Itest
+    # Botan-2 system include path. If clangd reports missing botan headers,
+    # run `pkg-config --cflags botan-2` to find the correct path on your system.
+    - -I/usr/include/botan-2
+  # Remove -Werror so IDE warnings don't show as errors
+  Remove:
+    - -Werror
