@@ -1,10 +1,18 @@
 #pragma once
+// Requires POSIX.1-2008 (_POSIX_C_SOURCE >= 200809L or _GNU_SOURCE).
+// The *_l character-classification and conversion functions used below
+// (isupper_l, toupper_l, wctype_l, iswctype_l, towupper_l, etc.) are
+// POSIX extensions, not standard C++. The build system must define the
+// appropriate feature-test macro before any system header is included.
 #include <common/clocale_wrapper.h>
+#include <common/defs.h>
 #include <facet/facet_common.h>
 
 #include <cctype>
+#include <cstdio>
 #include <cwchar>
 #include <cwctype>
+#include <iterator>
 #include <limits>
 #include <optional>
 #include <string>
@@ -111,19 +119,28 @@ public:
         : ft_basic<ctype<CharT>>()
         , m_inter_locale(name.c_str())
     {
-        clocale_user guard(m_inter_locale);
-        for (size_t j = 0; j < sizeof(m_widen) / sizeof(wint_t); ++j)
-          m_widen[j] = btowc(j);
+        {
+            clocale_user guard(m_inter_locale);
+            for (size_t j = 0; j < std::size(m_widen); ++j)
+                m_widen[j] = btowc(j);
+        }
 
-        m_wmask_upper  = wctype_l("upper",  m_inter_locale.c_locale);
-        m_wmask_lower  = wctype_l("lower",  m_inter_locale.c_locale);
-        m_wmask_alpha  = wctype_l("alpha",  m_inter_locale.c_locale);
-        m_wmask_digit  = wctype_l("digit",  m_inter_locale.c_locale);
-        m_wmask_xdigit = wctype_l("xdigit", m_inter_locale.c_locale);
-        m_wmask_space  = wctype_l("space",  m_inter_locale.c_locale);
-        m_wmask_print  = wctype_l("print",  m_inter_locale.c_locale);
-        m_wmask_cntrl  = wctype_l("cntrl",  m_inter_locale.c_locale);
-        m_wmask_punct  = wctype_l("punct",  m_inter_locale.c_locale);
+        auto wctype_wrapper = [&](const char* category)
+        {
+            wctype_t res = wctype_l(category, m_inter_locale.c_locale);
+            if (res == 0)
+                throw cvt_error(std::string("ctype_conf constructor fail: wctype_l failed for category ") + category);
+            return res;
+        };
+        m_wmask_upper  = wctype_wrapper("upper");
+        m_wmask_lower  = wctype_wrapper("lower");
+        m_wmask_alpha  = wctype_wrapper("alpha");
+        m_wmask_digit  = wctype_wrapper("digit");
+        m_wmask_xdigit = wctype_wrapper("xdigit");
+        m_wmask_space  = wctype_wrapper("space");
+        m_wmask_print  = wctype_wrapper("print");
+        m_wmask_cntrl  = wctype_wrapper("cntrl");
+        m_wmask_punct  = wctype_wrapper("punct");
     }
 
     virtual base_ft<ctype>::mask is(CharT _c) const
@@ -152,6 +169,12 @@ public:
         return towlower_l(static_cast<wchar_t>(c), m_inter_locale.c_locale);
     }
 
+    // Matches std::ctype<wchar_t>::widen() semantics: only required to be
+    // correct for the basic source character set. For multi-byte locales
+    // (e.g. UTF-8), high bytes are not standalone characters and btowc()
+    // returns WEOF for them at table-build time; the corresponding entries
+    // in m_widen hold WEOF cast to CharT (a sentinel-looking but
+    // unspecified value). Callers must not widen() such bytes.
     virtual CharT widen(char c) const
     {
         return static_cast<CharT>(m_widen[static_cast<unsigned char>(c)]);

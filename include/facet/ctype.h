@@ -3,6 +3,7 @@
 #include <common/lru_cache.h>
 #include <common/metafunctions.h>
 #include <facet/ctype_details.h>
+#include <facet/facet_common.h>
 
 #include <limits>
 #include <memory>
@@ -30,7 +31,10 @@ public:
     template <shared_ptr_to<ctype_conf<CharT>> TConfPtr>
     ctype(TConfPtr p_obj)
     {
-        avail_ptr(p_obj);
+        // Return value intentionally discarded: this specialization builds
+        // lookup tables eagerly and does not retain p_obj, so we only need
+        // avail_ptr's null check, not the unwrapped pointer.
+        (void)avail_ptr(p_obj);
         for (unsigned i = 0; i < s_len; ++i)
         {
             m_table[i] = p_obj->is((CharT)i);
@@ -157,7 +161,8 @@ public:
     using char_type = CharT;
     using mask = typename ctype_conf<CharT>::mask;
 
-    ctype(std::shared_ptr<const ctype_conf<CharT>> p_obj)
+    template <shared_ptr_to<ctype_conf<CharT>> TConfPtr>
+    ctype(TConfPtr p_obj)
         : m_obj(avail_ptr(p_obj))
     {
         for (unsigned i = 0; i < s_len; ++i)
@@ -262,10 +267,7 @@ public:
     OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const
     {
         while (beg < end)
-        {
-            auto res = do_narrow(*beg++);
-            *dst++ = res ? *res : dflt;
-        }
+            *dst++ = narrow(*beg++, dflt);
         return dst;
     }
 
