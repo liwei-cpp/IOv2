@@ -15,7 +15,7 @@ var namespaceIOv2 =
     [ "FacetHelper", "namespaceIOv2_1_1FacetHelper.html", [
       [ "add_grouping", "namespaceIOv2_1_1FacetHelper.html#a0faaf30b3a28b21f89f129297b1ad11f", null ],
       [ "adjust_grouping", "namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28", null ],
-      [ "string_to_char_convert", "namespaceIOv2_1_1FacetHelper.html#a35831b9f9e679edd6978c063d68d2714", null ],
+      [ "string_to_char_convert", "namespaceIOv2_1_1FacetHelper.html#a2c324fccb213a5e200d18d6273a367f2", null ],
       [ "string_to_widechar_convert", "namespaceIOv2_1_1FacetHelper.html#ac5c3d3bd9b0a2778d81593bc30e18b75", null ],
       [ "verify_grouping", "namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b", null ]
     ] ],
@@ -338,6 +338,7 @@ var namespaceIOv2 =
     [ "ostream_insert", "namespaceIOv2.html#a851f4a4138b089bb79f788f4445323dc", null ],
     [ "ostreambuf", "namespaceIOv2.html#a941c7043836ef414f05a0a79e9fb55b7", null ],
     [ "ostreambuf", "namespaceIOv2.html#a86af2ad23c591047f2b8fa9c6ce34af6", null ],
+    [ "out_of_wchar_range", "namespaceIOv2.html#ab693b72ad44b466bfb2fc085f2badef9", null ],
     [ "put_money", "namespaceIOv2.html#ae4a034ea6bed28fdc37a9fe2572414b6", null ],
     [ "put_time", "namespaceIOv2.html#a24591a1da94b5528923012c2ab821339", null ],
     [ "rb_root_cvt", "namespaceIOv2.html#a4d43e84ad8909b24c7ff9808c3447be3", null ],

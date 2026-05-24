@@ -590,6 +590,10 @@ requires (cvt_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb54
 <tr class="memitem:ad9482e85e3002e85211e7aed04aa807e" id="r_ad9482e85e3002e85211e7aed04aa807e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> &gt; </td></tr>
 <tr class="memitem:ad9482e85e3002e85211e7aed04aa807e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad9482e85e3002e85211e7aed04aa807e">ctype</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a>) -&gt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TConfPtr::element_type::char_type &gt;</td></tr>
 <tr class="separator:ad9482e85e3002e85211e7aed04aa807e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab693b72ad44b466bfb2fc085f2badef9" id="r_ab693b72ad44b466bfb2fc085f2badef9"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <br />
+requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char16_t</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt;</td></tr>
+<tr class="memitem:ab693b72ad44b466bfb2fc085f2badef9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab693b72ad44b466bfb2fc085f2badef9">out_of_wchar_range</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:ab693b72ad44b466bfb2fc085f2badef9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0a0434a90b4e58f8abb167e9f9fd3e5" id="r_ab0a0434a90b4e58f8abb167e9f9fd3e5"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
 <tr class="memitem:ab0a0434a90b4e58f8abb167e9f9fd3e5"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab0a0434a90b4e58f8abb167e9f9fd3e5">avail_ptr</a> (std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>)</td></tr>
 <tr class="separator:ab0a0434a90b4e58f8abb167e9f9fd3e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3437,6 +3441,35 @@ template&lt;io_device TDevice, cvt_creator TCreator&gt; </div>
           <td></td><td> -&gt;  <a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a312b25ad2d1c1a183bbe2d73b1911bc6">ext_to_int</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &gt; &gt;</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab693b72ad44b466bfb2fc085f2badef9" name="ab693b72ad44b466bfb2fc085f2badef9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab693b72ad44b466bfb2fc085f2badef9">&#9670;&#160;</a></span>out_of_wchar_range()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <br />
+requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char16_t</a>&gt; || std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt;</div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::out_of_wchar_range </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&#160;</td>
+          <td class="paramname"><em>c</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
