@@ -1,6 +1,5 @@
 #pragma once
 #include <langinfo.h>
-#include <cstring>
 #include <string>
 #include <vector>
 
@@ -27,38 +26,47 @@ public:
             m_thousands_sep = ',';
             m_true_name = "true";
             m_false_name = "false";
+            return;
         }
-        else
+
+        // Snapshot all locale-dependent strings while the locale guard is
+        // active. The lconv* and nl_langinfo() pointers may be invalidated
+        // by any subsequent setlocale()/uselocale() call (e.g. inside
+        // string_to_char_convert / detail::to_wstring), so copy first
+        // and convert after.
+        std::string dp_raw, ts_raw, grp_raw, yes_raw, no_raw;
+        bool yes_set = false, no_set = false;
         {
             clocale_wrapper inter_locale(name.c_str());
             clocale_user guard(inter_locale);
-            
-            m_decimal_point = FacetHelper::string_to_char_convert(nl_langinfo(DECIMAL_POINT), name);
-            m_thousands_sep = FacetHelper::string_to_char_convert(nl_langinfo(THOUSANDS_SEP), name);
-                    
-            if (m_thousands_sep != '\0')
-            {
-                const char* src = nl_langinfo(GROUPING);
-                const size_t len = strlen(src);
-                if (len != 0)
-                {
-                    // Copy raw POSIX grouping bytes, then normalise into the
-                    // internal convention here at the POSIX boundary.
-                    // Downstream (numeric, user-derived numeric_conf) sees
-                    // only the internal form.
-                    m_grouping.resize(len);
-                    for (size_t i = 0; i < len; ++i)
-                        m_grouping[i] = static_cast<uint8_t>(src[i]);
-                    FacetHelper::adjust_grouping(m_grouping);
-                }
-            }
+            const lconv* lc = localeconv();
+            if (lc->decimal_point) dp_raw  = lc->decimal_point;
+            if (lc->thousands_sep) ts_raw  = lc->thousands_sep;
+            if (lc->grouping)      grp_raw = lc->grouping;
 
-            auto yesStr = nl_langinfo(YESSTR);
-            m_true_name = yesStr ? yesStr : "true";
-            
-            auto noStr = nl_langinfo(NOSTR);
-            m_false_name = noStr ? noStr : "false";
+            if (auto* p = nl_langinfo(YESSTR)) { yes_raw = p; yes_set = true; }
+            if (auto* p = nl_langinfo(NOSTR))  { no_raw  = p; no_set  = true; }
         }
+
+        m_decimal_point = FacetHelper::string_to_char_convert(dp_raw.c_str(), name);
+        m_thousands_sep = FacetHelper::string_to_char_convert(ts_raw.c_str(), name);
+
+        if (m_thousands_sep != '\0' && !grp_raw.empty())
+        {
+            // Copy raw POSIX grouping bytes, then normalise into the
+            // internal convention here at the POSIX boundary.
+            // Downstream (numeric, user-derived numeric_conf) sees
+            // only the internal form.
+            m_grouping.resize(grp_raw.size());
+            for (size_t i = 0; i < grp_raw.size(); ++i)
+                m_grouping[i] = static_cast<uint8_t>(grp_raw[i]);
+            FacetHelper::adjust_grouping(m_grouping);
+        }
+
+        if (yes_set) m_true_name  = yes_raw;
+        else         m_true_name  = "true";
+        if (no_set)  m_false_name = no_raw;
+        else         m_false_name = "false";
     }
     
 public:
@@ -110,57 +118,64 @@ public:
             return;
         }
 
-        m_decimal_point = FacetHelper::nl_langinfo_char<CharT>(DECIMAL_POINT, name, static_cast<CharT>('.'));
-        m_thousands_sep = FacetHelper::nl_langinfo_char<CharT>(THOUSANDS_SEP, name, static_cast<CharT>('\0'));
-
-        clocale_wrapper inter_locale(name.c_str());
-        clocale_user guard(inter_locale);
-
-        if (m_thousands_sep != '\0')
+        // Snapshot all locale-dependent strings while the locale guard is
+        // active. The lconv* and nl_langinfo() pointers may be invalidated
+        // by any subsequent setlocale()/uselocale() call (e.g. inside
+        // detail::to_wstring / detail::to_u32string), so copy first and
+        // convert after.
+        std::string dp_raw, ts_raw, grp_raw, yes_raw, no_raw;
+        bool yes_set = false, no_set = false;
         {
-            const char* src = nl_langinfo(GROUPING);
-            const size_t len = strlen(src);
-            if (len != 0)
-            {
-                // Copy raw POSIX grouping bytes, then normalise into the
-                // internal convention here at the POSIX boundary.
-                m_grouping.resize(len);
-                for (size_t i = 0; i < len; ++i)
-                    m_grouping[i] = (uint8_t)(src[i]);
-                FacetHelper::adjust_grouping(m_grouping);
-            }
+            clocale_wrapper inter_locale(name.c_str());
+            clocale_user guard(inter_locale);
+            const lconv* lc = localeconv();
+            if (lc->decimal_point) dp_raw  = lc->decimal_point;
+            if (lc->thousands_sep) ts_raw  = lc->thousands_sep;
+            if (lc->grouping)      grp_raw = lc->grouping;
+
+            if (auto* p = nl_langinfo(YESSTR)) { yes_raw = p; yes_set = true; }
+            if (auto* p = nl_langinfo(NOSTR))  { no_raw  = p; no_set  = true; }
         }
 
-        auto yesStr = nl_langinfo(YESSTR);
-        if (yesStr == nullptr)
+        m_decimal_point = FacetHelper::string_to_widechar_convert<CharT>(
+            dp_raw, name, static_cast<CharT>('.'));
+        m_thousands_sep = FacetHelper::string_to_widechar_convert<CharT>(
+            ts_raw, name, static_cast<CharT>('\0'));
+
+        if (m_thousands_sep != static_cast<CharT>('\0') && !grp_raw.empty())
         {
-            if constexpr (std::is_same_v<CharT, wchar_t>)
-                m_true_name = L"true";
-            else
-                m_true_name = U"true";
+            // Copy raw POSIX grouping bytes, then normalise into the
+            // internal convention here at the POSIX boundary.
+            m_grouping.resize(grp_raw.size());
+            for (size_t i = 0; i < grp_raw.size(); ++i)
+                m_grouping[i] = static_cast<uint8_t>(grp_raw[i]);
+            FacetHelper::adjust_grouping(m_grouping);
+        }
+
+        if (!yes_set)
+        {
+            if constexpr (std::is_same_v<CharT, wchar_t>) m_true_name = L"true";
+            else                                          m_true_name = U"true";
         }
         else
         {
             if constexpr(std::is_same_v<CharT, wchar_t>)
-                m_true_name = detail::to_wstring(yesStr, name);
+                m_true_name = detail::to_wstring(yes_raw.c_str(), name);
             else
-                m_true_name = detail::to_u32string(yesStr, name);
+                m_true_name = detail::to_u32string(yes_raw.c_str(), name);
         }
-        
-        auto noStr = nl_langinfo(NOSTR);
-        if (noStr == nullptr)
+
+        if (!no_set)
         {
-            if constexpr (std::is_same_v<CharT, wchar_t>)
-                m_false_name = L"false";
-            else
-                m_false_name = U"false";
+            if constexpr (std::is_same_v<CharT, wchar_t>) m_false_name = L"false";
+            else                                          m_false_name = U"false";
         }
         else
         {
             if constexpr(std::is_same_v<CharT, wchar_t>)
-                m_false_name = detail::to_wstring(noStr, name);
+                m_false_name = detail::to_wstring(no_raw.c_str(), name);
             else
-                m_false_name = detail::to_u32string(noStr, name);
+                m_false_name = detail::to_u32string(no_raw.c_str(), name);
         }
     }
     
