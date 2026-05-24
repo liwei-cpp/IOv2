@@ -56,16 +56,16 @@ template <typename...>
 struct facet_create_pack;
 
 template <typename T>
-constexpr static bool is_facet_create_rule = false;
+constexpr static bool is_nonempty_facet_create_rule = false;
 
 template <typename... T>
-constexpr static bool is_facet_create_rule<facet_create_rule<T...>> = (sizeof...(T) != 0);
+constexpr static bool is_nonempty_facet_create_rule<facet_create_rule<T...>> = (sizeof...(T) != 0);
 
 template <typename T>
-constexpr static bool is_facet_create_pack = false;
+constexpr static bool is_nonempty_facet_create_pack = false;
 
-template <typename ...T>
-constexpr static bool is_facet_create_pack<facet_create_pack<T...>> = (sizeof...(T) != 0);
+template <typename... T>
+constexpr static bool is_nonempty_facet_create_pack<facet_create_pack<T...>> = (sizeof...(T) != 0);
 
 template <typename T>
 constexpr static size_t facet_create_pack_size = 0;
@@ -73,7 +73,9 @@ constexpr static size_t facet_create_pack_size = 0;
 template <typename... T>
 constexpr static size_t facet_create_pack_size<facet_create_pack<T...>> = sizeof...(T);
 
-template <typename T> struct facet_create_pack_head;
+template <typename T>
+    requires (facet_create_pack_size<T> > 0)
+struct facet_create_pack_head;
 
 template <typename H, typename... T>
 struct facet_create_pack_head<facet_create_pack<H, T...>>
@@ -81,7 +83,9 @@ struct facet_create_pack_head<facet_create_pack<H, T...>>
     using type = H;
 };
 
-template <typename T> struct facet_create_pack_tail;
+template <typename T>
+    requires (facet_create_pack_size<T> > 0)
+struct facet_create_pack_tail;
 
 template <typename H, typename... T>
 struct facet_create_pack_tail<facet_create_pack<H, T...>>

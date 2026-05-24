@@ -100,7 +100,7 @@ class locale
         template <typename TC, typename... TRem>
         bool has_helper() const
         {
-            if constexpr(is_facet_create_pack<TC>)
+            if constexpr(is_nonempty_facet_create_pack<TC>)
             {
                 auto checked = ft_wrapper<TC>(m_ref);
                 if (checked.has()) return true;
@@ -123,7 +123,7 @@ class locale
         template <typename TF, typename TC, typename... TSub>
         std::shared_ptr<TF> get_helper()
         {
-            if constexpr(is_facet_create_pack<TC>)
+            if constexpr(is_nonempty_facet_create_pack<TC>)
             {
                 auto creator = ft_wrapper<TC>(m_ref);
                 
@@ -260,7 +260,7 @@ public:
     }
     
     template <typename TF>
-        requires (is_facet_create_rule<typename TF::create_rules>)
+        requires (is_nonempty_facet_create_rule<typename TF::create_rules>)
     bool has() const
     {
         {
@@ -284,7 +284,7 @@ public:
     }
 
     template <typename TF>
-        requires (is_facet_create_rule<typename TF::create_rules>)
+        requires (is_nonempty_facet_create_rule<typename TF::create_rules>)
     std::shared_ptr<TF> get() const
     {
         {
