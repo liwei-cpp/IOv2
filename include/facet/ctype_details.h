@@ -9,6 +9,7 @@
 #include <facet/facet_common.h>
 
 #include <cctype>
+#include <cstddef>
 #include <cstdio>
 #include <cwchar>
 #include <cwctype>
@@ -145,6 +146,8 @@ public:
 
     virtual base_ft<ctype>::mask is(CharT _c) const
     {
+        if (out_of_wchar_range(_c)) return 0;
+
         base_ft<ctype>::mask res = 0;
         const auto c = static_cast<wchar_t>(_c);
         if (iswctype_l(c, m_wmask_upper, m_inter_locale.c_locale))  res |= base_ft<ctype>::upper;
@@ -161,11 +164,13 @@ public:
 
     virtual CharT toupper(CharT c) const
     {
+        if (out_of_wchar_range(c)) return c;
         return towupper_l(static_cast<wchar_t>(c), m_inter_locale.c_locale);
     }
 
     virtual CharT tolower(CharT c) const
     {
+        if (out_of_wchar_range(c)) return c;
         return towlower_l(static_cast<wchar_t>(c), m_inter_locale.c_locale);
     }
 
@@ -182,6 +187,7 @@ public:
 
     virtual std::optional<char> narrow(CharT wc) const
     {
+        if (out_of_wchar_range(wc)) return std::nullopt;
         clocale_user guard(m_inter_locale);
         const int c = wctob(wc);
         if (c == EOF) return std::nullopt;
@@ -189,6 +195,11 @@ public:
     }
 
 private:
+    // The out-of-wchar-range guards used by is/toupper/tolower/narrow
+    // above are provided by IOv2::out_of_wchar_range in facet_common.h
+    // (reusable across facets); resolved here via unqualified lookup
+    // since this class lives in the same namespace.
+
     clocale_wrapper   m_inter_locale;
     wint_t            m_widen[1 + std::numeric_limits<unsigned char>::max()];
 

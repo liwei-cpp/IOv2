@@ -1,8 +1,10 @@
 #pragma once
 #include <concepts>
 #include <cstddef>
+#include <cwchar>
 #include <memory>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 
 namespace IOv2
@@ -92,6 +94,37 @@ struct facet_create_pack_tail<facet_create_pack<H, T...>>
 {
     using type = facet_create_pack<T...>;
 };
+
+// Returns true if `c` has no wchar_t representation. Used to guard the
+// C `*_l` wide-character functions (iswctype_l, towupper_l, towlower_l,
+// wctob, ...) at any facet's API boundary, since the C standard says
+// their behaviour is implementation-defined for inputs that are not
+// representable as a wchar_t.
+//
+// Only non-trivial for CharT == char32_t on platforms where char32_t
+// covers a strictly wider range than wchar_t (e.g. Linux: signed
+// 32-bit wchar_t with WCHAR_MAX = 0x7FFFFFFF, vs unsigned 32-bit
+// char32_t). For every other character type (wchar_t, char, char8_t,
+// char16_t) the input is always representable as wchar_t on every
+// supported platform, and the function is statically a no-op.
+//
+// CharT is constrained to the five standard C++ character types so
+// that misuse with non-character integral or floating types (where
+// the wchar_t-range question is meaningless) fails at compile time
+// instead of silently returning false.
+template <typename CharT>
+    requires std::is_same_v<CharT, char>     ||
+             std::is_same_v<CharT, wchar_t>  ||
+             std::is_same_v<CharT, char8_t>  ||
+             std::is_same_v<CharT, char16_t> ||
+             std::is_same_v<CharT, char32_t>
+constexpr bool out_of_wchar_range(CharT c) noexcept
+{
+    if constexpr (std::is_same_v<CharT, char32_t>)
+        return c > static_cast<char32_t>(WCHAR_MAX);
+    else
+        return false;
+}
 
 template <typename T>
 std::shared_ptr<T> avail_ptr(std::shared_ptr<T> obj)
