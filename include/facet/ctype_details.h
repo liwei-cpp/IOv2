@@ -214,6 +214,21 @@ private:
     wctype_t          m_wmask_punct;
 };
 
+// Specialisation for UTF-8 code units (char8_t). The design rests on two
+// structural guarantees of the UTF-8 encoding: (1) no byte in [0x00, 0x7F]
+// ever appears as a leading or continuation byte of a multi-byte sequence,
+// so code units in that range are ASCII-compatible and can be classified
+// exactly like the corresponding char value in the locale; (2) every byte
+// in [0x80, 0xFF] is either a leading byte (0xC0–0xFF) or a continuation
+// byte (0x80–0xBF) of a multi-byte sequence, and therefore does not
+// represent a standalone Unicode code point.
+//
+// For [0x00, 0x7F]: all operations delegate to an internal ctype_conf<char>,
+// which builds locale-aware lookup tables for all 256 char values. Only the
+// lower half of that table is meaningful here; the high half is never used.
+//
+// For [0x80, 0xFF]: each API applies the conservative treatment documented
+// on its individual method below.
 template <>
 class ctype_conf<char8_t> : public ft_basic<ctype<char8_t>>
 {
@@ -227,27 +242,31 @@ public:
     virtual mask is(char8_t c) const
     {
         if (c & 0x80)
-            return static_cast<mask>(0);
+            return static_cast<mask>(0);  // not a standalone code point; no classification applies
         return m_internal.is(static_cast<char>(c));
     }
 
     virtual char8_t toupper(char8_t c) const
     {
-        if (c & 0x80) return c;
+        if (c & 0x80) return c;  // not a standalone code point; no case information
         return static_cast<char8_t>(m_internal.toupper(static_cast<char>(c)));
     }
 
     virtual char8_t tolower(char8_t c) const
     {
-        if (c & 0x80) return c;
+        if (c & 0x80) return c;  // not a standalone code point; no case information
         return static_cast<char8_t>(m_internal.tolower(static_cast<char>(c)));
     }
 
+    // char8_t has the same range as unsigned char, so every char value maps
+    // to exactly one char8_t code unit with no loss and no WEOF sentinel (cf.
+    // the wchar_t/char32_t specialisation, where btowc() may return WEOF for
+    // high bytes).
     virtual char8_t widen(char c) const { return static_cast<char8_t>(c); }
 
     virtual std::optional<char> narrow(char8_t c) const
     {
-        if (c & 0x80) return std::nullopt;
+        if (c & 0x80) return std::nullopt;  // not a standalone code point; no char equivalent
         return static_cast<char>(c);
     }
 
