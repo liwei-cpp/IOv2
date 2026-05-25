@@ -19,6 +19,17 @@ struct abs_ft
 
     virtual ~abs_ft() = default;
 
+    // Instance accessor: reads the id carried by this facet, used to key it
+    // into a locale by its runtime value when the concrete type is no longer
+    // known (an abs_ft&, e.g. locale::involve).
+    //
+    // NOTE: ft_basic introduces a *static*, same-named id() that is the
+    // per-type facet key (TF::id()); on derived facets that static hides this
+    // accessor. This is deliberate and harmless ONLY because every facet seeds
+    // m_id from its own static id() at construction, so both always return the
+    // same value. Do not break that invariant -- never construct a facet whose
+    // m_id differs from its static id() -- or the static key and this accessor
+    // would silently diverge and locale facet lookup would misbehave.
     size_t id() const noexcept { return m_id; }
 
 private:
@@ -46,6 +57,12 @@ public:
     ft_basic(T&&... args)
         : base_ft<TFacet>(id(), std::forward<T>(args)...) {}
 
+    // Static per-type facet key: a stable, unique id for this
+    // (facet template, char type) pair, taken from the address of the per-type
+    // s_id. This is the compile-time key used to locate facets by type
+    // (TF::id()). The constructor above seeds abs_ft::m_id with this value, so
+    // it stays in agreement with the abs_ft::id() instance accessor; see the
+    // note on abs_ft::id() for why the shared name is intentional and safe.
     static size_t id() noexcept { return reinterpret_cast<size_t>(&s_id); }
 private:
     inline static const void* s_id = nullptr;
@@ -126,8 +143,15 @@ constexpr bool out_of_wchar_range(CharT c) noexcept
         return false;
 }
 
+// Returns `obj` unchanged after verifying it is non-null, throwing otherwise.
+// Both the parameter and the result are const references, so the check itself
+// adds no shared_ptr reference-count traffic: discard-only callers (pure null
+// checks) pay nothing, and callers that need to retain the pointer make
+// exactly one copy from the returned reference (e.g. into a member). The
+// returned reference aliases the argument and therefore must not be bound past
+// the lifetime of the passed-in shared_ptr.
 template <typename T>
-std::shared_ptr<T> avail_ptr(std::shared_ptr<T> obj)
+const std::shared_ptr<T>& avail_ptr(const std::shared_ptr<T>& obj)
 {
     if (!obj) throw std::runtime_error("shared_ptr is empty");
     return obj;
