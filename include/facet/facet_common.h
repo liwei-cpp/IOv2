@@ -65,6 +65,22 @@ public:
     // note on abs_ft::id() for why the shared name is intentional and safe.
     static size_t id() noexcept { return reinterpret_cast<size_t>(&s_id); }
 private:
+    // REQUIRES default symbol visibility across DSOs that share facet
+    // instances. Because id() returns &s_id, cross-DSO facet identity
+    // depends on the dynamic linker merging all copies of s_id to a
+    // single runtime address. The following deployment patterns silently
+    // break this and yield per-DSO ids for what should be the same facet:
+    //   - Building any TU that instantiates ft_basic<...> with
+    //     -fvisibility=hidden without re-exporting s_id.
+    //   - Linking a DSO with -Bsymbolic / -Bsymbolic-functions, which
+    //     binds internal references to the DSO-local copy.
+    //   - dlopen()ing a plugin with RTLD_LOCAL (the default).
+    //   - Sharing facet instances across Windows DLL boundaries (PE has
+    //     no equivalent of ELF weak-symbol unification; templates are
+    //     re-instantiated per DLL).
+    // If any of the above is needed, switch id() to a value-based
+    // identity (e.g. hash of typeid(TFacet).name()) rather than an
+    // address.
     inline static const void* s_id = nullptr;
 };
 
@@ -124,6 +140,16 @@ struct facet_create_pack_tail<facet_create_pack<H, T...>>
 // char32_t). For every other character type (wchar_t, char, char8_t,
 // char16_t) the input is always representable as wchar_t on every
 // supported platform, and the function is statically a no-op.
+//
+// Precise boundary for char32_t on Linux: this function returns true
+// exactly for the upper half of the char32_t range, [0x80000000,
+// 0xFFFFFFFF], because WCHAR_MAX == 0x7FFFFFFF there. The entire valid
+// Unicode code-point space U+0000..U+10FFFF lies well below this cutoff,
+// so the guard never rejects legal Unicode; it only filters out
+// non-Unicode bit patterns that a caller may have reinterpreted as
+// char32_t. Callers that intentionally pass arbitrary 32-bit integers
+// through a char32_t channel should not rely on out_of_wchar_range as a
+// Unicode-validity check.
 //
 // CharT is constrained to the five standard C++ character types so
 // that misuse with non-character integral or floating types (where

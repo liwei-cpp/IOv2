@@ -9,6 +9,7 @@
 #include <facet/facet_common.h>
 
 #include <cctype>
+#include <climits>
 #include <cstddef>
 #include <cstdio>
 #include <cwchar>
@@ -21,6 +22,15 @@
 
 namespace IOv2
 {
+// The ctype lookup tables in this header and in ctype.h are sized as
+// std::numeric_limits<unsigned char>::max() + 1, on the assumption that a
+// byte is 8 bits and that the table covers all values an unsigned char can
+// hold. Exotic platforms with CHAR_BIT != 8 (some DSPs, historical mainframes)
+// would silently grow every per-byte table by 2^(CHAR_BIT-8)x. Reject them at
+// compile time rather than ship a non-obviously-broken binary.
+static_assert(CHAR_BIT == 8,
+    "facet/ctype tables assume an 8-bit byte; see ctype.h::s_len");
+
 template <typename CharT> class ctype;
 
 template <>
@@ -33,6 +43,14 @@ public:
     using mask = unsigned short;
 
     // Portable fixed mask values (implementation-independent)
+    //
+    // When adding a new primitive mask bit, update ALL of:
+    //   1) the constants below
+    //   2) ctype_conf<CharT>::m_wmask_<name>  (private member)
+    //   3) ctype_conf<CharT> constructor      (wctype_wrapper assignment)
+    //   4) ctype_conf<CharT>::is()            (iswctype_l check)
+    // Missing #2 or #3 leaves the wctype_t uninitialized — UB at iswctype_l.
+    // Missing #4 silently drops the new bit from is() results.
     constexpr static mask upper  = 0x0001;
     constexpr static mask lower  = 0x0002;
     constexpr static mask alpha  = 0x0004;
@@ -130,7 +148,7 @@ public:
         {
             wctype_t res = wctype_l(category, m_inter_locale.c_locale);
             if (res == 0)
-                throw cvt_error(std::string("ctype_conf constructor fail: wctype_l failed for category ") + category);
+                throw cvt_error(std::string("ctype_conf constructor failed: wctype_l returned 0 for category ") + category);
             return res;
         };
         m_wmask_upper  = wctype_wrapper("upper");
@@ -185,6 +203,22 @@ public:
         return static_cast<CharT>(m_widen[static_cast<unsigned char>(c)]);
     }
 
+    // Implementation note: unlike is/toupper/tolower (which call *_l
+    // functions with an explicit, immutable locale_t), wctob has no _l
+    // variant -- it reads whatever locale is currently active on the
+    // calling thread. We therefore install m_inter_locale via clocale_user
+    // for the duration of the wctob call, and restore on scope exit.
+    //
+    // Visible side effect for the window of this call: the calling
+    // thread's locale is m_inter_locale, not whatever it was on entry.
+    // Anything reached during this call -- in particular, a callback
+    // dispatched through a user-derived override of this function --
+    // that performs locale-sensitive I/O (std::ostream numeric
+    // formatting, std::format, third-party locale-aware code) will
+    // observe m_inter_locale instead of the thread's outer locale.
+    // Derivations should keep this function pure-computational and
+    // avoid locale-sensitive side effects inside the override; the same
+    // guidance the std::ctype facet conventions imply.
     virtual std::optional<char> narrow(CharT wc) const
     {
         if (out_of_wchar_range(wc)) return std::nullopt;

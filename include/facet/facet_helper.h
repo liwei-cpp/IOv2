@@ -63,6 +63,17 @@ namespace IOv2::FacetHelper
     // semantically represent a single user-visible character (e.g.
     // decimal_point, thousands_sep, mon_decimal_point, mon_thousands_sep).
     //
+    // `default_char` contract: returned verbatim on the empty-input and
+    // empty-conversion paths; this function does NOT validate that
+    // `default_char` is itself representable, well-formed, or otherwise
+    // meaningful under `locale_name`. Callers are responsible for choosing a
+    // sensible fallback (typically a plain ASCII-range value such as L' ',
+    // L'.', U' ', or U'.'). Note the asymmetry with `string_to_char_convert`,
+    // which uses a hard-coded `'\0'` fallback and accepts no caller default:
+    // here the fallback is a parameter precisely so callers can pick a
+    // locale-appropriate substitute, but the price is that validation is
+    // their responsibility, not ours.
+    //
     // Why `const std::string&` and not `const char*`: `lconv*` and
     // `nl_langinfo()` pointers may be invalidated by any setlocale() /
     // uselocale() call. The conversion below transitively performs such
