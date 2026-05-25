@@ -1,11 +1,13 @@
 #pragma once
+#include <common/clocale_wrapper.h>
 #include <cvt/cvt_facilities.h>
-#include <facet/ctype_details.h>
 
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
+#include <cwchar>
 #include <iterator>
 #include <limits>
 #include <string>
@@ -39,9 +41,17 @@ namespace IOv2::FacetHelper
         std::wstring wide_str = detail::to_wstring(narrow.c_str(), locale_name);
         if (wide_str.empty()) return '\0';
 
-        ctype_conf<wchar_t> tmp_ctype(locale_name);
-        auto res = tmp_ctype.narrow(wide_str[0]);
-        return res.has_value() ? res.value() : '\0';
+        // Narrow the first wide character back to a single byte in the target
+        // locale. This reproduces ctype_conf<wchar_t>::narrow() (wctob() under
+        // a thread-local locale switch) directly, instead of building a whole
+        // ctype_conf<wchar_t> facet whose 256-entry widen table and wctype
+        // masks this path never reads. The out_of_wchar_range guard used there
+        // is unnecessary here: the value is a wchar_t and is therefore always
+        // representable as wchar_t.
+        clocale_wrapper loc(locale_name.c_str());
+        clocale_user guard(loc);
+        const int c = wctob(static_cast<wint_t>(wide_str[0]));
+        return c == EOF ? '\0' : static_cast<char>(c);
     }
 
     // Convert the first character of a (possibly multibyte) narrow string
