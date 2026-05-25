@@ -8,6 +8,7 @@
 #include <limits>
 #include <memory>
 #include <optional>
+#include <type_traits>
 
 namespace IOv2
 {
@@ -194,6 +195,12 @@ class ctype<CharT> : public detail::ctype_ops<ctype<CharT>>
 {
     constexpr static unsigned s_len = std::numeric_limits<unsigned char>::max() + 1;
 
+    // Unsigned counterpart of CharT, used to fold a (possibly signed) CharT
+    // into [0, 2^N) for the table-range check and indexing without sign
+    // extension. make_unsigned_t guarantees the same width as CharT, so no
+    // value is truncated regardless of how wide plain `unsigned` happens to be.
+    using uchar_type = std::make_unsigned_t<CharT>;
+
 public:
     using create_rules = facet_create_rule<ctype_conf<CharT>>;
 
@@ -274,29 +281,29 @@ private:
     // highly repetitive working set -- not the case here.)
     mask do_is(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_table[static_cast<unsigned>(c)];
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_table[static_cast<uchar_type>(c)];
         return m_obj->is(c);
     }
 
     CharT do_toupper(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_toupper[static_cast<unsigned>(c)];
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_toupper[static_cast<uchar_type>(c)];
         return m_obj->toupper(c);
     }
 
     CharT do_tolower(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_tolower[static_cast<unsigned>(c)];
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_tolower[static_cast<uchar_type>(c)];
         return m_obj->tolower(c);
     }
 
     std::optional<char> do_narrow(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_narrow[static_cast<unsigned>(c)];
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_narrow[static_cast<uchar_type>(c)];
         return m_obj->narrow(c);
     }
 
