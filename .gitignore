@@ -11,3 +11,8 @@ coverage.info
 docs/en/
 docs/zh/
 docs/.nojekyll
+
+# Locally-generated compilation database for clangd/IDE (machine-specific
+# absolute paths; regenerate locally, do not commit)
+compile_commands.json
+.cache/

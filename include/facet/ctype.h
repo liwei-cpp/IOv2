@@ -1,23 +1,116 @@
 #pragma once
 
-#include <common/lru_cache.h>
 #include <common/metafunctions.h>
 #include <facet/ctype_details.h>
 #include <facet/facet_common.h>
 
+#include <concepts>
 #include <limits>
 #include <memory>
-#include <mutex>
 #include <optional>
+#include <type_traits>
 
 namespace IOv2
 {
 template <typename CharT>
 class ctype;
 
+namespace detail
+{
+// CRTP mixin supplying sequence operations and the narrow(c, default) overload
+// in terms of the Derived class's five single-character primitives: is(),
+// toupper(), tolower(), widen(), and narrow(). Both ctype<CharT> specialisations
+// inherit from this to avoid duplicating these definitions.
+//
+// Methods whose parameter types depend on Derived::char_type or Derived::mask
+// are declared as constrained function templates: the requires clause defers
+// evaluation of those dependent names to call time (when Derived is complete),
+// avoiding the incomplete-type error that class-scope type aliases would cause.
+template <typename Derived>
+class ctype_ops
+{
+    const Derived& self() const { return static_cast<const Derived&>(*this); }
+
+public:
+    template <typename TM, typename TC>
+        requires std::convertible_to<TM, typename Derived::mask> &&
+                 std::convertible_to<TC, typename Derived::char_type>
+    bool is_any(TM m, TC c) const
+    {
+        return self().is(c) & m;
+    }
+
+    template <typename InIt, typename OutIt>
+    OutIt is_seq(InIt low, InIt high, OutIt vec) const
+    {
+        while (low != high)
+            *vec++ = self().is(*low++);
+        return vec;
+    }
+
+    template <typename TM, typename InIt>
+        requires std::convertible_to<TM, typename Derived::mask>
+    InIt scan_is_any(TM m, InIt beg, InIt end) const
+    {
+        while ((beg != end) && (!(self().is(*beg) & m)))
+            ++beg;
+        return beg;
+    }
+
+    template <typename TM, typename InIt>
+        requires std::convertible_to<TM, typename Derived::mask>
+    InIt scan_not_any(TM m, InIt beg, InIt end) const
+    {
+        while ((beg != end) && (self().is(*beg) & m))
+            ++beg;
+        return beg;
+    }
+
+    template <typename InIt, typename OutIt>
+    OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const
+    {
+        while (beg != end)
+            *dst++ = self().toupper(*beg++);
+        return dst;
+    }
+
+    template <typename InIt, typename OutIt>
+    OutIt tolower_seq(InIt beg, InIt end, OutIt dst) const
+    {
+        while (beg != end)
+            *dst++ = self().tolower(*beg++);
+        return dst;
+    }
+
+    template <typename InIt, typename OutIt>
+    OutIt widen_seq(InIt beg, InIt end, OutIt dst) const
+    {
+        while (beg != end)
+            *dst++ = self().widen(*beg++);
+        return dst;
+    }
+
+    template <typename TC>
+        requires std::convertible_to<TC, typename Derived::char_type>
+    char narrow(TC c, char def) const
+    {
+        auto res = self().narrow(c);
+        return res ? *res : def;
+    }
+
+    template <typename InIt, typename OutIt>
+    OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const
+    {
+        while (beg != end)
+            *dst++ = self().narrow(*beg++, dflt);
+        return dst;
+    }
+};
+} // namespace detail
+
 template <typename CharT>
     requires (sizeof(CharT) == 1)
-class ctype<CharT>
+class ctype<CharT> : public detail::ctype_ops<ctype<CharT>>
 {
     // Note: we have to use unsigned char here to avoid negative value
     constexpr static unsigned s_len = std::numeric_limits<unsigned char>::max() + 1;
@@ -54,46 +147,9 @@ public:
         return m_table[static_cast<unsigned char>(c)];
     }
 
-    bool is_any(mask m, CharT c) const
-    {
-        return is(c) & m;
-    }
-
-    template <typename InIt, typename OutIt>
-    OutIt is_seq(InIt low, InIt high, OutIt vec) const
-    {
-        while (low != high)
-            *vec++ = is(*low++);
-        return vec;
-    }
-
-    template <typename InIt>
-    InIt scan_is_any(mask m, InIt beg, InIt end) const
-    {
-        while ((beg != end) && (!(is(*beg) & m)))
-            ++beg;
-        return beg;
-    }
-
-    template <typename InIt>
-    InIt scan_not_any(mask m, InIt beg, InIt end) const
-    {
-        while ((beg != end) && (is(*beg) & m))
-            ++beg;
-        return beg;
-    }
-
     CharT toupper(CharT c) const
     {
         return m_toupper[static_cast<unsigned char>(c)];
-    }
-
-    template <typename InIt, typename OutIt>
-    OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = toupper(*beg++);
-        return dst;
     }
 
     CharT tolower(CharT c) const
@@ -101,25 +157,9 @@ public:
         return m_tolower[static_cast<unsigned char>(c)];
     }
 
-    template <typename InIt, typename OutIt>
-    OutIt tolower_seq(InIt beg, InIt end, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = tolower(*beg++);
-        return dst;
-    }
-
     CharT widen(char c) const
     {
         return m_widen[static_cast<unsigned char>(c)];
-    }
-
-    template <typename InIt, typename OutIt>
-    OutIt widen_seq(InIt beg, InIt end, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = widen(*beg++);
-        return dst;
     }
 
     std::optional<char> narrow(CharT c) const
@@ -127,19 +167,7 @@ public:
         return m_narrow[static_cast<unsigned char>(c)];
     }
 
-    char narrow(CharT c, char def) const
-    {
-        auto res = narrow(c);
-        return res ? *res : def;
-    }
-
-    template <typename InIt, typename OutIt>
-    OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = narrow(*beg++, dflt);
-        return dst;
-    }
+    using detail::ctype_ops<ctype<CharT>>::narrow;
 
 private:
     mask  m_table[s_len];
@@ -149,11 +177,29 @@ private:
     std::optional<char> m_narrow[s_len];
 };
 
+// Specialisation for multi-byte character types (wchar_t, char32_t). Values in
+// [0, s_len) are served from precomputed lock-free tables; values beyond that
+// are forwarded directly to the underlying ctype_conf<CharT> on each call, with
+// no cache and no lock (see do_is() for the rationale).
+//
+// Thread-safety contract: because the out-of-table path calls the conf
+// concurrently, ctype_conf<CharT>'s const methods must be safe for concurrent
+// invocation. The default implementation is: its members are immutable after
+// construction, is/toupper/tolower use the *_l locale functions (which take an
+// explicit, immutable locale_t), and narrow() switches only the calling
+// thread's locale via a per-thread uselocale guard. A user-supplied override of
+// ctype_conf<CharT> must preserve this property.
 template <typename CharT>
     requires (sizeof(CharT) > 1)
-class ctype<CharT>
+class ctype<CharT> : public detail::ctype_ops<ctype<CharT>>
 {
     constexpr static unsigned s_len = std::numeric_limits<unsigned char>::max() + 1;
+
+    // Unsigned counterpart of CharT, used to fold a (possibly signed) CharT
+    // into [0, 2^N) for the table-range check and indexing without sign
+    // extension. make_unsigned_t guarantees the same width as CharT, so no
+    // value is truncated regardless of how wide plain `unsigned` happens to be.
+    using uchar_type = std::make_unsigned_t<CharT>;
 
 public:
     using create_rules = facet_create_rule<ctype_conf<CharT>>;
@@ -184,59 +230,14 @@ public:
         return do_is(c);
     }
 
-    bool is_any(mask m, CharT c) const
-    {
-        return is(c) & m;
-    }
-
-    template <typename InIt, typename OutIt>
-    OutIt is_seq(InIt low, InIt high, OutIt vec) const
-    {
-        while (low != high)
-            *vec++ = do_is(*low++);
-        return vec;
-    }
-
-    template <typename InIt>
-    InIt scan_is_any(mask m, InIt beg, InIt end) const
-    {
-        while ((beg != end) && (!(do_is(*beg) & m)))
-            ++beg;
-        return beg;
-    }
-
-    template <typename InIt>
-    InIt scan_not_any(mask m, InIt beg, InIt end) const
-    {
-        while ((beg != end) && (do_is(*beg) & m))
-            ++beg;
-        return beg;
-    }
-
     CharT toupper(CharT c) const
     {
         return do_toupper(c);
     }
 
-    template <typename InIt, typename OutIt>
-    OutIt toupper_seq(InIt beg, InIt end, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = do_toupper(*beg++);
-        return dst;
-    }
-
     CharT tolower(CharT c) const
     {
         return do_tolower(c);
-    }
-
-    template <typename InIt, typename OutIt>
-    OutIt tolower_seq(InIt beg, InIt end, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = do_tolower(*beg++);
-        return dst;
     }
 
     // Default behaviour (inherited from ctype_conf<CharT>::widen at
@@ -246,7 +247,8 @@ public:
     // standalone characters and btowc() returns WEOF for them at
     // table-build time; the corresponding entries of m_widen hold WEOF
     // cast to CharT (a sentinel-looking but unspecified value), and
-    // callers must not widen() such bytes under this default.
+    // callers must not widen() such bytes under this default. This caveat
+    // also applies to widen_seq() (inherited from detail::ctype_ops).
     //
     // This is only the default. A user may derive from ctype_conf<CharT>
     // and override widen() to supply a different mapping; the lookup
@@ -258,99 +260,53 @@ public:
         return m_widen[static_cast<unsigned char>(c)];
     }
 
-    // See widen() above for the WEOF caveat applicable under the
-    // default ctype_conf<CharT>::widen behaviour.
-    template <typename InIt, typename OutIt>
-    OutIt widen_seq(InIt beg, InIt end, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = widen(*beg++);
-        return dst;
-    }
-
     std::optional<char> narrow(CharT c) const
     {
         return do_narrow(c);
     }
 
-    char narrow(CharT c, char def) const
-    {
-        auto res = narrow(c);
-        return res ? *res : def;
-    }
-
-    template <typename InIt, typename OutIt>
-    OutIt narrow_seq(InIt beg, InIt end, char dflt, OutIt dst) const
-    {
-        while (beg != end)
-            *dst++ = narrow(*beg++, dflt);
-        return dst;
-    }
+    using detail::ctype_ops<ctype<CharT>>::narrow;
 
 private:
+    // For values inside the precomputed [0, s_len) range, answer from the
+    // lock-free table; otherwise defer straight to the (immutable) conf.
+    //
+    // There used to be a per-character locked LRU cache on this slow path; it
+    // was removed. Benchmarks showed it to be a net loss for this facet's
+    // real workload: large alphabets (e.g. CJK) overflow any bounded cache and
+    // thrash, so the lookup recomputes anyway while also paying the cache and
+    // mutex overhead; and a single mutex serialises the threads that may share
+    // one facet. Calling the conf directly is faster there and lock-free, so
+    // it scales with thread count. (It loses to a cache only for a tiny,
+    // highly repetitive working set -- not the case here.)
     mask do_is(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_table[static_cast<unsigned>(c)];
-
-        std::lock_guard g(m_lru_mutex);
-        auto res = m_table_cache.get(c);
-        if (!res)
-        {
-            auto v = m_obj->is(c);
-            m_table_cache.put(c, v);
-            return v;
-        }
-        return *res;
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_table[static_cast<uchar_type>(c)];
+        return m_obj->is(c);
     }
 
     CharT do_toupper(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_toupper[static_cast<unsigned>(c)];
-
-        std::lock_guard g(m_lru_mutex);
-        auto res = m_upper_cache.get(c);
-        if (!res)
-        {
-            auto v = m_obj->toupper(c);
-            m_upper_cache.put(c, v);
-            return v;
-        }
-        return *res;
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_toupper[static_cast<uchar_type>(c)];
+        return m_obj->toupper(c);
     }
 
     CharT do_tolower(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_tolower[static_cast<unsigned>(c)];
-
-        std::lock_guard g(m_lru_mutex);
-        auto res = m_lower_cache.get(c);
-        if (!res)
-        {
-            auto v = m_obj->tolower(c);
-            m_lower_cache.put(c, v);
-            return v;
-        }
-        return *res;
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_tolower[static_cast<uchar_type>(c)];
+        return m_obj->tolower(c);
     }
 
     std::optional<char> do_narrow(CharT c) const
     {
-        if (static_cast<unsigned>(c) < s_len)
-            return m_narrow[static_cast<unsigned>(c)];
-
-        std::lock_guard g(m_lru_mutex);
-        auto res = m_narrow_cache.get(c);
-        if (!res)
-        {
-            auto v = m_obj->narrow(c);
-            m_narrow_cache.put(c, v);
-            return v;
-        }
-        return *res;
+        if (static_cast<uchar_type>(c) < s_len)
+            return m_narrow[static_cast<uchar_type>(c)];
+        return m_obj->narrow(c);
     }
+
 private:
     std::shared_ptr<const ctype_conf<CharT>> m_obj;
 
@@ -359,12 +315,6 @@ private:
     CharT m_widen[s_len];
     std::optional<char> m_narrow[s_len];
     mask  m_table[s_len];
-
-    mutable std::mutex m_lru_mutex;
-    mutable lru_cache<CharT, mask, 1024>  m_table_cache;
-    mutable lru_cache<CharT, CharT, 1024> m_upper_cache;
-    mutable lru_cache<CharT, CharT, 1024> m_lower_cache;
-    mutable lru_cache<CharT, std::optional<char>, 1024> m_narrow_cache;
 };
 
 template<typename TConfPtr>
