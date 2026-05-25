@@ -26,6 +26,15 @@ namespace detail
 // are declared as constrained function templates: the requires clause defers
 // evaluation of those dependent names to call time (when Derived is complete),
 // avoiding the incomplete-type error that class-scope type aliases would cause.
+//
+// Range precondition (applies to every method taking iterator pairs --
+// is_seq, scan_is_any, scan_not_any, toupper_seq, tolower_seq, widen_seq,
+// narrow_seq): [beg, end) must be a valid range, i.e. `end` is reachable
+// from `beg` via repeated `++`. The loops increment `beg` until it compares
+// equal to `end`; passing iterators that do not satisfy this (swapped
+// arguments on a random-access range, mismatched iterator pairs, an `end`
+// past a valid range, etc.) is undefined behaviour. Matches the equivalent
+// std::ctype contract; not asserted on the hot path.
 template <typename Derived>
 class ctype_ops
 {
@@ -90,6 +99,17 @@ public:
         return dst;
     }
 
+    // narrow(c) with a caller-supplied fallback for characters that have no
+    // single-byte representation in the target locale.
+    //
+    // @pre `def` is returned verbatim when `self().narrow(c)` yields no value;
+    //      this function does NOT validate that `def` is itself representable
+    //      in the target locale. By convention (matching std::ctype::narrow)
+    //      callers should pass a member of the basic source character set --
+    //      typically a printable ASCII byte such as '?' -- so the fallback is
+    //      meaningful in any encoding. Passing an arbitrary byte (e.g. '\xFF')
+    //      is accepted silently and may yield output that is not a valid
+    //      standalone character in the locale's encoding.
     template <typename TC>
         requires std::convertible_to<TC, typename Derived::char_type>
     char narrow(TC c, char def) const
@@ -108,11 +128,31 @@ public:
 };
 } // namespace detail
 
+// Specialisation for single-byte character types (char, char8_t). The full
+// [0, s_len) input space is enumerable at construction, so this specialisation
+// materialises every primitive (is/toupper/tolower/widen/narrow) into a
+// snapshot table and discards the source ctype_conf<CharT> pointer afterwards.
+// All later lookups are pure array reads with no virtual dispatch and no
+// shared_ptr indirection.
+//
+// Asymmetry with the sizeof(CharT) > 1 specialisation: that one retains m_obj
+// because its input space is too large to enumerate, and forwards out-of-table
+// values to the conf at call time. As a consequence, runtime mutations to a
+// user-derived ctype_conf<CharT>'s is/toupper/tolower/widen/narrow take effect
+// for the size > 1 path (on the out-of-table branch) but NOT for the size == 1
+// path: this specialisation captures a one-shot snapshot at construction and
+// never re-queries the conf. Callers who need dynamically-changing single-byte
+// behaviour should either rebuild a new ctype<CharT> after each change, or
+// supply a custom ctype<CharT> that does not snapshot.
 template <typename CharT>
     requires (sizeof(CharT) == 1)
 class ctype<CharT> : public detail::ctype_ops<ctype<CharT>>
 {
-    // Note: we have to use unsigned char here to avoid negative value
+    // Note: we have to use unsigned char here to avoid negative value.
+    // Sizing is in units of "values representable by unsigned char", not a
+    // hard-coded 256. The CHAR_BIT == 8 assumption is enforced by a
+    // static_assert in ctype_details.h, so on every supported platform
+    // s_len == 256.
     constexpr static unsigned s_len = std::numeric_limits<unsigned char>::max() + 1;
 
 public:
@@ -189,10 +229,26 @@ private:
 // explicit, immutable locale_t), and narrow() switches only the calling
 // thread's locale via a per-thread uselocale guard. A user-supplied override of
 // ctype_conf<CharT> must preserve this property.
+//
+// Self-consistency contract for user overrides: values inside [0, s_len) are
+// served from the snapshot tables built at construction, while values outside
+// that range go through virtual dispatch to the conf on every call. A
+// user-derived ctype_conf<CharT> whose is(), toupper(), and tolower() are not
+// internally consistent -- for example, `is(c) & upper` returning true while
+// `toupper(c) == c`, or returning a mask that disagrees with what the
+// case-conversion methods imply -- will exhibit "torn" behaviour: the
+// inconsistency is frozen into the in-range tables at construction but is
+// re-observed live for every out-of-range character. Overrides must be
+// self-consistent across is/toupper/tolower (and across is/widen/narrow where
+// the semantics demand it) so that the same character produces the same
+// answer regardless of which branch served it.
 template <typename CharT>
     requires (sizeof(CharT) > 1)
 class ctype<CharT> : public detail::ctype_ops<ctype<CharT>>
 {
+    // See the matching s_len note in the sizeof(CharT)==1 specialization
+    // above. Tables span [0, unsigned_char::max()+1) per-byte; CHAR_BIT == 8
+    // is enforced by static_assert in ctype_details.h.
     constexpr static unsigned s_len = std::numeric_limits<unsigned char>::max() + 1;
 
     // Unsigned counterpart of CharT, used to fold a (possibly signed) CharT
