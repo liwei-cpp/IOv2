@@ -3,14 +3,7 @@ var namespaceIOv2 =
     [ "Comp", "namespaceIOv2_1_1Comp.html", "namespaceIOv2_1_1Comp" ],
     [ "Crypt", "namespaceIOv2_1_1Crypt.html", "namespaceIOv2_1_1Crypt" ],
     [ "cvt_cpt", "namespaceIOv2_1_1cvt__cpt.html", "namespaceIOv2_1_1cvt__cpt" ],
-    [ "detail", "namespaceIOv2_1_1detail.html", [
-      [ "to_u32string", "namespaceIOv2_1_1detail.html#a801881577b5c1cb239a485b6fab5034b", null ],
-      [ "to_u32string", "namespaceIOv2_1_1detail.html#a4c8d5418a7c7dbf2bef67e91162ee5cb", null ],
-      [ "to_u8string", "namespaceIOv2_1_1detail.html#a5fcc1d87473297523fb387243e5b0950", null ],
-      [ "to_u8string", "namespaceIOv2_1_1detail.html#a9bad2cd50da6e91830cc4bc0b52d1385", null ],
-      [ "to_wstring", "namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1", null ],
-      [ "runtime_cvt_null_err", "namespaceIOv2_1_1detail.html#a26a0b91f19003a2657cae9bcb805a94d", null ]
-    ] ],
+    [ "detail", "namespaceIOv2_1_1detail.html", "namespaceIOv2_1_1detail" ],
     [ "dev_cpt", "namespaceIOv2_1_1dev__cpt.html", "namespaceIOv2_1_1dev__cpt" ],
     [ "FacetHelper", "namespaceIOv2_1_1FacetHelper.html", [
       [ "add_grouping", "namespaceIOv2_1_1FacetHelper.html#a0faaf30b3a28b21f89f129297b1ad11f", null ],
@@ -264,7 +257,7 @@ var namespaceIOv2 =
       [ "output", "namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d", null ]
     ] ],
     [ "appmode", "namespaceIOv2.html#a47aec311fb370f53d54216e00ae2ef35", null ],
-    [ "avail_ptr", "namespaceIOv2.html#ab0a0434a90b4e58f8abb167e9f9fd3e5", null ],
+    [ "avail_ptr", "namespaceIOv2.html#a53695fb3a36a8ceddf271eaec95eb26c", null ],
     [ "boolalpha", "namespaceIOv2.html#a0dc9293a3d364044d765f759e5b46c40", null ],
     [ "collate", "namespaceIOv2.html#a6646d109fa110b2bf6d93bb7ae5f1925", null ],
     [ "ctype", "namespaceIOv2.html#ad9482e85e3002e85211e7aed04aa807e", null ],

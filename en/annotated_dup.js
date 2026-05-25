@@ -18,6 +18,9 @@ var annotated_dup =
         [ "hash_cvt_creator", "structIOv2_1_1Crypt_1_1hash__cvt__creator.html", "structIOv2_1_1Crypt_1_1hash__cvt__creator" ],
         [ "set_hash_fmt", "structIOv2_1_1Crypt_1_1set__hash__fmt.html", "structIOv2_1_1Crypt_1_1set__hash__fmt" ]
       ] ],
+      [ "detail", "namespaceIOv2_1_1detail.html", [
+        [ "ctype_ops", "classIOv2_1_1detail_1_1ctype__ops.html", "classIOv2_1_1detail_1_1ctype__ops" ]
+      ] ],
       [ "__cerr", "classIOv2_1_1____cerr.html", null ],
       [ "__cin", "classIOv2_1_1____cin.html", null ],
       [ "__clog", "classIOv2_1_1____clog.html", null ],

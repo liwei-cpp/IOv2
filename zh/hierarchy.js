@@ -113,8 +113,12 @@ var hierarchy =
     [ "IOv2::cpt_cvt_pipe_creator_helper< T >", "structIOv2_1_1cpt__cvt__pipe__creator__helper.html", null ],
     [ "IOv2::cpt_cvt_pipe_creator_helper< cvt_pipe_creator< T... > >", "structIOv2_1_1cpt__cvt__pipe__creator__helper_3_01cvt__pipe__creator_3_01T_8_8_8_01_4_01_4.html", null ],
     [ "IOv2::ctype< CharT >", "classIOv2_1_1ctype.html", null ],
-    [ "IOv2::ctype< CharT >", "classIOv2_1_1ctype_3_01CharT_01_4.html", null ],
     [ "IOv2::ctype_conf< CharT >", "classIOv2_1_1ctype__conf.html", null ],
+    [ "IOv2::detail::ctype_ops< Derived >", "classIOv2_1_1detail_1_1ctype__ops.html", null ],
+    [ "IOv2::detail::ctype_ops< ctype< CharT > >", "classIOv2_1_1detail_1_1ctype__ops.html", [
+      [ "IOv2::ctype< CharT >", "classIOv2_1_1ctype_3_01CharT_01_4.html", null ],
+      [ "IOv2::ctype< CharT >", "classIOv2_1_1ctype_3_01CharT_01_4.html", null ]
+    ] ],
     [ "IOv2::cvt_behavior", "structIOv2_1_1cvt__behavior.html", [
       [ "IOv2::Comp::zlib_sync_flush", "structIOv2_1_1Comp_1_1zlib__sync__flush.html", null ],
       [ "IOv2::Crypt::dump_hash", "structIOv2_1_1Crypt_1_1dump__hash.html", null ],
@@ -248,9 +252,6 @@ var hierarchy =
     [ "IOv2::locale< TChar >", "classIOv2_1_1locale.html", null ],
     [ "IOv2::locale< char_type >", "classIOv2_1_1locale.html", null ],
     [ "IOv2::lru_cache< TK, TV, Capacity >", "classIOv2_1_1lru__cache.html", null ],
-    [ "IOv2::lru_cache< CharT, CharT, 1024 >", "classIOv2_1_1lru__cache.html", null ],
-    [ "IOv2::lru_cache< CharT, mask, 1024 >", "classIOv2_1_1lru__cache.html", null ],
-    [ "IOv2::lru_cache< CharT, std::optional< char >, 1024 >", "classIOv2_1_1lru__cache.html", null ],
     [ "IOv2::mem_device< CharT, Traits, Allocator >", "classIOv2_1_1mem__device.html", null ],
     [ "IOv2::mem_device< CharT, Traits, Allocator >", "classIOv2_1_1mem__device.html", null ],
     [ "IOv2::messages< CharT >", "classIOv2_1_1messages.html", null ],
