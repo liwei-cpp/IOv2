@@ -8,6 +8,8 @@
 #include <common/defs.h>
 #include <facet/facet_common.h>
 
+#include <array>
+
 #include <cctype>
 #include <climits>
 #include <cstddef>
@@ -99,30 +101,30 @@ public:
     }
 
 public:
-    virtual mask is(char c) const
+    [[nodiscard]] virtual mask is(char c) const
     {
         return m_table[static_cast<unsigned char>(c)];
     }
 
-    virtual char toupper(char c) const
+    [[nodiscard]] virtual char toupper(char c) const
     {
         return static_cast<char>(m_toupper_table[static_cast<unsigned char>(c)]);
     }
 
-    virtual char tolower(char c) const
+    [[nodiscard]] virtual char tolower(char c) const
     {
         return static_cast<char>(m_tolower_table[static_cast<unsigned char>(c)]);
     }
 
-    virtual char widen(char c) const { return c; }
+    [[nodiscard]] virtual char widen(char c) const { return c; }
 
-    virtual std::optional<char> narrow(char c) const { return c; }
+    [[nodiscard]] virtual std::optional<char> narrow(char c) const { return c; }
 
 private:
     clocale_wrapper m_inter_locale;
-    int m_toupper_table[std::numeric_limits<unsigned char>::max() + 1];
-    int m_tolower_table[std::numeric_limits<unsigned char>::max() + 1];
-    mask m_table[std::numeric_limits<unsigned char>::max() + 1];
+    std::array<int,  std::numeric_limits<unsigned char>::max() + 1> m_toupper_table {};
+    std::array<int,  std::numeric_limits<unsigned char>::max() + 1> m_tolower_table {};
+    std::array<mask, std::numeric_limits<unsigned char>::max() + 1> m_table {};
 };
 
 template <typename CharT>
@@ -141,7 +143,7 @@ public:
         {
             clocale_user guard(m_inter_locale);
             for (size_t j = 0; j < std::size(m_widen); ++j)
-                m_widen[j] = btowc(j);
+                m_widen[j] = btowc(static_cast<int>(j));
         }
 
         auto wctype_wrapper = [&](const char* category)
@@ -162,7 +164,7 @@ public:
         m_wmask_punct  = wctype_wrapper("punct");
     }
 
-    virtual base_ft<ctype>::mask is(CharT _c) const
+    [[nodiscard]] virtual base_ft<ctype>::mask is(CharT _c) const
     {
         if (out_of_wchar_range(_c)) return 0;
 
@@ -180,13 +182,13 @@ public:
         return res;
     }
 
-    virtual CharT toupper(CharT c) const
+    [[nodiscard]] virtual CharT toupper(CharT c) const
     {
         if (out_of_wchar_range(c)) return c;
         return towupper_l(static_cast<wchar_t>(c), m_inter_locale.c_locale);
     }
 
-    virtual CharT tolower(CharT c) const
+    [[nodiscard]] virtual CharT tolower(CharT c) const
     {
         if (out_of_wchar_range(c)) return c;
         return towlower_l(static_cast<wchar_t>(c), m_inter_locale.c_locale);
@@ -198,7 +200,7 @@ public:
     // returns WEOF for them at table-build time; the corresponding entries
     // in m_widen hold WEOF cast to CharT (a sentinel-looking but
     // unspecified value). Callers must not widen() such bytes.
-    virtual CharT widen(char c) const
+    [[nodiscard]] virtual CharT widen(char c) const
     {
         return static_cast<CharT>(m_widen[static_cast<unsigned char>(c)]);
     }
@@ -219,7 +221,7 @@ public:
     // Derivations should keep this function pure-computational and
     // avoid locale-sensitive side effects inside the override; the same
     // guidance the std::ctype facet conventions imply.
-    virtual std::optional<char> narrow(CharT wc) const
+    [[nodiscard]] virtual std::optional<char> narrow(CharT wc) const
     {
         if (out_of_wchar_range(wc)) return std::nullopt;
         clocale_user guard(m_inter_locale);
@@ -235,7 +237,7 @@ private:
     // since this class lives in the same namespace.
 
     clocale_wrapper   m_inter_locale;
-    wint_t            m_widen[1 + std::numeric_limits<unsigned char>::max()];
+    std::array<wint_t, 1 + std::numeric_limits<unsigned char>::max()> m_widen {};
 
     wctype_t          m_wmask_upper;
     wctype_t          m_wmask_lower;
@@ -273,20 +275,20 @@ public:
     {}
 
 public:
-    virtual mask is(char8_t c) const
+    [[nodiscard]] virtual mask is(char8_t c) const
     {
         if (c & 0x80)
             return static_cast<mask>(0);  // not a standalone code point; no classification applies
         return m_internal.is(static_cast<char>(c));
     }
 
-    virtual char8_t toupper(char8_t c) const
+    [[nodiscard]] virtual char8_t toupper(char8_t c) const
     {
         if (c & 0x80) return c;  // not a standalone code point; no case information
         return static_cast<char8_t>(m_internal.toupper(static_cast<char>(c)));
     }
 
-    virtual char8_t tolower(char8_t c) const
+    [[nodiscard]] virtual char8_t tolower(char8_t c) const
     {
         if (c & 0x80) return c;  // not a standalone code point; no case information
         return static_cast<char8_t>(m_internal.tolower(static_cast<char>(c)));
@@ -296,9 +298,9 @@ public:
     // to exactly one char8_t code unit with no loss and no WEOF sentinel (cf.
     // the wchar_t/char32_t specialisation, where btowc() may return WEOF for
     // high bytes).
-    virtual char8_t widen(char c) const { return static_cast<char8_t>(c); }
+    [[nodiscard]] virtual char8_t widen(char c) const { return static_cast<char8_t>(c); }
 
-    virtual std::optional<char> narrow(char8_t c) const
+    [[nodiscard]] virtual std::optional<char> narrow(char8_t c) const
     {
         if (c & 0x80) return std::nullopt;  // not a standalone code point; no char equivalent
         return static_cast<char>(c);

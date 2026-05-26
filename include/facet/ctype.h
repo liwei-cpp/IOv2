@@ -4,6 +4,7 @@
 #include <facet/ctype_details.h>
 #include <facet/facet_common.h>
 
+#include <array>
 #include <concepts>
 #include <limits>
 #include <memory>
@@ -164,22 +165,22 @@ public:
     template <shared_ptr_to<ctype_conf<CharT>> TConfPtr>
     ctype(TConfPtr p_obj)
     {
-        // Return value intentionally discarded: this specialization builds
-        // lookup tables eagerly and does not retain p_obj, so we only need
-        // avail_ptr's null check, not the unwrapped pointer.
-        (void)avail_ptr(p_obj);
+        if (!p_obj) throw std::runtime_error("shared_ptr is empty");
         for (unsigned i = 0; i < s_len; ++i)
         {
-            m_table[i] = p_obj->is((CharT)i);
-            m_toupper[i] = p_obj->toupper((CharT)i);
-            m_tolower[i] = p_obj->tolower((CharT)i);
-            m_widen[i] = p_obj->widen((CharT)i);
-            m_narrow[i] = p_obj->narrow((CharT)i);
+            m_table[i] = p_obj->is(static_cast<CharT>(i));
+            m_toupper[i] = p_obj->toupper(static_cast<CharT>(i));
+            m_tolower[i] = p_obj->tolower(static_cast<CharT>(i));
+            m_widen[i] = p_obj->widen(static_cast<CharT>(i));
+            m_narrow[i] = p_obj->narrow(static_cast<CharT>(i));
         }
     }
 
+    ~ctype() = default;
     ctype(const ctype&) = delete;
     ctype& operator=(const ctype&) = delete;
+    ctype(ctype&&) = delete;
+    ctype& operator=(ctype&&) = delete;
 
 public:
     mask is(CharT c) const
@@ -210,11 +211,11 @@ public:
     using detail::ctype_ops<ctype<CharT>>::narrow;
 
 private:
-    mask  m_table[s_len];
-    CharT m_toupper[s_len];
-    CharT m_tolower[s_len];
-    CharT m_widen[s_len];
-    std::optional<char> m_narrow[s_len];
+    std::array<mask, s_len>                m_table;
+    std::array<CharT, s_len>               m_toupper;
+    std::array<CharT, s_len>               m_tolower;
+    std::array<CharT, s_len>               m_widen;
+    std::array<std::optional<char>, s_len> m_narrow;
 };
 
 // Specialisation for multi-byte character types (wchar_t, char32_t). Values in
@@ -265,20 +266,24 @@ public:
 
     template <shared_ptr_to<ctype_conf<CharT>> TConfPtr>
     ctype(TConfPtr p_obj)
-        : m_obj(avail_ptr(p_obj))
+        : m_obj(p_obj)
     {
+        if (!m_obj) throw std::runtime_error("shared_ptr is empty");
         for (unsigned i = 0; i < s_len; ++i)
         {
-            m_toupper[i] = m_obj->toupper((CharT)i);
-            m_tolower[i] = m_obj->tolower((CharT)i);
-            m_widen[i] = m_obj->widen((CharT)i);
-            m_narrow[i] = m_obj->narrow((CharT)i);
-            m_table[i] = m_obj->is((CharT)i);
+            m_toupper[i] = m_obj->toupper(static_cast<CharT>(i));
+            m_tolower[i] = m_obj->tolower(static_cast<CharT>(i));
+            m_widen[i] = m_obj->widen(static_cast<CharT>(i));
+            m_narrow[i] = m_obj->narrow(static_cast<CharT>(i));
+            m_table[i] = m_obj->is(static_cast<CharT>(i));
         }
     }
 
+    ~ctype() = default;
     ctype(const ctype&) = delete;
     ctype& operator=(const ctype&) = delete;
+    ctype(ctype&&) = delete;
+    ctype& operator=(ctype&&) = delete;
 
 public:
     mask is(CharT c) const
@@ -366,11 +371,11 @@ private:
 private:
     std::shared_ptr<const ctype_conf<CharT>> m_obj;
 
-    CharT m_toupper[s_len];
-    CharT m_tolower[s_len];
-    CharT m_widen[s_len];
-    std::optional<char> m_narrow[s_len];
-    mask  m_table[s_len];
+    std::array<CharT, s_len>               m_toupper;
+    std::array<CharT, s_len>               m_tolower;
+    std::array<CharT, s_len>               m_widen;
+    std::array<std::optional<char>, s_len> m_narrow;
+    std::array<mask, s_len>                m_table;
 };
 
 template<typename TConfPtr>

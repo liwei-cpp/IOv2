@@ -16,7 +16,8 @@ public:
 
     template <shared_ptr_to<collate_conf<CharT>> TConfPtr>
     collate(TConfPtr p_obj)
-        : m_obj(avail_ptr(p_obj)) {}
+        : m_obj(p_obj)
+    { if (!m_obj) throw std::runtime_error("shared_ptr is empty"); }
 
 public:
     std::strong_ordering compare(const CharT* low1, const CharT* high1, const CharT* low2, const CharT* high2) const

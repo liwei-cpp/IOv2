@@ -21,7 +21,7 @@ public:
               shared_ptr_to<ctype<CharT>> TCtypePtr>
     numeric(TConfPtr p_obj, TCtypePtr p_ctype) : m_ctype(p_ctype)
     {
-        avail_ptr(p_obj);
+        if (!p_obj) throw std::runtime_error("shared_ptr is empty");
         m_decimal_point = p_obj->decimal_point();
         m_thousands_sep = p_obj->thousands_sep();
         m_true_name = p_obj->truename();

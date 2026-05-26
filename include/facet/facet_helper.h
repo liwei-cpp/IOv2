@@ -179,7 +179,7 @@ namespace IOv2::FacetHelper
     inline void adjust_grouping(std::vector<uint8_t>& grouping)
     {
         // Step 1: POSIX "0 = repeat previous" → drop the 0 and the tail.
-        auto zero = std::find(grouping.begin(), grouping.end(), uint8_t{0});
+        auto zero = std::ranges::find(grouping, uint8_t{0});
         grouping.erase(zero, grouping.end());
 
         // Step 2: POSIX CHAR_MAX (= stop) → internal 0 sentinel, plus
@@ -195,9 +195,9 @@ namespace IOv2::FacetHelper
         //                   bytes are dead code anyway because add_grouping
         //                   short-circuits on 0.
         //   - not found:    nothing to do.
-        constexpr uint8_t posix_sentinel =
+        constexpr auto posix_sentinel =
             static_cast<uint8_t>(std::numeric_limits<char>::max());
-        auto stop = std::find(grouping.begin(), grouping.end(), posix_sentinel);
+        auto stop = std::ranges::find(grouping, posix_sentinel);
         if (stop == grouping.begin())
             grouping.clear();
         else if (stop != grouping.end())
