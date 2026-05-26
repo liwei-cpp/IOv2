@@ -15,7 +15,8 @@ public:
 
     template <shared_ptr_to<messages_conf<CharT>> TConfPtr>
     messages(TConfPtr p_obj)
-        : m_obj(avail_ptr(p_obj)) {}
+        : m_obj(p_obj)
+    { if (!m_obj) throw std::runtime_error("shared_ptr is empty"); }
 
     const std::basic_string<char_type>& translate(const std::basic_string<char_type>& ori) const
     {

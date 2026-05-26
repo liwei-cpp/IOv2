@@ -16,6 +16,8 @@ struct abs_ft
 
     abs_ft(const abs_ft&) = delete;
     abs_ft& operator=(const abs_ft&) = delete;
+    abs_ft(abs_ft&&) = delete;
+    abs_ft& operator=(abs_ft&&) = delete;
 
     virtual ~abs_ft() = default;
 
@@ -30,7 +32,7 @@ struct abs_ft
     // same value. Do not break that invariant -- never construct a facet whose
     // m_id differs from its static id() -- or the static key and this accessor
     // would silently diverge and locale facet lookup would misbehave.
-    size_t id() const noexcept { return m_id; }
+    [[nodiscard]] size_t id() const noexcept { return m_id; }
 
 private:
     const size_t m_id;
@@ -63,7 +65,7 @@ public:
     // (TF::id()). The constructor above seeds abs_ft::m_id with this value, so
     // it stays in agreement with the abs_ft::id() instance accessor; see the
     // note on abs_ft::id() for why the shared name is intentional and safe.
-    static size_t id() noexcept { return reinterpret_cast<size_t>(&s_id); }
+    static size_t id() noexcept { return std::bit_cast<size_t>(&s_id); }
 private:
     // REQUIRES default symbol visibility across DSOs that share facet
     // instances. Because id() returns &s_id, cross-DSO facet identity
@@ -167,19 +169,5 @@ constexpr bool out_of_wchar_range(CharT c) noexcept
         return c > static_cast<char32_t>(WCHAR_MAX);
     else
         return false;
-}
-
-// Returns `obj` unchanged after verifying it is non-null, throwing otherwise.
-// Both the parameter and the result are const references, so the check itself
-// adds no shared_ptr reference-count traffic: discard-only callers (pure null
-// checks) pay nothing, and callers that need to retain the pointer make
-// exactly one copy from the returned reference (e.g. into a member). The
-// returned reference aliases the argument and therefore must not be bound past
-// the lifetime of the passed-in shared_ptr.
-template <typename T>
-const std::shared_ptr<T>& avail_ptr(const std::shared_ptr<T>& obj)
-{
-    if (!obj) throw std::runtime_error("shared_ptr is empty");
-    return obj;
 }
 }

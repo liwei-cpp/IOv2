@@ -421,7 +421,7 @@ public:
     timeio(TConfPtr p_obj)
         : m_era_tree()
     {
-        avail_ptr(p_obj);
+        if (!p_obj) throw std::runtime_error("shared_ptr is empty");
         m_day = p_obj->day_names();
         m_abbr_day = p_obj->abbr_day_names();
         m_month = p_obj->month_names();
