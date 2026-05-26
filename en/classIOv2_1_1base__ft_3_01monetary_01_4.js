@@ -8,6 +8,7 @@ var classIOv2_1_1base__ft_3_01monetary_01_4 =
       [ "sign", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a2b6173567e5ca467b2f93a482df79116a28f16470463cdde7cfd2e6583de1f465", null ],
       [ "value", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a2b6173567e5ca467b2f93a482df79116a7ca07a9240870e04d8786ef4b9f6220f", null ]
     ] ],
+    [ "abs_ft", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a94c144a978f0b828c99921a8f04d3903", null ],
     [ "abs_ft", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a465a41c8674673d08aa42b2ac52ded9d", null ],
     [ "abs_ft", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a5c8c9bdf9a0fe832e170172cf48631cd", null ],
     [ "s_construct_pattern", "classIOv2_1_1base__ft_3_01monetary_01_4.html#afacbfb2290be4bbde90c2297aded5bfb", null ],

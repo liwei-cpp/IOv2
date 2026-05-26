@@ -257,7 +257,6 @@ var namespaceIOv2 =
       [ "output", "namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d", null ]
     ] ],
     [ "appmode", "namespaceIOv2.html#a47aec311fb370f53d54216e00ae2ef35", null ],
-    [ "avail_ptr", "namespaceIOv2.html#a53695fb3a36a8ceddf271eaec95eb26c", null ],
     [ "boolalpha", "namespaceIOv2.html#a0dc9293a3d364044d765f759e5b46c40", null ],
     [ "collate", "namespaceIOv2.html#a6646d109fa110b2bf6d93bb7ae5f1925", null ],
     [ "ctype", "namespaceIOv2.html#ad9482e85e3002e85211e7aed04aa807e", null ],

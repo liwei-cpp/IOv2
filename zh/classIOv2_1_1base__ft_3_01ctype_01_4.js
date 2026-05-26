@@ -1,6 +1,7 @@
 var classIOv2_1_1base__ft_3_01ctype_01_4 =
 [
     [ "mask", "classIOv2_1_1base__ft_3_01ctype_01_4.html#a4dd2ea594ec23656994ff1ac52c004e2", null ],
+    [ "abs_ft", "classIOv2_1_1base__ft_3_01ctype_01_4.html#a94c144a978f0b828c99921a8f04d3903", null ],
     [ "abs_ft", "classIOv2_1_1base__ft_3_01ctype_01_4.html#a465a41c8674673d08aa42b2ac52ded9d", null ],
     [ "abs_ft", "classIOv2_1_1base__ft_3_01ctype_01_4.html#a5c8c9bdf9a0fe832e170172cf48631cd", null ],
     [ "all", "classIOv2_1_1base__ft_3_01ctype_01_4.html#aa8ca9d3996099c593228efb71c869657", null ],
