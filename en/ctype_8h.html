@@ -253,7 +253,15 @@ Functions</h2></td></tr>
 <tr class="memitem:ad9482e85e3002e85211e7aed04aa807e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad9482e85e3002e85211e7aed04aa807e">IOv2::ctype</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a>) -&gt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TConfPtr::element_type::char_type &gt;</td></tr>
 <tr class="separator:ad9482e85e3002e85211e7aed04aa807e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p><code>ctype</code> facet: character classification, case conversion, and widen/narrow mapping.</p>
+<p>This file provides the following core components:</p><ul>
+<li><code>detail::ctype_ops&lt;Derived&gt;</code>: CRTP mixin class that provides sequence-operation variants and a fallback-taking <code>narrow(c, def)</code> overload, derived from the five single-character primitives of the <code>Derived</code> class (<code>is</code>, <code>toupper</code>, <code>tolower</code>, <code>widen</code>, <code>narrow</code>).</li>
+<li><code>ctype&lt;CharT&gt;</code> (<code>sizeof(CharT) == 1</code>, i.e. <code>char</code>, <code>char8_t</code>): Single-byte specialization; at construction all five primitive tables are snapshotted for all 256 values into plain arrays. Later lookups are O(1) array reads with no virtual dispatch and no <code>ctype_conf&lt;CharT&gt;</code> pointer retained.</li>
+<li><code>ctype&lt;CharT&gt;</code> (<code>sizeof(CharT) &gt; 1</code>, i.e. <code>wchar_t</code>, <code>char32_t</code>): Multi-byte specialization; values in <code>[0, s_len)</code> are served from precomputed snapshot tables; values beyond that range are forwarded directly to the underlying <code>ctype_conf&lt;CharT&gt;</code> on each call, lock-free, satisfying the multi-thread safety contract.</li>
+<li>CTAD deduction guide: deduces <code>ctype&lt;CharT&gt;</code> from <code>shared_ptr&lt;ctype_conf&lt;CharT&gt;&gt;</code>.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

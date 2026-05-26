@@ -264,7 +264,16 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 <tr class="memitem:ab68d00138366f751154b6c10685ec824"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab68d00138366f751154b6c10685ec824">IOv2::facet_create_pack_size&lt; facet_create_pack&lt; T... &gt; &gt;</a> = sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>)</td></tr>
 <tr class="separator:ab68d00138366f751154b6c10685ec824"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>facet 基础设施的公共类型定义与工具。</p>
+<p>本文件提供以下核心组件：</p><ul>
+<li><code>abs_ft</code>：所有 facet 的抽象基类，持有运行时 facet id。</li>
+<li><code>base_ft&lt;TFacet&gt;</code>：以 facet 模板为参数的中间基类，用于建立 facet 继承层次。</li>
+<li><code>ft_basic&lt;TFacet&lt;CharT&gt;&gt;</code>：为 <code>(facet 模板, 字符类型)</code> 对提供静态类型键机制的具体基类。</li>
+<li><code>facet_create_rule&lt;...&gt;</code>、<code>facet_create_pack&lt;...&gt;</code> 及相关 traits：描述 facet 构造规则的 元编程工具，用于 locale 的批量 facet 构造。</li>
+<li><code>out_of_wchar_range</code>：检测字符值是否超出 <code>wchar_t</code> 表示范围的工具函数。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

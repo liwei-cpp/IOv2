@@ -159,6 +159,20 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor. Initializes one <code>wctype_t</code> handle per classification category via <code>wctype_l</code>, and builds the 256-entry <code>m_widen</code> lookup table via <code>btowc</code>.</p>
+<p>Throws <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code> if any <code>wctype_l</code> call returns 0 (category not supported by the locale). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The locale name to use for table construction. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If <code>wctype_l</code> returns 0 for any classification category name.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -188,6 +202,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the classification mask for wide character <code>_c</code> by querying each attribute via <code>iswctype_l</code>.</p>
+<p>Returns 0 immediately for values outside the <code>wchar_t</code> representable range (when <code>out_of_wchar_range</code> returns <code>true</code>). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_c</td><td>The wide character to classify. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The classification mask for <code>_c</code>, a bitwise OR of mask constants from <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;</code>; 0 if the value is out of range.  </dd></dl>
 
 </div>
 </div>
@@ -216,6 +239,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Narrows wide character <code>wc</code> to <code>char</code> via <code>wctob</code>.</p>
+<p>Returns <code>std::nullopt</code> for values outside the <code>wchar_t</code> representable range, and for values for which <code>wctob</code> returns <code>EOF</code> (no single-byte representation).</p>
+<dl class="section note"><dt>Note</dt><dd><code>wctob</code> has no <code>_l</code> variant — it reads whatever locale is currently active on the calling thread. Therefore this function temporarily installs <code>m_inter_locale</code> via <code><a class="el" href="structIOv2_1_1clocale__user.html">clocale_user</a></code> for the duration of the <code>wctob</code> call and restores the previous locale on scope exit.</dd></dl>
+<p><b>Visible side effect</b>: for the window of this call, the calling thread's locale is <code>m_inter_locale</code>, not whatever it was on entry. Anything reached during this call — in particular, a callback dispatched through a user-derived override of this function — that performs locale-sensitive I/O (<code>std::ostream</code> numeric formatting, <code>std::format</code>, third-party locale-aware code) will observe <code>m_inter_locale</code> instead of the thread's outer locale. Derivations should keep this function pure-computational and avoid locale-sensitive side effects inside the override; the same guidance the <code>std::ctype</code> facet conventions imply. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">wc</td><td>The wide character to narrow. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <code>std::optional&lt;char&gt;</code> containing the narrowed result; <code>std::nullopt</code> if no single-byte representation exists or the value is out of range.  </dd></dl>
 
 </div>
 </div>
@@ -244,6 +278,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the lowercase form of wide character <code>c</code> via <code>towlower_l</code>.</p>
+<p>Returns <code>c</code> unchanged for values outside the <code>wchar_t</code> representable range. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The wide character to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The lowercase form of <code>c</code>; returns <code>c</code> unchanged if out of range or if no lowercase mapping exists.  </dd></dl>
 
 </div>
 </div>
@@ -272,6 +315,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the uppercase form of wide character <code>c</code> via <code>towupper_l</code>.</p>
+<p>Returns <code>c</code> unchanged for values outside the <code>wchar_t</code> representable range. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The wide character to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The uppercase form of <code>c</code>; returns <code>c</code> unchanged if out of range or if no uppercase mapping exists.  </dd></dl>
 
 </div>
 </div>
@@ -300,6 +352,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Widens the narrow character <code>c</code> to <code>CharT</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> table lookup).</p>
+<p>Matches <code>std::ctype&lt;wchar_t&gt;::<a class="el" href="classIOv2_1_1ctype__conf_3_01CharT_01_4.html#ab6adf57a4ebb038d83debcf05bf7a32d">widen()</a></code> semantics: only required to be correct for the basic source character set. For multi-byte locales (e.g. UTF-8), high bytes are not standalone characters and <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">btowc()</a></code> returns <code>WEOF</code> for them at table-build time; the corresponding entries in <code>m_widen</code> hold <code>WEOF</code> cast to <code>CharT</code> (a sentinel-looking but unspecified value). Callers must not call <code><a class="el" href="classIOv2_1_1ctype__conf_3_01CharT_01_4.html#ab6adf57a4ebb038d83debcf05bf7a32d">widen()</a></code> on such bytes. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The narrow character to widen. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CharT</code> value corresponding to <code>c</code> in the current locale; the result is unspecified for high bytes.  </dd></dl>
 
 </div>
 </div>

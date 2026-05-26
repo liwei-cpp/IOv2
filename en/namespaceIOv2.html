@@ -1241,6 +1241,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>CTAD deduction guide: deduces <code>ctype&lt;CharT&gt;</code> from a <code>shared_ptr&lt;<a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;&gt;</code>.  </p>
 
 </div>
 </div>
@@ -3448,6 +3449,23 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns <code>true</code> if <code>c</code> has no <code>wchar_t</code> representation. Used to guard the C <code>*_l</code> wide-character functions (<code>iswctype_l</code>, <code>towupper_l</code>, <code>towlower_l</code>, <code>wctob</code>, ...) at any facet's API boundary, since the C standard says their behaviour is implementation-defined for inputs that are not representable as a <code>wchar_t</code>.</p>
+<p>Only non-trivial for <code>CharT == char32_t</code> on platforms where <code>char32_t</code> covers a strictly wider range than <code>wchar_t</code> (e.g. Linux: signed 32-bit <code>wchar_t</code> with <code>WCHAR_MAX = 0x7FFFFFFF</code>, vs unsigned 32-bit <code>char32_t</code>). For every other character type (<code>wchar_t</code>, <code>char</code>, <code>char8_t</code>, <code>char16_t</code>) the input is always representable as <code>wchar_t</code> on every supported platform, and the function is statically a no-op.</p>
+<p><b>Precise boundary for <code>char32_t</code> on Linux</b>: this function returns <code>true</code> exactly for the upper half of the <code>char32_t</code> range, <code>[0x80000000, 0xFFFFFFFF]</code>, because <code>WCHAR_MAX == 0x7FFFFFFF</code> there. The entire valid Unicode code-point space U+0000..U+10FFFF lies well below this cutoff, so the guard never rejects legal Unicode; it only filters out non-Unicode bit patterns that a caller may have reinterpreted as <code>char32_t</code>. Callers that intentionally pass arbitrary 32-bit integers through a <code>char32_t</code> channel should not rely on <code>out_of_wchar_range</code> as a Unicode-validity check.</p>
+<p><code>CharT</code> is constrained to the five standard C++ character types so that misuse with non-character integral or floating types (where the <code>wchar_t</code>-range question is meaningless) fails at compile time instead of silently returning <code>false</code>. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>The character type; must be one of <code>char</code>, <code>wchar_t</code>, <code>char8_t</code>, <code>char16_t</code>, or <code>char32_t</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character value to test. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if <code>c</code> cannot be represented as <code>wchar_t</code>; <code>false</code> otherwise. Always returns <code>false</code> for every character type other than <code>char32_t</code>.  </dd></dl>
 
 </div>
 </div>
@@ -4451,6 +4469,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Type trait: the number of rules in a <code><a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a></code> specialization; returns 0 for non-pack types. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>The type to inspect.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -4530,6 +4555,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Type trait: <code>true</code> if <code>T</code> is a <code><a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a></code> specialization with at least one element. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>The type to inspect.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -4578,6 +4610,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Type trait: <code>true</code> if <code>T</code> is a <code><a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a></code> specialization with at least one type argument. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>The type to inspect.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

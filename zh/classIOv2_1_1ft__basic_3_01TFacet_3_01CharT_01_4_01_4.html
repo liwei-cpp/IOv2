@@ -163,7 +163,17 @@ requires std::constructible_from&lt;<a class="el" href="classIOv2_1_1base__ft.ht
 <tr class="memitem:aa13ce85df28c3860689cc3c026b3a372" id="r_aa13ce85df28c3860689cc3c026b3a372"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#aa13ce85df28c3860689cc3c026b3a372">id</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:aa13ce85df28c3860689cc3c026b3a372"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">template</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> TFacet, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+class IOv2::ft_basic&lt; TFacet&lt; CharT &gt; &gt;</div><p>为 <code>(facet 模板, 字符类型)</code> 对提供静态类型键机制的具体基类。</p>
+<p>每个 <code><a class="el" href="classIOv2_1_1ft__basic.html">ft_basic</a>&lt;TFacet&lt;CharT&gt;&gt;</code> 特化维护一个每类型唯一的 <code>s_id</code> 静态变量， 静态成员函数 <code><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#aa13ce85df28c3860689cc3c026b3a372">id()</a></code> 返回其地址作为稳定的编译期 facet 键。构造函数自动以此值 初始化 <code>abs_ft::m_id</code>，保证静态键与实例访问器始终一致。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TFacet</td><td>完整的 facet 类型，形如 <code>SomeFacet&lt;CharT&gt;</code>。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a403b069fdeb3516aa54bfb2bf06b6eed" name="a403b069fdeb3516aa54bfb2bf06b6eed"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a403b069fdeb3516aa54bfb2bf06b6eed">&#9670;&#160;</a></span>char_type</h2>
 
@@ -177,6 +187,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>此 facet 特化所绑定的字符类型。   </p>
 
 </div>
 </div>
@@ -209,6 +220,7 @@ requires std::constructible_from&lt;<a class="el" href="classIOv2_1_1base__ft.ht
   </tr>
 </table>
 </div><div class="memdoc">
+<p>转发构造函数。以此类型的静态 <code><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#aa13ce85df28c3860689cc3c026b3a372">id()</a></code> 值初始化 <code>abs_ft::m_id</code>，并将其余参数 转发给 <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;TFacet&gt;</code>。 </p>
 
 </div>
 </div>
@@ -237,6 +249,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>静态每类型 facet 键：返回此 <code>(facet 模板, 字符类型)</code> 对稳定且唯一的 id， 取自每类型 <code>s_id</code> 变量的地址。此值为编译期键，用于按类型定位 facet（<code>TF::id()</code>）。 构造函数以此值初始化 <code>abs_ft::m_id</code>，保证其与 <code><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">abs_ft::id()</a></code> 实例访问器 始终保持一致；参见 <code><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">abs_ft::id()</a></code> 上的说明以了解共名的理由。 </p>
+<dl class="section return"><dt>返回</dt><dd>此 facet 类型唯一的运行时 id 值。   </dd></dl>
 
 </div>
 </div>

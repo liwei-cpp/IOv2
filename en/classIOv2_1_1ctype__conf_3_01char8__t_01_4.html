@@ -133,7 +133,20 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aab594453cceae70c08230ede37fd498b" id="r_aab594453cceae70c08230ede37fd498b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01char8__t_01_4.html#aab594453cceae70c08230ede37fd498b">narrow</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:aab594453cceae70c08230ede37fd498b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p><code>ctype</code> configuration class specialization for UTF-8 code units (<code>char8_t</code>).</p>
+<p>The design rests on two structural guarantees of the UTF-8 encoding:</p><ol type="1">
+<li>No byte in <code>[0x00, 0x7F]</code> ever appears as a leading or continuation byte of a multi-byte sequence, so code units in that range are ASCII-compatible and can be classified exactly like the corresponding <code>char</code> value in the locale.</li>
+<li>Every byte in <code>[0x80, 0xFF]</code> is either a leading byte (<code>0xC0–0xFF</code>) or a continuation byte (<code>0x80–0xBF</code>) of a multi-byte sequence, and therefore does not represent a standalone Unicode code point.</li>
+</ol>
+<p>For <code>[0x00, 0x7F]</code>: all operations delegate to an internal <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;</code>, which builds locale-aware lookup tables for all 256 <code>char</code> values at construction time. Only the lower half of that table is meaningful here; the high half is never accessed.</p>
+<p>For <code>[0x80, 0xFF]</code>: each API applies the following conservative treatment:</p><ul>
+<li><code>is</code>: returns 0 (not a standalone code point; no classification applies).</li>
+<li><code>toupper</code>/<code>tolower</code>: returns the input unchanged (no case information).</li>
+<li><code>widen</code>: converts trivially to <code>char8_t</code> (<code>char8_t</code> has the same range as <code>unsigned char</code>, so every <code>char</code> maps to exactly one <code>char8_t</code> code unit with no loss and no <code>WEOF</code> sentinel issue).</li>
+<li><code>narrow</code>: returns <code>std::nullopt</code> (not a standalone code point; no <code>char</code> equivalent).  </li>
+</ul>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5ac05630d6129aac149b10e3905a3dbe" name="a5ac05630d6129aac149b10e3905a3dbe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5ac05630d6129aac149b10e3905a3dbe">&#9670;&#160;</a></span>ctype_conf()</h2>
 
@@ -157,6 +170,13 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor. Initializes the internal <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;</code> to build locale-aware lookup tables. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The locale name to use for table construction.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -184,6 +204,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the classification mask for <code>char8_t</code> code unit <code>c</code>.</p>
+<p>Returns 0 for <code>[0x80, 0xFF]</code> (not a standalone code point). Delegates to the internal <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;::is</code> for <code>[0x00, 0x7F]</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The UTF-8 code unit to classify. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The classification mask for <code>c</code>; 0 for <code>[0x80, 0xFF]</code>.  </dd></dl>
 
 </div>
 </div>
@@ -210,6 +239,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Narrows <code>char8_t</code> code unit <code>c</code> to <code>char</code>.</p>
+<p>Returns <code>std::nullopt</code> for <code>[0x80, 0xFF]</code> (not a standalone code point; no <code>char</code> equivalent). For <code>[0x00, 0x7F]</code>, converts directly to <code>char</code> (ranges are compatible; always succeeds). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The UTF-8 code unit to narrow. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <code>std::optional&lt;char&gt;</code> containing the narrowed result; <code>std::nullopt</code> for <code>[0x80, 0xFF]</code>.  </dd></dl>
 
 </div>
 </div>
@@ -236,6 +274,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the lowercase form of <code>char8_t</code> code unit <code>c</code>.</p>
+<p>Returns <code>c</code> unchanged for <code>[0x80, 0xFF]</code> (not a standalone code point; no case information). Delegates to the internal <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;::tolower</code> for <code>[0x00, 0x7F]</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The UTF-8 code unit to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The lowercase form of <code>c</code>; returns <code>c</code> unchanged for <code>[0x80, 0xFF]</code>.  </dd></dl>
 
 </div>
 </div>
@@ -262,6 +309,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the uppercase form of <code>char8_t</code> code unit <code>c</code>.</p>
+<p>Returns <code>c</code> unchanged for <code>[0x80, 0xFF]</code> (not a standalone code point; no case information). Delegates to the internal <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;::toupper</code> for <code>[0x00, 0x7F]</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The UTF-8 code unit to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The uppercase form of <code>c</code>; returns <code>c</code> unchanged for <code>[0x80, 0xFF]</code>.  </dd></dl>
 
 </div>
 </div>
@@ -288,6 +344,15 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Widens the narrow character <code>c</code> to <code>char8_t</code> (trivial conversion, no loss).</p>
+<p><code>char8_t</code> has the same range as <code>unsigned char</code>, so every <code>char</code> value maps to exactly one <code>char8_t</code> code unit with no loss and no <code>WEOF</code> sentinel issue (cf. the <code>wchar_t</code>/<code>char32_t</code> specialization, where <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">btowc()</a></code> may return <code>WEOF</code> for high bytes). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The narrow character to widen. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>char8_t</code> code unit corresponding to <code>c</code>.  </dd></dl>
 
 </div>
 </div>

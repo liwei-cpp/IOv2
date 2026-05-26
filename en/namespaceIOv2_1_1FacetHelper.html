@@ -165,6 +165,30 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Insert grouping separators <code>sep</code> into the character sequence <code>[first, last)</code> according to <code>grouping</code>, write the result into the output buffer starting at <code>s</code>, and return a pointer one past the last element written.</p>
+<dl class="section user"><dt>Preconditions</dt><dd><ul>
+<li><code>grouping</code> is non-empty. [asserted in debug builds]</li>
+<li><code>[first, last)</code> is a valid range, i.e. <code>first &lt;= last</code>. Passing <code>first &gt; last</code> causes the inner copy loop to never terminate and write past the output buffer. [asserted in debug builds]</li>
+<li><code>s</code> points to an output buffer with sufficient capacity to hold <code>(last - first)</code> characters plus one separator per non-leading group; callers are responsible for sizing the buffer. [not validated] </li>
+</ul>
+</dd></dl>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>The character type of the sequence elements and separator. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>Pointer to the start of the output buffer. </td></tr>
+    <tr><td class="paramname">sep</td><td>The separator character to insert between groups. </td></tr>
+    <tr><td class="paramname">grouping</td><td>The grouping specification using the internal <code>uint8_t</code> convention established by <code><a class="el" href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">adjust_grouping()</a></code>: 1–255 are explicit group sizes, 0 is the sole stop sentinel, and the last 1–255 element is implicitly repeated for all remaining groups. </td></tr>
+    <tr><td class="paramname">first</td><td>Pointer to the start of the input character sequence. </td></tr>
+    <tr><td class="paramname">last</td><td>Pointer to one past the end of the input character sequence. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Pointer to one past the last element written into <code>s</code>.  </dd></dl>
 
 </div>
 </div>
@@ -191,6 +215,25 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Normalise a raw POSIX-style grouping vector in-place to the internal convention, or clear it if it carries no usable constraint.</p>
+<dl class="section user"><dt>Internal convention (<code>uint8_t</code>, platform-independent)</dt><dd><ul>
+<li>1–255: explicit group size.</li>
+<li>0: stop — no further grouping after this point (the ONLY sentinel).</li>
+<li>The LAST element (if in 1–255) is implicitly repeated for all remaining groups. If the last element is 0, the explicit stop wins.</li>
+</ul>
+</dd></dl>
+<dl class="section user"><dt>Conversions applied to raw POSIX input</dt><dd><ul>
+<li><b>POSIX "0 = repeat previous"</b>: the 0 and everything after it is dropped. POSIX <code>[N1, ..., Nk, 0, ...]</code> becomes <code>[N1, ..., Nk]</code> in our convention, because last-element implicit repeat already covers that semantic exactly.</li>
+<li><b>POSIX <code>CHAR_MAX</code> (= stop)</b>: rewritten to internal 0. <code>CHAR_MAX</code> is 127 on signed-char platforms and 255 on unsigned-char platforms; callers do not need to know the platform's char signedness after this step.</li>
+</ul>
+</dd></dl>
+<dl class="section note"><dt>Note</dt><dd><b>Order matters</b>: stripping POSIX "0 = repeat" MUST happen before the <code>CHAR_MAX → 0</code> rewrite, otherwise the newly-introduced internal stop sentinel would be mistaken for a POSIX repeat-previous marker and dropped. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">grouping</td><td>The raw POSIX grouping vector to normalize in place.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -227,6 +270,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Convert the first character of a (possibly multibyte) narrow string <code>narrow</code> to a <code>char</code> in the given locale, returning &lsquo;&rsquo;\0'<code>if</code>narrow` is empty or conversion is not representable.</p>
+<p>Suitable for fields read out of <code>lconv</code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> that semantically represent a single user-visible character (e.g. <code>decimal_point</code>, <code>thousands_sep</code>, <code>mon_decimal_point</code>, <code>mon_thousands_sep</code>).</p>
+<dl class="section user"><dt>Why <code>const std::string&amp;</code> and not <code>const char*</code></dt><dd><code>lconv*</code> and <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> pointers may be invalidated by any <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">setlocale()</a></code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uselocale()</a></code> call. The conversion below transitively performs such calls (via <code><a class="el" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">detail::to_wstring</a></code>), so the input must be a caller-owned snapshot rather than a borrowed pointer into the libc-owned locale data. Taking <code>std::string</code> makes this contract unmissable at every call site. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">narrow</td><td>The (possibly multibyte) narrow string to convert. </td></tr>
+    <tr><td class="paramname">locale_name</td><td>The locale name under which to perform the conversion. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>\if EN The first character ofnarrow<code>converted to</code>char<code>in the given locale; </code>'\0'<code>if</code>narrow` is empty or the conversion is not representable.  </dd></dl>
 
 </div>
 </div>
@@ -272,6 +326,25 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Convert the first character of a (possibly multibyte) narrow string <code>narrow</code> to a wide character <code>CharT</code> in the given locale, returning <code>default_char</code> when <code>narrow</code> is empty or conversion produces no characters.</p>
+<p>Suitable for fields read out of <code>lconv</code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> that semantically represent a single user-visible character (e.g. <code>decimal_point</code>, <code>thousands_sep</code>, <code>mon_decimal_point</code>, <code>mon_thousands_sep</code>).</p>
+<dl class="section user"><dt><code>default_char</code> contract</dt><dd>Returned verbatim on the empty-input and empty-conversion paths; this function does NOT validate that <code>default_char</code> is itself representable, well-formed, or otherwise meaningful under <code>locale_name</code>. Callers are responsible for choosing a sensible fallback (typically a plain ASCII-range value such as &lsquo;L&rsquo; '<code>,</code>L'.'<code>,</code>U' '<code>, or</code>U'.'<code>). Note the asymmetry with </code>string_to_char_convert<code>, which uses a hard-coded</code>'\0'` fallback and accepts no caller default: here the fallback is a parameter precisely so callers can pick a locale-appropriate substitute, but the price is that validation is their responsibility, not ours.</dd></dl>
+<dl class="section user"><dt>Why <code>const std::string&amp;</code> and not <code>const char*</code></dt><dd><code>lconv*</code> and <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> pointers may be invalidated by any <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">setlocale()</a></code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uselocale()</a></code> call. The conversion below transitively performs such calls (via <code><a class="el" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">detail::to_wstring</a></code>/<code>to_u32string</code>), so the input must be a caller-owned snapshot rather than a borrowed pointer into the libc-owned locale data. Taking <code>std::string</code> makes this contract unmissable at every call site. </dd></dl>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>The target wide character type. Must be <code>wchar_t</code>, or <code>char32_t</code> on platforms where <code>char32_t</code> and <code>wchar_t</code> are equivalent (enforced at compile time by the <code>requires</code> clause). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">narrow</td><td>The (possibly multibyte) narrow string to convert. </td></tr>
+    <tr><td class="paramname">locale_name</td><td>The locale name under which to perform the conversion. </td></tr>
+    <tr><td class="paramname">default_char</td><td>The fallback value returned when <code>narrow</code> is empty or conversion produces no characters. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The first character of <code>narrow</code> converted to <code>CharT</code> in the given locale; <code>default_char</code> if <code>narrow</code> is empty or conversion produces no characters.  </dd></dl>
 
 </div>
 </div>
@@ -308,6 +381,17 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Verify whether the parsed grouping sequence <code>grouping_tmp</code> conforms to the <code>numpunct::grouping</code> constraint specified by <code>grouping</code>.</p>
+<dl class="section user"><dt>Preconditions</dt><dd>Both <code>grouping</code> and <code>grouping_tmp</code> must be non-empty; non-emptiness is validated only by <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">assert()</a></code> in debug builds; release builds rely on the caller. Violating the precondition in release causes <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size()</a> - 1</code> to underflow to <code>SIZE_MAX</code> and subsequent indexing to read out of bounds. Callers guarantee non-emptiness because <code>grouping_tmp</code> is only populated inside <code>!grouping.<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">empty()</a></code> branches, so the non-emptiness of <code>grouping_tmp</code> implies the non-emptiness of <code>grouping</code>.</dd></dl>
+<p><code>grouping</code> uses the internal <code>uint8_t</code> convention established by <code><a class="el" href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">adjust_grouping()</a></code>: 1–255 are explicit group sizes, 0 is the sole stop sentinel, and the last 1–255 element is implicitly repeated for all remaining groups. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">grouping</td><td>The reference grouping specification (from <code>numpunct::grouping</code>), using the internal <code>uint8_t</code> convention. </td></tr>
+    <tr><td class="paramname">grouping_tmp</td><td>The grouping sizes actually observed during parsing. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if <code>grouping_tmp</code> conforms to <code>grouping</code>; <code>false</code> otherwise.  </dd></dl>
 
 </div>
 </div>

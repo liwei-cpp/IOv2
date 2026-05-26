@@ -204,7 +204,29 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:afab851648a5b741eb31c899bbc4803f1 inherit pub_methods_classIOv2_1_1detail_1_1ctype__ops" id="r_afab851648a5b741eb31c899bbc4803f1"><td class="memItemLeft" align="right" valign="top">OutIt&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1detail_1_1ctype__ops.html#afab851648a5b741eb31c899bbc4803f1">narrow_seq</a> (InIt beg, InIt end, char dflt, OutIt dst) const</td></tr>
 <tr class="separator:afab851648a5b741eb31c899bbc4803f1 inherit pub_methods_classIOv2_1_1detail_1_1ctype__ops"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>) == 1)<br />
+class IOv2::ctype&lt; CharT &gt;</div><p>单字节字符类型（<code>char</code>、<code>char8_t</code>）的 <code>ctype</code> facet 特化。</p>
+<p>输入空间 <code>[0, s_len)</code> 在构造时完全可枚举，因此本特化将所有五张原语表（<code>is</code>/<code>toupper</code>/ <code>tolower</code>/<code>widen</code>/<code>narrow</code>）一次性快照到平坦数组中，之后丢弃 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 指针。所有后续查询均为零虚调用、零 <code>shared_ptr</code> 间接的 <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> 数组读取。</p>
+<dl class="section user"><dt>与 <code>sizeof(CharT) &gt; 1</code> 特化的不对称性</dt><dd><code>sizeof &gt; 1</code> 特化保留 <code>m_obj</code> 指针，因为其输入空间过大无法枚举，对超出表范围的值 在调用时转发给 conf。因此，对用户派生的 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 中 <code>is</code>/<code>toupper</code>/ <code>tolower</code>/<code>widen</code>/<code>narrow</code> 的运行时修改，在 <code>sizeof &gt; 1</code> 路径（超出表范围的分支） 上会即时生效，但在本特化上**不会**生效：本特化在构造时捕获了一次性快照，之后永远 不再查询 conf。需要动态变化单字节行为的调用方应在每次修改后重建一个新的 <code>ctype&lt;CharT&gt;</code>， 或提供一个不做快照的自定义 <code>ctype&lt;CharT&gt;</code>。</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>单字节字符类型，须满足 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(CharT)</a> == 1</code>。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<p>多字节字符类型（<code>wchar_t</code>、<code>char32_t</code>）的 <code>ctype</code> facet 特化。</p>
+<p>对 <code>[0, s_len)</code> 区间内的值，从构造时预建的无锁快照表查询；对超出该区间的值， 在每次调用时直接转发到底层 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code>，无缓存、无锁。</p>
+<dl class="section user"><dt>线程安全契约</dt><dd>由于超出表范围的路径会并发调用 conf，<code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 的 <code>const</code> 方法须对并发 调用安全。默认实现满足此要求：成员在构造后不可变；<code>is</code>/<code>toupper</code>/<code>tolower</code> 使用显式 传入不可变 <code>locale_t</code> 的 <code>*_l</code> 函数；<code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a5b9d8dfcaa6d6da12614795a7ec408e3">narrow()</a></code> 仅通过每线程 <code>uselocale</code> 守卫切换 调用线程的 locale。用户提供的 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 重写须保持此属性。</dd></dl>
+<dl class="section user"><dt>用户重写的自洽性契约</dt><dd><code>[0, s_len)</code> 区间内的值由构造时建立的快照表提供，区间外的值则在每次调用时经由虚调用 转发到 conf。若用户派生的 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 中 <code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a6d0f4aaf89f0557c8d842045a15cecd6">is()</a></code>、<code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#af2dd60da807456de3c69d1e80f7fce55">toupper()</a></code>、<code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#a75021fd5b4edf6902847ebbdcbcfbfd2">tolower()</a></code> 之间不自洽（例如 <code>is(c) &amp; upper</code> 为 <code>true</code> 而 <code>toupper(c) == c</code>，或返回与大小写转换 结果相矛盾的掩码），将出现"撕裂"行为：区间内字符使用构造时冻结的快照，区间外字符使用 每次调用时的实时结果。重写须在 <code>is</code>/<code>toupper</code>/<code>tolower</code>（以及在语义上要求的 <code>is</code>/<code>widen</code>/<code>narrow</code>）之间保持自洽，以确保无论经由哪条分支服务，同一字符都产生 相同的结果。</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>多字节字符类型，须满足 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof(CharT)</a> &gt; 1</code>。  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a8e5d82a9b24cff31b27c753d9159c3b5" name="a8e5d82a9b24cff31b27c753d9159c3b5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8e5d82a9b24cff31b27c753d9159c3b5">&#9670;&#160;</a></span>char_type <span class="overload">[1/2]</span></h2>
 
@@ -218,6 +240,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>此 facet 操作的字符类型。   </p>
 
 </div>
 </div>
@@ -234,6 +257,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>此 facet 操作的字符类型。   </p>
 
 </div>
 </div>
@@ -250,6 +274,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>locale 批量 facet 构造机制所用的构造规则，指定构造本 facet 所需的 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code>。   </p>
 
 </div>
 </div>
@@ -266,6 +291,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>locale 批量 facet 构造机制所用的构造规则，指定构造本 facet 所需的 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code>。   </p>
 
 </div>
 </div>
@@ -282,6 +308,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>字符分类属性的位掩码类型，与 <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;::mask</code> 一致。   </p>
 
 </div>
 </div>
@@ -298,6 +325,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>字符分类属性的位掩码类型，与 <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;::mask</code> 一致。   </p>
 
 </div>
 </div>
@@ -329,6 +357,19 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype__conf.html"
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数。从 <code>p_obj</code> 提供的 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 实例为全部 256 个字节值预建 五张快照表，之后不再持有 <code>p_obj</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_obj</td><td>指向 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 实例的共享指针，不得为空。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>若 <code>p_obj</code> 为空指针。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -442,6 +483,19 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype__conf.html"
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数。保留 <code>p_obj</code> 指针，并从中为 <code>[0, s_len)</code> 区间的全部值预建五张快照表。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_obj</td><td>指向 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 实例的共享指针，不得为空，且在本对象生命周期内须保持有效。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>若 <code>p_obj</code> 为空指针。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -554,6 +608,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">的分类掩码（O(1)</a> 快照表查询）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待分类的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的分类掩码。   </dd></dl>
 
 </div>
 </div>
@@ -582,6 +644,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> 的分类掩码。区间内查快照表，区间外转发至 conf。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待分类的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的分类掩码。   </dd></dl>
 
 </div>
 </div>
@@ -610,6 +680,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将字符 <code>c</code> 窄化为 <code>char</code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">（O(1)</a> 快照表查询）。 若构造时 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;::narrow</code> 对该值返回 <code>nullopt</code>，则此处同样返回 <code>nullopt</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待窄化的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>包含窄化结果的 <code>std::optional&lt;char&gt;</code>；若无对应表示则为 <code>nullopt</code>。   </dd></dl>
 
 </div>
 </div>
@@ -638,6 +716,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将字符 <code>c</code> 窄化为 <code>char</code>。区间内查快照表，区间外转发至 conf。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待窄化的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>包含窄化结果的 <code>std::optional&lt;char&gt;</code>；若无对应单字节表示则为 <code>nullopt</code>。   </dd></dl>
 
 </div>
 </div>
@@ -778,6 +864,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">的小写形式（O(1)</a> 快照表查询）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的小写形式。   </dd></dl>
 
 </div>
 </div>
@@ -806,6 +900,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> 的小写形式。区间内查快照表，区间外转发至 conf。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的小写形式。   </dd></dl>
 
 </div>
 </div>
@@ -834,6 +936,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">的大写形式（O(1)</a> 快照表查询）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的大写形式。   </dd></dl>
 
 </div>
 </div>
@@ -862,6 +972,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> 的大写形式。区间内查快照表，区间外转发至 conf。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的大写形式。   </dd></dl>
 
 </div>
 </div>
@@ -890,6 +1008,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将窄字符 <code>c</code> 拓宽为 <code>CharT</code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">（O(1)</a> 快照表查询）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待拓宽的窄字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 对应的 <code>CharT</code> 值。   </dd></dl>
 
 </div>
 </div>
@@ -918,6 +1044,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将窄字符 <code>c</code> 拓宽为 <code>CharT</code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">（O(1)</a> 快照表查询，覆盖全部 256 个输入值）。</p>
+<p>**默认行为**（继承自构造时的 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;::widen</code>）：与 <code>std::ctype&lt;wchar_t&gt;::<a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen()</a></code> 语义一致，仅保证对基本源字符集中的字符结果正确。对于多字节 locale（如 UTF-8）， 高字节不是独立字符，<code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">btowc()</a></code> 在建表时对其返回 <code>WEOF</code>；<code>m_widen</code> 中对应条目存储的是 <code>WEOF</code> 强转为 <code>CharT</code> 的值（一个看似哨兵但实际未定义含义的值），调用方不得在此默认 行为下对此类字节调用 <code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen()</a></code>（<code><a class="el" href="classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e">widen_seq()</a></code> 同理）。</p>
+<p>用户可派生 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> 并重写 <code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen()</a></code> 以提供不同的映射；此时此处的快照 表将在构造时从该重写重建，上述注意事项在该派生行为下不再适用。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待拓宽的窄字符。   </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 对应的 <code>CharT</code> 值。   </dd></dl>
 
 </div>
 </div>

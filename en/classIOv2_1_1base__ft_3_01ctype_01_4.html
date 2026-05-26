@@ -176,7 +176,18 @@ Static Public Attributes</h2></td></tr>
 <tr class="memitem:aa8ca9d3996099c593228efb71c869657" id="r_aa8ca9d3996099c593228efb71c869657"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a4dd2ea594ec23656994ff1ac52c004e2">mask</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#aa8ca9d3996099c593228efb71c869657">all</a></td></tr>
 <tr class="separator:aa8ca9d3996099c593228efb71c869657"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p><code>ctype</code>-specific base class specialization.</p>
+<p>Defines the <code>mask</code> type and character-classification mask constants shared by all <code>ctype</code> specializations. <code>mask</code> is a bitfield of type <code>unsigned short</code>, where each bit corresponds to one character-classification property.</p>
+<dl class="section attention"><dt>Attention</dt><dd>When adding a new primitive mask bit, update ALL of the following:<ol type="1">
+<li>The constant definitions in this class.</li>
+<li>The corresponding private member <code>m_wmask_&lt;name&gt;</code> in <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code>.</li>
+<li>The corresponding <code>wctype_wrapper</code> assignment in the <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> constructor.</li>
+<li>The corresponding <code>iswctype_l</code> check in <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;::is()</code>.</li>
+</ol>
+</dd></dl>
+<p>Omitting step 2 or 3 leaves the <code>wctype_t</code> uninitialized — undefined behavior at <code>iswctype_l</code>. Omitting step 4 silently drops the new bit from <code>is()</code> results.  </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a4dd2ea594ec23656994ff1ac52c004e2" name="a4dd2ea594ec23656994ff1ac52c004e2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4dd2ea594ec23656994ff1ac52c004e2">&#9670;&#160;</a></span>mask</h2>
 
@@ -188,6 +199,7 @@ Static Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Bitmask type for character-classification properties.  </p>
 
 </div>
 </div>
@@ -267,6 +279,13 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor; initializes the instance with the runtime facet id. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">id</td><td>The runtime unique identifier for this facet instance.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -292,17 +311,18 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">= <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a95b73f3f129129fce77fef50891c6d07">upper</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a7b48471ba0261bef9c47738e6556a2a0">lower</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ab711aeba549083e7884b64953bc5ffc2">alpha</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a7062774d48a7bc2a03b25f93cc2228a7">digit</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a6ee3c98f5a0feff6a4dcbbc440e73c99">xdigit</a> |</div>
 <div class="line">        <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ac9279b58ad981441e17733688ec136f2">space</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a1fd835faa8eeb998389a088a9c6cb859">print</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ad300252a5ffbc6d771085c4aedd00ac8">graph</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a4629a8cb3bd2b127657728c0b2ebbad8">cntrl</a> | <a class="code hl_variable" href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a5f69e114ef46a38619d4bd864b236620">punct</a></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a1fd835faa8eeb998389a088a9c6cb859"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a1fd835faa8eeb998389a088a9c6cb859">IOv2::base_ft&lt; ctype &gt;::print</a></div><div class="ttdeci">static constexpr mask print</div><div class="ttdef"><b>Definition</b> ctype_details.h:62</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a4629a8cb3bd2b127657728c0b2ebbad8"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a4629a8cb3bd2b127657728c0b2ebbad8">IOv2::base_ft&lt; ctype &gt;::cntrl</a></div><div class="ttdeci">static constexpr mask cntrl</div><div class="ttdef"><b>Definition</b> ctype_details.h:63</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a5f69e114ef46a38619d4bd864b236620"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a5f69e114ef46a38619d4bd864b236620">IOv2::base_ft&lt; ctype &gt;::punct</a></div><div class="ttdeci">static constexpr mask punct</div><div class="ttdef"><b>Definition</b> ctype_details.h:64</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a6ee3c98f5a0feff6a4dcbbc440e73c99"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a6ee3c98f5a0feff6a4dcbbc440e73c99">IOv2::base_ft&lt; ctype &gt;::xdigit</a></div><div class="ttdeci">static constexpr mask xdigit</div><div class="ttdef"><b>Definition</b> ctype_details.h:60</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a7062774d48a7bc2a03b25f93cc2228a7"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a7062774d48a7bc2a03b25f93cc2228a7">IOv2::base_ft&lt; ctype &gt;::digit</a></div><div class="ttdeci">static constexpr mask digit</div><div class="ttdef"><b>Definition</b> ctype_details.h:59</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a7b48471ba0261bef9c47738e6556a2a0"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a7b48471ba0261bef9c47738e6556a2a0">IOv2::base_ft&lt; ctype &gt;::lower</a></div><div class="ttdeci">static constexpr mask lower</div><div class="ttdef"><b>Definition</b> ctype_details.h:57</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a95b73f3f129129fce77fef50891c6d07"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a95b73f3f129129fce77fef50891c6d07">IOv2::base_ft&lt; ctype &gt;::upper</a></div><div class="ttdeci">static constexpr mask upper</div><div class="ttdef"><b>Definition</b> ctype_details.h:56</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_ab711aeba549083e7884b64953bc5ffc2"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ab711aeba549083e7884b64953bc5ffc2">IOv2::base_ft&lt; ctype &gt;::alpha</a></div><div class="ttdeci">static constexpr mask alpha</div><div class="ttdef"><b>Definition</b> ctype_details.h:58</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_ac9279b58ad981441e17733688ec136f2"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ac9279b58ad981441e17733688ec136f2">IOv2::base_ft&lt; ctype &gt;::space</a></div><div class="ttdeci">static constexpr mask space</div><div class="ttdef"><b>Definition</b> ctype_details.h:61</div></div>
-<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_ad300252a5ffbc6d771085c4aedd00ac8"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ad300252a5ffbc6d771085c4aedd00ac8">IOv2::base_ft&lt; ctype &gt;::graph</a></div><div class="ttdeci">static constexpr mask graph</div><div class="ttdef"><b>Definition</b> ctype_details.h:67</div></div>
-</div><!-- fragment -->
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a1fd835faa8eeb998389a088a9c6cb859"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a1fd835faa8eeb998389a088a9c6cb859">IOv2::base_ft&lt; ctype &gt;::print</a></div><div class="ttdeci">static constexpr mask print</div><div class="ttdef"><b>Definition</b> ctype_details.h:163</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a4629a8cb3bd2b127657728c0b2ebbad8"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a4629a8cb3bd2b127657728c0b2ebbad8">IOv2::base_ft&lt; ctype &gt;::cntrl</a></div><div class="ttdeci">static constexpr mask cntrl</div><div class="ttdef"><b>Definition</b> ctype_details.h:167</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a5f69e114ef46a38619d4bd864b236620"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a5f69e114ef46a38619d4bd864b236620">IOv2::base_ft&lt; ctype &gt;::punct</a></div><div class="ttdeci">static constexpr mask punct</div><div class="ttdef"><b>Definition</b> ctype_details.h:171</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a6ee3c98f5a0feff6a4dcbbc440e73c99"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a6ee3c98f5a0feff6a4dcbbc440e73c99">IOv2::base_ft&lt; ctype &gt;::xdigit</a></div><div class="ttdeci">static constexpr mask xdigit</div><div class="ttdef"><b>Definition</b> ctype_details.h:155</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a7062774d48a7bc2a03b25f93cc2228a7"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a7062774d48a7bc2a03b25f93cc2228a7">IOv2::base_ft&lt; ctype &gt;::digit</a></div><div class="ttdeci">static constexpr mask digit</div><div class="ttdef"><b>Definition</b> ctype_details.h:151</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a7b48471ba0261bef9c47738e6556a2a0"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a7b48471ba0261bef9c47738e6556a2a0">IOv2::base_ft&lt; ctype &gt;::lower</a></div><div class="ttdeci">static constexpr mask lower</div><div class="ttdef"><b>Definition</b> ctype_details.h:143</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_a95b73f3f129129fce77fef50891c6d07"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#a95b73f3f129129fce77fef50891c6d07">IOv2::base_ft&lt; ctype &gt;::upper</a></div><div class="ttdeci">static constexpr mask upper</div><div class="ttdef"><b>Definition</b> ctype_details.h:139</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_ab711aeba549083e7884b64953bc5ffc2"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ab711aeba549083e7884b64953bc5ffc2">IOv2::base_ft&lt; ctype &gt;::alpha</a></div><div class="ttdeci">static constexpr mask alpha</div><div class="ttdef"><b>Definition</b> ctype_details.h:147</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_ac9279b58ad981441e17733688ec136f2"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ac9279b58ad981441e17733688ec136f2">IOv2::base_ft&lt; ctype &gt;::space</a></div><div class="ttdeci">static constexpr mask space</div><div class="ttdef"><b>Definition</b> ctype_details.h:159</div></div>
+<div class="ttc" id="aclassIOv2_1_1base__ft_3_01ctype_01_4_html_ad300252a5ffbc6d771085c4aedd00ac8"><div class="ttname"><a href="classIOv2_1_1base__ft_3_01ctype_01_4.html#ad300252a5ffbc6d771085c4aedd00ac8">IOv2::base_ft&lt; ctype &gt;::graph</a></div><div class="ttdeci">static constexpr mask graph</div><div class="ttdef"><b>Definition</b> ctype_details.h:179</div></div>
+</div><!-- fragment --><p>Union of all classification bits.  </p>
+
 </div>
 </div>
 <a id="addf6af64e191621cd2cdd13399346d64" name="addf6af64e191621cd2cdd13399346d64"></a>
@@ -324,6 +344,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Alphanumeric character (<code>alpha | digit</code>).  </p>
 
 </div>
 </div>
@@ -346,6 +367,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Alphabetic character (<code>isalpha</code>).  </p>
 
 </div>
 </div>
@@ -368,6 +390,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Control character (<code>iscntrl</code>).  </p>
 
 </div>
 </div>
@@ -390,6 +413,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Decimal digit (<code>isdigit</code>).  </p>
 
 </div>
 </div>
@@ -412,6 +436,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Visible (graphical) character (<code>alnum | punct</code>).  </p>
 
 </div>
 </div>
@@ -434,6 +459,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Lowercase letter (<code>islower</code>).  </p>
 
 </div>
 </div>
@@ -456,6 +482,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Printable character (<code>isprint</code>).  </p>
 
 </div>
 </div>
@@ -478,6 +505,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Punctuation character (<code>ispunct</code>).  </p>
 
 </div>
 </div>
@@ -500,6 +528,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Whitespace character (<code>isspace</code>).  </p>
 
 </div>
 </div>
@@ -522,6 +551,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Uppercase letter (<code>isupper</code>).  </p>
 
 </div>
 </div>
@@ -544,6 +574,7 @@ Static Public Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Hexadecimal digit (<code>isxdigit</code>).  </p>
 
 </div>
 </div>

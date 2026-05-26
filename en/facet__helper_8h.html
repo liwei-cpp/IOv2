@@ -337,7 +337,16 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 <tr class="memitem:a2022722cef469d24506a2c3f690cf32b" id="r_a2022722cef469d24506a2c3f690cf32b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b">IOv2::FacetHelper::verify_grouping</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;grouping, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">grouping_tmp</a>)</td></tr>
 <tr class="separator:a2022722cef469d24506a2c3f690cf32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Internal utility helpers shared across facet implementations.</p>
+<p>This file provides the following helper functions for use by concrete facet implementations (e.g. <code>numpunct</code>, <code>moneypunct</code>):</p><ul>
+<li><code>string_to_char_convert</code>: Converts the first character of a narrow string to <code>char</code>, for reading <code>lconv</code> / <code>nl_langinfo()</code> fields that represent a single user-visible character.</li>
+<li><code>string_to_widechar_convert</code>: Converts the first character of a narrow string to a wide character <code>CharT</code>; applicable in the same contexts.</li>
+<li><code>add_grouping</code>: Inserts grouping separators into a character sequence for formatted numeric output.</li>
+<li><code>adjust_grouping</code>: Normalizes a raw POSIX-style grouping vector to the internal convention.</li>
+<li><code>verify_grouping</code>: Validates a parsed grouping sequence against the <code>numpunct::grouping</code> specification.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

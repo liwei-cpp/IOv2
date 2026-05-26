@@ -243,7 +243,16 @@ ctype_details.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p><code>ctype</code> facet 的内部实现细节。</p>
+<p>本文件提供以下核心组件：</p><ul>
+<li><code>base_ft&lt;ctype&gt;</code>：<code>ctype</code> facet 专用的基类特化，定义共享的 <code>mask</code> 类型及各字符分类掩码常量。</li>
+<li><code>ctype_conf&lt;char&gt;</code>：<code>char</code> 特化，构造时通过 POSIX <code>*_l</code> 函数为全部 256 个字节值预建 查找表，实现 O(1) 的字符分类、大小写转换与宽窄字符映射。</li>
+<li><code>ctype_conf&lt;CharT&gt;</code>（<code>wchar_t</code> / <code>char32_t</code>）：宽字符特化，构造时初始化 <code>wctype_t</code> 句柄，每次分类调用时通过 <code>iswctype_l</code>/<code>towupper_l</code>/<code>towlower_l</code> 查询 locale； <code>widen</code> 通过预建的 256 项查找表实现 O(1) 映射。</li>
+<li><code>ctype_conf&lt;char8_t&gt;</code>：UTF-8 代码单元特化，利用 UTF-8 编码的结构保证将 [0x00, 0x7F] 区间委托给内部 <code>ctype_conf&lt;char&gt;</code> 处理，对 [0x80, 0xFF] 区间 采用保守策略（不分类、不转换大小写、不映射到 <code>char</code>）。</li>
+</ul>
+<dl class="section user"><dt>构建要求</dt><dd>本文件依赖 POSIX.1-2008（需定义 <code>_POSIX_C_SOURCE &gt;= 200809L</code> 或 <code>_GNU_SOURCE</code>）。 所用的 <code>*_l</code> 字符分类与转换函数（<code>isupper_l</code>、<code>toupper_l</code>、<code>wctype_l</code>、<code>iswctype_l</code>、 <code>towupper_l</code> 等）是 POSIX 扩展，非标准 C++。构建系统须在包含任何系统头文件前定义 相应的特性测试宏。 </dd></dl>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

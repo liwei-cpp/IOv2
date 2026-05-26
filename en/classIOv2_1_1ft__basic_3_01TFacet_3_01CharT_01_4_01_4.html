@@ -163,7 +163,17 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:aa13ce85df28c3860689cc3c026b3a372" id="r_aa13ce85df28c3860689cc3c026b3a372"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#aa13ce85df28c3860689cc3c026b3a372">id</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:aa13ce85df28c3860689cc3c026b3a372"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">template</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> TFacet, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+class IOv2::ft_basic&lt; TFacet&lt; CharT &gt; &gt;</div><p>Concrete base class providing the static type-key mechanism for a <code>(facet template, character type)</code> pair.</p>
+<p>Each <code><a class="el" href="classIOv2_1_1ft__basic.html">ft_basic</a>&lt;TFacet&lt;CharT&gt;&gt;</code> specialization maintains a per-type unique <code>s_id</code> static variable; the static member function <code><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#aa13ce85df28c3860689cc3c026b3a372">id()</a></code> returns its address as a stable, compile-time facet key. The constructor automatically seeds <code>abs_ft::m_id</code> with this value, ensuring the static key and the instance accessor always agree. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">TFacet</td><td>The full facet type, e.g. <code>SomeFacet&lt;CharT&gt;</code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a403b069fdeb3516aa54bfb2bf06b6eed" name="a403b069fdeb3516aa54bfb2bf06b6eed"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a403b069fdeb3516aa54bfb2bf06b6eed">&#9670;&#160;</a></span>char_type</h2>
 
@@ -177,6 +187,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The character type bound to this facet specialization.  </p>
 
 </div>
 </div>
@@ -209,6 +220,7 @@ requires std::constructible_from&lt;<a class="el" href="classIOv2_1_1base__ft.ht
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Forwarding constructor. Seeds <code>abs_ft::m_id</code> with this type's static <code><a class="el" href="classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html#aa13ce85df28c3860689cc3c026b3a372">id()</a></code> value and forwards the remaining arguments to <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;TFacet&gt;</code>.  </p>
 
 </div>
 </div>
@@ -237,6 +249,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Static per-type facet key: a stable, unique id for this <code>(facet template, char type)</code> pair, taken from the address of the per-type <code>s_id</code>. This is the compile-time key used to locate facets by type (<code>TF::id()</code>). The constructor seeds <code>abs_ft::m_id</code> with this value, keeping it in agreement with the <code><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">abs_ft::id()</a></code> instance accessor; see the note on <code><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">abs_ft::id()</a></code> for why the shared name is intentional and safe. </p>
+<dl class="section return"><dt>Returns</dt><dd>The unique runtime id value for this facet type.  </dd></dl>
 
 </div>
 </div>

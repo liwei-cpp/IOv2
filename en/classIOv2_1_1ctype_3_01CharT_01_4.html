@@ -218,6 +218,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The character type operated on by this facet.  </p>
 
 </div>
 </div>
@@ -234,6 +235,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>The character type operated on by this facet.  </p>
 
 </div>
 </div>
@@ -250,6 +252,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Construction rule for the locale's batch facet-construction mechanism, specifying that <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> is needed to construct this facet.  </p>
 
 </div>
 </div>
@@ -266,6 +269,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Construction rule for the locale's batch facet-construction mechanism, specifying that <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> is needed to construct this facet.  </p>
 
 </div>
 </div>
@@ -282,6 +286,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Bitmask type for character-classification properties, consistent with <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;::mask</code>.  </p>
 
 </div>
 </div>
@@ -298,6 +303,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Bitmask type for character-classification properties, consistent with <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;::mask</code>.  </p>
 
 </div>
 </div>
@@ -329,6 +335,19 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype__conf.html"
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor. Builds five snapshot tables for all 256 byte values from the <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> instance provided by <code>p_obj</code>; the pointer is not retained afterwards. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_obj</td><td>Shared pointer to the <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> instance; must not be empty. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>If <code>p_obj</code> is an empty pointer.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -442,6 +461,19 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype__conf.html"
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor. Retains the <code>p_obj</code> pointer and builds five snapshot tables for all values in <code>[0, s_len)</code> from it. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">p_obj</td><td>Shared pointer to the <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> instance; must not be empty and must remain valid for the lifetime of this object. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>If <code>p_obj</code> is an empty pointer.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -554,6 +586,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the classification mask for character <code>c</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> snapshot table lookup). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to classify.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The classification mask for <code>c</code>.  </dd></dl>
 
 </div>
 </div>
@@ -582,6 +622,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the classification mask for character <code>c</code>. Serves from the snapshot table for in-range values; forwards to the conf for out-of-range values. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to classify.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The classification mask for <code>c</code>.  </dd></dl>
 
 </div>
 </div>
@@ -610,6 +658,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Narrows character <code>c</code> to <code>char</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> snapshot table lookup). Returns <code>nullopt</code> if <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;::narrow</code> returned <code>nullopt</code> for this value at construction time. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to narrow.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <code>std::optional&lt;char&gt;</code> with the narrowed result; <code>nullopt</code> if no single-byte representation exists.  </dd></dl>
 
 </div>
 </div>
@@ -638,6 +694,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Narrows character <code>c</code> to <code>char</code>. Serves from the snapshot table for in-range values; forwards to the conf for out-of-range values. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to narrow.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <code>std::optional&lt;char&gt;</code> with the narrowed result; <code>nullopt</code> if no single-byte representation exists.  </dd></dl>
 
 </div>
 </div>
@@ -778,6 +842,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the lowercase form of character <code>c</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> snapshot table lookup). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to convert.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The lowercase form of <code>c</code>.  </dd></dl>
 
 </div>
 </div>
@@ -806,6 +878,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the lowercase form of character <code>c</code>. Serves from the snapshot table for in-range values; forwards to the conf for out-of-range values. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to convert.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The lowercase form of <code>c</code>.  </dd></dl>
 
 </div>
 </div>
@@ -834,6 +914,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the uppercase form of character <code>c</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> snapshot table lookup). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to convert.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The uppercase form of <code>c</code>.  </dd></dl>
 
 </div>
 </div>
@@ -862,6 +950,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the uppercase form of character <code>c</code>. Serves from the snapshot table for in-range values; forwards to the conf for out-of-range values. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to convert.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The uppercase form of <code>c</code>.  </dd></dl>
 
 </div>
 </div>
@@ -890,6 +986,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Widens the narrow character <code>c</code> to <code>CharT</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> snapshot table lookup). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The narrow character to widen.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CharT</code> value corresponding to <code>c</code>.  </dd></dl>
 
 </div>
 </div>
@@ -918,6 +1022,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Widens the narrow character <code>c</code> to <code>CharT</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> snapshot table lookup, covering all 256 input values).</p>
+<p><b>Default behaviour</b> (inherited from <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;::widen</code> at construction time): matches <code>std::ctype&lt;wchar_t&gt;::<a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen()</a></code> semantics — only guaranteed to be correct for the basic source character set. For multi-byte locales (e.g. UTF-8), high bytes are not standalone characters and <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">btowc()</a></code> returns <code>WEOF</code> for them at table-build time; the corresponding entries of <code>m_widen</code> hold <code>WEOF</code> cast to <code>CharT</code> (a sentinel-looking but unspecified value), and callers must not call <code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen()</a></code> on such bytes under this default. This caveat also applies to <code><a class="el" href="classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e">widen_seq()</a></code> (inherited from <code><a class="el" href="classIOv2_1_1detail_1_1ctype__ops.html">detail::ctype_ops</a></code>).</p>
+<p>A user may derive from <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;</code> and override <code><a class="el" href="classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92">widen()</a></code> to supply a different mapping; the lookup table held here is then rebuilt from that override when the owning <code>ctype&lt;CharT&gt;</code> is constructed, and the caveat above no longer applies under that derived behaviour. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The narrow character to widen.  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The <code>CharT</code> value corresponding to <code>c</code>.  </dd></dl>
 
 </div>
 </div>

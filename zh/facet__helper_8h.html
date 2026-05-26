@@ -337,7 +337,16 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 <tr class="memitem:a2022722cef469d24506a2c3f690cf32b" id="r_a2022722cef469d24506a2c3f690cf32b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b">IOv2::FacetHelper::verify_grouping</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;grouping, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">grouping_tmp</a>)</td></tr>
 <tr class="separator:a2022722cef469d24506a2c3f690cf32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>facet 实现层共用的内部辅助工具集。</p>
+<p>本文件提供以下辅助函数，供各 facet 具体实现（如 <code>numpunct</code>、<code>moneypunct</code> 等）内部使用：</p><ul>
+<li><code>string_to_char_convert</code>：将窄字符串的首字符转换为 <code>char</code>，用于读取 <code>lconv</code> / <code>nl_langinfo()</code> 中表示单个用户可见字符的字段。</li>
+<li><code>string_to_widechar_convert</code>：将窄字符串的首字符转换为宽字符 <code>CharT</code>，适用场景同上。</li>
+<li><code>add_grouping</code>：在字符序列中按分组规则插入分隔符，用于数字格式化输出。</li>
+<li><code>adjust_grouping</code>：将原始 POSIX 风格的分组向量规范化为内部约定格式。</li>
+<li><code>verify_grouping</code>：验证已解析的分组序列是否符合 <code>numpunct::grouping</code> 的规定。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

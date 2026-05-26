@@ -133,7 +133,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af3c0596bd49124be7aedb8b52252e3d4" id="r_af3c0596bd49124be7aedb8b52252e3d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01char_01_4.html#af3c0596bd49124be7aedb8b52252e3d4">narrow</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:af3c0596bd49124be7aedb8b52252e3d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p><code>ctype</code> configuration class specialization for <code>char</code>.</p>
+<p>At construction time, three lookup tables are built using POSIX <code>*_l</code> functions for all 256 <code>unsigned char</code> values: <code>m_table</code> (classification mask), <code>m_toupper_table</code> (uppercase mapping), and <code>m_tolower_table</code> (lowercase mapping). All character operations are <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> table lookups.</p>
+<p><code>widen</code> is the identity mapping (<code>char</code> to <code>char</code> requires no conversion); <code>narrow</code> always succeeds (<code>char</code> is itself a narrow character).  </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="aeada1a79b0877a910738a4a40c00c823" name="aeada1a79b0877a910738a4a40c00c823"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeada1a79b0877a910738a4a40c00c823">&#9670;&#160;</a></span>ctype_conf()</h2>
 
@@ -157,6 +161,13 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Constructor. Builds the classification mask table, uppercase mapping table, and lowercase mapping table for all 256 byte values using POSIX <code>*_l</code> functions. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>The locale name to use for table construction.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -184,6 +195,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the classification mask for character <code>c</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> table lookup). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to classify. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The classification mask for <code>c</code>, a bitwise OR of the mask constants in <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;</code>.  </dd></dl>
 
 </div>
 </div>
@@ -210,6 +229,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Narrows character <code>c</code> to <code>char</code> (always succeeds). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to narrow. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A <code>std::optional&lt;char&gt;</code> containing <code>c</code>; never <code>std::nullopt</code>.  </dd></dl>
 
 </div>
 </div>
@@ -236,6 +263,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the lowercase form of character <code>c</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> table lookup). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The lowercase form of <code>c</code>; returns <code>c</code> unchanged if no lowercase mapping exists.  </dd></dl>
 
 </div>
 </div>
@@ -262,6 +297,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Returns the uppercase form of character <code>c</code> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> table lookup). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to convert. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The uppercase form of <code>c</code>; returns <code>c</code> unchanged if no uppercase mapping exists.  </dd></dl>
 
 </div>
 </div>
@@ -288,6 +331,14 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Widens the narrow character <code>c</code> to <code>char</code> (identity mapping). </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to widen. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>c</code> unchanged.  </dd></dl>
 
 </div>
 </div>

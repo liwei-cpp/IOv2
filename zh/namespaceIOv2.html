@@ -1241,6 +1241,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+<p>CTAD 推导指引：从 <code>shared_ptr&lt;<a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;CharT&gt;&gt;</code> 自动推导出 <code>ctype&lt;CharT&gt;</code>。 </p>
 
 </div>
 </div>
@@ -3448,6 +3449,24 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
   </tr>
 </table>
 </div><div class="memdoc">
+<p>检测字符值是否超出 <code>wchar_t</code> 的可表示范围。</p>
+<p>用于在任何 facet 的 API 边界处保护 C 库的 <code>*_l</code> 宽字符函数 （<code>iswctype_l</code>、<code>towupper_l</code>、<code>towlower_l</code>、<code>wctob</code> 等），因为 C 标准规定， 对不能以 <code>wchar_t</code> 表示的输入，这些函数的行为是由实现定义的。</p>
+<p>仅对 <code>CharT == char32_t</code> 且平台上 <code>char32_t</code> 覆盖范围严格大于 <code>wchar_t</code> 的情况 有实际意义（例如 Linux：<code>wchar_t</code> 为有符号 32 位，<code>WCHAR_MAX = 0x7FFFFFFF</code>； <code>char32_t</code> 为无符号 32 位）。对其他所有字符类型（<code>wchar_t</code>、<code>char</code>、<code>char8_t</code>、 <code>char16_t</code>），在所有支持的平台上输入始终可以 <code>wchar_t</code> 表示，因此此函数静态地 等同于无操作。</p>
+<p>**<code>char32_t</code> 在 Linux 上的精确边界**：本函数恰好对 <code>char32_t</code> 值域的上半部分 <code>[0x80000000, 0xFFFFFFFF]</code> 返回 <code>true</code>，因为那里 <code>WCHAR_MAX == 0x7FFFFFFF</code>。 整个有效 Unicode 码点空间 U+0000..U+10FFFF 远低于此截止值，因此本守卫从不拒绝 合法 Unicode；它仅过滤调用方可能被重新解释为 <code>char32_t</code> 的非 Unicode 位模式。 有意通过 <code>char32_t</code> 通道传递任意 32 位整数的调用方不应将 <code>out_of_wchar_range</code> 作为 Unicode 有效性检查使用。</p>
+<p><code>CharT</code> 被约束为五种标准 C++ 字符类型，以确保对非字符整型或浮点类型的误用 在编译期报错，而非静默返回 <code>false</code>。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>字符类型，须为 <code>char</code>、<code>wchar_t</code>、<code>char8_t</code>、<code>char16_t</code> 或 <code>char32_t</code> 之一。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>要检测的字符值。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>若 <code>c</code> 无法以 <code>wchar_t</code> 表示则返回 <code>true</code>；否则返回 <code>false</code>。 对 <code>char32_t</code> 之外的所有字符类型始终返回 <code>false</code>。   </dd></dl>
 
 </div>
 </div>
@@ -4451,6 +4470,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>类型特征：获取 <code><a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a></code> 特化中的规则数量；对非 pack 类型返回 0。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>待检测的类型。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -4530,6 +4556,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>类型特征：判断 <code>T</code> 是否为包含至少一个元素的 <code><a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a></code> 特化。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>待检测的类型。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -4578,6 +4611,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>类型特征：判断 <code>T</code> 是否为包含至少一个类型参数的 <code><a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a></code> 特化。 </p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">T</td><td>待检测的类型。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

@@ -253,7 +253,15 @@ ctype.h 的引用(Include)关系图:</div>
 <tr class="memitem:ad9482e85e3002e85211e7aed04aa807e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad9482e85e3002e85211e7aed04aa807e">IOv2::ctype</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a>) -&gt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TConfPtr::element_type::char_type &gt;</td></tr>
 <tr class="separator:ad9482e85e3002e85211e7aed04aa807e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p><code>ctype</code> facet：字符分类、大小写转换及宽窄字符映射。</p>
+<p>本文件提供以下核心组件：</p><ul>
+<li><code>detail::ctype_ops&lt;Derived&gt;</code>：CRTP 混入类，基于派生类的五个单字符原语 （<code>is</code>、<code>toupper</code>、<code>tolower</code>、<code>widen</code>、<code>narrow</code>）提供序列操作变体及 带回退的 <code>narrow(c, def)</code> 重载。</li>
+<li><code>ctype&lt;CharT&gt;</code>（<code>sizeof(CharT) == 1</code>，即 <code>char</code>、<code>char8_t</code>）：单字节特化； 构造时将全部 256 个值的五张原语表一次性快照到数组中，后续查询为零虚调用的 O(1) 数组读取，且不持有 <code>ctype_conf&lt;CharT&gt;</code> 指针。</li>
+<li><code>ctype&lt;CharT&gt;</code>（<code>sizeof(CharT) &gt; 1</code>，即 <code>wchar_t</code>、<code>char32_t</code>）：多字节特化； 对 <code>[0, s_len)</code> 区间同样预建快照表，对超出区间的值则在每次调用时直接转发到 底层 <code>ctype_conf&lt;CharT&gt;</code>，无缓存、无锁，满足多线程安全契约。</li>
+<li>CTAD 推导指引：从 <code>shared_ptr&lt;ctype_conf&lt;CharT&gt;&gt;</code> 自动推导 <code>ctype&lt;CharT&gt;</code>。 </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

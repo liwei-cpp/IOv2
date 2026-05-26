@@ -133,7 +133,19 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a7bd0857aab9aef6754683f417a110315" id="r_a7bd0857aab9aef6754683f417a110315"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01CharT_01_4.html#a7bd0857aab9aef6754683f417a110315">narrow</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wc</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:a7bd0857aab9aef6754683f417a110315"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; || (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt; &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>) == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">sizeof</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>)) &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">李</a>') &amp;&amp; (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static_cast</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">L</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>') == <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>'<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">伟</a>'))<br />
+class IOv2::ctype_conf&lt; CharT &gt;</div><p>宽字符类型（<code>wchar_t</code> 及与 <code>wchar_t</code> 等价的 <code>char32_t</code>）的 ctype 配置类特化。</p>
+<p>构造时通过 <code>wctype_l</code> 为每个字符分类属性初始化对应的 <code>wctype_t</code> 句柄，同时预建 <code>m_widen</code> 表（通过 <code>btowc</code> 完成 256 个字节到 <code>CharT</code> 的映射）。每次字符分类、大小写 转换调用时，均通过 <code>iswctype_l</code>/<code>towupper_l</code>/<code>towlower_l</code> 实时查询 locale，不缓存 每码点结果。</p>
+<p>对超出 <code>wchar_t</code> 表示范围的 <code>char32_t</code> 值（由 <code>out_of_wchar_range</code> 检测），<code>is</code> 返回 0，<code>toupper</code>/<code>tolower</code> 原样返回输入，<code>narrow</code> 返回 <code>std::nullopt</code>。</p>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>目标宽字符类型。须为 <code>wchar_t</code>，或在 <code>char32_t</code> 与 <code>wchar_t</code> 等价的平台上为 <code>char32_t</code>（由 <code>requires</code> 子句在编译期强制验证）。  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="abd79b627b8acfb08a254828f607ca24a" name="abd79b627b8acfb08a254828f607ca24a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abd79b627b8acfb08a254828f607ca24a">&#9670;&#160;</a></span>ctype_conf()</h2>
 
@@ -159,6 +171,20 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数。通过 <code>wctype_l</code> 初始化每个字符分类属性对应的 <code>wctype_t</code> 句柄， 并通过 <code>btowc</code> 预建 256 项 <code>m_widen</code> 查找表。</p>
+<p>若任意 <code>wctype_l</code> 调用返回 0（分类名称不被 locale 支持），则抛出 <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>用于查询的 locale 名称。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>若 <code>wctype_l</code> 对任意分类名称返回 0。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -188,6 +214,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回宽字符 <code>_c</code> 的分类掩码，通过 <code>iswctype_l</code> 逐属性查询。</p>
+<p>对超出 <code>wchar_t</code> 表示范围的值（<code>out_of_wchar_range</code> 返回 <code>true</code>），直接返回 0。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">_c</td><td>待分类的宽字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>_c</code> 对应的分类掩码，为 <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;</code> 中各掩码常量的位或组合； 超出范围时返回 0。   </dd></dl>
 
 </div>
 </div>
@@ -216,6 +251,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将宽字符 <code>wc</code> 窄化为 <code>char</code>，通过 <code>wctob</code> 实现。</p>
+<p>对超出 <code>wchar_t</code> 表示范围的值，返回 <code>std::nullopt</code>。对 <code>wctob</code> 返回 <code>EOF</code> 的值（无对应单字节表示），同样返回 <code>std::nullopt</code>。</p>
+<dl class="section note"><dt>注解</dt><dd><code>wctob</code> 没有 <code>_l</code> 变体，读取的是调用线程当前激活的 locale。因此本函数 在调用 <code>wctob</code> 期间通过 <code><a class="el" href="structIOv2_1_1clocale__user.html">clocale_user</a></code> 临时将线程 locale 切换为 <code>m_inter_locale</code> 并在作用域结束时恢复。</dd></dl>
+<p>**可见副作用**：在此函数执行窗口内，调用线程的 locale 为 <code>m_inter_locale</code>，而非 进入时的外部 locale。此期间若有任何代码执行 locale 敏感的 IO（如 <code>std::ostream</code> 数字格式化、<code>std::format</code>、第三方 locale 感知代码），将观察到 <code>m_inter_locale</code> 而非线程原有 locale。派生类重写本函数时应保持其为纯计算操作，避免在重写内部触发 locale 敏感的副作用；这与 <code>std::ctype</code> facet 约定所隐含的指导原则一致。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">wc</td><td>待窄化的宽字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>包含窄化结果的 <code>std::optional&lt;char&gt;</code>；若无对应单字节表示或值超出范围则为 <code>std::nullopt</code>。   </dd></dl>
 
 </div>
 </div>
@@ -244,6 +290,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>通过 <code>towlower_l</code> 返回宽字符 <code>c</code> 的小写形式。</p>
+<p>对超出 <code>wchar_t</code> 表示范围的值，原样返回 <code>c</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的宽字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的小写形式；若 <code>c</code> 超出范围或无对应小写，则返回 <code>c</code> 本身。   </dd></dl>
 
 </div>
 </div>
@@ -272,6 +327,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>通过 <code>towupper_l</code> 返回宽字符 <code>c</code> 的大写形式。</p>
+<p>对超出 <code>wchar_t</code> 表示范围的值，原样返回 <code>c</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的宽字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的大写形式；若 <code>c</code> 超出范围或无对应大写，则返回 <code>c</code> 本身。   </dd></dl>
 
 </div>
 </div>
@@ -300,6 +364,15 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将窄字符 <code>c</code> 拓宽为 <code>CharT</code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">（O(1)</a> 查表）。</p>
+<p>语义与 <code>std::ctype&lt;wchar_t&gt;::<a class="el" href="classIOv2_1_1ctype__conf_3_01CharT_01_4.html#ab6adf57a4ebb038d83debcf05bf7a32d">widen()</a></code> 一致：仅保证对基本源字符集中的字符结果正确。 对于多字节 locale（如 UTF-8），高字节不是独立字符，<code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">btowc()</a></code> 在建表时对其返回 <code>WEOF</code>；因此 <code>m_widen</code> 中对应条目存储的是 <code>WEOF</code> 强转为 <code>CharT</code> 的值（一个看似 哨兵但实际未定义含义的值）。调用方不得对此类字节调用 <code><a class="el" href="classIOv2_1_1ctype__conf_3_01CharT_01_4.html#ab6adf57a4ebb038d83debcf05bf7a32d">widen()</a></code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待拓宽的窄字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 在当前 locale 下对应的 <code>CharT</code> 值；对高字节返回值未定义。   </dd></dl>
 
 </div>
 </div>

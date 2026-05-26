@@ -243,7 +243,16 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Internal implementation details for the <code>ctype</code> facet.</p>
+<p>This file provides the following core components:</p><ul>
+<li><code>base_ft&lt;ctype&gt;</code>: The <code>ctype</code>-specific base class specialization, defining the shared <code>mask</code> type and character-classification mask constants.</li>
+<li><code>ctype_conf&lt;char&gt;</code>: The <code>char</code> specialization; builds precomputed lookup tables for all 256 byte values at construction time using POSIX <code>*_l</code> functions, yielding O(1) classification, case conversion, and widen/narrow operations.</li>
+<li><code>ctype_conf&lt;CharT&gt;</code> (<code>wchar_t</code> / <code>char32_t</code>): The wide-character specialization; initializes <code>wctype_t</code> handles at construction time and dispatches each classification call through <code>iswctype_l</code>/<code>towupper_l</code>/<code>towlower_l</code>; <code>widen</code> uses a precomputed 256-entry table for O(1) mapping.</li>
+<li><code>ctype_conf&lt;char8_t&gt;</code>: The UTF-8 code-unit specialization; exploits the structural guarantees of UTF-8 to delegate the [0x00, 0x7F] range to an internal <code>ctype_conf&lt;char&gt;</code> and applies a conservative treatment to [0x80, 0xFF] (no classification, no case conversion, no <code>char</code> mapping).</li>
+</ul>
+<dl class="section user"><dt>Build requirement</dt><dd>This file requires POSIX.1-2008 (<code>_POSIX_C_SOURCE &gt;= 200809L</code> or <code>_GNU_SOURCE</code>). The <code>*_l</code> character-classification and conversion functions used here (<code>isupper_l</code>, <code>toupper_l</code>, <code>wctype_l</code>, <code>iswctype_l</code>, <code>towupper_l</code>, etc.) are POSIX extensions, not standard C++. The build system must define the appropriate feature-test macro before any system header is included.  </dd></dl>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

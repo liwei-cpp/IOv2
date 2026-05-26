@@ -141,7 +141,11 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:af1d2155cd688eb14b0931e67d6efd7b1" id="r_af1d2155cd688eb14b0931e67d6efd7b1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">id</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:af1d2155cd688eb14b0931e67d6efd7b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>所有 facet 的抽象基类。</p>
+<p>持有运行时 facet id，用于在丢失具体类型信息时（如经由 <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>，例如 <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">locale::involve</a></code>） 通过运行时值将 facet 键入 locale。</p>
+<p>该类不可复制也不可移动。 </p>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a5c8c9bdf9a0fe832e170172cf48631cd" name="a5c8c9bdf9a0fe832e170172cf48631cd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5c8c9bdf9a0fe832e170172cf48631cd">&#9670;&#160;</a></span>abs_ft() <span class="overload">[1/3]</span></h2>
 
@@ -165,6 +169,13 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数，以运行时 facet id 初始化实例。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">id</td><td>此 facet 实例的运行时唯一标识符。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -268,6 +279,10 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>实例访问器：读取此 facet 携带的 id。</p>
+<p>该 id 用于在具体类型不再可知时（如 <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>，例如 <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">locale::involve</a></code>）， 通过运行时值将 facet 键入 locale。</p>
+<dl class="section note"><dt>注解</dt><dd><code><a class="el" href="classIOv2_1_1ft__basic.html">ft_basic</a></code> 引入了一个**静态**的同名 <code><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">id()</a></code>，即每类型 facet 键（<code>TF::id()</code>）； 在派生 facet 上，该静态成员会隐藏此实例访问器。这是刻意为之且无害的，**仅因为** 每个 facet 在构造时都以自身的静态 <code><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">id()</a></code> 初始化 <code>m_id</code>，使二者始终返回相同的值。 请勿破坏此不变量——不可构造 <code>m_id</code> 与其静态 <code><a class="el" href="structIOv2_1_1abs__ft.html#af1d2155cd688eb14b0931e67d6efd7b1">id()</a></code> 不一致的 facet，否则静态键 与此实例访问器将静默地产生分歧，导致 locale facet 查找异常。 </dd></dl>
+<dl class="section return"><dt>返回</dt><dd>此 facet 实例的运行时 id。   </dd></dl>
 
 </div>
 </div>

@@ -133,7 +133,20 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:aab594453cceae70c08230ede37fd498b" id="r_aab594453cceae70c08230ede37fd498b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01char8__t_01_4.html#aab594453cceae70c08230ede37fd498b">narrow</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:aab594453cceae70c08230ede37fd498b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>UTF-8 代码单元（<code>char8_t</code>）的 ctype 配置类特化。</p>
+<p>设计基于 UTF-8 编码的两条结构保证：</p><ol type="1">
+<li><code>[0x00, 0x7F]</code> 区间内的字节不会出现在多字节序列的前导字节或续字节位置，因此该 区间内的代码单元与 ASCII 完全兼容，可像对应的 <code>char</code> 值一样在 locale 下精确分类。</li>
+<li><code>[0x80, 0xFF]</code> 区间内的字节要么是多字节序列的前导字节（<code>0xC0–0xFF</code>），要么是续字节 （<code>0x80–0xBF</code>），不代表独立的 Unicode 码点。</li>
+</ol>
+<p>对 <code>[0x00, 0x7F]</code>：所有操作委托给内部 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;</code>，后者在构造时为全部 256 个 <code>char</code> 值建立 locale 感知的查找表；仅该表的低半部分在此处有意义，高半部分不被访问。</p>
+<p>对 <code>[0x80, 0xFF]</code>：各 API 采用以下保守策略：</p><ul>
+<li><code>is</code>：返回 0（非独立码点，无分类属性）。</li>
+<li><code>toupper</code>/<code>tolower</code>：原样返回输入（无大小写信息）。</li>
+<li><code>widen</code>：原样转换为 <code>char8_t</code>（<code>char8_t</code> 与 <code>unsigned char</code> 等值域，无 <code>WEOF</code> 哨兵问题）。</li>
+<li><code>narrow</code>：返回 <code>std::nullopt</code>（非独立码点，无对应 <code>char</code>）。 </li>
+</ul>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a5ac05630d6129aac149b10e3905a3dbe" name="a5ac05630d6129aac149b10e3905a3dbe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5ac05630d6129aac149b10e3905a3dbe">&#9670;&#160;</a></span>ctype_conf()</h2>
 
@@ -157,6 +170,13 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数。初始化内部 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;</code> 以建立 locale 感知的查找表。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>用于查询的 locale 名称。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -184,6 +204,15 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回 <code>char8_t</code> 代码单元 <code>c</code> 的分类掩码。</p>
+<p>对 <code>[0x80, 0xFF]</code>（非独立码点），直接返回 0。 对 <code>[0x00, 0x7F]</code>，委托给内部 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;::is</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待分类的 UTF-8 代码单元。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的分类掩码；对 <code>[0x80, 0xFF]</code> 返回 0。   </dd></dl>
 
 </div>
 </div>
@@ -210,6 +239,15 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将 <code>char8_t</code> 代码单元 <code>c</code> 窄化为 <code>char</code>。</p>
+<p>对 <code>[0x80, 0xFF]</code>（非独立码点，无对应 <code>char</code>），返回 <code>std::nullopt</code>。 对 <code>[0x00, 0x7F]</code>，直接转换为 <code>char</code> 并返回（值域一致，始终成功）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待窄化的 UTF-8 代码单元。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>包含窄化结果的 <code>std::optional&lt;char&gt;</code>；对 <code>[0x80, 0xFF]</code> 返回 <code>std::nullopt</code>。   </dd></dl>
 
 </div>
 </div>
@@ -236,6 +274,15 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回 <code>char8_t</code> 代码单元 <code>c</code> 的小写形式。</p>
+<p>对 <code>[0x80, 0xFF]</code>（非独立码点，无大小写信息），原样返回 <code>c</code>。 对 <code>[0x00, 0x7F]</code>，委托给内部 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;::tolower</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的 UTF-8 代码单元。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的小写形式；对 <code>[0x80, 0xFF]</code> 原样返回 <code>c</code>。   </dd></dl>
 
 </div>
 </div>
@@ -262,6 +309,15 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回 <code>char8_t</code> 代码单元 <code>c</code> 的大写形式。</p>
+<p>对 <code>[0x80, 0xFF]</code>（非独立码点，无大小写信息），原样返回 <code>c</code>。 对 <code>[0x00, 0x7F]</code>，委托给内部 <code><a class="el" href="classIOv2_1_1ctype__conf.html">ctype_conf</a>&lt;char&gt;::toupper</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的 UTF-8 代码单元。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的大写形式；对 <code>[0x80, 0xFF]</code> 原样返回 <code>c</code>。   </dd></dl>
 
 </div>
 </div>
@@ -288,6 +344,15 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将窄字符 <code>c</code> 拓宽为 <code>char8_t</code>（trivial 转换，无精度损失）。</p>
+<p><code>char8_t</code> 与 <code>unsigned char</code> 具有相同的值域，因此每个 <code>char</code> 值都恰好映射为 一个 <code>char8_t</code> 代码单元，不存在 <code>WEOF</code> 哨兵问题（对比 <code>wchar_t</code>/<code>char32_t</code> 特化中 <code>btowc</code> 对高字节返回 <code>WEOF</code> 的情形）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待拓宽的窄字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 对应的 <code>char8_t</code> 代码单元。   </dd></dl>
 
 </div>
 </div>

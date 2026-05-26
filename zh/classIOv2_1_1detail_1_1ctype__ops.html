@@ -132,7 +132,19 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
 <tr class="memitem:afab851648a5b741eb31c899bbc4803f1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1detail_1_1ctype__ops.html#afab851648a5b741eb31c899bbc4803f1">narrow_seq</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dflt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:afab851648a5b741eb31c899bbc4803f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Derived</a>&gt;<br />
+class IOv2::detail::ctype_ops&lt; Derived &gt;</div><p>CRTP 混入类：基于派生类的五个单字符原语提供序列操作及带回退的 <code>narrow</code> 重载。</p>
+<p><code>ctype&lt;CharT&gt;</code> 的两个特化均从本类继承，以避免重复定义序列方法。</p>
+<p>参数类型依赖 <code>Derived::char_type</code> 或 <code>Derived::mask</code> 的方法被声明为受约束的函数模板： <code>requires</code> 子句将这些依赖名称的求值推迟到调用时（此时 <code>Derived</code> 已是完整类型）， 从而避免类作用域类型别名在 <code>Derived</code> 不完整时引发的错误。</p>
+<dl class="section user"><dt>区间前置条件</dt><dd>所有接受迭代器对的方法（<code>is_seq</code>、<code>scan_is_any</code>、<code>scan_not_any</code>、<code>toupper_seq</code>、 <code>tolower_seq</code>、<code>widen_seq</code>、<code>narrow_seq</code>）均要求 <code>[beg, end)</code> 为合法区间，即 从 <code>beg</code> 经反复递增可到达 <code>end</code>。传入不满足此条件的迭代器（如随机访问区间上 顺序颠倒的参数、不匹配的迭代器对、超出合法区间末尾的 <code>end</code> 等）属于未定义行为。 与等效的 <code>std::ctype</code> 契约一致；在热路径上不做断言。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Derived</td><td>CRTP 派生类自身的类型，须提供 <code>is</code>、<code>toupper</code>、<code>tolower</code>、<code>widen</code>、<code>narrow</code> 五个原语。   </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">成员函数说明</h2>
 <a id="aacb0e851ebe3f7a65058b99fe302f5cb" name="aacb0e851ebe3f7a65058b99fe302f5cb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aacb0e851ebe3f7a65058b99fe302f5cb">&#9670;&#160;</a></span>is_any()</h2>
 
@@ -171,6 +183,15 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>测试字符 <code>c</code> 是否具有掩码 <code>m</code> 中的任意分类属性。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m</td><td>要检测的分类属性位掩码。  </td></tr>
+    <tr><td class="paramname">c</td><td>待检测的字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>若 <code>c</code> 具有 <code>m</code> 中至少一个分类属性则返回 <code>true</code>；否则返回 <code>false</code>。   </dd></dl>
 
 </div>
 </div>
@@ -217,6 +238,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>对范围 <code>[low, high)</code> 内的每个字符调用 <code>is()</code>，将结果依次写入 <code>vec</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">low</td><td>输入范围的起始迭代器。  </td></tr>
+    <tr><td class="paramname">high</td><td>输入范围的末尾迭代器（独占上界）。  </td></tr>
+    <tr><td class="paramname">vec</td><td>接收分类掩码结果的输出迭代器。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入最后一个元素之后的输出迭代器位置。   </dd></dl>
 
 </div>
 </div>
@@ -258,6 +289,16 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将字符 <code>c</code> 窄化为 <code>char</code>，若无对应单字节表示则返回回退字符 <code>def</code>。</p>
+<dl class="section user"><dt><code>def</code> 前置条件</dt><dd>当 <code>self().narrow(c)</code> 不返回值时，<code>def</code> 原样返回；本函数**不**验证 <code>def</code> 在目标 locale 中是否可表示。按照惯例（与 <code>std::ctype::narrow</code> 一致），调用方应传入基本源 字符集中的成员——通常是可打印的 ASCII 字节，如 &lsquo;&rsquo;?'<code>——以确保回退字符在任何编码 下均有意义。传入任意字节（如</code>'\xFF'`）会被静默接受，但可能产生在 locale 编码中 不是合法独立字符的输出。 </dd></dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待窄化的字符。  </td></tr>
+    <tr><td class="paramname">def</td><td>当 <code>c</code> 无对应单字节表示时返回的回退字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的单字节窄化结果；若无对应表示则返回 <code>def</code>。   </dd></dl>
 
 </div>
 </div>
@@ -310,6 +351,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>对范围 <code>[beg, end)</code> 内的每个字符调用 <code>narrow(c, dflt)</code>，将结果依次写入 <code>dst</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。  </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的末尾迭代器（独占上界）。  </td></tr>
+    <tr><td class="paramname">dflt</td><td>无对应单字节表示时使用的回退字符。  </td></tr>
+    <tr><td class="paramname">dst</td><td>接收窄化结果的输出迭代器。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入最后一个元素之后的输出迭代器位置。   </dd></dl>
 
 </div>
 </div>
@@ -357,6 +409,16 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>在范围 <code>[beg, end)</code> 中前向扫描，返回第一个具有掩码 <code>m</code> 中任意属性的字符位置。 若无此字符则返回 <code>end</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m</td><td>要搜索的分类属性位掩码。  </td></tr>
+    <tr><td class="paramname">beg</td><td>扫描范围的起始迭代器。  </td></tr>
+    <tr><td class="paramname">end</td><td>扫描范围的末尾迭代器（独占上界）。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>第一个具有 <code>m</code> 中任意属性的字符所在的迭代器；若不存在则返回 <code>end</code>。   </dd></dl>
 
 </div>
 </div>
@@ -404,6 +466,16 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>在范围 <code>[beg, end)</code> 中前向扫描，返回第一个**不**具有掩码 <code>m</code> 中任意属性的字符位置。 若所有字符均具有 <code>m</code> 中至少一个属性则返回 <code>end</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m</td><td>要跳过的分类属性位掩码。  </td></tr>
+    <tr><td class="paramname">beg</td><td>扫描范围的起始迭代器。  </td></tr>
+    <tr><td class="paramname">end</td><td>扫描范围的末尾迭代器（独占上界）。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>第一个不具有 <code>m</code> 中任意属性的字符所在的迭代器；若不存在则返回 <code>end</code>。   </dd></dl>
 
 </div>
 </div>
@@ -450,6 +522,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>对范围 <code>[beg, end)</code> 内的每个字符调用 <code>tolower()</code>，将结果依次写入 <code>dst</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。  </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的末尾迭代器（独占上界）。  </td></tr>
+    <tr><td class="paramname">dst</td><td>接收小写转换结果的输出迭代器。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入最后一个元素之后的输出迭代器位置。   </dd></dl>
 
 </div>
 </div>
@@ -496,6 +578,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>对范围 <code>[beg, end)</code> 内的每个字符调用 <code>toupper()</code>，将结果依次写入 <code>dst</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。  </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的末尾迭代器（独占上界）。  </td></tr>
+    <tr><td class="paramname">dst</td><td>接收大写转换结果的输出迭代器。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入最后一个元素之后的输出迭代器位置。   </dd></dl>
 
 </div>
 </div>
@@ -542,6 +634,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>对范围 <code>[beg, end)</code> 内的每个窄字符调用 <code>widen()</code>，将结果依次写入 <code>dst</code>。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>输入范围的起始迭代器。  </td></tr>
+    <tr><td class="paramname">end</td><td>输入范围的末尾迭代器（独占上界）。  </td></tr>
+    <tr><td class="paramname">dst</td><td>接收拓宽结果的输出迭代器。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>写入最后一个元素之后的输出迭代器位置。   </dd></dl>
 
 </div>
 </div>

@@ -264,7 +264,16 @@ Variables</h2></td></tr>
 <tr class="memitem:ab68d00138366f751154b6c10685ec824"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab68d00138366f751154b6c10685ec824">IOv2::facet_create_pack_size&lt; facet_create_pack&lt; T... &gt; &gt;</a> = sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>)</td></tr>
 <tr class="separator:ab68d00138366f751154b6c10685ec824"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Common type definitions and utilities for the facet infrastructure.</p>
+<p>This file provides the following core components:</p><ul>
+<li><code>abs_ft</code>: Abstract base class for all facets, carrying the runtime facet id.</li>
+<li><code>base_ft&lt;TFacet&gt;</code>: Intermediate base class parameterized on the facet template, used to establish the facet inheritance hierarchy.</li>
+<li><code>ft_basic&lt;TFacet&lt;CharT&gt;&gt;</code>: Concrete base class providing the static type-key mechanism for a <code>(facet template, character type)</code> pair.</li>
+<li><code>facet_create_rule&lt;...&gt;</code>, <code>facet_create_pack&lt;...&gt;</code>, and related traits: Metaprogramming utilities describing facet construction rules, used for batch facet construction in a locale.</li>
+<li><code>out_of_wchar_range</code>: Utility function to detect whether a character value is outside the representable range of <code>wchar_t</code>.  </li>
+</ul>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

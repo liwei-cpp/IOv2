@@ -133,7 +133,11 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:af3c0596bd49124be7aedb8b52252e3d4" id="r_af3c0596bd49124be7aedb8b52252e3d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> std::optional&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ctype__conf_3_01char_01_4.html#af3c0596bd49124be7aedb8b52252e3d4">narrow</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:af3c0596bd49124be7aedb8b52252e3d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">构造及析构函数说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p><code>char</code> 特化的 ctype 配置类。</p>
+<p>构造时通过 POSIX <code>*_l</code> 函数为全部 256 个 <code>unsigned char</code> 值预建三张查找表： <code>m_table</code>（分类掩码）、<code>m_toupper_table</code>（大写映射）、<code>m_tolower_table</code>（小写映射）。 所有字符操作均为 <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">O(1)</a> 的查表操作。</p>
+<p><code>widen</code> 为恒等映射（<code>char</code> 到 <code>char</code> 无需转换）；<code>narrow</code> 始终成功（<code>char</code> 本身即窄字符）。 </p>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="aeada1a79b0877a910738a4a40c00c823" name="aeada1a79b0877a910738a4a40c00c823"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aeada1a79b0877a910738a4a40c00c823">&#9670;&#160;</a></span>ctype_conf()</h2>
 
@@ -157,6 +161,13 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>构造函数。通过 POSIX <code>*_l</code> 函数为全部 256 个字节值预建分类掩码表、 大写映射表和小写映射表。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>用于查询的 locale 名称。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -184,6 +195,14 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">的分类掩码（O(1)</a> 查表）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待分类的字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 对应的分类掩码，为 <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;ctype&gt;</code> 中各掩码常量的位或组合。   </dd></dl>
 
 </div>
 </div>
@@ -210,6 +229,14 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将字符 <code>c</code> 窄化为 <code>char</code>（始终成功）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待窄化的字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>包含 <code>c</code> 的 <code>std::optional&lt;char&gt;</code>，永不为 <code>std::nullopt</code>。   </dd></dl>
 
 </div>
 </div>
@@ -236,6 +263,14 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">对应的小写形式（O(1)</a> 查表）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的小写形式；若无对应小写则返回 <code>c</code> 本身。   </dd></dl>
 
 </div>
 </div>
@@ -262,6 +297,14 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>返回字符 <code>c</code> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">对应的大写形式（O(1)</a> 查表）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待转换的字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 的大写形式；若无对应大写则返回 <code>c</code> 本身。   </dd></dl>
 
 </div>
 </div>
@@ -288,6 +331,14 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将窄字符 <code>c</code> 拓宽为 <code>char</code>（恒等映射）。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>待拓宽的字符。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>c</code> 本身。   </dd></dl>
 
 </div>
 </div>

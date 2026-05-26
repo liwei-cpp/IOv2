@@ -132,7 +132,18 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
 <tr class="memitem:afab851648a5b741eb31c899bbc4803f1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1detail_1_1ctype__ops.html#afab851648a5b741eb31c899bbc4803f1">narrow_seq</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">InIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dflt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dst</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:afab851648a5b741eb31c899bbc4803f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Derived</a>&gt;<br />
+class IOv2::detail::ctype_ops&lt; Derived &gt;</div><p>CRTP mixin class supplying sequence operations and the <code>narrow(c, default)</code> overload in terms of the <code>Derived</code> class's five single-character primitives: <code>is()</code>, <code>toupper()</code>, <code>tolower()</code>, <code>widen()</code>, and <code><a class="el" href="classIOv2_1_1detail_1_1ctype__ops.html#ad44a81611a5cb53bce142ecb40813d4d">narrow()</a></code>. Both <code>ctype&lt;CharT&gt;</code> specializations inherit from this to avoid duplicating these definitions.</p>
+<p>Methods whose parameter types depend on <code>Derived::char_type</code> or <code>Derived::mask</code> are declared as constrained function templates: the <code>requires</code> clause defers evaluation of those dependent names to call time (when <code>Derived</code> is complete), avoiding the incomplete-type error that class-scope type aliases would cause.</p>
+<dl class="section user"><dt>Range precondition</dt><dd>Every method taking iterator pairs (<code>is_seq</code>, <code>scan_is_any</code>, <code>scan_not_any</code>, <code>toupper_seq</code>, <code>tolower_seq</code>, <code>widen_seq</code>, <code>narrow_seq</code>) requires <code>[beg, end)</code> to be a valid range, i.e. <code>end</code> is reachable from <code>beg</code> via repeated <code>++</code>. Passing iterators that do not satisfy this (swapped arguments on a random-access range, mismatched iterator pairs, an <code>end</code> past a valid range, etc.) is undefined behaviour. Matches the equivalent <code>std::ctype</code> contract; not asserted on the hot path. </dd></dl>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">Derived</td><td>The CRTP derived class type, which must provide the five primitives: <code>is</code>, <code>toupper</code>, <code>tolower</code>, <code>widen</code>, and <code>narrow</code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="aacb0e851ebe3f7a65058b99fe302f5cb" name="aacb0e851ebe3f7a65058b99fe302f5cb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aacb0e851ebe3f7a65058b99fe302f5cb">&#9670;&#160;</a></span>is_any()</h2>
 
@@ -171,6 +182,15 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Tests whether character <code>c</code> has any of the classification properties in mask <code>m</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m</td><td>The classification property bitmask to test against. </td></tr>
+    <tr><td class="paramname">c</td><td>The character to test. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><code>true</code> if <code>c</code> has at least one of the classification properties in <code>m</code>; <code>false</code> otherwise.  </dd></dl>
 
 </div>
 </div>
@@ -217,6 +237,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Calls <code>is()</code> on each character in <code>[low, high)</code> and writes the results to <code>vec</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">low</td><td>Start iterator of the input range. </td></tr>
+    <tr><td class="paramname">high</td><td>End iterator of the input range (exclusive). </td></tr>
+    <tr><td class="paramname">vec</td><td>Output iterator to receive the classification mask results. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output iterator pointing one past the last element written.  </dd></dl>
 
 </div>
 </div>
@@ -258,6 +288,16 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Narrows character <code>c</code> to <code>char</code>, returning the fallback character <code>def</code> if no single-byte representation exists.</p>
+<dl class="section user"><dt><code>def</code> precondition</dt><dd><code>def</code> is returned verbatim when <code>self().narrow(c)</code> yields no value; this function does NOT validate that <code>def</code> is itself representable in the target locale. By convention (matching <code>std::ctype::narrow</code>) callers should pass a member of the basic source character set — typically a printable ASCII byte such as &lsquo;&rsquo;?'<code>— so the fallback is meaningful in any encoding. Passing an arbitrary byte (e.g. </code>'\xFF'`) is accepted silently and may yield output that is not a valid standalone character in the locale's encoding. </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">c</td><td>The character to narrow. </td></tr>
+    <tr><td class="paramname">def</td><td>The fallback character returned when <code>c</code> has no single-byte representation. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The single-byte narrowed result for <code>c</code>; <code>def</code> if no representation exists.  </dd></dl>
 
 </div>
 </div>
@@ -310,6 +350,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Calls <code>narrow(c, dflt)</code> on each character in <code>[beg, end)</code> and writes the results to <code>dst</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>Start iterator of the input range. </td></tr>
+    <tr><td class="paramname">end</td><td>End iterator of the input range (exclusive). </td></tr>
+    <tr><td class="paramname">dflt</td><td>The fallback character to use when no single-byte representation exists. </td></tr>
+    <tr><td class="paramname">dst</td><td>Output iterator to receive the narrowed results. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output iterator pointing one past the last element written.  </dd></dl>
 
 </div>
 </div>
@@ -357,6 +408,16 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Scans forward in <code>[beg, end)</code> and returns the first iterator whose character has any of the properties in mask <code>m</code>. Returns <code>end</code> if no such character exists. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m</td><td>The classification property bitmask to search for. </td></tr>
+    <tr><td class="paramname">beg</td><td>Start iterator of the scan range. </td></tr>
+    <tr><td class="paramname">end</td><td>End iterator of the scan range (exclusive). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Iterator to the first character with any property in <code>m</code>; <code>end</code> if none.  </dd></dl>
 
 </div>
 </div>
@@ -404,6 +465,16 @@ requires std::convertible_to&lt;<a class="el" href="namespaceIOv2.html#a09b31017
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Scans forward in <code>[beg, end)</code> and returns the first iterator whose character has <b>none</b> of the properties in mask <code>m</code>. Returns <code>end</code> if every character has at least one property in <code>m</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">m</td><td>The classification property bitmask to skip over. </td></tr>
+    <tr><td class="paramname">beg</td><td>Start iterator of the scan range. </td></tr>
+    <tr><td class="paramname">end</td><td>End iterator of the scan range (exclusive). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Iterator to the first character with no property in <code>m</code>; <code>end</code> if none.  </dd></dl>
 
 </div>
 </div>
@@ -450,6 +521,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Calls <code>tolower()</code> on each character in <code>[beg, end)</code> and writes the results to <code>dst</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>Start iterator of the input range. </td></tr>
+    <tr><td class="paramname">end</td><td>End iterator of the input range (exclusive). </td></tr>
+    <tr><td class="paramname">dst</td><td>Output iterator to receive the lowercase results. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output iterator pointing one past the last element written.  </dd></dl>
 
 </div>
 </div>
@@ -496,6 +577,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Calls <code>toupper()</code> on each character in <code>[beg, end)</code> and writes the results to <code>dst</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>Start iterator of the input range. </td></tr>
+    <tr><td class="paramname">end</td><td>End iterator of the input range (exclusive). </td></tr>
+    <tr><td class="paramname">dst</td><td>Output iterator to receive the uppercase results. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output iterator pointing one past the last element written.  </dd></dl>
 
 </div>
 </div>
@@ -542,6 +633,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Calls <code>widen()</code> on each narrow character in <code>[beg, end)</code> and writes the results to <code>dst</code>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">beg</td><td>Start iterator of the input range. </td></tr>
+    <tr><td class="paramname">end</td><td>End iterator of the input range (exclusive). </td></tr>
+    <tr><td class="paramname">dst</td><td>Output iterator to receive the widened results. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Output iterator pointing one past the last element written.  </dd></dl>
 
 </div>
 </div>

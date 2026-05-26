@@ -165,6 +165,30 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>在字符序列 <code>[first, last)</code> 中按 <code>grouping</code> 规则插入分组分隔符 <code>sep</code>，将结果写入 以 <code>s</code> 为起点的输出缓冲区，并返回写入结束位置的指针。</p>
+<dl class="section user"><dt>前置条件</dt><dd><ul>
+<li><code>grouping</code> 非空（Debug 模式下通过 <code>assert</code> 验证）。</li>
+<li><code>[first, last)</code> 为合法区间，即 <code>first &lt;= last</code>（Debug 模式下通过 <code>assert</code> 验证； 若 <code>first &gt; last</code>，内部复制循环将永不终止并越界写入输出缓冲区）。</li>
+<li><code>s</code> 指向的输出缓冲区容量足以容纳 <code>(last - first)</code> 个字符加上每个非前导分组对应 的一个分隔符；缓冲区大小由调用方负责保证（不做运行时验证）。 </li>
+</ul>
+</dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>序列元素及分隔符的字符类型。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s</td><td>指向输出缓冲区起始位置的指针。  </td></tr>
+    <tr><td class="paramname">sep</td><td>插入到各分组之间的分隔符字符。  </td></tr>
+    <tr><td class="paramname">grouping</td><td>使用 <code><a class="el" href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">adjust_grouping()</a></code> 建立的内部 <code>uint8_t</code> 约定表示的分组规格： 1–255 为显式分组大小，0 为唯一停止哨兵，最后一个 1–255 元素对所有后续分组隐式重复。  </td></tr>
+    <tr><td class="paramname">first</td><td>输入字符序列的起始指针。  </td></tr>
+    <tr><td class="paramname">last</td><td>输入字符序列的末尾指针（独占上界）。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>指向写入输出缓冲区最后一个元素之后位置的指针。   </dd></dl>
 
 </div>
 </div>
@@ -191,6 +215,25 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将原始 POSIX 风格的分组向量原地规范化为内部约定格式；若向量不含可用约束则将其清空。</p>
+<dl class="section user"><dt>内部约定（<code>uint8_t</code>，平台无关）</dt><dd><ul>
+<li>1–255：显式分组大小。</li>
+<li>0：停止标志——此点之后不再分组（**唯一**哨兵值）。</li>
+<li>若最后一个元素为 1–255，则对所有后续分组隐式重复；若最后一个元素为 0，则显式停止优先。</li>
+</ul>
+</dd></dl>
+<dl class="section user"><dt>对原始 POSIX 输入所做的转换</dt><dd><ul>
+<li>**POSIX "0 = 重复前一分组"**：将 0 及其后的所有元素丢弃。POSIX 格式 <code>[N1, ..., Nk, 0, ...]</code> 在本约定中变为 <code>[N1, ..., Nk]</code>，因为最后一个元素的 隐式重复语义已完全覆盖该情形。</li>
+<li>**POSIX <code>CHAR_MAX</code>（= 停止）**：改写为内部 0。<code>CHAR_MAX</code> 在有符号 <code>char</code> 平台上 为 127，在无符号 <code>char</code> 平台上为 255；经此步骤后调用方无需关心平台的 <code>char</code> 符号性。</li>
+</ul>
+</dd></dl>
+<dl class="section note"><dt>注解</dt><dd>**顺序至关重要**：必须先去除 POSIX "0 = 重复" 标记，再执行 <code>CHAR_MAX → 0</code> 改写， 否则新引入的内部停止哨兵会被误认为 POSIX 重复标记而被丢弃。 </dd></dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">grouping</td><td>待原地规范化的原始 POSIX 分组向量。   </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -227,6 +270,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将（可能是多字节的）窄字符串 <code>narrow</code> 的第一个字符转换为给定 locale 下的 <code>char</code>， 若 <code>narrow</code> 为空或转换结果不可表示则返回 &lsquo;&rsquo;\0'`。</p>
+<p>适用于从 <code>lconv</code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> 读出的、语义上表示单个用户可见字符的字段 （例如 <code>decimal_point</code>、<code>thousands_sep</code>、<code>mon_decimal_point</code>、<code>mon_thousands_sep</code>）。</p>
+<dl class="section user"><dt>为何使用 <code>const std::string&amp;</code> 而非 <code>const char*</code></dt><dd><code>lconv*</code> 和 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> 返回的指针可能被任何 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">setlocale()</a></code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uselocale()</a></code> 调用所失效。 下方转换过程会经由 <code><a class="el" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">detail::to_wstring</a></code> 间接执行此类调用，因此输入必须是调用方 持有的快照，而非指向 libc 所有 locale 数据的借用指针。 使用 <code>std::string</code> 使这一契约在每个调用处都无法忽视。 </dd></dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">narrow</td><td>待转换的（可能是多字节的）窄字符串。  </td></tr>
+    <tr><td class="paramname">locale_name</td><td>执行转换所使用的 locale 名称。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>narrow</code> 在给定 locale 下首字符对应的 <code>char</code>；若 <code>narrow</code> 为空或转换结果不可表示 则返回 &lsquo;&rsquo;\0'<code>。 @endif \if EN The first character of</code>narrow<code>converted to</code>char<code>in the given locale; </code>'\0'<code>if</code>narrow` is empty or the conversion is not representable.  </dd></dl>
 
 </div>
 </div>
@@ -272,6 +326,25 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
   </tr>
 </table>
 </div><div class="memdoc">
+<p>将（可能是多字节的）窄字符串 <code>narrow</code> 的第一个字符转换为给定 locale 下的宽字符 <code>CharT</code>，若 <code>narrow</code> 为空或转换结果不含字符则返回 <code>default_char</code>。</p>
+<p>适用于从 <code>lconv</code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> 读出的、语义上表示单个用户可见字符的字段 （例如 <code>decimal_point</code>、<code>thousands_sep</code>、<code>mon_decimal_point</code>、<code>mon_thousands_sep</code>）。</p>
+<dl class="section user"><dt><code>default_char</code> 契约</dt><dd>在输入为空或转换结果为空的路径上原样返回；本函数**不**验证 <code>default_char</code> 本身 在 <code>locale_name</code> 下是否可表示、格式是否正确或是否有意义。调用方负责选择合理的 回退值（通常为 ASCII 范围内的普通字符，如 &lsquo;L&rsquo; '<code>、</code>L'.'<code>、</code>U' '<code>、</code>U'.'<code>）。 注意与</code>string_to_char_convert<code>的不对称性：后者使用硬编码的</code>'\0'` 回退且不接受 调用方自定义；本函数将回退值作为参数，目的是让调用方可以选择适合 locale 的替代字符， 但代价是验证责任由调用方自行承担。</dd></dl>
+<dl class="section user"><dt>为何使用 <code>const std::string&amp;</code> 而非 <code>const char*</code></dt><dd><code>lconv*</code> 和 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nl_langinfo()</a></code> 返回的指针可能被任何 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">setlocale()</a></code> / <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uselocale()</a></code> 调用 所失效。下方转换过程会经由 <code><a class="el" href="namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1">detail::to_wstring</a></code>/<code>to_u32string</code> 间接执行此类调用， 因此输入必须是调用方持有的快照，而非指向 libc 所有 locale 数据的借用指针。 </dd></dl>
+<dl class="tparams"><dt>模板参数</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">CharT</td><td>目标宽字符类型。须为 <code>wchar_t</code>，或在 <code>char32_t</code> 与 <code>wchar_t</code> 等价的平台上为 <code>char32_t</code>（由 <code>requires</code> 子句在编译期强制验证）。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">narrow</td><td>待转换的（可能是多字节的）窄字符串。  </td></tr>
+    <tr><td class="paramname">locale_name</td><td>执行转换所使用的 locale 名称。  </td></tr>
+    <tr><td class="paramname">default_char</td><td>当 <code>narrow</code> 为空或转换结果不含字符时返回的回退值。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd><code>narrow</code> 在给定 locale 下首字符对应的 <code>CharT</code>；若 <code>narrow</code> 为空或转换结果不含 字符则返回 <code>default_char</code>。   </dd></dl>
 
 </div>
 </div>
@@ -308,6 +381,17 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
   </tr>
 </table>
 </div><div class="memdoc">
+<p>验证已解析的分组序列 <code>grouping_tmp</code> 是否符合 <code>numpunct::grouping</code> 所规定的 <code>grouping</code> 约束。</p>
+<dl class="section user"><dt>前置条件</dt><dd><code>grouping</code> 和 <code>grouping_tmp</code> 均非空；仅在 Debug 模式下通过 <code>assert</code> 验证，Release 模式下由调用方保证。违反该前置条件将导致 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size()</a> - 1</code> 下溢为 <code>SIZE_MAX</code>，后续索引 越界读取。调用方可保证非空性，因为 <code>grouping_tmp</code> 仅在 <code>!grouping.<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">empty()</a></code> 分支内 填充，故 <code>grouping_tmp</code> 非空蕴含 <code>grouping</code> 非空。</dd></dl>
+<p><code>grouping</code> 使用由 <code><a class="el" href="namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28">adjust_grouping()</a></code> 建立的内部 <code>uint8_t</code> 约定：1–255 为显式分组 大小，0 为唯一停止哨兵，最后一个 1–255 元素对所有后续分组隐式重复。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">grouping</td><td>参考分组规格（来自 <code>numpunct::grouping</code>），使用内部 <code>uint8_t</code> 约定。  </td></tr>
+    <tr><td class="paramname">grouping_tmp</td><td>解析过程中实际观测到的各分组大小序列。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>若 <code>grouping_tmp</code> 符合 <code>grouping</code> 的约束则返回 <code>true</code>；否则返回 <code>false</code>。   </dd></dl>
 
 </div>
 </div>
