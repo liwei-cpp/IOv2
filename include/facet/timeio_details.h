@@ -8,7 +8,7 @@
 #include <ctime>
 #include <limits>
 #include <string>
-#include <stdexcept>
+#include <common/metafunctions.h>
 #include <common/prefix_tree.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/facet_common.h>
@@ -348,9 +348,7 @@ private:
 template <typename CharT>
     requires std::is_same_v<CharT, wchar_t> || 
             (std::is_same_v<CharT, char32_t> && 
-            (sizeof(char32_t) == sizeof(wchar_t)) && 
-            (static_cast<wchar_t>(U'李') == L'李') &&
-            (static_cast<char32_t>(L'伟') == U'伟'))
+            wchar_t_is_utf32)
 class timeio_conf<CharT> : public ft_basic<timeio<CharT>>
 {
     using era_entry = typename ft_basic<timeio<CharT>>::era_entry;

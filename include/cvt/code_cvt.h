@@ -26,6 +26,7 @@
 #pragma once
 #include <common/clocale_wrapper.h>
 #include <common/defs.h>
+#include <common/metafunctions.h>
 #include <cvt/abs_cvt.h>
 #include <cvt/cvt_concepts.h>
 
@@ -93,9 +94,7 @@ struct codecvt_kernel;
 template <typename TInt>
     requires std::is_same_v<TInt, wchar_t> ||
                 (std::is_same_v<TInt, char32_t> &&
-                 (sizeof(char32_t) == sizeof(wchar_t)) &&
-                 (static_cast<wchar_t>(U'李') == L'李') &&
-                 (static_cast<char32_t>(L'伟') == U'伟'))
+                 wchar_t_is_utf32)
 struct codecvt_kernel<char, TInt>
 {
     static_assert(MB_LEN_MAX <= std::numeric_limits<unsigned>::max(),
@@ -400,9 +399,7 @@ private:
 template <typename TInt>
     requires std::is_same_v<TInt, char32_t> ||
                 (std::is_same_v<TInt, wchar_t> &&
-                 (sizeof(char32_t) == sizeof(wchar_t)) &&
-                 (static_cast<wchar_t>(U'李') == L'李') &&
-                 (static_cast<char32_t>(L'伟') == U'伟'))
+                 wchar_t_is_utf32)
 struct codecvt_kernel<char8_t, TInt>
 {
     codecvt_kernel() = default;
@@ -1207,9 +1204,7 @@ class code_cvt_creator;
 template <typename TInt>
     requires std::is_same_v<TInt, wchar_t> ||
                 (std::is_same_v<TInt, char32_t> &&
-                 (sizeof(char32_t) == sizeof(wchar_t)) &&
-                 (static_cast<wchar_t>(U'李') == L'李') &&
-                 (static_cast<char32_t>(L'伟') == U'伟'))
+                 wchar_t_is_utf32)
 class code_cvt_creator<char, TInt>
 {
 public:
@@ -1279,9 +1274,7 @@ private:
 template <typename TInt>
     requires std::is_same_v<TInt, char32_t> ||
                 (std::is_same_v<TInt, wchar_t> &&
-                 (sizeof(char32_t) == sizeof(wchar_t)) &&
-                 (static_cast<wchar_t>(U'李') == L'李') &&
-                 (static_cast<char32_t>(L'伟') == U'伟'))
+                 wchar_t_is_utf32)
 class code_cvt_creator<char8_t, TInt>
 {
 public:

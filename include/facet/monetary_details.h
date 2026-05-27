@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <common/clocale_wrapper.h>
+#include <common/metafunctions.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/facet_common.h>
 #include <facet/facet_helper.h>
@@ -317,9 +318,7 @@ private:
 template <typename CharT>
     requires std::is_same_v<CharT, wchar_t> || 
                 (std::is_same_v<CharT, char32_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
-                 (static_cast<wchar_t>(U'李') == L'李') &&
-                 (static_cast<char32_t>(L'伟') == U'伟'))
+                 wchar_t_is_utf32)
 class monetary_conf<CharT> : public ft_basic<monetary<CharT>>
 {
 public:

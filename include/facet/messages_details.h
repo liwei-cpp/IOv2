@@ -282,9 +282,7 @@ private:
 template <typename CharT>
     requires std::is_same_v<CharT, char32_t> || 
                 (std::is_same_v<CharT, wchar_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
-                 (static_cast<wchar_t>(U'李') == L'李') &&
-                 (static_cast<char32_t>(L'伟') == U'伟'))
+                 wchar_t_is_utf32)
 class messages_conf<CharT> : public ft_basic<messages<CharT>>
 {
     using TString = std::basic_string<CharT>;
@@ -350,9 +348,7 @@ private:
     {
         try
         {
-            if constexpr ((sizeof(char32_t) == sizeof(wchar_t)) && 
-                          (static_cast<wchar_t>(U'李') == L'李') &&
-                          (static_cast<char32_t>(L'伟') == U'伟'))
+            if constexpr (wchar_t_is_utf32)
             {
                 if (lang.empty())
                     throw stream_error("messages_conf init fail: no language available");

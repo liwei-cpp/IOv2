@@ -1,11 +1,12 @@
 #pragma once
-#include <iterator>
-#include <memory>
 #include <common/metafunctions.h>
 #include <facet/ctype.h>
 #include <facet/facet_helper.h>
 #include <facet/numeric_details.h>
 #include <io/io_base.h>
+
+#include <iterator>
+#include <memory>
 #include <type_traits>
 
 namespace IOv2
@@ -21,7 +22,7 @@ public:
               shared_ptr_to<ctype<CharT>> TCtypePtr>
     numeric(TConfPtr p_obj, TCtypePtr p_ctype) : m_ctype(p_ctype)
     {
-        if (!p_obj) throw std::runtime_error("shared_ptr is empty");
+        if (!p_obj || !p_ctype) throw std::runtime_error("shared_ptr is empty");
         m_decimal_point = p_obj->decimal_point();
         m_thousands_sep = p_obj->thousands_sep();
         m_true_name = p_obj->truename();
@@ -56,7 +57,7 @@ public:
         {
             return insert_int(s, io, static_cast<const long>(v));
         }
-        
+
         const auto& name = v ? m_true_name : m_false_name;
         size_t len = name.size();
 
@@ -64,7 +65,6 @@ public:
         if (w > static_cast<decltype(w)>(len))
         {
             const auto plen = w - len;
-            std::vector<char_type> ps(plen, io.fill());
             io.width(0);
 
             if ((flags & ios_defs::adjustfield) == ios_defs::left)
@@ -79,11 +79,11 @@ public:
             }
             return s;
         }
-        
+
         io.width(0);
         return std::copy(name.begin(), name.end(), s);
     }
-    
+
     template <typename TIter, typename TValue>
         requires (std::is_integral_v<TValue> && (!std::is_same_v<TValue, bool>))
     TIter put(TIter s, ios_base<char_type>& io, TValue v) const { return insert_int(s, io, v); }
@@ -113,7 +113,7 @@ public:
         io.flags(flags);
         return s;
     }
-    
+
     template <typename TIter, std::sentinel_for<TIter> TSent>
     TIter get(TIter beg, TSent end, ios_base<char_type>& io, bool& v) const
     {
@@ -189,7 +189,7 @@ public:
         if (!success) throw stream_error("numeric::get fail: parse boolean fail");
         return beg;
     }
-    
+
     template <typename TIter, std::sentinel_for<TIter> TSent, typename TValue>
         requires (std::is_integral_v<TValue> && (!std::is_same_v<TValue, bool>))
     TIter get(TIter beg, TSent end, ios_base<char_type>& io, TValue& v) const
@@ -249,12 +249,12 @@ private:
 
         const ios_defs::fmtflags fltfield = io.flags() & ios_defs::floatfield;
 
-        // Initial buffer size estimate (GCC style). 
+        // Initial buffer size estimate (GCC style).
         // For non-fixed fields, max_digits * 3 is a safe heuristic.
         size_t cs_size = static_cast<size_t>(max_digits) * 3 + 32;
         if (fltfield == ios_defs::fixed)
             cs_size = static_cast<size_t>(std::numeric_limits<TValue>::max_exponent10) + static_cast<size_t>(prec) + 32;
-        
+
         // Cap initial allocation to a reasonable size (e.g., 2048) to avoid huge initial pressure.
         if (cs_size > 2048) cs_size = 2048;
 
@@ -347,7 +347,7 @@ private:
         // Write resulting, fully-formatted string to output iterator.
         return std::copy(ws, ws + len, s);
     }
-    
+
     template <typename TIter, typename TValue>
     TIter insert_int(TIter s, ios_base<char_type>& io, TValue v) const
     {
@@ -427,7 +427,7 @@ private:
         // Write resulting, fully-formatted string to output iterator.
         return std::copy(cs, cs + len, s);
     }
-    
+
     template <typename TValue>
     int int_to_char(CharT* bufend, TValue v, ios_defs::fmtflags flags, bool dec) const
     {
@@ -511,7 +511,7 @@ private:
         std::fill_n(news, plen, fill);
         std::copy(olds + mod, olds + oldlen, news + plen);
     }
-    
+
     void _S_format_float(ios_defs::fmtflags flags, char* fptr, char mod) const noexcept
     {
         *fptr++ = '%';
@@ -542,7 +542,7 @@ private:
             *fptr++ = (flags & ios_defs::uppercase) ? 'G' : 'g';
         *fptr = '\0';
     }
-    
+
     void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, int& len) const
     {
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
@@ -560,7 +560,7 @@ private:
         }
         len = newlen;
     }
-    
+
     template <typename TIter, std::sentinel_for<TIter> TSent, typename TValue>
     std::pair<bool, TIter> extract_int(TIter beg, TSent end, ios_base<char_type>& io, TValue& v) const
     {
@@ -881,7 +881,7 @@ private:
     }
 
     template <typename TValue>
-    bool convert_to_v(const char* s, TValue& v) const noexcept
+    bool convert_to_v(const char* s, TValue& v) const
     {
         bool res = true;
         char* sanity;
@@ -923,7 +923,7 @@ private:
     std::basic_string<CharT>  m_true_name;
     std::basic_string<CharT>  m_false_name;
     std::vector<uint8_t>      m_grouping;
-    
+
 private:
     char_type m_in_atoms[26];
     char_type m_out_atoms[36];
@@ -937,7 +937,7 @@ private:
     static constexpr int s_oe           = s_odigits + 14;
     static constexpr int s_oA           = s_oudigits + 10;
     static constexpr int s_oE           = s_oudigits + 14;
-    
+
     static constexpr int s_iminus       = 0;
     static constexpr int s_iplus        = 1;
     static constexpr int s_ix           = 2;
