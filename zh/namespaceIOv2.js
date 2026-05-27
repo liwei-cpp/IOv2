@@ -9,7 +9,7 @@ var namespaceIOv2 =
       [ "add_grouping", "namespaceIOv2_1_1FacetHelper.html#a0faaf30b3a28b21f89f129297b1ad11f", null ],
       [ "adjust_grouping", "namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28", null ],
       [ "string_to_char_convert", "namespaceIOv2_1_1FacetHelper.html#a2c324fccb213a5e200d18d6273a367f2", null ],
-      [ "string_to_widechar_convert", "namespaceIOv2_1_1FacetHelper.html#ac5c3d3bd9b0a2778d81593bc30e18b75", null ],
+      [ "string_to_widechar_convert", "namespaceIOv2_1_1FacetHelper.html#a3beb6fb0dd31f962ad1dea45adbe5063", null ],
       [ "verify_grouping", "namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b", null ]
     ] ],
     [ "ios_defs", "namespaceIOv2_1_1ios__defs.html", [
@@ -384,6 +384,7 @@ var namespaceIOv2 =
     [ "SIMD_PADDING_BYTES", "namespaceIOv2.html#a96b9587d857ea1b6b963a4bba698b58c", null ],
     [ "type_id_v", "namespaceIOv2.html#aec20fdc81204968e15c43732bb1a3a22", null ],
     [ "wcerr", "namespaceIOv2.html#abe4d0cd9111233940065a427bac23413", null ],
+    [ "wchar_t_is_utf32", "namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523", null ],
     [ "wcin", "namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858", null ],
     [ "wclog", "namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff", null ],
     [ "wcout", "namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce", null ]

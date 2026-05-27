@@ -888,6 +888,8 @@ Variables</h2></td></tr>
 <tr class="memitem:a09b31017574cb5471d2558481d0f4d7a" id="r_a09b31017574cb5471d2558481d0f4d7a"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:a09b31017574cb5471d2558481d0f4d7a"><td class="memTemplItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_small_type_v</a> = sizeof(T) &lt;= 2 * sizeof(void*)</td></tr>
 <tr class="separator:a09b31017574cb5471d2558481d0f4d7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa906165b0856579dd626eb3c84a2a523" id="r_aa906165b0856579dd626eb3c84a2a523"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a></td></tr>
+<tr class="separator:aa906165b0856579dd626eb3c84a2a523"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a483775a55bb18278dba45ad39fc0b6a4" id="r_a483775a55bb18278dba45ad39fc0b6a4"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
 <tr class="memitem:a483775a55bb18278dba45ad39fc0b6a4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a483775a55bb18278dba45ad39fc0b6a4">is_stamp_input_iterator_v</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:a483775a55bb18278dba45ad39fc0b6a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -4857,6 +4859,35 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa906165b0856579dd626eb3c84a2a523" name="aa906165b0856579dd626eb3c84a2a523"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa906165b0856579dd626eb3c84a2a523">&#9670;&#160;</a></span>wchar_t_is_utf32</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::wchar_t_is_utf32</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">        (<span class="keyword">sizeof</span>(char32_t) == <span class="keyword">sizeof</span>(<span class="keywordtype">wchar_t</span>)) &amp;&amp;</div>
+<div class="line">        (<span class="keyword">static_cast&lt;</span><span class="keywordtype">wchar_t</span><span class="keyword">&gt;</span>(U<span class="stringliteral">&#39;李&#39;</span>) == L<span class="stringliteral">&#39;李&#39;</span>) &amp;&amp;</div>
+<div class="line">        (<span class="keyword">static_cast&lt;</span><span class="keywordtype">char32_t</span><span class="keyword">&gt;</span>(L<span class="stringliteral">&#39;伟&#39;</span>) == U<span class="stringliteral">&#39;伟&#39;</span>)</div>
+</div><!-- fragment --><p>Whether this platform's wchar_t is a UTF-32 code unit.</p>
+<p>True iff wchar_t has the same width as char32_t and the two agree on the encoding of the same character (verified at compile time via two CJK characters). True on glibc/Linux; false where wchar_t is a 16-bit UTF-16 code unit (e.g. MSVC).</p>
+<p>char32_t / char8_t wide-character paths rely on this assumption: they hand the data to C library functions such as wcsxfrm / wcscoll as if it were a wchar_t sequence, thereby reusing wchar_t's localization facilities.  </p>
 
 </div>
 </div>
