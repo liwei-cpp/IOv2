@@ -5,9 +5,20 @@
 #include <facet/numeric_details.h>
 #include <io/io_base.h>
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <iterator>
+#include <limits>
 #include <memory>
+#include <string>
+#include <string_view>
+#include <tuple>
 #include <type_traits>
+#include <utility>
+#include <vector>
 
 namespace IOv2
 {
@@ -34,11 +45,16 @@ public:
         // POSIX boundary in numeric_conf, not here.
         m_grouping = p_obj->grouping();
 
-        char in_atoms_c[] = "-+xX0123456789abcdefABCDEF";
-        m_ctype->widen_seq(in_atoms_c, in_atoms_c + 26, m_in_atoms);
+        // string_view carries the length (no trailing '\0' counted), so the
+        // widened range matches m_in_atoms/m_out_atoms exactly. static_assert
+        // keeps the source literal and the destination array in lock-step.
+        constexpr std::string_view in_atoms = "-+xX0123456789abcdefABCDEF";
+        static_assert(in_atoms.size() == std::extent_v<decltype(m_in_atoms)>);
+        m_ctype->widen_seq(in_atoms.data(), in_atoms.data() + in_atoms.size(), m_in_atoms);
 
-        char out_atoms_c[] = "-+xX0123456789abcdef0123456789ABCDEF";
-        m_ctype->widen_seq(out_atoms_c, out_atoms_c + 36, m_out_atoms);
+        constexpr std::string_view out_atoms = "-+xX0123456789abcdef0123456789ABCDEF";
+        static_assert(out_atoms.size() == std::extent_v<decltype(m_out_atoms)>);
+        m_ctype->widen_seq(out_atoms.data(), out_atoms.data() + out_atoms.size(), m_out_atoms);
     }
 
 public:

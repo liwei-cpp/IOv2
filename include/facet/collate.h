@@ -2,7 +2,11 @@
 #include <common/metafunctions.h>
 #include <facet/collate_details.h>
 
+#include <algorithm>
+#include <compare>
 #include <memory>
+#include <utility>
+#include <vector>
 
 namespace IOv2
 {

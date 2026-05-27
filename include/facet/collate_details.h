@@ -6,10 +6,10 @@
 #include <facet/facet_common.h>
 
 #include <algorithm>
+#include <compare>
 #include <cstring>
+#include <cwchar>
 #include <vector>
-
-#include <langinfo.h>
 
 namespace IOv2
 {
@@ -145,7 +145,15 @@ public:
     virtual size_t transform(const CharT* low, const CharT* high, CharT* dest, size_t mx_len = 0) const
     {
         size_t trans_count = 0;
+        // All buffers are hoisted out of the loop so resize() reuses their
+        // capacity instead of reallocating per segment.
+        // buf   : input staging — null-terminated copy of a segment that has
+        //         no embedded '\0' (so cur can point at a terminated string).
+        // buf2  : output staging for strxfrm/wcsxfrm; unused for char8_t.
+        // buf32 : char32_t output staging used only in the char8_t branch.
         std::vector<CharT> buf;
+        [[maybe_unused]] std::vector<CharT> buf2;
+        [[maybe_unused]] std::vector<char32_t> buf32;
         bool extra_eos = false;
 
         clocale_user guard(m_inter_locale);
@@ -170,14 +178,13 @@ public:
             {
                 auto ws = detail::to_u32string(cur);
                 auto trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
-                std::vector<char32_t> buf2;
-                buf2.resize(trans_len + 1);
-                auto cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()),
+                buf32.resize(trans_len + 1);
+                auto cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf32.data()),
                                          reinterpret_cast<const wchar_t*>(ws.c_str()),
                                          static_cast<unsigned>(-1));
-                buf2[cur_trans] = 0;
+                buf32[cur_trans] = 0;
 
-                auto char8s = detail::to_u8string(buf2.data());
+                auto char8s = detail::to_u8string(buf32.data());
                 if (mx_len == 0)
                 {
                     dest = std::copy(char8s.data(), char8s.data() + char8s.size(), dest);
@@ -190,24 +197,15 @@ public:
                     trans_count += cur_trans;
                 }
             }
-            else if (mx_len == 0)
-            {
-                size_t cur_trans = 0;
-                if constexpr (std::is_same_v<CharT, char>)
-                    cur_trans = strxfrm(dest, cur, static_cast<unsigned>(-1));
-                else if constexpr (std::is_same_v<CharT, wchar_t>)
-                    cur_trans = wcsxfrm(dest, cur, static_cast<unsigned>(-1));
-                else if constexpr ((std::is_same_v<CharT, char32_t> &&
-                                   wchar_t_is_utf32))
-                    cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(dest), reinterpret_cast<const wchar_t*>(cur), static_cast<unsigned>(-1));
-                else
-                    static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
-
-                dest += cur_trans;
-                trans_count += cur_trans;
-            }
             else
             {
+                // strxfrm/wcsxfrm always append a terminating '\0' (writing
+                // cur_trans + 1 elements). Transform into the reused buffer
+                // first, then copy exactly cur_trans elements to dest, so the
+                // appended '\0' is discarded. Writing it straight into dest
+                // would overflow the caller's buffer by one on the trailing
+                // segment, for which transform_length only accounts for
+                // cur_trans (no terminator).
                 size_t trans_len = 0;
                 if constexpr (std::is_same_v<CharT, char>)
                     trans_len = strxfrm(nullptr, cur, 0);
@@ -219,7 +217,6 @@ public:
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
-                std::vector<CharT> buf2;
                 buf2.resize(trans_len + 1);
 
                 size_t cur_trans = 0;
@@ -233,7 +230,8 @@ public:
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
-                cur_trans = std::min(cur_trans, mx_len - trans_count);
+                if (mx_len != 0)
+                    cur_trans = std::min(cur_trans, mx_len - trans_count);
                 dest = std::copy(buf2.data(), buf2.data() + cur_trans, dest);
                 trans_count += cur_trans;
             }

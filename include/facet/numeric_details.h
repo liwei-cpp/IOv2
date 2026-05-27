@@ -5,6 +5,8 @@
 #include <facet/facet_common.h>
 #include <facet/facet_helper.h>
 
+#include <clocale>
+#include <cstdint>
 #include <string>
 #include <vector>
 
