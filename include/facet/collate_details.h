@@ -1,15 +1,15 @@
 #pragma once
-#include <langinfo.h>
-
-#include <algorithm>
-#include <cstring>
-#include <vector>
-
 #include <common/clocale_wrapper.h>
 #include <common/defs.h>
 #include <common/metafunctions.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/facet_common.h>
+
+#include <algorithm>
+#include <cstring>
+#include <vector>
+
+#include <langinfo.h>
 
 namespace IOv2
 {
@@ -30,9 +30,9 @@ public:
     {
         std::vector<CharT> buf1; bool extra_eos1 = false;
         std::vector<CharT> buf2; bool extra_eos2 = false;
-        
+
         clocale_user guard(m_inter_locale);
-        
+
         while ((low1 != high1) && (low2 != high2))
         {
             const CharT* cl1 = low1;
@@ -49,7 +49,7 @@ public:
                 low1 = high1;
             }
             else low1 = ch1 + 1;
-            
+
             const CharT* cl2 = low2;
             auto ch2 = std::find(low2, high2, static_cast<CharT>(0));
             if (ch2 == high2)
@@ -64,15 +64,13 @@ public:
                 low2 = high2;
             }
             else low2 = ch2 + 1;
-            
+
             int c_res = 0;
             if constexpr (std::is_same_v<CharT, char>)
                 c_res = std::strcoll(cl1, cl2);
             else if constexpr (std::is_same_v<CharT, wchar_t>)
                 c_res = std::wcscoll(cl1, cl2);
-            else if constexpr ((sizeof(char32_t) == sizeof(wchar_t)) && 
-                               (static_cast<wchar_t>(U'李') == L'李') &&
-                               (static_cast<char32_t>(L'伟') == U'伟'))
+            else if constexpr (wchar_t_is_utf32)
             {
                 if constexpr (std::is_same_v<CharT, char32_t>)
                     c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(cl1),
@@ -91,7 +89,7 @@ public:
             if (c_res < 0) return std::strong_ordering::less;
             if (c_res > 0) return std::strong_ordering::greater;
         }
-        
+
         if (low1 != high1) return std::strong_ordering::greater;
         if (low2 != high2) return std::strong_ordering::less;
         if (extra_eos1 && !extra_eos2) return std::strong_ordering::less;
@@ -103,7 +101,7 @@ public:
     {
         size_t res = 0;
         std::vector<CharT> buf;
-        
+
         clocale_user guard(m_inter_locale);
         while (low != high)
         {
@@ -127,9 +125,7 @@ public:
                 res += strxfrm(nullptr, cur, 0);
             else if constexpr (std::is_same_v<CharT, wchar_t>)
                 res += wcsxfrm(nullptr, cur, 0);
-            else if constexpr ((sizeof(char32_t) == sizeof(wchar_t)) && 
-                               (static_cast<wchar_t>(U'李') == L'李') &&
-                               (static_cast<char32_t>(L'伟') == U'伟'))
+            else if constexpr (wchar_t_is_utf32)
             {
                 if constexpr (std::is_same_v<CharT, char32_t>)
                     res += wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
@@ -145,13 +141,13 @@ public:
 
         return res;
     };
-    
+
     virtual size_t transform(const CharT* low, const CharT* high, CharT* dest, size_t mx_len = 0) const
     {
         size_t trans_count = 0;
         std::vector<CharT> buf;
         bool extra_eos = false;
-        
+
         clocale_user guard(m_inter_locale);
         while ((low != high) && ((mx_len == 0) || (trans_count < mx_len)))
         {
@@ -169,20 +165,18 @@ public:
             else
                 low = next + 1;
 
-            if constexpr (std::is_same_v<CharT, char8_t> && 
-                          (sizeof(char32_t) == sizeof(wchar_t)) && 
-                          (static_cast<wchar_t>(U'李') == L'李') &&
-                          (static_cast<char32_t>(L'伟') == U'伟'))
+            if constexpr (std::is_same_v<CharT, char8_t> &&
+                          wchar_t_is_utf32)
             {
                 auto ws = detail::to_u32string(cur);
                 auto trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
                 std::vector<char32_t> buf2;
                 buf2.resize(trans_len + 1);
-                auto cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()), 
+                auto cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()),
                                          reinterpret_cast<const wchar_t*>(ws.c_str()),
                                          static_cast<unsigned>(-1));
                 buf2[cur_trans] = 0;
-                
+
                 auto char8s = detail::to_u8string(buf2.data());
                 if (mx_len == 0)
                 {
@@ -203,14 +197,12 @@ public:
                     cur_trans = strxfrm(dest, cur, static_cast<unsigned>(-1));
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
                     cur_trans = wcsxfrm(dest, cur, static_cast<unsigned>(-1));
-                else if constexpr ((std::is_same_v<CharT, char32_t> && 
-                                   (sizeof(char32_t) == sizeof(wchar_t)) && 
-                                   (static_cast<wchar_t>(U'李') == L'李') &&
-                                   (static_cast<char32_t>(L'伟') == U'伟')))
+                else if constexpr ((std::is_same_v<CharT, char32_t> &&
+                                   wchar_t_is_utf32))
                     cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(dest), reinterpret_cast<const wchar_t*>(cur), static_cast<unsigned>(-1));
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
-                    
+
                 dest += cur_trans;
                 trans_count += cur_trans;
             }
@@ -221,14 +213,12 @@ public:
                     trans_len = strxfrm(nullptr, cur, 0);
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
                     trans_len = wcsxfrm(nullptr, cur, 0);
-                else if constexpr ((std::is_same_v<CharT, char32_t> && 
-                                   (sizeof(char32_t) == sizeof(wchar_t)) && 
-                                   (static_cast<wchar_t>(U'李') == L'李') &&
-                                   (static_cast<char32_t>(L'伟') == U'伟')))
+                else if constexpr ((std::is_same_v<CharT, char32_t> &&
+                                   wchar_t_is_utf32))
                     trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
-                    
+
                 std::vector<CharT> buf2;
                 buf2.resize(trans_len + 1);
 
@@ -237,14 +227,12 @@ public:
                     cur_trans = strxfrm(buf2.data(), cur, static_cast<unsigned>(-1));
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
                     cur_trans = wcsxfrm(buf2.data(), cur, static_cast<unsigned>(-1));
-                else if constexpr ((std::is_same_v<CharT, char32_t> && 
-                                   (sizeof(char32_t) == sizeof(wchar_t)) && 
-                                   (static_cast<wchar_t>(U'李') == L'李') &&
-                                   (static_cast<char32_t>(L'伟') == U'伟')))
+                else if constexpr ((std::is_same_v<CharT, char32_t> &&
+                                   wchar_t_is_utf32))
                     cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()), reinterpret_cast<const wchar_t*>(cur), static_cast<unsigned>(-1));
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
-                    
+
                 cur_trans = std::min(cur_trans, mx_len - trans_count);
                 dest = std::copy(buf2.data(), buf2.data() + cur_trans, dest);
                 trans_count += cur_trans;

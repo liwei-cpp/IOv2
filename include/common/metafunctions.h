@@ -79,6 +79,36 @@ namespace IOv2
 
     /**
      * @lang{ZH}
+     * 判断当前平台的 wchar_t 是否为 UTF-32 编码单元。
+     *
+     * 当且仅当 wchar_t 与 char32_t 等宽、且二者对同一字符的编码一致时为 true
+     * （借助两个中文字符在编译期校验）。在 glibc/Linux 上为 true；在 wchar_t
+     * 为 16 位 UTF-16 的平台（如 MSVC）上为 false。
+     *
+     * 涉及 char32_t / char8_t 的宽字符处理路径依赖此前提：它们把数据当作 wchar_t
+     * 序列交给 wcsxfrm / wcscoll 等 C 库函数，从而复用 wchar_t 的本地化能力。
+     * @endif
+     *
+     * @lang{EN}
+     * Whether this platform's wchar_t is a UTF-32 code unit.
+     *
+     * True iff wchar_t has the same width as char32_t and the two agree on the
+     * encoding of the same character (verified at compile time via two CJK
+     * characters). True on glibc/Linux; false where wchar_t is a 16-bit UTF-16
+     * code unit (e.g. MSVC).
+     *
+     * char32_t / char8_t wide-character paths rely on this assumption: they
+     * hand the data to C library functions such as wcsxfrm / wcscoll as if it
+     * were a wchar_t sequence, thereby reusing wchar_t's localization facilities.
+     * @endif
+     */
+    inline constexpr bool wchar_t_is_utf32 =
+        (sizeof(char32_t) == sizeof(wchar_t)) &&
+        (static_cast<wchar_t>(U'李') == L'李') &&
+        (static_cast<char32_t>(L'伟') == U'伟');
+
+    /**
+     * @lang{ZH}
      * shared_ptr_to 概念的实现辅助结构。
      * @endif
      *

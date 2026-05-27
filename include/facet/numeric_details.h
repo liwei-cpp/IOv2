@@ -1,12 +1,14 @@
 #pragma once
-#include <langinfo.h>
+#include <common/clocale_wrapper.h>
+#include <common/metafunctions.h>
+#include <cvt/cvt_facilities.h>
+#include <facet/facet_common.h>
+#include <facet/facet_helper.h>
+
 #include <string>
 #include <vector>
 
-#include <facet/facet_common.h>
-#include <facet/facet_helper.h>
-#include <common/clocale_wrapper.h>
-#include <cvt/cvt_facilities.h>
+#include <langinfo.h>
 
 namespace IOv2
 {
@@ -68,14 +70,14 @@ public:
         if (no_set)  m_false_name = no_raw;
         else         m_false_name = "false";
     }
-    
+
 public:
     virtual char decimal_point() const { return m_decimal_point; }
     virtual char thousands_sep() const { return m_thousands_sep; }
     virtual const std::string& truename() const { return m_true_name; }
     virtual const std::string& falsename() const { return m_false_name; }
     virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
-    
+
 private:
     char m_decimal_point;
     char m_thousands_sep;
@@ -85,16 +87,14 @@ private:
 };
 
 template <typename CharT>
-    requires std::is_same_v<CharT, wchar_t> || 
-                (std::is_same_v<CharT, char32_t> && 
-                 (sizeof(char32_t) == sizeof(wchar_t)) && 
-                 (static_cast<wchar_t>(U'李') == L'李') &&
-                 (static_cast<char32_t>(L'伟') == U'伟'))
+    requires std::is_same_v<CharT, wchar_t> ||
+                (std::is_same_v<CharT, char32_t> &&
+                 wchar_t_is_utf32)
 class numeric_conf<CharT> : public ft_basic<numeric<CharT>>
 {
 public:
     using char_type = CharT;
-    
+
 public:
     numeric_conf(const std::string& name)
         : ft_basic<numeric<CharT>>()
@@ -178,14 +178,14 @@ public:
                 m_false_name = detail::to_u32string(no_raw.c_str(), name);
         }
     }
-    
+
 public:
     virtual CharT decimal_point() const { return m_decimal_point; }
     virtual CharT thousands_sep() const { return m_thousands_sep; }
     virtual const std::basic_string<CharT>& truename() const { return m_true_name; }
     virtual const std::basic_string<CharT>& falsename() const { return m_false_name; }
     virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
-    
+
 private:
     CharT m_decimal_point;
     CharT m_thousands_sep;
@@ -197,9 +197,14 @@ private:
 template <>
 class numeric_conf<char8_t> : public ft_basic<numeric<char8_t>>
 {
+    static_assert(wchar_t_is_utf32,
+        "numeric_conf<char8_t> delegates to numeric_conf<char32_t>, which "
+        "requires wchar_t to be a 32-bit UTF-32 code unit. This platform "
+        "(e.g. wchar_t is 16-bit UTF-16) does not satisfy that assumption.");
+
 public:
     using char_type = char8_t;
-    
+
 public:
     numeric_conf(const std::string& name)
         : ft_basic<numeric<char8_t>>()
@@ -231,14 +236,14 @@ public:
 
         m_grouping = numeric_temp.grouping();
     }
-    
+
 public:
     virtual char8_t decimal_point() const { return m_decimal_point; }
     virtual char8_t thousands_sep() const { return m_thousands_sep; }
     virtual const std::basic_string<char8_t>& truename() const { return m_true_name; }
     virtual const std::basic_string<char8_t>& falsename() const { return m_false_name; }
     virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
-    
+
 private:
     char8_t m_decimal_point;
     char8_t m_thousands_sep;
