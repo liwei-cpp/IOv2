@@ -6,6 +6,7 @@
 #include <io/io_base.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -55,6 +56,21 @@ public:
         constexpr std::string_view out_atoms = "-+xX0123456789abcdef0123456789ABCDEF";
         static_assert(out_atoms.size() == std::extent_v<decltype(m_out_atoms)>);
         m_ctype->widen_seq(out_atoms.data(), out_atoms.data() + out_atoms.size(), m_out_atoms);
+
+        if constexpr (std::is_same_v<CharT, wchar_t> ||
+                      std::is_same_v<CharT, char32_t>)
+        {
+            assert(atoms_pairwise_distinct(m_in_atoms,
+                                           std::extent_v<decltype(m_in_atoms)>));
+            // m_out_atoms intentionally aliases "0..9" at [4..13] and
+            // [20..29] (lowercase / uppercase hex digit slots). Build a
+            // 26-position view that skips that overlap before checking
+            // distinctness on the semantically distinct output positions.
+            CharT out_view[26];
+            std::copy(m_out_atoms,      m_out_atoms + 20, out_view);
+            std::copy(m_out_atoms + 30, m_out_atoms + 36, out_view + 20);
+            assert(atoms_pairwise_distinct(out_view, 26));
+        }
     }
 
 public:
@@ -298,13 +314,17 @@ private:
             }
         }
 
-        if (len < 0 || static_cast<size_t>(len) >= cs_size)
+        // len == 0 is also treated as failure: every well-formed numeric
+        // print (including 0, "inf", "nan") emits at least one character,
+        // and the downstream path assumes vec_ws(len) has at least one
+        // element before dereferencing vec_ws.data().
+        if (len <= 0 || static_cast<size_t>(len) >= cs_size)
             throw stream_error("numeric::put fail: floating-point conversion failed");
 
         const char* cs = vec_cs.data();
 
         // [22.2.2.2.2] Stage 2, convert to char_type, using correct
-        // numpunct.decimal_point() values for '.' and adding grouping.
+        // numeric_conf.decimal_point() values for '.' and adding grouping.
         std::vector<CharT> vec_ws(len);
         CharT* ws = vec_ws.data();
         m_ctype->widen_seq(cs, cs + len, ws);
@@ -419,7 +439,7 @@ private:
                 *--cs = m_out_atoms[s_ox + uppercase];
                 // '0'
                 *--cs = m_out_atoms[s_odigits];
-                    len += 2;
+                len += 2;
             }
         }
 
@@ -930,6 +950,27 @@ private:
             res = false;
         }
         return res;
+    }
+
+    // Verify ctype::widen is injective on the digit / sign / base / scientific
+    // atom set. extract_int / extract_float compare incoming wide characters
+    // against entries in m_in_atoms (directly or via std::find) and assume
+    // distinct narrow source characters widen to distinct wide values; a
+    // collision (e.g. widen('a') == widen('A') in an exotic locale) would
+    // make certain digits unreachable on the input side, and insert_int /
+    // insert_float would emit indistinguishable glyphs for semantically
+    // different positions on the output side. The standard library silently
+    // assumes injectivity on this 26-character set; IOv2 catches violations
+    // at construction time in debug / coverage / sanitizer builds via the
+    // asserts in the constructor. A future unit test can exercise the
+    // failure branch by deriving from ctype<CharT> and overriding widen_seq
+    // to be intentionally non-injective.
+    static bool atoms_pairwise_distinct(const CharT* p, size_t n)
+    {
+        for (size_t i = 0; i < n; ++i)
+            for (size_t j = i + 1; j < n; ++j)
+                if (p[i] == p[j]) return false;
+        return true;
     }
 
 private:

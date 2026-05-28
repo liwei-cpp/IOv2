@@ -48,12 +48,22 @@ public:
             if (lc->thousands_sep) ts_raw  = lc->thousands_sep;
             if (lc->grouping)      grp_raw = lc->grouping;
 
-            if (auto* p = nl_langinfo(YESSTR)) { yes_raw = p; yes_set = true; }
-            if (auto* p = nl_langinfo(NOSTR))  { no_raw  = p; no_set  = true; }
+            // Treat empty YESSTR/NOSTR the same as a missing key: an empty
+            // m_true_name / m_false_name would make numeric::get(bool&) fail
+            // unconditionally (zero-length prefix never matches) and let
+            // numeric::put(bool) write nothing but padding.
+            if (auto* p = nl_langinfo(YESSTR); p && *p) { yes_raw = p; yes_set = true; }
+            if (auto* p = nl_langinfo(NOSTR);  p && *p) { no_raw  = p; no_set  = true; }
         }
 
         m_decimal_point = FacetHelper::string_to_char_convert(dp_raw, name);
         m_thousands_sep = FacetHelper::string_to_char_convert(ts_raw, name);
+
+        // string_to_char_convert hard-codes '\0' as its failure sentinel. A
+        // decimal point of '\0' would later be mistaken for an in-stream
+        // null byte during parsing; fall back to '.' so the contract that
+        // m_decimal_point is a real, distinguishable character is preserved.
+        if (m_decimal_point == '\0') m_decimal_point = '.';
 
         if (m_thousands_sep != '\0' && !grp_raw.empty())
         {
@@ -135,14 +145,26 @@ public:
             if (lc->thousands_sep) ts_raw  = lc->thousands_sep;
             if (lc->grouping)      grp_raw = lc->grouping;
 
-            if (auto* p = nl_langinfo(YESSTR)) { yes_raw = p; yes_set = true; }
-            if (auto* p = nl_langinfo(NOSTR))  { no_raw  = p; no_set  = true; }
+            // Treat empty YESSTR/NOSTR the same as a missing key: an empty
+            // m_true_name / m_false_name would make numeric::get(bool&) fail
+            // unconditionally (zero-length prefix never matches) and let
+            // numeric::put(bool) write nothing but padding.
+            if (auto* p = nl_langinfo(YESSTR); p && *p) { yes_raw = p; yes_set = true; }
+            if (auto* p = nl_langinfo(NOSTR);  p && *p) { no_raw  = p; no_set  = true; }
         }
 
         m_decimal_point = FacetHelper::string_to_widechar_convert<CharT>(
             dp_raw, name, static_cast<CharT>('.'));
         m_thousands_sep = FacetHelper::string_to_widechar_convert<CharT>(
             ts_raw, name, static_cast<CharT>('\0'));
+
+        // string_to_widechar_convert only substitutes default_char on the
+        // empty-input / empty-conversion paths; a successful conversion
+        // that yields CharT('\0') is passed through. Treat that case the
+        // same way and fall back to '.', so m_decimal_point is always a
+        // real, distinguishable character.
+        if (m_decimal_point == static_cast<CharT>('\0'))
+            m_decimal_point = static_cast<CharT>('.');
 
         if (m_thousands_sep != static_cast<CharT>('\0') && !grp_raw.empty())
         {
@@ -224,7 +246,11 @@ public:
         {
             const auto input = numeric_temp.decimal_point();
             auto output = detail::to_u8string(input);
-            m_decimal_point = (output.size() != 1) ? u8'.' : output[0];
+            // Fall back to u8'.' when the UTF-8 encoding is not a single
+            // byte OR when it is a single u8'\0' byte. The latter would be
+            // indistinguishable from an in-stream null byte during parsing.
+            m_decimal_point = (output.size() != 1 || output[0] == u8'\0')
+                                  ? u8'.' : output[0];
         }
 
         {
@@ -237,6 +263,18 @@ public:
         m_false_name = detail::to_u8string(numeric_temp.falsename());
 
         m_grouping = numeric_temp.grouping();
+
+        // After the single-byte fallbacks above, m_thousands_sep may have
+        // collapsed onto u8',' while m_decimal_point also resolved to u8','
+        // (e.g. a locale where decimal_point is ',' and thousands_sep is a
+        // multi-byte UTF-8 codepoint such as U+202F NARROW NO-BREAK SPACE).
+        // When the two separators coincide, downstream extract_int /
+        // extract_float would compare each input byte against both fields
+        // with the same value, making grouping detection ambiguous. Drop
+        // grouping in that case so parsing falls back to the no-grouping
+        // path instead of misclassifying digits.
+        if (m_thousands_sep == m_decimal_point)
+            m_grouping.clear();
     }
 
 public:
