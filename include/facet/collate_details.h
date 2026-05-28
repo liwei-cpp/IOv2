@@ -9,6 +9,7 @@
 #include <compare>
 #include <cstring>
 #include <cwchar>
+#include <string_view>
 #include <vector>
 
 namespace IOv2
@@ -19,6 +20,11 @@ template <typename CharT> class collate_conf;
 template <typename CharT>
 class collate_conf : public ft_basic<collate<CharT>>
 {
+    // strxfrm / wcsxfrm signal failure by returning (size_t)-1. Using that
+    // value as a buffer size would wrap on `+ 1` and silently produce a
+    // zero-sized buffer that subsequent writes overflow.
+    static constexpr size_t xfrm_failed = static_cast<size_t>(-1);
+
 public:
     collate_conf(const std::string& name)
         : ft_basic<collate<CharT>>()
@@ -36,8 +42,7 @@ public:
         while ((low1 != high1) && (low2 != high2))
         {
             const CharT* cl1 = low1;
-            auto ch1 = std::find(low1, high1, static_cast<CharT>(0));
-            if (ch1 == high1)
+            if (auto ch1 = std::find(low1, high1, static_cast<CharT>(0)); ch1 == high1)
             {
                 auto data_len = high1 - low1;
                 buf1.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
@@ -45,14 +50,12 @@ public:
                 buf1[data_len] = static_cast<CharT>(0);
                 extra_eos1 = true;
                 cl1 = buf1.data();
-                ch1 = buf1.data() + data_len + 1;
                 low1 = high1;
             }
             else low1 = ch1 + 1;
 
             const CharT* cl2 = low2;
-            auto ch2 = std::find(low2, high2, static_cast<CharT>(0));
-            if (ch2 == high2)
+            if (auto ch2 = std::find(low2, high2, static_cast<CharT>(0)); ch2 == high2)
             {
                 auto data_len = high2 - low2;
                 buf2.resize(data_len + 1 + SIMD_PADDING_BYTES / sizeof(CharT));
@@ -60,7 +63,6 @@ public:
                 buf2[data_len] = static_cast<CharT>(0);
                 extra_eos2 = true;
                 cl2 = buf2.data();
-                ch2 = buf2.data() + data_len + 1;
                 low2 = high2;
             }
             else low2 = ch2 + 1;
@@ -77,8 +79,14 @@ public:
                                          reinterpret_cast<const wchar_t*>(cl2));
                 else if constexpr (std::is_same_v<CharT, char8_t>)
                 {
-                    auto ws1 = detail::to_u32string(cl1);
-                    auto ws2 = detail::to_u32string(cl2);
+                    // Pass an explicit-length u8string_view to lock the
+                    // per-segment "cur is a null-terminated copy" contract
+                    // at the call site, so future changes to to_u32string's
+                    // overload set cannot silently cross segment boundaries.
+                    auto ws1 = detail::to_u32string(
+                        std::u8string_view{cl1, std::char_traits<char8_t>::length(cl1)});
+                    auto ws2 = detail::to_u32string(
+                        std::u8string_view{cl2, std::char_traits<char8_t>::length(cl2)});
                     c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(ws1.c_str()),
                                          reinterpret_cast<const wchar_t*>(ws2.c_str()));
                 }
@@ -121,22 +129,33 @@ public:
                 ++res;  // for the terminal character
             }
 
+            size_t seg_len = 0;
             if constexpr (std::is_same_v<CharT, char>)
-                res += strxfrm(nullptr, cur, 0);
+                seg_len = strxfrm(nullptr, cur, 0);
             else if constexpr (std::is_same_v<CharT, wchar_t>)
-                res += wcsxfrm(nullptr, cur, 0);
+                seg_len = wcsxfrm(nullptr, cur, 0);
             else if constexpr (wchar_t_is_utf32)
             {
                 if constexpr (std::is_same_v<CharT, char32_t>)
-                    res += wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
+                    seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
                 else if constexpr (std::is_same_v<CharT, char8_t>)
                 {
-                    auto ws = detail::to_u32string(cur);
-                    res += wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0) * 6;
+                    // See compare(): explicit-length u8string_view pins the
+                    // segment contract at the call site.
+                    auto ws = detail::to_u32string(
+                        std::u8string_view{cur, std::char_traits<char8_t>::length(cur)});
+                    seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
+                    if (seg_len == xfrm_failed)
+                        throw cvt_error("collate_conf::transform_length: wcsxfrm failed");
+                    seg_len *= 6;
                 }
             }
             else
                 static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
+
+            if (seg_len == xfrm_failed)
+                throw cvt_error("collate_conf::transform_length: strxfrm/wcsxfrm failed");
+            res += seg_len;
         }
 
         return res;
@@ -176,12 +195,19 @@ public:
             if constexpr (std::is_same_v<CharT, char8_t> &&
                           wchar_t_is_utf32)
             {
-                auto ws = detail::to_u32string(cur);
+                // See compare(): explicit-length u8string_view pins the
+                // segment contract at the call site.
+                auto ws = detail::to_u32string(
+                    std::u8string_view{cur, std::char_traits<char8_t>::length(cur)});
                 auto trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
+                if (trans_len == xfrm_failed)
+                    throw cvt_error("collate_conf::transform: wcsxfrm failed");
                 buf32.resize(trans_len + 1);
                 auto cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf32.data()),
                                          reinterpret_cast<const wchar_t*>(ws.c_str()),
                                          static_cast<unsigned>(-1));
+                if (cur_trans == xfrm_failed)
+                    throw cvt_error("collate_conf::transform: wcsxfrm failed");
                 buf32[cur_trans] = 0;
 
                 auto char8s = detail::to_u8string(buf32.data());
@@ -217,6 +243,8 @@ public:
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
+                if (trans_len == xfrm_failed)
+                    throw cvt_error("collate_conf::transform: strxfrm/wcsxfrm failed");
                 buf2.resize(trans_len + 1);
 
                 size_t cur_trans = 0;
@@ -230,6 +258,8 @@ public:
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
+                if (cur_trans == xfrm_failed)
+                    throw cvt_error("collate_conf::transform: strxfrm/wcsxfrm failed");
                 if (mx_len != 0)
                     cur_trans = std::min(cur_trans, mx_len - trans_count);
                 dest = std::copy(buf2.data(), buf2.data() + cur_trans, dest);
@@ -245,6 +275,14 @@ public:
         return trans_count;
     }
 private:
+    // m_inter_locale is shared across compare / transform_length / transform,
+    // all of which are const. Each call constructs a clocale_user that calls
+    // uselocale(m_inter_locale.c_locale) to swap the calling thread's locale.
+    // POSIX does not explicitly guarantee that the same locale_t may be
+    // passed to uselocale() concurrently from multiple threads; IOv2 relies
+    // on the de-facto thread-safety provided by glibc and macOS libc on the
+    // target platforms (Linux / macOS). Porting to platforms with stricter
+    // semantics requires reevaluating this assumption.
     clocale_wrapper   m_inter_locale;
 };
 }
