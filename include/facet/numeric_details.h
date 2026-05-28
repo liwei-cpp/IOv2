@@ -36,7 +36,7 @@ public:
         // Snapshot all locale-dependent strings while the locale guard is
         // active. The lconv* and nl_langinfo() pointers may be invalidated
         // by any subsequent setlocale()/uselocale() call (e.g. inside
-        // string_to_char_convert / detail::to_wstring), so copy first
+        // FacetHelper::string_to_char_convert), so copy first
         // and convert after.
         std::string dp_raw, ts_raw, grp_raw, yes_raw, no_raw;
         bool yes_set = false, no_set = false;

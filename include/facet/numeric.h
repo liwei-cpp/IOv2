@@ -137,11 +137,11 @@ public:
         const ios_defs::fmtflags fmt = ~(ios_defs::basefield | ios_defs::uppercase);
         io.flags((flags & fmt) | (ios_defs::hex | ios_defs::showbase));
 
-        using _UIntPtrType = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
-                                                unsigned long,
-                                                unsigned long long>;
+        using uintptr_carrier_t = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
+                                                     unsigned long,
+                                                     unsigned long long>;
 
-        s = insert_int(s, io, reinterpret_cast<_UIntPtrType>(v));
+        s = insert_int(s, io, reinterpret_cast<uintptr_carrier_t>(v));
         io.flags(flags);
         return s;
     }
@@ -238,10 +238,10 @@ public:
         const auto fmt = io.flags();
         io.flags((fmt & ~ios_defs::basefield) | ios_defs::hex);
 
-        using _UIntPtrType = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
-                                                unsigned long,
-                                                unsigned long long>;
-        _UIntPtrType ul;
+        using uintptr_carrier_t = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
+                                                     unsigned long,
+                                                     unsigned long long>;
+        uintptr_carrier_t ul;
         auto [succ, res] = extract_int(beg, end, io, ul);
 
         // Reset from hex formatted input.
@@ -277,7 +277,7 @@ private:
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
         int len;
         char fbuf[16];
-        _S_format_float(io.flags(), fbuf, mod);
+        format_float_(io.flags(), fbuf, mod);
 
         const ios_defs::fmtflags fltfield = io.flags() & ios_defs::floatfield;
 
@@ -503,14 +503,14 @@ private:
     {
       // [22.2.2.2.2] Stage 3.
       // If necessary, pad.
-      _S_pad(adjust, fill, new_buf, cs, w, len, startSign, start0x);
+      pad_impl_(adjust, fill, new_buf, cs, w, len, startSign, start0x);
       len = static_cast<int>(w);
     }
 
-    void _S_pad(ios_defs::fmtflags adjust, char_type fill,
-                char_type* news, const char_type* olds,
-                std::streamsize newlen, std::streamsize oldlen,
-                bool startSign, bool start0x) const
+    void pad_impl_(ios_defs::fmtflags adjust, char_type fill,
+                   char_type* news, const char_type* olds,
+                   std::streamsize newlen, std::streamsize oldlen,
+                   bool startSign, bool start0x) const
     {
 
         const size_t plen = static_cast<size_t>(newlen - oldlen);
@@ -548,7 +548,7 @@ private:
         std::copy(olds + mod, olds + oldlen, news + plen);
     }
 
-    void _S_format_float(ios_defs::fmtflags flags, char* fptr, char mod) const noexcept
+    void format_float_(ios_defs::fmtflags flags, char* fptr, char mod) const noexcept
     {
         *fptr++ = '%';
         // [22.2.2.2.2] Table 60
