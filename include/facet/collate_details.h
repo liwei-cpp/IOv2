@@ -90,6 +90,8 @@ public:
                     c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(ws1.c_str()),
                                          reinterpret_cast<const wchar_t*>(ws2.c_str()));
                 }
+                else
+                    static_assert(dependent_false_v<CharT>, "collate_conf::compare is not implemented.");
             }
             else
                 static_assert(dependent_false_v<CharT>, "collate_conf::compare is not implemented.");
@@ -149,6 +151,8 @@ public:
                         throw cvt_error("collate_conf::transform_length: wcsxfrm failed");
                     seg_len *= 6;
                 }
+                else
+                    static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
             }
             else
                 static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
@@ -159,7 +163,7 @@ public:
         }
 
         return res;
-    };
+    }
 
     virtual size_t transform(const CharT* low, const CharT* high, CharT* dest, size_t mx_len = 0) const
     {
@@ -205,7 +209,7 @@ public:
                 buf32.resize(trans_len + 1);
                 auto cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf32.data()),
                                          reinterpret_cast<const wchar_t*>(ws.c_str()),
-                                         static_cast<unsigned>(-1));
+                                         buf32.size());
                 if (cur_trans == xfrm_failed)
                     throw cvt_error("collate_conf::transform: wcsxfrm failed");
                 buf32[cur_trans] = 0;
@@ -249,12 +253,12 @@ public:
 
                 size_t cur_trans = 0;
                 if constexpr (std::is_same_v<CharT, char>)
-                    cur_trans = strxfrm(buf2.data(), cur, static_cast<unsigned>(-1));
+                    cur_trans = strxfrm(buf2.data(), cur, buf2.size());
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
-                    cur_trans = wcsxfrm(buf2.data(), cur, static_cast<unsigned>(-1));
+                    cur_trans = wcsxfrm(buf2.data(), cur, buf2.size());
                 else if constexpr ((std::is_same_v<CharT, char32_t> &&
                                    wchar_t_is_utf32))
-                    cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()), reinterpret_cast<const wchar_t*>(cur), static_cast<unsigned>(-1));
+                    cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()), reinterpret_cast<const wchar_t*>(cur), buf2.size());
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
