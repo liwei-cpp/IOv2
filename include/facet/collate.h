@@ -123,7 +123,7 @@ public:
 
     template <typename TIter>
         requires (!std::is_convertible_v<TIter, const CharT*>)
-    std::pair <CharT*, size_t> transform(TIter low, TIter high, CharT* dest, size_t mx_len = 0) const
+    std::pair<CharT*, size_t> transform(TIter low, TIter high, CharT* dest, size_t mx_len = 0) const
     {
         size_t trans_count = 0;
         std::vector<CharT> buf; buf.reserve(64);
@@ -188,7 +188,7 @@ public:
 
     template <typename TIterIn, typename TIterOut>
         requires (!(std::is_convertible_v<TIterIn, const CharT*> || std::is_convertible_v<TIterOut, CharT*>))
-    std::pair <TIterOut, size_t> transform(TIterIn low, TIterIn high, TIterOut dest, size_t mx_len = 0) const
+    std::pair<TIterOut, size_t> transform(TIterIn low, TIterIn high, TIterOut dest, size_t mx_len = 0) const
     {
         size_t trans_count = 0;
         std::vector<CharT> buf; buf.reserve(64);

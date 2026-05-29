@@ -133,17 +133,15 @@ public:
     template <typename TIter>
     TIter put(TIter s, ios_base<char_type>& io, const void* v) const
     {
-        const ios_defs::fmtflags flags = io.flags();
-        const ios_defs::fmtflags fmt = ~(ios_defs::basefield | ios_defs::uppercase);
-        io.flags((flags & fmt) | (ios_defs::hex | ios_defs::showbase));
+        fmtflags_guard guard(io);
+        io.flags((io.flags() & ~(ios_defs::basefield | ios_defs::uppercase))
+                 | (ios_defs::hex | ios_defs::showbase));
 
         using uintptr_carrier_t = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
                                                      unsigned long,
                                                      unsigned long long>;
 
-        s = insert_int(s, io, reinterpret_cast<uintptr_carrier_t>(v));
-        io.flags(flags);
-        return s;
+        return insert_int(s, io, reinterpret_cast<uintptr_carrier_t>(v));
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -234,18 +232,14 @@ public:
     template <typename TIter, std::sentinel_for<TIter> TSent>
     TIter get(TIter beg, TSent end, ios_base<char_type>& io, void*& v) const
     {
-        // Prepare for hex formatted input.
-        const auto fmt = io.flags();
-        io.flags((fmt & ~ios_defs::basefield) | ios_defs::hex);
+        fmtflags_guard guard(io);
+        io.flags((io.flags() & ~ios_defs::basefield) | ios_defs::hex);
 
         using uintptr_carrier_t = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
                                                      unsigned long,
                                                      unsigned long long>;
         uintptr_carrier_t ul;
         auto [succ, res] = extract_int(beg, end, io, ul);
-
-        // Reset from hex formatted input.
-        io.flags(fmt);
 
         v = reinterpret_cast<void*>(ul);
 
@@ -267,6 +261,17 @@ public:
     }
 
 private:
+    struct fmtflags_guard
+    {
+        fmtflags_guard(ios_base<char_type>& i) : m_io(i), m_saved(i.flags()) {}
+        ~fmtflags_guard() { m_io.flags(m_saved); }
+        fmtflags_guard(const fmtflags_guard&) = delete;
+        fmtflags_guard& operator=(const fmtflags_guard&) = delete;
+    private:
+        ios_base<char_type>& m_io;
+        ios_defs::fmtflags m_saved;
+    };
+
     template <typename TIter, typename TValue>
     TIter insert_float(TIter s, ios_base<char_type>& io, TValue v, char mod) const
     {
@@ -275,7 +280,7 @@ private:
         const int max_digits = std::numeric_limits<TValue>::digits10;
 
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
-        int len;
+        size_t len = 0;
         char fbuf[16];
         format_float_(io.flags(), fbuf, mod);
 
@@ -303,14 +308,23 @@ private:
                     return snprintf(buf, size, fbuf, static_cast<int>(prec), v);
             };
 
-            len = do_snprintf(vec_cs.data(), cs_size);
+            // snprintf returns int. Trap negative (encoding error) before
+            // promoting to size_t — otherwise -1 becomes SIZE_MAX and
+            // bypasses every downstream bound check.
+            int n = do_snprintf(vec_cs.data(), cs_size);
+            if (n < 0)
+                throw stream_error("numeric::put fail: floating-point conversion failed");
+            len = static_cast<size_t>(n);
 
             // If buffer was too small, snprintf returns required length.
-            if (len >= static_cast<int>(cs_size))
+            if (len >= cs_size)
             {
-                cs_size = static_cast<size_t>(len) + 1;
+                cs_size = len + 1;
                 vec_cs.resize(cs_size);
-                len = do_snprintf(vec_cs.data(), cs_size);
+                n = do_snprintf(vec_cs.data(), cs_size);
+                if (n < 0)
+                    throw stream_error("numeric::put fail: floating-point conversion failed");
+                len = static_cast<size_t>(n);
             }
         }
 
@@ -318,7 +332,7 @@ private:
         // print (including 0, "inf", "nan") emits at least one character,
         // and the downstream path assumes vec_ws(len) has at least one
         // element before dereferencing vec_ws.data().
-        if (len <= 0 || static_cast<size_t>(len) >= cs_size)
+        if (len == 0 || len >= cs_size)
             throw stream_error("numeric::put fail: floating-point conversion failed");
 
         const char* cs = vec_cs.data();
@@ -340,14 +354,14 @@ private:
 
         // Add grouping, if necessary.
         if ((!m_grouping.empty())
-            && (wp || len < 3 || (cs[1] <= '9' && cs[2] <= '9' && cs[1] >= '0' && cs[2] >= '0')))
+            && (wp || len < 3u || (cs[1] <= '9' && cs[2] <= '9' && cs[1] >= '0' && cs[2] >= '0')))
         {
             // Grouping can add (almost) as many separators as the
             // number of digits, but no more.
             std::vector<CharT> vec_ws2(len * 2);
             CharT* ws2 = vec_ws2.data();
 
-            std::streamsize off = 0;
+            size_t off = 0;
             if (cs[0] == '-' || cs[0] == '+')
             {
                 off = 1;
@@ -369,7 +383,7 @@ private:
             std::vector<CharT> vec_ws3(w);
             CharT* ws3 = vec_ws3.data();
             bool startSign = (ws[0] == m_out_atoms[s_ominus]) || (ws[0] == m_out_atoms[s_oplus]);
-            bool start0x = (ws[0] == m_out_atoms[s_odigits]) && (len > 1) &&
+            bool start0x = (ws[0] == m_out_atoms[s_odigits]) && (len > 1u) &&
                            ((ws[1] == m_out_atoms[s_ox]) || (ws[1] == m_out_atoms[s_oX]));
             const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
             pad(io.fill(), w, adjust, ws3, ws, len, startSign, start0x);
@@ -402,7 +416,7 @@ private:
         const bool dec = (basefield != ios_defs::oct && basefield != ios_defs::hex);
         const unsigned_type u = ((v > 0 || !dec) ? unsigned_type(v)
                                                  : -unsigned_type(v));
-        auto len = int_to_char(cs + ilen, u, flags, dec);
+        size_t len = static_cast<size_t>(int_to_char(cs + ilen, u, flags, dec));
         cs += ilen - len;
 
         // Add grouping, if necessary.
@@ -412,7 +426,7 @@ private:
             // of digits + space is reserved for numeric base or sign.
             std::vector<char_type> cs_vec2((ilen + 1) * 2);
             char_type* cs2 = cs_vec2.data() + 2;
-            len = FacetHelper::add_grouping(cs2, m_thousands_sep, m_grouping, cs, cs + len) - cs2;
+            len = static_cast<size_t>(FacetHelper::add_grouping(cs2, m_thousands_sep, m_grouping, cs, cs + len) - cs2);
             std::swap(cs_vec, cs_vec2);
             cs = cs_vec.data() + 2;
         }
@@ -450,7 +464,7 @@ private:
             std::vector<char_type> cs_vec3(w);
             char_type* cs3 = cs_vec3.data();
             bool startSign = (cs[0] == m_out_atoms[s_ominus]) || (cs[0] == m_out_atoms[s_oplus]);
-            bool start0x = (cs[0] == m_out_atoms[s_odigits]) && (len > 1) &&
+            bool start0x = (cs[0] == m_out_atoms[s_odigits]) && (len > 1u) &&
                            ((cs[1] == m_out_atoms[s_ox]) || (cs[1] == m_out_atoms[s_oX]));
             const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
             pad(io.fill(), w, adjust, cs3, cs, len, startSign, start0x);
@@ -498,13 +512,13 @@ private:
     }
 
     void pad(char_type fill, std::streamsize w, ios_defs::fmtflags adjust,
-             char_type* new_buf, const char_type* cs, int& len,
+             char_type* new_buf, const char_type* cs, size_t& len,
              bool startSign, bool start0x) const
     {
       // [22.2.2.2.2] Stage 3.
       // If necessary, pad.
-      pad_impl_(adjust, fill, new_buf, cs, w, len, startSign, start0x);
-      len = static_cast<int>(w);
+      pad_impl_(adjust, fill, new_buf, cs, w, static_cast<std::streamsize>(len), startSign, start0x);
+      len = static_cast<size_t>(w);
     }
 
     void pad_impl_(ios_defs::fmtflags adjust, char_type fill,
@@ -579,16 +593,16 @@ private:
         *fptr = '\0';
     }
 
-    void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, int& len) const
+    void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, size_t& len) const
     {
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
         // 282. What types does numpunct grouping refer to?
         // Add grouping, if necessary.
-        const int declen = p ? p - cs : len;
+        const size_t declen = p ? static_cast<size_t>(p - cs) : len;
         char_type* p2 = FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + declen);
 
         // Tack on decimal part.
-        int newlen = p2 - new_buf;
+        size_t newlen = static_cast<size_t>(p2 - new_buf);
         if (p)
         {
             std::copy(p, p + len - declen, p2);
@@ -617,8 +631,8 @@ private:
         if (!testeof)
         {
             c = *beg;
-            negative = c == m_in_atoms[s_ominus];
-            if ((negative || c == m_in_atoms[s_oplus])
+            negative = c == m_in_atoms[s_iminus];
+            if ((negative || c == m_in_atoms[s_iplus])
                 && (m_grouping.empty() || c != m_thousands_sep)
                 && (c != m_decimal_point))
             {
@@ -638,14 +652,14 @@ private:
             if ((!m_grouping.empty() && c == m_thousands_sep)
                 || c == m_decimal_point)
                 break;
-            else if (c == m_in_atoms[s_odigits] && (!found_zero || base == 10))
+            else if (c == m_in_atoms[s_izero] && (!found_zero || base == 10))
             {
                 found_zero = true;
                 ++sep_pos;
                 if (basefield == 0) base = 8;
                 if (base == 8) sep_pos = 0;
             }
-            else if (found_zero && (c == m_in_atoms[s_ox] || c == m_in_atoms[s_oX]))
+            else if (found_zero && (c == m_in_atoms[s_ix] || c == m_in_atoms[s_iX]))
             {
                 if (basefield == 0) base = 16;
                 if (base == 16)
@@ -694,6 +708,14 @@ private:
                 // is a no-no, as is two consecutive thousands separators.
                 if (sep_pos)
                 {
+                    // found_grouping stores each group's digit count in a
+                    // uint8_t. A single group whose size cannot fit in that
+                    // byte is rejected rather than silently truncated.
+                    if (sep_pos > std::numeric_limits<uint8_t>::max())
+                    {
+                        testfail = true;
+                        break;
+                    }
                     found_grouping.push_back(static_cast<uint8_t>(sep_pos));
                     sep_pos = 0;
                 }
@@ -730,25 +752,46 @@ private:
         // match, then get very very upset, and set failbit.
         if (!found_grouping.empty())
         {
-            // Add the ending grouping.
-            found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-
-            success = FacetHelper::verify_grouping(m_grouping, found_grouping);
+            // Add the ending grouping. Reject inputs whose final group
+            // exceeds the uint8_t storage in found_grouping.
+            if (sep_pos > std::numeric_limits<uint8_t>::max())
+            {
+                testfail = true;
+            }
+            else
+            {
+                found_grouping.push_back(static_cast<uint8_t>(sep_pos));
+                success = FacetHelper::verify_grouping(m_grouping, found_grouping);
+            }
         }
 
-        // _GLIBCXX_RESOLVE_LIB_DEFECTS
-        // 23. Num_get overflow result.
-        if ((!sep_pos && !found_zero && !found_grouping.size()) || testfail)
-        {
-            v = 0;
-            success = false;
-        }
-        else if (testoverflow)
+        // LWG 23 (Num_get overflow result): when the field overflows,
+        // v must be set to numeric_limits::max() / min() with failbit.
+        //
+        // testoverflow is checked BEFORE testfail by design. Once the
+        // digit-accumulation loop sets testoverflow, ++sep_pos is skipped
+        // for every subsequent digit, so sep_pos freezes. A later, otherwise
+        // well-formed thousands_sep then fails the grouping check and sets
+        // testfail — but that testfail is a side effect of the overflow
+        // short-circuit, not an independent structural error in the input.
+        //
+        // Letting testfail win in that overlap would map a structurally
+        // valid, numerically out-of-range input (e.g. "12,345,678,901,234,567"
+        // into uint32_t under grouping "\3") to v = 0 instead of v = max,
+        // contradicting LWG 23. We diverge from libstdc++'s ordering here
+        // (which has the same latent issue) to keep the overflow signal
+        // dominant whenever it fires.
+        if (testoverflow)
         {
             if (negative && std::is_signed_v<TValue>)
                 v = std::numeric_limits<TValue>::min();
             else
                 v = std::numeric_limits<TValue>::max();
+            success = false;
+        }
+        else if ((!sep_pos && !found_zero && !found_grouping.size()) || testfail)
+        {
+            v = 0;
             success = false;
         }
         else
@@ -826,6 +869,13 @@ private:
                     // is a no-no, as is two consecutive thousands separators.
                     if (sep_pos)
                     {
+                        // found_grouping stores each group's digit count in a
+                        // uint8_t. Reject inputs whose group size cannot fit.
+                        if (sep_pos > std::numeric_limits<uint8_t>::max())
+                        {
+                            xtrc.clear();
+                            break;
+                        }
                         found_grouping.push_back(static_cast<uint8_t>(sep_pos));
                         sep_pos = 0;
                     }
@@ -848,7 +898,14 @@ private:
                     // is applied. Therefore found_grouping is adjusted
                     // only if decimal_point comes after some thousands_sep.
                     if (found_grouping.size())
+                    {
+                        if (sep_pos > std::numeric_limits<uint8_t>::max())
+                        {
+                            xtrc.clear();
+                            break;
+                        }
                         found_grouping.push_back(static_cast<uint8_t>(sep_pos));
+                    }
                     xtrc += '.';
                     found_dec = true;
                 }
@@ -869,7 +926,14 @@ private:
                 {
                     // Scientific notation.
                     if (found_grouping.size() && !found_dec)
+                    {
+                        if (sep_pos > std::numeric_limits<uint8_t>::max())
+                        {
+                            xtrc.clear();
+                            break;
+                        }
                         found_grouping.push_back(static_cast<uint8_t>(sep_pos));
+                    }
                     xtrc += 'e';
                     found_sci = true;
 
@@ -908,9 +972,23 @@ private:
         {
             // Add the ending grouping if a decimal or 'e'/'E' wasn't found.
             if (!found_dec && !found_sci)
-                found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-
-            success = FacetHelper::verify_grouping(m_grouping, found_grouping);
+            {
+                if (sep_pos > std::numeric_limits<uint8_t>::max())
+                {
+                    // Final group exceeds the uint8_t storage in
+                    // found_grouping. Fail cleanly rather than truncate.
+                    success = false;
+                }
+                else
+                {
+                    found_grouping.push_back(static_cast<uint8_t>(sep_pos));
+                    success = FacetHelper::verify_grouping(m_grouping, found_grouping);
+                }
+            }
+            else
+            {
+                success = FacetHelper::verify_grouping(m_grouping, found_grouping);
+            }
         }
 
         return std::pair(success, beg);

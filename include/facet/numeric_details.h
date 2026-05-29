@@ -77,6 +77,20 @@ public:
             FacetHelper::adjust_grouping(m_grouping);
         }
 
+        // If a locale (or a user-derived numeric_conf that overrides
+        // thousands_sep() / decimal_point()) ends up with the same
+        // character for both separators, downstream extract_int /
+        // extract_float in facet/numeric.h check thousands_sep BEFORE
+        // decimal_point against each input character. An equal pair
+        // makes the decimal-point branch unreachable and groups would
+        // be parsed where a decimal mark was intended. Drop grouping
+        // so parsing falls back to the no-grouping path. Mirrors the
+        // same guard in numeric_conf<char8_t>, which can hit this case
+        // after multi-byte UTF-8 separators collapse onto single-byte
+        // fallbacks.
+        if (m_thousands_sep == m_decimal_point)
+            m_grouping.clear();
+
         if (yes_set) m_true_name  = yes_raw;
         else         m_true_name  = "true";
         if (no_set)  m_false_name = no_raw;
@@ -175,6 +189,20 @@ public:
                 m_grouping[i] = static_cast<uint8_t>(grp_raw[i]);
             FacetHelper::adjust_grouping(m_grouping);
         }
+
+        // If a locale (or a user-derived numeric_conf that overrides
+        // thousands_sep() / decimal_point()) ends up with the same
+        // character for both separators, downstream extract_int /
+        // extract_float in facet/numeric.h check thousands_sep BEFORE
+        // decimal_point against each input character. An equal pair
+        // makes the decimal-point branch unreachable and groups would
+        // be parsed where a decimal mark was intended. Drop grouping
+        // so parsing falls back to the no-grouping path. Mirrors the
+        // same guard in numeric_conf<char8_t>, which can hit this case
+        // after multi-byte UTF-8 separators collapse onto single-byte
+        // fallbacks.
+        if (m_thousands_sep == m_decimal_point)
+            m_grouping.clear();
 
         if (!yes_set)
         {
