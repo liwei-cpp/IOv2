@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+#include <cstdint>
 #include <exception>
 #include <forward_list>
 #include <functional>
@@ -208,10 +209,10 @@ public:
     
     void unsetf(ios_defs::fmtflags msk) { m_flags &= ~msk; }
     
-    std::streamsize precision() const { return m_precision; }
-    std::streamsize precision(std::streamsize prec)
+    std::uint8_t precision() const { return m_precision; }
+    std::uint8_t precision(std::uint8_t prec)
     {
-        std::streamsize old = m_precision;
+        std::uint8_t old = m_precision;
         m_precision = prec;
         return old;
     }
@@ -298,7 +299,7 @@ protected:
     
 protected:
     ios_defs::fmtflags m_flags     = ios_defs::skipws | ios_defs::dec;
-    std::streamsize    m_precision = static_cast<std::streamsize>(6);
+    std::uint8_t       m_precision = 6;
     std::streamsize    m_width     = static_cast<std::streamsize>(0);
     TChar              m_fill      = (TChar)' ';
 

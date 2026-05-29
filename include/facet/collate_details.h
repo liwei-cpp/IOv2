@@ -9,6 +9,7 @@
 #include <compare>
 #include <cstring>
 #include <cwchar>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -149,6 +150,12 @@ public:
                     seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
                     if (seg_len == xfrm_failed)
                         throw cvt_error("collate_conf::transform_length: wcsxfrm failed");
+                    // x6: wcsxfrm weights are arbitrary 31-bit values;
+                    // reinterpreted as char32_t and re-encoded by to_u8string
+                    // they take up to 6 bytes each (legacy UTF-8 max for a
+                    // 31-bit value). This is the tight upper bound on the byte
+                    // count transform() may emit for this segment, so callers
+                    // sizing dest from transform_length never under-allocate.
                     seg_len *= 6;
                 }
                 else

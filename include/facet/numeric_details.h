@@ -8,6 +8,7 @@
 #include <clocale>
 #include <cstdint>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <langinfo.h>

@@ -379,7 +379,7 @@ void test_numeric_char8_t_put_6()
         
         std::u8string oss;
     
-        ios.precision(-1);
+        ios.precision(6);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, 30.5);
         if (oss != u8"30.500000") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
@@ -555,12 +555,12 @@ void test_numeric_char8_t_put_12()
 
         std::u8string oss;
     
-        const int precision = 1000;
-        
+        const std::uint8_t precision = 200;
+
         ios.precision(precision);
         ios.setf(IOv2::ios_defs::fixed);
         obj.put(std::back_inserter(oss), ios, 1.0);
-        if (oss.size() != precision + 2) throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        if (oss.size() != static_cast<size_t>(precision) + 2) throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);

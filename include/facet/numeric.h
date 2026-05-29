@@ -275,8 +275,9 @@ private:
     template <typename TIter, typename TValue>
     TIter insert_float(TIter s, ios_base<char_type>& io, TValue v, char mod) const
     {
-        // Use default precision if out of range.
-        const std::streamsize prec = io.precision() < 0 ? 6 : io.precision();
+        // precision() is now a bounded uint8_t (0-255); there is no negative /
+        // out-of-range sentinel to normalise here.
+        const std::streamsize prec = io.precision();
         const int max_digits = std::numeric_limits<TValue>::digits10;
 
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
