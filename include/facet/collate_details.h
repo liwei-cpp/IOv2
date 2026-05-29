@@ -11,6 +11,7 @@
 #include <cwchar>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace IOv2

@@ -1,6 +1,7 @@
 #pragma once
 #include <common/metafunctions.h>
 #include <facet/collate_details.h>
+#include <facet/facet_common.h>
 
 #include <algorithm>
 #include <compare>
