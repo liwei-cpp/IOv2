@@ -1,6 +1,8 @@
 #pragma once
+#include <common/clocale_wrapper.h>
 #include <common/metafunctions.h>
 #include <facet/ctype.h>
+#include <facet/facet_common.h>
 #include <facet/facet_helper.h>
 #include <facet/numeric_details.h>
 #include <io/io_base.h>
@@ -87,7 +89,7 @@ public:
         const auto flags = io.flags();
         if ((flags & ios_defs::boolalpha) == 0)
         {
-            return insert_int(s, io, static_cast<const long>(v));
+            return insert_int(s, io, static_cast<long>(v));
         }
 
         const auto& name = v ? m_true_name : m_false_name;
