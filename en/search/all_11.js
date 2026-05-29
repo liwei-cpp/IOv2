@@ -19,7 +19,7 @@ var searchData=
   ['setf_16',['setf',['../classIOv2_1_1ios__base.html#aa2a4c377ee7cc8710068cfd8de3147c8',1,'IOv2::ios_base::setf(ios_defs::fmtflags fmtfl)'],['../classIOv2_1_1ios__base.html#a90c62abfea87b9e6991fe36c02a0a47d',1,'IOv2::ios_base::setf(ios_defs::fmtflags fmtfl, ios_defs::fmtflags msk)']]],
   ['setfill_17',['setfill',['../namespaceIOv2.html#a99ad8123323453cf572de3f0f942efee',1,'IOv2']]],
   ['setiosflags_18',['setiosflags',['../namespaceIOv2.html#a907d98611f6b75d3b9e2b2b1cb534d8b',1,'IOv2']]],
-  ['setprecision_19',['setprecision',['../namespaceIOv2.html#a63144691d10679bb2a267f84ef29b33e',1,'IOv2']]],
+  ['setprecision_19',['setprecision',['../namespaceIOv2.html#a949e785951c135fb5ec1974003ae2677',1,'IOv2']]],
   ['setstate_20',['setstate',['../structIOv2_1_1io__state__and__exp.html#aaa7eef2ce9daaeb70093ea1b8362e460',1,'IOv2::io_state_and_exp']]],
   ['setw_21',['setw',['../namespaceIOv2.html#a064f21731232cdca2e38f22dcc931b63',1,'IOv2']]],
   ['sgetc_22',['sgetc',['../classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82',1,'IOv2::base_streambuf']]],

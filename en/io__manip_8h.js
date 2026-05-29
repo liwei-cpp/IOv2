@@ -34,6 +34,6 @@ var io__manip_8h =
     [ "setbase", "io__manip_8h.html#a2d9efb4d2077d2b67b5cbc3c900b5e97", null ],
     [ "setfill", "io__manip_8h.html#a99ad8123323453cf572de3f0f942efee", null ],
     [ "setiosflags", "io__manip_8h.html#a907d98611f6b75d3b9e2b2b1cb534d8b", null ],
-    [ "setprecision", "io__manip_8h.html#a63144691d10679bb2a267f84ef29b33e", null ],
+    [ "setprecision", "io__manip_8h.html#a949e785951c135fb5ec1974003ae2677", null ],
     [ "setw", "io__manip_8h.html#a064f21731232cdca2e38f22dcc931b63", null ]
 ];
