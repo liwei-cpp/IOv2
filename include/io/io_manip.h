@@ -4,6 +4,8 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 
+#include <cstdint>
+
 namespace IOv2
 {
 struct _Resetiosflags { ios_defs::fmtflags m_mask; };
@@ -81,8 +83,8 @@ inline T& operator >> (T& is, _Setfill<typename T::char_type> f)
     return is;
 }
 
-struct _Setprecision { int m_n; };
-inline _Setprecision setprecision(int n) { return { n }; }
+struct _Setprecision { std::uint8_t m_n; };
+inline _Setprecision setprecision(std::uint8_t n) { return { n }; }
 
 template <ostream_type T>
 inline T& operator << (T& os, _Setprecision f)

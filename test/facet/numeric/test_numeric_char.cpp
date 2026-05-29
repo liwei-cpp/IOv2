@@ -375,7 +375,7 @@ void test_numeric_char_put_6()
         
         std::string oss;
     
-        ios.precision(-1);
+        ios.precision(6);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, 30.5);
         if (oss != "30.500000") throw std::runtime_error("IOv2::numeric<char>::put fails");
@@ -556,12 +556,12 @@ void test_numeric_char_put_12()
     
         std::string oss;
     
-        const int precision = 1000;
-        
+        const std::uint8_t precision = 200;
+
         ios.precision(precision);
         ios.setf(IOv2::ios_defs::fixed);
         obj.put(std::back_inserter(oss), ios, 1.0);
-        if (oss.size() != precision + 2) throw std::runtime_error("IOv2::numeric<char>::put fails");
+        if (oss.size() != static_cast<size_t>(precision) + 2) throw std::runtime_error("IOv2::numeric<char>::put fails");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -3934,17 +3934,19 @@ void test_numeric_vulnerability_fix_char()
         VERIFY(oss.find("0x") == 0);
     }
 
-    // 3. Test dynamic resizing (precision 500)
+    // 3. Test dynamic resizing (scientific, precision 200 triggers two-pass)
     {
-        const int high_prec = 500;
+        const std::uint8_t high_prec = 200;
         ios.precision(high_prec);
-        ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
+        ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
         std::string oss;
-        // This will trigger the two-pass logic as it exceeds the initial 128/2048 buffer
+        // scientific + prec 200: initial cs_size=77 < output ~206 chars -> two-pass triggered
         nump.put(std::back_inserter(oss), ios, 1.0);
         size_t dot_pos = oss.find('.');
         VERIFY(dot_pos != std::string::npos);
-        VERIFY(oss.length() - dot_pos - 1 == high_prec);
+        size_t e_pos = oss.find('e', dot_pos);
+        VERIFY(e_pos != std::string::npos);
+        VERIFY(e_pos - dot_pos - 1 == static_cast<size_t>(high_prec));
     }
 
     dump_info("Done\n");
