@@ -208,6 +208,7 @@ var hierarchy =
     [ "IOv2::io_state_and_exp", "structIOv2_1_1io__state__and__exp.html", [
       [ "IOv2::ios_base< char >", "classIOv2_1_1ios__base.html", null ],
       [ "IOv2::ios_base< wchar_t >", "classIOv2_1_1ios__base.html", null ],
+      [ "IOv2::ios_base< char_type >", "classIOv2_1_1ios__base.html", null ],
       [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", [
         [ "IOv2::stdin_api< __cin, std_device< STDIN_FILENO >, char >", "classIOv2_1_1stdin__api.html", [
           [ "IOv2::__cin", "classIOv2_1_1____cin.html", null ]
