@@ -149,31 +149,26 @@ void test_collate_char8_t_compare_3()
     
     const char8_t strlit1[] = u8"a\0a\0";
     const char8_t strlit2[] = u8"a\0b\0";
-    const char8_t strlit3[] = u8"a\0\xc4\0";
+    const char8_t strlit3[] = u8"a\0c\0";
     const char8_t strlit4[] = u8"a\0B\0";
     const char8_t strlit5[] = u8"aa\0";
     const char8_t strlit6[] = u8"b\0a\0";
-    
+    const char8_t strlit7[] = u8"a\0\xc3\xa9\0";   // second segment "é" (U+00E9, C3 A9)
+    const char8_t strlit8[] = u8"a\0\xc3\xa0\0";   // second segment "à" (U+00E0, C3 A0)
+
     {  // compare with const char as input
         if (obj_c.compare(strlit1, strlit1 + 3, strlit2, strlit2 + 3) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
         if (obj_de.compare(strlit1, strlit1 + 3, strlit2, strlit2 + 3) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
-        try
-        {
-            obj_c.compare(strlit3, strlit3 + 3, strlit4, strlit4 + 3);
-            dump_info("un-reachable logic");
-            std::abort();
-        }
-        catch (IOv2::cvt_error&) {}
-
-        try
-        {
-            obj_de.compare(strlit3, strlit3 + 3, strlit4, strlit4 + 3);
-            dump_info("un-reachable logic");
-            std::abort();
-        }
-        catch (IOv2::cvt_error&) {}
+        if (obj_c.compare(strlit3, strlit3 + 3, strlit4, strlit4 + 3) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_de.compare(strlit3, strlit3 + 3, strlit4, strlit4 + 3) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_c.compare(strlit7, strlit7 + 4, strlit8, strlit8 + 4) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_de.compare(strlit7, strlit7 + 4, strlit8, strlit8 + 4) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
 
         if (obj_c.compare(strlit1, strlit1 + 3, strlit1, strlit1 + 4) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
@@ -194,27 +189,21 @@ void test_collate_char8_t_compare_3()
         std::deque<char8_t> deqlit4{std::begin(strlit4), std::end(strlit4)};
         std::deque<char8_t> deqlit5{std::begin(strlit5), std::end(strlit5)};
         std::deque<char8_t> deqlit6{std::begin(strlit6), std::end(strlit6)};
-        
+        std::deque<char8_t> deqlit7{std::begin(strlit7), std::end(strlit7)};
+        std::deque<char8_t> deqlit8{std::begin(strlit8), std::end(strlit8)};
+
         if (obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, deqlit2.begin(), deqlit2.begin() + 3) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
         if (obj_de.compare(deqlit1.begin(), deqlit1.begin() + 3, deqlit2.begin(), deqlit2.begin() + 3) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
-    
-        try
-        {
-            obj_c.compare(deqlit3.begin(), deqlit3.begin() + 3, deqlit4.begin(), deqlit4.begin() + 3);
-            dump_info("un-reachable logic");
-            std::abort();
-        }
-        catch (IOv2::cvt_error&) {}
-
-        try
-        {
-            obj_de.compare(deqlit3.begin(), deqlit3.begin() + 3, deqlit4.begin(), deqlit4.begin() + 3);
-            dump_info("un-reachable logic");
-            std::abort();
-        }
-        catch (IOv2::cvt_error&) {}
+        if (obj_c.compare(deqlit3.begin(), deqlit3.begin() + 3, deqlit4.begin(), deqlit4.begin() + 3) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_de.compare(deqlit3.begin(), deqlit3.begin() + 3, deqlit4.begin(), deqlit4.begin() + 3) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_c.compare(deqlit7.begin(), deqlit7.begin() + 4, deqlit8.begin(), deqlit8.begin() + 4) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_de.compare(deqlit7.begin(), deqlit7.begin() + 4, deqlit8.begin(), deqlit8.begin() + 4) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
 
         if (obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, deqlit1.begin(), deqlit1.begin() + 4) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
@@ -235,7 +224,9 @@ void test_collate_char8_t_compare_3()
         std::deque<char8_t> deqlit4{std::begin(strlit4), std::end(strlit4)};
         std::deque<char8_t> deqlit5{std::begin(strlit5), std::end(strlit5)};
         std::deque<char8_t> deqlit6{std::begin(strlit6), std::end(strlit6)};
-        
+        std::deque<char8_t> deqlit7{std::begin(strlit7), std::end(strlit7)};
+        std::deque<char8_t> deqlit8{std::begin(strlit8), std::end(strlit8)};
+
         if (obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, strlit2, strlit2 + 3) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
         if (obj_c.compare(strlit1, strlit1 + 3, deqlit2.begin(), deqlit2.begin() + 3) != std::strong_ordering::less)
@@ -244,21 +235,14 @@ void test_collate_char8_t_compare_3()
             throw std::runtime_error("collate::compare error");
         if (obj_de.compare(strlit1, strlit1 + 3, deqlit2.begin(), deqlit2.begin() + 3) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");
-        try
-        {
-            obj_c.compare(deqlit3.begin(), deqlit3.begin() + 3, strlit4, strlit4 + 3);
-            dump_info("un-reachable logic");
-            std::abort();
-        }
-        catch (IOv2::cvt_error&) {}
-
-        try
-        {
-            obj_de.compare(strlit3, strlit3 + 3, deqlit4.begin(), deqlit4.begin() + 3);
-            dump_info("un-reachable logic");
-            std::abort();
-        }
-        catch (IOv2::cvt_error&) {}
+        if (obj_c.compare(deqlit3.begin(), deqlit3.begin() + 3, strlit4, strlit4 + 3) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_de.compare(strlit3, strlit3 + 3, deqlit4.begin(), deqlit4.begin() + 3) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_c.compare(deqlit7.begin(), deqlit7.begin() + 4, strlit8, strlit8 + 4) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
+        if (obj_de.compare(strlit7, strlit7 + 4, deqlit8.begin(), deqlit8.begin() + 4) != std::strong_ordering::greater)
+            throw std::runtime_error("collate::compare error");
 
         if (obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, strlit1, strlit1 + 4) != std::strong_ordering::less)
             throw std::runtime_error("collate::compare error");

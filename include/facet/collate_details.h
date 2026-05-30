@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <compare>
 #include <cstring>
+#include <cuchar>
 #include <cwchar>
 #include <string>
 #include <string_view>
@@ -30,7 +31,37 @@ class collate_conf : public ft_basic<collate<CharT>>
 public:
     collate_conf(const std::string& name)
         : ft_basic<collate<CharT>>()
-        , m_inter_locale(name.c_str()) {}
+        , m_inter_locale(name.c_str())
+    {
+        if constexpr (std::is_same_v<CharT, char8_t>)
+        {
+            // collate<char8_t> routes through the narrow strcoll/strxfrm path,
+            // which interprets its input as UTF-8 only when the inter locale's
+            // LC_CTYPE codeset is UTF-8. The codeset name from
+            // nl_langinfo(CODESET) is implementation-defined, so rather than
+            // string-matching it we probe the locale's own multibyte decoder on
+            // known code points: mbrtoc32 exercises the same LC_CTYPE codeset
+            // that strcoll/strxfrm use to parse their byte input, and because
+            // m_inter_locale is built from a single name with LC_ALL_MASK its
+            // CTYPE and COLLATE codesets are the same. Agreement here therefore
+            // means strcoll/strxfrm agree.
+            static constexpr struct { const char* mb; size_t len; char32_t cp; }
+            probes[] = {
+                {"\xC3\xA9",         2, U'é'},      // U+00E9  e-acute
+                {"\xE2\x82\xAC",     3, U'€'},      // U+20AC  euro sign
+                {"\xF0\x9F\x98\x80", 4, U'\U0001F600'},  // U+1F600 grinning face
+            };
+            clocale_user guard(m_inter_locale);
+            for (const auto& p : probes)
+            {
+                char32_t c32 = 0;
+                std::mbstate_t st{};
+                size_t n = std::mbrtoc32(&c32, p.mb, p.len, &st);
+                if ((n != p.len) || (c32 != p.cp))
+                    throw cvt_error("collate_conf<char8_t>: inter locale is not UTF-8");
+            }
+        }
+    }
 
 public:
     virtual std::strong_ordering compare(const CharT* low1, const CharT* high1,
@@ -74,24 +105,14 @@ public:
                 c_res = std::strcoll(cl1, cl2);
             else if constexpr (std::is_same_v<CharT, wchar_t>)
                 c_res = std::wcscoll(cl1, cl2);
+            else if constexpr (std::is_same_v<CharT, char8_t>)
+                c_res = std::strcoll(reinterpret_cast<const char*>(cl1),
+                                     reinterpret_cast<const char*>(cl2));
             else if constexpr (wchar_t_is_utf32)
             {
                 if constexpr (std::is_same_v<CharT, char32_t>)
                     c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(cl1),
                                          reinterpret_cast<const wchar_t*>(cl2));
-                else if constexpr (std::is_same_v<CharT, char8_t>)
-                {
-                    // Pass an explicit-length u8string_view to lock the
-                    // per-segment "cur is a null-terminated copy" contract
-                    // at the call site, so future changes to to_u32string's
-                    // overload set cannot silently cross segment boundaries.
-                    auto ws1 = detail::to_u32string(
-                        std::u8string_view{cl1, std::char_traits<char8_t>::length(cl1)});
-                    auto ws2 = detail::to_u32string(
-                        std::u8string_view{cl2, std::char_traits<char8_t>::length(cl2)});
-                    c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(ws1.c_str()),
-                                         reinterpret_cast<const wchar_t*>(ws2.c_str()));
-                }
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::compare is not implemented.");
             }
@@ -138,27 +159,12 @@ public:
                 seg_len = strxfrm(nullptr, cur, 0);
             else if constexpr (std::is_same_v<CharT, wchar_t>)
                 seg_len = wcsxfrm(nullptr, cur, 0);
+            else if constexpr (std::is_same_v<CharT, char8_t>)
+                seg_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);
             else if constexpr (wchar_t_is_utf32)
             {
                 if constexpr (std::is_same_v<CharT, char32_t>)
                     seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
-                else if constexpr (std::is_same_v<CharT, char8_t>)
-                {
-                    // See compare(): explicit-length u8string_view pins the
-                    // segment contract at the call site.
-                    auto ws = detail::to_u32string(
-                        std::u8string_view{cur, std::char_traits<char8_t>::length(cur)});
-                    seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
-                    if (seg_len == xfrm_failed)
-                        throw cvt_error("collate_conf::transform_length: wcsxfrm failed");
-                    // x6: wcsxfrm weights are arbitrary 31-bit values;
-                    // reinterpreted as char32_t and re-encoded by to_u8string
-                    // they take up to 6 bytes each (legacy UTF-8 max for a
-                    // 31-bit value). This is the tight upper bound on the byte
-                    // count transform() may emit for this segment, so callers
-                    // sizing dest from transform_length never under-allocate.
-                    seg_len *= 6;
-                }
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
             }
@@ -175,16 +181,19 @@ public:
 
     virtual size_t transform(const CharT* low, const CharT* high, CharT* dest, size_t mx_len = 0) const
     {
+        // transform() emits an opaque collation key, not text: the output bytes
+        // are order-preserving sort weights — strcmp/wcscmp on the result
+        // reproduces strcoll/wcscoll on the input — and are NOT a readable or
+        // valid char/UTF sequence. The key is only ever compared bytewise,
+        // never decoded back to characters.
         size_t trans_count = 0;
         // All buffers are hoisted out of the loop so resize() reuses their
         // capacity instead of reallocating per segment.
-        // buf   : input staging — null-terminated copy of a segment that has
-        //         no embedded '\0' (so cur can point at a terminated string).
-        // buf2  : output staging for strxfrm/wcsxfrm; unused for char8_t.
-        // buf32 : char32_t output staging used only in the char8_t branch.
+        // buf  : input staging — null-terminated copy of a segment that has
+        //        no embedded '\0' (so cur can point at a terminated string).
+        // buf2 : output staging for strxfrm/wcsxfrm.
         std::vector<CharT> buf;
-        [[maybe_unused]] std::vector<CharT> buf2;
-        [[maybe_unused]] std::vector<char32_t> buf32;
+        std::vector<CharT> buf2;
         bool extra_eos = false;
 
         clocale_user guard(m_inter_locale);
@@ -204,38 +213,6 @@ public:
             else
                 low = next + 1;
 
-            if constexpr (std::is_same_v<CharT, char8_t> &&
-                          wchar_t_is_utf32)
-            {
-                // See compare(): explicit-length u8string_view pins the
-                // segment contract at the call site.
-                auto ws = detail::to_u32string(
-                    std::u8string_view{cur, std::char_traits<char8_t>::length(cur)});
-                auto trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(ws.c_str()), 0);
-                if (trans_len == xfrm_failed)
-                    throw cvt_error("collate_conf::transform: wcsxfrm failed");
-                buf32.resize(trans_len + 1);
-                auto cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf32.data()),
-                                         reinterpret_cast<const wchar_t*>(ws.c_str()),
-                                         buf32.size());
-                if (cur_trans == xfrm_failed)
-                    throw cvt_error("collate_conf::transform: wcsxfrm failed");
-                buf32[cur_trans] = 0;
-
-                auto char8s = detail::to_u8string(buf32.data());
-                if (mx_len == 0)
-                {
-                    dest = std::copy(char8s.data(), char8s.data() + char8s.size(), dest);
-                    trans_count += char8s.size();
-                }
-                else
-                {
-                    cur_trans = std::min(char8s.size(), mx_len - trans_count);
-                    dest = std::copy(char8s.data(), char8s.data() + cur_trans, dest);
-                    trans_count += cur_trans;
-                }
-            }
-            else
             {
                 // strxfrm/wcsxfrm always append a terminating '\0' (writing
                 // cur_trans + 1 elements). Transform into the reused buffer
@@ -249,6 +226,8 @@ public:
                     trans_len = strxfrm(nullptr, cur, 0);
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
                     trans_len = wcsxfrm(nullptr, cur, 0);
+                else if constexpr (std::is_same_v<CharT, char8_t>)
+                    trans_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);
                 else if constexpr ((std::is_same_v<CharT, char32_t> &&
                                    wchar_t_is_utf32))
                     trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
@@ -264,6 +243,8 @@ public:
                     cur_trans = strxfrm(buf2.data(), cur, buf2.size());
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
                     cur_trans = wcsxfrm(buf2.data(), cur, buf2.size());
+                else if constexpr (std::is_same_v<CharT, char8_t>)
+                    cur_trans = strxfrm(reinterpret_cast<char*>(buf2.data()), reinterpret_cast<const char*>(cur), buf2.size());
                 else if constexpr ((std::is_same_v<CharT, char32_t> &&
                                    wchar_t_is_utf32))
                     cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()), reinterpret_cast<const wchar_t*>(cur), buf2.size());
