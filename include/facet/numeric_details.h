@@ -282,16 +282,21 @@ public:
                                   ? u8'.' : output[0];
         }
 
+        bool ts_representable = false;
         {
             const auto input = numeric_temp.thousands_sep();
             auto output = detail::to_u8string(input);
-            m_thousands_sep = (output.size() != 1) ? u8',' : output[0];
+            ts_representable = (output.size() == 1 && output[0] != u8'\0');
+            m_thousands_sep = ts_representable ? output[0] : u8',';
         }
 
         m_true_name = detail::to_u8string(numeric_temp.truename());
         m_false_name = detail::to_u8string(numeric_temp.falsename());
 
         m_grouping = numeric_temp.grouping();
+
+        if (!ts_representable)
+            m_grouping.clear();
 
         // After the single-byte fallbacks above, m_thousands_sep may have
         // collapsed onto u8',' while m_decimal_point also resolved to u8','
