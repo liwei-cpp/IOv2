@@ -248,7 +248,7 @@ void test_locale_char8_t_8()
 {
     dump_info("Test locale<char8_t> case 8...");
 
-    IOv2::locale<char8_t> loc1;
+    IOv2::locale<char8_t> loc1("C.UTF-8");
     {
         if (!loc1.has<test_ext5>()) throw std::runtime_error("locale::has error");
         auto p = loc1.get<test_ext5>();
