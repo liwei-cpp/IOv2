@@ -4,6 +4,7 @@
 #include <vector>
 #include <facet/collate.h>
 
+#include <common/defs.h>
 #include <common/dump_info.h>
 
 void test_collate_char8_t_compare_1()
@@ -591,6 +592,42 @@ void test_collate_char8_t_transform_4()
         obj.transform(ls_strlit.begin(), ls_strlit.end(), std::back_inserter(t4), t.size() - 3);
         if (t4.size() != t.size() - 3) throw std::runtime_error("collate::transform fail.");
         if (t4 != t.substr(0, t.size() - 3)) throw std::runtime_error("collate::transform fail.");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_collate_char8_t_ctor_locale_check()
+{
+    dump_info("Test collate_conf<char8_t> ctor locale check...");
+
+    // The collate_conf<char8_t> constructor probes the inter locale's CTYPE
+    // codeset with mbrtoc32. A non-UTF-8 locale must be rejected with cvt_error,
+    // because collate<char8_t> routes through the narrow strcoll/strxfrm path
+    // which only parses UTF-8 byte input correctly when the codeset is UTF-8.
+    for (const char* name : {"C", "POSIX"})
+    {
+        bool threw = false;
+        try
+        {
+            IOv2::collate_conf<char8_t> conf(name);
+        }
+        catch (const IOv2::cvt_error&)
+        {
+            threw = true;
+        }
+        if (!threw)
+            throw std::runtime_error("collate_conf<char8_t> accepted a non-UTF-8 locale");
+    }
+
+    // A genuine UTF-8 locale must be accepted without throwing.
+    try
+    {
+        IOv2::collate_conf<char8_t> conf("C.UTF-8");
+    }
+    catch (const std::exception&)
+    {
+        throw std::runtime_error("collate_conf<char8_t> rejected a UTF-8 locale");
     }
 
     dump_info("Done\n");

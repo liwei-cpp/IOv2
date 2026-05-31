@@ -3951,3 +3951,241 @@ void test_numeric_vulnerability_fix_char()
 
     dump_info("Done\n");
 }
+
+void test_numeric_char_conf_bool_fallback()
+{
+    dump_info("Test numeric_conf<char> bool-name fallback...");
+
+    // "C.UTF-8" is NOT the literal "C"/"POSIX" fast path, so the constructor
+    // runs the full locale-snapshot branch. glibc's C.UTF-8 exposes empty
+    // YESSTR/NOSTR, which the constructor treats as missing keys and replaces
+    // with the ASCII defaults "true"/"false".
+    IOv2::numeric_conf<char> conf("C.UTF-8");
+
+    VERIFY(conf.truename() == "true");
+    VERIFY(conf.falsename() == "false");
+    // C.UTF-8 has no thousands separator, so grouping stays empty and
+    // decimal_point is the plain ASCII dot.
+    VERIFY(conf.decimal_point() == '.');
+    VERIFY(conf.thousands_sep() == '\0');
+    VERIFY(conf.grouping().empty());
+
+    dump_info("Done\n");
+}
+
+void test_numeric_char_get_bool_edge()
+{
+    dump_info("Test numeric<char>::get bool edge cases...");
+
+    IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"), s_ctype_c);
+
+    // Without boolalpha, the field is parsed as a long; any value other than
+    // 0/1 is out of range. Per LWG 23 the result is set to true and the parse
+    // fails (throws).
+    {
+        IOv2::ios_base<char> ios;
+        bool v = false;
+        std::string in = "2";
+        bool threw = false;
+        try { obj.get(in.begin(), in.end(), ios, v); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(v == true);
+    }
+
+    // With boolalpha, identical truename()/falsename() make a matching input
+    // ambiguous: it satisfies both names at the same length, so the parse
+    // fails and the result is set to false (LWG 23).
+    {
+        auto punct = std::make_shared<Punct>("C");
+        punct->set_truename("same");
+        punct->set_falsename("same");
+        IOv2::numeric<char> ambiguous(punct, s_ctype_c);
+
+        IOv2::ios_base<char> ios;
+        ios.setf(IOv2::ios_defs::boolalpha);
+        bool v = true;
+        std::string in = "same";
+        bool threw = false;
+        try { ambiguous.get(in.begin(), in.end(), ios, v); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(v == false);
+    }
+
+    dump_info("Done\n");
+}
+
+void test_numeric_char_put_edge()
+{
+    dump_info("Test numeric<char>::put edge cases...");
+
+    IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"), s_ctype_c);
+
+    // Octal base with showbase prepends a single '0' for non-zero values.
+    {
+        IOv2::ios_base<char> ios;
+        ios.setf(IOv2::ios_defs::oct, IOv2::ios_defs::basefield);
+        ios.setf(IOv2::ios_defs::showbase);
+        std::string out;
+        obj.put(std::back_inserter(out), ios, 64L);
+        VERIFY(out == "0100");
+    }
+
+    // showpoint sets the '#' printf flag, forcing a decimal point.
+    {
+        IOv2::ios_base<char> ios;
+        ios.setf(IOv2::ios_defs::showpoint);
+        std::string out;
+        obj.put(std::back_inserter(out), ios, 1.0);
+        VERIFY(out.find('.') != std::string::npos);
+        VERIFY(out.size() > 1);
+    }
+
+    // A float formatted as "0.5", right-padded into a wider field, drives the
+    // pad path where the leading '0' triggers the 0x-prefix probe.
+    {
+        IOv2::ios_base<char> ios;
+        ios.width(10);
+        std::string out;
+        obj.put(std::back_inserter(out), ios, 0.5);
+        VERIFY(out.size() == 10);
+        VERIFY(out.back() == '5');
+    }
+
+    // Internal adjustment on a negative value keeps the sign anchored to the
+    // left and inserts fill between the sign and the digits.
+    {
+        IOv2::ios_base<char> ios;
+        ios.width(8);
+        ios.setf(IOv2::ios_defs::internal, IOv2::ios_defs::adjustfield);
+        std::string out;
+        obj.put(std::back_inserter(out), ios, -42L);
+        VERIFY(out.size() == 8);
+        VERIFY(out.front() == '-');
+        VERIFY(out.substr(out.size() - 2) == "42");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_numeric_char_get_int_edge()
+{
+    dump_info("Test numeric<char>::get integer edge cases...");
+
+    IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"), s_ctype_c);
+
+    // A lone sign with no following digit is a parse failure.
+    {
+        IOv2::ios_base<char> ios;
+        long v = 123;
+        std::string in = "-";
+        bool threw = false;
+        try { obj.get(in.begin(), in.end(), ios, v); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // Under an explicit octal base, "0x5" stops at 'x' (the "0x" prefix is only
+    // honored for hex/auto base) and yields just the leading zero.
+    {
+        IOv2::ios_base<char> ios;
+        ios.setf(IOv2::ios_defs::oct, IOv2::ios_defs::basefield);
+        long v = -1;
+        std::string in = "0x5";
+        auto it = obj.get(in.begin(), in.end(), ios, v);
+        VERIFY(v == 0);
+        VERIFY(it == in.begin() + 1);
+    }
+
+    // A single digit group exceeding 255 digits cannot be stored in the
+    // uint8_t group counter and is rejected. Leading zeros under an explicit
+    // decimal base accumulate the group length without overflowing the value.
+    auto punct = std::make_shared<Punct>("C");
+    punct->set_grouping({3});
+    punct->set_thousands_sep(',');
+    IOv2::numeric<char> grp(punct, s_ctype_c);
+
+    {
+        IOv2::ios_base<char> ios;
+        ios.setf(IOv2::ios_defs::dec, IOv2::ios_defs::basefield);
+        long v = 1;
+        std::string in = std::string(256, '0') + ",5";  // oversized leading group, then a separator
+        bool threw = false;
+        try { grp.get(in.begin(), in.end(), ios, v); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+    {
+        IOv2::ios_base<char> ios;
+        ios.setf(IOv2::ios_defs::dec, IOv2::ios_defs::basefield);
+        long v = 1;
+        // A leading '0' keeps the running value at zero so it never overflows;
+        // the digit count then reaches the >255 grouping limit at end of input.
+        std::string in = "0," + std::string(256, '0');  // oversized final group at end of input
+        bool threw = false;
+        try { grp.get(in.begin(), in.end(), ios, v); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}
+
+void test_numeric_char_get_float_edge()
+{
+    dump_info("Test numeric<char>::get floating-point edge cases...");
+
+    IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"), s_ctype_c);
+
+    auto throws = [&](const std::string& in)
+    {
+        IOv2::ios_base<char> ios;
+        double v = -1.0;
+        try { obj.get(in.begin(), in.end(), ios, v); return false; }
+        catch (const IOv2::stream_error&) { return true; }
+    };
+
+    // A lone sign fails.
+    VERIFY(throws("+"));
+    // An exponent marker with no exponent digits fails.
+    VERIFY(throws("1e"));
+    // Magnitudes that strtod rounds to +/-infinity map to +/-max() and fail
+    // per LWG 23.
+    VERIFY(throws("1e400"));
+    VERIFY(throws("-1e400"));
+
+    // A bare "0" parses successfully to 0.0 (exercises the leading-zero / EOF path).
+    {
+        IOv2::ios_base<char> ios;
+        double v = -1.0;
+        std::string in = "0";
+        obj.get(in.begin(), in.end(), ios, v);
+        VERIFY(v == 0.0);
+    }
+
+    // Oversized digit groups (>255 digits) are rejected at each structural
+    // boundary: before a thousands separator, before the decimal point, before
+    // the exponent marker, and at end of input.
+    auto punct = std::make_shared<Punct>("C");
+    punct->set_grouping({3});
+    punct->set_thousands_sep(',');
+    punct->set_decimal_point('.');
+    IOv2::numeric<char> grp(punct, s_ctype_c);
+
+    auto grp_throws = [&](const std::string& in)
+    {
+        IOv2::ios_base<char> ios;
+        double v = -1.0;
+        try { grp.get(in.begin(), in.end(), ios, v); return false; }
+        catch (const IOv2::stream_error&) { return true; }
+    };
+
+    const std::string big(256, '1');
+    VERIFY(grp_throws(big + ",5"));        // oversized group before a separator
+    VERIFY(grp_throws("1," + big + ".5")); // oversized group before the decimal point
+    VERIFY(grp_throws("1," + big + "e5")); // oversized group before the exponent
+    VERIFY(grp_throws("1," + big));        // oversized final group at end of input
+
+    dump_info("Done\n");
+}

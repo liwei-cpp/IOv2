@@ -2261,3 +2261,29 @@ void test_numeric_char8_t_get_21()
 
     dump_info("Done\n");
 }
+
+void test_numeric_char8_t_conf_multibyte_sep()
+{
+    dump_info("Test numeric_conf<char8_t> multi-byte separator fallback...");
+
+    // fr_FR.UTF-8 uses ',' as the decimal point and U+202F (NARROW NO-BREAK
+    // SPACE, a multi-byte UTF-8 sequence) as the thousands separator. The
+    // char8_t specialization narrows each parameter to a single UTF-8 byte:
+    //   - the multi-byte thousands separator is not single-byte representable,
+    //     so it is dropped and the grouping is cleared, then
+    //   - the fallback separator u8',' coincides with the decimal point u8',',
+    //     so the grouping is cleared again on the equal-separator guard.
+    IOv2::numeric_conf<char8_t> conf("fr_FR.UTF-8");
+
+    if (conf.decimal_point() != u8',')
+        throw std::runtime_error("numeric_conf<char8_t>::decimal_point incorrect");
+    // Multi-byte separator collapses onto the single-byte fallback u8','.
+    if (conf.thousands_sep() != u8',')
+        throw std::runtime_error("numeric_conf<char8_t>::thousands_sep incorrect");
+    // Both clearing paths must leave grouping empty so downstream parsing
+    // takes the no-grouping branch instead of misclassifying digits.
+    if (!conf.grouping().empty())
+        throw std::runtime_error("numeric_conf<char8_t>::grouping should be cleared");
+
+    dump_info("Done\n");
+}

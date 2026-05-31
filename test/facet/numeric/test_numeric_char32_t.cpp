@@ -2261,3 +2261,27 @@ void test_numeric_char32_t_get_21()
 
     dump_info("Done\n");
 }
+
+void test_numeric_char32_t_conf_bool_fallback()
+{
+    dump_info("Test numeric_conf<char32_t> bool-name fallback...");
+
+    // "C.UTF-8" is NOT the literal "C"/"POSIX" fast path, so the constructor
+    // runs the full locale-snapshot branch. glibc's C.UTF-8 exposes empty
+    // YESSTR/NOSTR, which the constructor treats as missing keys and replaces
+    // with the UTF-32 ASCII defaults U"true"/U"false".
+    IOv2::numeric_conf<char32_t> conf("C.UTF-8");
+
+    if (conf.truename() != U"true")
+        throw std::runtime_error("numeric_conf<char32_t>::truename fallback incorrect");
+    if (conf.falsename() != U"false")
+        throw std::runtime_error("numeric_conf<char32_t>::falsename fallback incorrect");
+    if (conf.decimal_point() != U'.')
+        throw std::runtime_error("numeric_conf<char32_t>::decimal_point incorrect");
+    if (conf.thousands_sep() != U'\0')
+        throw std::runtime_error("numeric_conf<char32_t>::thousands_sep incorrect");
+    if (!conf.grouping().empty())
+        throw std::runtime_error("numeric_conf<char32_t>::grouping incorrect");
+
+    dump_info("Done\n");
+}

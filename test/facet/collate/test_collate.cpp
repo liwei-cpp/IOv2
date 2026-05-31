@@ -29,6 +29,7 @@ void test_collate_char8_t_transform_1();
 void test_collate_char8_t_transform_2();
 void test_collate_char8_t_transform_3();
 void test_collate_char8_t_transform_4();
+void test_collate_char8_t_ctor_locale_check();
 
 void test_collate()
 {
@@ -63,4 +64,5 @@ void test_collate()
     test_collate_char8_t_transform_2();
     test_collate_char8_t_transform_3();
     test_collate_char8_t_transform_4();
+    test_collate_char8_t_ctor_locale_check();
 }
