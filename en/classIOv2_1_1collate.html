@@ -97,56 +97,75 @@ $(document).ready(function(){initNavTree('classIOv2_1_1collate.html',''); initRe
 </div><!--header-->
 <div class="contents">
 
+<p>A locale-aware string collation facet.  
+ <a href="classIOv2_1_1collate.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="collate_8h_source.html">collate.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a7d208f8c1a0330fa8aa4589914e1d473" id="r_a7d208f8c1a0330fa8aa4589914e1d473"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#a7d208f8c1a0330fa8aa4589914e1d473">create_rules</a> = <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt; <a class="el" href="classIOv2_1_1collate__conf.html">collate_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt;</td></tr>
+<tr class="memdesc:a7d208f8c1a0330fa8aa4589914e1d473"><td class="mdescLeft">&#160;</td><td class="mdescRight">The creation-rule type for the associated configuration object. .  <br /></td></tr>
 <tr class="separator:a7d208f8c1a0330fa8aa4589914e1d473"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ae0357641cfa24effef41041fae1068" id="r_a6ae0357641cfa24effef41041fae1068"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#a6ae0357641cfa24effef41041fae1068">char_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a></td></tr>
+<tr class="memdesc:a6ae0357641cfa24effef41041fae1068"><td class="mdescLeft">&#160;</td><td class="mdescRight">The character type. .  <br /></td></tr>
 <tr class="separator:a6ae0357641cfa24effef41041fae1068"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a0e5db6c2a1f3035d01ed4ba33c2c0a12" id="r_a0e5db6c2a1f3035d01ed4ba33c2c0a12"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1collate__conf.html">collate_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt; TConfPtr&gt; </td></tr>
 <tr class="memitem:a0e5db6c2a1f3035d01ed4ba33c2c0a12"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#a0e5db6c2a1f3035d01ed4ba33c2c0a12">collate</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>)</td></tr>
+<tr class="memdesc:a0e5db6c2a1f3035d01ed4ba33c2c0a12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor that binds to the specified <code><a class="el" href="classIOv2_1_1collate__conf.html" title="Underlying implementation class for the collate&lt;CharT&gt; facet.">collate_conf</a></code> configuration object.  <br /></td></tr>
 <tr class="separator:a0e5db6c2a1f3035d01ed4ba33c2c0a12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd58152747e3aac8a096803ea1d2270f" id="r_acd58152747e3aac8a096803ea1d2270f"><td class="memItemLeft" align="right" valign="top">std::strong_ordering&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#acd58152747e3aac8a096803ea1d2270f">compare</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low2</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high2</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:acd58152747e3aac8a096803ea1d2270f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares the collation order of two character sequences represented as raw pointer ranges.  <br /></td></tr>
 <tr class="separator:acd58152747e3aac8a096803ea1d2270f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae424802a4b81ba94240e9398ea2127bc" id="r_ae424802a4b81ba94240e9398ea2127bc"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
 requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt;)</td></tr>
 <tr class="memitem:ae424802a4b81ba94240e9398ea2127bc"><td class="memTemplItemLeft" align="right" valign="top">std::strong_ordering&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#ae424802a4b81ba94240e9398ea2127bc">compare</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high1</a>, TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low2</a>, TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high2</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ae424802a4b81ba94240e9398ea2127bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares the collation order of a raw-pointer range against a generic-iterator range.  <br /></td></tr>
 <tr class="separator:ae424802a4b81ba94240e9398ea2127bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd22991746cff7557829a50c9c21088e" id="r_abd22991746cff7557829a50c9c21088e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
 requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt;)</td></tr>
 <tr class="memitem:abd22991746cff7557829a50c9c21088e"><td class="memTemplItemLeft" align="right" valign="top">std::strong_ordering&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#abd22991746cff7557829a50c9c21088e">compare</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low1</a>, TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low2</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high2</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:abd22991746cff7557829a50c9c21088e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares the collation order of a generic-iterator range against a raw-pointer range.  <br /></td></tr>
 <tr class="separator:abd22991746cff7557829a50c9c21088e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a42ac1a8c4424c18657e17098eba0c0df" id="r_a42ac1a8c4424c18657e17098eba0c0df"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter1</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter2</a> &gt; <br />
 requires (!(std::is_convertible_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt; || std::is_convertible_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter2</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt;))</td></tr>
 <tr class="memitem:a42ac1a8c4424c18657e17098eba0c0df"><td class="memTemplItemLeft" align="right" valign="top">std::strong_ordering&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#a42ac1a8c4424c18657e17098eba0c0df">compare</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter1</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter1</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high1</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter2</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low2</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIter2</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high2</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a42ac1a8c4424c18657e17098eba0c0df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares the collation order of two generic-iterator ranges.  <br /></td></tr>
 <tr class="separator:a42ac1a8c4424c18657e17098eba0c0df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c6d8916bddc9d727c08f2c40bbc7365" id="r_a7c6d8916bddc9d727c08f2c40bbc7365"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#a7c6d8916bddc9d727c08f2c40bbc7365">transform_length</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a7c6d8916bddc9d727c08f2c40bbc7365"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the storage length required to transform the raw-pointer range into a collation key.  <br /></td></tr>
 <tr class="separator:a7c6d8916bddc9d727c08f2c40bbc7365"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd463d83379c509ef7b4a9b8b2fe882c" id="r_abd463d83379c509ef7b4a9b8b2fe882c"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
 requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt;)</td></tr>
 <tr class="memitem:abd463d83379c509ef7b4a9b8b2fe882c"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#abd463d83379c509ef7b4a9b8b2fe882c">transform_length</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>, TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:abd463d83379c509ef7b4a9b8b2fe882c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Computes the storage length required to transform a generic-iterator range into a collation key.  <br /></td></tr>
 <tr class="separator:abd463d83379c509ef7b4a9b8b2fe882c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6843bc3f78f7d5fe620d46ee295e928" id="r_ad6843bc3f78f7d5fe620d46ee295e928"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#ad6843bc3f78f7d5fe620d46ee295e928">transform</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dest</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">mx_len</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad6843bc3f78f7d5fe620d46ee295e928"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transforms a raw-pointer input range into a collation key, writing to a raw-pointer destination buffer.  <br /></td></tr>
 <tr class="separator:ad6843bc3f78f7d5fe620d46ee295e928"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a348bd527c611a3029d5bdc94ddb16574" id="r_a348bd527c611a3029d5bdc94ddb16574"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
 requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt;)</td></tr>
 <tr class="memitem:a348bd527c611a3029d5bdc94ddb16574"><td class="memTemplItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#a348bd527c611a3029d5bdc94ddb16574">transform</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>, TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dest</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">mx_len</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a348bd527c611a3029d5bdc94ddb16574"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transforms a generic-iterator input range into a collation key, writing to a raw-pointer destination buffer.  <br /></td></tr>
 <tr class="separator:a348bd527c611a3029d5bdc94ddb16574"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6220abfa8ddf64a25f5daf09d8d60a35" id="r_a6220abfa8ddf64a25f5daf09d8d60a35"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
 requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt;)</td></tr>
 <tr class="memitem:a6220abfa8ddf64a25f5daf09d8d60a35"><td class="memTemplItemLeft" align="right" valign="top">std::pair&lt; TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#a6220abfa8ddf64a25f5daf09d8d60a35">transform</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>, TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dest</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">mx_len</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a6220abfa8ddf64a25f5daf09d8d60a35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transforms a raw-pointer input range into a collation key, writing through a generic output iterator.  <br /></td></tr>
 <tr class="separator:a6220abfa8ddf64a25f5daf09d8d60a35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6f139a49a6cf048b7a0fcfdd899421a" id="r_af6f139a49a6cf048b7a0fcfdd899421a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterIn</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterOut</a> &gt; <br />
 requires (!(std::is_convertible_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt; || std::is_convertible_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterOut</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>*&gt;))</td></tr>
 <tr class="memitem:af6f139a49a6cf048b7a0fcfdd899421a"><td class="memTemplItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterOut</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1collate.html#af6f139a49a6cf048b7a0fcfdd899421a">transform</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterIn</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">low</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterIn</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">high</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TIterOut</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dest</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">mx_len</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af6f139a49a6cf048b7a0fcfdd899421a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Transforms a generic-iterator input range into a collation key, writing through a generic output iterator.  <br /></td></tr>
 <tr class="separator:af6f139a49a6cf048b7a0fcfdd899421a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+class IOv2::collate&lt; CharT &gt;</div><p>A locale-aware string collation facet. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a6ae0357641cfa24effef41041fae1068" name="a6ae0357641cfa24effef41041fae1068"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6ae0357641cfa24effef41041fae1068">&#9670;&#160;</a></span>char_type</h2>
 
@@ -160,6 +179,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The character type. . </p>
 
 </div>
 </div>
@@ -176,6 +197,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The creation-rule type for the associated configuration object. . </p>
 
 </div>
 </div>
@@ -207,6 +230,8 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1collate__conf.htm
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Constructor that binds to the specified <code><a class="el" href="classIOv2_1_1collate__conf.html" title="Underlying implementation class for the collate&lt;CharT&gt; facet.">collate_conf</a></code> configuration object. </p>
 
 </div>
 </div>
@@ -258,6 +283,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Compares the collation order of two character sequences represented as raw pointer ranges. </p>
 
 </div>
 </div>
@@ -312,6 +339,8 @@ requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.htm
 </table>
 </div><div class="memdoc">
 
+<p>Compares the collation order of a raw-pointer range against a generic-iterator range. </p>
+
 </div>
 </div>
 <a id="abd22991746cff7557829a50c9c21088e" name="abd22991746cff7557829a50c9c21088e"></a>
@@ -364,6 +393,8 @@ requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.htm
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Compares the collation order of a generic-iterator range against a raw-pointer range. </p>
 
 </div>
 </div>
@@ -418,6 +449,8 @@ requires (!(std::is_convertible_v&lt;<a class="el" href="namespaceIOv2.html#a09b
 </table>
 </div><div class="memdoc">
 
+<p>Compares the collation order of two generic-iterator ranges. </p>
+
 </div>
 </div>
 <a id="ad6843bc3f78f7d5fe620d46ee295e928" name="ad6843bc3f78f7d5fe620d46ee295e928"></a>
@@ -467,6 +500,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Transforms a raw-pointer input range into a collation key, writing to a raw-pointer destination buffer. </p>
 
 </div>
 </div>
@@ -521,6 +556,8 @@ requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.htm
 </table>
 </div><div class="memdoc">
 
+<p>Transforms a raw-pointer input range into a collation key, writing through a generic output iterator. </p>
+
 </div>
 </div>
 <a id="a348bd527c611a3029d5bdc94ddb16574" name="a348bd527c611a3029d5bdc94ddb16574"></a>
@@ -573,6 +610,8 @@ requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.htm
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Transforms a generic-iterator input range into a collation key, writing to a raw-pointer destination buffer. </p>
 
 </div>
 </div>
@@ -627,6 +666,8 @@ requires (!(std::is_convertible_v&lt;<a class="el" href="namespaceIOv2.html#a09b
 </table>
 </div><div class="memdoc">
 
+<p>Transforms a generic-iterator input range into a collation key, writing through a generic output iterator. </p>
+
 </div>
 </div>
 <a id="a7c6d8916bddc9d727c08f2c40bbc7365" name="a7c6d8916bddc9d727c08f2c40bbc7365"></a>
@@ -664,6 +705,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Computes the storage length required to transform the raw-pointer range into a collation key. </p>
 
 </div>
 </div>
@@ -705,6 +748,8 @@ requires (!std::is_convertible_v&lt;TIter, <a class="el" href="namespaceIOv2.htm
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Computes the storage length required to transform a generic-iterator range into a collation key. </p>
 
 </div>
 </div>
