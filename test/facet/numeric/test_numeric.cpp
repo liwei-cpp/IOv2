@@ -60,6 +60,11 @@ void test_numeric_char_get_40();
 void test_numeric_char_get_41();
 void test_numeric_char_get_42();
 void test_numeric_vulnerability_fix_char();
+void test_numeric_char_conf_bool_fallback();
+void test_numeric_char_get_bool_edge();
+void test_numeric_char_put_edge();
+void test_numeric_char_get_int_edge();
+void test_numeric_char_get_float_edge();
 
 void test_numeric_wchar_t_common_1();
 void test_numeric_wchar_t_put_1();
@@ -101,6 +106,7 @@ void test_numeric_wchar_t_get_18();
 void test_numeric_wchar_t_get_19();
 void test_numeric_wchar_t_get_20();
 void test_numeric_wchar_t_get_21();
+void test_numeric_wchar_t_conf_bool_fallback();
 
 void test_numeric_char32_t_common_1();
 void test_numeric_char32_t_put_1();
@@ -142,6 +148,7 @@ void test_numeric_char32_t_get_18();
 void test_numeric_char32_t_get_19();
 void test_numeric_char32_t_get_20();
 void test_numeric_char32_t_get_21();
+void test_numeric_char32_t_conf_bool_fallback();
 
 void test_numeric_char8_t_common_1();
 void test_numeric_char8_t_put_1();
@@ -183,6 +190,7 @@ void test_numeric_char8_t_get_18();
 void test_numeric_char8_t_get_19();
 void test_numeric_char8_t_get_20();
 void test_numeric_char8_t_get_21();
+void test_numeric_char8_t_conf_multibyte_sep();
 
 void test_numeric()
 {
@@ -248,6 +256,11 @@ void test_numeric()
     test_numeric_char_get_41();
     test_numeric_char_get_42();
     test_numeric_vulnerability_fix_char();
+    test_numeric_char_conf_bool_fallback();
+    test_numeric_char_get_bool_edge();
+    test_numeric_char_put_edge();
+    test_numeric_char_get_int_edge();
+    test_numeric_char_get_float_edge();
 
     test_numeric_wchar_t_common_1();
     test_numeric_wchar_t_put_1();
@@ -289,7 +302,8 @@ void test_numeric()
     test_numeric_wchar_t_get_19();
     test_numeric_wchar_t_get_20();
     test_numeric_wchar_t_get_21();
-    
+    test_numeric_wchar_t_conf_bool_fallback();
+
     test_numeric_char32_t_common_1();
     test_numeric_char32_t_put_1();
     test_numeric_char32_t_put_2();
@@ -330,7 +344,8 @@ void test_numeric()
     test_numeric_char32_t_get_19();
     test_numeric_char32_t_get_20();
     test_numeric_char32_t_get_21();
-    
+    test_numeric_char32_t_conf_bool_fallback();
+
     test_numeric_char8_t_common_1();
     test_numeric_char8_t_put_1();
     test_numeric_char8_t_put_2();
@@ -370,4 +385,5 @@ void test_numeric()
     test_numeric_char8_t_get_19();
     test_numeric_char8_t_get_20();
     test_numeric_char8_t_get_21();
+    test_numeric_char8_t_conf_multibyte_sep();
 }
