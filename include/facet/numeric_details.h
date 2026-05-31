@@ -1,3 +1,19 @@
+/**
+ * @file numeric_details.h
+ * @lang{ZH}
+ * 定义了 `numeric_conf` 类模板的各特化版本，这些类是 `numeric<CharT>` facet 的底层实现。
+ * 每个特化版本从指定的 locale 中提取数值格式化所需的参数，包括小数点字符、千位分隔符、
+ * 数字分组规则以及布尔值的文本表示。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the specializations of the `numeric_conf` class template, which are the
+ * underlying implementations for the `numeric<CharT>` facet. Each specialization
+ * extracts locale-dependent numeric formatting parameters, including the decimal point
+ * character, thousands separator, digit grouping rules, and textual representations
+ * of boolean values.
+ * @endif
+ */
 #pragma once
 #include <common/clocale_wrapper.h>
 #include <common/metafunctions.h>
@@ -18,10 +34,50 @@ namespace IOv2
 template <typename CharT> class numeric_conf;
 template <typename CharT> class numeric;
 
+/**
+ * @lang{ZH}
+ * @brief `numeric<char>` facet 的配置类。
+ *
+ * 从指定的 locale 中提取窄字符（`char`）类型的数值格式化参数，包括小数点字符、
+ * 千位分隔符、数字分组规则以及布尔值的文本名称。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Configuration class for the `numeric<char>` facet.
+ *
+ * Extracts narrow-character (`char`) numeric formatting parameters from the
+ * specified locale, including the decimal point character, thousands separator,
+ * digit grouping rules, and boolean text names.
+ * @endif
+ */
 template <>
 class numeric_conf<char> : public ft_basic<numeric<char>>
 {
 public:
+    /**
+     * @lang{ZH}
+     * @brief 构造函数，从指定的 locale 中读取并初始化所有数值格式化参数。
+     *
+     * 对于 "C" 和 "POSIX" locale，直接使用标准 ASCII 值。对于其他 locale，
+     * 在 locale 守卫有效期间将所有依赖 locale 的指针（`lconv*`、`nl_langinfo()`）
+     * 快照为原始字符串，以防后续的 `setlocale()`/`uselocale()` 调用使指针失效，
+     * 再于守卫结束后执行字符转换。
+     *
+     * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructor that reads and initializes all numeric formatting parameters from the specified locale.
+     *
+     * For "C" and "POSIX" locales, standard ASCII values are assigned directly.
+     * For other locales, all locale-dependent pointers (`lconv*`, `nl_langinfo()`)
+     * are snapshotted into raw strings while the locale guard is active, preventing
+     * invalidation by subsequent `setlocale()`/`uselocale()` calls; character
+     * conversion is then performed after the guard ends.
+     *
+     * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
+     * @endif
+     */
     numeric_conf(const std::string& name)
         : ft_basic<numeric<char>>()
     {
@@ -99,20 +155,111 @@ public:
     }
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 的小数点字符。
+     * @return 小数点字符。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the decimal point character for this locale.
+     * @return The decimal point character.
+     * @endif
+     */
     [[nodiscard]] virtual char decimal_point() const { return m_decimal_point; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 的千位分隔符字符。
+     *
+     * 若返回值为 `'\0'`，表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符字符，或 `'\0'`（不使用分隔符时）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the thousands separator character for this locale.
+     *
+     * A return value of `'\0'` indicates that no separator is used,
+     * in which case `grouping()` is always empty.
+     * @return The thousands separator character, or `'\0'` if none is used.
+     * @endif
+     */
     [[nodiscard]] virtual char thousands_sep() const { return m_thousands_sep; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 中 `true` 的文本表示。
+     * @return `true` 的文本字符串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the textual representation of `true` for this locale.
+     * @return The text string for `true`.
+     * @endif
+     */
     [[nodiscard]] virtual const std::string& truename() const { return m_true_name; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 中 `false` 的文本表示。
+     * @return `false` 的文本字符串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the textual representation of `false` for this locale.
+     * @return The text string for `false`.
+     * @endif
+     */
     [[nodiscard]] virtual const std::string& falsename() const { return m_false_name; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回数字分组规则（内部规范化格式）。
+     *
+     * 向量中每个元素表示一个数字组的位数。若向量为空，则表示不进行分组。
+     * @return 数字分组规则向量；为空时表示不分组。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the digit grouping specification in the internal normalized form.
+     *
+     * Each element in the vector specifies the number of digits in one group.
+     * An empty vector indicates that no grouping is applied.
+     * @return The digit grouping vector; empty means no grouping.
+     * @endif
+     */
     [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
-    char m_decimal_point;
-    char m_thousands_sep;
-    std::string m_true_name;
-    std::string m_false_name;
-    std::vector<uint8_t> m_grouping;
+    char m_decimal_point;   ///< @lang{ZH} 小数点字符。 @endif @lang{EN} The decimal point character. @endif
+    char m_thousands_sep;   ///< @lang{ZH} 千位分隔符；`'\0'` 表示不使用分隔符。 @endif @lang{EN} Thousands separator; `'\0'` means no separator. @endif
+    std::string m_true_name;              ///< @lang{ZH} `true` 的文本表示。 @endif @lang{EN} Textual representation of `true`. @endif
+    std::string m_false_name;             ///< @lang{ZH} `false` 的文本表示。 @endif @lang{EN} Textual representation of `false`. @endif
+    std::vector<uint8_t> m_grouping;      ///< @lang{ZH} 数字分组规则（内部规范化格式）；为空时表示不分组。 @endif @lang{EN} Digit grouping rules (internal normalized form); empty means no grouping. @endif
 };
 
+/**
+ * @lang{ZH}
+ * @brief `numeric<CharT>` facet 的配置类，适用于宽字符类型。
+ *
+ * 从指定的 locale 中提取宽字符（`wchar_t` 或 `char32_t`）类型的数值格式化参数，
+ * 包括小数点字符、千位分隔符、数字分组规则以及布尔值的文本名称。
+ * 此特化仅适用于 `wchar_t`，以及在 `wchar_t` 为 UTF-32 的平台上的 `char32_t`。
+ *
+ * @tparam CharT 宽字符类型，必须为 `wchar_t` 或（在 UTF-32 平台上的）`char32_t`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Configuration class for the `numeric<CharT>` facet for wide character types.
+ *
+ * Extracts wide-character (`wchar_t` or `char32_t`) numeric formatting parameters
+ * from the specified locale, including the decimal point character, thousands separator,
+ * digit grouping rules, and boolean text names. This specialization applies to `wchar_t`
+ * and, on platforms where `wchar_t` is UTF-32, to `char32_t`.
+ *
+ * @tparam CharT The wide character type; must be `wchar_t` or (on UTF-32 platforms) `char32_t`.
+ * @endif
+ */
 template <typename CharT>
     requires std::is_same_v<CharT, wchar_t> ||
                 (std::is_same_v<CharT, char32_t> &&
@@ -120,9 +267,42 @@ template <typename CharT>
 class numeric_conf<CharT> : public ft_basic<numeric<CharT>>
 {
 public:
+    /**
+     * @lang{ZH}
+     * @brief 字符类型。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The character type.
+     * @endif
+     */
     using char_type = CharT;
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 构造函数，从指定的 locale 中读取并初始化所有数值格式化参数。
+     *
+     * 对于 "C" 和 "POSIX" locale，直接使用标准 ASCII 宽字符值。对于其他 locale，
+     * 在 locale 守卫有效期间将所有依赖 locale 的指针（`lconv*`、`nl_langinfo()`）
+     * 快照为原始窄字符串，以防后续的 `setlocale()`/`uselocale()` 调用使指针失效，
+     * 再于守卫结束后执行宽字符转换。
+     *
+     * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructor that reads and initializes all numeric formatting parameters from the specified locale.
+     *
+     * For "C" and "POSIX" locales, standard ASCII wide-character values are assigned
+     * directly. For other locales, all locale-dependent pointers (`lconv*`, `nl_langinfo()`)
+     * are snapshotted into raw narrow strings while the locale guard is active, preventing
+     * invalidation by subsequent `setlocale()`/`uselocale()` calls; wide-character
+     * conversion is then performed after the guard ends.
+     *
+     * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
+     * @endif
+     */
     numeric_conf(const std::string& name)
         : ft_basic<numeric<CharT>>()
     {
@@ -233,20 +413,117 @@ public:
     }
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 的小数点字符。
+     * @return 小数点字符。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the decimal point character for this locale.
+     * @return The decimal point character.
+     * @endif
+     */
     [[nodiscard]] virtual CharT decimal_point() const { return m_decimal_point; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 的千位分隔符字符。
+     *
+     * 若返回值为 `CharT('\0')`，表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符字符，或 `CharT('\0')`（不使用分隔符时）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the thousands separator character for this locale.
+     *
+     * A return value of `CharT('\0')` indicates that no separator is used,
+     * in which case `grouping()` is always empty.
+     * @return The thousands separator character, or `CharT('\0')` if none is used.
+     * @endif
+     */
     [[nodiscard]] virtual CharT thousands_sep() const { return m_thousands_sep; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 中 `true` 的文本表示。
+     * @return `true` 的文本字符串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the textual representation of `true` for this locale.
+     * @return The text string for `true`.
+     * @endif
+     */
     [[nodiscard]] virtual const std::basic_string<CharT>& truename() const { return m_true_name; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 中 `false` 的文本表示。
+     * @return `false` 的文本字符串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the textual representation of `false` for this locale.
+     * @return The text string for `false`.
+     * @endif
+     */
     [[nodiscard]] virtual const std::basic_string<CharT>& falsename() const { return m_false_name; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回数字分组规则（内部规范化格式）。
+     *
+     * 向量中每个元素表示一个数字组的位数。若向量为空，则表示不进行分组。
+     * @return 数字分组规则向量；为空时表示不分组。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the digit grouping specification in the internal normalized form.
+     *
+     * Each element in the vector specifies the number of digits in one group.
+     * An empty vector indicates that no grouping is applied.
+     * @return The digit grouping vector; empty means no grouping.
+     * @endif
+     */
     [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
-    CharT m_decimal_point;
-    CharT m_thousands_sep;
-    std::basic_string<CharT>    m_true_name;
-    std::basic_string<CharT>    m_false_name;
-    std::vector<uint8_t>        m_grouping;
+    CharT m_decimal_point;                  ///< @lang{ZH} 小数点字符。 @endif @lang{EN} The decimal point character. @endif
+    CharT m_thousands_sep;                  ///< @lang{ZH} 千位分隔符；`CharT('\0')` 表示不使用分隔符。 @endif @lang{EN} Thousands separator; `CharT('\0')` means no separator. @endif
+    std::basic_string<CharT> m_true_name;   ///< @lang{ZH} `true` 的文本表示。 @endif @lang{EN} Textual representation of `true`. @endif
+    std::basic_string<CharT> m_false_name;  ///< @lang{ZH} `false` 的文本表示。 @endif @lang{EN} Textual representation of `false`. @endif
+    std::vector<uint8_t>     m_grouping;    ///< @lang{ZH} 数字分组规则（内部规范化格式）；为空时表示不分组。 @endif @lang{EN} Digit grouping rules (internal normalized form); empty means no grouping. @endif
 };
 
+/**
+ * @lang{ZH}
+ * @brief `numeric<char8_t>` facet 的配置类。
+ *
+ * 通过委托给 `numeric_conf<char32_t>` 来获取 locale 参数，再将各参数收窄为单字节
+ * UTF-8 字符。若某参数的 UTF-8 编码超过一个字节，或编码结果为 `u8'\0'`，则回退到
+ * ASCII 默认值（小数点回退为 `u8'.'`，千位分隔符回退并清空分组规则）。
+ * 当两个分隔符回退后重合时，分组规则也会被清空，以避免解析歧义。
+ *
+ * @note 此特化要求 `wchar_t` 为 32 位 UTF-32 编码单元（即 `wchar_t_is_utf32` 为真），
+ *       因为其实现依赖 `numeric_conf<char32_t>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Configuration class for the `numeric<char8_t>` facet.
+ *
+ * Obtains locale parameters by delegating to `numeric_conf<char32_t>`, then narrows
+ * each parameter to a single-byte UTF-8 character. If a parameter's UTF-8 encoding
+ * spans more than one byte, or the encoded result is `u8'\0'`, it falls back to an
+ * ASCII default (decimal point falls back to `u8'.'`; thousands separator falls back
+ * and the grouping is cleared). When the two separators coincide after fallback,
+ * the grouping is also cleared to avoid parsing ambiguity.
+ *
+ * @note This specialization requires `wchar_t` to be a 32-bit UTF-32 code unit
+ *       (i.e., `wchar_t_is_utf32` is true), as the implementation delegates to
+ *       `numeric_conf<char32_t>`.
+ * @endif
+ */
 template <>
 class numeric_conf<char8_t> : public ft_basic<numeric<char8_t>>
 {
@@ -256,9 +533,40 @@ class numeric_conf<char8_t> : public ft_basic<numeric<char8_t>>
         "(e.g. wchar_t is 16-bit UTF-16) does not satisfy that assumption.");
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 字符类型。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The character type.
+     * @endif
+     */
     using char_type = char8_t;
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 构造函数，从指定的 locale 中读取并初始化所有数值格式化参数。
+     *
+     * 对于 "C" 和 "POSIX" locale，直接使用标准 ASCII UTF-8 值。对于其他 locale，
+     * 先构造 `numeric_conf<char32_t>` 获取 Unicode 参数，再逐一将其收窄为单字节
+     * UTF-8 字符；若无法收窄则使用默认值。
+     *
+     * @param name locale 名称字符串（例如 `"zh_CN.UTF-8"`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructor that reads and initializes all numeric formatting parameters from the specified locale.
+     *
+     * For "C" and "POSIX" locales, standard ASCII UTF-8 values are assigned directly.
+     * For other locales, a `numeric_conf<char32_t>` is constructed first to obtain
+     * Unicode parameters, which are then narrowed one by one to single-byte UTF-8
+     * characters; a default value is used whenever narrowing is not possible.
+     *
+     * @param name The locale name string (e.g., `"zh_CN.UTF-8"`).
+     * @endif
+     */
     numeric_conf(const std::string& name)
         : ft_basic<numeric<char8_t>>()
     {
@@ -312,17 +620,86 @@ public:
     }
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 的小数点字符（单字节 UTF-8）。
+     * @return 小数点字符。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the decimal point character for this locale (single-byte UTF-8).
+     * @return The decimal point character.
+     * @endif
+     */
     [[nodiscard]] virtual char8_t decimal_point() const { return m_decimal_point; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 的千位分隔符字符（单字节 UTF-8）。
+     *
+     * 若返回值为 `u8'\0'`，表示不使用分隔符，此时 `grouping()` 必为空。
+     * @return 千位分隔符字符，或 `u8'\0'`（不使用分隔符时）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the thousands separator character for this locale (single-byte UTF-8).
+     *
+     * A return value of `u8'\0'` indicates that no separator is used,
+     * in which case `grouping()` is always empty.
+     * @return The thousands separator character, or `u8'\0'` if none is used.
+     * @endif
+     */
     [[nodiscard]] virtual char8_t thousands_sep() const { return m_thousands_sep; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 中 `true` 的文本表示（UTF-8 编码）。
+     * @return `true` 的 UTF-8 文本字符串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the textual representation of `true` for this locale (UTF-8 encoded).
+     * @return The UTF-8 text string for `true`.
+     * @endif
+     */
     [[nodiscard]] virtual const std::basic_string<char8_t>& truename() const { return m_true_name; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回此 locale 中 `false` 的文本表示（UTF-8 编码）。
+     * @return `false` 的 UTF-8 文本字符串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the textual representation of `false` for this locale (UTF-8 encoded).
+     * @return The UTF-8 text string for `false`.
+     * @endif
+     */
     [[nodiscard]] virtual const std::basic_string<char8_t>& falsename() const { return m_false_name; }
+
+    /**
+     * @lang{ZH}
+     * @brief 返回数字分组规则（内部规范化格式）。
+     *
+     * 向量中每个元素表示一个数字组的位数。若向量为空，则表示不进行分组。
+     * @return 数字分组规则向量；为空时表示不分组。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the digit grouping specification in the internal normalized form.
+     *
+     * Each element in the vector specifies the number of digits in one group.
+     * An empty vector indicates that no grouping is applied.
+     * @return The digit grouping vector; empty means no grouping.
+     * @endif
+     */
     [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
-    char8_t m_decimal_point;
-    char8_t m_thousands_sep;
-    std::basic_string<char8_t>  m_true_name;
-    std::basic_string<char8_t>  m_false_name;
-    std::vector<uint8_t>        m_grouping;
+    char8_t m_decimal_point;                    ///< @lang{ZH} 小数点字符（单字节 UTF-8）。 @endif @lang{EN} The decimal point character (single-byte UTF-8). @endif
+    char8_t m_thousands_sep;                    ///< @lang{ZH} 千位分隔符（单字节 UTF-8）；`u8'\0'` 表示不使用分隔符。 @endif @lang{EN} Thousands separator (single-byte UTF-8); `u8'\0'` means no separator. @endif
+    std::basic_string<char8_t> m_true_name;     ///< @lang{ZH} `true` 的 UTF-8 文本表示。 @endif @lang{EN} UTF-8 textual representation of `true`. @endif
+    std::basic_string<char8_t> m_false_name;    ///< @lang{ZH} `false` 的 UTF-8 文本表示。 @endif @lang{EN} UTF-8 textual representation of `false`. @endif
+    std::vector<uint8_t>       m_grouping;      ///< @lang{ZH} 数字分组规则（内部规范化格式）；为空时表示不分组。 @endif @lang{EN} Digit grouping rules (internal normalized form); empty means no grouping. @endif
 };
 }
