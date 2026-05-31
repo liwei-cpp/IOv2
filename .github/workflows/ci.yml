@@ -103,6 +103,8 @@ jobs:
         clang-tidy $(find include/common include/device include/cvt -name '*.h') \
           include/facet/facet_common.h include/facet/facet_helper.h \
           include/facet/ctype_details.h include/facet/ctype.h \
+          include/facet/collate_details.h include/facet/collate.h \
+          include/facet/numeric_details.h include/facet/numeric.h \
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2

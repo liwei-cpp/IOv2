@@ -8,6 +8,7 @@
 #include <io/io_base.h>
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -52,26 +53,25 @@ public:
         // widened range matches m_in_atoms/m_out_atoms exactly. static_assert
         // keeps the source literal and the destination array in lock-step.
         constexpr std::string_view in_atoms = "-+xX0123456789abcdefABCDEF";
-        static_assert(in_atoms.size() == std::extent_v<decltype(m_in_atoms)>);
-        m_ctype->widen_seq(in_atoms.data(), in_atoms.data() + in_atoms.size(), m_in_atoms);
+        static_assert(in_atoms.size() == std::tuple_size_v<decltype(m_in_atoms)>);
+        m_ctype->widen_seq(in_atoms.data(), in_atoms.data() + in_atoms.size(), m_in_atoms.data());
 
         constexpr std::string_view out_atoms = "-+xX0123456789abcdef0123456789ABCDEF";
-        static_assert(out_atoms.size() == std::extent_v<decltype(m_out_atoms)>);
-        m_ctype->widen_seq(out_atoms.data(), out_atoms.data() + out_atoms.size(), m_out_atoms);
+        static_assert(out_atoms.size() == std::tuple_size_v<decltype(m_out_atoms)>);
+        m_ctype->widen_seq(out_atoms.data(), out_atoms.data() + out_atoms.size(), m_out_atoms.data());
 
         if constexpr (std::is_same_v<CharT, wchar_t> ||
                       std::is_same_v<CharT, char32_t>)
         {
-            assert(atoms_pairwise_distinct(m_in_atoms,
-                                           std::extent_v<decltype(m_in_atoms)>));
+            assert(atoms_pairwise_distinct(m_in_atoms.data(), m_in_atoms.size()));
             // m_out_atoms intentionally aliases "0..9" at [4..13] and
             // [20..29] (lowercase / uppercase hex digit slots). Build a
             // 26-position view that skips that overlap before checking
             // distinctness on the semantically distinct output positions.
-            CharT out_view[26];
-            std::copy(m_out_atoms,      m_out_atoms + 20, out_view);
-            std::copy(m_out_atoms + 30, m_out_atoms + 36, out_view + 20);
-            assert(atoms_pairwise_distinct(out_view, 26));
+            std::array<CharT, 26> out_view{};
+            std::copy(m_out_atoms.begin(),        m_out_atoms.begin() + 20, out_view.begin());
+            std::copy(m_out_atoms.begin() + 30,   m_out_atoms.end(),        out_view.begin() + 20);
+            assert(atoms_pairwise_distinct(out_view.data(), out_view.size()));
         }
     }
 
@@ -80,7 +80,7 @@ public:
     CharT thousands_sep() const noexcept { return m_thousands_sep; }
     const std::basic_string<CharT>& truename() const noexcept { return m_true_name; }
     const std::basic_string<CharT>& falsename() const noexcept { return m_false_name; }
-    const std::vector<uint8_t>& grouping() const noexcept { return m_grouping; }
+    [[nodiscard]] const std::vector<uint8_t>& grouping() const noexcept { return m_grouping; }
 
 public:
     template <typename TIter>
@@ -143,7 +143,7 @@ public:
                                                      unsigned long,
                                                      unsigned long long>;
 
-        return insert_int(s, io, reinterpret_cast<uintptr_carrier_t>(v));
+        return insert_int(s, io, reinterpret_cast<uintptr_carrier_t>(v)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -240,10 +240,10 @@ public:
         using uintptr_carrier_t = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
                                                      unsigned long,
                                                      unsigned long long>;
-        uintptr_carrier_t ul;
+        uintptr_carrier_t ul = 0;
         auto [succ, res] = extract_int(beg, end, io, ul);
 
-        v = reinterpret_cast<void*>(ul);
+        v = reinterpret_cast<void*>(ul); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,performance-no-int-to-ptr)
 
         if (!succ) throw stream_error("numeric::get fail: parse address fail");
         return res;
@@ -269,6 +269,8 @@ private:
         ~fmtflags_guard() { m_io.flags(m_saved); }
         fmtflags_guard(const fmtflags_guard&) = delete;
         fmtflags_guard& operator=(const fmtflags_guard&) = delete;
+        fmtflags_guard(fmtflags_guard&&) = delete;
+        fmtflags_guard& operator=(fmtflags_guard&&) = delete;
     private:
         ios_base<char_type>& m_io;
         ios_defs::fmtflags m_saved;
@@ -284,8 +286,8 @@ private:
 
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
         size_t len = 0;
-        char fbuf[16];
-        format_float_(io.flags(), fbuf, mod);
+        std::array<char, 16> fbuf{};
+        format_float_(io.flags(), fbuf.data(), mod);
 
         const ios_defs::fmtflags fltfield = io.flags() & ios_defs::floatfield;
 
@@ -306,9 +308,9 @@ private:
 
             auto do_snprintf = [&](char* buf, size_t size) {
                 if (fltfield == (ios_defs::fixed | ios_defs::scientific))
-                    return snprintf(buf, size, fbuf, v);
+                    return snprintf(buf, size, fbuf.data(), v);
                 else
-                    return snprintf(buf, size, fbuf, static_cast<int>(prec), v);
+                    return snprintf(buf, size, fbuf.data(), static_cast<int>(prec), v);
             };
 
             // snprintf returns int. Trap negative (encoding error) before
@@ -383,7 +385,7 @@ private:
         // below can throw, and a stale width() must not survive onto the stream.
         const std::streamsize w = io.width();
         io.width(0);
-        if (w > static_cast<std::streamsize>(len))
+        if (std::cmp_greater(w, len))
         {
             std::vector<CharT> vec_ws3(w);
             CharT* ws3 = vec_ws3.data();
@@ -420,7 +422,7 @@ private:
         const bool dec = (basefield != ios_defs::oct && basefield != ios_defs::hex);
         const unsigned_type u = ((v > 0 || !dec) ? unsigned_type(v)
                                                  : -unsigned_type(v));
-        size_t len = static_cast<size_t>(int_to_char(cs + ilen, u, flags, dec));
+        auto len = static_cast<size_t>(int_to_char(cs + ilen, u, flags, dec));
         cs += ilen - len;
 
         // Add grouping, if necessary.
@@ -465,7 +467,7 @@ private:
         // below can throw, and a stale width() must not survive onto the stream.
         const std::streamsize w = io.width();
         io.width(0);
-        if (w > static_cast<std::streamsize>(len))
+        if (std::cmp_greater(w, len))
         {
             std::vector<char_type> cs_vec3(w);
             char_type* cs3 = cs_vec3.data();
@@ -489,7 +491,7 @@ private:
         auto buf = bufend;
         if (dec)
         {   // Decimal.
-            do
+            do // NOLINT(cppcoreguidelines-avoid-do-while)
             {
                 *--buf = m_out_atoms[(v % 10) + s_odigits];
                 v /= 10;
@@ -497,7 +499,7 @@ private:
         }
         else if ((flags & ios_defs::basefield) == ios_defs::oct)
         { // Octal.
-            do
+            do // NOLINT(cppcoreguidelines-avoid-do-while)
             {
                 *--buf = m_out_atoms[(v & 0x7) + s_odigits];
                 v >>= 3;
@@ -507,7 +509,7 @@ private:
         {   // Hex.
             const bool uppercase = flags & ios_defs::uppercase;
             const int case_offset = uppercase ? s_oudigits : s_odigits;
-            do
+            do // NOLINT(cppcoreguidelines-avoid-do-while)
             {
                 *--buf = m_out_atoms[(v & 0xf) + case_offset];
                 v >>= 4;
@@ -532,7 +534,7 @@ private:
                    bool startSign, bool start0x) const
     {
 
-        const size_t plen = static_cast<size_t>(newlen - oldlen);
+        const auto plen = static_cast<size_t>(newlen - oldlen);
 
         // Padding last.
         if (adjust == ios_defs::left)
@@ -607,7 +609,7 @@ private:
         char_type* p2 = FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + declen);
 
         // Tack on decimal part.
-        size_t newlen = static_cast<size_t>(p2 - new_buf);
+        auto newlen = static_cast<size_t>(p2 - new_buf);
         if (p)
         {
             std::copy(p, p + len - declen, p2);
@@ -656,7 +658,7 @@ private:
         {
             if ((!m_grouping.empty() && c == m_thousands_sep)
                 || c == m_decimal_point)
-                break;
+                break; // NOLINT(bugprone-branch-clone)
             else if (c == m_in_atoms[s_izero] && (!found_zero || base == 10))
             {
                 found_zero = true;
@@ -701,7 +703,7 @@ private:
         const unsigned_type smax = max_val / base;
         unsigned_type result = 0;
         int digit = 0;
-        const char_type* lit_zero = m_in_atoms + s_izero;
+        const char_type* lit_zero = m_in_atoms.data() + s_izero;
 
         while (!testeof)
         {
@@ -716,7 +718,7 @@ private:
                     // found_grouping stores each group's digit count in a
                     // uint8_t. A single group whose size cannot fit in that
                     // byte is rejected rather than silently truncated.
-                    if (sep_pos > std::numeric_limits<uint8_t>::max())
+                    if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
                     {
                         testfail = true;
                         break;
@@ -759,7 +761,7 @@ private:
         {
             // Add the ending grouping. Reject inputs whose final group
             // exceeds the uint8_t storage in found_grouping.
-            if (sep_pos > std::numeric_limits<uint8_t>::max())
+            if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
             {
                 testfail = true;
             }
@@ -835,7 +837,7 @@ private:
         while (!testeof)
         {
             if ((!m_grouping.empty() && c == m_thousands_sep) || c == m_decimal_point)
-                break;
+                break; // NOLINT(bugprone-branch-clone)
             else if (c == m_in_atoms[s_izero])
             {
                 if (!found_mantissa)
@@ -860,7 +862,7 @@ private:
         std::vector<uint8_t> found_grouping;
         if (!m_grouping.empty())
             found_grouping.reserve(32);
-        const char_type* lit_zero = m_in_atoms + s_izero;
+        const char_type* lit_zero = m_in_atoms.data() + s_izero;
 
         while (!testeof)
         {
@@ -876,7 +878,7 @@ private:
                     {
                         // found_grouping stores each group's digit count in a
                         // uint8_t. Reject inputs whose group size cannot fit.
-                        if (sep_pos > std::numeric_limits<uint8_t>::max())
+                        if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
                         {
                             xtrc.clear();
                             break;
@@ -904,7 +906,7 @@ private:
                     // only if decimal_point comes after some thousands_sep.
                     if (found_grouping.size())
                     {
-                        if (sep_pos > std::numeric_limits<uint8_t>::max())
+                        if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
                         {
                             xtrc.clear();
                             break;
@@ -932,7 +934,7 @@ private:
                     // Scientific notation.
                     if (found_grouping.size() && !found_dec)
                     {
-                        if (sep_pos > std::numeric_limits<uint8_t>::max())
+                        if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
                         {
                             xtrc.clear();
                             break;
@@ -978,7 +980,7 @@ private:
             // Add the ending grouping if a decimal or 'e'/'E' wasn't found.
             if (!found_dec && !found_sci)
             {
-                if (sep_pos > std::numeric_limits<uint8_t>::max())
+                if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
                 {
                     // Final group exceeds the uint8_t storage in
                     // found_grouping. Fail cleanly rather than truncate.
@@ -1003,7 +1005,7 @@ private:
     bool convert_to_v(const char* s, TValue& v) const
     {
         bool res = true;
-        char* sanity;
+        char* sanity = nullptr;
 
         clocale_wrapper inter_locale("C");
         clocale_user guard(inter_locale);
@@ -1065,8 +1067,8 @@ private:
     std::vector<uint8_t>      m_grouping;
 
 private:
-    char_type m_in_atoms[26];
-    char_type m_out_atoms[36];
+    std::array<char_type, 26> m_in_atoms{};
+    std::array<char_type, 36> m_out_atoms{};
     static constexpr int s_ominus       = 0;
     static constexpr int s_oplus        = 1;
     static constexpr int s_ox           = 2;
