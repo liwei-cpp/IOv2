@@ -348,7 +348,7 @@ private:
 
         // Replace decimal point.
         const char* p = std::find(cs, cs + len, '.');
-        CharT* wp = 0;
+        CharT* wp = nullptr;
         if (p != cs + len)
         {
             wp = ws + (p - cs);
@@ -379,8 +379,10 @@ private:
             ws = vec_ws.data();
         }
 
-        // Pad.
+        // Pad. Consume the field width up front: the width-sized allocation
+        // below can throw, and a stale width() must not survive onto the stream.
         const std::streamsize w = io.width();
+        io.width(0);
         if (w > static_cast<std::streamsize>(len))
         {
             std::vector<CharT> vec_ws3(w);
@@ -394,7 +396,6 @@ private:
             std::swap(vec_ws, vec_ws3);
             ws = vec_ws.data();
         }
-        io.width(0);
 
         // [22.2.2.2.2] Stage 4.
         // Write resulting, fully-formatted string to output iterator.
@@ -460,8 +461,10 @@ private:
             }
         }
 
-        // Pad.
+        // Pad. Consume the field width up front: the width-sized allocation
+        // below can throw, and a stale width() must not survive onto the stream.
         const std::streamsize w = io.width();
+        io.width(0);
         if (w > static_cast<std::streamsize>(len))
         {
             std::vector<char_type> cs_vec3(w);
@@ -474,7 +477,6 @@ private:
             std::swap(cs_vec, cs_vec3);
             cs = cs_vec.data();
         }
-        io.width(0);
 
         // [22.2.2.2.2] Stage 4.
         // Write resulting, fully-formatted string to output iterator.
@@ -1017,7 +1019,7 @@ private:
         // 23. Num_get overflow result.
         if (sanity == s || *sanity != '\0')
         {
-            v = 0.0l;
+            v = TValue(0);
             res = false;
         }
         else if (v == std::numeric_limits<TValue>::infinity())
