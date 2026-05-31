@@ -6,6 +6,7 @@
 #include <facet/facet_common.h>
 
 #include <algorithm>
+#include <array>
 #include <compare>
 #include <cstring>
 #include <cuchar>
@@ -44,12 +45,12 @@ public:
             // m_inter_locale is built from a single name with LC_ALL_MASK its
             // CTYPE and COLLATE codesets are the same. Agreement here therefore
             // means strcoll/strxfrm agree.
-            static constexpr struct { const char* mb; size_t len; char32_t cp; }
-            probes[] = {
+            struct Probe { const char* mb; size_t len; char32_t cp; };
+            static constexpr std::array<Probe, 3> probes = {{
                 {"\xC3\xA9",         2, U'é'},      // U+00E9  e-acute
                 {"\xE2\x82\xAC",     3, U'€'},      // U+20AC  euro sign
                 {"\xF0\x9F\x98\x80", 4, U'\U0001F600'},  // U+1F600 grinning face
-            };
+            }};
             clocale_user guard(m_inter_locale);
             for (const auto& p : probes)
             {
@@ -105,13 +106,13 @@ public:
             else if constexpr (std::is_same_v<CharT, wchar_t>)
                 c_res = std::wcscoll(cl1, cl2);
             else if constexpr (std::is_same_v<CharT, char8_t>)
-                c_res = std::strcoll(reinterpret_cast<const char*>(cl1),
-                                     reinterpret_cast<const char*>(cl2));
+                c_res = std::strcoll(reinterpret_cast<const char*>(cl1),    // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                     reinterpret_cast<const char*>(cl2));   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             else if constexpr (wchar_t_is_utf32)
             {
                 if constexpr (std::is_same_v<CharT, char32_t>)
-                    c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(cl1),
-                                         reinterpret_cast<const wchar_t*>(cl2));
+                    c_res = std::wcscoll(reinterpret_cast<const wchar_t*>(cl1),  // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                         reinterpret_cast<const wchar_t*>(cl2)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::compare is not implemented.");
             }
@@ -159,11 +160,11 @@ public:
             else if constexpr (std::is_same_v<CharT, wchar_t>)
                 seg_len = wcsxfrm(nullptr, cur, 0);
             else if constexpr (std::is_same_v<CharT, char8_t>)
-                seg_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);
+                seg_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
             else if constexpr (wchar_t_is_utf32)
             {
                 if constexpr (std::is_same_v<CharT, char32_t>)
-                    seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
+                    seg_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform_length is not implemented.");
             }
@@ -226,10 +227,10 @@ public:
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
                     trans_len = wcsxfrm(nullptr, cur, 0);
                 else if constexpr (std::is_same_v<CharT, char8_t>)
-                    trans_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);
+                    trans_len = strxfrm(nullptr, reinterpret_cast<const char*>(cur), 0);   // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 else if constexpr ((std::is_same_v<CharT, char32_t> &&
                                    wchar_t_is_utf32))
-                    trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0);
+                    trans_len = wcsxfrm(nullptr, reinterpret_cast<const wchar_t*>(cur), 0); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 
@@ -243,10 +244,14 @@ public:
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
                     cur_trans = wcsxfrm(buf2.data(), cur, buf2.size());
                 else if constexpr (std::is_same_v<CharT, char8_t>)
-                    cur_trans = strxfrm(reinterpret_cast<char*>(buf2.data()), reinterpret_cast<const char*>(cur), buf2.size());
+                    cur_trans = strxfrm(reinterpret_cast<char*>(buf2.data()),         // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                        reinterpret_cast<const char*>(cur),           // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                        buf2.size());
                 else if constexpr ((std::is_same_v<CharT, char32_t> &&
                                    wchar_t_is_utf32))
-                    cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()), reinterpret_cast<const wchar_t*>(cur), buf2.size());
+                    cur_trans = wcsxfrm(reinterpret_cast<wchar_t*>(buf2.data()),      // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                        reinterpret_cast<const wchar_t*>(cur),        // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                                        buf2.size());
                 else
                     static_assert(dependent_false_v<CharT>, "collate_conf::transform is not implemented.");
 

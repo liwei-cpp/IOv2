@@ -99,11 +99,11 @@ public:
     }
 
 public:
-    virtual char decimal_point() const { return m_decimal_point; }
-    virtual char thousands_sep() const { return m_thousands_sep; }
-    virtual const std::string& truename() const { return m_true_name; }
-    virtual const std::string& falsename() const { return m_false_name; }
-    virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
+    [[nodiscard]] virtual char decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual char thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::string& truename() const { return m_true_name; }
+    [[nodiscard]] virtual const std::string& falsename() const { return m_false_name; }
+    [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
     char m_decimal_point;
@@ -233,11 +233,11 @@ public:
     }
 
 public:
-    virtual CharT decimal_point() const { return m_decimal_point; }
-    virtual CharT thousands_sep() const { return m_thousands_sep; }
-    virtual const std::basic_string<CharT>& truename() const { return m_true_name; }
-    virtual const std::basic_string<CharT>& falsename() const { return m_false_name; }
-    virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
+    [[nodiscard]] virtual CharT decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual CharT thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& truename() const { return m_true_name; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& falsename() const { return m_false_name; }
+    [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
     CharT m_decimal_point;
@@ -312,11 +312,11 @@ public:
     }
 
 public:
-    virtual char8_t decimal_point() const { return m_decimal_point; }
-    virtual char8_t thousands_sep() const { return m_thousands_sep; }
-    virtual const std::basic_string<char8_t>& truename() const { return m_true_name; }
-    virtual const std::basic_string<char8_t>& falsename() const { return m_false_name; }
-    virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
+    [[nodiscard]] virtual char8_t decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual char8_t thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& truename() const { return m_true_name; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& falsename() const { return m_false_name; }
+    [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
 
 private:
     char8_t m_decimal_point;
