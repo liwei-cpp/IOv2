@@ -68,7 +68,7 @@ public:
     int frac_digits_nat() const { return m_nat.m_frac_digits; }
     CharT decimal_point() const { return m_decimal_point; }
     CharT thousands_sep() const { return m_thousands_sep; }
-    
+
     template <typename TIter, std::integral TVal>
     TIter put(TIter s, bool intl, ios_base<char_type>& io, TVal v) const
     {
@@ -102,20 +102,20 @@ public:
         return intl ? insert<true>(s, io, p)
                     : insert<false>(s, io, p);
     }
-    
+
     template <typename TIter>
     TIter put(TIter s, bool intl, ios_base<char_type>& io, const std::basic_string<char_type>& digits) const
     {
         return intl ? insert<true>(s, io, digits)
                     : insert<false>(s, io, digits);
     }
-    
+
     template <typename TIter, std::sentinel_for<TIter> TSent, std::integral TVal>
     TIter get(TIter beg, TSent end, bool intl, ios_base<char_type>& io, TVal& utils) const
     {
         std::string str;
         bool succ = true;
-        
+
         std::tie(succ, beg) = intl ? extract<true>(beg, end, io, str)
                                    : extract<false>(beg, end, io, str);
 
@@ -296,7 +296,7 @@ private:
         io.width(0);
         return s;
     }
-    
+
     template <bool isIntl, typename TIter, std::sentinel_for<TIter> TSent>
     std::pair<bool, TIter> extract(TIter beg, TSent end, ios_base<char_type>& io, std::string& units) const
     {
@@ -556,7 +556,7 @@ private:
     split_info                m_int;
     CharT                     m_decimal_point;
     CharT                     m_thousands_sep;
-    
+
     const inline static char_type s_atoms[11] = {
             (char_type)'-', (char_type)'0', (char_type)'1', (char_type)'2',
             (char_type)'3', (char_type)'4', (char_type)'5', (char_type)'6',
