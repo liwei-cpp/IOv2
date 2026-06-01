@@ -2,6 +2,7 @@
 #include <common/metafunctions.h>
 #include <facet/messages_details.h>
 #include <memory>
+#include <stdexcept>
 
 namespace IOv2
 {

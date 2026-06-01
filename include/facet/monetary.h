@@ -4,9 +4,13 @@
 #include <facet/monetary_details.h>
 #include <io/io_base.h>
 
+#include <algorithm>
 #include <concepts>
 #include <iterator>
-#include <memory>
+#include <limits>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 namespace IOv2
 {
@@ -70,6 +74,7 @@ public:
     CharT thousands_sep() const { return m_thousands_sep; }
 
     template <typename TIter, std::integral TVal>
+        requires (!std::same_as<TVal, bool>)
     TIter put(TIter s, bool intl, ios_base<char_type>& io, TVal v) const
     {
         constexpr size_t buf_size = std::numeric_limits<TVal>::digits10 + 3;
@@ -111,6 +116,7 @@ public:
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent, std::integral TVal>
+        requires (!std::same_as<TVal, bool>)
     TIter get(TIter beg, TSent end, bool intl, ios_base<char_type>& io, TVal& utils) const
     {
         std::string str;
@@ -401,17 +407,18 @@ private:
                     }
                     else if (!m_grouping.empty() && c == m_thousands_sep && !testdecfound)
                     {
-                        if (n)
-                        {
-                            // Mark position for later analysis.
-                            grouping_tmp.push_back(static_cast<uint8_t>(n));
-                            n = 0;
-                        }
-                        else
+                        // A separator with no preceding digits, or a group
+                        // longer than the largest representable group size,
+                        // can never satisfy any grouping spec: reject outright
+                        // rather than truncating the count.
+                        if (n == 0 || n > std::numeric_limits<uint8_t>::max())
                         {
                             testvalid = false;
                             break;
                         }
+                        // Mark position for later analysis.
+                        grouping_tmp.push_back(static_cast<uint8_t>(n));
+                        n = 0;
                     }
                     else
                         break;
@@ -425,7 +432,7 @@ private:
                     ++beg;
                 else
                     testvalid = false;
-            // fallthrough
+                [[fallthrough]];
             case base_ft<monetary>::none:
                 // Only if not at the end of the pattern.
                 if (i != 3)
@@ -464,9 +471,17 @@ private:
             // Test for grouping fidelity.
             if (!grouping_tmp.empty())
             {
-                // Add the ending grouping.
-                grouping_tmp.push_back(static_cast<uint8_t>(testdecfound ? last_pos : n));
-                succ = FacetHelper::verify_grouping(m_grouping, grouping_tmp);
+                // Add the ending grouping. A final group longer than the
+                // largest representable group size cannot satisfy any spec:
+                // fail rather than truncating.
+                const int last_group = testdecfound ? last_pos : n;
+                if (last_group > std::numeric_limits<uint8_t>::max())
+                    succ = false;
+                else
+                {
+                    grouping_tmp.push_back(static_cast<uint8_t>(last_group));
+                    succ = FacetHelper::verify_grouping(m_grouping, grouping_tmp);
+                }
             }
 
             // Iff not enough digits were supplied after the decimal-point.

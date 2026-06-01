@@ -6,6 +6,7 @@
 #include <facet/facet_helper.h>
 
 #include <array>
+#include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -30,7 +31,7 @@ protected:
         pattern ret;
 
         // This insanely complicated routine attempts to construct a valid
-        // pattern for use with monyepunct. A couple of invariants:
+        // pattern for use with moneypunct. A couple of invariants:
 
         // if (precedes) symbol -> value
         // else value -> symbol
@@ -290,6 +291,9 @@ public:
                 m_grouping = std::move(grouping_raw);
                 FacetHelper::adjust_grouping(m_grouping);
             }
+
+            if (m_thousands_sep == m_decimal_point)
+                m_grouping.clear();
         }
     }
 
@@ -443,6 +447,9 @@ public:
                 FacetHelper::adjust_grouping(m_grouping);
             }
 
+            if (m_thousands_sep == m_decimal_point)
+                m_grouping.clear();
+
             if constexpr (std::is_same_v<CharT, wchar_t>)
                 m_positive_sign_nat = detail::to_wstring(positive_sign_raw, name);
             else
@@ -555,15 +562,24 @@ public:
                 if (byte_str.size() == 1) m_decimal_point = byte_str[0];
                 else m_decimal_point = u8'.';
             }
+
             {
                 const auto& input = monetary_tmp.thousands_sep();
                 auto byte_str = detail::to_u8string(input);
-                if (byte_str.size() == 1) m_thousands_sep = byte_str[0];
-                else m_thousands_sep = u8'\0';
+                if (byte_str.size() == 1 && byte_str[0] != u8'\0')
+                {
+                    m_thousands_sep = byte_str[0];
+                    m_grouping = monetary_tmp.grouping();
+                }
+                else
+                    m_thousands_sep = u8',';
             }
+
+            if (m_thousands_sep == m_decimal_point)
+                m_grouping.clear();
+
             m_frac_digits_int = monetary_tmp.frac_digits_int();
             m_frac_digits_nat = monetary_tmp.frac_digits_nat();
-            m_grouping = monetary_tmp.grouping();
 
             {
                 const auto& input = monetary_tmp.positive_sign_int();
