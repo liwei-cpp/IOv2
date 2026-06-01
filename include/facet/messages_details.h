@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -39,18 +40,22 @@ class base_ft<messages> : public abs_ft
 public:
     static void bind_text_domain(const std::string& domain, const std::string& val)
     {
-        auto it = domain_map().find(domain);
-        if (it != domain_map().end())
+        std::lock_guard<std::mutex> guard(s_domain_mutex);
+        auto it = s_domain_map.find(domain);
+        if (it != s_domain_map.end())
             it->second = val;
         else
-            domain_map().insert({domain, val});
+            s_domain_map.insert({domain, val});
     }
 
     static bool available(const std::string& domain, const std::string& lang)
     {
         if (lang.empty() || lang.find(':') != std::string::npos)
         {
-            return available(domain, filter_lang(domain, lang));
+            std::string resolved = filter_lang(domain, lang);
+            if (resolved.empty())
+                return false;
+            return std::filesystem::exists(get_domain_file(domain, resolved));
         }
         return std::filesystem::exists(get_domain_file(domain, lang));
     }
@@ -256,18 +261,16 @@ protected:
     }
 
 private:
-    static std::unordered_map<std::string, std::string>& domain_map()
-    {
-        static std::unordered_map<std::string, std::string> inst;
-        return inst;
-    }
+    inline static std::unordered_map<std::string, std::string> s_domain_map;
+    inline static std::mutex s_domain_mutex;
 
     static std::string get_text_domain(const std::string& domain)
     {
         const static std::string def_path = "/usr/share/locale";
 
-        auto it = domain_map().find(domain);
-        return (it == domain_map().end()) ? def_path : it->second;
+        std::lock_guard<std::mutex> guard(s_domain_mutex);
+        auto it = s_domain_map.find(domain);
+        return (it == s_domain_map.end()) ? def_path : it->second;
     }
 
 private:
