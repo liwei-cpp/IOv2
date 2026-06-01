@@ -1,4 +1,13 @@
 #pragma once
+#include <common/defs.h>
+#include <common/metafunctions.h>
+#include <cvt/code_cvt.h>
+#include <cvt/cvt_facilities.h>
+#include <cvt/root_cvt.h>
+#include <device/mem_device.h>
+#include <facet/facet_common.h>
+#include <facet/facet_helper.h>
+
 #include <bit>
 #include <clocale>
 #include <cstdint>
@@ -7,17 +16,7 @@
 #include <filesystem>
 #include <string>
 #include <unordered_map>
-#include <list>
 #include <vector>
-
-#include <common/metafunctions.h>
-#include <common/defs.h>
-#include <cvt/cvt_facilities.h>
-#include <cvt/root_cvt.h>
-#include <cvt/code_cvt.h>
-#include <device/mem_device.h>
-#include <facet/facet_common.h>
-#include <facet/facet_helper.h>
 
 namespace IOv2
 {
@@ -113,7 +112,7 @@ public:
     base_ft(size_t id, const std::string& p_domain, const std::string& p_lang)
         : abs_ft(id)
         , m_filtered_lang(filter_lang(p_domain, p_lang))
-        , m_domain_info('[' + p_domain + "] [" + p_lang + '(' + m_filtered_lang + ')' + "] [" + 
+        , m_domain_info('[' + p_domain + "] [" + p_lang + '(' + m_filtered_lang + ')' + "] [" +
                         get_text_domain(p_domain) + "]")
     {}
 
@@ -128,6 +127,28 @@ protected:
         return dom.string();
     }
 
+    // Scope: this only implements gettext()/dgettext() semantics, i.e. a
+    // plain one-to-one (msgid -> msgstr) lookup.
+    //
+    // Each .mo string is therefore read as a NUL-terminated C string: the
+    // record's stored `length` may be longer (GNU gettext packs extra data
+    // into a single record using embedded NUL/EOT separators), but anything
+    // past the first '\0' is intentionally ignored here. That matches gettext's
+    // own lookup, which compares msgids with strcmp() and so stops at the first
+    // NUL, and it keeps the map key identical to what a caller passes in.
+    //
+    // Consequently the following are NOT supported (their extra payload is
+    // dropped on purpose, not by accident):
+    //   - ngettext()/dngettext() plural forms: the original is stored as
+    //     "msgid\0msgid_plural" and the translation as "msgstr[0]\0msgstr[1]..".
+    //     Supporting them needs the header's "Plural-Forms:" rule, length-based
+    //     (not C-string) record storage, and an n-aware lookup API.
+    //   - pgettext() message contexts: the original is stored as
+    //     "msgctxt\x04msgid" (EOT-separated, no NUL), so the key here is the
+    //     whole "msgctxt\x04msgid" blob; a context-aware API would need to
+    //     assemble that key explicitly.
+    // Revisit this function (and the lookup API) if ngettext/msgctxt support is
+    // ever required.
     static std::unordered_map<std::u8string, std::u8string> get_translate_dictionary(const std::string& filename)
     {
         std::FILE* fp = fopen(filename.c_str(), "rb");
@@ -170,7 +191,12 @@ protected:
         if (std::fseek(fp, ori_offset, SEEK_SET) != 0)
             throw stream_error("get_translate_dictionary fail: invalid format");
 
-        std::vector<char> str_buf(65536 + 1);
+        // The .mo format stores each string length as an unbounded 32-bit
+        // integer, so the buffer is grown to fit each entry rather than
+        // assuming a fixed maximum. A sanity cap guards against a corrupt or
+        // malicious file requesting a huge allocation.
+        constexpr std::uint32_t k_max_str_len = 64u * 1024u * 1024u; // 64 MiB
+        std::vector<char> str_buf;
         std::vector<std::u8string> oris;
         for (size_t i = 0; i < str_num; ++i)
         {
@@ -178,44 +204,54 @@ protected:
             auto offset = read_num(buff, need_swap);
             auto cur_pos = std::ftell(fp);
             if (cur_pos == -1L) throw stream_error("get_translate_dictionary fail: file inconsistent");
-        
+
+            if (length > k_max_str_len)
+                throw stream_error("get_translate_dictionary fail: string too long");
+            if (str_buf.size() < static_cast<size_t>(length) + 1)
+                str_buf.resize(static_cast<size_t>(length) + 1);
+
             if (std::fseek(fp, offset, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
-        
+
             if (std::fread(str_buf.data(), 1, length, fp) != length)
                 throw stream_error("get_translate_dictionary fail: invalid format");
-        
+
             str_buf[length] = '\0';
             oris.push_back(reinterpret_cast<char8_t*>(str_buf.data()));
-        
+
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
         }
-    
+
         if (std::fseek(fp, aim_offset, SEEK_SET) != 0)
             throw stream_error("get_translate_dictionary fail: invalid format");
         std::unordered_map<std::u8string, std::u8string> res;
-    
+
         for (size_t i = 0; i < str_num; ++i)
         {
             auto length = read_num(buff, need_swap);
             auto offset = read_num(buff, need_swap);
             auto cur_pos = std::ftell(fp);
             if (cur_pos == -1L) throw stream_error("get_translate_dictionary fail: file inconsistent");
-        
+
+            if (length > k_max_str_len)
+                throw stream_error("get_translate_dictionary fail: string too long");
+            if (str_buf.size() < static_cast<size_t>(length) + 1)
+                str_buf.resize(static_cast<size_t>(length) + 1);
+
             if (std::fseek(fp, offset, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
-        
+
             if (std::fread(str_buf.data(), 1, length, fp) != length)
                 throw stream_error("get_translate_dictionary fail: invalid format");
-        
+
             str_buf[length] = '\0';
             res.insert({oris[i], reinterpret_cast<char8_t*>(str_buf.data())});
-        
+
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
         }
-    
+
         return res;
     }
 
@@ -280,8 +316,8 @@ private:
 };
 
 template <typename CharT>
-    requires std::is_same_v<CharT, char32_t> || 
-                (std::is_same_v<CharT, wchar_t> && 
+    requires std::is_same_v<CharT, char32_t> ||
+                (std::is_same_v<CharT, wchar_t> &&
                  wchar_t_is_utf32)
 class messages_conf<CharT> : public ft_basic<messages<CharT>>
 {
@@ -382,7 +418,7 @@ private:
                 return res;
             }
             else
-                throw stream_error("messages_conf init error: upsurpotted wchar_t / char32_t");
+                throw stream_error("messages_conf init error: unsupported wchar_t / char32_t");
         }
         catch(...)
         {
