@@ -1,8 +1,10 @@
 #pragma once
 #include <common/metafunctions.h>
 #include <facet/messages_details.h>
+
 #include <memory>
 #include <stdexcept>
+#include <string>
 
 namespace IOv2
 {
