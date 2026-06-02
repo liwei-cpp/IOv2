@@ -9,7 +9,6 @@
 #include <facet/facet_helper.h>
 
 #include <bit>
-#include <clocale>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -17,6 +16,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace IOv2
@@ -90,22 +90,13 @@ public:
                 if (!res.empty()) return res;
             }
 
-            if (const char* p = std::setlocale(LC_ALL, nullptr))
+            for (const char* var : {"LC_ALL", "LC_MESSAGES", "LANG"})
             {
-                res = p;
-                if (base_ft<messages>::available(domain, res)) return res;
-            }
-
-            if (const char* p = std::setlocale(LC_MESSAGES, nullptr))
-            {
-                res = p;
-                if (base_ft<messages>::available(domain, res)) return res;
-            }
-
-            if (const char* p = std::getenv("LANG"))
-            {
-                res = p;
-                if (base_ft<messages>::available(domain, res)) return res;
+                if (const char* p = std::getenv(var); p && p[0] != '\0')
+                {
+                    res = p;
+                    if (base_ft<messages>::available(domain, res)) return res;
+                }
             }
 
             return "";
@@ -342,8 +333,12 @@ private:
             std::unordered_map<TString, TString> res;
             auto tmp_dict = base_ft<messages>::get_translate_dictionary(base_ft<messages>::get_domain_file(domain, lang));
             for (const auto& [k, v] : tmp_dict)
-                res.insert({(const CharT *)(detail::to_u32string(k.c_str()).c_str()),
-                            (const CharT *)(detail::to_u32string(v.c_str()).c_str())});
+            {
+                const std::u32string uk = detail::to_u32string(k.c_str());
+                const std::u32string uv = detail::to_u32string(v.c_str());
+                res.insert({TString(uk.begin(), uk.end()),
+                            TString(uv.begin(), uv.end())});
+            }
             return res;
         }
         catch(...)
@@ -399,8 +394,10 @@ private:
 
                 for (const auto& [k, v] : tmp_dict)
                 {
-                    std::wstring wk = (const wchar_t *)(detail::to_u32string(k.c_str()).c_str());
-                    std::wstring wv = (const wchar_t *)(detail::to_u32string(v.c_str()).c_str());
+                    const std::u32string uk = detail::to_u32string(k.c_str());
+                    const std::u32string uv = detail::to_u32string(v.c_str());
+                    std::wstring wk(uk.begin(), uk.end());
+                    std::wstring wv(uv.begin(), uv.end());
 
                     cvt.bos(); cvt.main_cont_beg();
                     cvt.put(wk.data(), wk.size());

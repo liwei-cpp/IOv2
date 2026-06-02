@@ -6,11 +6,15 @@
 
 #include <algorithm>
 #include <concepts>
+#include <cstddef>
+#include <cstdint>
 #include <iterator>
 #include <limits>
+#include <string>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace IOv2
 {
