@@ -69,7 +69,7 @@ public:
             while ((end = str_lang.find(':', start)) != std::string::npos)
             {
                 auto cur_lang = str_lang.substr(start, end - start);
-                if (base_ft<messages>::available(domain, cur_lang))
+                if ((!cur_lang.empty()) && (base_ft<messages>::available(domain, cur_lang)))
                     return cur_lang;
                 start = end + 1;
             }
@@ -192,7 +192,7 @@ protected:
         // assuming a fixed maximum. A sanity cap guards against a corrupt or
         // malicious file requesting a huge allocation.
         constexpr std::uint32_t k_max_str_len = 64u * 1024u * 1024u; // 64 MiB
-        std::vector<char> str_buf;
+        std::vector<char8_t> str_buf;
         std::vector<std::u8string> oris;
         for (size_t i = 0; i < str_num; ++i)
         {
@@ -212,8 +212,8 @@ protected:
             if (std::fread(str_buf.data(), 1, length, fp) != length)
                 throw stream_error("get_translate_dictionary fail: invalid format");
 
-            str_buf[length] = '\0';
-            oris.push_back(reinterpret_cast<char8_t*>(str_buf.data()));
+            str_buf[length] = u8'\0';
+            oris.push_back(str_buf.data());
 
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
@@ -241,8 +241,8 @@ protected:
             if (std::fread(str_buf.data(), 1, length, fp) != length)
                 throw stream_error("get_translate_dictionary fail: invalid format");
 
-            str_buf[length] = '\0';
-            res.insert({oris[i], reinterpret_cast<char8_t*>(str_buf.data())});
+            str_buf[length] = u8'\0';
+            res.insert({oris[i], str_buf.data()});
 
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
