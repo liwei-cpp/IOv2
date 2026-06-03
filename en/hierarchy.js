@@ -182,7 +182,7 @@ var hierarchy =
       [ "IOv2::monetary_conf< char >", "classIOv2_1_1monetary__conf_3_01char_01_4.html", null ]
     ] ],
     [ "IOv2::ft_basic< monetary< char8_t > >", "classIOv2_1_1ft__basic.html", [
-      [ "IOv2::monetary_conf< char8_t >", "classIOv2_1_1monetary__conf_3_01char8__t_01_4.html", null ]
+      [ "IOv2::monetary_conf< CharT >", "classIOv2_1_1monetary__conf_3_01CharT_01_4.html", null ]
     ] ],
     [ "IOv2::ft_basic< monetary< CharT > >", "classIOv2_1_1ft__basic.html", [
       [ "IOv2::monetary_conf< CharT >", "classIOv2_1_1monetary__conf_3_01CharT_01_4.html", null ]

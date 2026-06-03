@@ -1,5 +1,7 @@
 <map id="IOv2::monetary_conf&lt; CharT &gt;" name="IOv2::monetary_conf&lt; CharT &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="20,93,179,133"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="125,93,284,133"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,193,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,59,102,93,97,93,97,59"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,52,183,91,180,95,131,56"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="217,5,405,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,56,230,95,227,91,275,52"/>
 </map>

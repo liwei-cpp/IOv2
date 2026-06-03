@@ -129,7 +129,6 @@ var annotated_dup =
       [ "monetary", "classIOv2_1_1monetary.html", "classIOv2_1_1monetary" ],
       [ "monetary_conf", "classIOv2_1_1monetary__conf.html", null ],
       [ "monetary_conf< char >", "classIOv2_1_1monetary__conf_3_01char_01_4.html", "classIOv2_1_1monetary__conf_3_01char_01_4" ],
-      [ "monetary_conf< char8_t >", "classIOv2_1_1monetary__conf_3_01char8__t_01_4.html", "classIOv2_1_1monetary__conf_3_01char8__t_01_4" ],
       [ "monetary_conf< CharT >", "classIOv2_1_1monetary__conf_3_01CharT_01_4.html", "classIOv2_1_1monetary__conf_3_01CharT_01_4" ],
       [ "no_rb_root_cvt", "classIOv2_1_1no__rb__root__cvt.html", null ],
       [ "numeric", "classIOv2_1_1numeric.html", "classIOv2_1_1numeric" ],
