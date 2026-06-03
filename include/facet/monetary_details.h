@@ -6,9 +6,12 @@
 #include <facet/facet_helper.h>
 
 #include <array>
+#include <clocale>
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace IOv2
@@ -529,8 +532,23 @@ private:
     CharT                       m_thousands_sep;
 };
 
-template <>
-class monetary_conf<char8_t> : public ft_basic<monetary<char8_t>>
+// This specialization delegates to monetary_conf<char32_t> to populate its data
+// (see init_from_u32 below), so it requires monetary_conf<char32_t> to be a
+// complete type when a char8_t conf is constructed for a non-"C"/"POSIX" locale.
+// That delegation lives in a member function template whose reference to
+// monetary_conf<char32_t> is dependent on a template parameter, so it is checked
+// only when actually instantiated (never eagerly, hence not IFNDR): merely
+// naming or default-constructing monetary_conf<char8_t> stays well-formed even
+// on platforms where monetary_conf<char32_t> is unavailable (wchar_t is not
+// UTF-32); there, only the non-"C"/"POSIX" construction path fails to compile,
+// which is intended.
+// The completeness requirement is deliberately NOT encoded as a constraint on
+// this class: a non-dependent sizeof(monetary_conf<char32_t>) in the
+// requires-clause is a hard error (not a soft constraint failure) and would
+// break partial-specialization resolution for unrelated monetary_conf<T>.
+template <typename CharT>
+    requires std::is_same_v<CharT, char8_t>
+class monetary_conf<CharT> : public ft_basic<monetary<char8_t>>
 {
 public:
     using char_type = char8_t;
@@ -553,67 +571,77 @@ public:
             m_neg_format_int = base_ft<monetary>::s_default_pattern;
         }
         else
+            init_from_u32<>(name);
+    }
+
+private:
+    // T is defaulted/constrained to char32_t; templating it makes the
+    // monetary_conf<T> reference below dependent, so the whole body is checked
+    // only upon instantiation of this helper (i.e. only on the non-"C"/"POSIX"
+    // construction path), never eagerly.
+    template <typename T = char32_t>
+        requires std::is_same_v<T, char32_t>
+    void init_from_u32(const std::string& name)
+    {
+        monetary_conf<T> monetary_tmp(name);
+
         {
-            monetary_conf<char32_t> monetary_tmp(name);
-
-            {
-                const auto& input = monetary_tmp.decimal_point();
-                auto byte_str = detail::to_u8string(input);
-                if (byte_str.size() == 1) m_decimal_point = byte_str[0];
-                else m_decimal_point = u8'.';
-            }
-
-            {
-                const auto& input = monetary_tmp.thousands_sep();
-                auto byte_str = detail::to_u8string(input);
-                if (byte_str.size() == 1 && byte_str[0] != u8'\0')
-                {
-                    m_thousands_sep = byte_str[0];
-                    m_grouping = monetary_tmp.grouping();
-                }
-                else
-                    m_thousands_sep = u8',';
-            }
-
-            if (m_thousands_sep == m_decimal_point)
-                m_grouping.clear();
-
-            m_frac_digits_int = monetary_tmp.frac_digits_int();
-            m_frac_digits_nat = monetary_tmp.frac_digits_nat();
-
-            {
-                const auto& input = monetary_tmp.positive_sign_int();
-                m_positive_sign_int = detail::to_u8string(input);
-            }
-            {
-                const auto& input = monetary_tmp.positive_sign_nat();
-                m_positive_sign_nat = detail::to_u8string(input);
-            }
-
-            {
-                const auto& input = monetary_tmp.negative_sign_int();
-                m_negative_sign_int = detail::to_u8string(input);
-            }
-            {
-                const auto& input = monetary_tmp.negative_sign_nat();
-                m_negative_sign_nat = detail::to_u8string(input);
-            }
-
-            {
-                const auto& input = monetary_tmp.curr_symbol_nat();
-                m_curr_symbol_nat = detail::to_u8string(input);
-            }
-
-            {
-                const auto& input = monetary_tmp.curr_symbol_int();
-                m_curr_symbol_int = detail::to_u8string(input);
-            }
-
-            m_pos_format_nat = monetary_tmp.pos_format_nat();
-            m_pos_format_int = monetary_tmp.pos_format_int();
-            m_neg_format_nat = monetary_tmp.neg_format_nat();
-            m_neg_format_int = monetary_tmp.neg_format_int();
+            const auto& input = monetary_tmp.decimal_point();
+            auto byte_str = detail::to_u8string(input);
+            if (byte_str.size() == 1) m_decimal_point = byte_str[0];
+            else m_decimal_point = u8'.';
         }
+
+        {
+            const auto& input = monetary_tmp.thousands_sep();
+            auto byte_str = detail::to_u8string(input);
+            if (byte_str.size() == 1 && byte_str[0] != u8'\0')
+            {
+                m_thousands_sep = byte_str[0];
+                m_grouping = monetary_tmp.grouping();
+            }
+            else
+                m_thousands_sep = u8',';
+        }
+
+        if (m_thousands_sep == m_decimal_point)
+            m_grouping.clear();
+
+        m_frac_digits_int = monetary_tmp.frac_digits_int();
+        m_frac_digits_nat = monetary_tmp.frac_digits_nat();
+
+        {
+            const auto& input = monetary_tmp.positive_sign_int();
+            m_positive_sign_int = detail::to_u8string(input);
+        }
+        {
+            const auto& input = monetary_tmp.positive_sign_nat();
+            m_positive_sign_nat = detail::to_u8string(input);
+        }
+
+        {
+            const auto& input = monetary_tmp.negative_sign_int();
+            m_negative_sign_int = detail::to_u8string(input);
+        }
+        {
+            const auto& input = monetary_tmp.negative_sign_nat();
+            m_negative_sign_nat = detail::to_u8string(input);
+        }
+
+        {
+            const auto& input = monetary_tmp.curr_symbol_nat();
+            m_curr_symbol_nat = detail::to_u8string(input);
+        }
+
+        {
+            const auto& input = monetary_tmp.curr_symbol_int();
+            m_curr_symbol_int = detail::to_u8string(input);
+        }
+
+        m_pos_format_nat = monetary_tmp.pos_format_nat();
+        m_pos_format_int = monetary_tmp.pos_format_int();
+        m_neg_format_nat = monetary_tmp.neg_format_nat();
+        m_neg_format_int = monetary_tmp.neg_format_int();
     }
 
 public:
