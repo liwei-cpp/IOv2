@@ -464,14 +464,40 @@ private:
     std::vector<era_entry>                    m_era_items;
 };
 
-template <>
-class timeio_conf<char8_t> : public ft_basic<timeio<char8_t>>
+// This specialization delegates to timeio_conf<char32_t> to populate its data
+// (see init_from_u32 below), so it requires timeio_conf<char32_t> to be a
+// complete type when a char8_t conf is constructed. That delegation lives in a
+// member function template whose reference to timeio_conf<char32_t> is dependent
+// on a template parameter, so it is checked only when actually instantiated
+// (never eagerly, hence not IFNDR): merely naming or default-constructing
+// timeio_conf<char8_t> stays well-formed even on platforms where
+// timeio_conf<char32_t> is unavailable (wchar_t is not UTF-32); there, only the
+// construction path fails to compile, which is intended.
+// The completeness requirement is deliberately NOT encoded as a constraint on
+// this class: a non-dependent sizeof(timeio_conf<char32_t>) in the
+// requires-clause is a hard error (not a soft constraint failure) and would
+// break partial-specialization resolution for unrelated timeio_conf<T>.
+template <typename CharT>
+    requires std::is_same_v<CharT, char8_t>
+class timeio_conf<CharT> : public ft_basic<timeio<char8_t>>
 {
 public:
     timeio_conf(const std::string& name)
         : ft_basic<timeio<char8_t>>()
     {
-        timeio_conf<char32_t> tmp_obj(name);
+        init_from_u32<>(name);
+    }
+
+private:
+    // T is defaulted/constrained to char32_t; templating it makes the
+    // timeio_conf<T> reference below dependent, so the whole body is checked
+    // only upon instantiation of this helper (i.e. only on the construction
+    // path), never eagerly.
+    template <typename T = char32_t>
+        requires std::is_same_v<T, char32_t>
+    void init_from_u32(const std::string& name)
+    {
+        timeio_conf<T> tmp_obj(name);
 
         m_date_format = detail::to_u8string(tmp_obj.date_format());
         m_era_date_format = detail::to_u8string(tmp_obj.era_date_format());
@@ -528,6 +554,7 @@ public:
         m_era_date_time_zone_format = m_era_date_time_format + u8" %Z";
     }
 
+public:
     virtual const std::array<std::basic_string<char8_t>, 7>& day_names() const { return m_day; }
     virtual const std::array<std::basic_string<char8_t>, 7>& abbr_day_names() const { return m_abbr_day; }
     virtual const std::array<std::basic_string<char8_t>, 12>& month_names() const { return m_month; }
