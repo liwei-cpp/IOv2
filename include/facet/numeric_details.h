@@ -505,8 +505,14 @@ private:
  * ASCII 默认值（小数点回退为 `u8'.'`，千位分隔符回退并清空分组规则）。
  * 当两个分隔符回退后重合时，分组规则也会被清空，以避免解析歧义。
  *
- * @note 此特化要求 `wchar_t` 为 32 位 UTF-32 编码单元（即 `wchar_t_is_utf32` 为真），
- *       因为其实现依赖 `numeric_conf<char32_t>`。
+ * @note 对非 "C"/"POSIX" locale 的委托依赖 `numeric_conf<char32_t>`（见 `init_from_u32`），
+ *       因而要求 `wchar_t` 为 32 位 UTF-32 编码单元（即 `wchar_t_is_utf32` 为真）。该依赖
+ *       被置于一个依赖成员函数模板中，仅在实际为非 "C"/"POSIX" locale 构造时才实例化（从不
+ *       提前检查，因此不存在 IFNDR 问题）；在 `wchar_t` 非 UTF-32（`numeric_conf<char32_t>`
+ *       不可用）的平台上，仅命名该类型或为 "C"/"POSIX" locale 构造仍是良构的，只有非
+ *       "C"/"POSIX" 构造路径会编译失败。此完整性要求被刻意不编码为此类上的约束：在
+ *       `requires` 从句中对 `numeric_conf<char32_t>` 使用非依赖 `sizeof()` 是硬错误
+ *       （而非软约束失败），会破坏无关 `numeric_conf<T>` 的偏特化解析。
  * @endif
  *
  * @lang{EN}
@@ -519,19 +525,24 @@ private:
  * and the grouping is cleared). When the two separators coincide after fallback,
  * the grouping is also cleared to avoid parsing ambiguity.
  *
- * @note This specialization requires `wchar_t` to be a 32-bit UTF-32 code unit
- *       (i.e., `wchar_t_is_utf32` is true), as the implementation delegates to
- *       `numeric_conf<char32_t>`.
+ * @note The delegation for non-"C"/"POSIX" locales relies on `numeric_conf<char32_t>`
+ *       (see `init_from_u32`), which requires `wchar_t` to be a 32-bit UTF-32 code unit
+ *       (i.e., `wchar_t_is_utf32` is true). That dependency lives in a dependent member
+ *       function template and is checked only when actually constructing for a
+ *       non-"C"/"POSIX" locale (never eagerly, hence not IFNDR); on platforms where
+ *       `wchar_t` is not UTF-32 (`numeric_conf<char32_t>` is unavailable), merely naming
+ *       the type or constructing for a "C"/"POSIX" locale stays well-formed, and only the
+ *       non-"C"/"POSIX" construction path fails to compile. The completeness requirement
+ *       is deliberately NOT encoded as a constraint on this class: a non-dependent
+ *       `sizeof(numeric_conf<char32_t>)` in the requires-clause is a hard error (not a
+ *       soft constraint failure) and would break partial-specialization resolution for
+ *       unrelated `numeric_conf<T>`.
  * @endif
  */
-template <>
-class numeric_conf<char8_t> : public ft_basic<numeric<char8_t>>
+template <typename CharT>
+    requires std::is_same_v<CharT, char8_t>
+class numeric_conf<CharT> : public ft_basic<numeric<char8_t>>
 {
-    static_assert(wchar_t_is_utf32,
-        "numeric_conf<char8_t> delegates to numeric_conf<char32_t>, which "
-        "requires wchar_t to be a 32-bit UTF-32 code unit. This platform "
-        "(e.g. wchar_t is 16-bit UTF-16) does not satisfy that assumption.");
-
 public:
     /**
      * @lang{ZH}
@@ -579,7 +590,19 @@ public:
             return;
         }
 
-        numeric_conf<char32_t> numeric_temp(name);
+        init_from_u32<>(name);
+    }
+
+private:
+    // T is defaulted/constrained to char32_t; templating it makes the
+    // numeric_conf<T> reference below dependent, so the whole body is checked
+    // only upon instantiation of this helper (i.e. only on the non-"C"/"POSIX"
+    // construction path), never eagerly.
+    template <typename T = char32_t>
+        requires std::is_same_v<T, char32_t>
+    void init_from_u32(const std::string& name)
+    {
+        numeric_conf<T> numeric_temp(name);
         {
             const auto input = numeric_temp.decimal_point();
             auto output = detail::to_u8string(input);
