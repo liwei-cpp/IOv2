@@ -6,7 +6,6 @@
 #include <cvt/root_cvt.h>
 #include <device/mem_device.h>
 #include <facet/facet_common.h>
-#include <facet/facet_helper.h>
 
 #include <bit>
 #include <cstdint>
@@ -95,7 +94,12 @@ public:
                 if (const char* p = std::getenv(var); p && p[0] != '\0')
                 {
                     res = p;
-                    if (base_ft<messages>::available(domain, res)) return res;
+                    // Unlike LANGUAGE, these are a single locale name, not a
+                    // ':'-separated list (gettext never splits them). A value
+                    // containing ':' is therefore not a valid locale name:
+                    // skip it and try the next variable.
+                    if (res.find(':') == std::string::npos && base_ft<messages>::available(domain, res))
+                        return res;
                 }
             }
 
