@@ -1,11 +1,13 @@
 <map id="IOv2::timeio_conf&lt; CharT &gt;" name="IOv2::timeio_conf&lt; CharT &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="162,272,310,312"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title=" " alt="" coords="153,183,319,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="239,237,239,272,233,272,233,237"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="258,272,406,312"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title=" " alt="" coords="106,183,273,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,228,302,270,300,274,231,232"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1base__ft.html" title=" " alt="" coords="5,87,184,113"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,118,211,180,208,185,120,123"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="117,121,173,181,170,184,113,125"/>
 <area shape="rect" id="Node000004" href="$structIOv2_1_1abs__ft.html" title=" " alt="" coords="45,5,144,31"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="97,44,97,87,92,87,92,44"/>
 <area shape="rect" id="Node000005" href="$classIOv2_1_1prefix__tree.html" title=" " alt="" coords="208,80,360,120"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="271,134,247,184,243,181,267,131"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="259,132,209,184,205,181,255,128"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="297,183,463,223"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="365,236,345,273,340,271,361,233"/>
 </map>

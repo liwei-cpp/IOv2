@@ -191,7 +191,7 @@ var hierarchy =
       [ "IOv2::numeric_conf< char >", "classIOv2_1_1numeric__conf_3_01char_01_4.html", null ]
     ] ],
     [ "IOv2::ft_basic< numeric< char8_t > >", "classIOv2_1_1ft__basic.html", [
-      [ "IOv2::numeric_conf< char8_t >", "classIOv2_1_1numeric__conf_3_01char8__t_01_4.html", null ]
+      [ "IOv2::numeric_conf< CharT >", "classIOv2_1_1numeric__conf_3_01CharT_01_4.html", null ]
     ] ],
     [ "IOv2::ft_basic< numeric< CharT > >", "classIOv2_1_1ft__basic.html", [
       [ "IOv2::numeric_conf< CharT >", "classIOv2_1_1numeric__conf_3_01CharT_01_4.html", null ]
@@ -200,7 +200,7 @@ var hierarchy =
       [ "IOv2::timeio_conf< char >", "classIOv2_1_1timeio__conf_3_01char_01_4.html", null ]
     ] ],
     [ "IOv2::ft_basic< timeio< char8_t > >", "classIOv2_1_1ft__basic.html", [
-      [ "IOv2::timeio_conf< char8_t >", "classIOv2_1_1timeio__conf_3_01char8__t_01_4.html", null ]
+      [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", null ]
     ] ],
     [ "IOv2::Crypt::hash_cvt_creator< TInt >", "structIOv2_1_1Crypt_1_1hash__cvt__creator.html", null ],
     [ "IOv2::in_sentry< TStream, involve_output >", "structIOv2_1_1in__sentry.html", null ],

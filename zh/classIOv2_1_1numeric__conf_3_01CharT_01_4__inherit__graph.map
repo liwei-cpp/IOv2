@@ -1,5 +1,7 @@
 <map id="IOv2::numeric_conf&lt; CharT &gt;" name="IOv2::numeric_conf&lt; CharT &gt;">
-<area shape="rect" id="Node000001" title="numeric&lt;CharT&gt; facet 的配置类，适用于宽字符类型。" alt="" coords="21,93,169,133"/>
+<area shape="rect" id="Node000001" title="numeric&lt;CharT&gt; facet 的配置类，适用于宽字符类型。" alt="" coords="122,93,270,133"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,184,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,59,97,93,92,93,92,59"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,52,175,91,172,95,126,56"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="208,5,387,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="266,56,220,95,217,91,263,52"/>
 </map>

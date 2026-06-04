@@ -8,7 +8,6 @@ var searchData=
   ['timeio_5',['timeio',['../classIOv2_1_1timeio.html',1,'IOv2']]],
   ['timeio_5fconf_6',['timeio_conf',['../classIOv2_1_1timeio__conf.html',1,'IOv2']]],
   ['timeio_5fconf_3c_20char_20_3e_7',['timeio_conf&lt; char &gt;',['../classIOv2_1_1timeio__conf_3_01char_01_4.html',1,'IOv2']]],
-  ['timeio_5fconf_3c_20char8_5ft_20_3e_8',['timeio_conf&lt; char8_t &gt;',['../classIOv2_1_1timeio__conf_3_01char8__t_01_4.html',1,'IOv2']]],
-  ['timeio_5fconf_3c_20chart_20_3e_9',['timeio_conf&lt; CharT &gt;',['../classIOv2_1_1timeio__conf_3_01CharT_01_4.html',1,'IOv2']]],
-  ['type_5fid_10',['type_id',['../structIOv2_1_1type__id.html',1,'IOv2']]]
+  ['timeio_5fconf_3c_20chart_20_3e_8',['timeio_conf&lt; CharT &gt;',['../classIOv2_1_1timeio__conf_3_01CharT_01_4.html',1,'IOv2']]],
+  ['type_5fid_9',['type_id',['../structIOv2_1_1type__id.html',1,'IOv2']]]
 ];
