@@ -129,9 +129,11 @@ public:
         std::tie(succ, beg) = intl ? extract<true>(beg, end, io, str)
                                    : extract<false>(beg, end, io, str);
 
-        succ &= str_to_v(str, utils);
+        TVal tmp{};
+        succ &= str_to_v(str, tmp);
         if (!succ)
             throw stream_error("monetary parse fail");
+        utils = tmp;
         return beg;
     }
 
@@ -144,20 +146,22 @@ public:
         std::tie(succ, beg) = intl ? extract<true>(beg, end, io, str)
                                    : extract<false>(beg, end, io, str);
         const auto len = str.size();
+        std::basic_string<char_type> tmp;
         if (len)
         {
-            digits.clear();
-            digits.reserve(len);
+            tmp.reserve(len);
             for (auto ch : str)
             {
                 if (ch == '-')
-                    digits.push_back(s_atoms[0]);
+                    tmp.push_back(s_atoms[0]);
                 else if ((ch >= '0') && (ch <= '9'))
-                    digits.push_back(s_atoms[ch - '0' + 1]);
+                    tmp.push_back(s_atoms[ch - '0' + 1]);
             }
         }
         if (!succ)
             throw stream_error("monetary parse fail");
+        if (len)
+            digits.swap(tmp);
         return beg;
     }
 

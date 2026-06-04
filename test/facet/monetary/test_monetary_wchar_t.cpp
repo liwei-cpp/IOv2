@@ -1242,8 +1242,10 @@ void test_monetary_wchar_t_get_21()
     IOv2::monetary<wchar_t> obj(tmp_io);
     std::wstring buffer1(L"00#0#1");
     std::wstring buffer2(L"000##1");
-    std::wstring val1, val2;
-    
+    // Strong exception guarantee: a failed parse must leave the caller's
+    // output argument untouched, so pre-seed a sentinel and verify it survives.
+    std::wstring val1(L"sentinel"), val2(L"sentinel");
+
     {
         try
         {
@@ -1252,7 +1254,7 @@ void test_monetary_wchar_t_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val1 != L"1") throw std::runtime_error("IOv2::monetary<wchar_t>::get fails");
+        if (val1 != L"sentinel") throw std::runtime_error("IOv2::monetary<wchar_t>::get fails");
     }
     {
         try
@@ -1262,7 +1264,7 @@ void test_monetary_wchar_t_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val2 != L"") throw std::runtime_error("IOv2::monetary<wchar_t>::get fails");
+        if (val2 != L"sentinel") throw std::runtime_error("IOv2::monetary<wchar_t>::get fails");
     }
 
     dump_info("Done\n");

@@ -1244,8 +1244,10 @@ void test_monetary_char_get_21()
     IOv2::monetary<char> obj(tmp_io);
     std::string buffer1("00#0#1");
     std::string buffer2("000##1");
-    std::string val1, val2;
-    
+    // Strong exception guarantee: a failed parse must leave the caller's
+    // output argument untouched, so pre-seed a sentinel and verify it survives.
+    std::string val1("sentinel"), val2("sentinel");
+
     {
         try
         {
@@ -1254,7 +1256,7 @@ void test_monetary_char_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val1 != "1") throw std::runtime_error("IOv2::monetary<char>::get fails");
+        if (val1 != "sentinel") throw std::runtime_error("IOv2::monetary<char>::get fails");
     }
     {
         try
@@ -1264,7 +1266,7 @@ void test_monetary_char_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val2 != "") throw std::runtime_error("IOv2::monetary<char>::get fails");
+        if (val2 != "sentinel") throw std::runtime_error("IOv2::monetary<char>::get fails");
     }
 
     dump_info("Done\n");
@@ -2308,7 +2310,9 @@ void test_monetary_char_get_44()
                                 IOv2::base_ft<IOv2::monetary>::value});
                                   
     IOv2::monetary<char> obj(tmp_io);
-    std::string val1, val2;
+    // Strong exception guarantee: a failed parse must leave the caller's
+    // output argument untouched, so pre-seed a sentinel and verify it survives.
+    std::string val1("sentinel"), val2("sentinel");
 
     using namespace IOv2;
     {
@@ -2322,7 +2326,7 @@ void test_monetary_char_get_44()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val1 != "1") throw std::runtime_error("IOv2::monetary<char>::get fails");
+        if (val1 != "sentinel") throw std::runtime_error("IOv2::monetary<char>::get fails");
         if (it != end) throw std::runtime_error("IOv2::monetary<char>::get fails");
     }
     {
@@ -2336,7 +2340,7 @@ void test_monetary_char_get_44()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val2 != "") throw std::runtime_error("IOv2::monetary<char>::get fails");
+        if (val2 != "sentinel") throw std::runtime_error("IOv2::monetary<char>::get fails");
         if (*it != '#') throw std::runtime_error("IOv2::monetary<char>::get fails");
     }
 

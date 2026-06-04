@@ -1243,8 +1243,10 @@ void test_monetary_char32_t_get_21()
     IOv2::monetary<char32_t> obj(tmp_io);
     std::u32string  buffer1(U"00#0#1");
     std::u32string  buffer2(U"000##1");
-    std::u32string  val1, val2;
-    
+    // Strong exception guarantee: a failed parse must leave the caller's
+    // output argument untouched, so pre-seed a sentinel and verify it survives.
+    std::u32string  val1(U"sentinel"), val2(U"sentinel");
+
     {
         try
         {
@@ -1253,7 +1255,7 @@ void test_monetary_char32_t_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val1 != U"1") throw std::runtime_error("IOv2::monetary<char32_t>::get fails");
+        if (val1 != U"sentinel") throw std::runtime_error("IOv2::monetary<char32_t>::get fails");
     }
     {
         try
@@ -1263,7 +1265,7 @@ void test_monetary_char32_t_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val2 != U"") throw std::runtime_error("IOv2::monetary<char32_t>::get fails");
+        if (val2 != U"sentinel") throw std::runtime_error("IOv2::monetary<char32_t>::get fails");
     }
 
     dump_info("Done\n");
