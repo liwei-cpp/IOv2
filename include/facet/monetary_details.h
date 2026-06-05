@@ -6,6 +6,7 @@
 #include <facet/facet_helper.h>
 
 #include <array>
+#include <climits>
 #include <clocale>
 #include <cstdint>
 #include <cstring>
@@ -266,19 +267,33 @@ public:
             if (lc->mon_decimal_point) mdp_raw = lc->mon_decimal_point;
             if (lc->mon_thousands_sep) mts_raw = lc->mon_thousands_sep;
 
-            const int lc_frac_nat = lc->frac_digits;
-            const int lc_frac_int = lc->int_frac_digits;
+            // CHAR_MAX is POSIX's "value not specified by the locale"; map it
+            // to 0 fractional digits rather than taking it literally.
+            const int lc_frac_nat = (lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
+            const int lc_frac_int = (lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
 
             // No lc-> access beyond this point: the conversions may
             // invalidate the lconv pointers.
+            // The decimal point and thousands separator are each stored as a
+            // single char. A locale separator that does not fit in one char
+            // (multibyte) cannot be represented: the convert yields '\0' and
+            // the fallbacks below regress to '.' / ','.
             m_decimal_point = FacetHelper::string_to_char_convert(mdp_raw, name);
             m_thousands_sep = FacetHelper::string_to_char_convert(mts_raw, name);
 
             if (m_decimal_point == '\0')
             {
-                m_frac_digits_int = 0;
-                m_frac_digits_nat = 0;
                 m_decimal_point = '.';
+                if (mdp_raw.empty())
+                {
+                    m_frac_digits_int = 0;
+                    m_frac_digits_nat = 0;
+                }
+                else
+                {
+                    m_frac_digits_nat = lc_frac_nat;
+                    m_frac_digits_int = lc_frac_int;
+                }
             }
             else
             {
@@ -398,8 +413,10 @@ public:
             const std::string int_curr_symbol_raw =
                 lc->int_curr_symbol ? lc->int_curr_symbol : "";
 
-            const int lc_frac_nat = lc->frac_digits;
-            const int lc_frac_int = lc->int_frac_digits;
+            // CHAR_MAX is POSIX's "value not specified by the locale"; map it
+            // to 0 fractional digits rather than taking it literally.
+            const int lc_frac_nat = (lc->frac_digits == CHAR_MAX) ? 0 : lc->frac_digits;
+            const int lc_frac_int = (lc->int_frac_digits == CHAR_MAX) ? 0 : lc->int_frac_digits;
             const bool has_n_sign_posn     = lc->n_sign_posn;
             const bool has_int_n_sign_posn = lc->int_n_sign_posn;
 
@@ -419,6 +436,10 @@ public:
 
             // No lc-> access beyond this point: the conversions may
             // invalidate the lconv pointers.
+            // The decimal point and thousands separator are each a single
+            // CharT. A locale separator that does not fit in one code unit
+            // (e.g. multiple code points) cannot be represented: the convert
+            // yields '\0' and the fallbacks below regress to '.' / ','.
             m_decimal_point = FacetHelper::string_to_widechar_convert<CharT>(
                 mon_dp_raw, name, static_cast<CharT>('\0'));
             m_thousands_sep = FacetHelper::string_to_widechar_convert<CharT>(
@@ -585,6 +606,9 @@ private:
     {
         monetary_conf<T> monetary_tmp(name);
 
+        // The decimal point and thousands separator are each a single char8_t
+        // (one UTF-8 code unit), so only a separator that encodes to a single
+        // byte (ASCII) fits; anything wider regresses to '.' / ','.
         {
             const auto& input = monetary_tmp.decimal_point();
             auto byte_str = detail::to_u8string(input);

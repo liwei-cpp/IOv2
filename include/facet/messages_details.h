@@ -137,6 +137,13 @@ protected:
     // own lookup, which compares msgids with strcmp() and so stops at the first
     // NUL, and it keeps the map key identical to what a caller passes in.
     //
+    // Encoding: strings are assumed to be UTF-8 (the default that GNU gettext
+    // >= 0.22's msgfmt produces). The .mo charset declared in the header
+    // entry's "Content-Type: ...; charset=..." is neither read nor honoured
+    // here, so a .mo in another encoding (a legacy file, or one built with
+    // msgfmt --no-convert) is NOT transcoded: its non-ASCII msgstrs would be
+    // misdecoded. msgids are unaffected, as gettext recommends they be US-ASCII.
+    //
     // Consequently the following are NOT supported (their extra payload is
     // dropped on purpose, not by accident):
     //   - ngettext()/dngettext() plural forms: the original is stored as
@@ -153,7 +160,7 @@ protected:
     {
         std::FILE* fp = fopen(filename.c_str(), "rb");
         if (!fp)
-            throw stream_error("get_translate_dictionary fail: cannot open file" + filename);
+            throw stream_error("get_translate_dictionary fail: cannot open file " + filename);
 
         file_closer guard(fp);
         auto read_num = [fp](unsigned char* buf, bool need_swap)
@@ -284,11 +291,17 @@ public:
         , m_dict(init(domain, this->filtered_lang(), throw_if_fail))
     {}
 
-    virtual const std::u8string& translate(const std::u8string& ori) const
+    // Returns a pointer to the translation, or nullptr when `ori` is not in the
+    // dictionary. Returning a pointer (rather than `ori` on a miss) keeps this
+    // lookup from ever aliasing the caller's argument, so it neither dangles nor
+    // copies; the messages facet layers the gettext pass-through (return the
+    // original on a miss) on top, where it can do so safely per value category.
+    // nullptr unambiguously means "not found", distinct from a found translation
+    // that happens to be empty.
+    virtual const std::u8string* translate(const std::u8string& ori) const
     {
-        if (auto it = m_dict.find(ori); it != m_dict.end())
-            return it->second;
-        return ori;
+        auto it = m_dict.find(ori);
+        return it != m_dict.end() ? &it->second : nullptr;
     }
 
 private:
@@ -354,11 +367,11 @@ private:
     }
 
 public:
-    virtual const TString& translate(const TString& ori) const
+    // See the char8_t specialization: nullptr means "not found".
+    virtual const TString* translate(const TString& ori) const
     {
-        if (auto it = m_dict.find(ori); it != m_dict.end())
-            return it->second;
-        return ori;
+        auto it = m_dict.find(ori);
+        return it != m_dict.end() ? &it->second : nullptr;
     }
 
 private:
@@ -374,11 +387,11 @@ public:
         , m_dict(init(domain, this->filtered_lang(), cvt_ft, throw_if_fail))
     {}
 
-    virtual const std::string& translate(const std::string& ori) const
+    // See the char8_t specialization: nullptr means "not found".
+    virtual const std::string* translate(const std::string& ori) const
     {
-        if (auto it = m_dict.find(ori); it != m_dict.end())
-            return it->second;
-        return ori;
+        auto it = m_dict.find(ori);
+        return it != m_dict.end() ? &it->second : nullptr;
     }
 
 private:

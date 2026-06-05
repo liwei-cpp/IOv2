@@ -21,12 +21,30 @@ public:
         : m_obj(p_obj)
     { if (!m_obj) throw std::runtime_error("shared_ptr is empty"); }
 
+    // Gettext pass-through: the translation on a hit, otherwise the original
+    // `ori`. The lvalue overload borrows (zero copy): the result aliases either
+    // the dictionary (stable for the facet's lifetime) or `ori` itself on a miss,
+    // so the caller's lvalue must outlive it. Temporaries cannot bind here — they
+    // select the by-value rvalue overload below, which can never dangle.
     const std::basic_string<char_type>& translate(const std::basic_string<char_type>& ori) const
     {
         const static std::basic_string<char_type> empty_res;
         if (ori.empty()) return empty_res;
 
-        return m_obj->translate(ori);
+        const auto* p = m_obj->translate(ori);
+        return p ? *p : ori;
+    }
+
+    // Rvalue input returns by value, so the result owns its data and can never
+    // dangle: a miss moves the caller's temporary out (no copy), a hit copies the
+    // dictionary entry out. This makes the common literal/temporary call shape
+    // safe without forbidding it.
+    std::basic_string<char_type> translate(std::basic_string<char_type>&& ori) const
+    {
+        if (ori.empty()) return {};
+
+        const auto* p = m_obj->translate(ori);
+        return p ? *p : std::move(ori);
     }
 
     const std::string& filtered_lang() const
@@ -39,10 +57,12 @@ public:
         return m_obj->domain_info();
     }
 
+    // The .mo header is stored as the entry whose msgid is the empty string.
     const std::basic_string<char_type>& head_entry() const
     {
-        const static std::basic_string<char_type> input;
-        return m_obj->translate(input);
+        const static std::basic_string<char_type> empty_msgid;
+        const auto* p = m_obj->translate(empty_msgid);
+        return p ? *p : empty_msgid;
     }
 
 private:
