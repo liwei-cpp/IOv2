@@ -121,7 +121,7 @@ public:
 
     template <typename TIter, std::sentinel_for<TIter> TSent, std::integral TVal>
         requires (!std::same_as<TVal, bool>)
-    TIter get(TIter beg, TSent end, bool intl, ios_base<char_type>& io, TVal& utils) const
+    TIter get(TIter beg, TSent end, bool intl, ios_base<char_type>& io, TVal& units) const
     {
         std::string str;
         bool succ = true;
@@ -133,7 +133,7 @@ public:
         succ &= str_to_v(str, tmp);
         if (!succ)
             throw stream_error("monetary parse fail");
-        utils = tmp;
+        units = tmp;
         return beg;
     }
 
@@ -193,7 +193,7 @@ private:
 
         // Look for valid numbers in input digits.
         int len = 0;
-        for (auto i = beg; i != beg + digits.size(); ++i)
+        for (auto i = beg; i != digits.data() + digits.size(); ++i)
         {
             char_type ch = *i;
             int j = 1;
@@ -473,7 +473,7 @@ private:
             }
 
             // 22.2.6.1.2, p4
-            if (negative && res[0] != '0')
+            if (negative && !res.empty() && res[0] != '0')
                 res.insert(res.begin(), '-');
 
             // Test for grouping fidelity.
