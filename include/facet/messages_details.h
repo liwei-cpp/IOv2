@@ -159,6 +159,14 @@ protected:
         auto ori_offset = read_num(buff, need_swap);
         auto aim_offset = read_num(buff, need_swap);
 
+        // The .mo file offsets (and string lengths) are unsigned 32-bit, but
+        // std::fseek takes a signed long. Where long is 64-bit (e.g. LP64
+        // Linux) every uint32_t is representable, so all seeks below are exact.
+        // On a 32-bit-long platform (LLP64/ILP32) an offset >= 2 GiB would
+        // convert to a negative long and seek wrongly — but that can only arise
+        // from a > 2 GiB or corrupt .mo, and every fseek/fread return value is
+        // checked, so the worst case is a clean "invalid format" throw, never a
+        // misread or out-of-bounds access.
         if (std::fseek(fp, ori_offset, SEEK_SET) != 0)
             throw stream_error("get_translate_dictionary fail: invalid format");
 
@@ -265,6 +273,17 @@ private:
 
         if (p_lang.empty())
         {
+            // Environment fallback (mirrors gettext): LANGUAGE, then
+            // LC_ALL / LC_MESSAGES / LANG. std::getenv is NOT synchronised
+            // against a concurrent setenv()/putenv() on another thread — the
+            // returned pointer and the bytes it addresses may be invalidated
+            // mid-read — and neither C++ nor POSIX offers a portable
+            // thread-safe environment read, so a lock here could not close the
+            // race against mutators elsewhere. This code therefore assumes the
+            // process environment is not modified concurrently with messages
+            // facet construction (true for the usual "configure locale once at
+            // startup" usage). Each value is copied into a std::string at once
+            // to keep the read window minimal.
             std::string res;
             if (const char* p = std::getenv("LANGUAGE"))
             {

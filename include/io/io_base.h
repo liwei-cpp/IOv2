@@ -4,7 +4,6 @@
 #include <exception>
 #include <forward_list>
 #include <functional>
-#include <ios>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -217,10 +216,10 @@ public:
         return old;
     }
     
-    std::streamsize width() const { return m_width; }
-    std::streamsize width(std::streamsize wide)
+    std::uint8_t width() const { return m_width; }
+    std::uint8_t width(std::uint8_t wide)
     {
-        std::streamsize old = m_width;
+        std::uint8_t old = m_width;
         m_width = wide;
         return old;
     }
@@ -300,7 +299,7 @@ protected:
 protected:
     ios_defs::fmtflags m_flags     = ios_defs::skipws | ios_defs::dec;
     std::uint8_t       m_precision = 6;
-    std::streamsize    m_width     = static_cast<std::streamsize>(0);
+    std::uint8_t       m_width     = 0;
     TChar              m_fill      = (TChar)' ';
 
     std::unordered_map<size_t, std::shared_ptr<void>> m_pwords;
