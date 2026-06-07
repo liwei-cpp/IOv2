@@ -24,8 +24,9 @@ public:
     // Gettext pass-through: the translation on a hit, otherwise the original
     // `ori`. The lvalue overload borrows (zero copy): the result aliases either
     // the dictionary (stable for the facet's lifetime) or `ori` itself on a miss,
-    // so the caller's lvalue must outlive it. Temporaries cannot bind here — they
-    // select the by-value rvalue overload below, which can never dangle.
+    // so the caller's lvalue must outlive it. Only an lvalue selects this
+    // overload; every rvalue — including a `const` one — routes to a by-value
+    // overload below, so a temporary argument can never dangle.
     const std::basic_string<char_type>& translate(const std::basic_string<char_type>& ori) const
     {
         const static std::basic_string<char_type> empty_res;
@@ -45,6 +46,20 @@ public:
 
         const auto* p = m_obj->translate(ori);
         return p ? *p : std::move(ori);
+    }
+
+    // A `const` rvalue cannot bind to the non-const `&&` overload above; without
+    // this overload it would fall back to the borrowing lvalue overload and, on a
+    // miss, dangle (the result would reference the caller's expiring temporary).
+    // Return by value here too: being const it cannot be moved from, so a miss
+    // copies `ori` out and a hit copies the dictionary entry — either way the
+    // result owns its data.
+    std::basic_string<char_type> translate(const std::basic_string<char_type>&& ori) const
+    {
+        if (ori.empty()) return {};
+
+        const auto* p = m_obj->translate(ori);
+        return p ? *p : ori;
     }
 
     const std::string& filtered_lang() const

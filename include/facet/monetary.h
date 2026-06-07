@@ -172,6 +172,15 @@ private:
         const split_info& info = isIntl ? m_int : m_nat;
         using part = base_ft<monetary>::part;
 
+        // Capture and consume the field width up front. width() is one-shot, so
+        // it must be cleared exactly once per put; resetting it here — before any
+        // allocation or copy that could throw — guarantees no leftover width
+        // leaks into the next output operation on whichever path we leave by,
+        // including an exception thrown while formatting. The captured value is
+        // used for padding below.
+        const int width = static_cast<int>(io.width());
+        io.width(0);
+
         // Determine if negative or positive formats are to be used, and
         // discard leading negative_sign if it is present.
         const char_type* beg = digits.data();
@@ -251,7 +260,6 @@ private:
             std::basic_string<char_type> res;
             res.reserve(2 * len);
 
-            const int width = static_cast<int>(io.width());
             const bool testipad = (f == ios_defs::internal && len < width);
             // Fit formatted digits into the required pattern.
             for (int i = 0; i < 4; ++i)
@@ -307,7 +315,6 @@ private:
             // Write resulting, fully-formatted string to output iterator.
             s = std::copy(res.data(), res.data() + len, s);
         }
-        io.width(0);
         return s;
     }
 

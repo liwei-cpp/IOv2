@@ -281,10 +281,10 @@ public:
         size_t len = name.size();
 
         const auto w = io.width();
+        io.width(0);
         if (w > static_cast<decltype(w)>(len))
         {
             const auto plen = w - len;
-            io.width(0);
 
             if ((flags & ios_defs::adjustfield) == ios_defs::left)
             {
@@ -299,7 +299,6 @@ public:
             return s;
         }
 
-        io.width(0);
         return std::copy(name.begin(), name.end(), s);
     }
 
@@ -740,6 +739,12 @@ private:
         const std::streamsize prec = io.precision();
         const int max_digits = std::numeric_limits<TValue>::digits10;
 
+        // Consume the field width up front, before any allocation or conversion
+        // that can throw: width() is one-shot and a stale value must not survive
+        // onto the stream if we leave by an exception. Used for padding below.
+        const std::streamsize w = io.width();
+        io.width(0);
+
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
         size_t len = 0;
         std::array<char, 16> fbuf{};
@@ -837,10 +842,7 @@ private:
             ws = vec_ws.data();
         }
 
-        // Pad. Consume the field width up front: the width-sized allocation
-        // below can throw, and a stale width() must not survive onto the stream.
-        const std::streamsize w = io.width();
-        io.width(0);
+        // Pad.
         if (std::cmp_greater(w, len))
         {
             std::vector<CharT> vec_ws3(w);
@@ -898,6 +900,12 @@ private:
 
         const ios_defs::fmtflags flags = io.flags();
 
+        // Consume the field width up front, before any allocation that can throw:
+        // width() is one-shot and a stale value must not survive onto the stream
+        // if we leave by an exception. Used for padding below.
+        const std::streamsize w = io.width();
+        io.width(0);
+
         // Long enough to hold hex, dec, and octal representations.
         const auto ilen = 5 * sizeof(TValue);
         std::vector<char_type> cs_vec(ilen);
@@ -950,10 +958,7 @@ private:
             }
         }
 
-        // Pad. Consume the field width up front: the width-sized allocation
-        // below can throw, and a stale width() must not survive onto the stream.
-        const std::streamsize w = io.width();
-        io.width(0);
+        // Pad.
         if (std::cmp_greater(w, len))
         {
             std::vector<char_type> cs_vec3(w);
