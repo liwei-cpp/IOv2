@@ -447,10 +447,18 @@ public:
 
             if (static_cast<int>(m_decimal_point) == 0)
             {
-                m_frac_digits_int = 0;
-                m_frac_digits_nat = 0;
                 if constexpr (std::is_same_v<CharT, wchar_t>) m_decimal_point = L'.';
                 else m_decimal_point = U'.';
+                if (mon_dp_raw.empty())
+                {
+                    m_frac_digits_int = 0;
+                    m_frac_digits_nat = 0;
+                }
+                else
+                {
+                    m_frac_digits_nat = lc_frac_nat;
+                    m_frac_digits_int = lc_frac_int;
+                }
             }
             else
             {

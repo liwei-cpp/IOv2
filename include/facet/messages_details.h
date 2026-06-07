@@ -133,9 +133,9 @@ protected:
                 throw stream_error("get_translate_dictionary fail: invalid format");
 
             std::uint32_t res = static_cast<std::uint32_t>(buf[0])
-                              + (static_cast<std::uint32_t>(buf[1] << 8))
-                              + (static_cast<std::uint32_t>(buf[2] << 16))
-                              + (static_cast<std::uint32_t>(buf[3] << 24));
+                              | (static_cast<std::uint32_t>(buf[1]) << 8)
+                              | (static_cast<std::uint32_t>(buf[2]) << 16)
+                              | (static_cast<std::uint32_t>(buf[3]) << 24);
             if (need_swap)
                 res = std::byteswap(res);
             return res;
