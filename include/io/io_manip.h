@@ -100,8 +100,8 @@ inline T& operator >> (T& is, _Setprecision f)
     return is;
 }
 
-struct _Setw { int m_n; };
-inline _Setw setw(int n) { return { n }; }
+struct _Setw { std::uint8_t m_n; };
+inline _Setw setw(std::uint8_t n) { return { n }; }
 
 template <ostream_type T>
 inline T& operator << (T& os, _Setw f)

@@ -190,6 +190,17 @@ protected:
         }
         return ret;
     }
+
+    // POSIX fills lconv's *_cs_precedes / *_sep_by_space with CHAR_MAX when the
+    // field is "not available" in the locale. s_construct_pattern interprets
+    // these flags as booleans, where a raw CHAR_MAX would wrongly read as truthy
+    // (i.e. "symbol precedes" / "space present"); map the sentinel to 0 — the
+    // conservative default — mirroring the frac_digits handling. The test must
+    // happen before any narrowing, so callers pass the raw `char` lconv field
+    // here rather than the narrowed argument. (*_sign_posn needs no such helper:
+    // its CHAR_MAX is already funnelled to s_default_pattern by the switch's
+    // default branch.)
+    static int8_t s_norm_flag(char v) { return (v == CHAR_MAX) ? int8_t{0} : static_cast<int8_t>(v); }
 };
 
 template <typename CharT> class monetary_conf;
@@ -258,10 +269,10 @@ public:
             m_curr_symbol_nat = lc->currency_symbol;
             m_curr_symbol_int = lc->int_curr_symbol;
 
-            m_pos_format_nat = s_construct_pattern(lc->p_cs_precedes, lc->p_sep_by_space, lc->p_sign_posn);
-            m_neg_format_nat = s_construct_pattern(lc->n_cs_precedes, lc->n_sep_by_space, lc->n_sign_posn);
-            m_pos_format_int = s_construct_pattern(lc->int_p_cs_precedes, lc->int_p_sep_by_space, lc->int_p_sign_posn);
-            m_neg_format_int = s_construct_pattern(lc->int_n_cs_precedes, lc->int_n_sep_by_space, lc->int_n_sign_posn);
+            m_pos_format_nat = s_construct_pattern(s_norm_flag(lc->p_cs_precedes), s_norm_flag(lc->p_sep_by_space), lc->p_sign_posn);
+            m_neg_format_nat = s_construct_pattern(s_norm_flag(lc->n_cs_precedes), s_norm_flag(lc->n_sep_by_space), lc->n_sign_posn);
+            m_pos_format_int = s_construct_pattern(s_norm_flag(lc->int_p_cs_precedes), s_norm_flag(lc->int_p_sep_by_space), lc->int_p_sign_posn);
+            m_neg_format_int = s_construct_pattern(s_norm_flag(lc->int_n_cs_precedes), s_norm_flag(lc->int_n_sep_by_space), lc->int_n_sign_posn);
 
             std::string mdp_raw, mts_raw;
             if (lc->mon_decimal_point) mdp_raw = lc->mon_decimal_point;
@@ -429,10 +440,10 @@ public:
                     grouping_raw[i] = static_cast<uint8_t>(lc->mon_grouping[i]);
             }
 
-            m_pos_format_nat = base_ft<monetary>::s_construct_pattern(lc->p_cs_precedes, lc->p_sep_by_space, lc->p_sign_posn);
-            m_neg_format_nat = base_ft<monetary>::s_construct_pattern(lc->n_cs_precedes, lc->n_sep_by_space, lc->n_sign_posn);
-            m_pos_format_int = base_ft<monetary>::s_construct_pattern(lc->int_p_cs_precedes, lc->int_p_sep_by_space, lc->int_p_sign_posn);
-            m_neg_format_int = base_ft<monetary>::s_construct_pattern(lc->int_n_cs_precedes, lc->int_n_sep_by_space, lc->int_n_sign_posn);
+            m_pos_format_nat = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->p_cs_precedes), base_ft<monetary>::s_norm_flag(lc->p_sep_by_space), lc->p_sign_posn);
+            m_neg_format_nat = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->n_cs_precedes), base_ft<monetary>::s_norm_flag(lc->n_sep_by_space), lc->n_sign_posn);
+            m_pos_format_int = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->int_p_cs_precedes), base_ft<monetary>::s_norm_flag(lc->int_p_sep_by_space), lc->int_p_sign_posn);
+            m_neg_format_int = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->int_n_cs_precedes), base_ft<monetary>::s_norm_flag(lc->int_n_sep_by_space), lc->int_n_sign_posn);
 
             // No lc-> access beyond this point: the conversions may
             // invalidate the lconv pointers.
