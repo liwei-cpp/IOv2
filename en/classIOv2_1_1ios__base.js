@@ -15,13 +15,13 @@ var classIOv2_1_1ios__base =
     [ "setf", "classIOv2_1_1ios__base.html#aa2a4c377ee7cc8710068cfd8de3147c8", null ],
     [ "setf", "classIOv2_1_1ios__base.html#a90c62abfea87b9e6991fe36c02a0a47d", null ],
     [ "unsetf", "classIOv2_1_1ios__base.html#ac5f7d547d8377526af80a156e9b65a2b", null ],
-    [ "width", "classIOv2_1_1ios__base.html#a64c323d24e9c7e379e63ee49d9b3bd64", null ],
-    [ "width", "classIOv2_1_1ios__base.html#aa28022eb4b9f9761385d6dff9a170cbd", null ],
+    [ "width", "classIOv2_1_1ios__base.html#af4edc460d588683d3db8eea346a4326e", null ],
+    [ "width", "classIOv2_1_1ios__base.html#a7927cd215e600ff0e9619b4f4dec9ab3", null ],
     [ "xalloc", "classIOv2_1_1ios__base.html#a877c9e29409179fdc4383705094db6e1", null ],
     [ "m_callbacks", "classIOv2_1_1ios__base.html#a2a7f2df7df55299255aee6af1fde9746", null ],
     [ "m_fill", "classIOv2_1_1ios__base.html#a813f0647feaaf8491f850e01a5243f2f", null ],
     [ "m_flags", "classIOv2_1_1ios__base.html#aa19d611acf7a916eaf3ce95181bc064b", null ],
     [ "m_precision", "classIOv2_1_1ios__base.html#a8b4370e398a4a4473fc6535a2b9e7af3", null ],
     [ "m_pwords", "classIOv2_1_1ios__base.html#a699d0fd9502ae5772970e7f6b4803c97", null ],
-    [ "m_width", "classIOv2_1_1ios__base.html#ad57f4921f3ee09af46da5304a5210058", null ]
+    [ "m_width", "classIOv2_1_1ios__base.html#a9a596cfc8edf2b832e358f31eef651c6", null ]
 ];

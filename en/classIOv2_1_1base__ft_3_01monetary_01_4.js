@@ -12,5 +12,6 @@ var classIOv2_1_1base__ft_3_01monetary_01_4 =
     [ "abs_ft", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a465a41c8674673d08aa42b2ac52ded9d", null ],
     [ "abs_ft", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a5c8c9bdf9a0fe832e170172cf48631cd", null ],
     [ "s_construct_pattern", "classIOv2_1_1base__ft_3_01monetary_01_4.html#afacbfb2290be4bbde90c2297aded5bfb", null ],
+    [ "s_norm_flag", "classIOv2_1_1base__ft_3_01monetary_01_4.html#ac89ee40da86eb716ae72fd11255b2b9d", null ],
     [ "s_default_pattern", "classIOv2_1_1base__ft_3_01monetary_01_4.html#a90c54e03ceded2569d435be290de42a1", null ]
 ];

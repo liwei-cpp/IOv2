@@ -7,7 +7,7 @@ var searchData=
   ['wcout_4',['wcout',['../namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce',1,'IOv2']]],
   ['widen_5',['widen',['../classIOv2_1_1ctype__conf_3_01char8__t_01_4.html#acea585daab3e6b3a7596c824d5a9c30a',1,'IOv2::ctype_conf&lt; char8_t &gt;::widen()'],['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92',1,'IOv2::ctype&lt; CharT &gt;::widen(char c) const'],['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92',1,'IOv2::ctype&lt; CharT &gt;::widen(char c) const'],['../classIOv2_1_1ctype__conf_3_01char_01_4.html#a0e3f0c5cb2ab10bff200b5c4eddc61d7',1,'IOv2::ctype_conf&lt; char &gt;::widen()'],['../classIOv2_1_1ctype__conf_3_01CharT_01_4.html#ab6adf57a4ebb038d83debcf05bf7a32d',1,'IOv2::ctype_conf&lt; CharT &gt;::widen()']]],
   ['widen_5fseq_6',['widen_seq',['../classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e',1,'IOv2::detail::ctype_ops']]],
-  ['width_7',['width',['../classIOv2_1_1ios__base.html#aa28022eb4b9f9761385d6dff9a170cbd',1,'IOv2::ios_base::width(std::streamsize wide)'],['../classIOv2_1_1ios__base.html#a64c323d24e9c7e379e63ee49d9b3bd64',1,'IOv2::ios_base::width() const']]],
+  ['width_7',['width',['../classIOv2_1_1ios__base.html#a7927cd215e600ff0e9619b4f4dec9ab3',1,'IOv2::ios_base::width(std::uint8_t wide)'],['../classIOv2_1_1ios__base.html#af4edc460d588683d3db8eea346a4326e',1,'IOv2::ios_base::width() const']]],
   ['write_8',['write',['../structIOv2_1_1ostream__operators.html#ac11f39d3e1390302ce83a86b96746f88',1,'IOv2::ostream_operators']]],
   ['writer_9',['writer',['../structIOv2_1_1writer.html',1,'IOv2']]],
   ['writer_3c_20char_2c_20char_20_3e_10',['writer&lt; char, char &gt;',['../structIOv2_1_1writer_3_01char_00_01char_01_4.html',1,'IOv2']]],
