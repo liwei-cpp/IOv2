@@ -127,6 +127,15 @@ protected:
             throw stream_error("get_translate_dictionary fail: cannot open file " + filename);
 
         file_closer guard(fp);
+
+        if (std::fseek(fp, 0, SEEK_END) != 0)
+            throw stream_error("get_translate_dictionary fail: invalid format");
+        const long file_size = std::ftell(fp);
+        if (file_size < 0)
+            throw stream_error("get_translate_dictionary fail: file inconsistent");
+        if (std::fseek(fp, 0, SEEK_SET) != 0)
+            throw stream_error("get_translate_dictionary fail: invalid format");
+
         auto read_num = [fp](unsigned char* buf, bool need_swap)
         {
             if (std::fread(buf, 1, 4, fp) != 4)
@@ -158,6 +167,13 @@ protected:
         auto str_num = read_num(buff, need_swap);
         auto ori_offset = read_num(buff, need_swap);
         auto aim_offset = read_num(buff, need_swap);
+
+        // Each entry needs an 8-byte (length, offset) descriptor in both the
+        // original and translation tables, so a valid str_num cannot exceed
+        // file_size / 16. Rejecting larger counts caps the O(str_num) growth of
+        // oris and the result map, which the per-string length cap does not.
+        if (str_num > static_cast<std::uint64_t>(file_size) / 16u)
+            throw stream_error("get_translate_dictionary fail: implausible string count");
 
         if (std::fseek(fp, ori_offset, SEEK_SET) != 0)
             throw stream_error("get_translate_dictionary fail: invalid format");

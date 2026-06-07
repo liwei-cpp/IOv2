@@ -1,5 +1,7 @@
 #pragma once
+#include <common/defs.h>
 #include <common/metafunctions.h>
+#include <facet/facet_common.h>
 #include <facet/facet_helper.h>
 #include <facet/monetary_details.h>
 #include <io/io_base.h>

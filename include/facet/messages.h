@@ -1,5 +1,6 @@
 #pragma once
 #include <common/metafunctions.h>
+#include <facet/facet_common.h>
 #include <facet/messages_details.h>
 
 #include <memory>
