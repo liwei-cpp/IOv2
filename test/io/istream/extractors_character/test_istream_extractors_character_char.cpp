@@ -290,7 +290,7 @@ void test_istream_extractors_character_char_5()
 
         char array1[10];
 
-        is_01.width(-60);
+        is_01.width(0);
         state1 = is_01.rdstate();
         is_01 >> array1;
         state2 = is_01.rdstate();

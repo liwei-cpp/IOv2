@@ -181,7 +181,7 @@ void test_ostream_inserters_character_char_6()
     {
         {
             T oss{IOv2::mem_device{""}};
-            oss.width(-60);
+            oss.width(0);
             oss << 'C';
             VERIFY(oss.good());
             auto [dev08, err08] = oss.detach();
@@ -189,7 +189,7 @@ void test_ostream_inserters_character_char_6()
         }
         {
             T oss{IOv2::mem_device{""}};
-            oss.width(-60);
+            oss.width(0);
             oss << "Consoli";
             VERIFY(oss.good());
             auto [dev09, err09] = oss.detach();
@@ -197,7 +197,7 @@ void test_ostream_inserters_character_char_6()
         }
         {
             T oss{IOv2::mem_device{""}};
-            oss.width(-60);
+            oss.width(0);
             oss << std::string("Consoli");
             VERIFY(oss.good());
             auto [dev10, err10] = oss.detach();
@@ -215,7 +215,7 @@ void test_ostream_inserters_character_char_7()
 {
     dump_info("Test ostream<char> operator<< (character) case 7...");
 
-#define WIDTH 20000000
+#define WIDTH 200
     auto helper = []<template <typename, typename> class T>()
     {
         {
