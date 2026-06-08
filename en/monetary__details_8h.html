@@ -319,12 +319,16 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html">IOv2::base_ft&lt; monetary &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class for the <code>monetary</code> facet, providing POSIX <code>lconv</code>-to-pattern conversion utilities.  <a href="classIOv2_1_1base__ft_3_01monetary_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html">IOv2::base_ft&lt; monetary &gt;::pattern_spec</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Groups the three POSIX <code>lconv</code> flags that drive <code>s_construct_pattern</code> into one named argument.  <a href="structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01char_01_4.html">IOv2::monetary_conf&lt; char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization of <code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a></code> for <code>char</code>, reading monetary formatting data directly from POSIX <code>lconv</code>.  <a href="classIOv2_1_1monetary__conf_3_01char_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html">IOv2::monetary_conf&lt; CharT &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization of <code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a></code> for <code>wchar_t</code> / <code>char32_t</code>, storing monetary formatting data as wide characters.  <a href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -332,7 +336,9 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Defines the implementation details of the <code>monetary</code> facet, including the <code>base_ft&lt;monetary&gt;</code> base class and per-character-type specializations of <code>monetary_conf</code>. <code>base_ft&lt;monetary&gt;</code> provides pattern-construction utilities driven by POSIX <code>lconv</code> flags; the <code>monetary_conf</code> specializations read <code>lconv</code> from a locale name and populate all fields required for monetary formatting.  </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

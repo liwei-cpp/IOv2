@@ -320,14 +320,19 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01messages_01_4.html">IOv2::base_ft&lt; messages &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class for the <code>messages</code> facet, providing gettext text-domain management and <code>.mo</code> file parsing.  <a href="classIOv2_1_1base__ft_3_01messages_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html">IOv2::base_ft&lt; messages &gt;::text_domain</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper struct that bundles a text domain name with its directory.  <a href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html">IOv2::messages_conf&lt; char8_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization of <code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> for <code>char8_t</code>, a translation facet keyed on UTF-8 strings.  <a href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html">IOv2::messages_conf&lt; CharT &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization of <code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> for <code>char32_t</code> / UTF-32 <code>wchar_t</code>.  <a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char_01_4.html">IOv2::messages_conf&lt; char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization of <code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> for <code>char</code>, with encoding conversion via a <code>wchar_t</code> converter.  <a href="classIOv2_1_1messages__conf_3_01char_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -335,7 +340,9 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Defines the implementation details of the <code>messages</code> facet, including the <code>base_ft&lt;messages&gt;</code> base class and per-character-type specializations of <code>messages_conf</code>. <code>base_ft&lt;messages&gt;</code> manages gettext text-domain binding, language resolution, and loading and parsing of <code>.mo</code> files; the <code>messages_conf</code> specializations build per-character-type translation dictionaries on top of that base.  </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

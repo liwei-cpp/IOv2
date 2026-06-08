@@ -280,8 +280,6 @@ var namespaceIOv2 =
     [ "istreambuf", "namespaceIOv2.html#a5fc17915e9ae170169833159fc1ec730", null ],
     [ "istreambuf", "namespaceIOv2.html#a1616531714109523be3a685ae879f3f7", null ],
     [ "left", "namespaceIOv2.html#a583e939dc20bb613178fe3fe2c1eb85b", null ],
-    [ "messages", "namespaceIOv2.html#a54403b4cd04192a6b98cc5b5d225f336", null ],
-    [ "monetary", "namespaceIOv2.html#a2c34fbb9f8deb9a975c438059aec54f3", null ],
     [ "no_rb_root_cvt", "namespaceIOv2.html#abfaa515bd3e86f438caf0a448e6905f9", null ],
     [ "noappmode", "namespaceIOv2.html#a63c0f3e7ad723b0e370107a85abae811", null ],
     [ "noboolalpha", "namespaceIOv2.html#a9a37f6526c2aff319d2c8602aed8f8a9", null ],

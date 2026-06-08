@@ -1,5 +1,5 @@
 <map id="IOv2::messages_conf&lt; char8_t &gt;" name="IOv2::messages_conf&lt; char8_t &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="20,93,181,133"/>
+<area shape="rect" id="Node000001" title="Specialization of messages_conf for char8_t, a translation facet keyed on UTF&#45;8 strings." alt="" coords="20,93,181,133"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,196,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,59,103,93,98,93,98,59"/>
 </map>

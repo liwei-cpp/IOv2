@@ -97,34 +97,46 @@ $(document).ready(function(){initNavTree('classIOv2_1_1messages.html',''); initR
 </div><!--header-->
 <div class="contents">
 
+<p>User-facing facet for gettext-style message translation.  
+ <a href="classIOv2_1_1messages.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="messages_8h_source.html">messages.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a2ceab861efd55b6478690a18f44334c0" id="r_a2ceab861efd55b6478690a18f44334c0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#a2ceab861efd55b6478690a18f44334c0">create_rules</a> = <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt; <a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt;</td></tr>
-<tr class="separator:a2ceab861efd55b6478690a18f44334c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e264f29924f3a02296771eaf9fffccd" id="r_a0e264f29924f3a02296771eaf9fffccd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a></td></tr>
+<tr class="memdesc:a0e264f29924f3a02296771eaf9fffccd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The character type used by this facet.   <br /></td></tr>
 <tr class="separator:a0e264f29924f3a02296771eaf9fffccd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa78ffe2b8f1e3849e32e8b4c59a78dfe" id="r_aa78ffe2b8f1e3849e32e8b4c59a78dfe"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt; TConfPtr&gt; </td></tr>
 <tr class="memitem:aa78ffe2b8f1e3849e32e8b4c59a78dfe"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#aa78ffe2b8f1e3849e32e8b4c59a78dfe">messages</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>)</td></tr>
+<tr class="memdesc:aa78ffe2b8f1e3849e32e8b4c59a78dfe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor that creates the facet from a shared pointer to <code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt;CharT&gt;</code>.  <br /></td></tr>
 <tr class="separator:aa78ffe2b8f1e3849e32e8b4c59a78dfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4140cbdd164364d214070f198b910e5f" id="r_a4140cbdd164364d214070f198b910e5f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#a4140cbdd164364d214070f198b910e5f">translate</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ori</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a4140cbdd164364d214070f198b910e5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translates an lvalue string with borrowing semantics (zero copy).  <br /></td></tr>
 <tr class="separator:a4140cbdd164364d214070f198b910e5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd7eda003e81ce4370be9e15f64c0d2a" id="r_abd7eda003e81ce4370be9e15f64c0d2a"><td class="memItemLeft" align="right" valign="top">std::basic_string&lt; <a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#abd7eda003e81ce4370be9e15f64c0d2a">translate</a> (std::basic_string&lt; <a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> &gt; &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ori</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:abd7eda003e81ce4370be9e15f64c0d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translates an rvalue string, returning by value so the result cannot dangle.  <br /></td></tr>
 <tr class="separator:abd7eda003e81ce4370be9e15f64c0d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aea1c473ae336e143b7b668342bc7befd" id="r_aea1c473ae336e143b7b668342bc7befd"><td class="memItemLeft" align="right" valign="top">std::basic_string&lt; <a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#aea1c473ae336e143b7b668342bc7befd">translate</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> &gt; &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ori</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aea1c473ae336e143b7b668342bc7befd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Translates a const rvalue string, returning by value so the result cannot dangle.  <br /></td></tr>
 <tr class="separator:aea1c473ae336e143b7b668342bc7befd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4975032f298bd132d6dcee328b577c8e" id="r_a4975032f298bd132d6dcee328b577c8e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#a4975032f298bd132d6dcee328b577c8e">filtered_lang</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a4975032f298bd132d6dcee328b577c8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the effective language identifier determined at construction.  <br /></td></tr>
 <tr class="separator:a4975032f298bd132d6dcee328b577c8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d6fee9ec720f22a84b35e615c1903e8" id="r_a7d6fee9ec720f22a84b35e615c1903e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#a7d6fee9ec720f22a84b35e615c1903e8">domain_info</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a7d6fee9ec720f22a84b35e615c1903e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a string describing this facet instance's domain information.  <br /></td></tr>
 <tr class="separator:a7d6fee9ec720f22a84b35e615c1903e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa997cf419fab210e67dca75ea7129e9" id="r_afa997cf419fab210e67dca75ea7129e9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="classIOv2_1_1messages.html#a0e264f29924f3a02296771eaf9fffccd">char_type</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages.html#afa997cf419fab210e67dca75ea7129e9">head_entry</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:afa997cf419fab210e67dca75ea7129e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the header entry of the <code>.mo</code> file.  <br /></td></tr>
 <tr class="separator:afa997cf419fab210e67dca75ea7129e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+class IOv2::messages&lt; CharT &gt;</div><p>User-facing facet for gettext-style message translation. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a0e264f29924f3a02296771eaf9fffccd" name="a0e264f29924f3a02296771eaf9fffccd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0e264f29924f3a02296771eaf9fffccd">&#9670;&#160;</a></span>char_type</h2>
 
@@ -139,21 +151,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
       </table>
 </div><div class="memdoc">
 
-</div>
-</div>
-<a id="a2ceab861efd55b6478690a18f44334c0" name="a2ceab861efd55b6478690a18f44334c0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2ceab861efd55b6478690a18f44334c0">&#9670;&#160;</a></span>create_rules</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1messages.html">IOv2::messages</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;::create_rules =  <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt;<a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt; &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p>The character type used by this facet.  </p>
 
 </div>
 </div>
@@ -186,6 +184,8 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1messages__conf.ht
 </table>
 </div><div class="memdoc">
 
+<p>Constructor that creates the facet from a shared pointer to <code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt;CharT&gt;</code>. </p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -214,6 +214,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns a string describing this facet instance's domain information. </p>
+
 </div>
 </div>
 <a id="a4975032f298bd132d6dcee328b577c8e" name="a4975032f298bd132d6dcee328b577c8e"></a>
@@ -241,6 +243,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the effective language identifier determined at construction. </p>
+
 </div>
 </div>
 <a id="afa997cf419fab210e67dca75ea7129e9" name="afa997cf419fab210e67dca75ea7129e9"></a>
@@ -267,6 +271,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the header entry of the <code>.mo</code> file. </p>
 
 </div>
 </div>
@@ -296,6 +302,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Translates a const rvalue string, returning by value so the result cannot dangle. </p>
+
 </div>
 </div>
 <a id="a4140cbdd164364d214070f198b910e5f" name="a4140cbdd164364d214070f198b910e5f"></a>
@@ -324,6 +332,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Translates an lvalue string with borrowing semantics (zero copy). </p>
+
 </div>
 </div>
 <a id="abd7eda003e81ce4370be9e15f64c0d2a" name="abd7eda003e81ce4370be9e15f64c0d2a"></a>
@@ -351,6 +361,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Translates an rvalue string, returning by value so the result cannot dangle. </p>
 
 </div>
 </div>

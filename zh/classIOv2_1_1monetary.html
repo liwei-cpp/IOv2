@@ -90,7 +90,6 @@ $(document).ready(function(){initNavTree('classIOv2_1_1monetary.html',''); initR
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">类</a> &#124;
 <a href="#pub-types">Public 类型</a> &#124;
 <a href="#pub-methods">Public 成员函数</a> &#124;
 <a href="classIOv2_1_1monetary-members.html">所有成员列表</a>  </div>
@@ -98,66 +97,91 @@ $(document).ready(function(){initNavTree('classIOv2_1_1monetary.html',''); initR
 </div><!--header-->
 <div class="contents">
 
+<p>货币格式化与解析的用户端 facet。  
+ <a href="classIOv2_1_1monetary.html#details">更多...</a></p>
+
 <p><code>#include &lt;<a class="el" href="monetary_8h_source.html">monetary.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public 类型</h2></td></tr>
-<tr class="memitem:aca1f987129df3e40ce90f366960eba11" id="r_aca1f987129df3e40ce90f366960eba11"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#aca1f987129df3e40ce90f366960eba11">create_rules</a> = <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt; <a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt;</td></tr>
-<tr class="separator:aca1f987129df3e40ce90f366960eba11"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acffd839cfcb0d52a22f6c4e36080f4a2" id="r_acffd839cfcb0d52a22f6c4e36080f4a2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2">char_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a></td></tr>
+<tr class="memdesc:acffd839cfcb0d52a22f6c4e36080f4a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">此 facet 使用的字符类型。    <br /></td></tr>
 <tr class="separator:acffd839cfcb0d52a22f6c4e36080f4a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
 <tr class="memitem:a712a93d6bec20d2e4b7d966f4fa5295e" id="r_a712a93d6bec20d2e4b7d966f4fa5295e"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt; TConfPtr&gt; </td></tr>
 <tr class="memitem:a712a93d6bec20d2e4b7d966f4fa5295e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a712a93d6bec20d2e4b7d966f4fa5295e">monetary</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>)</td></tr>
+<tr class="memdesc:a712a93d6bec20d2e4b7d966f4fa5295e"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，从指向 <code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a>&lt;CharT&gt;</code> 的共享指针创建 facet。  <br /></td></tr>
 <tr class="separator:a712a93d6bec20d2e4b7d966f4fa5295e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf3fb28c781de29a7b1b89a98518aeae" id="r_aaf3fb28c781de29a7b1b89a98518aeae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#aaf3fb28c781de29a7b1b89a98518aeae">grouping</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aaf3fb28c781de29a7b1b89a98518aeae"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回数字分组规则（内部约定）。  <br /></td></tr>
 <tr class="separator:aaf3fb28c781de29a7b1b89a98518aeae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32b80e2b23b28aa9e0f05e4ca6954f04" id="r_a32b80e2b23b28aa9e0f05e4ca6954f04"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a32b80e2b23b28aa9e0f05e4ca6954f04">curr_symbol_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a32b80e2b23b28aa9e0f05e4ca6954f04"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回国际货币符号字符串（如 <code>"USD "</code>）。  <br /></td></tr>
 <tr class="separator:a32b80e2b23b28aa9e0f05e4ca6954f04"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57e8156210b0bee5e4569fc7bf6827a0" id="r_a57e8156210b0bee5e4569fc7bf6827a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a57e8156210b0bee5e4569fc7bf6827a0">curr_symbol_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a57e8156210b0bee5e4569fc7bf6827a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本地货币符号字符串（如 <code>"$"</code>）。  <br /></td></tr>
 <tr class="separator:a57e8156210b0bee5e4569fc7bf6827a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af21aa4b7f320008401a645301a555455" id="r_af21aa4b7f320008401a645301a555455"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#af21aa4b7f320008401a645301a555455">positive_sign_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af21aa4b7f320008401a645301a555455"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回国际格式的正数符号字符串。  <br /></td></tr>
 <tr class="separator:af21aa4b7f320008401a645301a555455"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5efda324148c2b166b2f6b2836befbb" id="r_af5efda324148c2b166b2f6b2836befbb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#af5efda324148c2b166b2f6b2836befbb">positive_sign_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af5efda324148c2b166b2f6b2836befbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本地格式的正数符号字符串。  <br /></td></tr>
 <tr class="separator:af5efda324148c2b166b2f6b2836befbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a9ad15a20c1c2c39c098f37f362d189" id="r_a3a9ad15a20c1c2c39c098f37f362d189"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a3a9ad15a20c1c2c39c098f37f362d189">negative_sign_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a3a9ad15a20c1c2c39c098f37f362d189"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回国际格式的负数符号字符串。  <br /></td></tr>
 <tr class="separator:a3a9ad15a20c1c2c39c098f37f362d189"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ab6f9ba933fd31cd92ff580d5d7f8e8" id="r_a6ab6f9ba933fd31cd92ff580d5d7f8e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a6ab6f9ba933fd31cd92ff580d5d7f8e8">negative_sign_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a6ab6f9ba933fd31cd92ff580d5d7f8e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本地格式的负数符号字符串。  <br /></td></tr>
 <tr class="separator:a6ab6f9ba933fd31cd92ff580d5d7f8e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e18d874cb221c547da2465b8c876c33" id="r_a7e18d874cb221c547da2465b8c876c33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a7e18d874cb221c547da2465b8c876c33">pos_format_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a7e18d874cb221c547da2465b8c876c33"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回国际格式正数的排列 pattern。  <br /></td></tr>
 <tr class="separator:a7e18d874cb221c547da2465b8c876c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7487aaf9de66c3eaa02bec6490b5b02e" id="r_a7487aaf9de66c3eaa02bec6490b5b02e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a7487aaf9de66c3eaa02bec6490b5b02e">pos_format_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a7487aaf9de66c3eaa02bec6490b5b02e"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本地格式正数的排列 pattern。  <br /></td></tr>
 <tr class="separator:a7487aaf9de66c3eaa02bec6490b5b02e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd7f29db87a88e8d64a87299a70fe33c" id="r_acd7f29db87a88e8d64a87299a70fe33c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#acd7f29db87a88e8d64a87299a70fe33c">neg_format_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:acd7f29db87a88e8d64a87299a70fe33c"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回国际格式负数的排列 pattern。  <br /></td></tr>
 <tr class="separator:acd7f29db87a88e8d64a87299a70fe33c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ff80125f0777ef315a04057aa63560f" id="r_a1ff80125f0777ef315a04057aa63560f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a1ff80125f0777ef315a04057aa63560f">neg_format_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a1ff80125f0777ef315a04057aa63560f"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本地格式负数的排列 pattern。  <br /></td></tr>
 <tr class="separator:a1ff80125f0777ef315a04057aa63560f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf02304be32104dc9dfc0a48e5afc418" id="r_aaf02304be32104dc9dfc0a48e5afc418"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#aaf02304be32104dc9dfc0a48e5afc418">frac_digits_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aaf02304be32104dc9dfc0a48e5afc418"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回国际货币格式的小数位数。  <br /></td></tr>
 <tr class="separator:aaf02304be32104dc9dfc0a48e5afc418"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9f8169ab1d5d1a63c8343a7432c8868c" id="r_a9f8169ab1d5d1a63c8343a7432c8868c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a9f8169ab1d5d1a63c8343a7432c8868c">frac_digits_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a9f8169ab1d5d1a63c8343a7432c8868c"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本地货币格式的小数位数。  <br /></td></tr>
 <tr class="separator:a9f8169ab1d5d1a63c8343a7432c8868c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a648a24f885d60e1a2821892578bde1ff" id="r_a648a24f885d60e1a2821892578bde1ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a648a24f885d60e1a2821892578bde1ff">decimal_point</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a648a24f885d60e1a2821892578bde1ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回货币小数点字符。  <br /></td></tr>
 <tr class="separator:a648a24f885d60e1a2821892578bde1ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98a253f7f0b88caef979b4974c0eb8e6" id="r_a98a253f7f0b88caef979b4974c0eb8e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a98a253f7f0b88caef979b4974c0eb8e6">thousands_sep</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a98a253f7f0b88caef979b4974c0eb8e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回千位分隔符字符。  <br /></td></tr>
 <tr class="separator:a98a253f7f0b88caef979b4974c0eb8e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa945db6817ec6bbe3eb3fcd8ebf51888" id="r_aa945db6817ec6bbe3eb3fcd8ebf51888"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::integral TVal&gt; <br />
 requires (!std::same_as&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&gt;)</td></tr>
 <tr class="memitem:aa945db6817ec6bbe3eb3fcd8ebf51888"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#aa945db6817ec6bbe3eb3fcd8ebf51888">put</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">intl</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2">char_type</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aa945db6817ec6bbe3eb3fcd8ebf51888"><td class="mdescLeft">&#160;</td><td class="mdescRight">将整数货币值格式化为字符序列，写入输出迭代器。  <br /></td></tr>
 <tr class="separator:aa945db6817ec6bbe3eb3fcd8ebf51888"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9528827617a5b2ba4513155069377ac" id="r_ab9528827617a5b2ba4513155069377ac"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; </td></tr>
 <tr class="memitem:ab9528827617a5b2ba4513155069377ac"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#ab9528827617a5b2ba4513155069377ac">put</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">intl</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2">char_type</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2">char_type</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">digits</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ab9528827617a5b2ba4513155069377ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">将预格式化的数字字符串格式化为货币字符序列，写入输出迭代器。  <br /></td></tr>
 <tr class="separator:ab9528827617a5b2ba4513155069377ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3d2b041d94e255483bf473437037ead" id="r_ab3d2b041d94e255483bf473437037ead"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent, std::integral TVal&gt; <br />
 requires (!std::same_as&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&gt;)</td></tr>
 <tr class="memitem:ab3d2b041d94e255483bf473437037ead"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#ab3d2b041d94e255483bf473437037ead">get</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">intl</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2">char_type</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">units</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ab3d2b041d94e255483bf473437037ead"><td class="mdescLeft">&#160;</td><td class="mdescRight">从字符序列中解析货币字符串并将结果存入整数值。  <br /></td></tr>
 <tr class="separator:ab3d2b041d94e255483bf473437037ead"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1d40dd55babababc9e82422057490a1f" id="r_a1d40dd55babababc9e82422057490a1f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; </td></tr>
 <tr class="memitem:a1d40dd55babababc9e82422057490a1f"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary.html#a1d40dd55babababc9e82422057490a1f">get</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">intl</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2">char_type</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, std::basic_string&lt; <a class="el" href="classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2">char_type</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">digits</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a1d40dd55babababc9e82422057490a1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">从字符序列中解析货币字符串并将结果存入数字字符串。  <br /></td></tr>
 <tr class="separator:a1d40dd55babababc9e82422057490a1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+class IOv2::monetary&lt; CharT &gt;</div><p>货币格式化与解析的用户端 facet。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="acffd839cfcb0d52a22f6c4e36080f4a2" name="acffd839cfcb0d52a22f6c4e36080f4a2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acffd839cfcb0d52a22f6c4e36080f4a2">&#9670;&#160;</a></span>char_type</h2>
 
@@ -172,21 +196,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
       </table>
 </div><div class="memdoc">
 
-</div>
-</div>
-<a id="aca1f987129df3e40ce90f366960eba11" name="aca1f987129df3e40ce90f366960eba11"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aca1f987129df3e40ce90f366960eba11">&#9670;&#160;</a></span>create_rules</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1monetary.html">IOv2::monetary</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;::create_rules =  <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt;<a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt; &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
+<p>此 facet 使用的字符类型。   </p>
 
 </div>
 </div>
@@ -219,6 +229,8 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1monetary__conf.ht
 </table>
 </div><div class="memdoc">
 
+<p>构造函数，从指向 <code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a>&lt;CharT&gt;</code> 的共享指针创建 facet。 </p>
+
 </div>
 </div>
 <h2 class="groupheader">成员函数说明</h2>
@@ -247,6 +259,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回国际货币符号字符串（如 <code>"USD "</code>）。 </p>
+
 </div>
 </div>
 <a id="a57e8156210b0bee5e4569fc7bf6827a0" name="a57e8156210b0bee5e4569fc7bf6827a0"></a>
@@ -273,6 +287,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回本地货币符号字符串（如 <code>"$"</code>）。 </p>
 
 </div>
 </div>
@@ -301,6 +317,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回货币小数点字符。 </p>
+
 </div>
 </div>
 <a id="aaf02304be32104dc9dfc0a48e5afc418" name="aaf02304be32104dc9dfc0a48e5afc418"></a>
@@ -328,6 +346,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回国际货币格式的小数位数。 </p>
+
 </div>
 </div>
 <a id="a9f8169ab1d5d1a63c8343a7432c8868c" name="a9f8169ab1d5d1a63c8343a7432c8868c"></a>
@@ -354,6 +374,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回本地货币格式的小数位数。 </p>
 
 </div>
 </div>
@@ -412,6 +434,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>从字符序列中解析货币字符串并将结果存入数字字符串。 </p>
 
 </div>
 </div>
@@ -472,6 +496,8 @@ requires (!std::same_as&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 </table>
 </div><div class="memdoc">
 
+<p>从字符序列中解析货币字符串并将结果存入整数值。 </p>
+
 </div>
 </div>
 <a id="aaf3fb28c781de29a7b1b89a98518aeae" name="aaf3fb28c781de29a7b1b89a98518aeae"></a>
@@ -498,6 +524,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回数字分组规则（内部约定）。 </p>
 
 </div>
 </div>
@@ -526,6 +554,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回国际格式负数的排列 pattern。 </p>
+
 </div>
 </div>
 <a id="a1ff80125f0777ef315a04057aa63560f" name="a1ff80125f0777ef315a04057aa63560f"></a>
@@ -552,6 +582,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回本地格式负数的排列 pattern。 </p>
 
 </div>
 </div>
@@ -580,6 +612,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回国际格式的负数符号字符串。 </p>
+
 </div>
 </div>
 <a id="a6ab6f9ba933fd31cd92ff580d5d7f8e8" name="a6ab6f9ba933fd31cd92ff580d5d7f8e8"></a>
@@ -606,6 +640,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回本地格式的负数符号字符串。 </p>
 
 </div>
 </div>
@@ -634,6 +670,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回国际格式正数的排列 pattern。 </p>
+
 </div>
 </div>
 <a id="a7487aaf9de66c3eaa02bec6490b5b02e" name="a7487aaf9de66c3eaa02bec6490b5b02e"></a>
@@ -660,6 +698,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回本地格式正数的排列 pattern。 </p>
 
 </div>
 </div>
@@ -688,6 +728,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回国际格式的正数符号字符串。 </p>
+
 </div>
 </div>
 <a id="af5efda324148c2b166b2f6b2836befbb" name="af5efda324148c2b166b2f6b2836befbb"></a>
@@ -714,6 +756,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回本地格式的正数符号字符串。 </p>
 
 </div>
 </div>
@@ -766,6 +810,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>将预格式化的数字字符串格式化为货币字符序列，写入输出迭代器。 </p>
 
 </div>
 </div>
@@ -820,6 +866,8 @@ requires (!std::same_as&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 </table>
 </div><div class="memdoc">
 
+<p>将整数货币值格式化为字符序列，写入输出迭代器。 </p>
+
 </div>
 </div>
 <a id="a98a253f7f0b88caef979b4974c0eb8e6" name="a98a253f7f0b88caef979b4974c0eb8e6"></a>
@@ -846,6 +894,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回千位分隔符字符。 </p>
 
 </div>
 </div>

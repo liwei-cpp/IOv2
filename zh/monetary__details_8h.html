@@ -319,12 +319,16 @@ monetary_details.h 的引用(Include)关系图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html">IOv2::base_ft&lt; monetary &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>monetary</code> facet 的基类，提供 POSIX <code>lconv</code> 到货币格式 pattern 的转换工具。  <a href="classIOv2_1_1base__ft_3_01monetary_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html">IOv2::base_ft&lt; monetary &gt;::pattern_spec</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">将驱动 <code>s_construct_pattern</code> 的三个 POSIX <code>lconv</code> 标志捆绑为一个具名参数。  <a href="structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01char_01_4.html">IOv2::monetary_conf&lt; char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a></code> 的 <code>char</code> 特化，从 POSIX <code>lconv</code> 直接读取货币格式化数据。  <a href="classIOv2_1_1monetary__conf_3_01char_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html">IOv2::monetary_conf&lt; CharT &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a></code> 的 <code>wchar_t</code>/<code>char32_t</code> 特化，以宽字符存储货币格式化数据。  <a href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -332,7 +336,9 @@ monetary_details.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了 <code>monetary</code> facet 的实现细节，包括 <code>base_ft&lt;monetary&gt;</code> 基类和 <code>monetary_conf</code> 的各字符类型特化。<code>base_ft&lt;monetary&gt;</code> 提供基于 POSIX <code>lconv</code> 标志的货币格式 pattern 构造工具；<code>monetary_conf</code> 的各特化 在此基础上从区域设置名称读取 <code>lconv</code>，填充货币格式化所需的全部字段。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

@@ -320,14 +320,19 @@ messages_details.h 的引用(Include)关系图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01messages_01_4.html">IOv2::base_ft&lt; messages &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>messages</code> facet 的基类，提供 gettext 文本域管理和 <code>.mo</code> 文件解析功能。  <a href="classIOv2_1_1base__ft_3_01messages_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html">IOv2::base_ft&lt; messages &gt;::text_domain</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">捆绑文本域名称与其目录的辅助结构体。  <a href="structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html">IOv2::messages_conf&lt; char8_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> 的 <code>char8_t</code> 特化，以 UTF-8 字符串为键的翻译 facet。  <a href="classIOv2_1_1messages__conf_3_01char8__t_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html">IOv2::messages_conf&lt; CharT &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> 的 <code>char32_t</code>/UTF-32 <code>wchar_t</code> 特化。  <a href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char_01_4.html">IOv2::messages_conf&lt; char &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> 的 <code>char</code> 特化，通过 <code>wchar_t</code> 转换器进行编码转换。  <a href="classIOv2_1_1messages__conf_3_01char_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -335,7 +340,9 @@ messages_details.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了 <code>messages</code> facet 的实现细节，包括 <code>base_ft&lt;messages&gt;</code> 基类和 <code>messages_conf</code> 的各字符类型特化。<code>base_ft&lt;messages&gt;</code> 负责管理 gettext 文本域绑定、语言解析和 <code>.mo</code> 文件的加载与解析；<code>messages_conf</code> 的各特化 在此基础上提供具体字符类型的翻译字典。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

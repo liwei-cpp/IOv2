@@ -96,13 +96,16 @@ $(document).ready(function(){initNavTree('classIOv2_1_1messages__conf_3_01char_0
 </div><!--header-->
 <div class="contents">
 
+<p>Specialization of <code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> for <code>char</code>, with encoding conversion via a <code>wchar_t</code> converter.  
+ <a href="classIOv2_1_1messages__conf_3_01char_01_4.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="messages__details_8h_source.html">messages_details.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::messages_conf&lt; char &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1messages__conf_3_01char_01_4__inherit__graph.png" border="0" usemap="#aIOv2_1_1messages__conf_3_01char_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1messages__conf_3_01char_01_4_inherit__map" id="aIOv2_1_1messages__conf_3_01char_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="20,93,181,133"/>
+<area shape="rect" title="Specialization of messages_conf for char, with encoding conversion via a wchar_t converter." alt="" coords="20,93,181,133"/>
 <area shape="rect" href="classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,196,45"/>
 <area shape="poly" title=" " alt="" coords="103,59,103,93,98,93,98,59"/>
 </map>
@@ -112,7 +115,7 @@ Collaboration diagram for IOv2::messages_conf&lt; char &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1messages__conf_3_01char_01_4__coll__graph.png" border="0" usemap="#aIOv2_1_1messages__conf_3_01char_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="aIOv2_1_1messages__conf_3_01char_01_4_coll__map" id="aIOv2_1_1messages__conf_3_01char_01_4_coll__map">
-<area shape="rect" title=" " alt="" coords="20,93,181,133"/>
+<area shape="rect" title="Specialization of messages_conf for char, with encoding conversion via a wchar_t converter." alt="" coords="20,93,181,133"/>
 <area shape="rect" href="classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,196,45"/>
 <area shape="poly" title=" " alt="" coords="103,59,103,93,98,93,98,59"/>
 </map>
@@ -121,11 +124,15 @@ Collaboration diagram for IOv2::messages_conf&lt; char &gt;:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab2cf0cf0921eb84b76ec903de28968f8" id="r_ab2cf0cf0921eb84b76ec903de28968f8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char_01_4.html#ab2cf0cf0921eb84b76ec903de28968f8">messages_conf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;domain, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">lang</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cvt_ft</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>)</td></tr>
+<tr class="memdesc:ab2cf0cf0921eb84b76ec903de28968f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor that loads the translation dictionary with encoding conversion.  <br /></td></tr>
 <tr class="separator:ab2cf0cf0921eb84b76ec903de28968f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4e24c2ee6302fd8c890e851964fd2bd" id="r_ac4e24c2ee6302fd8c890e851964fd2bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01char_01_4.html#ac4e24c2ee6302fd8c890e851964fd2bd">translate</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ori</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ac4e24c2ee6302fd8c890e851964fd2bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Looks up the translation for <code>ori</code>. See the <code>char8_t</code> specialization: <code>nullptr</code> means "not found".  <br /></td></tr>
 <tr class="separator:ac4e24c2ee6302fd8c890e851964fd2bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Specialization of <code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> for <code>char</code>, with encoding conversion via a <code>wchar_t</code> converter. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ab2cf0cf0921eb84b76ec903de28968f8" name="ab2cf0cf0921eb84b76ec903de28968f8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab2cf0cf0921eb84b76ec903de28968f8">&#9670;&#160;</a></span>messages_conf()</h2>
 
@@ -172,6 +179,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Constructor that loads the translation dictionary with encoding conversion. </p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -198,6 +207,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Looks up the translation for <code>ori</code>. See the <code>char8_t</code> specialization: <code>nullptr</code> means "not found". </p>
 
 </div>
 </div>

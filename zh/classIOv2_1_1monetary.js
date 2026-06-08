@@ -1,7 +1,6 @@
 var classIOv2_1_1monetary =
 [
     [ "char_type", "classIOv2_1_1monetary.html#acffd839cfcb0d52a22f6c4e36080f4a2", null ],
-    [ "create_rules", "classIOv2_1_1monetary.html#aca1f987129df3e40ce90f366960eba11", null ],
     [ "monetary", "classIOv2_1_1monetary.html#a712a93d6bec20d2e4b7d966f4fa5295e", null ],
     [ "curr_symbol_int", "classIOv2_1_1monetary.html#a32b80e2b23b28aa9e0f05e4ca6954f04", null ],
     [ "curr_symbol_nat", "classIOv2_1_1monetary.html#a57e8156210b0bee5e4569fc7bf6827a0", null ],

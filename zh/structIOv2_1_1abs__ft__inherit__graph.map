@@ -8,9 +8,9 @@
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="118,155,163,149,164,154,118,160"/>
 <area shape="rect" id="Node000008" href="$classIOv2_1_1base__ft_3_01ctype_01_4.html" title=" " alt="" coords="167,177,340,202"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="118,170,167,176,166,181,118,176"/>
-<area shape="rect" id="Node000009" href="$classIOv2_1_1base__ft_3_01messages_01_4.html" title=" " alt="" coords="152,226,355,251"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1base__ft_3_01messages_01_4.html" title="messages facet 的基类，提供 gettext 文本域管理和 .mo 文件解析功能。" alt="" coords="152,226,355,251"/>
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="90,182,153,212,190,223,188,229,151,217,88,187"/>
-<area shape="rect" id="Node000010" href="$classIOv2_1_1base__ft_3_01monetary_01_4.html" title=" " alt="" coords="153,275,353,301"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1base__ft_3_01monetary_01_4.html" title="monetary facet 的基类，提供 POSIX lconv 到货币格式 pattern 的转换工具。" alt="" coords="153,275,353,301"/>
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="75,187,108,226,130,245,153,262,179,273,177,278,151,266,126,250,104,230,71,191"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title=" " alt="" coords="403,5,569,45"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="356,23,402,23,402,28,356,28"/>

@@ -97,13 +97,16 @@ $(document).ready(function(){initNavTree('classIOv2_1_1monetary__conf_3_01CharT_
 </div><!--header-->
 <div class="contents">
 
+<p>Specialization of <code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a></code> for <code>wchar_t</code> / <code>char32_t</code>, storing monetary formatting data as wide characters.  
+ <a href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="monetary__details_8h_source.html">monetary_details.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::monetary_conf&lt; CharT &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1monetary__conf_3_01CharT_01_4__inherit__graph.png" border="0" usemap="#aIOv2_1_1monetary__conf_3_01CharT_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1monetary__conf_3_01CharT_01_4_inherit__map" id="aIOv2_1_1monetary__conf_3_01CharT_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="125,93,284,133"/>
+<area shape="rect" title="Specialization of monetary_conf for wchar_t / char32_t, storing monetary formatting data as wide char..." alt="" coords="125,93,284,133"/>
 <area shape="rect" href="classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,193,45"/>
 <area shape="poly" title=" " alt="" coords="135,52,183,91,180,95,131,56"/>
 <area shape="rect" href="classIOv2_1_1ft__basic.html" title=" " alt="" coords="217,5,405,45"/>
@@ -115,7 +118,7 @@ Collaboration diagram for IOv2::monetary_conf&lt; CharT &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1monetary__conf_3_01CharT_01_4__coll__graph.png" border="0" usemap="#aIOv2_1_1monetary__conf_3_01CharT_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="aIOv2_1_1monetary__conf_3_01CharT_01_4_coll__map" id="aIOv2_1_1monetary__conf_3_01CharT_01_4_coll__map">
-<area shape="rect" title=" " alt="" coords="125,93,284,133"/>
+<area shape="rect" title="Specialization of monetary_conf for wchar_t / char32_t, storing monetary formatting data as wide char..." alt="" coords="125,93,284,133"/>
 <area shape="rect" href="classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,193,45"/>
 <area shape="poly" title=" " alt="" coords="135,52,183,91,180,95,131,56"/>
 <area shape="rect" href="classIOv2_1_1ft__basic.html" title=" " alt="" coords="217,5,405,45"/>
@@ -126,78 +129,117 @@ Collaboration diagram for IOv2::monetary_conf&lt; CharT &gt;:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a8603d5cabeccc9e3ce942895a4e3a992" id="r_a8603d5cabeccc9e3ce942895a4e3a992"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a8603d5cabeccc9e3ce942895a4e3a992">char_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a></td></tr>
+<tr class="memdesc:a8603d5cabeccc9e3ce942895a4e3a992"><td class="mdescLeft">&#160;</td><td class="mdescRight">The character type used by this specialization.   <br /></td></tr>
 <tr class="separator:a8603d5cabeccc9e3ce942895a4e3a992"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a530002bc07e0dc3ba44265fcb7042bec" id="r_a530002bc07e0dc3ba44265fcb7042bec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a530002bc07e0dc3ba44265fcb7042bec">char_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a></td></tr>
+<tr class="memdesc:a530002bc07e0dc3ba44265fcb7042bec"><td class="mdescLeft">&#160;</td><td class="mdescRight">The character type used by this specialization.   <br /></td></tr>
 <tr class="separator:a530002bc07e0dc3ba44265fcb7042bec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:af6b57f59af951707a29fb6508d9555cd" id="r_af6b57f59af951707a29fb6508d9555cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#af6b57f59af951707a29fb6508d9555cd">monetary_conf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;name)</td></tr>
+<tr class="memdesc:af6b57f59af951707a29fb6508d9555cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor that reads monetary formatting data from the named locale and converts it to wide characters.  <br /></td></tr>
 <tr class="separator:af6b57f59af951707a29fb6508d9555cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b009fa0c78468b1fdbbd000a0ff9706" id="r_a3b009fa0c78468b1fdbbd000a0ff9706"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a3b009fa0c78468b1fdbbd000a0ff9706">grouping</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a3b009fa0c78468b1fdbbd000a0ff9706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the digit-grouping specification.  <br /></td></tr>
 <tr class="separator:a3b009fa0c78468b1fdbbd000a0ff9706"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5b4eef796af91993845c6a0468ed7a61" id="r_a5b4eef796af91993845c6a0468ed7a61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a5b4eef796af91993845c6a0468ed7a61">curr_symbol_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a5b4eef796af91993845c6a0468ed7a61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the international currency symbol string.  <br /></td></tr>
 <tr class="separator:a5b4eef796af91993845c6a0468ed7a61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a770bf9d2bcae822f496895d6a2626afd" id="r_a770bf9d2bcae822f496895d6a2626afd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a770bf9d2bcae822f496895d6a2626afd">curr_symbol_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a770bf9d2bcae822f496895d6a2626afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the local (national) currency symbol string.  <br /></td></tr>
 <tr class="separator:a770bf9d2bcae822f496895d6a2626afd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a541498e16806784f671cd7701f055379" id="r_a541498e16806784f671cd7701f055379"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a541498e16806784f671cd7701f055379">positive_sign_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a541498e16806784f671cd7701f055379"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive sign string for the international format.  <br /></td></tr>
 <tr class="separator:a541498e16806784f671cd7701f055379"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4c193fed28e84dceb0a1847ebf64e6db" id="r_a4c193fed28e84dceb0a1847ebf64e6db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a4c193fed28e84dceb0a1847ebf64e6db">positive_sign_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a4c193fed28e84dceb0a1847ebf64e6db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive sign string for the national format.  <br /></td></tr>
 <tr class="separator:a4c193fed28e84dceb0a1847ebf64e6db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01951457474ea0013f97f08a97d1e597" id="r_a01951457474ea0013f97f08a97d1e597"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a01951457474ea0013f97f08a97d1e597">negative_sign_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a01951457474ea0013f97f08a97d1e597"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative sign string for the international format.  <br /></td></tr>
 <tr class="separator:a01951457474ea0013f97f08a97d1e597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a893ed2f3989031d8649062a4bd8f309b" id="r_a893ed2f3989031d8649062a4bd8f309b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a893ed2f3989031d8649062a4bd8f309b">negative_sign_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a893ed2f3989031d8649062a4bd8f309b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative sign string for the national format.  <br /></td></tr>
 <tr class="separator:a893ed2f3989031d8649062a4bd8f309b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af60154765e8b7d627335f200f01b7fcb" id="r_af60154765e8b7d627335f200f01b7fcb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#af60154765e8b7d627335f200f01b7fcb">pos_format_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af60154765e8b7d627335f200f01b7fcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive format pattern for the international format.  <br /></td></tr>
 <tr class="separator:af60154765e8b7d627335f200f01b7fcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a317e31cef90533e5649c82c0833aa3ac" id="r_a317e31cef90533e5649c82c0833aa3ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a317e31cef90533e5649c82c0833aa3ac">pos_format_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a317e31cef90533e5649c82c0833aa3ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive format pattern for the national format.  <br /></td></tr>
 <tr class="separator:a317e31cef90533e5649c82c0833aa3ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac40bc7111139d33968c3aec1a22ca655" id="r_ac40bc7111139d33968c3aec1a22ca655"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#ac40bc7111139d33968c3aec1a22ca655">neg_format_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ac40bc7111139d33968c3aec1a22ca655"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative format pattern for the international format.  <br /></td></tr>
 <tr class="separator:ac40bc7111139d33968c3aec1a22ca655"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fd267683573e250359fcc1a7ac26db3" id="r_a1fd267683573e250359fcc1a7ac26db3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a1fd267683573e250359fcc1a7ac26db3">neg_format_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a1fd267683573e250359fcc1a7ac26db3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative format pattern for the national format.  <br /></td></tr>
 <tr class="separator:a1fd267683573e250359fcc1a7ac26db3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0ac45bc8d3ec77246105fde5b494b17" id="r_af0ac45bc8d3ec77246105fde5b494b17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#af0ac45bc8d3ec77246105fde5b494b17">frac_digits_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af0ac45bc8d3ec77246105fde5b494b17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of fractional digits for the international format.  <br /></td></tr>
 <tr class="separator:af0ac45bc8d3ec77246105fde5b494b17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c3f58e125393fc0851c7d6a6e8802d3" id="r_a5c3f58e125393fc0851c7d6a6e8802d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a5c3f58e125393fc0851c7d6a6e8802d3">frac_digits_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a5c3f58e125393fc0851c7d6a6e8802d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of fractional digits for the national format.  <br /></td></tr>
 <tr class="separator:a5c3f58e125393fc0851c7d6a6e8802d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3fa6c21287f26dd7514964facca1fc2d" id="r_a3fa6c21287f26dd7514964facca1fc2d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a3fa6c21287f26dd7514964facca1fc2d">decimal_point</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a3fa6c21287f26dd7514964facca1fc2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the monetary decimal point character.  <br /></td></tr>
 <tr class="separator:a3fa6c21287f26dd7514964facca1fc2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6523e36c3027424eebd6d26724f8839" id="r_ad6523e36c3027424eebd6d26724f8839"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#ad6523e36c3027424eebd6d26724f8839">thousands_sep</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad6523e36c3027424eebd6d26724f8839"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the thousands separator character.  <br /></td></tr>
 <tr class="separator:ad6523e36c3027424eebd6d26724f8839"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6b57f59af951707a29fb6508d9555cd" id="r_af6b57f59af951707a29fb6508d9555cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#af6b57f59af951707a29fb6508d9555cd">monetary_conf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;name)</td></tr>
+<tr class="memdesc:af6b57f59af951707a29fb6508d9555cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor that reads monetary formatting data from the named locale.  <br /></td></tr>
 <tr class="separator:af6b57f59af951707a29fb6508d9555cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b009fa0c78468b1fdbbd000a0ff9706" id="r_a3b009fa0c78468b1fdbbd000a0ff9706"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::vector&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">uint8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a3b009fa0c78468b1fdbbd000a0ff9706">grouping</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a3b009fa0c78468b1fdbbd000a0ff9706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the digit-grouping specification.  <br /></td></tr>
 <tr class="separator:a3b009fa0c78468b1fdbbd000a0ff9706"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad1387af0f4cc55ef0a43b102394d54ca" id="r_ad1387af0f4cc55ef0a43b102394d54ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#ad1387af0f4cc55ef0a43b102394d54ca">curr_symbol_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad1387af0f4cc55ef0a43b102394d54ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the international currency symbol string (UTF-8).  <br /></td></tr>
 <tr class="separator:ad1387af0f4cc55ef0a43b102394d54ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ef641039455b4ab708734384490c69d" id="r_a1ef641039455b4ab708734384490c69d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a1ef641039455b4ab708734384490c69d">curr_symbol_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a1ef641039455b4ab708734384490c69d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the local (national) currency symbol string (UTF-8).  <br /></td></tr>
 <tr class="separator:a1ef641039455b4ab708734384490c69d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0bc000828a01d90dc989ccd4183746d8" id="r_a0bc000828a01d90dc989ccd4183746d8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a0bc000828a01d90dc989ccd4183746d8">positive_sign_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a0bc000828a01d90dc989ccd4183746d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive sign string for the international format (UTF-8).  <br /></td></tr>
 <tr class="separator:a0bc000828a01d90dc989ccd4183746d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9d4a622d217552da72cf2c8ad2fe6b1" id="r_af9d4a622d217552da72cf2c8ad2fe6b1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#af9d4a622d217552da72cf2c8ad2fe6b1">positive_sign_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af9d4a622d217552da72cf2c8ad2fe6b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive sign string for the national format (UTF-8).  <br /></td></tr>
 <tr class="separator:af9d4a622d217552da72cf2c8ad2fe6b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40ced2ecd7d2a738f5e1be0a56cdd512" id="r_a40ced2ecd7d2a738f5e1be0a56cdd512"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a40ced2ecd7d2a738f5e1be0a56cdd512">negative_sign_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a40ced2ecd7d2a738f5e1be0a56cdd512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative sign string for the international format (UTF-8).  <br /></td></tr>
 <tr class="separator:a40ced2ecd7d2a738f5e1be0a56cdd512"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaea6e3ec0614294cd5265dc366a41903" id="r_aaea6e3ec0614294cd5265dc366a41903"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#aaea6e3ec0614294cd5265dc366a41903">negative_sign_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:aaea6e3ec0614294cd5265dc366a41903"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative sign string for the national format (UTF-8).  <br /></td></tr>
 <tr class="separator:aaea6e3ec0614294cd5265dc366a41903"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af60154765e8b7d627335f200f01b7fcb" id="r_af60154765e8b7d627335f200f01b7fcb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#af60154765e8b7d627335f200f01b7fcb">pos_format_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af60154765e8b7d627335f200f01b7fcb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive format pattern for the international format.  <br /></td></tr>
 <tr class="separator:af60154765e8b7d627335f200f01b7fcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a317e31cef90533e5649c82c0833aa3ac" id="r_a317e31cef90533e5649c82c0833aa3ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a317e31cef90533e5649c82c0833aa3ac">pos_format_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a317e31cef90533e5649c82c0833aa3ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the positive format pattern for the national format.  <br /></td></tr>
 <tr class="separator:a317e31cef90533e5649c82c0833aa3ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac40bc7111139d33968c3aec1a22ca655" id="r_ac40bc7111139d33968c3aec1a22ca655"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#ac40bc7111139d33968c3aec1a22ca655">neg_format_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ac40bc7111139d33968c3aec1a22ca655"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative format pattern for the international format.  <br /></td></tr>
 <tr class="separator:ac40bc7111139d33968c3aec1a22ca655"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1fd267683573e250359fcc1a7ac26db3" id="r_a1fd267683573e250359fcc1a7ac26db3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::pattern &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a1fd267683573e250359fcc1a7ac26db3">neg_format_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a1fd267683573e250359fcc1a7ac26db3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the negative format pattern for the national format.  <br /></td></tr>
 <tr class="separator:a1fd267683573e250359fcc1a7ac26db3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0ac45bc8d3ec77246105fde5b494b17" id="r_af0ac45bc8d3ec77246105fde5b494b17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#af0ac45bc8d3ec77246105fde5b494b17">frac_digits_int</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af0ac45bc8d3ec77246105fde5b494b17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of fractional digits for the international format.  <br /></td></tr>
 <tr class="separator:af0ac45bc8d3ec77246105fde5b494b17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c3f58e125393fc0851c7d6a6e8802d3" id="r_a5c3f58e125393fc0851c7d6a6e8802d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a5c3f58e125393fc0851c7d6a6e8802d3">frac_digits_nat</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a5c3f58e125393fc0851c7d6a6e8802d3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of fractional digits for the national format.  <br /></td></tr>
 <tr class="separator:a5c3f58e125393fc0851c7d6a6e8802d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94733159a477ba3f2554283d25b2010a" id="r_a94733159a477ba3f2554283d25b2010a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a94733159a477ba3f2554283d25b2010a">decimal_point</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a94733159a477ba3f2554283d25b2010a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the monetary decimal point character (UTF-8 code unit).  <br /></td></tr>
 <tr class="separator:a94733159a477ba3f2554283d25b2010a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62647273d1b3890f5e779b240aebc56a" id="r_a62647273d1b3890f5e779b240aebc56a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a62647273d1b3890f5e779b240aebc56a">thousands_sep</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a62647273d1b3890f5e779b240aebc56a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the thousands separator character (UTF-8 code unit).  <br /></td></tr>
 <tr class="separator:a62647273d1b3890f5e779b240aebc56a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; || (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a>)<br />
+class IOv2::monetary_conf&lt; CharT &gt;</div><p>Specialization of <code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a></code> for <code>wchar_t</code> / <code>char32_t</code>, storing monetary formatting data as wide characters. </p>
+<p>Specialization of <code><a class="el" href="classIOv2_1_1monetary__conf.html">monetary_conf</a></code> for <code>char8_t</code>, storing monetary formatting data as UTF-8 strings.</p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a8603d5cabeccc9e3ce942895a4e3a992" name="a8603d5cabeccc9e3ce942895a4e3a992"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8603d5cabeccc9e3ce942895a4e3a992">&#9670;&#160;</a></span>char_type <span class="overload">[1/2]</span></h2>
 
@@ -211,6 +253,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The character type used by this specialization.  </p>
 
 </div>
 </div>
@@ -227,6 +271,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The character type used by this specialization.  </p>
 
 </div>
 </div>
@@ -257,6 +303,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Constructor that reads monetary formatting data from the named locale and converts it to wide characters. </p>
+
 </div>
 </div>
 <a id="af6b57f59af951707a29fb6508d9555cd" name="af6b57f59af951707a29fb6508d9555cd"></a>
@@ -284,6 +332,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Constructor that reads monetary formatting data from the named locale. </p>
 
 </div>
 </div>
@@ -313,6 +363,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the international currency symbol string. </p>
+
 </div>
 </div>
 <a id="ad1387af0f4cc55ef0a43b102394d54ca" name="ad1387af0f4cc55ef0a43b102394d54ca"></a>
@@ -339,6 +391,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the international currency symbol string (UTF-8). </p>
 
 </div>
 </div>
@@ -367,6 +421,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the local (national) currency symbol string. </p>
+
 </div>
 </div>
 <a id="a1ef641039455b4ab708734384490c69d" name="a1ef641039455b4ab708734384490c69d"></a>
@@ -393,6 +449,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the local (national) currency symbol string (UTF-8). </p>
 
 </div>
 </div>
@@ -421,6 +479,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the monetary decimal point character. </p>
+
 </div>
 </div>
 <a id="a94733159a477ba3f2554283d25b2010a" name="a94733159a477ba3f2554283d25b2010a"></a>
@@ -447,6 +507,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the monetary decimal point character (UTF-8 code unit). </p>
 
 </div>
 </div>
@@ -475,6 +537,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the number of fractional digits for the international format. </p>
+
 </div>
 </div>
 <a id="af0ac45bc8d3ec77246105fde5b494b17" name="af0ac45bc8d3ec77246105fde5b494b17"></a>
@@ -501,6 +565,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the number of fractional digits for the international format. </p>
 
 </div>
 </div>
@@ -529,6 +595,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the number of fractional digits for the national format. </p>
+
 </div>
 </div>
 <a id="a5c3f58e125393fc0851c7d6a6e8802d3" name="a5c3f58e125393fc0851c7d6a6e8802d3"></a>
@@ -555,6 +623,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the number of fractional digits for the national format. </p>
 
 </div>
 </div>
@@ -583,6 +653,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the digit-grouping specification. </p>
+
 </div>
 </div>
 <a id="a3b009fa0c78468b1fdbbd000a0ff9706" name="a3b009fa0c78468b1fdbbd000a0ff9706"></a>
@@ -609,6 +681,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the digit-grouping specification. </p>
 
 </div>
 </div>
@@ -637,6 +711,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the negative format pattern for the international format. </p>
+
 </div>
 </div>
 <a id="ac40bc7111139d33968c3aec1a22ca655" name="ac40bc7111139d33968c3aec1a22ca655"></a>
@@ -663,6 +739,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the negative format pattern for the international format. </p>
 
 </div>
 </div>
@@ -691,6 +769,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the negative format pattern for the national format. </p>
+
 </div>
 </div>
 <a id="a1fd267683573e250359fcc1a7ac26db3" name="a1fd267683573e250359fcc1a7ac26db3"></a>
@@ -717,6 +797,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the negative format pattern for the national format. </p>
 
 </div>
 </div>
@@ -745,6 +827,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the negative sign string for the international format. </p>
+
 </div>
 </div>
 <a id="a40ced2ecd7d2a738f5e1be0a56cdd512" name="a40ced2ecd7d2a738f5e1be0a56cdd512"></a>
@@ -771,6 +855,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the negative sign string for the international format (UTF-8). </p>
 
 </div>
 </div>
@@ -799,6 +885,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the negative sign string for the national format. </p>
+
 </div>
 </div>
 <a id="aaea6e3ec0614294cd5265dc366a41903" name="aaea6e3ec0614294cd5265dc366a41903"></a>
@@ -825,6 +913,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the negative sign string for the national format (UTF-8). </p>
 
 </div>
 </div>
@@ -853,6 +943,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the positive format pattern for the international format. </p>
+
 </div>
 </div>
 <a id="af60154765e8b7d627335f200f01b7fcb" name="af60154765e8b7d627335f200f01b7fcb"></a>
@@ -879,6 +971,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the positive format pattern for the international format. </p>
 
 </div>
 </div>
@@ -907,6 +1001,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the positive format pattern for the national format. </p>
+
 </div>
 </div>
 <a id="a317e31cef90533e5649c82c0833aa3ac" name="a317e31cef90533e5649c82c0833aa3ac"></a>
@@ -933,6 +1029,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the positive format pattern for the national format. </p>
 
 </div>
 </div>
@@ -961,6 +1059,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the positive sign string for the international format. </p>
+
 </div>
 </div>
 <a id="a0bc000828a01d90dc989ccd4183746d8" name="a0bc000828a01d90dc989ccd4183746d8"></a>
@@ -987,6 +1087,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the positive sign string for the international format (UTF-8). </p>
 
 </div>
 </div>
@@ -1015,6 +1117,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the positive sign string for the national format. </p>
+
 </div>
 </div>
 <a id="af9d4a622d217552da72cf2c8ad2fe6b1" name="af9d4a622d217552da72cf2c8ad2fe6b1"></a>
@@ -1041,6 +1145,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the positive sign string for the national format (UTF-8). </p>
 
 </div>
 </div>
@@ -1069,6 +1175,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the thousands separator character. </p>
+
 </div>
 </div>
 <a id="a62647273d1b3890f5e779b240aebc56a" name="a62647273d1b3890f5e779b240aebc56a"></a>
@@ -1095,6 +1203,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the thousands separator character (UTF-8 code unit). </p>
 
 </div>
 </div>

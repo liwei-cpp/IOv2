@@ -1,5 +1,5 @@
 <map id="IOv2::base_ft&lt; messages &gt;" name="IOv2::base_ft&lt; messages &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,208,104"/>
+<area shape="rect" id="Node000001" title="messages facet 的基类，提供 gettext 文本域管理和 .mo 文件解析功能。" alt="" coords="5,79,208,104"/>
 <area shape="rect" id="Node000002" href="$structIOv2_1_1abs__ft.html" title=" " alt="" coords="57,5,156,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,44,109,79,104,79,104,44"/>
 </map>

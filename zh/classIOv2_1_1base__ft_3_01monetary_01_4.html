@@ -100,13 +100,16 @@ $(document).ready(function(){initNavTree('classIOv2_1_1base__ft_3_01monetary_01_
 </div><!--header-->
 <div class="contents">
 
+<p><code>monetary</code> facet 的基类，提供 POSIX <code>lconv</code> 到货币格式 pattern 的转换工具。  
+ <a href="classIOv2_1_1base__ft_3_01monetary_01_4.html#details">更多...</a></p>
+
 <p><code>#include &lt;<a class="el" href="monetary__details_8h_source.html">monetary_details.h</a>&gt;</code></p>
 <div class="dynheader">
 类 IOv2::base_ft&lt; monetary &gt; 继承关系图:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1base__ft_3_01monetary_01_4__inherit__graph.png" border="0" usemap="#aIOv2_1_1base__ft_3_01monetary_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1base__ft_3_01monetary_01_4_inherit__map" id="aIOv2_1_1base__ft_3_01monetary_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,79,205,104"/>
+<area shape="rect" title="monetary facet 的基类，提供 POSIX lconv 到货币格式 pattern 的转换工具。" alt="" coords="5,79,205,104"/>
 <area shape="rect" href="structIOv2_1_1abs__ft.html" title=" " alt="" coords="56,5,155,31"/>
 <area shape="poly" title=" " alt="" coords="108,44,108,79,103,79,103,44"/>
 </map>
@@ -116,7 +119,7 @@ IOv2::base_ft&lt; monetary &gt; 的协作图:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1base__ft_3_01monetary_01_4__coll__graph.png" border="0" usemap="#aIOv2_1_1base__ft_3_01monetary_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="aIOv2_1_1base__ft_3_01monetary_01_4_coll__map" id="aIOv2_1_1base__ft_3_01monetary_01_4_coll__map">
-<area shape="rect" title=" " alt="" coords="5,79,205,104"/>
+<area shape="rect" title="monetary facet 的基类，提供 POSIX lconv 到货币格式 pattern 的转换工具。" alt="" coords="5,79,205,104"/>
 <area shape="rect" href="structIOv2_1_1abs__ft.html" title=" " alt="" coords="56,5,155,31"/>
 <area shape="poly" title=" " alt="" coords="108,44,108,79,103,79,103,44"/>
 </map>
@@ -125,6 +128,7 @@ IOv2::base_ft&lt; monetary &gt; 的协作图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html">pattern_spec</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">将驱动 <code>s_construct_pattern</code> 的三个 POSIX <code>lconv</code> 标志捆绑为一个具名参数。  <a href="structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -138,8 +142,10 @@ Public 类型</h2></td></tr>
 &#160;&#160;<a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a46fb5df56473483a32394380dfe0a593a2063c1608d6e0baf80249c42e2be5804">value</a>
 <br />
  }</td></tr>
+<tr class="memdesc:a46fb5df56473483a32394380dfe0a593"><td class="mdescLeft">&#160;</td><td class="mdescRight">货币格式 pattern 中各组成部分的枚举。  <a href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a46fb5df56473483a32394380dfe0a593">更多...</a><br /></td></tr>
 <tr class="separator:a46fb5df56473483a32394380dfe0a593"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a134750947be4f5dfbc0795d406577465" id="r_a134750947be4f5dfbc0795d406577465"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a134750947be4f5dfbc0795d406577465">pattern</a> = std::array&lt; <a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a46fb5df56473483a32394380dfe0a593">part</a>, 4 &gt;</td></tr>
+<tr class="memdesc:a134750947be4f5dfbc0795d406577465"><td class="mdescLeft">&#160;</td><td class="mdescRight">描述货币字符串完整格式顺序的 pattern 类型。  <br /></td></tr>
 <tr class="separator:a134750947be4f5dfbc0795d406577465"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -169,16 +175,21 @@ Public 成员函数</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-methods" name="pro-static-methods"></a>
 静态 Protected 成员函数</h2></td></tr>
 <tr class="memitem:a40148512f6e181b65396b0181c4050cb" id="r_a40148512f6e181b65396b0181c4050cb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a134750947be4f5dfbc0795d406577465">pattern</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a40148512f6e181b65396b0181c4050cb">s_construct_pattern</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pattern_spec</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">spec</a>)</td></tr>
+<tr class="memdesc:a40148512f6e181b65396b0181c4050cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">根据 POSIX <code>lconv</code> 标志构建货币格式 pattern。  <br /></td></tr>
 <tr class="separator:a40148512f6e181b65396b0181c4050cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac89ee40da86eb716ae72fd11255b2b9d" id="r_ac89ee40da86eb716ae72fd11255b2b9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#ac89ee40da86eb716ae72fd11255b2b9d">s_norm_flag</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)</td></tr>
+<tr class="memdesc:ac89ee40da86eb716ae72fd11255b2b9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 POSIX <code>lconv</code> 的布尔标志字段规范化，消除 <code>CHAR_MAX</code> 哨兵值。  <br /></td></tr>
 <tr class="separator:ac89ee40da86eb716ae72fd11255b2b9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-attribs" name="pro-static-attribs"></a>
 静态 Protected 属性</h2></td></tr>
 <tr class="memitem:a90c54e03ceded2569d435be290de42a1" id="r_a90c54e03ceded2569d435be290de42a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a134750947be4f5dfbc0795d406577465">pattern</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a90c54e03ceded2569d435be290de42a1">s_default_pattern</a> = {<a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a46fb5df56473483a32394380dfe0a593a97bff26855a8bfa63e05d5477e794b24">part::symbol</a>, <a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a46fb5df56473483a32394380dfe0a593a04b29480233f4def5c875875b6bdc3b1">part::sign</a>, <a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a46fb5df56473483a32394380dfe0a593a334c4a4c42fdb79d7ebc3e73b517e6f8">part::none</a>, <a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#a46fb5df56473483a32394380dfe0a593a2063c1608d6e0baf80249c42e2be5804">part::value</a>}</td></tr>
+<tr class="memdesc:a90c54e03ceded2569d435be290de42a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">当区域设置的 <code>sign_posn</code> 超出范围时使用的默认 pattern。  <br /></td></tr>
 <tr class="separator:a90c54e03ceded2569d435be290de42a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p><code>monetary</code> facet 的基类，提供 POSIX <code>lconv</code> 到货币格式 pattern 的转换工具。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a134750947be4f5dfbc0795d406577465" name="a134750947be4f5dfbc0795d406577465"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a134750947be4f5dfbc0795d406577465">&#9670;&#160;</a></span>pattern</h2>
 
@@ -190,6 +201,8 @@ Public 成员函数</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>描述货币字符串完整格式顺序的 pattern 类型。 </p>
 
 </div>
 </div>
@@ -213,12 +226,19 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>货币格式 pattern 中各组成部分的枚举。 </p>
 <table class="fieldtable">
-<tr><th colspan="2">枚举值</th></tr><tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a334c4a4c42fdb79d7ebc3e73b517e6f8" name="a46fb5df56473483a32394380dfe0a593a334c4a4c42fdb79d7ebc3e73b517e6f8"></a>none&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593aff2364a0be3d20e46cc69efb36afe9a5" name="a46fb5df56473483a32394380dfe0a593aff2364a0be3d20e46cc69efb36afe9a5"></a>space&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a97bff26855a8bfa63e05d5477e794b24" name="a46fb5df56473483a32394380dfe0a593a97bff26855a8bfa63e05d5477e794b24"></a>symbol&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a04b29480233f4def5c875875b6bdc3b1" name="a46fb5df56473483a32394380dfe0a593a04b29480233f4def5c875875b6bdc3b1"></a>sign&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a2063c1608d6e0baf80249c42e2be5804" name="a46fb5df56473483a32394380dfe0a593a2063c1608d6e0baf80249c42e2be5804"></a>value&#160;</td><td class="fielddoc"></td></tr>
+<tr><th colspan="2">枚举值</th></tr><tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a334c4a4c42fdb79d7ebc3e73b517e6f8" name="a46fb5df56473483a32394380dfe0a593a334c4a4c42fdb79d7ebc3e73b517e6f8"></a>none&#160;</td><td class="fielddoc"><p>占位槽，不输出任何内容（通常作为 pattern 末尾的填充）。   </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593aff2364a0be3d20e46cc69efb36afe9a5" name="a46fb5df56473483a32394380dfe0a593aff2364a0be3d20e46cc69efb36afe9a5"></a>space&#160;</td><td class="fielddoc"><p>货币符号与数值之间的空格。   </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a97bff26855a8bfa63e05d5477e794b24" name="a46fb5df56473483a32394380dfe0a593a97bff26855a8bfa63e05d5477e794b24"></a>symbol&#160;</td><td class="fielddoc"><p>货币符号字符串。   </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a04b29480233f4def5c875875b6bdc3b1" name="a46fb5df56473483a32394380dfe0a593a04b29480233f4def5c875875b6bdc3b1"></a>sign&#160;</td><td class="fielddoc"><p>正负符号字符串。   </p>
+</td></tr>
+<tr><td class="fieldname"><a id="a46fb5df56473483a32394380dfe0a593a2063c1608d6e0baf80249c42e2be5804" name="a46fb5df56473483a32394380dfe0a593a2063c1608d6e0baf80249c42e2be5804"></a>value&#160;</td><td class="fielddoc"><p>货币数值部分。   </p>
+</td></tr>
 </table>
 
 </div>
@@ -333,6 +353,8 @@ Public 成员函数</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>根据 POSIX <code>lconv</code> 标志构建货币格式 pattern。 </p>
+
 </div>
 </div>
 <a id="ac89ee40da86eb716ae72fd11255b2b9d" name="ac89ee40da86eb716ae72fd11255b2b9d"></a>
@@ -359,6 +381,8 @@ Public 成员函数</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>将 POSIX <code>lconv</code> 的布尔标志字段规范化，消除 <code>CHAR_MAX</code> 哨兵值。 </p>
+
 </div>
 </div>
 <h2 class="groupheader">类成员变量说明</h2>
@@ -381,6 +405,8 @@ Public 成员函数</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>当区域设置的 <code>sign_posn</code> 超出范围时使用的默认 pattern。 </p>
 
 </div>
 </div>
