@@ -1,5 +1,6 @@
 void test_monetary_char_common_1();
 void test_monetary_char_common_2();
+void test_monetary_char_common_3();
 void test_monetary_char_put_1();
 void test_monetary_char_put_2();
 void test_monetary_char_put_3();
@@ -53,6 +54,7 @@ void test_monetary_char_get_43();
 void test_monetary_char_get_44();
 void test_monetary_char_get_45();
 void test_monetary_char_get_46();
+void test_monetary_char_get_47();
 
 void test_monetary_wchar_t_common_1();
 void test_monetary_wchar_t_common_2();
@@ -89,6 +91,7 @@ void test_monetary_wchar_t_get_23();
 
 void test_monetary_char32_t_common_1();
 void test_monetary_char32_t_common_2();
+void test_monetary_char32_t_common_3();
 void test_monetary_char32_t_put_1();
 void test_monetary_char32_t_put_2();
 void test_monetary_char32_t_put_3();
@@ -157,6 +160,7 @@ void test_monetary()
 {
     test_monetary_char_common_1();
     test_monetary_char_common_2();
+    test_monetary_char_common_3();
     test_monetary_char_put_1();
     test_monetary_char_put_2();
     test_monetary_char_put_3();
@@ -210,7 +214,8 @@ void test_monetary()
     test_monetary_char_get_44();
     test_monetary_char_get_45();
     test_monetary_char_get_46();
-    
+    test_monetary_char_get_47();
+
     test_monetary_wchar_t_common_1();
     test_monetary_wchar_t_common_2();
     test_monetary_wchar_t_put_1();
@@ -245,6 +250,7 @@ void test_monetary()
 
     test_monetary_char32_t_common_1();
     test_monetary_char32_t_common_2();
+    test_monetary_char32_t_common_3();
     test_monetary_char32_t_put_1();
     test_monetary_char32_t_put_2();
     test_monetary_char32_t_put_3();

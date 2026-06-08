@@ -1302,11 +1302,30 @@ void test_monetary_char32_t_get_23()
     
     std::u32string  ss = U"123,456";
     std::u32string  digits;
-    
+
     auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
     if (it == ss.end()) throw std::runtime_error("IOv2::monetary<char32_t>::get fails");
     if (digits != U"123") throw std::runtime_error("IOv2::monetary<char32_t>::get fails");
     if (*it != L',') throw std::runtime_error("IOv2::monetary<char32_t>::get fails");
+
+    dump_info("Done\n");
+}
+
+void test_monetary_char32_t_common_3()
+{
+    dump_info("Test monetary<char32_t> common 3 (empty mon_decimal_point locale)...");
+
+    // C.utf8 has an empty mon_decimal_point string.  The wide-char constructor
+    // converts it to char32_t '\0', falls back to U'.', and — because the raw
+    // string was empty — sets both frac_digits fields to 0.
+    // This exercises the mon_dp_raw.empty() branch in monetary_conf<CharT>.
+    IOv2::monetary obj_cu(std::make_shared<IOv2::monetary_conf<char32_t>>("C.utf8"));
+    if (obj_cu.decimal_point() != U'.')
+        throw std::runtime_error("test_monetary_char32_t_common_3: C.utf8 decimal_point fails");
+    if (obj_cu.frac_digits_nat() != 0)
+        throw std::runtime_error("test_monetary_char32_t_common_3: C.utf8 frac_digits_nat fails");
+    if (obj_cu.frac_digits_int() != 0)
+        throw std::runtime_error("test_monetary_char32_t_common_3: C.utf8 frac_digits_int fails");
 
     dump_info("Done\n");
 }
