@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -40,22 +41,28 @@ public:
 
     template <shared_ptr_to<monetary_conf<CharT>> TConfPtr>
     monetary(TConfPtr p_obj)
-        : m_grouping(p_obj->grouping())
-        , m_nat{.m_curr_symbol = p_obj->curr_symbol_nat(),
-                .m_positive_sign = p_obj->positive_sign_nat(),
-                .m_negative_sign = p_obj->negative_sign_nat(),
-                .m_pos_format = p_obj->pos_format_nat(),
-                .m_neg_format = p_obj->neg_format_nat(),
-                .m_frac_digits = p_obj->frac_digits_nat()}
-        , m_int{.m_curr_symbol = p_obj->curr_symbol_int(),
-                .m_positive_sign = p_obj->positive_sign_int(),
-                .m_negative_sign = p_obj->negative_sign_int(),
-                .m_pos_format = p_obj->pos_format_int(),
-                .m_neg_format = p_obj->neg_format_int(),
-                .m_frac_digits = p_obj->frac_digits_int()}
-        , m_decimal_point(p_obj->decimal_point())
-        , m_thousands_sep(p_obj->thousands_sep())
     {
+        // Validate before any dereference below: a null pointer would be UB.
+        // Mirrors the guard in the messages facet.
+        if (!p_obj)
+            throw std::runtime_error("shared_ptr is empty");
+
+        m_grouping = p_obj->grouping();
+        m_nat = {.m_curr_symbol = p_obj->curr_symbol_nat(),
+                 .m_positive_sign = p_obj->positive_sign_nat(),
+                 .m_negative_sign = p_obj->negative_sign_nat(),
+                 .m_pos_format = p_obj->pos_format_nat(),
+                 .m_neg_format = p_obj->neg_format_nat(),
+                 .m_frac_digits = p_obj->frac_digits_nat()};
+        m_int = {.m_curr_symbol = p_obj->curr_symbol_int(),
+                 .m_positive_sign = p_obj->positive_sign_int(),
+                 .m_negative_sign = p_obj->negative_sign_int(),
+                 .m_pos_format = p_obj->pos_format_int(),
+                 .m_neg_format = p_obj->neg_format_int(),
+                 .m_frac_digits = p_obj->frac_digits_int()};
+        m_decimal_point = p_obj->decimal_point();
+        m_thousands_sep = p_obj->thousands_sep();
+
         // grouping() is contracted to return the INTERNAL convention
         // (1–255 = group size, 0 = stop, last element implicitly repeats).
         // monetary_conf and any user-derived override are both expected to
