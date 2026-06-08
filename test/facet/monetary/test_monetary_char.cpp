@@ -2390,3 +2390,98 @@ void test_monetary_char_get_46()
 
     dump_info("Done\n");
 }
+
+void test_monetary_char_common_3()
+{
+    dump_info("Test monetary<char> common 3 (s_construct_pattern cases 2-4 and default)...");
+
+    using part = IOv2::base_ft<IOv2::monetary>::part;
+
+    // ar_AE.UTF-8: n_sign_posn=2, n_cs_precedes=1, n_sep_by_space=1
+    // -> case 2, sp=truthy, precedes=1 -> {symbol, space, value, sign}
+    IOv2::monetary obj_ar(std::make_shared<IOv2::monetary_conf<char>>("ar_AE.UTF-8"));
+    const IOv2::base_ft<IOv2::monetary>::pattern expected_ar =
+        {part::symbol, part::space, part::value, part::sign};
+    if (obj_ar.neg_format_nat() != expected_ar)
+        throw std::runtime_error("test_monetary_char_common_3: ar_AE neg_format_nat fails");
+
+    // nn_NO.UTF-8: n_sign_posn=3, n_cs_precedes=1, n_sep_by_space=0
+    // -> case 3, precedes=1, sp=0 -> {sign, symbol, value, none}
+    IOv2::monetary obj_no(std::make_shared<IOv2::monetary_conf<char>>("nn_NO.UTF-8"));
+    const IOv2::base_ft<IOv2::monetary>::pattern expected_no =
+        {part::sign, part::symbol, part::value, part::none};
+    if (obj_no.neg_format_nat() != expected_no)
+        throw std::runtime_error("test_monetary_char_common_3: nn_NO neg_format_nat fails");
+
+    // da_DK.UTF-8: n_sign_posn=4, n_cs_precedes=1, n_sep_by_space=2
+    // -> case 4, precedes=1, sp=truthy -> {symbol, sign, space, value}
+    IOv2::monetary obj_dk(std::make_shared<IOv2::monetary_conf<char>>("da_DK.UTF-8"));
+    const IOv2::base_ft<IOv2::monetary>::pattern expected_dk =
+        {part::symbol, part::sign, part::space, part::value};
+    if (obj_dk.neg_format_nat() != expected_dk)
+        throw std::runtime_error("test_monetary_char_common_3: da_DK neg_format_nat fails");
+
+    // bo_CN.UTF-8: n_sign_posn=4, n_cs_precedes=1, n_sep_by_space=0
+    // -> case 4, precedes=1, sp=0 (else-branch) -> {symbol, sign, value, none}
+    IOv2::monetary obj_bo(std::make_shared<IOv2::monetary_conf<char>>("bo_CN.UTF-8"));
+    const IOv2::base_ft<IOv2::monetary>::pattern expected_bo =
+        {part::symbol, part::sign, part::value, part::none};
+    if (obj_bo.neg_format_nat() != expected_bo)
+        throw std::runtime_error("test_monetary_char_common_3: bo_CN neg_format_nat fails");
+
+    // C.utf8: sign_posn=CHAR_MAX(127) -> default case -> {symbol, sign, none, value}
+    // Also: mon_decimal_point is empty -> empty mdp_raw branch -> frac_digits forced to 0
+    IOv2::monetary obj_cu(std::make_shared<IOv2::monetary_conf<char>>("C.utf8"));
+    const IOv2::base_ft<IOv2::monetary>::pattern expected_cu =
+        {part::symbol, part::sign, part::none, part::value};
+    if (obj_cu.neg_format_nat() != expected_cu)
+        throw std::runtime_error("test_monetary_char_common_3: C.utf8 neg_format_nat fails");
+    if (obj_cu.frac_digits_nat() != 0)
+        throw std::runtime_error("test_monetary_char_common_3: C.utf8 frac_digits_nat fails");
+    if (obj_cu.frac_digits_int() != 0)
+        throw std::runtime_error("test_monetary_char_common_3: C.utf8 frac_digits_int fails");
+
+    dump_info("Done\n");
+}
+
+void test_monetary_char_get_47()
+{
+    dump_info("Test monetary<char>::get 47 (mandatory_sign && p[3]==sign at symbol position)...");
+    IOv2::ios_base<char> ios;
+
+    auto tmp_io = std::make_shared<MoneyIO>("C");
+    tmp_io->set_positive_sign_nat("+");
+    tmp_io->set_negative_sign_nat("-");
+    // Pattern: {value, space, symbol, sign}.
+    // At pattern position i==2 (symbol), p[3]==sign and mandatory_sign==true;
+    // this covers the branch that checks
+    //   (mandatory_sign && (static_cast<part>(p[3]) == part::sign)).
+    tmp_io->set_neg_format_nat({
+        IOv2::base_ft<IOv2::monetary>::part::value,
+        IOv2::base_ft<IOv2::monetary>::part::space,
+        IOv2::base_ft<IOv2::monetary>::part::symbol,
+        IOv2::base_ft<IOv2::monetary>::part::sign
+    });
+    IOv2::monetary<char> obj(tmp_io);
+
+    std::string digits;
+
+    // Positive: "123 +" -> digits "123"
+    std::string input_pos = "123 +";
+    auto it_pos = obj.get(input_pos.begin(), input_pos.end(), false, ios, digits);
+    if (digits != "123")
+        throw std::runtime_error("test_monetary_char_get_47: positive value fails");
+    if (it_pos != input_pos.end())
+        throw std::runtime_error("test_monetary_char_get_47: positive iterator fails");
+
+    // Negative: "123 -" -> digits "-123"
+    digits.clear();
+    std::string input_neg = "123 -";
+    auto it_neg = obj.get(input_neg.begin(), input_neg.end(), false, ios, digits);
+    if (digits != "-123")
+        throw std::runtime_error("test_monetary_char_get_47: negative value fails");
+    if (it_neg != input_neg.end())
+        throw std::runtime_error("test_monetary_char_get_47: negative iterator fails");
+
+    dump_info("Done\n");
+}
