@@ -7,6 +7,7 @@
 #include <device/mem_device.h>
 #include <facet/facet_common.h>
 
+#include <array>
 #include <bit>
 #include <cstdint>
 #include <cstdio>
@@ -32,7 +33,9 @@ class base_ft<messages> : public abs_ft
             : m_fp(fp) {}
         file_closer(const file_closer&) = delete;
         file_closer& operator=(const file_closer&) = delete;
-        ~file_closer() { fclose(m_fp); }
+        file_closer(file_closer&&) = delete;
+        file_closer& operator=(file_closer&&) = delete;
+        ~file_closer() { fclose(m_fp); } // NOLINT(cppcoreguidelines-owning-memory)
     private:
         std::FILE* m_fp;
     };
@@ -40,7 +43,7 @@ class base_ft<messages> : public abs_ft
 public:
     static void bind_text_domain(const std::string& domain, const std::string& dirname)
     {
-        std::lock_guard<std::mutex> guard(s_domain_mutex);
+        std::scoped_lock guard(s_domain_mutex);
         auto it = s_domain_dirs.find(domain);
         if (it != s_domain_dirs.end())
             it->second = dirname;
@@ -53,12 +56,12 @@ public:
     // another thread rebinds the domain via bind_text_domain() concurrently.
     static bool available(const std::string& domain, const std::string& lang)
     {
-        return available(get_dirname(domain), domain, lang);
+        return available({.dirname = get_dirname(domain), .domain = domain}, lang);
     }
 
     static std::string filter_lang(const std::string& domain, const std::string& p_lang)
     {
-        return filter_lang(get_dirname(domain), domain, p_lang);
+        return filter_lang({.dirname = get_dirname(domain), .domain = domain}, p_lang);
     }
 
     base_ft(size_t id, const std::string& p_domain, const std::string& p_lang)
@@ -70,24 +73,36 @@ public:
         // one dirname, so the recorded domain_info can never disagree with the
         // dictionary actually loaded.
         , m_dirname(get_dirname(p_domain))
-        , m_filtered_lang(filter_lang(m_dirname, p_domain, p_lang))
+        , m_filtered_lang(filter_lang({.dirname = m_dirname, .domain = p_domain}, p_lang))
         , m_domain_info('[' + p_domain + "] [" + p_lang + '(' + m_filtered_lang + ')' + "] [" +
                         m_dirname + "]")
     {}
 
-    const std::string& domain_info() const { return m_domain_info; }
-    const std::string& filtered_lang() const { return m_filtered_lang; }
+    [[nodiscard]] const std::string& domain_info() const { return m_domain_info; }
+    [[nodiscard]] const std::string& filtered_lang() const { return m_filtered_lang; }
 
 protected:
     // The directory bound to this domain (gettext's `dirname`), snapshotted at
     // construction. Derived configs read this so their dictionary load uses the
     // same directory that domain_info() reports.
-    const std::string& dirname() const { return m_dirname; }
+    [[nodiscard]] const std::string& dirname() const { return m_dirname; }
 
-    static std::string get_domain_file(const std::string& dirname, const std::string& domain, const std::string& lang)
+    // The bound text domain and its directory. These two same-typed strings are
+    // always passed together to the lookup helpers below; bundling them here (vs
+    // two positional std::string parameters) makes them impossible to swap by
+    // mistake (bugprone-easily-swappable-parameters). The language stays a
+    // separate argument because it varies independently — filter_lang() probes
+    // several candidate languages against one fixed (dirname, domain) pair.
+    struct text_domain
     {
-        std::filesystem::path dom{dirname};
-        dom = dom / lang / "LC_MESSAGES" / (domain + ".mo");
+        std::string dirname;  // gettext dirname: the directory holding the locale tree
+        std::string domain;   // text domain: the .mo file's basename
+    };
+
+    static std::string get_domain_file(const text_domain& td, const std::string& lang)
+    {
+        std::filesystem::path dom{td.dirname};
+        dom = dom / lang / "LC_MESSAGES" / (td.domain + ".mo");
         return dom.string();
     }
 
@@ -122,7 +137,7 @@ protected:
     // ever required.
     static std::unordered_map<std::u8string, std::u8string> get_translate_dictionary(const std::string& filename)
     {
-        std::FILE* fp = fopen(filename.c_str(), "rb");
+        std::FILE* fp = fopen(filename.c_str(), "rb"); // NOLINT(cppcoreguidelines-owning-memory)
         if (!fp)
             throw stream_error("get_translate_dictionary fail: cannot open file " + filename);
 
@@ -150,8 +165,8 @@ protected:
             return res;
         };
 
-        unsigned char buff[8];
-        if (std::fread(buff, 1, 8, fp) != 8)
+        std::array<unsigned char, 8> buff{};
+        if (std::fread(buff.data(), 1, 8, fp) != 8)
             throw stream_error("get_translate_dictionary fail: invalid format");
 
         bool need_swap = false;
@@ -164,9 +179,9 @@ protected:
         if ((buff[4] != 0) || (buff[5] != 0) || (buff[6] != 0) || (buff[7] != 0))
             throw stream_error("get_translate_dictionary fail: invalid format");
 
-        auto str_num = read_num(buff, need_swap);
-        auto ori_offset = read_num(buff, need_swap);
-        auto aim_offset = read_num(buff, need_swap);
+        auto str_num = read_num(buff.data(), need_swap);
+        auto ori_offset = read_num(buff.data(), need_swap);
+        auto aim_offset = read_num(buff.data(), need_swap);
 
         // Each entry needs an 8-byte (length, offset) descriptor in both the
         // original and translation tables, so a valid str_num cannot exceed
@@ -195,8 +210,8 @@ protected:
         std::vector<std::u8string> oris;
         for (size_t i = 0; i < str_num; ++i)
         {
-            auto length = read_num(buff, need_swap);
-            auto offset = read_num(buff, need_swap);
+            auto length = read_num(buff.data(), need_swap);
+            auto offset = read_num(buff.data(), need_swap);
             auto cur_pos = std::ftell(fp);
             if (cur_pos == -1L) throw stream_error("get_translate_dictionary fail: file inconsistent");
 
@@ -212,7 +227,7 @@ protected:
                 throw stream_error("get_translate_dictionary fail: invalid format");
 
             str_buf[length] = u8'\0';
-            oris.push_back(str_buf.data());
+            oris.emplace_back(str_buf.data());
 
             if (std::fseek(fp, cur_pos, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
@@ -224,8 +239,8 @@ protected:
 
         for (size_t i = 0; i < str_num; ++i)
         {
-            auto length = read_num(buff, need_swap);
-            auto offset = read_num(buff, need_swap);
+            auto length = read_num(buff.data(), need_swap);
+            auto offset = read_num(buff.data(), need_swap);
             auto cur_pos = std::ftell(fp);
             if (cur_pos == -1L) throw stream_error("get_translate_dictionary fail: file inconsistent");
 
@@ -254,34 +269,34 @@ private:
     // Snapshot-taking implementations: the dirname is resolved once by the
     // caller and threaded through here, so neither recursion into available()
     // nor the language scan re-reads s_domain_dirs.
-    static bool available(const std::string& dirname, const std::string& domain, const std::string& lang)
+    static bool available(const text_domain& td, const std::string& lang)
     {
         if (lang.empty() || lang.find(':') != std::string::npos)
         {
-            std::string resolved = filter_lang(dirname, domain, lang);
+            std::string resolved = filter_lang(td, lang);
             if (resolved.empty())
                 return false;
-            return std::filesystem::exists(get_domain_file(dirname, domain, resolved));
+            return std::filesystem::exists(get_domain_file(td, resolved));
         }
-        return std::filesystem::exists(get_domain_file(dirname, domain, lang));
+        return std::filesystem::exists(get_domain_file(td, lang));
     }
 
-    static std::string filter_lang(const std::string& dirname, const std::string& domain, const std::string& p_lang)
+    static std::string filter_lang(const text_domain& td, const std::string& p_lang)
     {
-        auto match_lang = [&dirname, &domain](const std::string& str_lang)
+        auto match_lang = [&td](const std::string& str_lang)
         {
             std::size_t start = 0;
-            std::size_t end;
+            std::size_t end = 0;
             while ((end = str_lang.find(':', start)) != std::string::npos)
             {
                 auto cur_lang = str_lang.substr(start, end - start);
-                if ((!cur_lang.empty()) && (base_ft<messages>::available(dirname, domain, cur_lang)))
+                if ((!cur_lang.empty()) && (base_ft<messages>::available(td, cur_lang)))
                     return cur_lang;
                 start = end + 1;
             }
 
             auto last_str = str_lang.substr(start);
-            if ((!last_str.empty()) && (base_ft<messages>::available(dirname, domain, last_str)))
+            if ((!last_str.empty()) && (base_ft<messages>::available(td, last_str)))
                 return last_str;
 
             return std::string{};
@@ -316,7 +331,7 @@ private:
                     // ':'-separated list (gettext never splits them). A value
                     // containing ':' is therefore not a valid locale name:
                     // skip it and try the next variable.
-                    if (res.find(':') == std::string::npos && base_ft<messages>::available(dirname, domain, res))
+                    if (res.find(':') == std::string::npos && base_ft<messages>::available(td, res))
                         return res;
                 }
             }
@@ -334,7 +349,7 @@ private:
     {
         const static std::string def_dir = "/usr/share/locale";
 
-        std::lock_guard<std::mutex> guard(s_domain_mutex);
+        std::scoped_lock guard(s_domain_mutex);
         auto it = s_domain_dirs.find(domain);
         return (it == s_domain_dirs.end()) ? def_dir : it->second;
     }
@@ -379,7 +394,7 @@ private:
             if (lang.empty())
                 throw stream_error("messages_conf init fail: no language available");
             else
-                return get_translate_dictionary(get_domain_file(dirname, domain, lang));
+                return get_translate_dictionary(get_domain_file({.dirname = dirname, .domain = domain}, lang));
         }
         catch(...)
         {
@@ -415,7 +430,7 @@ private:
                 throw stream_error("messages_conf init fail: no language available");
 
             std::unordered_map<TString, TString> res;
-            auto tmp_dict = base_ft<messages>::get_translate_dictionary(base_ft<messages>::get_domain_file(dirname, domain, lang));
+            auto tmp_dict = base_ft<messages>::get_translate_dictionary(base_ft<messages>::get_domain_file({.dirname = dirname, .domain = domain}, lang));
             for (const auto& [k, v] : tmp_dict)
             {
                 const std::u32string uk = detail::to_u32string(k.c_str());
@@ -442,13 +457,19 @@ public:
     }
 
 private:
-    const std::unordered_map<TString, TString> m_dict;
+    const std::unordered_map<TString, TString> m_dict; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 };
 
 template <>
 class messages_conf<char> : public ft_basic<messages<char>>
 {
 public:
+    // domain, lang and cvt_ft are three distinct strings the caller must supply
+    // (cvt_ft names the char<->wchar_t converter facet, absent from the other
+    // specializations). This is the public, stable construction API, so the
+    // arguments cannot be bundled into a struct without breaking callers or
+    // diverging from the sibling specializations' (domain, lang) shape.
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail = true)
         : ft_basic<messages<char>>(domain, lang)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), cvt_ft, throw_if_fail))
@@ -462,6 +483,10 @@ public:
     }
 
 private:
+    // Mirrors the public ctor's argument shape (see above): dirname/domain are
+    // bundled into a text_domain only where get_domain_file is called below;
+    // lang and cvt_ft remain distinct strings inherent to this char-only API.
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     static std::unordered_map<std::string, std::string> init(const std::string& dirname, const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail)
     {
         try
@@ -472,7 +497,7 @@ private:
                     throw stream_error("messages_conf init fail: no language available");
 
                 std::unordered_map<std::string, std::string> res;
-                auto tmp_dict = get_translate_dictionary(get_domain_file(dirname, domain, lang));
+                auto tmp_dict = get_translate_dictionary(get_domain_file({.dirname = dirname, .domain = domain}, lang));
 
                 auto cvt = IOv2::code_cvt_creator<char, wchar_t>(cvt_ft).create(rb_root_cvt{mem_device{""}});
 
