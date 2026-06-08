@@ -25,13 +25,26 @@ class base_ft<monetary> : public abs_ft
 public:
     using abs_ft::abs_ft;
 
-    enum part { none, space, symbol, sign, value };
+    enum class part : std::uint8_t { none, space, symbol, sign, value };
     using pattern = std::array<part, 4>;
 
-protected:
-    inline const static pattern s_default_pattern = {symbol, sign, none, value};
-    static pattern s_construct_pattern(int8_t precedes, int8_t sp, int8_t posn)
+    // Groups the three POSIX lconv flags that drive s_construct_pattern into one
+    // named argument. They are all small integers and trivially swapped if passed
+    // positionally (bugprone-easily-swappable-parameters); naming the fields here
+    // makes each call site self-documenting and the swap impossible.
+    struct pattern_spec
     {
+        int8_t precedes;      // *_cs_precedes:  symbol precedes (1) or follows (0) the value
+        int8_t sep_by_space;  // *_sep_by_space: a space separates symbol and value
+        int    sign_posn;     // *_sign_posn:    sign placement (0..4)
+    };
+
+protected:
+    inline const static pattern s_default_pattern = {part::symbol, part::sign, part::none, part::value};
+    static pattern s_construct_pattern(pattern_spec spec)
+    {
+        using enum part;
+        const auto [precedes, sp, posn] = spec;
         pattern ret;
 
         // This insanely complicated routine attempts to construct a valid
@@ -269,10 +282,10 @@ public:
             m_curr_symbol_nat = lc->currency_symbol;
             m_curr_symbol_int = lc->int_curr_symbol;
 
-            m_pos_format_nat = s_construct_pattern(s_norm_flag(lc->p_cs_precedes), s_norm_flag(lc->p_sep_by_space), lc->p_sign_posn);
-            m_neg_format_nat = s_construct_pattern(s_norm_flag(lc->n_cs_precedes), s_norm_flag(lc->n_sep_by_space), lc->n_sign_posn);
-            m_pos_format_int = s_construct_pattern(s_norm_flag(lc->int_p_cs_precedes), s_norm_flag(lc->int_p_sep_by_space), lc->int_p_sign_posn);
-            m_neg_format_int = s_construct_pattern(s_norm_flag(lc->int_n_cs_precedes), s_norm_flag(lc->int_n_sep_by_space), lc->int_n_sign_posn);
+            m_pos_format_nat = s_construct_pattern({.precedes = s_norm_flag(lc->p_cs_precedes), .sep_by_space = s_norm_flag(lc->p_sep_by_space), .sign_posn = lc->p_sign_posn});
+            m_neg_format_nat = s_construct_pattern({.precedes = s_norm_flag(lc->n_cs_precedes), .sep_by_space = s_norm_flag(lc->n_sep_by_space), .sign_posn = lc->n_sign_posn});
+            m_pos_format_int = s_construct_pattern({.precedes = s_norm_flag(lc->int_p_cs_precedes), .sep_by_space = s_norm_flag(lc->int_p_sep_by_space), .sign_posn = lc->int_p_sign_posn});
+            m_neg_format_int = s_construct_pattern({.precedes = s_norm_flag(lc->int_n_cs_precedes), .sep_by_space = s_norm_flag(lc->int_n_sep_by_space), .sign_posn = lc->int_n_sign_posn});
 
             std::string mdp_raw, mts_raw;
             if (lc->mon_decimal_point) mdp_raw = lc->mon_decimal_point;
@@ -327,21 +340,21 @@ public:
     }
 
 public:
-    virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
-    virtual const std::string& curr_symbol_int() const { return m_curr_symbol_int; }
-    virtual const std::string& curr_symbol_nat() const { return m_curr_symbol_nat; }
-    virtual const std::string& positive_sign_int() const { return m_positive_sign_int; }
-    virtual const std::string& positive_sign_nat() const { return m_positive_sign_nat; }
-    virtual const std::string& negative_sign_int() const { return m_negative_sign_int; }
-    virtual const std::string& negative_sign_nat() const { return m_negative_sign_nat; }
-    virtual const pattern& pos_format_int() const { return m_pos_format_int; }
-    virtual const pattern& pos_format_nat() const { return m_pos_format_nat; }
-    virtual const pattern& neg_format_int() const { return m_neg_format_int; }
-    virtual const pattern& neg_format_nat() const { return m_neg_format_nat; }
-    virtual int frac_digits_int() const { return m_frac_digits_int; }
-    virtual int frac_digits_nat() const { return m_frac_digits_nat; }
-    virtual char decimal_point() const { return m_decimal_point; }
-    virtual char thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
+    [[nodiscard]] virtual const std::string& curr_symbol_int() const { return m_curr_symbol_int; }
+    [[nodiscard]] virtual const std::string& curr_symbol_nat() const { return m_curr_symbol_nat; }
+    [[nodiscard]] virtual const std::string& positive_sign_int() const { return m_positive_sign_int; }
+    [[nodiscard]] virtual const std::string& positive_sign_nat() const { return m_positive_sign_nat; }
+    [[nodiscard]] virtual const std::string& negative_sign_int() const { return m_negative_sign_int; }
+    [[nodiscard]] virtual const std::string& negative_sign_nat() const { return m_negative_sign_nat; }
+    [[nodiscard]] virtual const pattern& pos_format_int() const { return m_pos_format_int; }
+    [[nodiscard]] virtual const pattern& pos_format_nat() const { return m_pos_format_nat; }
+    [[nodiscard]] virtual const pattern& neg_format_int() const { return m_neg_format_int; }
+    [[nodiscard]] virtual const pattern& neg_format_nat() const { return m_neg_format_nat; }
+    [[nodiscard]] virtual int frac_digits_int() const { return m_frac_digits_int; }
+    [[nodiscard]] virtual int frac_digits_nat() const { return m_frac_digits_nat; }
+    [[nodiscard]] virtual char decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual char thousands_sep() const { return m_thousands_sep; }
 
 private:
     std::vector<uint8_t>    m_grouping;
@@ -351,10 +364,10 @@ private:
     std::string             m_positive_sign_nat;
     std::string             m_negative_sign_int;
     std::string             m_negative_sign_nat;
-    pattern                 m_pos_format_int;
-    pattern                 m_pos_format_nat;
-    pattern                 m_neg_format_int;
-    pattern                 m_neg_format_nat;
+    pattern                 m_pos_format_int{};
+    pattern                 m_pos_format_nat{};
+    pattern                 m_neg_format_int{};
+    pattern                 m_neg_format_nat{};
     int                     m_frac_digits_int;
     int                     m_frac_digits_nat;
     char                    m_decimal_point;
@@ -440,10 +453,10 @@ public:
                     grouping_raw[i] = static_cast<uint8_t>(lc->mon_grouping[i]);
             }
 
-            m_pos_format_nat = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->p_cs_precedes), base_ft<monetary>::s_norm_flag(lc->p_sep_by_space), lc->p_sign_posn);
-            m_neg_format_nat = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->n_cs_precedes), base_ft<monetary>::s_norm_flag(lc->n_sep_by_space), lc->n_sign_posn);
-            m_pos_format_int = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->int_p_cs_precedes), base_ft<monetary>::s_norm_flag(lc->int_p_sep_by_space), lc->int_p_sign_posn);
-            m_neg_format_int = base_ft<monetary>::s_construct_pattern(base_ft<monetary>::s_norm_flag(lc->int_n_cs_precedes), base_ft<monetary>::s_norm_flag(lc->int_n_sep_by_space), lc->int_n_sign_posn);
+            m_pos_format_nat = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->p_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->p_sep_by_space), .sign_posn = lc->p_sign_posn});
+            m_neg_format_nat = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->n_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->n_sep_by_space), .sign_posn = lc->n_sign_posn});
+            m_pos_format_int = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->int_p_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->int_p_sep_by_space), .sign_posn = lc->int_p_sign_posn});
+            m_neg_format_int = base_ft<monetary>::s_construct_pattern({.precedes = base_ft<monetary>::s_norm_flag(lc->int_n_cs_precedes), .sep_by_space = base_ft<monetary>::s_norm_flag(lc->int_n_sep_by_space), .sign_posn = lc->int_n_sign_posn});
 
             // No lc-> access beyond this point: the conversions may
             // invalidate the lconv pointers.
@@ -538,21 +551,21 @@ public:
     }
 
 public:
-    virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
-    virtual const std::basic_string<CharT>& curr_symbol_int() const { return m_curr_symbol_int; }
-    virtual const std::basic_string<CharT>& curr_symbol_nat() const { return m_curr_symbol_nat; }
-    virtual const std::basic_string<CharT>& positive_sign_int() const { return m_positive_sign_int; }
-    virtual const std::basic_string<CharT>& positive_sign_nat() const { return m_positive_sign_nat; }
-    virtual const std::basic_string<CharT>& negative_sign_int() const { return m_negative_sign_int; }
-    virtual const std::basic_string<CharT>& negative_sign_nat() const { return m_negative_sign_nat; }
-    virtual const base_ft<monetary>::pattern& pos_format_int() const { return m_pos_format_int; }
-    virtual const base_ft<monetary>::pattern& pos_format_nat() const { return m_pos_format_nat; }
-    virtual const base_ft<monetary>::pattern& neg_format_int() const { return m_neg_format_int; }
-    virtual const base_ft<monetary>::pattern& neg_format_nat() const { return m_neg_format_nat; }
-    virtual int frac_digits_int() const { return m_frac_digits_int; }
-    virtual int frac_digits_nat() const { return m_frac_digits_nat; }
-    virtual CharT decimal_point() const { return m_decimal_point; }
-    virtual CharT thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& curr_symbol_int() const { return m_curr_symbol_int; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& curr_symbol_nat() const { return m_curr_symbol_nat; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& positive_sign_int() const { return m_positive_sign_int; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& positive_sign_nat() const { return m_positive_sign_nat; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& negative_sign_int() const { return m_negative_sign_int; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& negative_sign_nat() const { return m_negative_sign_nat; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_int() const { return m_pos_format_int; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_nat() const { return m_pos_format_nat; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_int() const { return m_neg_format_int; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_nat() const { return m_neg_format_nat; }
+    [[nodiscard]] virtual int frac_digits_int() const { return m_frac_digits_int; }
+    [[nodiscard]] virtual int frac_digits_nat() const { return m_frac_digits_nat; }
+    [[nodiscard]] virtual CharT decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual CharT thousands_sep() const { return m_thousands_sep; }
 
 private:
     std::vector<uint8_t>        m_grouping;
@@ -562,10 +575,10 @@ private:
     std::basic_string<CharT>    m_positive_sign_nat;
     std::basic_string<CharT>    m_negative_sign_int;
     std::basic_string<CharT>    m_negative_sign_nat;
-    base_ft<monetary>::pattern      m_pos_format_int;
-    base_ft<monetary>::pattern      m_pos_format_nat;
-    base_ft<monetary>::pattern      m_neg_format_int;
-    base_ft<monetary>::pattern      m_neg_format_nat;
+    base_ft<monetary>::pattern      m_pos_format_int{};
+    base_ft<monetary>::pattern      m_pos_format_nat{};
+    base_ft<monetary>::pattern      m_neg_format_int{};
+    base_ft<monetary>::pattern      m_neg_format_nat{};
     int                         m_frac_digits_int;
     int                         m_frac_digits_nat;
     CharT                       m_decimal_point;
@@ -688,21 +701,21 @@ private:
     }
 
 public:
-    virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
-    virtual const std::basic_string<char8_t>& curr_symbol_int() const { return m_curr_symbol_int; }
-    virtual const std::basic_string<char8_t>& curr_symbol_nat() const { return m_curr_symbol_nat; }
-    virtual const std::basic_string<char8_t>& positive_sign_int() const { return m_positive_sign_int; }
-    virtual const std::basic_string<char8_t>& positive_sign_nat() const { return m_positive_sign_nat; }
-    virtual const std::basic_string<char8_t>& negative_sign_int() const { return m_negative_sign_int; }
-    virtual const std::basic_string<char8_t>& negative_sign_nat() const { return m_negative_sign_nat; }
-    virtual const base_ft<monetary>::pattern& pos_format_int() const { return m_pos_format_int; }
-    virtual const base_ft<monetary>::pattern& pos_format_nat() const { return m_pos_format_nat; }
-    virtual const base_ft<monetary>::pattern& neg_format_int() const { return m_neg_format_int; }
-    virtual const base_ft<monetary>::pattern& neg_format_nat() const { return m_neg_format_nat; }
-    virtual int frac_digits_int() const { return m_frac_digits_int; }
-    virtual int frac_digits_nat() const { return m_frac_digits_nat; }
-    virtual char8_t decimal_point() const { return m_decimal_point; }
-    virtual char8_t thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] virtual const std::vector<uint8_t>& grouping() const { return m_grouping; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& curr_symbol_int() const { return m_curr_symbol_int; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& curr_symbol_nat() const { return m_curr_symbol_nat; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& positive_sign_int() const { return m_positive_sign_int; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& positive_sign_nat() const { return m_positive_sign_nat; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& negative_sign_int() const { return m_negative_sign_int; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& negative_sign_nat() const { return m_negative_sign_nat; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_int() const { return m_pos_format_int; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_nat() const { return m_pos_format_nat; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_int() const { return m_neg_format_int; }
+    [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_nat() const { return m_neg_format_nat; }
+    [[nodiscard]] virtual int frac_digits_int() const { return m_frac_digits_int; }
+    [[nodiscard]] virtual int frac_digits_nat() const { return m_frac_digits_nat; }
+    [[nodiscard]] virtual char8_t decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] virtual char8_t thousands_sep() const { return m_thousands_sep; }
 
 private:
     std::vector<uint8_t>        m_grouping;
@@ -712,10 +725,10 @@ private:
     std::basic_string<char8_t>  m_positive_sign_nat;
     std::basic_string<char8_t>  m_negative_sign_int;
     std::basic_string<char8_t>  m_negative_sign_nat;
-    base_ft<monetary>::pattern      m_pos_format_int;
-    base_ft<monetary>::pattern      m_pos_format_nat;
-    base_ft<monetary>::pattern      m_neg_format_int;
-    base_ft<monetary>::pattern      m_neg_format_nat;
+    base_ft<monetary>::pattern      m_pos_format_int{};
+    base_ft<monetary>::pattern      m_pos_format_nat{};
+    base_ft<monetary>::pattern      m_neg_format_int{};
+    base_ft<monetary>::pattern      m_neg_format_nat{};
     int                         m_frac_digits_int;
     int                         m_frac_digits_nat;
     char8_t                     m_decimal_point;

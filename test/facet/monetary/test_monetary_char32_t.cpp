@@ -261,10 +261,10 @@ void test_monetary_char32_t_put_4()
     tmp_io->set_grouping({3});
     tmp_io->set_negative_sign_nat(U"()");
     tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::symbol,
-                                IOv2::base_ft<IOv2::monetary>::space,
-                                IOv2::base_ft<IOv2::monetary>::sign,
-                                IOv2::base_ft<IOv2::monetary>::value});
+    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
+                                IOv2::base_ft<IOv2::monetary>::part::space,
+                                IOv2::base_ft<IOv2::monetary>::part::sign,
+                                IOv2::base_ft<IOv2::monetary>::part::value});
 
     IOv2::monetary<char32_t> obj(tmp_io);
     IOv2::ios_base<char32_t> ios;
@@ -631,10 +631,10 @@ void test_monetary_char32_t_get_6()
     tmp_io->set_positive_sign_nat(U"");
     tmp_io->set_negative_sign_nat(U"-");
     tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::symbol,
-                                IOv2::base_ft<IOv2::monetary>::none,
-                                IOv2::base_ft<IOv2::monetary>::sign,
-                                IOv2::base_ft<IOv2::monetary>::value});
+    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
+                                IOv2::base_ft<IOv2::monetary>::part::none,
+                                IOv2::base_ft<IOv2::monetary>::part::sign,
+                                IOv2::base_ft<IOv2::monetary>::part::value});
 
     IOv2::monetary<char32_t> obj(tmp_io);
     
@@ -720,10 +720,10 @@ void test_monetary_char32_t_get_8()
     tmp_io_a->set_curr_symbol_nat(U"$");
     tmp_io_a->set_positive_sign_nat(U"()");
     tmp_io_a->set_frac_digits_nat(2);
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::sign,
-                                  IOv2::base_ft<IOv2::monetary>::value,
-                                  IOv2::base_ft<IOv2::monetary>::space,
-                                  IOv2::base_ft<IOv2::monetary>::symbol});
+    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
+                                  IOv2::base_ft<IOv2::monetary>::part::value,
+                                  IOv2::base_ft<IOv2::monetary>::part::space,
+                                  IOv2::base_ft<IOv2::monetary>::part::symbol});
 
     auto tmp_io_b = std::make_shared<MoneyIO>("C");
     tmp_io_b->set_decimal_point(L'.');
@@ -731,10 +731,10 @@ void test_monetary_char32_t_get_8()
     tmp_io_b->set_curr_symbol_nat(U"$");
     tmp_io_b->set_positive_sign_nat(U"()");
     tmp_io_b->set_frac_digits_nat(2);
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::sign,
-                                  IOv2::base_ft<IOv2::monetary>::value,
-                                  IOv2::base_ft<IOv2::monetary>::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::none});
+    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
+                                  IOv2::base_ft<IOv2::monetary>::part::value,
+                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
+                                  IOv2::base_ft<IOv2::monetary>::part::none});
                                 
     IOv2::monetary<char32_t> obj_a(tmp_io_a);
     IOv2::monetary<char32_t> obj_b(tmp_io_b);
@@ -1153,28 +1153,28 @@ void test_monetary_char32_t_get_19()
     tmp_io_a->set_curr_symbol_nat(U"$");
     tmp_io_a->set_positive_sign_nat(U"");
     tmp_io_a->set_negative_sign_nat(U"");
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::value,
-                                  IOv2::base_ft<IOv2::monetary>::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::none,
-                                  IOv2::base_ft<IOv2::monetary>::sign});
+    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
+                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
+                                  IOv2::base_ft<IOv2::monetary>::part::none,
+                                  IOv2::base_ft<IOv2::monetary>::part::sign});
 
     auto tmp_io_b = std::make_shared<MoneyIO>("C");
     tmp_io_b->set_curr_symbol_nat(U"%");
     tmp_io_b->set_positive_sign_nat(U"");
     tmp_io_b->set_negative_sign_nat(U"-");
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::value,
-                                  IOv2::base_ft<IOv2::monetary>::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::sign,
-                                  IOv2::base_ft<IOv2::monetary>::none});
+    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
+                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
+                                  IOv2::base_ft<IOv2::monetary>::part::sign,
+                                  IOv2::base_ft<IOv2::monetary>::part::none});
 
     auto tmp_io_c = std::make_shared<MoneyIO>("C");
     tmp_io_c->set_curr_symbol_nat(U"&");
     tmp_io_c->set_positive_sign_nat(U"");
     tmp_io_c->set_negative_sign_nat(U"");
-    tmp_io_c->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::value,
-                                  IOv2::base_ft<IOv2::monetary>::space,
-                                  IOv2::base_ft<IOv2::monetary>::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::sign});
+    tmp_io_c->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
+                                  IOv2::base_ft<IOv2::monetary>::part::space,
+                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
+                                  IOv2::base_ft<IOv2::monetary>::part::sign});
                                 
     IOv2::monetary<char32_t> obj_a(tmp_io_a);
     IOv2::monetary<char32_t> obj_b(tmp_io_b);
@@ -1235,10 +1235,10 @@ void test_monetary_char32_t_get_21()
     auto tmp_io = std::make_shared<MoneyIO>("C");
     tmp_io->set_grouping({1});
     tmp_io->set_thousands_sep(L'#');
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::symbol,
-                                IOv2::base_ft<IOv2::monetary>::none,
-                                IOv2::base_ft<IOv2::monetary>::sign,
-                                IOv2::base_ft<IOv2::monetary>::value});
+    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
+                                IOv2::base_ft<IOv2::monetary>::part::none,
+                                IOv2::base_ft<IOv2::monetary>::part::sign,
+                                IOv2::base_ft<IOv2::monetary>::part::value});
                                   
     IOv2::monetary<char32_t> obj(tmp_io);
     std::u32string  buffer1(U"00#0#1");

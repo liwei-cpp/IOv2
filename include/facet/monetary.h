@@ -7,6 +7,7 @@
 #include <io/io_base.h>
 
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
@@ -70,30 +71,30 @@ public:
         // POSIX boundary in monetary_conf, not here.
     }
 
-    const std::vector<uint8_t>& grouping() const { return m_grouping; }
-    const std::basic_string<CharT>& curr_symbol_int() const { return m_int.m_curr_symbol; }
-    const std::basic_string<CharT>& curr_symbol_nat() const { return m_nat.m_curr_symbol; }
-    const std::basic_string<CharT>& positive_sign_int() const { return m_int.m_positive_sign; }
-    const std::basic_string<CharT>& positive_sign_nat() const { return m_nat.m_positive_sign; }
-    const std::basic_string<CharT>& negative_sign_int() const { return m_int.m_negative_sign; }
-    const std::basic_string<CharT>& negative_sign_nat() const { return m_nat.m_negative_sign; }
-    const base_ft<monetary>::pattern& pos_format_int() const { return m_int.m_pos_format; }
-    const base_ft<monetary>::pattern& pos_format_nat() const { return m_nat.m_pos_format; }
-    const base_ft<monetary>::pattern& neg_format_int() const { return m_int.m_neg_format; }
-    const base_ft<monetary>::pattern& neg_format_nat() const { return m_nat.m_neg_format; }
-    int frac_digits_int() const { return m_int.m_frac_digits; }
-    int frac_digits_nat() const { return m_nat.m_frac_digits; }
-    CharT decimal_point() const { return m_decimal_point; }
-    CharT thousands_sep() const { return m_thousands_sep; }
+    [[nodiscard]] const std::vector<uint8_t>& grouping() const { return m_grouping; }
+    [[nodiscard]] const std::basic_string<CharT>& curr_symbol_int() const { return m_int.m_curr_symbol; }
+    [[nodiscard]] const std::basic_string<CharT>& curr_symbol_nat() const { return m_nat.m_curr_symbol; }
+    [[nodiscard]] const std::basic_string<CharT>& positive_sign_int() const { return m_int.m_positive_sign; }
+    [[nodiscard]] const std::basic_string<CharT>& positive_sign_nat() const { return m_nat.m_positive_sign; }
+    [[nodiscard]] const std::basic_string<CharT>& negative_sign_int() const { return m_int.m_negative_sign; }
+    [[nodiscard]] const std::basic_string<CharT>& negative_sign_nat() const { return m_nat.m_negative_sign; }
+    [[nodiscard]] const base_ft<monetary>::pattern& pos_format_int() const { return m_int.m_pos_format; }
+    [[nodiscard]] const base_ft<monetary>::pattern& pos_format_nat() const { return m_nat.m_pos_format; }
+    [[nodiscard]] const base_ft<monetary>::pattern& neg_format_int() const { return m_int.m_neg_format; }
+    [[nodiscard]] const base_ft<monetary>::pattern& neg_format_nat() const { return m_nat.m_neg_format; }
+    [[nodiscard]] int frac_digits_int() const { return m_int.m_frac_digits; }
+    [[nodiscard]] int frac_digits_nat() const { return m_nat.m_frac_digits; }
+    [[nodiscard]] CharT decimal_point() const { return m_decimal_point; }
+    [[nodiscard]] CharT thousands_sep() const { return m_thousands_sep; }
 
     template <typename TIter, std::integral TVal>
         requires (!std::same_as<TVal, bool>)
     TIter put(TIter s, bool intl, ios_base<char_type>& io, TVal v) const
     {
         constexpr size_t buf_size = std::numeric_limits<TVal>::digits10 + 3;
-        char_type vec[buf_size];
+        std::array<char_type, buf_size> vec;
 
-        char_type* p = vec + buf_size;
+        char_type* p = vec.data() + buf_size;
         *--p = '\0';
 
         using TU = std::make_unsigned_t<TVal>;
@@ -109,7 +110,7 @@ public:
                           : static_cast<TU>(v);
         }
 
-        do {
+        do { // NOLINT(cppcoreguidelines-avoid-do-while)
             *--p = static_cast<char_type>('0' + (uv % 10));
             uv /= 10;
         } while (uv != 0);
@@ -195,7 +196,7 @@ private:
         const char_type* beg = digits.data();
 
         base_ft<monetary>::pattern p;
-        const std::basic_string<char_type>* sign_ptr;
+        const std::basic_string<char_type>* sign_ptr = nullptr;
         if (!(*beg == s_atoms[s_minus]))
         {
             p = info.m_pos_format;
@@ -276,21 +277,21 @@ private:
                 const part which = static_cast<part>(p[i]);
                 switch (which)
                 {
-                case base_ft<monetary>::symbol:
+                case part::symbol:
                     if (io.flags() & ios_defs::showbase)
                         res += info.m_curr_symbol;
                     break;
-                case base_ft<monetary>::sign:
+                case part::sign:
                     // Sign might not exist, or be more than one
                     // character long. In that case, add in the rest
                     // below.
                     if (!sign_ptr->empty())
                         res += (*sign_ptr)[0];
                     break;
-                case base_ft<monetary>::value:
+                case part::value:
                     res += value;
                     break;
-                case base_ft<monetary>::space:
+                case part::space:
                     // At least one space is required, but if internal
                     // formatting is required, an arbitrary number of
                     // fill spaces will be necessary.
@@ -299,7 +300,7 @@ private:
                     else
                         res += io.fill();
                     break;
-                case base_ft<monetary>::none:
+                case part::none:
                     if (testipad)
                         res.append(width - len, io.fill());
                     break;
@@ -355,7 +356,7 @@ private:
         // The tentative returned string is stored here.
         std::string res; res.reserve(32);
 
-        const char_type* lit_zero = s_atoms + s_zero;
+        const char_type* lit_zero = s_atoms.data() + s_zero;
         const base_ft<monetary>::pattern p = info.m_neg_format;
 
         for (int i = 0; i < 4 && testvalid; ++i)
@@ -363,7 +364,7 @@ private:
             const part which = static_cast<part>(p[i]);
             switch (which)
             {
-            case base_ft<monetary>::symbol:
+            case part::symbol:
                 // According to 22.2.6.1.2, p2, symbol is required
                 // if (io.flags() & ios_base::showbase), otherwise
                 // is optional and consumed only if other characters
@@ -372,14 +373,14 @@ private:
                     || i == 0
                     || (i == 1 && (mandatory_sign
                         || (static_cast<part>(p[0])
-                        == base_ft<monetary>::sign)
+                        == part::sign)
                         || (static_cast<part>(p[2])
-                        == base_ft<monetary>::space)))
+                        == part::space)))
                     || (i == 2 && ((static_cast<part>(p[3])
-                        == base_ft<monetary>::value)
+                        == part::value)
                         || (mandatory_sign
                         && (static_cast<part>(p[3])
-                            == base_ft<monetary>::sign)))))
+                            == part::sign)))))
                 {
                     const int len = info.m_curr_symbol.size();
                     int j = 0;
@@ -388,7 +389,7 @@ private:
                         testvalid = false;
                 }
                 break;
-            case base_ft<monetary>::sign:
+            case part::sign:
                 // Sign might not exist, or be more than one character long.
                 if (!info.m_positive_sign.empty() && beg != end && *beg == info.m_positive_sign[0])
                 {
@@ -408,7 +409,7 @@ private:
                 else if (mandatory_sign)
                     testvalid = false;
                 break;
-            case base_ft<monetary>::value:
+            case part::value:
                 // Extract digits, remove and stash away the
                 // grouping of found thousands separators.
                 for (; beg != end; ++beg)
@@ -435,7 +436,7 @@ private:
                         // longer than the largest representable group size,
                         // can never satisfy any grouping spec: reject outright
                         // rather than truncating the count.
-                        if (n == 0 || n > std::numeric_limits<uint8_t>::max())
+                        if (n == 0 || std::cmp_greater(n, std::numeric_limits<uint8_t>::max()))
                         {
                             testvalid = false;
                             break;
@@ -450,14 +451,14 @@ private:
                 if (res.empty())
                     testvalid = false;
                 break;
-            case base_ft<monetary>::space:
+            case part::space:
                 // At least one space is required.
                 if (beg != end && (*beg == io.fill()))
                     ++beg;
                 else
                     testvalid = false;
                 [[fallthrough]];
-            case base_ft<monetary>::none:
+            case part::none:
                 // Only if not at the end of the pattern.
                 if (i != 3)
                 for (; beg != end && (*beg == io.fill()); ++beg);
@@ -499,7 +500,7 @@ private:
                 // largest representable group size cannot satisfy any spec:
                 // fail rather than truncating.
                 const int last_group = testdecfound ? last_pos : n;
-                if (last_group > std::numeric_limits<uint8_t>::max())
+                if (std::cmp_greater(last_group, std::numeric_limits<uint8_t>::max()))
                     succ = false;
                 else
                 {
@@ -596,7 +597,7 @@ private:
     CharT                     m_decimal_point;
     CharT                     m_thousands_sep;
 
-    const inline static char_type s_atoms[11] = {
+    static constexpr std::array<char_type, 11> s_atoms = {
             (char_type)'-', (char_type)'0', (char_type)'1', (char_type)'2',
             (char_type)'3', (char_type)'4', (char_type)'5', (char_type)'6',
             (char_type)'7', (char_type)'8', (char_type)'9'

@@ -6,6 +6,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 namespace IOv2
 {
@@ -63,12 +64,12 @@ public:
         return p ? *p : ori;
     }
 
-    const std::string& filtered_lang() const
+    [[nodiscard]] const std::string& filtered_lang() const
     {
         return m_obj->filtered_lang();
     }
 
-    const std::string& domain_info() const
+    [[nodiscard]] const std::string& domain_info() const
     {
         return m_obj->domain_info();
     }
