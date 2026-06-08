@@ -265,6 +265,7 @@ var hierarchy =
     [ "IOv2::out_sentry< TStream, involve_input, is_std >", "structIOv2_1_1out__sentry.html", null ],
     [ "IOv2::parse_context_type< TChar, T >", "structIOv2_1_1parse__context__type.html", null ],
     [ "IOv2::parse_context_type< TChar, std::tm >", "structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html", null ],
+    [ "IOv2::base_ft< monetary >::pattern_spec", "structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html", null ],
     [ "IOv2::prefix_tree< CharT, TValue >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, int >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, std::basic_string< CharT > >", "classIOv2_1_1prefix__tree.html", null ],
@@ -365,6 +366,7 @@ var hierarchy =
       [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ]
     ] ],
     [ "IOv2::sync< TStream >", "structIOv2_1_1sync.html", null ],
+    [ "IOv2::base_ft< messages >::text_domain", "structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html", null ],
     [ "IOv2::time_parse_helper< bool >", "structIOv2_1_1time__parse__helper.html", [
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],

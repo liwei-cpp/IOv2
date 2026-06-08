@@ -1,5 +1,5 @@
 <map id="类继承关系图" name="类继承关系图">
-<area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,167,45"/>
-<area shape="rect" id="Node000001" href="$classIOv2_1_1ctype__conf_3_01char8__t_01_4.html" title=" " alt="" coords="215,13,424,38"/>
-<area shape="poly" id="edge104_Node000000_Node000001" title=" " alt="" coords="180,23,214,23,214,28,180,28"/>
+<area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,175,45"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1collate__conf.html" title="collate&lt;CharT&gt; facet 的底层实现类。" alt="" coords="223,5,361,45"/>
+<area shape="poly" id="edge102_Node000000_Node000001" title=" " alt="" coords="188,23,222,23,222,28,188,28"/>
 </map>
