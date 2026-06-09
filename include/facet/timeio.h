@@ -139,7 +139,7 @@ struct date_parse_helper<CharT, true>
         
         auto deducted_month = m_month;
         auto deducted_mday = m_mday;
-        auto deducted_yday = m_yday;
+        int deducted_yday = static_cast<int>(m_yday);
         bool have_yday = m_have_yday;
         auto deducted_wday = m_wday;
         // Deduct month / mday
@@ -164,7 +164,7 @@ struct date_parse_helper<CharT, true>
                     deducted_yday += isleap(deducted_year) ? 366 : 365;
                 }
                 int t_mon = 0;
-                while (s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
+                while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                     t_mon++;
                 if (!m_have_mon) deducted_month = t_mon;
                 if (!m_have_mday) deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][t_mon - 1] + 1);
@@ -183,7 +183,7 @@ struct date_parse_helper<CharT, true>
                 if (!m_have_mday || !m_have_mon)
                 {
                     int t_mon = 0;
-                    while (s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
+                    while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                         t_mon++;
                     if (!m_have_mon)
                         deducted_month = t_mon;
@@ -211,7 +211,7 @@ struct date_parse_helper<CharT, true>
                         deducted_yday += isleap(deducted_year) ? 366 : 365;
                     }
                     int t_mon = 0;
-                    while (s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
+                    while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                         t_mon++;
                     if (!m_have_mon)
                         deducted_month = t_mon;
@@ -390,7 +390,7 @@ struct time_parse_context
         bool isLeap = (orig_y % 4 == 0 && orig_y % 100 != 0) || (orig_y % 400 == 0);
 
         const int days[12] = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
-        res.tm_yday = days[res.tm_mon] + res.tm_mday + static_cast<int>(isLeap);
+        res.tm_yday = days[res.tm_mon] + res.tm_mday + (isLeap && res.tm_mon >= 2 ? 1 : 0);
 
         return res;
     }
@@ -1078,7 +1078,8 @@ private:
                     {
                         const auto& cur_era = *it;
                         int delta = (ctx.m_year_of_era - cur_era.offset) * cur_era.direction;
-                        bool match = (delta >= 0 && (delta <= (cur_era.to_year - cur_era.from_year) * cur_era.direction));
+                        int64_t range = (static_cast<int64_t>(cur_era.to_year) - cur_era.from_year) * cur_era.direction;
+                        bool match = (delta >= 0 && static_cast<int64_t>(delta) <= range);
                         if (match) ++it;
                         else it = ctx.m_era_items.erase(it);
                     }
@@ -1572,7 +1573,7 @@ private:
                 {
                     const auto index = wd->iso_encoding();
                     if ((index < 1) || (index > 7)) *out++ = static_cast<CharT>('?');
-                    out = put_dec<1>(out, static_cast<int>(index), (modifier == static_cast<CharT>('O')));
+                    else out = put_dec<1>(out, static_cast<int>(index), (modifier == static_cast<CharT>('O')));
                 }
                 break;
 
