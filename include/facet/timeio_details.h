@@ -32,7 +32,7 @@ namespace IOv2
             int32_t to_year;
             uint8_t to_month;
             uint8_t to_day;
-            int8_t offset;
+            int32_t offset;
             /* direction:
                 +1 indicates that year number is higher in the future. (like A.D.)
                 -1 indicates that year number is higher in the past. (like B.C.)  */
@@ -231,17 +231,11 @@ public:
                 if (i != 100)
                 {
                     for (size_t j = 0; j< i; ++j)
-                        m_alt_digits[i].clear();
+                        m_alt_digits[j].clear();
                 }
             }
-            union
-            {
-                char *ptr;
-                int32_t word;
-            } u;
-            
-            u.ptr = nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES);
-            int32_t era_item_num = u.word;
+            int32_t era_item_num = static_cast<int32_t>(
+                reinterpret_cast<uintptr_t>(nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES)));
             if (era_item_num > 0)
             {
                 m_era_items.reserve(era_item_num);
@@ -255,7 +249,10 @@ public:
                     std::memcpy(static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof(int32_t) * 8);
                     ptr += sizeof(uint32_t) * 8;
                     
-                    cur_entry.from_year = buf[2] + 1900;
+                    if (buf[2] > std::numeric_limits<int32_t>::max() - 1900)
+                        cur_entry.from_year = std::numeric_limits<int32_t>::max();
+                    else
+                        cur_entry.from_year = buf[2] + 1900;
                     cur_entry.from_month = buf[3] + 1;
                     cur_entry.from_day = buf[4];
                     if (buf[5] > std::numeric_limits<int32_t>::max() - 1900)
