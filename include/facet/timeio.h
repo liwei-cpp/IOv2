@@ -158,33 +158,16 @@ struct date_parse_helper<CharT, true>
         {
             if (have_yday)
             {
+                if (deducted_yday < 0)
+                {
+                    deducted_year -= 1;
+                    deducted_yday += isleap(deducted_year) ? 366 : 365;
+                }
                 int t_mon = 0;
                 while (s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                     t_mon++;
                 if (!m_have_mon) deducted_month = t_mon;
                 if (!m_have_mday) deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][t_mon - 1] + 1);
-            }
-            else if ((m_have_uweek || m_have_wweek) && m_have_wday)
-            {
-                int w_offset = m_have_uweek ? 0 : 1;
-                auto j1_wday = day_of_the_week(deducted_year, 1, 1);
-
-                if (!have_yday)
-                {
-                    deducted_yday = ((7 - (j1_wday - w_offset)) % 7 + (m_week_no - 1) * 7 + (deducted_wday - w_offset + 7) % 7);
-                    have_yday = true;
-                }
-
-                if (!m_have_mday || !m_have_mon)
-                {
-                    int t_mon = 0;
-                    while (s_mon_yday[isleap(1900 + deducted_year)][t_mon] <= deducted_yday)
-                        t_mon++;
-                    if (!m_have_mon)
-                        deducted_month = t_mon;
-                    if (!m_have_mday)
-                        deducted_mday = (deducted_yday - s_mon_yday[isleap(1900 + deducted_year)][t_mon - 1] + 1);
-                }
             }
             else if (m_have_wday)
             {
@@ -200,12 +183,12 @@ struct date_parse_helper<CharT, true>
                 if (!m_have_mday || !m_have_mon)
                 {
                     int t_mon = 0;
-                    while (s_mon_yday[isleap(1900 + deducted_year)][t_mon] <= deducted_yday)
+                    while (s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                         t_mon++;
                     if (!m_have_mon)
                         deducted_month = t_mon;
                     if (!m_have_mday)
-                        deducted_mday = (deducted_yday - s_mon_yday[isleap(1900 + deducted_year)][t_mon - 1] + 1);
+                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][t_mon - 1] + 1);
                 }
             }
             else if (m_have_uweek || m_have_wweek)
@@ -222,13 +205,18 @@ struct date_parse_helper<CharT, true>
 
                 if (!m_have_mday || !m_have_mon)
                 {
+                    if (deducted_yday < 0)
+                    {
+                        deducted_year -= 1;
+                        deducted_yday += isleap(deducted_year) ? 366 : 365;
+                    }
                     int t_mon = 0;
-                    while (s_mon_yday[isleap(1900 + deducted_year)][t_mon] <= deducted_yday)
+                    while (s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                         t_mon++;
                     if (!m_have_mon)
                         deducted_month = t_mon;
                     if (!m_have_mday)
-                        deducted_mday = (deducted_yday - s_mon_yday[isleap(1900 + deducted_year)][t_mon - 1] + 1);
+                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][t_mon - 1] + 1);
                 }
             }
         }
@@ -397,8 +385,9 @@ struct time_parse_context
         res.tm_isdst = -1;   // let the C library figure out DST
 
         // https://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week#Implementation-dependent_methods
+        const int orig_y = y;
         res.tm_wday = (d += m < 3 ? y-- : y - 2, 23 * m / 9 + d + 4 + y / 4- y / 100 + y / 400) % 7;
-        bool isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
+        bool isLeap = (orig_y % 4 == 0 && orig_y % 100 != 0) || (orig_y % 400 == 0);
 
         const int days[12] = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
         res.tm_yday = days[res.tm_mon] + res.tm_mday + static_cast<int>(isLeap);
@@ -1331,9 +1320,12 @@ private:
                 if (!wd || modifier) goto bad_format;
                 {
                     const auto index = wd->c_encoding();
-                    if ((index < 0) || (index > 6)) *out++ = static_cast<CharT>('?');
-                    const auto& abbr_wkday = m_abbr_day[index];
-                    out = std::copy(abbr_wkday.begin(), abbr_wkday.end(), out);
+                    if (index > 6) *out++ = static_cast<CharT>('?');
+                    else
+                    {
+                        const auto& abbr_wkday = m_abbr_day[index];
+                        out = std::copy(abbr_wkday.begin(), abbr_wkday.end(), out);
+                    }
                 }
                 break;
 
@@ -1341,9 +1333,12 @@ private:
                 if (!wd || modifier) goto bad_format;
                 {
                     const auto index = wd->c_encoding();
-                    if ((index < 0) || (index > 6)) *out++ = static_cast<CharT>('?');
-                    const auto& wkday = m_day[index];
-                    out = std::copy(wkday.begin(), wkday.end(), out);
+                    if (index > 6) *out++ = static_cast<CharT>('?');
+                    else
+                    {
+                        const auto& wkday = m_day[index];
+                        out = std::copy(wkday.begin(), wkday.end(), out);
+                    }
                 }
                 break;
 
@@ -1354,8 +1349,11 @@ private:
                 {
                     unsigned m = static_cast<unsigned>(ymd->month()) - 1;
                     if (m > 11) *out++ = static_cast<CharT>('?');
-                    const auto& mon = m_abbr_month[m];
-                    out = std::copy(mon.begin(), mon.end(), out);
+                    else
+                    {
+                        const auto& mon = m_abbr_month[m];
+                        out = std::copy(mon.begin(), mon.end(), out);
+                    }
                 }
                 break;
 
@@ -1365,8 +1363,11 @@ private:
                 {
                     unsigned m = static_cast<unsigned>(ymd->month()) - 1;
                     if (m > 11) *out++ = static_cast<CharT>('?');
-                    const auto& mon = m_month[m];
-                    out = std::copy(mon.begin(), mon.end(), out);
+                    else
+                    {
+                        const auto& mon = m_month[m];
+                        out = std::copy(mon.begin(), mon.end(), out);
+                    }
                 }
                 break;
 
