@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <chrono>
+#include <limits>
 #include <iterator>
 #include <list>
 #include <optional>
@@ -1400,7 +1401,12 @@ private:
                     else
                     {
                         int year = static_cast<int>(ymd->year());
-                        out = put_dec<2>(out, year / 100 - (year % 100 < 0));
+                        int century = year / 100 - (year % 100 < 0);
+                        if (century < 0) {
+                            *out++ = static_cast<CharT>('-');
+                            century = -century;
+                        }
+                        out = put_dec<2>(out, century);
                     }
                 }
                 break;
@@ -1790,22 +1796,14 @@ private:
 
         if constexpr (n == 0)
         {
-            int buf[128];   // 128 is large enough
-            
-            buf[0] = 0;
+            char digits[std::numeric_limits<int>::digits10 + 1];
             int i = 0;
-            
-            while(val != 0)
-            {
-                buf[i++] = val % 10;
+            do {
+                digits[i++] = static_cast<char>('0' + val % 10);
                 val /= 10;
-            }
-            if (i == 0) i = 1;
-            for (int j = i - 1; j >=0; --j)
-            {
-                if (buf[j] == 0) *out++ = def;
-                else *out++ = static_cast<CharT>(buf[j] + '0');
-            }
+            } while (val != 0);
+            for (int j = i - 1; j >= 0; --j)
+                *out++ = static_cast<CharT>(digits[j]);
         }
         else
         {
