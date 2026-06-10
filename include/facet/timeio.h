@@ -9,14 +9,15 @@
 #include <cassert>
 #include <chrono>
 #include <cstdint>
+#include <ctime>
 #include <iterator>
 #include <limits>
 #include <list>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
-#include <version>
 
 namespace IOv2
 {
@@ -61,12 +62,12 @@ struct date_parse_helper<CharT, true>
             return year_month_day{final};
         }
 
-        auto deducted_year = m_year;
-        // Deduct year
+        auto deduced_year = m_year;
+        // Deduce year
         if (!m_have_year)
         {
             if (m_have_century && m_have_year_in_century)
-                deducted_year = deducted_year % 100 + m_century * 100;
+                deduced_year = deduced_year % 100 + m_century * 100;
             else if ((m_have_year_of_era) && (!m_era_items.empty()))
             {
                 using namespace TimeioHelper;
@@ -90,13 +91,13 @@ struct date_parse_helper<CharT, true>
                                     era_small_or_equal(it->to_year, it->to_month, it->to_day,
                                                         est_year, m_month, m_mday);
                         if (!cmp1 && !cmp2) continue;
-                        deducted_year = est_year;
+                        deduced_year = est_year;
                         break;
                     }
 
                     // nothing matches, choose the first item.
                     if (it == m_era_items.end())
-                        deducted_year = m_era_items.begin()->from_year;
+                        deduced_year = m_era_items.begin()->from_year;
                 }
                 else if (m_have_mon)
                 {
@@ -116,13 +117,13 @@ struct date_parse_helper<CharT, true>
                                     era_small_or_equal(it->to_year, it->to_month, it->to_day,
                                                         est_year, m_month, m_mday);
                         if (!cmp1 && !cmp2) continue;
-                        deducted_year = est_year;
+                        deduced_year = est_year;
                         break;
                     }
 
                     // nothing matches, choose the first item.
                     if (it == m_era_items.end())
-                        deducted_year = m_era_items.begin()->from_year;
+                        deduced_year = m_era_items.begin()->from_year;
                 }
                 else
                 {
@@ -134,32 +135,32 @@ struct date_parse_helper<CharT, true>
                         int est_year = static_cast<int>(std::clamp<int64_t>(est_year_64,
                             std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
                         if ((it->from_year > est_year) || (est_year > it->to_year)) continue;
-                        deducted_year = est_year;
+                        deduced_year = est_year;
                         break;
                     }
 
                     // nothing matches, choose the first item.
                     if (it == m_era_items.end())
-                        deducted_year = m_era_items.begin()->from_year;
+                        deduced_year = m_era_items.begin()->from_year;
                 }
             }
 
             // Fuzzy matching, we do not have enough information, but need to set year.
             else if (m_have_year_in_century) { /* do nothing */ }
             else if (m_have_century)
-                deducted_year = deducted_year % 100 + m_century * 100;
+                deduced_year = deduced_year % 100 + m_century * 100;
             else if (!m_era_items.empty())
-                deducted_year = m_era_items.begin()->from_year;
+                deduced_year = m_era_items.begin()->from_year;
         }
 
-        auto deducted_month = m_month;
-        auto deducted_mday = m_mday;
-        int deducted_yday = static_cast<int>(m_yday);
+        auto deduced_month = m_month;
+        auto deduced_mday = m_mday;
+        int deduced_yday = static_cast<int>(m_yday);
         bool have_yday = m_have_yday;
-        auto deducted_wday = m_wday;
-        // Deduct month / mday. When neither is given, both are derived from the
+        auto deduced_wday = m_wday;
+        // Deduce month / mday. When neither is given, both are derived from the
         // day-of-year. When the month IS given but the day is not, the day-of-month
-        // is computed relative to the *reported* month (deducted_month) rather than
+        // is computed relative to the *reported* month (deduced_month) rather than
         // the yday-derived month, so the returned month and day stay mutually
         // consistent (contradictory month-vs-week input is GIGO and may still yield
         // an out-of-range day, since this conversion has no error channel).
@@ -168,9 +169,9 @@ struct date_parse_helper<CharT, true>
             int w_offset = m_have_uweek ? 0 : 1;
 
             // calculate the week of day for Jan 1
-            int wday = day_of_the_week(deducted_year, 1, 1);
+            int wday = day_of_the_week(deduced_year, 1, 1);
 
-            deducted_yday = ((7 - (wday - w_offset)) % 7 + (m_week_no - 1) * 7 + (m_wday - w_offset + 7) % 7);
+            deduced_yday = ((7 - (wday - w_offset)) % 7 + (m_week_no - 1) * 7 + (m_wday - w_offset + 7) % 7);
             have_yday = true;
         }
 
@@ -178,80 +179,80 @@ struct date_parse_helper<CharT, true>
         {
             if (have_yday)
             {
-                if (deducted_yday < 0)
+                if (deduced_yday < 0)
                 {
-                    deducted_year -= 1;
-                    deducted_yday += isleap(deducted_year) ? 366 : 365;
+                    deduced_year -= 1;
+                    deduced_yday += isleap(deduced_year) ? 366 : 365;
                 }
-                while (deducted_yday >= (isleap(deducted_year) ? 366 : 365))
+                while (deduced_yday >= (isleap(deduced_year) ? 366 : 365))
                 {
-                    deducted_yday -= isleap(deducted_year) ? 366 : 365;
-                    deducted_year += 1;
+                    deduced_yday -= isleap(deduced_year) ? 366 : 365;
+                    deduced_year += 1;
                 }
                 int t_mon = 0;
-                while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
+                while (t_mon < 12 && s_mon_yday[isleap(deduced_year)][t_mon] <= deduced_yday)
                     t_mon++;
-                if (!m_have_mon) deducted_month = t_mon;
-                if (!m_have_mday) deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][deducted_month - 1] + 1);
+                if (!m_have_mon) deduced_month = t_mon;
+                if (!m_have_mday) deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
             }
             else if (m_have_wday)
             {
                 // assume week number is 1;
-                auto j1_wday = day_of_the_week(deducted_year, 1, 1);
+                auto j1_wday = day_of_the_week(deduced_year, 1, 1);
 
                 if (!have_yday)
                 {
-                    deducted_yday = ((7 - (j1_wday)) % 7 + (deducted_wday + 7) % 7);
+                    deduced_yday = ((7 - (j1_wday)) % 7 + (deduced_wday + 7) % 7);
                     have_yday = true;
                 }
 
                 if (!m_have_mday || !m_have_mon)
                 {
                     int t_mon = 0;
-                    while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
+                    while (t_mon < 12 && s_mon_yday[isleap(deduced_year)][t_mon] <= deduced_yday)
                         t_mon++;
                     if (!m_have_mon)
-                        deducted_month = t_mon;
+                        deduced_month = t_mon;
                     if (!m_have_mday)
-                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][deducted_month - 1] + 1);
+                        deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
                 }
             }
             else if (m_have_uweek || m_have_wweek)
             {
                 // assume wday is 1
                 int w_offset = m_have_uweek ? 0 : 1;
-                auto j1_wday = day_of_the_week(deducted_year, 1, 1);
+                auto j1_wday = day_of_the_week(deduced_year, 1, 1);
 
                 if (!have_yday)
                 {
-                    deducted_yday = ((7 - (j1_wday - w_offset)) % 7 + (m_week_no - 1) * 7 + (1 - w_offset + 7) % 7);
+                    deduced_yday = ((7 - (j1_wday - w_offset)) % 7 + (m_week_no - 1) * 7 + (1 - w_offset + 7) % 7);
                     have_yday = true;
                 }
 
                 if (!m_have_mday || !m_have_mon)
                 {
-                    if (deducted_yday < 0)
+                    if (deduced_yday < 0)
                     {
-                        deducted_year -= 1;
-                        deducted_yday += isleap(deducted_year) ? 366 : 365;
+                        deduced_year -= 1;
+                        deduced_yday += isleap(deduced_year) ? 366 : 365;
                     }
-                    while (deducted_yday >= (isleap(deducted_year) ? 366 : 365))
+                    while (deduced_yday >= (isleap(deduced_year) ? 366 : 365))
                     {
-                        deducted_yday -= isleap(deducted_year) ? 366 : 365;
-                        deducted_year += 1;
+                        deduced_yday -= isleap(deduced_year) ? 366 : 365;
+                        deduced_year += 1;
                     }
                     int t_mon = 0;
-                    while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
+                    while (t_mon < 12 && s_mon_yday[isleap(deduced_year)][t_mon] <= deduced_yday)
                         t_mon++;
                     if (!m_have_mon)
-                        deducted_month = t_mon;
+                        deduced_month = t_mon;
                     if (!m_have_mday)
-                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][deducted_month - 1] + 1);
+                        deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
                 }
             }
         }
 
-        return year_month_day{ year{deducted_year}, month{static_cast<uint8_t>(deducted_month)}, day{static_cast<uint8_t>(deducted_mday)} };
+        return year_month_day{ year{deduced_year}, month{static_cast<uint8_t>(deduced_month)}, day{static_cast<uint8_t>(deduced_mday)} };
     }
 
     using era_entry = typename ft_basic<timeio<CharT>>::era_entry;
@@ -275,7 +276,6 @@ struct date_parse_helper<CharT, true>
     bool m_have_year : 1 = false;
     bool m_have_year_in_century : 1 = false;
     bool m_have_iso_8601_year : 1 = false;
-    bool m_have_iso_8601_year_in_century : 1 = false;
     bool m_have_iso_8601_week : 1 = false;
     bool m_have_year_of_era : 1 = false;
 
@@ -307,10 +307,10 @@ private:
             difference between this data in the one on TM and so determine
             the weekday.  */
         month -= 1;
-        int corr_year = year - (month < 2);
-        int wday = (-473 + (365 * (year - 1970)) + (corr_year / 4) - ((corr_year / 4) / 25) + ((corr_year / 4) % 25 < 0) + (((corr_year / 4) / 25) / 4)
+        int64_t corr_year = static_cast<int64_t>(year) - (month < 2);
+        int64_t wday = (-473 + (365 * (static_cast<int64_t>(year) - 1970)) + (corr_year / 4) - ((corr_year / 4) / 25) + ((corr_year / 4) % 25 < 0) + (((corr_year / 4) / 25) / 4)
             + s_mon_yday[0][month] + mday - 1);
-        return ((wday % 7) + 7) % 7;
+        return static_cast<int>(((wday % 7) + 7) % 7);
     }
 };
 
@@ -747,6 +747,8 @@ private:
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 else if ((modifier == static_cast<CharT>('\0')) || (m_era_items.empty()))
                 {
+                    // 0..99 only, no sign (see the %Y parse case for why this
+                    // format/parse asymmetry is intentional and standard-aligned).
                     int mem = 0;
                     rp = extract_num(rp, rp_end, mem, 0, 99, 2, succ);
                     if (!succ) return rp;
@@ -834,6 +836,8 @@ private:
                 else if (modifier) goto bad_parse_format;
                 else
                 {
+                    // 0..9999 only, no sign (see the %Y parse case for why this
+                    // format/parse asymmetry is intentional and standard-aligned).
                     int val = 0;
                     rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
                     if (!succ) return rp;
@@ -1131,9 +1135,9 @@ private:
                     for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
                     {
                         const auto& cur_era = *it;
-                        int delta = (ctx.m_year_of_era - cur_era.offset) * cur_era.direction;
+                        int64_t delta = (static_cast<int64_t>(ctx.m_year_of_era) - cur_era.offset) * cur_era.direction;
                         int64_t range = (static_cast<int64_t>(cur_era.to_year) - cur_era.from_year) * cur_era.direction;
-                        bool match = (delta >= 0 && static_cast<int64_t>(delta) <= range);
+                        bool match = (delta >= 0 && delta <= range);
                         if (match) ++it;
                         else it = ctx.m_era_items.erase(it);
                     }
@@ -1160,7 +1164,20 @@ private:
                 break;
 
             case static_cast<CharT>('Y'):
-                /* Match year including century number.  */
+                /* Match year including century number.
+                 *
+                 * Intentional format/parse asymmetry (NOT a bug): put() can
+                 * emit a leading '-' for negative years and more than four
+                 * digits for years > 9999, to stay consistent with
+                 * std::format. This parser, however, deliberately accepts only
+                 * 0..9999 with no sign -- which is exactly what
+                 * std::chrono::from_stream("%Y") and POSIX strptime() do; both
+                 * likewise refuse to read back "-0044" or "12345". Keeping the
+                 * same restriction makes get() match the standard parse
+                 * facilities; widening it (sign / 5+ digits) would diverge from
+                 * them and make separator-less formats such as "%Y%m%d"
+                 * ambiguous due to greedy digit capture. The same reasoning
+                 * applies to the %G and %C parse cases.  */
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 else if ((modifier == static_cast<CharT>('E')) && (!m_era_items.empty()))
@@ -1459,7 +1476,9 @@ private:
                             *out++ = static_cast<CharT>('-');
                             century = -century;
                         }
-                        out = put_dec<2>(out, century);
+                        // Min width 2, but never truncate (matches std::format).
+                        if (century > 99) out = put_dec<0>(out, century);
+                        else              out = put_dec<2>(out, century);
                     }
                 }
                 break;
@@ -1515,7 +1534,17 @@ private:
                     std::chrono::year_month_day thursday_ymd{thursday};
                     int val = int(thursday_ymd.year());
                     if (format_char == static_cast<CharT>('G'))
-                        out = put_dec<4>(out, val);
+                    {
+                        int yr = val;
+                        if (yr < 0)
+                        {
+                            *out++ = static_cast<CharT>('-');
+                            yr = -yr;
+                        }
+                        // Min width 4, but never truncate (matches std::format).
+                        if (yr > 9999) out = put_dec<0>(out, yr);
+                        else           out = put_dec<4>(out, yr);
+                    }
                     if (format_char == static_cast<CharT>('g'))
                         out = put_dec<2>(out, (val % 100 + 100) % 100);
                 }
@@ -1755,7 +1784,17 @@ private:
                         out = do_put(out, subfmt, ymd, wd, hms, tz);
                     }
                     else
-                        out = put_dec<4>(out, static_cast<int>(ymd->year()));
+                    {
+                        int yr = static_cast<int>(ymd->year());
+                        if (yr < 0)
+                        {
+                            *out++ = static_cast<CharT>('-');
+                            yr = -yr;
+                        }
+                        // Min width 4, but never truncate (matches std::format).
+                        if (yr > 9999) out = put_dec<0>(out, yr);
+                        else           out = put_dec<4>(out, yr);
+                    }
                 }
                 break;
 
