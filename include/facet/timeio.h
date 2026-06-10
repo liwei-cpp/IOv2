@@ -1,17 +1,22 @@
 #pragma once
-#include <cassert>
-#include <chrono>
-#include <limits>
-#include <iterator>
-#include <list>
-#include <optional>
-#include <set>
-#include <string_view>
-#include <version>
 #include <common/metafunctions.h>
 #include <common/stamp_input_iterator.h>
 #include <common/streambuf_defs.h>
 #include <facet/timeio_details.h>
+
+#include <algorithm>
+#include <array>
+#include <cassert>
+#include <chrono>
+#include <cstdint>
+#include <iterator>
+#include <limits>
+#include <list>
+#include <set>
+#include <string>
+#include <string_view>
+#include <vector>
+#include <version>
 
 namespace IOv2
 {
@@ -45,7 +50,7 @@ struct date_parse_helper<CharT, true>
             sys_days sd = sys_days{ year{m_year} / 1 / 1 } + days{ m_yday };
             return year_month_day{sd};
         }
-        
+
         if (m_have_iso_8601_year && m_have_iso_8601_week && m_have_wday)
         {
             int iso_wd = (m_wday == 0 ? 7 : m_wday);
@@ -65,14 +70,17 @@ struct date_parse_helper<CharT, true>
             else if ((m_have_year_of_era) && (!m_era_items.empty()))
             {
                 using namespace TimeioHelper;
-                
+
                 // use month and day to decide
                 if (m_have_mon && m_have_mday)
                 {
                     auto it = m_era_items.begin();
                     for (; it != m_era_items.end(); ++it)
                     {
-                        int est_year = static_cast<int>(it->from_year) + (m_year_of_era - static_cast<int>(it->offset)) * it->direction;
+                        int64_t est_year_64 = static_cast<int64_t>(it->from_year)
+                            + (static_cast<int64_t>(m_year_of_era) - static_cast<int64_t>(it->offset)) * it->direction;
+                        int est_year = static_cast<int>(std::clamp<int64_t>(est_year_64,
+                            std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
                         bool cmp1 = era_small_or_equal(it->from_year, it->from_month, it->from_day,
                                                         est_year, m_month, m_mday) &&
                                     era_small_or_equal(est_year, m_month, m_mday,
@@ -85,7 +93,7 @@ struct date_parse_helper<CharT, true>
                         deducted_year = est_year;
                         break;
                     }
-                    
+
                     // nothing matches, choose the first item.
                     if (it == m_era_items.end())
                         deducted_year = m_era_items.begin()->from_year;
@@ -95,7 +103,10 @@ struct date_parse_helper<CharT, true>
                     auto it = m_era_items.begin();
                     for (; it != m_era_items.end(); ++it)
                     {
-                        int est_year = static_cast<int>(it->from_year) + (m_year_of_era - static_cast<int>(it->offset)) * it->direction;
+                        int64_t est_year_64 = static_cast<int64_t>(it->from_year)
+                            + (static_cast<int64_t>(m_year_of_era) - static_cast<int64_t>(it->offset)) * it->direction;
+                        int est_year = static_cast<int>(std::clamp<int64_t>(est_year_64,
+                            std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
                         bool cmp1 = era_small_or_equal(it->from_year, it->from_month, it->from_day,
                                                         est_year, m_month, m_mday) &&
                                     era_small_or_equal(est_year, m_month, m_mday,
@@ -108,7 +119,7 @@ struct date_parse_helper<CharT, true>
                         deducted_year = est_year;
                         break;
                     }
-                    
+
                     // nothing matches, choose the first item.
                     if (it == m_era_items.end())
                         deducted_year = m_era_items.begin()->from_year;
@@ -118,18 +129,21 @@ struct date_parse_helper<CharT, true>
                     auto it = m_era_items.begin();
                     for (; it != m_era_items.end(); ++it)
                     {
-                        int est_year = static_cast<int>(it->from_year) + (m_year_of_era - static_cast<int>(it->offset)) * it->direction;
+                        int64_t est_year_64 = static_cast<int64_t>(it->from_year)
+                            + (static_cast<int64_t>(m_year_of_era) - static_cast<int64_t>(it->offset)) * it->direction;
+                        int est_year = static_cast<int>(std::clamp<int64_t>(est_year_64,
+                            std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
                         if ((it->from_year > est_year) || (est_year > it->to_year)) continue;
                         deducted_year = est_year;
                         break;
                     }
-                    
+
                     // nothing matches, choose the first item.
                     if (it == m_era_items.end())
                         deducted_year = m_era_items.begin()->from_year;
                 }
             }
-            
+
             // Fuzzy matching, we do not have enough information, but need to set year.
             else if (m_have_year_in_century) { /* do nothing */ }
             else if (m_have_century)
@@ -137,13 +151,18 @@ struct date_parse_helper<CharT, true>
             else if (!m_era_items.empty())
                 deducted_year = m_era_items.begin()->from_year;
         }
-        
+
         auto deducted_month = m_month;
         auto deducted_mday = m_mday;
         int deducted_yday = static_cast<int>(m_yday);
         bool have_yday = m_have_yday;
         auto deducted_wday = m_wday;
-        // Deduct month / mday
+        // Deduct month / mday. When neither is given, both are derived from the
+        // day-of-year. When the month IS given but the day is not, the day-of-month
+        // is computed relative to the *reported* month (deducted_month) rather than
+        // the yday-derived month, so the returned month and day stay mutually
+        // consistent (contradictory month-vs-week input is GIGO and may still yield
+        // an out-of-range day, since this conversion has no error channel).
         if ((m_have_uweek || m_have_wweek) && m_have_wday && (!have_yday))
         {
             int w_offset = m_have_uweek ? 0 : 1;
@@ -164,11 +183,16 @@ struct date_parse_helper<CharT, true>
                     deducted_year -= 1;
                     deducted_yday += isleap(deducted_year) ? 366 : 365;
                 }
+                while (deducted_yday >= (isleap(deducted_year) ? 366 : 365))
+                {
+                    deducted_yday -= isleap(deducted_year) ? 366 : 365;
+                    deducted_year += 1;
+                }
                 int t_mon = 0;
                 while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                     t_mon++;
                 if (!m_have_mon) deducted_month = t_mon;
-                if (!m_have_mday) deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][t_mon - 1] + 1);
+                if (!m_have_mday) deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][deducted_month - 1] + 1);
             }
             else if (m_have_wday)
             {
@@ -189,7 +213,7 @@ struct date_parse_helper<CharT, true>
                     if (!m_have_mon)
                         deducted_month = t_mon;
                     if (!m_have_mday)
-                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][t_mon - 1] + 1);
+                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][deducted_month - 1] + 1);
                 }
             }
             else if (m_have_uweek || m_have_wweek)
@@ -211,13 +235,18 @@ struct date_parse_helper<CharT, true>
                         deducted_year -= 1;
                         deducted_yday += isleap(deducted_year) ? 366 : 365;
                     }
+                    while (deducted_yday >= (isleap(deducted_year) ? 366 : 365))
+                    {
+                        deducted_yday -= isleap(deducted_year) ? 366 : 365;
+                        deducted_year += 1;
+                    }
                     int t_mon = 0;
                     while (t_mon < 12 && s_mon_yday[isleap(deducted_year)][t_mon] <= deducted_yday)
                         t_mon++;
                     if (!m_have_mon)
                         deducted_month = t_mon;
                     if (!m_have_mday)
-                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][t_mon - 1] + 1);
+                        deducted_mday = (deducted_yday - s_mon_yday[isleap(deducted_year)][deducted_month - 1] + 1);
                 }
             }
         }
@@ -301,8 +330,8 @@ struct time_parse_helper<true>
             hour_in_24 += 12;
         else if (m_have_I && !m_is_pm && hour_in_24 == 12)
             hour_in_24 = 0;
-        
-        std::chrono::seconds time_sec = 
+
+        std::chrono::seconds time_sec =
             std::chrono::hours{hour_in_24} +
             std::chrono::minutes{m_minute} +
             std::chrono::seconds{m_second};
@@ -349,6 +378,13 @@ struct time_parse_context
     bool operator==(const time_parse_context&) const = default;
 
     time_parse_context() = default;
+
+    // Clears all accumulated parse state (date / time / time-zone fields, the
+    // have_* flags, the era working set and the is_init guard), restoring the
+    // context to its default-constructed state. Call this before reusing one
+    // context to parse a *different* time value; skip it to keep accumulating
+    // fields of the *same* value across multiple get() calls.
+    void reset() { *this = time_parse_context{}; }
 
     explicit operator const std::chrono::zoned_time<std::chrono::seconds>() const
         requires(HaveDate && HaveTime && HaveTimeZone)
@@ -431,24 +467,24 @@ public:
         m_era_date_time_zone_format = p_obj->era_date_time_zone_format();
         m_am_pm_format = p_obj->am_pm_format();
         m_era_items = p_obj->era_items();
-        
+
         for (int i = 0; i < 7; ++i)
         {
             m_day_tree.add(p_obj->day_names()[i], i);
             m_day_tree.add(p_obj->abbr_day_names()[i], i);
         }
-        
+
         for (int i = 0; i < 12; ++i)
         {
             m_month_tree.add(p_obj->month_names()[i], i);
             m_month_tree.add(p_obj->abbr_month_names()[i], i);
         }
-        
+
         if (!m_am.empty()) m_am_pm_tree.add(m_am, 0);
         if (!m_pm.empty()) m_am_pm_tree.add(m_pm, 1);
-        
+
         create_era_name_tree();
-        create_alt_ditigs_tree();
+        create_alt_digits_tree();
     }
 
 public:
@@ -487,7 +523,7 @@ public:
     }
 
     template <typename OutIt, typename Duration, typename TimeZonePtr>
-    OutIt put(OutIt out, const std::chrono::zoned_time<Duration, TimeZonePtr>& t, std::basic_string_view<CharT> fmt) const 
+    OutIt put(OutIt out, const std::chrono::zoned_time<Duration, TimeZonePtr>& t, std::basic_string_view<CharT> fmt) const
     {
         auto local = t.get_local_time();
         auto local_day = std::chrono::floor<std::chrono::days>(local);
@@ -523,10 +559,27 @@ public:
     }
 
     template <typename OutIt>
-    OutIt put(OutIt out, const std::tm& t, std::basic_string_view<CharT> fmt) const 
+    OutIt put(OutIt out, const std::tm& t, std::basic_string_view<CharT> fmt) const
     {
         using namespace std::chrono;
-        year_month_day ymd{ year{t.tm_year + 1900}, month{(unsigned)t.tm_mon + 1}, day{(unsigned)t.tm_mday} };
+
+        // Validate raw tm fields before constructing chrono types: year/month
+        // truncate out-of-range values (short / unsigned char) and would silently
+        // wrap, so range-check the integers first, then reject field combinations
+        // that are individually in range but not a real calendar date (e.g. Feb 30).
+        const int y = t.tm_year + 1900;
+        if (t.tm_mon  < 0 || t.tm_mon  > 11 ||
+            t.tm_mday < 1 || t.tm_mday > 31 ||
+            t.tm_hour < 0 || t.tm_hour > 23 ||
+            t.tm_min  < 0 || t.tm_min  > 59 ||
+            t.tm_sec  < 0 || t.tm_sec  > 60 ||
+            y < static_cast<int>(year::min()) || y > static_cast<int>(year::max()))
+            throw stream_error("timeio put error: std::tm field out of range");
+
+        year_month_day ymd{ year{y}, month{static_cast<unsigned>(t.tm_mon) + 1}, day{static_cast<unsigned>(t.tm_mday)} };
+        if (!ymd.ok())
+            throw stream_error("timeio put error: std::tm is not a valid calendar date");
+
         weekday wd{ymd};
 
         seconds sec = hours{t.tm_hour} + minutes{t.tm_min} + seconds{t.tm_sec};
@@ -595,13 +648,13 @@ private:
                 ++fmt; ++rp;
                 continue;
             }
-            
+
             if (++fmt == _fmt.cend())
             {
                 succ = false;
                 return rp;
             }
-            
+
             CharT modifier = 0;
             if (*fmt == static_cast<CharT>('E') || *fmt == static_cast<CharT>('O'))
             {
@@ -627,7 +680,7 @@ private:
 
             case static_cast<CharT>('a'):
             case static_cast<CharT>('A'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -649,9 +702,9 @@ private:
             case static_cast<CharT>('b'):
             case static_cast<CharT>('B'):
             case static_cast<CharT>('h'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
-                else 
+                else
                 {
                     typename decltype(m_month_tree)::match_out_type tmp;
                     rp = m_month_tree.max_match(rp, rp_end, tmp);
@@ -669,7 +722,7 @@ private:
                 break;
 
             case static_cast<CharT>('c'):
-                if constexpr (!HaveDate || !HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveDate || !HaveTime) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 if constexpr (HaveTimeZone)
                 {
@@ -690,7 +743,7 @@ private:
                 break;
 
             case static_cast<CharT>('C'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 else if ((modifier == static_cast<CharT>('\0')) || (m_era_items.empty()))
                 {
@@ -724,7 +777,7 @@ private:
 
             case static_cast<CharT>('d'):
             case static_cast<CharT>('e'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -740,7 +793,7 @@ private:
                 break;
 
             case static_cast<CharT>('D'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else {
                     CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
@@ -752,7 +805,7 @@ private:
                 break;
 
             case static_cast<CharT>('F'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -765,7 +818,7 @@ private:
                 break;
 
             case static_cast<CharT>('g'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -777,7 +830,7 @@ private:
                 }
                 break;
             case static_cast<CharT>('G'):
-                if constexpr (!HaveDate) goto bad_parse_format;     
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -790,7 +843,7 @@ private:
                 break;
 
             case static_cast<CharT>('H'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -806,7 +859,7 @@ private:
                 break;
 
             case static_cast<CharT>('I'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -823,7 +876,7 @@ private:
 
             case static_cast<CharT>('j'):
                 /* Match day number of year.  */
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -837,7 +890,7 @@ private:
 
             case static_cast<CharT>('m'):
                 /* Match number of month.  */
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -853,7 +906,7 @@ private:
                 break;
             case static_cast<CharT>('M'):
                 /* Match minute.  */
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -876,7 +929,7 @@ private:
                 break;
 
             case static_cast<CharT>('p'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -901,7 +954,7 @@ private:
                 break;
 
             case static_cast<CharT>('r'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -909,9 +962,9 @@ private:
                     if (!succ) return rp;
                 }
                 break;
-                
+
             case static_cast<CharT>('R'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -923,7 +976,7 @@ private:
                 break;
 
             case static_cast<CharT>('S'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -938,7 +991,7 @@ private:
                 break;
 
             case static_cast<CharT>('T'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 else
                 {
@@ -951,7 +1004,7 @@ private:
                 break;
 
             case static_cast<CharT>('u'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -967,7 +1020,7 @@ private:
                 break;
 
             case static_cast<CharT>('U'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -984,7 +1037,7 @@ private:
                 break;
 
             case static_cast<CharT>('V'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -1001,7 +1054,7 @@ private:
 
             case static_cast<CharT>('w'):
                 /* Match number of weekday.  */
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -1017,7 +1070,7 @@ private:
                 break;
 
             case static_cast<CharT>('W'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
@@ -1034,7 +1087,7 @@ private:
                 break;
 
             case static_cast<CharT>('x'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E'))
                     rp = do_get(rp, rp_end, ctx, succ, m_era_date_format);
@@ -1044,13 +1097,13 @@ private:
                 break;
 
             case static_cast<CharT>('X'):
-                if constexpr (!HaveTime) goto bad_parse_format; 
+                if constexpr (!HaveTime) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 if constexpr (HaveTimeZone)
                 {
                     if (modifier == static_cast<CharT>('E'))
                         rp = do_get(rp, rp_end, ctx, succ, m_era_time_zone_format);
-                    else 
+                    else
                         rp = do_get(rp, rp_end, ctx, succ, m_time_zone_format);
                     if (!succ) return rp;
                 }
@@ -1058,15 +1111,15 @@ private:
                 {
                     if (modifier == static_cast<CharT>('E'))
                         rp = do_get(rp, rp_end, ctx, succ, m_era_time_format);
-                    else 
+                    else
                         rp = do_get(rp, rp_end, ctx, succ, m_time_format);
                     if (!succ) return rp;
                 }
-                
+
                 break;
 
             case static_cast<CharT>('y'):
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if ((modifier == static_cast<CharT>('E')) && (!m_era_items.empty()))
                 {
                     int val = 0;
@@ -1074,7 +1127,7 @@ private:
                     if (!succ) return rp;
                     ctx.m_year_of_era = val;
                     ctx.m_have_year_of_era = 1;
-                    
+
                     for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
                     {
                         const auto& cur_era = *it;
@@ -1108,7 +1161,7 @@ private:
 
             case static_cast<CharT>('Y'):
                 /* Match year including century number.  */
-                if constexpr (!HaveDate) goto bad_parse_format; 
+                if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
                 else if ((modifier == static_cast<CharT>('E')) && (!m_era_items.empty()))
                 {
@@ -1121,7 +1174,7 @@ private:
                     {
                         stamp_input_iterator rp_wrapper(rp);
                         decltype(rp_wrapper) rp_end_wrapper(rp_end);
-                        
+
                         auto format_it = m_era_formats.begin();
                         for (; format_it != m_era_formats.end(); ++format_it)
                         {
@@ -1137,7 +1190,7 @@ private:
                                 break;
                             }
                         }
-                        
+
                         if (format_it == m_era_formats.end())
                         {
                             rp = rp_wrapper.internal();
@@ -1160,7 +1213,7 @@ private:
                 break;
 
             case static_cast<CharT>('z'):
-                if constexpr (!HaveDate || !HaveTime || !HaveTimeZone) goto bad_parse_format; 
+                if constexpr (!HaveDate || !HaveTime || !HaveTimeZone) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 /* We recognize four formats:
                     1. Two digits specify hours.
@@ -1213,7 +1266,7 @@ private:
                 break;
 
             case static_cast<CharT>('Z'):
-                if constexpr (!HaveTimeZone) goto bad_parse_format; 
+                if constexpr (!HaveTimeZone) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
                 /* Read timezone but perform no conversion.  */
                 else
@@ -1238,7 +1291,7 @@ private:
                         succ = false;
                         return rp;
                     }
-                    
+
                     ++rp;
                     if (modifier)
                     {
@@ -1249,7 +1302,7 @@ private:
                         }
                         ++rp;
                     }
-                    
+
                     if ((rp == rp_end) || (*rp != *fmt))
                     {
                         succ = false;
@@ -1275,8 +1328,8 @@ private:
             m_era_formats.insert(m_era_items[i].format);
         }
     }
-    
-    void create_alt_ditigs_tree()
+
+    void create_alt_digits_tree()
     {
         for (size_t i = 0; i < 100; ++i)
         {
@@ -1679,8 +1732,10 @@ private:
                             era = get_era_entry(*ymd);
                         if (era)
                         {
-                            int delta = static_cast<int>(ymd->year()) - era->from_year;
-                            out = put_dec<0>(out, era->offset + delta * era->direction);
+                            int64_t v = static_cast<int64_t>(era->offset)
+                                + (static_cast<int64_t>(static_cast<int>(ymd->year())) - era->from_year) * era->direction;
+                            out = put_dec<0>(out, static_cast<int>(std::clamp<int64_t>(v,
+                                std::numeric_limits<int>::min(), std::numeric_limits<int>::max())));
                         }
                         else
                             out = put_dec<2>(out, val);
@@ -1731,7 +1786,7 @@ private:
                     out = std::copy(iana.begin(), iana.end(), out);
                 }
                 break;
-                
+
             default:
             bad_format:
                 /* Unknown format; output the format, including the '%',
@@ -1772,7 +1827,7 @@ private:
         }
         return nullptr;
     }
-    
+
     template <size_t n, CharT def = static_cast<CharT>('0'), typename OutIt>
     OutIt put_dec(OutIt out, int val, bool alt) const
     {
@@ -1844,7 +1899,7 @@ private:
         else succ = false;
         return beg;
     }
-    
+
     template <typename TIter, std::sentinel_for<TIter> TSent>
     TIter extract_num_with_alt_digits(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ) const
     {
@@ -1887,7 +1942,7 @@ private:
     std::basic_string<CharT>                  m_era_date_time_zone_format;
     std::basic_string<CharT>                  m_am_pm_format;
     std::vector<era_entry>                    m_era_items;
-    
+
     std::set<std::basic_string<CharT>>        m_era_formats;
 };
 
