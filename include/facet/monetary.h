@@ -30,7 +30,6 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
-#include <stdexcept>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -107,7 +106,7 @@ public:
      *
      * @tparam TConfPtr 满足 `shared_ptr_to<monetary_conf<CharT>>` 约束的指针类型。
      * @param p_obj 指向已初始化的 `monetary_conf<CharT>` 的非空共享指针。
-     * @throw std::runtime_error 如果 `p_obj` 为空。
+     * @throw stream_error 如果 `p_obj` 为空。
      * @endif
      *
      * @lang{EN}
@@ -122,7 +121,7 @@ public:
      *
      * @tparam TConfPtr A pointer type satisfying `shared_ptr_to<monetary_conf<CharT>>`.
      * @param p_obj A non-null shared pointer to an initialized `monetary_conf<CharT>`.
-     * @throw std::runtime_error If `p_obj` is empty.
+     * @throw stream_error If `p_obj` is empty.
      * @endif
      */
     template <shared_ptr_to<monetary_conf<CharT>> TConfPtr>
@@ -131,7 +130,7 @@ public:
         // Validate before any dereference below: a null pointer would be UB.
         // Mirrors the guard in the messages facet.
         if (!p_obj)
-            throw std::runtime_error("shared_ptr is empty");
+            throw stream_error("shared_ptr is empty");
 
         m_grouping = p_obj->grouping();
         m_nat = {.m_curr_symbol = p_obj->curr_symbol_nat(),

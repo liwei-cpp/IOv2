@@ -1,18 +1,21 @@
 #pragma once
-#include <langinfo.h>
-
-#include <array>
-#include <cstdint>
-#include <cstring>
-#include <chrono>
-#include <ctime>
-#include <limits>
-#include <string>
 #include <common/metafunctions.h>
 #include <common/prefix_tree.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/facet_common.h>
 #include <facet/facet_helper.h>
+
+#include <array>
+#include <chrono>
+#include <cstdint>
+#include <cstring>
+#include <ctime>
+#include <cwchar>
+#include <limits>
+#include <string>
+#include <vector>
+
+#include <langinfo.h>
 
 namespace IOv2
 {
@@ -45,15 +48,15 @@ namespace IOv2
             : base_ft<timeio>(id()) {}
 
         using char_type = CharT;
-        
+
         static size_t id() { return reinterpret_cast<size_t>(&s_id); }
 
     public:
-        inline static const prefix_tree<CharT, std::string> s_timezone_tree = 
+        inline static const prefix_tree<CharT, std::string> s_timezone_tree =
         []()
         {
             prefix_tree<CharT, std::string> res;
-            
+
             const auto& tzdb = std::chrono::get_tzdb();
 
             for (const auto& zone : tzdb.zones)
@@ -66,11 +69,11 @@ namespace IOv2
             }
             return res;
         }();
-        
+
     private:
         inline static const void* s_id = nullptr;
     };
-    
+
 namespace TimeioHelper
 {
     inline bool era_small_or_equal(int from_year, uint8_t from_month, uint8_t from_day,
@@ -82,7 +85,7 @@ namespace TimeioHelper
         if (from_month > to_month) return false;
         return from_day <= to_day;
     }
-    
+
     inline bool era_small_or_equal(int from_year, uint8_t from_month,
                                    int to_year, uint8_t to_month)
     {
@@ -105,14 +108,14 @@ public:
         {
             m_date_format = "%m/%d/%y";     m_era_date_format = m_date_format;
             m_time_format = "%H:%M:%S";     m_era_time_format = m_time_format;
-            
+
             m_date_time_format = m_date_format + ' ' + m_time_format;
             m_era_date_time_format = m_date_time_format;
 
             m_am = "AM";
             m_pm = "PM";
             m_am_pm_format = "%I:%M:%S %p";
-            
+
             m_day[0] = "Sunday";
             m_day[1] = "Monday";
             m_day[2] = "Tuesday";
@@ -128,7 +131,7 @@ public:
             m_abbr_day[4] = "Thu";
             m_abbr_day[5] = "Fri";
             m_abbr_day[6] = "Sat";
-            
+
             // Month names, starting with "C"'s January.
             m_month[0]  = "January";
             m_month[1]  = "February";
@@ -142,7 +145,7 @@ public:
             m_month[9]  = "October";
             m_month[10] = "November";
             m_month[11] = "December";
-            
+
             // Abbreviated month names, starting with "C"'s Jan.
             m_abbr_month[0]  = "Jan";
             m_abbr_month[1]  = "Feb";
@@ -166,15 +169,15 @@ public:
             m_era_date_format = nl_langinfo(ERA_D_FMT);  if (m_era_date_format.empty()) m_era_date_format = m_date_format;
             m_time_format = nl_langinfo(T_FMT);
             m_era_time_format = nl_langinfo(ERA_T_FMT);  if (m_era_time_format.empty()) m_era_time_format = m_time_format;
-            
+
             m_date_time_format = nl_langinfo(D_T_FMT);
             m_era_date_time_format = nl_langinfo(ERA_D_T_FMT);
             if (m_era_date_time_format.empty()) m_era_date_time_format = m_date_time_format;
-            
+
             m_am = nl_langinfo(AM_STR);
             m_pm = nl_langinfo(PM_STR);
             m_am_pm_format = nl_langinfo(T_FMT_AMPM);
-            
+
             m_day[0] = nl_langinfo(DAY_1);
             m_day[1] = nl_langinfo(DAY_2);
             m_day[2] = nl_langinfo(DAY_3);
@@ -182,7 +185,7 @@ public:
             m_day[4] = nl_langinfo(DAY_5);
             m_day[5] = nl_langinfo(DAY_6);
             m_day[6] = nl_langinfo(DAY_7);
-            
+
             m_abbr_day[0] = nl_langinfo(ABDAY_1);
             m_abbr_day[1] = nl_langinfo(ABDAY_2);
             m_abbr_day[2] = nl_langinfo(ABDAY_3);
@@ -190,7 +193,7 @@ public:
             m_abbr_day[4] = nl_langinfo(ABDAY_5);
             m_abbr_day[5] = nl_langinfo(ABDAY_6);
             m_abbr_day[6] = nl_langinfo(ABDAY_7);
-            
+
             // Month names, starting with "C"'s January.
             m_month[0]  = nl_langinfo(MON_1);
             m_month[1]  = nl_langinfo(MON_2);
@@ -204,7 +207,7 @@ public:
             m_month[9]  = nl_langinfo(MON_10);
             m_month[10] = nl_langinfo(MON_11);
             m_month[11] = nl_langinfo(MON_12);
-            
+
             // Abbreviated month names, starting with "C"'s Jan.
             m_abbr_month[0]  = nl_langinfo(ABMON_1);
             m_abbr_month[1]  = nl_langinfo(ABMON_2);
@@ -244,11 +247,11 @@ public:
                 {
                     const char *base_ptr = ptr;
                     era_entry cur_entry;
-                    
+
                     int32_t buf[8];
                     std::memcpy(static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof(int32_t) * 8);
                     ptr += sizeof(uint32_t) * 8;
-                    
+
                     if (buf[2] > std::numeric_limits<int32_t>::max() - 1900)
                         cur_entry.from_year = std::numeric_limits<int32_t>::max();
                     else
@@ -280,10 +283,10 @@ public:
                         else cur_entry.direction = 1;
                     }
                     cur_entry.offset = buf[1];
-                    
+
                     cur_entry.name = ptr; ptr = strchr(ptr, '\0') + 1;
                     cur_entry.format = ptr; ptr = strchr(ptr, '\0') + 1;
-                    
+
                     // skip wchar_t name and format
                     ptr += 3 - (((ptr - base_ptr) + 3) & 3);
                     ptr = reinterpret_cast<const char*>(wcschr(reinterpret_cast<const wchar_t*>(ptr), L'\0') + 1);
@@ -319,7 +322,7 @@ public:
     virtual const std::string& era_date_time_zone_format() const { return m_era_date_time_zone_format; }
     virtual const std::string& am_pm_format() const { return m_am_pm_format; }
     virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
-    
+
 private:
     std::array<std::string, 7>   m_day;
     std::array<std::string, 7>   m_abbr_day;
@@ -341,10 +344,10 @@ private:
     std::string                  m_am_pm_format;
     std::vector<era_entry>       m_era_items;
 };
-    
+
 template <typename CharT>
-    requires std::is_same_v<CharT, wchar_t> || 
-            (std::is_same_v<CharT, char32_t> && 
+    requires std::is_same_v<CharT, wchar_t> ||
+            (std::is_same_v<CharT, char32_t> &&
             wchar_t_is_utf32)
 class timeio_conf<CharT> : public ft_basic<timeio<CharT>>
 {

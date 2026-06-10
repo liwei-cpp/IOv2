@@ -13,6 +13,7 @@
  */
 #pragma once
 #include <common/clocale_wrapper.h>
+#include <common/defs.h>
 #include <common/metafunctions.h>
 #include <facet/ctype.h>
 #include <facet/facet_common.h>
@@ -101,7 +102,7 @@ public:
      * @tparam TCtypePtr 满足 `shared_ptr_to<ctype<CharT>>` 约束的共享指针类型。
      * @param p_obj 指向 `numeric_conf` 配置对象的共享指针，不得为空。
      * @param p_ctype 指向 `ctype` 配置对象的共享指针，不得为空。
-     * @throw std::runtime_error 若任一指针为空。
+     * @throw stream_error 若任一指针为空。
      * @endif
      *
      * @lang{EN}
@@ -117,14 +118,14 @@ public:
      * @tparam TCtypePtr A shared pointer type satisfying `shared_ptr_to<ctype<CharT>>`.
      * @param p_obj Shared pointer to the `numeric_conf` configuration object; must not be null.
      * @param p_ctype Shared pointer to the `ctype` configuration object; must not be null.
-     * @throw std::runtime_error If either pointer is null.
+     * @throw stream_error If either pointer is null.
      * @endif
      */
     template <shared_ptr_to<numeric_conf<CharT>> TConfPtr,
               shared_ptr_to<ctype<CharT>> TCtypePtr>
     numeric(TConfPtr p_obj, TCtypePtr p_ctype) : m_ctype(p_ctype)
     {
-        if (!p_obj || !p_ctype) throw std::runtime_error("shared_ptr is empty");
+        if (!p_obj || !p_ctype) throw stream_error("shared_ptr is empty");
         m_decimal_point = p_obj->decimal_point();
         m_thousands_sep = p_obj->thousands_sep();
         m_true_name = p_obj->truename();
