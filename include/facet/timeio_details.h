@@ -9,10 +9,10 @@
 #include <chrono>
 #include <cstdint>
 #include <cstring>
-#include <ctime>
 #include <cwchar>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <langinfo.h>
@@ -237,64 +237,10 @@ public:
                         m_alt_digits[j].clear();
                 }
             }
-            int32_t era_item_num = static_cast<int32_t>(
-                reinterpret_cast<uintptr_t>(nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES)));
-            if (era_item_num > 0)
-            {
-                m_era_items.reserve(era_item_num);
-                const char *ptr = reinterpret_cast<const char*>(nl_langinfo(_NL_TIME_ERA_ENTRIES));
-                for (int32_t cnt = 0; cnt < era_item_num; ++cnt)
-                {
-                    const char *base_ptr = ptr;
-                    era_entry cur_entry;
-
-                    int32_t buf[8];
-                    std::memcpy(static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof(int32_t) * 8);
-                    ptr += sizeof(uint32_t) * 8;
-
-                    if (buf[2] > std::numeric_limits<int32_t>::max() - 1900)
-                        cur_entry.from_year = std::numeric_limits<int32_t>::max();
-                    else
-                        cur_entry.from_year = buf[2] + 1900;
-                    cur_entry.from_month = buf[3] + 1;
-                    cur_entry.from_day = buf[4];
-                    if (buf[5] > std::numeric_limits<int32_t>::max() - 1900)
-                    {
-                        cur_entry.to_year = std::numeric_limits<int32_t>::max();
-                        cur_entry.to_month = 12;
-                        cur_entry.to_day = 31;
-                    }
-                    else
-                    {
-                        cur_entry.to_year = buf[5] + 1900;
-                        cur_entry.to_month = buf[6] + 1;
-                        cur_entry.to_day = buf[7];
-                    }
-
-                    if (TimeioHelper::era_small_or_equal(cur_entry.from_year, cur_entry.from_month, cur_entry.from_day,
-                                                        cur_entry.to_year, cur_entry.to_month, cur_entry.to_day))
-                    {
-                        if (buf[0] == (uint32_t) '+') cur_entry.direction = 1;
-                        else cur_entry.direction = -1;
-                    }
-                    else
-                    {
-                        if (buf[0] == (uint32_t) '+') cur_entry.direction = -1;
-                        else cur_entry.direction = 1;
-                    }
-                    cur_entry.offset = buf[1];
-
-                    cur_entry.name = ptr; ptr = strchr(ptr, '\0') + 1;
-                    cur_entry.format = ptr; ptr = strchr(ptr, '\0') + 1;
-
-                    // skip wchar_t name and format
-                    ptr += 3 - (((ptr - base_ptr) + 3) & 3);
-                    ptr = reinterpret_cast<const char*>(wcschr(reinterpret_cast<const wchar_t*>(ptr), L'\0') + 1);
-                    ptr = reinterpret_cast<const char*>(wcschr(reinterpret_cast<const wchar_t*>(ptr), L'\0') + 1);
-
-                    m_era_items.push_back(std::move(cur_entry));
-                }
-            }
+            // Must run with the target locale active on this thread (the
+            // clocale_user guard above ensures that); see the function's
+            // contract for the trusted glibc layout it assumes.
+            m_era_items = parse_glibc_era_entries();
         }
 
         m_date_time_zone_format = m_date_time_format +" %Z";
@@ -324,6 +270,104 @@ public:
     virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
 
 private:
+    // Parse the glibc-specific binary era table for the *currently active thread
+    // locale* and return the decoded entries.
+    //
+    // PRECONDITION
+    //   The caller must have made the target locale current on this thread
+    //   (e.g. via clocale_user / uselocale) before calling. nl_langinfo() reads
+    //   that active locale; the returned pointers are consumed before any further
+    //   nl_langinfo() call, so they stay valid for the duration of this function.
+    //
+    // INPUT CONTRACT (TRUSTED, NOT VALIDATED)
+    //   This is the single place where we trust the glibc era binary layout.
+    //   nl_langinfo(_NL_TIME_ERA_ENTRIES) is assumed to point at exactly
+    //   _NL_TIME_ERA_NUM_ENTRIES consecutive, well-formed records; the pointer
+    //   walk below is UNCHECKED, so malformed or truncated data (e.g. a tampered
+    //   locale database) can cause out-of-bounds reads. Data coming from the
+    //   system locale database is treated as trusted, so no defensive bounds
+    //   checking is performed. If era data could ever originate from an
+    //   untrusted source, this function is the one boundary to harden.
+    //
+    //   Each record, relative to its start (base_ptr), is laid out as:
+    //     - 8 x int32 header (read via memcpy):
+    //         [0] direction marker ('+' / '-')   [1] offset
+    //         [2] from_year - 1900  [3] from_month - 1  [4] from_day
+    //         [5] to_year   - 1900  [6] to_month   - 1  [7] to_day
+    //     - NUL-terminated narrow name, then NUL-terminated narrow format
+    //     - padding up to the next 4-byte boundary (relative to base_ptr)
+    //     - NUL-terminated wide name, then NUL-terminated wide format
+    //
+    // OUTPUT INVARIANTS
+    //   - from_year / to_year are clamped against int32 overflow on the +1900
+    //     addition (an open-ended "to" is normalised to Dec 31 of int32 max).
+    //   - direction is normalised to exactly +1 / -1 so the ordering used by
+    //     era_small_or_equal() / get_era_entry() is always well-defined.
+    static std::vector<era_entry> parse_glibc_era_entries()
+    {
+        std::vector<era_entry> items;
+
+        const int32_t era_item_num = static_cast<int32_t>(
+            reinterpret_cast<uintptr_t>(nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES)));
+        if (era_item_num <= 0)
+            return items;
+
+        items.reserve(era_item_num);
+        const char *ptr = reinterpret_cast<const char*>(nl_langinfo(_NL_TIME_ERA_ENTRIES));
+        for (int32_t cnt = 0; cnt < era_item_num; ++cnt)
+        {
+            const char *base_ptr = ptr;
+            era_entry cur_entry;
+
+            int32_t buf[8];
+            std::memcpy(static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof(int32_t) * 8);
+            ptr += sizeof(uint32_t) * 8;
+
+            if (buf[2] > std::numeric_limits<int32_t>::max() - 1900)
+                cur_entry.from_year = std::numeric_limits<int32_t>::max();
+            else
+                cur_entry.from_year = buf[2] + 1900;
+            cur_entry.from_month = buf[3] + 1;
+            cur_entry.from_day = buf[4];
+            if (buf[5] > std::numeric_limits<int32_t>::max() - 1900)
+            {
+                cur_entry.to_year = std::numeric_limits<int32_t>::max();
+                cur_entry.to_month = 12;
+                cur_entry.to_day = 31;
+            }
+            else
+            {
+                cur_entry.to_year = buf[5] + 1900;
+                cur_entry.to_month = buf[6] + 1;
+                cur_entry.to_day = buf[7];
+            }
+
+            if (TimeioHelper::era_small_or_equal(cur_entry.from_year, cur_entry.from_month, cur_entry.from_day,
+                                                cur_entry.to_year, cur_entry.to_month, cur_entry.to_day))
+            {
+                if (buf[0] == (uint32_t) '+') cur_entry.direction = 1;
+                else cur_entry.direction = -1;
+            }
+            else
+            {
+                if (buf[0] == (uint32_t) '+') cur_entry.direction = -1;
+                else cur_entry.direction = 1;
+            }
+            cur_entry.offset = buf[1];
+
+            cur_entry.name = ptr; ptr = strchr(ptr, '\0') + 1;
+            cur_entry.format = ptr; ptr = strchr(ptr, '\0') + 1;
+
+            // skip wchar_t name and format
+            ptr += 3 - (((ptr - base_ptr) + 3) & 3);
+            ptr = reinterpret_cast<const char*>(wcschr(reinterpret_cast<const wchar_t*>(ptr), L'\0') + 1);
+            ptr = reinterpret_cast<const char*>(wcschr(reinterpret_cast<const wchar_t*>(ptr), L'\0') + 1);
+
+            items.push_back(std::move(cur_entry));
+        }
+        return items;
+    }
+
     std::array<std::string, 7>   m_day;
     std::array<std::string, 7>   m_abbr_day;
     std::array<std::string, 12>  m_month;
