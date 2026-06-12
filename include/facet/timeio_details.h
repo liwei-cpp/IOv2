@@ -301,8 +301,34 @@ private:
     // OUTPUT INVARIANTS
     //   - from_year / to_year are clamped against int32 overflow on the +1900
     //     addition (an open-ended "to" is normalised to Dec 31 of int32 max).
-    //   - direction is normalised to exactly +1 / -1 so the ordering used by
-    //     era_small_or_equal() / get_era_entry() is always well-defined.
+    //   - direction is normalised to exactly +1 / -1 so that the linear formula
+    //
+    //       era_year = offset + (calendar_year - from_year) * direction
+    //
+    //     is uniformly valid for all era types.  The normalisation mirrors glibc
+    //     era.c (≈ line 98, https://github.com/lattera/glibc/blob/master/time/era.c):
+    //
+    //       if ERA_DATE_CMP(start, stop)   /* start < stop — forward era */
+    //           absolute_direction = ('+') ? +1 : -1;
+    //       else                           /* start ≥ stop — backward era */
+    //           absolute_direction = ('+') ? -1 : +1;   /* sign flipped */
+    //
+    //     For forward eras (from < to, e.g. AD / Japanese / Thai), the raw
+    //     direction marker maps directly: '+' → +1, '-' → -1.
+    //
+    //     For backward eras (from > to), the marker is intentionally inverted.
+    //     The reason: in a backward era (e.g. the hypothetical BC entry
+    //     "-:1:-0001/01/01:-*:BC:…"), from_year is the epoch (1 BC) and to_year
+    //     is a sentinel for "negative infinity".  As the calendar year moves away
+    //     from the epoch toward the past, (calendar - from_year) grows increasingly
+    //     negative.  Flipping the stored direction to +1 preserves the sign
+    //     convention that the same formula produces consistent era_year values
+    //     regardless of which direction the era flows.  Concretely, with
+    //     direction = +1 after the flip, delta = (calendar - from_year) × 1 is
+    //     negative for any BC year other than 1 BC, so %Ey emits 1, 0, −1, …
+    //     rather than the traditional 1, 2, 3, … counting.  This is a known
+    //     limitation shared with glibc: no real glibc locale defines a backward
+    //     era, so the path is never exercised in practice.
     static std::vector<era_entry> parse_glibc_era_entries()
     {
         std::vector<era_entry> items;
@@ -342,6 +368,11 @@ private:
                 cur_entry.to_day = buf[7];
             }
 
+            // Normalise direction to match glibc's absolute_direction (era.c ~line 98).
+            // Forward era (from <= to): marker maps directly.
+            // Backward era (from > to): marker is flipped so that the linear formula
+            //   era_year = offset + (calendar - from_year) * direction
+            // stays consistent; see OUTPUT INVARIANTS above for the full rationale.
             if (TimeioHelper::era_small_or_equal(cur_entry.from_year, cur_entry.from_month, cur_entry.from_day,
                                                 cur_entry.to_year, cur_entry.to_month, cur_entry.to_day))
             {
