@@ -1132,6 +1132,18 @@ private:
                     ctx.m_year_of_era = val;
                     ctx.m_have_year_of_era = 1;
 
+                    // Mirrors the glibc strptime_l.c validation formula:
+                    //   delta = (era_year − offset) × absolute_direction
+                    //   valid  iff  0 ≤ delta ≤ (to_year − from_year) × direction
+                    // direction here is glibc's absolute_direction (see timeio_details.h
+                    // OUTPUT INVARIANTS for how it is normalised).  For all real-world
+                    // locales every era has from < to and direction = +1, so range is
+                    // always positive and the check is straightforward.  The inclusive
+                    // upper bound (≤ vs glibc's strict <) is intentional: it retains
+                    // eras whose epoch year coincides with the last calendar year of the
+                    // era, which matters for locales where two eras share a boundary year
+                    // (e.g. Showa/Heisei 1989); the full-date check in get_era_entry()
+                    // then selects the correct one.
                     for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
                     {
                         const auto& cur_era = *it;
