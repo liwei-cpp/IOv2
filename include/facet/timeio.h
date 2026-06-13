@@ -9,6 +9,7 @@
 #include <array>
 #include <cassert>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <ctime>
 #include <iterator>
@@ -479,7 +480,7 @@ public:
         m_date_time_zone_format = p_obj->date_time_zone_format();
         m_era_date_time_zone_format = p_obj->era_date_time_zone_format();
         m_am_pm_format = p_obj->am_pm_format();
-        m_era_items = p_obj->era_items();
+        m_era_master = p_obj->era_items();
 
         for (int i = 0; i < 7; ++i)
         {
@@ -542,6 +543,9 @@ public:
         auto local_day = std::chrono::floor<std::chrono::days>(local);
 
         std::chrono::year_month_day ymd{local_day};
+        if (!ymd.ok())
+            throw stream_error("timeio put error: zoned_time date is out of range");
+
         std::chrono::weekday wd(local_day);
 
         auto time_since_midnight = local - local_day;
@@ -552,6 +556,9 @@ public:
     template <typename OutIt>
     OutIt put(OutIt out, const std::chrono::year_month_day& t, std::basic_string_view<CharT> fmt) const
     {
+        if (!t.ok())
+            throw stream_error("timeio put error: year_month_day is not a valid calendar date");
+
         std::chrono::weekday wd(t);
         return do_put(out, fmt, &t, &wd, nullptr, nullptr);
     }
@@ -559,16 +566,14 @@ public:
     template <typename OutIt, typename TDuration>
     OutIt put(OutIt out, const std::chrono::hh_mm_ss<TDuration>& t, std::basic_string_view<CharT> fmt) const
     {
-        if constexpr(std::is_same_v<TDuration, std::chrono::seconds>)
-            return do_put(out, fmt, nullptr, nullptr, &t, nullptr);
-        else
-        {
-            using namespace std::chrono;
-            TDuration total = t.to_duration();
-            auto sec = duration_cast<seconds>(total);
-            hh_mm_ss<seconds> t_sec{sec};
-            return do_put(out, fmt, nullptr, nullptr, &t_sec, nullptr);
-        }
+        using namespace std::chrono;
+
+        const seconds total = duration_cast<seconds>(t.to_duration());
+        if (total < seconds{0} || total >= hours{24})
+            throw stream_error("timeio put error: hh_mm_ss is not a valid time of day");
+
+        const hh_mm_ss<seconds> t_sec{total};
+        return do_put(out, fmt, nullptr, nullptr, &t_sec, nullptr);
     }
 
     template <typename OutIt>
@@ -643,7 +648,7 @@ private:
         {
             if (ctx.is_init == false)
             {
-                std::copy(m_era_items.begin(), m_era_items.end(), std::back_inserter(ctx.m_era_items));
+                std::copy(m_era_master.begin(), m_era_master.end(), std::back_inserter(ctx.m_era_items));
                 ctx.is_init = true;
             }
         }
@@ -758,7 +763,7 @@ private:
             case static_cast<CharT>('C'):
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                else if ((modifier == static_cast<CharT>('\0')) || (m_era_items.empty()))
+                else if ((modifier == static_cast<CharT>('\0')) || (ctx.m_era_items.empty()))
                 {
                     // 0..99 only, no sign (see the %Y parse case for why this
                     // format/parse asymmetry is intentional and standard-aligned).
@@ -1136,7 +1141,7 @@ private:
 
             case static_cast<CharT>('y'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if ((modifier == static_cast<CharT>('E')) && (!m_era_items.empty()))
+                else if ((modifier == static_cast<CharT>('E')) && (!ctx.m_era_items.empty()))
                 {
                     int val = 0;
                     rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
@@ -1204,7 +1209,7 @@ private:
                  * applies to the %G and %C parse cases.  */
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                else if ((modifier == static_cast<CharT>('E')) && (!m_era_items.empty()))
+                else if ((modifier == static_cast<CharT>('E')) && (!ctx.m_era_items.empty()))
                 {
                     if constexpr (is_stamp_input_iterator_v<TIter>)
                     {
@@ -1384,11 +1389,11 @@ private:
 
     void create_era_name_tree()
     {
-        for (size_t i = 0; i < m_era_items.size(); ++i)
+        for (size_t i = 0; i < m_era_master.size(); ++i)
         {
-            const std::basic_string<CharT>& name = m_era_items[i].name;
+            const std::basic_string<CharT>& name = m_era_master[i].name;
             m_era_tree.add(name, name);
-            m_era_formats.insert(m_era_items[i].format);
+            m_era_formats.insert(m_era_master[i].format);
         }
     }
 
@@ -1896,9 +1901,9 @@ private:
         uint8_t day   = static_cast<unsigned>(ymd.day());
 
         using namespace TimeioHelper;
-        for (size_t i = 0; i < m_era_items.size(); ++i)
+        for (size_t i = 0; i < m_era_master.size(); ++i)
         {
-            const auto& _cmp = m_era_items[i];
+            const auto& _cmp = m_era_master[i];
             if (era_small_or_equal(_cmp.from_year, _cmp.from_month, _cmp.from_day,
                                    year, month, day) &&
                 era_small_or_equal(year, month, day,
@@ -2026,7 +2031,7 @@ private:
     std::basic_string<CharT>                  m_date_time_zone_format;
     std::basic_string<CharT>                  m_era_date_time_zone_format;
     std::basic_string<CharT>                  m_am_pm_format;
-    std::vector<era_entry>                    m_era_items;
+    std::vector<era_entry>                    m_era_master;
 
     std::set<std::basic_string<CharT>>        m_era_formats;
 
