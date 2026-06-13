@@ -12,6 +12,7 @@
 #include <cwchar>
 #include <limits>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -223,18 +224,12 @@ public:
             m_abbr_month[11] = nl_langinfo(ABMON_12);
 
             {// alternative digits
-            char* ptr = nl_langinfo(ALT_DIGITS);
-                size_t i = 0;
-                for (; i < 100; ++i)
+                char* ptr = nl_langinfo(ALT_DIGITS);
+                for (size_t i = 0; i < 100; ++i)
                 {
                     if (*ptr == '\0') break;
                     m_alt_digits[i] = ptr;
                     ptr += m_alt_digits[i].size() + 1;
-                }
-                if (i != 100)
-                {
-                    for (size_t j = 0; j< i; ++j)
-                        m_alt_digits[j].clear();
                 }
             }
             // Must run with the target locale active on this thread (the
