@@ -1,7 +1,8 @@
 var classIOv2_1_1timeio =
 [
     [ "char_type", "classIOv2_1_1timeio.html#ae958d44166dec8f3447e4e91921ab679", null ],
-    [ "create_rules", "classIOv2_1_1timeio.html#ac9ef6409c541a0b2ffd8e8745e47172b", null ],
+    [ "create_rules", "classIOv2_1_1timeio.html#a7a05a37ec01b7b273fc0bb73e74fcdb8", null ],
+    [ "timeio", "classIOv2_1_1timeio.html#ac5816f17fe55a3f53bfb852867256a2e", null ],
     [ "timeio", "classIOv2_1_1timeio.html#a0e06eef584682da1387b1e85ae79dc67", null ],
     [ "abbr_day_names", "classIOv2_1_1timeio.html#afa12e2abfc08bc875cf68962616d8574", null ],
     [ "abbr_month_names", "classIOv2_1_1timeio.html#ac59952b50260b4d8346a47ec24a69472", null ],
