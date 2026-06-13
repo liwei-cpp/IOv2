@@ -2,6 +2,7 @@
 #include <common/metafunctions.h>
 #include <common/stamp_input_iterator.h>
 #include <common/streambuf_defs.h>
+#include <facet/ctype.h>
 #include <facet/timeio_details.h>
 
 #include <algorithm>
@@ -13,10 +14,12 @@
 #include <iterator>
 #include <limits>
 #include <list>
+#include <memory>
 #include <set>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace IOv2
@@ -263,7 +266,7 @@ struct date_parse_helper<CharT, true>
     int m_iso_8601_year = 0;
     int m_year_of_era = 0;
 
-    int     m_year;
+    int     m_year = 0;
     uint8_t m_month = 1;        // months since January – [​1, 12]
     uint8_t m_iso_8601_week = 0;
     uint8_t m_week_no = 0;
@@ -304,7 +307,7 @@ private:
     static int day_of_the_week(int year, int month, int mday)
     {
         /* We know that January 1st 1970 was a Thursday (= 4).  Compute the
-            difference between this data in the one on TM and so determine
+            difference between this date and the one on TM and so determine
             the weekday.  */
         month -= 1;
         int64_t corr_year = static_cast<int64_t>(year) - (month < 2);
@@ -439,13 +442,23 @@ class timeio
     using era_entry = typename ft_basic<timeio<CharT>>::era_entry;
 
 public:
-    using create_rules = facet_create_rule<timeio_conf<CharT>>;
+    using create_rules =
+        facet_create_rule<facet_create_pack<timeio_conf<CharT>, ctype<CharT>>,
+                          timeio_conf<CharT>>;
 
     using char_type = CharT;
 
+    template <shared_ptr_to<timeio_conf<CharT>> TConfPtr,
+              shared_ptr_to<ctype<CharT>> TCtypePtr>
+    timeio(TConfPtr p_obj, TCtypePtr p_ctype)
+        : timeio(p_obj)
+    {
+        if (!p_ctype) throw std::runtime_error("shared_ptr is empty");
+        m_ctype = p_ctype;
+    }
+
     template <shared_ptr_to<timeio_conf<CharT>> TConfPtr>
     timeio(TConfPtr p_obj)
-        : m_era_tree()
     {
         if (!p_obj) throw std::runtime_error("shared_ptr is empty");
         m_day = p_obj->day_names();
@@ -927,8 +940,7 @@ private:
             case static_cast<CharT>('n'):
             case static_cast<CharT>('t'):
                 if (modifier) goto bad_parse_format;
-                while ((rp != rp_end)
-                       &&((*rp == static_cast<CharT>('\n')) || (*rp == static_cast<CharT>('\t'))))
+                while ((rp != rp_end) && is_space(*rp))
                     ++rp;
                 break;
 
@@ -1343,9 +1355,31 @@ private:
             ++fmt;
         }
 
+        // A format tail consisting solely of %n / %t matches zero-or-more
+        // whitespace and is satisfied even at end of input, matching POSIX
+        // strptime and std::get_time. Skip such a tail before judging failure.
+        while (fmt != _fmt.cend())
+        {
+            auto next = fmt + 1;
+            if ((*fmt != static_cast<CharT>('%')) || (next == _fmt.cend()))
+                break;
+            if ((*next != static_cast<CharT>('n')) && (*next != static_cast<CharT>('t')))
+                break;
+            fmt += 2;
+        }
+
         if ((fmt != _fmt.cend()) && (rp == rp_end))
             succ = false;
         return rp;
+    }
+
+    bool is_space(CharT c) const
+    {
+        if (m_ctype)
+            return m_ctype->is_any(base_ft<ctype>::space, c);
+        return c == static_cast<CharT>(' ')  || c == static_cast<CharT>('\t') ||
+               c == static_cast<CharT>('\n') || c == static_cast<CharT>('\v') ||
+               c == static_cast<CharT>('\f') || c == static_cast<CharT>('\r');
     }
 
     void create_era_name_tree()
@@ -1625,7 +1659,7 @@ private:
                 {
                     auto val = hms->hours().count();
                     const auto& obj = (val > 11) ? m_pm : m_am;
-                    out = copy(obj.begin(), obj.end(), out);
+                    out = std::copy(obj.begin(), obj.end(), out);
                 }
                 break;
 
@@ -1995,7 +2029,14 @@ private:
     std::vector<era_entry>                    m_era_items;
 
     std::set<std::basic_string<CharT>>        m_era_formats;
+
+    std::shared_ptr<const ctype<CharT>>       m_ctype;
 };
+
+template<typename TConfPtr, typename TCtypePtr>
+    requires (std::is_same_v<typename TConfPtr::element_type::char_type,
+                             typename TCtypePtr::element_type::char_type>)
+timeio(TConfPtr, TCtypePtr) -> timeio<typename TConfPtr::element_type::char_type>;
 
 template<typename TConfPtr>
 timeio(TConfPtr) -> timeio<typename TConfPtr::element_type::char_type>;
