@@ -370,7 +370,7 @@ struct time_zone_parse_helper<true>
         {
             try
             {
-                return std::chrono::current_zone();
+                return std::chrono::locate_zone("UTC");
             }
             catch(...)
             {
@@ -490,6 +490,14 @@ public:
         m_era_date_time_zone_format = p_obj->era_date_time_zone_format();
         m_am_pm_format = p_obj->am_pm_format();
         m_era_master = p_obj->era_items();
+
+        // Validate the locale name tables up front, so malformed locale data
+        // fails here with one clear error instead of a cryptic prefix_tree
+        // "duplicate items" throw deep inside add(), or a silent zero-length
+        // mis-match at parse time. Day/month names must be non-empty and must
+        // not map one spelling to two different indices; AM/PM may legitimately
+        // be empty (e.g. de_DE / fr_FR / ru_RU) and is tolerated.
+        validate_locale_names();
 
         for (int i = 0; i < 7; ++i)
         {
@@ -1396,12 +1404,48 @@ private:
                c == static_cast<CharT>('\f') || c == static_cast<CharT>('\r');
     }
 
+    // Throws std::runtime_error if any of the 2*N names is empty, or if one
+    // spelling is shared by two *different* indices. full[i] == abbr[i] (same
+    // index, e.g. "May" in en_US) is allowed.
+    template <size_t N>
+    static void check_unique_nonempty(const std::array<std::basic_string<CharT>, N>& full,
+                                      const std::array<std::basic_string<CharT>, N>& abbr,
+                                      const char* what)
+    {
+        std::array<const std::basic_string<CharT>*, 2 * N> names{};
+        for (size_t i = 0; i < N; ++i)
+        {
+            if (full[i].empty() || abbr[i].empty())
+                throw std::runtime_error(std::string("timeio: empty ") + what + " name in locale data");
+            names[2 * i]     = &full[i];
+            names[2 * i + 1] = &abbr[i];
+        }
+        // names[p] belongs to index p / 2.
+        for (size_t a = 0; a < names.size(); ++a)
+            for (size_t b = a + 1; b < names.size(); ++b)
+                if ((a / 2) != (b / 2) && *names[a] == *names[b])
+                    throw std::runtime_error(std::string("timeio: duplicate ") + what + " name in locale data");
+    }
+
+    void validate_locale_names() const
+    {
+        check_unique_nonempty<7>(m_day, m_abbr_day, "day");
+        check_unique_nonempty<12>(m_month, m_abbr_month, "month");
+
+        // AM/PM is empty in locales that do not use 12-hour designators
+        // (de_DE / fr_FR / ru_RU); that is tolerated and simply leaves %p
+        // unmatched. Only a non-empty AM == PM collision is genuinely invalid.
+        if (!m_am.empty() && m_am == m_pm)
+            throw std::runtime_error("timeio: AM and PM designators are identical in locale data");
+    }
+
     void create_era_name_tree()
     {
         for (size_t i = 0; i < m_era_master.size(); ++i)
         {
             const std::basic_string<CharT>& name = m_era_master[i].name;
-            m_era_tree.add(name, name);
+            if (!name.empty())
+                m_era_tree.add(name, name);
             m_era_formats.insert(m_era_master[i].format);
         }
     }
