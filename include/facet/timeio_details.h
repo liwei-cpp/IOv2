@@ -68,7 +68,8 @@ namespace IOv2
                 {
                     std::string full_name{zone.name()};
                     std::string abbr_name = zone.get_info(std::chrono::sys_time<std::chrono::seconds>{}).abbrev;
-                    res.add(abbr_name.begin(), abbr_name.end(), "*");
+                    if (!abbr_name.empty())
+                        res.add(abbr_name.begin(), abbr_name.end(), "*");
                     if (full_name != abbr_name)
                         res.add(full_name.begin(), full_name.end(), full_name);
                 }
