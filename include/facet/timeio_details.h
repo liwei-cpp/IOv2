@@ -60,15 +60,27 @@ namespace IOv2
         {
             prefix_tree<CharT, std::string> res;
 
-            const auto& tzdb = std::chrono::get_tzdb();
-
-            for (const auto& zone : tzdb.zones)
+            try
             {
-                std::string full_name{zone.name()};
-                std::string abbr_name = zone.get_info(std::chrono::sys_time<std::chrono::seconds>{}).abbrev;
-                res.add(abbr_name.begin(), abbr_name.end(), "*");
-                if (full_name != abbr_name)
-                    res.add(full_name.begin(), full_name.end(), full_name);
+                const auto& tzdb = std::chrono::get_tzdb();
+
+                for (const auto& zone : tzdb.zones)
+                {
+                    std::string full_name{zone.name()};
+                    std::string abbr_name = zone.get_info(std::chrono::sys_time<std::chrono::seconds>{}).abbrev;
+                    res.add(abbr_name.begin(), abbr_name.end(), "*");
+                    if (full_name != abbr_name)
+                        res.add(full_name.begin(), full_name.end(), full_name);
+                }
+            }
+            catch (...)
+            {
+                // tz database unavailable or malformed at static-init time:
+                // degrade to an empty/partial tree instead of letting the
+                // exception escape this static initializer (which would call
+                // std::terminate). %Z then simply fails to match and reports a
+                // catchable stream_error at parse time, matching the defensive
+                // behaviour of time_zone_parse_helper.
             }
             return res;
         }();
