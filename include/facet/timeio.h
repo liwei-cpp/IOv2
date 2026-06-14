@@ -434,10 +434,8 @@ struct time_parse_context
 
         res.tm_isdst = -1;   // let the C library figure out DST
 
-        // https://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week#Implementation-dependent_methods
-        const int orig_y = y;
-        res.tm_wday = (d += m < 3 ? y-- : y - 2, 23 * m / 9 + d + 4 + y / 4- y / 100 + y / 400) % 7;
-        bool isLeap = (orig_y % 4 == 0 && orig_y % 100 != 0) || (orig_y % 400 == 0);
+        res.tm_wday = static_cast<int>(weekday{sys_days{ymd}}.c_encoding());
+        bool isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
 
         const int days[12] = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
         res.tm_yday = days[res.tm_mon] + res.tm_mday + (isLeap && res.tm_mon >= 2 ? 1 : 0);
@@ -1788,11 +1786,11 @@ private:
                 if (!ymd || !wd || modifier == static_cast<CharT>('E')) goto bad_format;
                 {
                     std::chrono::sys_days sd{*ymd};
-                    std::chrono::sys_days this_thursday = sd + std::chrono::days{4 - wd->iso_encoding()};
+                    std::chrono::sys_days this_thursday = sd + std::chrono::days{4 - static_cast<int>(wd->iso_encoding())};
                     auto iso_year = std::chrono::year_month_day{this_thursday}.year();
                     std::chrono::sys_days jan4{ iso_year / std::chrono::January / 4 };
                     std::chrono::weekday wd_jan4{jan4};
-                    std::chrono::sys_days first_thursday = jan4 + std::chrono::days{4 - wd_jan4.iso_encoding()};
+                    std::chrono::sys_days first_thursday = jan4 + std::chrono::days{4 - static_cast<int>(wd_jan4.iso_encoding())};
                     int week = int((this_thursday - first_thursday) / std::chrono::days{7}) + 1;
                     if (week < 1) week = 1;
                     if (week > 53) week = 53;
