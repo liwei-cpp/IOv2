@@ -422,7 +422,7 @@ struct time_parse_context
         int m = unsigned(ymd.month());
         int y = int(ymd.year());
 
-        std::tm res;
+        std::tm res{};
         res.tm_year = y - 1900;
         res.tm_mon  = m - 1;
         res.tm_mday = d;
@@ -1446,7 +1446,8 @@ private:
             const std::basic_string<CharT>& name = m_era_master[i].name;
             if (!name.empty())
                 m_era_tree.add(name, name);
-            m_era_formats.insert(m_era_master[i].format);
+            if (!m_era_master[i].format.empty())
+                m_era_formats.insert(m_era_master[i].format);
         }
     }
 
