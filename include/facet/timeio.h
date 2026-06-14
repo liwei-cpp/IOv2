@@ -1,5 +1,6 @@
 #pragma once
 #include <common/metafunctions.h>
+#include <common/prefix_tree.h>
 #include <common/stamp_input_iterator.h>
 #include <common/streambuf_defs.h>
 #include <facet/ctype.h>
@@ -367,7 +368,15 @@ struct time_zone_parse_helper<true>
         }
         catch(...)
         {
-            return std::chrono::current_zone();
+            try
+            {
+                return std::chrono::current_zone();
+            }
+            catch(...)
+            {
+                throw stream_error(
+                    "timeio parse error: no usable time zone (tz database unavailable)");
+            }
         }
     }
     std::string m_zone_name;
@@ -1855,8 +1864,7 @@ private:
                     std::chrono::local_time<std::chrono::seconds> lt{
                         std::chrono::local_days{*ymd} + hms->to_duration()
                     };
-                    auto st = tz->to_sys(lt);
-                    int val = tz->get_info(st).offset.count();
+                    int val = tz->get_info(lt).first.offset.count();
                     if (val < 0)
                     {
                         *out++ = static_cast<CharT>('-');
