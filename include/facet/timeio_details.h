@@ -1,4 +1,5 @@
 #pragma once
+#include <common/clocale_wrapper.h>
 #include <common/metafunctions.h>
 #include <common/prefix_tree.h>
 #include <cvt/cvt_facilities.h>
