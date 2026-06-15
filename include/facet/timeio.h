@@ -600,12 +600,17 @@ public:
         // truncate out-of-range values (short / unsigned char) and would silently
         // wrap, so range-check the integers first, then reject field combinations
         // that are individually in range but not a real calendar date (e.g. Feb 30).
+        // tm_sec is intentionally limited to [0,59], NOT C's [0,60]: this facet
+        // routes time-of-day through std::chrono::hh_mm_ss<seconds>, which cannot
+        // represent a leap second (23:59:60 would normalise to 24:00:00 and be
+        // mis-formatted), so a leap-second tm is rejected up front here rather
+        // than silently corrupted on output.
         const int y = t.tm_year + 1900;
         if (t.tm_mon  < 0 || t.tm_mon  > 11 ||
             t.tm_mday < 1 || t.tm_mday > 31 ||
             t.tm_hour < 0 || t.tm_hour > 23 ||
             t.tm_min  < 0 || t.tm_min  > 59 ||
-            t.tm_sec  < 0 || t.tm_sec  > 60 ||
+            t.tm_sec  < 0 || t.tm_sec  > 59 ||
             y < static_cast<int>(year::min()) || y > static_cast<int>(year::max()))
             throw stream_error("timeio put error: std::tm field out of range");
 
@@ -654,6 +659,27 @@ public:
     }
 
 private:
+    // RECURSION / TRUSTED-LOCALE ASSUMPTION (applies to do_get and do_put):
+    //   Several compound specifiers expand a locale-provided format string and
+    //   re-enter this function recursively:
+    //     %c -> m_[era_]date_time[_zone]_format   %x -> m_[era_]date_format
+    //     %X -> m_[era_]time[_zone]_format        %r -> m_am_pm_format
+    //     %EY -> era->format (via m_era_formats)
+    //   Those strings come verbatim from the locale database (nl_langinfo / the
+    //   glibc era table) and are TRUSTED to be non self-referential: e.g.
+    //   D_T_FMT must not itself contain %c, an era format must not contain %EY,
+    //   and so on. No real locale violates this.
+    //
+    //   There is deliberately NO recursion-depth guard. The recursion is bounded
+    //   ONLY by that trust, NOT by the input: on these specifiers the recursive
+    //   call is made with the *same* rp (no input is consumed between dispatch
+    //   and recursion), so the `rp != rp_end` loop guard does not terminate a
+    //   self-referential format -- any non-empty input would recurse until the
+    //   stack overflows. A hand-crafted/corrupted locale is therefore the only
+    //   way to trigger unbounded recursion, and it is consciously left to the
+    //   same trust boundary as the rest of the locale data (see
+    //   timeio_details.h parse_glibc_era_entries INPUT CONTRACT). Hardening it
+    //   would require threading a depth budget through every recursive call site.
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
         requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
     TIter do_get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
@@ -1458,6 +1484,11 @@ private:
         }
     }
 
+    // The compound specifiers %c / %x / %X / %r / %EY recurse into a
+    // locale-provided format string here, just as in do_get. The same
+    // trusted-locale, no-depth-guard assumption applies: a self-referential
+    // locale format string (e.g. D_T_FMT == "%c") would recurse without bound.
+    // See the RECURSION / TRUSTED-LOCALE ASSUMPTION note above do_get.
     template <typename OutIt>
     OutIt do_put(OutIt out, std::basic_string_view<CharT> format,
                  const std::chrono::year_month_day* ymd,
