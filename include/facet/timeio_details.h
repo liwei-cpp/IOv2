@@ -4,7 +4,6 @@
 #include <common/prefix_tree.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/facet_common.h>
-#include <facet/facet_helper.h>
 
 #include <array>
 #include <chrono>
