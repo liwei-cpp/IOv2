@@ -59,10 +59,18 @@ struct date_parse_helper<CharT, true>
             return year_month_day{sd};
         }
 
-        if (m_have_iso_8601_year && m_have_iso_8601_week && m_have_wday)
+        // ISO-8601 week date. Prefer the ISO year (%G); if it is absent but a
+        // Gregorian year (%Y) was supplied alongside %V and a weekday, fall back
+        // to that year instead of dropping the week number -- otherwise the
+        // deduction path below would silently default %V to week 1. The two
+        // fully-specified branches above (year+mon+mday, year+yday) already
+        // returned, so reaching here means the date is not pinned down by an
+        // explicit month/day or day-of-year.
+        if (m_have_iso_8601_week && m_have_wday && (m_have_iso_8601_year || m_have_year))
         {
+            int iso_year = m_have_iso_8601_year ? m_iso_8601_year : m_year;
             int iso_wd = (m_wday == 0 ? 7 : m_wday);
-            year_month_day jan4 = year{m_iso_8601_year}/January/4;
+            year_month_day jan4 = year{iso_year}/January/4;
             weekday wd_jan4{sys_days{jan4}};
             sys_days week1_monday = sys_days{jan4} - (wd_jan4 - Monday);
             sys_days final = week1_monday + days{7 * (m_iso_8601_week - 1)} + days{iso_wd - 1};
@@ -566,8 +574,8 @@ public:
 
         std::chrono::weekday wd(local_day);
 
-        auto time_since_midnight = local - local_day;
-        std::chrono::hh_mm_ss time_of_day{time_since_midnight};
+        auto time_since_midnight = std::chrono::duration_cast<std::chrono::seconds>(local - local_day);
+        std::chrono::hh_mm_ss<std::chrono::seconds> time_of_day{time_since_midnight};
         return do_put(out, fmt, &ymd, &wd, &time_of_day, t.get_time_zone());
     }
 
@@ -1348,7 +1356,8 @@ private:
                         /* Only two or four digits recognized.  */
                         succ = false; return rp;
                     }
-                    else if (val % 100 >= 60)
+
+                    if (val / 100 >= 24 || val % 100 >= 60)
                     {
                         succ = false; return rp;
                     }
@@ -1667,7 +1676,7 @@ private:
                 if (!ymd || !wd || modifier) goto bad_format;
                 {
                     std::chrono::sys_days sd{*ymd};
-                    std::chrono::sys_days thursday = sd + std::chrono::days{4 - wd->iso_encoding()};
+                    std::chrono::sys_days thursday = sd + std::chrono::days{4 - static_cast<int>(wd->iso_encoding())};
                     std::chrono::year_month_day thursday_ymd{thursday};
                     int val = int(thursday_ymd.year());
                     if (format_char == static_cast<CharT>('G'))
