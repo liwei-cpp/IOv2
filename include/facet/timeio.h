@@ -1,9 +1,11 @@
 #pragma once
+#include <common/defs.h>
 #include <common/metafunctions.h>
 #include <common/prefix_tree.h>
 #include <common/stamp_input_iterator.h>
 #include <common/streambuf_defs.h>
 #include <facet/ctype.h>
+#include <facet/facet_common.h>
 #include <facet/timeio_details.h>
 
 #include <algorithm>
@@ -331,10 +333,11 @@ struct time_parse_helper<true>
     explicit operator std::chrono::hh_mm_ss<std::chrono::seconds>() const
     {
         uint8_t hour_in_24 = m_hour;
+        // When %I sets m_have_I, m_hour was stored as (mem % 12), so 12 AM is
+        // already normalised to 0 at parse time and m_hour is always in [0,11]
+        // here; only the PM (+12) adjustment remains.
         if (m_have_I && m_is_pm && hour_in_24 < 12)
             hour_in_24 += 12;
-        else if (m_have_I && !m_is_pm && hour_in_24 == 12)
-            hour_in_24 = 0;
 
         std::chrono::seconds time_sec =
             std::chrono::hours{hour_in_24} +
