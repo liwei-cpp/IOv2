@@ -238,6 +238,16 @@ public:
             m_abbr_month[11] = nl_langinfo(ABMON_12);
 
             {// alternative digits
+                // TRUSTED-LOCALE BOUNDARY (same assumption as
+                // parse_glibc_era_entries below): ALT_DIGITS is trusted to be a
+                // sequence of at most 100 consecutive, NUL-terminated narrow
+                // strings, the last followed by a final empty string. The walk
+                // below advances a raw pointer by each string's length and is
+                // UNCHECKED, so malformed or unterminated locale data could read
+                // out of bounds. It is bounded in practice only by the empty-string
+                // sentinel and the 100-entry cap. System locale data is treated as
+                // trusted, so no defensive validation is performed; if ALT_DIGITS
+                // could ever come from an untrusted source, harden this here.
                 char* ptr = nl_langinfo(ALT_DIGITS);
                 for (size_t i = 0; i < 100; ++i)
                 {
