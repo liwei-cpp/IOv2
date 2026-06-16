@@ -272,38 +272,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<b>初始值:</b><div class="fragment"><div class="line">=</div>
-<div class="line">        []()</div>
-<div class="line">        {</div>
-<div class="line">            prefix_tree&lt;CharT, std::string&gt; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
-<div class="line"> </div>
-<div class="line">            <span class="keywordflow">try</span></div>
-<div class="line">            {</div>
-<div class="line">                <span class="keyword">const</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">tzdb</a> = std::chrono::get_tzdb();</div>
-<div class="line"> </div>
-<div class="line">                <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">zone</a> : <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">tzdb</a>.<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">zones</a>)</div>
-<div class="line">                {</div>
-<div class="line">                    std::string <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">full_name</a>{<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">zone</a>.name()};</div>
-<div class="line">                    std::string <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">abbr_name</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">zone</a>.get_info(std::chrono::sys_time&lt;std::chrono::seconds&gt;{}).<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">abbrev</a>;</div>
-<div class="line">                    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">abbr_name</a>.empty())</div>
-<div class="line">                        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.add(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">abbr_name</a>.begin(), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">abbr_name</a>.end(), <span class="stringliteral">&quot;*&quot;</span>);</div>
-<div class="line">                    <span class="keywordflow">if</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">full_name</a> != <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">abbr_name</a>)</div>
-<div class="line">                        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>.add(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">full_name</a>.begin(), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">full_name</a>.end(), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">full_name</a>);</div>
-<div class="line">                }</div>
-<div class="line">            }</div>
-<div class="line">            <span class="keywordflow">catch</span> (...)</div>
-<div class="line">            {</div>
-<div class="line">                </div>
-<div class="line">                </div>
-<div class="line">                </div>
-<div class="line">                </div>
-<div class="line">                </div>
-<div class="line">                </div>
-<div class="line">            }</div>
-<div class="line">            <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">res</a>;</div>
-<div class="line">        }()</div>
-<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
-</div><!-- fragment -->
+
 </div>
 </div>
 <hr/>该类的文档由以下文件生成:<ul>

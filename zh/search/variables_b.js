@@ -31,7 +31,7 @@ var searchData=
   ['m_5fiso_5f8601_5fweek_28',['m_iso_8601_week',['../structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#af4083fe4b49c187f9261e84ee446ec77',1,'IOv2::date_parse_helper&lt; CharT, true &gt;']]],
   ['m_5fiso_5f8601_5fyear_29',['m_iso_8601_year',['../structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a2232426474a1b4ca846f49e34b9b13b3',1,'IOv2::date_parse_helper&lt; CharT, true &gt;']]],
   ['m_5fkernel_30',['m_kernel',['../classIOv2_1_1abs__cvt.html#a0f147d99496b320e786fad891a9f68bf',1,'IOv2::abs_cvt']]],
-  ['m_5flocale_31',['m_locale',['../classIOv2_1_1stdin__api.html#abbfb08443f771b2271b022680c88a5ff',1,'IOv2::stdin_api::m_locale'],['../classIOv2_1_1stdout__api.html#a5d6616e04e0088dfd33ade9089a41c30',1,'IOv2::stdout_api::m_locale']]],
+  ['m_5flocale_31',['m_locale',['../classIOv2_1_1stdout__api.html#a5d6616e04e0088dfd33ade9089a41c30',1,'IOv2::stdout_api::m_locale'],['../classIOv2_1_1stdin__api.html#abbfb08443f771b2271b022680c88a5ff',1,'IOv2::stdin_api::m_locale']]],
   ['m_5fmask_32',['m_mask',['../structIOv2_1_1__Resetiosflags.html#adb63d6bb351d03634efa333b54df3b7e',1,'IOv2::_Resetiosflags::m_mask'],['../structIOv2_1_1__Setiosflags.html#a07ffcadd94aea82eda517bd8fda3d62b',1,'IOv2::_Setiosflags::m_mask']]],
   ['m_5fmday_33',['m_mday',['../structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a116887d98f153258c1473895ec698ea0',1,'IOv2::date_parse_helper&lt; CharT, true &gt;']]],
   ['m_5fminute_34',['m_minute',['../structIOv2_1_1time__parse__helper_3_01true_01_4.html#a527bfc039551f17a819b4b0fbf7248e6',1,'IOv2::time_parse_helper&lt; true &gt;']]],
@@ -41,7 +41,7 @@ var searchData=
   ['m_5fprecision_38',['m_precision',['../classIOv2_1_1ios__base.html#a8b4370e398a4a4473fc6535a2b9e7af3',1,'IOv2::ios_base']]],
   ['m_5fpwords_39',['m_pwords',['../classIOv2_1_1ios__base.html#a699d0fd9502ae5772970e7f6b4803c97',1,'IOv2::ios_base']]],
   ['m_5fsecond_40',['m_second',['../structIOv2_1_1time__parse__helper_3_01true_01_4.html#a68d9bd417323423813b9cc821b780d17',1,'IOv2::time_parse_helper&lt; true &gt;']]],
-  ['m_5fstreambuf_41',['m_streambuf',['../classIOv2_1_1stdin__api.html#a0be7f010cd970e29345819241016c541',1,'IOv2::stdin_api::m_streambuf'],['../classIOv2_1_1stdout__api.html#af45b2fdaab8d24938e52df2afccd6fcf',1,'IOv2::stdout_api::m_streambuf']]],
+  ['m_5fstreambuf_41',['m_streambuf',['../classIOv2_1_1stdout__api.html#af45b2fdaab8d24938e52df2afccd6fcf',1,'IOv2::stdout_api::m_streambuf'],['../classIOv2_1_1stdin__api.html#a0be7f010cd970e29345819241016c541',1,'IOv2::stdin_api::m_streambuf']]],
   ['m_5fsync_5fflush_42',['m_sync_flush',['../structIOv2_1_1Comp_1_1zlib__sync__flush.html#ac5f2799bc33722283e93c18a7954419d',1,'IOv2::Comp::zlib_sync_flush']]],
   ['m_5fsync_5fwith_5fstdio_43',['m_sync_with_stdio',['../classIOv2_1_1stdin__api.html#a95eeba186ce964df753681f61ead7b18',1,'IOv2::stdin_api::m_sync_with_stdio'],['../classIOv2_1_1stdout__api.html#aec9bd7e690fc381c421278101091ca9c',1,'IOv2::stdout_api::m_sync_with_stdio']]],
   ['m_5ftie_5fstream_44',['m_tie_stream',['../classIOv2_1_1stdin__api.html#ab8a4648346386c52aadc265c5be659a6',1,'IOv2::stdin_api::m_tie_stream'],['../classIOv2_1_1stdout__api.html#a1461fc2beae905ba4af825832cd5f633',1,'IOv2::stdout_api::m_tie_stream']]],
@@ -53,5 +53,6 @@ var searchData=
   ['m_5fyday_50',['m_yday',['../structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#aaf43c98859a231f742287f114f6a300b',1,'IOv2::date_parse_helper&lt; CharT, true &gt;']]],
   ['m_5fyear_51',['m_year',['../structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a9ec804585621edf52b2dd4fe6845ced2',1,'IOv2::date_parse_helper&lt; CharT, true &gt;']]],
   ['m_5fyear_5fof_5fera_52',['m_year_of_era',['../structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a8b80ecbd30b41e850b3967b100b9c535',1,'IOv2::date_parse_helper&lt; CharT, true &gt;']]],
-  ['m_5fzone_5fname_53',['m_zone_name',['../structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#a0df236e001ebe4d79e74c0ff219518ea',1,'IOv2::time_zone_parse_helper&lt; true &gt;']]]
+  ['m_5fzone_5fabbrev_53',['m_zone_abbrev',['../structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#ac7852d2c773aa61d88feb615d160948e',1,'IOv2::time_zone_parse_helper&lt; true &gt;']]],
+  ['m_5fzone_5fname_54',['m_zone_name',['../structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#a0df236e001ebe4d79e74c0ff219518ea',1,'IOv2::time_zone_parse_helper&lt; true &gt;']]]
 ];
