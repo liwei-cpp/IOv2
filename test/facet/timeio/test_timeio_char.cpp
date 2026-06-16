@@ -2738,7 +2738,7 @@ void test_timeio_char_get_1()
     CheckGet(obj, "Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
     VERIFY(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
     CheckGet(obj, "America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, "%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);
@@ -3013,7 +3013,7 @@ void test_timeio_char_get_2()
     CheckGet(obj, "Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
     VERIFY(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
     CheckGet(obj, "America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, "%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);
@@ -3303,7 +3303,7 @@ void test_timeio_char_get_3()
     CheckGet(obj, "Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
     VERIFY(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
     CheckGet(obj, "America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, "%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);
@@ -5649,7 +5649,7 @@ void test_timeio_char_get_16()
     FOri("Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
     VERIFY(FOri("America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(FOri("PST", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    { auto r = FOri("PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
     FOri("America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     FOri("%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     FOri("Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);

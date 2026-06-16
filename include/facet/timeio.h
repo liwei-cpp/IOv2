@@ -50,6 +50,14 @@ struct date_parse_helper<CharT, true>
 
     explicit operator std::chrono::year_month_day() const
     {
+        auto ymd = compute_ymd();
+        if (!ymd.ok())
+            throw stream_error("timeio get error: year_month_day is not a valid calendar date");
+        return ymd;
+    }
+
+    std::chrono::year_month_day compute_ymd() const
+    {
         using namespace std::chrono;
         if (m_have_year && m_have_mon && m_have_mday)
             return year_month_day{ year{m_year}, month{static_cast<uint8_t>(m_month)}, day{m_mday} };
@@ -279,12 +287,12 @@ struct date_parse_helper<CharT, true>
     int m_year_of_era = 0;
 
     int     m_year = 0;
-    uint8_t m_month = 1;        // months since January – [​1, 12]
+    uint8_t m_month = 1;        // months since January – [1, 12]
     uint8_t m_iso_8601_week = 0;
     uint8_t m_week_no = 0;
-    uint8_t m_mday = 1;         // day of the month – [​1​, 31]
-    uint8_t m_wday = 0;         // days since Sunday – [​0​, 6]
-    unsigned short m_yday = 0;  // days since January 1 – [​0​, 365]
+    uint8_t m_mday = 1;         // day of the month – [1, 31]
+    uint8_t m_wday = 0;         // days since Sunday – [0, 6]
+    unsigned short m_yday = 0;  // days since January 1 – [0, 365]
 
     bool is_init : 1 = false;
     bool m_have_century : 1 = false;
@@ -355,9 +363,9 @@ struct time_parse_helper<true>
         return std::chrono::hh_mm_ss{time_sec};
     }
 
-    uint8_t m_hour = 0;         // hours since midnight – [​0​, 23]
-    uint8_t m_minute = 0;       // minutes after the hour – [​0​, 59]
-    uint8_t m_second = 0;       // seconds after the minute – [​0​, 59]
+    uint8_t m_hour = 0;         // hours since midnight – [0, 23]
+    uint8_t m_minute = 0;       // minutes after the hour – [0, 59]
+    uint8_t m_second = 0;       // seconds after the minute – [0, 59]
     bool m_have_I : 1 = false;
     bool m_is_pm : 1 = false;
 };
@@ -373,24 +381,23 @@ struct time_zone_parse_helper<true>
     bool operator==(const time_zone_parse_helper&) const = default;  // for test
     explicit operator const std::chrono::time_zone*() const
     {
-        try
+        if (!m_zone_name.empty())
         {
-            return std::chrono::locate_zone(m_zone_name);
+            try { return std::chrono::locate_zone(m_zone_name); }
+            catch (...) {}
         }
-        catch(...)
+        if (!m_zone_abbrev.empty())
+            throw stream_error(
+                "timeio get error: timezone abbreviation '" + m_zone_abbrev + "' is ambiguous");
+        try { return std::chrono::locate_zone("UTC"); }
+        catch (...)
         {
-            try
-            {
-                return std::chrono::locate_zone("UTC");
-            }
-            catch(...)
-            {
-                throw stream_error(
-                    "timeio parse error: no usable time zone (tz database unavailable)");
-            }
+            throw stream_error(
+                "timeio parse error: no usable time zone (tz database unavailable)");
         }
     }
     std::string m_zone_name;
+    std::string m_zone_abbrev;
 };
 
 template <typename CharT, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
@@ -848,12 +855,29 @@ private:
                 break;
 
             case static_cast<CharT>('d'):
+                if constexpr (!HaveDate) goto bad_parse_format;
+                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
+                else
+                {
+                    int mem = -1;
+                    if (modifier == static_cast<CharT>('O'))
+                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 31, 2, succ);
+                    else
+                        rp = extract_num(rp, rp_end, mem, 1, 31, 2, succ);
+                    if (!succ) return rp;
+                    ctx.m_mday = mem;
+                    ctx.m_have_mday = true;
+                }
+                break;
+
             case static_cast<CharT>('e'):
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
                     int mem = -1;
+                    if (rp != rp_end && *rp == static_cast<CharT>(' '))
+                        ++rp;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 31, 2, succ);
                     else
@@ -1053,6 +1077,8 @@ private:
                 else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    // Upper bound is 59, not C's 60: leap seconds are not supported
+                    // (hh_mm_ss cannot represent them); see put() for rationale.
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 59, 2, succ);
@@ -1367,7 +1393,6 @@ private:
             case static_cast<CharT>('Z'):
                 if constexpr (!HaveTimeZone) goto bad_parse_format;
                 else if (modifier) goto bad_parse_format;
-                /* Read timezone but perform no conversion.  */
                 else
                 {
                     typename decltype(ft_basic<timeio<CharT>>::s_timezone_tree)::match_out_type zone_res;
@@ -1377,8 +1402,10 @@ private:
                         succ = false;
                         return rp;
                     }
-                    else if ((*zone_res)[0] != (CharT)'*')
+                    else if ((*zone_res)[0] != '*')
                         ctx.m_zone_name = *zone_res;
+                    else
+                        ctx.m_zone_abbrev = zone_res->substr(1);
                 }
                 break;
 
