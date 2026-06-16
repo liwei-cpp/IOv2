@@ -12,6 +12,7 @@
 #include <cstring>
 #include <cwchar>
 #include <limits>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -63,12 +64,35 @@ namespace IOv2
             {
                 const auto& tzdb = std::chrono::get_tzdb();
 
+                // Collect all abbreviations (deduplicated across zones).
+                std::set<std::string> abbrevs;
+                for (const auto& zone : tzdb.zones)
+                {
+                    std::string abbr = zone.get_info(std::chrono::sys_time<std::chrono::seconds>{}).abbrev;
+                    if (!abbr.empty())
+                        abbrevs.insert(std::move(abbr));
+                }
+
+                // Resolve each abbreviation: if locate_zone succeeds (e.g. "EST"
+                // is an IANA link), store the canonical name; otherwise mark "*".
+                for (const auto& abbr : abbrevs)
+                {
+                    try
+                    {
+                        std::string canonical{std::chrono::locate_zone(abbr)->name()};
+                        res.add(abbr.begin(), abbr.end(), canonical);
+                    }
+                    catch (...)
+                    {
+                        res.add(abbr.begin(), abbr.end(), "*" + abbr);
+                    }
+                }
+
+                // Add full zone names that differ from their own abbreviation.
                 for (const auto& zone : tzdb.zones)
                 {
                     std::string full_name{zone.name()};
                     std::string abbr_name = zone.get_info(std::chrono::sys_time<std::chrono::seconds>{}).abbrev;
-                    if (!abbr_name.empty())
-                        res.add(abbr_name.begin(), abbr_name.end(), "*");
                     if (full_name != abbr_name)
                         res.add(full_name.begin(), full_name.end(), full_name);
                 }
