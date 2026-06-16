@@ -1946,7 +1946,7 @@ private:
                             int64_t v = static_cast<int64_t>(era->offset)
                                 + (static_cast<int64_t>(static_cast<int>(ymd->year())) - era->from_year) * era->direction;
                             int iv = static_cast<int>(std::clamp<int64_t>(v,
-                                std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
+                                -static_cast<int64_t>(std::numeric_limits<int>::max()), std::numeric_limits<int>::max()));
                             if (iv < 0) { *out++ = static_cast<CharT>('-'); iv = -iv; }
                             out = put_dec<0>(out, iv);
                         }
