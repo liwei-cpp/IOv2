@@ -717,6 +717,13 @@ private:
         {
             if (*fmt != static_cast<CharT>('%'))
             {
+                if (is_space(*fmt))
+                {
+                    ++fmt;
+                    while (rp != rp_end && is_space(*rp))
+                        ++rp;
+                    continue;
+                }
                 if (*fmt != *rp)
                 {
                     succ = false;
@@ -1440,11 +1447,13 @@ private:
             ++fmt;
         }
 
-        // A format tail consisting solely of %n / %t matches zero-or-more
-        // whitespace and is satisfied even at end of input, matching POSIX
-        // strptime and std::get_time. Skip such a tail before judging failure.
+        // A format tail consisting solely of whitespace / %n / %t matches
+        // zero-or-more whitespace and is satisfied even at end of input,
+        // matching POSIX strptime and std::get_time. Skip such a tail before
+        // judging failure.
         while (fmt != _fmt.cend())
         {
+            if (is_space(*fmt)) { ++fmt; continue; }
             auto next = fmt + 1;
             if ((*fmt != static_cast<CharT>('%')) || (next == _fmt.cend()))
                 break;
@@ -1936,8 +1945,10 @@ private:
                         {
                             int64_t v = static_cast<int64_t>(era->offset)
                                 + (static_cast<int64_t>(static_cast<int>(ymd->year())) - era->from_year) * era->direction;
-                            out = put_dec<0>(out, static_cast<int>(std::clamp<int64_t>(v,
-                                std::numeric_limits<int>::min(), std::numeric_limits<int>::max())));
+                            int iv = static_cast<int>(std::clamp<int64_t>(v,
+                                -static_cast<int64_t>(std::numeric_limits<int>::max()), std::numeric_limits<int>::max()));
+                            if (iv < 0) { *out++ = static_cast<CharT>('-'); iv = -iv; }
+                            out = put_dec<0>(out, iv);
                         }
                         else
                             out = put_dec<2>(out, val);

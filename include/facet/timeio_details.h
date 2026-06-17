@@ -270,14 +270,17 @@ public:
                 // UNCHECKED, so malformed or unterminated locale data could read
                 // out of bounds. It is bounded in practice only by the empty-string
                 // sentinel and the 100-entry cap. System locale data is treated as
-                // trusted, so no defensive validation is performed; if ALT_DIGITS
-                // could ever come from an untrusted source, harden this here.
-                char* ptr = nl_langinfo(ALT_DIGITS);
-                for (size_t i = 0; i < 100; ++i)
+                // trusted; if ALT_DIGITS could ever come from an untrusted source,
+                // harden this here. nl_langinfo() is POSIX-guaranteed non-null, but
+                // the null guard below protects against non-conforming platforms.
+                if (char* ptr = nl_langinfo(ALT_DIGITS); ptr)
                 {
-                    if (*ptr == '\0') break;
-                    m_alt_digits[i] = ptr;
-                    ptr += m_alt_digits[i].size() + 1;
+                    for (size_t i = 0; i < 100; ++i)
+                    {
+                        if (*ptr == '\0') break;
+                        m_alt_digits[i] = ptr;
+                        ptr += m_alt_digits[i].size() + 1;
+                    }
                 }
             }
             // Must run with the target locale active on this thread (the
