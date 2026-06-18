@@ -90,7 +90,7 @@ struct date_parse_helper<CharT, true>
         if (!m_have_year)
         {
             if (m_have_century && m_have_year_in_century)
-                deduced_year = deduced_year % 100 + m_century * 100;
+                deduced_year = deduced_year % 100 + m_century * 100; // NOLINT(bugprone-branch-clone)
             else if ((m_have_year_of_era) && (!m_era_items.empty()))
             {
                 using namespace TimeioHelper;
@@ -384,7 +384,7 @@ struct time_zone_parse_helper<true>
         if (!m_zone_name.empty())
         {
             try { return std::chrono::locate_zone(m_zone_name); }
-            catch (...) {}
+            catch (...) {} // NOLINT(bugprone-empty-catch)
         }
         if (!m_zone_abbrev.empty())
             throw stream_error(
@@ -436,8 +436,8 @@ struct time_parse_context
         auto ymd = static_cast<year_month_day>(*this);
         auto hms = static_cast<std::chrono::hh_mm_ss<std::chrono::seconds>>(*this);
 
-        int d = unsigned(ymd.day());
-        int m = unsigned(ymd.month());
+        int d = static_cast<int>(static_cast<unsigned>(ymd.day()));
+        int m = static_cast<int>(static_cast<unsigned>(ymd.month()));
         int y = int(ymd.year());
 
         std::tm res{};
@@ -551,7 +551,7 @@ public:
     const std::basic_string<CharT>& am_pm_format() const noexcept { return m_am_pm_format; }
 
     template <typename OutIt, typename TVal>
-    OutIt put(OutIt out, const TVal& t, char format, char modifier = 0) const
+    OutIt put(OutIt out, const TVal& t, char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
         CharT fmt[4]; fmt[0] = static_cast<CharT>('%');
         if (modifier)
@@ -646,7 +646,7 @@ public:
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
         requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
     TIter get(TIter beg, TSent end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
-              char format, char modifier = 0) const
+              char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
         CharT fmt[4]; fmt[0] = static_cast<CharT>('%');
         if (modifier)
@@ -765,9 +765,9 @@ private:
             case static_cast<CharT>('a'):
             case static_cast<CharT>('A'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     typename decltype(m_day_tree)::match_out_type tmp;
                     rp = m_day_tree.max_match(rp, rp_end, tmp);
                     if (tmp)
@@ -787,9 +787,9 @@ private:
             case static_cast<CharT>('B'):
             case static_cast<CharT>('h'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     typename decltype(m_month_tree)::match_out_type tmp;
                     rp = m_month_tree.max_match(rp, rp_end, tmp);
                     if (tmp && (*tmp >= 0) && (*tmp < 12))
@@ -807,65 +807,71 @@ private:
 
             case static_cast<CharT>('c'):
                 if constexpr (!HaveDate || !HaveTime) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                if constexpr (HaveTimeZone)
-                {
-                    if (modifier == static_cast<CharT>('E'))
-                        rp = do_get(rp, rp_end, ctx, succ, m_era_date_time_zone_format);
-                    else
-                        rp = do_get(rp, rp_end, ctx, succ, m_date_time_zone_format);
-                    if (!succ) return rp;
-                }
                 else
                 {
-                    if (modifier == static_cast<CharT>('E'))
-                        rp = do_get(rp, rp_end, ctx, succ, m_era_date_time_format);
+                    if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
+                    if constexpr (HaveTimeZone)
+                    {
+                        if (modifier == static_cast<CharT>('E'))
+                            rp = do_get(rp, rp_end, ctx, succ, m_era_date_time_zone_format);
+                        else
+                            rp = do_get(rp, rp_end, ctx, succ, m_date_time_zone_format);
+                        if (!succ) return rp;
+                    }
                     else
-                        rp = do_get(rp, rp_end, ctx, succ, m_date_time_format);
-                    if (!succ) return rp;
+                    {
+                        if (modifier == static_cast<CharT>('E'))
+                            rp = do_get(rp, rp_end, ctx, succ, m_era_date_time_format);
+                        else
+                            rp = do_get(rp, rp_end, ctx, succ, m_date_time_format);
+                        if (!succ) return rp;
+                    }
                 }
                 break;
 
             case static_cast<CharT>('C'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                else if ((modifier == static_cast<CharT>('\0')) || (ctx.m_era_items.empty()))
-                {
-                    // 0..99 only, no sign (see the %Y parse case for why this
-                    // format/parse asymmetry is intentional and standard-aligned).
-                    int mem = 0;
-                    rp = extract_num(rp, rp_end, mem, 0, 99, 2, succ);
-                    if (!succ) return rp;
-                    ctx.m_century = mem;
-                    ctx.m_have_century = true;
-                }
                 else
                 {
-                    typename decltype(m_era_tree)::match_out_type tmp;
-                    rp = m_era_tree.max_match(rp, rp_end, tmp);
-                    if (!tmp)
-                        ctx.m_era_items.clear();
+                    if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
+                    if ((modifier == static_cast<CharT>('\0')) || (ctx.m_era_items.empty()))
+                    {
+                        // 0..99 only, no sign (see the %Y parse case for why this
+                        // format/parse asymmetry is intentional and standard-aligned).
+                        int mem = 0;
+                        rp = extract_num(rp, rp_end, mem, 0, 99, 2, succ);
+                        if (!succ) return rp;
+                        ctx.m_century = mem;
+                        ctx.m_have_century = true;
+                    }
                     else
                     {
-                        for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
+                        typename decltype(m_era_tree)::match_out_type tmp;
+                        rp = m_era_tree.max_match(rp, rp_end, tmp);
+                        if (!tmp)
+                            ctx.m_era_items.clear();
+                        else
                         {
-                            if (it->name == *tmp) ++it;
-                            else it = ctx.m_era_items.erase(it);
+                            for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
+                            {
+                                if (it->name == *tmp) ++it;
+                                else it = ctx.m_era_items.erase(it);
+                            }
                         }
-                    }
-                    if (ctx.m_era_items.empty())
-                    {
-                        succ = false;
-                        return rp;
+                        if (ctx.m_era_items.empty())
+                        {
+                            succ = false;
+                            return rp;
+                        }
                     }
                 }
                 break;
 
             case static_cast<CharT>('d'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 31, 2, succ);
@@ -879,9 +885,9 @@ private:
 
             case static_cast<CharT>('e'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (rp != rp_end && *rp == static_cast<CharT>(' '))
                         ++rp;
@@ -897,8 +903,9 @@ private:
 
             case static_cast<CharT>('D'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
-                else {
+                else
+                {
+                    if (modifier) goto bad_parse_format;
                     CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
                                       static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
                                       static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
@@ -909,9 +916,9 @@ private:
 
             case static_cast<CharT>('F'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
                                       static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
                                       static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
@@ -922,9 +929,9 @@ private:
 
             case static_cast<CharT>('g'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     int val = 0;
                     rp = extract_num(rp, rp_end, val, 0, 99, 2, succ);
                     if (!succ) return rp;
@@ -934,9 +941,9 @@ private:
                 break;
             case static_cast<CharT>('G'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     // 0..9999 only, no sign (see the %Y parse case for why this
                     // format/parse asymmetry is intentional and standard-aligned).
                     int val = 0;
@@ -949,9 +956,9 @@ private:
 
             case static_cast<CharT>('H'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 23, 2, succ);
@@ -965,9 +972,9 @@ private:
 
             case static_cast<CharT>('I'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 12, 2, succ);
@@ -982,9 +989,9 @@ private:
             case static_cast<CharT>('j'):
                 /* Match day number of year.  */
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     int mem = 0;
                     rp = extract_num(rp, rp_end, mem, 1, 366, 3, succ);
                     if (!succ) return rp;
@@ -996,9 +1003,9 @@ private:
             case static_cast<CharT>('m'):
                 /* Match number of month.  */
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 12, 2, succ);
@@ -1012,9 +1019,9 @@ private:
             case static_cast<CharT>('M'):
                 /* Match minute.  */
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 59, 2, succ);
@@ -1034,9 +1041,9 @@ private:
 
             case static_cast<CharT>('p'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     typename decltype(m_am_pm_tree)::match_out_type tmp;
                     rp = m_am_pm_tree.max_match(rp, rp_end, tmp);
                     if (tmp)
@@ -1059,9 +1066,9 @@ private:
 
             case static_cast<CharT>('r'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     rp = do_get(rp, rp_end, ctx, succ, m_am_pm_format);
                     if (!succ) return rp;
                 }
@@ -1069,9 +1076,9 @@ private:
 
             case static_cast<CharT>('R'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
                                       static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
                     rp = do_get(rp, rp_end, ctx, succ, subfmt);
@@ -1081,9 +1088,9 @@ private:
 
             case static_cast<CharT>('S'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     // Upper bound is 59, not C's 60: leap seconds are not supported
                     // (hh_mm_ss cannot represent them); see put() for rationale.
                     int mem = -1;
@@ -1098,9 +1105,9 @@ private:
 
             case static_cast<CharT>('T'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
                                       static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
                                       static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
@@ -1111,9 +1118,9 @@ private:
 
             case static_cast<CharT>('u'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 7, 1, succ);
@@ -1127,9 +1134,9 @@ private:
 
             case static_cast<CharT>('U'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 53, 2, succ);
@@ -1144,9 +1151,9 @@ private:
 
             case static_cast<CharT>('V'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 53, 2, succ);
@@ -1161,9 +1168,9 @@ private:
             case static_cast<CharT>('w'):
                 /* Match number of weekday.  */
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 6, 1, succ);
@@ -1177,9 +1184,9 @@ private:
 
             case static_cast<CharT>('W'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                 else
                 {
+                    if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
                         rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 53, 2, succ);
@@ -1194,34 +1201,39 @@ private:
 
             case static_cast<CharT>('x'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('E'))
-                    rp = do_get(rp, rp_end, ctx, succ, m_era_date_format);
                 else
-                    rp = do_get(rp, rp_end, ctx, succ, m_date_format);
-                if (!succ) return rp;
+                {
+                    if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
+                    if (modifier == static_cast<CharT>('E'))
+                        rp = do_get(rp, rp_end, ctx, succ, m_era_date_format);
+                    else
+                        rp = do_get(rp, rp_end, ctx, succ, m_date_format);
+                    if (!succ) return rp;
+                }
                 break;
 
             case static_cast<CharT>('X'):
                 if constexpr (!HaveTime) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                if constexpr (HaveTimeZone)
-                {
-                    if (modifier == static_cast<CharT>('E'))
-                        rp = do_get(rp, rp_end, ctx, succ, m_era_time_zone_format);
-                    else
-                        rp = do_get(rp, rp_end, ctx, succ, m_time_zone_format);
-                    if (!succ) return rp;
-                }
                 else
                 {
-                    if (modifier == static_cast<CharT>('E'))
-                        rp = do_get(rp, rp_end, ctx, succ, m_era_time_format);
+                    if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
+                    if constexpr (HaveTimeZone)
+                    {
+                        if (modifier == static_cast<CharT>('E'))
+                            rp = do_get(rp, rp_end, ctx, succ, m_era_time_zone_format);
+                        else
+                            rp = do_get(rp, rp_end, ctx, succ, m_time_zone_format);
+                        if (!succ) return rp;
+                    }
                     else
-                        rp = do_get(rp, rp_end, ctx, succ, m_time_format);
-                    if (!succ) return rp;
+                    {
+                        if (modifier == static_cast<CharT>('E'))
+                            rp = do_get(rp, rp_end, ctx, succ, m_era_time_format);
+                        else
+                            rp = do_get(rp, rp_end, ctx, succ, m_time_format);
+                        if (!succ) return rp;
+                    }
                 }
-
                 break;
 
             case static_cast<CharT>('y'):
@@ -1293,69 +1305,72 @@ private:
                  * ambiguous due to greedy digit capture. The same reasoning
                  * applies to the %G and %C parse cases.  */
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                else if ((modifier == static_cast<CharT>('E')) && (!ctx.m_era_items.empty()))
+                else
                 {
-                    if constexpr (is_stamp_input_iterator_v<TIter>)
+                    if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
+                    if ((modifier == static_cast<CharT>('E')) && (!ctx.m_era_items.empty()))
                     {
-                        succ = false;
-                        return rp;
+                        if constexpr (is_stamp_input_iterator_v<TIter>)
+                        {
+                            succ = false;
+                            return rp;
+                        }
+                        else
+                        {
+                            stamp_input_iterator rp_wrapper(rp);
+                            decltype(rp_wrapper) rp_end_wrapper(rp_end);
+
+                            auto format_it = m_era_formats.begin();
+                            for (; format_it != m_era_formats.end(); ++format_it)
+                            {
+                                auto tmp_ctx = ctx;
+                                bool tmp_succ = true;
+                                rp_wrapper = do_get(rp_wrapper, rp_end_wrapper, tmp_ctx, tmp_succ, *format_it);
+                                if (!tmp_succ)
+                                    rp_wrapper.rollback();
+                                else
+                                {
+                                    rp = rp_wrapper.internal();
+                                    ctx = tmp_ctx;
+                                    break;
+                                }
+                            }
+
+                            if (format_it == m_era_formats.end())
+                            {
+                                rp = rp_wrapper.internal();
+                                int val = 0;
+                                rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
+                                if (!succ) return rp;
+                                ctx.m_year = val;
+                                ctx.m_have_year = 1;
+                            }
+                        }
                     }
                     else
                     {
-                        stamp_input_iterator rp_wrapper(rp);
-                        decltype(rp_wrapper) rp_end_wrapper(rp_end);
-
-                        auto format_it = m_era_formats.begin();
-                        for (; format_it != m_era_formats.end(); ++format_it)
-                        {
-                            auto tmp_ctx = ctx;
-                            bool tmp_succ = true;
-                            rp_wrapper = do_get(rp_wrapper, rp_end_wrapper, tmp_ctx, tmp_succ, *format_it);
-                            if (!tmp_succ)
-                                rp_wrapper.rollback();
-                            else
-                            {
-                                rp = rp_wrapper.internal();
-                                ctx = tmp_ctx;
-                                break;
-                            }
-                        }
-
-                        if (format_it == m_era_formats.end())
-                        {
-                            rp = rp_wrapper.internal();
-                            int val = 0;
-                            rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
-                            if (!succ) return rp;
-                            ctx.m_year = val;
-                            ctx.m_have_year = 1;
-                        }
+                        int val = 0;
+                        rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
+                        if (!succ) return rp;
+                        ctx.m_year = val;
+                        ctx.m_have_year = 1;
                     }
-                }
-                else
-                {
-                    int val = 0;
-                    rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
-                    if (!succ) return rp;
-                    ctx.m_year = val;
-                    ctx.m_have_year = 1;
                 }
                 break;
 
             case static_cast<CharT>('z'):
                 if constexpr (!HaveDate || !HaveTime || !HaveTimeZone) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
-                /* We recognize four formats:
-                    1. Two digits specify hours.
-                    2. Four digits specify hours and minutes.
-                    3. Two digits, ':', and two digits specify hours and minutes.
-                    4. 'Z' is equivalent to +0000.
-                */
-                // In C++, there is no way to store timezone offset in a standard structure.
-                // so we just omit the parse result
                 else
                 {
+                    if (modifier) goto bad_parse_format;
+                    /* We recognize four formats:
+                        1. Two digits specify hours.
+                        2. Four digits specify hours and minutes.
+                        3. Two digits, ':', and two digits specify hours and minutes.
+                        4. 'Z' is equivalent to +0000.
+                    */
+                    // In C++, there is no way to store timezone offset in a standard structure.
+                    // so we just omit the parse result
                     int val = 0;
                     if (*rp == static_cast<CharT>('Z'))
                     {
@@ -1399,9 +1414,9 @@ private:
 
             case static_cast<CharT>('Z'):
                 if constexpr (!HaveTimeZone) goto bad_parse_format;
-                else if (modifier) goto bad_parse_format;
                 else
                 {
+                    if (modifier) goto bad_parse_format;
                     typename decltype(ft_basic<timeio<CharT>>::s_timezone_tree)::match_out_type zone_res;
                     rp = ft_basic<timeio<CharT>>::s_timezone_tree.max_match(rp, rp_end, zone_res);
                     if (!zone_res)
@@ -1852,8 +1867,8 @@ private:
                 {
                     std::chrono::sys_days sd{*ymd};
                     std::chrono::sys_days jan1 = {ymd->year()/std::chrono::January/1};
-                    int doy = (sd - jan1).count();
-                    int wday = wd->c_encoding();
+                    int doy = static_cast<int>((sd - jan1).count());
+                    int wday = static_cast<int>(wd->c_encoding());
                     int val = (doy - wday + 7) / 7;
                     if (val < 0) val = 0;
                     if (val > 53) val = 53;
@@ -1881,7 +1896,7 @@ private:
             case static_cast<CharT>('w'):
                 if (!wd || modifier == static_cast<CharT>('E')) goto bad_format;
                 {
-                    int val = wd->c_encoding();
+                    int val = static_cast<int>(wd->c_encoding());
                     if (val < 0) val = 0;
                     if (val > 6) val = 6;
                     out = put_dec<1>(out, val, (modifier == static_cast<CharT>('O')));
@@ -1893,8 +1908,8 @@ private:
                 {
                     std::chrono::sys_days sd{*ymd};
                     std::chrono::sys_days jan1{ymd->year()/std::chrono::January/1};
-                    int doy = (sd - jan1).count();
-                    int wday_monday = (wd->c_encoding() + 6) % 7;
+                    int doy = static_cast<int>((sd - jan1).count());
+                    int wday_monday = static_cast<int>((wd->c_encoding() + 6) % 7);
                     int val = (doy - wday_monday + 7) / 7;
                     if (val < 0) val = 0;
                     if (val > 53) val = 53;
@@ -1988,7 +2003,7 @@ private:
                     std::chrono::local_time<std::chrono::seconds> lt{
                         std::chrono::local_days{*ymd} + hms->to_duration()
                     };
-                    int val = tz->get_info(lt).first.offset.count();
+                    int val = static_cast<int>(tz->get_info(lt).first.offset.count());
                     if (val < 0)
                     {
                         *out++ = static_cast<CharT>('-');
@@ -2102,7 +2117,7 @@ private:
     }
 
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    static TIter extract_num(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ)
+    static TIter extract_num(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ) // NOLINT(bugprone-easily-swappable-parameters)
     {
         size_t i = 0;
         int value = 0;

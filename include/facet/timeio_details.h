@@ -97,7 +97,7 @@ namespace IOv2
                         res.add(full_name.begin(), full_name.end(), full_name);
                 }
             }
-            catch (...)
+            catch (...) // NOLINT(bugprone-empty-catch)
             {
                 // tz database unavailable or malformed at static-init time:
                 // degrade to an empty/partial tree instead of letting the
@@ -115,8 +115,8 @@ namespace IOv2
 
 namespace TimeioHelper
 {
-    inline bool era_small_or_equal(int from_year, uint8_t from_month, uint8_t from_day,
-                                   int to_year, uint8_t to_month, uint8_t to_day)
+    inline bool era_small_or_equal(int from_year, uint8_t from_month, uint8_t from_day, // NOLINT(bugprone-easily-swappable-parameters)
+                                   int to_year, uint8_t to_month, uint8_t to_day)        // NOLINT(bugprone-easily-swappable-parameters)
     {
         if (from_year < to_year) return true;
         if (from_year > to_year) return false;
@@ -125,8 +125,8 @@ namespace TimeioHelper
         return from_day <= to_day;
     }
 
-    inline bool era_small_or_equal(int from_year, uint8_t from_month,
-                                   int to_year, uint8_t to_month)
+    inline bool era_small_or_equal(int from_year, uint8_t from_month,                   // NOLINT(bugprone-easily-swappable-parameters)
+                                   int to_year, uint8_t to_month)                        // NOLINT(bugprone-easily-swappable-parameters)
     {
         if (from_year < to_year) return true;
         if (from_year > to_year) return false;
