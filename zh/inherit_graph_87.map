@@ -1,3 +1,5 @@
 <map id="类继承关系图" name="类继承关系图">
-<area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,172,45"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1timeio__conf_3_01char_01_4.html" title="timeio facet 的 char 字符类型 locale 配置类。" alt="" coords="220,5,368,45"/>
+<area shape="poly" id="edge115_Node000000_Node000001" title=" " alt="" coords="186,23,219,23,219,28,186,28"/>
 </map>

@@ -1,6 +1,6 @@
 <map id="IOv2::timeio_conf&lt; CharT &gt;" name="IOv2::timeio_conf&lt; CharT &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="258,272,406,312"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title=" " alt="" coords="106,183,273,223"/>
+<area shape="rect" id="Node000001" title="timeio facet 的宽字符（wchar_t / char32_t UTF&#45;32）locale 配置类。" alt="" coords="258,272,406,312"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title="timeio facet 的基类模板特化。" alt="" coords="106,183,273,223"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,228,302,270,300,274,231,232"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1base__ft.html" title=" " alt="" coords="5,87,184,113"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="117,121,173,181,170,184,113,125"/>

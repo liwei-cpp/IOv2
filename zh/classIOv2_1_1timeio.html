@@ -97,6 +97,9 @@ $(document).ready(function(){initNavTree('classIOv2_1_1timeio.html',''); initRes
 </div><!--header-->
 <div class="contents">
 
+<p>时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。  
+ <a href="classIOv2_1_1timeio.html#details">更多...</a></p>
+
 <p><code>#include &lt;<a class="el" href="timeio_8h_source.html">timeio.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
@@ -110,63 +113,89 @@ Public 类型</h2></td></tr>
 Public 成员函数</h2></td></tr>
 <tr class="memitem:ac5816f17fe55a3f53bfb852867256a2e" id="r_ac5816f17fe55a3f53bfb852867256a2e"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt; TConfPtr, shared_ptr_to&lt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt; TCtypePtr&gt; </td></tr>
 <tr class="memitem:ac5816f17fe55a3f53bfb852867256a2e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#ac5816f17fe55a3f53bfb852867256a2e">timeio</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCtypePtr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_ctype</a>)</td></tr>
+<tr class="memdesc:ac5816f17fe55a3f53bfb852867256a2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，从 locale 配置和 ctype facet 初始化。  <br /></td></tr>
 <tr class="separator:ac5816f17fe55a3f53bfb852867256a2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e06eef584682da1387b1e85ae79dc67" id="r_a0e06eef584682da1387b1e85ae79dc67"><td class="memTemplParams" colspan="2">template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html">timeio_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &gt; TConfPtr&gt; </td></tr>
 <tr class="memitem:a0e06eef584682da1387b1e85ae79dc67"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a0e06eef584682da1387b1e85ae79dc67">timeio</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_obj</a>)</td></tr>
+<tr class="memdesc:a0e06eef584682da1387b1e85ae79dc67"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，从 locale 配置初始化。  <br /></td></tr>
 <tr class="separator:a0e06eef584682da1387b1e85ae79dc67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4434ddd6edf11eb1c9c48f2fe9e7be18" id="r_a4434ddd6edf11eb1c9c48f2fe9e7be18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::array&lt; std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;, 7 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a4434ddd6edf11eb1c9c48f2fe9e7be18">day_names</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a4434ddd6edf11eb1c9c48f2fe9e7be18"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回星期全称数组（索引 0 为星期日，索引 6 为星期六）。    <br /></td></tr>
 <tr class="separator:a4434ddd6edf11eb1c9c48f2fe9e7be18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa12e2abfc08bc875cf68962616d8574" id="r_afa12e2abfc08bc875cf68962616d8574"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::array&lt; std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;, 7 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#afa12e2abfc08bc875cf68962616d8574">abbr_day_names</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:afa12e2abfc08bc875cf68962616d8574"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回星期缩写数组（索引 0 为星期日，索引 6 为星期六）。    <br /></td></tr>
 <tr class="separator:afa12e2abfc08bc875cf68962616d8574"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98b709fb74dfa341a52abbe4ac2ebae6" id="r_a98b709fb74dfa341a52abbe4ac2ebae6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::array&lt; std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;, 12 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a98b709fb74dfa341a52abbe4ac2ebae6">month_names</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a98b709fb74dfa341a52abbe4ac2ebae6"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回月份全称数组（索引 0 为一月，索引 11 为十二月）。    <br /></td></tr>
 <tr class="separator:a98b709fb74dfa341a52abbe4ac2ebae6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac59952b50260b4d8346a47ec24a69472" id="r_ac59952b50260b4d8346a47ec24a69472"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::array&lt; std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;, 12 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#ac59952b50260b4d8346a47ec24a69472">abbr_month_names</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:ac59952b50260b4d8346a47ec24a69472"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回月份缩写数组（索引 0 为一月，索引 11 为十二月）。    <br /></td></tr>
 <tr class="separator:ac59952b50260b4d8346a47ec24a69472"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97a72d26d6a6597472c54893c3f28e28" id="r_a97a72d26d6a6597472c54893c3f28e28"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::array&lt; std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;, 100 &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a97a72d26d6a6597472c54893c3f28e28">alt_digit_names</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a97a72d26d6a6597472c54893c3f28e28"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 定义的替代数字字符串数组（最多 100 项）。    <br /></td></tr>
 <tr class="separator:a97a72d26d6a6597472c54893c3f28e28"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5107da98050465b12271cee525c44b0" id="r_af5107da98050465b12271cee525c44b0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#af5107da98050465b12271cee525c44b0">am_name</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:af5107da98050465b12271cee525c44b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 AM 时段字符串。    <br /></td></tr>
 <tr class="separator:af5107da98050465b12271cee525c44b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ff0088a2bfe1c31dc6795f0c2ae479e" id="r_a7ff0088a2bfe1c31dc6795f0c2ae479e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a7ff0088a2bfe1c31dc6795f0c2ae479e">pm_name</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a7ff0088a2bfe1c31dc6795f0c2ae479e"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 PM 时段字符串。    <br /></td></tr>
 <tr class="separator:a7ff0088a2bfe1c31dc6795f0c2ae479e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a163a7b4a7a35472989ff02552582f3fe" id="r_a163a7b4a7a35472989ff02552582f3fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a163a7b4a7a35472989ff02552582f3fe">date_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a163a7b4a7a35472989ff02552582f3fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 日期格式串（对应 <code>x</code>）。    <br /></td></tr>
 <tr class="separator:a163a7b4a7a35472989ff02552582f3fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec17daff53f65b7521a7555e30d2e3c8" id="r_aec17daff53f65b7521a7555e30d2e3c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#aec17daff53f65b7521a7555e30d2e3c8">era_date_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:aec17daff53f65b7521a7555e30d2e3c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 纪元修饰日期格式串（对应 <code>Ex</code>）。    <br /></td></tr>
 <tr class="separator:aec17daff53f65b7521a7555e30d2e3c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9b6b80864732e3d66e62c2c124d6788" id="r_aa9b6b80864732e3d66e62c2c124d6788"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#aa9b6b80864732e3d66e62c2c124d6788">time_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:aa9b6b80864732e3d66e62c2c124d6788"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 时间格式串（对应 <code>X</code>）。    <br /></td></tr>
 <tr class="separator:aa9b6b80864732e3d66e62c2c124d6788"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3219811c8846db957a163f554bb681ad" id="r_a3219811c8846db957a163f554bb681ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a3219811c8846db957a163f554bb681ad">era_time_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a3219811c8846db957a163f554bb681ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 纪元修饰时间格式串（对应 <code>EX</code>）。    <br /></td></tr>
 <tr class="separator:a3219811c8846db957a163f554bb681ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9190f80566e1b9808cd25b09bd72ced9" id="r_a9190f80566e1b9808cd25b09bd72ced9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a9190f80566e1b9808cd25b09bd72ced9">date_time_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a9190f80566e1b9808cd25b09bd72ced9"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 日期时间格式串（对应 <code>c</code>）。    <br /></td></tr>
 <tr class="separator:a9190f80566e1b9808cd25b09bd72ced9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa242a20c1745b9345e4c17b7009c7540" id="r_aa242a20c1745b9345e4c17b7009c7540"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#aa242a20c1745b9345e4c17b7009c7540">era_date_time_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:aa242a20c1745b9345e4c17b7009c7540"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 locale 纪元修饰日期时间格式串（对应 <code>Ec</code>）。    <br /></td></tr>
 <tr class="separator:aa242a20c1745b9345e4c17b7009c7540"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a767b4d4c884ef1ddcf49d723c61b6092" id="r_a767b4d4c884ef1ddcf49d723c61b6092"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a767b4d4c884ef1ddcf49d723c61b6092">am_pm_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a767b4d4c884ef1ddcf49d723c61b6092"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回 AM/PM 时间格式串（对应 <code>r</code>）。    <br /></td></tr>
 <tr class="separator:a767b4d4c884ef1ddcf49d723c61b6092"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad618c365696d2db2d4206cd82e231e81" id="r_ad618c365696d2db2d4206cd82e231e81"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &gt; </td></tr>
 <tr class="memitem:ad618c365696d2db2d4206cd82e231e81"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#ad618c365696d2db2d4206cd82e231e81">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">t</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> format, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">modifier</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad618c365696d2db2d4206cd82e231e81"><td class="mdescLeft">&#160;</td><td class="mdescRight">按单个格式字符（可带修饰符）格式化时间值。  <br /></td></tr>
 <tr class="separator:ad618c365696d2db2d4206cd82e231e81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81c846fd0fdfc2f5466bb58b6367e597" id="r_a81c846fd0fdfc2f5466bb58b6367e597"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Duration</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TimeZonePtr</a> &gt; </td></tr>
 <tr class="memitem:a81c846fd0fdfc2f5466bb58b6367e597"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a81c846fd0fdfc2f5466bb58b6367e597">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::zoned_time&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">Duration</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TimeZonePtr</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">t</a>, std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; fmt) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a81c846fd0fdfc2f5466bb58b6367e597"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <code>std::chrono::zoned_time</code> 按格式串格式化到输出迭代器。  <br /></td></tr>
 <tr class="separator:a81c846fd0fdfc2f5466bb58b6367e597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a371a698286c9016ce20350f8c414c145" id="r_a371a698286c9016ce20350f8c414c145"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> &gt; </td></tr>
 <tr class="memitem:a371a698286c9016ce20350f8c414c145"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a371a698286c9016ce20350f8c414c145">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::year_month_day &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">t</a>, std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; fmt) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a371a698286c9016ce20350f8c414c145"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <code>std::chrono::year_month_day</code> 按格式串格式化到输出迭代器。  <br /></td></tr>
 <tr class="separator:a371a698286c9016ce20350f8c414c145"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a31e0f3a801e599d628a82e77fccab21a" id="r_a31e0f3a801e599d628a82e77fccab21a"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDuration</a> &gt; </td></tr>
 <tr class="memitem:a31e0f3a801e599d628a82e77fccab21a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a31e0f3a801e599d628a82e77fccab21a">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::hh_mm_ss&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDuration</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">t</a>, std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; fmt) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a31e0f3a801e599d628a82e77fccab21a"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <code>std::chrono::hh_mm_ss</code> 按格式串格式化到输出迭代器。  <br /></td></tr>
 <tr class="separator:a31e0f3a801e599d628a82e77fccab21a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf3576bc96604725f3c6c22fe9df5741" id="r_adf3576bc96604725f3c6c22fe9df5741"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> &gt; </td></tr>
 <tr class="memitem:adf3576bc96604725f3c6c22fe9df5741"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#adf3576bc96604725f3c6c22fe9df5741">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::tm &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">t</a>, std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; fmt) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:adf3576bc96604725f3c6c22fe9df5741"><td class="mdescLeft">&#160;</td><td class="mdescRight">将 <code>std::tm</code> 按格式串格式化到输出迭代器。  <br /></td></tr>
 <tr class="separator:adf3576bc96604725f3c6c22fe9df5741"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4bdd48091f33235dc6b357f66b83be2c" id="r_a4bdd48091f33235dc6b357f66b83be2c"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HaveDate, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HaveTime, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HaveTimeZone&gt; <br />
 requires (std::bidirectional_iterator&lt;TIter&gt; || is_istreambuf_iterator&lt;TIter&gt;)</td></tr>
 <tr class="memitem:a4bdd48091f33235dc6b357f66b83be2c"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a4bdd48091f33235dc6b357f66b83be2c">get</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">beg</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">end</a>, <a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt; <a class="el" href="classIOv2_1_1timeio.html#ae958d44166dec8f3447e4e91921ab679">char_type</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveDate</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveTime</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveTimeZone</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ctx</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> format, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">modifier</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a4bdd48091f33235dc6b357f66b83be2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">按单个格式字符（可带修饰符）从输入范围中解析时间字段。  <br /></td></tr>
 <tr class="separator:a4bdd48091f33235dc6b357f66b83be2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04916f1a3d395b2e1aca0806ed01660e" id="r_a04916f1a3d395b2e1aca0806ed01660e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HaveDate, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HaveTime, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> HaveTimeZone&gt; <br />
 requires (std::bidirectional_iterator&lt;TIter&gt; || is_istreambuf_iterator&lt;TIter&gt;)</td></tr>
 <tr class="memitem:a04916f1a3d395b2e1aca0806ed01660e"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a04916f1a3d395b2e1aca0806ed01660e">get</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">rp</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">rp_end</a>, <a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt; <a class="el" href="classIOv2_1_1timeio.html#ae958d44166dec8f3447e4e91921ab679">char_type</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveDate</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveTime</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveTimeZone</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ctx</a>, std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_fmt</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a04916f1a3d395b2e1aca0806ed01660e"><td class="mdescLeft">&#160;</td><td class="mdescRight">按格式串从输入范围中解析时间字段，将结果累积到 <code>ctx</code>。  <br /></td></tr>
 <tr class="separator:a04916f1a3d395b2e1aca0806ed01660e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
+class IOv2::timeio&lt; CharT &gt;</div><p>时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="ae958d44166dec8f3447e4e91921ab679" name="ae958d44166dec8f3447e4e91921ab679"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae958d44166dec8f3447e4e91921ab679">&#9670;&#160;</a></span>char_type</h2>
 
@@ -238,6 +267,8 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html
 </table>
 </div><div class="memdoc">
 
+<p>构造函数，从 locale 配置和 ctype facet 初始化。 </p>
+
 </div>
 </div>
 <a id="a0e06eef584682da1387b1e85ae79dc67" name="a0e06eef584682da1387b1e85ae79dc67"></a>
@@ -268,6 +299,8 @@ template&lt;shared_ptr_to&lt; <a class="el" href="classIOv2_1_1timeio__conf.html
 </table>
 </div><div class="memdoc">
 
+<p>构造函数，从 locale 配置初始化。 </p>
+
 </div>
 </div>
 <h2 class="groupheader">成员函数说明</h2>
@@ -296,6 +329,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回星期缩写数组（索引 0 为星期日，索引 6 为星期六）。   </p>
+
 </div>
 </div>
 <a id="ac59952b50260b4d8346a47ec24a69472" name="ac59952b50260b4d8346a47ec24a69472"></a>
@@ -322,6 +357,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回月份缩写数组（索引 0 为一月，索引 11 为十二月）。   </p>
 
 </div>
 </div>
@@ -350,6 +387,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回 locale 定义的替代数字字符串数组（最多 100 项）。   </p>
+
 </div>
 </div>
 <a id="af5107da98050465b12271cee525c44b0" name="af5107da98050465b12271cee525c44b0"></a>
@@ -376,6 +415,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回 AM 时段字符串。   </p>
 
 </div>
 </div>
@@ -404,6 +445,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回 AM/PM 时间格式串（对应 <code>r</code>）。   </p>
+
 </div>
 </div>
 <a id="a163a7b4a7a35472989ff02552582f3fe" name="a163a7b4a7a35472989ff02552582f3fe"></a>
@@ -430,6 +473,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回 locale 日期格式串（对应 <code>x</code>）。   </p>
 
 </div>
 </div>
@@ -458,6 +503,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回 locale 日期时间格式串（对应 <code>c</code>）。   </p>
+
 </div>
 </div>
 <a id="a4434ddd6edf11eb1c9c48f2fe9e7be18" name="a4434ddd6edf11eb1c9c48f2fe9e7be18"></a>
@@ -484,6 +531,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回星期全称数组（索引 0 为星期日，索引 6 为星期六）。   </p>
 
 </div>
 </div>
@@ -512,6 +561,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回 locale 纪元修饰日期格式串（对应 <code>Ex</code>）。   </p>
+
 </div>
 </div>
 <a id="aa242a20c1745b9345e4c17b7009c7540" name="aa242a20c1745b9345e4c17b7009c7540"></a>
@@ -539,6 +590,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回 locale 纪元修饰日期时间格式串（对应 <code>Ec</code>）。   </p>
+
 </div>
 </div>
 <a id="a3219811c8846db957a163f554bb681ad" name="a3219811c8846db957a163f554bb681ad"></a>
@@ -565,6 +618,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回 locale 纪元修饰时间格式串（对应 <code>EX</code>）。   </p>
 
 </div>
 </div>
@@ -625,6 +680,8 @@ requires (std::bidirectional_iterator&lt;TIter&gt; || is_istreambuf_iterator&lt;
 </table>
 </div><div class="memdoc">
 
+<p>按单个格式字符（可带修饰符）从输入范围中解析时间字段。 </p>
+
 </div>
 </div>
 <a id="a04916f1a3d395b2e1aca0806ed01660e" name="a04916f1a3d395b2e1aca0806ed01660e"></a>
@@ -678,6 +735,8 @@ requires (std::bidirectional_iterator&lt;TIter&gt; || is_istreambuf_iterator&lt;
 </table>
 </div><div class="memdoc">
 
+<p>按格式串从输入范围中解析时间字段，将结果累积到 <code>ctx</code>。 </p>
+
 </div>
 </div>
 <a id="a98b709fb74dfa341a52abbe4ac2ebae6" name="a98b709fb74dfa341a52abbe4ac2ebae6"></a>
@@ -705,6 +764,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>返回月份全称数组（索引 0 为一月，索引 11 为十二月）。   </p>
+
 </div>
 </div>
 <a id="a7ff0088a2bfe1c31dc6795f0c2ae479e" name="a7ff0088a2bfe1c31dc6795f0c2ae479e"></a>
@@ -731,6 +792,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回 PM 时段字符串。   </p>
 
 </div>
 </div>
@@ -778,6 +841,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>将 <code>std::chrono::hh_mm_ss</code> 按格式串格式化到输出迭代器。 </p>
+
 </div>
 </div>
 <a id="a371a698286c9016ce20350f8c414c145" name="a371a698286c9016ce20350f8c414c145"></a>
@@ -823,6 +888,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>将 <code>std::chrono::year_month_day</code> 按格式串格式化到输出迭代器。 </p>
 
 </div>
 </div>
@@ -870,6 +937,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>将 <code>std::chrono::zoned_time</code> 按格式串格式化到输出迭代器。 </p>
+
 </div>
 </div>
 <a id="adf3576bc96604725f3c6c22fe9df5741" name="adf3576bc96604725f3c6c22fe9df5741"></a>
@@ -915,6 +984,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>将 <code>std::tm</code> 按格式串格式化到输出迭代器。 </p>
 
 </div>
 </div>
@@ -968,6 +1039,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>按单个格式字符（可带修饰符）格式化时间值。 </p>
+
 </div>
 </div>
 <a id="aa9b6b80864732e3d66e62c2c124d6788" name="aa9b6b80864732e3d66e62c2c124d6788"></a>
@@ -994,6 +1067,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回 locale 时间格式串（对应 <code>X</code>）。   </p>
 
 </div>
 </div>

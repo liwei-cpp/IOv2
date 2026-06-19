@@ -140,10 +140,9 @@ var hierarchy =
     ] ],
     [ "IOv2::cvt_writer< KernelType >", "classIOv2_1_1cvt__writer.html", null ],
     [ "IOv2::cvt_writer< KernelType >", "classIOv2_1_1cvt__writer_3_01KernelType_01_4.html", null ],
-    [ "IOv2::date_parse_helper< typename, bool >", "structIOv2_1_1date__parse__helper.html", [
+    [ "date_parse_helper", null, [
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
-    [ "IOv2::date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper.html", null ],
     [ "IOv2::date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html", null ],
     [ "IOv2::ft_basic< timeio< CharT > >::era_entry", "structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html", null ],
     [ "IOv2::ext_to_int_helper< TDevice, TCreator >", "structIOv2_1_1ext__to__int__helper.html", null ],
@@ -367,16 +366,14 @@ var hierarchy =
     ] ],
     [ "IOv2::sync< TStream >", "structIOv2_1_1sync.html", null ],
     [ "IOv2::base_ft< messages >::text_domain", "structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html", null ],
-    [ "IOv2::time_parse_helper< bool >", "structIOv2_1_1time__parse__helper.html", [
+    [ "time_parse_helper", null, [
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
     [ "IOv2::time_parse_helper< true >", "structIOv2_1_1time__parse__helper_3_01true_01_4.html", null ],
-    [ "IOv2::time_parse_helper< true >", "structIOv2_1_1time__parse__helper.html", null ],
-    [ "IOv2::time_zone_parse_helper< bool >", "structIOv2_1_1time__zone__parse__helper.html", [
+    [ "time_zone_parse_helper", null, [
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
     [ "IOv2::time_zone_parse_helper< true >", "structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html", null ],
-    [ "IOv2::time_zone_parse_helper< true >", "structIOv2_1_1time__zone__parse__helper.html", null ],
     [ "IOv2::timeio< CharT >", "classIOv2_1_1timeio.html", null ],
     [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf.html", null ],
     [ "IOv2::type_id< T >", "structIOv2_1_1type__id.html", null ],
