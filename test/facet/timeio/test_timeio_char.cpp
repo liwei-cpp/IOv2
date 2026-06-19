@@ -5921,3 +5921,193 @@ void test_timeio_char_get_17()
 
     dump_info("Done\n");
 }
+
+void test_timeio_char_put_18()
+{
+    dump_info("Test timeio<char> put 18...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+    std::string res;
+
+    // put(year_month_day) with invalid date (line 1173)
+    {
+        auto invalid_ymd = year_month_day{year{2024}, month{2}, day{30}};
+        bool threw = false;
+        try { obj.put(std::back_inserter(res), invalid_ymd, std::string_view("%F")); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // put(hh_mm_ss) with negative total duration (line 1214)
+    {
+        hh_mm_ss<seconds> invalid_hms{seconds{-1}};
+        bool threw = false;
+        try { obj.put(std::back_inserter(res), invalid_hms, std::string_view("%T")); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // put(std::tm) with out-of-range field: month=-1 (line 1271)
+    {
+        std::tm bad_tm{};
+        bad_tm.tm_year = 124; bad_tm.tm_mon = -1;
+        bad_tm.tm_mday = 1; bad_tm.tm_hour = 0; bad_tm.tm_min = 0; bad_tm.tm_sec = 0;
+        bool threw = false;
+        try { obj.put(std::back_inserter(res), bad_tm, std::string_view("%F")); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // put(std::tm) with valid fields but invalid date: Feb 30 (line 1275)
+    {
+        std::tm bad_tm{};
+        bad_tm.tm_year = 124; bad_tm.tm_mon = 1; bad_tm.tm_mday = 30;
+        bad_tm.tm_hour = 0; bad_tm.tm_min = 0; bad_tm.tm_sec = 0;
+        bool threw = false;
+        try { obj.put(std::back_inserter(res), bad_tm, std::string_view("%F")); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // put(year_month_day) with negative year: %Y and %C output sign (lines 2860-2861, 2543-2544)
+    {
+        auto neg_ymd = year_month_day{year{-1}, month{1}, day{1}};
+        res.clear(); obj.put(std::back_inserter(res), neg_ymd, std::string_view("%Y"));
+        VERIFY(res == "-0001");
+        res.clear(); obj.put(std::back_inserter(res), neg_ymd, std::string_view("%C"));
+        VERIFY(res == "-01");
+    }
+
+    // put(year_month_day) for date in ISO year -1: %G output sign (lines 2608-2609)
+    // Jan 1, year 0 is a Saturday; Thu of that ISO week is Dec 30, year -1 -> G=-0001
+    {
+        auto early_ymd = year_month_day{year{0}, month{1}, day{1}};
+        res.clear(); obj.put(std::back_inserter(res), early_ymd, std::string_view("%G"));
+        VERIFY(res == "-0001");
+    }
+
+    // put(zoned_time) with positive offset: %z outputs '+' (line 2883)
+    {
+        auto tp = create_zoned_time(2024, 9, 4, 12, 0, 0, "Asia/Tokyo");
+        res.clear(); obj.put(std::back_inserter(res), tp, std::string_view("%z"));
+        VERIFY(res == "+0900");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_timeio_char_get_18()
+{
+    dump_info("Test timeio<char> get 18...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+    IOv2::timeio obj_ja(std::make_shared<IOv2::timeio_conf<char>>("ja_JP.UTF-8"));
+
+    // operator year_month_day() throws for invalid reconstructed date (line 126)
+    // Feb 30 parses successfully but is not a valid calendar date
+    {
+        auto ctx = CheckGet(obj, "02 30", "%m %d", IOv2::ios_defs::eofbit);
+        bool threw = false;
+        try { auto ymd = static_cast<year_month_day>(ctx); (void)ymd; }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // Era deduction: m_have_mon=true, m_have_mday=false, match found (lines 224-241)
+    // 令和6 January: est_year=2024, Jan is within 令和 era -> deduced_year=2024
+    {
+        auto ctx = CheckGet(obj_ja, "令和6 01", "%EC%Ey %m", IOv2::ios_defs::eofbit);
+        auto ymd = static_cast<year_month_day>(ctx);
+        VERIFY(ymd.year() == year{2024} && ymd.month() == month{1});
+    }
+
+    // Era deduction: m_have_mon=true, m_have_mday=false, nothing matches (lines 245-246)
+    // 平成31 May: est_year=2019, May 2019 past 平成 end (Apr 30) -> from_year=1990
+    {
+        auto ctx = CheckGet(obj_ja, "平成31 05", "%EC%Ey %m", IOv2::ios_defs::eofbit);
+        auto ymd = static_cast<year_month_day>(ctx);
+        VERIFY(ymd.year() == year{1990} && ymd.month() == month{5});
+    }
+
+    // Era deduction: m_have_mon=true, m_have_mday=true, nothing matches (line 220)
+    // 平成31 May 1: May 1, 2019 past 平成 end (Apr 30) -> from_year=1990
+    {
+        auto ctx = CheckGet(obj_ja, "平成31 05 01", "%EC%Ey %m %d", IOv2::ios_defs::eofbit);
+        auto ymd = static_cast<year_month_day>(ctx);
+        VERIFY(ymd == year_month_day{year{1990}, month{5}, day{1}});
+    }
+
+    // Negative yday via U-week+wday (lines 304-305)
+    // 2024 Jan1=Monday(1), U=0, w=0(Sunday): yday=-1 -> Dec 31, 2023
+    {
+        auto ymd = CheckGet<year_month_day>(obj, "2024 0 0", "%Y %U %w", IOv2::ios_defs::eofbit);
+        VERIFY(ymd == year_month_day{year{2023}, month{12}, day{31}});
+    }
+
+    // Overflow yday via U-week+wday (lines 309-310)
+    // 2024 Jan1=Monday(1), U=53, w=6(Saturday): yday=376 -> Jan 11, 2025
+    {
+        auto ymd = CheckGet<year_month_day>(obj, "2024 53 6", "%Y %U %w", IOv2::ios_defs::eofbit);
+        VERIFY(ymd == year_month_day{year{2025}, month{1}, day{11}});
+    }
+
+    // Week-only path (no wday): lines 343-370
+    {
+        // 2024 U=36 (normal): yday=252 -> Sep 9, 2024
+        auto ymd1 = CheckGet<year_month_day>(obj, "2024 36", "%Y %U", IOv2::ios_defs::eofbit);
+        VERIFY(ymd1 == year_month_day{year{2024}, month{9}, day{9}});
+
+        // 2024 W=0: yday=-7 -> Dec 25, 2023 (lines 354-358)
+        auto ymd2 = CheckGet<year_month_day>(obj, "2024 0", "%Y %W", IOv2::ios_defs::eofbit);
+        VERIFY(ymd2 == year_month_day{year{2023}, month{12}, day{25}});
+
+        // 2024 U=53: yday=371 -> Jan 6, 2025 (lines 359-362)
+        auto ymd3 = CheckGet<year_month_day>(obj, "2024 53", "%Y %U", IOv2::ios_defs::eofbit);
+        VERIFY(ymd3 == year_month_day{year{2025}, month{1}, day{6}});
+    }
+
+    // Format string ends after E/O modifier with no following specifier (lines 1510-1511)
+    CheckGet(obj, "x", "%E", IOv2::ios_defs::strfailbit, 0);
+
+    // %a/%A tree match failure (lines 1542-1543)
+    CheckGet(obj, "xyz", 'a', (char)0, IOv2::ios_defs::strfailbit, 0);
+
+    // %b/%B/%h tree match failure (lines 1564-1565)
+    CheckGet(obj, "xyz", 'b', (char)0, IOv2::ios_defs::strfailbit, 0);
+
+    // %e with leading space (line 1655)
+    VERIFY(CheckGet(obj, " 4", 'e', (char)0, IOv2::ios_defs::eofbit).m_mday == 4);
+
+    // %p AM/PM tree miss (lines 1823-1824)
+    CheckGet(obj, "xyz", 'p', (char)0, IOv2::ios_defs::strfailbit, 0);
+
+    // %Ey era year out of range: all era items pruned (lines 2035-2036)
+    // 平成32: delta=30 exceeds 平成 range=29 -> pruned -> stream_error
+    CheckGet(obj_ja, "平成32", "%EC%Ey", IOv2::ios_defs::strfailbit);
+
+    // %z failures
+    CheckGet(obj, "abc",   'z', (char)0, IOv2::ios_defs::strfailbit, 0); // not Z/+/- (line 2144)
+    CheckGet(obj, "+",     'z', (char)0, IOv2::ios_defs::strfailbit, 0); // sign+EOF (line 2150)
+    CheckGet(obj, "+123",  'z', (char)0, IOv2::ios_defs::strfailbit, 0); // 3 digits not 2 or 4 (line 2167)
+    CheckGet(obj, "+2500", 'z', (char)0, IOv2::ios_defs::strfailbit, 0); // hour>=24 (line 2172)
+
+    // bad_parse_format modifier mismatch (lines 2218-2219)
+    // Format %Ej: %j rejects E modifier -> bad_parse_format; input "%Eb": '%','E' consumed but 'b'!='j'
+    CheckGet(obj, "%Eb", 'j', 'E', IOv2::ios_defs::strfailbit, 0);
+
+    // Format tail: trailing whitespace consumed at end of input (line 2233)
+    CheckGet(obj, "Sep", std::string("%b "), IOv2::ios_defs::eofbit);
+
+    // Format tail: trailing %n consumed at end of input (lines 2237-2239)
+    CheckGet(obj, "Sep", std::string("%b%n"), IOv2::ios_defs::eofbit);
+
+    // Format tail: non-%n/t specifier causes break at line 2238, then succ=false
+    CheckGet(obj, "Sep", std::string("%b%z"), IOv2::ios_defs::strfailbit);
+
+    // Format tail: bare '%' at format end (next==cend) causes break at line 2236
+    CheckGet(obj, "Sep", std::string("%b%"), IOv2::ios_defs::strfailbit);
+
+    dump_info("Done\n");
+}
