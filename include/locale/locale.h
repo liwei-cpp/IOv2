@@ -2,6 +2,7 @@
 #include <concepts>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -148,11 +149,11 @@ class locale
 public:
     locale()
     {
-        init<ctype_conf>(std::setlocale(LC_CTYPE, nullptr));
-        init<collate_conf>(std::setlocale(LC_COLLATE, nullptr));
-        init<monetary_conf>(std::setlocale(LC_MONETARY, nullptr));
-        init<numeric_conf>(std::setlocale(LC_NUMERIC, nullptr));
-        init<timeio_conf>(std::setlocale(LC_TIME, nullptr));
+        init<ctype_conf>(safe_setlocale(LC_CTYPE));
+        init<collate_conf>(safe_setlocale(LC_COLLATE));
+        init<monetary_conf>(safe_setlocale(LC_MONETARY));
+        init<numeric_conf>(safe_setlocale(LC_NUMERIC));
+        init<timeio_conf>(safe_setlocale(LC_TIME));
     }
     
     explicit locale(const std::string& name)
@@ -165,21 +166,22 @@ public:
     }
 
     locale(const locale& val)
-        : m_facet_confs(val.m_facet_confs)
     {
-        std::lock_guard g(val.m_facet_mutex);
+        std::shared_lock g(val.m_facet_mutex);
+        m_facet_confs = val.m_facet_confs;
         m_facets = val.m_facets;
     }
 
     locale(locale&& val)
-        : m_facet_confs(std::move(val.m_facet_confs))
     {
         std::lock_guard g(val.m_facet_mutex);
-        m_facets = val.m_facets;
+        m_facet_confs = std::move(val.m_facet_confs);
+        m_facets = std::move(val.m_facets);
     }
     
     locale& operator=(const locale& val)
     {
+        if (this == &val) return *this;
         std::scoped_lock g(val.m_facet_mutex, m_facet_mutex);
         m_facet_confs = val.m_facet_confs;
         m_facets = val.m_facets;
@@ -188,6 +190,7 @@ public:
 
     locale& operator=(locale&& val)
     {
+        if (this == &val) return *this;
         std::scoped_lock g(val.m_facet_mutex, m_facet_mutex);
         m_facet_confs = std::move(val.m_facet_confs);
         m_facets = std::move(val.m_facets);
@@ -211,7 +214,7 @@ public:
         if (!ft)
         {
             ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, false);
-            s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang);
+            ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang);
         }
         
         locale res(*this);
@@ -221,14 +224,14 @@ public:
     }
 
     locale involve_msg(const std::string& domain, const std::string& lang = "",
-                       const std::string& cvt = std::setlocale(LC_CTYPE, nullptr)) const requires (std::is_same_v<TChar, char>)
+                       const std::string& cvt = safe_setlocale(LC_CTYPE)) const requires (std::is_same_v<TChar, char>)
     {
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, cvt);
         if (!ft)
         {
             ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, cvt, false);
-            s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, cvt);
+            ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, cvt);
         }
 
         locale res(*this);
@@ -252,6 +255,7 @@ public:
     template <std::derived_from<abs_ft> TF>
     bool has() const
     {
+        std::shared_lock g(m_facet_mutex);
         std::size_t id = TF::id();
         auto it = m_facet_confs.find(id);
         if (it == m_facet_confs.end()) return false;
@@ -264,7 +268,7 @@ public:
     bool has() const
     {
         {
-            std::lock_guard g(m_facet_mutex);
+            std::shared_lock g(m_facet_mutex);
             if (auto it = m_facets.find(type_id_v<TF>); it != m_facets.end())
                 return true;
         }
@@ -276,6 +280,7 @@ public:
     template <std::derived_from<abs_ft> TF>
     std::shared_ptr<TF> get() const
     {
+        std::shared_lock g(m_facet_mutex);
         std::size_t id = TF::id();
         auto it = m_facet_confs.find(id);
         if (it == m_facet_confs.end()) return nullptr;
@@ -288,7 +293,7 @@ public:
     std::shared_ptr<TF> get() const
     {
         {
-            std::lock_guard g(m_facet_mutex);
+            std::shared_lock g(m_facet_mutex);
             if (auto it = m_facets.find(type_id_v<TF>); it != m_facets.end())
                 return std::static_pointer_cast<TF>(it->second);
         }
@@ -304,6 +309,12 @@ public:
     }
 
 private:
+    static std::string safe_setlocale(int category) noexcept
+    {
+        const char* p = std::setlocale(category, nullptr);
+        return p ? p : "C";
+    }
+
     template <template <typename> class T>
     void init(const std::string& ft_name)
     {
@@ -315,6 +326,6 @@ private:
 private:
     std::unordered_map<std::size_t, std::shared_ptr<abs_ft>> m_facet_confs;
     mutable std::unordered_map<std::size_t, std::shared_ptr<void>> m_facets;
-    mutable std::mutex m_facet_mutex;
+    mutable std::shared_mutex m_facet_mutex;
 };
 }
