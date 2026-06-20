@@ -1,19 +1,24 @@
 #pragma once
-#include <concepts>
-#include <memory>
-#include <mutex>
-#include <shared_mutex>
-#include <string>
-#include <type_traits>
-#include <unordered_map>
-
-#include <facet/ctype.h>
 #include <facet/collate.h>
+#include <facet/ctype.h>
+#include <facet/messages.h>
 #include <facet/monetary.h>
 #include <facet/numeric.h>
 #include <facet/timeio.h>
-#include <facet/messages.h>
 #include <locale/ori_facet_buf.h>
+
+#include <bit>
+#include <clocale>
+#include <concepts>
+#include <cstddef>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <utility>
 
 namespace IOv2
 {
@@ -24,14 +29,23 @@ struct type_id
 };
 
 template <typename T>
-static const size_t type_id_v = reinterpret_cast<size_t>(&(type_id<T>::s_id));
+static const size_t type_id_v = std::bit_cast<size_t>(&(type_id<T>::s_id));
+
+// type_id_v keys m_facets by the address of type_id<T>::s_id. This mirrors
+// ft_basic::id() (facet_common.h), which guards the same idiom. bit_cast already
+// requires the pointer and size_t to have equal size; the assert documents the
+// invariant and yields a clear diagnostic so a platform with
+// sizeof(void*) > sizeof(size_t) fails to compile instead of silently aliasing
+// distinct facet types in m_facets.
+static_assert(sizeof(void*) <= sizeof(size_t),
+              "type_id_v relies on a pointer fitting losslessly into size_t");
 
 template <typename TChar>
 class locale
 {
     template <typename T>
     struct ft_wrapper;
-    
+
     template <typename... T>
     struct ft_wrapper<facet_create_pack<T...>>
     {
@@ -69,21 +83,21 @@ class locale
                 return std::make_shared<TF>(std::forward<TProcessed>(params)...);
             }
         }
-        
+
         const locale& m_ref;
     };
-    
+
     template <typename... T>
     struct ft_wrapper<facet_create_rule<T...>>
     {
         ft_wrapper(const locale& l)
             : m_ref(l) {}
-        
+
         bool has() const
         {
             return has_helper<T...>();
         }
-        
+
         template<typename TF>
         std::shared_ptr<TF> get()
         {
@@ -97,7 +111,7 @@ class locale
         {
             return false;
         }
-        
+
         template <typename TC, typename... TRem>
         bool has_helper() const
         {
@@ -113,8 +127,8 @@ class locale
                 else return has_helper<TRem...>();
             }
         }
-        
-        
+
+
         template <typename TF>
         std::shared_ptr<TF> get_helper()
         {
@@ -127,7 +141,7 @@ class locale
             if constexpr(is_nonempty_facet_create_pack<TC>)
             {
                 auto creator = ft_wrapper<TC>(m_ref);
-                
+
                 std::shared_ptr<TF> obj = creator.template get<TF>();
                 if (obj) return obj;
                 return get_helper<TF, TSub...>();
@@ -155,7 +169,7 @@ public:
         init<numeric_conf>(safe_setlocale(LC_NUMERIC));
         init<timeio_conf>(safe_setlocale(LC_TIME));
     }
-    
+
     explicit locale(const std::string& name)
     {
         init<ctype_conf>(name);
@@ -178,7 +192,7 @@ public:
         m_facet_confs = std::move(val.m_facet_confs);
         m_facets = std::move(val.m_facets);
     }
-    
+
     locale& operator=(const locale& val)
     {
         if (this == &val) return *this;
@@ -216,7 +230,7 @@ public:
             ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, false);
             ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang);
         }
-        
+
         locale res(*this);
         res.m_facet_confs[ft->id()] = std::move(ft);
         res.m_facets.clear();
@@ -262,7 +276,7 @@ public:
 
         return std::dynamic_pointer_cast<TF>(it->second) != nullptr;
     }
-    
+
     template <typename TF>
         requires (is_nonempty_facet_create_rule<typename TF::create_rules>)
     bool has() const
@@ -311,6 +325,46 @@ public:
     }
 
 private:
+    /**
+     * @lang{ZH}
+     * 查询当前全局 C locale 的名称；不可用时回退为 "C"。
+     *
+     * @warning 本函数通过 `std::setlocale(category, nullptr)` 读取**进程级全局**
+     * locale：返回的指针指向 C 库的共享缓冲区，随后被拷入 `std::string`。该读取
+     * **假设没有其他线程并发以非空实参调用 `std::setlocale` 来修改全局 locale**——
+     * 否则按 C 标准（`setlocale` 无需线程安全），该缓冲区可能在拷贝期间被改写或失效，
+     * 从而构成数据竞争（UB）。注意：纯查询读取彼此之间并不冲突，只有"读 vs 并发写"
+     * 才有竞态；因此在"启动期单线程配置一次 locale、之后不再修改"的常规模型下不存在
+     * 该竞态。这一假设与 messages 对 `getenv` 所做的假设同源；库层面无法对此加以同步，
+     * 因为外部的 `setlocale` 写者不会经过本库的任何锁。调用方应在程序启动期以单线程
+     * 方式一次性配置 locale。
+     *
+     * 另外注意：`involve_msg(char 重载)` 的默认实参 `cvt = safe_setlocale(LC_CTYPE)`
+     * 以及默认构造函数对各 `LC_*` 类别的调用，都会隐式触发此全局读取。
+     * @endif
+     *
+     * @lang{EN}
+     * Query the current global C locale name; fall back to "C" if unavailable.
+     *
+     * @warning This reads the *process-wide global* locale via
+     * `std::setlocale(category, nullptr)`: the returned pointer aliases a shared
+     * C-library buffer that is then copied into a `std::string`. The read *assumes
+     * no other thread concurrently calls `std::setlocale` with a non-null argument*
+     * to mutate the global locale -- otherwise, since `setlocale` need not be
+     * thread-safe, the buffer may be rewritten/invalidated mid-copy, a data race
+     * (UB). Note that pure query reads do not conflict with each other; only a
+     * read racing a concurrent write is a problem, so under the usual model
+     * (configure the locale once, single-threaded, at startup, then never modify
+     * it) no such race exists. This assumption is the same one messages makes for
+     * `getenv`; it cannot be synchronized at the library level because external
+     * `setlocale` writers do not go through any lock this library controls.
+     * Callers should configure the locale once, single-threaded, at startup.
+     *
+     * Also note that `involve_msg` (char overload)'s default argument
+     * `cvt = safe_setlocale(LC_CTYPE)`, and the default constructor's calls for the
+     * various `LC_*` categories, trigger this global read implicitly.
+     * @endif
+     */
     static std::string safe_setlocale(int category) noexcept
     {
         const char* p = std::setlocale(category, nullptr);
