@@ -50,14 +50,18 @@ public:
     }
 
     template <typename TChar>
-    void put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::string& cvt = "")
+    std::shared_ptr<messages_conf<TChar>> put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::string& cvt = "")
     {
         const auto name = domain + '\n' + lang + '\n' + cvt;
         const std::size_t id = messages_conf<TChar>::id();
         
         std::lock_guard guard(m_mutex);
         auto& sub_cache = m_cache[id];
-        sub_cache.emplace(std::pair(name, std::move(ptr)));
+        auto it = sub_cache.find(name);
+        if (it != sub_cache.end())
+            return std::static_pointer_cast<messages_conf<TChar>>(it->second);
+        sub_cache.emplace(std::pair(name, ptr));
+        return ptr;
     }
 
 private:
