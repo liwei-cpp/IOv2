@@ -303,7 +303,9 @@ public:
         if (res)
         {
             std::lock_guard g(m_facet_mutex);
-            m_facets.insert({type_id_v<TF>, res});
+            auto [it, inserted] = m_facets.insert({type_id_v<TF>, res});
+            if (!inserted)
+                return std::static_pointer_cast<TF>(it->second);
         }
         return res;
     }
