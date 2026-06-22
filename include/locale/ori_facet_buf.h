@@ -3,6 +3,7 @@
 #include <facet/facet_common.h>
 #include <facet/messages_details.h>
 
+#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <string>
