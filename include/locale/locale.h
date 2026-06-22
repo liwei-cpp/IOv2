@@ -40,6 +40,84 @@ static const size_t type_id_v = std::bit_cast<size_t>(&(type_id<T>::s_id));
 static_assert(sizeof(void*) <= sizeof(size_t),
               "type_id_v relies on a pointer fitting losslessly into size_t");
 
+/**
+ * @lang{ZH}
+ * @brief 管理一组 facet 的本地化对象。
+ *
+ * `locale` 是值语义类型，遵循与标准库容器 / `std::shared_ptr` **实例**相同的
+ * 线程契约（即 "thread-compatible" / 基本保证）：
+ *
+ * - **并发只读是安全的**：多个线程可以同时对同一个 `const locale` 实例调用
+ *   只读 / const 操作（`get`、`has`、`involve`、`involve_msg`、`remove` 以及
+ *   拷贝构造）。这些操作不改变 locale 的逻辑状态；`get` / `has` 虽然会惰性填充
+ *   内部派生 facet 缓存（`m_facets`），但该缓存改动由 `m_facet_mutex` 内部同步，
+ *   因此并发 const 调用之间不会产生数据竞争。
+ * - **赋值是写操作，需要调用方外部同步**：对某个 `locale` 实例执行 `operator=`
+ *   或移动赋值时，调用方必须保证此期间没有其它线程访问**同一个实例**（无论读
+ *   还是写）。这与 `std::string`、标准容器、单个 `std::shared_ptr` 实例的契约
+ *   完全一致。
+ *
+ * @warning 不要在一个线程对某 `locale` 实例赋值的同时，让另一线程对**同一实例**
+ * 调用 `get` / `has`。对复合 facet（如 `numeric`、`timeio`）而言，`get<TF>()` 是
+ * 一次 "查缓存 → 构建 → 写回缓存" 的复合操作，期间会多次、分别地加锁读取各
+ * 依赖 facet 的 conf。即便每次单独访问都在锁内，整个复合操作也**无法**相对于
+ * 一次整体赋值保持原子：并发赋值可能使最终写入 `m_facets` 的对象由"已被替换掉
+ * 的旧状态"构建而来，导致缓存与当前 conf 不一致。注意这**不是**内存安全 / UB
+ * 问题（所有 `shared_ptr` 访问都在锁内，不存在撕裂读或悬空），仅是逻辑状态不
+ * 一致；它必须靠上述契约（赋值期间独占访问）来避免，而非靠在 `get` 内加更细的
+ * 锁——复合操作的原子性无法由内部 per-operation 加锁提供。
+ *
+ * @note `involve` / `involve_msg` / `remove` 均为 const：它们基于 `*this` 的一份
+ * 一致快照构造并返回**新的** `locale`，从不原地修改 `*this`（写时拷贝）。因此一个
+ * `locale` 实例唯一的"变异面"就是赋值；按上述契约同步赋值即可。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Localization object managing a set of facets.
+ *
+ * `locale` is a value type that follows the same threading contract as the
+ * standard-library containers and `std::shared_ptr` *instances* (the
+ * "thread-compatible" / basic guarantee):
+ *
+ * - **Concurrent reads are safe**: multiple threads may call read-only / const
+ *   operations (`get`, `has`, `involve`, `involve_msg`, `remove`, and copy
+ *   construction) on the same `const locale` instance simultaneously. These
+ *   operations do not change the locale's logical state; although `get` / `has`
+ *   lazily populate the internal derived-facet cache (`m_facets`), that cache
+ *   mutation is synchronized internally by `m_facet_mutex`, so concurrent const
+ *   calls do not race.
+ * - **Assignment is a write and requires external synchronization**: when
+ *   `operator=` or move-assignment is applied to a `locale` instance, the caller
+ *   must ensure no other thread accesses that *same instance* (read or write)
+ *   for the duration. This is exactly the contract of `std::string`, the
+ *   standard containers, and a single `std::shared_ptr` instance.
+ *
+ * @warning Do not assign to a `locale` instance in one thread while another
+ * thread calls `get` / `has` on the *same* instance. For a composite facet (e.g.
+ * `numeric`, `timeio`), `get<TF>()` is a compound "check cache -> build ->
+ * insert" operation that locks and reads each dependency facet's conf
+ * separately, several times. Even though each individual access is locked, the
+ * whole compound operation *cannot* be atomic with respect to a whole-object
+ * assignment: a concurrent assignment can cause the object finally inserted into
+ * `m_facets` to have been built from a now-replaced state, leaving the cache
+ * inconsistent with the current confs. This is *not* a memory-safety / UB
+ * problem (every `shared_ptr` access is locked -- no torn reads, no dangling);
+ * it is a logical-consistency one, and it must be avoided via the contract above
+ * (exclusive access during assignment) rather than by finer-grained locking
+ * inside `get` -- compound-operation atomicity cannot be provided by internal
+ * per-operation locks.
+ *
+ * @note `involve` / `involve_msg` / `remove` are const: they build and return a
+ * *new* `locale` from a single consistent snapshot of `*this` and never mutate
+ * `*this` in place (copy-on-write). The only mutating surface of a `locale`
+ * instance is therefore assignment; synchronizing assignment per the contract
+ * above is sufficient.
+ * @endif
+ *
+ * @tparam TChar
+ * @lang{ZH} 该 locale 各 facet 所用的字符类型。 @endif
+ * @lang{EN} The character type used by this locale's facets. @endif
+ */
 template <typename TChar>
 class locale
 {
@@ -193,6 +271,12 @@ public:
         m_facets = std::move(val.m_facets);
     }
 
+    // Assignment is the only mutating operation on a locale instance. Per the
+    // class threading contract (see the class doc), the caller must ensure no
+    // other thread accesses *this same instance* (read or write) during an
+    // assignment. The locks below keep the source consistent and the maps free
+    // of torn reads, but they do NOT make a concurrent get<TF>() on the
+    // assigned-into object atomic against the assignment.
     locale& operator=(const locale& val)
     {
         if (this == &val) return *this;
@@ -223,6 +307,17 @@ public:
 
     locale involve_msg(const std::string& domain, const std::string& lang = "") const requires (!std::is_same_v<TChar, char>)
     {
+        // messages_conf<TChar> is only specialized for char8_t, char32_t and
+        // UTF-32 wchar_t (plus the char overload above); for char16_t or a
+        // non-UTF-32 wchar_t it stays incomplete. Reject those here with a clear
+        // message instead of an opaque "incomplete type" error from make_shared
+        // below. Safe as a completeness check because messages_conf<TChar>'s
+        // completeness is fixed program-wide (a type either has a specialization
+        // everywhere or nowhere).
+        static_assert(requires { sizeof(messages_conf<TChar>); },
+                      "involve_msg: messages translation is unsupported for this character "
+                      "type -- no messages_conf<TChar> specialization exists (e.g. char16_t, "
+                      "or wchar_t on a non-UTF-32 platform).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang);
         if (!ft)
@@ -365,7 +460,7 @@ private:
      * various `LC_*` categories, trigger this global read implicitly.
      * @endif
      */
-    static std::string safe_setlocale(int category) noexcept
+    static std::string safe_setlocale(int category)
     {
         const char* p = std::setlocale(category, nullptr);
         return p ? p : "C";
