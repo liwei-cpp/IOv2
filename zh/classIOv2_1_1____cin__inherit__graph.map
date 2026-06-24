@@ -1,15 +1,15 @@
 <map id="IOv2::__cin" name="IOv2::__cin">
-<area shape="rect" id="Node000001" title="cin" alt="" coords="689,99,783,124"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="460,48,641,103"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="656,93,690,100,689,105,655,98"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="228,5,412,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,31,461,50,459,55,384,37"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="5,5,180,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="194,15,228,15,228,21,194,21"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="231,55,409,95"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="423,73,460,73,460,78,423,78"/>
-<area shape="rect" id="Node000006" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="231,120,409,175"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="421,113,462,100,464,105,422,118"/>
-<area shape="rect" id="Node000007" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="475,127,626,167"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="639,127,689,118,690,123,640,133"/>
+<area shape="rect" id="Node000001" title="cin" alt="" coords="467,120,560,145"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="237,69,419,124"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="433,114,467,121,466,126,432,120"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="5,5,189,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="165,32,190,39,264,67,262,72,188,45,164,37"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="10,55,185,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="199,78,238,83,237,88,198,83"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="8,105,187,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="200,110,237,105,238,110,200,115"/>
+<area shape="rect" id="Node000006" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="8,169,187,224"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="173,161,263,122,265,127,175,166"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="253,149,403,189"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="416,149,466,139,467,144,417,154"/>
 </map>

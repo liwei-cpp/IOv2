@@ -1,13 +1,13 @@
 <map id="IOv2::stdout_api&lt; T, TDevice, TChar &gt;" name="IOv2::stdout_api&lt; T, TDevice, TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="460,55,615,95"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="228,5,412,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="383,32,462,53,460,58,381,37"/>
-<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="5,5,180,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="194,15,228,15,228,21,194,21"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="229,55,411,95"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="425,73,460,73,460,78,425,78"/>
-<area shape="rect" id="Node000005" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="21,63,165,88"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="179,73,229,73,229,78,179,78"/>
-<area shape="rect" id="Node000006" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="231,120,409,175"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="415,113,475,93,477,98,417,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="429,77,584,117"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="197,5,381,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="359,32,382,39,465,74,463,79,380,45,357,37"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="202,55,377,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="391,78,430,84,429,89,390,84"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="198,105,381,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="394,109,429,104,430,109,395,114"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="5,112,149,137"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="163,122,198,122,198,127,163,127"/>
+<area shape="rect" id="Node000006" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="200,169,379,224"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="365,161,380,154,464,114,466,119,382,159,367,166"/>
 </map>

@@ -205,30 +205,43 @@ var hierarchy =
     [ "IOv2::in_sentry< TStream, involve_output >", "structIOv2_1_1in__sentry.html", null ],
     [ "IOv2::sing_temp< T >::init", "structIOv2_1_1sing__temp_1_1init.html", null ],
     [ "IOv2::io_state_and_exp", "structIOv2_1_1io__state__and__exp.html", [
-      [ "IOv2::ios_base< char >", "classIOv2_1_1ios__base.html", null ],
-      [ "IOv2::ios_base< wchar_t >", "classIOv2_1_1ios__base.html", null ],
-      [ "IOv2::ios_base< char_type >", "classIOv2_1_1ios__base.html", null ],
-      [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", [
-        [ "IOv2::stdin_api< __cin, std_device< STDIN_FILENO >, char >", "classIOv2_1_1stdin__api.html", [
-          [ "IOv2::__cin", "classIOv2_1_1____cin.html", null ]
-        ] ],
-        [ "IOv2::stdin_api< __wcin, std_device< STDIN_FILENO >, wchar_t >", "classIOv2_1_1stdin__api.html", [
-          [ "IOv2::__wcin", "classIOv2_1_1____wcin.html", null ]
-        ] ],
-        [ "IOv2::stdout_api< __cerr, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
-        [ "IOv2::stdout_api< __clog, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
-        [ "IOv2::stdout_api< __cout, std_device< STDOUT_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
-        [ "IOv2::stdout_api< __wcerr, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
-        [ "IOv2::stdout_api< __wclog, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
-        [ "IOv2::stdout_api< __wcout, std_device< STDOUT_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
-        [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ],
-        [ "IOv2::istream< TDevice, TChar >", "classIOv2_1_1istream.html", null ],
-        [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ],
-        [ "IOv2::stdin_api< T, TDevice, TChar >", "classIOv2_1_1stdin__api.html", null ],
-        [ "IOv2::stdout_api< T, TDevice, TChar >", "classIOv2_1_1stdout__api.html", null ]
-      ] ]
+      [ "IOv2::stdin_api< __cin, std_device< STDIN_FILENO >, char >", "classIOv2_1_1stdin__api.html", [
+        [ "IOv2::__cin", "classIOv2_1_1____cin.html", null ]
+      ] ],
+      [ "IOv2::stdin_api< __wcin, std_device< STDIN_FILENO >, wchar_t >", "classIOv2_1_1stdin__api.html", [
+        [ "IOv2::__wcin", "classIOv2_1_1____wcin.html", null ]
+      ] ],
+      [ "IOv2::stdout_api< __cerr, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __clog, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __cout, std_device< STDOUT_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wcerr, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wclog, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wcout, std_device< STDOUT_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ],
+      [ "IOv2::istream< TDevice, TChar >", "classIOv2_1_1istream.html", null ],
+      [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ],
+      [ "IOv2::stdin_api< T, TDevice, TChar >", "classIOv2_1_1stdin__api.html", null ],
+      [ "IOv2::stdout_api< T, TDevice, TChar >", "classIOv2_1_1stdout__api.html", null ]
     ] ],
+    [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", [
+      [ "IOv2::stdin_api< __cin, std_device< STDIN_FILENO >, char >", "classIOv2_1_1stdin__api.html", null ],
+      [ "IOv2::stdin_api< __wcin, std_device< STDIN_FILENO >, wchar_t >", "classIOv2_1_1stdin__api.html", null ],
+      [ "IOv2::stdout_api< __cerr, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __clog, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __cout, std_device< STDOUT_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wcerr, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wclog, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wcout, std_device< STDOUT_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ],
+      [ "IOv2::istream< TDevice, TChar >", "classIOv2_1_1istream.html", null ],
+      [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ],
+      [ "IOv2::stdin_api< T, TDevice, TChar >", "classIOv2_1_1stdin__api.html", null ],
+      [ "IOv2::stdout_api< T, TDevice, TChar >", "classIOv2_1_1stdout__api.html", null ]
+    ] ],
+    [ "IOv2::ios_base< char >", "classIOv2_1_1ios__base.html", null ],
+    [ "IOv2::ios_base< char_type >", "classIOv2_1_1ios__base.html", null ],
     [ "IOv2::ios_base< void >", "classIOv2_1_1ios__base_3_01void_01_4.html", null ],
+    [ "IOv2::ios_base< wchar_t >", "classIOv2_1_1ios__base.html", null ],
     [ "IOv2::is_in_sentry_impl< typename >", "structIOv2_1_1is__in__sentry__impl.html", null ],
     [ "IOv2::is_in_sentry_impl< in_sentry< TStream, involve_output > >", "structIOv2_1_1is__in__sentry__impl_3_01in__sentry_3_01TStream_00_01involve__output_01_4_01_4.html", null ],
     [ "IOv2::is_mem_device_impl< T >", "structIOv2_1_1is__mem__device__impl.html", null ],

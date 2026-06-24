@@ -1,7 +1,7 @@
 <map id="类继承关系图" name="类继承关系图">
 <area shape="rect" id="Node000000" href="$classIOv2_1_1base__streambuf.html" title=" " alt="" coords="5,30,176,85"/>
 <area shape="rect" id="Node000001" href="$structIOv2_1_1istreambuf.html" title=" " alt="" coords="226,5,415,45"/>
-<area shape="poly" id="edge92_Node000000_Node000001" title=" " alt="" coords="189,41,225,36,226,41,190,46"/>
+<area shape="poly" id="edge101_Node000000_Node000001" title=" " alt="" coords="189,41,225,36,226,41,190,46"/>
 <area shape="rect" id="Node000002" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="224,69,417,109"/>
-<area shape="poly" id="edge93_Node000000_Node000002" title=" " alt="" coords="190,68,224,73,223,79,189,74"/>
+<area shape="poly" id="edge102_Node000000_Node000002" title=" " alt="" coords="190,68,224,73,223,79,189,74"/>
 </map>
