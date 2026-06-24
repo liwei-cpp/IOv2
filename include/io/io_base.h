@@ -163,7 +163,6 @@ private:
 template <typename TChar> class locale;
 
 template <typename TChar> class ios_base;
-
 template <>
 class ios_base<void>
 {
@@ -174,7 +173,7 @@ class ios_base<void>
 };
 
 template <typename TChar>
-class ios_base : public io_state_and_exp
+class ios_base
 {
 public:
     using event_callback = std::function<std::shared_ptr<void>(const locale<TChar>&, std::shared_ptr<void>)>;
@@ -267,35 +266,37 @@ public:
     }
 
 protected:
-    void access_callbacks(const locale<TChar>& new_loc)
+    template <typename Self>
+        requires requires(Self& s) { s.handle_exception(std::exception_ptr{}); }
+    void access_callbacks(this Self&& self, const locale<TChar>& new_loc)
     {
-        for (const auto& [cb, id] : m_callbacks)
+        for (const auto& [cb, id] : self.m_callbacks)
         {
             try
             {
-                auto it = m_pwords.find(id);
+                auto it = self.m_pwords.find(id);
                 std::shared_ptr<void> old_data = 
-                    (it != m_pwords.end()) ? it->second : nullptr;
+                    (it != self.m_pwords.end()) ? it->second : nullptr;
 
                 std::shared_ptr<void> new_data = cb(new_loc, old_data);
 
                 if (new_data)
                 {
-                    if (it != m_pwords.end()) it->second = std::move(new_data);
-                    else m_pwords.insert({id, std::move(new_data)});
+                    if (it != self.m_pwords.end()) it->second = std::move(new_data);
+                    else self.m_pwords.insert({id, std::move(new_data)});
                 }
-                else if (it != m_pwords.end())
+                else if (it != self.m_pwords.end())
                 {
-                    m_pwords.erase(it);
+                    self.m_pwords.erase(it);
                 }
             }
             catch(...)
             {
-                this->handle_exception(std::current_exception());
+                self.handle_exception(std::current_exception());
             }
         }
     }
-    
+
 protected:
     ios_defs::fmtflags m_flags     = ios_defs::skipws | ios_defs::dec;
     std::uint8_t       m_precision = 6;

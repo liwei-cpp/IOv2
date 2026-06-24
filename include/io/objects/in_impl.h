@@ -16,6 +16,7 @@ class __wcin;
 
 template <typename T, io_device TDevice, typename TChar>
 class stdin_api : public ios_base<TChar>
+                , public io_state_and_exp
                 , public istream_operators<T, TChar>
                 , public stream_common_operators<T, TDevice, TChar>
 {
