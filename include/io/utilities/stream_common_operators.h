@@ -115,7 +115,14 @@ struct stream_common_operators
         T& obj = static_cast<T&>(*this);
         auto res = std::move(obj.m_locale);
         obj.m_locale = loc;
-        obj.access_callbacks(obj.m_locale);
+        try
+        {
+            obj.access_callbacks(obj.m_locale);
+        }
+        catch (...)
+        {
+            obj.handle_exception(std::current_exception());
+        }
         return res;
     }
 
