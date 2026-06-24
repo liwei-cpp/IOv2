@@ -266,35 +266,39 @@ public:
     }
 
 protected:
-    template <typename Self>
-        requires requires(Self& s) { s.handle_exception(std::exception_ptr{}); }
-    void access_callbacks(this Self&& self, const locale<TChar>& new_loc)
+    void access_callbacks(const locale<TChar>& new_loc)
     {
-        for (const auto& [cb, id] : self.m_callbacks)
+        std::exception_ptr throw_exception = nullptr;
+
+        for (const auto& [cb, id] : m_callbacks)
         {
             try
             {
-                auto it = self.m_pwords.find(id);
+                auto it = m_pwords.find(id);
                 std::shared_ptr<void> old_data = 
-                    (it != self.m_pwords.end()) ? it->second : nullptr;
+                    (it != m_pwords.end()) ? it->second : nullptr;
 
                 std::shared_ptr<void> new_data = cb(new_loc, old_data);
 
                 if (new_data)
                 {
-                    if (it != self.m_pwords.end()) it->second = std::move(new_data);
-                    else self.m_pwords.insert({id, std::move(new_data)});
+                    if (it != m_pwords.end()) it->second = std::move(new_data);
+                    else m_pwords.insert({id, std::move(new_data)});
                 }
-                else if (it != self.m_pwords.end())
+                else if (it != m_pwords.end())
                 {
-                    self.m_pwords.erase(it);
+                    m_pwords.erase(it);
                 }
             }
             catch(...)
             {
-                self.handle_exception(std::current_exception());
+                if (!throw_exception)
+                    throw_exception = std::current_exception();
             }
         }
+
+        if (throw_exception)
+            std::rethrow_exception(throw_exception);
     }
 
 protected:
