@@ -21,6 +21,7 @@ class __wclog;
 
 template <typename T, typename TDevice, typename TChar>
 class stdout_api : public ios_base<TChar>
+                 , public io_state_and_exp
                  , public ostream_operators<T, TChar>
                  , public stream_common_operators<T, TDevice, TChar>
 {

@@ -18,6 +18,7 @@ namespace IOv2
 {
 template <io_device TDevice, typename TChar>
 class ostream : public ios_base<TChar>
+              , public io_state_and_exp
               , public ostream_operators<ostream<TDevice, TChar>, TChar>
               , public stream_common_operators<ostream<TDevice, TChar>, TDevice, TChar>
 {
