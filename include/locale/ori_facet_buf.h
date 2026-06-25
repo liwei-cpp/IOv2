@@ -23,13 +23,26 @@ public:
     {
         const std::size_t id = TF::id();
 
+        {
+            std::lock_guard guard(m_mutex);
+            auto& sub_cache = m_cache[id];
+            auto it = sub_cache.find(name);
+            if (it != sub_cache.end())
+                return it->second;
+        }
+
+        // Construct the facet *outside* the lock: a facet constructor may be
+        // expensive and -- crucially -- may itself call back into ori_facet_buf, so
+        // building under m_mutex would both serialize all construction and risk a
+        // self-deadlock on this non-recursive mutex. Re-lock only to insert, and
+        // double-check via emplace: if another thread (or a re-entrant call)
+        // inserted the same (id, name) meanwhile, emplace no-ops and returns the
+        // existing entry, so the object built here is simply discarded.
+        auto obj = std::make_shared<TF>(name);
+
         std::lock_guard guard(m_mutex);
         auto& sub_cache = m_cache[id];
-
-        auto it = sub_cache.find(name);
-        if (it == sub_cache.end())
-            it = sub_cache.emplace(std::pair(name, std::make_shared<TF>(name))).first;
-        return it->second;
+        return sub_cache.emplace(name, std::move(obj)).first->second;
     }
 
     template <typename TChar>
@@ -49,15 +62,18 @@ public:
     template <typename TChar>
     std::shared_ptr<messages_conf<TChar>> put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::string& cvt = "")
     {
-        const std::size_t id = messages_conf<TChar>::id();
+        if (ptr)
+        {
+            const std::size_t id = messages_conf<TChar>::id();
 
-        std::lock_guard guard(m_mutex);
-        auto& sub_cache = m_msg_cache[id];
+            std::lock_guard guard(m_mutex);
+            auto& sub_cache = m_msg_cache[id];
 
-        auto it = sub_cache.find(msg_key{domain, lang, cvt});
-        if (it != sub_cache.end())
-            return std::static_pointer_cast<messages_conf<TChar>>(it->second);
-        sub_cache.emplace(msg_key{domain, lang, cvt}, ptr);
+            auto it = sub_cache.find(msg_key{domain, lang, cvt});
+            if (it != sub_cache.end())
+                return std::static_pointer_cast<messages_conf<TChar>>(it->second);
+            sub_cache.emplace(msg_key{domain, lang, cvt}, ptr);
+        }
         return ptr;
     }
 
@@ -87,6 +103,10 @@ private:
 
     std::unordered_map<size_t, std::unordered_map<std::string, std::shared_ptr<abs_ft>>> m_cache;
     std::unordered_map<size_t, std::unordered_map<msg_key, std::shared_ptr<abs_ft>, msg_key_hash>> m_msg_cache;
+    // Guards m_cache / m_msg_cache. Facet construction in try_get happens *outside*
+    // this lock (it is taken only to look up and to insert), so the mutex is never
+    // held across a facet constructor. That keeps construction unserialized and
+    // makes a re-entrant facet ctor safe even though the mutex is non-recursive.
     std::mutex m_mutex;
 };
 
