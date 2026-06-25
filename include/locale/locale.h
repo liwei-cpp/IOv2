@@ -32,13 +32,14 @@ template <typename T>
 static const size_t type_id_v = std::bit_cast<size_t>(&(type_id<T>::s_id));
 
 // type_id_v keys m_facets by the address of type_id<T>::s_id. This mirrors
-// ft_basic::id() (facet_common.h), which guards the same idiom. bit_cast already
-// requires the pointer and size_t to have equal size; the assert documents the
-// invariant and yields a clear diagnostic so a platform with
-// sizeof(void*) > sizeof(size_t) fails to compile instead of silently aliasing
-// distinct facet types in m_facets.
-static_assert(sizeof(void*) <= sizeof(size_t),
-              "type_id_v relies on a pointer fitting losslessly into size_t");
+// ft_basic::id() (facet_common.h), which guards the same idiom. std::bit_cast is
+// well-formed only when sizeof(To) == sizeof(From); since we bit_cast a pointer
+// into size_t, the assert must require *equal* size, not merely "fits". With the
+// correct condition a platform where the sizes differ trips this assert with a
+// clear diagnostic instead of an opaque error on the bit_cast line below.
+static_assert(sizeof(void*) == sizeof(size_t),
+              "type_id_v uses std::bit_cast<size_t>(pointer), which is well-formed "
+              "only when sizeof(void*) == sizeof(size_t)");
 
 /**
  * @lang{ZH}
@@ -333,13 +334,14 @@ public:
     }
 
     locale involve_msg(const std::string& domain, const std::string& lang = "",
-                       const std::string& cvt = safe_setlocale(LC_CTYPE)) const requires (std::is_same_v<TChar, char>)
+                       const std::string& cvt = "") const requires (std::is_same_v<TChar, char>)
     {
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, cvt);
         if (!ft)
         {
-            ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, cvt, false);
+            const std::string effective_cvt = cvt.empty() ? safe_setlocale(LC_CTYPE) : cvt;
+            ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, false);
             ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, cvt);
         }
 
@@ -434,8 +436,9 @@ private:
      * 因为外部的 `setlocale` 写者不会经过本库的任何锁。调用方应在程序启动期以单线程
      * 方式一次性配置 locale。
      *
-     * 另外注意：`involve_msg(char 重载)` 的默认实参 `cvt = safe_setlocale(LC_CTYPE)`
-     * 以及默认构造函数对各 `LC_*` 类别的调用，都会隐式触发此全局读取。
+     * 另外注意：`involve_msg(char 重载)` 在 `cvt` 为空且发生缓存未命中、需要新建
+     * 字典时会惰性触发此全局读取（缓存命中则不会）；默认构造函数对各 `LC_*` 类别的
+     * 调用同样会隐式触发此全局读取。
      * @endif
      *
      * @lang{EN}
@@ -455,9 +458,10 @@ private:
      * `setlocale` writers do not go through any lock this library controls.
      * Callers should configure the locale once, single-threaded, at startup.
      *
-     * Also note that `involve_msg` (char overload)'s default argument
-     * `cvt = safe_setlocale(LC_CTYPE)`, and the default constructor's calls for the
-     * various `LC_*` categories, trigger this global read implicitly.
+     * Also note that the `involve_msg` (char overload) triggers this global read
+     * lazily -- only when `cvt` is empty and a cache miss forces building a new
+     * dictionary (a cache hit does not read it) -- and the default constructor's
+     * calls for the various `LC_*` categories trigger this global read implicitly.
      * @endif
      */
     static std::string safe_setlocale(int category)

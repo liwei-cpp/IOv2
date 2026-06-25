@@ -29,6 +29,7 @@
  */
 
 #pragma once
+#include <bit>
 #include <concepts>
 #include <cstddef>
 #include <cwchar>
@@ -181,7 +182,12 @@ template <typename TFacet> class ft_basic;
 template <template<typename> class TFacet, typename CharT>
 class ft_basic<TFacet<CharT>> : public base_ft<TFacet>
 {
-    static_assert(sizeof(void*) <= sizeof(size_t));
+    // id() returns std::bit_cast<size_t>(&s_id); std::bit_cast is well-formed only
+    // when sizeof(To) == sizeof(From), so the pointer and size_t must be equal in
+    // size (not merely "pointer fits into size_t").
+    static_assert(sizeof(void*) == sizeof(size_t),
+                  "ft_basic::id() uses std::bit_cast<size_t>(pointer), which is "
+                  "well-formed only when sizeof(void*) == sizeof(size_t)");
 public:
     /** @lang{ZH} 此 facet 特化所绑定的字符类型。 @endif
      *  @lang{EN} The character type bound to this facet specialization. @endif */
