@@ -1,6 +1,7 @@
 #pragma once
 #include <facet/collate.h>
 #include <facet/ctype.h>
+#include <facet/facet_common.h>
 #include <facet/messages.h>
 #include <facet/monetary.h>
 #include <facet/numeric.h>
@@ -29,7 +30,10 @@ struct type_id
 };
 
 template <typename T>
-static const size_t type_id_v = std::bit_cast<size_t>(&(type_id<T>::s_id));
+size_t type_id_v() noexcept
+{
+    return std::bit_cast<size_t>(&(type_id<T>::s_id));
+}
 
 // type_id_v keys m_facets by the address of type_id<T>::s_id. This mirrors
 // ft_basic::id() (facet_common.h), which guards the same idiom. std::bit_cast is
@@ -386,7 +390,7 @@ public:
     {
         {
             std::shared_lock g(m_facet_mutex);
-            if (auto it = m_facets.find(type_id_v<TF>); it != m_facets.end())
+            if (auto it = m_facets.find(type_id_v<TF>()); it != m_facets.end())
                 return true;
         }
 
@@ -411,7 +415,7 @@ public:
     {
         {
             std::shared_lock g(m_facet_mutex);
-            if (auto it = m_facets.find(type_id_v<TF>); it != m_facets.end())
+            if (auto it = m_facets.find(type_id_v<TF>()); it != m_facets.end())
                 return std::static_pointer_cast<TF>(it->second);
         }
 
@@ -420,7 +424,7 @@ public:
         if (res)
         {
             std::lock_guard g(m_facet_mutex);
-            auto [it, inserted] = m_facets.insert({type_id_v<TF>, res});
+            auto [it, inserted] = m_facets.insert({type_id_v<TF>(), res});
             if (!inserted)
                 return std::static_pointer_cast<TF>(it->second);
         }
