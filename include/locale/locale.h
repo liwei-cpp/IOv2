@@ -242,11 +242,11 @@ class locale
 public:
     locale()
     {
-        init<ctype_conf>(safe_setlocale(LC_CTYPE));
-        init<collate_conf>(safe_setlocale(LC_COLLATE));
-        init<monetary_conf>(safe_setlocale(LC_MONETARY));
-        init<numeric_conf>(safe_setlocale(LC_NUMERIC));
-        init<timeio_conf>(safe_setlocale(LC_TIME));
+        init<ctype_conf>(s_ori_facet_buf.locale_name(LC_CTYPE));
+        init<collate_conf>(s_ori_facet_buf.locale_name(LC_COLLATE));
+        init<monetary_conf>(s_ori_facet_buf.locale_name(LC_MONETARY));
+        init<numeric_conf>(s_ori_facet_buf.locale_name(LC_NUMERIC));
+        init<timeio_conf>(s_ori_facet_buf.locale_name(LC_TIME));
     }
 
     explicit locale(const std::string& name)
@@ -337,12 +337,18 @@ public:
                        const std::string& cvt = "") const requires (std::is_same_v<TChar, char>)
     {
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
-        auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, cvt);
+        // Resolve the encoding up front and use it consistently as both the cache
+        // key and the construction argument. An empty cvt maps to the (stable,
+        // env-derived) CTYPE name; keying by this effective value -- rather than by
+        // the raw cvt -- ensures the cached facet is always looked up under the
+        // exact encoding it was built with, and lets an explicit cvt equal to the
+        // CTYPE name share the same cache entry as the empty-cvt case.
+        const std::string effective_cvt = cvt.empty() ? s_ori_facet_buf.locale_name(LC_CTYPE) : cvt;
+        auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, effective_cvt);
         if (!ft)
         {
-            const std::string effective_cvt = cvt.empty() ? safe_setlocale(LC_CTYPE) : cvt;
             ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, false);
-            ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, cvt);
+            ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, effective_cvt);
         }
 
         locale res(*this);
@@ -421,55 +427,33 @@ public:
         return res;
     }
 
-private:
     /**
      * @lang{ZH}
-     * 查询当前全局 C locale 的名称；不可用时回退为 "C"。
+     * 返回某个 `LC_*` 类别在**程序启动时由环境变量解析得到**的初始 locale 名称。
      *
-     * @warning 本函数通过 `std::setlocale(category, nullptr)` 读取**进程级全局**
-     * locale：返回的指针指向 C 库的共享缓冲区，随后被拷入 `std::string`。该读取
-     * **假设没有其他线程并发以非空实参调用 `std::setlocale` 来修改全局 locale**——
-     * 否则按 C 标准（`setlocale` 无需线程安全），该缓冲区可能在拷贝期间被改写或失效，
-     * 从而构成数据竞争（UB）。注意：纯查询读取彼此之间并不冲突，只有"读 vs 并发写"
-     * 才有竞态；因此在"启动期单线程配置一次 locale、之后不再修改"的常规模型下不存在
-     * 该竞态。这一假设与 messages 对 `getenv` 所做的假设同源；库层面无法对此加以同步，
-     * 因为外部的 `setlocale` 写者不会经过本库的任何锁。调用方应在程序启动期以单线程
-     * 方式一次性配置 locale。
-     *
-     * 另外注意：`involve_msg(char 重载)` 在 `cvt` 为空且发生缓存未命中、需要新建
-     * 字典时会惰性触发此全局读取（缓存命中则不会）；默认构造函数对各 `LC_*` 类别的
-     * 调用同样会隐式触发此全局读取。
+     * 这是对 `ori_facet_buf::locale_name` 的薄转发，使得仅依赖 `<locale/locale.h>`
+     * 的代码（如 stdio 流对象）无需直接看到 `ori_facet_buf` 即可获取该初始名称。
+     * 返回值与字符类型无关；之所以作为 `locale` 的静态成员暴露，是为了让调用方只
+     * 看见 `locale`。
      * @endif
      *
      * @lang{EN}
-     * Query the current global C locale name; fall back to "C" if unavailable.
+     * Return the *initial* locale name for an `LC_*` category, as resolved from the
+     * environment at program startup.
      *
-     * @warning This reads the *process-wide global* locale via
-     * `std::setlocale(category, nullptr)`: the returned pointer aliases a shared
-     * C-library buffer that is then copied into a `std::string`. The read *assumes
-     * no other thread concurrently calls `std::setlocale` with a non-null argument*
-     * to mutate the global locale -- otherwise, since `setlocale` need not be
-     * thread-safe, the buffer may be rewritten/invalidated mid-copy, a data race
-     * (UB). Note that pure query reads do not conflict with each other; only a
-     * read racing a concurrent write is a problem, so under the usual model
-     * (configure the locale once, single-threaded, at startup, then never modify
-     * it) no such race exists. This assumption is the same one messages makes for
-     * `getenv`; it cannot be synchronized at the library level because external
-     * `setlocale` writers do not go through any lock this library controls.
-     * Callers should configure the locale once, single-threaded, at startup.
-     *
-     * Also note that the `involve_msg` (char overload) triggers this global read
-     * lazily -- only when `cvt` is empty and a cache miss forces building a new
-     * dictionary (a cache hit does not read it) -- and the default constructor's
-     * calls for the various `LC_*` categories trigger this global read implicitly.
+     * A thin forwarder over `ori_facet_buf::locale_name` so that code depending
+     * only on `<locale/locale.h>` (e.g. the stdio stream objects) can obtain this
+     * initial name without seeing `ori_facet_buf` directly. The result is
+     * independent of character type; it is exposed as a static member of `locale`
+     * so that callers only need to see `locale`.
      * @endif
      */
-    static std::string safe_setlocale(int category)
+    static const std::string& initial_locale_name(int category)
     {
-        const char* p = std::setlocale(category, nullptr);
-        return p ? p : "C";
+        return s_ori_facet_buf.locale_name(category);
     }
 
+private:
     template <template <typename> class T>
     void init(const std::string& ft_name)
     {

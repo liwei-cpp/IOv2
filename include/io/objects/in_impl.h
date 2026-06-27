@@ -8,6 +8,7 @@
 #include <io/objects/out_impl.h>
 #include <io/utilities/istream_operators.h>
 #include <io/utilities/stream_common_operators.h>
+#include <locale/locale.h>
 
 namespace IOv2
 {
@@ -127,7 +128,7 @@ class __wcin : public stdin_api<__wcin, std_device<STDIN_FILENO>, wchar_t>
 
 private:
     __wcin()
-        : BT(code_cvt_stdio_creator(std::setlocale(LC_CTYPE, nullptr)))
+        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {
         tie(&wcout);
     }
