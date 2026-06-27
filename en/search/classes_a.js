@@ -10,5 +10,6 @@ var searchData=
   ['monetary_7',['monetary',['../classIOv2_1_1monetary.html',1,'IOv2']]],
   ['monetary_5fconf_8',['monetary_conf',['../classIOv2_1_1monetary__conf.html',1,'IOv2']]],
   ['monetary_5fconf_3c_20char_20_3e_9',['monetary_conf&lt; char &gt;',['../classIOv2_1_1monetary__conf_3_01char_01_4.html',1,'IOv2']]],
-  ['monetary_5fconf_3c_20chart_20_3e_10',['monetary_conf&lt; CharT &gt;',['../classIOv2_1_1monetary__conf_3_01CharT_01_4.html',1,'IOv2']]]
+  ['monetary_5fconf_3c_20chart_20_3e_10',['monetary_conf&lt; CharT &gt;',['../classIOv2_1_1monetary__conf_3_01CharT_01_4.html',1,'IOv2']]],
+  ['msg_5fkey_11',['msg_key',['../structIOv2_1_1detail_1_1msg__key.html',1,'IOv2::detail']]]
 ];

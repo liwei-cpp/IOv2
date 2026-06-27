@@ -201,6 +201,7 @@ var hierarchy =
     [ "IOv2::ft_basic< timeio< char8_t > >", "classIOv2_1_1ft__basic.html", [
       [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", null ]
     ] ],
+    [ "std::hash< IOv2::detail::msg_key >", "structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4.html", null ],
     [ "IOv2::Crypt::hash_cvt_creator< TInt >", "structIOv2_1_1Crypt_1_1hash__cvt__creator.html", null ],
     [ "IOv2::in_sentry< TStream, involve_output >", "structIOv2_1_1in__sentry.html", null ],
     [ "IOv2::sing_temp< T >::init", "structIOv2_1_1sing__temp_1_1init.html", null ],
@@ -271,6 +272,7 @@ var hierarchy =
     [ "IOv2::messages_conf< CharT >", "classIOv2_1_1messages__conf.html", null ],
     [ "IOv2::monetary< CharT >", "classIOv2_1_1monetary.html", null ],
     [ "IOv2::monetary_conf< CharT >", "classIOv2_1_1monetary__conf.html", null ],
+    [ "IOv2::detail::msg_key", "structIOv2_1_1detail_1_1msg__key.html", null ],
     [ "IOv2::numeric< CharT >", "classIOv2_1_1numeric.html", null ],
     [ "IOv2::numeric_conf< CharT >", "classIOv2_1_1numeric__conf.html", null ],
     [ "IOv2::ostreambuf_iterator< TStreamBuf >", "classIOv2_1_1ostreambuf__iterator.html", null ],

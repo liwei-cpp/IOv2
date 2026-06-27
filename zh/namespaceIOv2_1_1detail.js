@@ -1,6 +1,7 @@
 var namespaceIOv2_1_1detail =
 [
     [ "ctype_ops", "classIOv2_1_1detail_1_1ctype__ops.html", "classIOv2_1_1detail_1_1ctype__ops" ],
+    [ "msg_key", "structIOv2_1_1detail_1_1msg__key.html", "structIOv2_1_1detail_1_1msg__key" ],
     [ "to_u32string", "namespaceIOv2_1_1detail.html#a801881577b5c1cb239a485b6fab5034b", null ],
     [ "to_u32string", "namespaceIOv2_1_1detail.html#a4c8d5418a7c7dbf2bef67e91162ee5cb", null ],
     [ "to_u8string", "namespaceIOv2_1_1detail.html#a5fcc1d87473297523fb387243e5b0950", null ],

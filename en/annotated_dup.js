@@ -19,7 +19,8 @@ var annotated_dup =
         [ "set_hash_fmt", "structIOv2_1_1Crypt_1_1set__hash__fmt.html", "structIOv2_1_1Crypt_1_1set__hash__fmt" ]
       ] ],
       [ "detail", "namespaceIOv2_1_1detail.html", [
-        [ "ctype_ops", "classIOv2_1_1detail_1_1ctype__ops.html", "classIOv2_1_1detail_1_1ctype__ops" ]
+        [ "ctype_ops", "classIOv2_1_1detail_1_1ctype__ops.html", "classIOv2_1_1detail_1_1ctype__ops" ],
+        [ "msg_key", "structIOv2_1_1detail_1_1msg__key.html", "structIOv2_1_1detail_1_1msg__key" ]
       ] ],
       [ "__cerr", "classIOv2_1_1____cerr.html", null ],
       [ "__cin", "classIOv2_1_1____cin.html", null ],
@@ -194,5 +195,8 @@ var annotated_dup =
       [ "writer< TChar, TChar * >", "structIOv2_1_1writer_3_01TChar_00_01TChar_01_5_01_4.html", "structIOv2_1_1writer_3_01TChar_00_01TChar_01_5_01_4" ],
       [ "writer< TChar, TChar >", "structIOv2_1_1writer_3_01TChar_00_01TChar_01_4.html", "structIOv2_1_1writer_3_01TChar_00_01TChar_01_4" ],
       [ "writer< TChar, TValue >", "structIOv2_1_1writer_3_01TChar_00_01TValue_01_4.html", "structIOv2_1_1writer_3_01TChar_00_01TValue_01_4" ]
+    ] ],
+    [ "std", "namespacestd.html", [
+      [ "hash< IOv2::detail::msg_key >", "structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4.html", "structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4" ]
     ] ]
 ];
