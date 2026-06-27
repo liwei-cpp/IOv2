@@ -8,6 +8,7 @@ var classIOv2_1_1locale =
     [ "get", "classIOv2_1_1locale.html#a666de635d9e06af91557edc109dc004e", null ],
     [ "has", "classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430", null ],
     [ "has", "classIOv2_1_1locale.html#aae16549f64b4bb39db9940bfd13e9f2d", null ],
+    [ "initial_locale_name", "classIOv2_1_1locale.html#a9c443f0468115d1a8c71534ef51ea045", null ],
     [ "involve", "classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd", null ],
     [ "involve_msg", "classIOv2_1_1locale.html#a08649f6345102f392e269d796a3458dc", null ],
     [ "involve_msg", "classIOv2_1_1locale.html#a8f1c4de1c8e0d121d26c8f664494ae1f", null ],
