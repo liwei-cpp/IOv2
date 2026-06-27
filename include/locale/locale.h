@@ -132,7 +132,7 @@ class locale
     template <typename... T>
     struct ft_wrapper<facet_create_pack<T...>>
     {
-        ft_wrapper(const locale& l)
+        explicit ft_wrapper(const locale& l)
             : m_ref(l) {}
 
         bool has() const
@@ -173,7 +173,7 @@ class locale
     template <typename... T>
     struct ft_wrapper<facet_create_rule<T...>>
     {
-        ft_wrapper(const locale& l)
+        explicit ft_wrapper(const locale& l)
             : m_ref(l) {}
 
         bool has() const
@@ -211,7 +211,6 @@ class locale
             }
         }
 
-
         template <typename TF>
         std::shared_ptr<TF> get_helper()
         {
@@ -231,7 +230,6 @@ class locale
             }
             else
             {
-
                 std::shared_ptr<TC> obj = m_ref.get<TC>();
                 if (obj)
                     return std::make_shared<TF>(std::move(obj));
@@ -244,6 +242,30 @@ class locale
     };
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 以**程序启动时由环境变量解析得到**的各 `LC_*` locale 名称构造 locale。
+     *
+     * 每个 facet 的 locale 名称取自 `ori_facet_buf::locale_name(LC_*)`；这些名称在单例
+     * 构造期已由 `resolve_locale` 校验过（无法实例化的名称已回退为 `"C"`）。因此本
+     * 构造函数**不会**因"locale 名称非法"而抛异常——其名称来源始终可用。这与显式命名
+     * 构造函数 `locale(const std::string&)` 形成对照：后者对调用方显式给定的名称**不**做
+     * 回退，名称无法实例化时直接抛异常。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Construct a locale from the per-`LC_*` names resolved from the
+     * environment at program startup.
+     *
+     * Each facet's locale name comes from `ori_facet_buf::locale_name(LC_*)`; those
+     * names were already validated by `resolve_locale` at singleton construction (a
+     * name that could not be instantiated has already fallen back to `"C"`). This
+     * constructor therefore never throws because of an *invalid locale name* -- its
+     * name source is always usable. Contrast the explicitly-named constructor
+     * `locale(const std::string&)`, which does *not* fall back for a caller-supplied
+     * name and throws instead when the name cannot be instantiated.
+     * @endif
+     */
     locale()
     {
         init<ctype_conf>(s_ori_facet_buf.locale_name(LC_CTYPE));
@@ -253,6 +275,40 @@ public:
         init<timeio_conf>(s_ori_facet_buf.locale_name(LC_TIME));
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 以调用方显式给定的 locale 名称构造 locale，其全部 facet 均使用该名称。
+     *
+     * 与默认构造函数不同，本构造函数**不**对 `name` 做"回退到 `"C"`"处理：既然调用方
+     * 显式要求某个特定 locale，则当该名称无法被 C 库实例化时（如拼写错误、宿主未安装
+     * 该 locale），应当**显式失败**而非静默降级到 `"C"`。校验在底层 facet 构造中完成
+     * （`clocale_wrapper` → `newlocale`）；首个失败的 facet 即抛出异常，其余 facet 不再
+     * 构造，半构造的 `locale` 随构造函数栈展开而销毁（不泄漏、不留下污染缓存）。
+     *
+     * @param name 一个在宿主上可被实例化的 locale 名称（语义同 `newlocale`）。
+     * @throws cvt_error 当 `name` 无法被 C 库实例化时抛出（`cvt_error` 派生自 `io_error`，
+     *         并最终派生自 `std::runtime_error`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Construct a locale from a caller-supplied locale name; every facet uses
+     * that name.
+     *
+     * Unlike the default constructor, this one does *not* fall back to `"C"` for
+     * `name`: since the caller explicitly asked for a specific locale, an unknown or
+     * uninstantiable name (a typo, or a locale not installed on the host) fails
+     * loudly rather than silently degrading to `"C"`. Validation happens in the
+     * underlying facet construction (`clocale_wrapper` -> `newlocale`); the first
+     * failing facet throws, the remaining facets are not constructed, and the
+     * partially-built `locale` is destroyed as the constructor unwinds (no leak, no
+     * poisoned cache entry).
+     *
+     * @param name A locale name instantiable on the host (as by `newlocale`).
+     * @throws cvt_error if `name` cannot be instantiated by the C library
+     *         (`cvt_error` derives from `io_error`, and ultimately from
+     *         `std::runtime_error`).
+     * @endif
+     */
     explicit locale(const std::string& name)
     {
         init<ctype_conf>(name);
@@ -286,8 +342,10 @@ public:
     {
         if (this == &val) return *this;
         std::scoped_lock g(val.m_facet_mutex, m_facet_mutex);
-        m_facet_confs = val.m_facet_confs;
-        m_facets = val.m_facets;
+        auto confs  = val.m_facet_confs;
+        auto facets = val.m_facets;
+        m_facet_confs = std::move(confs);
+        m_facets      = std::move(facets);
         return *this;
     }
 
@@ -384,8 +442,14 @@ public:
         return std::dynamic_pointer_cast<TF>(it->second) != nullptr;
     }
 
+    // The `!std::derived_from` conjunct excludes the pathological "both a conf and a
+    // composite facet" type, so that for such a type only the guard overload below is
+    // viable (it would otherwise tie with this one and make the call ambiguous --
+    // std::derived_from is a concept and subsumes, but the bare is_nonempty_... variable
+    // template re-typed in two places forms distinct, non-subsuming atomic constraints).
     template <typename TF>
-        requires (is_nonempty_facet_create_rule<typename TF::create_rules>)
+        requires (is_nonempty_facet_create_rule<typename TF::create_rules>
+                  && !std::derived_from<TF, abs_ft>)
     bool has() const
     {
         {
@@ -396,6 +460,26 @@ public:
 
         ft_wrapper<typename TF::create_rules> obj(*this);
         return obj.has();
+    }
+
+    // Guard overload. A type that is *both* a facet conf (derived from abs_ft) and a
+    // composite facet (with a non-empty create_rules) would satisfy the constraints of
+    // both has() overloads above and make the call ambiguous. By design that never
+    // happens -- confs derive from abs_ft while facets carry create_rules, and they are
+    // distinct types. This overload's constraint is the conjunction of the other two's,
+    // so it subsumes both and is selected unambiguously for such a pathological type,
+    // turning an opaque "ambiguous call" into the precise static_assert below.
+    template <typename TF>
+        requires (std::derived_from<TF, abs_ft>
+                  && is_nonempty_facet_create_rule<typename TF::create_rules>)
+    bool has() const
+    {
+        static_assert(dependent_false_v<TF>,
+                      "has<TF>(): TF is both a facet conf (derived from abs_ft) and a "
+                      "composite facet (with a non-empty create_rules). These roles are "
+                      "mutually exclusive by design -- confs derive from abs_ft, facets "
+                      "carry create_rules -- so such a type is a definition error.");
+        return false;
     }
 
     template <std::derived_from<abs_ft> TF>
@@ -409,8 +493,10 @@ public:
         return std::dynamic_pointer_cast<TF>(it->second);
     }
 
+    // See the has() composite overload above for why `!std::derived_from` is needed.
     template <typename TF>
-        requires (is_nonempty_facet_create_rule<typename TF::create_rules>)
+        requires (is_nonempty_facet_create_rule<typename TF::create_rules>
+                  && !std::derived_from<TF, abs_ft>)
     std::shared_ptr<TF> get() const
     {
         {
@@ -429,6 +515,21 @@ public:
                 return std::static_pointer_cast<TF>(it->second);
         }
         return res;
+    }
+
+    // Guard overload; see the has() guard above for the rationale. Disambiguates (with
+    // a precise diagnostic) a type that is both a facet conf and a composite facet.
+    template <typename TF>
+        requires (std::derived_from<TF, abs_ft>
+                  && is_nonempty_facet_create_rule<typename TF::create_rules>)
+    std::shared_ptr<TF> get() const
+    {
+        static_assert(dependent_false_v<TF>,
+                      "get<TF>(): TF is both a facet conf (derived from abs_ft) and a "
+                      "composite facet (with a non-empty create_rules). These roles are "
+                      "mutually exclusive by design -- confs derive from abs_ft, facets "
+                      "carry create_rules -- so such a type is a definition error.");
+        return nullptr;
     }
 
     /**
