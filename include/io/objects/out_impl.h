@@ -9,6 +9,7 @@
 #include <io/ostream.h>
 #include <io/utilities/ostream_operators.h>
 #include <io/utilities/stream_common_operators.h>
+#include <locale/locale.h>
 
 namespace IOv2
 {
@@ -168,7 +169,7 @@ class __wcout : public stdout_api<__wcout, std_device<STDOUT_FILENO>, wchar_t>
 
 private:
     __wcout()
-        : BT(code_cvt_stdio_creator(std::setlocale(LC_CTYPE, nullptr)))
+        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {}
 
     __wcout(const __wcout&) = delete;
@@ -192,7 +193,7 @@ class __wcerr : public stdout_api<__wcerr, std_device<STDERR_FILENO>, wchar_t>
 
 private:
     __wcerr()
-        : BT(code_cvt_stdio_creator(std::setlocale(LC_CTYPE, nullptr)))
+        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {
         tie(&wcout);
         setf(ios_defs::unitbuf);
@@ -219,7 +220,7 @@ class __wclog : public stdout_api<__wclog, std_device<STDERR_FILENO>, wchar_t>
 
 private:
     __wclog()
-        : BT(code_cvt_stdio_creator(std::setlocale(LC_CTYPE, nullptr)))
+        : BT(code_cvt_stdio_creator(IOv2::locale<char>::initial_locale_name(LC_CTYPE)))
     {}
 
     __wclog(const __wclog&) = delete;
