@@ -1,5 +1,6 @@
 #pragma once
 #include <common/clocale_wrapper.h>
+#include <common/lru_cache.h>
 #include <common/sing_temp.h>
 #include <facet/facet_common.h>
 #include <facet/messages_details.h>
@@ -7,12 +8,61 @@
 #include <clocale>
 #include <cstddef>
 #include <cstdlib>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <tuple>
 #include <unordered_map>
-#include <utility>
+
+namespace IOv2
+{
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * messages 缓存的键：`(domain, lang, cvt)`。
+ *
+ * 采用程序定义的结构体而非 `std::tuple`，以便为其特化 `std::hash`——`lru_cache`
+ * 以 `std::hash<TK>` 为键，而标准库不为 `std::tuple` 提供 `std::hash`。各分量保持
+ * 独立字段（而非以 '\n' 拼接的字符串），使得即便某一分量自身含有分隔符，不同的
+ * `(domain, lang, cvt)` 三元组也始终映射到不同的键。
+ * @endif
+ *
+ * @lang{EN}
+ * Key for the messages cache: `(domain, lang, cvt)`.
+ *
+ * A program-defined struct rather than a `std::tuple` so that `std::hash` can be
+ * specialized for it -- `lru_cache` keys on `std::hash<TK>`, and the standard library
+ * provides no `std::hash` for `std::tuple`. Keeping the components as distinct fields
+ * (instead of a '\n'-joined string) keeps distinct `(domain, lang, cvt)` triples mapped
+ * to distinct keys even when a component itself contains the separator.
+ * @endif
+ */
+struct msg_key
+{
+    std::string domain;
+    std::string lang;
+    std::string cvt;
+    bool operator==(const msg_key&) const = default;
+};
+} // namespace detail
+} // namespace IOv2
+
+namespace std
+{
+template <>
+struct hash<IOv2::detail::msg_key>
+{
+    std::size_t operator()(const IOv2::detail::msg_key& k) const noexcept
+    {
+        const std::hash<std::string> h;
+        std::size_t seed = h(k.domain);
+        seed ^= h(k.lang) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= h(k.cvt) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};
+} // namespace std
 
 namespace IOv2
 {
@@ -28,24 +78,26 @@ public:
 
         {
             std::lock_guard guard(m_mutex);
-            auto& sub_cache = m_cache[id];
-            auto it = sub_cache.find(name);
-            if (it != sub_cache.end())
-                return it->second;
+            if (auto cached = m_cache[id].get(name))
+                return *cached;
         }
 
         // Construct the facet *outside* the lock: a facet constructor may be
         // expensive and -- crucially -- may itself call back into ori_facet_buf, so
         // building under m_mutex would both serialize all construction and risk a
         // self-deadlock on this non-recursive mutex. Re-lock only to insert, and
-        // double-check via emplace: if another thread (or a re-entrant call)
-        // inserted the same (id, name) meanwhile, emplace no-ops and returns the
-        // existing entry, so the object built here is simply discarded.
+        // double-check: if another thread (or a re-entrant call) inserted the same
+        // (id, name) meanwhile, return that entry and discard the object built here.
         auto obj = std::make_shared<TF>(name);
 
         std::lock_guard guard(m_mutex);
         auto& sub_cache = m_cache[id];
-        return sub_cache.emplace(name, std::move(obj)).first->second;
+        if (auto cached = sub_cache.get(name))
+            return *cached;
+        // The get() above missed under this same lock, so the key is absent and put()
+        // simply inserts (no existing value to overwrite).
+        sub_cache.put(name, obj);
+        return obj;
     }
 
     template <typename TChar>
@@ -54,12 +106,9 @@ public:
         const std::size_t id = messages_conf<TChar>::id();
 
         std::lock_guard guard(m_mutex);
-        auto& sub_cache = m_msg_cache[id];
-
-        auto it = sub_cache.find(msg_key{domain, lang, cvt});
-        if (it == sub_cache.end())
-            return nullptr;
-        return std::static_pointer_cast<messages_conf<TChar>>(it->second);
+        if (auto cached = m_msg_cache[id].get(detail::msg_key{domain, lang, cvt}))
+            return std::static_pointer_cast<messages_conf<TChar>>(*cached);
+        return nullptr;
     }
 
     template <typename TChar>
@@ -68,14 +117,14 @@ public:
         if (ptr)
         {
             const std::size_t id = messages_conf<TChar>::id();
+            const detail::msg_key key{domain, lang, cvt};
 
             std::lock_guard guard(m_mutex);
             auto& sub_cache = m_msg_cache[id];
-
-            auto it = sub_cache.find(msg_key{domain, lang, cvt});
-            if (it != sub_cache.end())
-                return std::static_pointer_cast<messages_conf<TChar>>(it->second);
-            sub_cache.emplace(msg_key{domain, lang, cvt}, ptr);
+            if (auto cached = sub_cache.get(key))
+                return std::static_pointer_cast<messages_conf<TChar>>(*cached);
+            // get() missed under this same lock, so the key is absent: put() inserts.
+            sub_cache.put(key, ptr);
         }
         return ptr;
     }
@@ -200,30 +249,26 @@ private:
     std::string m_numeric;
     std::string m_time;
 
-    // Key for the messages cache: (domain, lang, cvt). Using a tuple instead of a
-    // '\n'-joined string removes the ambiguity collision that arises when a
-    // component itself contains the separator (e.g. a domain with an embedded
-    // '\n'): distinct (domain, lang, cvt) triples always map to distinct keys.
-    using msg_key = std::tuple<std::string, std::string, std::string>;
+    // Upper bound on the number of distinct entries cached *per facet type* (per name
+    // for m_cache, per (domain, lang, cvt) for m_msg_cache). Past this, the lru_cache
+    // evicts the least-recently-used entry, bounding memory under workloads that derive
+    // locale names / message keys from variable (e.g. external) input. The outer map's
+    // key space -- one entry per facet type id -- is already bounded by the program's
+    // instantiated facet types. Eviction only forces a rebuild of an equivalent,
+    // immutable facet on the next miss; nothing relies on facet identity, so this is
+    // purely an interning optimization, not a correctness guarantee.
+    static constexpr std::size_t s_cache_capacity = 256;
 
-    struct msg_key_hash
-    {
-        std::size_t operator()(const msg_key& k) const noexcept
-        {
-            const std::hash<std::string> h;
-            std::size_t seed = h(std::get<0>(k));
-            seed ^= h(std::get<1>(k)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            seed ^= h(std::get<2>(k)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            return seed;
-        }
-    };
-
-    std::unordered_map<size_t, std::unordered_map<std::string, std::shared_ptr<abs_ft>>> m_cache;
-    std::unordered_map<size_t, std::unordered_map<msg_key, std::shared_ptr<abs_ft>, msg_key_hash>> m_msg_cache;
+    std::unordered_map<std::size_t, lru_cache<std::string, std::shared_ptr<abs_ft>, s_cache_capacity>> m_cache;
+    std::unordered_map<std::size_t, lru_cache<detail::msg_key, std::shared_ptr<abs_ft>, s_cache_capacity>> m_msg_cache;
     // Guards m_cache / m_msg_cache. Facet construction in try_get happens *outside*
     // this lock (it is taken only to look up and to insert), so the mutex is never
     // held across a facet constructor. That keeps construction unserialized and
     // makes a re-entrant facet ctor safe even though the mutex is non-recursive.
+    //
+    // The lock must also cover every *lookup*: lru_cache::get() reorders the LRU list
+    // (it is a mutating "touch"), so concurrent gets would race -- there is no
+    // lock-free read path here.
     std::mutex m_mutex;
 };
 
