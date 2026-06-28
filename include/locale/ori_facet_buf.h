@@ -11,6 +11,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
@@ -171,10 +172,9 @@ public:
         case LC_TIME:
             return m_time;
         default:
-            {
-                static const std::string c_locale = "C";
-                return c_locale;
-            }
+            throw std::invalid_argument(
+                "locale_name: unsupported LC category " + std::to_string(category)
+                + " (only LC_CTYPE/COLLATE/MONETARY/NUMERIC/TIME are resolved).");
         }
     }
 

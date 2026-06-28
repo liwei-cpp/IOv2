@@ -10,6 +10,7 @@
 
 #pragma once
 #include <array>
+#include <cstddef>
 #include <cstdlib>
 #include <type_traits>
 
@@ -130,9 +131,8 @@ public:
             auto& count = RefCount();
             if (count++ == 0)
             {
-                T* ptr = sing_temp::ptr();
                 try {
-                    new (ptr) T();
+                    sing_temp::instance() = ::new (sing_temp::storage()) T();
                 } catch (...) {
                     // sing_temp is designed for static initialization before main().
                     // If T() throws, the singleton cannot be constructed and there is
@@ -148,8 +148,8 @@ public:
             auto& count = RefCount();
             if (--count == 0)
             {
-                T* ptr = sing_temp::ptr();
-                ptr->~T();
+                sing_temp::instance()->~T();
+                sing_temp::instance() = nullptr;
             }
         }
 
@@ -208,11 +208,58 @@ public:
      */
     [[nodiscard]] static T* ptr()
     {
-        static_assert(std::is_class_v<T>, "sing_temp: T must be a class type");
-        static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
+        return instance();
+    }
 
-        alignas(T) static std::array<char, sizeof(T)> sing_buf;
-        return reinterpret_cast<T*>(sing_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+private:
+    /**
+     * @lang{ZH}
+     * 获取指向单例对象的规范指针的引用。
+     *
+     * 该指针由构造单例的 placement-new 表达式产出并在此保存；对单例的所有访问都
+     * 经由它，因此无需 std::launder。其值在构造前 / 析构后为 nullptr。
+     *
+     * @return 对该规范指针的引用（便于 init 写入与清空）
+     * @endif
+     *
+     * @lang{EN}
+     * Get a reference to the canonical pointer to the singleton object.
+     *
+     * The pointer is produced and stored by the placement-new that constructs the
+     * singleton; every access goes through it, so std::launder is never needed. Its
+     * value is nullptr before construction / after destruction.
+     *
+     * @return Reference to the canonical pointer (so init can set and clear it)
+     * @endif
+     */
+    [[nodiscard]] static T*& instance() noexcept
+    {
+        static T* p = nullptr;
+        return p;
+    }
+
+    /**
+     * @lang{ZH}
+     * 获取单例的原始、正确对齐的存储。
+     *
+     * 仅用作 placement-new 的目标；对象本身一律通过 instance() 持有的指针访问。
+     *
+     * @return 指向存储首字节的指针
+     * @endif
+     *
+     * @lang{EN}
+     * Get the raw, correctly-aligned storage for the singleton.
+     *
+     * Used only as the placement-new target; the object itself is always accessed
+     * through the pointer held by instance().
+     *
+     * @return Pointer to the first byte of the storage
+     * @endif
+     */
+    [[nodiscard]] static void* storage() noexcept
+    {
+        alignas(T) static std::array<std::byte, sizeof(T)> sing_buf;
+        return sing_buf.data();
     }
 };
 }

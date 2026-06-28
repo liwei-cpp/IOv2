@@ -73,8 +73,10 @@ static_assert(sizeof(void*) == sizeof(size_t),
  * 锁——复合操作的原子性无法由内部 per-operation 加锁提供。
  *
  * @note `involve` / `involve_msg` / `remove` 均为 const：它们基于 `*this` 的一份
- * 一致快照构造并返回**新的** `locale`，从不原地修改 `*this`（写时拷贝）。因此一个
- * `locale` 实例唯一的"变异面"就是赋值；按上述契约同步赋值即可。
+ * 一致快照构造并返回**新的** `locale`，从不原地修改 `*this`（写时拷贝）。因此对一个
+ * **已存在**的 `locale` 实例而言，会改变其状态的操作只有两类：赋值（改变被赋值的实例），
+ * 以及移动构造 / 移动赋值（**额外会清空被移动的源对象**）。上面按实例独占的同步契约适用于
+ * 每一个被如此改变的实例——**包括移动的源对象**；拷贝构造是 const，不在此列。
  * @endif
  *
  * @lang{EN}
@@ -114,9 +116,12 @@ static_assert(sizeof(void*) == sizeof(size_t),
  *
  * @note `involve` / `involve_msg` / `remove` are const: they build and return a
  * *new* `locale` from a single consistent snapshot of `*this` and never mutate
- * `*this` in place (copy-on-write). The only mutating surface of a `locale`
- * instance is therefore assignment; synchronizing assignment per the contract
- * above is sufficient.
+ * `*this` in place (copy-on-write). For an *existing* `locale` instance, then, the
+ * only state-changing operations are assignment (which mutates the assigned-to
+ * instance) and move construction / move assignment (which *additionally empties the
+ * moved-from source*). The per-instance synchronization contract above applies to
+ * every instance so mutated -- including the moved-from source; copy construction, by
+ * contrast, is const and is not among them.
  * @endif
  *
  * @tparam TChar
@@ -244,78 +249,72 @@ class locale
 public:
     /**
      * @lang{ZH}
-     * @brief 以**程序启动时由环境变量解析得到**的各 `LC_*` locale 名称构造 locale。
+     * @brief 构造 locale；`name` 为空串（默认）表示使用**程序启动时由环境变量解析得到**
+     * 的各 `LC_*` locale，否则其全部 facet 均使用调用方显式给定的 `name`。
      *
-     * 每个 facet 的 locale 名称取自 `ori_facet_buf::locale_name(LC_*)`；这些名称在单例
-     * 构造期已由 `resolve_locale` 校验过（无法实例化的名称已回退为 `"C"`）。因此本
-     * 构造函数**不会**因"locale 名称非法"而抛异常——其名称来源始终可用。这与显式命名
-     * 构造函数 `locale(const std::string&)` 形成对照：后者对调用方显式给定的名称**不**做
-     * 回退，名称无法实例化时直接抛异常。
+     * - **`name` 为空串 `""`（含默认实参）**：等价于"环境 / 默认 locale"。每个 facet 的
+     *   locale 名称逐类别取自 `ori_facet_buf::locale_name(LC_*)`；这些名称在单例构造期已由
+     *   `resolve_locale` 校验过（无法实例化的名称已回退为 `"C"`）。因此这种情形**不会**因
+     *   "locale 名称非法"而抛异常——其名称来源始终可用。注意：空串是表示"环境 / 默认"的
+     *   **显式哨兵**，**不会**被原样传给 `newlocale`。
+     * - **`name` 非空**：全部 facet 均使用该名称，且**不**做"回退到 `"C"`"处理。既然调用方
+     *   显式要求某个特定 locale，则当该名称无法被 C 库实例化时（如拼写错误、宿主未安装该
+     *   locale），应当**显式失败**而非静默降级。校验在底层 facet 构造中完成
+     *   （`clocale_wrapper` → `newlocale`）；首个失败的 facet 即抛出异常，其余 facet 不再
+     *   构造，半构造的 `locale` 随构造函数栈展开而销毁（不泄漏、不留下污染缓存）。
+     *
+     * @param name 一个在宿主上可被实例化的 locale 名称（语义同 `newlocale`）；为空串
+     *        （默认）时表示使用环境 / 默认 locale。
+     * @throws cvt_error 当**非空** `name` 无法被 C 库实例化时抛出（`cvt_error` 派生自
+     *         `io_error`，并最终派生自 `std::runtime_error`）。空 `name` 不会因此抛出。
      * @endif
      *
      * @lang{EN}
-     * @brief Construct a locale from the per-`LC_*` names resolved from the
-     * environment at program startup.
+     * @brief Construct a locale; an empty `name` (the default) selects the per-`LC_*`
+     * locales resolved from the environment at program startup, otherwise every facet
+     * uses the caller-supplied `name`.
      *
-     * Each facet's locale name comes from `ori_facet_buf::locale_name(LC_*)`; those
-     * names were already validated by `resolve_locale` at singleton construction (a
-     * name that could not be instantiated has already fallen back to `"C"`). This
-     * constructor therefore never throws because of an *invalid locale name* -- its
-     * name source is always usable. Contrast the explicitly-named constructor
-     * `locale(const std::string&)`, which does *not* fall back for a caller-supplied
-     * name and throws instead when the name cannot be instantiated.
-     * @endif
-     */
-    locale()
-    {
-        init<ctype_conf>(s_ori_facet_buf.locale_name(LC_CTYPE));
-        init<collate_conf>(s_ori_facet_buf.locale_name(LC_COLLATE));
-        init<monetary_conf>(s_ori_facet_buf.locale_name(LC_MONETARY));
-        init<numeric_conf>(s_ori_facet_buf.locale_name(LC_NUMERIC));
-        init<timeio_conf>(s_ori_facet_buf.locale_name(LC_TIME));
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 以调用方显式给定的 locale 名称构造 locale，其全部 facet 均使用该名称。
+     * - **`name` is the empty string `""` (including the default argument)**: equivalent
+     *   to the "environment / default locale". Each facet's locale name is taken
+     *   per-category from `ori_facet_buf::locale_name(LC_*)`; those names were already
+     *   validated by `resolve_locale` at singleton construction (a name that could not
+     *   be instantiated has already fallen back to `"C"`). This case therefore never
+     *   throws because of an *invalid locale name* -- its name source is always usable.
+     *   Note the empty string is an explicit sentinel for "environment / default"; it is
+     *   never passed through to `newlocale`.
+     * - **`name` is non-empty**: every facet uses that name and does *not* fall back to
+     *   `"C"`. Since the caller explicitly asked for a specific locale, an unknown or
+     *   uninstantiable name (a typo, or a locale not installed on the host) fails loudly
+     *   rather than silently degrading. Validation happens in the underlying facet
+     *   construction (`clocale_wrapper` -> `newlocale`); the first failing facet throws,
+     *   the remaining facets are not constructed, and the partially-built `locale` is
+     *   destroyed as the constructor unwinds (no leak, no poisoned cache entry).
      *
-     * 与默认构造函数不同，本构造函数**不**对 `name` 做"回退到 `"C"`"处理：既然调用方
-     * 显式要求某个特定 locale，则当该名称无法被 C 库实例化时（如拼写错误、宿主未安装
-     * 该 locale），应当**显式失败**而非静默降级到 `"C"`。校验在底层 facet 构造中完成
-     * （`clocale_wrapper` → `newlocale`）；首个失败的 facet 即抛出异常，其余 facet 不再
-     * 构造，半构造的 `locale` 随构造函数栈展开而销毁（不泄漏、不留下污染缓存）。
-     *
-     * @param name 一个在宿主上可被实例化的 locale 名称（语义同 `newlocale`）。
-     * @throws cvt_error 当 `name` 无法被 C 库实例化时抛出（`cvt_error` 派生自 `io_error`，
-     *         并最终派生自 `std::runtime_error`）。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Construct a locale from a caller-supplied locale name; every facet uses
-     * that name.
-     *
-     * Unlike the default constructor, this one does *not* fall back to `"C"` for
-     * `name`: since the caller explicitly asked for a specific locale, an unknown or
-     * uninstantiable name (a typo, or a locale not installed on the host) fails
-     * loudly rather than silently degrading to `"C"`. Validation happens in the
-     * underlying facet construction (`clocale_wrapper` -> `newlocale`); the first
-     * failing facet throws, the remaining facets are not constructed, and the
-     * partially-built `locale` is destroyed as the constructor unwinds (no leak, no
-     * poisoned cache entry).
-     *
-     * @param name A locale name instantiable on the host (as by `newlocale`).
-     * @throws cvt_error if `name` cannot be instantiated by the C library
+     * @param name A locale name instantiable on the host (as by `newlocale`); empty (the
+     *        default) selects the environment / default locale.
+     * @throws cvt_error if a *non-empty* `name` cannot be instantiated by the C library
      *         (`cvt_error` derives from `io_error`, and ultimately from
-     *         `std::runtime_error`).
+     *         `std::runtime_error`). An empty `name` never throws for this reason.
      * @endif
      */
-    explicit locale(const std::string& name)
+    explicit locale(const std::string& name = "")
     {
-        init<ctype_conf>(name);
-        init<collate_conf>(name);
-        init<monetary_conf>(name);
-        init<numeric_conf>(name);
-        init<timeio_conf>(name);
+        if (name.empty())
+        {
+            init<ctype_conf>(s_ori_facet_buf.locale_name(LC_CTYPE));
+            init<collate_conf>(s_ori_facet_buf.locale_name(LC_COLLATE));
+            init<monetary_conf>(s_ori_facet_buf.locale_name(LC_MONETARY));
+            init<numeric_conf>(s_ori_facet_buf.locale_name(LC_NUMERIC));
+            init<timeio_conf>(s_ori_facet_buf.locale_name(LC_TIME));
+        }
+        else
+        {
+            init<ctype_conf>(name);
+            init<collate_conf>(name);
+            init<monetary_conf>(name);
+            init<numeric_conf>(name);
+            init<timeio_conf>(name);
+        }
     }
 
     locale(const locale& val)
@@ -368,6 +367,48 @@ public:
         return res;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 返回一个在 `*this` 基础上、额外绑定了指定文本域消息翻译的**新** locale
+     * （写时拷贝；`*this` 不变）。
+     *
+     * 一个 `locale` 实例**最多只能持有一个** messages facet（`m_facet_confs` 以单一的
+     * `messages_conf<TChar>` 类型 id 为键，与 domain 无关）。因此若 `*this` 已含 messages
+     * facet，本函数**直接抛异常**而非静默替换——即便 domain 相同也不例外。若需改绑到另一
+     * domain / 语言，调用方须先 `remove<messages_conf<TChar>>()`。
+     *
+     * 对不支持的字符类型（无 `messages_conf<TChar>` 特化，如 `char16_t` 或非 UTF-32 的
+     * `wchar_t`），本函数是**编译期**错误（见内部 `static_assert`）。
+     *
+     * @param domain 文本域名称（`.mo` 文件基名）。
+     * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
+     * @throws std::runtime_error 当 `*this` 已含 messages facet 时抛出。
+     * @return 绑定了该 messages facet 的新 `locale`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Return a *new* locale that, on top of `*this`, additionally binds the
+     * message translations for the given text domain (copy-on-write; `*this` is
+     * unchanged).
+     *
+     * A `locale` instance can hold **at most one** messages facet (`m_facet_confs`
+     * keys it by the single `messages_conf<TChar>` type id, independent of domain). If
+     * `*this` already has a messages facet this function therefore **throws** rather
+     * than silently replacing it -- even when the domain is the same. To rebind to a
+     * different domain / language, the caller must first
+     * `remove<messages_conf<TChar>>()`.
+     *
+     * For an unsupported character type (no `messages_conf<TChar>` specialization,
+     * e.g. `char16_t` or a non-UTF-32 `wchar_t`) this is a *compile-time* error (see
+     * the internal `static_assert`).
+     *
+     * @param domain The text domain name (the `.mo` file's basename).
+     * @param lang The candidate language string; empty (the default) defers to the
+     *        environment.
+     * @throws std::runtime_error if `*this` already has a messages facet.
+     * @return A new `locale` carrying that messages facet.
+     * @endif
+     */
     locale involve_msg(const std::string& domain, const std::string& lang = "") const requires (!std::is_same_v<TChar, char>)
     {
         // messages_conf<TChar> is only specialized for char8_t, char32_t and
@@ -381,6 +422,10 @@ public:
                       "involve_msg: messages translation is unsupported for this character "
                       "type -- no messages_conf<TChar> specialization exists (e.g. char16_t, "
                       "or wchar_t on a non-UTF-32 platform).");
+        if (has<messages_conf<TChar>>())
+            throw std::runtime_error("involve_msg: locale already has a messages facet; "
+                                     "remove it before involving another (a locale supports "
+                                     "at most one messages facet).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang);
         if (!ft)
@@ -395,9 +440,48 @@ public:
         return res;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief `char` 版本：返回一个在 `*this` 基础上绑定了指定文本域消息翻译的**新** locale
+     * （写时拷贝）；额外接受目标编码名 `cvt`。
+     *
+     * 同非 `char` 重载：一个 `locale` **最多一个** messages facet；若 `*this` 已含 messages
+     * facet 则**抛异常**（同 domain 也不例外），改绑前须先 `remove<messages_conf<char>>()`。
+     *
+     * @param domain 文本域名称（`.mo` 文件基名）。
+     * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
+     * @param cvt 目标 `char` 编码名；为空（默认）时取程序启动时解析得到的 `LC_CTYPE` 编码，
+     *        并以该有效值同时作为缓存键与构造参数。
+     * @throws std::runtime_error 当 `*this` 已含 messages facet 时抛出。
+     * @return 绑定了该 messages facet 的新 `locale`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief `char` overload: return a *new* locale that, on top of `*this`, binds the
+     * message translations for the given text domain (copy-on-write); additionally
+     * takes a target encoding name `cvt`.
+     *
+     * As with the non-`char` overload, a `locale` holds **at most one** messages facet;
+     * if `*this` already has one this **throws** (even for the same domain), and
+     * rebinding requires a prior `remove<messages_conf<char>>()`.
+     *
+     * @param domain The text domain name (the `.mo` file's basename).
+     * @param lang The candidate language string; empty (the default) defers to the
+     *        environment.
+     * @param cvt The target `char` encoding name; empty (the default) maps to the
+     *        `LC_CTYPE` encoding resolved at program startup, and that effective value
+     *        is used as both the cache key and the construction argument.
+     * @throws std::runtime_error if `*this` already has a messages facet.
+     * @return A new `locale` carrying that messages facet.
+     * @endif
+     */
     locale involve_msg(const std::string& domain, const std::string& lang = "",
                        const std::string& cvt = "") const requires (std::is_same_v<TChar, char>)
     {
+        if (has<messages_conf<char>>())
+            throw std::runtime_error("involve_msg: locale already has a messages facet; "
+                                     "remove it before involving another (a locale supports "
+                                     "at most one messages facet).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         // Resolve the encoding up front and use it consistently as both the cache
         // key and the construction argument. An empty cvt maps to the (stable,
