@@ -1,7 +1,6 @@
 var classIOv2_1_1locale =
 [
-    [ "locale", "classIOv2_1_1locale.html#ad296e1bc1e41578b6e8902f75843ba0e", null ],
-    [ "locale", "classIOv2_1_1locale.html#a830785ff62e52840a7f8994b54bc3c23", null ],
+    [ "locale", "classIOv2_1_1locale.html#aaf34ba217f75cb35f0f669f774fdd1c2", null ],
     [ "locale", "classIOv2_1_1locale.html#a7b711197706932a597adebb9e83b49ce", null ],
     [ "locale", "classIOv2_1_1locale.html#a615bac5e0b6282dbe9eb2b147a584d0f", null ],
     [ "get", "classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040", null ],

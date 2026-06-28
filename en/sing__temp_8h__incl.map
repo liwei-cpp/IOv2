@@ -1,9 +1,11 @@
 <map id="include/common/sing_temp.h" name="include/common/sing_temp.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="38,5,199,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="86,5,247,45"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,93,61,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,48,58,86,54,82,96,44"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="86,93,151,119"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="121,46,121,79,116,79,116,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="175,93,267,119"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="145,43,197,83,194,87,142,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,48,66,89,63,84,133,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="86,93,157,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,47,137,83,133,80,153,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="181,93,246,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,44,202,80,197,83,176,47"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="270,93,362,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="204,43,283,84,280,89,201,48"/>
 </map>
