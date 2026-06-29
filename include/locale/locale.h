@@ -1,4 +1,6 @@
 #pragma once
+#include <common/defs.h>
+#include <common/metafunctions.h>
 #include <facet/collate.h>
 #include <facet/ctype.h>
 #include <facet/facet_common.h>
@@ -15,7 +17,6 @@
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -334,17 +335,27 @@ public:
     // Assignment is the only mutating operation on a locale instance. Per the
     // class threading contract (see the class doc), the caller must ensure no
     // other thread accesses *this same instance* (read or write) during an
-    // assignment. The locks below keep the source consistent and the maps free
-    // of torn reads, but they do NOT make a concurrent get<TF>() on the
-    // assigned-into object atomic against the assignment.
+    // assignment. Two-phase locking: first snapshot the source under a shared
+    // lock (concurrent const readers of the source are not blocked), then publish
+    // into *this under an exclusive lock. The two locks are never held at once, so
+    // this is deadlock-free by construction. They keep the source consistent and
+    // the maps free of torn reads, but they do NOT make a concurrent get<TF>() on
+    // the assigned-into object atomic against the assignment.
     locale& operator=(const locale& val)
     {
         if (this == &val) return *this;
-        std::scoped_lock g(val.m_facet_mutex, m_facet_mutex);
-        auto confs  = val.m_facet_confs;
-        auto facets = val.m_facets;
-        m_facet_confs = std::move(confs);
-        m_facets      = std::move(facets);
+        decltype(m_facet_confs) confs;
+        decltype(m_facets)      facets;
+        {
+            std::shared_lock src(val.m_facet_mutex);
+            confs  = val.m_facet_confs;
+            facets = val.m_facets;
+        }
+        {
+            std::unique_lock dst(m_facet_mutex);
+            m_facet_confs = std::move(confs);
+            m_facets      = std::move(facets);
+        }
         return *this;
     }
 
@@ -359,7 +370,7 @@ public:
 
     locale involve(std::shared_ptr<abs_ft> ft) const
     {
-        if (!ft) throw std::runtime_error("cannot add empty facet pointer into locale.");
+        if (!ft) throw stream_error("cannot add empty facet pointer into locale.");
 
         locale res(*this);
         res.m_facet_confs[ft->id()] = std::move(ft);
@@ -382,7 +393,12 @@ public:
      *
      * @param domain 文本域名称（`.mo` 文件基名）。
      * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
-     * @throws std::runtime_error 当 `*this` 已含 messages facet 时抛出。
+     * @throws stream_error 当 `*this` 已含 messages facet 时抛出。
+     * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
+     *         `available` → `std::filesystem::exists`）时，若 domain / 派生路径触发
+     *         "文件不存在"以外的文件系统错误（如 ENAMETOOLONG、ELOOP、EACCES、ENOTDIR）
+     *         则抛出。此情形发生在任何 `throw_if_fail` 保护之外，与之无关。
+     * @throws std::bad_alloc 构造 messages facet 期间内存分配失败时抛出。
      * @return 绑定了该 messages facet 的新 `locale`。
      * @endif
      *
@@ -405,7 +421,13 @@ public:
      * @param domain The text domain name (the `.mo` file's basename).
      * @param lang The candidate language string; empty (the default) defers to the
      *        environment.
-     * @throws std::runtime_error if `*this` already has a messages facet.
+     * @throws stream_error if `*this` already has a messages facet.
+     * @throws std::filesystem::filesystem_error if resolving translation-file
+     *         availability (`filter_lang` -> `available` -> `std::filesystem::exists`)
+     *         hits a filesystem error other than "not found" (e.g. ENAMETOOLONG,
+     *         ELOOP, EACCES, ENOTDIR) for the domain / derived path. This happens
+     *         outside any `throw_if_fail` guard and is independent of it.
+     * @throws std::bad_alloc on allocation failure while building the messages facet.
      * @return A new `locale` carrying that messages facet.
      * @endif
      */
@@ -423,9 +445,9 @@ public:
                       "type -- no messages_conf<TChar> specialization exists (e.g. char16_t, "
                       "or wchar_t on a non-UTF-32 platform).");
         if (has<messages_conf<TChar>>())
-            throw std::runtime_error("involve_msg: locale already has a messages facet; "
-                                     "remove it before involving another (a locale supports "
-                                     "at most one messages facet).");
+            throw stream_error("involve_msg: locale already has a messages facet; "
+                               "remove it before involving another (a locale supports "
+                               "at most one messages facet).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang);
         if (!ft)
@@ -452,7 +474,12 @@ public:
      * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
      * @param cvt 目标 `char` 编码名；为空（默认）时取程序启动时解析得到的 `LC_CTYPE` 编码，
      *        并以该有效值同时作为缓存键与构造参数。
-     * @throws std::runtime_error 当 `*this` 已含 messages facet 时抛出。
+     * @throws stream_error 当 `*this` 已含 messages facet 时抛出。
+     * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
+     *         `available` → `std::filesystem::exists`）时，若 domain / 派生路径触发
+     *         "文件不存在"以外的文件系统错误（如 ENAMETOOLONG、ELOOP、EACCES、ENOTDIR）
+     *         则抛出。此情形发生在任何 `throw_if_fail` 保护之外，与之无关。
+     * @throws std::bad_alloc 构造 messages facet 期间内存分配失败时抛出。
      * @return 绑定了该 messages facet 的新 `locale`。
      * @endif
      *
@@ -471,7 +498,13 @@ public:
      * @param cvt The target `char` encoding name; empty (the default) maps to the
      *        `LC_CTYPE` encoding resolved at program startup, and that effective value
      *        is used as both the cache key and the construction argument.
-     * @throws std::runtime_error if `*this` already has a messages facet.
+     * @throws stream_error if `*this` already has a messages facet.
+     * @throws std::filesystem::filesystem_error if resolving translation-file
+     *         availability (`filter_lang` -> `available` -> `std::filesystem::exists`)
+     *         hits a filesystem error other than "not found" (e.g. ENAMETOOLONG,
+     *         ELOOP, EACCES, ENOTDIR) for the domain / derived path. This happens
+     *         outside any `throw_if_fail` guard and is independent of it.
+     * @throws std::bad_alloc on allocation failure while building the messages facet.
      * @return A new `locale` carrying that messages facet.
      * @endif
      */
@@ -479,9 +512,9 @@ public:
                        const std::string& cvt = "") const requires (std::is_same_v<TChar, char>)
     {
         if (has<messages_conf<char>>())
-            throw std::runtime_error("involve_msg: locale already has a messages facet; "
-                                     "remove it before involving another (a locale supports "
-                                     "at most one messages facet).");
+            throw stream_error("involve_msg: locale already has a messages facet; "
+                               "remove it before involving another (a locale supports "
+                               "at most one messages facet).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         // Resolve the encoding up front and use it consistently as both the cache
         // key and the construction argument. An empty cvt maps to the (stable,
@@ -624,6 +657,10 @@ public:
      * 的代码（如 stdio 流对象）无需直接看到 `ori_facet_buf` 即可获取该初始名称。
      * 返回值与字符类型无关；之所以作为 `locale` 的静态成员暴露，是为了让调用方只
      * 看见 `locale`。
+     *
+     * @throws stream_error 由底层 `ori_facet_buf::locale_name` 透出：当 `category`
+     *         不是已解析的五个类别之一（`LC_CTYPE` / `LC_COLLATE` / `LC_MONETARY` /
+     *         `LC_NUMERIC` / `LC_TIME`）时抛出，例如传入 `LC_ALL` 或 `LC_MESSAGES`。
      * @endif
      *
      * @lang{EN}
@@ -635,6 +672,11 @@ public:
      * initial name without seeing `ori_facet_buf` directly. The result is
      * independent of character type; it is exposed as a static member of `locale`
      * so that callers only need to see `locale`.
+     *
+     * @throws stream_error propagated from the underlying `ori_facet_buf::locale_name`
+     *         if `category` is not one of the five resolved categories (`LC_CTYPE` /
+     *         `LC_COLLATE` / `LC_MONETARY` / `LC_NUMERIC` / `LC_TIME`), e.g. when
+     *         passed `LC_ALL` or `LC_MESSAGES`.
      * @endif
      */
     static const std::string& initial_locale_name(int category)

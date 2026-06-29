@@ -98,12 +98,15 @@ struct date_parse_helper<CharT, true>
     date_parse_helper()
     {
         using namespace std::chrono;
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-
-        m_year = int(ymd.year());
-        m_month = unsigned(ymd.month());
-        m_mday = unsigned(ymd.day());
+        // Per-field fallbacks for date components the parse leaves unset. These are
+        // independent defaults, not a coherent "date": only the year is taken from the
+        // clock (the useful, tested "this year" default), while month and day are fixed
+        // to January 1. Day 1 is the only day-of-month valid in every month, so a parse
+        // that supplies the month but not the day can never form an invalid calendar
+        // date -- e.g. parsing "Feb" must not inherit today's 29/30/31.
+        m_year = int(year_month_day{floor<days>(system_clock::now())}.year());
+        m_month = 1;
+        m_mday = 1;
     }
 
     /**
