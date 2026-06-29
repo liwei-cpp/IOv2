@@ -30,6 +30,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <exception>
 #include <filesystem>
 #include <mutex>
@@ -426,10 +427,8 @@ protected:
             if (std::fread(buf, 1, 4, fp) != 4)
                 throw stream_error("get_translate_dictionary fail: invalid format");
 
-            std::uint32_t res = static_cast<std::uint32_t>(buf[0])
-                              | (static_cast<std::uint32_t>(buf[1]) << 8)
-                              | (static_cast<std::uint32_t>(buf[2]) << 16)
-                              | (static_cast<std::uint32_t>(buf[3]) << 24);
+            std::uint32_t res = 0;
+            std::memcpy(&res, buf, 4);
             if (need_swap)
                 res = std::byteswap(res);
             return res;
@@ -446,8 +445,21 @@ protected:
             need_swap = (std::endian::native == std::endian::big);
         else throw stream_error("get_translate_dictionary fail: invalid format");
 
-        if ((buff[4] != 0) || (buff[5] != 0) || (buff[6] != 0) || (buff[7] != 0))
-            throw stream_error("get_translate_dictionary fail: invalid format");
+        // Accept any .mo whose major revision (the high 16 bits) is 0, regardless of
+        // minor revision. Only minor 0 (basic) and minor 1 (system-dependent strings)
+        // are defined today, but minor revisions are backward-compatible additions:
+        // they only add separate tables (sysdep strings, hash table) and never change
+        // the regular orig/trans tables this parser reads. Sysdep strings live in their
+        // own orig/trans_sysdep tables we never touch, so a sysdep string is simply
+        // absent (lookup misses and the caller keeps the original) rather than returned
+        // with its segment markers unexpanded. A non-zero major revision uses a layout
+        // this basic parser does not commit to, so it is rejected.
+        std::uint32_t revision = 0;
+        std::memcpy(&revision, buff.data() + 4, 4);
+        if (need_swap)
+            revision = std::byteswap(revision);
+        if ((revision >> 16) != 0)
+            throw stream_error("get_translate_dictionary fail: unsupported .mo major revision");
 
         auto str_num = read_num(buff.data(), need_swap);
         auto ori_offset = read_num(buff.data(), need_swap);
@@ -476,6 +488,7 @@ protected:
         // assuming a fixed maximum. A sanity cap guards against a corrupt or
         // malicious file requesting a huge allocation.
         constexpr std::uint32_t k_max_str_len = 64u * 1024u * 1024u; // 64 MiB
+        std::uint64_t total_str_bytes = 0;
         std::vector<char8_t> str_buf;
         std::vector<std::u8string> oris;
         for (size_t i = 0; i < str_num; ++i)
@@ -487,6 +500,9 @@ protected:
 
             if (length > k_max_str_len)
                 throw stream_error("get_translate_dictionary fail: string too long");
+            total_str_bytes += length;
+            if (total_str_bytes > static_cast<std::uint64_t>(file_size))
+                throw stream_error("get_translate_dictionary fail: total string bytes exceed file size");
             if (str_buf.size() < static_cast<size_t>(length) + 1)
                 str_buf.resize(static_cast<size_t>(length) + 1);
 
@@ -516,6 +532,9 @@ protected:
 
             if (length > k_max_str_len)
                 throw stream_error("get_translate_dictionary fail: string too long");
+            total_str_bytes += length;
+            if (total_str_bytes > static_cast<std::uint64_t>(file_size))
+                throw stream_error("get_translate_dictionary fail: total string bytes exceed file size");
             if (str_buf.size() < static_cast<size_t>(length) + 1)
                 str_buf.resize(static_cast<size_t>(length) + 1);
 
