@@ -178,7 +178,13 @@ Public 成员函数</h2></td></tr>
 </div><div class="memdoc">
 <p>返回某个 <code>LC_*</code> 类别在**程序启动时由环境变量解析得到**的 locale 名称。</p>
 <p>这些名称在单例构造（静态初始化期、<code>main</code> 之前、单线程）时由 <code>resolve_locale</code> 一次性解析并保存，此后只读、不再变化；因此该访问器返回的是 不可变成员的常量引用，无需加锁，也不会与 <code>setlocale</code> 写者发生数据竞争—— 它根本不读取进程级全局 C locale。</p>
-<dl class="section note"><dt>注解</dt><dd>这意味着本库的 locale 来源是**环境变量**，而**不**跟随运行期对 <code>std::setlocale</code> 的编程式修改。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>这意味着本库的 locale 来源是**环境变量**，而**不**跟随运行期对 <code>std::setlocale</code> 的编程式修改。</dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>当 <code>category</code> 不是已解析的五个类别之一 （<code>LC_CTYPE</code> / <code>LC_COLLATE</code> / <code>LC_MONETARY</code> / <code>LC_NUMERIC</code> / <code>LC_TIME</code>）时抛出， 例如传入 <code>LC_ALL</code> 或 <code>LC_MESSAGES</code>。 </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

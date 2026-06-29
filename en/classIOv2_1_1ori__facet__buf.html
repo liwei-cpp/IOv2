@@ -178,7 +178,13 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 <p>Return the locale name for an <code>LC_*</code> category as <em>resolved from the environment at program startup</em>.</p>
 <p>The names are resolved once by <code>resolve_locale</code> during singleton construction (static-init time, before <code>main</code>, single-threaded) and are read-only thereafter; this accessor hands back a const reference to an immutable member, so it needs no lock and cannot race a <code>setlocale</code> writer &ndash; it never reads the process-wide global C locale at all.</p>
-<dl class="section note"><dt>Note</dt><dd>Consequently the library's locale source is the <em>environment</em>; it does <em>not</em> follow runtime programmatic changes via <code>std::setlocale</code>.  </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Consequently the library's locale source is the <em>environment</em>; it does <em>not</em> follow runtime programmatic changes via <code>std::setlocale</code>.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>if <code>category</code> is not one of the five resolved categories (<code>LC_CTYPE</code> / <code>LC_COLLATE</code> / <code>LC_MONETARY</code> / <code>LC_NUMERIC</code> / <code>LC_TIME</code>), e.g. when passed <code>LC_ALL</code> or <code>LC_MESSAGES</code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

@@ -450,7 +450,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <p>Return the <em>initial</em> locale name for an <code>LC_*</code> category, as resolved from the environment at program startup.</p>
-<p>A thin forwarder over <code><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">ori_facet_buf::locale_name</a></code> so that code depending only on <code>&lt;<a class="el" href="locale_8h.html">locale/locale.h</a>&gt;</code> (e.g. the stdio stream objects) can obtain this initial name without seeing <code><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a></code> directly. The result is independent of character type; it is exposed as a static member of <code>locale</code> so that callers only need to see <code>locale</code>.  </p>
+<p>A thin forwarder over <code><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">ori_facet_buf::locale_name</a></code> so that code depending only on <code>&lt;<a class="el" href="locale_8h.html">locale/locale.h</a>&gt;</code> (e.g. the stdio stream objects) can obtain this initial name without seeing <code><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a></code> directly. The result is independent of character type; it is exposed as a static member of <code>locale</code> so that callers only need to see <code>locale</code>.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>propagated from the underlying <code><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">ori_facet_buf::locale_name</a></code> if <code>category</code> is not one of the five resolved categories (<code>LC_CTYPE</code> / <code>LC_COLLATE</code> / <code>LC_MONETARY</code> / <code>LC_NUMERIC</code> / <code>LC_TIME</code>), e.g. when passed <code>LC_ALL</code> or <code>LC_MESSAGES</code>.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
