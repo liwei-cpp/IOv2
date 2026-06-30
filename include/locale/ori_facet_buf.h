@@ -56,10 +56,19 @@ struct hash<IOv2::detail::msg_key>
 {
     std::size_t operator()(const IOv2::detail::msg_key& k) const noexcept
     {
+        // Golden-ratio constant sized to std::size_t (2^bits / phi). The 64-bit
+        // 0x9e3779b97f4a7c15 mixes the high half of a 64-bit seed that the 32-bit
+        // 0x9e3779b9 leaves largely untouched; chosen at compile time so the mixer
+        // matches the actual width of std::size_t on every platform. (The unselected
+        // ternary branch is a well-defined explicit truncation, valid on either width.)
+        constexpr std::size_t golden = sizeof(std::size_t) >= 8
+            ? static_cast<std::size_t>(0x9e3779b97f4a7c15ULL)
+            : static_cast<std::size_t>(0x9e3779b9UL);
+
         const std::hash<std::string> h;
         std::size_t seed = h(k.domain);
-        seed ^= h(k.lang) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        seed ^= h(k.cvt) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= h(k.lang) + golden + (seed << 6) + (seed >> 2);
+        seed ^= h(k.cvt) + golden + (seed << 6) + (seed >> 2);
         return seed;
     }
 };
@@ -79,8 +88,11 @@ public:
 
         {
             std::lock_guard guard(m_mutex);
-            if (auto cached = m_cache[id].get(name))
-                return *cached;
+            if (auto it = m_cache.find(id); it != m_cache.end())
+            {
+                if (auto cached = it->second.get(name))
+                    return *cached;
+            }
         }
 
         // Construct the facet *outside* the lock: a facet constructor may be
@@ -107,8 +119,11 @@ public:
         const std::size_t id = messages_conf<TChar>::id();
 
         std::lock_guard guard(m_mutex);
-        if (auto cached = m_msg_cache[id].get(detail::msg_key{domain, lang, cvt}))
-            return std::static_pointer_cast<messages_conf<TChar>>(*cached);
+        if (auto it = m_msg_cache.find(id); it != m_msg_cache.end())
+        {
+            if (auto cached = it->second.get(detail::msg_key{domain, lang, cvt}))
+                return std::static_pointer_cast<messages_conf<TChar>>(*cached);
+        }
         return nullptr;
     }
 
@@ -205,6 +220,12 @@ private:
      * 每一级都要求该变量**已设置且非空**才被采用。解析出的名称随后会经 C 库校验
      * （`newlocale`）：若无法实例化（如非法的 `LANG`），回退为 `"C"`。
      *
+     * @note 优先级是**短路**的，且校验在选定之后才进行：一旦较高优先级的变量已设置且非空，
+     * 即采用其值，**不再**下探更低优先级的变量。因此当较高优先级的变量被设为一个无法实例化
+     * 的名称（如非法的 `LC_ALL`）时，本函数直接回退到 `"C"`，**不会**改用某个本可用的较低优先级
+     * 变量（如合法的 `LANG`）。这与 POSIX 语义一致——`LC_ALL` 一旦设置即无条件决定所有类别；
+     * 区别仅在于 glibc 对非法名是硬失败，而本函数宽松地降级为 `"C"`。
+     *
      * 仅在单例构造期（静态初始化、`main` 之前、单线程）被调用，此时不存在其它线程，
      * 也没有 `setenv` 写者，因此对 `getenv` 的读取 by-construction 无竞争。
      * @endif
@@ -216,6 +237,15 @@ private:
      * that variable is *set and non-empty*. The resolved name is then validated via
      * the C library (`newlocale`); if it cannot be instantiated (e.g. a bogus
      * `LANG`) it falls back to `"C"`.
+     *
+     * @note The precedence short-circuits, and validation happens *after* selection:
+     * the first variable that is set and non-empty wins, and lower-precedence variables
+     * are *not* consulted afterwards. So if a higher-precedence variable names an
+     * uninstantiable locale (e.g. a bogus `LC_ALL`), this falls straight back to `"C"`
+     * and does *not* instead pick up a perfectly usable lower-precedence variable (e.g.
+     * a valid `LANG`). This matches POSIX semantics -- a set `LC_ALL` unconditionally
+     * determines every category; the only divergence is that glibc fails hard on a bad
+     * name whereas this leniently degrades to `"C"`.
      *
      * Called only during singleton construction (static-init, before `main`,
      * single-threaded); no other thread and no `setenv` writer exists yet, so these
