@@ -1,0 +1,17 @@
+# IOv2 pkg-config -- HEADER-ONLY mode.
+#
+# IOv2 is header-only here: there is no library to link. This file provides only
+# the include path and the one feature-test macro the headers require.
+#
+# zlib and Botan are OPTIONAL: they are needed only if your code uses the
+# compression converter (zlib_cvt) or the hashing converter (hash_cvt). This .pc
+# deliberately does NOT pull them in. If you use those features, include their
+# headers and link -lz / -lbotan-2 yourself (e.g. via `pkg-config zlib botan-2`).
+prefix=/usr/local
+includedir=${prefix}/include
+
+Name: IOv2
+Description: C++23 I/O and localization library (header-only mode)
+URL: https://github.com/liwei-cpp/IOv2
+Version: 0.1.0
+Cflags: -I${includedir} -D_POSIX_C_SOURCE=200809L

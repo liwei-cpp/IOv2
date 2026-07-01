@@ -1,0 +1,20 @@
+# IOv2 pkg-config -- SHARED-LIBRARY (DSO) mode.
+#
+# Links libiov2.so, which holds the single program-wide instances of the standard
+# streams and the localization cache. The installed headers already have
+# IOV2_SHARED switched on, so you do NOT pass -DIOV2_SHARED yourself.
+#
+# zlib and Botan are OPTIONAL and intentionally NOT linked here. libiov2.so
+# carries, via its own DT_NEEDED entries, whatever it actually uses at runtime.
+# You only need to link -lz / -lbotan-2 yourself if YOUR code uses the
+# compression (zlib_cvt) or hashing (hash_cvt) converters.
+prefix=/usr/local
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: IOv2
+Description: C++23 I/O and localization library (shared library / DSO mode)
+URL: https://github.com/liwei-cpp/IOv2
+Version: 0.1.0
+Cflags: -I${includedir} -D_POSIX_C_SOURCE=200809L
+Libs: -L${libdir} -liov2

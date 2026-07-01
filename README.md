@@ -71,6 +71,59 @@ int main() {
 }
 ```
 
+### 使用方式：Header-Only 与共享库（DSO/DLL）
+
+IOv2 提供两种发布模式，默认即开箱即用的 header-only：
+
+- **Header-Only（默认）**：像快速开始那样直接 `#include` 即可，无需任何宏或链接库。预定义的标准流对象（`cin/cout/cerr/clog` 及宽字符版本）与本地化缓存等进程级单例，以 C++17 `inline` 变量的形式直接定义在头文件中，效果类似 `std::cout`——包含头文件就能用。
+
+- **共享库（可选）**：当你把 IOv2 编译成独立的共享库（`.so`/`.dylib`/`.dll`），并希望上述进程级单例在“主程序 + 多个共享库”之间**保持唯一一份实例**时使用。此模式把这些单例的唯一定义集中到 `src/iov2_objects.cpp`（等价于 `std::cout` 定义在 libstdc++ 中的做法）。
+
+**安装（根目录 `Makefile`）**
+
+```bash
+# header-only：仅安装头文件 + iov2.pc
+make install PREFIX=/usr/local
+
+# 共享库：构建 libiov2.so，安装头文件 + libiov2.so + iov2-shared.pc
+make install-shared PREFIX=/opt/iov2
+```
+
+`install-shared` 会自动打开**已安装那份**头文件里的发行模式开关，因此**消费方无需手动传 `-DIOV2_SHARED`**——模式信息随头文件一起交付。底层构建命令见 `src/iov2_objects.cpp`。卸载用 `make uninstall PREFIX=...`。
+
+**消费（推荐 pkg-config）**
+
+安装会附带两份 pkg-config 文件：`iov2.pc`（header-only）与 `iov2-shared.pc`（共享库）。客户 Makefile 用包名切换模式，本身无需改动：
+
+```make
+IOV2_PKG ?= iov2          # 默认 header-only；改成 iov2-shared 即共享库
+
+CXXFLAGS += -std=c++23 $(shell pkg-config --cflags $(IOV2_PKG))
+LDLIBS   += $(shell pkg-config --libs   $(IOV2_PKG))
+
+app: app.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDLIBS)
+```
+```bash
+make                        # header-only
+make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
+```
+
+- **zlib / Botan 为可选依赖**：仅当使用压缩（`zlib_cvt`）或哈希（`hash_cvt`）转换器时才需要。两份 `.pc` 都**不**强制链接它们；需要时自行追加 `$(shell pkg-config --cflags --libs zlib botan-2)`。
+- **每种模式安装到各自的 PREFIX**：模式开关焙在单个头文件里，一棵头树只能对应一种模式。安装到非标准前缀时 `export PKG_CONFIG_PATH=<prefix>/lib/pkgconfig`，可用 `pkg-config --modversion iov2` 验证。
+
+**编译宏一览**
+
+| 宏 | 何时定义 | 作用 |
+|---|---|---|
+| （无） | 默认 | header-only；单例为 `inline` 变量 |
+| `IOV2_SHARED` | 构建库时；消费方由**已安装头文件自动带上**（通常无需手动定义） | 启用共享库模式：头文件只对单例做 `extern` 声明 |
+| `IOV2_EXPORTS` | **仅** `iov2_objects.cpp` | 标记“正在构建库本体”；仅 Windows 用于区分 `dllexport`/`dllimport` |
+
+> **注意**：`IOV2_SHARED` 必须在同一次链接的所有翻译单元中保持一致——把开关焙进已安装头文件正是为此提供保证。
+>
+> 在 ELF/macOS 且默认可见性下，header-only 模式跨多个共享库通常也会被动态链接器合并为单实例；只有在 `-fvisibility=hidden` 的多 `.so`，或 **Windows 多 DLL** 场景下才会每个模块各一份——此时改用共享库模式即可获得严格的单实例保证。
+
 ### 开发环境与测试
 - **标准**：C++23 及以上。
 - **编译器**：GCC 15+ 或 Clang 18+ (建议配合 libstdc++)。
@@ -144,6 +197,59 @@ int main() {
     return 0;
 }
 ```
+
+### Usage Modes: Header-Only vs Shared Library (DSO/DLL)
+
+IOv2 ships in two modes; the default is header-only and works out of the box:
+
+- **Header-Only (default)**: just `#include` as shown in Quick Start — no macros, no library to link. The pre-defined standard streams (`cin/cout/cerr/clog` and their wide counterparts) and the localization cache — all process-wide singletons — are defined directly in the headers as C++17 `inline` variables, much like `std::cout`: include the header and use them.
+
+- **Shared Library (optional)**: use this when you compile IOv2 into a standalone shared library (`.so`/`.dylib`/`.dll`) and want those process-wide singletons to remain a **single instance** shared across the main program and multiple shared libraries. This mode concentrates the one definition of each singleton in `src/iov2_objects.cpp` (the same approach `std::cout` uses inside libstdc++).
+
+**Install (root `Makefile`)**
+
+```bash
+# header-only: install headers + iov2.pc only
+make install PREFIX=/usr/local
+
+# shared library: build libiov2.so, install headers + libiov2.so + iov2-shared.pc
+make install-shared PREFIX=/opt/iov2
+```
+
+`install-shared` turns on the distribution switch in the *installed* copy of the headers, so **consumers do not pass `-DIOV2_SHARED` by hand** — the mode ships with the headers. The underlying build command lives in `src/iov2_objects.cpp`. Uninstall with `make uninstall PREFIX=...`.
+
+**Consume (pkg-config recommended)**
+
+The install ships two pkg-config files: `iov2.pc` (header-only) and `iov2-shared.pc` (shared). A consumer Makefile switches modes by package name, with no other change:
+
+```make
+IOV2_PKG ?= iov2          # header-only by default; set to iov2-shared for the DSO
+
+CXXFLAGS += -std=c++23 $(shell pkg-config --cflags $(IOV2_PKG))
+LDLIBS   += $(shell pkg-config --libs   $(IOV2_PKG))
+
+app: app.cpp
+	$(CXX) $(CXXFLAGS) $< -o $@ $(LDLIBS)
+```
+```bash
+make                        # header-only
+make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
+```
+
+- **zlib / Botan are optional**: needed only if you use the compression (`zlib_cvt`) or hashing (`hash_cvt`) converters. Neither `.pc` links them; add `$(shell pkg-config --cflags --libs zlib botan-2)` yourself when you do.
+- **Install each mode into its own PREFIX**: the mode switch is baked into a single header, so one header tree corresponds to exactly one mode. For a non-standard prefix, `export PKG_CONFIG_PATH=<prefix>/lib/pkgconfig` and verify with `pkg-config --modversion iov2`.
+
+**Compile-time macros**
+
+| Macro | When defined | Effect |
+|---|---|---|
+| (none) | default | header-only; singletons are `inline` variables |
+| `IOV2_SHARED` | when building the library; consumers get it **automatically from the installed header** (rarely set by hand) | enables shared mode: headers only `extern`-declare the singletons |
+| `IOV2_EXPORTS` | **only** in `iov2_objects.cpp` | marks "building the library itself"; used on Windows to pick `dllexport`/`dllimport` |
+
+> **Note**: `IOV2_SHARED` must be consistent across every translation unit in a single link — baking the switch into the installed header is exactly what guarantees that.
+>
+> On ELF/macOS with default visibility, header-only mode is usually merged into a single instance across multiple shared libraries by the dynamic linker anyway; only under `-fvisibility=hidden` with multiple `.so`s, or **multiple Windows DLLs**, do you get one instance per module — switch to shared-library mode there for a strict single-instance guarantee.
 
 ### Development Environment & Tests
 - **Standard**: C++23 or later.

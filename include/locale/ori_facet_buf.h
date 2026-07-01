@@ -310,6 +310,10 @@ private:
     std::mutex m_mutex;
 };
 
-static ori_facet_buf::init _ori_facet_buf_init;
-static ori_facet_buf& s_ori_facet_buf = *ori_facet_buf::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API ori_facet_buf& s_ori_facet_buf;   // defined in iov2_objects.cpp
+#else
+inline ori_facet_buf::init _ori_facet_buf_init;
+inline ori_facet_buf&      s_ori_facet_buf = *ori_facet_buf::ptr();
+#endif
 }
