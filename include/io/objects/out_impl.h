@@ -107,8 +107,12 @@ private:
     }
 };
 
-static __cout::init _cout_init;
-static __cout& cout = *__cout::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __cout& cout;   // defined in iov2_objects.cpp
+#else
+inline __cout::init _cout_init;
+inline __cout&      cout = *__cout::ptr();
+#endif
 
 
 /// cerr
@@ -135,8 +139,12 @@ private:
     }
 };
 
-static __cerr::init _cerr_init;
-static __cerr& cerr = *__cerr::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __cerr& cerr;   // defined in iov2_objects.cpp
+#else
+inline __cerr::init _cerr_init;
+inline __cerr&      cerr = *__cerr::ptr();
+#endif
 
 /// clog
 class __clog : public stdout_api<__clog, std_device<STDERR_FILENO>, char>
@@ -157,8 +165,12 @@ private:
     }
 };
 
-static __clog::init _clog_init;
-static __clog& clog = *__clog::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __clog& clog;   // defined in iov2_objects.cpp
+#else
+inline __clog::init _clog_init;
+inline __clog&      clog = *__clog::ptr();
+#endif
 
 /// wcout
 class __wcout : public stdout_api<__wcout, std_device<STDOUT_FILENO>, wchar_t>
@@ -181,8 +193,12 @@ private:
     }
 };
 
-static __wcout::init _wcout_init;
-static __wcout& wcout = *__wcout::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __wcout& wcout;   // defined in iov2_objects.cpp
+#else
+inline __wcout::init _wcout_init;
+inline __wcout&      wcout = *__wcout::ptr();
+#endif
 
 /// wcerr
 class __wcerr : public stdout_api<__wcerr, std_device<STDERR_FILENO>, wchar_t>
@@ -208,8 +224,12 @@ private:
     }
 };
 
-static __wcerr::init _wcerr_init;
-static __wcerr& wcerr = *__wcerr::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __wcerr& wcerr;   // defined in iov2_objects.cpp
+#else
+inline __wcerr::init _wcerr_init;
+inline __wcerr&      wcerr = *__wcerr::ptr();
+#endif
 
 /// wclog
 class __wclog : public stdout_api<__wclog, std_device<STDERR_FILENO>, wchar_t>
@@ -232,6 +252,10 @@ private:
     }
 };
 
-static __wclog::init _wclog_init;
-static __wclog& wclog = *__wclog::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __wclog& wclog;   // defined in iov2_objects.cpp
+#else
+inline __wclog::init _wclog_init;
+inline __wclog&      wclog = *__wclog::ptr();
+#endif
 }

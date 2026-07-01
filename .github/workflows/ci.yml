@@ -85,6 +85,49 @@ jobs:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
 
+  shared-library:
+    runs-on: ubuntu-latest
+    container:
+      image: gcc:15
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y zlib1g-dev libbotan-2-dev make pkg-config tzdata locales-all
+
+    - name: Build the shared library
+      run: make shared
+
+    - name: Verify no unexpected runtime dependencies
+      run: |
+        # iov2_objects.cpp pulls in none of the optional converters, so the .so
+        # must not depend on zlib/Botan.
+        if readelf -d libiov2.so | grep -Eiq 'libz|libbotan'; then
+          echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
+        fi
+
+    - name: Install the shared library
+      run: |
+        make install-shared PREFIX=/opt/iov2
+        # install-shared flips the switch in the shipped header.
+        grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/common/iov2_export.h
+
+    - name: Run the full test suite against the installed shared library
+      run: |
+        # Consume libiov2 the real-user way: installed headers (switch already on)
+        # + pkg-config for cflags/libs. Drop -I../include so only the installed
+        # headers are used. The repo test/Makefile is not modified.
+        export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
+        export LD_LIBRARY_PATH=/opt/iov2/lib
+        export LC_ALL=C   # tests assume the C locale (default boolalpha names, etc.)
+        cd test
+        make -j$(nproc) test \
+          OBJ_DIR=obj_shared BIN_DIR=bin_shared \
+          COMP_FLAGS="-Wall -Werror -Wshadow -std=c++23 -g -O2 -DIOV2_SHARED -I. -I/usr/include/botan-2 $(pkg-config --cflags iov2-shared)" \
+          LINK_FLAGS="$(pkg-config --libs iov2-shared) -lz -lbotan-2"
+
   clang-tidy:
     runs-on: ubuntu-latest
     container:

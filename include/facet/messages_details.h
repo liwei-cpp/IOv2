@@ -212,7 +212,7 @@ public:
      * @param p_lang The candidate language string.
      * @endif
      */
-    base_ft(size_t id, const std::string& p_domain, const std::string& p_lang)
+    base_ft(facet_id_t id, const std::string& p_domain, const std::string& p_lang)
         : abs_ft(id)
         // Snapshot the dirname first (declared before the members below, so it
         // is initialised first) and feed that same snapshot to filter_lang and

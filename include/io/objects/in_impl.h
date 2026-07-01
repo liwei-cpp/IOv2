@@ -116,8 +116,12 @@ private:
     __cin& operator=(const __cin&) = delete;
 };
 
-static __cin::init _cin_init;
-static __cin& cin = *__cin::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __cin& cin;   // defined in iov2_objects.cpp
+#else
+inline __cin::init _cin_init;
+inline __cin&      cin = *__cin::ptr();
+#endif
 
 /// wcin
 class __wcin : public stdin_api<__wcin, std_device<STDIN_FILENO>, wchar_t>
@@ -137,6 +141,10 @@ private:
     __wcin& operator=(const __wcin&) = delete;
 };
 
-static __wcin::init _wcin_init;
-static __wcin& wcin = *__wcin::ptr();
+#if defined(IOV2_SHARED)
+extern IOV2_API __wcin& wcin;   // defined in iov2_objects.cpp
+#else
+inline __wcin::init _wcin_init;
+inline __wcin&      wcin = *__wcin::ptr();
+#endif
 }

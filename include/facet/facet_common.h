@@ -38,8 +38,82 @@
 #include <type_traits>
 #include <utility>
 
+#if defined(IOV2_SHARED)
+#  include <typeindex>
+#  include <typeinfo>
+#endif
+
 namespace IOv2
 {
+// ─── Facet type-identity key (single source of truth) ───────────────────────
+//
+// Every facet type gets a process-stable key of type `facet_id_t`, used to key
+// facets into the locale caches (`locale::m_facet_confs` / `m_facets`) and into
+// `ori_facet_buf`. Two modes:
+//
+//  - Header-only (single binary): the key is the *address* of a per-type static
+//    (`type_id<T>::s_id`). Zero collision, constant-initialised (safe to read
+//    during static init), and effectively free. Within one binary the linker
+//    merges all copies of that static, so every TU agrees on the address.
+//
+//  - Shared library (`IOV2_SHARED`): the same facet type is instantiated in
+//    several DSOs, and `-fvisibility=hidden` keeps each DSO's `s_id` local -- so
+//    an address is per-DSO and breaks cross-DSO facet identity (that was the
+//    "cannot get numeric facet" bug). Use `std::type_index` instead: identity is
+//    by *type* (`type_info::operator==`), not by object address, so it is stable
+//    across DSO / `dlopen(RTLD_LOCAL)` / DLL boundaries and collision-free
+//    (`hash_code` only buckets; `operator==` decides the match).
+//
+//    This relies on `type_info` comparison being correct across DSOs, which every
+//    honest platform provides: on ELF/dlopen targets comparison is name-string
+//    based (the default), and targets that instead compare type_info by address
+//    do so only where the ABI guarantees a single merged type_info per type. The
+//    only way to break it is to force pointer-only type_info comparison (e.g.
+//    `-D__GXX_MERGED_TYPEINFO_NAMES=1`) on a platform that does not actually merge
+//    names -- a deliberate misconfiguration that also breaks any other
+//    `type_index`/RTTI-based code, so IOv2 does not police it here.
+#if defined(IOV2_SHARED)
+using facet_id_t = std::type_index;
+#else
+using facet_id_t = std::size_t;
+
+// Per-type storage whose *address* is the (header-only) type key. Only needed
+// when the key is an address; in shared mode the key comes from `typeid` instead.
+template <typename T>
+struct type_id
+{
+    inline static const void* s_id = nullptr;
+};
+
+// The address key is std::bit_cast<size_t>(pointer); bit_cast is well-formed only
+// when sizeof(To) == sizeof(From), so the pointer and size_t must be equal in size.
+static_assert(sizeof(void*) == sizeof(std::size_t),
+              "facet_id_t address keying uses std::bit_cast<size_t>(pointer), which "
+              "is well-formed only when sizeof(void*) == sizeof(size_t)");
+#endif
+
+/**
+ * @lang{ZH}
+ * 任意类型 `T` 的唯一进程内类型键（`facet_id_t`）。`ft_basic::id()`（facet conf 键）
+ * 与 `locale::m_facets` 的查找都经由它，是身份机制的唯一入口。见上方说明。
+ * @endif
+ *
+ * @lang{EN}
+ * The one canonical per-type key (`facet_id_t`) for any type `T`. Both
+ * `ft_basic::id()` (the facet-conf key) and `locale`'s `m_facets` lookups go
+ * through it -- the single entry point for facet identity. See the note above.
+ * @endif
+ */
+template <typename T>
+inline facet_id_t type_id_v() noexcept
+{
+#if defined(IOV2_SHARED)
+    return facet_id_t{typeid(T)};
+#else
+    return std::bit_cast<std::size_t>(&type_id<T>::s_id);
+#endif
+}
+
 /**
  * @lang{ZH}
  * 所有 facet 的抽象基类。
@@ -75,7 +149,7 @@ struct abs_ft
      * @lang{ZH} 此 facet 实例的运行时唯一标识符。 @endif
      * @lang{EN} The runtime unique identifier for this facet instance. @endif
      */
-    explicit abs_ft(size_t id)
+    explicit abs_ft(facet_id_t id)
         : m_id(id) {}
 
     abs_ft(const abs_ft&) = delete;
@@ -117,12 +191,12 @@ struct abs_ft
      * @lang{ZH} 此 facet 实例的运行时 id。 @endif
      * @lang{EN} The runtime id of this facet instance. @endif
      */
-    [[nodiscard]] size_t id() const noexcept { return m_id; }
+    [[nodiscard]] facet_id_t id() const noexcept { return m_id; }
 
 private:
     /** @lang{ZH} 此 facet 实例的运行时唯一标识符。 @endif
      *  @lang{EN} The runtime unique identifier for this facet instance. @endif */
-    const size_t m_id;
+    const facet_id_t m_id;
 };
 
 /**
@@ -159,20 +233,21 @@ template <typename TFacet> class ft_basic;
  * @lang{ZH}
  * 为 `(facet 模板, 字符类型)` 对提供静态类型键机制的具体基类。
  *
- * 每个 `ft_basic<TFacet<CharT>>` 特化维护一个每类型唯一的 `s_id` 静态变量，
- * 静态成员函数 `id()` 返回其地址作为稳定的编译期 facet 键。构造函数自动以此值
- * 初始化 `abs_ft::m_id`，保证静态键与实例访问器始终一致。
+ * 静态成员函数 `id()` 经统一入口 `type_id_v<ft_basic>()` 返回每类型稳定且唯一的
+ * facet 键（`facet_id_t`；header-only 为地址、共享库为 `std::type_index`）。构造函数
+ * 自动以此值初始化 `abs_ft::m_id`，保证静态键与实例访问器始终一致。见 facet_common.h
+ * 顶部关于 `facet_id_t` 的说明。
  * @endif
  *
  * @lang{EN}
  * Concrete base class providing the static type-key mechanism for a
  * `(facet template, character type)` pair.
  *
- * Each `ft_basic<TFacet<CharT>>` specialization maintains a per-type unique
- * `s_id` static variable; the static member function `id()` returns its address
- * as a stable, compile-time facet key. The constructor automatically seeds
- * `abs_ft::m_id` with this value, ensuring the static key and the instance
- * accessor always agree.
+ * The static member function `id()` returns a per-type stable, unique facet key
+ * (`facet_id_t`; an address in header-only mode, `std::type_index` in shared mode)
+ * via the single entry point `type_id_v<ft_basic>()`. The constructor automatically
+ * seeds `abs_ft::m_id` with this value, ensuring the static key and the instance
+ * accessor always agree. See the note on `facet_id_t` at the top of facet_common.h.
  * @endif
  *
  * @tparam TFacet
@@ -182,12 +257,6 @@ template <typename TFacet> class ft_basic;
 template <template<typename> class TFacet, typename CharT>
 class ft_basic<TFacet<CharT>> : public base_ft<TFacet>
 {
-    // id() returns std::bit_cast<size_t>(&s_id); std::bit_cast is well-formed only
-    // when sizeof(To) == sizeof(From), so the pointer and size_t must be equal in
-    // size (not merely "pointer fits into size_t").
-    static_assert(sizeof(void*) == sizeof(size_t),
-                  "ft_basic::id() uses std::bit_cast<size_t>(pointer), which is "
-                  "well-formed only when sizeof(void*) == sizeof(size_t)");
 public:
     /** @lang{ZH} 此 facet 特化所绑定的字符类型。 @endif
      *  @lang{EN} The character type bound to this facet specialization. @endif */
@@ -205,22 +274,25 @@ public:
      * @endif
      */
     template <typename... T>
-        requires std::constructible_from<base_ft<TFacet>, size_t, T...>
+        requires std::constructible_from<base_ft<TFacet>, facet_id_t, T...>
     ft_basic(T&&... args)
         : base_ft<TFacet>(id(), std::forward<T>(args)...) {}
 
     /**
      * @lang{ZH}
-     * 静态每类型 facet 键：返回此 `(facet 模板, 字符类型)` 对稳定且唯一的 id，
-     * 取自每类型 `s_id` 变量的地址。此值为编译期键，用于按类型定位 facet（`TF::id()`）。
-     * 构造函数以此值初始化 `abs_ft::m_id`，保证其与 `abs_ft::id()` 实例访问器
-     * 始终保持一致；参见 `abs_ft::id()` 上的说明以了解共名的理由。
+     * 静态每类型 facet 键：返回此 `(facet 模板, 字符类型)` 对稳定且唯一的 id。
+     * 经由统一入口 `type_id_v<ft_basic>()`（见本文件顶部说明）：header-only 模式下
+     * 是每类型静态量的地址，共享库模式下是 `std::type_index(typeid)`。此为按类型
+     * 定位 facet 的键（`TF::id()`）；构造函数以此值初始化 `abs_ft::m_id`，保证其与
+     * `abs_ft::id()` 实例访问器始终一致；参见 `abs_ft::id()` 上的说明以了解共名的理由。
      * @endif
      *
      * @lang{EN}
      * Static per-type facet key: a stable, unique id for this
-     * `(facet template, char type)` pair, taken from the address of the per-type
-     * `s_id`. This is the compile-time key used to locate facets by type
+     * `(facet template, char type)` pair, via the single entry point
+     * `type_id_v<ft_basic>()` (see the note at the top of this file): a per-type
+     * static's address in header-only mode, `std::type_index(typeid)` in shared
+     * mode. This is the compile-time key used to locate facets by type
      * (`TF::id()`). The constructor seeds `abs_ft::m_id` with this value, keeping
      * it in agreement with the `abs_ft::id()` instance accessor; see the note on
      * `abs_ft::id()` for why the shared name is intentional and safe.
@@ -230,43 +302,7 @@ public:
      * @lang{ZH} 此 facet 类型唯一的运行时 id 值。 @endif
      * @lang{EN} The unique runtime id value for this facet type. @endif
      */
-    static size_t id() noexcept { return std::bit_cast<size_t>(&s_id); }
-private:
-    /**
-     * @lang{ZH}
-     * 每类型唯一标识符变量。`id()` 返回其地址，因此跨 DSO 的 facet 标识依赖动态
-     * 链接器将所有副本合并为单一运行时地址。以下部署模式会静默地破坏此机制，导致本应
-     * 相同的 facet 在不同 DSO 中得到不同的 id：
-     * - 编译任何实例化 `ft_basic<...>` 的翻译单元时使用 `-fvisibility=hidden` 而不重新
-     *   导出 `s_id`。
-     * - 链接 DSO 时使用 `-Bsymbolic` / `-Bsymbolic-functions`，导致内部引用绑定至 DSO
-     *   本地副本。
-     * - 使用 `RTLD_LOCAL`（默认值）`dlopen()` 插件。
-     * - 跨 Windows DLL 边界共享 facet 实例（PE 没有 ELF 弱符号统一机制，模板在每个 DLL
-     *   中独立实例化）。
-     *
-     * 若有上述任一需求，应将 `id()` 改为基于值的标识（如 `typeid(TFacet).name()` 的哈希），
-     * 而非地址。
-     * @endif
-     *
-     * @lang{EN}
-     * Per-type unique identity variable. Because `id()` returns `&s_id`, cross-DSO
-     * facet identity depends on the dynamic linker merging all copies of `s_id` to a
-     * single runtime address. The following deployment patterns silently break this
-     * and yield per-DSO ids for what should be the same facet:
-     * - Building any TU that instantiates `ft_basic<...>` with `-fvisibility=hidden`
-     *   without re-exporting `s_id`.
-     * - Linking a DSO with `-Bsymbolic` / `-Bsymbolic-functions`, which binds
-     *   internal references to the DSO-local copy.
-     * - `dlopen()`ing a plugin with `RTLD_LOCAL` (the default).
-     * - Sharing facet instances across Windows DLL boundaries (PE has no equivalent
-     *   of ELF weak-symbol unification; templates are re-instantiated per DLL).
-     *
-     * If any of the above is needed, switch `id()` to a value-based identity
-     * (e.g. hash of `typeid(TFacet).name()`) rather than an address.
-     * @endif
-     */
-    inline static const void* s_id = nullptr;
+    static facet_id_t id() noexcept { return type_id_v<ft_basic>(); }
 };
 
 /**

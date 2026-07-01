@@ -10,7 +10,6 @@
 #include <facet/timeio.h>
 #include <locale/ori_facet_buf.h>
 
-#include <bit>
 #include <clocale>
 #include <concepts>
 #include <cstddef>
@@ -24,28 +23,6 @@
 
 namespace IOv2
 {
-template <typename T>
-struct type_id
-{
-    inline static const void* s_id = nullptr;
-};
-
-template <typename T>
-size_t type_id_v() noexcept
-{
-    return std::bit_cast<size_t>(&(type_id<T>::s_id));
-}
-
-// type_id_v keys m_facets by the address of type_id<T>::s_id. This mirrors
-// ft_basic::id() (facet_common.h), which guards the same idiom. std::bit_cast is
-// well-formed only when sizeof(To) == sizeof(From); since we bit_cast a pointer
-// into size_t, the assert must require *equal* size, not merely "fits". With the
-// correct condition a platform where the sizes differ trips this assert with a
-// clear diagnostic instead of an opaque error on the bit_cast line below.
-static_assert(sizeof(void*) == sizeof(size_t),
-              "type_id_v uses std::bit_cast<size_t>(pointer), which is well-formed "
-              "only when sizeof(void*) == sizeof(size_t)");
-
 /**
  * @lang{ZH}
  * @brief 管理一组 facet 的本地化对象。
@@ -385,8 +362,8 @@ public:
      *
      * 一个 `locale` 实例**最多只能持有一个** messages facet（`m_facet_confs` 以单一的
      * `messages_conf<TChar>` 类型 id 为键，与 domain 无关）。因此若 `*this` 已含 messages
-     * facet，本函数**直接抛异常**而非静默替换——即便 domain 相同也不例外。若需改绑到另一
-     * domain / 语言，调用方须先 `remove<messages_conf<TChar>>()`。
+     * facet，返回的新 locale 会以本次绑定的 facet **替换**掉它——即便 domain 相同亦然；
+     * 这与 `involve` 对同 id facet 的替换语义一致。`*this` 本身不被修改（写时拷贝）。
      *
      * 对不支持的字符类型（无 `messages_conf<TChar>` 特化，如 `char16_t` 或非 UTF-32 的
      * `wchar_t`），本函数是**编译期**错误（见内部 `static_assert`）。
@@ -398,7 +375,6 @@ public:
      *        `stream_error`。仅在缓存未命中、需本次亲自构造 facet 时生效：若同一
      *        `(domain, lang)` 键已被先前的 `false` 调用以空 facet 驻留缓存，则后续 `true` 调用
      *        命中缓存直接返回、不再加载，故不抛。
-     * @throws stream_error 当 `*this` 已含 messages facet 时抛出。
      * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；此情形下在
      *         `put_msg` 之前即抛出，失败结果不会被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
@@ -414,12 +390,11 @@ public:
      * message translations for the given text domain (copy-on-write; `*this` is
      * unchanged).
      *
-     * A `locale` instance can hold **at most one** messages facet (`m_facet_confs`
-     * keys it by the single `messages_conf<TChar>` type id, independent of domain). If
-     * `*this` already has a messages facet this function therefore **throws** rather
-     * than silently replacing it -- even when the domain is the same. To rebind to a
-     * different domain / language, the caller must first
-     * `remove<messages_conf<TChar>>()`.
+     * A `locale` instance holds **at most one** messages facet (`m_facet_confs` keys it
+     * by the single `messages_conf<TChar>` type id, independent of domain). If `*this`
+     * already has a messages facet, the returned locale **replaces** it with the one
+     * bound here -- even when the domain is the same -- mirroring `involve`'s same-id
+     * replace semantics. `*this` itself is unchanged (copy-on-write).
      *
      * For an unsupported character type (no `messages_conf<TChar>` specialization,
      * e.g. `char16_t` or a non-UTF-32 `wchar_t`) this is a *compile-time* error (see
@@ -435,7 +410,6 @@ public:
      *        call construct the facet: if the same `(domain, lang)` key was already
      *        interned as an empty facet by an earlier `false` call, a later `true` call
      *        hits that cache entry and returns without reloading, so it does not throw.
-     * @throws stream_error if `*this` already has a messages facet.
      * @throws stream_error if `throw_if_fail` is `true` and the translation dictionary
      *         fails to load; thrown before `put_msg`, so the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
@@ -461,10 +435,6 @@ public:
                       "involve_msg: messages translation is unsupported for this character "
                       "type -- no messages_conf<TChar> specialization exists (e.g. char16_t, "
                       "or wchar_t on a non-UTF-32 platform).");
-        if (has<messages_conf<TChar>>())
-            throw stream_error("involve_msg: locale already has a messages facet; "
-                               "remove it before involving another (a locale supports "
-                               "at most one messages facet).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang);
         if (!ft)
@@ -473,6 +443,9 @@ public:
             ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang);
         }
 
+        // At most one messages facet per locale (keyed by the single messages_conf
+        // type id). If *this already carries one, this replaces it in the returned
+        // copy -- matching involve()'s same-id replace semantics; *this is unchanged.
         locale res(*this);
         res.m_facet_confs[ft->id()] = std::move(ft);
         res.m_facets.clear();
@@ -485,7 +458,8 @@ public:
      * （写时拷贝）；额外接受目标编码名 `cvt`。
      *
      * 同非 `char` 重载：一个 `locale` **最多一个** messages facet；若 `*this` 已含 messages
-     * facet 则**抛异常**（同 domain 也不例外），改绑前须先 `remove<messages_conf<char>>()`。
+     * facet，返回的新 locale 会以本次绑定的 facet **替换**之（同 domain 亦然），与 `involve`
+     * 的同 id 替换语义一致；`*this` 本身不被修改（写时拷贝）。
      *
      * @param domain 文本域名称（`.mo` 文件基名）。
      * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
@@ -496,7 +470,6 @@ public:
      *        为空（穿透）facet；为 `true` 抛 `stream_error`。仅在缓存未命中、需本次亲自构造
      *        facet 时生效：若同一 `(domain, lang, cvt)` 键已被先前的 `false` 调用以空 facet
      *        驻留缓存，则后续 `true` 调用命中缓存直接返回、不再加载，故不抛。
-     * @throws stream_error 当 `*this` 已含 messages facet 时抛出。
      * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；此情形下在
      *         `put_msg` 之前即抛出，失败结果不会被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
@@ -530,7 +503,6 @@ public:
      *        construct the facet: if the same `(domain, lang, cvt)` key was already
      *        interned as an empty facet by an earlier `false` call, a later `true` call
      *        hits that cache entry and returns without reloading, so it does not throw.
-     * @throws stream_error if `*this` already has a messages facet.
      * @throws stream_error if `throw_if_fail` is `true` and the translation dictionary
      *         fails to load; thrown before `put_msg`, so the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
@@ -545,10 +517,6 @@ public:
     locale involve_msg(const std::string& domain, const std::string& lang = "",
                        const std::string& cvt = "", bool throw_if_fail = false) const requires (std::is_same_v<TChar, char>)
     {
-        if (has<messages_conf<char>>())
-            throw stream_error("involve_msg: locale already has a messages facet; "
-                               "remove it before involving another (a locale supports "
-                               "at most one messages facet).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
         // Resolve the encoding up front and use it consistently as both the cache
         // key and the construction argument. An empty cvt maps to the (stable,
@@ -564,6 +532,9 @@ public:
             ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, effective_cvt);
         }
 
+        // At most one messages facet per locale (keyed by the single messages_conf
+        // type id). If *this already carries one, this replaces it in the returned
+        // copy -- matching involve()'s same-id replace semantics; *this is unchanged.
         locale res(*this);
         res.m_facet_confs[ft->id()] = std::move(ft);
         res.m_facets.clear();
@@ -586,7 +557,7 @@ public:
     bool has() const
     {
         std::shared_lock g(m_facet_mutex);
-        std::size_t id = TF::id();
+        facet_id_t id = TF::id();
         auto it = m_facet_confs.find(id);
         if (it == m_facet_confs.end()) return false;
 
@@ -637,7 +608,7 @@ public:
     std::shared_ptr<TF> get() const
     {
         std::shared_lock g(m_facet_mutex);
-        std::size_t id = TF::id();
+        facet_id_t id = TF::id();
         auto it = m_facet_confs.find(id);
         if (it == m_facet_confs.end()) return nullptr;
 
@@ -722,14 +693,14 @@ private:
     template <template <typename> class T>
     void init(const std::string& ft_name)
     {
-        std::size_t k = T<TChar>::id();
+        facet_id_t k = T<TChar>::id();
         auto v = s_ori_facet_buf.try_get<T<TChar>>(ft_name);
         m_facet_confs.insert({k, v});
     }
 
 private:
-    std::unordered_map<std::size_t, std::shared_ptr<abs_ft>> m_facet_confs;
-    mutable std::unordered_map<std::size_t, std::shared_ptr<void>> m_facets;
+    std::unordered_map<facet_id_t, std::shared_ptr<abs_ft>> m_facet_confs;
+    mutable std::unordered_map<facet_id_t, std::shared_ptr<void>> m_facets;
     mutable std::shared_mutex m_facet_mutex;
 };
 }

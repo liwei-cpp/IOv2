@@ -9,6 +9,8 @@
  */
 
 #pragma once
+#include <common/iov2_export.h>
+
 #include <array>
 #include <cstddef>
 #include <cstdlib>
@@ -21,13 +23,13 @@ namespace IOv2
  * 基于 CRTP（奇异递归模板模式）的单例模板基类。
  *
  * 此类设计用于在静态初始化期间（main() 之前）创建单例对象。
- * 通过引用计数机制确保单例在所有翻译单元中只被构造和析构一次。
+ * 在头文件中定义唯一的 inline init 对象，确保单例在整个程序中只被构造和析构一次。
  *
  * @tparam T 派生类类型（CRTP 模式）
  *
- * @note 此实现假设 init 对象仅在 main() 之前的静态初始化期间创建。
- *       静态初始化是单线程的，因此不需要原子操作。
- *       如果需要在 main() 之后动态创建 init 对象，必须添加线程同步机制。
+ * @note 此实现假设唯一的 inline init 对象在 main() 之前的静态初始化期间创建。
+ *       静态初始化是单线程的；由于全程序只有一个 inline init 对象，构造与析构
+ *       各发生一次，因此不需要引用计数或原子操作。
  *
  * @par 示例
  * @code
@@ -45,9 +47,9 @@ namespace IOv2
  *     __my_singleton& operator=(const __my_singleton&) = delete;
  * };
  *
- * // 在头文件中声明静态初始化器和引用
- * static __my_singleton::init _my_singleton_init;
- * static __my_singleton& my_singleton = *__my_singleton::ptr();
+ * // 在头文件中声明 inline 初始化器和引用（inline = 全程序唯一实体）
+ * inline __my_singleton::init _my_singleton_init;
+ * inline __my_singleton& my_singleton = *__my_singleton::ptr();
  *
  * // 使用单例
  * my_singleton.doSomething();
@@ -58,16 +60,15 @@ namespace IOv2
  * CRTP (Curiously Recurring Template Pattern) based singleton template base class.
  *
  * This class is designed for creating singleton objects during static initialization
- * (before main()). Uses reference counting to ensure the singleton is constructed
- * and destructed exactly once across all translation units.
+ * (before main()). A single inline init object defined in the header ensures the
+ * singleton is constructed and destructed exactly once across the whole program.
  *
  * @tparam T The derived class type (CRTP pattern)
  *
- * @note This implementation assumes init objects are only created during static
- *       initialization before main(). Static initialization is single-threaded,
- *       so atomic operations are not needed.
- *       If init objects need to be created dynamically after main(), thread
- *       synchronization mechanisms must be added.
+ * @note This implementation assumes the single inline init object is created during
+ *       static initialization before main(). Static initialization is single-threaded,
+ *       and because there is exactly one inline init object program-wide, construction
+ *       and destruction each happen once, so no reference counting or atomics are needed.
  *
  * @par Example
  * @code
@@ -85,9 +86,9 @@ namespace IOv2
  *     __my_singleton& operator=(const __my_singleton&) = delete;
  * };
  *
- * // Declare static initializer and reference in header
- * static __my_singleton::init _my_singleton_init;
- * static __my_singleton& my_singleton = *__my_singleton::ptr();
+ * // Declare inline initializer and reference in header (inline = one entity program-wide)
+ * inline __my_singleton::init _my_singleton_init;
+ * inline __my_singleton& my_singleton = *__my_singleton::ptr();
  *
  * // Use the singleton
  * my_singleton.doSomething();
@@ -102,22 +103,28 @@ public:
      * @lang{ZH}
      * 用于管理单例生命周期的初始化器类。
      *
-     * 每个翻译单元应声明一个静态的 init 对象。第一个被构造的 init 对象
-     * 将构造单例，最后一个被析构的 init 对象将析构单例。
+     * 在头文件中声明唯一的 inline init 对象。因为 inline 变量全程序只有一个
+     * 实体，所以其构造函数构造单例、析构函数析构单例，各发生一次，无需引用计数。
      *
-     * @warning 如果派生类定义了在构造期间使用的静态成员，它们必须在任何
-     *          init 对象之前初始化。使用 `inline static` 可以确保这一点。
+     * @warning 必须用 `inline` 声明 init 对象（而非 `static`）。`static` 会在每个
+     *          翻译单元生成一份 init，导致单例被重复构造/析构，属于未定义行为。
+     * @warning 如果派生类定义了在构造期间使用的静态成员，它们必须在 init 对象
+     *          之前初始化。使用 `inline static` 可以确保这一点。
      * @endif
      *
      * @lang{EN}
      * Initializer class for managing singleton lifetime.
      *
-     * Each translation unit should declare a static init object. The first init
-     * object constructed will construct the singleton, and the last init object
-     * destructed will destruct the singleton.
+     * Declare exactly one inline init object in the header. Because an inline
+     * variable is a single entity across the whole program, its constructor
+     * constructs the singleton and its destructor destroys it -- each exactly
+     * once -- so no reference counting is needed.
      *
+     * @warning The init object MUST be declared `inline`, not `static`. A `static`
+     *          init produces one object per translation unit, which would construct
+     *          and destroy the singleton multiple times (undefined behavior).
      * @warning If the derived class defines static members used during construction,
-     *          they must be initialized BEFORE any init object. Use `inline static`
+     *          they must be initialized BEFORE the init object. Use `inline static`
      *          to ensure this.
      * @endif
      */
@@ -128,46 +135,23 @@ public:
             static_assert(std::is_class_v<T>, "sing_temp: T must be a class type");
             static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
 
-            auto& count = RefCount();
-            if (count++ == 0)
-            {
-                try {
-                    sing_temp::instance() = ::new (sing_temp::storage()) T();
-                } catch (...) {
-                    // sing_temp is designed for static initialization before main().
-                    // If T() throws, the singleton cannot be constructed and there is
-                    // no safe recovery path. Abort explicitly to avoid leaving the
-                    // reference count in an inconsistent state.
-                    std::abort();
-                }
+            // A single inline init object exists program-wide, so this runs exactly
+            // once -- no reference count is needed to guard against re-entry.
+            try {
+                sing_temp::instance() = ::new (sing_temp::storage()) T();
+            } catch (...) {
+                // sing_temp is designed for static initialization before main().
+                // If T() throws, the singleton cannot be constructed and there is
+                // no safe recovery path. Abort explicitly.
+                std::abort();
             }
         }
 
         ~init()
         {
-            auto& count = RefCount();
-            if (--count == 0)
-            {
-                sing_temp::instance()->~T();
-                sing_temp::instance() = nullptr;
-            }
-        }
-
-        /**
-         * @lang{ZH}
-         * 获取引用计数。
-         * @return 引用计数的引用
-         * @endif
-         *
-         * @lang{EN}
-         * Get the reference count.
-         * @return Reference to the reference count
-         * @endif
-         */
-        [[nodiscard]] static auto& RefCount()
-        {
-            static unsigned count{0};
-            return count;
+            // Mirror of the constructor: runs exactly once, destroys the singleton.
+            sing_temp::instance()->~T();
+            sing_temp::instance() = nullptr;
         }
 
         init(const init&) = delete;
