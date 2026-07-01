@@ -84,7 +84,7 @@ public:
     template <typename TF>
     std::shared_ptr<abs_ft> try_get(const std::string& name)
     {
-        const std::size_t id = TF::id();
+        const facet_id_t id = TF::id();
 
         {
             std::lock_guard guard(m_mutex);
@@ -116,7 +116,7 @@ public:
     template <typename TChar>
     std::shared_ptr<messages_conf<TChar>> try_get_msg(const std::string& domain, const std::string& lang, const std::string& cvt = "")
     {
-        const std::size_t id = messages_conf<TChar>::id();
+        const facet_id_t id = messages_conf<TChar>::id();
 
         std::lock_guard guard(m_mutex);
         if (auto it = m_msg_cache.find(id); it != m_msg_cache.end())
@@ -132,7 +132,7 @@ public:
     {
         if (ptr)
         {
-            const std::size_t id = messages_conf<TChar>::id();
+            const facet_id_t id = messages_conf<TChar>::id();
             const detail::msg_key key{domain, lang, cvt};
 
             std::lock_guard guard(m_mutex);
@@ -297,8 +297,8 @@ private:
     // purely an interning optimization, not a correctness guarantee.
     static constexpr std::size_t s_cache_capacity = 256;
 
-    std::unordered_map<std::size_t, lru_cache<std::string, std::shared_ptr<abs_ft>, s_cache_capacity>> m_cache;
-    std::unordered_map<std::size_t, lru_cache<detail::msg_key, std::shared_ptr<abs_ft>, s_cache_capacity>> m_msg_cache;
+    std::unordered_map<facet_id_t, lru_cache<std::string, std::shared_ptr<abs_ft>, s_cache_capacity>> m_cache;
+    std::unordered_map<facet_id_t, lru_cache<detail::msg_key, std::shared_ptr<abs_ft>, s_cache_capacity>> m_msg_cache;
     // Guards m_cache / m_msg_cache. Facet construction in try_get happens *outside*
     // this lock (it is taken only to look up and to insert), so the mutex is never
     // held across a facet constructor. That keeps construction unserialized and

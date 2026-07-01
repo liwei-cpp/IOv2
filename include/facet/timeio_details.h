@@ -234,7 +234,8 @@ namespace IOv2
          * @lang{ZH}
          * @brief 返回 `timeio` facet 的唯一类型标识。
          *
-         * 通过将静态变量 `s_id` 的地址转换为 `size_t` 生成唯一标识，
+         * 经由统一入口 `type_id_v<ft_basic>()`（见 facet_common.h 顶部说明）：
+         * header-only 模式下是每类型静态量的地址，共享库模式下是 `std::type_index(typeid)`，
          * 与 `base_ft` 的类型分发机制配合使用。
          * @return `timeio` facet 的唯一类型 ID。
          * @endif
@@ -242,12 +243,14 @@ namespace IOv2
          * @lang{EN}
          * @brief Returns the unique type-identity token for the `timeio` facet.
          *
-         * The identity is derived by casting the address of the static variable `s_id`
-         * to `size_t`, integrating with the type-dispatch mechanism of `base_ft`.
+         * Via the single entry point `type_id_v<ft_basic>()` (see the note at the
+         * top of facet_common.h): a per-type static's address in header-only mode,
+         * `std::type_index(typeid)` in shared mode; integrates with the
+         * type-dispatch mechanism of `base_ft`.
          * @return The unique type ID for the `timeio` facet.
          * @endif
          */
-        static size_t id() { return reinterpret_cast<size_t>(&s_id); }
+        static facet_id_t id() { return type_id_v<ft_basic>(); }
 
     public:
         /**
@@ -333,9 +336,6 @@ namespace IOv2
             }
             return res;
         }();
-
-    private:
-        inline static const void* s_id = nullptr;
     };
 
 /**

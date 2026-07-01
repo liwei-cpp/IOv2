@@ -10,7 +10,6 @@
 #include <facet/timeio.h>
 #include <locale/ori_facet_buf.h>
 
-#include <bit>
 #include <clocale>
 #include <concepts>
 #include <cstddef>
@@ -24,28 +23,6 @@
 
 namespace IOv2
 {
-template <typename T>
-struct type_id
-{
-    inline static const void* s_id = nullptr;
-};
-
-template <typename T>
-size_t type_id_v() noexcept
-{
-    return std::bit_cast<size_t>(&(type_id<T>::s_id));
-}
-
-// type_id_v keys m_facets by the address of type_id<T>::s_id. This mirrors
-// ft_basic::id() (facet_common.h), which guards the same idiom. std::bit_cast is
-// well-formed only when sizeof(To) == sizeof(From); since we bit_cast a pointer
-// into size_t, the assert must require *equal* size, not merely "fits". With the
-// correct condition a platform where the sizes differ trips this assert with a
-// clear diagnostic instead of an opaque error on the bit_cast line below.
-static_assert(sizeof(void*) == sizeof(size_t),
-              "type_id_v uses std::bit_cast<size_t>(pointer), which is well-formed "
-              "only when sizeof(void*) == sizeof(size_t)");
-
 /**
  * @lang{ZH}
  * @brief 管理一组 facet 的本地化对象。
@@ -580,7 +557,7 @@ public:
     bool has() const
     {
         std::shared_lock g(m_facet_mutex);
-        std::size_t id = TF::id();
+        facet_id_t id = TF::id();
         auto it = m_facet_confs.find(id);
         if (it == m_facet_confs.end()) return false;
 
@@ -631,7 +608,7 @@ public:
     std::shared_ptr<TF> get() const
     {
         std::shared_lock g(m_facet_mutex);
-        std::size_t id = TF::id();
+        facet_id_t id = TF::id();
         auto it = m_facet_confs.find(id);
         if (it == m_facet_confs.end()) return nullptr;
 
@@ -716,14 +693,14 @@ private:
     template <template <typename> class T>
     void init(const std::string& ft_name)
     {
-        std::size_t k = T<TChar>::id();
+        facet_id_t k = T<TChar>::id();
         auto v = s_ori_facet_buf.try_get<T<TChar>>(ft_name);
         m_facet_confs.insert({k, v});
     }
 
 private:
-    std::unordered_map<std::size_t, std::shared_ptr<abs_ft>> m_facet_confs;
-    mutable std::unordered_map<std::size_t, std::shared_ptr<void>> m_facets;
+    std::unordered_map<facet_id_t, std::shared_ptr<abs_ft>> m_facet_confs;
+    mutable std::unordered_map<facet_id_t, std::shared_ptr<void>> m_facets;
     mutable std::shared_mutex m_facet_mutex;
 };
 }
