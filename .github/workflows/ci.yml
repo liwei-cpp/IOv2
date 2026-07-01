@@ -85,6 +85,52 @@ jobs:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
 
+  shared-library:
+    runs-on: ubuntu-latest
+    container:
+      image: gcc:15
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y make pkg-config locales-all
+
+    - name: Build the shared library
+      run: make shared
+
+    - name: Verify no unexpected runtime dependencies
+      run: |
+        # iov2_objects.cpp pulls in none of the optional converters, so the .so
+        # must not depend on zlib/Botan.
+        if readelf -d libiov2.so | grep -Eiq 'libz|libbotan'; then
+          echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
+        fi
+
+    - name: Install + consume in shared mode (via pkg-config iov2-shared)
+      run: |
+        make install-shared PREFIX=/opt/iov2
+        # install-shared flips the switch in the shipped header, so the consumer
+        # does NOT pass -DIOV2_SHARED by hand.
+        grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/common/iov2_export.h
+        cat > consumer.cpp <<'EOF'
+        #include <io/objects/out_impl.h>
+        int main() { IOv2::cout << "iov2 shared ok\n"; return 0; }
+        EOF
+        export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
+        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2-shared) \
+            consumer.cpp -o consumer_shared $(pkg-config --libs iov2-shared)
+        LD_LIBRARY_PATH=/opt/iov2/lib ./consumer_shared | grep -q 'iov2 shared ok'
+
+    - name: Install + consume in header-only mode (via pkg-config iov2)
+      run: |
+        make install PREFIX=/opt/iov2-ho
+        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
+            consumer.cpp -o consumer_ho $(pkg-config --libs iov2)
+        ./consumer_ho | grep -q 'iov2 shared ok'
+
   clang-tidy:
     runs-on: ubuntu-latest
     container:
