@@ -95,7 +95,7 @@ jobs:
     - name: Install dependencies
       run: |
         apt-get update
-        apt-get install -y make pkg-config locales-all
+        apt-get install -y zlib1g-dev libbotan-2-dev make pkg-config tzdata locales-all
 
     - name: Build the shared library
       run: make shared
@@ -108,28 +108,25 @@ jobs:
           echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
         fi
 
-    - name: Install + consume in shared mode (via pkg-config iov2-shared)
+    - name: Install the shared library
       run: |
         make install-shared PREFIX=/opt/iov2
-        # install-shared flips the switch in the shipped header, so the consumer
-        # does NOT pass -DIOV2_SHARED by hand.
+        # install-shared flips the switch in the shipped header.
         grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/common/iov2_export.h
-        cat > consumer.cpp <<'EOF'
-        #include <io/objects/out_impl.h>
-        int main() { IOv2::cout << "iov2 shared ok\n"; return 0; }
-        EOF
-        export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
-        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2-shared) \
-            consumer.cpp -o consumer_shared $(pkg-config --libs iov2-shared)
-        LD_LIBRARY_PATH=/opt/iov2/lib ./consumer_shared | grep -q 'iov2 shared ok'
 
-    - name: Install + consume in header-only mode (via pkg-config iov2)
+    - name: Run the full test suite against the installed shared library
       run: |
-        make install PREFIX=/opt/iov2-ho
-        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
-        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
-            consumer.cpp -o consumer_ho $(pkg-config --libs iov2)
-        ./consumer_ho | grep -q 'iov2 shared ok'
+        # Consume libiov2 the real-user way: installed headers (switch already on)
+        # + pkg-config for cflags/libs. Drop -I../include so only the installed
+        # headers are used. The repo test/Makefile is not modified.
+        export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
+        export LD_LIBRARY_PATH=/opt/iov2/lib
+        export LC_ALL=C   # tests assume the C locale (default boolalpha names, etc.)
+        cd test
+        make -j$(nproc) test \
+          OBJ_DIR=obj_shared BIN_DIR=bin_shared \
+          COMP_FLAGS="-Wall -Werror -Wshadow -std=c++23 -g -O2 -DIOV2_SHARED -I. -I/usr/include/botan-2 $(pkg-config --cflags iov2-shared)" \
+          LINK_FLAGS="$(pkg-config --libs iov2-shared) -lz -lbotan-2"
 
   clang-tidy:
     runs-on: ubuntu-latest
