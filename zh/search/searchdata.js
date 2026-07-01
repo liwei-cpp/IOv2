@@ -10,7 +10,8 @@ var indexSectionsWithContent =
   7: "fhip",
   8: "bilmnostuv",
   9: "cio",
-  10: "i"
+  10: "i",
+  11: "i"
 };
 
 var indexSectionNames =
@@ -25,7 +26,8 @@ var indexSectionNames =
   7: "enums",
   8: "enumvalues",
   9: "related",
-  10: "concepts"
+  10: "defines",
+  11: "concepts"
 };
 
 var indexSectionLabels =
@@ -40,6 +42,7 @@ var indexSectionLabels =
   7: "枚举",
   8: "枚举值",
   9: "友元",
-  10: "概念"
+  10: "宏定义",
+  11: "概念"
 };
 

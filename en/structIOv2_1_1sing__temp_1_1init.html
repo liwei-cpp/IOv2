@@ -91,7 +91,6 @@ $(document).ready(function(){initNavTree('structIOv2_1_1sing__temp_1_1init.html'
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="structIOv2_1_1sing__temp_1_1init-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">IOv2::sing_temp&lt; T &gt;::init Struct Reference</div></div>
 </div><!--header-->
@@ -113,17 +112,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a431829eafbc43b0be5a410caab354faf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ab75accaff37287fc42b5ac87427cb9" id="r_a9ab75accaff37287fc42b5ac87427cb9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html#a9ab75accaff37287fc42b5ac87427cb9">operator=</a> (<a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a9ab75accaff37287fc42b5ac87427cb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
-Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a697d9ffeb62b00d5130b93d11fc553b7" id="r_a697d9ffeb62b00d5130b93d11fc553b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html#a697d9ffeb62b00d5130b93d11fc553b7">RefCount</a> ()</td></tr>
-<tr class="separator:a697d9ffeb62b00d5130b93d11fc553b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;<br />
 struct IOv2::sing_temp&lt; T &gt;::init</div><p>Initializer class for managing singleton lifetime.</p>
-<p>Each translation unit should declare a static init object. The first init object constructed will construct the singleton, and the last init object destructed will destruct the singleton.</p>
-<dl class="section warning"><dt>Warning</dt><dd>If the derived class defines static members used during construction, they must be initialized BEFORE any init object. Use <code>inline static</code> to ensure this.  </dd></dl>
+<p>Declare exactly one inline init object in the header. Because an inline variable is a single entity across the whole program, its constructor constructs the singleton and its destructor destroys it &ndash; each exactly once &ndash; so no reference counting is needed.</p>
+<dl class="section warning"><dt>Warning</dt><dd>The init object MUST be declared <code>inline</code>, not <code>static</code>. A <code>static</code> init produces one object per translation unit, which would construct and destroy the singleton multiple times (undefined behavior). </dd>
+<dd>
+If the derived class defines static members used during construction, they must be initialized BEFORE the init object. Use <code>inline static</code> to ensure this.  </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a5a4ec0248b9e35313c74b62821c6d973" name="a5a4ec0248b9e35313c74b62821c6d973"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5a4ec0248b9e35313c74b62821c6d973">&#9670;&#160;</a></span>init() <span class="overload">[1/3]</span></h2>
@@ -289,34 +285,6 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="a697d9ffeb62b00d5130b93d11fc553b7" name="a697d9ffeb62b00d5130b93d11fc553b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a697d9ffeb62b00d5130b93d11fc553b7">&#9670;&#160;</a></span>RefCount()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">auto</a> &amp; <a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::init::RefCount </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Get the reference count. </p><dl class="section return"><dt>Returns</dt><dd>Reference to the reference count  </dd></dl>
 
 </div>
 </div>

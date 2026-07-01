@@ -23,5 +23,5 @@ var searchData=
   ['try_5fget_5fmsg_20',['try_get_msg',['../classIOv2_1_1ori__facet__buf.html#ab83b96048aa896f48c8d1ce9be1ad8f5',1,'IOv2::ori_facet_buf']]],
   ['try_5fopen_21',['try_open',['../classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#a37fbac2643320c1b381c03c625ba0127',1,'IOv2::basic_file_device&lt; IsIn, IsOut, CharType &gt;']]],
   ['try_5fput_22',['try_put',['../classIOv2_1_1lru__cache.html#a557adfa41ac5b557d858774d8c69fe4f',1,'IOv2::lru_cache']]],
-  ['type_5fid_5fv_23',['type_id_v',['../namespaceIOv2.html#aa2ed10d3fbf23729219329e5d54a06f1',1,'IOv2']]]
+  ['type_5fid_5fv_23',['type_id_v',['../namespaceIOv2.html#aa979da4dd2fa7859e2f0d5dab0507702',1,'IOv2']]]
 ];

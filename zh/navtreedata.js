@@ -50,7 +50,11 @@ var NAVTREE =
       ] ]
     ] ],
     [ "文件", "files.html", [
-      [ "文件列表", "files.html", "files_dup" ]
+      [ "文件列表", "files.html", "files_dup" ],
+      [ "文件成员", "globals.html", [
+        [ "全部", "globals.html", null ],
+        [ "宏定义", "globals_defs.html", null ]
+      ] ]
     ] ]
   ] ]
 ];
@@ -66,11 +70,11 @@ var NAVTREEINDEX =
 "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a99d0d96cf9d2060d6f6c16556f6eecbc",
 "classIOv2_1_1timeio.html#a4434ddd6edf11eb1c9c48f2fe9e7be18",
 "dir_2cc5c9a17789bb2df56f7d42da716af7.html",
-"namespaceIOv2.html#a21701357275b1da24825865d6de720bc",
-"sing__temp_8h.html",
-"structIOv2_1_1cvt__creator__type__gen_3_01T1_00_01cvt__pipe__creator_3_01T2_8_8_8_01_4_01_4.html#ad357cf48d21f0a34ba8857d67b3f3843",
-"structIOv2_1_1ostream__operators.html#ac431075dcbbd3e6a2ed49e8ef7188047",
-"structIOv2_1_1time__parse__context.html"
+"namespaceIOv2.html#a13cdd00ebb6a2cdcdfaa6dd649541bd4",
+"root__cvt_8h.html#a4d43e84ad8909b24c7ff9808c3447be3",
+"structIOv2_1_1cvt__creator__type__gen_3_01T1_00_01T2_01_4.html",
+"structIOv2_1_1ostream__operators.html",
+"structIOv2_1_1sync.html#ab57c5f0636a0d26dab66776770f34caa"
 ];
 
 var SYNCONMSG = '点击 关闭 面板同步';
