@@ -85,7 +85,7 @@ jobs:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
 
-  shared-library:
+  install-paths:
     runs-on: ubuntu-latest
     container:
       image: gcc:15
@@ -144,6 +144,16 @@ jobs:
         g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
             consumer_ho.cpp -o consumer_ho $(pkg-config --libs iov2)
         ./consumer_ho | grep -q 'iov2 header-only ok'
+
+    - name: Run the full test suite against the installed header-only library
+      run: |
+        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        export LC_ALL=C
+        cd test
+        make -j$(nproc) test \
+          OBJ_DIR=obj_ho BIN_DIR=bin_ho \
+          COMP_FLAGS="-Wall -Werror -Wshadow -std=c++23 -g -O2 -I. -I/usr/include/botan-2 $(pkg-config --cflags iov2)" \
+          LINK_FLAGS="-lz -lbotan-2"
 
   clang-tidy:
     runs-on: ubuntu-latest
