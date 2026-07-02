@@ -125,8 +125,25 @@ jobs:
         cd test
         make -j$(nproc) test \
           OBJ_DIR=obj_shared BIN_DIR=bin_shared \
-          COMP_FLAGS="-Wall -Werror -Wshadow -std=c++23 -g -O2 -DIOV2_SHARED -I. -I/usr/include/botan-2 $(pkg-config --cflags iov2-shared)" \
+          COMP_FLAGS="-Wall -Werror -Wshadow -std=c++23 -g -O2 -I. -I/usr/include/botan-2 $(pkg-config --cflags iov2-shared)" \
           LINK_FLAGS="$(pkg-config --libs iov2-shared) -lz -lbotan-2"
+
+    - name: Install + consume in header-only mode (via pkg-config iov2)
+      run: |
+        # The header-only install path (make install + iov2.pc) is distinct from the
+        # -I include path the build/coverage jobs use; exercise it so the install
+        # target, iov2.pc, and the shipped switch-off header stay covered.
+        make install PREFIX=/opt/iov2-ho
+        # Header-only: the shipped switch must stay commented out.
+        if grep -q '^#define IOV2_SHARED 1' /opt/iov2-ho/include/common/iov2_export.h; then
+          echo "header-only install must NOT flip the IOV2_SHARED switch"; exit 1
+        fi
+        printf '%s\n' '#include <io/objects/out_impl.h>' \
+          'int main() { IOv2::cout << "iov2 header-only ok\n"; return 0; }' > consumer_ho.cpp
+        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
+            consumer_ho.cpp -o consumer_ho $(pkg-config --libs iov2)
+        ./consumer_ho | grep -q 'iov2 header-only ok'
 
   clang-tidy:
     runs-on: ubuntu-latest
