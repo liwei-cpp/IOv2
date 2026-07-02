@@ -29,6 +29,8 @@
  */
 
 #pragma once
+#include <common/iov2_export.h>  // brings in the IOV2_SHARED switch used below
+
 #include <bit>
 #include <concepts>
 #include <cstddef>
