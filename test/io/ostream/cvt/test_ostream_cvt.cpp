@@ -26,7 +26,7 @@ void test_ostream_cvt_1()
 
     auto helper = [&creator]<template<typename, typename> class T>()
     {
-        T os(IOv2::mem_device{""}, creator);
+        T os(IOv2::mem_device{""}, creator, IOv2::locale<char32_t>("C"));
         static_assert(std::is_same_v<typename decltype(os)::char_type, char32_t>);
     
         os << 1024 << U' ' << U"李伟";
@@ -63,7 +63,7 @@ void test_ostream_cvt_sync_1()
 
     auto helper = [&creator]<template<typename, typename> class T>()
     {
-        T os(IOv2::mem_device{""}, creator);
+        T os(IOv2::mem_device{""}, creator, IOv2::locale<char32_t>("C"));
         static_assert(std::is_same_v<typename decltype(os)::char_type, char32_t>);
     
         IOv2::sync(os).stream << 1024 << U' ' << U"李伟";

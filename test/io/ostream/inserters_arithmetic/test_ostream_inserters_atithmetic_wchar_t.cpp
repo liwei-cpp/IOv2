@@ -182,7 +182,7 @@ void test_ostream_inserters_arithmetic_wchar_t_3()
     dump_info("Test ostream<wchar_t> operator<< (arithmetic) case 3...");
     auto helper = []<template <typename, typename> class TO, typename T>(T n)
     {
-        TO o(IOv2::mem_device{L""});
+        TO o(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         const wchar_t *expect;
         if (std::numeric_limits<T>::digits + 1 == 16)
             expect = L"177777 ffff";
@@ -377,7 +377,7 @@ void test_ostream_inserters_arithmetic_wchar_t_9()
         long double val = std::numeric_limits<long double>::max();
         int prec = std::numeric_limits<long double>::digits10;
 
-        T os(IOv2::mem_device{L""});
+        T os(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os.precision(prec);
         os.setf(IOv2::ios_defs::scientific);
         os << val;
@@ -392,7 +392,7 @@ void test_ostream_inserters_arithmetic_wchar_t_9()
         // without seg-faulting (libstdc++/4402)
         double val2 = std::numeric_limits<double>::max();
 
-        T os2(IOv2::mem_device{L""});
+        T os2(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os2.precision(3);
         os2.setf(IOv2::ios_defs::fixed);
         os2 << val2;

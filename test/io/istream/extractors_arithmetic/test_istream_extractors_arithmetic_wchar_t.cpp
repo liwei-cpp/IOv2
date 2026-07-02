@@ -20,9 +20,9 @@ void test_istream_extractors_arithmetic_wchar_t_1()
         std::wstring str_03(L"-19999999 777777 -234234 233 -234 33 1 66300.25 .315 1.5");
         std::wstring str_04(L"0123");
 
-        T is_02{IOv2::mem_device{str_02}};
-        T is_03{IOv2::mem_device{str_03}};
-        T is_04{IOv2::mem_device{str_04}};
+        T is_02{IOv2::mem_device{str_02}, IOv2::locale<wchar_t>("C")};
+        T is_03{IOv2::mem_device{str_03}, IOv2::locale<wchar_t>("C")};
+        T is_04{IOv2::mem_device{str_04}, IOv2::locale<wchar_t>("C")};
 
         // Integral Types:
         bool            b1  = false;
@@ -155,7 +155,7 @@ void test_istream_extractors_arithmetic_wchar_t_4()
         // default locale, grouping is turned off
         unsigned int h4;
         wchar_t c;
-        T is{IOv2::mem_device{L"205,199,144"}};
+        T is{IOv2::mem_device{L"205,199,144"}, IOv2::locale<wchar_t>("C")};
 
         is >> h4; // 205
         VERIFY(h4 == 205);

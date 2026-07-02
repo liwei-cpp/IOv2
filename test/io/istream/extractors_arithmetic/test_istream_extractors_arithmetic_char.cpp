@@ -21,9 +21,9 @@ void test_istream_extractors_arithmetic_char_1()
         std::string str_03("-19999999 777777 -234234 233 -234 33 1 66300.25 .315 1.5");
         std::string str_04("0123");
 
-        T is_02{IOv2::mem_device{str_02}};
-        T is_03{IOv2::mem_device{str_03}};
-        T is_04{IOv2::mem_device{str_04}};
+        T is_02{IOv2::mem_device{str_02}, IOv2::locale<char>("C")};
+        T is_03{IOv2::mem_device{str_03}, IOv2::locale<char>("C")};
+        T is_04{IOv2::mem_device{str_04}, IOv2::locale<char>("C")};
 
         // Integral Types:
         bool            b1  = false;
@@ -156,7 +156,7 @@ void test_istream_extractors_arithmetic_char_4()
         // default locale, grouping is turned off
         unsigned int h4;
         char c;
-        T is{IOv2::mem_device{"205,199,144"}};
+        T is{IOv2::mem_device{"205,199,144"}, IOv2::locale<char>("C")};
 
         is >> h4; // 205
         VERIFY(h4 == 205);

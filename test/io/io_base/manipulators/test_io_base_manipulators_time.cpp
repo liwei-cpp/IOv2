@@ -32,7 +32,7 @@ void test_io_base_manipulators_put_time_char_1()
 {
     dump_info("Test ios_base<char> put_time case 1...");
 
-    IOv2::ostream oss{IOv2::mem_device{""}};
+    IOv2::ostream oss{IOv2::mem_device{""}, IOv2::locale<char>("C")};
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, "%a %Y");
     auto [dev1, err1] = oss.detach();
@@ -58,7 +58,7 @@ void test_io_base_manipulators_put_time_wchar_t_1()
 {
     dump_info("Test ios_base<wchar_t> put_time case 1...");
 
-    IOv2::ostream oss{IOv2::mem_device{L""}};
+    IOv2::ostream oss{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C")};
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, L"%a %Y");
     auto [dev3, err3] = oss.detach();
