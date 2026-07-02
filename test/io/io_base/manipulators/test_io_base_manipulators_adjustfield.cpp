@@ -56,6 +56,7 @@ void test_io_base_manipulators_adjustfield_char_1()
                         ":   nay:\n";
 
     IOv2::ostream oss{IOv2::mem_device{""}};
+    oss.locale(IOv2::locale<char>("C"));
     oss << true << " " << false << IOv2::endl;
     oss << IOv2::boolalpha;
     oss << true << " " << false << IOv2::endl;
@@ -123,6 +124,7 @@ void test_io_base_manipulators_adjustfield_wchar_t_1()
                           L":   nay:\n";
 
     IOv2::ostream oss{IOv2::mem_device{L""}};
+    oss.locale(IOv2::locale<wchar_t>("C"));
     oss << true << L" " << false << IOv2::endl;
     oss << IOv2::boolalpha;
     oss << true << L" " << false << IOv2::endl;

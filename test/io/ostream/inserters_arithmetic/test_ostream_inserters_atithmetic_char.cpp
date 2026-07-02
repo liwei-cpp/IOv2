@@ -184,7 +184,7 @@ void test_ostream_inserters_arithmetic_char_3()
     dump_info("Test ostream<char> operator<< (arithmetic) case 3...");
     auto helper = []<template <typename, typename> class TO, typename T>(T n)
     {
-        TO o(IOv2::mem_device{""});
+        TO o(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         const char *expect;
         if (std::numeric_limits<T>::digits + 1 == 16)
             expect = "177777 ffff";
@@ -379,7 +379,7 @@ void test_ostream_inserters_arithmetic_char_9()
         long double val = std::numeric_limits<long double>::max();
         int prec = std::numeric_limits<long double>::digits10;
 
-        T os(IOv2::mem_device{""});
+        T os(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os.precision(prec);
         os.setf(IOv2::ios_defs::scientific);
         os << val;
@@ -394,7 +394,7 @@ void test_ostream_inserters_arithmetic_char_9()
         // without seg-faulting (libstdc++/4402)
         double val2 = std::numeric_limits<double>::max();
 
-        T os2(IOv2::mem_device{""});
+        T os2(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os2.precision(3);
         os2.setf(IOv2::ios_defs::fixed);
         os2 << val2;
