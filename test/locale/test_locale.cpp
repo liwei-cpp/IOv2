@@ -2,6 +2,7 @@
 #include <string>
 #include <common/dump_info.h>
 
+void test_locale_char_traits();
 void test_locale_char_1();
 void test_locale_char_2();
 void test_locale_char_3();
@@ -12,6 +13,7 @@ void test_locale_char_7();
 void test_locale_char_8();
 void test_locale_char_9();
 
+void test_locale_wchar_t_traits();
 void test_locale_wchar_t_1();
 void test_locale_wchar_t_2();
 void test_locale_wchar_t_3();
@@ -23,6 +25,7 @@ void test_locale_wchar_t_8();
 void test_locale_wchar_t_9();
 void test_locale_wchar_t_10();
 
+void test_locale_char32_t_traits();
 void test_locale_char32_t_1();
 void test_locale_char32_t_2();
 void test_locale_char32_t_3();
@@ -34,6 +37,7 @@ void test_locale_char32_t_8();
 void test_locale_char32_t_9();
 void test_locale_char32_t_10();
 
+void test_locale_char8_t_traits();
 void test_locale_char8_t_1();
 void test_locale_char8_t_2();
 void test_locale_char8_t_3();
@@ -49,6 +53,7 @@ int main()
 {
     try
     {
+        test_locale_char_traits();
         test_locale_char_1();
         test_locale_char_2();
         test_locale_char_3();
@@ -59,6 +64,7 @@ int main()
         test_locale_char_8();
         test_locale_char_9();
 
+        test_locale_wchar_t_traits();
         test_locale_wchar_t_1();
         test_locale_wchar_t_2();
         test_locale_wchar_t_3();
@@ -70,6 +76,7 @@ int main()
         test_locale_wchar_t_9();
         test_locale_wchar_t_10();
         
+        test_locale_char32_t_traits();
         test_locale_char32_t_1();
         test_locale_char32_t_2();
         test_locale_char32_t_3();
@@ -81,6 +88,7 @@ int main()
         test_locale_char32_t_9();
         test_locale_char32_t_10();
 
+        test_locale_char8_t_traits();
         test_locale_char8_t_1();
         test_locale_char8_t_2();
         test_locale_char8_t_3();
