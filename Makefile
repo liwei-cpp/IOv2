@@ -25,14 +25,22 @@ SO_FLAGS  := -std=c++23 -O2 -fPIC -fvisibility=hidden -shared \
              -Iinclude \
              $(CPPFLAGS)
 
-# Linker flags. -z nodelete marks libiov2.so non-unloadable: dlclose then only
-# drops the reference count and never unmaps it, so the process-wide singletons
-# (s_ori_facet_buf, the stream objects) live until real process exit. A base
-# library is meant to stay resident for the whole process anyway (like libstdc++),
-# and this closes the one remaining dangling-reference window -- a consumer that
-# dlopen's libiov2.so *itself*, keeps a reference, then dlclose's it. See the
-# lifetime/dlopen note in src/iov2_objects.cpp for the full rationale.
-SO_LDFLAGS := -Wl,-z,nodelete
+# Linker flags. By default IOv2 does NOT force libiov2.so to stay resident: a
+# dlclose behaves like it does for any other shared library -- once you unload it,
+# you must not use anything that came from it (the stream objects, the localization
+# cache, or any reference/pointer handed out from those). Closing a library and
+# then calling into it is a use-after-unload bug on the caller's side.
+#
+# The one case this leaves exposed is a reference that outlives the unload: e.g. a
+# plugin borrows a libiov2 stream, hands it back to the host, and is then dlclose'd
+# while it held libiov2's *last* reference -- the library unmaps and the
+# process-wide singletons (s_ori_facet_buf, the stream objects) are destroyed under
+# the host's feet. If your deployment does that, uncomment the opt-in line below:
+# -z nodelete marks libiov2.so non-unloadable, so those singletons live until real
+# process exit (like libstdc++). See the lifetime/dlopen note in
+# src/iov2_objects.cpp for the full rationale.
+SO_LDFLAGS :=
+# SO_LDFLAGS := -Wl,-z,nodelete
 
 LIB       := libiov2.so
 SRC       := src/iov2_objects.cpp
