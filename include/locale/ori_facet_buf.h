@@ -16,9 +16,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace IOv2
-{
-namespace detail
+namespace IOv2::detail
 {
 /**
  * @lang{ZH}
@@ -47,8 +45,7 @@ struct msg_key
     std::string cvt;
     bool operator==(const msg_key&) const = default;
 };
-} // namespace detail
-} // namespace IOv2
+} // namespace IOv2::detail
 
 namespace std
 {
@@ -88,7 +85,7 @@ public:
         const facet_id_t id = TF::id();
 
         {
-            std::lock_guard guard(m_mutex);
+            std::scoped_lock guard(m_mutex);
             if (auto it = m_cache.find(id); it != m_cache.end())
             {
                 if (auto cached = it->second.get(name))
@@ -104,7 +101,7 @@ public:
         // (id, name) meanwhile, return that entry and discard the object built here.
         auto obj = std::make_shared<TF>(name);
 
-        std::lock_guard guard(m_mutex);
+        std::scoped_lock guard(m_mutex);
         auto& sub_cache = m_cache[id];
         if (auto cached = sub_cache.get(name))
             return *cached;
@@ -119,10 +116,10 @@ public:
     {
         const facet_id_t id = messages_conf<TChar>::id();
 
-        std::lock_guard guard(m_mutex);
+        std::scoped_lock guard(m_mutex);
         if (auto it = m_msg_cache.find(id); it != m_msg_cache.end())
         {
-            if (auto cached = it->second.get(detail::msg_key{domain, lang, cvt}))
+            if (auto cached = it->second.get(detail::msg_key{.domain=domain, .lang=lang, .cvt=cvt}))
                 return std::static_pointer_cast<messages_conf<TChar>>(*cached);
         }
         return nullptr;
@@ -134,9 +131,9 @@ public:
         if (ptr)
         {
             const facet_id_t id = messages_conf<TChar>::id();
-            const detail::msg_key key{domain, lang, cvt};
+            const detail::msg_key key{.domain=domain, .lang=lang, .cvt=cvt};
 
-            std::lock_guard guard(m_mutex);
+            std::scoped_lock guard(m_mutex);
             auto& sub_cache = m_msg_cache[id];
             if (auto cached = sub_cache.get(key))
                 return std::static_pointer_cast<messages_conf<TChar>>(*cached);
@@ -202,6 +199,13 @@ public:
         }
     }
 
+public:
+    ~ori_facet_buf() = default;
+    ori_facet_buf(const ori_facet_buf&) = delete;
+    ori_facet_buf& operator=(const ori_facet_buf&) = delete;
+    ori_facet_buf(ori_facet_buf&&) = delete;
+    ori_facet_buf& operator=(ori_facet_buf&&) = delete;
+
 private:
     ori_facet_buf()
         : m_ctype(resolve_locale("LC_CTYPE")),
@@ -211,8 +215,6 @@ private:
           m_time(resolve_locale("LC_TIME"))
     {
     }
-    ori_facet_buf(const ori_facet_buf&) = delete;
-    const ori_facet_buf& operator=(const ori_facet_buf&) = delete;
 
     /**
      * @lang{ZH}
