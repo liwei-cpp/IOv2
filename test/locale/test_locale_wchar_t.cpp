@@ -4,6 +4,16 @@
 #include <common/exe_path.h>
 #include <common/verify.h>
 
+#include <type_traits>
+
+void test_locale_wchar_t_traits()
+{
+    dump_info("Test locale<wchar_t> traits...");
+    static_assert(std::is_nothrow_move_constructible_v<IOv2::locale<wchar_t>>);
+    static_assert(std::is_nothrow_move_assignable_v<IOv2::locale<wchar_t>>);
+    dump_info("Done\n");
+}
+
 void test_locale_wchar_t_1()
 {
     dump_info("Test locale<wchar_t> case 1...");

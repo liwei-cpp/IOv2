@@ -45,9 +45,10 @@ namespace IOv2
  * 一次 "查缓存 → 构建 → 写回缓存" 的复合操作，期间会多次、分别地加锁读取各
  * 依赖 facet 的 conf。即便每次单独访问都在锁内，整个复合操作也**无法**相对于
  * 一次整体赋值保持原子：并发赋值可能使最终写入 `m_facets` 的对象由"已被替换掉
- * 的旧状态"构建而来，导致缓存与当前 conf 不一致。注意这**不是**内存安全 / UB
- * 问题（所有 `shared_ptr` 访问都在锁内，不存在撕裂读或悬空），仅是逻辑状态不
- * 一致；它必须靠上述契约（赋值期间独占访问）来避免，而非靠在 `get` 内加更细的
+ * 的旧状态"构建而来，导致缓存与当前 conf 不一致。注意对加锁的拷贝赋值而言，这
+ * **不是**内存安全 / UB 问题（所有 `shared_ptr` 访问都在锁内，不存在撕裂读或
+ * 悬空），仅是逻辑状态不一致；它必须靠上述契约（赋值期间独占访问）来避免，而非
+ * 靠在 `get` 内加更细的
  * 锁——复合操作的原子性无法由内部 per-operation 加锁提供。
  *
  * @note `involve` / `involve_msg` / `remove` 均为 const：它们基于 `*this` 的一份
@@ -85,10 +86,11 @@ namespace IOv2
  * whole compound operation *cannot* be atomic with respect to a whole-object
  * assignment: a concurrent assignment can cause the object finally inserted into
  * `m_facets` to have been built from a now-replaced state, leaving the cache
- * inconsistent with the current confs. This is *not* a memory-safety / UB
- * problem (every `shared_ptr` access is locked -- no torn reads, no dangling);
- * it is a logical-consistency one, and it must be avoided via the contract above
- * (exclusive access during assignment) rather than by finer-grained locking
+ * inconsistent with the current confs. For the locking copy-assignment this is
+ * *not* a memory-safety / UB problem (every `shared_ptr` access is locked -- no
+ * torn reads, no dangling), only a logical-consistency one; it must be avoided
+ * via the contract above (exclusive access during assignment) rather than by
+ * finer-grained locking
  * inside `get` -- compound-operation atomicity cannot be provided by internal
  * per-operation locks.
  *
@@ -302,11 +304,10 @@ public:
         m_facets = val.m_facets;
     }
 
-    locale(locale&& val)
+    locale(locale&& val) noexcept
+        : m_facet_confs(std::move(val.m_facet_confs)),
+          m_facets(std::move(val.m_facets))
     {
-        std::lock_guard g(val.m_facet_mutex);
-        m_facet_confs = std::move(val.m_facet_confs);
-        m_facets = std::move(val.m_facets);
     }
 
     // Assignment is the only mutating operation on a locale instance. Per the
@@ -336,10 +337,9 @@ public:
         return *this;
     }
 
-    locale& operator=(locale&& val)
+    locale& operator=(locale&& val) noexcept
     {
         if (this == &val) return *this;
-        std::scoped_lock g(val.m_facet_mutex, m_facet_mutex);
         m_facet_confs = std::move(val.m_facet_confs);
         m_facets = std::move(val.m_facets);
         return *this;
