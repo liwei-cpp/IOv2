@@ -370,12 +370,11 @@ public:
      * @param domain 文本域名称（`.mo` 文件基名）。
      * @param lang 候选语言字符串；为空（默认）表示按环境变量决定。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
-     *        截断）时是否抛出。为 `false`（默认）静默降级为空（穿透）facet；为 `true` 抛
-     *        `stream_error`。仅在缓存未命中、需本次亲自构造 facet 时生效：若同一
-     *        `(domain, lang)` 键已被先前的 `false` 调用以空 facet 驻留缓存，则后续 `true` 调用
-     *        命中缓存直接返回、不再加载，故不抛。
-     * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；此情形下在
-     *         `put_msg` 之前即抛出，失败结果不会被写入缓存。
+     *        截断，或无可用语言）时是否抛出。为 `false`（默认）静默降级为空（穿透）facet；为
+     *        `true` 抛 `stream_error`。**降级 facet 绝不写入缓存**，因此该参数不受此前调用影响：
+     *        无论之前是否有 `false` 调用发生过降级，后续 `true` 调用都会重新尝试加载并如实抛出。
+     * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
+     *         被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
      *         `available` → `std::filesystem::exists`）时，若 domain / 派生路径触发
      *         "文件不存在"以外的文件系统错误（如 ENAMETOOLONG、ELOOP、EACCES、ENOTDIR）
@@ -403,14 +402,14 @@ public:
      * @param lang The candidate language string; empty (the default) defers to the
      *        environment.
      * @param throw_if_fail Whether to throw when the translation dictionary *fails to
-     *        load* (the `.mo` chosen by `filter_lang` exists but is corrupt / truncated).
-     *        `false` (the default) silently degrades to an empty (passthrough) facet;
-     *        `true` throws `stream_error`. Effective only on a cache miss that makes this
-     *        call construct the facet: if the same `(domain, lang)` key was already
-     *        interned as an empty facet by an earlier `false` call, a later `true` call
-     *        hits that cache entry and returns without reloading, so it does not throw.
+     *        load* (the `.mo` chosen by `filter_lang` exists but is corrupt / truncated,
+     *        or no language is available). `false` (the default) silently degrades to an
+     *        empty (passthrough) facet; `true` throws `stream_error`. A degraded facet is
+     *        *never* cached, so this flag is independent of earlier calls: regardless of
+     *        any prior `false` call that degraded, a later `true` call re-attempts the
+     *        load and throws as expected.
      * @throws stream_error if `throw_if_fail` is `true` and the translation dictionary
-     *         fails to load; thrown before `put_msg`, so the failed result is not cached.
+     *         fails to load; the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
      *         availability (`filter_lang` -> `available` -> `std::filesystem::exists`)
      *         hits a filesystem error other than "not found" (e.g. ENAMETOOLONG,
@@ -438,8 +437,19 @@ public:
         auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang);
         if (!ft)
         {
-            ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, throw_if_fail);
-            ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang);
+            // Build strictly so a load failure surfaces as an exception, and intern only
+            // on success: a degraded (load-failed) facet is never cached, so a later
+            // throw_if_fail=true call re-attempts the load and can still throw.
+            try
+            {
+                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, true);
+                ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang);
+            }
+            catch (...)
+            {
+                if (throw_if_fail) throw;
+                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, false);
+            }
         }
 
         // At most one messages facet per locale (keyed by the single messages_conf
@@ -465,12 +475,12 @@ public:
      * @param cvt 目标 `char` 编码名；为空（默认）时取程序启动时解析得到的 `LC_CTYPE` 编码，
      *        并以该有效值同时作为缓存键与构造参数。
      * @param throw_if_fail 翻译字典**加载失败**（`filter_lang` 选中的 `.mo` 文件存在但损坏 /
-     *        截断，或 `cvt` 编码转换器无法构造 / 转换）时是否抛出。为 `false`（默认）静默降级
-     *        为空（穿透）facet；为 `true` 抛 `stream_error`。仅在缓存未命中、需本次亲自构造
-     *        facet 时生效：若同一 `(domain, lang, cvt)` 键已被先前的 `false` 调用以空 facet
-     *        驻留缓存，则后续 `true` 调用命中缓存直接返回、不再加载，故不抛。
-     * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；此情形下在
-     *         `put_msg` 之前即抛出，失败结果不会被写入缓存。
+     *        截断，无可用语言，或 `cvt` 编码转换器无法构造 / 转换）时是否抛出。为 `false`（默认）
+     *        静默降级为空（穿透）facet；为 `true` 抛 `stream_error`。**降级 facet 绝不写入缓存**，
+     *        因此该参数不受此前调用影响：无论之前是否有 `false` 调用发生过降级，后续 `true` 调用
+     *        都会重新尝试加载并如实抛出。
+     * @throws stream_error 当 `throw_if_fail` 为 `true` 且翻译字典加载失败时抛出；失败结果不会
+     *         被写入缓存。
      * @throws std::filesystem::filesystem_error 解析翻译文件可用性（`filter_lang` →
      *         `available` → `std::filesystem::exists`）时，若 domain / 派生路径触发
      *         "文件不存在"以外的文件系统错误（如 ENAMETOOLONG、ELOOP、EACCES、ENOTDIR）
@@ -497,14 +507,14 @@ public:
      *        is used as both the cache key and the construction argument.
      * @param throw_if_fail Whether to throw when the translation dictionary *fails to
      *        load* (the `.mo` chosen by `filter_lang` exists but is corrupt / truncated,
-     *        or the `cvt` encoding converter cannot be constructed / applied). `false`
-     *        (the default) silently degrades to an empty (passthrough) facet; `true`
-     *        throws `stream_error`. Effective only on a cache miss that makes this call
-     *        construct the facet: if the same `(domain, lang, cvt)` key was already
-     *        interned as an empty facet by an earlier `false` call, a later `true` call
-     *        hits that cache entry and returns without reloading, so it does not throw.
+     *        no language is available, or the `cvt` encoding converter cannot be
+     *        constructed / applied). `false` (the default) silently degrades to an empty
+     *        (passthrough) facet; `true` throws `stream_error`. A degraded facet is
+     *        *never* cached, so this flag is independent of earlier calls: regardless of
+     *        any prior `false` call that degraded, a later `true` call re-attempts the
+     *        load and throws as expected.
      * @throws stream_error if `throw_if_fail` is `true` and the translation dictionary
-     *         fails to load; thrown before `put_msg`, so the failed result is not cached.
+     *         fails to load; the failed result is not cached.
      * @throws std::filesystem::filesystem_error if resolving translation-file
      *         availability (`filter_lang` -> `available` -> `std::filesystem::exists`)
      *         hits a filesystem error other than "not found" (e.g. ENAMETOOLONG,
@@ -528,8 +538,19 @@ public:
         auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, effective_cvt);
         if (!ft)
         {
-            ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, throw_if_fail);
-            ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, effective_cvt);
+            // Build strictly so a load failure surfaces as an exception, and intern only
+            // on success: a degraded (load-failed) facet is never cached, so a later
+            // throw_if_fail=true call re-attempts the load and can still throw.
+            try
+            {
+                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, true);
+                ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, effective_cvt);
+            }
+            catch (...)
+            {
+                if (throw_if_fail) throw;
+                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, false);
+            }
         }
 
         // At most one messages facet per locale (keyed by the single messages_conf
@@ -695,7 +716,7 @@ private:
     {
         facet_id_t k = T<TChar>::id();
         auto v = s_ori_facet_buf.try_get<T<TChar>>(ft_name);
-        m_facet_confs.insert({k, v});
+        m_facet_confs.insert({k, std::move(v)});
     }
 
 private:

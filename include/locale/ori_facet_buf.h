@@ -1,6 +1,7 @@
 #pragma once
 #include <common/clocale_wrapper.h>
 #include <common/defs.h>
+#include <common/iov2_export.h>
 #include <common/lru_cache.h>
 #include <common/sing_temp.h>
 #include <facet/facet_common.h>
