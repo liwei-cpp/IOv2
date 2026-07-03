@@ -12,7 +12,6 @@
 
 #include <clocale>
 #include <concepts>
-#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -486,8 +485,9 @@ public:
      * takes a target encoding name `cvt`.
      *
      * As with the non-`char` overload, a `locale` holds **at most one** messages facet;
-     * if `*this` already has one this **throws** (even for the same domain), and
-     * rebinding requires a prior `remove<messages_conf<char>>()`.
+     * if `*this` already has one, the returned locale **replaces** it with the one bound
+     * here -- even when the domain is the same -- mirroring `involve`'s same-id replace
+     * semantics. `*this` itself is unchanged (copy-on-write).
      *
      * @param domain The text domain name (the `.mo` file's basename).
      * @param lang The candidate language string; empty (the default) defers to the
