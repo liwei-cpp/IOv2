@@ -25,12 +25,21 @@ SO_FLAGS  := -std=c++23 -O2 -fPIC -fvisibility=hidden -shared \
              -Iinclude \
              $(CPPFLAGS)
 
+# Linker flags. -z nodelete marks libiov2.so non-unloadable: dlclose then only
+# drops the reference count and never unmaps it, so the process-wide singletons
+# (s_ori_facet_buf, the stream objects) live until real process exit. A base
+# library is meant to stay resident for the whole process anyway (like libstdc++),
+# and this closes the one remaining dangling-reference window -- a consumer that
+# dlopen's libiov2.so *itself*, keeps a reference, then dlclose's it. See the
+# lifetime/dlopen note in src/iov2_objects.cpp for the full rationale.
+SO_LDFLAGS := -Wl,-z,nodelete
+
 LIB       := libiov2.so
 SRC       := src/iov2_objects.cpp
 
 # Build the shared library.
 $(LIB): $(SRC)
-	$(CXX) $(SO_FLAGS) $(SRC) -o $(LIB)
+	$(CXX) $(SO_FLAGS) $(SRC) $(SO_LDFLAGS) -o $(LIB)
 
 shared: $(LIB)
 
