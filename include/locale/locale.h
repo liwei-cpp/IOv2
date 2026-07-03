@@ -119,7 +119,7 @@ class locale
         explicit ft_wrapper(const locale& l)
             : m_ref(l) {}
 
-        bool has() const
+        [[nodiscard]] bool has() const
         {
             return (m_ref.has<T>() && ...);
         }
@@ -151,7 +151,7 @@ class locale
             }
         }
 
-        const locale& m_ref;
+        const locale& m_ref; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
     };
 
     template <typename... T>
@@ -160,7 +160,7 @@ class locale
         explicit ft_wrapper(const locale& l)
             : m_ref(l) {}
 
-        bool has() const
+        [[nodiscard]] bool has() const
         {
             return has_helper<T...>();
         }
@@ -174,13 +174,13 @@ class locale
     private:
         template <typename... TRem>
             requires (sizeof...(TRem) == 0)
-        bool has_helper() const
+        [[nodiscard]] bool has_helper() const
         {
             return false;
         }
 
         template <typename TC, typename... TRem>
-        bool has_helper() const
+        [[nodiscard]] bool has_helper() const
         {
             if constexpr(is_nonempty_facet_create_pack<TC>)
             {
@@ -222,7 +222,7 @@ class locale
             }
         }
 
-        const locale& m_ref;
+        const locale& m_ref; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
     };
 
 public:
@@ -299,8 +299,8 @@ public:
     locale(const locale& val)
     {
         std::shared_lock g(val.m_facet_mutex);
-        m_facet_confs = val.m_facet_confs;
-        m_facets = val.m_facets;
+        m_facet_confs = val.m_facet_confs; // NOLINT(cppcoreguidelines-prefer-member-initializer)
+        m_facets = val.m_facets; // NOLINT(cppcoreguidelines-prefer-member-initializer)
     }
 
     locale(locale&& val) noexcept
@@ -343,6 +343,8 @@ public:
         m_facets = std::move(val.m_facets);
         return *this;
     }
+
+    ~locale() = default;
 
     locale involve(std::shared_ptr<abs_ft> ft) const
     {
@@ -524,7 +526,7 @@ public:
      * @return A new `locale` carrying that messages facet.
      * @endif
      */
-    locale involve_msg(const std::string& domain, const std::string& lang = "",
+    locale involve_msg(const std::string& domain, const std::string& lang = "", // NOLINT(bugprone-easily-swappable-parameters)
                        const std::string& cvt = "", bool throw_if_fail = false) const requires (std::is_same_v<TChar, char>)
     {
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
@@ -652,7 +654,7 @@ public:
         auto res = obj.template get<TF>();
         if (res)
         {
-            std::lock_guard g(m_facet_mutex);
+            std::scoped_lock g(m_facet_mutex);
             auto [it, inserted] = m_facets.insert({type_id_v<TF>(), res});
             if (!inserted)
                 return std::static_pointer_cast<TF>(it->second);
