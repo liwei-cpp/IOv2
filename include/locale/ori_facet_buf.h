@@ -288,7 +288,7 @@ private:
             clocale_wrapper probe(name.c_str());
             return name;
         }
-        catch (...)
+        catch (const cvt_error&)
         {
             return "C";
         }
