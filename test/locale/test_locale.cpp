@@ -12,6 +12,8 @@ void test_locale_char_6();
 void test_locale_char_7();
 void test_locale_char_8();
 void test_locale_char_9();
+void test_locale_char_10();
+void test_locale_char_11();
 
 void test_locale_wchar_t_traits();
 void test_locale_wchar_t_1();
@@ -63,6 +65,8 @@ int main()
         test_locale_char_7();
         test_locale_char_8();
         test_locale_char_9();
+        test_locale_char_10();
+        test_locale_char_11();
 
         test_locale_wchar_t_traits();
         test_locale_wchar_t_1();

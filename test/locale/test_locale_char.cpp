@@ -280,3 +280,61 @@ void test_locale_char_9()
 
     dump_info("Done\n");
 }
+
+void test_locale_char_10()
+{
+    dump_info("Test locale<char> case 10...");
+
+    // has<composite>() cache-hit fast path: populating the derived-facet cache via
+    // get<>() first means the following has<>() must find it in m_facets and return
+    // true without rebuilding through the ft_wrapper.
+    {
+        auto loc = IOv2::locale<char>("en_US.UTF-8");
+        auto p = loc.get<test_ext2>();
+        if (!p) throw std::runtime_error("locale::get error");
+        if (!loc.has<test_ext2>()) throw std::runtime_error("locale::has error");
+    }
+
+    // involve() rejects an empty facet pointer.
+    {
+        auto loc = IOv2::locale<char>("en_US.UTF-8");
+        bool threw = false;
+        try { (void)loc.involve(nullptr); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        if (!threw) throw std::runtime_error("locale::involve(nullptr) should throw");
+    }
+
+    // initial_locale_name() rejects LC categories outside the five resolved ones.
+    {
+        bool threw = false;
+        try { (void)IOv2::locale<char>::initial_locale_name(LC_ALL); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        if (!threw) throw std::runtime_error("initial_locale_name(LC_ALL) should throw");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_locale_char_11()
+{
+    dump_info("Test locale<char> case 11...");
+
+    std::filesystem::path mo_path = exe_path();
+    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
+    mo_path = std::filesystem::canonical(mo_path);
+    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
+
+    // The first involve_msg builds and interns the messages_conf; the second with an
+    // identical (domain, lang, cvt) under the same bound directory must hit the cache
+    // (try_get_msg's hit path, exercising msg_key equality) and hand back the very same
+    // interned conf.
+    auto loc1 = IOv2::locale<char>("en_US.UTF-8").involve_msg("messages", "zh_CN", "zh_CN.UTF-8");
+    auto loc2 = IOv2::locale<char>("en_US.UTF-8").involve_msg("messages", "zh_CN", "zh_CN.UTF-8");
+
+    auto c1 = loc1.get<IOv2::messages_conf<char>>();
+    auto c2 = loc2.get<IOv2::messages_conf<char>>();
+    if (!c1 || !c2) throw std::runtime_error("locale::get messages_conf error");
+    VERIFY(c1 == c2);
+
+    dump_info("Done\n");
+}
