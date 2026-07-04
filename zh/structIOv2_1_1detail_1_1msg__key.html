@@ -110,13 +110,16 @@ Public 属性</h2></td></tr>
 <tr class="separator:a8379e87538ee1d9fdbe00440f83290a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1439d706fa399086ac2144e6a09b163" id="r_af1439d706fa399086ac2144e6a09b163"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1detail_1_1msg__key.html#af1439d706fa399086ac2144e6a09b163">lang</a></td></tr>
 <tr class="separator:af1439d706fa399086ac2144e6a09b163"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25c2854de0c04ff71d43131817f43e60" id="r_a25c2854de0c04ff71d43131817f43e60"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1detail_1_1msg__key.html#a25c2854de0c04ff71d43131817f43e60">dirname</a></td></tr>
+<tr class="separator:a25c2854de0c04ff71d43131817f43e60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e9c9a99bd5f3aca4de7196c30601297" id="r_a1e9c9a99bd5f3aca4de7196c30601297"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1detail_1_1msg__key.html#a1e9c9a99bd5f3aca4de7196c30601297">cvt</a></td></tr>
 <tr class="separator:a1e9c9a99bd5f3aca4de7196c30601297"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
-<div class="textblock"><p>messages <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">缓存的键：&lt;tt&gt;(domain, lang, cvt)</a>。</p>
+<div class="textblock"><p>messages <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">缓存的键：&lt;tt&gt;(domain, lang, dirname, cvt)</a>。</p>
 <p>采用程序定义的结构体而非 <code>std::tuple</code>，以便为其特化 <code>std::hash</code>——<code><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a></code> 以 <code>std::hash&lt;TK&gt;</code> 为键，而标准库不为 <code>std::tuple</code> 提供 <code>std::hash</code>。各分量保持 独立字段（而非以 '<br  />
-' 拼接的字符串），使得即便某一分量自身含有分隔符，不同的 <code>(domain, lang, cvt)</code> 三元组也始终映射到不同的键。 </p>
+' 拼接的字符串），使得即便某一分量自身含有分隔符，不同的 <code>(domain, lang, dirname, cvt)</code> 四元组也始终映射到不同的键。</p>
+<p><code>dirname</code> 是 <code>.mo</code> 文件所在目录（由 <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;messages&gt;::get_dirname(domain)</code> 解析）。 facet 的实际内容依赖它，而它可经 <code>bind_text_domain</code> 在运行期被改写；因此必须计入键， 否则对同一 domain 重绑目录后、若两处目录选中同一语言，会命中并返回用旧目录构建的陈旧 facet。 </p>
 </div><h2 class="groupheader">成员函数说明</h2>
 <a id="a95d88bd71cb9d93ad3642e72ebd403ec" name="a95d88bd71cb9d93ad3642e72ebd403ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a95d88bd71cb9d93ad3642e72ebd403ec">&#9670;&#160;</a></span>operator==()</h2>
@@ -153,6 +156,20 @@ Public 属性</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::string IOv2::detail::msg_key::cvt</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a25c2854de0c04ff71d43131817f43e60" name="a25c2854de0c04ff71d43131817f43e60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25c2854de0c04ff71d43131817f43e60">&#9670;&#160;</a></span>dirname</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string IOv2::detail::msg_key::dirname</td>
         </tr>
       </table>
 </div><div class="memdoc">

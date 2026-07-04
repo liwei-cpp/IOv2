@@ -126,6 +126,8 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a6eeddedfacc375a1c8566794702caa3c" id="r_a6eeddedfacc375a1c8566794702caa3c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#a6eeddedfacc375a1c8566794702caa3c">messages_conf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;domain, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;lang, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>)</td></tr>
 <tr class="memdesc:a6eeddedfacc375a1c8566794702caa3c"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造函数，加载指定域和语言的翻译字典。  <br /></td></tr>
 <tr class="separator:a6eeddedfacc375a1c8566794702caa3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0751f71e21cc31a2389fe71bbf5b5132" id="r_a0751f71e21cc31a2389fe71bbf5b5132"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#a0751f71e21cc31a2389fe71bbf5b5132">messages_conf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;domain, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;lang, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;dirname, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>)</td></tr>
+<tr class="separator:a0751f71e21cc31a2389fe71bbf5b5132"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3e9caba445e9dcb8a95ce81c1c33b78" id="r_ac3e9caba445e9dcb8a95ce81c1c33b78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> TString *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1messages__conf_3_01CharT_01_4.html#ac3e9caba445e9dcb8a95ce81c1c33b78">translate</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> TString &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ori</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:ac3e9caba445e9dcb8a95ce81c1c33b78"><td class="mdescLeft">&#160;</td><td class="mdescRight">查找 <code>ori</code> 的翻译。参见 <code>char8_t</code> 特化：<code>nullptr</code> 表示"未找到"。  <br /></td></tr>
 <tr class="separator:ac3e9caba445e9dcb8a95ce81c1c33b78"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -136,7 +138,7 @@ requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 class IOv2::messages_conf&lt; CharT &gt;</div><p><code><a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a></code> 的 <code>char32_t</code>/UTF-32 <code>wchar_t</code> 特化。 </p>
 </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a6eeddedfacc375a1c8566794702caa3c" name="a6eeddedfacc375a1c8566794702caa3c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6eeddedfacc375a1c8566794702caa3c">&#9670;&#160;</a></span>messages_conf()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6eeddedfacc375a1c8566794702caa3c">&#9670;&#160;</a></span>messages_conf() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -178,6 +180,62 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div><div class="memdoc">
 
 <p>构造函数，加载指定域和语言的翻译字典。 </p>
+
+</div>
+</div>
+<a id="a0751f71e21cc31a2389fe71bbf5b5132" name="a0751f71e21cc31a2389fe71bbf5b5132"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0751f71e21cc31a2389fe71bbf5b5132">&#9670;&#160;</a></span>messages_conf() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1messages__conf.html">IOv2::messages_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;::messages_conf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td>
+          <td class="paramname"><em>domain</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td>
+          <td class="paramname"><em>lang</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td>
+          <td class="paramname"><em>dirname</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td>
+          <td class="paramname"><em>throw_if_fail</em> = <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>这是为便于使用而提供的一个重载成员函数.与上面的函数相比，它接受不同类型的参数. </p><dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dirname</td><td>域目录名；为空时由 <code>domain</code> 解析得到，否则直接使用它。 </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

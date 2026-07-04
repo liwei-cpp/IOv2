@@ -110,13 +110,16 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a8379e87538ee1d9fdbe00440f83290a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1439d706fa399086ac2144e6a09b163" id="r_af1439d706fa399086ac2144e6a09b163"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1detail_1_1msg__key.html#af1439d706fa399086ac2144e6a09b163">lang</a></td></tr>
 <tr class="separator:af1439d706fa399086ac2144e6a09b163"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25c2854de0c04ff71d43131817f43e60" id="r_a25c2854de0c04ff71d43131817f43e60"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1detail_1_1msg__key.html#a25c2854de0c04ff71d43131817f43e60">dirname</a></td></tr>
+<tr class="separator:a25c2854de0c04ff71d43131817f43e60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1e9c9a99bd5f3aca4de7196c30601297" id="r_a1e9c9a99bd5f3aca4de7196c30601297"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1detail_1_1msg__key.html#a1e9c9a99bd5f3aca4de7196c30601297">cvt</a></td></tr>
 <tr class="separator:a1e9c9a99bd5f3aca4de7196c30601297"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Key for the messages cache: <code>(domain, lang, cvt)</code>.</p>
+<div class="textblock"><p>Key for the messages cache: <code>(domain, lang, dirname, cvt)</code>.</p>
 <p>A program-defined struct rather than a <code>std::tuple</code> so that <code>std::hash</code> can be specialized for it &ndash; <code><a class="el" href="classIOv2_1_1lru__cache.html">lru_cache</a></code> keys on <code>std::hash&lt;TK&gt;</code>, and the standard library provides no <code>std::hash</code> for <code>std::tuple</code>. Keeping the components as distinct fields (instead of a '<br  />
-'-joined string) keeps distinct <code>(domain, lang, cvt)</code> triples mapped to distinct keys even when a component itself contains the separator.  </p>
+'-joined string) keeps distinct <code>(domain, lang, dirname, cvt)</code> tuples mapped to distinct keys even when a component itself contains the separator.</p>
+<p><code>dirname</code> is the directory holding the <code>.mo</code> file (resolved by <code><a class="el" href="classIOv2_1_1base__ft.html">base_ft</a>&lt;messages&gt;::get_dirname(domain)</code>). The facet's content depends on it, and it can be changed at runtime via <code>bind_text_domain</code>; it must therefore be part of the key. Otherwise, after rebinding a domain to a new directory, a lookup would still hit and return the stale facet built from the old directory whenever both directories select the same language.  </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a95d88bd71cb9d93ad3642e72ebd403ec" name="a95d88bd71cb9d93ad3642e72ebd403ec"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a95d88bd71cb9d93ad3642e72ebd403ec">&#9670;&#160;</a></span>operator==()</h2>
@@ -153,6 +156,20 @@ Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::string IOv2::detail::msg_key::cvt</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a25c2854de0c04ff71d43131817f43e60" name="a25c2854de0c04ff71d43131817f43e60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25c2854de0c04ff71d43131817f43e60">&#9670;&#160;</a></span>dirname</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string IOv2::detail::msg_key::dirname</td>
         </tr>
       </table>
 </div><div class="memdoc">
