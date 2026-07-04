@@ -20,28 +20,41 @@ namespace IOv2::detail
 {
 /**
  * @lang{ZH}
- * messages 缓存的键：`(domain, lang, cvt)`。
+ * messages 缓存的键：`(domain, lang, dirname, cvt)`。
  *
  * 采用程序定义的结构体而非 `std::tuple`，以便为其特化 `std::hash`——`lru_cache`
  * 以 `std::hash<TK>` 为键，而标准库不为 `std::tuple` 提供 `std::hash`。各分量保持
  * 独立字段（而非以 '\n' 拼接的字符串），使得即便某一分量自身含有分隔符，不同的
- * `(domain, lang, cvt)` 三元组也始终映射到不同的键。
+ * `(domain, lang, dirname, cvt)` 四元组也始终映射到不同的键。
+ *
+ * `dirname` 是 `.mo` 文件所在目录（由 `base_ft<messages>::get_dirname(domain)` 解析）。
+ * facet 的实际内容依赖它，而它可经 `bind_text_domain` 在运行期被改写；因此必须计入键，
+ * 否则对同一 domain 重绑目录后、若两处目录选中同一语言，会命中并返回用旧目录构建的陈旧
+ * facet。
  * @endif
  *
  * @lang{EN}
- * Key for the messages cache: `(domain, lang, cvt)`.
+ * Key for the messages cache: `(domain, lang, dirname, cvt)`.
  *
  * A program-defined struct rather than a `std::tuple` so that `std::hash` can be
  * specialized for it -- `lru_cache` keys on `std::hash<TK>`, and the standard library
  * provides no `std::hash` for `std::tuple`. Keeping the components as distinct fields
- * (instead of a '\n'-joined string) keeps distinct `(domain, lang, cvt)` triples mapped
- * to distinct keys even when a component itself contains the separator.
+ * (instead of a '\n'-joined string) keeps distinct `(domain, lang, dirname, cvt)`
+ * tuples mapped to distinct keys even when a component itself contains the separator.
+ *
+ * `dirname` is the directory holding the `.mo` file (resolved by
+ * `base_ft<messages>::get_dirname(domain)`). The facet's content depends on it, and it
+ * can be changed at runtime via `bind_text_domain`; it must therefore be part of the
+ * key. Otherwise, after rebinding a domain to a new directory, a lookup would still
+ * hit and return the stale facet built from the old directory whenever both
+ * directories select the same language.
  * @endif
  */
 struct msg_key
 {
     std::string domain;
     std::string lang;
+    std::string dirname;
     std::string cvt;
     bool operator==(const msg_key&) const = default;
 };
@@ -66,6 +79,7 @@ struct hash<IOv2::detail::msg_key>
         const std::hash<std::string> h;
         std::size_t seed = h(k.domain);
         seed ^= h(k.lang) + golden + (seed << 6) + (seed >> 2);
+        seed ^= h(k.dirname) + golden + (seed << 6) + (seed >> 2);
         seed ^= h(k.cvt) + golden + (seed << 6) + (seed >> 2);
         return seed;
     }
@@ -112,26 +126,26 @@ public:
     }
 
     template <typename TChar>
-    std::shared_ptr<messages_conf<TChar>> try_get_msg(const std::string& domain, const std::string& lang, const std::string& cvt = "")
+    std::shared_ptr<messages_conf<TChar>> try_get_msg(const std::string& domain, const std::string& lang, const std::string& dirname, const std::string& cvt = "")
     {
         const facet_id_t id = messages_conf<TChar>::id();
 
         std::scoped_lock guard(m_mutex);
         if (auto it = m_msg_cache.find(id); it != m_msg_cache.end())
         {
-            if (auto cached = it->second.get(detail::msg_key{.domain=domain, .lang=lang, .cvt=cvt}))
+            if (auto cached = it->second.get(detail::msg_key{.domain=domain, .lang=lang, .dirname=dirname, .cvt=cvt}))
                 return std::static_pointer_cast<messages_conf<TChar>>(*cached);
         }
         return nullptr;
     }
 
     template <typename TChar>
-    std::shared_ptr<messages_conf<TChar>> put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::string& cvt = "")
+    std::shared_ptr<messages_conf<TChar>> put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::string& dirname, const std::string& cvt = "")
     {
         if (ptr)
         {
             const facet_id_t id = messages_conf<TChar>::id();
-            const detail::msg_key key{.domain=domain, .lang=lang, .cvt=cvt};
+            const detail::msg_key key{.domain=domain, .lang=lang, .dirname=dirname, .cvt=cvt};
 
             std::scoped_lock guard(m_mutex);
             auto& sub_cache = m_msg_cache[id];
@@ -291,7 +305,7 @@ private:
     std::string m_time;
 
     // Upper bound on the number of distinct entries cached *per facet type* (per name
-    // for m_cache, per (domain, lang, cvt) for m_msg_cache). Past this, the lru_cache
+    // for m_cache, per (domain, lang, dirname, cvt) for m_msg_cache). Past this, the lru_cache
     // evicts the least-recently-used entry, bounding memory under workloads that derive
     // locale names / message keys from variable (e.g. external) input. The outer map's
     // key space -- one entry per facet type id -- is already bounded by the program's

@@ -122,6 +122,42 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 线程安全地查询指定域绑定的目录名。
+     *
+     * 如果域未绑定，则返回默认目录 `/usr/share/locale`。
+     *
+     * 该访问器为公开：缓存层（`involve_msg`）用它把 `dirname` 计入 messages facet
+     * 的缓存键——facet 内容依赖该目录，而它可经 `bind_text_domain` 在运行期改写。
+     *
+     * @param domain 文本域名称。
+     * @return 该域绑定的目录路径，或默认目录。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Thread-safely looks up the dirname bound to the given domain.
+     *
+     * Returns the default directory `/usr/share/locale` if the domain has
+     * not been bound.
+     *
+     * Public accessor: the cache layer (`involve_msg`) uses it to fold `dirname` into
+     * the messages-facet cache key -- the facet's content depends on this directory,
+     * which `bind_text_domain` may change at runtime.
+     *
+     * @param domain The text domain name.
+     * @return The directory path bound to the domain, or the default directory.
+     * @endif
+     */
+    static std::string get_dirname(const std::string& domain)
+    {
+        const static std::string def_dir = "/usr/share/locale";
+
+        std::scoped_lock guard(s_domain_mutex);
+        auto it = s_domain_dirs.find(domain);
+        return (it == s_domain_dirs.end()) ? def_dir : it->second;
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 检查指定域和语言对应的 `.mo` 文件是否可用。
      *
      * 先原子性地快照域的目录名，再委托给内部重载，以确保在调用期间
@@ -194,6 +230,7 @@ public:
      * @param id facet 的唯一标识符。
      * @param p_domain 文本域名称。
      * @param p_lang 候选语言字符串。
+     * @param p_dirname 域目录名；为空（默认）时由 `p_domain` 解析得到，否则直接使用它。
      * @endif
      *
      * @lang{EN}
@@ -210,17 +247,22 @@ public:
      * @param id The unique identifier for the facet.
      * @param p_domain The text domain name.
      * @param p_lang The candidate language string.
+     * @param p_dirname The domain dirname; empty (the default) derives it from
+     *        `p_domain`, otherwise it is used directly.
      * @endif
      */
-    base_ft(facet_id_t id, const std::string& p_domain, const std::string& p_lang)
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    base_ft(facet_id_t id, const std::string& p_domain, const std::string& p_lang, const std::string& p_dirname = "")
         : abs_ft(id)
-        // Snapshot the dirname first (declared before the members below, so it
-        // is initialised first) and feed that same snapshot to filter_lang and
-        // into m_domain_info. Together with messages_conf::init reading it back
-        // via dirname(), the whole construction resolves the .mo location from
-        // one dirname, so the recorded domain_info can never disagree with the
-        // dictionary actually loaded.
-        , m_dirname(get_dirname(p_domain))
+        // Fix the dirname first (declared before the members below, so it is
+        // initialised first) and feed that same value to filter_lang and into
+        // m_domain_info. An empty p_dirname resolves it from p_domain via
+        // get_dirname; a non-empty p_dirname is used as-is, letting the caller
+        // supply a dirname it already resolved. Together with messages_conf::init
+        // reading it back via dirname(), the whole construction resolves the .mo
+        // location from one dirname, so the recorded domain_info can never
+        // disagree with the dictionary actually loaded.
+        , m_dirname(p_dirname.empty() ? get_dirname(p_domain) : p_dirname)
         , m_filtered_lang(filter_lang({.dirname = m_dirname, .domain = p_domain}, p_lang))
         , m_domain_info('[' + p_domain + "] [" + p_lang + '(' + m_filtered_lang + ')' + "] [" +
                         m_dirname + "]")
@@ -702,35 +744,6 @@ private:
     inline static std::unordered_map<std::string, std::string> s_domain_dirs;
     inline static std::mutex s_domain_mutex;
 
-    /**
-     * @lang{ZH}
-     * @brief 线程安全地查询指定域绑定的目录名。
-     *
-     * 如果域未绑定，则返回默认目录 `/usr/share/locale`。
-     *
-     * @param domain 文本域名称。
-     * @return 该域绑定的目录路径，或默认目录。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Thread-safely looks up the dirname bound to the given domain.
-     *
-     * Returns the default directory `/usr/share/locale` if the domain has
-     * not been bound.
-     *
-     * @param domain The text domain name.
-     * @return The directory path bound to the domain, or the default directory.
-     * @endif
-     */
-    static std::string get_dirname(const std::string& domain)
-    {
-        const static std::string def_dir = "/usr/share/locale";
-
-        std::scoped_lock guard(s_domain_mutex);
-        auto it = s_domain_dirs.find(domain);
-        return (it == s_domain_dirs.end()) ? def_dir : it->second;
-    }
-
 private:
     // Declared first: initialised before m_filtered_lang and m_domain_info (both
     // of which depend on this snapshot) because members are initialised in
@@ -783,8 +796,25 @@ public:
      * @throw stream_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     messages_conf(const std::string& domain, const std::string& lang, bool throw_if_fail = true)
-        : ft_basic<messages<char8_t>>(domain, lang)
+        : messages_conf(domain, lang, std::string{}, throw_if_fail)
+    {}
+
+    /**
+     * @lang{ZH}
+     * @overload
+     * @param dirname 域目录名；为空时由 `domain` 解析得到，否则直接使用它。
+     * @endif
+     *
+     * @lang{EN}
+     * @overload
+     * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
+     * @endif
+     */
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    messages_conf(const std::string& domain, const std::string& lang, const std::string& dirname, bool throw_if_fail = true)
+        : ft_basic<messages<char8_t>>(domain, lang, dirname)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), throw_if_fail))
     {}
 
@@ -914,8 +944,25 @@ public:
      * @throw stream_error If `throw_if_fail` is `true` and dictionary loading fails.
      * @endif
      */
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     messages_conf(const std::string& domain, const std::string& lang, bool throw_if_fail = true)
-        : ft_basic<messages<CharT>>(domain, lang)
+        : messages_conf(domain, lang, std::string{}, throw_if_fail)
+    {}
+
+    /**
+     * @lang{ZH}
+     * @overload
+     * @param dirname 域目录名；为空时由 `domain` 解析得到，否则直接使用它。
+     * @endif
+     *
+     * @lang{EN}
+     * @overload
+     * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
+     * @endif
+     */
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    messages_conf(const std::string& domain, const std::string& lang, const std::string& dirname, bool throw_if_fail = true)
+        : ft_basic<messages<CharT>>(domain, lang, dirname)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), throw_if_fail))
     {}
 
@@ -1053,7 +1100,23 @@ public:
      */
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, bool throw_if_fail = true)
-        : ft_basic<messages<char>>(domain, lang)
+        : messages_conf(domain, lang, cvt_ft, std::string{}, throw_if_fail)
+    {}
+
+    /**
+     * @lang{ZH}
+     * @overload
+     * @param dirname 域目录名；为空时由 `domain` 解析得到，否则直接使用它。
+     * @endif
+     *
+     * @lang{EN}
+     * @overload
+     * @param dirname The domain dirname; empty derives it from `domain`, otherwise it is used directly.
+     * @endif
+     */
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+    messages_conf(const std::string& domain, const std::string& lang, const std::string& cvt_ft, const std::string& dirname, bool throw_if_fail = true)
+        : ft_basic<messages<char>>(domain, lang, dirname)
         , m_dict(init(this->dirname(), domain, this->filtered_lang(), cvt_ft, throw_if_fail))
     {}
 

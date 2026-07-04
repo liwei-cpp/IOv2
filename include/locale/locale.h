@@ -436,7 +436,8 @@ public:
                       "type -- no messages_conf<TChar> specialization exists (e.g. char16_t, "
                       "or wchar_t on a non-UTF-32 platform).");
         const std::string filtered_lang = base_ft<messages>::filter_lang(domain, lang);
-        auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang);
+        const std::string dirname = base_ft<messages>::get_dirname(domain);
+        auto ft = s_ori_facet_buf.try_get_msg<TChar>(domain, filtered_lang, dirname);
         if (!ft)
         {
             // Build strictly so a load failure surfaces as an exception, and intern only
@@ -444,13 +445,17 @@ public:
             // throw_if_fail=true call re-attempts the load and can still throw.
             try
             {
-                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, true);
-                ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang);
+                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, dirname, true);
+                // Caching is separate from the load: a cache-insert failure (e.g. an
+                // allocation failure while interning) must never degrade or drop a
+                // successfully-loaded facet. On such a failure keep it, just uncached.
+                try { ft = s_ori_facet_buf.put_msg<TChar>(ft, domain, filtered_lang, dirname); }
+                catch (...) {} // NOLINT(bugprone-empty-catch)
             }
             catch (...)
             {
                 if (throw_if_fail) throw;
-                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, false);
+                ft = std::make_shared<messages_conf<TChar>>(domain, filtered_lang, dirname, false);
             }
         }
 
@@ -537,7 +542,8 @@ public:
         // exact encoding it was built with, and lets an explicit cvt equal to the
         // CTYPE name share the same cache entry as the empty-cvt case.
         const std::string effective_cvt = cvt.empty() ? s_ori_facet_buf.locale_name(LC_CTYPE) : cvt;
-        auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, effective_cvt);
+        const std::string dirname = base_ft<messages>::get_dirname(domain);
+        auto ft = s_ori_facet_buf.try_get_msg<char>(domain, filtered_lang, dirname, effective_cvt);
         if (!ft)
         {
             // Build strictly so a load failure surfaces as an exception, and intern only
@@ -545,13 +551,17 @@ public:
             // throw_if_fail=true call re-attempts the load and can still throw.
             try
             {
-                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, true);
-                ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, effective_cvt);
+                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, dirname, true);
+                // Caching is separate from the load: a cache-insert failure (e.g. an
+                // allocation failure while interning) must never degrade or drop a
+                // successfully-loaded facet. On such a failure keep it, just uncached.
+                try { ft = s_ori_facet_buf.put_msg<char>(ft, domain, filtered_lang, dirname, effective_cvt); }
+                catch (...) {} // NOLINT(bugprone-empty-catch)
             }
             catch (...)
             {
                 if (throw_if_fail) throw;
-                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, false);
+                ft = std::make_shared<messages_conf<char>>(domain, filtered_lang, effective_cvt, dirname, false);
             }
         }
 
