@@ -1,3 +1,21 @@
+/**
+ * @file locale.h
+ * @lang{ZH}
+ * 定义了 `locale` 类模板——管理一组 facet 的本地化对象。
+ * `locale` 是值语义、写时拷贝类型，以各 `LC_*` 类别的基础 facet conf 为权威状态，
+ * 并按需惰性构建复合 facet（如 `numeric`、`timeio`）。它还负责消息翻译
+ * （`involve_msg`），以及查询程序启动时由环境解析得到的初始 locale 名称。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the `locale` class template -- a localization object that manages a set
+ * of facets. `locale` is a value-semantic, copy-on-write type whose authoritative
+ * state is the per-`LC_*` base facet confs; it lazily builds composite facets
+ * (e.g. `numeric`, `timeio`) on demand. It also handles message translation
+ * (`involve_msg`) and lookup of the initial locale names resolved from the
+ * environment at program startup.
+ * @endif
+ */
 #pragma once
 #include <common/defs.h>
 #include <common/metafunctions.h>
@@ -110,9 +128,49 @@ namespace IOv2
 template <typename TChar>
 class locale
 {
+    /**
+     * @lang{ZH}
+     * @brief 复合 facet 的按规则构建器（内部辅助）。
+     *
+     * 依据某复合 facet 类型的 `create_rules`（`facet_create_pack` /
+     * `facet_create_rule`），从一个 `locale` 中递归地检测（`has`）或构建（`get`）
+     * 所需的依赖 facet。主模板仅作声明，具体逻辑见对 `facet_create_pack` 与
+     * `facet_create_rule` 的特化。
+     * @tparam T 描述构建规则的类型（`facet_create_pack<...>` 或
+     *         `facet_create_rule<...>`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Rule-driven builder for composite facets (internal helper).
+     *
+     * Given a composite facet type's `create_rules` (`facet_create_pack` /
+     * `facet_create_rule`), it recursively checks (`has`) or builds (`get`) the
+     * required dependency facets out of a `locale`. The primary template is only
+     * declared; the actual logic lives in the specializations for
+     * `facet_create_pack` and `facet_create_rule`.
+     * @tparam T The type describing the build rule (`facet_create_pack<...>` or
+     *         `facet_create_rule<...>`).
+     * @endif
+     */
     template <typename T>
     struct ft_wrapper;
 
+    /**
+     * @lang{ZH}
+     * @brief `ft_wrapper` 对 `facet_create_pack` 的特化：**全部齐备**（and-of）规则。
+     *
+     * `has()` 要求包中每一个依赖 facet 均存在（逻辑与）；`get<TF>()` 依次取得每个
+     * 依赖 facet，任一缺失即返回 `nullptr`，全部就绪时用它们构造 `TF`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief `ft_wrapper` specialization for `facet_create_pack`: an "all-of" rule.
+     *
+     * `has()` requires every dependency facet in the pack to be present (logical
+     * AND); `get<TF>()` fetches each dependency in turn, returning `nullptr` if any
+     * is missing, and constructs `TF` from them once all are available.
+     * @endif
+     */
     template <typename... T>
     struct ft_wrapper<facet_create_pack<T...>>
     {
@@ -154,6 +212,24 @@ class locale
         const locale& m_ref; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
     };
 
+    /**
+     * @lang{ZH}
+     * @brief `ft_wrapper` 对 `facet_create_rule` 的特化：**多选一**（any-of）候选规则。
+     *
+     * 规则由若干候选按序尝试组成；每个候选可以是单个依赖 facet，也可以是嵌套的
+     * `facet_create_pack`。`has()` 只要有一个候选成立即为真（逻辑或）；`get<TF>()`
+     * 返回第一个能成功构建出的候选结果，全部失败则返回 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief `ft_wrapper` specialization for `facet_create_rule`: an "any-of" rule.
+     *
+     * The rule is a list of candidates tried in order; a candidate may be a single
+     * dependency facet or a nested `facet_create_pack`. `has()` is true if any one
+     * candidate holds (logical OR); `get<TF>()` returns the first candidate that can
+     * be built successfully, or `nullptr` if all fail.
+     * @endif
+     */
     template <typename... T>
     struct ft_wrapper<facet_create_rule<T...>>
     {
@@ -296,6 +372,24 @@ public:
         }
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 拷贝构造：在共享锁下对源实例做一致快照。
+     *
+     * 在 `val` 的共享锁保护下拷贝其 facet conf 表与派生 facet 缓存，因此可与源实例
+     * 上的并发只读操作安全共存（见类级线程契约）。
+     * @param val 被拷贝的源 locale。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Copy constructor: takes a consistent snapshot of the source under a shared lock.
+     *
+     * Copies the source's facet-conf map and derived-facet cache while holding
+     * `val`'s shared lock, so it coexists safely with concurrent read-only
+     * operations on the source (see the class-level threading contract).
+     * @param val The source locale to copy from.
+     * @endif
+     */
     locale(const locale& val)
     {
         std::shared_lock g(val.m_facet_mutex);
@@ -303,21 +397,62 @@ public:
         m_facets = val.m_facets; // NOLINT(cppcoreguidelines-prefer-member-initializer)
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 移动构造：接管源的内部状态并清空源。
+     *
+     * 移动后源对象处于有效但已清空的状态。按类级契约，移动会改变源实例，故调用方须
+     * 保证移动期间无其它线程访问该源实例。
+     * @param val 被移动的源 locale（移动后被清空）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Move constructor: steals the source's internal state and leaves it empty.
+     *
+     * After the move the source is in a valid, emptied state. Per the class contract
+     * a move mutates the source instance, so the caller must ensure no other thread
+     * accesses that source during the move.
+     * @param val The source locale to move from (emptied afterwards).
+     * @endif
+     */
     locale(locale&& val) noexcept
         : m_facet_confs(std::move(val.m_facet_confs)),
           m_facets(std::move(val.m_facets))
     {
     }
 
-    // Assignment is the only mutating operation on a locale instance. Per the
-    // class threading contract (see the class doc), the caller must ensure no
-    // other thread accesses *this same instance* (read or write) during an
-    // assignment. Two-phase locking: first snapshot the source under a shared
-    // lock (concurrent const readers of the source are not blocked), then publish
-    // into *this under an exclusive lock. The two locks are never held at once, so
-    // this is deadlock-free by construction. They keep the source consistent and
-    // the maps free of torn reads, but they do NOT make a concurrent get<TF>() on
-    // the assigned-into object atomic against the assignment.
+    /**
+     * @lang{ZH}
+     * @brief 拷贝赋值。赋值是 locale 实例上唯一的原地修改操作。
+     *
+     * 采用两阶段加锁：先在共享锁下对源做快照（不阻塞源上的并发只读读者），再在独占锁
+     * 下发布进 `*this`。两把锁从不同时持有，故按构造即无死锁。加锁保证源的一致性、并
+     * 使各 map 不出现撕裂读。
+     *
+     * @warning 按类级线程契约（见类文档），赋值期间调用方必须保证没有其它线程访问
+     * **同一个** `*this` 实例（无论读写）。上述加锁**并不能**使被赋值对象上并发的
+     * `get<TF>()` 相对本次赋值保持原子。
+     * @param val 源 locale。
+     * @return 对 `*this` 的引用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Copy assignment. Assignment is the only in-place mutating operation on a locale instance.
+     *
+     * Uses two-phase locking: first snapshot the source under a shared lock
+     * (concurrent const readers of the source are not blocked), then publish into
+     * `*this` under an exclusive lock. The two locks are never held at once, so this
+     * is deadlock-free by construction. The locks keep the source consistent and the
+     * maps free of torn reads.
+     *
+     * @warning Per the class threading contract (see the class doc), the caller must
+     * ensure no other thread accesses *this same instance* (read or write) during an
+     * assignment. The locking does *not* make a concurrent `get<TF>()` on the
+     * assigned-into object atomic with respect to the assignment.
+     * @param val The source locale.
+     * @return A reference to `*this`.
+     * @endif
+     */
     locale& operator=(const locale& val)
     {
         if (this == &val) return *this;
@@ -336,6 +471,26 @@ public:
         return *this;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 移动赋值：接管源状态并清空源。
+     *
+     * 与移动构造一样，本操作同时改变 `*this` 与源实例；按类级契约，二者在此期间都须
+     * 独占访问。含自赋值保护。
+     * @param val 源 locale（移动后被清空）。
+     * @return 对 `*this` 的引用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Move assignment: steals the source's state and empties it.
+     *
+     * Like move construction, this mutates both `*this` and the source instance; per
+     * the class contract both require exclusive access for the duration.
+     * Self-assignment safe.
+     * @param val The source locale (emptied afterwards).
+     * @return A reference to `*this`.
+     * @endif
+     */
     locale& operator=(locale&& val) noexcept
     {
         if (this == &val) return *this;
@@ -346,6 +501,35 @@ public:
 
     ~locale() = default;
 
+    /**
+     * @lang{ZH}
+     * @brief 返回一个在 `*this` 基础上绑定（或替换）给定 facet 的**新** locale
+     * （写时拷贝；`*this` 不变）。
+     *
+     * 新 locale 以 `ft` 的类型 id 为键写入 facet conf 表：若 `*this` 已有同 id 的
+     * facet，则在返回的副本中将其**替换**，否则新增。由于底层 conf 发生变化，返回副本
+     * 的派生 facet 缓存会被清空，以便后续按需重建。`*this` 本身不被修改。
+     *
+     * @param ft 要绑定的 facet（非空）。
+     * @throws stream_error 当 `ft` 为空指针时抛出。
+     * @return 绑定了该 facet 的新 `locale`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Return a *new* locale that binds (or replaces) the given facet on top of
+     * `*this` (copy-on-write; `*this` is unchanged).
+     *
+     * The new locale writes `ft` into the facet-conf map keyed by its type id: if
+     * `*this` already has a facet with the same id, the returned copy **replaces** it,
+     * otherwise it is added. Because the underlying confs change, the returned copy's
+     * derived-facet cache is cleared so it is rebuilt on demand. `*this` itself is
+     * unchanged.
+     *
+     * @param ft The facet to bind (must be non-null).
+     * @throws stream_error if `ft` is a null pointer.
+     * @return A new `locale` carrying that facet.
+     * @endif
+     */
     locale involve(std::shared_ptr<abs_ft> ft) const
     {
         if (!ft) throw stream_error("cannot add empty facet pointer into locale.");
@@ -574,6 +758,29 @@ public:
         return res;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 返回一个移除了指定 facet 类型的**新** locale（写时拷贝；`*this` 不变）。
+     *
+     * 若 `*this` 含有类型 `TF` 的 facet，则在返回的副本中将其从 conf 表移除并清空派生
+     * facet 缓存；若不含该 facet，则返回 `*this` 的等价副本。`*this` 本身不被修改。
+     *
+     * @tparam TF 要移除的 facet conf 类型（派生自 `abs_ft`）。
+     * @return 移除该 facet 后的新 `locale`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Return a *new* locale with the given facet type removed (copy-on-write;
+     * `*this` is unchanged).
+     *
+     * If `*this` carries a facet of type `TF`, the returned copy erases it from the
+     * conf map and clears the derived-facet cache; if not, an equivalent copy of
+     * `*this` is returned. `*this` itself is unchanged.
+     *
+     * @tparam TF The facet conf type to remove (derived from `abs_ft`).
+     * @return A new `locale` with that facet removed.
+     * @endif
+     */
     template <std::derived_from<abs_ft> TF>
     locale remove() const
     {
@@ -586,6 +793,24 @@ public:
         return res;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 查询本 locale 是否直接持有指定的 facet conf 类型 `TF`。
+     *
+     * 在共享锁下按 `TF::id()` 查 conf 表，并校验存放的指针确实可转换为 `TF`。
+     * @tparam TF 要查询的 facet conf 类型（派生自 `abs_ft`）。
+     * @return 若持有该 facet 则为 `true`，否则为 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Query whether this locale directly holds the given facet conf type `TF`.
+     *
+     * Looks up the conf map by `TF::id()` under a shared lock and verifies the stored
+     * pointer is indeed convertible to `TF`.
+     * @tparam TF The facet conf type to query (derived from `abs_ft`).
+     * @return `true` if the facet is present, `false` otherwise.
+     * @endif
+     */
     template <std::derived_from<abs_ft> TF>
     bool has() const
     {
@@ -597,11 +822,39 @@ public:
         return std::dynamic_pointer_cast<TF>(it->second) != nullptr;
     }
 
-    // The `!std::derived_from` conjunct excludes the pathological "both a conf and a
-    // composite facet" type, so that for such a type only the guard overload below is
-    // viable (it would otherwise tie with this one and make the call ambiguous --
-    // std::derived_from is a concept and subsumes, but the bare is_nonempty_... variable
-    // template re-typed in two places forms distinct, non-subsuming atomic constraints).
+    /**
+     * @lang{ZH}
+     * @brief 查询本 locale 能否构建出指定的**复合** facet `TF`。
+     *
+     * 先在共享锁下查派生 facet 缓存；未命中则依据 `TF::create_rules` 用 `ft_wrapper`
+     * 递归检测所需依赖是否齐备（不实际构建、不写缓存）。
+     *
+     * @note 约束中的 `!std::derived_from` 合取项用于排除"既是 conf 又是复合 facet"
+     * 这一病态类型，使这类类型只匹配下方的守卫重载（否则会与本重载并列而造成调用
+     * 二义）；`std::derived_from` 是概念、可参与包含（subsumption），而在两处分别书写
+     * 的裸变量模板 `is_nonempty_...` 形成互不包含的原子约束。
+     * @tparam TF 要查询的复合 facet 类型（带非空 `create_rules`，且非 `abs_ft` 派生）。
+     * @return 若可构建该复合 facet 则为 `true`，否则为 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Query whether this locale can build the given *composite* facet `TF`.
+     *
+     * First checks the derived-facet cache under a shared lock; on a miss it uses
+     * `ft_wrapper` to recursively test whether the dependencies required by
+     * `TF::create_rules` are all available (without actually building or caching).
+     *
+     * @note The `!std::derived_from` conjunct excludes the pathological "both a conf
+     * and a composite facet" type, so that for such a type only the guard overload
+     * below is viable (it would otherwise tie with this one and make the call
+     * ambiguous -- `std::derived_from` is a concept and subsumes, but the bare
+     * `is_nonempty_...` variable template re-typed in two places forms distinct,
+     * non-subsuming atomic constraints).
+     * @tparam TF The composite facet type to query (with a non-empty `create_rules`,
+     *         and not derived from `abs_ft`).
+     * @return `true` if the composite facet can be built, `false` otherwise.
+     * @endif
+     */
     template <typename TF>
         requires (is_nonempty_facet_create_rule<typename TF::create_rules>
                   && !std::derived_from<TF, abs_ft>)
@@ -617,13 +870,34 @@ public:
         return obj.has();
     }
 
-    // Guard overload. A type that is *both* a facet conf (derived from abs_ft) and a
-    // composite facet (with a non-empty create_rules) would satisfy the constraints of
-    // both has() overloads above and make the call ambiguous. By design that never
-    // happens -- confs derive from abs_ft while facets carry create_rules, and they are
-    // distinct types. This overload's constraint is the conjunction of the other two's,
-    // so it subsumes both and is selected unambiguously for such a pathological type,
-    // turning an opaque "ambiguous call" into the precise static_assert below.
+    /**
+     * @lang{ZH}
+     * @brief 守卫重载：把"既是 facet conf、又是复合 facet"的病态类型转为清晰的编译期
+     * 诊断。
+     *
+     * 某类型若**同时**派生自 `abs_ft` 且带有非空 `create_rules`，会同时满足上面两个
+     * `has()` 重载的约束而造成调用二义。按设计这不应发生——conf 派生自 `abs_ft`，
+     * facet 携带 `create_rules`，二者是不同的类型。本重载的约束是另外两者约束的合取，
+     * 因而包含（subsume）二者、对这类病态类型被无歧义地选中，从而把晦涩的"调用二义"
+     * 变为下方精确的 `static_assert`。
+     * @tparam TF 病态类型（既派生自 `abs_ft` 又带非空 `create_rules`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Guard overload: turns the pathological "both a facet conf and a composite
+     * facet" type into a clear compile-time diagnostic.
+     *
+     * A type that is *both* derived from `abs_ft` and carries a non-empty
+     * `create_rules` would satisfy the constraints of both `has()` overloads above and
+     * make the call ambiguous. By design that never happens -- confs derive from
+     * `abs_ft` while facets carry `create_rules`, and they are distinct types. This
+     * overload's constraint is the conjunction of the other two's, so it subsumes both
+     * and is selected unambiguously for such a pathological type, turning an opaque
+     * "ambiguous call" into the precise `static_assert` below.
+     * @tparam TF The pathological type (both derived from `abs_ft` and carrying a
+     *         non-empty `create_rules`).
+     * @endif
+     */
     template <typename TF>
         requires (std::derived_from<TF, abs_ft>
                   && is_nonempty_facet_create_rule<typename TF::create_rules>)
@@ -637,6 +911,24 @@ public:
         return false;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 取得本 locale 直接持有的指定 facet conf `TF` 的共享指针。
+     *
+     * 在共享锁下按 `TF::id()` 查 conf 表；未找到或类型不匹配时返回 `nullptr`。
+     * @tparam TF 要获取的 facet conf 类型（派生自 `abs_ft`）。
+     * @return 指向该 facet 的 `std::shared_ptr<TF>`；不存在则为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Get a shared pointer to the given facet conf `TF` directly held by this locale.
+     *
+     * Looks up the conf map by `TF::id()` under a shared lock; returns `nullptr` if
+     * not found or the type does not match.
+     * @tparam TF The facet conf type to get (derived from `abs_ft`).
+     * @return A `std::shared_ptr<TF>` to the facet, or `nullptr` if absent.
+     * @endif
+     */
     template <std::derived_from<abs_ft> TF>
     std::shared_ptr<TF> get() const
     {
@@ -648,7 +940,38 @@ public:
         return std::dynamic_pointer_cast<TF>(it->second);
     }
 
-    // See the has() composite overload above for why `!std::derived_from` is needed.
+    /**
+     * @lang{ZH}
+     * @brief 取得（必要时惰性构建并缓存）指定的**复合** facet `TF`。
+     *
+     * 先在共享锁下查派生 facet 缓存；命中直接返回。未命中则依 `TF::create_rules` 用
+     * `ft_wrapper` 构建；构建成功后在独占锁下写入缓存——若期间已被其它线程抢先插入，
+     * 则返回已缓存者，以保证同一 `TF` 全程唯一。
+     *
+     * @note 约束中的 `!std::derived_from` 合取项作用同上方 `has()` 复合重载：排除
+     * "既是 conf 又是复合 facet"的病态类型以避免调用二义。
+     * @tparam TF 要获取的复合 facet 类型（带非空 `create_rules`，且非 `abs_ft` 派生）。
+     * @return 指向该复合 facet 的 `std::shared_ptr<TF>`；无法构建则为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Get (lazily building and caching if needed) the given *composite* facet `TF`.
+     *
+     * First checks the derived-facet cache under a shared lock and returns a hit
+     * directly. On a miss it builds `TF` via `ft_wrapper` per `TF::create_rules`; on
+     * success it inserts into the cache under an exclusive lock -- if another thread
+     * inserted first in the meantime, the already-cached instance is returned so that
+     * a given `TF` stays unique.
+     *
+     * @note The `!std::derived_from` conjunct plays the same role as in the `has()`
+     * composite overload above: it excludes the "both a conf and a composite facet"
+     * pathological type to avoid an ambiguous call.
+     * @tparam TF The composite facet type to get (with a non-empty `create_rules`, and
+     *         not derived from `abs_ft`).
+     * @return A `std::shared_ptr<TF>` to the composite facet, or `nullptr` if it
+     *         cannot be built.
+     * @endif
+     */
     template <typename TF>
         requires (is_nonempty_facet_create_rule<typename TF::create_rules>
                   && !std::derived_from<TF, abs_ft>)
@@ -672,8 +995,28 @@ public:
         return res;
     }
 
-    // Guard overload; see the has() guard above for the rationale. Disambiguates (with
-    // a precise diagnostic) a type that is both a facet conf and a composite facet.
+    /**
+     * @lang{ZH}
+     * @brief 守卫重载：为"既是 facet conf、又是复合 facet"的病态类型给出精确诊断。
+     *
+     * 理由同上方 `has()` 的守卫重载：其约束为另外两个 `get()` 重载约束的合取，因而
+     * 无歧义地选中这类病态类型，用下方的 `static_assert` 给出明确报错，而非晦涩的
+     * "调用二义"。
+     * @tparam TF 病态类型（既派生自 `abs_ft` 又带非空 `create_rules`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Guard overload: gives a precise diagnostic for the "both a facet conf and
+     * a composite facet" pathological type.
+     *
+     * Same rationale as the `has()` guard overload above: its constraint is the
+     * conjunction of the other two `get()` overloads' constraints, so it is selected
+     * unambiguously for such a pathological type and reports a clear error via the
+     * `static_assert` below instead of an opaque "ambiguous call".
+     * @tparam TF The pathological type (both derived from `abs_ft` and carrying a
+     *         non-empty `create_rules`).
+     * @endif
+     */
     template <typename TF>
         requires (std::derived_from<TF, abs_ft>
                   && is_nonempty_facet_create_rule<typename TF::create_rules>)
@@ -723,6 +1066,25 @@ public:
     }
 
 private:
+    /**
+     * @lang{ZH}
+     * @brief 用给定名称构建单个 facet conf 并存入 conf 表（构造期辅助）。
+     *
+     * 经 `ori_facet_buf::try_get` 获取（可能复用缓存的）`T<TChar>` conf，以其类型 id
+     * 为键插入 `m_facet_confs`。
+     * @tparam T facet conf 的类模板（如 `ctype_conf`），以 `TChar` 实例化。
+     * @param ft_name 该 facet 使用的 locale 名称。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Build a single facet conf by name and store it in the conf map (construction helper).
+     *
+     * Obtains a (possibly cache-shared) `T<TChar>` conf via `ori_facet_buf::try_get`
+     * and inserts it into `m_facet_confs` keyed by its type id.
+     * @tparam T The facet conf class template (e.g. `ctype_conf`), instantiated with `TChar`.
+     * @param ft_name The locale name to use for this facet.
+     * @endif
+     */
     template <template <typename> class T>
     void init(const std::string& ft_name)
     {
@@ -732,8 +1094,32 @@ private:
     }
 
 private:
+    /**
+     * @lang{ZH} facet 配置（conf）表：以 facet 类型 id 为键，保存本 locale 直接持有的
+     * 各基础 facet conf。这是 locale 的权威状态，拷贝 / 赋值即拷贝此表。 @endif
+     * @lang{EN} The facet-conf map: keyed by facet type id, holding the base facet
+     * confs this locale directly owns. This is the locale's authoritative state;
+     * copy / assignment copies this map. @endif
+     */
     std::unordered_map<facet_id_t, std::shared_ptr<abs_ft>> m_facet_confs;
+
+    /**
+     * @lang{ZH} 派生（复合）facet 的惰性缓存：以复合 facet 的类型 id 为键。由 `get`
+     * 按需填充，`involve` / `involve_msg` / `remove` 会将其清空。`mutable`，故 const
+     * 访问下也可更新。 @endif
+     * @lang{EN} Lazy cache of derived (composite) facets, keyed by the composite
+     * facet's type id. Populated on demand by `get` and cleared by `involve` /
+     * `involve_msg` / `remove`. `mutable` so it can be updated under const access. @endif
+     */
     mutable std::unordered_map<facet_id_t, std::shared_ptr<void>> m_facets;
+
+    /**
+     * @lang{ZH} 保护 `m_facet_confs` 与 `m_facets` 的读写锁：只读操作取共享锁，发布新
+     * 状态（赋值、缓存写入）取独占锁。`mutable`，以便 const 操作也能加锁。 @endif
+     * @lang{EN} Reader-writer lock guarding `m_facet_confs` and `m_facets`: read-only
+     * operations take a shared lock, publishing new state (assignment, cache
+     * insertion) takes an exclusive lock. `mutable` so const operations can lock. @endif
+     */
     mutable std::shared_mutex m_facet_mutex;
 };
 }
