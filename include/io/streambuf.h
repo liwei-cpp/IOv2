@@ -283,7 +283,6 @@ public:
 
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
-        std::exception_ptr local_err = nullptr;
         if constexpr (IsIn)
         {
             if (!m_read_buf.empty())
@@ -295,14 +294,21 @@ public:
                 }
                 catch (...)
                 {
-                    local_err = std::current_exception();
+                    // Swallowed on purpose: a device that doesn't support positioning
+                    // (e.g. a pipe/tty-backed stdin) can never honor this reposition,
+                    // and that is an inherent property of the device, not an
+                    // actionable failure - the caller could not have repositioned it
+                    // either after getting it back. Reporting this error would make
+                    // routine detach()/attach() cycles on such devices start throwing
+                    // (e.g. sync_with_stdio() right after a formatted read has left
+                    // one buffered lookahead character), even though nothing is
+                    // actually broken; losing that lookahead character is the
+                    // accepted, unavoidable cost for non-positionable devices.
                 }
                 m_read_buf.clear();
             }
         }
-
-        auto [dev, inner_err] = m_cvt.detach();
-        return { std::move(dev), local_err ? local_err : inner_err };
+        return m_cvt.detach();
     }
 
     void attach(device_type&& dev = device_type{})
