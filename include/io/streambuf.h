@@ -1,4 +1,8 @@
 #pragma once
+#include <common/streambuf_defs.h>
+#include <cvt/runtime_cvt.h>
+#include <io/io_concepts.h>
+
 #include <deque>
 #include <exception>
 #include <optional>
@@ -6,10 +10,6 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
-#include <cvt/runtime_cvt.h>
-
-#include <io/io_concepts.h>
-#include <common/streambuf_defs.h>
 
 namespace IOv2
 {
@@ -63,7 +63,7 @@ public:
             switch_to_get();
 
         if (!m_read_buf.empty()) return m_read_buf.front();
-        
+
         char_type c;
         if (m_cvt.get(&c, 1) == 0) return std::optional<char_type>{};
         m_read_buf.push_front(c);
@@ -81,7 +81,7 @@ public:
             m_read_buf.pop_front();
             return c;
         }
-        
+
         char_type c;
         if (m_cvt.get(&c, 1) == 0) return std::optional<char_type>{};
         return c;
@@ -157,11 +157,13 @@ public:
 
     void sputn(const char_type* s, size_t n) requires (IsOut)
     {
+        if ((s == nullptr) || (n == 0)) return;
+
         if constexpr (IsIn)
             switch_to_put();
         m_cvt.put(s, n);
     }
-    
+
     void flush() requires (IsOut)
     {
         if constexpr (IsIn)
@@ -199,14 +201,14 @@ public:
         else
             return m_cvt.tell();
     }
-    
+
     void seek(size_t pos)
     {
         if constexpr (IsIn)
             m_read_buf.clear();
         m_cvt.seek(pos);
     }
-    
+
     void rseek(size_t pos)
     {
         if constexpr (IsIn)

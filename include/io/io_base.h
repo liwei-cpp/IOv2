@@ -1,15 +1,14 @@
 #pragma once
+#include <common/defs.h>
+
 #include <atomic>
 #include <cstdint>
 #include <exception>
 #include <forward_list>
 #include <functional>
 #include <memory>
-#include <mutex>
-#include <stdexcept>
 #include <unordered_map>
 #include <utility>
-#include <common/defs.h>
 
 namespace IOv2
 {
@@ -37,7 +36,7 @@ namespace ios_defs
     constexpr static fmtflags adjustfield = left | right | internal;
     constexpr static fmtflags basefield   = dec | oct | hex;
     constexpr static fmtflags floatfield  = scientific | fixed;
-    
+
     constexpr static iostate goodbit        = 0;
     constexpr static iostate eofbit         = 1L << 0;
     constexpr static iostate devfailbit     = 1L << 1;
@@ -100,7 +99,7 @@ struct io_state_and_exp
     bool str_fail() const { return rdstate() & ios_defs::strfailbit; }
     bool other_fail() const { return rdstate() & ios_defs::otherfailbit; }
     bool eof() const { return rdstate() & ios_defs::eofbit; }
-    
+
     explicit operator bool() const
     {
         return (m_stream_state == 0) || (m_stream_state == ios_defs::eofbit);
@@ -158,7 +157,6 @@ private:
     std::exception_ptr m_exp_other_fail = std::exception_ptr{};
 };
 
-
 template <typename TChar> class locale;
 
 template <typename TChar> class ios_base;
@@ -188,14 +186,14 @@ public:
       m_flags = fmtfl;
       return old;
     }
-    
+
     ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl)
     {
       ios_defs::fmtflags old = m_flags;
       m_flags |= fmtfl;
       return old;
     }
-    
+
     ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl, ios_defs::fmtflags msk)
     {
       ios_defs::fmtflags old = m_flags;
@@ -203,9 +201,26 @@ public:
       m_flags |= (fmtfl & msk);
       return old;
     }
-    
+
     void unsetf(ios_defs::fmtflags msk) { m_flags &= ~msk; }
-    
+
+    /**
+     * @lang{ZH}
+     * 获取/设置浮点精度。
+     * @note 精度以 std::uint8_t 存储，取值范围被有意限制在 0..255。这与标准
+     * std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的精度，
+     * 更大的值无法通过本接口表达（参数类型即为 std::uint8_t）。此为有意设计。
+     * @endif
+     *
+     * @lang{EN}
+     * Get/set the floating-point precision.
+     * @note The precision is stored as a std::uint8_t and is intentionally limited
+     * to the range 0..255. Unlike the standard std::ios_base, which uses
+     * std::streamsize, this library does not support precision values greater than
+     * 255; larger values cannot be expressed through this interface (the parameter
+     * type is std::uint8_t itself). This is by design.
+     * @endif
+     */
     std::uint8_t precision() const { return m_precision; }
     std::uint8_t precision(std::uint8_t prec)
     {
@@ -213,7 +228,24 @@ public:
         m_precision = prec;
         return old;
     }
-    
+
+    /**
+     * @lang{ZH}
+     * 获取/设置字段宽度。
+     * @note 宽度以 std::uint8_t 存储，取值范围被有意限制在 0..255。这与标准
+     * std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的字段宽度，
+     * 更大的值无法通过本接口表达（参数类型即为 std::uint8_t）。此为有意设计。
+     * @endif
+     *
+     * @lang{EN}
+     * Get/set the field width.
+     * @note The width is stored as a std::uint8_t and is intentionally limited to
+     * the range 0..255. Unlike the standard std::ios_base, which uses
+     * std::streamsize, this library does not support field widths greater than 255;
+     * larger values cannot be expressed through this interface (the parameter type
+     * is std::uint8_t itself). This is by design.
+     * @endif
+     */
     std::uint8_t width() const { return m_width; }
     std::uint8_t width(std::uint8_t wide)
     {
@@ -221,7 +253,7 @@ public:
         m_width = wide;
         return old;
     }
-    
+
     TChar fill() const noexcept { return m_fill; }
     TChar fill(TChar ch)
     {
@@ -251,14 +283,14 @@ public:
             return res;
         }
     }
-    
+
     std::shared_ptr<void> get_pword(size_t id) const
     {
         auto it = m_pwords.find(id);
         if (it != m_pwords.end()) return it->second;
         return nullptr;
     }
-    
+
     void register_callback(event_callback fn, size_t id)
     {
         m_callbacks.push_front({std::move(fn), id});
@@ -273,12 +305,16 @@ protected:
         {
             try
             {
-                auto it = m_pwords.find(id);
-                std::shared_ptr<void> old_data = 
-                    (it != m_pwords.end()) ? it->second : nullptr;
+                auto pre = m_pwords.find(id);
+                std::shared_ptr<void> old_data =
+                    (pre != m_pwords.end()) ? pre->second : nullptr;
 
                 std::shared_ptr<void> new_data = cb(new_loc, old_data);
 
+                // Re-locate after the callback: cb may reentrantly mutate
+                // m_pwords (via set_pword), which can rehash/erase and would
+                // invalidate an iterator held across the call.
+                auto it = m_pwords.find(id);
                 if (new_data)
                 {
                     if (it != m_pwords.end()) it->second = std::move(new_data);
@@ -395,7 +431,7 @@ inline void noappmode(ios_base<TChar>& base)
 }
 
 template <typename TChar>
-inline void unitbuf(ios_base<TChar>& base) 
+inline void unitbuf(ios_base<TChar>& base)
 {
     base.setf(ios_defs::unitbuf);
 }
