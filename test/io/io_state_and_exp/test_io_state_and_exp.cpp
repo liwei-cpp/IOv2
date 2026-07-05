@@ -78,8 +78,68 @@ void test_io_state_and_exp_2()
     dump_info("Done\n");
 }
 
+void test_io_state_and_exp_handle_exception_eof_1()
+{
+    dump_info("Test io_state_and_exp::handle_exception with eof_error case 1...");
+
+    // Regression test: handle_exception() routes a caught eof_error through
+    // setstate(eofbit) -> clear(). When exceptions(eofbit) is enabled, this
+    // must actually raise a notification exception, exactly like the
+    // devfailbit/cvtfailbit/strfailbit/otherfailbit categories already do.
+    // Previously, clear()'s eofbit branch was guarded by
+    // `!std::current_exception()`, which is always false while inside
+    // handle_exception's own catch block, so the exception was silently
+    // swallowed.
+    {
+        IOv2::io_state_and_exp stream;
+        stream.exceptions(IOv2::ios_defs::eofbit);
+
+        bool threw = false;
+        try
+        {
+            stream.handle_exception(std::make_exception_ptr(IOv2::eof_error{}));
+        }
+        catch (IOv2::eof_error&)
+        {
+            threw = true;
+        }
+        catch (...)
+        {
+            dump_info("Unreachable code\n");
+            std::abort();
+        }
+
+        if (!threw)
+            throw std::runtime_error("io_state_and_exp handle_exception eof check fail");
+        if (!stream.eof())
+            throw std::runtime_error("io_state_and_exp handle_exception eof check fail");
+    }
+
+    // Without exceptions(eofbit) enabled, the state bit is still set but no
+    // exception should be raised.
+    {
+        IOv2::io_state_and_exp stream;
+
+        try
+        {
+            stream.handle_exception(std::make_exception_ptr(IOv2::eof_error{}));
+        }
+        catch (...)
+        {
+            dump_info("Unreachable code\n");
+            std::abort();
+        }
+
+        if (!stream.eof())
+            throw std::runtime_error("io_state_and_exp handle_exception eof check fail");
+    }
+
+    dump_info("Done\n");
+}
+
 void test_io_state_and_exp()
 {
     test_io_state_and_exp_1();
     test_io_state_and_exp_2();
+    test_io_state_and_exp_handle_exception_eof_1();
 }

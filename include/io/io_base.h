@@ -89,8 +89,7 @@ struct io_state_and_exp
         }
         else if (state_in_exp & ios_defs::eofbit)
         {
-            if (!std::current_exception())
-                throw eof_error{};
+            throw eof_error{};
         }
     }
 
