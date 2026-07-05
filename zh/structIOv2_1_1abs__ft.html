@@ -143,7 +143,7 @@ Public 成员函数</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>所有 facet 的抽象基类。</p>
-<p>持有运行时 facet id，用于在丢失具体类型信息时（如经由 <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>，例如 <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">locale::involve</a></code>） 通过运行时值将 facet 键入 locale。</p>
+<p>持有运行时 facet id，用于在丢失具体类型信息时（如经由 <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>，例如 <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd" title="返回一个在 *this 基础上绑定（或替换）给定 facet 的**新** locale （写时拷贝；*this 不变）。">locale::involve</a></code>） 通过运行时值将 facet 键入 locale。</p>
 <p>该类不可复制也不可移动。 </p>
 </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a1d8dd78a9578c90a2cb68f95b2474926" name="a1d8dd78a9578c90a2cb68f95b2474926"></a>
@@ -280,7 +280,7 @@ Public 成员函数</h2></td></tr>
 </table>
 </div><div class="memdoc">
 <p>实例访问器：读取此 facet 携带的 id。</p>
-<p>该 id 用于在具体类型不再可知时（如 <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>，例如 <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">locale::involve</a></code>）， 通过运行时值将 facet 键入 locale。</p>
+<p>该 id 用于在具体类型不再可知时（如 <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>，例如 <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd" title="返回一个在 *this 基础上绑定（或替换）给定 facet 的**新** locale （写时拷贝；*this 不变）。">locale::involve</a></code>）， 通过运行时值将 facet 键入 locale。</p>
 <dl class="section note"><dt>注解</dt><dd><code><a class="el" href="classIOv2_1_1ft__basic.html">ft_basic</a></code> 引入了一个**静态**的同名 <code><a class="el" href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">id()</a></code>，即每类型 facet 键（<code>TF::id()</code>）； 在派生 facet 上，该静态成员会隐藏此实例访问器。这是刻意为之且无害的，**仅因为** 每个 facet 在构造时都以自身的静态 <code><a class="el" href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">id()</a></code> 初始化 <code>m_id</code>，使二者始终返回相同的值。 请勿破坏此不变量——不可构造 <code>m_id</code> 与其静态 <code><a class="el" href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">id()</a></code> 不一致的 facet，否则静态键 与此实例访问器将静默地产生分歧，导致 locale facet 查找异常。 </dd></dl>
 <dl class="section return"><dt>返回</dt><dd>此 facet 实例的运行时 id。   </dd></dl>
 

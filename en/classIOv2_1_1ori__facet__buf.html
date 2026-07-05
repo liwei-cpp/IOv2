@@ -96,13 +96,16 @@ $(document).ready(function(){initNavTree('classIOv2_1_1ori__facet__buf.html','')
 </div><!--header-->
 <div class="contents">
 
+<p>Process-wide caching / interning singleton for base facets and messages facets.  
+ <a href="classIOv2_1_1ori__facet__buf.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="ori__facet__buf_8h_source.html">ori_facet_buf.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::ori_facet_buf:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1ori__facet__buf__inherit__graph.png" border="0" usemap="#aIOv2_1_1ori__facet__buf_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1ori__facet__buf_inherit__map" id="aIOv2_1_1ori__facet__buf_inherit__map">
-<area shape="rect" title=" " alt="" coords="13,93,158,119"/>
+<area shape="rect" title="Process&#45;wide caching / interning singleton for base facets and messages facets." alt="" coords="13,93,158,119"/>
 <area shape="rect" href="classIOv2_1_1sing__temp.html" title=" " alt="" coords="5,5,165,45"/>
 <area shape="poly" title=" " alt="" coords="88,59,88,93,83,93,83,59"/>
 </map>
@@ -112,7 +115,7 @@ Collaboration diagram for IOv2::ori_facet_buf:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1ori__facet__buf__coll__graph.png" border="0" usemap="#aIOv2_1_1ori__facet__buf_coll__map" alt="Collaboration graph"/></div>
 <map name="aIOv2_1_1ori__facet__buf_coll__map" id="aIOv2_1_1ori__facet__buf_coll__map">
-<area shape="rect" title=" " alt="" coords="13,93,158,119"/>
+<area shape="rect" title="Process&#45;wide caching / interning singleton for base facets and messages facets." alt="" coords="13,93,158,119"/>
 <area shape="rect" href="classIOv2_1_1sing__temp.html" title=" " alt="" coords="5,5,165,45"/>
 <area shape="poly" title=" " alt="" coords="88,59,88,93,83,93,83,59"/>
 </map>
@@ -122,16 +125,20 @@ Collaboration diagram for IOv2::ori_facet_buf:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a4cc442b2605576ca3c09aa9b2cd8c851" id="r_a4cc442b2605576ca3c09aa9b2cd8c851"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt; </td></tr>
 <tr class="memitem:a4cc442b2605576ca3c09aa9b2cd8c851"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html#a4cc442b2605576ca3c09aa9b2cd8c851">try_get</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;name)</td></tr>
+<tr class="memdesc:a4cc442b2605576ca3c09aa9b2cd8c851"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get (building and caching if needed) the base facet conf <code>TF</code> named <code>name</code>.  <br /></td></tr>
 <tr class="separator:a4cc442b2605576ca3c09aa9b2cd8c851"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34b5402cb38a3e2dd66abb1049a54f01" id="r_a34b5402cb38a3e2dd66abb1049a54f01"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </td></tr>
 <tr class="memitem:a34b5402cb38a3e2dd66abb1049a54f01"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html#a34b5402cb38a3e2dd66abb1049a54f01">try_get_msg</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;domain, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;lang, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;dirname, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;cvt=&quot;&quot;)</td></tr>
+<tr class="memdesc:a34b5402cb38a3e2dd66abb1049a54f01"><td class="mdescLeft">&#160;</td><td class="mdescRight">Look up an already-cached messages facet; returns <code>nullptr</code> on a miss (lookup only, never builds).  <br /></td></tr>
 <tr class="separator:a34b5402cb38a3e2dd66abb1049a54f01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6dc1760bd86f622fcfb5fc163fe1c9c7" id="r_a6dc1760bd86f622fcfb5fc163fe1c9c7"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </td></tr>
 <tr class="memitem:a6dc1760bd86f622fcfb5fc163fe1c9c7"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html#a6dc1760bd86f622fcfb5fc163fe1c9c7">put_msg</a> (std::shared_ptr&lt; <a class="el" href="classIOv2_1_1messages__conf.html">messages_conf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &gt; <a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">ptr</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;domain, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;lang, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;dirname, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;cvt=&quot;&quot;)</td></tr>
+<tr class="memdesc:a6dc1760bd86f622fcfb5fc163fe1c9c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Intern a successfully-built messages facet into the messages cache and return the interned pointer.  <br /></td></tr>
 <tr class="separator:a6dc1760bd86f622fcfb5fc163fe1c9c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0116abdc0891832084e2b87b67f4034" id="r_ab0116abdc0891832084e2b87b67f4034"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">locale_name</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a> category) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:ab0116abdc0891832084e2b87b67f4034"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6ff5a1ef5538ab21db0b1a04fe15443" id="r_ab6ff5a1ef5538ab21db0b1a04fe15443"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab6ff5a1ef5538ab21db0b1a04fe15443">~ori_facet_buf</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="memdesc:ab6ff5a1ef5538ab21db0b1a04fe15443"><td class="mdescLeft">&#160;</td><td class="mdescRight">Singleton semantics: non-copyable and non-movable; lifetime managed by <code><a class="el" href="classIOv2_1_1sing__temp.html">sing_temp</a></code>. .  <br /></td></tr>
 <tr class="separator:ab6ff5a1ef5538ab21db0b1a04fe15443"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4bd261c5da8fe3dc99e67c35be881e18" id="r_a4bd261c5da8fe3dc99e67c35be881e18"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html#a4bd261c5da8fe3dc99e67c35be881e18">ori_facet_buf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a4bd261c5da8fe3dc99e67c35be881e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -162,7 +169,9 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:ac7e67c7a4439be29255e7d48e117abeb inherit pro_methods_classIOv2_1_1sing__temp" id="r_ac7e67c7a4439be29255e7d48e117abeb"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1sing__temp.html#ac7e67c7a4439be29255e7d48e117abeb">~sing_temp</a> ()=default</td></tr>
 <tr class="separator:ac7e67c7a4439be29255e7d48e117abeb inherit pro_methods_classIOv2_1_1sing__temp"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Process-wide caching / interning singleton for base facets and messages facets. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ab6ff5a1ef5538ab21db0b1a04fe15443" name="ab6ff5a1ef5538ab21db0b1a04fe15443"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab6ff5a1ef5538ab21db0b1a04fe15443">&#9670;&#160;</a></span>~ori_facet_buf()</h2>
 
@@ -185,6 +194,8 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Singleton semantics: non-copyable and non-movable; lifetime managed by <code><a class="el" href="classIOv2_1_1sing__temp.html">sing_temp</a></code>. . </p>
 
 </div>
 </div>
@@ -382,6 +393,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Intern a successfully-built messages facet into the messages cache and return the interned pointer. </p>
+
 </div>
 </div>
 <a id="a4cc442b2605576ca3c09aa9b2cd8c851" name="a4cc442b2605576ca3c09aa9b2cd8c851"></a>
@@ -409,6 +422,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Get (building and caching if needed) the base facet conf <code>TF</code> named <code>name</code>. </p>
 
 </div>
 </div>
@@ -459,6 +474,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Look up an already-cached messages facet; returns <code>nullptr</code> on a miss (lookup only, never builds). </p>
 
 </div>
 </div>

@@ -109,16 +109,21 @@ Public 成员函数</h2></td></tr>
 <tr class="memdesc:aaf34ba217f75cb35f0f669f774fdd1c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造 locale；<code>name</code> 为空串（默认）表示使用**程序启动时由环境变量解析得到** 的各 <code>LC_*</code> locale，否则其全部 facet 均使用调用方显式给定的 <code>name</code>。  <br /></td></tr>
 <tr class="separator:aaf34ba217f75cb35f0f669f774fdd1c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b711197706932a597adebb9e83b49ce" id="r_a7b711197706932a597adebb9e83b49ce"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a7b711197706932a597adebb9e83b49ce">locale</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="memdesc:a7b711197706932a597adebb9e83b49ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">拷贝构造：在共享锁下对源实例做一致快照。  <br /></td></tr>
 <tr class="separator:a7b711197706932a597adebb9e83b49ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee822e700ac27152fc989de281271d15" id="r_aee822e700ac27152fc989de281271d15"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#aee822e700ac27152fc989de281271d15">locale</a> (<a class="el" href="classIOv2_1_1locale.html">locale</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:aee822e700ac27152fc989de281271d15"><td class="mdescLeft">&#160;</td><td class="mdescRight">移动构造：接管源的内部状态并清空源。  <br /></td></tr>
 <tr class="separator:aee822e700ac27152fc989de281271d15"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6b8c1c2b893e09a458a93d1a3d2dc3a" id="r_ae6b8c1c2b893e09a458a93d1a3d2dc3a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1locale.html">locale</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#ae6b8c1c2b893e09a458a93d1a3d2dc3a">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)</td></tr>
+<tr class="memdesc:ae6b8c1c2b893e09a458a93d1a3d2dc3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">拷贝赋值。赋值是 locale 实例上唯一的原地修改操作。  <br /></td></tr>
 <tr class="separator:ae6b8c1c2b893e09a458a93d1a3d2dc3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e109fead5faa00b9c50c754fd150953" id="r_a6e109fead5faa00b9c50c754fd150953"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1locale.html">locale</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a6e109fead5faa00b9c50c754fd150953">operator=</a> (<a class="el" href="classIOv2_1_1locale.html">locale</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a6e109fead5faa00b9c50c754fd150953"><td class="mdescLeft">&#160;</td><td class="mdescRight">移动赋值：接管源状态并清空源。  <br /></td></tr>
 <tr class="separator:a6e109fead5faa00b9c50c754fd150953"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73afbbe4e918bf8cef94cafe87efc6ac" id="r_a73afbbe4e918bf8cef94cafe87efc6ac"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a73afbbe4e918bf8cef94cafe87efc6ac">~locale</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a73afbbe4e918bf8cef94cafe87efc6ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae38e747572f6c9657c016cc08b5ff2cd" id="r_ae38e747572f6c9657c016cc08b5ff2cd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1locale.html">locale</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">involve</a> (std::shared_ptr&lt; <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ae38e747572f6c9657c016cc08b5ff2cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回一个在 <code>*this</code> 基础上绑定（或替换）给定 facet 的**新** locale （写时拷贝；<code>*this</code> 不变）。  <br /></td></tr>
 <tr class="separator:ae38e747572f6c9657c016cc08b5ff2cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65163015a4b67c43e1f85d0e3df666a4" id="r_a65163015a4b67c43e1f85d0e3df666a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1locale.html">locale</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a65163015a4b67c43e1f85d0e3df666a4">involve_msg</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;domain, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;lang=&quot;&quot;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">throw_if_fail</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:a65163015a4b67c43e1f85d0e3df666a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回一个在 <code>*this</code> 基础上、额外绑定了指定文本域消息翻译的**新** locale （写时拷贝；<code>*this</code> 不变）。  <br /></td></tr>
@@ -128,28 +133,35 @@ Public 成员函数</h2></td></tr>
 <tr class="separator:a5fd260d87b20a937fea69faf88d638bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c07f0642c50f2baeb4b09c3ca80b078" id="r_a9c07f0642c50f2baeb4b09c3ca80b078"><td class="memTemplParams" colspan="2">template&lt;std::derived_from&lt; <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a> &gt; TF&gt; </td></tr>
 <tr class="memitem:a9c07f0642c50f2baeb4b09c3ca80b078"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1locale.html">locale</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a9c07f0642c50f2baeb4b09c3ca80b078">remove</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a9c07f0642c50f2baeb4b09c3ca80b078"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回一个移除了指定 facet 类型的**新** locale（写时拷贝；<code>*this</code> 不变）。  <br /></td></tr>
 <tr class="separator:a9c07f0642c50f2baeb4b09c3ca80b078"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66056281e99b51075841ee5de8add430" id="r_a66056281e99b51075841ee5de8add430"><td class="memTemplParams" colspan="2">template&lt;std::derived_from&lt; <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a> &gt; TF&gt; </td></tr>
 <tr class="memitem:a66056281e99b51075841ee5de8add430"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">has</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a66056281e99b51075841ee5de8add430"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询本 locale 是否直接持有指定的 facet conf 类型 <code>TF</code>。  <br /></td></tr>
 <tr class="separator:a66056281e99b51075841ee5de8add430"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d13259bef898266567fbee4d1f86c87" id="r_a8d13259bef898266567fbee4d1f86c87"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt; <br />
 requires (<a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff414e">is_nonempty_facet_create_rule</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TF::create_rules&gt; &amp;&amp; !std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&gt;)</td></tr>
 <tr class="memitem:a8d13259bef898266567fbee4d1f86c87"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a8d13259bef898266567fbee4d1f86c87">has</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a8d13259bef898266567fbee4d1f86c87"><td class="mdescLeft">&#160;</td><td class="mdescRight">查询本 locale 能否构建出指定的**复合** facet <code>TF</code>。  <br /></td></tr>
 <tr class="separator:a8d13259bef898266567fbee4d1f86c87"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c6eac41790d333834cde3d2fcb59318" id="r_a2c6eac41790d333834cde3d2fcb59318"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt; <br />
 requires (std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff414e">is_nonempty_facet_create_rule</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TF::create_rules&gt;)</td></tr>
 <tr class="memitem:a2c6eac41790d333834cde3d2fcb59318"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a2c6eac41790d333834cde3d2fcb59318">has</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a2c6eac41790d333834cde3d2fcb59318"><td class="mdescLeft">&#160;</td><td class="mdescRight">守卫重载：把"既是 facet conf、又是复合 facet"的病态类型转为清晰的编译期 诊断。  <br /></td></tr>
 <tr class="separator:a2c6eac41790d333834cde3d2fcb59318"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4c6dd69b44d9bb556d4e01bb3063040" id="r_ab4c6dd69b44d9bb556d4e01bb3063040"><td class="memTemplParams" colspan="2">template&lt;std::derived_from&lt; <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a> &gt; TF&gt; </td></tr>
 <tr class="memitem:ab4c6dd69b44d9bb556d4e01bb3063040"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">get</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ab4c6dd69b44d9bb556d4e01bb3063040"><td class="mdescLeft">&#160;</td><td class="mdescRight">取得本 locale 直接持有的指定 facet conf <code>TF</code> 的共享指针。  <br /></td></tr>
 <tr class="separator:ab4c6dd69b44d9bb556d4e01bb3063040"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8518a411a4f099be834f1a3014365caf" id="r_a8518a411a4f099be834f1a3014365caf"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt; <br />
 requires (<a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff414e">is_nonempty_facet_create_rule</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TF::create_rules&gt; &amp;&amp; !std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&gt;)</td></tr>
 <tr class="memitem:a8518a411a4f099be834f1a3014365caf"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a8518a411a4f099be834f1a3014365caf">get</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a8518a411a4f099be834f1a3014365caf"><td class="mdescLeft">&#160;</td><td class="mdescRight">取得（必要时惰性构建并缓存）指定的**复合** facet <code>TF</code>。  <br /></td></tr>
 <tr class="separator:a8518a411a4f099be834f1a3014365caf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a345477957ed4ba01b5a8e1f12be4f2e8" id="r_a345477957ed4ba01b5a8e1f12be4f2e8"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt; <br />
 requires (std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff414e">is_nonempty_facet_create_rule</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TF::create_rules&gt;)</td></tr>
 <tr class="memitem:a345477957ed4ba01b5a8e1f12be4f2e8"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1locale.html#a345477957ed4ba01b5a8e1f12be4f2e8">get</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a345477957ed4ba01b5a8e1f12be4f2e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">守卫重载：为"既是 facet conf、又是复合 facet"的病态类型给出精确诊断。  <br /></td></tr>
 <tr class="separator:a345477957ed4ba01b5a8e1f12be4f2e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
@@ -217,6 +229,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>拷贝构造：在共享锁下对源实例做一致快照。 </p>
+
 </div>
 </div>
 <a id="aee822e700ac27152fc989de281271d15" name="aee822e700ac27152fc989de281271d15"></a>
@@ -244,6 +258,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>移动构造：接管源的内部状态并清空源。 </p>
 
 </div>
 </div>
@@ -302,6 +318,8 @@ template&lt;std::derived_from&lt; <a class="el" href="structIOv2_1_1abs__ft.html
 </table>
 </div><div class="memdoc">
 
+<p>取得本 locale 直接持有的指定 facet conf <code>TF</code> 的共享指针。 </p>
+
 </div>
 </div>
 <a id="a8518a411a4f099be834f1a3014365caf" name="a8518a411a4f099be834f1a3014365caf"></a>
@@ -331,6 +349,8 @@ requires (<a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff41
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>取得（必要时惰性构建并缓存）指定的**复合** facet <code>TF</code>。 </p>
 
 </div>
 </div>
@@ -362,6 +382,8 @@ requires (std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>守卫重载：为"既是 facet conf、又是复合 facet"的病态类型给出精确诊断。 </p>
+
 </div>
 </div>
 <a id="a66056281e99b51075841ee5de8add430" name="a66056281e99b51075841ee5de8add430"></a>
@@ -390,6 +412,8 @@ template&lt;std::derived_from&lt; <a class="el" href="structIOv2_1_1abs__ft.html
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>查询本 locale 是否直接持有指定的 facet conf 类型 <code>TF</code>。 </p>
 
 </div>
 </div>
@@ -421,6 +445,8 @@ requires (<a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff41
 </table>
 </div><div class="memdoc">
 
+<p>查询本 locale 能否构建出指定的**复合** facet <code>TF</code>。 </p>
+
 </div>
 </div>
 <a id="a2c6eac41790d333834cde3d2fcb59318" name="a2c6eac41790d333834cde3d2fcb59318"></a>
@@ -451,6 +477,8 @@ requires (std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>守卫重载：把"既是 facet conf、又是复合 facet"的病态类型转为清晰的编译期 诊断。 </p>
+
 </div>
 </div>
 <a id="a9c443f0468115d1a8c71534ef51ea045" name="a9c443f0468115d1a8c71534ef51ea045"></a>
@@ -479,7 +507,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <p>返回某个 <code>LC_*</code> 类别在**程序启动时由环境变量解析得到**的初始 locale 名称。</p>
-<p>这是对 <code><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">ori_facet_buf::locale_name</a></code> 的薄转发，使得仅依赖 <code>&lt;<a class="el" href="locale_8h.html">locale/locale.h</a>&gt;</code> 的代码（如 stdio 流对象）无需直接看到 <code><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a></code> 即可获取该初始名称。 返回值与字符类型无关；之所以作为 <code>locale</code> 的静态成员暴露，是为了让调用方只 看见 <code>locale</code>。</p>
+<p>这是对 <code><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">ori_facet_buf::locale_name</a></code> 的薄转发，使得仅依赖 <code>&lt;<a class="el" href="locale_8h.html">locale/locale.h</a>&gt;</code> 的代码（如 stdio 流对象）无需直接看到 <code><a class="el" href="classIOv2_1_1ori__facet__buf.html" title="基础 facet 与 messages facet 的进程级缓存 / 驻留（interning）单例。">ori_facet_buf</a></code> 即可获取该初始名称。 返回值与字符类型无关；之所以作为 <code>locale</code> 的静态成员暴露，是为了让调用方只 看见 <code>locale</code>。</p>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>由底层 <code><a class="el" href="classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034">ori_facet_buf::locale_name</a></code> 透出：当 <code>category</code> 不是已解析的五个类别之一（<code>LC_CTYPE</code> / <code>LC_COLLATE</code> / <code>LC_MONETARY</code> / <code>LC_NUMERIC</code> / <code>LC_TIME</code>）时抛出，例如传入 <code>LC_ALL</code> 或 <code>LC_MESSAGES</code>。 </td></tr>
@@ -514,6 +542,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回一个在 <code>*this</code> 基础上绑定（或替换）给定 facet 的**新** locale （写时拷贝；<code>*this</code> 不变）。 </p>
 
 </div>
 </div>
@@ -641,6 +671,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>拷贝赋值。赋值是 locale 实例上唯一的原地修改操作。 </p>
+
 </div>
 </div>
 <a id="a6e109fead5faa00b9c50c754fd150953" name="a6e109fead5faa00b9c50c754fd150953"></a>
@@ -668,6 +700,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>移动赋值：接管源状态并清空源。 </p>
 
 </div>
 </div>
@@ -697,6 +731,8 @@ template&lt;std::derived_from&lt; <a class="el" href="structIOv2_1_1abs__ft.html
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>返回一个移除了指定 facet 类型的**新** locale（写时拷贝；<code>*this</code> 不变）。 </p>
 
 </div>
 </div>

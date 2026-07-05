@@ -143,7 +143,7 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Abstract base class for all facets.</p>
-<p>Carries the runtime facet id, which is used to key a facet into a locale by its runtime value when the concrete type is no longer known (e.g., via <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code> in <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">locale::involve</a></code>).</p>
+<p>Carries the runtime facet id, which is used to key a facet into a locale by its runtime value when the concrete type is no longer known (e.g., via <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code> in <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd" title="Return a new locale that binds (or replaces) the given facet on top of *this (copy-on-write; *this is...">locale::involve</a></code>).</p>
 <p>This class is neither copyable nor movable.  </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1d8dd78a9578c90a2cb68f95b2474926" name="a1d8dd78a9578c90a2cb68f95b2474926"></a>
@@ -279,7 +279,7 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Instance accessor: reads the id carried by this facet, used to key it into a locale by its runtime value when the concrete type is no longer known (an <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>, e.g. <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd">locale::involve</a></code>).</p>
+<p>Instance accessor: reads the id carried by this facet, used to key it into a locale by its runtime value when the concrete type is no longer known (an <code><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a>&amp;</code>, e.g. <code><a class="el" href="classIOv2_1_1locale.html#ae38e747572f6c9657c016cc08b5ff2cd" title="Return a new locale that binds (or replaces) the given facet on top of *this (copy-on-write; *this is...">locale::involve</a></code>).</p>
 <dl class="section note"><dt>Note</dt><dd><code><a class="el" href="classIOv2_1_1ft__basic.html">ft_basic</a></code> introduces a <em>static</em>, same-named <code><a class="el" href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">id()</a></code> that is the per-type facet key (<code>TF::id()</code>); on derived facets that static hides this accessor. This is deliberate and harmless ONLY because every facet seeds <code>m_id</code> from its own static <code><a class="el" href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">id()</a></code> at construction, so both always return the same value. Do not break that invariant &ndash; never construct a facet whose <code>m_id</code> differs from its static <code><a class="el" href="structIOv2_1_1abs__ft.html#a4ec8079b1aa8457e172036ec6b5f0587">id()</a></code> &ndash; or the static key and this accessor would silently diverge and locale facet lookup would misbehave. </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>The runtime id of this facet instance.  </dd></dl>
 

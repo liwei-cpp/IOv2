@@ -379,6 +379,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configuration class for the <code>numeric&lt;CharT&gt;</code> facet for wide character types.  <a href="classIOv2_1_1numeric__conf_3_01CharT_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process-wide caching / interning singleton for base facets and messages facets.  <a href="classIOv2_1_1ori__facet__buf.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostream.html">ostream</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -4195,6 +4196,7 @@ template&lt;istream_type T&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Global access reference to the <code><a class="el" href="classIOv2_1_1ori__facet__buf.html" title="Process-wide caching / interning singleton for base facets and messages facets.">ori_facet_buf</a></code> singleton. In a shared-library build (<code>IOV2_SHARED</code>) it is defined in <code>iov2_objects.cpp</code> and exported across the library boundary to guarantee a single program-wide instance; in a static build it is initialized in place and bound to the singleton pointer. Library code reaches the facet caches and the initial locale names through it.  </p>
 
 </div>
 </div>

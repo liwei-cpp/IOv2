@@ -379,6 +379,7 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>numeric&lt;CharT&gt;</code> facet 的配置类，适用于宽字符类型。  <a href="classIOv2_1_1numeric__conf_3_01CharT_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">基础 facet 与 messages facet 的进程级缓存 / 驻留（interning）单例。  <a href="classIOv2_1_1ori__facet__buf.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostream.html">ostream</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -4196,6 +4197,7 @@ template&lt;istream_type T&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+<p><code><a class="el" href="classIOv2_1_1ori__facet__buf.html" title="基础 facet 与 messages facet 的进程级缓存 / 驻留（interning）单例。">ori_facet_buf</a></code> 单例的全局访问引用。共享库构建（<code>IOV2_SHARED</code>）下由 <code>iov2_objects.cpp</code> 定义并跨库导出，以保证全程序唯一实例；静态构建下就地初始化并 绑定到单例指针。库内代码通过它访问 facet 缓存与初始 locale 名称。 </p>
 
 </div>
 </div>

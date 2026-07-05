@@ -352,8 +352,10 @@ ori_facet_buf.h 的引用(Include)关系图:</div>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1detail_1_1msg__key.html">IOv2::detail::msg_key</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4.html">std::hash&lt; IOv2::detail::msg_key &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>detail::msg_key</code> 的 <code>std::hash</code> 特化，供 <code>lru_cache</code> 使用。  <a href="structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ori__facet__buf.html">IOv2::ori_facet_buf</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">基础 facet 与 messages facet 的进程级缓存 / 驻留（interning）单例。  <a href="classIOv2_1_1ori__facet__buf.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -372,7 +374,9 @@ ori_facet_buf.h 的引用(Include)关系图:</div>
 <tr class="memitem:a95cfe067d7dce4b9768d23b4593342e5" id="r_a95cfe067d7dce4b9768d23b4593342e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">IOv2::s_ori_facet_buf</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">ori_facet_buf::ptr</a>()</td></tr>
 <tr class="separator:a95cfe067d7dce4b9768d23b4593342e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了 <code>ori_facet_buf</code> 单例——基础 facet 与 messages facet 的进程级缓存 / 驻留 （interning）池，并在程序启动时从环境变量解析各 <code>LC_*</code> 类别的初始 locale 名称。 同时定义 messages 缓存的键类型 <code>detail::msg_key</code> 及其 <code>std::hash</code> 特化。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

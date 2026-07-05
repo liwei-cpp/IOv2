@@ -1,5 +1,5 @@
 <map id="IOv2::ori_facet_buf" name="IOv2::ori_facet_buf">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,93,158,119"/>
+<area shape="rect" id="Node000001" title="基础 facet 与 messages facet 的进程级缓存 / 驻留（interning）单例。" alt="" coords="13,93,158,119"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="5,5,165,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,59,88,93,83,93,83,59"/>
 </map>
