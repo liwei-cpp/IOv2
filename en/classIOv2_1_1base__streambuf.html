@@ -852,6 +852,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Pushes a character back into the read buffer so it becomes the next character returned by a subsequent read. Put-back is counted by call count only; the pushed-back character is not required to match what was actually read, so the caller may substitute arbitrary content (e.g. push back '?' after <code><a class="el" href="classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82" title="get">sgetc()</a></code> returned 'b' — this still counts as one character rewound). There is no upper bound on how many times this may be called, including beyond the number of characters actually read; in that case the logical position reported by <a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f" title="positioning">tell()</a> saturates at the stream origin (clamped to 0) instead of wrapping around as a huge size_t value — see <a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f" title="positioning">tell()</a>.  </p>
 
 </div>
 </div>
@@ -976,6 +977,13 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Switches to output mode. If the read buffer (m_read_buf) still holds characters that were fetched by <a class="el" href="classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82" title="get">sgetc()</a>/sputbackc() but not yet consumed by <a class="el" href="classIOv2_1_1base__streambuf.html#ab0be8e004444f6364047b0212de00b49">sbumpc()</a>/sgetn(), the underlying converter's physical position must first be rewound to the logical position those characters represent, so that a later switch back to input mode can still read them — this step requires the underlying converter to support positioning (cvt_cpt::support_positioning). In other words: a converter that only satisfies cvt_cpt::support_io_switch (get + put + direction switching) but not positioning cannot call this function while the read buffer is non-empty; if the read buffer is empty (i.e. only <a class="el" href="classIOv2_1_1base__streambuf.html#ab0be8e004444f6364047b0212de00b49">sbumpc()</a>/sgetn() have been used, never <a class="el" href="classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82" title="get">sgetc()</a>/sputbackc()), switching direction does not require positioning support. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>Thrown when the read buffer is non-empty and the underlying positioning operation needed to rewind those characters fails (e.g. the underlying converter does not support positioning).  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1005,6 +1013,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </div><div class="memdoc">
 
 <p>positioning </p>
+<p>Returns the current logical read position. If more characters have been pushed back via <a class="el" href="classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b">sputbackc()</a> than have actually been read from the underlying converter (see <a class="el" href="classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b">sputbackc()</a>'s count-based, content-agnostic semantics), the position returned here saturates at the stream origin (0) rather than letting the subtraction wrap around to a huge size_t value.  </p>
 
 </div>
 </div>
