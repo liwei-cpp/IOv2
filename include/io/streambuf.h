@@ -256,23 +256,23 @@ public:
      */
     void switch_to_put() requires (IsIn && IsOut)
     {
-        if (m_read_buf.empty()) return m_cvt.switch_to_put();
-
-        try
+        if (!m_read_buf.empty())
         {
-            size_t pos = tell();
-            m_cvt.seek(pos);
-        }
-        catch (const cvt_error& e)
-        {
-            throw cvt_error("base_streambuf::switch_to_put fails: cannot reposition "
-                             + std::to_string(m_read_buf.size())
-                             + " buffered/put-back character(s) before switching to output mode: "
-                             + e.what());
+            try
+            {
+                const size_t pos = tell();
+                m_cvt.seek(pos);
+            }
+            catch (const cvt_error& e)
+            {
+                throw cvt_error("base_streambuf::switch_to_put fails: cannot reposition "
+                                 + std::to_string(m_read_buf.size())
+                                 + " buffered/put-back character(s) before switching to output mode: "
+                                 + e.what());
+            }
+            m_read_buf.clear();
         }
         m_cvt.switch_to_put();
-
-        m_read_buf.clear();
     }
 
     /// others
@@ -283,9 +283,26 @@ public:
 
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
+        std::exception_ptr local_err = nullptr;
         if constexpr (IsIn)
-            m_read_buf.clear();
-        return m_cvt.detach();
+        {
+            if (!m_read_buf.empty())
+            {
+                try
+                {
+                    const size_t pos = tell();
+                    m_cvt.seek(pos);
+                }
+                catch (...)
+                {
+                    local_err = std::current_exception();
+                }
+                m_read_buf.clear();
+            }
+        }
+
+        auto [dev, inner_err] = m_cvt.detach();
+        return { std::move(dev), local_err ? local_err : inner_err };
     }
 
     void attach(device_type&& dev = device_type{})
