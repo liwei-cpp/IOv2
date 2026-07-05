@@ -2,6 +2,7 @@
 #include <deque>
 #include <exception>
 #include <optional>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -118,6 +119,27 @@ public:
         return res;
     }
 
+    /**
+     * @lang{ZH}
+     * 将字符压回读缓冲区，使其成为下一次读取操作返回的字符。
+     * 回退按调用次数计数，不校验压回的字符是否与原始读取内容一致——调用方可以用任意
+     * 字符替换原始内容（例如 `sgetc()` 读到 'b' 之后压回 '?'，之后仍按回退了 1 个字符计数）。
+     * 压回次数没有上限，包括超过实际已读取字符数的情形；此时 tell() 报告的逻辑位置会在
+     * 流起点处饱和（钳位为 0），不会产生 size_t 下溢的错误巨大值，见 tell()。
+     * @endif
+     *
+     * @lang{EN}
+     * Pushes a character back into the read buffer so it becomes the next character
+     * returned by a subsequent read. Put-back is counted by call count only; the
+     * pushed-back character is not required to match what was actually read, so the
+     * caller may substitute arbitrary content (e.g. push back '?' after `sgetc()`
+     * returned 'b' — this still counts as one character rewound). There is no upper
+     * bound on how many times this may be called, including beyond the number of
+     * characters actually read; in that case the logical position reported by tell()
+     * saturates at the stream origin (clamped to 0) instead of wrapping around as a
+     * huge size_t value — see tell().
+     * @endif
+     */
     void sputbackc(char_type ch) requires (IsIn)
     {
         if constexpr (IsOut)
@@ -148,6 +170,23 @@ public:
     }
 
     /// positioning
+    /**
+     * @lang{ZH}
+     * 返回当前逻辑读取位置。
+     * 若通过 sputbackc() 压回的字符数超过了实际从底层转换器读取的字符数（见 sputbackc()
+     * 的按次数计数、不校验内容的语义），本函数返回的位置在流起点处饱和为 0，而不是让
+     * 减法在 size_t 上下溢产生一个巨大的错误值。
+     * @endif
+     *
+     * @lang{EN}
+     * Returns the current logical read position.
+     * If more characters have been pushed back via sputbackc() than have actually
+     * been read from the underlying converter (see sputbackc()'s count-based,
+     * content-agnostic semantics), the position returned here saturates at the
+     * stream origin (0) rather than letting the subtraction wrap around to a huge
+     * size_t value.
+     * @endif
+     */
     size_t tell() const
     {
         if constexpr (IsIn)
@@ -181,15 +220,59 @@ public:
         m_cvt.switch_to_get();
     }
 
+    /**
+     * @lang{ZH}
+     * 切换到输出模式。
+     * 若读缓冲区（m_read_buf）中还留有已经被 sgetc()/sputbackc() 取出但尚未被
+     * sbumpc()/sgetn() 消费的字符，则必须先把底层转换器的物理位置回退到这些字符对应
+     * 的逻辑位置，才能保证之后再切回输入模式时仍能读到它们——这一步依赖底层转换器
+     * 支持定位（cvt_cpt::support_positioning）。
+     * 换言之：一个仅满足 cvt_cpt::support_io_switch（支持读、写、切换方向）而不支持
+     * 定位的转换器，只要读缓冲区非空就无法调用本函数；若读缓冲区为空（即从未调用过
+     * sgetc()/sputbackc()，只用过 sbumpc()/sgetn()），则切换方向不需要定位支持。
+     * @endif
+     *
+     * @lang{EN}
+     * Switches to output mode.
+     * If the read buffer (m_read_buf) still holds characters that were fetched by
+     * sgetc()/sputbackc() but not yet consumed by sbumpc()/sgetn(), the underlying
+     * converter's physical position must first be rewound to the logical position
+     * those characters represent, so that a later switch back to input mode can
+     * still read them — this step requires the underlying converter to support
+     * positioning (cvt_cpt::support_positioning).
+     * In other words: a converter that only satisfies cvt_cpt::support_io_switch
+     * (get + put + direction switching) but not positioning cannot call this
+     * function while the read buffer is non-empty; if the read buffer is empty
+     * (i.e. only sbumpc()/sgetn() have been used, never sgetc()/sputbackc()),
+     * switching direction does not require positioning support.
+     * @endif
+     *
+     * @throws cvt_error
+     * @lang{ZH} 读缓冲区非空，且回退这些字符所需的底层定位操作失败（例如底层转换器
+     * 不支持定位）时抛出。 @endif
+     * @lang{EN} Thrown when the read buffer is non-empty and the underlying
+     * positioning operation needed to rewind those characters fails (e.g. the
+     * underlying converter does not support positioning). @endif
+     */
     void switch_to_put() requires (IsIn && IsOut)
     {
-        if (m_read_buf.empty()) return m_cvt.switch_to_put();
-        
-        size_t pos = tell();
-        m_cvt.seek(pos);
+        if (!m_read_buf.empty())
+        {
+            try
+            {
+                const size_t pos = tell();
+                m_cvt.seek(pos);
+            }
+            catch (const cvt_error& e)
+            {
+                throw cvt_error("base_streambuf::switch_to_put fails: cannot reposition "
+                                 + std::to_string(m_read_buf.size())
+                                 + " buffered/put-back character(s) before switching to output mode: "
+                                 + e.what());
+            }
+            m_read_buf.clear();
+        }
         m_cvt.switch_to_put();
-
-        m_read_buf.clear();
     }
 
     /// others
@@ -201,7 +284,30 @@ public:
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         if constexpr (IsIn)
-            m_read_buf.clear();
+        {
+            if (!m_read_buf.empty())
+            {
+                try
+                {
+                    const size_t pos = tell();
+                    m_cvt.seek(pos);
+                }
+                catch (...)
+                {
+                    // Swallowed on purpose: a device that doesn't support positioning
+                    // (e.g. a pipe/tty-backed stdin) can never honor this reposition,
+                    // and that is an inherent property of the device, not an
+                    // actionable failure - the caller could not have repositioned it
+                    // either after getting it back. Reporting this error would make
+                    // routine detach()/attach() cycles on such devices start throwing
+                    // (e.g. sync_with_stdio() right after a formatted read has left
+                    // one buffered lookahead character), even though nothing is
+                    // actually broken; losing that lookahead character is the
+                    // accepted, unavoidable cost for non-positionable devices.
+                }
+                m_read_buf.clear();
+            }
+        }
         return m_cvt.detach();
     }
 

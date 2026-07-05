@@ -996,7 +996,8 @@ public:
             {
                 if constexpr (!dev_cpt::support_positioning<device_type>)
                     throw cvt_error("root_cvt::switch_to_put fails: device does not support positioning");
-                seek(tell());
+                else
+                    seek(tell());
             }
             [[fallthrough]];
         default:
