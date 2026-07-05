@@ -160,7 +160,7 @@ $(document).ready(function(){initNavTree('streambuf__iterator_8h_source.html',''
 <div class="foldopen" id="foldopen00048" data-start="{" data-end="}">
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a32f6aeb2759cd29e8fd4fdfbdb3596aa">   48</a></span>    <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>&amp; <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#a32f6aeb2759cd29e8fd4fdfbdb3596aa">operator++</a>()</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    {</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordflow">if</span> (m_streambuf)</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordflow">if</span> (m_streambuf &amp;&amp; !m_c.has_value())</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>            m_streambuf-&gt;sbumpc();</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        m_c = std::optional&lt;value_type&gt;{};</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
@@ -171,7 +171,7 @@ $(document).ready(function(){initNavTree('streambuf__iterator_8h_source.html',''
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="classIOv2_1_1istreambuf__iterator.html#a8295fb231e1fc6c8fc4c5a4ebfb6ec21">   56</a></span>    <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> <a class="code hl_function" href="classIOv2_1_1istreambuf__iterator.html#a8295fb231e1fc6c8fc4c5a4ebfb6ec21">operator++</a>(<span class="keywordtype">int</span>)</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    {</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <a class="code hl_class" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> old = *<span class="keyword">this</span>;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordflow">if</span> (m_streambuf)</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordflow">if</span> (m_streambuf &amp;&amp; !m_c.has_value())</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>            old.m_c = m_streambuf-&gt;sbumpc();</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        m_c = std::optional&lt;value_type&gt;{};</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        <span class="keywordflow">return</span> old;</div>
