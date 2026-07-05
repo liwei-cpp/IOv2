@@ -47,7 +47,7 @@ public:
 
     istreambuf_iterator& operator++()
     {
-        if (m_streambuf)
+        if (m_streambuf && !m_c.has_value())
             m_streambuf->sbumpc();
         m_c = std::optional<value_type>{};
         return *this;
@@ -56,7 +56,7 @@ public:
     istreambuf_iterator operator++(int)
     {
         istreambuf_iterator old = *this;
-        if (m_streambuf)
+        if (m_streambuf && !m_c.has_value())
             old.m_c = m_streambuf->sbumpc();
         m_c = std::optional<value_type>{};
         return old;

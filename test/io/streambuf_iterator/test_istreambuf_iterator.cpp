@@ -184,6 +184,66 @@ void test_istreambuf_iterator_sentinel_2()
     dump_info("Done\n");
 }
 
+void test_istreambuf_iterator_chain_increment_1()
+{
+    dump_info("Test istreambuf_iterator chained increment on a cached copy case 1...");
+    using namespace IOv2;
+
+    // Regression test: once operator++(int) returns a copy that caches an
+    // already-consumed character (m_c), incrementing that copy again must
+    // not pull yet another character from the shared streambuf. Before the
+    // fix, operator++ / operator++(int) called sbumpc() unconditionally,
+    // silently discarding the cached character and consuming/skipping one
+    // extra character from the stream.
+    auto helper = []<typename TStreamBuf>(TStreamBuf& sb)
+    {
+        // prefix increment on a cached copy
+        {
+            istreambuf_iterator it(sb);
+            auto old1 = it++;
+            if (*old1 != 'a') throw std::runtime_error("istreambuf_iterator chain check fail");
+
+            ++old1;
+            if (*it != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
+            if (*old1 != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
+        }
+    };
+
+    auto helper_postfix = []<typename TStreamBuf>(TStreamBuf& sb)
+    {
+        // postfix increment on a cached copy
+        {
+            istreambuf_iterator it(sb);
+            auto old1 = it++;
+            if (*old1 != 'a') throw std::runtime_error("istreambuf_iterator chain check fail");
+
+            auto old2 = old1++;
+            if (*old2 != 'a') throw std::runtime_error("istreambuf_iterator chain check fail");
+            if (*old1 != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
+            if (*it != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
+        }
+    };
+
+    {
+        streambuf sb(mem_device{"abc"});
+        helper(sb);
+    }
+    {
+        istreambuf sb(mem_device{"abc"});
+        helper(sb);
+    }
+    {
+        streambuf sb(mem_device{"abc"});
+        helper_postfix(sb);
+    }
+    {
+        istreambuf sb(mem_device{"abc"});
+        helper_postfix(sb);
+    }
+
+    dump_info("Done\n");
+}
+
 void test_istreambuf_iterator_putback_1()
 {
     dump_info("Test istreambuf_iterator::sputbackc case 1...");
