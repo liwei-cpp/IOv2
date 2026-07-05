@@ -1,3 +1,18 @@
+/**
+ * @file ori_facet_buf.h
+ * @lang{ZH}
+ * 定义了 `ori_facet_buf` 单例——基础 facet 与 messages facet 的进程级缓存 / 驻留
+ * （interning）池，并在程序启动时从环境变量解析各 `LC_*` 类别的初始 locale 名称。
+ * 同时定义 messages 缓存的键类型 `detail::msg_key` 及其 `std::hash` 特化。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the `ori_facet_buf` singleton -- a process-wide cache / interning pool for
+ * base facets and messages facets -- and resolves the initial per-`LC_*` locale names
+ * from the environment at program startup. Also defines the messages-cache key type
+ * `detail::msg_key` and its `std::hash` specialization.
+ * @endif
+ */
 #pragma once
 #include <common/clocale_wrapper.h>
 #include <common/defs.h>
@@ -62,6 +77,22 @@ struct msg_key
 
 namespace std
 {
+/**
+ * @lang{ZH}
+ * @brief `detail::msg_key` 的 `std::hash` 特化，供 `lru_cache` 使用。
+ *
+ * 逐字段哈希 `(domain, lang, dirname, cvt)`，再以 boost 风格的混合式（golden-ratio
+ * 常量加移位）合并，从而依赖各分量各自的 `std::hash<std::string>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief `std::hash` specialization for `detail::msg_key`, as required by `lru_cache`.
+ *
+ * Hashes the fields `(domain, lang, dirname, cvt)` individually and combines them with
+ * a boost-style mixer (a golden-ratio constant plus shifts), relying on each
+ * component's own `std::hash<std::string>`.
+ * @endif
+ */
 template <>
 struct hash<IOv2::detail::msg_key>
 {
@@ -88,11 +119,76 @@ struct hash<IOv2::detail::msg_key>
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 基础 facet 与 messages facet 的进程级缓存 / 驻留（interning）单例。
+ *
+ * `ori_facet_buf` 是继承自 `sing_temp` 的单例，承担两项职责：
+ *
+ * - **facet 驻留**：`try_get` / `try_get_msg` / `put_msg` 以 `(facet 类型 id, 名称)`
+ *   或 `(facet 类型 id, msg_key)` 为键缓存不可变的 facet conf，使等价的 facet 在整个
+ *   程序中最多构建一次并被共享。缓存以 `lru_cache` 有界（每种 facet 类型至多
+ *   `s_cache_capacity` 条），因此即便 locale 名称 / 消息键来自可变（外部）输入，内存
+ *   也保持有界。
+ * - **初始 locale 名称**：构造时经 `resolve_locale` 从环境变量一次性解析各 `LC_*` 类别
+ *   的名称，之后经 `locale_name` 只读提供。
+ *
+ * @note 线程安全由内部 `m_mutex` 提供；但 facet 的**构造发生在锁外**（见 `try_get`），
+ * 以避免序列化构造，并允许 facet 构造函数重入本缓存。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Process-wide caching / interning singleton for base facets and messages facets.
+ *
+ * `ori_facet_buf` is a `sing_temp`-based singleton with two responsibilities:
+ *
+ * - **Facet interning**: `try_get` / `try_get_msg` / `put_msg` cache immutable facet
+ *   confs keyed by `(facet type id, name)` or `(facet type id, msg_key)`, so an
+ *   equivalent facet is built at most once program-wide and shared. The caches are
+ *   bounded by `lru_cache` (at most `s_cache_capacity` entries per facet type), so
+ *   memory stays bounded even when locale names / message keys come from variable
+ *   (external) input.
+ * - **Initial locale names**: resolved once from the environment via `resolve_locale`
+ *   at construction and served read-only through `locale_name`.
+ *
+ * @note Thread safety is provided internally via `m_mutex`; however facet
+ * *construction happens outside the lock* (see `try_get`) to avoid serializing
+ * construction and to allow a facet constructor to re-enter this cache.
+ * @endif
+ */
 class ori_facet_buf : public sing_temp<ori_facet_buf>
 {
     friend sing_temp<ori_facet_buf>;
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 取得（必要时构建并缓存）名为 `name` 的基础 facet conf `TF`。
+     *
+     * 以 `(TF::id(), name)` 为键在缓存中查找：命中则返回共享实例；未命中则**在锁外**
+     * 构造，再重新加锁插入。若期间有其它线程（或重入调用）已插入同键项，则返回既有项、
+     * 丢弃本次构造的对象，从而保证等价 facet 在程序中唯一。
+     *
+     * @tparam TF 要获取的基础 facet conf 类型（提供 `TF::id()` 且可由 `name` 构造）。
+     * @param name 该 facet 使用的 locale 名称。
+     * @return 指向共享 facet conf 的 `std::shared_ptr<abs_ft>`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Get (building and caching if needed) the base facet conf `TF` named `name`.
+     *
+     * Looks the cache up by `(TF::id(), name)`: on a hit it returns the shared instance;
+     * on a miss it constructs *outside the lock*, then re-locks to insert. If another
+     * thread (or a re-entrant call) inserted the same key meanwhile, the existing entry
+     * is returned and the object built here is discarded, keeping an equivalent facet
+     * unique program-wide.
+     *
+     * @tparam TF The base facet conf type to get (providing `TF::id()` and constructible
+     *         from `name`).
+     * @param name The locale name to use for this facet.
+     * @return A `std::shared_ptr<abs_ft>` to the shared facet conf.
+     * @endif
+     */
     template <typename TF>
     std::shared_ptr<abs_ft> try_get(const std::string& name)
     {
@@ -125,6 +221,38 @@ public:
         return obj;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 从 messages 缓存中查找已缓存的 messages facet；未命中返回 `nullptr`（只查不建）。
+     *
+     * 以 `(messages_conf<TChar>::id(), msg_key{domain, lang, dirname, cvt})` 为键查找。
+     * 与 `try_get` 不同，本函数**不构建**新 facet——加载 / 构建由调用方
+     * （`locale::involve_msg`）完成，成功后再经 `put_msg` 写回缓存。
+     *
+     * @tparam TChar 字符类型。
+     * @param domain 文本域名称。
+     * @param lang 语言字符串。
+     * @param dirname `.mo` 文件所在目录。
+     * @param cvt 目标编码名（默认空）。
+     * @return 命中则返回 `std::shared_ptr<messages_conf<TChar>>`，否则为 `nullptr`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Look up an already-cached messages facet; returns `nullptr` on a miss (lookup only, never builds).
+     *
+     * Keyed by `(messages_conf<TChar>::id(), msg_key{domain, lang, dirname, cvt})`.
+     * Unlike `try_get`, this never *builds* a facet -- loading / construction is done by
+     * the caller (`locale::involve_msg`) and interned afterwards via `put_msg` on
+     * success.
+     *
+     * @tparam TChar The character type.
+     * @param domain The text domain name.
+     * @param lang The language string.
+     * @param dirname The directory holding the `.mo` file.
+     * @param cvt The target encoding name (empty by default).
+     * @return A `std::shared_ptr<messages_conf<TChar>>` on a hit, or `nullptr` otherwise.
+     * @endif
+     */
     template <typename TChar>
     std::shared_ptr<messages_conf<TChar>> try_get_msg(const std::string& domain, const std::string& lang, const std::string& dirname, const std::string& cvt = "")
     {
@@ -139,6 +267,41 @@ public:
         return nullptr;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 将一个已构建成功的 messages facet 写入 messages 缓存并返回被驻留的指针。
+     *
+     * 以 `(messages_conf<TChar>::id(), msg_key{...})` 为键：若在同一把锁下发现已有同键项
+     * （其它线程抢先插入），则返回既有项、丢弃 `ptr`；否则插入 `ptr`。`ptr` 为空时不做
+     * 任何缓存、原样返回。据此保证等价的 messages facet 唯一。
+     *
+     * @tparam TChar 字符类型。
+     * @param ptr 待缓存的 messages facet（可为空）。
+     * @param domain 文本域名称。
+     * @param lang 语言字符串。
+     * @param dirname `.mo` 文件所在目录。
+     * @param cvt 目标编码名（默认空）。
+     * @return 被驻留的共享指针：若已有同键项则为既有项，否则为 `ptr`（含 `ptr` 为空时）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Intern a successfully-built messages facet into the messages cache and return the interned pointer.
+     *
+     * Keyed by `(messages_conf<TChar>::id(), msg_key{...})`: if an entry with the same
+     * key already exists under the same lock (another thread inserted first), that entry
+     * is returned and `ptr` is discarded; otherwise `ptr` is inserted. A null `ptr` is
+     * returned as-is without caching. This keeps an equivalent messages facet unique.
+     *
+     * @tparam TChar The character type.
+     * @param ptr The messages facet to cache (may be null).
+     * @param domain The text domain name.
+     * @param lang The language string.
+     * @param dirname The directory holding the `.mo` file.
+     * @param cvt The target encoding name (empty by default).
+     * @return The interned shared pointer: the existing entry if one is present,
+     *         otherwise `ptr` (including when `ptr` is null).
+     * @endif
+     */
     template <typename TChar>
     std::shared_ptr<messages_conf<TChar>> put_msg(std::shared_ptr<messages_conf<TChar>> ptr, const std::string& domain, const std::string& lang, const std::string& dirname, const std::string& cvt = "")
     {
@@ -214,6 +377,15 @@ public:
     }
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 单例语义：不可拷贝、不可移动；生命周期由 `sing_temp` 管理。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Singleton semantics: non-copyable and non-movable; lifetime managed by `sing_temp`.
+     * @endif
+     */
     ~ori_facet_buf() = default;
     ori_facet_buf(const ori_facet_buf&) = delete;
     ori_facet_buf& operator=(const ori_facet_buf&) = delete;
@@ -221,6 +393,18 @@ public:
     ori_facet_buf& operator=(ori_facet_buf&&) = delete;
 
 private:
+    /**
+     * @lang{ZH}
+     * @brief 私有构造：单例创建时经 `resolve_locale` 从环境变量解析五个 `LC_*` 类别的
+     * 初始 locale 名称。仅 `sing_temp`（友元）可调用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Private constructor: on singleton creation, resolves the initial locale
+     * names for the five `LC_*` categories from the environment via `resolve_locale`.
+     * Callable only by `sing_temp` (a friend).
+     * @endif
+     */
     ori_facet_buf()
         : m_ctype(resolve_locale("LC_CTYPE")),
           m_collate(resolve_locale("LC_COLLATE")),
@@ -295,38 +479,84 @@ private:
     }
 
 private:
-    // Per-category locale names resolved from the environment at construction time
-    // (see resolve_locale / locale_name). Written once during static init, then
-    // immutable -- safe to read concurrently without locking.
+    /**
+     * @lang{ZH} 各 `LC_*` 类别在构造时从环境变量解析得到的 locale 名称（见
+     * `resolve_locale` / `locale_name`）。静态初始化期写入一次，此后不可变——可无锁
+     * 并发读取。 @endif
+     * @lang{EN} Per-category locale names resolved from the environment at construction
+     * time (see `resolve_locale` / `locale_name`). Written once during static init, then
+     * immutable -- safe to read concurrently without locking. @endif
+     */
     std::string m_ctype;
     std::string m_collate;
     std::string m_monetary;
     std::string m_numeric;
     std::string m_time;
 
-    // Upper bound on the number of distinct entries cached *per facet type* (per name
-    // for m_cache, per (domain, lang, dirname, cvt) for m_msg_cache). Past this, the lru_cache
-    // evicts the least-recently-used entry, bounding memory under workloads that derive
-    // locale names / message keys from variable (e.g. external) input. The outer map's
-    // key space -- one entry per facet type id -- is already bounded by the program's
-    // instantiated facet types. Eviction only forces a rebuild of an equivalent,
-    // immutable facet on the next miss; nothing relies on facet identity, so this is
-    // purely an interning optimization, not a correctness guarantee.
+    /**
+     * @lang{ZH} **每种 facet 类型**所缓存的不同条目数上限（`m_cache` 按 name，
+     * `m_msg_cache` 按 `(domain, lang, dirname, cvt)`）。超过后 `lru_cache` 淘汰最久未用
+     * 项，从而在 locale 名称 / 消息键来自可变（如外部）输入时限定内存。外层 map 的键空间
+     * ——每种 facet 类型 id 一条——已被程序实例化的 facet 类型数天然限定。淘汰只会在下次
+     * 未命中时重建一个等价、不可变的 facet；没有任何逻辑依赖 facet 的身份，故这纯属驻留
+     * 优化，而非正确性保证。 @endif
+     * @lang{EN} Upper bound on the number of distinct entries cached *per facet type*
+     * (per name for `m_cache`, per `(domain, lang, dirname, cvt)` for `m_msg_cache`).
+     * Past this, the `lru_cache` evicts the least-recently-used entry, bounding memory
+     * under workloads that derive locale names / message keys from variable (e.g.
+     * external) input. The outer map's key space -- one entry per facet type id -- is
+     * already bounded by the program's instantiated facet types. Eviction only forces a
+     * rebuild of an equivalent, immutable facet on the next miss; nothing relies on facet
+     * identity, so this is purely an interning optimization, not a correctness
+     * guarantee. @endif
+     */
     static constexpr std::size_t s_cache_capacity = 256;
 
+    /**
+     * @lang{ZH} 基础 facet 缓存：外层以 facet 类型 id 为键，内层为以 locale 名称为键的
+     * LRU 缓存。 @endif
+     * @lang{EN} Base-facet cache: outer map keyed by facet type id, inner an LRU cache
+     * keyed by locale name. @endif
+     */
     std::unordered_map<facet_id_t, lru_cache<std::string, std::shared_ptr<abs_ft>, s_cache_capacity>> m_cache;
+    /**
+     * @lang{ZH} messages facet 缓存：外层以 facet 类型 id 为键，内层为以 `detail::msg_key`
+     * 为键的 LRU 缓存。 @endif
+     * @lang{EN} Messages-facet cache: outer map keyed by facet type id, inner an LRU
+     * cache keyed by `detail::msg_key`. @endif
+     */
     std::unordered_map<facet_id_t, lru_cache<detail::msg_key, std::shared_ptr<abs_ft>, s_cache_capacity>> m_msg_cache;
-    // Guards m_cache / m_msg_cache. Facet construction in try_get happens *outside*
-    // this lock (it is taken only to look up and to insert), so the mutex is never
-    // held across a facet constructor. That keeps construction unserialized and
-    // makes a re-entrant facet ctor safe even though the mutex is non-recursive.
-    //
-    // The lock must also cover every *lookup*: lru_cache::get() reorders the LRU list
-    // (it is a mutating "touch"), so concurrent gets would race -- there is no
-    // lock-free read path here.
+    /**
+     * @lang{ZH} 保护 `m_cache` / `m_msg_cache`。`try_get` 中的 facet 构造发生在**本锁
+     * 之外**（仅在查找与插入时持锁），故该 mutex 绝不跨 facet 构造函数持有；这既让构造不被
+     * 序列化，也使重入的 facet 构造在非递归 mutex 下仍然安全。锁还必须覆盖**每一次查找**：
+     * `lru_cache::get()` 会重排 LRU 链表（是一次会修改状态的"触碰"），故并发 get 会竞争
+     * ——这里没有无锁读路径。 @endif
+     * @lang{EN} Guards `m_cache` / `m_msg_cache`. Facet construction in `try_get` happens
+     * *outside* this lock (it is taken only to look up and to insert), so the mutex is
+     * never held across a facet constructor. That keeps construction unserialized and
+     * makes a re-entrant facet ctor safe even though the mutex is non-recursive. The lock
+     * must also cover every *lookup*: `lru_cache::get()` reorders the LRU list (a mutating
+     * "touch"), so concurrent gets would race -- there is no lock-free read path here. @endif
+     */
     std::mutex m_mutex;
 };
 
+/**
+ * @lang{ZH}
+ * `ori_facet_buf` 单例的全局访问引用。共享库构建（`IOV2_SHARED`）下由
+ * `iov2_objects.cpp` 定义并跨库导出，以保证全程序唯一实例；静态构建下就地初始化并
+ * 绑定到单例指针。库内代码通过它访问 facet 缓存与初始 locale 名称。
+ * @endif
+ *
+ * @lang{EN}
+ * Global access reference to the `ori_facet_buf` singleton. In a shared-library build
+ * (`IOV2_SHARED`) it is defined in `iov2_objects.cpp` and exported across the library
+ * boundary to guarantee a single program-wide instance; in a static build it is
+ * initialized in place and bound to the singleton pointer. Library code reaches the
+ * facet caches and the initial locale names through it.
+ * @endif
+ */
 #if defined(IOV2_SHARED)
 extern IOV2_API ori_facet_buf& s_ori_facet_buf;   // defined in iov2_objects.cpp
 #else
