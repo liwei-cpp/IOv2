@@ -119,6 +119,11 @@ public:
         return res;
     }
 
+    bool is_eof() requires (IsIn)
+    {
+        return (this->m_read_buf.empty()) && (m_cvt.is_eof());
+    }
+
     /**
      * @lang{ZH}
      * 将字符压回读缓冲区，使其成为下一次读取操作返回的字符。
