@@ -95,10 +95,10 @@ namespace IOv2
          * @endif
          */
         template <typename T>
-        concept support_get = requires(T a, const T& c)
+        concept support_get = requires(T a)
             {
                 { a.dget(std::declval<typename T::char_type*>(), std::declval<size_t>()) } -> std::same_as<size_t>;
-                { c.deof() } -> std::same_as<bool>;
+                { a.deof() } -> std::same_as<bool>;
             };
     }
 
