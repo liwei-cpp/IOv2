@@ -14,10 +14,12 @@
 #include <common/defs.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cerrno>
 #include <cstddef>
 #include <cstdio>
 #include <limits>
+#include <optional>
 #include <type_traits>
 #include <variant>
 
@@ -77,7 +79,9 @@ public:
         if constexpr (ID == STDIN_FILENO)
         {
             m_eof_hit = other.m_eof_hit;
+            m_c = other.m_c;
             other.m_eof_hit = false;
+            other.m_c.reset();
         }
     }
     std_device& operator=(std_device&& other) noexcept
@@ -88,6 +92,8 @@ public:
             {
                 m_eof_hit = other.m_eof_hit;
                 other.m_eof_hit = false;
+                m_c = other.m_c;
+                other.m_c.reset();
             }
         }
         return *this;
@@ -117,17 +123,53 @@ public:
     /**
      * @lang{ZH}
      * @brief 检查标准输入流是否已到达文件末尾（EOF）。
-     * @return 如果已触发 EOF，则为 `true`。
+     *
+     * 采用**探测式**判断：若尚未确定 EOF、且内部没有已缓存的预读字节，会尝试从设备
+     * 读取 1 个字节来确定末尾状态：
+     * - 读到字节：说明尚未到 EOF；该字节被缓存在内部，并由**下一次 `dget()` 首先返回**，
+     *   不会丢失、不会打乱顺序；本函数返回 `false`。
+     * - 读到 0（EOF 或挂断）：置位 EOF 标志并返回 `true`。
+     *
+     * @warning 本函数**可能阻塞**：当流上暂时无数据、也尚未到达 EOF 时，它会一直等待，
+     *          直到有字节到达或确认 EOF 为止。因此在交互式终端上调用会等待用户输入。
+     * @note EOF 是**粘性**的：一旦探测到 EOF，后续调用立即返回 `true`（不再读取）。
+     * @return 如果已到达 EOF，则为 `true`。
+     * @throw device_error 如果底层读取或轮询发生错误。
      * @endif
      *
      * @lang{EN}
-     * @brief Checks if the standard input stream has reached the end-of-file (EOF).
-     * @return `true` if EOF has been triggered.
+     * @brief Checks whether the standard input stream has reached end-of-file (EOF).
+     *
+     * Uses a **probing** strategy: if EOF is not yet known and no look-ahead byte is
+     * currently cached, it attempts to read 1 byte from the device to determine the
+     * end state:
+     * - A byte is read: not at EOF yet; the byte is cached internally and will be
+     *   **returned first by the next `dget()`**, so it is neither lost nor reordered;
+     *   returns `false`.
+     * - 0 is read (EOF or hang-up): sets the EOF flag and returns `true`.
+     *
+     * @warning This function **may block**: when no data is currently available and
+     *          EOF has not yet been reached, it waits until a byte arrives or EOF is
+     *          confirmed. On an interactive terminal it therefore waits for user input.
+     * @note EOF is **sticky**: once EOF is detected, subsequent calls return `true`
+     *       immediately without reading further.
+     * @return `true` if EOF has been reached.
+     * @throw device_error If the underlying read or poll fails.
      * @endif
      */
-    [[nodiscard]] bool deof() const
+    [[nodiscard]] bool deof()
         requires (ID == STDIN_FILENO)
     {
+        if (m_eof_hit) return true;
+
+        if (m_c.has_value()) return false;
+        char_type ch = 0;
+        const size_t ret = do_get(&ch, 1);
+        if (ret != 0)
+        {
+            m_c = ch;
+            return false;
+        }
         return m_eof_hit;
     }
 
@@ -136,12 +178,14 @@ public:
      * @brief 从标准输入读取数据。
      *
      * 这是一个阻塞式读取操作，使用 `poll` 来等待数据可用，并能正确处理 `EINTR` 中断。
+     * 若此前 `deof()` 探测时预读并缓存了 1 个字节，本函数会**首先返回该缓存字节**，
+     * 再从设备读取其余数据，从而保证字节顺序不被打乱。
      * @param s 存储数据的缓冲区。
      * @param n 要读取的字节数。
      * @return 实际读取的字节数。如果到达 EOF，则返回 0。
      * @throw device_error 如果发生读取或轮询错误。
      * @note 遇到 EOF 时立即返回 0，符合 POSIX read() 语义。
-     *       后续调用也会继续返回 0
+     *       EOF 是粘性的，后续调用也会继续返回 0。
      * @endif
      *
      * @lang{EN}
@@ -149,12 +193,15 @@ public:
      *
      * This is a blocking read operation that uses `poll` to wait for data to become available
      * and correctly handles `EINTR` interrupts.
+     * If a previous `deof()` probe read and cached one look-ahead byte, this function
+     * **returns that cached byte first** and then reads the remainder from the device,
+     * so byte ordering is preserved.
      * @param s The buffer to store the data.
      * @param n The number of bytes to read.
      * @return The number of bytes actually read. Returns 0 if EOF is reached.
      * @throw device_error If a read or poll error occurs.
      * @note Returns 0 immediately upon EOF, conforming to POSIX read() semantics.
-     *       Subsequent calls will continue to return 0.
+     *       EOF is sticky, so subsequent calls also continue to return 0.
      * @endif
      */
     size_t dget(char* s, size_t n)
@@ -164,41 +211,16 @@ public:
         if (s == nullptr)
             throw device_error("std_device::dget fail: null buffer");
 
-        constexpr auto max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
-        ssize_t ret = 0;
-        while (true)
+        size_t ret = 0;
+        if (m_c.has_value())
         {
-            ret = read(ID, s, std::min(n, max_read));
-            if (ret != -1) break;
-
-            if (errno == EINTR) continue;
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                struct pollfd pfd{ .fd = ID, .events = POLLIN, .revents = 0 };
-                if (poll(&pfd, 1, -1) == -1)
-                {
-                    if (errno == EINTR) continue;
-                    throw device_error("std_device::dget fail: poll error");
-                }
-                else if (pfd.revents & (POLLERR | POLLNVAL))
-                    throw device_error("std_device::dget fail: poll revents error");
-                else if (pfd.revents & POLLIN) continue;
-                else if (pfd.revents & POLLHUP)
-                {
-                    m_eof_hit = true;
-                    return 0;
-                }
-                else
-                    throw device_error("std_device::dget fail: unexpected poll revents");
-            }
-            else
-                throw device_error("std_device::dget fail: read error");
+            *s++ = m_c.value();
+            m_c.reset();
+            --n;
+            if (n == 0) return 1;
+            ret = 1;
         }
-
-        if (ret == 0)
-            m_eof_hit = true;
-
-        return static_cast<size_t>(ret);
+        return ret + do_get(s, n);
     }
 
     /**
@@ -264,7 +286,48 @@ public:
     }
 
 private:
+    size_t do_get(char* s, size_t n)
+    {
+        assert((s != nullptr) && (n != 0));
+
+        constexpr auto max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
+        ssize_t ret = 0;
+        while (true)
+        {
+            ret = read(ID, s, std::min(n, max_read));
+            if (ret != -1) break;
+
+            if (errno == EINTR) continue;
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                struct pollfd pfd{ .fd = ID, .events = POLLIN, .revents = 0 };
+                if (poll(&pfd, 1, -1) == -1)
+                {
+                    if (errno == EINTR) continue;
+                    throw device_error("std_device::do_get fail: poll error");
+                }
+                else if (pfd.revents & (POLLERR | POLLNVAL))
+                    throw device_error("std_device::do_get fail: poll revents error");
+                else if (pfd.revents & POLLIN) continue;
+                else if (pfd.revents & POLLHUP)
+                {
+                    ret = 0;
+                    break;
+                }
+                else
+                    throw device_error("std_device::do_get fail: unexpected poll revents");
+            }
+            else
+                throw device_error("std_device::do_get fail: read error");
+        }
+
+        if (ret == 0)
+            m_eof_hit = true;
+        return static_cast<size_t>(ret);
+    }
+private:
     [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, bool, std::monostate> m_eof_hit{};
+    [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, std::optional<char_type>, std::monostate> m_c;
 };
 
 /**

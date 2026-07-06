@@ -186,7 +186,25 @@ void test_std_device_move() {
         d3 = std::move(d2);
         VERIFY(d3.deof());
     }
-    
+
+    // Move (construct and assign) must carry the deof()-cached look-ahead byte,
+    // otherwise the peeked byte would be silently dropped.
+    {
+        iguard g("xy");
+        std_input_device d1;
+        VERIFY(!d1.deof());                  // probes and caches 'x'
+
+        std_input_device d2(std::move(d1));  // move-construct carries the cache
+        char buf;
+        VERIFY(d2.dget(&buf, 1) == 1 && buf == 'x');
+
+        VERIFY(!d2.deof());                  // probes and caches 'y'
+        std_input_device d3;
+        d3 = std::move(d2);                  // move-assign carries the cache
+        VERIFY(d3.dget(&buf, 1) == 1 && buf == 'y');
+        VERIFY(d3.deof());
+    }
+
     // Move for stdout (no state but should work)
     {
         std_output_device d1;
@@ -201,22 +219,27 @@ void test_std_device_move() {
 void test_std_device_eof() {
     using namespace IOv2;
     dump_info("Test std_device EOF...");
-    
-    std_input_device d1;
-    VERIFY(!d1.deof());
-    
+
+    // deof() must be constructed and probed only against a redirected stdin;
+    // probing the real stdin would block or latch a spurious EOF.
     {
         iguard g("a");
+        std_input_device d1;
         char buf[2];
-        VERIFY(d1.dget(buf, 1) == 1);
+
+        // Data available: deof() probes, reports not-EOF, and caches the byte.
         VERIFY(!d1.deof());
-        VERIFY(d1.dget(buf, 1) == 0);
+        // The probe-cached byte is delivered in order by the next dget().
+        VERIFY(d1.dget(buf, 1) == 1 && buf[0] == 'a');
+        // Stream exhausted: deof() probes read()==0 and latches sticky EOF.
         VERIFY(d1.deof());
-        // Subsequent calls
+        VERIFY(d1.dget(buf, 1) == 0);
+        // Subsequent calls keep reporting EOF / 0.
+        VERIFY(d1.deof());
         VERIFY(d1.dget(buf, 1) == 0);
         VERIFY(d1.deof());
     }
-    
+
     dump_info("Done\n");
 }
 
