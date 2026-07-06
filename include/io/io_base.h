@@ -2,10 +2,12 @@
 #include <common/defs.h>
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <forward_list>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <unordered_map>
 #include <utility>
@@ -114,6 +116,7 @@ struct io_state_and_exp
 
     void handle_exception(std::exception_ptr ex)
     {
+        if (!ex) return;
         try
         {
             std::rethrow_exception(ex);
@@ -263,9 +266,37 @@ public:
     }
 
 public:
-    static size_t xalloc() noexcept
+    /**
+     * @lang{ZH}
+     * 分配一个进程内唯一的存储索引。
+     * @note numeric_limits<size_t>::max() 被保留作为“已耗尽”哨兵：索引空间在发放到
+     * max()-1 后即视为耗尽，再次调用抛出 stream_error，而不是让计数器回绕并复用已发放
+     * 的索引。采用 CAS 循环实现，保证并发调用下索引唯一且不越过耗尽点。
+     * @endif
+     *
+     * @lang{EN}
+     * Allocates a process-wide unique storage index.
+     * @note numeric_limits<size_t>::max() is reserved as an "exhausted" sentinel: once
+     * indices up to max()-1 have been handed out the space is considered exhausted and
+     * a further call throws stream_error, instead of letting the counter wrap around
+     * and reuse an already-issued index. Implemented with a CAS loop so that concurrent
+     * calls stay unique and never step past the exhaustion point.
+     * @endif
+     *
+     * @throws stream_error
+     * @lang{ZH} 索引空间耗尽时抛出。 @endif
+     * @lang{EN} Thrown when the index space is exhausted. @endif
+     */
+    static size_t xalloc()
     {
-        return ios_base<void>::s_top.fetch_add(1, std::memory_order_relaxed);
+        size_t cur = ios_base<void>::s_top.load(std::memory_order_relaxed);
+        do
+        {
+            if (cur == std::numeric_limits<size_t>::max())
+                throw stream_error("ios_base::xalloc fails: storage index space exhausted");
+        } while (!ios_base<void>::s_top.compare_exchange_weak(
+                     cur, cur + 1, std::memory_order_relaxed));
+        return cur;
     }
 
     std::shared_ptr<void> set_pword(size_t id, std::shared_ptr<void> pword)
