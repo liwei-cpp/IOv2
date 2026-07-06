@@ -3,6 +3,7 @@
 #include <cvt/runtime_cvt.h>
 #include <io/io_concepts.h>
 
+#include <cstddef>
 #include <deque>
 #include <exception>
 #include <optional>
@@ -121,6 +122,8 @@ public:
 
     bool is_eof() requires (IsIn)
     {
+        if constexpr (IsOut)
+            switch_to_get();
         return (this->m_read_buf.empty()) && (m_cvt.is_eof());
     }
 
@@ -209,16 +212,16 @@ public:
 
     void seek(size_t pos)
     {
+        m_cvt.seek(pos);
         if constexpr (IsIn)
             m_read_buf.clear();
-        m_cvt.seek(pos);
     }
 
     void rseek(size_t pos)
     {
+        m_cvt.rseek(pos);
         if constexpr (IsIn)
             m_read_buf.clear();
-        m_cvt.rseek(pos);
     }
 
     /// io switch
@@ -237,6 +240,11 @@ public:
      * 换言之：一个仅满足 cvt_cpt::support_io_switch（支持读、写、切换方向）而不支持
      * 定位的转换器，只要读缓冲区非空就无法调用本函数；若读缓冲区为空（即从未调用过
      * sgetc()/sputbackc()，只用过 sbumpc()/sgetn()），则切换方向不需要定位支持。
+     * 关于过度回退：若 sputbackc() 压回的字符数超过实际已读字符数，回退目标位置
+     * （即 tell()）会在起点处钳位为 0（见 tell()/sputbackc()），因此切换后写入将从
+     * 位置 0 开始。这与逻辑读游标此刻正位于 0 是一致的；又因为 put-back 并不把字符
+     * 真正写回底层，切换到输出后从该位置写入会相应改变逻辑数据流——这是既定语义，
+     * 非错误。
      * @endif
      *
      * @lang{EN}
@@ -252,6 +260,13 @@ public:
      * function while the read buffer is non-empty; if the read buffer is empty
      * (i.e. only sbumpc()/sgetn() have been used, never sgetc()/sputbackc()),
      * switching direction does not require positioning support.
+     * On over-pushback: if sputbackc() has pushed back more characters than were
+     * actually read, the rewind target (i.e. tell()) saturates at the stream origin
+     * 0 (see tell()/sputbackc()), so writing after the switch begins at position 0.
+     * This is consistent with the logical read cursor being at 0 at that moment;
+     * and because put-back is never written through to the underlying stream,
+     * writing from that position after switching to output changes the logical data
+     * stream accordingly — this is by-design behavior, not a bug.
      * @endif
      *
      * @throws cvt_error
@@ -296,6 +311,10 @@ public:
             {
                 try
                 {
+                    // On over-pushback (more put-back than actually read), tell()
+                    // saturates at 0, so the device is handed back positioned at the
+                    // stream origin. That is consistent with the logical read cursor
+                    // being at 0; see tell()/sputbackc() and switch_to_put().
                     const size_t pos = tell();
                     m_cvt.seek(pos);
                 }

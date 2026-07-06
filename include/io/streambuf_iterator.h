@@ -2,6 +2,7 @@
 #include <common/streambuf_defs.h>
 #include <io/streambuf.h>
 
+#include <cstddef>
 #include <iterator>
 #include <optional>
 
