@@ -149,6 +149,8 @@ requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d
 <tr class="separator:ab51d36672e716de55c432c9bf2d8edeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b48b861f848f1b2669b609844bb6a71" id="r_a3b48b861f848f1b2669b609844bb6a71"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a3b48b861f848f1b2669b609844bb6a71">sgetn</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
 <tr class="separator:a3b48b861f848f1b2669b609844bb6a71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05b98428e8ead8376365c621e9488c56" id="r_a05b98428e8ead8376365c621e9488c56"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a05b98428e8ead8376365c621e9488c56">is_eof</a> ()</td></tr>
+<tr class="separator:a05b98428e8ead8376365c621e9488c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd32efabb68ade612e9e8fe2c23eb75b" id="r_acd32efabb68ade612e9e8fe2c23eb75b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b">sputbackc</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
 <tr class="separator:acd32efabb68ade612e9e8fe2c23eb75b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d679aaad7532ca75fac0eb939fe3b9b" id="r_a7d679aaad7532ca75fac0eb939fe3b9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a7d679aaad7532ca75fac0eb939fe3b9b">sputc</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
@@ -552,6 +554,33 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::flush </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a05b98428e8ead8376365c621e9488c56" name="a05b98428e8ead8376365c621e9488c56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05b98428e8ead8376365c621e9488c56">&#9670;&#160;</a></span>is_eof()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsOut&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::is_eof </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
