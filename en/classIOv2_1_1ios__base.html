@@ -451,6 +451,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Get/set the floating-point precision. </p><dl class="section note"><dt>Note</dt><dd>The precision is stored as a std::uint8_t and is intentionally limited to the range 0..255. Unlike the standard std::ios_base, which uses std::streamsize, this library does not support precision values greater than 255; larger values cannot be expressed through this interface (the parameter type is std::uint8_t itself). This is by design.  </dd></dl>
 
 </div>
 </div>
@@ -676,6 +677,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Get/set the field width. </p><dl class="section note"><dt>Note</dt><dd>The width is stored as a std::uint8_t and is intentionally limited to the range 0..255. Unlike the standard std::ios_base, which uses std::streamsize, this library does not support field widths greater than 255; larger values cannot be expressed through this interface (the parameter type is std::uint8_t itself). This is by design.  </dd></dl>
 
 </div>
 </div>

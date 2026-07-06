@@ -451,6 +451,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>获取/设置浮点精度。 </p><dl class="section note"><dt>注解</dt><dd>精度以 std::uint8_t 存储，取值范围被有意限制在 0..255。这与标准 std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的精度， 更大的值无法通过本接口表达（参数类型即为 std::uint8_t）。此为有意设计。 </dd></dl>
 
 </div>
 </div>
@@ -676,6 +677,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+<p>获取/设置字段宽度。 </p><dl class="section note"><dt>注解</dt><dd>宽度以 std::uint8_t 存储，取值范围被有意限制在 0..255。这与标准 std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的字段宽度， 更大的值无法通过本接口表达（参数类型即为 std::uint8_t）。此为有意设计。 </dd></dl>
 
 </div>
 </div>
