@@ -192,8 +192,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a877c9e29409179fdc4383705094db6e1" id="r_a877c9e29409179fdc4383705094db6e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a877c9e29409179fdc4383705094db6e1">xalloc</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
-<tr class="separator:a877c9e29409179fdc4383705094db6e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a587b07bd36583ba90a2bf063f5b59028" id="r_a587b07bd36583ba90a2bf063f5b59028"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a587b07bd36583ba90a2bf063f5b59028">xalloc</a> ()</td></tr>
+<tr class="separator:a587b07bd36583ba90a2bf063f5b59028"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -709,8 +709,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
-<a id="a877c9e29409179fdc4383705094db6e1" name="a877c9e29409179fdc4383705094db6e1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a877c9e29409179fdc4383705094db6e1">&#9670;&#160;</a></span>xalloc()</h2>
+<a id="a587b07bd36583ba90a2bf063f5b59028" name="a587b07bd36583ba90a2bf063f5b59028"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a587b07bd36583ba90a2bf063f5b59028">&#9670;&#160;</a></span>xalloc()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -729,10 +729,17 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">noexcept</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
+<p>Allocates a process-wide unique storage index. </p><dl class="section note"><dt>Note</dt><dd>numeric_limits&lt;size_t&gt;::max() is reserved as an "exhausted" sentinel: once indices up to <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">max()</a>-1 have been handed out the space is considered exhausted and a further call throws <a class="el" href="structIOv2_1_1stream__error.html">stream_error</a>, instead of letting the counter wrap around and reuse an already-issued index. Implemented with a CAS loop so that concurrent calls stay unique and never step past the exhaustion point. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>Thrown when the index space is exhausted.  </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
