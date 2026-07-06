@@ -211,16 +211,21 @@ public:
         if (s == nullptr)
             throw device_error("std_device::dget fail: null buffer");
 
-        size_t ret = 0;
         if (m_c.has_value())
         {
-            *s++ = m_c.value();
+            *s = m_c.value();
+            if (n == 1)
+            {
+                m_c.reset();
+                return 1;
+            }
+            // Read the remainder first; if do_get throws, m_c must still hold
+            // the look-ahead byte so the next dget() redelivers it (no loss).
+            const size_t got = do_get(s + 1, n - 1);
             m_c.reset();
-            --n;
-            if (n == 0) return 1;
-            ret = 1;
+            return 1 + got;
         }
-        return ret + do_get(s, n);
+        return do_get(s, n);
     }
 
     /**
