@@ -36,7 +36,12 @@ public:
 public:
     value_type operator*() const
     {
-        auto res = get();
+        auto res = m_c;
+        if (m_streambuf && (!res.has_value()))
+        {
+            res = m_streambuf->sgetc();
+            if (!res.has_value()) m_streambuf = nullptr;
+        }
         if (!res.has_value()) throw eof_error{};
         return res.value();
     }
@@ -78,21 +83,15 @@ public:
 
     friend bool operator==(const istreambuf_iterator& val1, const istreambuf_iterator& val2)
     {
-        const bool v1 = val1.get().has_value();
-        const bool v2 = val2.get().has_value();
-        return v1 == v2;
+        return at_end(val1) == at_end(val2);
     }
 
 private:
-    std::optional<value_type> get() const
+    static bool at_end(const istreambuf_iterator& it)
     {
-        auto ret = m_c;
-        if (m_streambuf && (!ret.has_value()))
-        {
-            ret = m_streambuf->sgetc();
-            if (!ret.has_value()) m_streambuf = nullptr;
-        }
-        return ret;
+        if (it.m_c.has_value()) return false;
+        if (it.m_streambuf == nullptr) return true;
+        return it.m_streambuf->is_eof();
     }
 
 private:

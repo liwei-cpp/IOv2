@@ -27,7 +27,7 @@ struct in_sentry
     {
         try
         {
-            if (!m_is.m_streambuf.sgetc().has_value())
+            if (m_is.m_streambuf.is_eof())
                 m_is.handle_exception(std::make_exception_ptr(eof_error{}));
         }
         catch (...) {} // NOLINT(bugprone-empty-catch)
@@ -230,29 +230,13 @@ struct istream_operators
     {
         T& obj = static_cast<T&>(*this);
 
-        size_t gcount = 0;
         try
         {
             using sentry_type = typename T::in_sentry_type;
             sentry_type cerb(obj, true);
-            if (n == 0) return obj;
 
-            auto c = obj.m_streambuf.sgetc();
-            while (gcount < n
-                    && c.has_value())
-            {
-                ++gcount;
-                c = obj.m_streambuf.snextc();
-            }
-
-            if (gcount < n)
-            {
-                if (c.has_value())
-                {
-                    ++gcount;
-                    obj.m_streambuf.sbumpc();
-                }
-            }
+            for (size_t gcount = 0; gcount < n && !obj.m_streambuf.is_eof(); ++gcount)
+                obj.m_streambuf.sbumpc();
         }
         catch(...)
         {
