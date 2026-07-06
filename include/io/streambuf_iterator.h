@@ -1,8 +1,9 @@
 #pragma once
-#include <iterator>
-#include <optional>
 #include <common/streambuf_defs.h>
 #include <io/streambuf.h>
+
+#include <iterator>
+#include <optional>
 
 namespace IOv2
 {
@@ -28,7 +29,7 @@ public:
 
     constexpr istreambuf_iterator(std::default_sentinel_t) noexcept
       : istreambuf_iterator() {}
-      
+
     istreambuf_iterator(TStreamBuf& p_streambuf)
         : m_streambuf(&p_streambuf) {}
 
