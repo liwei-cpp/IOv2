@@ -1,5 +1,6 @@
 #pragma once
 #include <common/streambuf_defs.h>
+#include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <io/io_concepts.h>
 
