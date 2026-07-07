@@ -143,10 +143,13 @@ requires (<a class="el" href="namespaceIOv2.html#a136bce589de832c1ebc95432640097
 class IOv2::istreambuf_iterator&lt; TStreamBuf &gt;</div><p>Forward declaration for input stream buffer iterator.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TStreamBuf</td><td>The stream buffer type, must be streambuf or istreambuf  </td></tr>
+    <tr><td class="paramname">TStreamBuf</td><td>The stream buffer type, must be streambuf or istreambuf </td></tr>
   </table>
   </dd>
 </dl>
+<p>Input stream-buffer iterator (single-pass input iterator).</p>
+<dl class="section warning"><dt>Warning</dt><dd>Exclusive-access contract: while an <a class="el" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> is active (not yet at end, still potentially dereferenced or incremented), the streambuf it is bound to MUST NOT be operated on through any other path. This includes: constructing another iterator over the same streambuf, calling sgetc()/sbumpc()/sputbackc() directly, and — when the underlying streambuf is bidirectional — writing through sputc()/sputn(). The iterator carries look-ahead state (m_c plus the character pre-read into the streambuf's read buffer by sgetc()); any interleaved stream operation breaks its invariant and yields unspecified behavior such as skipped, repeated, or stale characters. This matches the requirement of the standard std::istreambuf_iterator. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>A corollary: under correct use (the stream is always in the input direction), the is_eof() call inside operator== performs no direction switch and is therefore side-effect free; only when the contract is violated by comparing iterators mid-write can is_eof() trigger a switch_to_get() direction flip — a consequence of the broken contract, not a guarantee of this class.  </dd></dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="aaf8bbccbad623b9334e1a01f800cba53" name="aaf8bbccbad623b9334e1a01f800cba53"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaf8bbccbad623b9334e1a01f800cba53">&#9670;&#160;</a></span>difference_type</h2>
