@@ -1,9 +1,12 @@
 #pragma once
+#include <common/defs.h>
 #include <common/streambuf_defs.h>
+#include <cvt/cvt_concepts.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <io/io_concepts.h>
 
+#include <cassert>
 #include <cstddef>
 #include <deque>
 #include <exception>
@@ -114,6 +117,7 @@ public:
         while (res < n)
         {
             size_t c = m_cvt.get(s, n - res);
+            assert(c <= n - res);
             if (c == 0) break;
             res += c;
             s += c;
@@ -348,12 +352,12 @@ public:
 
     void adjust(const cvt_behavior& acc)
     {
-        return m_cvt.adjust(acc);
+        m_cvt.adjust(acc);
     }
 
     void retrieve(cvt_status& acc) const
     {
-        return m_cvt.retrieve(acc);
+        m_cvt.retrieve(acc);
     }
 
 private:

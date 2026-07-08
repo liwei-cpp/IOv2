@@ -104,7 +104,7 @@ struct io_state_and_exp
 
     explicit operator bool() const
     {
-        return (m_stream_state == 0) || (m_stream_state == ios_defs::eofbit);
+        return (rdstate() == 0) || (rdstate() == ios_defs::eofbit);
     }
 
     ios_defs::iostate exceptions() const { return m_exception; }
@@ -180,6 +180,34 @@ public:
 
 public:
     ios_base() = default;
+
+    /**
+     * @lang{ZH}
+     * 拷贝/移动均被有意支持（与不可拷贝的 std::ios_base 不同，此为本库的既定设计）。
+     * @note 拷贝为浅共享语义：m_pwords 与 m_callbacks 本身按值复制（两个对象各自持有
+     * 独立的容器），但 m_pwords 中存放的是 std::shared_ptr<void>，因此拷贝后两个 ios_base
+     * 实例的 pword 条目**共享同一批底层对象**——通过任一实例经 set_pword() 替换某 id 的条目
+     * 只影响自身的容器，但只要该条目未被替换，两侧解引用得到的仍是同一 pword 对象，经其中
+     * 一侧修改该对象内容对另一侧可见。若需要独立的 pword，请在拷贝后自行深拷贝相应对象。
+     * @endif
+     *
+     * @lang{EN}
+     * Copy and move are intentionally supported (unlike the non-copyable std::ios_base;
+     * this is a deliberate design choice of this library).
+     * @note Copy has shallow-sharing semantics: m_pwords and m_callbacks are copied by
+     * value (each instance owns an independent container), but m_pwords stores
+     * std::shared_ptr<void>, so after a copy the two ios_base instances' pword entries
+     * **share the same underlying objects**. Replacing an id's entry via set_pword() on
+     * one instance affects only that instance's own container, but as long as the entry
+     * is not replaced, dereferencing it on either side yields the same pword object, and
+     * mutations to that object made through one side are visible to the other. If
+     * independent pwords are required, deep-copy the relevant objects after copying.
+     * @endif
+     */
+    ios_base(const ios_base&) = default;
+    ios_base(ios_base&&) = default;
+    ios_base& operator=(const ios_base&) = default;
+    ios_base& operator=(ios_base&&) = default;
 
 public:
     ios_defs::fmtflags flags() const { return m_flags; }
@@ -371,6 +399,25 @@ protected:
     ios_defs::fmtflags m_flags     = ios_defs::skipws | ios_defs::dec;
     std::uint8_t       m_precision = 6;
     std::uint8_t       m_width     = 0;
+    /**
+     * @lang{ZH}
+     * 默认填充字符。此处直接用 C 风格转换 (TChar)' ' 得到，而**不**经由 locale 的 widen()
+     * 之类的接口——这是有意为之：ios_base 不与 locale 建立直接依赖。
+     * @note 这要求 TChar 可由 char 字面量 ' ' 构造/转换。对 char/wchar_t/char8_t/char16_t/
+     * char32_t 均成立；若以不满足该要求的 TChar 实例化，则在此处编译期失败（而非静默产生
+     * 非空格的填充字符）。此为既定约束，非缺陷。
+     * @endif
+     *
+     * @lang{EN}
+     * Default fill character. Obtained directly via the C-style cast (TChar)' ', and
+     * deliberately NOT through a locale facility such as widen(): ios_base intentionally
+     * keeps no direct dependency on locale.
+     * @note This requires TChar to be constructible/convertible from the char literal ' '.
+     * That holds for char/wchar_t/char8_t/char16_t/char32_t; instantiating with a TChar
+     * that does not meet this requirement fails to compile here (rather than silently
+     * yielding a non-space fill character). This is a deliberate constraint, not a defect.
+     * @endif
+     */
     TChar              m_fill      = (TChar)' ';
 
     std::unordered_map<size_t, std::shared_ptr<void>> m_pwords;
