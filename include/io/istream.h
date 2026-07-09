@@ -1,10 +1,13 @@
 #pragma once
-#include <mutex>
-
-#include <io/io_concepts.h>
+#include <cvt/cvt_concepts.h>
+#include <device/device_concepts.h>
 #include <io/ostream.h>
 #include <io/utilities/istream_operators.h>
 #include <io/utilities/stream_common_operators.h>
+
+#include <mutex>
+#include <type_traits>
+#include <utility>
 
 namespace IOv2
 {
@@ -12,7 +15,7 @@ template <io_device TDevice, typename TChar>
 class istream : public ios_base<TChar>
               , public io_state_and_exp
               , public istream_operators<istream<TDevice, TChar>, TChar>
-              , public stream_common_operators<istream<TDevice, TChar>, TDevice, TChar>
+              , public stream_common_operators<TDevice, TChar>
 {
 public:
     using device_type = TDevice;
@@ -21,7 +24,7 @@ public:
 
     friend in_sentry_type;
     friend istream_operators<istream<TDevice, TChar>, TChar>;
-    friend stream_common_operators<istream<TDevice, TChar>, TDevice, TChar>;
+    friend stream_common_operators<TDevice, TChar>;
 
 public:
     istream()
@@ -54,15 +57,20 @@ template <io_device TDevice>
 istream(TDevice) -> istream<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-istream(TDevice, const TCreator&) -> istream<TDevice,
-                                             ext_to_int<TDevice, TCreator>>;
+istream(TDevice, const TCreator&)
+    -> istream<TDevice,
+               typename decltype(istreambuf{std::declval<TDevice>(),
+                                            std::declval<const TCreator&>()})::char_type>;
 
 template <io_device TDevice, typename TChar>
     requires (std::is_same_v<typename TDevice::char_type, TChar>)
 istream(TDevice, locale<TChar>) -> istream<TDevice, TChar>;
 
 template <io_device TDevice, cvt_creator TCreator, typename TChar>
-    requires (std::is_same_v<ext_to_int<TDevice, TCreator>, TChar>)
+    requires (std::is_same_v<
+                  typename decltype(istreambuf{std::declval<TDevice>(),
+                                               std::declval<const TCreator&>()})::char_type,
+                  TChar>)
 istream(TDevice, const TCreator&, locale<TChar>) -> istream<TDevice, TChar>;
 
 // common manips

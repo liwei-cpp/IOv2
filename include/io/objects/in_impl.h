@@ -19,10 +19,10 @@ template <typename T, io_device TDevice, typename TChar>
 class stdin_api : public ios_base<TChar>
                 , public io_state_and_exp
                 , public istream_operators<T, TChar>
-                , public stream_common_operators<T, TDevice, TChar>
+                , public stream_common_operators<TDevice, TChar>
 {
     friend istream_operators<T, TChar>;
-    friend stream_common_operators<T, TDevice, TChar>;
+    friend stream_common_operators<TDevice, TChar>;
 
 public:
     using device_type = TDevice;
