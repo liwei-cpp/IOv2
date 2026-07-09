@@ -145,7 +145,6 @@ var hierarchy =
     ] ],
     [ "IOv2::date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html", null ],
     [ "IOv2::ft_basic< timeio< CharT > >::era_entry", "structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html", null ],
-    [ "IOv2::ext_to_int_helper< TDevice, TCreator >", "structIOv2_1_1ext__to__int__helper.html", null ],
     [ "IOv2::facet_create_pack<... >", "structIOv2_1_1facet__create__pack.html", null ],
     [ "IOv2::facet_create_pack_head< T >", "structIOv2_1_1facet__create__pack__head.html", null ],
     [ "IOv2::facet_create_pack_head< facet_create_pack< H, T... > >", "structIOv2_1_1facet__create__pack__head_3_01facet__create__pack_3_01H_00_01T_8_8_8_01_4_01_4.html", null ],
@@ -350,7 +349,7 @@ var hierarchy =
     [ "IOv2::stamp_input_iterator< TIter >", "structIOv2_1_1stamp__input__iterator.html", null ],
     [ "IOv2::stamp_input_iterator< TIter >", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html", null ],
     [ "IOv2::std_device< ID >", "classIOv2_1_1std__device.html", null ],
-    [ "IOv2::stream_common_operators< T, TDevice, TChar >", "structIOv2_1_1stream__common__operators.html", [
+    [ "IOv2::stream_common_operators< TDevice, TChar >", "structIOv2_1_1stream__common__operators.html", [
       [ "IOv2::stdin_api< __cin, std_device< STDIN_FILENO >, char >", "classIOv2_1_1stdin__api.html", null ],
       [ "IOv2::stdin_api< __wcin, std_device< STDIN_FILENO >, wchar_t >", "classIOv2_1_1stdin__api.html", null ],
       [ "IOv2::stdout_api< __cerr, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
@@ -359,26 +358,18 @@ var hierarchy =
       [ "IOv2::stdout_api< __wcerr, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
       [ "IOv2::stdout_api< __wclog, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
       [ "IOv2::stdout_api< __wcout, std_device< STDOUT_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ],
+      [ "IOv2::istream< TDevice, TChar >", "classIOv2_1_1istream.html", null ],
+      [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ],
       [ "IOv2::stdin_api< T, TDevice, TChar >", "classIOv2_1_1stdin__api.html", null ],
       [ "IOv2::stdout_api< T, TDevice, TChar >", "classIOv2_1_1stdout__api.html", null ]
     ] ],
-    [ "IOv2::stream_common_operators< __cerr, std_device< STDERR_FILENO >, char >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< __cin, TDevice, char >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< __clog, std_device< STDERR_FILENO >, char >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< __cout, std_device< STDOUT_FILENO >, char >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< __wcerr, std_device< STDERR_FILENO >, wchar_t >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< __wcin, TDevice, wchar_t >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< __wclog, std_device< STDERR_FILENO >, wchar_t >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< __wcout, std_device< STDOUT_FILENO >, wchar_t >", "structIOv2_1_1stream__common__operators.html", null ],
-    [ "IOv2::stream_common_operators< iostream< TDevice, TChar >, TDevice, TChar >", "structIOv2_1_1stream__common__operators.html", [
-      [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ]
-    ] ],
-    [ "IOv2::stream_common_operators< istream< TDevice, TChar >, TDevice, TChar >", "structIOv2_1_1stream__common__operators.html", [
-      [ "IOv2::istream< TDevice, TChar >", "classIOv2_1_1istream.html", null ]
-    ] ],
-    [ "IOv2::stream_common_operators< ostream< TDevice, TChar >, TDevice, TChar >", "structIOv2_1_1stream__common__operators.html", [
-      [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ]
-    ] ],
+    [ "IOv2::stream_common_operators< std_device< STDERR_FILENO >, char >", "structIOv2_1_1stream__common__operators.html", null ],
+    [ "IOv2::stream_common_operators< std_device< STDERR_FILENO >, wchar_t >", "structIOv2_1_1stream__common__operators.html", null ],
+    [ "IOv2::stream_common_operators< std_device< STDOUT_FILENO >, char >", "structIOv2_1_1stream__common__operators.html", null ],
+    [ "IOv2::stream_common_operators< std_device< STDOUT_FILENO >, wchar_t >", "structIOv2_1_1stream__common__operators.html", null ],
+    [ "IOv2::stream_common_operators< TDevice, char >", "structIOv2_1_1stream__common__operators.html", null ],
+    [ "IOv2::stream_common_operators< TDevice, wchar_t >", "structIOv2_1_1stream__common__operators.html", null ],
     [ "IOv2::sync< TStream >", "structIOv2_1_1sync.html", null ],
     [ "IOv2::base_ft< messages >::text_domain", "structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html", null ],
     [ "time_parse_helper", null, [

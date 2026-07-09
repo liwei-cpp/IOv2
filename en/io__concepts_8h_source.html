@@ -99,36 +99,18 @@ $(document).ready(function(){initNavTree('io__concepts_8h_source.html',''); init
 <div class="contents">
 <a href="io__concepts_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#pragma once</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>&gt;</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;<a class="code" href="root__cvt_8h.html">cvt/root_cvt.h</a>&gt;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;<a class="code" href="device__concepts_8h.html">device/device_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span> </div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>{</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">template</span> &lt;io_device TDevice, cvt_creator TCreator&gt;</div>
-<div class="foldopen" id="foldopen00011" data-start="{" data-end="};">
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="structIOv2_1_1ext__to__int__helper.html">   11</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1ext__to__int__helper.html">ext_to_int_helper</a></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>{</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="structIOv2_1_1ext__to__int__helper.html#a521a64bdc7eecd94025b8c4fd93d5fe4">   13</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="structIOv2_1_1ext__to__int__helper.html#a521a64bdc7eecd94025b8c4fd93d5fe4">RootCvt</a> = <span class="keyword">decltype</span>(<a class="code hl_class" href="classIOv2_1_1rb__root__cvt.html">rb_root_cvt</a>{std::declval&lt;TDevice&gt;()});</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="structIOv2_1_1ext__to__int__helper.html#a3ffdd5ac60924f4951f37dc2ccd3e36a">   14</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="structIOv2_1_1ext__to__int__helper.html#a3ffdd5ac60924f4951f37dc2ccd3e36a">Kernel</a> = <span class="keyword">decltype</span>(std::declval&lt;TCreator&gt;().create(std::declval&lt;RootCvt&gt;()));</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="structIOv2_1_1ext__to__int__helper.html#a98d0aff51e6c2ac93073f7441f48a6ad">   15</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="structIOv2_1_1ext__to__int__helper.html#a98d0aff51e6c2ac93073f7441f48a6ad">type</a> = <span class="keyword">typename</span> Kernel::internal_type;</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>};</div>
-</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">template</span> &lt;io_device TDevice, cvt_creator TCreator&gt;</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#a312b25ad2d1c1a183bbe2d73b1911bc6">   19</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespaceIOv2.html#a312b25ad2d1c1a183bbe2d73b1911bc6">ext_to_int</a> = <span class="keyword">typename</span> <a class="code hl_typedef" href="structIOv2_1_1ext__to__int__helper.html#a98d0aff51e6c2ac93073f7441f48a6ad">ext_to_int_helper&lt;TDevice, TCreator&gt;::type</a>;</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>}</div>
-<div class="ttc" id="aclassIOv2_1_1rb__root__cvt_html"><div class="ttname"><a href="classIOv2_1_1rb__root__cvt.html">IOv2::rb_root_cvt</a></div><div class="ttdef"><b>Definition</b> root_cvt.h:1605</div></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span>{</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="keyword">template</span> &lt;io_converter TRootCvt, cvt_creator TCreator&gt;</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">    9</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">ext_to_int</a> =</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>    <span class="keyword">typename</span> <span class="keyword">decltype</span>(std::declval&lt;TCreator&gt;().create(std::declval&lt;TRootCvt&gt;()))::internal_type;</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>}</div>
 <div class="ttc" id="acvt__concepts_8h_html"><div class="ttname"><a href="cvt__concepts_8h.html">cvt_concepts.h</a></div></div>
-<div class="ttc" id="adevice__concepts_8h_html"><div class="ttname"><a href="device__concepts_8h.html">device_concepts.h</a></div></div>
 <div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:19</div></div>
-<div class="ttc" id="anamespaceIOv2_html_a312b25ad2d1c1a183bbe2d73b1911bc6"><div class="ttname"><a href="namespaceIOv2.html#a312b25ad2d1c1a183bbe2d73b1911bc6">IOv2::ext_to_int</a></div><div class="ttdeci">typename ext_to_int_helper&lt; TDevice, TCreator &gt;::type ext_to_int</div><div class="ttdef"><b>Definition</b> io_concepts.h:19</div></div>
-<div class="ttc" id="aroot__cvt_8h_html"><div class="ttname"><a href="root__cvt_8h.html">root_cvt.h</a></div></div>
-<div class="ttc" id="astructIOv2_1_1ext__to__int__helper_html"><div class="ttname"><a href="structIOv2_1_1ext__to__int__helper.html">IOv2::ext_to_int_helper</a></div><div class="ttdef"><b>Definition</b> io_concepts.h:12</div></div>
-<div class="ttc" id="astructIOv2_1_1ext__to__int__helper_html_a3ffdd5ac60924f4951f37dc2ccd3e36a"><div class="ttname"><a href="structIOv2_1_1ext__to__int__helper.html#a3ffdd5ac60924f4951f37dc2ccd3e36a">IOv2::ext_to_int_helper::Kernel</a></div><div class="ttdeci">decltype(std::declval&lt; TCreator &gt;().create(std::declval&lt; RootCvt &gt;())) Kernel</div><div class="ttdef"><b>Definition</b> io_concepts.h:14</div></div>
-<div class="ttc" id="astructIOv2_1_1ext__to__int__helper_html_a521a64bdc7eecd94025b8c4fd93d5fe4"><div class="ttname"><a href="structIOv2_1_1ext__to__int__helper.html#a521a64bdc7eecd94025b8c4fd93d5fe4">IOv2::ext_to_int_helper::RootCvt</a></div><div class="ttdeci">decltype(rb_root_cvt{std::declval&lt; TDevice &gt;()}) RootCvt</div><div class="ttdef"><b>Definition</b> io_concepts.h:13</div></div>
-<div class="ttc" id="astructIOv2_1_1ext__to__int__helper_html_a98d0aff51e6c2ac93073f7441f48a6ad"><div class="ttname"><a href="structIOv2_1_1ext__to__int__helper.html#a98d0aff51e6c2ac93073f7441f48a6ad">IOv2::ext_to_int_helper::type</a></div><div class="ttdeci">typename Kernel::internal_type type</div><div class="ttdef"><b>Definition</b> io_concepts.h:15</div></div>
+<div class="ttc" id="anamespaceIOv2_html_af5d914ec6e018ee23ee26db2b9877aac"><div class="ttname"><a href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">IOv2::ext_to_int</a></div><div class="ttdeci">typename decltype(std::declval&lt; TCreator &gt;().create(std::declval&lt; TRootCvt &gt;()))::internal_type ext_to_int</div><div class="ttdef"><b>Definition</b> io_concepts.h:10</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

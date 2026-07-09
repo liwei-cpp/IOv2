@@ -92,7 +92,6 @@ var annotated_dup =
       [ "date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4" ],
       [ "device_error", "structIOv2_1_1device__error.html", null ],
       [ "eof_error", "structIOv2_1_1eof__error.html", "structIOv2_1_1eof__error" ],
-      [ "ext_to_int_helper", "structIOv2_1_1ext__to__int__helper.html", "structIOv2_1_1ext__to__int__helper" ],
       [ "facet_create_pack", "structIOv2_1_1facet__create__pack.html", null ],
       [ "facet_create_pack_head", "structIOv2_1_1facet__create__pack__head.html", null ],
       [ "facet_create_pack_head< facet_create_pack< H, T... > >", "structIOv2_1_1facet__create__pack__head_3_01facet__create__pack_3_01H_00_01T_8_8_8_01_4_01_4.html", "structIOv2_1_1facet__create__pack__head_3_01facet__create__pack_3_01H_00_01T_8_8_8_01_4_01_4" ],

@@ -6,8 +6,8 @@
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="387,81,416,90,515,132,596,174,593,179,512,137,414,95,386,86"/>
 <area shape="rect" id="Node000004" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="231,105,409,145"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="421,145,558,177,556,182,420,150"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="231,169,409,224"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="423,194,557,194,557,199,423,199"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="235,169,405,224"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="419,194,557,194,557,199,419,199"/>
 <area shape="rect" id="Node000006" href="$structIOv2_1_1istreambuf.html" title=" " alt="" coords="225,249,415,289"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="420,243,556,211,558,216,421,248"/>
 <area shape="rect" id="Node000007" href="$classIOv2_1_1base__streambuf.html" title=" " alt="" coords="5,241,176,296"/>

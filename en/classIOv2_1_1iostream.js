@@ -15,5 +15,5 @@ var classIOv2_1_1iostream =
     [ "istream_operators< iostream< TDevice, TChar >, TChar >", "classIOv2_1_1iostream.html#ac773f3d67adaaf18922cf5131fcf09b3", null ],
     [ "ostream_operators< iostream< TDevice, TChar >, TChar >", "classIOv2_1_1iostream.html#adf5f8716bd8b0fbb0a8001bcf5ee0f68", null ],
     [ "out_sentry_type", "classIOv2_1_1iostream.html#a161f318df67a3d0e19e5d380beb94bdb", null ],
-    [ "stream_common_operators< iostream< TDevice, TChar >, TDevice, TChar >", "classIOv2_1_1iostream.html#aacd04726b4685049b7a52295fab9e437", null ]
+    [ "stream_common_operators< TDevice, TChar >", "classIOv2_1_1iostream.html#ae01465a8882cc712344897dbe6d075e4", null ]
 ];

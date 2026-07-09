@@ -18,5 +18,5 @@ var classIOv2_1_1stdout__api =
     [ "m_tie_stream", "classIOv2_1_1stdout__api.html#a1461fc2beae905ba4af825832cd5f633", null ],
     [ "ostream_operators< T, TChar >", "classIOv2_1_1stdout__api.html#ab7d05a691afb5d58d947456558e06cc1", null ],
     [ "out_sentry_type", "classIOv2_1_1stdout__api.html#af12516dca1e5114e6eaa8726cb07d9ab", null ],
-    [ "stream_common_operators< T, device_type, TChar >", "classIOv2_1_1stdout__api.html#aec4ac75134777052e0570d9228d39fb1", null ]
+    [ "stream_common_operators< device_type, TChar >", "classIOv2_1_1stdout__api.html#ad8e31922d0bca68819d1702a6466be09", null ]
 ];
