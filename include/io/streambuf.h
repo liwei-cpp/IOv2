@@ -1,9 +1,9 @@
 #pragma once
 #include <common/defs.h>
-#include <common/streambuf_defs.h>
 #include <cvt/cvt_concepts.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
+#include <device/device_concepts.h>
 #include <io/io_concepts.h>
 
 #include <cassert>
@@ -406,17 +406,17 @@ template <io_device TDevice>
 streambuf(TDevice) -> streambuf<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-streambuf(TDevice, const TCreator&) -> streambuf<TDevice, ext_to_int<TDevice, TCreator>>;
+streambuf(TDevice, const TCreator&) -> streambuf<TDevice, ext_to_int<no_rb_root_cvt<TDevice>, TCreator>>;
 
 template <io_device TDevice>
 istreambuf(TDevice) -> istreambuf<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-istreambuf(TDevice, const TCreator&) -> istreambuf<TDevice, ext_to_int<TDevice, TCreator>>;
+istreambuf(TDevice, const TCreator&) -> istreambuf<TDevice, ext_to_int<rb_root_cvt<TDevice>, TCreator>>;
 
 template <io_device TDevice>
 ostreambuf(TDevice) -> ostreambuf<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-ostreambuf(TDevice, const TCreator&) -> ostreambuf<TDevice, ext_to_int<TDevice, TCreator>>;
+ostreambuf(TDevice, const TCreator&) -> ostreambuf<TDevice, ext_to_int<no_rb_root_cvt<TDevice>, TCreator>>;
 }

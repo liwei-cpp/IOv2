@@ -8,128 +8,126 @@
 
 namespace IOv2
 {
-template <typename T, typename TDevice, typename TChar>
+template <typename TDevice, typename TChar>
 struct stream_common_operators
 {
-    size_t tell()
+    template <typename TSelf>
+    size_t tell(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
         try
         {
-            return obj.m_streambuf.tell();
+            return self.m_streambuf.tell();
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
         return static_cast<size_t>(-1);
     }
 
-    T& seek(size_t pos)
+    template <typename TSelf>
+    TSelf& seek(this TSelf& self, size_t pos)
     {
-        T& obj = static_cast<T&>(*this);
-
         try
         {
-            obj.clear(obj.rdstate() & ~ios_defs::eofbit);
-            obj.m_streambuf.seek(pos);
+            self.clear(self.rdstate() & ~ios_defs::eofbit);
+            self.m_streambuf.seek(pos);
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
-        return obj;
+        return self;
     }
-    
-    T& rseek(size_t pos)
-    {
-        T& obj = static_cast<T&>(*this);
 
+    template <typename TSelf>
+    TSelf& rseek(this TSelf& self, size_t pos)
+    {
         try
         {
-            obj.clear(obj.rdstate() & ~ios_defs::eofbit);
-            obj.m_streambuf.rseek(pos);
+            self.clear(self.rdstate() & ~ios_defs::eofbit);
+            self.m_streambuf.rseek(pos);
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
-        return obj;
+        return self;
     }
 
-    TDevice& device()
+    template <typename TSelf>
+    TDevice& device(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-        return obj.m_streambuf.device();
+        return self.m_streambuf.device();
     }
 
-    std::pair<TDevice, std::exception_ptr> detach() noexcept
+    template <typename TSelf>
+    std::pair<TDevice, std::exception_ptr> detach(this TSelf& self) noexcept
     {
-        T& obj = static_cast<T&>(*this);
-        return obj.m_streambuf.detach();
+        return self.m_streambuf.detach();
     }
 
-    void attach(TDevice&& dev = TDevice{})
+    template <typename TSelf>
+    void attach(this TSelf& self, TDevice&& dev = TDevice{})
     {
-        T& obj = static_cast<T&>(*this);
-        obj.m_streambuf.attach(std::move(dev));
+        self.m_streambuf.attach(std::move(dev));
     }
 
-    void adjust(const cvt_behavior& acc)
+    template <typename TSelf>
+    void adjust(this TSelf& self, const cvt_behavior& acc)
     {
-        T& obj = static_cast<T&>(*this);
-        return obj.m_streambuf.adjust(acc);
+        return self.m_streambuf.adjust(acc);
     }
 
-    void retrieve(cvt_status& acc) const
+    template <typename TSelf>
+    void retrieve(this const TSelf& self, cvt_status& acc)
     {
-        T& obj = static_cast<T&>(*this);
-        return obj.m_streambuf.retrieve(acc);        
+        return self.m_streambuf.retrieve(acc);
     }
 
-    abs_ostream* tie(abs_ostream* str)
+    template <typename TSelf>
+    abs_ostream* tie(this TSelf& self, abs_ostream* str)
     {
-        T& obj = static_cast<T&>(*this);
-        auto res = obj.m_tie_stream;
-        obj.m_tie_stream = str;
+        auto res = self.m_tie_stream;
+        self.m_tie_stream = str;
         return res;
     }
 
-    abs_ostream* tie()
+    template <typename TSelf>
+    abs_ostream* tie(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-        return obj.m_tie_stream;
+        return self.m_tie_stream;
     }
 
-    const IOv2::locale<TChar>& locale() const
+    template <typename TSelf>
+    const IOv2::locale<TChar>& locale(this const TSelf& self)
     {
-        const T& obj = static_cast<const T&>(*this);
-        return obj.m_locale;
+        return self.m_locale;
     }
-    
-    IOv2::locale<TChar> locale(const IOv2::locale<TChar>& loc)
+
+    template <typename TSelf>
+    IOv2::locale<TChar> locale(this TSelf& self, const IOv2::locale<TChar>& loc)
     {
-        T& obj = static_cast<T&>(*this);
-        auto res = std::move(obj.m_locale);
-        obj.m_locale = loc;
+        auto res = std::move(self.m_locale);
+        self.m_locale = loc;
         try
         {
-            obj.access_callbacks(obj.m_locale);
+            self.access_callbacks(self.m_locale);
         }
         catch (...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
         return res;
     }
 
-    std::mutex& io_mutex()
+    template <typename TSelf>
+    std::mutex& io_mutex(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-        return obj.m_io_mutex;
+        return self.m_io_mutex;
     }
 };
 }

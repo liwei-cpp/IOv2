@@ -1,11 +1,14 @@
 #pragma once
-#include <mutex>
-
-#include <io/io_concepts.h>
+#include <cvt/cvt_concepts.h>
+#include <device/device_concepts.h>
 #include <io/ostream.h>
 #include <io/utilities/istream_operators.h>
 #include <io/utilities/ostream_operators.h>
 #include <io/utilities/stream_common_operators.h>
+
+#include <mutex>
+#include <type_traits>
+#include <utility>
 
 namespace IOv2
 {
@@ -14,7 +17,7 @@ class iostream : public ios_base<TChar>
                , public io_state_and_exp
                , public istream_operators<iostream<TDevice, TChar>, TChar>
                , public ostream_operators<iostream<TDevice, TChar>, TChar>
-               , public stream_common_operators<iostream<TDevice, TChar>, TDevice, TChar>
+               , public stream_common_operators<TDevice, TChar>
 {
 public:
     using device_type = TDevice;
@@ -26,7 +29,7 @@ public:
     friend out_sentry_type;
     friend istream_operators<iostream<TDevice, TChar>, TChar>;
     friend ostream_operators<iostream<TDevice, TChar>, TChar>;
-    friend stream_common_operators<iostream<TDevice, TChar>, TDevice, TChar>;
+    friend stream_common_operators<TDevice, TChar>;
 
 public:
     iostream()
@@ -86,14 +89,19 @@ template <io_device TDevice>
 iostream(TDevice) -> iostream<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
-iostream(TDevice, const TCreator&) -> iostream<TDevice,
-                                               ext_to_int<TDevice, TCreator>>;
+iostream(TDevice, const TCreator&)
+    -> iostream<TDevice,
+                typename decltype(streambuf{std::declval<TDevice>(),
+                                            std::declval<const TCreator&>()})::char_type>;
 
 template <io_device TDevice, typename TChar>
     requires (std::is_same_v<typename TDevice::char_type, TChar>)
 iostream(TDevice, locale<TChar>) -> iostream<TDevice, TChar>;
 
 template <io_device TDevice, cvt_creator TCreator, typename TChar>
-    requires (std::is_same_v<ext_to_int<TDevice, TCreator>, TChar>)
+    requires (std::is_same_v<
+                  typename decltype(streambuf{std::declval<TDevice>(),
+                                              std::declval<const TCreator&>()})::char_type,
+                  TChar>)
 iostream(TDevice, const TCreator&, locale<TChar>) -> iostream<TDevice, TChar>;
 }
