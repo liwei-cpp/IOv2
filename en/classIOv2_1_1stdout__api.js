@@ -11,7 +11,7 @@ var classIOv2_1_1stdout__api =
     [ "reset", "classIOv2_1_1stdout__api.html#aadd584edcd379865c932d9ec45d7c2ea", null ],
     [ "switch_code", "classIOv2_1_1stdout__api.html#af38c53cfe3b69aa1f91f0e7375424441", null ],
     [ "sync_with_stdio", "classIOv2_1_1stdout__api.html#aed7cc0bd1c0fbb83ee5ef0f715362420", null ],
-    [ "m_io_mutex", "classIOv2_1_1stdout__api.html#a8b351df7a3fe0c859d3c3cf92b30dbc6", null ],
+    [ "m_io_mutex", "classIOv2_1_1stdout__api.html#a6eb284563668fd39ded84e1d80d3c303", null ],
     [ "m_locale", "classIOv2_1_1stdout__api.html#a5d6616e04e0088dfd33ade9089a41c30", null ],
     [ "m_streambuf", "classIOv2_1_1stdout__api.html#af45b2fdaab8d24938e52df2afccd6fcf", null ],
     [ "m_sync_with_stdio", "classIOv2_1_1stdout__api.html#aec9bd7e690fc381c421278101091ca9c", null ],

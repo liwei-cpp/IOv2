@@ -110,6 +110,7 @@ var hierarchy =
     [ "IOv2::codecvt_kernel< char8_t, TInt >", "structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html", null ],
     [ "IOv2::codecvt_kernel< external_type, internal_type >", "structIOv2_1_1codecvt__kernel.html", null ],
     [ "IOv2::collate< CharT >", "classIOv2_1_1collate.html", null ],
+    [ "IOv2::copyable_mutex", "classIOv2_1_1copyable__mutex.html", null ],
     [ "IOv2::cpt_cvt_pipe_creator_helper< T >", "structIOv2_1_1cpt__cvt__pipe__creator__helper.html", null ],
     [ "IOv2::cpt_cvt_pipe_creator_helper< cvt_pipe_creator< T... > >", "structIOv2_1_1cpt__cvt__pipe__creator__helper_3_01cvt__pipe__creator_3_01T_8_8_8_01_4_01_4.html", null ],
     [ "IOv2::ctype< CharT >", "classIOv2_1_1ctype.html", null ],

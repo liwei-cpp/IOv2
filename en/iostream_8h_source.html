@@ -98,14 +98,14 @@ $(document).ready(function(){initNavTree('iostream_8h_source.html',''); initResi
 </div><!--header-->
 <div class="contents">
 <a href="iostream_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#pragma once</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>&gt;</span></div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;<a class="code" href="device__concepts_8h.html">device/device_concepts.h</a>&gt;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;<a class="code" href="ostream_8h.html">io/ostream.h</a>&gt;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;<a class="code" href="istream__operators_8h.html">io/utilities/istream_operators.h</a>&gt;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;<a class="code" href="ostream__operators_8h.html">io/utilities/ostream_operators.h</a>&gt;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;<a class="code" href="stream__common__operators_8h.html">io/utilities/stream_common_operators.h</a>&gt;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &lt;<a class="code" href="copyable__mutex_8h.html">common/copyable_mutex.h</a>&gt;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;<a class="code" href="device__concepts_8h.html">device/device_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;<a class="code" href="ostream_8h.html">io/ostream.h</a>&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;<a class="code" href="istream__operators_8h.html">io/utilities/istream_operators.h</a>&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;<a class="code" href="ostream__operators_8h.html">io/utilities/ostream_operators.h</a>&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;<a class="code" href="stream__common__operators_8h.html">io/utilities/stream_common_operators.h</a>&gt;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &lt;type_traits&gt;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
@@ -196,7 +196,7 @@ $(document).ready(function(){initNavTree('iostream_8h_source.html',''); initResi
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <a class="code hl_struct" href="structIOv2_1_1streambuf.html">streambuf&lt;TDevice, TChar&gt;</a> m_streambuf;</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <a class="code hl_class" href="classIOv2_1_1abs__ostream.html">abs_ostream</a>* m_tie_stream = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <a class="code hl_class" href="classIOv2_1_1locale.html">locale&lt;char_type&gt;</a> m_locale;</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    std::mutex        m_io_mutex;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <a class="code hl_class" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>    m_io_mutex;</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>};</div>
 </div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
@@ -221,6 +221,7 @@ $(document).ready(function(){initNavTree('iostream_8h_source.html',''); initResi
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#a1c49d3e1796648f093af4ea25d76cd1f">  106</a></span><a class="code hl_class" href="classIOv2_1_1iostream.html">iostream</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;, <a class="code hl_class" href="classIOv2_1_1locale.html">locale&lt;TChar&gt;</a>) -&gt; <a class="code hl_class" href="classIOv2_1_1iostream.html">iostream&lt;TDevice, TChar&gt;</a>;</div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>}</div>
 <div class="ttc" id="aclassIOv2_1_1abs__ostream_html"><div class="ttname"><a href="classIOv2_1_1abs__ostream.html">IOv2::abs_ostream</a></div><div class="ttdef"><b>Definition</b> ostream_operators.h:76</div></div>
+<div class="ttc" id="aclassIOv2_1_1copyable__mutex_html"><div class="ttname"><a href="classIOv2_1_1copyable__mutex.html">IOv2::copyable_mutex</a></div><div class="ttdef"><b>Definition</b> copyable_mutex.h:63</div></div>
 <div class="ttc" id="aclassIOv2_1_1ios__base_html"><div class="ttname"><a href="classIOv2_1_1ios__base.html">IOv2::ios_base</a></div><div class="ttdef"><b>Definition</b> io_base.h:177</div></div>
 <div class="ttc" id="aclassIOv2_1_1iostream_html"><div class="ttname"><a href="classIOv2_1_1iostream.html">IOv2::iostream</a></div><div class="ttdef"><b>Definition</b> iostream.h:21</div></div>
 <div class="ttc" id="aclassIOv2_1_1iostream_html_a161f318df67a3d0e19e5d380beb94bdb"><div class="ttname"><a href="classIOv2_1_1iostream.html#a161f318df67a3d0e19e5d380beb94bdb">IOv2::iostream::out_sentry_type</a></div><div class="ttdeci">friend out_sentry_type</div><div class="ttdef"><b>Definition</b> iostream.h:29</div></div>
@@ -235,6 +236,7 @@ $(document).ready(function(){initNavTree('iostream_8h_source.html',''); initResi
 <div class="ttc" id="aclassIOv2_1_1iostream_html_ae1b892f26d6bd6895a02f67dab7bbd7f"><div class="ttname"><a href="classIOv2_1_1iostream.html#ae1b892f26d6bd6895a02f67dab7bbd7f">IOv2::iostream::char_type</a></div><div class="ttdeci">TChar char_type</div><div class="ttdef"><b>Definition</b> iostream.h:24</div></div>
 <div class="ttc" id="aclassIOv2_1_1iostream_html_afdfa33c45b9e2874ecca78f50bf38d5b"><div class="ttname"><a href="classIOv2_1_1iostream.html#afdfa33c45b9e2874ecca78f50bf38d5b">IOv2::iostream::iostream</a></div><div class="ttdeci">iostream(TDevice dev, const TCreator &amp;creator)</div><div class="ttdef"><b>Definition</b> iostream.h:42</div></div>
 <div class="ttc" id="aclassIOv2_1_1locale_html"><div class="ttname"><a href="classIOv2_1_1locale.html">IOv2::locale</a></div><div class="ttdoc">Localization object managing a set of facets.</div><div class="ttdef"><b>Definition</b> locale.h:130</div></div>
+<div class="ttc" id="acopyable__mutex_8h_html"><div class="ttname"><a href="copyable__mutex_8h.html">copyable_mutex.h</a></div></div>
 <div class="ttc" id="acvt__concepts_8h_html"><div class="ttname"><a href="cvt__concepts_8h.html">cvt_concepts.h</a></div></div>
 <div class="ttc" id="adevice__concepts_8h_html"><div class="ttname"><a href="device__concepts_8h.html">device_concepts.h</a></div></div>
 <div class="ttc" id="aistream__operators_8h_html"><div class="ttname"><a href="istream__operators_8h.html">istream_operators.h</a></div></div>
@@ -244,13 +246,13 @@ $(document).ready(function(){initNavTree('iostream_8h_source.html',''); initResi
 <div class="ttc" id="aostream_8h_html"><div class="ttname"><a href="ostream_8h.html">ostream.h</a></div></div>
 <div class="ttc" id="aostream__operators_8h_html"><div class="ttname"><a href="ostream__operators_8h.html">ostream_operators.h</a></div></div>
 <div class="ttc" id="astream__common__operators_8h_html"><div class="ttname"><a href="stream__common__operators_8h.html">stream_common_operators.h</a></div></div>
-<div class="ttc" id="astructIOv2_1_1in__sentry_html"><div class="ttname"><a href="structIOv2_1_1in__sentry.html">IOv2::in_sentry</a></div><div class="ttdef"><b>Definition</b> istream_operators.h:9</div></div>
+<div class="ttc" id="astructIOv2_1_1in__sentry_html"><div class="ttname"><a href="structIOv2_1_1in__sentry.html">IOv2::in_sentry</a></div><div class="ttdef"><b>Definition</b> istream_operators.h:11</div></div>
 <div class="ttc" id="astructIOv2_1_1io__state__and__exp_html"><div class="ttname"><a href="structIOv2_1_1io__state__and__exp.html">IOv2::io_state_and_exp</a></div><div class="ttdef"><b>Definition</b> io_base.h:51</div></div>
 <div class="ttc" id="astructIOv2_1_1io__state__and__exp_html_affb4783d1a8acf591b9043e6893dfc2a"><div class="ttname"><a href="structIOv2_1_1io__state__and__exp.html#affb4783d1a8acf591b9043e6893dfc2a">IOv2::io_state_and_exp::handle_exception</a></div><div class="ttdeci">void handle_exception(std::exception_ptr ex)</div><div class="ttdef"><b>Definition</b> io_base.h:117</div></div>
-<div class="ttc" id="astructIOv2_1_1istream__operators_html"><div class="ttname"><a href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a></div><div class="ttdef"><b>Definition</b> istream_operators.h:65</div></div>
+<div class="ttc" id="astructIOv2_1_1istream__operators_html"><div class="ttname"><a href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a></div><div class="ttdef"><b>Definition</b> istream_operators.h:67</div></div>
 <div class="ttc" id="astructIOv2_1_1ostream__operators_html"><div class="ttname"><a href="structIOv2_1_1ostream__operators.html">IOv2::ostream_operators</a></div><div class="ttdef"><b>Definition</b> ostream_operators.h:86</div></div>
 <div class="ttc" id="astructIOv2_1_1out__sentry_html"><div class="ttname"><a href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a></div><div class="ttdef"><b>Definition</b> ostream_operators.h:11</div></div>
-<div class="ttc" id="astructIOv2_1_1stream__common__operators_html"><div class="ttname"><a href="structIOv2_1_1stream__common__operators.html">IOv2::stream_common_operators</a></div><div class="ttdef"><b>Definition</b> stream_common_operators.h:13</div></div>
+<div class="ttc" id="astructIOv2_1_1stream__common__operators_html"><div class="ttname"><a href="structIOv2_1_1stream__common__operators.html">IOv2::stream_common_operators</a></div><div class="ttdef"><b>Definition</b> stream_common_operators.h:15</div></div>
 <div class="ttc" id="astructIOv2_1_1streambuf_html"><div class="ttname"><a href="structIOv2_1_1streambuf.html">IOv2::streambuf</a></div><div class="ttdef"><b>Definition</b> streambuf.h:389</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

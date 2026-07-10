@@ -1,7 +1,5 @@
 <map id="类继承关系图" name="类继承关系图">
 <area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,193,45"/>
-<area shape="rect" id="Node000001" href="$classIOv2_1_1monetary__conf_3_01CharT_01_4.html" title="monetary_conf 的 wchar_t/char32_t 特化，以宽字符存储货币格式化数据。" alt="" coords="241,37,400,77"/>
-<area shape="poly" id="edge119_Node000000_Node000001" title=" " alt="" coords="207,38,242,43,241,49,207,44"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,69,193,109"/>
-<area shape="poly" id="edge120_Node000002_Node000001" title=" " alt="" coords="207,71,241,66,242,71,207,76"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1monetary__conf_3_01char_01_4.html" title="monetary_conf 的 char 特化，从 POSIX lconv 直接读取货币格式化数据。" alt="" coords="241,5,400,45"/>
+<area shape="poly" id="edge118_Node000000_Node000001" title=" " alt="" coords="207,23,241,23,241,28,207,28"/>
 </map>

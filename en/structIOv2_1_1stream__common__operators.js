@@ -4,7 +4,7 @@ var structIOv2_1_1stream__common__operators =
     [ "attach", "structIOv2_1_1stream__common__operators.html#a42de3a05e85f3021365b453cf59e7fd9", null ],
     [ "detach", "structIOv2_1_1stream__common__operators.html#a74e16dd007d8b3f1bf1d0659ab310f5e", null ],
     [ "device", "structIOv2_1_1stream__common__operators.html#a4636e7a1ae2e163750e77cc436b14604", null ],
-    [ "io_mutex", "structIOv2_1_1stream__common__operators.html#a4ab0f33c0147972b48af60200d01b7e0", null ],
+    [ "io_mutex", "structIOv2_1_1stream__common__operators.html#a31d3426d0a4e6696fc4cc9fa1741ed1b", null ],
     [ "locale", "structIOv2_1_1stream__common__operators.html#a5bb59965ce28840ee678f2bcb7f2c04d", null ],
     [ "locale", "structIOv2_1_1stream__common__operators.html#a1e5f454fbc541fb2dd4cc4eb576b6efa", null ],
     [ "retrieve", "structIOv2_1_1stream__common__operators.html#a86b810a1165969cfa44517d89c40d940", null ],

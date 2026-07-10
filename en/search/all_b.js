@@ -6,8 +6,9 @@ var searchData=
   ['locale_2eh_3',['locale.h',['../locale_8h.html',1,'']]],
   ['locale_3c_20char_5ftype_20_3e_4',['locale&lt; char_type &gt;',['../classIOv2_1_1locale.html',1,'IOv2']]],
   ['locale_5fname_5',['locale_name',['../classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034',1,'IOv2::ori_facet_buf']]],
-  ['lower_6',['lower',['../classIOv2_1_1base__ft_3_01ctype_01_4.html#a7b48471ba0261bef9c47738e6556a2a0',1,'IOv2::base_ft&lt; ctype &gt;']]],
-  ['lower_5fhex_7',['lower_hex',['../namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a57b0906500e5498742a5147495cadd91',1,'IOv2::Crypt']]],
-  ['lru_5fcache_8',['lru_cache',['../classIOv2_1_1lru__cache.html#a0cde1d96f448583c5e743285927d3af6',1,'IOv2::lru_cache::lru_cache()=default'],['../classIOv2_1_1lru__cache.html#acef43e19b83dae43fab56eb247590838',1,'IOv2::lru_cache::lru_cache(const lru_cache &amp;)=delete'],['../classIOv2_1_1lru__cache.html#aa01a06cef7c6dc32cfc0fa11765a893b',1,'IOv2::lru_cache::lru_cache(lru_cache &amp;&amp;)=default'],['../classIOv2_1_1lru__cache.html',1,'IOv2::lru_cache&lt; TK, TV, Capacity &gt;']]],
-  ['lru_5fcache_2eh_9',['lru_cache.h',['../lru__cache_8h.html',1,'']]]
+  ['lock_6',['lock',['../classIOv2_1_1copyable__mutex.html#a8aa24d1ec428b09c9efc47ca47cad1db',1,'IOv2::copyable_mutex']]],
+  ['lower_7',['lower',['../classIOv2_1_1base__ft_3_01ctype_01_4.html#a7b48471ba0261bef9c47738e6556a2a0',1,'IOv2::base_ft&lt; ctype &gt;']]],
+  ['lower_5fhex_8',['lower_hex',['../namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a57b0906500e5498742a5147495cadd91',1,'IOv2::Crypt']]],
+  ['lru_5fcache_9',['lru_cache',['../classIOv2_1_1lru__cache.html#a0cde1d96f448583c5e743285927d3af6',1,'IOv2::lru_cache::lru_cache()=default'],['../classIOv2_1_1lru__cache.html#acef43e19b83dae43fab56eb247590838',1,'IOv2::lru_cache::lru_cache(const lru_cache &amp;)=delete'],['../classIOv2_1_1lru__cache.html#aa01a06cef7c6dc32cfc0fa11765a893b',1,'IOv2::lru_cache::lru_cache(lru_cache &amp;&amp;)=default'],['../classIOv2_1_1lru__cache.html',1,'IOv2::lru_cache&lt; TK, TV, Capacity &gt;']]],
+  ['lru_5fcache_2eh_10',['lru_cache.h',['../lru__cache_8h.html',1,'']]]
 ];

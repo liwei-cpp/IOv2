@@ -1,6 +1,7 @@
 var dir_0966d06610f72609fd9aa4979c2b5a92 =
 [
     [ "clocale_wrapper.h", "clocale__wrapper_8h.html", "clocale__wrapper_8h" ],
+    [ "copyable_mutex.h", "copyable__mutex_8h.html", "copyable__mutex_8h" ],
     [ "defs.h", "defs_8h.html", "defs_8h" ],
     [ "iov2_export.h", "iov2__export_8h.html", "iov2__export_8h" ],
     [ "lru_cache.h", "lru__cache_8h.html", "lru__cache_8h" ],

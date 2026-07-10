@@ -66,6 +66,7 @@ var annotated_dup =
       [ "codecvt_kernel< char8_t, TInt >", "structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html", "structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4" ],
       [ "collate", "classIOv2_1_1collate.html", "classIOv2_1_1collate" ],
       [ "collate_conf", "classIOv2_1_1collate__conf.html", "classIOv2_1_1collate__conf" ],
+      [ "copyable_mutex", "classIOv2_1_1copyable__mutex.html", "classIOv2_1_1copyable__mutex" ],
       [ "cpt_cvt_pipe_creator_helper", "structIOv2_1_1cpt__cvt__pipe__creator__helper.html", "structIOv2_1_1cpt__cvt__pipe__creator__helper" ],
       [ "cpt_cvt_pipe_creator_helper< cvt_pipe_creator< T... > >", "structIOv2_1_1cpt__cvt__pipe__creator__helper_3_01cvt__pipe__creator_3_01T_8_8_8_01_4_01_4.html", "structIOv2_1_1cpt__cvt__pipe__creator__helper_3_01cvt__pipe__creator_3_01T_8_8_8_01_4_01_4" ],
       [ "ctype", "classIOv2_1_1ctype.html", null ],
