@@ -62,7 +62,7 @@ void test_code_cvt_mem_char_gen_2()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
     
@@ -78,20 +78,20 @@ void test_code_cvt_mem_char_gen_2()
             out_buffer_id %= std::size(out_buffer_size);
             cur_pos += s;
             total_count += s;
-            if (obj2.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj2.tell() == total_count);
             if (s == 0) break;
             obj = obj2;
         }
     
-        if (cur_pos - out_buf.data() != 4102 / 7 * 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
         out_buf.resize(4102 / 7 * 3);
             
         auto it = out_buf.begin();
         for (size_t i = 0; i < out_buf.size(); i += 3)
         {
-            if (*it++ != U'李') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != U'伟') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != (i / 3) % 127 + 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+            VERIFY(*it++ == U'李');
+            VERIFY(*it++ == U'伟');
+            VERIFY(*it++ == (i / 3) % 127 + 1);
         }
     };
 
@@ -125,7 +125,7 @@ void test_code_cvt_mem_char_gen_3()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
     
@@ -141,20 +141,20 @@ void test_code_cvt_mem_char_gen_3()
             out_buffer_id %= std::size(out_buffer_size);
             cur_pos += s;
             total_count += s;
-            if (obj2.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj2.tell() == total_count);
             if (s == 0) break;
             obj = std::move(obj2);
         }
     
-        if (cur_pos - out_buf.data() != 4102 / 7 * 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
         out_buf.resize(4102 / 7 * 3);
             
         auto it = out_buf.begin();
         for (size_t i = 0; i < out_buf.size(); i += 3)
         {
-            if (*it++ != U'李') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != U'伟') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != (i / 3) % 127 + 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+            VERIFY(*it++ == U'李');
+            VERIFY(*it++ == U'伟');
+            VERIFY(*it++ == (i / 3) % 127 + 1);
         }
     };
 
@@ -194,7 +194,7 @@ void test_code_cvt_mem_char_gen_4()
 
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -210,12 +210,12 @@ void test_code_cvt_mem_char_gen_4()
             buffer_id %= std::size(buffer_size);
             cur_pos += dest_size;
             total_count += dest_size;
-            if (obj2.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj2.tell() == total_count);
             obj = obj2;
         }
 
         auto [dev, err] = obj.detach();
-        if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -254,7 +254,7 @@ void test_code_cvt_mem_char_gen_5()
 
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -270,12 +270,12 @@ void test_code_cvt_mem_char_gen_5()
             buffer_id %= std::size(buffer_size);
             cur_pos += dest_size;
             total_count += dest_size;
-            if (obj2.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj2.tell() == total_count);
             obj = std::move(obj2);
         }
 
         auto [dev, err] = obj.detach();
-        if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -295,12 +295,12 @@ void test_code_cvt_mem_char_bos_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(obj.tell() == 0);
 
         const auto& dev = obj.device();
-        if (dev.dtell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(dev.dtell() == 0);
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -320,18 +320,18 @@ void test_code_cvt_mem_char_bos_2()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         
         char32_t c = 0;
-        if ((obj.get(&c, 1) != 1) || (c != U'1')) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != U'2')) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != U'3')) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'1'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'2'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'3'));
 
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(obj.tell() == 0);
 
         const auto& dev = obj.device();
-        if (dev.dtell() != 12) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(dev.dtell() == 12);
     };
     
     using CheckType = code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t>;
@@ -357,18 +357,18 @@ void test_code_cvt_mem_char_bos_3()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         
         char32_t c = 0;
-        if ((obj.get(&c, 1) != 1) || (c != U'李')) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != U'd')) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != U'伟')) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'李'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'd'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'伟'));
 
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(obj.tell() == 0);
 
         auto [dev, err] = obj.detach();
-        if (dev.dtell() != 12) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(dev.dtell() == 12);
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -395,21 +395,21 @@ void test_code_cvt_mem_char_bos_4()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         char32_t buf[] = U"123";
         obj.put(buf, 3);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(obj.tell() == 0);
 
         const auto& dev = obj.device();
-        if (dev.dtell() != 12) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(dev.dtell() == 12);
         
         std::string info;
         info += '1'; info += '\x00'; info += '\x00'; info += '\x00';
         info += '2'; info += '\x00'; info += '\x00'; info += '\x00';
         info += '3'; info += '\x00'; info += '\x00'; info += '\x00';
-        if (dev.str() != info) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(dev.str() == info);
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -428,21 +428,21 @@ void test_code_cvt_mem_char_bos_5()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
 
         char32_t buf[] = U"李d伟";
         obj.put(buf, 3);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(obj.tell() == 0);
 
         const auto& dev = obj.device();
-        if (dev.dtell() != 12) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(dev.dtell() == 12);
         std::string info;
         info += '\x4e'; info += '\x67'; info += '\x00'; info += '\x00';
         info += 'd'; info += '\x00'; info += '\x00'; info += '\x00';
         info += '\x1f'; info += '\x4f'; info += '\x00'; info += '\x00';
-        if (dev.str() != info) throw std::runtime_error("code_cvt<memory<char>, char32_t>::bos fail");
+        VERIFY(dev.str() == info);
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -473,7 +473,7 @@ void test_code_cvt_mem_char_get_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
     
@@ -488,19 +488,19 @@ void test_code_cvt_mem_char_get_1()
             out_buffer_id %= std::size(out_buffer_size);
             cur_pos += s;
             total_count += s;
-            if (obj.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj.tell() == total_count);
             if (s == 0) break;
         }
     
-        if (cur_pos - out_buf.data() != 4102 / 7 * 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
         out_buf.resize(4102 / 7 * 3);
             
         auto it = out_buf.begin();
         for (size_t i = 0; i < out_buf.size(); i += 3)
         {
-            if (*it++ != U'李') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != U'伟') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != (i / 3) % 127 + 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+            VERIFY(*it++ == U'李');
+            VERIFY(*it++ == U'伟');
+            VERIFY(*it++ == (i / 3) % 127 + 1);
         }
     };
 
@@ -533,7 +533,7 @@ void test_code_cvt_mem_char_get_nra_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
     
@@ -548,19 +548,19 @@ void test_code_cvt_mem_char_get_nra_1()
             out_buffer_id %= std::size(out_buffer_size);
             cur_pos += s;
             total_count += s;
-            if (obj.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj.tell() == total_count);
             if (s == 0) break;
         }
     
-        if (cur_pos - out_buf.data() != 4102 / 7 * 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
         out_buf.resize(4102 / 7 * 3);
             
         auto it = out_buf.begin();
         for (size_t i = 0; i < out_buf.size(); i += 3)
         {
-            if (*it++ != U'李') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != U'伟') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-            if (*it++ != (i / 3) % 127 + 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+            VERIFY(*it++ == U'李');
+            VERIFY(*it++ == U'伟');
+            VERIFY(*it++ == (i / 3) % 127 + 1);
         }
     };
 
@@ -600,7 +600,7 @@ void test_code_cvt_mem_char_put_1()
 
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -615,11 +615,11 @@ void test_code_cvt_mem_char_put_1()
             buffer_id %= std::size(buffer_size);
             cur_pos += dest_size;
             total_count += dest_size;
-            if (obj.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj.tell() == total_count);
         }
 
         auto [dev, err] = obj.detach();
-        if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -657,12 +657,12 @@ void test_code_cvt_mem_char_put_2()
 
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
 
         auto [dev, err] = obj.detach();
-        if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");        
+        VERIFY(dev.str() == e_lit);        
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -700,7 +700,7 @@ void test_code_cvt_mem_char_put_3()
 
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -715,11 +715,11 @@ void test_code_cvt_mem_char_put_3()
             buffer_id %= std::size(buffer_size);
             cur_pos += dest_size;
             total_count += dest_size;
-            if (obj.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj.tell() == total_count);
         }
 
         auto [detach_dev, detach_err] = obj.detach();
-        if (detach_dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(detach_dev.str() == e_lit);
     };
 
     using CheckType = code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t>;
@@ -757,11 +757,11 @@ void test_code_cvt_mem_char_put_4()
     
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
         auto [detach_dev, detach_err] = obj.detach();
-        if (detach_dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(detach_dev.str() == e_lit);
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -800,15 +800,15 @@ void test_code_cvt_mem_char_flush_1()
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
         const auto& dev = obj.device();
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         obj.put(i_lit.data(), i_lit.size());
         obj.flush();
-        if (dev.str().size() != e_lit.size()) throw std::runtime_error("code_cvt<memory<char>, char32_t>::flush response incorrect");
-        if (obj.tell() != i_lit.size()) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(dev.str().size() == e_lit.size());
+        VERIFY(obj.tell() == i_lit.size());
 
-        if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -848,7 +848,7 @@ void test_code_cvt_mem_char_flush_2()
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
         const auto& dev = obj.device();
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
 
@@ -863,14 +863,14 @@ void test_code_cvt_mem_char_flush_2()
             buffer_id %= std::size(buffer_size);
             cur_pos += dest_size;
             
-            if (obj.tell() != total_count + dest_size) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(obj.tell() == total_count + dest_size);
             obj.flush();
             total_count += dest_size;
-            if (dev.str().size() == ori_len) throw std::runtime_error("code_cvt<memory<char>, char32_t>::flush response incorrect");
-            if (obj.tell() != total_count) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+            VERIFY(dev.str().size() != ori_len);
+            VERIFY(obj.tell() == total_count);
         }
         obj.flush();
-        if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -910,15 +910,15 @@ void test_code_cvt_mem_char_flush_3()
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
         const auto& dev = obj.device();
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         obj.put(i_lit.data(), i_lit.size());
         obj.flush();
-        if (dev.str().size() != e_lit.size()) throw std::runtime_error("code_cvt<memory<char>, char32_t>::flush response incorrect");
-        if (obj.tell() != i_lit.size()) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(dev.str().size() == e_lit.size());
+        VERIFY(obj.tell() == i_lit.size());
     
-        if (dev.str() != e_lit) throw std::runtime_error("code_cvt<memory<char>, char32_t>::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -938,20 +938,20 @@ void test_code_cvt_mem_char_seek_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         FAIL_SEEK(obj, 100);
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         FAIL_SEEK(obj, 1);
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         obj.seek(0);
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
 
         std::u32string str; str.resize(6);
-        if (obj.get(str.data(), 6) != 6) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
-        if (str != U"123456") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(obj.get(str.data(), 6) == 6);
+        VERIFY(str == U"123456");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -971,19 +971,19 @@ void test_code_cvt_mem_char_seek_2()
     
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         FAIL_SEEK(obj, 100);
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         obj.seek(1);
-        if (obj.tell() != 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 1);
 
         std::u32string str; str.resize(6);
-        if (obj.get(str.data(), 6) != 5) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(obj.get(str.data(), 6) == 5);
         str.resize(5);
-        if (str != U"23456") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(str == U"23456");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1003,32 +1003,32 @@ void test_code_cvt_mem_char_seek_3()
     
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         char32_t ch = U'李';
         obj.put(&ch, 1);
-        if (obj.tell() != 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 1);
         ch = U'x';
         obj.put(&ch, 1);
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 2);
         ch = U'伟';
         obj.put(&ch, 1);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
 
         FAIL_SEEK(obj, 100);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
         FAIL_SEEK(obj, 1);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
         FAIL_SEEK(obj, 0);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
 
         char32_t c[] = U"xy";
         obj.put(c, 2);
 
         auto [dev, err] = obj.detach();
-        if (dev.str() != "李x伟xy") throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(dev.str() == "李x伟xy");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1048,30 +1048,30 @@ void test_code_cvt_mem_char_seek_4()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         char32_t ch = U'a';
         obj.put(&ch, 1);
-        if (obj.tell() != 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 1);
         ch = U'b';
         obj.put(&ch, 1);
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 2);
         ch = U'c';
         obj.put(&ch, 1);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
 
         FAIL_SEEK(obj, 100);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
         obj.seek(1);
-        if (obj.tell() != 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 1);
         
         char32_t c[] = U"xy";
         obj.put(c, 2);
 
         auto [dev, err] = obj.detach();
-        if (dev.str() != "axy") throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(dev.str() == "axy");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1090,7 +1090,7 @@ void test_code_cvt_mem_char_rseek_1()
     
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
 
         VERIFY(obj.tell() == 0);
@@ -1103,7 +1103,7 @@ void test_code_cvt_mem_char_rseek_1()
 
         std::u32string str; str.resize(6);
         VERIFY(obj.get(str.data(), 6) == 6);
-        if (obj.device().str() != "123456") throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(obj.device().str() == "123456");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1122,19 +1122,19 @@ void test_code_cvt_mem_char_rseek_2()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         FAIL_RSEEK(obj, 100);
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         obj.rseek(4);
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 2);
     
         std::u32string str; str.resize(6);
-        if (obj.get(str.data(), 6) != 4) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(obj.get(str.data(), 6) == 4);
         str.resize(4);
-        if (str != U"3456") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get response incorrect");
+        VERIFY(str == U"3456");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1153,32 +1153,32 @@ void test_code_cvt_mem_char_rseek_3()
     
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         char32_t ch = U'李';
         obj.put(&ch, 1);
-        if (obj.tell() != 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 1);
         ch = U'x';
         obj.put(&ch, 1);
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 2);
         ch = U'伟';
         obj.put(&ch, 1);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
 
         FAIL_RSEEK(obj, 100);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
         FAIL_RSEEK(obj, 1);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
         FAIL_RSEEK(obj, 1);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
         
         char32_t c[] = U"xy";
         obj.put(c, 2);
         obj.flush();
 
-        if (obj.device().str() != "李x伟xy") throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(obj.device().str() == "李x伟xy");
     };
     
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1198,30 +1198,30 @@ void test_code_cvt_mem_char_rseek_4()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 0);
         char32_t ch = U'a';
         obj.put(&ch, 1);
-        if (obj.tell() != 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 1);
         ch = U'b';
         obj.put(&ch, 1);
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 2);
         ch = U'c';
         obj.put(&ch, 1);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
 
         FAIL_RSEEK(obj, 100);
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 3);
         obj.rseek(1);
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell response incorrect");
+        VERIFY(obj.tell() == 2);
 
         char32_t c[] = U"xy";
         obj.put(c, 2);
         obj.flush();
 
-        if (obj.device().str() != "abxy") throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(obj.device().str() == "abxy");
     };
 
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1241,25 +1241,25 @@ void test_code_cvt_mem_char_io_1()
     
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         
         char32_t bos_str[] = U"abcdefgh";
         obj.put(bos_str, 8);
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 0);
         
         char32_t content1[] = U"12345";
         obj.put(content1, 5);
         obj.seek(0);
         
         std::u32string get_content; get_content.resize(3);
-        if (obj.get(get_content.data(), 3) != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get fail");
-        if (get_content != U"123") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get fail");
-        if (obj.tell() != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.get(get_content.data(), 3) == 3);
+        VERIFY(get_content == U"123");
+        VERIFY(obj.tell() == 3);
     
         char32_t content2[] = U"78";
         obj.put(content2, 2);
-        if (obj.tell() != 5) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 5);
         obj.flush();
 
         std::string info;
@@ -1272,7 +1272,7 @@ void test_code_cvt_mem_char_io_1()
         info += 'g'; info += '\x00'; info += '\x00'; info += '\x00';
         info += 'h'; info += '\x00'; info += '\x00'; info += '\x00';
         info += "12378";
-        if (obj.device().str() != info) throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(obj.device().str() == info);
     };
 
     using CheckType = code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1303,32 +1303,32 @@ void test_code_cvt_mem_char_io_2()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         std::u32string bos_str; bos_str.resize(8);
-        if (obj.get(bos_str.data(), 8) != 8) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if (bos_str != U"abcdefgh") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
+        VERIFY(obj.get(bos_str.data(), 8) == 8);
+        VERIFY(bos_str == U"abcdefgh");
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 0);
 
         char32_t content1[] = U"67";
         obj.put(content1, 2);
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 2);
 
         std::u32string content_str; content_str.resize(2);
-        if (obj.get(content_str.data(), 2) != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if (content_str != U"34") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if (obj.tell() != 4) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.get(content_str.data(), 2) == 2);
+        VERIFY(content_str == U"34");
+        VERIFY(obj.tell() == 4);
 
         obj.seek(0);
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 0);
         char32_t content2[] = U"QWER";
         obj.put(content2, 4);
-        if (obj.tell() != 4) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 4);
         obj.flush();
 
         content_str.resize(4);
-        if (obj.get(content_str.data(), 4) != 1) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if (content_str[0] != U'5') throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
+        VERIFY(obj.get(content_str.data(), 4) == 1);
+        VERIFY(content_str[0] == U'5');
 
         std::string aim_info;
         aim_info += 'a'; aim_info += '\x00'; aim_info += '\x00'; aim_info += '\x00';
@@ -1340,7 +1340,7 @@ void test_code_cvt_mem_char_io_2()
         aim_info += 'g'; aim_info += '\x00'; aim_info += '\x00'; aim_info += '\x00';
         aim_info += 'h'; aim_info += '\x00'; aim_info += '\x00'; aim_info += '\x00';
         aim_info += "QWER5";
-        if (obj.device().str() != aim_info) throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(obj.device().str() == aim_info);
     };
 
     using CheckType = code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t>;
@@ -1360,31 +1360,31 @@ void test_code_cvt_mem_char_io_3()
     
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
 
         char32_t bos_str[] = U"abcdefgh";
         obj.put(bos_str, 8);
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 0);
 
         char32_t content1[] = U"12345";
         obj.put(content1, 5);
         FAIL_SEEK(obj, 0);
 
         std::u32string get_content; get_content.resize(3);
-        if (obj.get(get_content.data(), 3) != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if (obj.tell() != 5) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.get(get_content.data(), 3) == 0);
+        VERIFY(obj.tell() == 5);
 
         char32_t content2[] = U"78";
         obj.put(content2, 2);
-        if (obj.tell() != 7) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 7);
         obj.flush();
 
         obj.switch_to_get();
         obj.seek(0);
         get_content.resize(3);
-        if (obj.get(get_content.data(), 3) != 3) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if (get_content != U"123") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
+        VERIFY(obj.get(get_content.data(), 3) == 3);
+        VERIFY(get_content == U"123");
 
         try
         {
@@ -1404,7 +1404,7 @@ void test_code_cvt_mem_char_io_3()
         info += 'g'; info += '\x00'; info += '\x00'; info += '\x00';
         info += 'h'; info += '\x00'; info += '\x00'; info += '\x00';
         info += "1234578";
-        if (obj.device().str() != info) throw std::runtime_error("code_cvt<memory<char>, char32_t> response incorrect");
+        VERIFY(obj.device().str() == info);
     };
 
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
@@ -1441,17 +1441,17 @@ void test_code_cvt_mem_char_io_4()
 
     auto helper = [&info](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
     
         std::u32string bos_str; bos_str.resize(8);
-        if (obj.get(bos_str.data(), 8) != 8) throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
-        if (bos_str != U"abcdefgh") throw std::runtime_error("code_cvt<memory<char>, char32_t>::get_nra fail");
+        VERIFY(obj.get(bos_str.data(), 8) == 8);
+        VERIFY(bos_str == U"abcdefgh");
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 0);
         
         std::u32string content_str; content_str.resize(2);
-        if (obj.get(content_str.data(), 2) != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>:get fail");
-        if (content_str != U"12") throw std::runtime_error("code_cvt<memory<char>, char32_t>:get fail");
+        VERIFY(obj.get(content_str.data(), 2) == 2);
+        VERIFY(content_str == U"12");
     
         try
         {
@@ -1463,16 +1463,16 @@ void test_code_cvt_mem_char_io_4()
         catch (...)
         {}
         
-        if (obj.tell() != 2) throw std::runtime_error("code_cvt<memory<char>, char32_t>::tell fail");
+        VERIFY(obj.tell() == 2);
         
         obj.seek(0);
-        if (obj.tell() != 0) throw std::runtime_error("code_cvt<...char...>::tell fail");
+        VERIFY(obj.tell() == 0);
         
         content_str.resize(10);
-        if (obj.get(content_str.data(), 10) != 5) throw std::runtime_error("code_cvt<...char...>:get fail");
-        if (content_str.substr(0, 5) != U"12345") throw std::runtime_error("code_cvt<...char...>:get fail");
+        VERIFY(obj.get(content_str.data(), 10) == 5);
+        VERIFY(content_str.substr(0, 5) == U"12345");
     
-        if (obj.device().str() != info) throw std::runtime_error("code_cvt<...char...> response incorrect");
+        VERIFY(obj.device().str() == info);
     };
 
     code_cvt_creator<char, char32_t> creator("zh_CN.UTF-8");
@@ -1502,8 +1502,7 @@ void test_code_cvt_mem_char_put_err_1()
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
 
     auto try_put = [](auto& obj, char32_t ch) {
-        if (obj.bos() != io_status::output)
-            throw std::runtime_error("test_code_cvt_mem_char_put_err_1: bos fail");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         try {
             obj.put(&ch, 1);
@@ -1532,14 +1531,11 @@ void test_code_cvt_mem_char_get_null_1()
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
 
     auto helper = [&](auto& obj) {
-        if (obj.bos() != io_status::input)
-            throw std::runtime_error("test_code_cvt_mem_char_get_null_1: bos fail");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         char32_t out[3] = { 1, 1, 1 };
-        if (obj.get(out, 3) != 3)
-            throw std::runtime_error("test_code_cvt_mem_char_get_null_1: get count fail");
-        if (out[0] != U'a' || out[1] != U'\0' || out[2] != U'b')
-            throw std::runtime_error("test_code_cvt_mem_char_get_null_1: get content fail");
+        VERIFY(obj.get(out, 3) == 3);
+        VERIFY(out[0] == U'a' && out[1] == U'\0' && out[2] == U'b');
     };
 
     CheckType obj1{rb_root_cvt{mem_device(buf)}, "C"};
@@ -1562,8 +1558,7 @@ void test_code_cvt_mem_char_get_err_1()
     // In "C" locale, 0xFF is not a valid single-byte character
     auto run_err = [](const std::string& bad_bytes) {
         CheckType obj{rb_root_cvt{mem_device(bad_bytes)}, "C"};
-        if (obj.bos() != io_status::input)
-            throw std::runtime_error("test_code_cvt_mem_char_get_err_1: bos fail");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         char32_t buf[4];
         try {
@@ -1603,8 +1598,7 @@ void test_code_cvt_mem_char_flush_noop_1()
     CheckType obj{rb_root_cvt{mem_device(buf)}, "C"};
     obj.flush();  // neutral state: hits line 1335 early return
 
-    if (obj.bos() != io_status::input)
-        throw std::runtime_error("test_code_cvt_mem_char_flush_noop_1: bos fail");
+    VERIFY(obj.bos() == io_status::input);
     obj.main_cont_beg();
     obj.flush();  // input state: hits line 1335 early return again
 
@@ -1620,8 +1614,7 @@ void test_code_cvt_mem_char_flush_taint_1()
     using CheckType = code_cvt<rb_root_cvt<throw_on_put>, char32_t>;
     CheckType obj{rb_root_cvt{throw_on_put{}}, "C"};
 
-    if (obj.bos() != io_status::output)
-        throw std::runtime_error("test_code_cvt_mem_char_flush_taint_1: bos fail");
+    VERIFY(obj.bos() == io_status::output);
     obj.main_cont_beg();
 
     char32_t ch = U'A';
@@ -1658,8 +1651,7 @@ void test_code_cvt_mem_char_set_tainted_1()
     std::string empty;
     taintable obj{rb_root_cvt{mem_device(empty)}, "C"};
 
-    if (obj.bos() != io_status::output)
-        throw std::runtime_error("test_code_cvt_mem_char_set_tainted_1: expected output mode");
+    VERIFY(obj.bos() == io_status::output);
     obj.main_cont_beg();
 
     obj.expose_set_tainted();  // covers abs_cvt.h lines 1558-1561
@@ -1698,7 +1690,7 @@ void test_code_cvt_mem_char_kernel_helpers_1()
         char* to = buf;
         char* to_end = buf;
         bool r = kernel.out_helper(U'A', to, to_end);
-        if (r) throw std::runtime_error("out_helper zero buf: expected false");
+        VERIFY(!r);
     }
 
     // in_helper: from > from_end → throws (lines 316-317)
@@ -1731,8 +1723,7 @@ void test_code_cvt_mem_char_switch_state_err_1()
     using CheckType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
     CheckType obj{rb_root_cvt{mem_device(partial)}, "zh_CN.UTF-8"};
 
-    if (obj.bos() != io_status::input)
-        throw std::runtime_error("test_code_cvt_mem_char_switch_state_err_1: bos fail");
+    VERIFY(obj.bos() == io_status::input);
     obj.main_cont_beg();
 
     char32_t buf[4];

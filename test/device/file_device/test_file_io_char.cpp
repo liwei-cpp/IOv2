@@ -75,20 +75,20 @@ void test_file_device_char_close_1()
     {
         file_guard g1(name_02, "");
         fb_02 = basic_file_device<false, true, char>(name_02, file_open_flag::trunc);
-        if (!fb_02.is_open()) throw std::runtime_error("file_device::reset fails");
+        VERIFY(fb_02.is_open());
         
         file_guard g2(name_03);
         fb_03 = basic_file_device<true, true, char>(name_03, file_open_flag::trunc);
-        if (!fb_03.is_open()) throw std::runtime_error("file_device::reset fails");
+        VERIFY(fb_03.is_open());
         
         fb_02.close();
-        if (fb_02.is_open()) throw std::runtime_error("file_device::is_open fails");
+        VERIFY(!fb_02.is_open());
         
         fb_03.close();
-        if (fb_02.is_open()) throw std::runtime_error("file_device::is_open fails");
+        VERIFY(!fb_02.is_open());
         
         fb_03.close();
-        if (fb_02.is_open()) throw std::runtime_error("file_device::is_open fails");
+        VERIFY(!fb_02.is_open());
     }
 
     dump_info("Done\n");
@@ -110,8 +110,8 @@ void test_file_device_char_close_2()
         basic_file_device<true, false, char> fb_01(name_01);
 
         char ch;
-        if (fb_01.dget(&ch, 1) != 1) throw std::runtime_error("file_device::get fail");
-        if (fb_01.dget(buffer, sizeof(buffer) - 1) != sizeof(buffer) - 1) throw std::runtime_error("file_device::get fails");
+        VERIFY(fb_01.dget(&ch, 1) == 1);
+        VERIFY(fb_01.dget(buffer, sizeof(buffer) - 1) == sizeof(buffer) - 1);
         
         fb_01.close();
         try
@@ -172,28 +172,28 @@ void test_file_device_char_is_open_1()
     basic_file_device<true, false, char> fb_01;
     basic_file_device<true, true, char> fb_02;
     basic_file_device<false, true, char> fb_03;
-    if (fb_01.is_open()) throw std::runtime_error("file_device::is_open fails");
-    if (fb_02.is_open()) throw std::runtime_error("file_device::is_open fails");
-    if (fb_03.is_open()) throw std::runtime_error("file_device::is_open fails");
+    VERIFY(!fb_01.is_open());
+    VERIFY(!fb_02.is_open());
+    VERIFY(!fb_03.is_open());
     
     file_guard g0(name_01, "abcde");
     fb_01 = basic_file_device<true, false, char>(name_01);
-    if (!fb_01.is_open()) throw std::runtime_error("file_device::is_open fails");
+    VERIFY(fb_01.is_open());
     
     file_guard g1(name_02, "axxxxxxxxxx");
     fb_02 = basic_file_device<true, true, char>(name_02, file_open_flag::trunc);
-    if (!fb_02.is_open()) throw std::runtime_error("file_device::is_open fails");
+    VERIFY(fb_02.is_open());
     
     file_guard g2(name_03);
     fb_03 = basic_file_device<false, true, char>(name_03, file_open_flag::trunc);
-    if (!fb_03.is_open()) throw std::runtime_error("file_device::is_open fails");
+    VERIFY(fb_03.is_open());
     
     fb_01.close();
     fb_02.close();
     fb_03.close();
-    if (fb_01.is_open()) throw std::runtime_error("file_device::is_open fails");
-    if (fb_02.is_open()) throw std::runtime_error("file_device::is_open fails");
-    if (fb_03.is_open()) throw std::runtime_error("file_device::is_open fails");
+    VERIFY(!fb_01.is_open());
+    VERIFY(!fb_02.is_open());
+    VERIFY(!fb_03.is_open());
 
     dump_info("Done\n");
 }
@@ -211,7 +211,7 @@ void test_file_device_char_is_open_2()
     scratch_file_1.close();
 
     basic_file_device<true, false, char> scratch_file_2(name);
-    if (!scratch_file_2.is_open()) std::runtime_error("file_device::reset fails");
+    VERIFY(scratch_file_2.is_open());
 
     dump_info("Done\n");
 }
@@ -229,15 +229,15 @@ void test_file_device_char_get_1()
     
     VERIFY(!fb_01.deof());
     char ch;
-    if ((fb_01.dget(&ch, 1) != 1) || (ch != '/')) throw std::runtime_error("file_device::get fail");
-    if ((fb_01.dget(&ch, 1) != 1) || (ch != '/')) throw std::runtime_error("file_device::get fail");
-    if ((fb_01.dget(&ch, 1) != 1) || (ch != ' ')) throw std::runtime_error("file_device::get fail");
-    if ((fb_01.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
-    if ((fb_01.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
-    if ((fb_01.dget(&ch, 1) != 1) || (ch != '0')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
+    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
+    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == ' ');
+    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
+    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
+    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '0');
     
     auto read_position = fb_01.dtell();
-    if (read_position == 0) throw std::runtime_error("file_device::tell fails");
+    VERIFY(read_position != 0);
 
     dump_info("Done\n");
 }
@@ -255,28 +255,28 @@ void test_file_device_char_get_2()
     {
         file_guard g1(name_03);
         basic_file_device<true, true, char> fb_03(name_03, file_open_flag::trunc);
-        if (fb_03.dtell() != 0) throw std::runtime_error("file_device::tell fails");
+        VERIFY(fb_03.dtell() == 0);
         
         char ch;
-        if (fb_03.dget(&ch, 1) != 0) throw std::runtime_error("file_device::get fail");
-        if (fb_03.dtell() != 0) throw std::runtime_error("file_device::tell fails");
+        VERIFY(fb_03.dget(&ch, 1) == 0);
+        VERIFY(fb_03.dtell() == 0);
     }
 
     // in | out 2
     {
         file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
         basic_file_device<true, true, char> fb_01(name_01);
-        if (fb_01.dtell() != 0) throw std::runtime_error("file_device::tell fails");
+        VERIFY(fb_01.dtell() == 0);
         
         char ch;
-        if ((fb_01.dget(&ch, 1) != 1) || (ch != '/')) throw std::runtime_error("file_device::get fail");
-        if ((fb_01.dget(&ch, 1) != 1) || (ch != '/')) throw std::runtime_error("file_device::get fail");
-        if ((fb_01.dget(&ch, 1) != 1) || (ch != ' ')) throw std::runtime_error("file_device::get fail");
-        if ((fb_01.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
-        if ((fb_01.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
-        if ((fb_01.dget(&ch, 1) != 1) || (ch != '0')) throw std::runtime_error("file_device::get fail");
+        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
+        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
+        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == ' ');
+        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
+        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
+        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '0');
         
-        if (fb_01.dtell() != 6) throw std::runtime_error("file_device::tell fails");
+        VERIFY(fb_01.dtell() == 6);
     }
 
     dump_info("Done\n");
@@ -297,8 +297,8 @@ void test_file_device_char_get_3()
     
     char ch;
     fbuf.dget(&ch, 1);
-    if ((fbuf.dget(&ch, 1) != 1) || (ch != 'r')) throw std::runtime_error("file_device::get fail");
-    if ((fbuf.dget(&ch, 1) != 1) || (ch != 'a')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fbuf.dget(&ch, 1) == 1 && ch == 'r');
+    VERIFY(fbuf.dget(&ch, 1) == 1 && ch == 'a');
 
     dump_info("Done\n");
 }
@@ -318,30 +318,30 @@ void test_file_device_char_seek_1()
         basic_file_device<true, false, char> fb(name_01);
         
         fb.dseek(79);
-        if ((fb.dget(&ch, 1) != 1) || (ch != 't')) throw std::runtime_error("file_device::get fail");
+        VERIFY(fb.dget(&ch, 1) == 1 && ch == 't');
     }
     
     {
         // io
         file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
         basic_file_device<true, true, char> fb(name_01);
-        if (fb.dtell() != 0) throw std::runtime_error("file_device::tell fails");
+        VERIFY(fb.dtell() == 0);
         
         // beg
         fb.dseek(79);
-        if ((fb.dget(&ch, 1) != 1) || (ch != 't')) throw std::runtime_error("file_device::get fail");
+        VERIFY(fb.dget(&ch, 1) == 1 && ch == 't');
 
         // cur
         fb.dseek(fb.dtell() - 1);
         auto pt_3 = fb.dtell();
         fb.dput("\n", 1);
         fb.dseek(pt_3);
-        if ((fb.dget(&ch, 1) != 1) || (ch != '\n')) throw std::runtime_error("file_device::get fail");
+        VERIFY(fb.dget(&ch, 1) == 1 && ch == '\n');
         
         // end
         fb.drseek(0);
         fb.dput("\nof the wonderful things he does!!\nok", 37);
-        if (fb.dtell() == 0) throw std::runtime_error("file_device::tell fails");
+        VERIFY(fb.dtell() != 0);
     }
 
     dump_info("Done\n");
@@ -360,28 +360,28 @@ void test_file_device_char_seek_2()
     
     // beg
     fb.dseek(2);
-    if (fb.dtell() != 2) throw std::runtime_error("faile_io::seek fails");
+    VERIFY(fb.dtell() == 2);
     
     char ch;
     fb.dget(&ch, 1);
-    if ((fb.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
     fb.dseek(4);
-    if ((fb.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
 
 
     // cur
     fb.dseek(fb.dtell() + 2);
-    if (fb.dtell() != 7) throw std::runtime_error("faile_io::seek fails");
-    if ((fb.dget(&ch, 1) != 1) || (ch != '1')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dtell() == 7);
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '1');
     fb.dseek(fb.dtell());
-    if (fb.dtell() != 8) throw std::runtime_error("faile_io::seek fails");
-    if ((fb.dget(&ch, 1) != 1) || (ch != '7')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dtell() == 8);
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '7');
 
     // end
     fb.drseek(0);
-    if (fb.dget(&ch, 1) != 0) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dget(&ch, 1) == 0);
     fb.drseek(1);
-    if ((fb.dget(&ch, 1) != 1) || (ch != 'c')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == 'c');
 
     dump_info("Done\n");
 }
@@ -398,24 +398,24 @@ void test_file_device_char_seek_3()
     // in | out
     basic_file_device<true, true, char> fb(name_01);
 
-    if (fb.dtell() != 0) throw std::runtime_error("file_device::tell fails");
+    VERIFY(fb.dtell() == 0);
 
     //beg
     fb.dseek(3);
-    if (fb.dtell() != 3) throw std::runtime_error("file_device::tell fails");
+    VERIFY(fb.dtell() == 3);
     
     char ch;
-    if ((fb.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
     
     fb.dseek(3);
     fb.dput("\n", 1);
     fb.dseek(4);
-    if ((fb.dget(&ch, 1) != 1) || (ch != '9')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
 
     // cur
     fb.dseek(fb.dtell() + 2);
-    if (fb.dtell() != 7) throw std::runtime_error("file_device::tell fails");
-    if ((fb.dget(&ch, 1) != 1) || (ch != '1')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dtell() == 7);
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '1');
     fb.dseek(fb.dtell());
     fb.dput("x", 1);
     fb.dput("\n", 1);
@@ -426,7 +426,7 @@ void test_file_device_char_seek_3()
     fb.dput("because because because. . .", 28);
     
     fb.drseek(1);
-    if ((fb.dget(&ch, 1) != 1) || (ch != '.')) throw std::runtime_error("file_device::get fail");
+    VERIFY(fb.dget(&ch, 1) == 1 && ch == '.');
     
     dump_info("Done\n");
 }
@@ -442,15 +442,15 @@ void test_file_device_char_seek_4()
 
     // out
     basic_file_device<false, true, char> fb(name_01);
-    if (fb.dtell() != 0) throw std::runtime_error("file_device::tell fails");
+    VERIFY(fb.dtell() == 0);
 
     // beg
     fb.dseek(2);
-    if (fb.dtell() != 2) throw std::runtime_error("file_device::tell fails");
+    VERIFY(fb.dtell() == 2);
 
     // cur
     fb.dseek(fb.dtell() + 2);
-    if (fb.dtell() != 4) throw std::runtime_error("file_device::tell fails");
+    VERIFY(fb.dtell() == 4);
     fb.dseek(fb.dtell());
     fb.dput("x", 1);
     fb.dput("\n", 1);
@@ -555,8 +555,8 @@ void test_file_device_char_seek_8()
     
     fb.dseek(0);
     VERIFY(!fb.deof());
-    if (fb.dget(buf, 3) != 3) throw std::runtime_error("file_device::get fails");
-    if (std::memcmp(buf, "abc", 3) != 0) throw std::runtime_error("file_device::get fails");
+    VERIFY(fb.dget(buf, 3) == 3);
+    VERIFY(std::memcmp(buf, "abc", 3) == 0);
     VERIFY(!fb.deof());
     
     // Check read => write without pubseekoff(0, ios_base::cur)
@@ -564,8 +564,8 @@ void test_file_device_char_seek_8()
     VERIFY(fb.deof());
     fb.dseek(0);
     VERIFY(!fb.deof());
-    if (fb.dget(buf, 5) != 5) throw std::runtime_error("file_device::get fails");
-    if (std::memcmp(buf, "abcef", 5) != 0) throw std::runtime_error("file_device::get fails");
+    VERIFY(fb.dget(buf, 5) == 5);
+    VERIFY(std::memcmp(buf, "abcef", 5) == 0);
     VERIFY(fb.deof());
     
     fb.dseek(0);
@@ -573,16 +573,16 @@ void test_file_device_char_seek_8()
     VERIFY(!fb.deof());
 
     // Check write => read without pubseekoff(0, ios_base::cur)
-    if (fb.dget(buf, 3) != 3) throw std::runtime_error("file_device::get fails");
-    if (std::memcmp(buf, "cef", 3) != 0) throw std::runtime_error("file_device::get fails");
+    VERIFY(fb.dget(buf, 3) == 3);
+    VERIFY(std::memcmp(buf, "cef", 3) == 0);
     VERIFY(fb.deof());
     
     fb.dput("ijkl", 4);
     VERIFY(fb.deof());
     
     fb.dseek(0);
-    if (fb.dget(buf, 2) != 2) throw std::runtime_error("file_device::get fails");
-    if (std::memcmp(buf, "gh", 2) != 0) throw std::runtime_error("file_device::get fails");
+    VERIFY(fb.dget(buf, 2) == 2);
+    VERIFY(std::memcmp(buf, "gh", 2) == 0);
     VERIFY(!fb.deof());
 
     fb.drseek(0);
@@ -592,8 +592,8 @@ void test_file_device_char_seek_8()
 
     fb.dseek(0);
     VERIFY(!fb.deof());
-    if (fb.dget(buf, 12) != 12) throw std::runtime_error("file_device::get fails");
-    if (std::memcmp(buf, "ghcefijklmno", 12) != 0) throw std::runtime_error("file_device::get fails");
+    VERIFY(fb.dget(buf, 12) == 12);
+    VERIFY(std::memcmp(buf, "ghcefijklmno", 12) == 0);
     VERIFY(fb.deof());
 
     dump_info("Done\n");

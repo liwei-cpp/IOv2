@@ -56,14 +56,14 @@ void test_vigenere_cvt_gen_2()
         auto new_str = obj.device().str();
         VERIFY(new_str.size() == 11);
         VERIFY(new_str.substr(0, 5) == "hello");
-        if (new_str[5] != static_cast<char>(' ' + 'a')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[6] != static_cast<char>('w' + 'b')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[7] != static_cast<char>('o' + 'c')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[8] != static_cast<char>('r' + 'd')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[9] != static_cast<char>('l' + 'e')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[10] != static_cast<char>('d' + 'f')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
+        VERIFY(new_str[5] == static_cast<char>(' ' + 'a'));
+        VERIFY(new_str[6] == static_cast<char>('w' + 'b'));
+        VERIFY(new_str[7] == static_cast<char>('o' + 'c'));
+        VERIFY(new_str[8] == static_cast<char>('r' + 'd'));
+        VERIFY(new_str[9] == static_cast<char>('l' + 'e'));
+        VERIFY(new_str[10] == static_cast<char>('d' + 'f'));
         
-        if (obj2.device().str() != "hello") throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
+        VERIFY(obj2.device().str() == "hello");
     };
     
     {
@@ -79,25 +79,25 @@ void test_vigenere_cvt_gen_2()
     
     auto helper2 = []<typename T>(T& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         T obj2{Crypt::Classic::vigenere_cvt{rb_root_cvt{mem_device("")}, "abcdef"}};
         obj2 = obj;
-        if (obj2.device().str() != "hello") throw std::runtime_error("vigenere_cvt<mem_device> copy assignment response incorrect");
+        VERIFY(obj2.device().str() == "hello");
         
         obj.put(" world", 6);
         obj.flush();
         auto new_str = obj.device().str();
-        if (new_str.size() != 11) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str.substr(0, 5) != "hello") throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[5] != static_cast<char>(' ' + 'a')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[6] != static_cast<char>('w' + 'b')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[7] != static_cast<char>('o' + 'c')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[8] != static_cast<char>('r' + 'd')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[9] != static_cast<char>('l' + 'e')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
-        if (new_str[10] != static_cast<char>('d' + 'f')) throw std::runtime_error("vigenere_cvt<mem_device> copy constructor response incorrect");
+        VERIFY(new_str.size() == 11);
+        VERIFY(new_str.substr(0, 5) == "hello");
+        VERIFY(new_str[5] == static_cast<char>(' ' + 'a'));
+        VERIFY(new_str[6] == static_cast<char>('w' + 'b'));
+        VERIFY(new_str[7] == static_cast<char>('o' + 'c'));
+        VERIFY(new_str[8] == static_cast<char>('r' + 'd'));
+        VERIFY(new_str[9] == static_cast<char>('l' + 'e'));
+        VERIFY(new_str[10] == static_cast<char>('d' + 'f'));
 
-        if (obj2.device().str() != "hello") throw std::runtime_error("vigenere_cvt<mem_device> copy assignment response incorrect");
+        VERIFY(obj2.device().str() == "hello");
     };
 
     {
@@ -113,10 +113,10 @@ void test_vigenere_cvt_gen_2()
 
     auto helper3 = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         auto obj2(std::move(obj));
-        if (obj2.device().str() != "hello") throw std::runtime_error("vigenere_cvt<mem_device> move constructor response incorrect");
+        VERIFY(obj2.device().str() == "hello");
     };
     {
         mem_device dev{"hello"}; dev.drseek(0);
@@ -131,11 +131,11 @@ void test_vigenere_cvt_gen_2()
 
     auto helper4 = []<typename T>(T& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         T obj2{Crypt::Classic::vigenere_cvt{rb_root_cvt{mem_device("")}, "abcdef"}};
         obj2 = std::move(obj);
-        if (obj2.device().str() != "hello") throw std::runtime_error("vigenere_cvt<mem_device> move assignment response incorrect");
+        VERIFY(obj2.device().str() == "hello");
     };
     {
         mem_device dev{"hello"}; dev.drseek(0);
@@ -173,9 +173,9 @@ void test_vigenere_cvt_get_1()
     auto helper = [&i_lit](auto& obj)
     {
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-        if (obj.bos() != io_status::input) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("vigenere_cvt::tell fail");
+        VERIFY(obj.tell() == 0);
 
         char out_buf[4102];
         size_t total_count = 0;
@@ -190,10 +190,10 @@ void test_vigenere_cvt_get_1()
             total_count += s;
             if (s == 0) break;
         }
-        if (total_count != 4102) throw std::runtime_error("vigenere_cvt::get response incorrect");
-        if (cur_pos != out_buf + 4102) throw std::runtime_error("vigenere_cvt::get response incorrect");
+        VERIFY(total_count == 4102);
+        VERIFY(cur_pos == out_buf + 4102);
         for (size_t i = 0; i < 4102; ++i)
-            if (out_buf[i] != i_lit[i]) throw std::runtime_error("vigenere_cvt::get response incorrect");
+            VERIFY(out_buf[i] == i_lit[i]);
     };
 
     CheckType obj{rb_root_cvt{mem_device(e_lit)}, "liweixy"};
@@ -229,9 +229,9 @@ void test_vigenere_cvt_get_nra_1()
     {
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
 
-        if (obj.bos() != io_status::input) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("vigenere_cvt::tell fail");
+        VERIFY(obj.tell() == 0);
     
         char out_buf[4102];
         size_t total_count = 0;
@@ -246,10 +246,10 @@ void test_vigenere_cvt_get_nra_1()
             total_count += s;
             if (s == 0) break;
         }
-        if (total_count != 4102) throw std::runtime_error("vigenere_cvt::get response incorrect");
-        if (cur_pos != out_buf + 4102) throw std::runtime_error("vigenere_cvt::get response incorrect");
+        VERIFY(total_count == 4102);
+        VERIFY(cur_pos == out_buf + 4102);
         for (size_t i = 0; i < 4102; ++i)
-            if (out_buf[i] != i_lit[i]) throw std::runtime_error("vigenere_cvt::get response incorrect");
+            VERIFY(out_buf[i] == i_lit[i]);
     };
 
     CheckType obj{no_rb_root_cvt{mem_device(e_lit)}, "liweixy"};
@@ -285,9 +285,9 @@ void test_vigenere_cvt_put_1()
     {
         size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
 
-        if (obj.bos() != io_status::output) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("vigenere_cvt::tell fail");
+        VERIFY(obj.tell() == 0);
         
         char* cur_pos = e_lit.data();
         int buffer_id = 0;
@@ -299,11 +299,11 @@ void test_vigenere_cvt_put_1()
             cur_pos += dest_size;
         }
     
-        if (cur_pos != e_lit.data() + 4102) throw std::runtime_error("vigenere_cvt::put response incorrect");
+        VERIFY(cur_pos == e_lit.data() + 4102);
         obj.flush();
         auto& dev = obj.device();
         for (size_t i = 0; i < 4102; ++i)
-            if (dev.str()[i] != i_lit[i]) throw std::runtime_error("vigenere_cvt::get response incorrect");
+            VERIFY(dev.str()[i] == i_lit[i]);
     };
 
     CheckType obj{rb_root_cvt{mem_device("")}, "liweixy"};
@@ -323,18 +323,18 @@ void test_vigenere_cvt_seek_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         
         obj.seek(3);
-        if (obj.tell() != 3) throw std::runtime_error("vigenere_cvt::tell fail");
+        VERIFY(obj.tell() == 3);
         
         char ch = 0;
-        if ((obj.get(&ch, 1) != 1) || (ch != '4' - 'e')) throw std::runtime_error("vigenere_cvt::get fail");
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == '4' - 'e'));
         
         obj.rseek(3);
-        if (obj.tell() != 2) throw std::runtime_error("vigenere_cvt::tell fail");
-        if ((obj.get(&ch, 1) != 1) || (ch != '3' - 'w')) throw std::runtime_error("vigenere_cvt::get fail");
+        VERIFY(obj.tell() == 2);
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == '3' - 'w'));
     };
     
     using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
@@ -360,34 +360,34 @@ void test_vigenere_cvt_seek_2()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("vigenere_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         char c = 0;
-        if ((obj.get(&c, 1) != 1) || (c != '1')) throw std::runtime_error("vigenere_cvt::get fail");
-        if ((obj.get(&c, 1) != 1) || (c != '2')) throw std::runtime_error("vigenere_cvt::get fail");
-        if ((obj.get(&c, 1) != 1) || (c != '3')) throw std::runtime_error("vigenere_cvt::get fail");
+        VERIFY((obj.get(&c, 1) == 1) && (c == '1'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == '2'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == '3'));
 
         obj.main_cont_beg();
-        if (obj.tell() != 0) throw std::runtime_error("vigenere_cvt::get_bos fail");
+        VERIFY(obj.tell() == 0);
 
         obj.seek(3);
-        if (obj.tell() != 3) throw std::runtime_error("vigenere_cvt::tell fail");
+        VERIFY(obj.tell() == 3);
         
         char ch = 0;
-        if ((obj.get(&ch, 1) != 1) || (ch != 'd' - 'e')) throw std::runtime_error("vigenere_cvt::get fail");
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'd' - 'e'));
         
         obj.rseek(3);
-        if (obj.tell() != 4) throw std::runtime_error("vigenere_cvt::tell fail");
-        if ((obj.get(&ch, 1) != 1) || (ch != 'e' - 'i')) throw std::runtime_error("vigenere_cvt::get fail");
+        VERIFY(obj.tell() == 4);
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'e' - 'i'));
 
         FAIL_RSEEK(obj, 60);
-        if (obj.tell() != 5) throw std::runtime_error("vigenere_cvt::tell fail");
+        VERIFY(obj.tell() == 5);
 
         FAIL_RSEEK(obj, 9);
-        if (obj.tell() != 5) throw std::runtime_error("vigenere_cvt::tell fail");
+        VERIFY(obj.tell() == 5);
 
         // seek out-of-bounds → seek_impl catches, tell() still works, rethrows (line 419)
         FAIL_SEEK(obj, 100);
-        if (obj.tell() != 5) throw std::runtime_error("vigenere_cvt::tell fail after failed seek");
+        VERIFY(obj.tell() == 5);
     };
 
     Crypt::Classic::vigenere_cvt_creator<char> creator("liwei");

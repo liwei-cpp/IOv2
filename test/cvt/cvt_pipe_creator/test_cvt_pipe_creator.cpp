@@ -8,6 +8,7 @@
 #include <device/mem_device.h>
 
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_cvt_pipe_creator_put_1()
 {
@@ -36,7 +37,7 @@ void test_cvt_pipe_creator_put_1()
 
     auto helper = [&i_lit, &e_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -51,11 +52,11 @@ void test_cvt_pipe_creator_put_1()
             buffer_id %= std::size(buffer_size);
             cur_pos += dest_size;
             total_count += dest_size;
-            if (obj.tell() != total_count) throw std::runtime_error("cvt_pipe::tell response incorrect");
+            VERIFY(obj.tell() == total_count);
         }
 
         auto [dev, err] = obj.detach();
-        if (dev.str() != e_lit) throw std::runtime_error("cvt_pipe::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
     
     auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
@@ -91,7 +92,7 @@ void test_cvt_pipe_creator_put_2()
     std::string hash_res;
     auto helper = [&i_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -130,7 +131,7 @@ void test_cvt_pipe_creator_put_2()
 
         auto tmp = creator.create(rb_root_cvt{mem_device("")});
         runtime_cvt obj{std::move(tmp)};
-        if (hash_res != helper(obj)) throw std::runtime_error("cvt_pipe response incorrect");
+        VERIFY(hash_res == helper(obj));
     }
 
     dump_info("Done\n");
@@ -153,7 +154,7 @@ void test_cvt_pipe_creator_put_3()
     std::string hash_res;
     auto helper = [&i_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -192,7 +193,7 @@ void test_cvt_pipe_creator_put_3()
 
         auto tmp = creator.create(rb_root_cvt{mem_device("")});
         runtime_cvt obj{std::move(tmp)};
-        if (hash_res != helper(obj)) throw std::runtime_error("cvt_pipe response incorrect");
+        VERIFY(hash_res == helper(obj));
     }
     
     dump_info("Done\n");
@@ -218,7 +219,7 @@ void test_cvt_pipe_creator_get_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
     
@@ -233,19 +234,19 @@ void test_cvt_pipe_creator_get_1()
             out_buffer_id %= std::size(out_buffer_size);
             cur_pos += s;
             total_count += s;
-            if (obj.tell() != total_count) throw std::runtime_error("cvt_pipe::tell response incorrect");
+            VERIFY(obj.tell() == total_count);
             if (s == 0) break;
         }
     
-        if (cur_pos - out_buf.data() != 4102 / 7 * 3) throw std::runtime_error("cvt_pipe::get response incorrect");
+        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
         out_buf.resize(4102 / 7 * 3);
             
         auto it = out_buf.begin();
         for (size_t i = 0; i < out_buf.size(); i += 3)
         {
-            if (*it++ != U'李') throw std::runtime_error("cvt_pipe::get response incorrect");
-            if (*it++ != U'伟') throw std::runtime_error("cvt_pipe::get response incorrect");
-            if (*it++ != (i / 3) % 127 + 1) throw std::runtime_error("cvt_pipe::get response incorrect");
+            VERIFY(*it++ == U'李');
+            VERIFY(*it++ == U'伟');
+            VERIFY(*it++ == (i / 3) % 127 + 1);
         }
     };
     
@@ -286,7 +287,7 @@ void test_cvt_pipe_creator_io_1()
     auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& p_creator)
     {
         std::string e_lit;
-        if (obj.bos() != io_status::output) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
     
@@ -295,11 +296,11 @@ void test_cvt_pipe_creator_io_1()
         
         T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});
         std::u32string ilit2; ilit2.resize(4102 * 2);
-        if (obj2.bos() != io_status::input) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj2.bos() == io_status::input);
         obj2.main_cont_beg();
         
-        if (obj2.get(ilit2.data(), 4102 * 2) != 4102 / 7 * 3) throw std::runtime_error("cvt_pipe::get response incorrect");
-        if (ilit2.substr(0, 4102 / 7 * 3) != i_lit) throw std::runtime_error("cvt_pipe io response incorrect");
+        VERIFY(obj2.get(ilit2.data(), 4102 * 2) == 4102 / 7 * 3);
+        VERIFY(ilit2.substr(0, 4102 / 7 * 3) == i_lit);
     };
     
     auto obj = creator.create(rb_root_cvt{mem_device("")});
@@ -333,7 +334,7 @@ void test_cvt_pipe_creator_io_2()
     auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& p_creator)
     {
         std::string e_lit;
-        if (obj.bos() != io_status::output) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
     
@@ -342,11 +343,11 @@ void test_cvt_pipe_creator_io_2()
         
         T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});
         std::u32string ilit2; ilit2.resize(4102 * 2);
-        if (obj2.bos() != io_status::input) throw std::runtime_error("cvt_pipe::bos response incorrect");
+        VERIFY(obj2.bos() == io_status::input);
         obj2.main_cont_beg();
         
-        if (obj2.get(ilit2.data(), 4102 * 2) != 4102 / 7 * 3) throw std::runtime_error("cvt_pipe::get response incorrect");
-        if (ilit2.substr(0, 4102 / 7 * 3) != i_lit) throw std::runtime_error("cvt_pipe io response incorrect");
+        VERIFY(obj2.get(ilit2.data(), 4102 * 2) == 4102 / 7 * 3);
+        VERIFY(ilit2.substr(0, 4102 / 7 * 3) == i_lit);
     };
 
     auto obj = creator.create(rb_root_cvt{mem_device("")});
