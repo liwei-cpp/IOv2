@@ -1,4 +1,5 @@
 #pragma once
+#include <common/copyable_mutex.h>
 #include <common/sing_temp.h>
 #include <cvt/code_cvt_stdio.h>
 #include <cvt/root_cvt.h>
@@ -93,7 +94,7 @@ protected:
     istreambuf<device_type, char_type>      m_streambuf;
     abs_ostream*                            m_tie_stream = nullptr;
     locale<char_type>                       m_locale;
-    std::mutex                              m_io_mutex;
+    copyable_mutex                          m_io_mutex;
     bool m_sync_with_stdio = true;
 };
 

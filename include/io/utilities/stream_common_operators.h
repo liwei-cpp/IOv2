@@ -1,5 +1,7 @@
 #pragma once
 
+#include <common/copyable_mutex.h>
+
 #include <exception>
 #include <utility>
 
@@ -125,7 +127,7 @@ struct stream_common_operators
     }
 
     template <typename TSelf>
-    std::mutex& io_mutex(this TSelf& self)
+    copyable_mutex& io_mutex(this TSelf& self)
     {
         return self.m_io_mutex;
     }

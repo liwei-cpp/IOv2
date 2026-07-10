@@ -7,6 +7,7 @@ void test_lru_cache();
 void test_clocale_wrapper();
 void test_clocale_wrapper_exception_paths();
 void test_stamp_input_iterator();
+void test_copyable_mutex();
 
 int main()
 {
@@ -17,6 +18,7 @@ int main()
         test_clocale_wrapper();
         test_clocale_wrapper_exception_paths();
         test_stamp_input_iterator();
+        test_copyable_mutex();
         return 0;
     }
     catch (const std::exception& e)

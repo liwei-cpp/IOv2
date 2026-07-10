@@ -1,4 +1,5 @@
 #pragma once
+#include <common/copyable_mutex.h>
 #include <cvt/cvt_concepts.h>
 #include <device/device_concepts.h>
 #include <io/ostream.h>
@@ -6,7 +7,6 @@
 #include <io/utilities/ostream_operators.h>
 #include <io/utilities/stream_common_operators.h>
 
-#include <mutex>
 #include <type_traits>
 #include <utility>
 
@@ -82,7 +82,7 @@ private:
     streambuf<TDevice, TChar> m_streambuf;
     abs_ostream* m_tie_stream = nullptr;
     locale<char_type> m_locale;
-    std::mutex        m_io_mutex;
+    copyable_mutex    m_io_mutex;
 };
 
 template <io_device TDevice>
