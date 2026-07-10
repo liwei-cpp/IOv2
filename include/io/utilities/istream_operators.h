@@ -1,5 +1,7 @@
 #pragma once
 #include <exception>
+#include <optional>
+
 #include <io/fp_defs/base_fp.h>
 
 namespace IOv2
