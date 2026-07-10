@@ -3,6 +3,7 @@
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_chacha20_cvt_wchar_t_gen_1()
 {
@@ -58,7 +59,7 @@ void test_chacha20_cvt_wchar_t_gen_2()
         Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
         std::string enc_msg;
         {
-            if (obj.bos() != io_status::output) throw std::runtime_error("chacha20::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
     
             size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -83,7 +84,7 @@ void test_chacha20_cvt_wchar_t_gen_2()
     
         {
             T local_obj(creator.create(rb_root_cvt{mem_device(enc_msg)}));
-            if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20::bos response incorrect");
+            VERIFY(local_obj.bos() == io_status::input);
             local_obj.main_cont_beg();
             
             size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -104,9 +105,9 @@ void test_chacha20_cvt_wchar_t_gen_2()
                 local_obj = std::move(obj2);
             }
         
-            if (cur_pos - buf.data() != 4102) throw std::runtime_error("code_cvt<memory<char>>::get response incorrect");
+            VERIFY(cur_pos - buf.data() == 4102);
             buf.resize(4102);
-            if (buf != e_lit) throw std::runtime_error("chacha20 io response incorrect");
+            VERIFY(buf == e_lit);
         }
     };
 
@@ -141,7 +142,7 @@ void test_chacha20_cvt_wchar_t_put_1()
     {
         auto helper = [&e_lit](auto& obj)
         {
-            if (obj.bos() != io_status::output) throw std::runtime_error("chacha20::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
     
             size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -164,7 +165,7 @@ void test_chacha20_cvt_wchar_t_put_1()
         
         std::string r1 = helper(obj1);
         std::string r2 = helper(obj2);
-        if (r1 == r2) throw std::runtime_error("chacha20::put response incorrect");
+        VERIFY(r1 != r2);
     };
 
     Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
@@ -203,7 +204,7 @@ void test_chacha20_cvt_wchar_t_io_1()
         Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
         std::string enc_msg;
         {
-            if (obj.bos() != io_status::output) throw std::runtime_error("chacha20_cvt::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
     
             size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -226,14 +227,14 @@ void test_chacha20_cvt_wchar_t_io_1()
     
         {
             T local_obj(creator.create(rb_root_cvt{mem_device(enc_msg)}));
-            if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20_cvt::bos response incorrect");
+            VERIFY(local_obj.bos() == io_status::input);
             local_obj.main_cont_beg();
             
             std::wstring buf;
             buf.resize(4102 * 2);
-            if (local_obj.get(buf.data(), buf.size()) != 4102) throw std::runtime_error("chacha20_cvt::get response incorrect");
+            VERIFY(local_obj.get(buf.data(), buf.size()) == 4102);
             buf.resize(4102);
-            if (buf != e_lit) throw std::runtime_error("chacha20_cvt io response incorrect");
+            VERIFY(buf == e_lit);
         }
     };
 
@@ -280,7 +281,7 @@ void test_chacha20_cvt_wchar_t_err_1()
             bool threw = false;
             try { dec_obj.get(buf, 1); } // 3 bytes available, needs 4 → EOF mid-element
             catch (const cvt_error&) { threw = true; }
-            if (!threw) throw std::runtime_error("chacha20_cvt wchar_t EOF non-aligned should throw");
+            VERIFY(threw);
         }
     }
 

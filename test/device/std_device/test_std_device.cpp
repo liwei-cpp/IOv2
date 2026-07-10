@@ -58,13 +58,13 @@ void test_std_device_input_1()
     
     char buf[5] = {0};
     iguard g(c_lit);
-    if (obj.dget(buf, 1) != 1 || buf[0] != c_lit[0]) throw std::runtime_error("std_device.dget() fails");
-    if (obj.dget(buf, 1) != 1 || buf[0] != c_lit[1]) throw std::runtime_error("std_device.dget() fails");
+    VERIFY(obj.dget(buf, 1) == 1 && buf[0] == c_lit[0]);
+    VERIFY(obj.dget(buf, 1) == 1 && buf[0] == c_lit[1]);
 
     memset(buf, 'x', 5);
-    if (obj.dget(buf, 5) != 5) throw std::runtime_error("std_device.dget() fails");
-    if (memcmp(buf, c_lit + 2, 5) != 0) throw std::runtime_error("std_device.dget() fails");
-    if (obj.dget(buf, 1) != 1 || buf[0] != c_lit[7]) throw std::runtime_error("std_device.dget() fails");
+    VERIFY(obj.dget(buf, 5) == 5);
+    VERIFY(memcmp(buf, c_lit + 2, 5) == 0);
+    VERIFY(obj.dget(buf, 1) == 1 && buf[0] == c_lit[7]);
 
     dump_info("Done\n");
 }
@@ -78,23 +78,23 @@ void test_std_device_output_1()
     {
         oguard<true> g;
         std_device<STDOUT_FILENO> obj;
-        if (!g.contents().empty()) throw std::runtime_error("test setup fails");
+        VERIFY(g.contents().empty());
         
         obj.dput("a", 1);
         obj.dput("bcdef", 5);
         obj.dflush();
-        if (g.contents() != "abcdef") throw std::runtime_error("std_device::put fails");
+        VERIFY(g.contents() == "abcdef");
     }
     
     {
         oguard<false> g;
         std_device<STDERR_FILENO> obj;
-        if (!g.contents().empty()) throw std::runtime_error("test setup fails");
+        VERIFY(g.contents().empty());
         
         obj.dput("a", 1);
         obj.dput("bcdef", 5);
         obj.dflush();
-        if (g.contents() != "abcdef") throw std::runtime_error("std_device::put fails");
+        VERIFY(g.contents() == "abcdef");
     }
 
     dump_info("Done\n");
@@ -110,25 +110,25 @@ void test_std_device_output_2()
     {
         oguard<true> g;
         std_device<STDOUT_FILENO> obj;
-        if (!g.contents().empty()) throw std::runtime_error("test setup fails");
+        VERIFY(g.contents().empty());
         
         obj.dput("a", 1);
         obj.dflush();
         obj.dput("bcdef", 5);
-        if (g.contents()[0] != 'a') throw std::runtime_error("std_device::put fails");
+        VERIFY(g.contents()[0] == 'a');
         obj.dflush();
-        if (g.contents() != "abcdef") throw std::runtime_error("std_device::put fails");
+        VERIFY(g.contents() == "abcdef");
     }
     
     {
         oguard<false> g;
         std_device<STDERR_FILENO> obj;
-        if (!g.contents().empty()) throw std::runtime_error("test setup fails");
+        VERIFY(g.contents().empty());
         
         obj.dput("a", 1);
         obj.dflush();
         obj.dput("bcdef", 5);
-        if (g.contents() != "abcdef") throw std::runtime_error("std_device::put fails");
+        VERIFY(g.contents() == "abcdef");
     }
 
     dump_info("Done\n");

@@ -61,33 +61,33 @@ void test_root_cvt_mem_gen_2()
 
         {
             auto obj = ori_obj;
-            if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
             decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = obj;
-            if (obj2.device().str() != "hello") throw std::runtime_error("root_cvt<mem_device> copy assignment response incorrect");
+            VERIFY(obj2.device().str() == "hello");
             
             obj.put(" world", 6);
             obj.flush();
-            if (obj.device().str() != "hello world") throw std::runtime_error("root_cvt<mem_device> copy assignment response incorrect");
-            if (obj2.device().str() != "hello") throw std::runtime_error("root_cvt<mem_device> copy assignment response incorrect");
+            VERIFY(obj.device().str() == "hello world");
+            VERIFY(obj2.device().str() == "hello");
         }
 
         {
             auto obj = ori_obj;
-            if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
             auto obj2(std::move(obj));
-            if (obj2.device().str() != "hello") throw std::runtime_error("root_cvt<mem_device> move constructor response incorrect");
+            VERIFY(obj2.device().str() == "hello");
         }
 
         {
             auto obj = ori_obj;
-            if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
             decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = std::move(obj);
-            if (obj2.device().str() != "hello") throw std::runtime_error("root_cvt<mem_device> move assignment response incorrect");
+            VERIFY(obj2.device().str() == "hello");
         }
     };
 
@@ -109,82 +109,82 @@ void test_root_cvt_mem_gen_3()
     {
         {
             auto obj = ori_obj;
-            if (obj.bos() != io_status::input) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+            VERIFY(obj.bos() == io_status::input);
             obj.main_cont_beg();
             std::string str; str.resize(5);
-            if (obj.get(str.data(), 5) != 5) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != "hello") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (obj.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj.get(str.data(), 5) == 5);
+            VERIFY(str == "hello");
+            VERIFY(obj.tell() == 5);
             
             auto obj2(obj);
-            if (obj2.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.tell() == 5);
             str.resize(6);
-            if (obj2.get(str.data(), 6) != 6) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != " world") throw std::runtime_error("root_cvt<mem_device> copy constructor response incorrect");
-            if (obj2.tell() != 11) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.get(str.data(), 6) == 6);
+            VERIFY(str == " world");
+            VERIFY(obj2.tell() == 11);
             
             str = "xxxxxx";
-            if (obj.get(str.data(), 6) != 6) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != " world") throw std::runtime_error("root_cvt<mem_device> copy constructor response incorrect");
-            if (obj.tell() != 11) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj.get(str.data(), 6) == 6);
+            VERIFY(str == " world");
+            VERIFY(obj.tell() == 11);
         }
         
         {
             auto obj = ori_obj;
-            if (obj.bos() != io_status::input) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+            VERIFY(obj.bos() == io_status::input);
             obj.main_cont_beg();
             std::string str; str.resize(5);
-            if (obj.get(str.data(), 5) != 5) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != "hello") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (obj.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj.get(str.data(), 5) == 5);
+            VERIFY(str == "hello");
+            VERIFY(obj.tell() == 5);
             
             decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = obj;
-            if (obj2.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.tell() == 5);
             str.resize(6);
-            if (obj2.get(str.data(), 6) != 6) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != " world") throw std::runtime_error("root_cvt<mem_device> copy assignment response incorrect");
-            if (obj2.tell() != 11) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.get(str.data(), 6) == 6);
+            VERIFY(str == " world");
+            VERIFY(obj2.tell() == 11);
             
             str = "xxxxxx";
-            if (obj.get(str.data(), 6) != 6) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != " world") throw std::runtime_error("root_cvt<mem_device> copy assignment response incorrect");
-            if (obj.tell() != 11) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj.get(str.data(), 6) == 6);
+            VERIFY(str == " world");
+            VERIFY(obj.tell() == 11);
         }
     
         {
             auto obj = ori_obj;
-            if (obj.bos() != io_status::input) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+            VERIFY(obj.bos() == io_status::input);
             obj.main_cont_beg();
             std::string str; str.resize(5);
-            if (obj.get(str.data(), 5) != 5) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != "hello") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (obj.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj.get(str.data(), 5) == 5);
+            VERIFY(str == "hello");
+            VERIFY(obj.tell() == 5);
             
             auto obj2(std::move(obj));
-            if (obj2.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.tell() == 5);
             str.resize(6);
-            if (obj2.get(str.data(), 6) != 6) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != " world") throw std::runtime_error("root_cvt<mem_device> move constructor response incorrect");
-            if (obj2.tell() != 11) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.get(str.data(), 6) == 6);
+            VERIFY(str == " world");
+            VERIFY(obj2.tell() == 11);
         }
     
         {
             auto obj = ori_obj;
-            if (obj.bos() != io_status::input) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+            VERIFY(obj.bos() == io_status::input);
             obj.main_cont_beg();
             std::string str; str.resize(5);
-            if (obj.get(str.data(), 5) != 5) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != "hello") throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (obj.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj.get(str.data(), 5) == 5);
+            VERIFY(str == "hello");
+            VERIFY(obj.tell() == 5);
             
             decltype(obj) obj2{rb_root_cvt{mem_device("")}};
             obj2 = std::move(obj);
-            if (obj2.tell() != 5) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.tell() == 5);
             str.resize(6);
-            if (obj2.get(str.data(), 6) != 6) throw std::runtime_error("root_cvt<std_device>::get response incorrect");
-            if (str != " world") throw std::runtime_error("root_cvt<mem_device> move assignment response incorrect");
-            if (obj2.tell() != 11) throw std::runtime_error("root_cvt<std_device>::tell response incorrect");
+            VERIFY(obj2.get(str.data(), 6) == 6);
+            VERIFY(str == " world");
+            VERIFY(obj2.tell() == 11);
         }
     };
 
@@ -217,7 +217,7 @@ void test_root_cvt_mem_get_1()
     {
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
 
-        if (obj.bos() != io_status::input) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         char out_buf[4102];
         size_t total_count = 0;
@@ -232,10 +232,10 @@ void test_root_cvt_mem_get_1()
             total_count += s;
             if (s == 0) break;
         }
-        if (total_count != 4102) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
-        if (cur_pos != out_buf + 4102) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
+        VERIFY(total_count == 4102);
+        VERIFY(cur_pos == out_buf + 4102);
         for (size_t i = 0; i < 4102; ++i)
-            if (out_buf[i] != e_lit[i]) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
+            VERIFY(out_buf[i] == e_lit[i]);
     };
 
     auto obj1 = rb_root_cvt{mem_device(e_lit)};
@@ -268,7 +268,7 @@ void test_root_cvt_mem_get_nra_1()
     {
         size_t out_buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
 
-        if (obj.bos() != io_status::input) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         char out_buf[4102];
         size_t total_count = 0;
@@ -283,10 +283,10 @@ void test_root_cvt_mem_get_nra_1()
             total_count += s;
             if (s == 0) break;
         }
-        if (total_count != 4102) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
-        if (cur_pos != out_buf + 4102) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
+        VERIFY(total_count == 4102);
+        VERIFY(cur_pos == out_buf + 4102);
         for (size_t i = 0; i < 4102; ++i)
-            if (out_buf[i] != e_lit[i]) throw std::runtime_error("root_cvt<mem_device>::get response incorrect");
+            VERIFY(out_buf[i] == e_lit[i]);
     };
 
     auto obj1 = no_rb_root_cvt{mem_device(e_lit)};
@@ -319,7 +319,7 @@ void test_root_cvt_mem_put_1()
     {
         size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
 
-        if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
         const char* cur_pos = e_lit.data();
         int buffer_id = 0;
@@ -331,11 +331,11 @@ void test_root_cvt_mem_put_1()
             cur_pos += dest_size;
         }
     
-        if (cur_pos != e_lit.data() + 4102) throw std::runtime_error("root_cvt<mem_device>::put response incorrect");
+        VERIFY(cur_pos == e_lit.data() + 4102);
     
         obj.flush();
         const mem_device<char>& dev = obj.device();
-        if (dev.str() != e_lit) throw std::runtime_error("root_cvt<mem_device>::put response incorrect");
+        VERIFY(dev.str() == e_lit);
     };
 
     auto obj1 = rb_root_cvt{mem_device("")};
@@ -354,17 +354,17 @@ void test_root_cvt_mem_seek_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
         obj.seek(3);
-        if (obj.tell() != 3) throw std::runtime_error("root_cvt<mem_device>::tell fail");
+        VERIFY(obj.tell() == 3);
         
         char ch = 0;
-        if ((obj.get(&ch, 1) != 1) || (ch != '4')) throw std::runtime_error("root_cvt<mem_device>::get fail");
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == '4'));
         
         obj.rseek(3);
-        if (obj.tell() != 2) throw std::runtime_error("root_cvt<mem_device>::tell fail");
-        if ((obj.get(&ch, 1) != 1) || (ch != '3')) throw std::runtime_error("root_cvt<mem_device>::get fail");
+        VERIFY(obj.tell() == 2);
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == '3'));
     };
 
     auto obj1 = rb_root_cvt{mem_device("12345")};
@@ -385,9 +385,9 @@ void test_root_cvt_mem_seek_2()
     {
         VERIFY(obj.bos() == io_status::input);
         char c = 0;
-        if ((obj.get(&c, 1) != 1) || (c != '1')) throw std::runtime_error("root_cvt<mem_device>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != '2')) throw std::runtime_error("root_cvt<mem_device>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != '3')) throw std::runtime_error("root_cvt<mem_device>::get_nra fail");
+        VERIFY((obj.get(&c, 1) == 1) && (c == '1'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == '2'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == '3'));
 
         obj.main_cont_beg();
         VERIFY(obj.tell() == 0);
@@ -396,11 +396,11 @@ void test_root_cvt_mem_seek_2()
         VERIFY(obj.tell() == 3);
         
         char ch = 0;
-        if ((obj.get(&ch, 1) != 1) || (ch != 'd')) throw std::runtime_error("root_cvt<mem_device>::get fail");
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'd'));
         
         obj.rseek(3);
-        if (obj.tell() != 4) throw std::runtime_error("root_cvt<mem_device>::tell fail");
-        if ((obj.get(&ch, 1) != 1) || (ch != 'e')) throw std::runtime_error("root_cvt<mem_device>::get fail");
+        VERIFY(obj.tell() == 4);
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'e'));
 
         FAIL_RSEEK(obj, 60);
         VERIFY(obj.tell() == 5);
@@ -425,27 +425,27 @@ void test_root_cvt_mem_reset_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("root_cvt<mem_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
 
         obj.put("hello", 5);
         obj.main_cont_beg();
         obj.put(" world", 6);
-        if (obj.tell() != 6) throw std::runtime_error("root_cvt<mem_device>::tell incorrect");
+        VERIFY(obj.tell() == 6);
 
         auto [ori, ori_err] = obj.detach();
         obj.attach(mem_device(""));
-        if (ori.str() != "hello world") throw std::runtime_error("root_cvt<mem_device>::reset incorrect");
+        VERIFY(ori.str() == "hello world");
         
         obj.bos();
-        if (obj.tell() != 0) throw std::runtime_error("root_cvt<mem_device>::tell incorrect");
+        VERIFY(obj.tell() == 0);
         obj.put("liwei", 5);
         obj.main_cont_beg();
         obj.put(" cpp", 4);
-        if (obj.tell() != 4) throw std::runtime_error("root_cvt<mem_device>::tell incorrect");
+        VERIFY(obj.tell() == 4);
     
         obj.flush();
         const mem_device<char>& new_dev = obj.device();
-        if (new_dev.str() != "liwei cpp") throw std::runtime_error("root_cvt<mem_device>::put incorrect");
+        VERIFY(new_dev.str() == "liwei cpp");
     };
 
     auto obj1 = rb_root_cvt{mem_device("")};
@@ -483,8 +483,8 @@ void test_root_cvt_mem_device_1()
 
         auto [detach2_dev, detach2_err] = obj.detach();
         f1 = std::move(detach2_dev);
-        if (f1.str() != "abcdef") throw std::runtime_error("root_cvt<file_device> output incorrect");
-        if (f2.str() != "123") throw std::runtime_error("root_cvt<file_device> output incorrect");
+        VERIFY(f1.str() == "abcdef");
+        VERIFY(f2.str() == "123");
     };
     {
         auto obj = rb_root_cvt{mem_device("")};

@@ -7,6 +7,7 @@
 
 #include <common/dump_info.h>
 #include <common/stdio_guard.h>
+#include <common/verify.h>
 void test_code_cvt_stdio_char_gen_1()
 {
     using namespace IOv2;
@@ -73,7 +74,7 @@ void test_code_cvt_stdio_char_gen_2()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
 
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -94,15 +95,15 @@ void test_code_cvt_stdio_char_gen_2()
             obj = std::move(obj2);
         }
     
-        if (cur_pos - out_buf.data() != 4102 / 7 * 3) throw std::runtime_error("code_cvt<std_device>::get response incorrect");
+        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
         out_buf.resize(4102 / 7 * 3);
             
         auto it = out_buf.begin();
         for (size_t i = 0; i < out_buf.size(); i += 3)
         {
-            if (*it++ != U'李') throw std::runtime_error("code_cvt<std_device>::get response incorrect");
-            if (*it++ != U'伟') throw std::runtime_error("code_cvt<std_device>::get response incorrect");
-            if (*it++ != (i / 3) % 127 + 1) throw std::runtime_error("code_cvt<std_device>::get response incorrect");
+            VERIFY(*it++ == U'李');
+            VERIFY(*it++ == U'伟');
+            VERIFY(*it++ == (i / 3) % 127 + 1);
         }
     };
 
@@ -147,7 +148,7 @@ void test_code_cvt_stdio_char_gen_3()
 
     auto helper = [&i_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -173,7 +174,7 @@ void test_code_cvt_stdio_char_gen_3()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
     
     {
@@ -181,7 +182,7 @@ void test_code_cvt_stdio_char_gen_3()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     {
@@ -190,7 +191,7 @@ void test_code_cvt_stdio_char_gen_3()
         CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
     
     {
@@ -199,7 +200,7 @@ void test_code_cvt_stdio_char_gen_3()
         CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj{std::move(tmp)};
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     dump_info("Done\n");
@@ -212,7 +213,7 @@ void test_code_cvt_stdio_char_bos_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
     };
 
@@ -238,12 +239,12 @@ void test_code_cvt_stdio_char_bos_2()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         
         char32_t c = 0;
-        if ((obj.get(&c, 1) != 1) || (c != '1')) throw std::runtime_error("code_cvt<std_device>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != '2')) throw std::runtime_error("code_cvt<std_device>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != '3')) throw std::runtime_error("code_cvt<std_device>::get_nra fail");
+        VERIFY((obj.get(&c, 1) == 1) && (c == '1'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == '2'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == '3'));
 
         obj.main_cont_beg();
     };
@@ -275,12 +276,12 @@ void test_code_cvt_stdio_char_bos_3()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         
         char32_t c = 0;
-        if ((obj.get(&c, 1) != 1) || (c != U'李')) throw std::runtime_error("code_cvt<std_device>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != U'd')) throw std::runtime_error("code_cvt<std_device>::get_nra fail");
-        if ((obj.get(&c, 1) != 1) || (c != U'伟')) throw std::runtime_error("code_cvt<std_device>::get_nra fail");
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'李'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'd'));
+        VERIFY((obj.get(&c, 1) == 1) && (c == U'伟'));
 
         obj.main_cont_beg();
     };
@@ -316,7 +317,7 @@ void test_code_cvt_stdio_char_bos_4()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
     };
 
@@ -325,7 +326,7 @@ void test_code_cvt_stdio_char_bos_4()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == "");
     }
     
     {
@@ -333,7 +334,7 @@ void test_code_cvt_stdio_char_bos_4()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == "");
     }
     
     {
@@ -342,7 +343,7 @@ void test_code_cvt_stdio_char_bos_4()
         CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == "");
     }
     
     {
@@ -351,7 +352,7 @@ void test_code_cvt_stdio_char_bos_4()
         CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != "") throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == "");
     }
     dump_info("Done\n");
 }
@@ -368,7 +369,7 @@ void test_code_cvt_stdio_char_bos_5()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         
         char32_t buf[] = U"123";
         obj.put(buf, 3);
@@ -381,7 +382,7 @@ void test_code_cvt_stdio_char_bos_5()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
     
     {
@@ -389,7 +390,7 @@ void test_code_cvt_stdio_char_bos_5()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
 
     {
@@ -398,7 +399,7 @@ void test_code_cvt_stdio_char_bos_5()
         CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
     
     {
@@ -407,7 +408,7 @@ void test_code_cvt_stdio_char_bos_5()
         CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
 
     dump_info("Done\n");
@@ -425,7 +426,7 @@ void test_code_cvt_stdio_char_bos_6()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         char32_t buf[] = U"李d伟";
         obj.put(buf, 3);
         obj.main_cont_beg();
@@ -436,7 +437,7 @@ void test_code_cvt_stdio_char_bos_6()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
     
     {
@@ -444,7 +445,7 @@ void test_code_cvt_stdio_char_bos_6()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
     
     {
@@ -453,7 +454,7 @@ void test_code_cvt_stdio_char_bos_6()
         CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
     
     {
@@ -462,7 +463,7 @@ void test_code_cvt_stdio_char_bos_6()
         CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != info) throw std::runtime_error("code_cvt<std_device>::bos fail");
+        VERIFY(g.contents() == info);
     }
 
     dump_info("Done\n");
@@ -487,7 +488,7 @@ void test_code_cvt_stdio_char_get_1()
 
     auto helper = [](auto& obj)
     {
-        if (obj.bos() != io_status::input) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::input);
         obj.main_cont_beg();
 
         size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -506,15 +507,15 @@ void test_code_cvt_stdio_char_get_1()
             if (s == 0) break;
         }
     
-        if (cur_pos - out_buf.data() != 4102 / 7 * 3) throw std::runtime_error("code_cvt<std_device>::get response incorrect");
+        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
         out_buf.resize(4102 / 7 * 3);
             
         auto it = out_buf.begin();
         for (size_t i = 0; i < out_buf.size(); i += 3)
         {
-            if (*it++ != U'李') throw std::runtime_error("code_cvt<std_device>::get response incorrect");
-            if (*it++ != U'伟') throw std::runtime_error("code_cvt<std_device>::get response incorrect");
-            if (*it++ != (i / 3) % 127 + 1) throw std::runtime_error("code_cvt<std_device>::get response incorrect");
+            VERIFY(*it++ == U'李');
+            VERIFY(*it++ == U'伟');
+            VERIFY(*it++ == (i / 3) % 127 + 1);
         }
     };
 
@@ -560,7 +561,7 @@ void test_code_cvt_stdio_char_put_1()
 
     auto helper = [&i_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -584,7 +585,7 @@ void test_code_cvt_stdio_char_put_1()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
     
     {
@@ -592,7 +593,7 @@ void test_code_cvt_stdio_char_put_1()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     {
@@ -601,7 +602,7 @@ void test_code_cvt_stdio_char_put_1()
         CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
     
     {
@@ -610,7 +611,7 @@ void test_code_cvt_stdio_char_put_1()
         CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     dump_info("Done\n");
@@ -642,7 +643,7 @@ void test_code_cvt_stdio_char_put_2()
 
     auto helper = [&i_lit](auto& obj)
     {
-        if (obj.bos() != io_status::output) throw std::runtime_error("code_cvt<std_device>::bos response incorrect");
+        VERIFY(obj.bos() == io_status::output);
         obj.main_cont_beg();
 
         obj.put(i_lit.data(), i_lit.size());
@@ -654,7 +655,7 @@ void test_code_cvt_stdio_char_put_2()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDOUT_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     {
@@ -662,7 +663,7 @@ void test_code_cvt_stdio_char_put_2()
         using CheckType = code_cvt<rb_root_cvt<std_device<STDERR_FILENO>>, char32_t>;
         CheckType obj(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     {
@@ -671,7 +672,7 @@ void test_code_cvt_stdio_char_put_2()
         CheckType tmp(rb_root_cvt{std_device<STDOUT_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     {
@@ -680,7 +681,7 @@ void test_code_cvt_stdio_char_put_2()
         CheckType tmp(rb_root_cvt{std_device<STDERR_FILENO>{}}, "zh_CN.UTF-8");
         runtime_cvt obj(std::move(tmp));
         helper(obj);
-        if (g.contents() != e_lit) throw std::runtime_error("code_cvt<std_device>::put_bos fail");
+        VERIFY(g.contents() == e_lit);
     }
 
     dump_info("Done\n");
@@ -701,8 +702,7 @@ void test_code_cvt_stdio_adjust_1()
 
     code_cvt_access status;
     obj.retrieve(status);
-    if (status.code != "zh_CN.UTF-8")
-        throw std::runtime_error("test_code_cvt_stdio_adjust_1: locale not updated");
+    VERIFY(status.code == "zh_CN.UTF-8");
 
     dump_info("Done\n");
 }
@@ -720,8 +720,7 @@ void test_code_cvt_stdio_adjust_2()
     using CvtType = code_cvt_stdio<rb_root_cvt<mem_device<char>>>;
     CvtType obj{rb_root_cvt{mem_device(partial)}, "zh_CN.UTF-8"};
 
-    if (obj.bos() != io_status::input)
-        throw std::runtime_error("test_code_cvt_stdio_adjust_2: bos fail");
+    VERIFY(obj.bos() == io_status::input);
     obj.main_cont_beg();
 
     wchar_t buf[4];
@@ -747,8 +746,7 @@ void test_code_cvt_stdio_retrieve_1()
     code_cvt_access status;
     obj.retrieve(status);  // covers lines 238-242
 
-    if (status.code != "zh_CN.UTF-8")
-        throw std::runtime_error("test_code_cvt_stdio_retrieve_1: wrong locale");
+    VERIFY(status.code == "zh_CN.UTF-8");
 
     dump_info("Done\n");
 }
@@ -781,8 +779,7 @@ void test_code_cvt_stdio_creator_1()
 
     code_cvt_access status;
     obj.retrieve(status);
-    if (status.code != "zh_CN.UTF-8")
-        throw std::runtime_error("test_code_cvt_stdio_creator_1: wrong locale");
+    VERIFY(status.code == "zh_CN.UTF-8");
 
     dump_info("Done\n");
 }

@@ -42,25 +42,25 @@ void test_mem_device_char_gen_3()
     dump_info("Test mem_device<char> general 3...");
     {
         IOv2::mem_device<char> obj;
-        if (obj.str() != "") throw std::runtime_error("mem_device<char> input constructor fail");
-        if (obj.dtell() != 0) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(obj.str() == "");
+        VERIFY(obj.dtell() == 0);
 
         obj = IOv2::mem_device{"Hello world"};
-        if (obj.str() != "Hello world") throw std::runtime_error("mem_device<char> input str() fail");
-        if (obj.dtell() != 0) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(obj.str() == "Hello world");
+        VERIFY(obj.dtell() == 0);
     }
     
     {
         std::string ref = "Hello world";
         
         IOv2::mem_device obj(ref);
-        if (obj.str() != ref) throw std::runtime_error("mem_device<char> input constructor fail");
-        if (obj.dtell() != 0) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(obj.str() == ref);
+        VERIFY(obj.dtell() == 0);
 
         ref += "123";
         obj = IOv2::mem_device{ref};
-        if (obj.str() != ref) throw std::runtime_error("mem_device<char> input str() fail");
-        if (obj.dtell() != 0) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(obj.str() == ref);
+        VERIFY(obj.dtell() == 0);
     }
     dump_info("Done\n");
 }
@@ -112,12 +112,12 @@ void test_mem_device_char_in_1()
     VERIFY(obj.dtell() == 1);
     VERIFY(!obj.deof());
 
-    if ((obj.dget(&ch, 1) != 1) || (ch != '2')) throw std::runtime_error("mem_device<char> input get() fail");
-    if (obj.dtell() != 2) throw std::runtime_error("mem_device<char> input tell fail");
+    VERIFY(obj.dget(&ch, 1) == 1 && ch == '2');
+    VERIFY(obj.dtell() == 2);
     VERIFY(obj.deof());
 
-    if (obj.dget(&ch, 1) != 0) throw std::runtime_error("mem_device<char> input get() fail");
-    if (obj.dtell() != 2) throw std::runtime_error("mem_device<char> input tell fail");
+    VERIFY(obj.dget(&ch, 1) == 0);
+    VERIFY(obj.dtell() == 2);
     VERIFY(obj.deof());
     
     dump_info("Done\n");
@@ -130,66 +130,66 @@ void test_mem_device_char_in_2()
         IOv2::mem_device obj("12345");
         char buf[5];
         size_t read_num = obj.dget(buf, 5);
-        if (read_num != 5) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '1') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[1] != '2') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[2] != '3') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[3] != '4') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[4] != '5') throw std::runtime_error("mem_device<char> input get() fail");
-        if (obj.dtell() != 5) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(read_num == 5);
+        VERIFY(buf[0] == '1');
+        VERIFY(buf[1] == '2');
+        VERIFY(buf[2] == '3');
+        VERIFY(buf[3] == '4');
+        VERIFY(buf[4] == '5');
+        VERIFY(obj.dtell() == 5);
     }
     
     {
         IOv2::mem_device obj("12345");
         char buf[5];
         size_t read_num = obj.dget(buf, 3);
-        if (read_num != 3) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '1') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[1] != '2') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[2] != '3') throw std::runtime_error("mem_device<char> input get() fail");
-        if (obj.dtell() != 3) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(read_num == 3);
+        VERIFY(buf[0] == '1');
+        VERIFY(buf[1] == '2');
+        VERIFY(buf[2] == '3');
+        VERIFY(obj.dtell() == 3);
 
         read_num = obj.dget(buf, 2);
-        if (read_num != 2) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '4') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[1] != '5') throw std::runtime_error("mem_device<char> input get() fail");
-        if (obj.dtell() != 5) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(read_num == 2);
+        VERIFY(buf[0] == '4');
+        VERIFY(buf[1] == '5');
+        VERIFY(obj.dtell() == 5);
     }
 
     {
         IOv2::mem_device obj("12345");
         char buf[10];
         size_t read_num = obj.dget(buf, 10);
-        if (read_num != 5) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '1') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[1] != '2') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[2] != '3') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[3] != '4') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[4] != '5') throw std::runtime_error("mem_device<char> input get() fail");
-        if (obj.dtell() != 5) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(read_num == 5);
+        VERIFY(buf[0] == '1');
+        VERIFY(buf[1] == '2');
+        VERIFY(buf[2] == '3');
+        VERIFY(buf[3] == '4');
+        VERIFY(buf[4] == '5');
+        VERIFY(obj.dtell() == 5);
 
         read_num = obj.dget(buf, 10);
-        if (read_num != 0) throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(read_num == 0);
     }
 
     {
         IOv2::mem_device obj("12345");
         char buf[5];
         size_t read_num = obj.dget(buf, 3);
-        if (read_num != 3) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '1') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[1] != '2') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[2] != '3') throw std::runtime_error("mem_device<char> input get() fail");
-        if (obj.dtell() != 3) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(read_num == 3);
+        VERIFY(buf[0] == '1');
+        VERIFY(buf[1] == '2');
+        VERIFY(buf[2] == '3');
+        VERIFY(obj.dtell() == 3);
 
         read_num = obj.dget(buf, 5);
-        if (read_num != 2) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '4') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[1] != '5') throw std::runtime_error("mem_device<char> input get() fail");
-        if (obj.dtell() != 5) throw std::runtime_error("mem_device<char> input tell fail");
+        VERIFY(read_num == 2);
+        VERIFY(buf[0] == '4');
+        VERIFY(buf[1] == '5');
+        VERIFY(obj.dtell() == 5);
 
         read_num = obj.dget(buf, 10);
-        if (read_num != 0) throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(read_num == 0);
     }
     
     dump_info("Done\n");
@@ -204,14 +204,14 @@ void test_mem_device_char_in_3()
         obj.dseek(3);
         char buf[5];
         size_t read_num = obj.dget(buf, 5);
-        if (read_num != 2) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '4') throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[1] != '5') throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(read_num == 2);
+        VERIFY(buf[0] == '4');
+        VERIFY(buf[1] == '5');
       
         obj.dseek(obj.dtell() - 1);
         read_num = obj.dget(buf, 5);
-        if (read_num != 1) throw std::runtime_error("mem_device<char> input get() fail");
-        if (buf[0] != '5') throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(read_num == 1);
+        VERIFY(buf[0] == '5');
     }
     
     {
@@ -220,45 +220,45 @@ void test_mem_device_char_in_3()
         
         obj.dseek(2);
         
-        if ((obj.dget(&ch, 1) != 1) || (ch != '3')) throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(obj.dget(&ch, 1) == 1 && ch == '3');
         
         obj.dseek(1);
-        if ((obj.dget(&ch, 1) != 1) || (ch != '2')) throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(obj.dget(&ch, 1) == 1 && ch == '2');
         
         obj.dseek(obj.dtell() + 2);
-        if ((obj.dget(&ch, 1) != 1) || (ch != '5')) throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(obj.dget(&ch, 1) == 1 && ch == '5');
         
         obj.drseek(3);
-        if ((obj.dget(&ch, 1) != 1) || (ch != '3')) throw std::runtime_error("mem_device<char> input get() fail");
+        VERIFY(obj.dget(&ch, 1) == 1 && ch == '3');
     }
     
     {
         IOv2::mem_device obj("12345");
         FAIL_SEEK(obj, 100);
-        if (obj.dtell() != 0L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 0L);
         
         obj.dseek(3);
 
         FAIL_SEEK(obj, 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_SEEK(obj, 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_SEEK(obj, -100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 3L);
 
         FAIL_SEEK(obj, obj.dtell() + 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_SEEK(obj, obj.dtell() - 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_RSEEK(obj, -100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_RSEEK(obj, 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> input tell() fail");
+        VERIFY(obj.dtell() == 3L);
     }
 
     dump_info("Done\n");
@@ -279,15 +279,15 @@ void test_mem_device_char_out_1()
     VERIFY(!obj.deof());
     obj.dput("x", 1);
     VERIFY(!obj.deof());
-    if (obj.str() != "x2") throw std::runtime_error("mem_device<char> output put() fail");
-    if (obj.dtell() != 1) throw std::runtime_error("mem_device<char> output tell fail");
+    VERIFY(obj.str() == "x2");
+    VERIFY(obj.dtell() == 1);
 
     obj = IOv2::mem_device("");
     VERIFY(obj.deof());
     obj.dput("y", 1);
     VERIFY(obj.deof());
-    if (obj.str() != "y") throw std::runtime_error("mem_device<char> output put() fail");
-    if (obj.dtell() != 1) throw std::runtime_error("mem_device<char> output tell fail");
+    VERIFY(obj.str() == "y");
+    VERIFY(obj.dtell() == 1);
     
     dump_info("Done\n");
 }
@@ -299,18 +299,18 @@ void test_mem_device_char_out_2()
     {
         IOv2::mem_device<char> obj;
         obj.dput("12345", 5);
-        if (obj.str() != "12345") throw std::runtime_error("mem_device<char> output put() fail");
-        if (obj.dtell() != 5) throw std::runtime_error("mem_device<char> output tell fail");
+        VERIFY(obj.str() == "12345");
+        VERIFY(obj.dtell() == 5);
     }
     
     {
         IOv2::mem_device<char> obj;
         obj.dput(nullptr, 0);
-        if (obj.str() != "") throw std::runtime_error("mem_device<char> output put() fail");
-        if (obj.dtell() != 0) throw std::runtime_error("mem_device<char> output tell fail");
+        VERIFY(obj.str() == "");
+        VERIFY(obj.dtell() == 0);
 
         // Test dget edge cases
-        if (obj.dget(nullptr, 0) != 0) throw std::runtime_error("mem_device<char> dget(nullptr, 0) fail");
+        VERIFY(obj.dget(nullptr, 0) == 0);
         
         try {
             obj.dget(nullptr, 1);
@@ -321,25 +321,25 @@ void test_mem_device_char_out_2()
     {
         IOv2::mem_device<char> obj;
         obj.dput("123", 3);
-        if (obj.str() != "123") throw std::runtime_error("mem_device<char> output put() fail");
-        if (obj.dtell() != 3) throw std::runtime_error("mem_device<char> output tell fail");
+        VERIFY(obj.str() == "123");
+        VERIFY(obj.dtell() == 3);
 
         obj.dput("45", 2);
-        if (obj.str() != "12345") throw std::runtime_error("mem_device<char> output put() fail");
-        if (obj.dtell() != 5) throw std::runtime_error("mem_device<char> output tell fail");
+        VERIFY(obj.str() == "12345");
+        VERIFY(obj.dtell() == 5);
     }
 
     {
         IOv2::mem_device<char> obj;
         obj.dput("123", 3);
-        if (obj.str() != "123") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "123");
 
         obj.dput("x", 1);
-        if (obj.str() != "123x") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "123x");
 
         obj.dput("45", 2);
-        if (obj.str() != "123x45") throw std::runtime_error("mem_device<char> output put() fail");
-        if (obj.dtell() != 6) throw std::runtime_error("mem_device<char> output tell fail");
+        VERIFY(obj.str() == "123x45");
+        VERIFY(obj.dtell() == 6);
     }
     
     dump_info("Done\n");
@@ -353,59 +353,59 @@ void test_mem_device_char_out_3()
         IOv2::mem_device obj("12345");
         obj.dseek(3);
         obj.dput("ab", 2);
-        if (obj.str() != "123ab") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "123ab");
       
         obj.dseek(obj.dtell() - 1);
         obj.dput("x", 1);
-        if (obj.str() != "123ax") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "123ax");
     }
     
     {
         IOv2::mem_device obj("12345");
         obj.dseek(2);
         obj.dput("x", 1);
-        if (obj.str() != "12x45") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "12x45");
         
         obj.dseek(1);
         obj.dput("y", 1);
-        if (obj.str() != "1yx45") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "1yx45");
         
         obj.dseek(obj.dtell() + 2);
         obj.dput("z", 1);
-        if (obj.str() != "1yx4z") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "1yx4z");
         
         obj.drseek(3);
         obj.dput("a", 1);
-        if (obj.str() != "1ya4z") throw std::runtime_error("mem_device<char> output put() fail");
+        VERIFY(obj.str() == "1ya4z");
     }
     
     {
         IOv2::mem_device obj("12345"); obj.drseek(0);
         FAIL_SEEK(obj, 100);
-        if (obj.dtell() != 5L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 5L);
         
         obj.dseek(3);
 
         FAIL_SEEK(obj, 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_SEEK(obj, 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_SEEK(obj, -100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 3L);
 
         FAIL_SEEK(obj, obj.dtell() + 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_SEEK(obj, obj.dtell() - 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_RSEEK(obj, -100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         FAIL_RSEEK(obj, 100);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> output tell() fail");
+        VERIFY(obj.dtell() == 3L);
     }
     
     dump_info("Done\n");
@@ -416,38 +416,38 @@ void test_mem_device_char_io_1()
     dump_info("Test mem_device<char> input/output case 1...");
     {
         IOv2::mem_device<char> obj;
-        if (obj.dtell() != 0L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 0L);
         
         obj.dput("123", 3);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         obj.dseek(0);
         char ch;
-        if ((obj.dget(&ch, 1) != 1) || (ch != '1')) throw std::runtime_error("mem_device<char> input get() fail");
-        if (obj.dtell() != 1L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dget(&ch, 1) == 1 && ch == '1');
+        VERIFY(obj.dtell() == 1L);
         
         obj.drseek(0);
         obj.dput("x", 1);
-        if (obj.dtell() != 4L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 4L);
     }
     
     {
         IOv2::mem_device obj("12345");
-        if (obj.dtell() != 0L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 0L);
         
         char buf[5] = {0};
         size_t read_num = obj.dget(buf, 4);
-        if (read_num != 4) throw std::runtime_error("mem_device<char> IO get() fail");
-        if (obj.dtell() != 4L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(read_num == 4);
+        VERIFY(obj.dtell() == 4L);
         
         obj.drseek(0);
         obj.dput("123", 3);
-        if (obj.dtell() != 8L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 8L);
         
         obj.dseek(4);
         read_num = obj.dget(buf, 5);
-        if (read_num != 4) throw std::runtime_error("mem_device<char> IO get() fail");
-        if (obj.dtell() != 8L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(read_num == 4);
+        VERIFY(obj.dtell() == 8L);
     }
 
     dump_info("Done\n");
@@ -458,21 +458,21 @@ void test_mem_device_char_io_2()
     dump_info("Test mem_device<char> input/output case 2...");
     {
         IOv2::mem_device obj("12345");
-        if (obj.dtell() != 0L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 0L);
 
         FAIL_SEEK(obj, 10);
-        if (obj.dtell() != 0L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 0L);
 
         obj.drseek(0);
         obj.dput("abcde", 5);
         obj.dseek(10);
-        if (obj.dtell() != 10L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 10L);
         
         obj.dseek(3);
-        if (obj.dtell() != 3L) throw std::runtime_error("mem_device<char> IO tell() fail");
+        VERIFY(obj.dtell() == 3L);
         
         obj.dput("xxxx", 4);
-        if (obj.str() != "123xxxxcde") throw std::runtime_error("mem_device<char> IO put() fail");
+        VERIFY(obj.str() == "123xxxxcde");
     }
 
     dump_info("Done\n");
@@ -497,10 +497,8 @@ void test_mem_device_char_dput_alias_growth()
         obj.dput(alias_ptr, 8); 
         
         // 4. Verify results
-        if (obj.str() != "OriginalDataOriginal") 
-            throw std::runtime_error("mem_device<char> dput alias growth fail: content mismatch");
-        if (obj.dtell() != 20) 
-            throw std::runtime_error("mem_device<char> dput alias growth fail: position mismatch");
+        VERIFY(obj.str() == "OriginalDataOriginal");
+        VERIFY(obj.dtell() == 20);
     }
     dump_info("Done\n");
 }

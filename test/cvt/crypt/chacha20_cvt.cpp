@@ -60,7 +60,7 @@ void test_chacha20_cvt_gen_2()
     {
         std::string enc_msg;
         {
-            if (obj.bos() != io_status::output) throw std::runtime_error("chacha20::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
     
             size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -85,7 +85,7 @@ void test_chacha20_cvt_gen_2()
     
         {
             T local_obj(Crypt::chacha20_cvt{rb_root_cvt{mem_device(enc_msg)}, "liwei"});
-            if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20::bos response incorrect");
+            VERIFY(local_obj.bos() == io_status::input);
             local_obj.main_cont_beg();
             
             size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -106,9 +106,9 @@ void test_chacha20_cvt_gen_2()
                 local_obj = std::move(obj2);
             }
         
-            if (cur_pos - buf.data() != 4102) throw std::runtime_error("code_cvt<memory<char>>::get response incorrect");
+            VERIFY(cur_pos - buf.data() == 4102);
             buf.resize(4102);
-            if (buf != e_lit) throw std::runtime_error("chacha20 io response incorrect");
+            VERIFY(buf == e_lit);
         }
     };
 
@@ -146,7 +146,7 @@ void test_chacha20_cvt_put_1()
     {
         auto helper = [&e_lit](auto& obj)
         {
-            if (obj.bos() != io_status::output) throw std::runtime_error("chacha20::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
     
             size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -169,7 +169,7 @@ void test_chacha20_cvt_put_1()
         
         std::string r1 = helper(obj1);
         std::string r2 = helper(obj2);
-        if (r1 == r2) throw std::runtime_error("chacha20::put response incorrect");
+        VERIFY(r1 != r2);
     };
 
     using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
@@ -209,7 +209,7 @@ void test_chacha20_cvt_io_1()
     {
         std::string enc_msg;
         {
-            if (obj.bos() != io_status::output) throw std::runtime_error("chacha20_cvt::bos response incorrect");
+            VERIFY(obj.bos() == io_status::output);
             obj.main_cont_beg();
     
             size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
@@ -232,14 +232,14 @@ void test_chacha20_cvt_io_1()
     
         {
             T local_obj(Crypt::chacha20_cvt{rb_root_cvt{mem_device(enc_msg)}, "liwei"});
-            if (local_obj.bos() != io_status::input) throw std::runtime_error("chacha20_cvt::bos response incorrect");
+            VERIFY(local_obj.bos() == io_status::input);
             local_obj.main_cont_beg();
             
             std::string buf;
             buf.resize(4102 * 2);
-            if (local_obj.get(buf.data(), buf.size()) != 4102) throw std::runtime_error("chacha20_cvt::get response incorrect");
+            VERIFY(local_obj.get(buf.data(), buf.size()) == 4102);
             buf.resize(4102);
-            if (buf != e_lit) throw std::runtime_error("chacha20_cvt io response incorrect");
+            VERIFY(buf == e_lit);
         }
     };
 
@@ -280,7 +280,7 @@ void test_chacha20_cvt_key_1()
         std::string dec_msg;
         dec_msg.resize(msg.size());
         obj.get(dec_msg.data(), dec_msg.size());
-        if (dec_msg != msg) throw std::runtime_error("chacha20 decryption with correct key failed");
+        VERIFY(dec_msg == msg);
     }
 
     {
@@ -290,7 +290,7 @@ void test_chacha20_cvt_key_1()
         std::string dec_msg;
         dec_msg.resize(msg.size());
         obj.get(dec_msg.data(), dec_msg.size());
-        if (dec_msg == msg) throw std::runtime_error("chacha20 decryption with WRONG key succeeded (unexpectedly)");
+        VERIFY(dec_msg != msg);
     }
 
     dump_info("Done\n");
