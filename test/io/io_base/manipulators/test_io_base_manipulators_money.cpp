@@ -9,6 +9,7 @@
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_io_base_manipulators_put_money_char_1()
 {
@@ -18,9 +19,9 @@ void test_io_base_manipulators_put_money_char_1()
     
     const std::string str("720000000000");
     oss << IOv2::put_money(str);
-    if (!oss.good()) throw std::runtime_error("ios_base<char> put_money check fail");
+    VERIFY(oss.good());
     auto [dev1, err1] = oss.detach();
-    if (dev1.str() != "7.200.000.000,00 ") throw std::runtime_error("ios_base<char> put_money check fail");
+    VERIFY(dev1.str() == "7.200.000.000,00 ");
 
     dump_info("Done\n");
 }
@@ -35,9 +36,9 @@ void test_io_base_manipulators_put_money_char_2()
     oss.setstate(IOv2::ios_defs::cvtfailbit);
 
     oss << IOv2::put_money(str);
-    if (!oss.cvt_fail()) throw std::runtime_error("ios_base<char> put_money check fail");
+    VERIFY(oss.cvt_fail());
     auto [dev2, err2] = oss.detach();
-    if (!dev2.str().empty()) throw std::runtime_error("ios_base<char> put_money check fail");
+    VERIFY(dev2.str().empty());
 
     dump_info("Done\n");
 }
@@ -50,9 +51,9 @@ void test_io_base_manipulators_put_money_wchar_t_1()
     
     const std::wstring str(L"720000000000");
     oss << IOv2::put_money(str);
-    if (!oss.good()) throw std::runtime_error("ios_base<wchar_t> put_money check fail");
+    VERIFY(oss.good());
     auto [dev3, err3] = oss.detach();
-    if (dev3.str() != L"7.200.000.000,00 ") throw std::runtime_error("ios_base<wchar_t> put_money check fail");
+    VERIFY(dev3.str() == L"7.200.000.000,00 ");
 
     dump_info("Done\n");
 }
@@ -67,9 +68,9 @@ void test_io_base_manipulators_put_money_wchar_t_2()
     oss.setstate(IOv2::ios_defs::cvtfailbit);
 
     oss << IOv2::put_money(str);
-    if (!oss.cvt_fail()) throw std::runtime_error("ios_base<wchar_t> put_money check fail");
+    VERIFY(oss.cvt_fail());
     auto [dev4, err4] = oss.detach();
-    if (!dev4.str().empty()) throw std::runtime_error("ios_base<wchar_t> put_money check fail");
+    VERIFY(dev4.str().empty());
 
     dump_info("Done\n");
 }

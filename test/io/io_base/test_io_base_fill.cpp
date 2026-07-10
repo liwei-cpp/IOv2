@@ -6,6 +6,7 @@
 #include <io/io_base.h>
 #include <io/ostream.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 namespace
 {
@@ -30,10 +31,10 @@ void test_io_base_char_fill_1()
         out.locale(loc);
         
         // Imbuing a new locale doesn't affect fill().
-        if (out.fill() != ' ') throw std::runtime_error("ios_base fill check fail");
+        VERIFY(out.fill() == ' ');
         out.fill('*');
         out.locale(IOv2::locale<char>{});
-        if (out.fill() != '*') throw std::runtime_error("ios_base fill check fail");
+        VERIFY(out.fill() == '*');
     }
 
     dump_info("Done\n");
@@ -48,10 +49,10 @@ void test_io_base_wchar_t_fill_1()
         out.locale(loc);
         
         // Imbuing a new locale doesn't affect fill().
-        if (out.fill() != L' ') throw std::runtime_error("ios_base fill check fail");
+        VERIFY(out.fill() == L' ');
         out.fill(L'*');
         out.locale(IOv2::locale<wchar_t>{});
-        if (out.fill() != L'*') throw std::runtime_error("ios_base fill check fail");
+        VERIFY(out.fill() == L'*');
     }
 
     dump_info("Done\n");

@@ -1,13 +1,13 @@
 #include <io/io_base.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_io_state_and_exp_1()
 {
     dump_info("Test io_state_and_exp case 1...");
     {
         IOv2::io_state_and_exp ios_01;
-        if (ios_01.exceptions() != IOv2::ios_defs::goodbit)
-            throw std::runtime_error("io_state_and_exp exceptions check fail");
+        VERIFY(ios_01.exceptions() == IOv2::ios_defs::goodbit);
     }
     {
         IOv2::io_state_and_exp ios_01;
@@ -21,8 +21,7 @@ void test_io_state_and_exp_1()
             std::abort();
         }
         auto iostate02 = ios_01.exceptions();
-        if (iostate02 != IOv2::ios_defs::cvtfailbit)
-            throw std::runtime_error("io_state_and_exp exceptions check fail");
+        VERIFY(iostate02 == IOv2::ios_defs::cvtfailbit);
     }
     {
         IOv2::ios_defs::iostate iostate02 = IOv2::ios_defs::goodbit;
@@ -43,8 +42,7 @@ void test_io_state_and_exp_1()
             dump_info("Unreachable code\n");
             std::abort();
         }
-        if (iostate02 != IOv2::ios_defs::cvtfailbit)
-            throw std::runtime_error("io_state_and_exp exceptions check fail");
+        VERIFY(iostate02 == IOv2::ios_defs::cvtfailbit);
     }
     dump_info("Done\n");
 }
@@ -109,10 +107,8 @@ void test_io_state_and_exp_handle_exception_eof_1()
             std::abort();
         }
 
-        if (!threw)
-            throw std::runtime_error("io_state_and_exp handle_exception eof check fail");
-        if (!stream.eof())
-            throw std::runtime_error("io_state_and_exp handle_exception eof check fail");
+        VERIFY(threw);
+        VERIFY(stream.eof());
     }
 
     // Without exceptions(eofbit) enabled, the state bit is still set but no
@@ -130,8 +126,7 @@ void test_io_state_and_exp_handle_exception_eof_1()
             std::abort();
         }
 
-        if (!stream.eof())
-            throw std::runtime_error("io_state_and_exp handle_exception eof check fail");
+        VERIFY(stream.eof());
     }
 
     dump_info("Done\n");

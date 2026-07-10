@@ -5,6 +5,7 @@
 #include <type_traits>
 
 #include <common/dump_info.h>
+#include <common/verify.h>
 namespace
 {
     constexpr auto charLen = 256;
@@ -28,37 +29,27 @@ void test_ctype_facet_char8_t_1()
     {
         if (i < 128)
         {
-            if (obj.is(i) != mask_ref[i])
-                throw std::runtime_error("ctype::is result error.");
+            VERIFY(obj.is(i) == mask_ref[i]);
 
-            if (obj.toupper(i) != ref.toupper(static_cast<char>(i)))
-                throw std::runtime_error("ctype::toupper result error.");
-            
-            if (obj.tolower(i) != ref.tolower(static_cast<char>(i)))
-                throw std::runtime_error("ctype::tolower result error.");
-                
-            if (obj.widen(i) != ref.widen(static_cast<char>(i)))
-                throw std::runtime_error("ctype::widen result error.");
-                
-            if (obj.narrow(i, 0) != ref.narrow(static_cast<char>(i), 0))
-                throw std::runtime_error("ctype::narrow result error.");
+            VERIFY(obj.toupper(i) == ref.toupper(static_cast<char>(i)));
+
+            VERIFY(obj.tolower(i) == ref.tolower(static_cast<char>(i)));
+
+            VERIFY(obj.widen(i) == ref.widen(static_cast<char>(i)));
+
+            VERIFY(obj.narrow(i, 0) == ref.narrow(static_cast<char>(i), 0));
         }
         else
         {
-            if (obj.is(i) != 0)
-                throw std::runtime_error("ctype::is result error.");
+            VERIFY(obj.is(i) == 0);
 
-            if (obj.toupper(i) != i)
-                throw std::runtime_error("ctype::toupper result error.");
+            VERIFY(obj.toupper(i) == i);
 
-            if (obj.tolower(i) != i)
-                throw std::runtime_error("ctype::tolower result error.");
-                
-            if (obj.widen(i) != i)
-                throw std::runtime_error("ctype::widen result error.");
-                
-            if (obj.narrow(i, 0) != 0)
-                throw std::runtime_error("ctype::narrow result error.");
+            VERIFY(obj.tolower(i) == i);
+
+            VERIFY(obj.widen(i) == i);
+
+            VERIFY(obj.narrow(i, 0) == 0);
         }
     }
 
@@ -75,51 +66,40 @@ void test_ctype_facet_char8_t_2()
     
     IOv2::base_ft<IOv2::ctype>::mask mask_res[charLen];
     auto mask_ptr = obj.is_seq(chs, chs + charLen, mask_res);
-    if (mask_ptr != mask_res + charLen)
-        throw std::runtime_error("ctype<char8_t>::is_seq fail, result number mismatch.");
+    VERIFY(mask_ptr == mask_res + charLen);
     for (int i = 0; i < charLen; ++i)
-        if (obj.is(static_cast<char8_t>(i)) != mask_res[i])
-            throw std::runtime_error("ctype<char8_t>::is_seq fail, incorrect result");
-            
+        VERIFY(obj.is(static_cast<char8_t>(i)) == mask_res[i]);
+
     char8_t uchs[charLen];
     auto uchs_ptr = obj.toupper_seq(chs, chs + charLen, uchs);
-    if (uchs_ptr != uchs + charLen)
-        throw std::runtime_error("ctype<char8_t>::toupper_seq fail, result number mismatch.");
+    VERIFY(uchs_ptr == uchs + charLen);
     for (int i = 0; i < charLen; ++i)
-        if (obj.toupper(static_cast<char8_t>(i)) != uchs[i])
-            throw std::runtime_error("ctype<char8_t>::toupper_seq fail, incorrect result");
-            
+        VERIFY(obj.toupper(static_cast<char8_t>(i)) == uchs[i]);
+
     char8_t lchs[charLen];
     auto lchs_ptr = obj.tolower_seq(chs, chs + charLen, lchs);
-    if (lchs_ptr != lchs + charLen)
-        throw std::runtime_error("ctype<char8_t>::tolower_seq fail, result number mismatch.");
+    VERIFY(lchs_ptr == lchs + charLen);
     for (int i = 0; i < charLen; ++i)
-        if (obj.tolower(static_cast<char8_t>(i)) != lchs[i])
-            throw std::runtime_error("ctype<char8_t>::tolower_seq fail, incorrect result");
-            
+        VERIFY(obj.tolower(static_cast<char8_t>(i)) == lchs[i]);
+
     char8_t wchs[charLen];
     auto wchs_ptr = obj.widen_seq(chs, chs + charLen, wchs);
-    if (wchs_ptr != wchs + charLen)
-        throw std::runtime_error("ctype<char8_t>::widen_seq fail, result number mismatch.");
+    VERIFY(wchs_ptr == wchs + charLen);
     for (int i = 0; i < charLen; ++i)
-        if (obj.widen(static_cast<char8_t>(i)) != wchs[i])
-            throw std::runtime_error("ctype<char8_t>::widen_seq fail, incorrect result");
+        VERIFY(obj.widen(static_cast<char8_t>(i)) == wchs[i]);
 
     char8_t nchs[charLen];
     auto nchs_ptr = obj.narrow_seq(chs, chs + charLen, 0, nchs);
-    if (nchs_ptr != nchs + charLen)
-        throw std::runtime_error("ctype<char8_t>::narrow_seq fail, result number mismatch.");
+    VERIFY(nchs_ptr == nchs + charLen);
     for (int i = 0; i < charLen; ++i)
     {
         if (i < 128)
         {
-            if (obj.widen(static_cast<char8_t>(i)) != nchs[i])
-                throw std::runtime_error("ctype<char8_t>::narrow_seq fail, incorrect result");
+            VERIFY(obj.widen(static_cast<char8_t>(i)) == nchs[i]);
         }
         else
         {
-            if (0 != nchs[i])
-                throw std::runtime_error("ctype<char8_t>::narrow_seq fail, incorrect result");
+            VERIFY(0 == nchs[i]);
         }
     }
     dump_info("Done\n");
@@ -144,14 +124,14 @@ void test_ctype_facet_char8_t_3()
 
     auto _is = [&obj](IOv2::base_ft<IOv2::ctype>::mask m, const char8_t *const b, const char8_t *const e)
     {
-        if (obj.scan_is_any(m, b, e) != b) throw std::runtime_error("scan_is_any fail.");
-        if (obj.scan_not_any(m, b, e) != e) throw std::runtime_error("scan_not_any fail.");
+        VERIFY(obj.scan_is_any(m, b, e) == b);
+        VERIFY(obj.scan_not_any(m, b, e) == e);
     };
     
     auto _not = [&obj](IOv2::base_ft<IOv2::ctype>::mask m, const char8_t *const b, const char8_t *const e)
     {
-        if (obj.scan_is_any(m, b, e) != e) throw std::runtime_error("scan_is_any fail.");
-        if (obj.scan_not_any(m, b, e) != b) throw std::runtime_error("scan_not_any fail.");
+        VERIFY(obj.scan_is_any(m, b, e) == e);
+        VERIFY(obj.scan_not_any(m, b, e) == b);
     };
     
     // 'a'
