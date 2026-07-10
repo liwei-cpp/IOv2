@@ -2,6 +2,7 @@
 #include <device/mem_device.h>
 #include <io/streambuf_iterator.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_istreambuf_iterator_gen_1()
 {
@@ -47,23 +48,23 @@ void test_istreambuf_iterator_gen_2()
         TStreamBuf sb(sb_ori);
         istreambuf_iterator istrb_it01(sb);
         decltype(istrb_it01) istrb_eos;
-        if (istrb_it01 == istrb_eos) throw std::runtime_error("istreambuf_iterator ctor sanity check fail");
-    
+        VERIFY(istrb_it01 != istrb_eos);
+
         std::string tmp(istrb_it01, istrb_eos);
-        if (tmp != str01) throw std::runtime_error("istreambuf_iterator ctor sanity check fail");
-        if (istrb_it01 != istrb_eos) throw std::runtime_error("istreambuf_iterator ctor sanity check fail");
-    
+        VERIFY(tmp == str01);
+        VERIFY(istrb_it01 == istrb_eos);
+
         // equality
         decltype(istrb_it01) istrb_it07;
         decltype(istrb_it01) istrb_it08;
-        if (istrb_it07 != istrb_it08) throw std::runtime_error("istreambuf_iterator equality check fail");
+        VERIFY(istrb_it07 == istrb_it08);
 
         TStreamBuf sb2(sb_ori);
         decltype(istrb_it01) istrb_it21(sb2);
         decltype(istrb_it01) istrb_it22(sb2);
-        if (istrb_it21 != istrb_it22) throw std::runtime_error("istreambuf_iterator equality check fail");
-    
-        if (istrb_it07 == istrb_it22) throw std::runtime_error("istreambuf_iterator equality check fail");
+        VERIFY(istrb_it21 == istrb_it22);
+
+        VERIFY(istrb_it07 != istrb_it22);
     
         // charT operator*() const
         // istreambuf_iterator& operator++();
@@ -73,22 +74,22 @@ void test_istreambuf_iterator_gen_2()
         for (std::size_t i = 0; i < str01.size() - 2; ++i)
         {
             c = *istrb_it27++;
-            if (c != str01[i]) throw std::runtime_error("istreambuf_iterator operator* check fail");
+            VERIFY(c == str01[i]);
         }
-        
-        if (sb2.sbumpc() != str01[str01.size() - 2]) throw std::runtime_error("istreambuf_iterator operator* check fail");
-        if (sb2.sbumpc() != str01[str01.size() - 1]) throw std::runtime_error("istreambuf_iterator operator* check fail");
+
+        VERIFY(sb2.sbumpc() == str01[str01.size() - 2]);
+        VERIFY(sb2.sbumpc() == str01[str01.size() - 1]);
 
         TStreamBuf sb3(sb_ori);
         istreambuf_iterator istrb_it28(sb3);
         for (std::size_t i = 0; i < str01.size() - 2;)
         {
             c = *++istrb_it28;
-            if (c != str01[++i]) throw std::runtime_error("istreambuf_iterator operator* check fail");
+            VERIFY(c == str01[++i]);
         }
-    
-        if (sb3.sbumpc() != str01[str01.size() - 2]) throw std::runtime_error("istreambuf_iterator operator* check fail");
-        if (sb3.sbumpc() != str01[str01.size() - 1]) throw std::runtime_error("istreambuf_iterator operator* check fail");
+
+        VERIFY(sb3.sbumpc() == str01[str01.size() - 2]);
+        VERIFY(sb3.sbumpc() == str01[str01.size() - 1]);
     };
 
     streambuf sb(mem_device{str01});
@@ -134,8 +135,8 @@ void test_istreambuf_iterator_get_1()
         isbufit03++;
     }
     
-    if (res_postfix != res_prefix) throw std::runtime_error("istreambuf_iterator get check fail");
-    if (res_mixed != res_prefix)   throw std::runtime_error("istreambuf_iterator get check fail");
+    VERIFY(res_postfix == res_prefix);
+    VERIFY(res_mixed == res_prefix);
 
     dump_info("Done\n");
 }
@@ -149,8 +150,8 @@ void test_istreambuf_iterator_sentinel_1()
                                     istreambuf_iterator<streambuf<mem_device<char>, char>>>);
 
     istreambuf_iterator<streambuf<mem_device<char>, char>> i = std::default_sentinel;
-    if (i != std::default_sentinel) throw std::runtime_error("istreambuf_iterator sentinel check fail");
-    if (std::default_sentinel != i) throw std::runtime_error("istreambuf_iterator sentinel check fail");
+    VERIFY(i == std::default_sentinel);
+    VERIFY(std::default_sentinel == i);
 
     dump_info("Done\n");
 }
@@ -163,23 +164,23 @@ void test_istreambuf_iterator_sentinel_2()
     {
         streambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
-        if (iter == std::default_sentinel) throw std::runtime_error("istreambuf_iterator sentinel check fail");
-        if (std::default_sentinel == iter) throw std::runtime_error("istreambuf_iterator sentinel check fail");
+        VERIFY(iter != std::default_sentinel);
+        VERIFY(std::default_sentinel != iter);
 
         (void)std::next(iter, 3);
-        if (iter != std::default_sentinel) throw std::runtime_error("istreambuf_iterator sentinel check fail");
-        if (std::default_sentinel != iter) throw std::runtime_error("istreambuf_iterator sentinel check fail");
+        VERIFY(iter == std::default_sentinel);
+        VERIFY(std::default_sentinel == iter);
     }
 
     {
         istreambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
-        if (iter == std::default_sentinel) throw std::runtime_error("istreambuf_iterator sentinel check fail");
-        if (std::default_sentinel == iter) throw std::runtime_error("istreambuf_iterator sentinel check fail");
+        VERIFY(iter != std::default_sentinel);
+        VERIFY(std::default_sentinel != iter);
 
         (void)std::next(iter, 3);
-        if (iter != std::default_sentinel) throw std::runtime_error("istreambuf_iterator sentinel check fail");
-        if (std::default_sentinel != iter) throw std::runtime_error("istreambuf_iterator sentinel check fail");
+        VERIFY(iter == std::default_sentinel);
+        VERIFY(std::default_sentinel == iter);
     }
     dump_info("Done\n");
 }
@@ -201,11 +202,11 @@ void test_istreambuf_iterator_chain_increment_1()
         {
             istreambuf_iterator it(sb);
             auto old1 = it++;
-            if (*old1 != 'a') throw std::runtime_error("istreambuf_iterator chain check fail");
+            VERIFY(*old1 == 'a');
 
             ++old1;
-            if (*it != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
-            if (*old1 != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
+            VERIFY(*it == 'b');
+            VERIFY(*old1 == 'b');
         }
     };
 
@@ -215,12 +216,12 @@ void test_istreambuf_iterator_chain_increment_1()
         {
             istreambuf_iterator it(sb);
             auto old1 = it++;
-            if (*old1 != 'a') throw std::runtime_error("istreambuf_iterator chain check fail");
+            VERIFY(*old1 == 'a');
 
             auto old2 = old1++;
-            if (*old2 != 'a') throw std::runtime_error("istreambuf_iterator chain check fail");
-            if (*old1 != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
-            if (*it != 'b') throw std::runtime_error("istreambuf_iterator chain check fail");
+            VERIFY(*old2 == 'a');
+            VERIFY(*old1 == 'b');
+            VERIFY(*it == 'b');
         }
     };
 
@@ -253,20 +254,20 @@ void test_istreambuf_iterator_putback_1()
         streambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
         ++iter;
-        if (*iter != 'b') throw std::runtime_error("istreambuf_iterator output check fail");
+        VERIFY(*iter == 'b');
         iter.sputbackc('x');
-        if (*iter++ != 'x') throw std::runtime_error("istreambuf_iterator output check fail");
-        if (*iter++ != 'b') throw std::runtime_error("istreambuf_iterator output check fail");
+        VERIFY(*iter++ == 'x');
+        VERIFY(*iter++ == 'b');
     }
 
     {
         istreambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
         ++iter;
-        if (*iter != 'b') throw std::runtime_error("istreambuf_iterator output check fail");
+        VERIFY(*iter == 'b');
         iter.sputbackc('x');
-        if (*iter++ != 'x') throw std::runtime_error("istreambuf_iterator output check fail");
-        if (*iter++ != 'b') throw std::runtime_error("istreambuf_iterator output check fail");
+        VERIFY(*iter++ == 'x');
+        VERIFY(*iter++ == 'b');
     }
     dump_info("Done\n");
 }

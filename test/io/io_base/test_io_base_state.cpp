@@ -4,6 +4,7 @@
 #include <io/fp_defs/arithmetic.h>
 #include <io/ostream.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_io_base_boolalpha_1()
 {
@@ -19,13 +20,13 @@ void test_io_base_boolalpha_1()
     ostr01 << true;
     auto [dev1, err1] = ostr01.detach();
     std::string str02 = dev1.str();
-    if (str02 != strue) throw std::runtime_error("ios_base::boolalpha check fail");
+    VERIFY(str02 == strue);
 
     ostr01.attach(IOv2::mem_device{""});
     ostr01 << false;
     auto [dev2, err2] = ostr01.detach();
     str02 = dev2.str();
-    if (str02 != sfalse) throw std::runtime_error("ios_base::boolalpha check fail");
+    VERIFY(str02 == sfalse);
 
     dump_info("Done\n");
 }

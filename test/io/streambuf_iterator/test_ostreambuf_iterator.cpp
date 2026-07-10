@@ -2,6 +2,7 @@
 #include <device/mem_device.h>
 #include <io/streambuf_iterator.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_ostreambuf_iterator_gen_1()
 {
@@ -63,8 +64,8 @@ void test_ostreambuf_iterator_put_1()
             ostrb_it27 = str02[i];
         auto [dev1, err1] = strbuf01.detach();
         auto tmp = dev1.str();
-        if (tmp == str01) throw std::runtime_error("ostreambuf_iterator put check fail");
-        if (tmp != 'a' + str02) throw std::runtime_error("ostreambuf_iterator put check fail");
+        VERIFY(tmp != str01);
+        VERIFY(tmp == 'a' + str02);
 
         T strbuf02 = sb_ori;
         ostreambuf_iterator ostrb_it28(strbuf02);
@@ -73,8 +74,8 @@ void test_ostreambuf_iterator_put_1()
             ostrb_it28 = 'b';
         auto [dev2, err2] = strbuf01.detach();
         tmp = dev2.str();
-        if (tmp == str01) throw std::runtime_error("ostreambuf_iterator put check fail");
-        if (tmp == str02) throw std::runtime_error("ostreambuf_iterator put check fail");
+        VERIFY(tmp != str01);
+        VERIFY(tmp != str02);
     };
     
     streambuf sb{mem_device{""}};

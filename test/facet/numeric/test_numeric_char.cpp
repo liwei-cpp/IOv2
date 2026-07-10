@@ -72,26 +72,17 @@ void test_numeric_char_common_1()
     IOv2::numeric<char> nump_de(std::make_shared<IOv2::numeric_conf<char>>("de_DE.UTF-8"),
                                 s_ctype_de_utf8);
 
-    if (nump_c.decimal_point() == nump_de.decimal_point())
-        throw std::runtime_error("numeric<char>::decimal_point incorrect");
-    if (nump_c.thousands_sep() == nump_de.thousands_sep())
-        throw std::runtime_error("numeric<char>::thousands_sep incorrect");
-    if (nump_c.grouping() == nump_de.grouping())
-        throw std::runtime_error("numeric<char>::grouping incorrect");
-        
-    if (nump_c.truename().empty())
-        throw std::runtime_error("numeric<char>::truename incorrect");
-    if (nump_de.truename().empty())
-        throw std::runtime_error("numeric<char>::truename incorrect");
-    if (nump_c.truename() == nump_de.truename())
-        throw std::runtime_error("numeric<char>::truename incorrect");
+    VERIFY(nump_c.decimal_point() != nump_de.decimal_point());
+    VERIFY(nump_c.thousands_sep() != nump_de.thousands_sep());
+    VERIFY(nump_c.grouping() != nump_de.grouping());
 
-    if (nump_c.falsename().empty())
-        throw std::runtime_error("numeric<char>::falsename incorrect");
-    if (nump_de.falsename().empty())
-        throw std::runtime_error("numeric<char>::falsename incorrect");
-    if (nump_c.falsename() == nump_de.falsename())
-        throw std::runtime_error("numeric<char>::falsename incorrect");
+    VERIFY(!(nump_c.truename().empty()));
+    VERIFY(!(nump_de.truename().empty()));
+    VERIFY(nump_c.truename() != nump_de.truename());
+
+    VERIFY(!(nump_c.falsename().empty()));
+    VERIFY(!(nump_de.falsename().empty()));
+    VERIFY(nump_c.falsename() != nump_de.falsename());
     dump_info("Done\n");
 }
 
@@ -118,38 +109,38 @@ void test_numeric_char_put_1()
         
         // bool, simple
         obj.put(std::back_inserter(oss), ios, b1);
-        if (oss != "1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1");
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, b0);
-        if (oss != "0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "0");
         
         // ... and one that does
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, ul1);
-        if (oss != "1.294.967.294+++++++") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1.294.967.294+++++++");
         
         // double
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, d1);
-        if (oss != "1,79769e+308++++++++") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1,79769e+308++++++++");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, d2);
-        if (oss != "++++++++2,22507e-308") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "++++++++2,22507e-308");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, d2);
-        if (oss != "+++++++2,225074e-308") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "+++++++2,225074e-308");
     
         oss.clear();
         ios.width(20);
@@ -158,30 +149,30 @@ void test_numeric_char_put_1()
         ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
         ios.setf(IOv2::ios_defs::uppercase);
         obj.put(std::back_inserter(oss), ios, d2);
-        if (oss != "+++2,2250738585E-308") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "+++2,2250738585E-308");
         
         // long double
         oss.clear();
         obj.put(std::back_inserter(oss), ios, ld1);
-        if (oss != "1,7976931349E+308") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1,7976931349E+308");
         
         oss.clear();
         ios.precision(0);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, ld2);
-        if (oss != "0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "0");
         
         // const void*
         oss.clear();
         obj.put(std::back_inserter(oss), ios, cv);
-        if (oss.find(obj.decimal_point()) != std::string::npos) throw std::runtime_error("IOv2::numeric<char>::put fails");
-        if (oss.find('x') != 1) throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss.find(obj.decimal_point()) == std::string::npos);
+        VERIFY(oss.find('x') == 1);
         
         long long ll1 = 9223372036854775807LL;
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, ll1);
-        if (oss != "9.223.372.036.854.775.807") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "9.223.372.036.854.775.807");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("de_DE.ISO-8859-1"),
@@ -213,25 +204,25 @@ void test_numeric_char_put_2()
         ios.width(20);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, b0);
-        if (oss != "+++++++++++++++++++0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "+++++++++++++++++++0");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         ios.setf(IOv2::ios_defs::boolalpha);
         obj.put(std::back_inserter(oss), ios, b1);
-        if (oss != "true++++++++++++++++") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "true++++++++++++++++");
         
         // unsigned long, in a locale that does not group
         oss.clear();
         obj.put(std::back_inserter(oss), ios, ul1);
-        if (oss != "1294967294") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1294967294");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, ul2);
-        if (oss != "0+++++++++++++++++++") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "0+++++++++++++++++++");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -258,13 +249,13 @@ void test_numeric_char_put_3()
         // long, in a locale that expects grouping
         oss.clear();
         obj.put(std::back_inserter(oss), ios, l1);
-        if (oss != "2,147,483,647") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "2,147,483,647");
 
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, l2);
-        if (oss != "-2,147,483,647++++++") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "-2,147,483,647++++++");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("en_HK.UTF-8"),
@@ -289,32 +280,32 @@ void test_numeric_char_put_4()
         res = x;
         auto ret1 = obj.put(res.begin(), ios, l);
         std::string sanity1(res.begin(), ret1);
-        if (res != "1798xxxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char>::put fails");
-        if (sanity1 != "1798") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(res == "1798xxxxxxxxxxxxxx");
+        VERIFY(sanity1 == "1798");
         
         // 02 put(long double)
         const long double ld = 1798.0;
         res = x;
         auto ret2 = obj.put(res.begin(), ios, ld);
         std::string sanity2(res.begin(), ret2);
-        if (res != "1798xxxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char>::put fails");
-        if (sanity2 != "1798") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(res == "1798xxxxxxxxxxxxxx");
+        VERIFY(sanity2 == "1798");
         
         // 03 put(bool)
         bool b = 1;
         res = x;
         auto ret3 = obj.put(res.begin(), ios, b);
         std::string sanity3(res.begin(), ret3);
-        if (res != "1xxxxxxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char>::put fails");
-        if (sanity3 != "1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(res == "1xxxxxxxxxxxxxxxxx");
+        VERIFY(sanity3 == "1");
         
         b = 0;
         res = x;
         ios.setf(IOv2::ios_defs::boolalpha);
         auto ret4 = obj.put(res.begin(), ios, b);
         std::string sanity4(res.begin(), ret4);
-        if (res != "falsexxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char>::put fails");
-        if (sanity4 != "false") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(res == "falsexxxxxxxxxxxxx");
+        VERIFY(sanity4 == "false");
         
         // 04 put(void*)
         const void* cv = &ld;
@@ -322,8 +313,8 @@ void test_numeric_char_put_4()
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         auto ret5 = obj.put(res.begin(), ios, cv);
         std::string sanity5(res.begin(), ret5);
-        if (sanity5.size() < 2) throw std::runtime_error("IOv2::numeric<char>::put fails");
-        if (sanity5[1] != 'x') throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(sanity5.size() >= 2);
+        VERIFY(sanity5[1] == 'x');
     };
     
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -349,13 +340,13 @@ void test_numeric_char_put_5()
         ios.setf(IOv2::ios_defs::showbase);
         ios.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
         obj.put(std::back_inserter(oss), ios, l);
-        if (oss != "0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "0");
     
         oss.clear();
         ios.setf(IOv2::ios_defs::showbase);
         ios.setf(IOv2::ios_defs::oct, IOv2::ios_defs::basefield);
         obj.put(std::back_inserter(oss), ios, l);
-        if (oss != "0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "0");
     };
     
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("de_DE.ISO-8859-1"),
@@ -378,13 +369,13 @@ void test_numeric_char_put_6()
         ios.precision(6);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, 30.5);
-        if (oss != "30.500000") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "30.500000");
         
         oss.clear();
         ios.precision(0);
         ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, 1.0);
-        if (oss != "1e+00") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1e+00");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -403,7 +394,7 @@ void test_numeric_char_put_7()
         std::string oss;
 
         obj.put(std::back_inserter(oss), ios, static_cast<long>(10));
-        if (oss != "10") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "10");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -425,12 +416,12 @@ void test_numeric_char_put_8()
     
         bool b = true;
         obj.put(std::back_inserter(oss), ios, b);
-        if (oss != "1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1");
         
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, b);
-        if (oss != "+1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "+1");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -455,14 +446,14 @@ void test_numeric_char_put_9()
         {
             long l = -1;
             obj.put(std::back_inserter(oss), ios, l);
-            if (oss == "1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+            VERIFY(oss != "1");
         }
     
         {
             long long ll = -1LL;
             oss.clear();
             obj.put(std::back_inserter(oss), ios, ll);
-            if (oss == "1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+            VERIFY(oss != "1");
         }
     };
 
@@ -492,19 +483,19 @@ void test_numeric_char_put_10()
     
     {
         ng1.put(std::back_inserter(oss), ios, l1);
-        if (oss != "1,2,3,45,678") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "1,2,3,45,678");
     }
     {
         ios.precision(1);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         oss.clear();
         ng2.put(std::back_inserter(oss), ios, d1);
-        if (oss != "123,456,7.0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "123,456,7.0");
     }
     {
         oss.clear();
         ng2.put(std::back_inserter(oss), ios, d2);
-        if (oss != "12,345,6.0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "12,345,6.0");
     }
     dump_info("Done\n");
 }
@@ -527,15 +518,15 @@ void test_numeric_char_put_11()
         
         {
             obj.put(std::back_inserter(result1), ios, li1);
-            if (result1 != "+0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+            VERIFY(result1 == "+0");
         }
         {
             obj.put(std::back_inserter(result2), ios, li2);
-            if (result2 != "+5") throw std::runtime_error("IOv2::numeric<char>::put fails");
+            VERIFY(result2 == "+5");
         }
         {
             obj.put(std::back_inserter(result3), ios, d1);
-            if (result3 != "+0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+            VERIFY(result3 == "+0");
         }
     };
 
@@ -561,7 +552,7 @@ void test_numeric_char_put_12()
         ios.precision(precision);
         ios.setf(IOv2::ios_defs::fixed);
         obj.put(std::back_inserter(oss), ios, 1.0);
-        if (oss.size() != static_cast<size_t>(precision) + 2) throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(!(oss.size() != static_cast<size_t>(precision) + 2));
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -581,13 +572,13 @@ void test_numeric_char_put_13()
         unsigned long ul1 = 42UL;
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, ul1);
-        if (oss != "42") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "42");
         
         unsigned long long ull1 = 31ULL;
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, ull1);
-        if (oss != "31") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "31");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -610,21 +601,21 @@ void test_numeric_char_put_14()
         double d1 = -2e20;
         
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != "2e+20") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "2e+20");
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, d1);
-        if (oss != "-2e+20") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "-2e+20");
         
         oss.clear();
         ios.setf(IOv2::ios_defs::uppercase);
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != "2E+20") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "2E+20");
         
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != "+2E+20") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "+2E+20");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("de_DE.ISO-8859-1"),
@@ -651,21 +642,21 @@ void test_numeric_char_put_15()
         double d1 = 300;
         
         obj.put(std::back_inserter(oss), ios, l0);
-        if (oss != "-300.000") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "-300.000");
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != "-300.000") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "-300.000");
     
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, l1);
-        if (oss != "+300") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "+300");
         
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, d1);
-        if (oss != "+300") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "+300");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("de_DE.ISO-8859-1"),
@@ -696,17 +687,17 @@ void test_numeric_char_put_16()
     double d1 = 1234567.0;
     
     ng1.put(std::back_inserter(oss), ios, l1);
-    if (oss != "12345") throw std::runtime_error("IOv2::numeric<char>::put fails");
+    VERIFY(oss == "12345");
 
     oss.clear();
     ng2.put(std::back_inserter(oss), ios, l2);
-    if (oss != "123456,78") throw std::runtime_error("IOv2::numeric<char>::put fails");
+    VERIFY(oss == "123456,78");
 
     ios.precision(1);
     ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
     oss.clear();
     ng3.put(std::back_inserter(oss), ios, d1);
-    if (oss != "1234,56,7.0") throw std::runtime_error("IOv2::numeric<char>::put fails");
+    VERIFY(oss == "1234,56,7.0");
   
     dump_info("Done\n");
 }
@@ -725,28 +716,28 @@ void test_numeric_char_put_17()
     ios.width(6);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != "**-no-") throw std::runtime_error("IOv2::numeric<char>::put fails");
+    VERIFY(oss == "**-no-");
 
     oss.clear();
     ios.width(6);
     ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != "**-no-") throw std::runtime_error("IOv2::numeric<char>::put fails");
+    VERIFY(oss == "**-no-");
 
     oss.clear();
     ios.width(6);
     ios.setf(IOv2::ios_defs::internal, IOv2::ios_defs::adjustfield);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != "**-no-") throw std::runtime_error("IOv2::numeric<char>::put fails");
+    VERIFY(oss == "**-no-");
     
     oss.clear();
     ios.width(6);
     ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != "-no-**") throw std::runtime_error("IOv2::numeric<char>::put fails");
+    VERIFY(oss == "-no-**");
   
     dump_info("Done\n");
 }
@@ -765,25 +756,25 @@ void test_numeric_char_put_18()
     
         ios.width(5);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != "**0x1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "**0x1");
     
         oss.clear();
         ios.width(5);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != "**0x1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "**0x1");
         
         oss.clear();
         ios.width(5);
         ios.setf(IOv2::ios_defs::internal, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != "0x**1") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "0x**1");
         
         oss.clear();
         ios.width(5);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != "0x1**") throw std::runtime_error("IOv2::numeric<char>::put fails");
+        VERIFY(oss == "0x1**");
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
@@ -819,14 +810,14 @@ void test_numeric_char_get_1()
         {
             iss = "1";
             auto it = obj.get(iss.begin(), iss.end(), ios, b1);
-            if (b1 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b1 == true);
+            VERIFY(it == iss.end());
         }
         {
             iss = "0";
             auto it = obj.get(iss.begin(), iss.end(), ios, b0);
-            if (b0 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b0 == false);
+            VERIFY(it == iss.end());
         }
         
         // ... and one that does
@@ -835,9 +826,9 @@ void test_numeric_char_get_1()
             ios.width(20);
             ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == ul1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == '+');
         }
 
         {
@@ -846,8 +837,8 @@ void test_numeric_char_get_1()
             ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
             ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it == iss.end());
         }
         
         {
@@ -858,17 +849,17 @@ void test_numeric_char_get_1()
             ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
             ios.setf(IOv2::ios_defs::uppercase);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         
         // long double
         {
             iss = "6,630025e+4";
             auto it = obj.get(iss.begin(), iss.end(), ios, ld);
-            if (ld != ld1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ld == ld1);
+            VERIFY(it == iss.end());
         }
         
         {
@@ -876,18 +867,18 @@ void test_numeric_char_get_1()
             ios.precision(0);
             ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, ld);
-            if (ld != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ld == 0);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         
         // void*
         {
             iss = "0xbffff74c,";
             auto it = obj.get(iss.begin(), iss.end(), ios, v);
-            if (v == 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ',') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(v != 0);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ',');
         }
 
         {
@@ -896,8 +887,8 @@ void test_numeric_char_get_1()
             
             iss = "9.223.372.036.854.775.807";
             auto it = obj.get(iss.begin(), iss.end(), ios, ll);
-            if (ll != ll1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ll == ll1);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -934,33 +925,33 @@ void test_numeric_char_get_2()
             iss = "true ";
             ios.setf(IOv2::ios_defs::boolalpha);
             auto it = obj.get(iss.begin(), iss.end(), ios, b0);
-            if (b0 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b0 == true);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
 
         {
             iss = "false ";
             ios.setf(IOv2::ios_defs::boolalpha);
             auto it = obj.get(iss.begin(), iss.end(), ios, b1);
-            if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b1 == false);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
 
         // unsigned long
         {
             iss = "1294967294";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == ul1);
+            VERIFY(it == iss.end());
         }
         {
             iss = "0+----------------------";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != ul2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == ul2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == '+');
         }
 
         // double
@@ -969,17 +960,17 @@ void test_numeric_char_get_2()
             ios.width(20);
             ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == '+');
         }
         {
             iss = "+3.15e-308";
             ios.width(20);
             ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -1009,16 +1000,16 @@ void test_numeric_char_get_3()
         {
             iss = "2,147,483,647 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, l);
-            if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(l == l1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         {
             iss = "-2,147,483,647+-----";
             auto it = obj.get(iss.begin(), iss.end(), ios, l);
-            if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(l == l2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == '+');
         }
     };
 
@@ -1043,40 +1034,40 @@ void test_numeric_char_get_4()
             // 01 get(long)
             long i = 0;
             auto it = obj.get(str.begin(), str.end(), ios, i);
-            if (i != 20000106) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, str.end()) != " Elizabeth Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(i == 20000106);
+            VERIFY(it != str.end());
+            VERIFY(std::string(it, str.end()) == " Elizabeth Durack");
         }
         {
             // 02 get(long double)
             long double ld = 0.0;
             auto it = obj.get(str.begin(), str.end(), ios, ld);
-            if (ld != 20000106) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, str.end()) != " Elizabeth Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ld == 20000106);
+            VERIFY(it != str.end());
+            VERIFY(std::string(it, str.end()) == " Elizabeth Durack");
         }
 
         {
             // 03 get(bool)
             bool b = 1;
             auto it = obj.get(str2.begin(), str2.end(), ios, b);
-            if (b != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == str2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, str2.end()) != " true 0xbffff74c Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b == 0);
+            VERIFY(it != str2.end());
+            VERIFY(std::string(it, str2.end()) == " true 0xbffff74c Durack");
     
             ios.setf(IOv2::ios_defs::boolalpha);
             it = obj.get(++it, str2.end(), ios, b);
-            if (b != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == str2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, str2.end()) != " 0xbffff74c Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b == true);
+            VERIFY(it != str2.end());
+            VERIFY(std::string(it, str2.end()) == " 0xbffff74c Durack");
             
             // 04 get(void*)
             void* v;
             ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
             it = obj.get(++it, str2.end(), ios, v);
-            if (v != (void*)0xbffff74c) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == str2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, str2.end()) != " Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(v == (void*)0xbffff74c);
+            VERIFY(it != str2.end());
+            VERIFY(std::string(it, str2.end()) == " Durack");
         }
     };
 
@@ -1102,45 +1093,45 @@ void test_numeric_char_get_5()
             ios.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
             iss = "0xbf.fff.74c ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0xbffff74c) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0xbffff74c);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         {
             iss = "0Xf.fff ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0xffff) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0xffff);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         {
             iss = "ffe ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0xffe) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0xffe);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         {
             ios.setf(IOv2::ios_defs::oct, IOv2::ios_defs::basefield);
             iss = "07.654.321 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 07654321) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 07654321);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         {
             iss = "07.777 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 07777) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 07777);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
         {
             iss = "776 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0776) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0776);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
     };
 
@@ -1164,9 +1155,9 @@ void test_numeric_char_get_6()
         
         iss = "1234,5 ";
         auto it = obj.get(iss.begin(), iss.end(), ios, d);
-        if (d != 1234.5) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (it == iss.end()) throw std::runtime_error("IOv2::numeric<wchar_t>::get fails");
-        if (*it != ' ') throw std::runtime_error("IOv2::numeric<wchar_t>::get fails");
+        VERIFY(d == 1234.5);
+        VERIFY(it != iss.end());
+        VERIFY(*it == ' ');
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("de_DE.ISO-8859-1"),
@@ -1195,7 +1186,7 @@ void test_numeric_char_get_7()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == '+');
         }
         {
             iss = ".e+1";
@@ -1207,7 +1198,7 @@ void test_numeric_char_get_7()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != '.') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == '.');
         }
     };
 
@@ -1239,7 +1230,7 @@ void test_numeric_char_get_8()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 'f') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 'f');
         }
         {
             iss = "falsr";
@@ -1251,7 +1242,7 @@ void test_numeric_char_get_8()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 'f') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 'f');
         }
         {
             iss = "trus";
@@ -1263,7 +1254,7 @@ void test_numeric_char_get_8()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 't') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 't');
         }
     };
 
@@ -1289,16 +1280,16 @@ void test_numeric_char_get_9()
         {
             iss = "1e1,";
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ',') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ',');
         }
         {
             iss = "3e1.";
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '.') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == '.');
         }
     };
 
@@ -1331,8 +1322,8 @@ void test_numeric_char_get_10()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != '1') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (f != 0.0f) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == '1');
+            VERIFY(f == 0.0f);
         }
         {
             iss = "3e+";
@@ -1344,8 +1335,8 @@ void test_numeric_char_get_10()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != '3') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == '3');
+            VERIFY(d == 0.0);
         }
         {
             iss = "6e ";
@@ -1357,8 +1348,8 @@ void test_numeric_char_get_10()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != '6') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ld != 0.0l) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == '6');
+            VERIFY(ld == 0.0l);
         }
     };
 
@@ -1393,46 +1384,46 @@ void test_numeric_char_get_11()
     {
         std::string iss1 = "1234";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(d == d1);
     }
 
     {
         std::string iss1 = "142";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '2') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == '2');
+        VERIFY(d == d2);
     }
 
     {
         std::string iss1 = "3e14";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '4') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == '4');
+        VERIFY(d == d3);
     }
 
     {
         std::string iss1 = "1234";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '4') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == '4');
+        VERIFY(l == l1);
     }
 
     {
         std::string iss2 = "123";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d1);
     }
 
     {
         std::string iss2 = "120";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, l);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(l == l2);
     }
     dump_info("Done\n");
 }
@@ -1472,28 +1463,28 @@ void test_numeric_char_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '+');
     }
     {
         iss1 = "0x1";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'x') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == 'x');
+        VERIFY(l == l1);
     }
     {
         iss1 = "0Xa";
         ios.unsetf(IOv2::ios_defs::basefield);
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l2);
     }
     {
         iss1 = "0xa";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'x') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == 'x');
+        VERIFY(l == l1);
     }
     {
         iss1 = "+5";
@@ -1505,20 +1496,20 @@ void test_numeric_char_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '+');
     }
     {
         iss1 = "x4";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(d == d1);
     }
     {
         iss2 = "0001-";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios2, l);
-        if (it == iss2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '-') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != iss2.end());
+        VERIFY(*it == '-');
+        VERIFY(l == l3);
     }
     {
         iss2 = "-2";
@@ -1530,7 +1521,7 @@ void test_numeric_char_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '-') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '-');
     }
     {
         iss2 = "0X1";
@@ -1544,15 +1535,15 @@ void test_numeric_char_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '0') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '0');
+        VERIFY(l == 0);
     }
     {
         iss2 = "000778";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios2, l);
-        if (it == iss2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '8') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l4) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != iss2.end());
+        VERIFY(*it == '8');
+        VERIFY(l == l4);
     }
     {
         iss2 = "00X";
@@ -1564,14 +1555,14 @@ void test_numeric_char_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '0') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '0');
+        VERIFY(d == d2);
     }
     {
         iss2 = "-1";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios2, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d3);
     }
     dump_info("Done\n");
 }
@@ -1597,20 +1588,20 @@ void test_numeric_char_get_13()
     {
         iss1 = "1,2,3,45,678";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l1);
     }
     {
         iss2 = "123,456,7.0";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d1);
     }
     {
         iss2 = "12,345,6.0";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d2);
     }
     dump_info("Done\n");
 }
@@ -1629,8 +1620,8 @@ void test_numeric_char_get_14()
     {
         iss = "1,0e2";
         auto it = obj.get(iss.begin(), iss.end(), ios, d);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(d == d1);
     }
     dump_info("Done\n");
 }
@@ -1660,8 +1651,8 @@ void test_numeric_char_get_15()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '1') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(d == 0.0);
+        VERIFY(*it == '1');
     }
     {
         iss2 = "3e-1";
@@ -1673,8 +1664,8 @@ void test_numeric_char_get_15()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '3') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(d == 0.0);
+        VERIFY(*it == '3');
     }
     dump_info("Done\n");
 }
@@ -1700,8 +1691,8 @@ void test_numeric_char_get_16()
             us0 = 0;
             ss << us1; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, us0);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (us0 != us1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(us0 == us1);
         }
         {
             us0 = 0;
@@ -1715,15 +1706,15 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (us0 != std::numeric_limits<unsigned short>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(us0 != std::numeric_limits<unsigned short>::max()));
         }
         {
             ui0 = 0U;
             ss.clear(); ss.str("");
             ss << ui1 << ' '; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, ui0);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ui0 != ui1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(ui0 == ui1);
         }
         {
             ui0 = 0U;
@@ -1737,15 +1728,15 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ui0 != std::numeric_limits<unsigned int>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(ui0 != std::numeric_limits<unsigned int>::max()));
         }
         {
             ul0 = 0UL;
             ss.clear(); ss.str("");
             ss << ul1; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, ul0);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(ul0 == ul1);
         }
         {
             ul0 = 0UL;
@@ -1759,15 +1750,15 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ul0 != std::numeric_limits<unsigned long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(ul0 != std::numeric_limits<unsigned long>::max()));
         }
         {
             l01 = 0L;
             ss.clear(); ss.str("");
             ss << l1 << ' '; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, l01);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (l01 != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(l01 == l1);
         }
         {
             l01 = 0L;
@@ -1781,15 +1772,15 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (l01 != std::numeric_limits<long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(l01 != std::numeric_limits<long>::max()));
         }
         {
             l02 = 0L;
             ss.clear(); ss.str("");
             ss << l2; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, l02);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (l02 != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(l02 == l2);
         }
         {
             l02 = 0L;
@@ -1803,15 +1794,15 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (l02 != std::numeric_limits<long>::min()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(l02 != std::numeric_limits<long>::min()));
         }
         {
             ull0 = 0ULL;
             ss.clear(); ss.str("");
             ss << ull1 << ' '; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, ull0);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ull0 != ull1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(ull0 == ull1);
         }
         {
             ull0 = 0ULL;
@@ -1825,15 +1816,15 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ull0 != std::numeric_limits<unsigned long long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(ull0 != std::numeric_limits<unsigned long long>::max()));
         }
         {
             ll01 = 0LL;
             ss.clear(); ss.str("");
             ss << ll1; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, ll01);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ll01 != ll1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(ll01 == ll1);
         }
         {
             ll01 = 0LL;
@@ -1847,15 +1838,15 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ll01 != std::numeric_limits<long long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(ll01 != std::numeric_limits<long long>::max()));
         }
         {
             ll02 = 0LL;
             ss.clear(); ss.str("");
             ss << ll2 << ' '; std::string str = ss.str();
             auto it = obj.get(str.begin(), str.end(), ios, ll02);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ll02 != ll2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(ll02 == ll2);
         }
         {
             ll02 = 0LL;
@@ -1869,7 +1860,7 @@ void test_numeric_char_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ll02 != std::numeric_limits<long long>::min()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(!(ll02 != std::numeric_limits<long long>::min()));
         }
     };
 
@@ -1908,7 +1899,7 @@ void test_numeric_char_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(l == l1);
     }
     {
         iss1 = "000##2";
@@ -1920,14 +1911,14 @@ void test_numeric_char_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '0') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(l == 0);
+        VERIFY(*it == '0');
     }
     {
         iss1 = "0#0#0#2";
         auto it = obj.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l2);
     }
     {
         iss1 = "00#0#1";
@@ -1939,7 +1930,7 @@ void test_numeric_char_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(d == d1);
     }
     {
         iss1 = "000##2";
@@ -1951,14 +1942,14 @@ void test_numeric_char_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '0') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '0');
+        VERIFY(d == 0.0);
     }
     {
         iss1 = "0#0#0#2";
         auto it = obj.get(iss1.begin(), iss1.end(), ios, d);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(d == d2);
     }
     {
         iss1 = "0#0";
@@ -1971,14 +1962,14 @@ void test_numeric_char_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '0') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '0');
+        VERIFY(l == 0);
     }
     {
         iss1 = "00#0#3";
         auto it = obj.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l3);
     }
     {
         iss1 = "00#02";
@@ -1990,7 +1981,7 @@ void test_numeric_char_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(l == l2);
     }
     dump_info("Done\n");
 }
@@ -2018,20 +2009,20 @@ void test_numeric_char_get_18()
     {
         iss = "12345";
         auto it = ng1.get(iss.begin(), iss.end(), ios, l);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(l == l1);
     }
     {
         iss = "123456,78";
         auto it = ng2.get(iss.begin(), iss.end(), ios, l);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(l == l2);
     }
     {
         iss = "1234,56,7.0";
         auto it = ng3.get(iss.begin(), iss.end(), ios, d);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(d == d1);
     }
     dump_info("Done\n");
 }
@@ -2063,26 +2054,26 @@ void test_numeric_char_get_19()
     {
         iss = "true";
         auto it = ng0.get(iss.begin(), iss.end(), ios, b0);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b0 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b0 == true);
     }
     {
         iss = "false";
         auto it = ng0.get(iss.begin(), iss.end(), ios, b0);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b0 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b0 == false);
     }
     {
         iss = "a";
         auto it = ng1.get(iss.begin(), iss.end(), ios, b1);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b1 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b1 == true);
     }
     {
         iss = "abb";
         auto it = ng1.get(iss.begin(), iss.end(), ios, b1);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b1 == false);
     }
     {
         iss = "abc";
@@ -2094,8 +2085,8 @@ void test_numeric_char_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'a') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b1 == false);
+        VERIFY(*it == 'a');
     }
     {
         iss = "ab";
@@ -2107,19 +2098,19 @@ void test_numeric_char_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b1 == false);
     }
     {
         iss = "1";
         auto it = ng2.get(iss.begin(), iss.end(), ios, b2);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b2 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b2 == true);
     }
     {
         iss = "0";
         auto it = ng2.get(iss.begin(), iss.end(), ios, b2);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b2 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b2 == false);
     }
     {
         iss = "2";
@@ -2131,8 +2122,8 @@ void test_numeric_char_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b2 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '2') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b2 == false);
+        VERIFY(*it == '2');
     }
     {
         iss = "blah";
@@ -2144,8 +2135,8 @@ void test_numeric_char_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b3 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'b') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b3 == false);
+        VERIFY(*it == 'b');
     }
     {
         iss.clear(); b3 = true;
@@ -2157,19 +2148,19 @@ void test_numeric_char_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b3 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b3 == false);
     }
     {
         iss = "one";
         auto it = ng4.get(iss.begin(), iss.end(), ios, b4);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b4 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b4 == true);
     }
     {
         iss = "two";
         auto it = ng4.get(iss.begin(), iss.end(), ios, b4);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b4 == false);
     }
     {
         iss = "three"; b4 = true;
@@ -2181,8 +2172,8 @@ void test_numeric_char_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 't') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b4 == false);
+        VERIFY(*it == 't');
     }
     {
         iss = "on"; b4 = true;
@@ -2194,7 +2185,7 @@ void test_numeric_char_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b4 == false);
     }
     dump_info("Done\n");
 }
@@ -2210,9 +2201,9 @@ void test_numeric_char_get_20()
      
     std::string iss = "123,456";
     auto it = obj.get(iss.begin(), iss.end(), ios, l);
-    if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-    if (l != 123) throw std::runtime_error("IOv2::numeric<char>::get fails");
-    if (*it != ',') throw std::runtime_error("IOv2::numeric<char>::get fails");
+    VERIFY(it != iss.end());
+    VERIFY(l == 123);
+    VERIFY(*it == ',');
     
     dump_info("Done\n");
 }
@@ -2232,21 +2223,21 @@ void test_numeric_char_get_21()
         {
             ss  = "-0";
             auto it = obj.get(ss.begin(), ss.end(), ios, ul0);
-            if (it != ss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == ss.end());
+            VERIFY(ul0 == 0);
         }
         {
             ss = "-1";
             auto it = obj.get(ss.begin(), ss.end(), ios, ul0);
-            if (it != ss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == ss.end());
+            VERIFY(ul0 == ul1);
         }
         {
             std::stringstream ss0;
             ss0 << '-' << ul1; ss = ss0.str();
             auto it = obj.get(ss.begin(), ss.end(), ios, ul0);
-            if (it != ss.end()) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != 1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == ss.end());
+            VERIFY(ul0 == 1);
         }
         {
             std::stringstream ss0;
@@ -2259,7 +2250,7 @@ void test_numeric_char_get_21()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul0 == ul1);
         }
     };
 
@@ -2296,15 +2287,15 @@ void test_numeric_char_get_22()
             streambuf sb(mem_device{"1"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, b1);
-            if (b1 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b1 == true);
+            VERIFY(it == std::default_sentinel);
         }
         {
             streambuf sb(mem_device{"0"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, b0);
-            if (b0 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b0 == false);
+            VERIFY(it == std::default_sentinel);
         }
 
         // ... and one that does
@@ -2314,9 +2305,9 @@ void test_numeric_char_get_22()
             ios.width(20);
             ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == ul1);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == '+');
         }
 
         {
@@ -2326,8 +2317,8 @@ void test_numeric_char_get_22()
             ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
             ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
             auto it = obj.get(beg, std::default_sentinel, ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it == std::default_sentinel);
         }
 
         {
@@ -2339,9 +2330,9 @@ void test_numeric_char_get_22()
             ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
             ios.setf(IOv2::ios_defs::uppercase);
             auto it = obj.get(beg, std::default_sentinel, ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
 
         // long double
@@ -2349,8 +2340,8 @@ void test_numeric_char_get_22()
             streambuf sb(mem_device{"6,630025e+4"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ld);
-            if (ld != ld1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ld == ld1);
+            VERIFY(it == std::default_sentinel);
         }
 
         {
@@ -2359,9 +2350,9 @@ void test_numeric_char_get_22()
             ios.precision(0);
             ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
             auto it = obj.get(beg, std::default_sentinel, ios, ld);
-            if (ld != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ld == 0);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
 
         // void*
@@ -2370,9 +2361,9 @@ void test_numeric_char_get_22()
             auto beg = istreambuf_iterator(sb);
 
             auto it = obj.get(beg, std::default_sentinel, ios, v);
-            if (v == 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ',') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(v != 0);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ',');
         }
 
         {
@@ -2383,8 +2374,8 @@ void test_numeric_char_get_22()
             auto beg = istreambuf_iterator(sb);
 
             auto it = obj.get(beg, std::default_sentinel, ios, ll);
-            if (ll != ll1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ll == ll1);
+            VERIFY(it == std::default_sentinel);
         }
     };
 
@@ -2423,9 +2414,9 @@ void test_numeric_char_get_23()
             auto beg = istreambuf_iterator(sb);
             ios.setf(IOv2::ios_defs::boolalpha);
             auto it = obj.get(beg, std::default_sentinel, ios, b0);
-            if (b0 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b0 == true);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
 
         {
@@ -2433,9 +2424,9 @@ void test_numeric_char_get_23()
             auto beg = istreambuf_iterator(sb);
             ios.setf(IOv2::ios_defs::boolalpha);
             auto it = obj.get(beg, std::default_sentinel, ios, b1);
-            if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b1 == false);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
 
         // unsigned long
@@ -2443,16 +2434,16 @@ void test_numeric_char_get_23()
             streambuf sb(mem_device{"1294967294"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == ul1);
+            VERIFY(it == std::default_sentinel);
         }
         {
             streambuf sb(mem_device{"0+----------------------"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != ul2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == ul2);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == '+');
         }
 
         // double
@@ -2462,9 +2453,9 @@ void test_numeric_char_get_23()
             ios.width(20);
             ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
             auto it = obj.get(beg, std::default_sentinel, ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == '+');
         }
         {
             streambuf sb(mem_device{"+3.15e-308"});
@@ -2472,8 +2463,8 @@ void test_numeric_char_get_23()
             ios.width(20);
             ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
             auto it = obj.get(beg, std::default_sentinel, ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it == std::default_sentinel);
         }
     };
 
@@ -2505,17 +2496,17 @@ void test_numeric_char_get_24()
             streambuf sb(mem_device{"2,147,483,647 "});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, l);
-            if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(l == l1);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
         {
             streambuf sb(mem_device{"-2,147,483,647+-----"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, l);
-            if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(l == l2);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == '+');
         }
     };
 
@@ -2540,9 +2531,9 @@ void test_numeric_char_get_25()
             auto beg = istreambuf_iterator(sb);
             long i = 0;
             auto it = obj.get(beg, std::default_sentinel, ios, i);
-            if (i != 20000106) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, decltype(it)()) != " Elizabeth Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(i == 20000106);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(std::string(it, decltype(it)()) == " Elizabeth Durack");
         }
         {
             // 02 get(long double)
@@ -2550,9 +2541,9 @@ void test_numeric_char_get_25()
             auto beg = istreambuf_iterator(sb);
             long double ld = 0.0;
             auto it = obj.get(beg, std::default_sentinel, ios, ld);
-            if (ld != 20000106) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, decltype(it)()) != " Elizabeth Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ld == 20000106);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(std::string(it, decltype(it)()) == " Elizabeth Durack");
         }
 
         {
@@ -2562,21 +2553,21 @@ void test_numeric_char_get_25()
 
             bool b = 1;
             auto it = obj.get(beg, std::default_sentinel, ios, b);
-            if (b != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b == 0);
+            VERIFY(it != std::default_sentinel);
 
             ios.setf(IOv2::ios_defs::boolalpha);
             it = obj.get(++it, std::default_sentinel, ios, b);
-            if (b != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(b == true);
+            VERIFY(it != std::default_sentinel);
             
             // 04 get(void*)
             void* v;
             ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
             it = obj.get(++it, std::default_sentinel, ios, v);
-            if (v != (void*)0xbffff74c) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (std::string(it, decltype(it)()) != " Durack") throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(v == (void*)0xbffff74c);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(std::string(it, decltype(it)()) == " Durack");
         }
     };
 
@@ -2604,50 +2595,50 @@ void test_numeric_char_get_26()
             streambuf sb(mem_device{"0xbf.fff.74c "});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != 0xbffff74c) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0xbffff74c);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
         {
             streambuf sb(mem_device{"0Xf.fff "});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != 0xffff) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0xffff);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
         {
             streambuf sb(mem_device{"ffe "});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != 0xffe) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0xffe);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
         {
             ios.setf(IOv2::ios_defs::oct, IOv2::ios_defs::basefield);
             streambuf sb(mem_device{"07.654.321 "});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != 07654321) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 07654321);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
         {
             streambuf sb(mem_device{"07.777 "});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != 07777) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 07777);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
         {
             streambuf sb(mem_device{"776 "});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul);
-            if (ul != 0776) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(ul == 0776);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ' ');
         }
     };
 
@@ -2673,9 +2664,9 @@ void test_numeric_char_get_27()
         streambuf sb(mem_device{"1234,5 "});
         auto beg = istreambuf_iterator(sb);
         auto it = obj.get(beg, std::default_sentinel, ios, d);
-        if (d != 1234.5) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<wchar_t>::get fails");
-        if (*it != ' ') throw std::runtime_error("IOv2::numeric<wchar_t>::get fails");
+        VERIFY(d == 1234.5);
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == ' ');
     };
 
     IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("de_DE.ISO-8859-1"),
@@ -2707,7 +2698,7 @@ void test_numeric_char_get_28()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 'e') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 'e');
         }
         {
             streambuf sb(mem_device{".e+1"});
@@ -2720,7 +2711,7 @@ void test_numeric_char_get_28()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 'e') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 'e');
         }
     };
 
@@ -2753,7 +2744,7 @@ void test_numeric_char_get_29()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 'L') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 'L');
         }
         {
             streambuf sb(mem_device{"falsr"});
@@ -2766,7 +2757,7 @@ void test_numeric_char_get_29()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 'r') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 'r');
         }
         {
             streambuf sb(mem_device{"trus"});
@@ -2779,7 +2770,7 @@ void test_numeric_char_get_29()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != 's') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == 's');
         }
     };
 
@@ -2806,17 +2797,17 @@ void test_numeric_char_get_30()
             streambuf sb(mem_device{"1e1,"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != ',') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == ',');
         }
         {
             streambuf sb(mem_device{"3e1."});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (*it != '.') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it != std::default_sentinel);
+            VERIFY(*it == '.');
         }
     };
 
@@ -2850,8 +2841,8 @@ void test_numeric_char_get_31()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != '.') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (f != 0.0f) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == '.');
+            VERIFY(f == 0.0f);
         }
         {
             streambuf sb(mem_device{"3e+"});
@@ -2864,8 +2855,8 @@ void test_numeric_char_get_31()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(d == 0.0);
         }
         {
             streambuf sb(mem_device{"6e "});
@@ -2878,8 +2869,8 @@ void test_numeric_char_get_31()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ld != 0.0l) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == ' ');
+            VERIFY(ld == 0.0l);
         }
     };
 
@@ -2916,51 +2907,51 @@ void test_numeric_char_get_32()
         streambuf sb(mem_device{"1234"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d1);
     }
 
     {
         streambuf sb(mem_device{"142"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, d);
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '2') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == '2');
+        VERIFY(d == d2);
     }
 
     {
         streambuf sb(mem_device{"3e14"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, d);
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '4') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == '4');
+        VERIFY(d == d3);
     }
 
     {
         streambuf sb(mem_device{"1234"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, l);
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '4') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == '4');
+        VERIFY(l == l1);
     }
 
     {
         streambuf sb(mem_device{"123"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d1);
     }
 
     {
         streambuf sb(mem_device{"120"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios, l);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l2);
     }
     dump_info("Done\n");
 }
@@ -3002,31 +2993,31 @@ void test_numeric_char_get_33()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '+');
     }
     {
         streambuf sb(mem_device{"0x1"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, l);
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'x') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == 'x');
+        VERIFY(l == l1);
     }
     {
         streambuf sb(mem_device{"0Xa"});
         auto beg = istreambuf_iterator(sb);
         ios.unsetf(IOv2::ios_defs::basefield);
         auto it = ng1.get(beg, std::default_sentinel, ios, l);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l2);
     }
     {
         streambuf sb(mem_device{"0xa"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, l);
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'x') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == 'x');
+        VERIFY(l == l1);
     }
     {
         streambuf sb(mem_device{"+5"});
@@ -3039,22 +3030,22 @@ void test_numeric_char_get_33()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '+');
     }
     {
         streambuf sb(mem_device{"x4"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d1);
     }
     {
         streambuf sb(mem_device{"0001-"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios2, l);
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '-') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == '-');
+        VERIFY(l == l3);
     }
     {
         streambuf sb(mem_device{"-2"});
@@ -3067,7 +3058,7 @@ void test_numeric_char_get_33()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '-') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '-');
     }
     {
         ios2.unsetf(IOv2::ios_defs::basefield);
@@ -3081,16 +3072,16 @@ void test_numeric_char_get_33()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != 'X') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == 'X');
+        VERIFY(l == 0);
     }
     {
         streambuf sb(mem_device{"000778"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios2, l);
-        if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '8') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l4) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it != std::default_sentinel);
+        VERIFY(*it == '8');
+        VERIFY(l == l4);
     }
     {
         streambuf sb(mem_device{"00X"});
@@ -3103,14 +3094,14 @@ void test_numeric_char_get_33()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(d == d2);
     }
     {
         streambuf sb(mem_device{"-1"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios2, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d3);
     }
     dump_info("Done\n");
 }
@@ -3138,22 +3129,22 @@ void test_numeric_char_get_34()
         streambuf sb(mem_device{"1,2,3,45,678"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, l);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l1);
     }
     {
         streambuf sb(mem_device{"123,456,7.0"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d1);
     }
     {
         streambuf sb(mem_device{"12,345,6.0"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d2);
     }
     dump_info("Done\n");
 }
@@ -3175,8 +3166,8 @@ void test_numeric_char_get_35()
         streambuf sb(mem_device{"1,0e2"});
         auto beg = istreambuf_iterator(sb);
         auto it = obj.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d1);
     }
     dump_info("Done\n");
 }
@@ -3207,8 +3198,8 @@ void test_numeric_char_get_36()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '+') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(d == 0.0);
+        VERIFY(*it == '+');
     }
     {
         streambuf sb(mem_device{"3e-1"});
@@ -3221,8 +3212,8 @@ void test_numeric_char_get_36()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '-') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(d == 0.0);
+        VERIFY(*it == '-');
     }
     dump_info("Done\n");
 }
@@ -3251,8 +3242,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, us0);
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (us0 != us1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(us0 == us1);
         }
         {
             us0 = 0;
@@ -3268,8 +3259,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (us0 != std::numeric_limits<unsigned short>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(us0 != std::numeric_limits<unsigned short>::max()));
         }
         {
             ui0 = 0U;
@@ -3278,8 +3269,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ui0);
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ui0 != ui1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != std::default_sentinel);
+            VERIFY(ui0 == ui1);
         }
         {
             ui0 = 0U;
@@ -3295,8 +3286,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ui0 != std::numeric_limits<unsigned int>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(ui0 != std::numeric_limits<unsigned int>::max()));
         }
         {
             ul0 = 0UL;
@@ -3305,8 +3296,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul0);
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(ul0 == ul1);
         }
         {
             ul0 = 0UL;
@@ -3322,8 +3313,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != std::numeric_limits<unsigned long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(ul0 != std::numeric_limits<unsigned long>::max()));
         }
         {
             l01 = 0L;
@@ -3332,8 +3323,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, l01);
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (l01 != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != std::default_sentinel);
+            VERIFY(l01 == l1);
         }
         {
             l01 = 0L;
@@ -3349,8 +3340,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (l01 != std::numeric_limits<long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(l01 != std::numeric_limits<long>::max()));
         }
         {
             l02 = 0L;
@@ -3359,8 +3350,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, l02);
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (l02 != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(l02 == l2);
         }
         {
             l02 = 0L;
@@ -3376,8 +3367,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (l02 != std::numeric_limits<long>::min()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(l02 != std::numeric_limits<long>::min()));
         }
         {
             ull0 = 0ULL;
@@ -3386,8 +3377,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ull0);
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ull0 != ull1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != std::default_sentinel);
+            VERIFY(ull0 == ull1);
         }
         {
             ull0 = 0ULL;
@@ -3403,8 +3394,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ull0 != std::numeric_limits<unsigned long long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(ull0 != std::numeric_limits<unsigned long long>::max()));
         }
         {
             ll01 = 0LL;
@@ -3413,8 +3404,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ll01);
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ll01 != ll1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(ll01 == ll1);
         }
         {
             ll01 = 0LL;
@@ -3430,8 +3421,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ll01 != std::numeric_limits<long long>::max()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(ll01 != std::numeric_limits<long long>::max()));
         }
         {
             ll02 = 0LL;
@@ -3440,8 +3431,8 @@ void test_numeric_char_get_37()
             streambuf sb(mem_device{ss.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ll02);
-            if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ll02 != ll2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it != std::default_sentinel);
+            VERIFY(ll02 == ll2);
         }
         {
             ll02 = 0LL;
@@ -3457,8 +3448,8 @@ void test_numeric_char_get_37()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ll02 != std::numeric_limits<long long>::min()) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(!(ll02 != std::numeric_limits<long long>::min()));
         }
     };
 
@@ -3498,8 +3489,8 @@ void test_numeric_char_get_38()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l1);
     }
     {
         streambuf sb(mem_device{"000##2"});
@@ -3512,15 +3503,15 @@ void test_numeric_char_get_38()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '#') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(l == 0);
+        VERIFY(*it == '#');
     }
     {
         streambuf sb(mem_device{"0#0#0#2"});
         auto beg = istreambuf_iterator(sb);
         auto it = obj.get(beg, std::default_sentinel, ios, l);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l2);
     }
     {
         streambuf sb(mem_device{"00#0#1"});
@@ -3533,8 +3524,8 @@ void test_numeric_char_get_38()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d1);
     }
     {
         streambuf sb(mem_device{"000##2"});
@@ -3547,15 +3538,15 @@ void test_numeric_char_get_38()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '#') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '#');
+        VERIFY(d == 0.0);
     }
     {
         streambuf sb(mem_device{"0#0#0#2"});
         auto beg = istreambuf_iterator(sb);
         auto it = obj.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d2);
     }
     {
         streambuf sb(mem_device{"0#0"});
@@ -3569,15 +3560,15 @@ void test_numeric_char_get_38()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != '#') throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(*it == '#');
+        VERIFY(l == 0);
     }
     {
         streambuf sb(mem_device{"00#0#3"});
         auto beg = istreambuf_iterator(sb);
         auto it = obj.get(beg, std::default_sentinel, ios, l);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l3) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l3);
     }
     {
         streambuf sb(mem_device{"00#02"});
@@ -3590,8 +3581,8 @@ void test_numeric_char_get_38()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l2);
     }
     dump_info("Done\n");
 }
@@ -3620,22 +3611,22 @@ void test_numeric_char_get_39()
         streambuf sb(mem_device{"12345"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, l);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l1);
     }
     {
         streambuf sb(mem_device{"123456,78"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios, l);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(l == l2);
     }
     {
         streambuf sb(mem_device{"1234,56,7.0"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng3.get(beg, std::default_sentinel, ios, d);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(d == d1);
     }
     dump_info("Done\n");
 }
@@ -3668,29 +3659,29 @@ void test_numeric_char_get_40()
         streambuf sb(mem_device{"true"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng0.get(beg, std::default_sentinel, ios, b0);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b0 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b0 == true);
     }
     {
         streambuf sb(mem_device{"false"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng0.get(beg, std::default_sentinel, ios, b0);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b0 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b0 == false);
     }
     {
         streambuf sb(mem_device{"a"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, b1);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b1 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b1 == true);
     }
     {
         streambuf sb(mem_device{"abb"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng1.get(beg, std::default_sentinel, ios, b1);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b1 == false);
     }
     {
         streambuf sb(mem_device{"abc"});
@@ -3703,8 +3694,8 @@ void test_numeric_char_get_40()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'c') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b1 == false);
+        VERIFY(*it == 'c');
     }
     {
         streambuf sb(mem_device{"ab"});
@@ -3717,22 +3708,22 @@ void test_numeric_char_get_40()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b1 == false);
     }
     {
         streambuf sb(mem_device{"1"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios, b2);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b2 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b2 == true);
     }
     {
         streambuf sb(mem_device{"0"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng2.get(beg, std::default_sentinel, ios, b2);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b2 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b2 == false);
     }
     {
         streambuf sb(mem_device{"2"});
@@ -3745,8 +3736,8 @@ void test_numeric_char_get_40()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b2 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != '2') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b2 == false);
+        VERIFY(*it == '2');
     }
     {
         streambuf sb(mem_device{"blah"});
@@ -3759,8 +3750,8 @@ void test_numeric_char_get_40()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b3 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'b') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b3 == false);
+        VERIFY(*it == 'b');
     }
     {
         b3 = true;
@@ -3774,21 +3765,21 @@ void test_numeric_char_get_40()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b3 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b3 == false);
     }
     {
         streambuf sb(mem_device{"one"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng4.get(beg, std::default_sentinel, ios, b4);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b4 != true) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b4 == true);
     }
     {
         streambuf sb(mem_device{"two"});
         auto beg = istreambuf_iterator(sb);
         auto it = ng4.get(beg, std::default_sentinel, ios, b4);
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b4 == false);
     }
     {
         b4 = true;
@@ -3802,8 +3793,8 @@ void test_numeric_char_get_40()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (*it != 'h') throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(b4 == false);
+        VERIFY(*it == 'h');
     }
     {
         b4 = true;
@@ -3817,8 +3808,8 @@ void test_numeric_char_get_40()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char>::get fails");
+        VERIFY(it == std::default_sentinel);
+        VERIFY(b4 == false);
     }
     dump_info("Done\n");
 }
@@ -3836,9 +3827,9 @@ void test_numeric_char_get_41()
     streambuf sb(mem_device{"123,456"});
     auto beg = istreambuf_iterator(sb);
     auto it = obj.get(beg, std::default_sentinel, ios, l);
-    if (it == std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-    if (l != 123) throw std::runtime_error("IOv2::numeric<char>::get fails");
-    if (*it != ',') throw std::runtime_error("IOv2::numeric<char>::get fails");
+    VERIFY(it != std::default_sentinel);
+    VERIFY(l == 123);
+    VERIFY(*it == ',');
     
     dump_info("Done\n");
 }
@@ -3859,15 +3850,15 @@ void test_numeric_char_get_42()
             streambuf sb(mem_device{"-0"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul0);
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != 0) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(ul0 == 0);
         }
         {
             streambuf sb(mem_device{"-1"});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul0);
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(ul0 == ul1);
         }
         {
             std::stringstream ss0;
@@ -3875,8 +3866,8 @@ void test_numeric_char_get_42()
             streambuf sb(mem_device{ss0.str()});
             auto beg = istreambuf_iterator(sb);
             auto it = obj.get(beg, std::default_sentinel, ios, ul0);
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != 1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(ul0 == 1);
         }
         {
             std::stringstream ss0;
@@ -3891,8 +3882,8 @@ void test_numeric_char_get_42()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (it != std::default_sentinel) throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(it == std::default_sentinel);
+            VERIFY(ul0 == ul1);
         }
     };
 

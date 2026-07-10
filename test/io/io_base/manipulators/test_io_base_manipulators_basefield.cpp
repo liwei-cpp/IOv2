@@ -9,6 +9,7 @@
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 namespace
 {
@@ -104,9 +105,9 @@ void test_io_base_manipulators_basefield_char_1()
     oss << "|" << IOv2::setw(16) << IOv2::internal;
     oss << 0x12345678l << "|" << IOv2::endl;
     
-    if (!oss.good()) throw std::runtime_error("ios_base<char> adjustfield check fail");
+    VERIFY(oss.good());
     auto [dev, err] = oss.detach();
-    if (dev.str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
+    VERIFY(dev.str() == lit);
     dump_info("Done\n");
 }
 
@@ -175,8 +176,8 @@ void test_io_base_manipulators_basefield_wchar_t_1()
     oss << L"|" << IOv2::setw(16) << IOv2::internal;
     oss << 0x12345678l << L"|" << IOv2::endl;
     
-    if (!oss.good()) throw std::runtime_error("ios_base<char> adjustfield check fail");
+    VERIFY(oss.good());
     auto [dev, err] = oss.detach();
-    if (dev.str() != lit) throw std::runtime_error("ios_base<char> adjustfield check fail");
+    VERIFY(dev.str() == lit);
     dump_info("Done\n");
 }

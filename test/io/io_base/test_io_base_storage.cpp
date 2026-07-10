@@ -6,6 +6,7 @@
 #include <io/io_base.h>
 #include <io/ostream.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 void test_io_base_storage_1()
 {
@@ -28,10 +29,10 @@ void test_io_base_storage_2()
 
     IOv2::ios_base<char> io;
     io.set_pword(1, nullptr);
-    if (io.get_pword(1) != nullptr) throw std::runtime_error("ios_base storage check fail");
-    
+    VERIFY(io.get_pword(1) == nullptr);
+
     int max = std::numeric_limits<int>::max() - 1;
-    if (io.get_pword(max) != nullptr) throw std::runtime_error("ios_base storage check fail");
+    VERIFY(io.get_pword(max) == nullptr);
 
     dump_info("Done\n");
 }
@@ -53,7 +54,7 @@ void test_io_base_storage_3()
     
     auto d = std::make_shared<derived>();
     io.set_pword(1, d);
-    if (io.get_pword(1) != d) throw std::runtime_error("ios_base storage check fail");
+    VERIFY(io.get_pword(1) == d);
 
     dump_info("Done\n");
 }

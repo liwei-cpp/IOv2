@@ -9,6 +9,7 @@
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 namespace
 {
@@ -36,7 +37,7 @@ void test_io_base_manipulators_put_time_char_1()
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, "%a %Y");
     auto [dev1, err1] = oss.detach();
-    if (dev1.str() != "Sun 1971") throw std::runtime_error("ios_base<char> put_time check fail");
+    VERIFY(dev1.str() == "Sun 1971");
 
     dump_info("Done\n");
 }
@@ -49,7 +50,7 @@ void test_io_base_manipulators_put_time_char_2()
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, "%A %Y");
     auto [dev2, err2] = oss.detach();
-    if (dev2.str() != "Sonntag 1971") throw std::runtime_error("ios_base<char> put_time check fail");
+    VERIFY(dev2.str() == "Sonntag 1971");
 
     dump_info("Done\n");
 }
@@ -62,7 +63,7 @@ void test_io_base_manipulators_put_time_wchar_t_1()
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, L"%a %Y");
     auto [dev3, err3] = oss.detach();
-    if (dev3.str() != L"Sun 1971") throw std::runtime_error("ios_base<wchar_t> put_time check fail");
+    VERIFY(dev3.str() == L"Sun 1971");
 
     dump_info("Done\n");
 }
@@ -75,7 +76,7 @@ void test_io_base_manipulators_put_time_wchar_t_2()
     const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
     oss << IOv2::put_time(&time1, L"%A %Y");
     auto [dev4, err4] = oss.detach();
-    if (dev4.str() != L"Sonntag 1971") throw std::runtime_error("ios_base<wchar_t> put_time check fail");
+    VERIFY(dev4.str() == L"Sonntag 1971");
 
     dump_info("Done\n");
 }

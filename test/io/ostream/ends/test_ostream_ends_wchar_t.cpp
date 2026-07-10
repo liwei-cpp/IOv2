@@ -52,8 +52,8 @@ void test_ostream_ends_wchar_t_2()
         osst_01 << str_01;
         osst_01.flush();
         size_t len3 = osst_01.device().str().size();
-        if (len1 >= len3) throw std::runtime_error("ostream<wchar_t> with ends check fail");
-        if (len3 != len1 + len2 + 1) throw std::runtime_error("ostream<wchar_t> with ends check fail");
+        VERIFY(len1 < len3);
+        VERIFY(len3 == len1 + len2 + 1);
 
         osst_01 << IOv2::ends;
 
@@ -62,8 +62,8 @@ void test_ostream_ends_wchar_t_2()
         osst_01 << str_02;
         osst_01.flush();
         size_t len5 = osst_01.device().str().size();
-        if (len3 >= len5) throw std::runtime_error("ostream<wchar_t> with ends check fail");
-        if (len5 != len3 + len4 + 1) throw std::runtime_error("ostream<wchar_t> with ends check fail");
+        VERIFY(len3 < len5);
+        VERIFY(len5 == len3 + len4 + 1);
     };
 
     helper.operator()<IOv2::ostream>();

@@ -45,332 +45,332 @@ void test_timeio_char_put_1()
     {
         res.clear();
         obj.put(std::back_inserter(res), tp, '%');
-        if (res != "%") throw std::runtime_error("timeio::put fail for %");
+        VERIFY(res == "%");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'a');
-        if (res != "Wed") throw std::runtime_error("timeio::put fail for a");
+        VERIFY(res == "Wed");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'E');
-        if (res != "%Ea") throw std::runtime_error("timeio::put fail for Ea");
+        VERIFY(res == "%Ea");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'O');
-        if (res != "%Oa") throw std::runtime_error("timeio::put fail for Oa");
+        VERIFY(res == "%Oa");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'A');
-        if (res != "Wednesday") throw std::runtime_error("timeio::put fail for A");
+        VERIFY(res == "Wednesday");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'E');
-        if (res != "%EA") throw std::runtime_error("timeio::put fail for EA");
+        VERIFY(res == "%EA");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'O');
-        if (res != "%OA") throw std::runtime_error("timeio::put fail for OA");
+        VERIFY(res == "%OA");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'b');
-        if (res != "Sep") throw std::runtime_error("timeio::put fail for b");
+        VERIFY(res == "Sep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'E');
-        if (res != "%Eb") throw std::runtime_error("timeio::put fail for Eb");
+        VERIFY(res == "%Eb");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'O');
-        if (res != "%Ob") throw std::runtime_error("timeio::put fail for Ob");
+        VERIFY(res == "%Ob");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'h');
-        if (res != "Sep") throw std::runtime_error("timeio::put fail for h");
+        VERIFY(res == "Sep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'E');
-        if (res != "%Eh") throw std::runtime_error("timeio::put fail for Eh");
+        VERIFY(res == "%Eh");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'O');
-        if (res != "%Oh") throw std::runtime_error("timeio::put fail for Oh");
+        VERIFY(res == "%Oh");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'B');
-        if (res != "September") throw std::runtime_error("timeio::put fail for B");
+        VERIFY(res == "September");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'E');
-        if (res != "%EB") throw std::runtime_error("timeio::put fail for EB");
+        VERIFY(res == "%EB");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'O');
-        if (res != "%OB") throw std::runtime_error("timeio::put fail for OB");
+        VERIFY(res == "%OB");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        if (res != "09/04/24 13:33:18 America/Los_Angeles") throw std::runtime_error("timeio::put fail for c");
+        VERIFY(res == "09/04/24 13:33:18 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        if (res != "09/04/24 13:33:18 America/Los_Angeles") throw std::runtime_error("timeio::put fail for Ec");
+        VERIFY(res == "09/04/24 13:33:18 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
-        if (res != "%Oc") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%Oc");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'C');
-        if (res != "20") throw std::runtime_error("timeio::put fail for C");
+        VERIFY(res == "20");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'E');
-        if (res != "20") throw std::runtime_error("timeio::put fail for EC");
+        VERIFY(res == "20");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'O');
-        if (res != "%OC") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%OC");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'x');
-        if (res != "09/04/24") throw std::runtime_error("timeio::put fail for x");
+        VERIFY(res == "09/04/24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'E');
-        if (res != "09/04/24") throw std::runtime_error("timeio::put fail for Ex");
+        VERIFY(res == "09/04/24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'O');
-        if (res != "%Ox") throw std::runtime_error("timeio::put fail for Ox");
+        VERIFY(res == "%Ox");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'D');
-        if (res != "09/04/24") throw std::runtime_error("timeio::put fail for D");
+        VERIFY(res == "09/04/24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'E');
-        if (res != "%ED") throw std::runtime_error("timeio::put fail for ED");
+        VERIFY(res == "%ED");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'O');
-        if (res != "%OD") throw std::runtime_error("timeio::put fail for OD");
+        VERIFY(res == "%OD");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'd');
-        if (res != "04") throw std::runtime_error("timeio::put fail for d");
+        VERIFY(res == "04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'E');
-        if (res != "%Ed") throw std::runtime_error("timeio::put fail for Ed");
+        VERIFY(res == "%Ed");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'O');
-        if (res != "04") throw std::runtime_error("timeio::put fail for Od");
+        VERIFY(res == "04");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'e');
-        if (res != " 4") throw std::runtime_error("timeio::put fail for e");
+        VERIFY(res == " 4");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'E');
-        if (res != "%Ee") throw std::runtime_error("timeio::put fail for Ee");
+        VERIFY(res == "%Ee");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'O');
-        if (res != " 4") throw std::runtime_error("timeio::put fail for Oe");
+        VERIFY(res == " 4");
     }
       
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'F');
-        if (res != "2024-09-04") throw std::runtime_error("timeio::put fail for F");
+        VERIFY(res == "2024-09-04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'E');
-        if (res != "%EF") throw std::runtime_error("timeio::put fail for EF");
+        VERIFY(res == "%EF");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'O');
-        if (res != "%OF") throw std::runtime_error("timeio::put fail for OF");
+        VERIFY(res == "%OF");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'H');
-        if (res != "13") throw std::runtime_error("timeio::put fail for H");
+        VERIFY(res == "13");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'E');
-        if (res != "%EH") throw std::runtime_error("timeio::put fail for EH");
+        VERIFY(res == "%EH");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'O');
-        if (res != "13") throw std::runtime_error("timeio::put fail for OH");
+        VERIFY(res == "13");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'I');
-        if (res != "01") throw std::runtime_error("timeio::put fail for I");
+        VERIFY(res == "01");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'E');
-        if (res != "%EI") throw std::runtime_error("timeio::put fail for EI");
+        VERIFY(res == "%EI");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'O');
-        if (res != "01") throw std::runtime_error("timeio::put fail for OI");
+        VERIFY(res == "01");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'j');
-        if (res != "248") throw std::runtime_error("timeio::put fail for j");
+        VERIFY(res == "248");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'E');
-        if (res != "%Ej") throw std::runtime_error("timeio::put fail for Ej");
+        VERIFY(res == "%Ej");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'O');
-        if (res != "%Oj") throw std::runtime_error("timeio::put fail for Oj");
+        VERIFY(res == "%Oj");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'M');
-        if (res != "33") throw std::runtime_error("timeio::put fail for M");
+        VERIFY(res == "33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'E');
-        if (res != "%EM") throw std::runtime_error("timeio::put fail for EM");
+        VERIFY(res == "%EM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'O');
-        if (res != "33") throw std::runtime_error("timeio::put fail for OM");
+        VERIFY(res == "33");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'm');
-        if (res != "09") throw std::runtime_error("timeio::put fail for m");
+        VERIFY(res == "09");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'E');
-        if (res != "%Em") throw std::runtime_error("timeio::put fail for Em");
+        VERIFY(res == "%Em");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'O');
-        if (res != "09") throw std::runtime_error("timeio::put fail for Om");
+        VERIFY(res == "09");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'n');
-        if (res != "\n") throw std::runtime_error("timeio::put fail for n");
+        VERIFY(res == "\n");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'E');
-        if (res != "%En") throw std::runtime_error("timeio::put fail for En");
+        VERIFY(res == "%En");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'O');
-        if (res != "%On") throw std::runtime_error("timeio::put fail for On");
+        VERIFY(res == "%On");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'p');
-        if (res != "PM") throw std::runtime_error("timeio::put fail for p");
+        VERIFY(res == "PM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'E');
-        if (res != "%Ep") throw std::runtime_error("timeio::put fail for Ep");
+        VERIFY(res == "%Ep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'O');
-        if (res != "%Op") throw std::runtime_error("timeio::put fail for Op");
+        VERIFY(res == "%Op");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'R');
-        if (res != "13:33") throw std::runtime_error("timeio::put fail for R");
+        VERIFY(res == "13:33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'E');
-        if (res != "%ER") throw std::runtime_error("timeio::put fail for ER");
+        VERIFY(res == "%ER");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'O');
-        if (res != "%OR") throw std::runtime_error("timeio::put fail for OR");
+        VERIFY(res == "%OR");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'r');
-        if (res != "01:33:18 PM") throw std::runtime_error("timeio::put fail for r");
+        VERIFY(res == "01:33:18 PM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'E');
-        if (res != "%Er") throw std::runtime_error("timeio::put fail for Er");
+        VERIFY(res == "%Er");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'O');
-        if (res != "%Or") throw std::runtime_error("timeio::put fail for Or");
+        VERIFY(res == "%Or");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'S');
-        if (res != "18") throw std::runtime_error("timeio::put fail for S");
+        VERIFY(res == "18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'E');
-        if (res != "%ES") throw std::runtime_error("timeio::put fail for ES");
+        VERIFY(res == "%ES");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'O');
-        if (res != "18") throw std::runtime_error("timeio::put fail for OS");
+        VERIFY(res == "18");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        if (res != "13:33:18 America/Los_Angeles") throw std::runtime_error("timeio::put fail for X");
+        VERIFY(res == "13:33:18 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        if (res != "13:33:18 America/Los_Angeles") throw std::runtime_error("timeio::put fail for EX");
+        VERIFY(res == "13:33:18 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
-        if (res != "%OX") throw std::runtime_error("timeio::put fail for OX");
+        VERIFY(res == "%OX");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'T');
-        if (res != "13:33:18") throw std::runtime_error("timeio::put fail for T");
+        VERIFY(res == "13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'E');
-        if (res != "%ET") throw std::runtime_error("timeio::put fail for ET");
+        VERIFY(res == "%ET");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'O');
-        if (res != "%OT") throw std::runtime_error("timeio::put fail for OT");
+        VERIFY(res == "%OT");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 't');
-        if (res != "\t") throw std::runtime_error("timeio::put fail for t");
+        VERIFY(res == "\t");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'E');
-        if (res != "%Et") throw std::runtime_error("timeio::put fail for Et");
+        VERIFY(res == "%Et");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'O');
-        if (res != "%Ot") throw std::runtime_error("timeio::put fail for Ot");
+        VERIFY(res == "%Ot");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'u');
-        if (res != "3") throw std::runtime_error("timeio::put fail for u");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'E');
-        if (res != "%Eu") throw std::runtime_error("timeio::put fail for Eu");
+        VERIFY(res == "%Eu");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'O');
-        if (res != "3") throw std::runtime_error("timeio::put fail for Ou");
+        VERIFY(res == "3");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'U');
-        if (res != "35") throw std::runtime_error("timeio::put fail for U");
+        VERIFY(res == "35");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'E');
-        if (res != "%EU") throw std::runtime_error("timeio::put fail for EU");
+        VERIFY(res == "%EU");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'O');
-        if (res != "35") throw std::runtime_error("timeio::put fail for OU");
+        VERIFY(res == "35");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'V');
-        if (res != "36") throw std::runtime_error("timeio::put fail for V");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'E');
-        if (res != "%EV") throw std::runtime_error("timeio::put fail for EV");
+        VERIFY(res == "%EV");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'O');
-        if (res != "36") throw std::runtime_error("timeio::put fail for OV");
+        VERIFY(res == "36");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'g');
-        if (res != "24") throw std::runtime_error("timeio::put fail for g");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'E');
-        if (res != "%Eg") throw std::runtime_error("timeio::put fail for Eg");
+        VERIFY(res == "%Eg");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'O');
-        if (res != "%Og") throw std::runtime_error("timeio::put fail for Og");
+        VERIFY(res == "%Og");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'G');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for G");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'E');
-        if (res != "%EG") throw std::runtime_error("timeio::put fail for EG");
+        VERIFY(res == "%EG");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'O');
-        if (res != "%OG") throw std::runtime_error("timeio::put fail for OG");
+        VERIFY(res == "%OG");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'W');
-        if (res != "36") throw std::runtime_error("timeio::put fail for W");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'E');
-        if (res != "%EW") throw std::runtime_error("timeio::put fail for EW");
+        VERIFY(res == "%EW");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'O');
-        if (res != "36") throw std::runtime_error("timeio::put fail for OW");
+        VERIFY(res == "36");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'w');
-        if (res != "3") throw std::runtime_error("timeio::put fail for w");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'E');
-        if (res != "%Ew") throw std::runtime_error("timeio::put fail for Ew");
+        VERIFY(res == "%Ew");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'O');
-        if (res != "3") throw std::runtime_error("timeio::put fail for Ow");
+        VERIFY(res == "3");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for Y");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'E');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for EY");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'O');
-        if (res != "%OY") throw std::runtime_error("timeio::put fail for OY");
+        VERIFY(res == "%OY");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'y');
-        if (res != "24") throw std::runtime_error("timeio::put fail for y");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'E');
-        if (res != "24") throw std::runtime_error("timeio::put fail for Ey");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'O');
-        if (res != "24") throw std::runtime_error("timeio::put fail for Oy");
+        VERIFY(res == "24");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z');
         VERIFY(res == "America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'E');
-        if (res != "%EZ") throw std::runtime_error("timeio::put fail for EZ");
+        VERIFY(res == "%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'O');
-        if (res != "%OZ") throw std::runtime_error("timeio::put fail for OZ");
+        VERIFY(res == "%OZ");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'z');
         VERIFY(res == "-0700");
-        if (res.empty()) throw std::runtime_error("timeio::put fail for z");
+        VERIFY(!(res.empty()));
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'E');
-        if (res != "%Ez") throw std::runtime_error("timeio::put fail for Ez");
+        VERIFY(res == "%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'O');
-        if (res != "%Oz") throw std::runtime_error("timeio::put fail for Oz");
+        VERIFY(res == "%Oz");
     }    
 
     dump_info("Done\n");
@@ -387,331 +387,331 @@ void test_timeio_char_put_2()
     {
         res.clear();
         obj.put(std::back_inserter(res), tp, '%');
-        if (res != "%") throw std::runtime_error("timeio::put fail for %");
+        VERIFY(res == "%");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'a');
-        if (res != "三") throw std::runtime_error("timeio::put fail for a");
+        VERIFY(res == "三");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'E');
-        if (res != "%Ea") throw std::runtime_error("timeio::put fail for Ea");
+        VERIFY(res == "%Ea");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'O');
-        if (res != "%Oa") throw std::runtime_error("timeio::put fail for Oa");
+        VERIFY(res == "%Oa");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'A');
-        if (res != "星期三") throw std::runtime_error("timeio::put fail for A");
+        VERIFY(res == "星期三");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'E');
-        if (res != "%EA") throw std::runtime_error("timeio::put fail for EA");
+        VERIFY(res == "%EA");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'O');
-        if (res != "%OA") throw std::runtime_error("timeio::put fail for OA");
+        VERIFY(res == "%OA");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'b');
-        if (res != "9月") throw std::runtime_error("timeio::put fail for b");
+        VERIFY(res == "9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'E');
-        if (res != "%Eb") throw std::runtime_error("timeio::put fail for Eb");
+        VERIFY(res == "%Eb");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'O');
-        if (res != "%Ob") throw std::runtime_error("timeio::put fail for Ob");
+        VERIFY(res == "%Ob");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'h');
-        if (res != "9月") throw std::runtime_error("timeio::put fail for h");
+        VERIFY(res == "9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'E');
-        if (res != "%Eh") throw std::runtime_error("timeio::put fail for Eh");
+        VERIFY(res == "%Eh");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'O');
-        if (res != "%Oh") throw std::runtime_error("timeio::put fail for Oh");
+        VERIFY(res == "%Oh");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'B');
-        if (res != "九月") throw std::runtime_error("timeio::put fail for B");
+        VERIFY(res == "九月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'E');
-        if (res != "%EB") throw std::runtime_error("timeio::put fail for EB");
+        VERIFY(res == "%EB");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'O');
-        if (res != "%OB") throw std::runtime_error("timeio::put fail for OB");
+        VERIFY(res == "%OB");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        if (res != "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for c");
+        VERIFY(res == "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        if (res != "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for Ec");
+        VERIFY(res == "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
-        if (res != "%Oc") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%Oc");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'C');
-        if (res != "20") throw std::runtime_error("timeio::put fail for C");
+        VERIFY(res == "20");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'E');
-        if (res != "20") throw std::runtime_error("timeio::put fail for EC");
+        VERIFY(res == "20");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'O');
-        if (res != "%OC") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%OC");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'x');
-        if (res != "2024年09月04日") throw std::runtime_error("timeio::put fail for x");
+        VERIFY(res == "2024年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'E');
-        if (res != "2024年09月04日") throw std::runtime_error("timeio::put fail for Ex");
+        VERIFY(res == "2024年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'O');
-        if (res != "%Ox") throw std::runtime_error("timeio::put fail for Ox");
+        VERIFY(res == "%Ox");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'D');
-        if (res != "09/04/24") throw std::runtime_error("timeio::put fail for D");
+        VERIFY(res == "09/04/24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'E');
-        if (res != "%ED") throw std::runtime_error("timeio::put fail for ED");
+        VERIFY(res == "%ED");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'O');
-        if (res != "%OD") throw std::runtime_error("timeio::put fail for OD");
+        VERIFY(res == "%OD");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'd');
-        if (res != "04") throw std::runtime_error("timeio::put fail for d");
+        VERIFY(res == "04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'E');
-        if (res != "%Ed") throw std::runtime_error("timeio::put fail for Ed");
+        VERIFY(res == "%Ed");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'O');
-        if (res != "04") throw std::runtime_error("timeio::put fail for Od");
+        VERIFY(res == "04");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'e');
-        if (res != " 4") throw std::runtime_error("timeio::put fail for e");
+        VERIFY(res == " 4");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'E');
-        if (res != "%Ee") throw std::runtime_error("timeio::put fail for Ee");
+        VERIFY(res == "%Ee");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'O');
-        if (res != " 4") throw std::runtime_error("timeio::put fail for Oe");
+        VERIFY(res == " 4");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'F');
-        if (res != "2024-09-04") throw std::runtime_error("timeio::put fail for F");
+        VERIFY(res == "2024-09-04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'E');
-        if (res != "%EF") throw std::runtime_error("timeio::put fail for EF");
+        VERIFY(res == "%EF");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'O');
-        if (res != "%OF") throw std::runtime_error("timeio::put fail for OF");
+        VERIFY(res == "%OF");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'H');
-        if (res != "13") throw std::runtime_error("timeio::put fail for H");
+        VERIFY(res == "13");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'E');
-        if (res != "%EH") throw std::runtime_error("timeio::put fail for EH");
+        VERIFY(res == "%EH");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'O');
-        if (res != "13") throw std::runtime_error("timeio::put fail for OH");
+        VERIFY(res == "13");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'I');
-        if (res != "01") throw std::runtime_error("timeio::put fail for I");
+        VERIFY(res == "01");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'E');
-        if (res != "%EI") throw std::runtime_error("timeio::put fail for EI");
+        VERIFY(res == "%EI");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'O');
-        if (res != "01") throw std::runtime_error("timeio::put fail for OI");
+        VERIFY(res == "01");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'j');
-        if (res != "248") throw std::runtime_error("timeio::put fail for j");
+        VERIFY(res == "248");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'E');
-        if (res != "%Ej") throw std::runtime_error("timeio::put fail for Ej");
+        VERIFY(res == "%Ej");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'O');
-        if (res != "%Oj") throw std::runtime_error("timeio::put fail for Oj");
+        VERIFY(res == "%Oj");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'M');
-        if (res != "33") throw std::runtime_error("timeio::put fail for M");
+        VERIFY(res == "33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'E');
-        if (res != "%EM") throw std::runtime_error("timeio::put fail for EM");
+        VERIFY(res == "%EM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'O');
-        if (res != "33") throw std::runtime_error("timeio::put fail for OM");
+        VERIFY(res == "33");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'm');
-        if (res != "09") throw std::runtime_error("timeio::put fail for m");
+        VERIFY(res == "09");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'E');
-        if (res != "%Em") throw std::runtime_error("timeio::put fail for Em");
+        VERIFY(res == "%Em");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'O');
-        if (res != "09") throw std::runtime_error("timeio::put fail for Om");
+        VERIFY(res == "09");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'n');
-        if (res != "\n") throw std::runtime_error("timeio::put fail for n");
+        VERIFY(res == "\n");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'E');
-        if (res != "%En") throw std::runtime_error("timeio::put fail for En");
+        VERIFY(res == "%En");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'O');
-        if (res != "%On") throw std::runtime_error("timeio::put fail for On");
+        VERIFY(res == "%On");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'p');
-        if (res != "下午") throw std::runtime_error("timeio::put fail for p");
+        VERIFY(res == "下午");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'E');
-        if (res != "%Ep") throw std::runtime_error("timeio::put fail for Ep");
+        VERIFY(res == "%Ep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'O');
-        if (res != "%Op") throw std::runtime_error("timeio::put fail for Op");
+        VERIFY(res == "%Op");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'R');
-        if (res != "13:33") throw std::runtime_error("timeio::put fail for R");
+        VERIFY(res == "13:33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'E');
-        if (res != "%ER") throw std::runtime_error("timeio::put fail for ER");
+        VERIFY(res == "%ER");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'O');
-        if (res != "%OR") throw std::runtime_error("timeio::put fail for OR");
+        VERIFY(res == "%OR");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'r');
-        if (res != "下午 01时33分18秒") throw std::runtime_error("timeio::put fail for r");
+        VERIFY(res == "下午 01时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'E');
-        if (res != "%Er") throw std::runtime_error("timeio::put fail for Er");
+        VERIFY(res == "%Er");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'O');
-        if (res != "%Or") throw std::runtime_error("timeio::put fail for Or");
+        VERIFY(res == "%Or");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'S');
-        if (res != "18") throw std::runtime_error("timeio::put fail for S");
+        VERIFY(res == "18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'E');
-        if (res != "%ES") throw std::runtime_error("timeio::put fail for ES");
+        VERIFY(res == "%ES");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'O');
-        if (res != "18") throw std::runtime_error("timeio::put fail for OS");
+        VERIFY(res == "18");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        if (res != "13时33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for X");
+        VERIFY(res == "13时33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        if (res != "13时33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for EX");
+        VERIFY(res == "13时33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
-        if (res != "%OX") throw std::runtime_error("timeio::put fail for OX");
+        VERIFY(res == "%OX");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'T');
-        if (res != "13:33:18") throw std::runtime_error("timeio::put fail for T");
+        VERIFY(res == "13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'E');
-        if (res != "%ET") throw std::runtime_error("timeio::put fail for ET");
+        VERIFY(res == "%ET");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'O');
-        if (res != "%OT") throw std::runtime_error("timeio::put fail for OT");
+        VERIFY(res == "%OT");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 't');
-        if (res != "\t") throw std::runtime_error("timeio::put fail for t");
+        VERIFY(res == "\t");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'E');
-        if (res != "%Et") throw std::runtime_error("timeio::put fail for Et");
+        VERIFY(res == "%Et");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'O');
-        if (res != "%Ot") throw std::runtime_error("timeio::put fail for Ot");
+        VERIFY(res == "%Ot");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'u');
-        if (res != "3") throw std::runtime_error("timeio::put fail for u");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'E');
-        if (res != "%Eu") throw std::runtime_error("timeio::put fail for Eu");
+        VERIFY(res == "%Eu");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'O');
-        if (res != "3") throw std::runtime_error("timeio::put fail for Ou");
+        VERIFY(res == "3");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'U');
-        if (res != "35") throw std::runtime_error("timeio::put fail for U");
+        VERIFY(res == "35");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'E');
-        if (res != "%EU") throw std::runtime_error("timeio::put fail for EU");
+        VERIFY(res == "%EU");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'O');
-        if (res != "35") throw std::runtime_error("timeio::put fail for OU");
+        VERIFY(res == "35");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'V');
-        if (res != "36") throw std::runtime_error("timeio::put fail for V");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'E');
-        if (res != "%EV") throw std::runtime_error("timeio::put fail for EV");
+        VERIFY(res == "%EV");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'O');
-        if (res != "36") throw std::runtime_error("timeio::put fail for OV");
+        VERIFY(res == "36");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'g');
-        if (res != "24") throw std::runtime_error("timeio::put fail for g");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'E');
-        if (res != "%Eg") throw std::runtime_error("timeio::put fail for Eg");
+        VERIFY(res == "%Eg");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'O');
-        if (res != "%Og") throw std::runtime_error("timeio::put fail for Og");
+        VERIFY(res == "%Og");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'G');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for G");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'E');
-        if (res != "%EG") throw std::runtime_error("timeio::put fail for EG");
+        VERIFY(res == "%EG");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'O');
-        if (res != "%OG") throw std::runtime_error("timeio::put fail for OG");
+        VERIFY(res == "%OG");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'W');
-        if (res != "36") throw std::runtime_error("timeio::put fail for W");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'E');
-        if (res != "%EW") throw std::runtime_error("timeio::put fail for EW");
+        VERIFY(res == "%EW");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'O');
-        if (res != "36") throw std::runtime_error("timeio::put fail for OW");
+        VERIFY(res == "36");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'w');
-        if (res != "3") throw std::runtime_error("timeio::put fail for w");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'E');
-        if (res != "%Ew") throw std::runtime_error("timeio::put fail for Ew");
+        VERIFY(res == "%Ew");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'O');
-        if (res != "3") throw std::runtime_error("timeio::put fail for Ow");
+        VERIFY(res == "3");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for Y");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'E');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for EY");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'O');
-        if (res != "%OY") throw std::runtime_error("timeio::put fail for OY");
+        VERIFY(res == "%OY");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'y');
-        if (res != "24") throw std::runtime_error("timeio::put fail for y");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'E');
-        if (res != "24") throw std::runtime_error("timeio::put fail for Ey");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'O');
-        if (res != "24") throw std::runtime_error("timeio::put fail for Oy");
+        VERIFY(res == "24");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z');
         VERIFY(res == "America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'E');
-        if (res != "%EZ") throw std::runtime_error("timeio::put fail for EZ");
+        VERIFY(res == "%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'O');
-        if (res != "%OZ") throw std::runtime_error("timeio::put fail for OZ");
+        VERIFY(res == "%OZ");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'z');
         VERIFY(res == "-0700");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'E');
-        if (res != "%Ez") throw std::runtime_error("timeio::put fail for Ez");
+        VERIFY(res == "%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'O');
-        if (res != "%Oz") throw std::runtime_error("timeio::put fail for Oz");
+        VERIFY(res == "%Oz");
     }
 
     dump_info("Done\n");
@@ -728,331 +728,331 @@ void test_timeio_char_put_3()
     {
         res.clear();
         obj.put(std::back_inserter(res), tp, '%');
-        if (res != "%") throw std::runtime_error("timeio::put fail for %");
+        VERIFY(res == "%");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'a');
-        if (res != "水") throw std::runtime_error("timeio::put fail for a");
+        VERIFY(res == "水");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'E');
-        if (res != "%Ea") throw std::runtime_error("timeio::put fail for Ea");
+        VERIFY(res == "%Ea");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'O');
-        if (res != "%Oa") throw std::runtime_error("timeio::put fail for Oa");
+        VERIFY(res == "%Oa");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'A');
-        if (res != "水曜日") throw std::runtime_error("timeio::put fail for A");
+        VERIFY(res == "水曜日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'E');
-        if (res != "%EA") throw std::runtime_error("timeio::put fail for EA");
+        VERIFY(res == "%EA");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'O');
-        if (res != "%OA") throw std::runtime_error("timeio::put fail for OA");
+        VERIFY(res == "%OA");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'b');
-        if (res != " 9月") throw std::runtime_error("timeio::put fail for b");
+        VERIFY(res == " 9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'E');
-        if (res != "%Eb") throw std::runtime_error("timeio::put fail for Eb");
+        VERIFY(res == "%Eb");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'O');
-        if (res != "%Ob") throw std::runtime_error("timeio::put fail for Ob");
+        VERIFY(res == "%Ob");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'h');
-        if (res != " 9月") throw std::runtime_error("timeio::put fail for h");
+        VERIFY(res == " 9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'E');
-        if (res != "%Eh") throw std::runtime_error("timeio::put fail for Eh");
+        VERIFY(res == "%Eh");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'O');
-        if (res != "%Oh") throw std::runtime_error("timeio::put fail for Oh");
+        VERIFY(res == "%Oh");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'B');
-        if (res != "9月") throw std::runtime_error("timeio::put fail for B");
+        VERIFY(res == "9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'E');
-        if (res != "%EB") throw std::runtime_error("timeio::put fail for EB");
+        VERIFY(res == "%EB");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'O');
-        if (res != "%OB") throw std::runtime_error("timeio::put fail for OB");
+        VERIFY(res == "%OB");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        if (res != "2024年09月04日 13時33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for c");
+        VERIFY(res == "2024年09月04日 13時33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        if (res != "令和6年09月04日 13時33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for Ec");
+        VERIFY(res == "令和6年09月04日 13時33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
-        if (res != "%Oc") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%Oc");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'C');
-        if (res != "20") throw std::runtime_error("timeio::put fail for C");
+        VERIFY(res == "20");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'E');
-        if (res != "令和") throw std::runtime_error("timeio::put fail for EC");
+        VERIFY(res == "令和");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'O');
-        if (res != "%OC") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%OC");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'x');
-        if (res != "2024年09月04日") throw std::runtime_error("timeio::put fail for x");
+        VERIFY(res == "2024年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'E');
-        if (res != "令和6年09月04日") throw std::runtime_error("timeio::put fail for Ex");
+        VERIFY(res == "令和6年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'O');
-        if (res != "%Ox") throw std::runtime_error("timeio::put fail for Ox");
+        VERIFY(res == "%Ox");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'D');
-        if (res != "09/04/24") throw std::runtime_error("timeio::put fail for D");
+        VERIFY(res == "09/04/24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'E');
-        if (res != "%ED") throw std::runtime_error("timeio::put fail for ED");
+        VERIFY(res == "%ED");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'O');
-        if (res != "%OD") throw std::runtime_error("timeio::put fail for OD");
+        VERIFY(res == "%OD");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'd');
-        if (res != "04") throw std::runtime_error("timeio::put fail for d");
+        VERIFY(res == "04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'E');
-        if (res != "%Ed") throw std::runtime_error("timeio::put fail for Ed");
+        VERIFY(res == "%Ed");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'O');
-        if (res != "四") throw std::runtime_error("timeio::put fail for Od");
+        VERIFY(res == "四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'e');
-        if (res != " 4") throw std::runtime_error("timeio::put fail for e");
+        VERIFY(res == " 4");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'E');
-        if (res != "%Ee") throw std::runtime_error("timeio::put fail for Ee");
+        VERIFY(res == "%Ee");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'O');
-        if (res != "四") throw std::runtime_error("timeio::put fail for Oe");
+        VERIFY(res == "四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'F');
-        if (res != "2024-09-04") throw std::runtime_error("timeio::put fail for F");
+        VERIFY(res == "2024-09-04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'E');
-        if (res != "%EF") throw std::runtime_error("timeio::put fail for EF");
+        VERIFY(res == "%EF");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'O');
-        if (res != "%OF") throw std::runtime_error("timeio::put fail for OF");
+        VERIFY(res == "%OF");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'H');
-        if (res != "13") throw std::runtime_error("timeio::put fail for H");
+        VERIFY(res == "13");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'E');
-        if (res != "%EH") throw std::runtime_error("timeio::put fail for EH");
+        VERIFY(res == "%EH");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'O');
-        if (res != "十三") throw std::runtime_error("timeio::put fail for OH");
+        VERIFY(res == "十三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'I');
-        if (res != "01") throw std::runtime_error("timeio::put fail for I");
+        VERIFY(res == "01");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'E');
-        if (res != "%EI") throw std::runtime_error("timeio::put fail for EI");
+        VERIFY(res == "%EI");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'O');
-        if (res != "一") throw std::runtime_error("timeio::put fail for OI");
+        VERIFY(res == "一");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'j');
-        if (res != "248") throw std::runtime_error("timeio::put fail for j");
+        VERIFY(res == "248");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'E');
-        if (res != "%Ej") throw std::runtime_error("timeio::put fail for Ej");
+        VERIFY(res == "%Ej");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'O');
-        if (res != "%Oj") throw std::runtime_error("timeio::put fail for Oj");
+        VERIFY(res == "%Oj");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'M');
-        if (res != "33") throw std::runtime_error("timeio::put fail for M");
+        VERIFY(res == "33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'E');
-        if (res != "%EM") throw std::runtime_error("timeio::put fail for EM");
+        VERIFY(res == "%EM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'O');
-        if (res != "三十三") throw std::runtime_error("timeio::put fail for OM");
+        VERIFY(res == "三十三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'm');
-        if (res != "09") throw std::runtime_error("timeio::put fail for m");
+        VERIFY(res == "09");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'E');
-        if (res != "%Em") throw std::runtime_error("timeio::put fail for Em");
+        VERIFY(res == "%Em");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'O');
-        if (res != "九") throw std::runtime_error("timeio::put fail for Om");
+        VERIFY(res == "九");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'n');
-        if (res != "\n") throw std::runtime_error("timeio::put fail for n");
+        VERIFY(res == "\n");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'E');
-        if (res != "%En") throw std::runtime_error("timeio::put fail for En");
+        VERIFY(res == "%En");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'O');
-        if (res != "%On") throw std::runtime_error("timeio::put fail for On");
+        VERIFY(res == "%On");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'p');
-        if (res != "午後") throw std::runtime_error("timeio::put fail for p");
+        VERIFY(res == "午後");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'E');
-        if (res != "%Ep") throw std::runtime_error("timeio::put fail for Ep");
+        VERIFY(res == "%Ep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'O');
-        if (res != "%Op") throw std::runtime_error("timeio::put fail for Op");
+        VERIFY(res == "%Op");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'R');
-        if (res != "13:33") throw std::runtime_error("timeio::put fail for R");
+        VERIFY(res == "13:33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'E');
-        if (res != "%ER") throw std::runtime_error("timeio::put fail for ER");
+        VERIFY(res == "%ER");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'O');
-        if (res != "%OR") throw std::runtime_error("timeio::put fail for OR");
+        VERIFY(res == "%OR");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'r');
-        if (res != "午後01時33分18秒") throw std::runtime_error("timeio::put fail for r");
+        VERIFY(res == "午後01時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'E');
-        if (res != "%Er") throw std::runtime_error("timeio::put fail for Er");
+        VERIFY(res == "%Er");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'O');
-        if (res != "%Or") throw std::runtime_error("timeio::put fail for Or");
+        VERIFY(res == "%Or");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'S');
-        if (res != "18") throw std::runtime_error("timeio::put fail for S");
+        VERIFY(res == "18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'E');
-        if (res != "%ES") throw std::runtime_error("timeio::put fail for ES");
+        VERIFY(res == "%ES");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'O');
-        if (res != "十八") throw std::runtime_error("timeio::put fail for OS");
+        VERIFY(res == "十八");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        if (res != "13時33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for X");
+        VERIFY(res == "13時33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        if (res != "13時33分18秒 America/Los_Angeles") throw std::runtime_error("timeio::put fail for EX");
+        VERIFY(res == "13時33分18秒 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
-        if (res != "%OX") throw std::runtime_error("timeio::put fail for OX");
+        VERIFY(res == "%OX");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'T');
-        if (res != "13:33:18") throw std::runtime_error("timeio::put fail for T");
+        VERIFY(res == "13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'E');
-        if (res != "%ET") throw std::runtime_error("timeio::put fail for ET");
+        VERIFY(res == "%ET");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'O');
-        if (res != "%OT") throw std::runtime_error("timeio::put fail for OT");
+        VERIFY(res == "%OT");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 't');
-        if (res != "\t") throw std::runtime_error("timeio::put fail for t");
+        VERIFY(res == "\t");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'E');
-        if (res != "%Et") throw std::runtime_error("timeio::put fail for Et");
+        VERIFY(res == "%Et");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'O');
-        if (res != "%Ot") throw std::runtime_error("timeio::put fail for Ot");
+        VERIFY(res == "%Ot");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'u');
-        if (res != "3") throw std::runtime_error("timeio::put fail for u");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'E');
-        if (res != "%Eu") throw std::runtime_error("timeio::put fail for Eu");
+        VERIFY(res == "%Eu");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'O');
-        if (res != "三") throw std::runtime_error("timeio::put fail for Ou");
+        VERIFY(res == "三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'U');
-        if (res != "35") throw std::runtime_error("timeio::put fail for U");
+        VERIFY(res == "35");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'E');
-        if (res != "%EU") throw std::runtime_error("timeio::put fail for EU");
+        VERIFY(res == "%EU");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'O');
-        if (res != "三十五") throw std::runtime_error("timeio::put fail for OU");
+        VERIFY(res == "三十五");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'V');
-        if (res != "36") throw std::runtime_error("timeio::put fail for V");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'E');
-        if (res != "%EV") throw std::runtime_error("timeio::put fail for EV");
+        VERIFY(res == "%EV");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'O');
-        if (res != "三十六") throw std::runtime_error("timeio::put fail for OV");
+        VERIFY(res == "三十六");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'g');
-        if (res != "24") throw std::runtime_error("timeio::put fail for g");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'E');
-        if (res != "%Eg") throw std::runtime_error("timeio::put fail for Eg");
+        VERIFY(res == "%Eg");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'O');
-        if (res != "%Og") throw std::runtime_error("timeio::put fail for Og");
+        VERIFY(res == "%Og");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'G');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for G");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'E');
-        if (res != "%EG") throw std::runtime_error("timeio::put fail for EG");
+        VERIFY(res == "%EG");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'O');
-        if (res != "%OG") throw std::runtime_error("timeio::put fail for OG");
+        VERIFY(res == "%OG");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'W');
-        if (res != "36") throw std::runtime_error("timeio::put fail for W");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'E');
-        if (res != "%EW") throw std::runtime_error("timeio::put fail for EW");
+        VERIFY(res == "%EW");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'O');
-        if (res != "三十六") throw std::runtime_error("timeio::put fail for OW");
+        VERIFY(res == "三十六");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'w');
-        if (res != "3") throw std::runtime_error("timeio::put fail for w");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'E');
-        if (res != "%Ew") throw std::runtime_error("timeio::put fail for Ew");
+        VERIFY(res == "%Ew");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'O');
-        if (res != "三") throw std::runtime_error("timeio::put fail for Ow");
+        VERIFY(res == "三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for Y");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'E');
-        if (res != "令和6年") throw std::runtime_error("timeio::put fail for EY");
+        VERIFY(res == "令和6年");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'O');
-        if (res != "%OY") throw std::runtime_error("timeio::put fail for OY");
+        VERIFY(res == "%OY");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'y');
-        if (res != "24") throw std::runtime_error("timeio::put fail for y");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'E');
-        if (res != "6") throw std::runtime_error("timeio::put fail for Ey");
+        VERIFY(res == "6");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'O');
-        if (res != "二十四") throw std::runtime_error("timeio::put fail for Oy");
+        VERIFY(res == "二十四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z');
         VERIFY(res == "America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'E');
-        if (res != "%EZ") throw std::runtime_error("timeio::put fail for EZ");
+        VERIFY(res == "%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'O');
-        if (res != "%OZ") throw std::runtime_error("timeio::put fail for OZ");
+        VERIFY(res == "%OZ");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'z');
         VERIFY(res == "-0700");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'E');
-        if (res != "%Ez") throw std::runtime_error("timeio::put fail for Ez");
+        VERIFY(res == "%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'O');
-        if (res != "%Oz") throw std::runtime_error("timeio::put fail for Oz");
+        VERIFY(res == "%Oz");
     }
 
     dump_info("Done\n");
@@ -1068,31 +1068,31 @@ void test_timeio_char_put_4()
     std::string oss;
     {
         obj.put(std::back_inserter(oss), time1, 'a');
-        if (oss != "Sun") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "Sun");
     }
 
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, 'x');
-        if (oss != "04/04/71") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "04/04/71");
     }
 
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, 'X');
-        if (oss != "12:00:00 America/Los_Angeles") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "12:00:00 America/Los_Angeles");
     }
 
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, 'x', 'E');
-        if (oss != "04/04/71") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "04/04/71");
     }
 
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, 'X', 'E');
-        if (oss != "12:00:00 America/Los_Angeles") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "12:00:00 America/Los_Angeles");
     }
 
     dump_info("Done\n");
@@ -1108,23 +1108,23 @@ void test_timeio_char_put_5()
     std::string oss;
     {
         obj.put(std::back_inserter(oss), time1, 'a');
-        if ((oss != "Son") && (oss != "So")) throw std::runtime_error("timeio::put fail");
+        VERIFY(!((oss != "Son") && (oss != "So")));
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x');
-        if (oss != "04.04.1971") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "04.04.1971");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X');
-        if (oss != "12:00:00 America/Los_Angeles") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "12:00:00 America/Los_Angeles");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x', 'E');
-        if (oss != "04.04.1971") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "04.04.1971");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X', 'E');
-        if (oss != "12:00:00 America/Los_Angeles") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "12:00:00 America/Los_Angeles");
     }
 
     dump_info("Done\n");
@@ -1140,23 +1140,23 @@ void test_timeio_char_put_6()
     std::string oss;
     {
         obj.put(std::back_inserter(oss), time1, 'a');
-        if (oss != "Sun") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "Sun");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x');
-        if (oss != "Sunday, April 04, 1971") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "Sunday, April 04, 1971");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X');
-        if (oss.find("12:00:00") == std::string::npos) throw std::runtime_error("timeio::put fail");
+        VERIFY(oss.find("12:00:00") != std::string::npos);
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x', 'E');
-        if (oss != "Sunday, April 04, 1971") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "Sunday, April 04, 1971");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X', 'E');
-        if (oss.find("12:00:00") == std::string::npos) throw std::runtime_error("timeio::put fail");
+        VERIFY(oss.find("12:00:00") != std::string::npos);
     }
 
     dump_info("Done\n");
@@ -1172,23 +1172,23 @@ void test_timeio_char_put_7()
     std::string oss;
     {
         obj.put(std::back_inserter(oss), time1, 'a');
-        if (oss != "dom") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "dom");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x');
-        if (oss != "04/04/71") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "04/04/71");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X');
-        if (oss != "12:00:00 America/Los_Angeles") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "12:00:00 America/Los_Angeles");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x', 'E');
-        if (oss != "04/04/71") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "04/04/71");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X', 'E');
-        if (oss != "12:00:00 America/Los_Angeles") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "12:00:00 America/Los_Angeles");
     }
 
     dump_info("Done\n");
@@ -1206,11 +1206,11 @@ void test_timeio_char_put_8()
     std::string oss, oss2;
     {
         obj.put(std::back_inserter(oss), time1, date);
-        if (oss != "Sunday, the second of April") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "Sunday, the second of April");
     }
     {
         obj.put(std::back_inserter(oss2), time1, date_ex);
-        if (oss == oss2) throw std::runtime_error("timeio::put fail");
+        VERIFY(oss != oss2);
     }
 
     dump_info("Done\n");
@@ -1228,11 +1228,11 @@ void test_timeio_char_put_9()
     std::string oss, oss2;
     {
         obj.put(std::back_inserter(oss), time1, date);
-        if (oss != "Sonntag, the second of April") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "Sonntag, the second of April");
     }
     {
         obj.put(std::back_inserter(oss2), time1, date_ex);
-        if (oss == oss2) throw std::runtime_error("timeio::put fail");
+        VERIFY(oss != oss2);
     }
 
     dump_info("Done\n");
@@ -1250,11 +1250,11 @@ void test_timeio_char_put_10()
     std::string oss, oss2;
     {
         obj.put(std::back_inserter(oss), time1, date);
-        if (oss != "Sunday, the second of April") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "Sunday, the second of April");
     }
     {
         obj.put(std::back_inserter(oss2), time1, date_ex);
-        if (oss == oss2) throw std::runtime_error("timeio::put fail");
+        VERIFY(oss != oss2);
     }
 
     dump_info("Done\n");
@@ -1272,11 +1272,11 @@ void test_timeio_char_put_11()
     std::string oss, oss2;
     {
         obj.put(std::back_inserter(oss), time1, date);
-        if (oss != "dimanche, the second of avril") throw std::runtime_error("timeio::put fail");
+        VERIFY(oss == "dimanche, the second of avril");
     }
     {
         obj.put(std::back_inserter(oss2), time1, date_ex);
-        if (oss == oss2) throw std::runtime_error("timeio::put fail");
+        VERIFY(oss != oss2);
     }
 
     dump_info("Done\n");
@@ -1294,8 +1294,8 @@ void test_timeio_char_put_12()
         
     auto ret1 = obj.put(res.begin(), time_sanity, date);
     std::string sanity1(res.begin(), ret1);
-    if (res != "12:00:00, Thursday, the second of June, 1997xxxxxx") throw std::runtime_error("timeio::put fail");
-    if (sanity1 != "12:00:00, Thursday, the second of June, 1997") throw std::runtime_error("timeio::put fail");
+    VERIFY(res == "12:00:00, Thursday, the second of June, 1997xxxxxx");
+    VERIFY(sanity1 == "12:00:00, Thursday, the second of June, 1997");
 
     dump_info("Done\n");
 }
@@ -1311,8 +1311,8 @@ void test_timeio_char_put_13()
 
     auto ret1 = obj.put(res.begin(), time_sanity, 'A');
     std::string sanity1(res.begin(), ret1);
-    if (res != "Tuesdayxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx") throw std::runtime_error("timeio::put fail");
-    if (sanity1 != "Tuesday") throw std::runtime_error("timeio::put fail");
+    VERIFY(res == "Tuesdayxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    VERIFY(sanity1 == "Tuesday");
 
     dump_info("Done\n");
 }
@@ -1333,7 +1333,7 @@ void test_timeio_char_put_14()
     std::strftime(time_buffer, 128, "%c", &time1);
     setlocale(LC_ALL, "C");
 
-    if (time_buffer + std::string(" America/Los_Angeles") != res) throw std::runtime_error("timeio::put fail");
+    VERIFY(time_buffer + std::string(" America/Los_Angeles") == res);
 
     dump_info("Done\n");
 }
@@ -1355,326 +1355,326 @@ void test_timeio_char_put_15()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'a');
-        if (res != "水") throw std::runtime_error("timeio::put fail for a");
+        VERIFY(res == "水");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'E');
-        if (res != "%Ea") throw std::runtime_error("timeio::put fail for Ea");
+        VERIFY(res == "%Ea");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'O');
-        if (res != "%Oa") throw std::runtime_error("timeio::put fail for Oa");
+        VERIFY(res == "%Oa");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'A');
-        if (res != "水曜日") throw std::runtime_error("timeio::put fail for A");
+        VERIFY(res == "水曜日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'E');
-        if (res != "%EA") throw std::runtime_error("timeio::put fail for EA");
+        VERIFY(res == "%EA");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'O');
-        if (res != "%OA") throw std::runtime_error("timeio::put fail for OA");
+        VERIFY(res == "%OA");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'b');
-        if (res != " 9月") throw std::runtime_error("timeio::put fail for b");
+        VERIFY(res == " 9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'E');
-        if (res != "%Eb") throw std::runtime_error("timeio::put fail for Eb");
+        VERIFY(res == "%Eb");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'O');
-        if (res != "%Ob") throw std::runtime_error("timeio::put fail for Ob");
+        VERIFY(res == "%Ob");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'h');
-        if (res != " 9月") throw std::runtime_error("timeio::put fail for h");
+        VERIFY(res == " 9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'E');
-        if (res != "%Eh") throw std::runtime_error("timeio::put fail for Eh");
+        VERIFY(res == "%Eh");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'O');
-        if (res != "%Oh") throw std::runtime_error("timeio::put fail for Oh");
+        VERIFY(res == "%Oh");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'B');
-        if (res != "9月") throw std::runtime_error("timeio::put fail for B");
+        VERIFY(res == "9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'E');
-        if (res != "%EB") throw std::runtime_error("timeio::put fail for EB");
+        VERIFY(res == "%EB");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'O');
-        if (res != "%OB") throw std::runtime_error("timeio::put fail for OB");
+        VERIFY(res == "%OB");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        if (res != "%c") throw std::runtime_error("timeio::put fail for c");
+        VERIFY(res == "%c");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        if (res != "%Ec") throw std::runtime_error("timeio::put fail for Ec");
+        VERIFY(res == "%Ec");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
-        if (res != "%Oc") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%Oc");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'C');
-        if (res != "20") throw std::runtime_error("timeio::put fail for C");
+        VERIFY(res == "20");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'E');
-        if (res != "令和") throw std::runtime_error("timeio::put fail for EC");
+        VERIFY(res == "令和");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'O');
-        if (res != "%OC") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%OC");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'x');
-        if (res != "2024年09月04日") throw std::runtime_error("timeio::put fail for x");
+        VERIFY(res == "2024年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'E');
-        if (res != "令和6年09月04日") throw std::runtime_error("timeio::put fail for Ex");
+        VERIFY(res == "令和6年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'O');
-        if (res != "%Ox") throw std::runtime_error("timeio::put fail for Ox");
+        VERIFY(res == "%Ox");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'D');
-        if (res != "09/04/24") throw std::runtime_error("timeio::put fail for D");
+        VERIFY(res == "09/04/24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'E');
-        if (res != "%ED") throw std::runtime_error("timeio::put fail for ED");
+        VERIFY(res == "%ED");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'O');
-        if (res != "%OD") throw std::runtime_error("timeio::put fail for OD");
+        VERIFY(res == "%OD");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'd');
-        if (res != "04") throw std::runtime_error("timeio::put fail for d");
+        VERIFY(res == "04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'E');
-        if (res != "%Ed") throw std::runtime_error("timeio::put fail for Ed");
+        VERIFY(res == "%Ed");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'O');
-        if (res != "四") throw std::runtime_error("timeio::put fail for Od");
+        VERIFY(res == "四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'e');
-        if (res != " 4") throw std::runtime_error("timeio::put fail for e");
+        VERIFY(res == " 4");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'E');
-        if (res != "%Ee") throw std::runtime_error("timeio::put fail for Ee");
+        VERIFY(res == "%Ee");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'O');
-        if (res != "四") throw std::runtime_error("timeio::put fail for Oe");
+        VERIFY(res == "四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'F');
-        if (res != "2024-09-04") throw std::runtime_error("timeio::put fail for F");
+        VERIFY(res == "2024-09-04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'E');
-        if (res != "%EF") throw std::runtime_error("timeio::put fail for EF");
+        VERIFY(res == "%EF");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'O');
-        if (res != "%OF") throw std::runtime_error("timeio::put fail for OF");
+        VERIFY(res == "%OF");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'H');
-        if (res != "%H") throw std::runtime_error("timeio::put fail for H");
+        VERIFY(res == "%H");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'E');
-        if (res != "%EH") throw std::runtime_error("timeio::put fail for EH");
+        VERIFY(res == "%EH");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'O');
-        if (res != "%OH") throw std::runtime_error("timeio::put fail for OH");
+        VERIFY(res == "%OH");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'I');
-        if (res != "%I") throw std::runtime_error("timeio::put fail for I");
+        VERIFY(res == "%I");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'E');
-        if (res != "%EI") throw std::runtime_error("timeio::put fail for EI");
+        VERIFY(res == "%EI");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'O');
-        if (res != "%OI") throw std::runtime_error("timeio::put fail for OI");
+        VERIFY(res == "%OI");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'j');
-        if (res != "248") throw std::runtime_error("timeio::put fail for j");
+        VERIFY(res == "248");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'E');
-        if (res != "%Ej") throw std::runtime_error("timeio::put fail for Ej");
+        VERIFY(res == "%Ej");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'O');
-        if (res != "%Oj") throw std::runtime_error("timeio::put fail for Oj");
+        VERIFY(res == "%Oj");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'M');
-        if (res != "%M") throw std::runtime_error("timeio::put fail for M");
+        VERIFY(res == "%M");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'E');
-        if (res != "%EM") throw std::runtime_error("timeio::put fail for EM");
+        VERIFY(res == "%EM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'O');
-        if (res != "%OM") throw std::runtime_error("timeio::put fail for OM");
+        VERIFY(res == "%OM");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'm');
-        if (res != "09") throw std::runtime_error("timeio::put fail for m");
+        VERIFY(res == "09");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'E');
-        if (res != "%Em") throw std::runtime_error("timeio::put fail for Em");
+        VERIFY(res == "%Em");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'O');
-        if (res != "九") throw std::runtime_error("timeio::put fail for Om");
+        VERIFY(res == "九");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'n');
-        if (res != "\n") throw std::runtime_error("timeio::put fail for n");
+        VERIFY(res == "\n");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'E');
-        if (res != "%En") throw std::runtime_error("timeio::put fail for En");
+        VERIFY(res == "%En");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'O');
-        if (res != "%On") throw std::runtime_error("timeio::put fail for On");
+        VERIFY(res == "%On");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'p');
-        if (res != "%p") throw std::runtime_error("timeio::put fail for p");
+        VERIFY(res == "%p");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'E');
-        if (res != "%Ep") throw std::runtime_error("timeio::put fail for Ep");
+        VERIFY(res == "%Ep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'O');
-        if (res != "%Op") throw std::runtime_error("timeio::put fail for Op");
+        VERIFY(res == "%Op");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'R');
-        if (res != "%R") throw std::runtime_error("timeio::put fail for R");
+        VERIFY(res == "%R");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'E');
-        if (res != "%ER") throw std::runtime_error("timeio::put fail for ER");
+        VERIFY(res == "%ER");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'O');
-        if (res != "%OR") throw std::runtime_error("timeio::put fail for OR");
+        VERIFY(res == "%OR");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'r');
-        if (res != "%r") throw std::runtime_error("timeio::put fail for r");
+        VERIFY(res == "%r");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'E');
-        if (res != "%Er") throw std::runtime_error("timeio::put fail for Er");
+        VERIFY(res == "%Er");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'O');
-        if (res != "%Or") throw std::runtime_error("timeio::put fail for Or");
+        VERIFY(res == "%Or");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'S');
-        if (res != "%S") throw std::runtime_error("timeio::put fail for S");
+        VERIFY(res == "%S");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'E');
-        if (res != "%ES") throw std::runtime_error("timeio::put fail for ES");
+        VERIFY(res == "%ES");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'O');
-        if (res != "%OS") throw std::runtime_error("timeio::put fail for OS");
+        VERIFY(res == "%OS");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        if (res != "%X") throw std::runtime_error("timeio::put fail for X");
+        VERIFY(res == "%X");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        if (res != "%EX") throw std::runtime_error("timeio::put fail for EX");
+        VERIFY(res == "%EX");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
-        if (res != "%OX") throw std::runtime_error("timeio::put fail for OX");
+        VERIFY(res == "%OX");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'T');
-        if (res != "%T") throw std::runtime_error("timeio::put fail for T");
+        VERIFY(res == "%T");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'E');
-        if (res != "%ET") throw std::runtime_error("timeio::put fail for ET");
+        VERIFY(res == "%ET");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'O');
-        if (res != "%OT") throw std::runtime_error("timeio::put fail for OT");
+        VERIFY(res == "%OT");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 't');
-        if (res != "\t") throw std::runtime_error("timeio::put fail for t");
+        VERIFY(res == "\t");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'E');
-        if (res != "%Et") throw std::runtime_error("timeio::put fail for Et");
+        VERIFY(res == "%Et");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'O');
-        if (res != "%Ot") throw std::runtime_error("timeio::put fail for Ot");
+        VERIFY(res == "%Ot");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'u');
-        if (res != "3") throw std::runtime_error("timeio::put fail for u");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'E');
-        if (res != "%Eu") throw std::runtime_error("timeio::put fail for Eu");
+        VERIFY(res == "%Eu");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'O');
-        if (res != "三") throw std::runtime_error("timeio::put fail for Ou");
+        VERIFY(res == "三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'U');
-        if (res != "35") throw std::runtime_error("timeio::put fail for U");
+        VERIFY(res == "35");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'E');
-        if (res != "%EU") throw std::runtime_error("timeio::put fail for EU");
+        VERIFY(res == "%EU");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'O');
-        if (res != "三十五") throw std::runtime_error("timeio::put fail for OU");
+        VERIFY(res == "三十五");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'V');
-        if (res != "36") throw std::runtime_error("timeio::put fail for V");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'E');
-        if (res != "%EV") throw std::runtime_error("timeio::put fail for EV");
+        VERIFY(res == "%EV");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'O');
-        if (res != "三十六") throw std::runtime_error("timeio::put fail for OV");
+        VERIFY(res == "三十六");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'g');
-        if (res != "24") throw std::runtime_error("timeio::put fail for g");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'E');
-        if (res != "%Eg") throw std::runtime_error("timeio::put fail for Eg");
+        VERIFY(res == "%Eg");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'O');
-        if (res != "%Og") throw std::runtime_error("timeio::put fail for Og");
+        VERIFY(res == "%Og");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'G');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for G");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'E');
-        if (res != "%EG") throw std::runtime_error("timeio::put fail for EG");
+        VERIFY(res == "%EG");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'O');
-        if (res != "%OG") throw std::runtime_error("timeio::put fail for OG");
+        VERIFY(res == "%OG");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'W');
-        if (res != "36") throw std::runtime_error("timeio::put fail for W");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'E');
-        if (res != "%EW") throw std::runtime_error("timeio::put fail for EW");
+        VERIFY(res == "%EW");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'O');
-        if (res != "三十六") throw std::runtime_error("timeio::put fail for OW");
+        VERIFY(res == "三十六");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'w');
-        if (res != "3") throw std::runtime_error("timeio::put fail for w");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'E');
-        if (res != "%Ew") throw std::runtime_error("timeio::put fail for Ew");
+        VERIFY(res == "%Ew");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'O');
-        if (res != "三") throw std::runtime_error("timeio::put fail for Ow");
+        VERIFY(res == "三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for Y");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'E');
-        if (res != "令和6年") throw std::runtime_error("timeio::put fail for EY");
+        VERIFY(res == "令和6年");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'O');
-        if (res != "%OY") throw std::runtime_error("timeio::put fail for OY");
+        VERIFY(res == "%OY");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'y');
-        if (res != "24") throw std::runtime_error("timeio::put fail for y");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'E');
-        if (res != "6") throw std::runtime_error("timeio::put fail for Ey");
+        VERIFY(res == "6");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'O');
-        if (res != "二十四") throw std::runtime_error("timeio::put fail for Oy");
+        VERIFY(res == "二十四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z');
         VERIFY(res == "%Z");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'E');
-        if (res != "%EZ") throw std::runtime_error("timeio::put fail for EZ");
+        VERIFY(res == "%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'O');
-        if (res != "%OZ") throw std::runtime_error("timeio::put fail for OZ");
+        VERIFY(res == "%OZ");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'z');
         VERIFY(res == "%z");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'E');
-        if (res != "%Ez") throw std::runtime_error("timeio::put fail for Ez");
+        VERIFY(res == "%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'O');
-        if (res != "%Oz") throw std::runtime_error("timeio::put fail for Oz");
+        VERIFY(res == "%Oz");
     }
     dump_info("Done\n");
 }
@@ -1692,320 +1692,320 @@ void test_timeio_char_put_16()
     {
         res.clear();
         obj.put(std::back_inserter(res), tp, '%');
-        if (res != "%") throw std::runtime_error("timeio::put fail for %");
+        VERIFY(res == "%");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'a');
-        if (res != "%a") throw std::runtime_error("timeio::put fail for a");
+        VERIFY(res == "%a");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'E');
-        if (res != "%Ea") throw std::runtime_error("timeio::put fail for Ea");
+        VERIFY(res == "%Ea");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'O');
-        if (res != "%Oa") throw std::runtime_error("timeio::put fail for Oa");
+        VERIFY(res == "%Oa");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'A');
-        if (res != "%A") throw std::runtime_error("timeio::put fail for A");
+        VERIFY(res == "%A");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'E');
-        if (res != "%EA") throw std::runtime_error("timeio::put fail for EA");
+        VERIFY(res == "%EA");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'O');
-        if (res != "%OA") throw std::runtime_error("timeio::put fail for OA");
+        VERIFY(res == "%OA");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'b');
-        if (res != "%b") throw std::runtime_error("timeio::put fail for b");
+        VERIFY(res == "%b");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'E');
-        if (res != "%Eb") throw std::runtime_error("timeio::put fail for Eb");
+        VERIFY(res == "%Eb");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'O');
-        if (res != "%Ob") throw std::runtime_error("timeio::put fail for Ob");
+        VERIFY(res == "%Ob");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'h');
-        if (res != "%h") throw std::runtime_error("timeio::put fail for h");
+        VERIFY(res == "%h");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'E');
-        if (res != "%Eh") throw std::runtime_error("timeio::put fail for Eh");
+        VERIFY(res == "%Eh");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'O');
-        if (res != "%Oh") throw std::runtime_error("timeio::put fail for Oh");
+        VERIFY(res == "%Oh");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'B');
-        if (res != "%B") throw std::runtime_error("timeio::put fail for B");
+        VERIFY(res == "%B");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'E');
-        if (res != "%EB") throw std::runtime_error("timeio::put fail for EB");
+        VERIFY(res == "%EB");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'O');
-        if (res != "%OB") throw std::runtime_error("timeio::put fail for OB");
+        VERIFY(res == "%OB");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        if (res != "%c") throw std::runtime_error("timeio::put fail for c");
+        VERIFY(res == "%c");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        if (res != "%Ec") throw std::runtime_error("timeio::put fail for Ec");
+        VERIFY(res == "%Ec");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
-        if (res != "%Oc") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%Oc");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'x');
-        if (res != "%x") throw std::runtime_error("timeio::put fail for x");
+        VERIFY(res == "%x");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'E');
-        if (res != "%Ex") throw std::runtime_error("timeio::put fail for Ex");
+        VERIFY(res == "%Ex");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'O');
-        if (res != "%Ox") throw std::runtime_error("timeio::put fail for Ox");
+        VERIFY(res == "%Ox");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'D');
-        if (res != "%D") throw std::runtime_error("timeio::put fail for D");
+        VERIFY(res == "%D");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'E');
-        if (res != "%ED") throw std::runtime_error("timeio::put fail for ED");
+        VERIFY(res == "%ED");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'O');
-        if (res != "%OD") throw std::runtime_error("timeio::put fail for OD");
+        VERIFY(res == "%OD");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'd');
-        if (res != "%d") throw std::runtime_error("timeio::put fail for d");
+        VERIFY(res == "%d");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'E');
-        if (res != "%Ed") throw std::runtime_error("timeio::put fail for Ed");
+        VERIFY(res == "%Ed");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'O');
-        if (res != "%Od") throw std::runtime_error("timeio::put fail for Od");
+        VERIFY(res == "%Od");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'e');
-        if (res != "%e") throw std::runtime_error("timeio::put fail for e");
+        VERIFY(res == "%e");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'E');
-        if (res != "%Ee") throw std::runtime_error("timeio::put fail for Ee");
+        VERIFY(res == "%Ee");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'O');
-        if (res != "%Oe") throw std::runtime_error("timeio::put fail for Oe");
+        VERIFY(res == "%Oe");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'F');
-        if (res != "%F") throw std::runtime_error("timeio::put fail for F");
+        VERIFY(res == "%F");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'E');
-        if (res != "%EF") throw std::runtime_error("timeio::put fail for EF");
+        VERIFY(res == "%EF");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'O');
-        if (res != "%OF") throw std::runtime_error("timeio::put fail for OF");
+        VERIFY(res == "%OF");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'H');
-        if (res != "13") throw std::runtime_error("timeio::put fail for H");
+        VERIFY(res == "13");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'E');
-        if (res != "%EH") throw std::runtime_error("timeio::put fail for EH");
+        VERIFY(res == "%EH");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'O');
-        if (res != "十三") throw std::runtime_error("timeio::put fail for OH");
+        VERIFY(res == "十三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'I');
-        if (res != "01") throw std::runtime_error("timeio::put fail for I");
+        VERIFY(res == "01");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'E');
-        if (res != "%EI") throw std::runtime_error("timeio::put fail for EI");
+        VERIFY(res == "%EI");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'O');
-        if (res != "一") throw std::runtime_error("timeio::put fail for OI");
+        VERIFY(res == "一");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'j');
-        if (res != "%j") throw std::runtime_error("timeio::put fail for j");
+        VERIFY(res == "%j");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'E');
-        if (res != "%Ej") throw std::runtime_error("timeio::put fail for Ej");
+        VERIFY(res == "%Ej");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'O');
-        if (res != "%Oj") throw std::runtime_error("timeio::put fail for Oj");
+        VERIFY(res == "%Oj");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'M');
-        if (res != "33") throw std::runtime_error("timeio::put fail for M");
+        VERIFY(res == "33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'E');
-        if (res != "%EM") throw std::runtime_error("timeio::put fail for EM");
+        VERIFY(res == "%EM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'O');
-        if (res != "三十三") throw std::runtime_error("timeio::put fail for OM");
+        VERIFY(res == "三十三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'm');
-        if (res != "%m") throw std::runtime_error("timeio::put fail for m");
+        VERIFY(res == "%m");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'E');
-        if (res != "%Em") throw std::runtime_error("timeio::put fail for Em");
+        VERIFY(res == "%Em");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'O');
-        if (res != "%Om") throw std::runtime_error("timeio::put fail for Om");
+        VERIFY(res == "%Om");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'n');
-        if (res != "\n") throw std::runtime_error("timeio::put fail for n");
+        VERIFY(res == "\n");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'E');
-        if (res != "%En") throw std::runtime_error("timeio::put fail for En");
+        VERIFY(res == "%En");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'O');
-        if (res != "%On") throw std::runtime_error("timeio::put fail for On");
+        VERIFY(res == "%On");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'p');
-        if (res != "午後") throw std::runtime_error("timeio::put fail for p");
+        VERIFY(res == "午後");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'E');
-        if (res != "%Ep") throw std::runtime_error("timeio::put fail for Ep");
+        VERIFY(res == "%Ep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'O');
-        if (res != "%Op") throw std::runtime_error("timeio::put fail for Op");
+        VERIFY(res == "%Op");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'R');
-        if (res != "13:33") throw std::runtime_error("timeio::put fail for R");
+        VERIFY(res == "13:33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'E');
-        if (res != "%ER") throw std::runtime_error("timeio::put fail for ER");
+        VERIFY(res == "%ER");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'O');
-        if (res != "%OR") throw std::runtime_error("timeio::put fail for OR");
+        VERIFY(res == "%OR");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'r');
-        if (res != "午後01時33分18秒") throw std::runtime_error("timeio::put fail for r");
+        VERIFY(res == "午後01時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'E');
-        if (res != "%Er") throw std::runtime_error("timeio::put fail for Er");
+        VERIFY(res == "%Er");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'O');
-        if (res != "%Or") throw std::runtime_error("timeio::put fail for Or");
+        VERIFY(res == "%Or");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'S');
-        if (res != "18") throw std::runtime_error("timeio::put fail for S");
+        VERIFY(res == "18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'E');
-        if (res != "%ES") throw std::runtime_error("timeio::put fail for ES");
+        VERIFY(res == "%ES");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'O');
-        if (res != "十八") throw std::runtime_error("timeio::put fail for OS");
+        VERIFY(res == "十八");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        if (res != "13時33分18秒") throw std::runtime_error("timeio::put fail for X");
+        VERIFY(res == "13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        if (res != "13時33分18秒") throw std::runtime_error("timeio::put fail for EX");
+        VERIFY(res == "13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
-        if (res != "%OX") throw std::runtime_error("timeio::put fail for OX");
+        VERIFY(res == "%OX");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'T');
-        if (res != "13:33:18") throw std::runtime_error("timeio::put fail for T");
+        VERIFY(res == "13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'E');
-        if (res != "%ET") throw std::runtime_error("timeio::put fail for ET");
+        VERIFY(res == "%ET");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'O');
-        if (res != "%OT") throw std::runtime_error("timeio::put fail for OT");
+        VERIFY(res == "%OT");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 't');
-        if (res != "\t") throw std::runtime_error("timeio::put fail for t");
+        VERIFY(res == "\t");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'E');
-        if (res != "%Et") throw std::runtime_error("timeio::put fail for Et");
+        VERIFY(res == "%Et");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'O');
-        if (res != "%Ot") throw std::runtime_error("timeio::put fail for Ot");
+        VERIFY(res == "%Ot");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'u');
-        if (res != "%u") throw std::runtime_error("timeio::put fail for u");
+        VERIFY(res == "%u");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'E');
-        if (res != "%Eu") throw std::runtime_error("timeio::put fail for Eu");
+        VERIFY(res == "%Eu");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'O');
-        if (res != "%Ou") throw std::runtime_error("timeio::put fail for Ou");
+        VERIFY(res == "%Ou");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'U');
-        if (res != "%U") throw std::runtime_error("timeio::put fail for U");
+        VERIFY(res == "%U");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'E');
-        if (res != "%EU") throw std::runtime_error("timeio::put fail for EU");
+        VERIFY(res == "%EU");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'O');
-        if (res != "%OU") throw std::runtime_error("timeio::put fail for OU");
+        VERIFY(res == "%OU");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'V');
-        if (res != "%V") throw std::runtime_error("timeio::put fail for V");
+        VERIFY(res == "%V");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'E');
-        if (res != "%EV") throw std::runtime_error("timeio::put fail for EV");
+        VERIFY(res == "%EV");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'O');
-        if (res != "%OV") throw std::runtime_error("timeio::put fail for OV");
+        VERIFY(res == "%OV");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'g');
-        if (res != "%g") throw std::runtime_error("timeio::put fail for g");
+        VERIFY(res == "%g");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'E');
-        if (res != "%Eg") throw std::runtime_error("timeio::put fail for Eg");
+        VERIFY(res == "%Eg");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'O');
-        if (res != "%Og") throw std::runtime_error("timeio::put fail for Og");
+        VERIFY(res == "%Og");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'G');
-        if (res != "%G") throw std::runtime_error("timeio::put fail for G");
+        VERIFY(res == "%G");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'E');
-        if (res != "%EG") throw std::runtime_error("timeio::put fail for EG");
+        VERIFY(res == "%EG");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'O');
-        if (res != "%OG") throw std::runtime_error("timeio::put fail for OG");
+        VERIFY(res == "%OG");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'W');
-        if (res != "%W") throw std::runtime_error("timeio::put fail for W");
+        VERIFY(res == "%W");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'E');
-        if (res != "%EW") throw std::runtime_error("timeio::put fail for EW");
+        VERIFY(res == "%EW");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'O');
-        if (res != "%OW") throw std::runtime_error("timeio::put fail for OW");
+        VERIFY(res == "%OW");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'w');
-        if (res != "%w") throw std::runtime_error("timeio::put fail for w");
+        VERIFY(res == "%w");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'E');
-        if (res != "%Ew") throw std::runtime_error("timeio::put fail for Ew");
+        VERIFY(res == "%Ew");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'O');
-        if (res != "%Ow") throw std::runtime_error("timeio::put fail for Ow");
+        VERIFY(res == "%Ow");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y');
-        if (res != "%Y") throw std::runtime_error("timeio::put fail for Y");
+        VERIFY(res == "%Y");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'E');
-        if (res != "%EY") throw std::runtime_error("timeio::put fail for EY");
+        VERIFY(res == "%EY");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'O');
-        if (res != "%OY") throw std::runtime_error("timeio::put fail for OY");
+        VERIFY(res == "%OY");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'y');
-        if (res != "%y") throw std::runtime_error("timeio::put fail for y");
+        VERIFY(res == "%y");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'E');
-        if (res != "%Ey") throw std::runtime_error("timeio::put fail for Ey");
+        VERIFY(res == "%Ey");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'O');
-        if (res != "%Oy") throw std::runtime_error("timeio::put fail for Oy");
+        VERIFY(res == "%Oy");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z'); VERIFY(res == "%Z");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'E');
-        if (res != "%EZ") throw std::runtime_error("timeio::put fail for EZ");
+        VERIFY(res == "%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'O');
-        if (res != "%OZ") throw std::runtime_error("timeio::put fail for OZ");
+        VERIFY(res == "%OZ");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'z'); VERIFY(res == "%z");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'E');
-        if (res != "%Ez") throw std::runtime_error("timeio::put fail for Ez");
+        VERIFY(res == "%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'O');
-        if (res != "%Oz") throw std::runtime_error("timeio::put fail for Oz");
+        VERIFY(res == "%Oz");
     }
     dump_info("Done\n");
 }
@@ -2020,329 +2020,329 @@ void test_timeio_char_put_17()
     {
         res.clear();
         obj.put(std::back_inserter(res), tp, '%');
-        if (res != "%") throw std::runtime_error("timeio::put fail for %");
+        VERIFY(res == "%");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'a');
-        if (res != "水") throw std::runtime_error("timeio::put fail for a");
+        VERIFY(res == "水");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'E');
-        if (res != "%Ea") throw std::runtime_error("timeio::put fail for Ea");
+        VERIFY(res == "%Ea");
         res.clear(); obj.put(std::back_inserter(res), tp, 'a', 'O');
-        if (res != "%Oa") throw std::runtime_error("timeio::put fail for Oa");
+        VERIFY(res == "%Oa");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'A');
-        if (res != "水曜日") throw std::runtime_error("timeio::put fail for A");
+        VERIFY(res == "水曜日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'E');
-        if (res != "%EA") throw std::runtime_error("timeio::put fail for EA");
+        VERIFY(res == "%EA");
         res.clear(); obj.put(std::back_inserter(res), tp, 'A', 'O');
-        if (res != "%OA") throw std::runtime_error("timeio::put fail for OA");
+        VERIFY(res == "%OA");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'b');
-        if (res != " 9月") throw std::runtime_error("timeio::put fail for b");
+        VERIFY(res == " 9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'E');
-        if (res != "%Eb") throw std::runtime_error("timeio::put fail for Eb");
+        VERIFY(res == "%Eb");
         res.clear(); obj.put(std::back_inserter(res), tp, 'b', 'O');
-        if (res != "%Ob") throw std::runtime_error("timeio::put fail for Ob");
+        VERIFY(res == "%Ob");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'h');
-        if (res != " 9月") throw std::runtime_error("timeio::put fail for h");
+        VERIFY(res == " 9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'E');
-        if (res != "%Eh") throw std::runtime_error("timeio::put fail for Eh");
+        VERIFY(res == "%Eh");
         res.clear(); obj.put(std::back_inserter(res), tp, 'h', 'O');
-        if (res != "%Oh") throw std::runtime_error("timeio::put fail for Oh");
+        VERIFY(res == "%Oh");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'B');
-        if (res != "9月") throw std::runtime_error("timeio::put fail for B");
+        VERIFY(res == "9月");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'E');
-        if (res != "%EB") throw std::runtime_error("timeio::put fail for EB");
+        VERIFY(res == "%EB");
         res.clear(); obj.put(std::back_inserter(res), tp, 'B', 'O');
-        if (res != "%OB") throw std::runtime_error("timeio::put fail for OB");
+        VERIFY(res == "%OB");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        if (res != "2024年09月04日 13時33分18秒") throw std::runtime_error("timeio::put fail for c");
+        VERIFY(res == "2024年09月04日 13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        if (res != "令和6年09月04日 13時33分18秒") throw std::runtime_error("timeio::put fail for Ec");
+        VERIFY(res == "令和6年09月04日 13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
-        if (res != "%Oc") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%Oc");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'C');
-        if (res != "20") throw std::runtime_error("timeio::put fail for C");
+        VERIFY(res == "20");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'E');
-        if (res != "令和") throw std::runtime_error("timeio::put fail for EC");
+        VERIFY(res == "令和");
         res.clear(); obj.put(std::back_inserter(res), tp, 'C', 'O');
-        if (res != "%OC") throw std::runtime_error("timeio::put fail for Oc");
+        VERIFY(res == "%OC");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'x');
-        if (res != "2024年09月04日") throw std::runtime_error("timeio::put fail for x");
+        VERIFY(res == "2024年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'E');
-        if (res != "令和6年09月04日") throw std::runtime_error("timeio::put fail for Ex");
+        VERIFY(res == "令和6年09月04日");
         res.clear(); obj.put(std::back_inserter(res), tp, 'x', 'O');
-        if (res != "%Ox") throw std::runtime_error("timeio::put fail for Ox");
+        VERIFY(res == "%Ox");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'D');
-        if (res != "09/04/24") throw std::runtime_error("timeio::put fail for D");
+        VERIFY(res == "09/04/24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'E');
-        if (res != "%ED") throw std::runtime_error("timeio::put fail for ED");
+        VERIFY(res == "%ED");
         res.clear(); obj.put(std::back_inserter(res), tp, 'D', 'O');
-        if (res != "%OD") throw std::runtime_error("timeio::put fail for OD");
+        VERIFY(res == "%OD");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'd');
-        if (res != "04") throw std::runtime_error("timeio::put fail for d");
+        VERIFY(res == "04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'E');
-        if (res != "%Ed") throw std::runtime_error("timeio::put fail for Ed");
+        VERIFY(res == "%Ed");
         res.clear(); obj.put(std::back_inserter(res), tp, 'd', 'O');
-        if (res != "四") throw std::runtime_error("timeio::put fail for Od");
+        VERIFY(res == "四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'e');
-        if (res != " 4") throw std::runtime_error("timeio::put fail for e");
+        VERIFY(res == " 4");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'E');
-        if (res != "%Ee") throw std::runtime_error("timeio::put fail for Ee");
+        VERIFY(res == "%Ee");
         res.clear(); obj.put(std::back_inserter(res), tp, 'e', 'O');
-        if (res != "四") throw std::runtime_error("timeio::put fail for Oe");
+        VERIFY(res == "四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'F');
-        if (res != "2024-09-04") throw std::runtime_error("timeio::put fail for F");
+        VERIFY(res == "2024-09-04");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'E');
-        if (res != "%EF") throw std::runtime_error("timeio::put fail for EF");
+        VERIFY(res == "%EF");
         res.clear(); obj.put(std::back_inserter(res), tp, 'F', 'O');
-        if (res != "%OF") throw std::runtime_error("timeio::put fail for OF");
+        VERIFY(res == "%OF");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'H');
-        if (res != "13") throw std::runtime_error("timeio::put fail for H");
+        VERIFY(res == "13");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'E');
-        if (res != "%EH") throw std::runtime_error("timeio::put fail for EH");
+        VERIFY(res == "%EH");
         res.clear(); obj.put(std::back_inserter(res), tp, 'H', 'O');
-        if (res != "十三") throw std::runtime_error("timeio::put fail for OH");
+        VERIFY(res == "十三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'I');
-        if (res != "01") throw std::runtime_error("timeio::put fail for I");
+        VERIFY(res == "01");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'E');
-        if (res != "%EI") throw std::runtime_error("timeio::put fail for EI");
+        VERIFY(res == "%EI");
         res.clear(); obj.put(std::back_inserter(res), tp, 'I', 'O');
-        if (res != "一") throw std::runtime_error("timeio::put fail for OI");
+        VERIFY(res == "一");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'j');
-        if (res != "248") throw std::runtime_error("timeio::put fail for j");
+        VERIFY(res == "248");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'E');
-        if (res != "%Ej") throw std::runtime_error("timeio::put fail for Ej");
+        VERIFY(res == "%Ej");
         res.clear(); obj.put(std::back_inserter(res), tp, 'j', 'O');
-        if (res != "%Oj") throw std::runtime_error("timeio::put fail for Oj");
+        VERIFY(res == "%Oj");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'M');
-        if (res != "33") throw std::runtime_error("timeio::put fail for M");
+        VERIFY(res == "33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'E');
-        if (res != "%EM") throw std::runtime_error("timeio::put fail for EM");
+        VERIFY(res == "%EM");
         res.clear(); obj.put(std::back_inserter(res), tp, 'M', 'O');
-        if (res != "三十三") throw std::runtime_error("timeio::put fail for OM");
+        VERIFY(res == "三十三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'm');
-        if (res != "09") throw std::runtime_error("timeio::put fail for m");
+        VERIFY(res == "09");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'E');
-        if (res != "%Em") throw std::runtime_error("timeio::put fail for Em");
+        VERIFY(res == "%Em");
         res.clear(); obj.put(std::back_inserter(res), tp, 'm', 'O');
-        if (res != "九") throw std::runtime_error("timeio::put fail for Om");
+        VERIFY(res == "九");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'n');
-        if (res != "\n") throw std::runtime_error("timeio::put fail for n");
+        VERIFY(res == "\n");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'E');
-        if (res != "%En") throw std::runtime_error("timeio::put fail for En");
+        VERIFY(res == "%En");
         res.clear(); obj.put(std::back_inserter(res), tp, 'n', 'O');
-        if (res != "%On") throw std::runtime_error("timeio::put fail for On");
+        VERIFY(res == "%On");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'p');
-        if (res != "午後") throw std::runtime_error("timeio::put fail for p");
+        VERIFY(res == "午後");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'E');
-        if (res != "%Ep") throw std::runtime_error("timeio::put fail for Ep");
+        VERIFY(res == "%Ep");
         res.clear(); obj.put(std::back_inserter(res), tp, 'p', 'O');
-        if (res != "%Op") throw std::runtime_error("timeio::put fail for Op");
+        VERIFY(res == "%Op");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'R');
-        if (res != "13:33") throw std::runtime_error("timeio::put fail for R");
+        VERIFY(res == "13:33");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'E');
-        if (res != "%ER") throw std::runtime_error("timeio::put fail for ER");
+        VERIFY(res == "%ER");
         res.clear(); obj.put(std::back_inserter(res), tp, 'R', 'O');
-        if (res != "%OR") throw std::runtime_error("timeio::put fail for OR");
+        VERIFY(res == "%OR");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'r');
-        if (res != "午後01時33分18秒") throw std::runtime_error("timeio::put fail for r");
+        VERIFY(res == "午後01時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'E');
-        if (res != "%Er") throw std::runtime_error("timeio::put fail for Er");
+        VERIFY(res == "%Er");
         res.clear(); obj.put(std::back_inserter(res), tp, 'r', 'O');
-        if (res != "%Or") throw std::runtime_error("timeio::put fail for Or");
+        VERIFY(res == "%Or");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'S');
-        if (res != "18") throw std::runtime_error("timeio::put fail for S");
+        VERIFY(res == "18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'E');
-        if (res != "%ES") throw std::runtime_error("timeio::put fail for ES");
+        VERIFY(res == "%ES");
         res.clear(); obj.put(std::back_inserter(res), tp, 'S', 'O');
-        if (res != "十八") throw std::runtime_error("timeio::put fail for OS");
+        VERIFY(res == "十八");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        if (res != "13時33分18秒") throw std::runtime_error("timeio::put fail for X");
+        VERIFY(res == "13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        if (res != "13時33分18秒") throw std::runtime_error("timeio::put fail for EX");
+        VERIFY(res == "13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
-        if (res != "%OX") throw std::runtime_error("timeio::put fail for OX");
+        VERIFY(res == "%OX");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'T');
-        if (res != "13:33:18") throw std::runtime_error("timeio::put fail for T");
+        VERIFY(res == "13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'E');
-        if (res != "%ET") throw std::runtime_error("timeio::put fail for ET");
+        VERIFY(res == "%ET");
         res.clear(); obj.put(std::back_inserter(res), tp, 'T', 'O');
-        if (res != "%OT") throw std::runtime_error("timeio::put fail for OT");
+        VERIFY(res == "%OT");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 't');
-        if (res != "\t") throw std::runtime_error("timeio::put fail for t");
+        VERIFY(res == "\t");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'E');
-        if (res != "%Et") throw std::runtime_error("timeio::put fail for Et");
+        VERIFY(res == "%Et");
         res.clear(); obj.put(std::back_inserter(res), tp, 't', 'O');
-        if (res != "%Ot") throw std::runtime_error("timeio::put fail for Ot");
+        VERIFY(res == "%Ot");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'u');
-        if (res != "3") throw std::runtime_error("timeio::put fail for u");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'E');
-        if (res != "%Eu") throw std::runtime_error("timeio::put fail for Eu");
+        VERIFY(res == "%Eu");
         res.clear(); obj.put(std::back_inserter(res), tp, 'u', 'O');
-        if (res != "三") throw std::runtime_error("timeio::put fail for Ou");
+        VERIFY(res == "三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'U');
-        if (res != "35") throw std::runtime_error("timeio::put fail for U");
+        VERIFY(res == "35");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'E');
-        if (res != "%EU") throw std::runtime_error("timeio::put fail for EU");
+        VERIFY(res == "%EU");
         res.clear(); obj.put(std::back_inserter(res), tp, 'U', 'O');
-        if (res != "三十五") throw std::runtime_error("timeio::put fail for OU");
+        VERIFY(res == "三十五");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'V');
-        if (res != "36") throw std::runtime_error("timeio::put fail for V");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'E');
-        if (res != "%EV") throw std::runtime_error("timeio::put fail for EV");
+        VERIFY(res == "%EV");
         res.clear(); obj.put(std::back_inserter(res), tp, 'V', 'O');
-        if (res != "三十六") throw std::runtime_error("timeio::put fail for OV");
+        VERIFY(res == "三十六");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'g');
-        if (res != "24") throw std::runtime_error("timeio::put fail for g");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'E');
-        if (res != "%Eg") throw std::runtime_error("timeio::put fail for Eg");
+        VERIFY(res == "%Eg");
         res.clear(); obj.put(std::back_inserter(res), tp, 'g', 'O');
-        if (res != "%Og") throw std::runtime_error("timeio::put fail for Og");
+        VERIFY(res == "%Og");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'G');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for G");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'E');
-        if (res != "%EG") throw std::runtime_error("timeio::put fail for EG");
+        VERIFY(res == "%EG");
         res.clear(); obj.put(std::back_inserter(res), tp, 'G', 'O');
-        if (res != "%OG") throw std::runtime_error("timeio::put fail for OG");
+        VERIFY(res == "%OG");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'W');
-        if (res != "36") throw std::runtime_error("timeio::put fail for W");
+        VERIFY(res == "36");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'E');
-        if (res != "%EW") throw std::runtime_error("timeio::put fail for EW");
+        VERIFY(res == "%EW");
         res.clear(); obj.put(std::back_inserter(res), tp, 'W', 'O');
-        if (res != "三十六") throw std::runtime_error("timeio::put fail for OW");
+        VERIFY(res == "三十六");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'w');
-        if (res != "3") throw std::runtime_error("timeio::put fail for w");
+        VERIFY(res == "3");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'E');
-        if (res != "%Ew") throw std::runtime_error("timeio::put fail for Ew");
+        VERIFY(res == "%Ew");
         res.clear(); obj.put(std::back_inserter(res), tp, 'w', 'O');
-        if (res != "三") throw std::runtime_error("timeio::put fail for Ow");
+        VERIFY(res == "三");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y');
-        if (res != "2024") throw std::runtime_error("timeio::put fail for Y");
+        VERIFY(res == "2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'E');
-        if (res != "令和6年") throw std::runtime_error("timeio::put fail for EY");
+        VERIFY(res == "令和6年");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Y', 'O');
-        if (res != "%OY") throw std::runtime_error("timeio::put fail for OY");
+        VERIFY(res == "%OY");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'y');
-        if (res != "24") throw std::runtime_error("timeio::put fail for y");
+        VERIFY(res == "24");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'E');
-        if (res != "6") throw std::runtime_error("timeio::put fail for Ey");
+        VERIFY(res == "6");
         res.clear(); obj.put(std::back_inserter(res), tp, 'y', 'O');
-        if (res != "二十四") throw std::runtime_error("timeio::put fail for Oy");
+        VERIFY(res == "二十四");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z'); VERIFY(res == "%Z");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'E');
-        if (res != "%EZ") throw std::runtime_error("timeio::put fail for EZ");
+        VERIFY(res == "%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'O');
-        if (res != "%OZ") throw std::runtime_error("timeio::put fail for OZ");
+        VERIFY(res == "%OZ");
     }
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'z'); VERIFY(res == "%z");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'E');
-        if (res != "%Ez") throw std::runtime_error("timeio::put fail for Ez");
+        VERIFY(res == "%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'O');
-        if (res != "%Oz") throw std::runtime_error("timeio::put fail for Oz");
+        VERIFY(res == "%Oz");
     }
     dump_info("Done\n");
 }
@@ -3353,13 +3353,13 @@ void test_timeio_char_get_4()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_year != 114) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_mon != 3) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_mday != 14) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_hour != 1) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_min != 9) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_sec != 35) throw std::runtime_error("timeio::get_4 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 114);
+        VERIFY(time.tm_mon == 3);
+        VERIFY(time.tm_mday == 14);
+        VERIFY(time.tm_hour == 1);
+        VERIFY(time.tm_min == 9);
+        VERIFY(time.tm_sec == 35);
     }
 
     {
@@ -3369,8 +3369,8 @@ void test_timeio_char_get_4()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret == input.end()) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_year != 120) throw std::runtime_error("timeio::get_4 fail.");
+        VERIFY(ret != input.end());
+        VERIFY(time.tm_year == 120);
     }
 
     {
@@ -3393,8 +3393,8 @@ void test_timeio_char_get_4()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, 'Y');
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_year != 120) throw std::runtime_error("timeio::get_4 fail.");
-        if (ret != input.end()) throw std::runtime_error("timeio::get_4 fail.");
+        VERIFY(time.tm_year == 120);
+        VERIFY(ret == input.end());
     }
 
     {
@@ -3426,11 +3426,11 @@ void test_timeio_char_get_5()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_year != 114) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_mon != 3) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_wday != 1) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_mday != 14) throw std::runtime_error("timeio::get_5 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 114);
+        VERIFY(time.tm_mon == 3);
+        VERIFY(time.tm_wday == 1);
+        VERIFY(time.tm_mday == 14);
     }
     {
         std::string input = "Mittwoch";
@@ -3438,8 +3438,8 @@ void test_timeio_char_get_5()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, 'A');
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_5 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_wday == 3);
     }
 
     dump_info("Done\n");
@@ -3457,8 +3457,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 1) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_wday == 1);
     }
 
     {
@@ -3468,8 +3468,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == input.end()) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 2) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == input.end()) || (*ret != ' ')));
+        VERIFY(time.tm_wday == 2);
     }
 
     {
@@ -3479,8 +3479,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_wday == 3);
     }
 
     {
@@ -3490,8 +3490,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 4) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_wday == 4);
     }
 
     {
@@ -3501,8 +3501,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == input.end()) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 5) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == input.end()) || (*ret != ' ')));
+        VERIFY(time.tm_wday == 5);
     }
 
     {
@@ -3512,8 +3512,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 6) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_wday == 6);
     }
 
     {
@@ -3523,8 +3523,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 1) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_mon == 1);
     }
 
     {
@@ -3534,8 +3534,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == input.end()) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 2) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == input.end()) || (*ret != ' ')));
+        VERIFY(time.tm_mon == 2);
     }
 
     {
@@ -3545,8 +3545,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 3) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_mon == 3);
     }
 
     {
@@ -3556,8 +3556,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 4) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_mon == 4);
     }
 
     {
@@ -3567,8 +3567,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == input.end()) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == input.end()) || (*ret != ' ')));
+        VERIFY(time.tm_mon == 5);
     }
 
     {
@@ -3578,8 +3578,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 6) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_mon == 6);
     }
 
     {
@@ -3589,8 +3589,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 7) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_mon == 7);
     }
 
     {
@@ -3600,8 +3600,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == input.end()) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 4) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == input.end()) || (*ret != ' ')));
+        VERIFY(time.tm_mon == 4);
     }
 
     {
@@ -3611,8 +3611,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 9) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_mon == 9);
     }
 
     // Other tests.
@@ -3623,8 +3623,8 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mday != 2) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_mday == 2);
     }
 
     {
@@ -3661,9 +3661,9 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_mday != 5) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_mday == 5);
     }
 
     {
@@ -3672,9 +3672,9 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_mday != 6) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_mday == 6);
     }
 
     {
@@ -3711,10 +3711,10 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 0) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 0) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 0);
+        VERIFY(time.tm_min == 0);
     }
 
     {
@@ -3723,10 +3723,10 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 0) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 37) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 0);
+        VERIFY(time.tm_min == 37);
     }
 
     {
@@ -3735,10 +3735,10 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 1) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 25) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 1);
+        VERIFY(time.tm_min == 25);
     }
 
     {
@@ -3747,10 +3747,10 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 12) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 0) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 12);
+        VERIFY(time.tm_min == 0);
     }
 
     {
@@ -3759,10 +3759,10 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 12) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 42) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 12);
+        VERIFY(time.tm_min == 42);
     }
 
     {
@@ -3771,10 +3771,10 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 19) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 23) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 19);
+        VERIFY(time.tm_min == 23);
     }
 
     {
@@ -3783,10 +3783,10 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 17) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 20) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 17);
+        VERIFY(time.tm_min == 20);
     }
 
     {
@@ -3809,9 +3809,9 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == input.end());
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_mon != 10) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_mon == 10);
     }
 
     dump_info("Done\n");
@@ -3829,10 +3829,10 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_hour != 13) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_min != 38) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_sec != 12) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_hour == 13);
+        VERIFY(time.tm_min == 38);
+        VERIFY(time.tm_sec == 12);
     }
 
     {
@@ -3842,8 +3842,8 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 537 - 1900) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 537 - 1900);
     }
 
     {
@@ -3853,8 +3853,8 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2068 - 1900) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2068 - 1900);
     }
 
     {
@@ -3864,8 +3864,8 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 1969 - 1900) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 1969 - 1900);
     }
 
     {
@@ -3875,12 +3875,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2003 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 1) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 1) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 33) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2003 - 1900);
+        VERIFY(time.tm_mon == 1);
+        VERIFY(time.tm_mday == 3);
+        VERIFY(time.tm_wday == 1);
+        VERIFY(time.tm_yday == 33);
     }
 
     {
@@ -3890,12 +3890,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 11) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 16) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 350) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 11);
+        VERIFY(time.tm_mday == 16);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 350);
     }
 
     {
@@ -3905,12 +3905,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2021 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 11) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 16) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 4) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 349) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2021 - 1900);
+        VERIFY(time.tm_mon == 11);
+        VERIFY(time.tm_mday == 16);
+        VERIFY(time.tm_wday == 4);
+        VERIFY(time.tm_yday == 349);
     }
 
     {
@@ -3920,12 +3920,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 8) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 9) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 252) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 8);
+        VERIFY(time.tm_mday == 9);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 252);
     }
 
     {
@@ -3935,12 +3935,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2021 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 7) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 21) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 6) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 232) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2021 - 1900);
+        VERIFY(time.tm_mon == 7);
+        VERIFY(time.tm_mday == 21);
+        VERIFY(time.tm_wday == 6);
+        VERIFY(time.tm_yday == 232);
     }
 
     {
@@ -3950,12 +3950,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 10) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 161) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 10);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 161);
     }
 
     {
@@ -3965,12 +3965,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 10) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 161) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 10);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 161);
     }
 
     {
@@ -3980,12 +3980,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2021 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 9) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 29) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 301) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2021 - 1900);
+        VERIFY(time.tm_mon == 9);
+        VERIFY(time.tm_mday == 29);
+        VERIFY(time.tm_wday == 5);
+        VERIFY(time.tm_yday == 301);
     }
 
     {
@@ -3995,12 +3995,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2024 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 12) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 163) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2024 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 12);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 163);
     }
 
     {
@@ -4010,12 +4010,12 @@ void test_timeio_char_get_7()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2024 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 156) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_year == 2024 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 5);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 156);
     }
 
     dump_info("Done\n");
@@ -4033,10 +4033,10 @@ void test_timeio_char_get_8()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_hour != 13) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_min != 38) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_sec != 12) throw std::runtime_error("timeio::get_8 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_hour == 13);
+        VERIFY(time.tm_min == 38);
+        VERIFY(time.tm_sec == 12);
     }
         
     {
@@ -4046,10 +4046,10 @@ void test_timeio_char_get_8()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != input.end()) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_hour != 23) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_min != 17) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_sec != 42) throw std::runtime_error("timeio::get_8 fail.");
+        VERIFY(ret == input.end());
+        VERIFY(time.tm_hour == 23);
+        VERIFY(time.tm_min == 17);
+        VERIFY(time.tm_sec == 42);
     }
 
     dump_info("Done\n");
@@ -4069,13 +4069,13 @@ void test_timeio_char_get_9()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_year != 114) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_mon != 3) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_mday != 14) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_hour != 1) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_min != 9) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_sec != 35) throw std::runtime_error("timeio::get_4 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 114);
+        VERIFY(time.tm_mon == 3);
+        VERIFY(time.tm_mday == 14);
+        VERIFY(time.tm_hour == 1);
+        VERIFY(time.tm_min == 9);
+        VERIFY(time.tm_sec == 35);
     }
 
     {
@@ -4087,8 +4087,8 @@ void test_timeio_char_get_9()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret == std::default_sentinel) throw std::runtime_error("timeio::get_4 fail.");
-        if (time.tm_year != 120) throw std::runtime_error("timeio::get_4 fail.");
+        VERIFY(ret != std::default_sentinel);
+        VERIFY(time.tm_year == 120);
     }
 
     {
@@ -4115,8 +4115,8 @@ void test_timeio_char_get_9()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, 'Y');
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_year != 120) throw std::runtime_error("timeio::get_4 fail.");
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_4 fail.");
+        VERIFY(time.tm_year == 120);
+        VERIFY(ret == std::default_sentinel);
     }
 
     {
@@ -4153,11 +4153,11 @@ void test_timeio_char_get_10()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_year != 114) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_mon != 3) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_wday != 1) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_mday != 14) throw std::runtime_error("timeio::get_5 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 114);
+        VERIFY(time.tm_mon == 3);
+        VERIFY(time.tm_wday == 1);
+        VERIFY(time.tm_mday == 14);
     }
     {
         using namespace IOv2;
@@ -4167,8 +4167,8 @@ void test_timeio_char_get_10()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, 'A');
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_5 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_5 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_wday == 3);
     }
 
     dump_info("Done\n");
@@ -4188,8 +4188,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 1) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_wday == 1);
     }
 
     {
@@ -4200,8 +4200,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == std::default_sentinel) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 2) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
+        VERIFY(time.tm_wday == 2);
     }
 
     {
@@ -4212,8 +4212,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_wday == 3);
     }
 
     {
@@ -4224,8 +4224,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 4) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_wday == 4);
     }
 
     {
@@ -4236,8 +4236,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == std::default_sentinel) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 5) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
+        VERIFY(time.tm_wday == 5);
     }
 
     {
@@ -4248,8 +4248,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_wday != 6) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_wday == 6);
     }
 
     {
@@ -4260,8 +4260,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 1) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_mon == 1);
     }
 
     {
@@ -4272,8 +4272,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == std::default_sentinel) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 2) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
+        VERIFY(time.tm_mon == 2);
     }
 
     {
@@ -4284,8 +4284,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 3) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_mon == 3);
     }
 
     {
@@ -4296,8 +4296,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 4) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_mon == 4);
     }
 
     {
@@ -4308,8 +4308,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == std::default_sentinel) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
+        VERIFY(time.tm_mon == 5);
     }
 
     {
@@ -4320,8 +4320,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 6) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_mon == 6);
     }
 
     {
@@ -4332,8 +4332,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 7) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_mon == 7);
     }
 
     {
@@ -4344,8 +4344,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if ((ret == std::default_sentinel) || (*ret != ' ')) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 4) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
+        VERIFY(time.tm_mon == 4);
     }
 
     {
@@ -4356,8 +4356,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mon != 9) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_mon == 9);
     }
 
     // Other tests.
@@ -4369,8 +4369,8 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_mday != 2) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_mday == 2);
     }
 
     {
@@ -4410,9 +4410,9 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_mday != 5) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_mday == 5);
     }
 
     {
@@ -4422,9 +4422,9 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_mday != 6) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_mday == 6);
     }
 
     {
@@ -4464,10 +4464,10 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 0) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 0) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 0);
+        VERIFY(time.tm_min == 0);
     }
 
     {
@@ -4477,10 +4477,10 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 0) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 37) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 0);
+        VERIFY(time.tm_min == 37);
     }
 
     {
@@ -4490,10 +4490,10 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 1) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 25) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 1);
+        VERIFY(time.tm_min == 25);
     }
 
     {
@@ -4503,10 +4503,10 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 12) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 0) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 12);
+        VERIFY(time.tm_min == 0);
     }
 
     {
@@ -4516,10 +4516,10 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 12) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 42) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 12);
+        VERIFY(time.tm_min == 42);
     }
 
     {
@@ -4529,10 +4529,10 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 19) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 23) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 19);
+        VERIFY(time.tm_min == 23);
     }
 
     {
@@ -4542,10 +4542,10 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_hour != 17) throw std::runtime_error("timeio::get_6 fail.");
-        if (time.tm_min != 20) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_hour == 17);
+        VERIFY(time.tm_min == 20);
     }
 
     {
@@ -4562,7 +4562,7 @@ void test_timeio_char_get_11()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if ((it == std::default_sentinel) || (*it != '4')) throw std::runtime_error("timeio_ext::get_6 fail.");
+        VERIFY(!((it == std::default_sentinel) || (*it != '4')));
     }
 
     {
@@ -4572,9 +4572,9 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(ret == std::default_sentinel);
         auto time = static_cast<std::tm>(ctx);
-        if (time.tm_mon != 10) throw std::runtime_error("timeio::get_6 fail.");
+        VERIFY(time.tm_mon == 10);
     }
 
     dump_info("Done\n");
@@ -4595,10 +4595,10 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_hour != 13) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_min != 38) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_sec != 12) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_hour == 13);
+        VERIFY(time.tm_min == 38);
+        VERIFY(time.tm_sec == 12);
     }
 
     {
@@ -4609,8 +4609,8 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 537 - 1900) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 537 - 1900);
     }
 
     {
@@ -4621,8 +4621,8 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2068 - 1900) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2068 - 1900);
     }
 
     {
@@ -4633,8 +4633,8 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 1969 - 1900) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 1969 - 1900);
     }
 
     {
@@ -4645,12 +4645,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2003 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 1) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 1) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 33) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2003 - 1900);
+        VERIFY(time.tm_mon == 1);
+        VERIFY(time.tm_mday == 3);
+        VERIFY(time.tm_wday == 1);
+        VERIFY(time.tm_yday == 33);
     }
 
     {
@@ -4661,12 +4661,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 11) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 16) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 350) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 11);
+        VERIFY(time.tm_mday == 16);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 350);
     }
 
     {
@@ -4677,12 +4677,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2021 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 11) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 16) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 4) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 349) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2021 - 1900);
+        VERIFY(time.tm_mon == 11);
+        VERIFY(time.tm_mday == 16);
+        VERIFY(time.tm_wday == 4);
+        VERIFY(time.tm_yday == 349);
     }
 
     {
@@ -4693,12 +4693,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 8) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 9) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 252) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 8);
+        VERIFY(time.tm_mday == 9);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 252);
     }
 
     {
@@ -4709,12 +4709,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2021 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 7) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 21) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 6) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 232) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2021 - 1900);
+        VERIFY(time.tm_mon == 7);
+        VERIFY(time.tm_mday == 21);
+        VERIFY(time.tm_wday == 6);
+        VERIFY(time.tm_yday == 232);
     }
 
     {
@@ -4725,12 +4725,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 10) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 161) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 10);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 161);
     }
 
     {
@@ -4741,12 +4741,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2020 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 10) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 161) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2020 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 10);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 161);
     }
 
     {
@@ -4757,12 +4757,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2021 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 9) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 29) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 301) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2021 - 1900);
+        VERIFY(time.tm_mon == 9);
+        VERIFY(time.tm_mday == 29);
+        VERIFY(time.tm_wday == 5);
+        VERIFY(time.tm_yday == 301);
     }
 
     {
@@ -4773,12 +4773,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2024 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 12) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 163) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2024 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 12);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 163);
     }
 
     {
@@ -4789,12 +4789,12 @@ void test_timeio_char_get_12()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_year != 2024 - 1900) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mon != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_mday != 5) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_wday != 3) throw std::runtime_error("timeio::get_7 fail.");
-        if (time.tm_yday != 156) throw std::runtime_error("timeio::get_7 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_year == 2024 - 1900);
+        VERIFY(time.tm_mon == 5);
+        VERIFY(time.tm_mday == 5);
+        VERIFY(time.tm_wday == 3);
+        VERIFY(time.tm_yday == 156);
     }
 
     dump_info("Done\n");
@@ -4814,10 +4814,10 @@ void test_timeio_char_get_13()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_hour != 13) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_min != 38) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_sec != 12) throw std::runtime_error("timeio::get_8 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_hour == 13);
+        VERIFY(time.tm_min == 38);
+        VERIFY(time.tm_sec == 12);
     }
 
     {
@@ -4828,10 +4828,10 @@ void test_timeio_char_get_13()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         auto time = static_cast<std::tm>(ctx);
-        if (ret != std::default_sentinel) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_hour != 23) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_min != 17) throw std::runtime_error("timeio::get_8 fail.");
-        if (time.tm_sec != 42) throw std::runtime_error("timeio::get_8 fail.");
+        VERIFY(ret == std::default_sentinel);
+        VERIFY(time.tm_hour == 23);
+        VERIFY(time.tm_min == 17);
+        VERIFY(time.tm_sec == 42);
     }
 
     dump_info("Done\n");

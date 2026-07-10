@@ -1,6 +1,7 @@
 #include <sstream>
 #include <facet/monetary.h>
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 namespace
 {
@@ -62,19 +63,19 @@ void test_monetary_char8_t_common_1()
 
     IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
 
-    if (obj.decimal_point() != '.') throw std::runtime_error("monetary<char8_t>::decimal_point fail");
-    if (obj.thousands_sep() != ',') throw std::runtime_error("monetary<char8_t>::thousands_sep fail");
-    if (!obj.grouping().empty()) throw std::runtime_error("monetary<char8_t>::grouping fail");
-    if (!obj.curr_symbol_nat().empty()) throw std::runtime_error("monetary<char8_t>::curr_symbol_nat fail");
-    if (!obj.curr_symbol_int().empty()) throw std::runtime_error("monetary<char8_t>::curr_symbol_int fail");
-    if (!obj.positive_sign_nat().empty()) throw std::runtime_error("monetary<char8_t>::positive_sign_nat fail");
-    if (!obj.positive_sign_int().empty()) throw std::runtime_error("monetary<char8_t>::positive_sign_int fail");
-    if (obj.negative_sign_nat().empty()) throw std::runtime_error("monetary<char8_t>::negative_sign_nat fail");
-    if (obj.negative_sign_int().empty()) throw std::runtime_error("monetary<char8_t>::negative_sign_int fail");
-    if (obj.frac_digits_int() != 0) throw std::runtime_error("monetary<char8_t>::frac_digits_int fail");
-    if (obj.frac_digits_nat() != 0) throw std::runtime_error("monetary<char8_t>::frac_digits_nat fail");
-    if (obj.pos_format_int() != obj.pos_format_nat()) throw std::runtime_error("monetary<char8_t>::pos_format fail");
-    if (obj.neg_format_int() != obj.neg_format_nat()) throw std::runtime_error("monetary<char8_t>::neg_format fail");
+    VERIFY(obj.decimal_point() == '.');
+    VERIFY(obj.thousands_sep() == ',');
+    VERIFY(obj.grouping().empty());
+    VERIFY(obj.curr_symbol_nat().empty());
+    VERIFY(obj.curr_symbol_int().empty());
+    VERIFY(obj.positive_sign_nat().empty());
+    VERIFY(obj.positive_sign_int().empty());
+    VERIFY(!(obj.negative_sign_nat().empty()));
+    VERIFY(!(obj.negative_sign_int().empty()));
+    VERIFY(obj.frac_digits_int() == 0);
+    VERIFY(obj.frac_digits_nat() == 0);
+    VERIFY(obj.pos_format_int() == obj.pos_format_nat());
+    VERIFY(obj.neg_format_int() == obj.neg_format_nat());
     dump_info("Done\n");
 }
 
@@ -85,15 +86,15 @@ void test_monetary_char8_t_common_2()
     IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
     IOv2::monetary obj_de(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.ISO-8859-1"));
 
-    if (obj_c.decimal_point() == char()) throw std::runtime_error("monetary<char8_t>::decimal_point fail");
-    if (obj_c.thousands_sep() == char()) throw std::runtime_error("monetary<char8_t>::thousands_sep fail");
-    if (obj_c.decimal_point() == obj_de.decimal_point()) throw std::runtime_error("monetary<char8_t>::decimal_point fail");
-    if (obj_c.thousands_sep() == obj_de.thousands_sep()) throw std::runtime_error("monetary<char8_t>::thousands_sep fail");
-    if (obj_c.grouping() == obj_de.grouping()) throw std::runtime_error("monetary<char8_t>::grouping fail");
-    if (obj_c.curr_symbol_int() == obj_de.curr_symbol_int()) throw std::runtime_error("monetary<char8_t>::curr_symbol_int fail");
-    if (obj_c.negative_sign_int() != obj_de.negative_sign_int()) throw std::runtime_error("monetary<char8_t>::negative_sign_int fail");
-    if (obj_c.frac_digits_int() == obj_de.frac_digits_int()) throw std::runtime_error("monetary<char8_t>::frac_digits_int fail");
-    if (obj_c.pos_format_int() == obj_de.pos_format_int()) throw std::runtime_error("monetary<char8_t>::pos_format_int fail");
+    VERIFY(obj_c.decimal_point() != char());
+    VERIFY(obj_c.thousands_sep() != char());
+    VERIFY(obj_c.decimal_point() != obj_de.decimal_point());
+    VERIFY(obj_c.thousands_sep() != obj_de.thousands_sep());
+    VERIFY(obj_c.grouping() != obj_de.grouping());
+    VERIFY(obj_c.curr_symbol_int() != obj_de.curr_symbol_int());
+    VERIFY(obj_c.negative_sign_int() == obj_de.negative_sign_int());
+    VERIFY(obj_c.frac_digits_int() != obj_de.frac_digits_int());
+    VERIFY(obj_c.pos_format_int() != obj_de.pos_format_int());
 
     dump_info("Done\n");
 }
@@ -113,22 +114,22 @@ void test_monetary_char8_t_put_1()
         std::u8string  oss;
         
         obj.put(std::back_inserter(oss), true, ios, digits1);
-        if (oss != u8"7.200.000.000,00 ") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"7.200.000.000,00 ");
         
         oss.clear();
         obj.put(std::back_inserter(oss), false, ios, digits1);
-        if (oss != u8"7.200.000.000,00 ") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"7.200.000.000,00 ");
     
         // now try with showbase, to get currency symbol in format
         ios.setf(IOv2::ios_defs::showbase);
         
         oss.clear();
         obj.put(std::back_inserter(oss), true, ios, digits1);
-        if (oss != u8"7.200.000.000,00 EUR ") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"7.200.000.000,00 EUR ");
         
         oss.clear();
         obj.put(std::back_inserter(oss), false, ios, digits1);
-        if (oss != u8"7.200.000.000,00 €") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"7.200.000.000,00 €");
 
         ios.unsetf(IOv2::ios_defs::showbase);
     
@@ -137,12 +138,12 @@ void test_monetary_char8_t_put_1()
         ios.width(20); ios.fill('*');
         oss.clear();
         obj.put(std::back_inserter(oss), true, ios, digits2);
-        if (oss != u8"***************-,01*") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"***************-,01*");
         
         ios.width(20); ios.setf(IOv2::ios_defs::internal);
         oss.clear();
         obj.put(std::back_inserter(oss), true, ios, digits2);
-        if (oss != u8"-,01****************") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"-,01****************");
     };
 
     IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
@@ -180,11 +181,11 @@ void test_monetary_char8_t_put_2()
         // test sign of more than one digit, say hong kong.
         oss.clear();
         obj.put(std::back_inserter(oss), false, ios, digits1);
-        if (oss != u8"HK$7,200,000,000.00") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"HK$7,200,000,000.00");
         
         oss.clear();
         obj.put(std::back_inserter(oss), true, ios, digits2);
-        if (oss != u8"(HKD 100,000,000,000.00)") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"(HKD 100,000,000,000.00)");
         
         
         // test one-digit formats without zero padding
@@ -192,19 +193,19 @@ void test_monetary_char8_t_put_2()
         // since IOv2 set '-' as the negative sign of C locale.
         oss.clear();
         obj_c.put(std::back_inserter(oss), true, ios, digits4);
-        if (oss != u8"-1") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"-1");
     
         // test one-digit formats with zero padding, zero frac widths
         oss.clear();
         obj.put(std::back_inserter(oss), true, ios, digits4);
-        if (oss != u8"(HKD .01)") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"(HKD .01)");
         
         ios.unsetf(IOv2::ios_defs::showbase);
     
         // test bunk input
         oss.clear();
         obj.put(std::back_inserter(oss), true, ios, digits3);
-        if (oss != u8"") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"");
     };
 
     IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_HK.UTF-8"));
@@ -234,15 +235,15 @@ void test_monetary_char8_t_put_3()
         res = x;
         auto ret1 = obj.put(res.begin(), false, ios, str);
         std::u8string  sanity1(res.begin(), ret1);
-        if (res != u8"1943xxxxxxxxxxxxx") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
-        if (sanity1 != u8"1943") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(res == u8"1943xxxxxxxxxxxxx");
+        VERIFY(sanity1 == u8"1943");
     
         // 02 int64_t
         res = x;
         auto ret2 = obj.put(res.begin(), false, ios, ld);
         std::u8string  sanity2(res.begin(), ret2);
-        if (res != u8"1943xxxxxxxxxxxxx") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
-        if (sanity2 != u8"1943") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(res == u8"1943xxxxxxxxxxxxx");
+        VERIFY(sanity2 == u8"1943");
     };
 
     IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
@@ -274,7 +275,7 @@ void test_monetary_char8_t_put_4()
 
     std::u8string  fmt;
     obj.put(std::back_inserter(fmt), false, ios, val);
-    if (fmt != u8"*(1,234.56)") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+    VERIFY(fmt == u8"*(1,234.56)");
   
     dump_info("Done\n");
 }
@@ -296,7 +297,7 @@ void test_monetary_char8_t_put_5()
     std::basic_ostringstream<char8_t> fmt;
     std::ostreambuf_iterator<char8_t> out(fmt);
     obj.put(out, false, ios, val);
-    if (!fmt.good()) throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+    VERIFY(fmt.good());
   
     dump_info("Done\n");
 }
@@ -314,7 +315,7 @@ void test_monetary_char8_t_put_6()
         // cache the money_put facet
         std::u8string  oss;
         obj.put(std::back_inserter(oss), true, ios, amount);
-        if (oss != u8"11") throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+        VERIFY(oss == u8"11");
     };
 
     IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
@@ -337,7 +338,7 @@ void test_monetary_char8_t_put_7()
     
     std::u8string  oss;
     obj.put(std::back_inserter(oss), false, ios, digits);
-    if (oss != digits) throw std::runtime_error("IOv2::monetary<char8_t>::put fails");
+    VERIFY(oss == digits);
     
     dump_info("Done\n");
 }
@@ -359,25 +360,25 @@ void test_monetary_char8_t_get_1()
             iss = u8"7.200.000.000,00 ";
             std::u8string  result1;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            if (result1 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result1 == digits1);
+            VERIFY(it == iss.end());
         }
 
         {
             iss = u8"7.200.000.000,00  ";
             std::u8string  result2;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result2);
-            if (result2 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result2 == digits1);
+            VERIFY(it == iss.end());
         }
 
         {
             iss = u8"7.200.000.000,00  a";
             std::u8string  result3;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-            if (result3 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (*it != 'a') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result3 == digits1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == 'a');
         }
 
         {
@@ -390,7 +391,7 @@ void test_monetary_char8_t_get_1()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (result4 != u8"") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result4 == u8"");
         }
 
         {
@@ -403,7 +404,7 @@ void test_monetary_char8_t_get_1()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (result5 != u8"") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result5 == u8"");
         }
 
         // now try with showbase, to get currency symbol in format
@@ -413,25 +414,25 @@ void test_monetary_char8_t_get_1()
             iss = u8"7.200.000.000,00 EUR ";
             std::u8string  result6;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result6);
-            if (result6 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result6 == digits1);
+            VERIFY(it == iss.end());
         }
 
         {
             iss = u8"7.200.000.000,00 EUR  ";
             std::u8string  result7;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result7);
-            if (result7 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result7 == digits1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
 
         {
             iss = u8"7.200.000.000,00 \xE2\x82\xAC";
             std::u8string  result8;
             auto it = obj.get(iss.begin(), iss.end(), false, ios, result8);
-            if (result8 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result8 == digits1);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -467,22 +468,22 @@ void test_monetary_char8_t_get_2()
             iss = u8"HK$7,200,000,000.00";
             std::u8string  result9;
             auto it = obj.get(iss.begin(), iss.end(), false, ios, result9);
-            if (result9 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result9 == digits1);
+            VERIFY(it == iss.end());
         }
         {
             iss = u8"(HKD 100,000,000,000.00)";
             std::u8string  result10;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result10);
-            if (result10 != digits2) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result10 == digits2);
+            VERIFY(it == iss.end());
         }
         {
             iss = u8"(HKD .01)";
             std::u8string  result11;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result11);
-            if (result11 != digits4) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result11 == digits4);
+            VERIFY(it == iss.end());
         }
 
         // for the "en_HK.ISO8859-1" locale the parsing of the very same input streams must
@@ -494,22 +495,22 @@ void test_monetary_char8_t_get_2()
             iss = u8"HK$7,200,000,000.00";
             std::u8string  result12;
             auto it = obj.get(iss.begin(), iss.end(), false, ios, result12);
-            if (result12 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result12 == digits1);
+            VERIFY(it == iss.end());
         }
         {
             iss = u8"(HKD 100,000,000,000.00)";
             std::u8string  result13;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result13);
-            if (result13 != digits2) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result13 == digits2);
+            VERIFY(it == iss.end());
         }
         {
             iss = u8"(HKD .01)";
             std::u8string  result14;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result14);
-            if (result14 != digits4) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result14 == digits4);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -535,16 +536,16 @@ void test_monetary_char8_t_get_3()
             iss = u8"7.200.000.000,00 ";
             int64_t result1;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            if (result1 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result1 == digits1);
+            VERIFY(it == iss.end());
         }
         
         {
             iss = u8"7.200.000.000,00 ";
             int64_t result2;
             auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            if (result2 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result2 == digits1);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -572,8 +573,8 @@ void test_monetary_char8_t_get_4()
         iss = u8"(HKD .01)";
         int64_t result3;
         auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-        if (result3 != digits4) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-        if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(result3 == digits4);
+        VERIFY(it == iss.end());
     };
 
     IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_HK.UTF-8"));
@@ -596,20 +597,20 @@ void test_monetary_char8_t_get_5()
             // 01 string
             std::u8string  res1;
             auto it = obj.get(str.begin(), str.end(), false, ios, res1);
-            if (it == str.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(it != str.end());
             std::u8string  rem1(it, str.end());
-            if (res1 != u8"1") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (rem1 != u8"Eleanor Roosevelt") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(res1 == u8"1");
+            VERIFY(rem1 == u8"Eleanor Roosevelt");
         }
 
         {
             // 02 int64_t
             int64_t res2;
             auto it = obj.get(str.begin(), str.end(), false, ios, res2);
-            if (it == str.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(it != str.end());
             std::u8string  rem2(it, str.end());
-            if (res2 != 1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (rem2 != u8"Eleanor Roosevelt") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(res2 == 1);
+            VERIFY(rem2 == u8"Eleanor Roosevelt");
         }
     };
 
@@ -646,22 +647,22 @@ void test_monetary_char8_t_get_6()
     {
         std::u8string  valp;
         obj.get(bufferp.begin(), bufferp.end(), false, ios, valp);
-        if (valp != u8"123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(valp == u8"123456");
     }
     {
         std::u8string  valn;
         obj.get(buffern.begin(), buffern.end(), false, ios, valn);
-        if (valn != u8"-123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(valn == u8"-123456");
     }
     {
         std::u8string  valp_ns;
         obj.get(bufferp_ns.begin(), bufferp_ns.end(), false, ios, valp_ns);
-        if (valp_ns != u8"123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(valp_ns == u8"123456");
     }
     {
         std::u8string  valn_ns;
         obj.get(buffern_ns.begin(), buffern_ns.end(), false, ios, valn_ns);
-        if (valn_ns != u8"-123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(valn_ns == u8"-123456");
     }
   
     dump_info("Done\n");
@@ -683,11 +684,11 @@ void test_monetary_char8_t_get_7()
 
         {
             obj.get(buffer1.begin(), buffer1.end(), false, ios, val);
-            if (val != buffer1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(val == buffer1);
         }
         {
             obj.get(buffer2.begin(), buffer2.end(), false, ios, val);
-            if (val != buffer2) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(val == buffer2);
         }
         {
             val = buffer3;
@@ -698,7 +699,7 @@ void test_monetary_char8_t_get_7()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (val != buffer3) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(val == buffer3);
         }
     };
 
@@ -746,11 +747,11 @@ void test_monetary_char8_t_get_8()
 
     {
         obj_a.get(buffer_a.begin(), buffer_a.end(), false, ios, val_a);
-        if (val_a != u8"123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(val_a == u8"123456");
     }
     {
         obj_a.get(buffer_a_ns.begin(), buffer_a_ns.end(), false, ios, val_a_ns);
-        if (val_a_ns != u8"123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(val_a_ns == u8"123456");
     }
 
     std::u8string  buffer_b(u8"(1234.56$)");
@@ -759,11 +760,11 @@ void test_monetary_char8_t_get_8()
     std::u8string  val_b, val_b_ns;
     {
         obj_b.get(buffer_b.begin(), buffer_b.end(), false, ios, val_b);
-        if (val_b != u8"123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(val_b == u8"123456");
     }
     {
         obj_b.get(buffer_b_ns.begin(), buffer_b_ns.end(), false, ios, val_b_ns);
-        if (val_b_ns != u8"123456") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(val_b_ns == u8"123456");
     }
 
     dump_info("Done\n");
@@ -840,9 +841,9 @@ void test_monetary_char8_t_get_10()
         {
             iss = u8"-$0 ";
             auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-            if (it == iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (extracted_amount != u8"0") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
+            VERIFY(extracted_amount == u8"0");
         }
         {
             extracted_amount.clear();
@@ -854,7 +855,7 @@ void test_monetary_char8_t_get_10()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (!extracted_amount.empty()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(extracted_amount.empty());
         }
     };
 
@@ -911,15 +912,15 @@ void test_monetary_char8_t_get_12()
             iss = u8"7200000000,00 ";
             int64_t result1;
             auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            if (result1 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result1 == digits1);
+            VERIFY(it == iss.end());
         }
         {
             iss = u8"7200000000,00 ";
             int64_t result2;
             auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            if (result2 != digits1) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+            VERIFY(result2 == digits1);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -983,7 +984,7 @@ void test_monetary_char8_t_get_14()
     std::u8string  val;
     
     obj.get(buffer.begin(), buffer.end(), false, ios, val);
-    if (val != u8"-69") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+    VERIFY(val == u8"-69");
 
     dump_info("Done\n");
 }
@@ -1184,22 +1185,22 @@ void test_monetary_char8_t_get_19()
         std::u8string  iss_01 = u8"10$";
         std::u8string  result01;
         auto it = obj_a.get(iss_01.begin(), iss_01.end(), false, ios, result01);
-        if (it == iss_01.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-        if (*it != '$') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(it != iss_01.end());
+        VERIFY(*it == '$');
     }
     {
         std::u8string  iss_02 = u8"50%";
         std::u8string  result02;
         auto it = obj_a.get(iss_02.begin(), iss_02.end(), false, ios, result02);
-        if (it == iss_02.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-        if (*it != '%') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(it != iss_02.end());
+        VERIFY(*it == '%');
     }
     {
         std::u8string  iss_03 = u8"7 &";
         std::u8string  result03;
         auto it = obj_a.get(iss_03.begin(), iss_03.end(), false, ios, result03);
-        if (it == iss_03.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-        if (*it != '&') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(it != iss_03.end());
+        VERIFY(*it == '&');
     }
 
     dump_info("Done\n");
@@ -1216,9 +1217,9 @@ void test_monetary_char8_t_get_20()
         std::u8string  iss = u8"$.00 ";
         std::u8string  extracted_amount;
         auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-        if (it == iss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-        if (*it != ' ') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-        if (extracted_amount != u8"0") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(it != iss.end());
+        VERIFY(*it == ' ');
+        VERIFY(extracted_amount == u8"0");
     };
 
     IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_US.UTF-8"));
@@ -1255,7 +1256,7 @@ void test_monetary_char8_t_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val1 != u8"sentinel") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(val1 == u8"sentinel");
     }
     {
         try
@@ -1265,7 +1266,7 @@ void test_monetary_char8_t_get_21()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (val2 != u8"sentinel") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+        VERIFY(val2 == u8"sentinel");
     }
 
     dump_info("Done\n");
@@ -1285,8 +1286,8 @@ void test_monetary_char8_t_get_22()
     
     auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
     std::u8string  rest = std::u8string (it, ss.end());
-    if (digits != u8"123") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-    if (rest != u8".455") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+    VERIFY(digits == u8"123");
+    VERIFY(rest == u8".455");
 
     dump_info("Done\n");
 }
@@ -1304,9 +1305,9 @@ void test_monetary_char8_t_get_23()
     std::u8string  digits;
     
     auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
-    if (it == ss.end()) throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-    if (digits != u8"123") throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
-    if (*it != L',') throw std::runtime_error("IOv2::monetary<char8_t>::get fails");
+    VERIFY(it != ss.end());
+    VERIFY(digits == u8"123");
+    VERIFY(*it == L',');
 
     dump_info("Done\n");
 }

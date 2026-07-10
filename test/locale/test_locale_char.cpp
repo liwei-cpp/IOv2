@@ -21,22 +21,22 @@ void test_locale_char_1()
     auto loc = IOv2::locale<char>("C.UTF-8");
 
     {
-        if (!loc.has<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::has error");
+        VERIFY(loc.has<IOv2::ctype_conf<char>>());
         auto obj = loc.get<IOv2::ctype_conf<char>>();
-        if (!obj) throw std::runtime_error("locale::get error");
+        VERIFY(obj);
     }
-    
+
     {
-        if (loc.has<IOv2::ctype_conf<wchar_t>>()) throw std::runtime_error("locale::has error");
+        VERIFY(!(loc.has<IOv2::ctype_conf<wchar_t>>()));
         auto obj = loc.get<IOv2::ctype_conf<wchar_t>>();
-        if (obj) throw std::runtime_error("locale::get error");
+        VERIFY(!obj);
     }
-    
+
     auto loc_r = loc.remove<IOv2::ctype_conf<char>>();
     {
-        if (loc_r.has<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::has error");
+        VERIFY(!(loc_r.has<IOv2::ctype_conf<char>>()));
         auto obj = loc_r.get<IOv2::ctype_conf<char>>();
-        if (obj) throw std::runtime_error("locale::get error");
+        VERIFY(!obj);
     }
 
     dump_info("Done\n");
@@ -48,7 +48,7 @@ void test_locale_char_2()
     
     auto loc = IOv2::locale<char>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
     
-    if (!loc.has<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::has error");
+    VERIFY(loc.has<IOv2::ctype_conf<char>>());
 
     dump_info("Done\n");
 }
@@ -59,26 +59,26 @@ void test_locale_char_3()
     
     auto loc1 = IOv2::locale<char>("zh_CN.UTF-8");
     {
-        if (!loc1.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        VERIFY(loc1.has<IOv2::ctype<char>>());
         auto p1 = loc1.get<IOv2::ctype<char>>();
-        if (!p1) throw std::runtime_error("locale::get error");
+        VERIFY(p1);
 
         auto p2 = loc1.get<IOv2::ctype<char>>();
-        if (p1 != p2) throw std::runtime_error("locale::get error");
+        VERIFY(p1 == p2);
     }
-    
+
     auto loc2 = loc1.remove<IOv2::ctype_conf<char>>();
     {
-        if (loc2.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        VERIFY(!(loc2.has<IOv2::ctype<char>>()));
         auto p1 = loc2.get<IOv2::ctype<char>>();
-        if (p1) throw std::runtime_error("locale::get error");
+        VERIFY(!p1);
     }
-    
+
     auto loc3 = loc2.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
     {
-        if (!loc3.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        VERIFY(loc3.has<IOv2::ctype<char>>());
         auto p1 = loc3.get<IOv2::ctype<char>>();
-        if (!p1) throw std::runtime_error("locale::get error");
+        VERIFY(p1);
     }
     
     dump_info("Done\n");
@@ -148,20 +148,20 @@ void test_locale_char_4()
     
     auto loc1 = IOv2::locale<char>("en_US.UTF-8");
     {
-        if (!loc1.has<test_ext1>()) throw std::runtime_error("locale::has error");
+        VERIFY(loc1.has<test_ext1>());
         auto p = loc1.get<test_ext1>();
-    
-        if (!p->m_p1) throw std::runtime_error("locale::get error");
-        if (p->m_p2) throw std::runtime_error("locale::get error");
+
+        VERIFY(p->m_p1);
+        VERIFY(!(p->m_p2));
     }
-    
+
     auto loc2 = loc1.remove<IOv2::collate_conf<char>>();
     {
-        if (!loc2.has<test_ext1>()) throw std::runtime_error("locale::has error");
+        VERIFY(loc2.has<test_ext1>());
         auto p = loc2.get<test_ext1>();
-    
-        if (p->m_p1) throw std::runtime_error("locale::get error");
-        if (!p->m_p2) throw std::runtime_error("locale::get error");
+
+        VERIFY(!(p->m_p1));
+        VERIFY(p->m_p2);
     }
     
     dump_info("Done\n");
@@ -173,12 +173,12 @@ void test_locale_char_5()
     
     auto loc1 = IOv2::locale<char>("en_US.UTF-8");
     
-    if (!loc1.has<test_ext2>()) throw std::runtime_error("locale::has error");
+    VERIFY(loc1.has<test_ext2>());
     auto ptr2 = loc1.get<test_ext2>();
-    if (!ptr2) throw std::runtime_error("locale::get error");
-    
-    if (ptr2->m_obj1 != loc1.get<IOv2::ctype_conf<char>>()) throw std::runtime_error("locale::get error");
-    if (ptr2->m_obj2 != loc1.get<IOv2::collate_conf<char>>()) throw std::runtime_error("locale::get error");
+    VERIFY(ptr2);
+
+    VERIFY(ptr2->m_obj1 == loc1.get<IOv2::ctype_conf<char>>());
+    VERIFY(ptr2->m_obj2 == loc1.get<IOv2::collate_conf<char>>());
     
     dump_info("Done\n");
 }
@@ -189,25 +189,25 @@ void test_locale_char_6()
     
     auto loc1 = IOv2::locale<char>("en_US.UTF-8");
     {
-        if (!loc1.has<test_ext3>()) throw std::runtime_error("locale::has error");
+        VERIFY(loc1.has<test_ext3>());
         auto ptr = loc1.get<test_ext3>();
-        if (!ptr) throw std::runtime_error("locale::get error");
-        
-        if (!ptr->m_obj1) throw std::runtime_error("locale::get error");
-        if (ptr->m_obj1 != loc1.get<IOv2::timeio_conf<char>>()) throw std::runtime_error("locale::get error");
-        if (ptr->m_obj2) throw std::runtime_error("locale::get error");
-        if (ptr->m_obj3) throw std::runtime_error("locale::get error");
+        VERIFY(ptr);
+
+        VERIFY(ptr->m_obj1);
+        VERIFY(ptr->m_obj1 == loc1.get<IOv2::timeio_conf<char>>());
+        VERIFY(!(ptr->m_obj2));
+        VERIFY(!(ptr->m_obj3));
     }
-    
+
     auto loc2 = loc1.remove<IOv2::timeio_conf<char>>();
     {
-        if (!loc2.has<test_ext3>()) throw std::runtime_error("locale::has error");
+        VERIFY(loc2.has<test_ext3>());
         auto ptr = loc2.get<test_ext3>();
-        if (!ptr) throw std::runtime_error("locale::get error");
-        
-        if (ptr->m_obj1) throw std::runtime_error("locale::get error");
-        if (!ptr->m_obj2) throw std::runtime_error("locale::get error");
-        if (!ptr->m_obj3) throw std::runtime_error("locale::get error");
+        VERIFY(ptr);
+
+        VERIFY(!(ptr->m_obj1));
+        VERIFY(ptr->m_obj2);
+        VERIFY(ptr->m_obj3);
     }
     
     dump_info("Done\n");
@@ -221,20 +221,20 @@ void test_locale_char_7()
         auto loc1 = IOv2::locale<char>("en_US.UTF-8");
         auto loc2 = loc1.remove<IOv2::timeio_conf<char>>();
         
-        if (loc2.has<IOv2::timeio<char>>()) throw std::runtime_error("locale::has error");
+        VERIFY(!(loc2.has<IOv2::timeio<char>>()));
         auto ptr = loc2.get<IOv2::timeio<char>>();
-        if (ptr) throw std::runtime_error("locale::get error");
-        
-        if (!loc2.has<IOv2::ctype<char>>()) throw std::runtime_error("locale::has error");
+        VERIFY(!ptr);
+
+        VERIFY(loc2.has<IOv2::ctype<char>>());
         auto ptr2 = loc2.get<IOv2::ctype<char>>();
-        if (!ptr2) throw std::runtime_error("locale::get error");
+        VERIFY(ptr2);
     }
 
     {
         auto loc1 = IOv2::locale<char>("en_US.UTF-8");
-        if (loc1.has<test_ext4>()) throw std::runtime_error("locale::has error");
+        VERIFY(!(loc1.has<test_ext4>()));
         auto ptr = loc1.get<test_ext4>();
-        if (ptr) throw std::runtime_error("locale::get error");
+        VERIFY(!ptr);
     }
     dump_info("Done\n");
 }
@@ -291,8 +291,8 @@ void test_locale_char_10()
     {
         auto loc = IOv2::locale<char>("en_US.UTF-8");
         auto p = loc.get<test_ext2>();
-        if (!p) throw std::runtime_error("locale::get error");
-        if (!loc.has<test_ext2>()) throw std::runtime_error("locale::has error");
+        VERIFY(p);
+        VERIFY(loc.has<test_ext2>());
     }
 
     // involve() rejects an empty facet pointer.
@@ -301,7 +301,7 @@ void test_locale_char_10()
         bool threw = false;
         try { (void)loc.involve(nullptr); }
         catch (const IOv2::stream_error&) { threw = true; }
-        if (!threw) throw std::runtime_error("locale::involve(nullptr) should throw");
+        VERIFY(threw);
     }
 
     // initial_locale_name() rejects LC categories outside the five resolved ones.
@@ -309,7 +309,7 @@ void test_locale_char_10()
         bool threw = false;
         try { (void)IOv2::locale<char>::initial_locale_name(LC_ALL); }
         catch (const IOv2::stream_error&) { threw = true; }
-        if (!threw) throw std::runtime_error("initial_locale_name(LC_ALL) should throw");
+        VERIFY(threw);
     }
 
     dump_info("Done\n");
@@ -333,7 +333,7 @@ void test_locale_char_11()
 
     auto c1 = loc1.get<IOv2::messages_conf<char>>();
     auto c2 = loc2.get<IOv2::messages_conf<char>>();
-    if (!c1 || !c2) throw std::runtime_error("locale::get messages_conf error");
+    VERIFY(!(!c1 || !c2));
     VERIFY(c1 == c2);
 
     dump_info("Done\n");

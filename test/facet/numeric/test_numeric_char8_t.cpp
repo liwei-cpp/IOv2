@@ -6,6 +6,7 @@
 #include <facet/numeric.h>
 
 #include <common/dump_info.h>
+#include <common/verify.h>
 
 namespace
 {
@@ -78,26 +79,17 @@ void test_numeric_char8_t_common_1()
     IOv2::numeric<char8_t> nump_c(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
     IOv2::numeric<char8_t> nump_de(std::make_shared<IOv2::numeric_conf<char8_t>>("de_DE.UTF-8"), s_ctype_de_utf8);
 
-    if (nump_c.decimal_point() == nump_de.decimal_point())
-        throw std::runtime_error("numeric<char8_t>::decimal_point incorrect");
-    if (nump_c.thousands_sep() == nump_de.thousands_sep())
-        throw std::runtime_error("numeric_sealed<char8_t>::thousands_sep incorrect");
-    if (nump_c.grouping() == nump_de.grouping())
-        throw std::runtime_error("numeric_sealed<char8_t>::grouping incorrect");
+    VERIFY(nump_c.decimal_point() != nump_de.decimal_point());
+    VERIFY(nump_c.thousands_sep() != nump_de.thousands_sep());
+    VERIFY(nump_c.grouping() != nump_de.grouping());
 
-    if (nump_c.truename().empty())
-        throw std::runtime_error("numeric<char8_t>::truename incorrect");
-    if (nump_de.truename().empty())
-        throw std::runtime_error("numeric<char8_t>::truename incorrect");
-    if (nump_c.truename() == nump_de.truename())
-        throw std::runtime_error("numeric_sealed<char8_t>::truename incorrect");
+    VERIFY(!(nump_c.truename().empty()));
+    VERIFY(!(nump_de.truename().empty()));
+    VERIFY(nump_c.truename() != nump_de.truename());
 
-    if (nump_c.falsename().empty())
-        throw std::runtime_error("numeric<char8_t>::falsename incorrect");
-    if (nump_de.falsename().empty())
-        throw std::runtime_error("numeric<char8_t>::falsename incorrect");
-    if (nump_c.falsename() == nump_de.falsename())
-        throw std::runtime_error("numeric_sealed<char8_t>::falsename incorrect");
+    VERIFY(!(nump_c.falsename().empty()));
+    VERIFY(!(nump_de.falsename().empty()));
+    VERIFY(nump_c.falsename() != nump_de.falsename());
 
     dump_info("Done\n");
 }
@@ -125,38 +117,38 @@ void test_numeric_char8_t_put_1()
         
         // bool, simple
         obj.put(std::back_inserter(oss), ios, b1);
-        if (oss != u8"1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1");
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, b0);
-        if (oss != u8"0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"0");
         
         // ... and one that does
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, ul1);
-        if (oss != u8"1.294.967.294+++++++") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1.294.967.294+++++++");
         
         // double
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, d1);
-        if (oss != u8"1,79769e+308++++++++") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1,79769e+308++++++++");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, d2);
-        if (oss != u8"++++++++2,22507e-308") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"++++++++2,22507e-308");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, d2);
-        if (oss != u8"+++++++2,225074e-308") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"+++++++2,225074e-308");
     
         oss.clear();
         ios.width(20);
@@ -165,30 +157,30 @@ void test_numeric_char8_t_put_1()
         ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
         ios.setf(IOv2::ios_defs::uppercase);
         obj.put(std::back_inserter(oss), ios, d2);
-        if (oss != u8"+++2,2250738585E-308") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"+++2,2250738585E-308");
         
         // long double
         oss.clear();
         obj.put(std::back_inserter(oss), ios, ld1);
-        if (oss != u8"1,7976931349E+308") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1,7976931349E+308");
         
         oss.clear();
         ios.precision(0);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, ld2);
-        if (oss != u8"0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"0");
         
         // const void*
         oss.clear();
         obj.put(std::back_inserter(oss), ios, cv);
-        if (oss.find(obj.decimal_point()) != std::u8string::npos) throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
-        if (oss.find(u8'x') != 1) throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss.find(obj.decimal_point()) == std::u8string::npos);
+        VERIFY(oss.find(u8'x') == 1);
         
         long long ll1 = 9223372036854775807LL;
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, ll1);
-        if (oss != u8"9.223.372.036.854.775.807") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"9.223.372.036.854.775.807");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("de_DE.ISO-8859-1"), s_ctype_de_8859);
@@ -218,25 +210,25 @@ void test_numeric_char8_t_put_2()
         ios.width(20);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, b0);
-        if (oss != u8"+++++++++++++++++++0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"+++++++++++++++++++0");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         ios.setf(IOv2::ios_defs::boolalpha);
         obj.put(std::back_inserter(oss), ios, b1);
-        if (oss != u8"true++++++++++++++++") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"true++++++++++++++++");
         
         // unsigned long, in a locale that does not group
         oss.clear();
         obj.put(std::back_inserter(oss), ios, ul1);
-        if (oss != u8"1294967294") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1294967294");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, ul2);
-        if (oss != u8"0+++++++++++++++++++") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"0+++++++++++++++++++");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -264,13 +256,13 @@ void test_numeric_char8_t_put_3()
         // long, in a locale that expects grouping
         oss.clear();
         obj.put(std::back_inserter(oss), ios, l1);
-        if (oss != u8"2,147,483,647") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"2,147,483,647");
         
         oss.clear();
         ios.width(20);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, l2);
-        if (oss != u8"-2,147,483,647++++++") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"-2,147,483,647++++++");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("en_HK.UTF-8"), s_ctype_hk_utf8);
@@ -294,32 +286,32 @@ void test_numeric_char8_t_put_4()
         res = x;
         auto ret1 = obj.put(res.begin(), ios, l);
         std::u8string sanity1(res.begin(), ret1);
-        if (res != u8"1798xxxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
-        if (sanity1 != u8"1798") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(res == u8"1798xxxxxxxxxxxxxx");
+        VERIFY(sanity1 == u8"1798");
         
         // 02 put(long double)
         const long double ld = 1798.0;
         res = x;
         auto ret2 = obj.put(res.begin(), ios, ld);
         std::u8string sanity2(res.begin(), ret2);
-        if (res != u8"1798xxxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
-        if (sanity2 != u8"1798") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(res == u8"1798xxxxxxxxxxxxxx");
+        VERIFY(sanity2 == u8"1798");
         
         // 03 put(bool)
         bool b = 1;
         res = x;
         auto ret3 = obj.put(res.begin(), ios, b);
         std::u8string sanity3(res.begin(), ret3);
-        if (res != u8"1xxxxxxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
-        if (sanity3 != u8"1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(res == u8"1xxxxxxxxxxxxxxxxx");
+        VERIFY(sanity3 == u8"1");
         
         b = 0;
         res = x;
         ios.setf(IOv2::ios_defs::boolalpha);
         auto ret4 = obj.put(res.begin(), ios, b);
         std::u8string sanity4(res.begin(), ret4);
-        if (res != u8"falsexxxxxxxxxxxxx") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
-        if (sanity4 != u8"false") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(res == u8"falsexxxxxxxxxxxxx");
+        VERIFY(sanity4 == u8"false");
         
         // 04 put(void*)
         const void* cv = &ld;
@@ -327,8 +319,8 @@ void test_numeric_char8_t_put_4()
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         auto ret5 = obj.put(res.begin(), ios, cv);
         std::u8string sanity5(res.begin(), ret5);
-        if (sanity5.size() < 2) throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
-        if (sanity5[1] != u8'x') throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(sanity5.size() >= 2);
+        VERIFY(sanity5[1] == u8'x');
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -353,13 +345,13 @@ void test_numeric_char8_t_put_5()
         ios.setf(IOv2::ios_defs::showbase);
         ios.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
         obj.put(std::back_inserter(oss), ios, l);
-        if (oss != u8"0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"0");
     
         oss.clear();
         ios.setf(IOv2::ios_defs::showbase);
         ios.setf(IOv2::ios_defs::oct, IOv2::ios_defs::basefield);
         obj.put(std::back_inserter(oss), ios, l);
-        if (oss != u8"0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"0");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("de_DE.ISO-8859-1"), s_ctype_de_8859);
@@ -382,13 +374,13 @@ void test_numeric_char8_t_put_6()
         ios.precision(6);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, 30.5);
-        if (oss != u8"30.500000") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"30.500000");
         
         oss.clear();
         ios.precision(0);
         ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
         obj.put(std::back_inserter(oss), ios, 1.0);
-        if (oss != u8"1e+00") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1e+00");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -407,7 +399,7 @@ void test_numeric_char8_t_put_7()
         std::u8string oss;
 
         obj.put(std::back_inserter(oss), ios, static_cast<long>(10));
-        if (oss != u8"10") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"10");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -427,12 +419,12 @@ void test_numeric_char8_t_put_8()
 
         bool b = true;
         obj.put(std::back_inserter(oss), ios, b);
-        if (oss != u8"1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1");
 
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, b);
-        if (oss != u8"+1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"+1");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -456,13 +448,13 @@ void test_numeric_char8_t_put_9()
         {
             long l = -1;
             obj.put(std::back_inserter(oss), ios, l);
-            if (oss == u8"1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+            VERIFY(oss != u8"1");
         }
         {
             long long ll = -1LL;
             oss.clear();
             obj.put(std::back_inserter(oss), ios, ll);
-            if (oss == u8"1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+            VERIFY(oss != u8"1");
         }
     };
 
@@ -491,19 +483,19 @@ void test_numeric_char8_t_put_10()
     
     {
         ng1.put(std::back_inserter(oss), ios, l1);
-        if (oss != u8"1,2,3,45,678") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"1,2,3,45,678");
     }
     {
         ios.precision(1);
         ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
         oss.clear();
         ng2.put(std::back_inserter(oss), ios, d1);
-        if (oss != u8"123,456,7.0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"123,456,7.0");
     }
     {
         oss.clear();
         ng2.put(std::back_inserter(oss), ios, d2);
-        if (oss != u8"12,345,6.0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"12,345,6.0");
     }
     dump_info("Done\n");
 }
@@ -526,15 +518,15 @@ void test_numeric_char8_t_put_11()
 
         {
             obj.put(std::back_inserter(result1), ios, li1);
-            if (result1 != u8"+0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+            VERIFY(result1 == u8"+0");
         }
         {
             obj.put(std::back_inserter(result2), ios, li2);
-            if (result2 != u8"+5") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+            VERIFY(result2 == u8"+5");
         }
         {
             obj.put(std::back_inserter(result3), ios, d1);
-            if (result3 != u8"+0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+            VERIFY(result3 == u8"+0");
         }
     };
 
@@ -560,7 +552,7 @@ void test_numeric_char8_t_put_12()
         ios.precision(precision);
         ios.setf(IOv2::ios_defs::fixed);
         obj.put(std::back_inserter(oss), ios, 1.0);
-        if (oss.size() != static_cast<size_t>(precision) + 2) throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(!(oss.size() != static_cast<size_t>(precision) + 2));
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -581,13 +573,13 @@ void test_numeric_char8_t_put_13()
         unsigned long ul1 = 42UL;
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, ul1);
-        if (oss != u8"42") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"42");
         
         unsigned long long ull1 = 31ULL;
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, ull1);
-        if (oss != u8"31") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"31");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -611,21 +603,21 @@ void test_numeric_char8_t_put_14()
         double d1 = -2e20;
         
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != u8"2e+20") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"2e+20");
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, d1);
-        if (oss != u8"-2e+20") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"-2e+20");
         
         oss.clear();
         ios.setf(IOv2::ios_defs::uppercase);
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != u8"2E+20") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"2E+20");
         
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != u8"+2E+20") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"+2E+20");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("de_DE.ISO-8859-1"), s_ctype_de_8859);
@@ -651,21 +643,21 @@ void test_numeric_char8_t_put_15()
         double d1 = 300;
         
         obj.put(std::back_inserter(oss), ios, l0);
-        if (oss != u8"-300.000") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"-300.000");
         
         oss.clear();
         obj.put(std::back_inserter(oss), ios, d0);
-        if (oss != u8"-300.000") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"-300.000");
     
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, l1);
-        if (oss != u8"+300") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"+300");
         
         oss.clear();
         ios.setf(IOv2::ios_defs::showpos);
         obj.put(std::back_inserter(oss), ios, d1);
-        if (oss != u8"+300") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"+300");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("de_DE.ISO-8859-1"), s_ctype_de_8859);
@@ -695,17 +687,17 @@ void test_numeric_char8_t_put_16()
     double d1 = 1234567.0;
     
     ng1.put(std::back_inserter(oss), ios, l1);
-    if (oss != u8"12345") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+    VERIFY(oss == u8"12345");
 
     oss.clear();
     ng2.put(std::back_inserter(oss), ios, l2);
-    if (oss != u8"123456,78") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+    VERIFY(oss == u8"123456,78");
 
     ios.precision(1);
     ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
     oss.clear();
     ng3.put(std::back_inserter(oss), ios, d1);
-    if (oss != u8"1234,56,7.0") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+    VERIFY(oss == u8"1234,56,7.0");
   
     dump_info("Done\n");
 }
@@ -724,28 +716,28 @@ void test_numeric_char8_t_put_17()
     ios.width(6);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != u8"**-no-") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+    VERIFY(oss == u8"**-no-");
 
     oss.clear();
     ios.width(6);
     ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != u8"**-no-") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+    VERIFY(oss == u8"**-no-");
 
     oss.clear();
     ios.width(6);
     ios.setf(IOv2::ios_defs::internal, IOv2::ios_defs::adjustfield);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != u8"**-no-") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+    VERIFY(oss == u8"**-no-");
     
     oss.clear();
     ios.width(6);
     ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
     ios.setf(IOv2::ios_defs::boolalpha);
     ng1.put(std::back_inserter(oss), ios, false);
-    if (oss != u8"-no-**") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+    VERIFY(oss == u8"-no-**");
   
     dump_info("Done\n");
 }
@@ -765,25 +757,25 @@ void test_numeric_char8_t_put_18()
 
         ios.width(5);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != u8"**0x1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"**0x1");
 
         oss.clear();
         ios.width(5);
         ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != u8"**0x1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"**0x1");
 
         oss.clear();
         ios.width(5);
         ios.setf(IOv2::ios_defs::internal, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != u8"0x**1") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"0x**1");
 
         oss.clear();
         ios.width(5);
         ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
         obj.put(std::back_inserter(oss), ios, p);
-        if (oss != u8"0x1**") throw std::runtime_error("IOv2::numeric<char8_t>::put fails");
+        VERIFY(oss == u8"0x1**");
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("C"), s_ctype_c);
@@ -818,14 +810,14 @@ void test_numeric_char8_t_get_1()
         {
             iss = u8"1";
             auto it = obj.get(iss.begin(), iss.end(), ios, b1);
-            if (b1 != true) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(b1 == true);
+            VERIFY(it == iss.end());
         }
         {
             iss = u8"0";
             auto it = obj.get(iss.begin(), iss.end(), ios, b0);
-            if (b0 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(b0 == false);
+            VERIFY(it == iss.end());
         }
 
         // ... and one that does
@@ -834,9 +826,9 @@ void test_numeric_char8_t_get_1()
             ios.width(20);
             ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != ul1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != '+') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == ul1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == '+');
         }
 
         {
@@ -845,8 +837,8 @@ void test_numeric_char8_t_get_1()
             ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
             ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it == iss.end());
         }
 
         {
@@ -857,17 +849,17 @@ void test_numeric_char8_t_get_1()
             ios.setf(IOv2::ios_defs::scientific, IOv2::ios_defs::floatfield);
             ios.setf(IOv2::ios_defs::uppercase);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
 
         // long double
         {
             iss = u8"6,630025e+4";
             auto it = obj.get(iss.begin(), iss.end(), ios, ld);
-            if (ld != ld1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ld == ld1);
+            VERIFY(it == iss.end());
         }
 
         {
@@ -875,18 +867,18 @@ void test_numeric_char8_t_get_1()
             ios.precision(0);
             ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, ld);
-            if (ld != 0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != ' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ld == 0);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ' ');
         }
 
         // void*
         {
             iss = u8"0xbffff74c,";
             auto it = obj.get(iss.begin(), iss.end(), ios, v);
-            if (v == 0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != ',') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(v != 0);
+            VERIFY(it != iss.end());
+            VERIFY(*it == ',');
         }
 
         {
@@ -895,8 +887,8 @@ void test_numeric_char8_t_get_1()
 
             iss = u8"9.223.372.036.854.775.807";
             auto it = obj.get(iss.begin(), iss.end(), ios, ll);
-            if (ll != ll1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ll == ll1);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -932,33 +924,33 @@ void test_numeric_char8_t_get_2()
             iss = u8"true ";
             ios.setf(IOv2::ios_defs::boolalpha);
             auto it = obj.get(iss.begin(), iss.end(), ios, b0);
-            if (b0 != true) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(b0 == true);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
 
         {
             iss = u8"false ";
             ios.setf(IOv2::ios_defs::boolalpha);
             auto it = obj.get(iss.begin(), iss.end(), ios, b1);
-            if (b1 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(b1 == false);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
 
         // unsigned long
         {
             iss = u8"1294967294";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != ul1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == ul1);
+            VERIFY(it == iss.end());
         }
         {
             iss = u8"0+------------------";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != ul2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8'+') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == ul2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8'+');
         }
 
         // double
@@ -967,17 +959,17 @@ void test_numeric_char8_t_get_2()
             ios.width(20);
             ios.setf(IOv2::ios_defs::left, IOv2::ios_defs::adjustfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8'+') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8'+');
         }
         {
             iss = u8"+3.15e-308";
             ios.width(20);
             ios.setf(IOv2::ios_defs::right, IOv2::ios_defs::adjustfield);
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it == iss.end());
         }
     };
 
@@ -1005,16 +997,16 @@ void test_numeric_char8_t_get_3()
         {
             iss = u8"2,147,483,647 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, l);
-            if (l != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(l == l1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
         {
             iss = u8"-2,147,483,647+-----";
             auto it = obj.get(iss.begin(), iss.end(), ios, l);
-            if (l != l2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8'+') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(l == l2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8'+');
         }
     };
 
@@ -1039,40 +1031,40 @@ void test_numeric_char8_t_get_4()
             // 01 get(long)
             long i = 0;
             auto it = obj.get(str.begin(), str.end(), ios, i);
-            if (i != 20000106) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (std::string(it, str.end()) != " Elizabeth Durack") throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(i == 20000106);
+            VERIFY(it != str.end());
+            VERIFY(std::string(it, str.end()) == " Elizabeth Durack");
         }
         {
             // 02 get(long double)
             long double ld = 0.0;
             auto it = obj.get(str.begin(), str.end(), ios, ld);
-            if (ld != 20000106) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (std::string(it, str.end()) != " Elizabeth Durack") throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ld == 20000106);
+            VERIFY(it != str.end());
+            VERIFY(std::string(it, str.end()) == " Elizabeth Durack");
         }
     
         {
             // 03 get(bool)
             bool b = 1;
             auto it = obj.get(str2.begin(), str2.end(), ios, b);
-            if (b != 0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == str2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (std::string(it, str2.end()) != " true 0xbffff74c Durack") throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(b == 0);
+            VERIFY(it != str2.end());
+            VERIFY(std::string(it, str2.end()) == " true 0xbffff74c Durack");
     
             ios.setf(IOv2::ios_defs::boolalpha);
             it = obj.get(++it, str2.end(), ios, b);
-            if (b != true) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (std::string(it, str2.end()) != " 0xbffff74c Durack") throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(b == true);
+            VERIFY(it != str.end());
+            VERIFY(std::string(it, str2.end()) == " 0xbffff74c Durack");
             
             // 04 get(void*)
             void* v;
             ios.setf(IOv2::ios_defs::fixed, IOv2::ios_defs::floatfield);
             it = obj.get(++it, str2.end(), ios, v);
-            if (v != (void*)0xbffff74c) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (std::string(it, str2.end()) != " Durack") throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(v == (void*)0xbffff74c);
+            VERIFY(it != str.end());
+            VERIFY(std::string(it, str2.end()) == " Durack");
         }
     };
 
@@ -1097,45 +1089,45 @@ void test_numeric_char8_t_get_5()
             ios.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
             iss = u8"0xbf.fff.74c ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0xbffff74c) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == 0xbffff74c);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
         {
             iss = u8"0Xf.fff ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0xffff) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == 0xffff);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
         {
             iss = u8"ffe ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0xffe) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == 0xffe);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
         {
             ios.setf(IOv2::ios_defs::oct, IOv2::ios_defs::basefield);
             iss = u8"07.654.321 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 07654321) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == 07654321);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
         {
             iss = u8"07.777 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 07777) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == 07777);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
         {
             iss = u8"776 ";
             auto it = obj.get(iss.begin(), iss.end(), ios, ul);
-            if (ul != 0776) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8' ') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul == 0776);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8' ');
         }
     };
 
@@ -1158,9 +1150,9 @@ void test_numeric_char8_t_get_6()
 
         iss = u8"1234,5 ";
         auto it = obj.get(iss.begin(), iss.end(), ios, d);
-        if (d != 1234.5) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (it == iss.end()) throw std::runtime_error("IOv2::numeric<wchar_t>::get fails");
-        if (*it != u8' ') throw std::runtime_error("IOv2::numeric<wchar_t>::get fails");
+        VERIFY(d == 1234.5);
+        VERIFY(it != iss.end());
+        VERIFY(*it == u8' ');
     };
 
     IOv2::numeric obj(std::make_shared<IOv2::numeric_conf<char8_t>>("de_DE.ISO-8859-1"), s_ctype_de_8859);
@@ -1190,7 +1182,7 @@ void test_numeric_char8_t_get_7()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8'+') throw std::runtime_error("IOv2::numeric<char32_t>::get fails");
+            VERIFY(*it == u8'+');
         }
         {
             iss = u8".e+1";
@@ -1202,7 +1194,7 @@ void test_numeric_char8_t_get_7()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8'.') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(*it == u8'.');
         }
     };
 
@@ -1234,7 +1226,7 @@ void test_numeric_char8_t_get_8()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8'f') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == u8'f');
         }
         {
             iss = u8"falsr";
@@ -1246,7 +1238,7 @@ void test_numeric_char8_t_get_8()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8'f') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == u8'f');
         }
         {
             iss = u8"trus";
@@ -1258,7 +1250,7 @@ void test_numeric_char8_t_get_8()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8't') throw std::runtime_error("IOv2::numeric<char>::get fails");
+            VERIFY(*it == u8't');
         }
     };
 
@@ -1283,16 +1275,16 @@ void test_numeric_char8_t_get_9()
         {
             iss = u8"1e1,";
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8',') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(d == d1);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8',');
         }
         {
             iss = u8"3e1.";
             auto it = obj.get(iss.begin(), iss.end(), ios, d);
-            if (d != d2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (*it != u8'.') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(d == d2);
+            VERIFY(it != iss.end());
+            VERIFY(*it == u8'.');
         }
     };
 
@@ -1325,8 +1317,8 @@ void test_numeric_char8_t_get_10()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8'1') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (f != 0.0f) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(*it == u8'1');
+            VERIFY(f == 0.0f);
         }
         {
             iss = u8"3e+";
@@ -1338,8 +1330,8 @@ void test_numeric_char8_t_get_10()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8'3') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (d != 0.0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(*it == u8'3');
+            VERIFY(d == 0.0);
         }
         {
             iss = u8"6e ";
@@ -1351,8 +1343,8 @@ void test_numeric_char8_t_get_10()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (*it != u8'6') throw std::runtime_error("IOv2::numeric<char>::get fails");
-            if (ld != 0.0l) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(*it == u8'6');
+            VERIFY(ld == 0.0l);
         }
     };
 
@@ -1387,46 +1379,46 @@ void test_numeric_char8_t_get_11()
     {
         std::u8string iss1 = u8"1234";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(d == d1);
     }
     
     {
         std::u8string iss1 = u8"142";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'2') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == u8'2');
+        VERIFY(d == d2);
     }
     
     {
         std::u8string iss1 = u8"3e14";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'4') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d3) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == u8'4');
+        VERIFY(d == d3);
     }
     
     {
         std::u8string iss1 = u8"1234";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'4') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == u8'4');
+        VERIFY(l == l1);
     }
     
     {
         std::u8string iss2 = u8"123";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d1);
     }
     
     {
         std::u8string iss2 = u8"120";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, l);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(l == l2);
     }
     dump_info("Done\n");
 }
@@ -1466,28 +1458,28 @@ void test_numeric_char8_t_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != u8'+') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(*it == u8'+');
     }
     {
         iss1 = u8"0x1";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'x') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == u8'x');
+        VERIFY(l == l1);
     }
     {
         iss1 = u8"0Xa";
         ios.unsetf(IOv2::ios_defs::basefield);
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l2);
     }
     {
         iss1 = u8"0xa";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it == iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'x') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it != iss1.end());
+        VERIFY(*it == u8'x');
+        VERIFY(l == l1);
     }
     {
         iss1 = u8"+5";
@@ -1499,20 +1491,20 @@ void test_numeric_char8_t_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != u8'+') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(*it == u8'+');
     }
     {
         iss1 = u8"x4";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, d);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(d == d1);
     }
     {
         iss2 = u8"0001-";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios2, l);
-        if (it == iss2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'-') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l3) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it != iss2.end());
+        VERIFY(*it == u8'-');
+        VERIFY(l == l3);
     }
     {
         iss2 = u8"-2";
@@ -1524,7 +1516,7 @@ void test_numeric_char8_t_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != u8'-') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(*it == u8'-');
     }
     {
         iss2 = u8"0X1";
@@ -1537,15 +1529,15 @@ void test_numeric_char8_t_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != u8'0') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(*it == u8'0');
+        VERIFY(l == 0);
     }
     {
         iss2 = u8"000778";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios2, l);
-        if (it == iss2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'8') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l4) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it != iss2.end());
+        VERIFY(*it == u8'8');
+        VERIFY(l == l4);
     }
     {
         iss2 = u8"00X";
@@ -1557,14 +1549,14 @@ void test_numeric_char8_t_get_12()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != u8'0') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(*it == u8'0');
+        VERIFY(d == d2);
     }
     {
         iss2 = u8"-1";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios2, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d3) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d3);
     }
     dump_info("Done\n");
 }
@@ -1590,20 +1582,20 @@ void test_numeric_char8_t_get_13()
     {
         iss1 = u8"1,2,3,45,678";
         auto it = ng1.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l1);
     }
     {
         iss2 = u8"123,456,7.0";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d1);
     }
     {
         iss2 = u8"12,345,6.0";
         auto it = ng2.get(iss2.begin(), iss2.end(), ios, d);
-        if (it != iss2.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss2.end());
+        VERIFY(d == d2);
     }
     dump_info("Done\n");
 }
@@ -1622,8 +1614,8 @@ void test_numeric_char8_t_get_14()
     {
         iss = u8"1,0e2";
         auto it = obj.get(iss.begin(), iss.end(), ios, d);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(d == d1);
     }
     dump_info("Done\n");
 }
@@ -1653,8 +1645,8 @@ void test_numeric_char8_t_get_15()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'1') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(d == 0.0);
+        VERIFY(*it == u8'1');
     }
     {
         iss2 = u8"3e-1";
@@ -1666,8 +1658,8 @@ void test_numeric_char8_t_get_15()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'3') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(d == 0.0);
+        VERIFY(*it == u8'3');
     }
     dump_info("Done\n");
 }
@@ -1694,8 +1686,8 @@ void test_numeric_char8_t_get_16()
             us0 = 0;
             ss << us1; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, us0);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (us0 != us1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(us0 == us1);
         }
         {
             us0 = 0;
@@ -1709,15 +1701,15 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (us0 != std::numeric_limits<unsigned short>::max()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(us0 != std::numeric_limits<unsigned short>::max()));
         }
         {
             ui0 = 0U;
             ss.clear(); ss.str("");
             ss << ui1 << ' '; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, ui0);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ui0 != ui1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(ui0 == ui1);
         }
         {
             ui0 = 0U;
@@ -1731,15 +1723,15 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ui0 != std::numeric_limits<unsigned int>::max()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(ui0 != std::numeric_limits<unsigned int>::max()));
         }
         {
             ul0 = 0UL;
             ss.clear(); ss.str("");
             ss << ul1; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, ul0);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(ul0 == ul1);
         }
         {
             ul0 = 0UL;
@@ -1753,15 +1745,15 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ul0 != std::numeric_limits<unsigned long>::max()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(ul0 != std::numeric_limits<unsigned long>::max()));
         }
         {
             l01 = 0L;
             ss.clear(); ss.str("");
             ss << l1 << ' '; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, l01);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (l01 != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(l01 == l1);
         }
         {
             l01 = 0L;
@@ -1775,15 +1767,15 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (l01 != std::numeric_limits<long>::max()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(l01 != std::numeric_limits<long>::max()));
         }
         {
             l02 = 0L;
             ss.clear(); ss.str("");
             ss << l2; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, l02);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (l02 != l2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(l02 == l2);
         }
         {
             l02 = 0L;
@@ -1797,15 +1789,15 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (l02 != std::numeric_limits<long>::min()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(l02 != std::numeric_limits<long>::min()));
         }
         {
             ull0 = 0ULL;
             ss.clear(); ss.str("");
             ss << ull1 << ' '; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, ull0);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ull0 != ull1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(ull0 == ull1);
         }
         {
             ull0 = 0ULL;
@@ -1819,15 +1811,15 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ull0 != std::numeric_limits<unsigned long long>::max()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(ull0 != std::numeric_limits<unsigned long long>::max()));
         }
         {
             ll01 = 0LL;
             ss.clear(); ss.str("");
             ss << ll1; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, ll01);
-            if (it != str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ll01 != ll1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it == str.end());
+            VERIFY(ll01 == ll1);
         }
         {
             ll01 = 0LL;
@@ -1841,15 +1833,15 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ll01 != std::numeric_limits<long long>::max()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(ll01 != std::numeric_limits<long long>::max()));
         }
         {
             ll02 = 0LL;
             ss.clear(); ss.str("");
             ss << ll2 << ' '; std::u8string str = str2u8str(ss.str());
             auto it = obj.get(str.begin(), str.end(), ios, ll02);
-            if (it == str.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ll02 != ll2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it != str.end());
+            VERIFY(ll02 == ll2);
         }
         {
             ll02 = 0LL;
@@ -1863,7 +1855,7 @@ void test_numeric_char8_t_get_16()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ll02 != std::numeric_limits<long long>::min()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(!(ll02 != std::numeric_limits<long long>::min()));
         }
     };
 
@@ -1901,7 +1893,7 @@ void test_numeric_char8_t_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(l == l1);
     }
     {
         iss1 = u8"000##2";
@@ -1913,14 +1905,14 @@ void test_numeric_char8_t_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'0') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(l == 0);
+        VERIFY(*it == u8'0');
     }
     {
         iss1 = u8"0#0#0#2";
         auto it = obj.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l2);
     }
     {
         iss1 = u8"00#0#1";
@@ -1932,7 +1924,7 @@ void test_numeric_char8_t_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(d == d1);
     }
     {
         iss1 = u8"000##2";
@@ -1944,14 +1936,14 @@ void test_numeric_char8_t_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != u8'0') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != 0.0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(*it == u8'0');
+        VERIFY(d == 0.0);
     }
     {
         iss1 = u8"0#0#0#2";
         auto it = obj.get(iss1.begin(), iss1.end(), ios, d);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(d == d2);
     }
     {
         iss1 = u8"0#0";
@@ -1964,14 +1956,14 @@ void test_numeric_char8_t_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (*it != u8'0') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != 0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(*it == u8'0');
+        VERIFY(l == 0);
     }
     {
         iss1 = u8"00#0#3";
         auto it = obj.get(iss1.begin(), iss1.end(), ios, l);
-        if (it != iss1.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l3) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss1.end());
+        VERIFY(l == l3);
     }
     {
         iss1 = u8"00#02";
@@ -1983,7 +1975,7 @@ void test_numeric_char8_t_get_17()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(l == l2);
     }
     dump_info("Done\n");
 }
@@ -2011,20 +2003,20 @@ void test_numeric_char8_t_get_18()
     {
         iss = u8"12345";
         auto it = ng1.get(iss.begin(), iss.end(), ios, l);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(l == l1);
     }
     {
         iss = u8"123456,78";
         auto it = ng2.get(iss.begin(), iss.end(), ios, l);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (l != l2) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(l == l2);
     }
     {
         iss = u8"1234,56,7.0";
         auto it = ng3.get(iss.begin(), iss.end(), ios, d);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (d != d1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(d == d1);
     }
     dump_info("Done\n");
 }
@@ -2056,26 +2048,26 @@ void test_numeric_char8_t_get_19()
     {
         iss = u8"true";
         auto it = ng0.get(iss.begin(), iss.end(), ios, b0);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b0 != true) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b0 == true);
     }
     {
         iss = u8"false";
         auto it = ng0.get(iss.begin(), iss.end(), ios, b0);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b0 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b0 == false);
     }
     {
         iss = u8"a";
         auto it = ng1.get(iss.begin(), iss.end(), ios, b1);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b1 != true) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b1 == true);
     }
     {
         iss = u8"abb";
         auto it = ng1.get(iss.begin(), iss.end(), ios, b1);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b1 == false);
     }
     {
         iss = u8"abc";
@@ -2087,8 +2079,8 @@ void test_numeric_char8_t_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'a') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(b1 == false);
+        VERIFY(*it == u8'a');
     }
     {
         iss = u8"ab";
@@ -2100,19 +2092,19 @@ void test_numeric_char8_t_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b1 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(b1 == false);
     }
     {
         iss = u8"1";
         auto it = ng2.get(iss.begin(), iss.end(), ios, b2);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b2 != true) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b2 == true);
     }
     {
         iss = u8"0";
         auto it = ng2.get(iss.begin(), iss.end(), ios, b2);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b2 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b2 == false);
     }
     {
         iss = u8"2";
@@ -2124,8 +2116,8 @@ void test_numeric_char8_t_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b2 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'2') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(b2 == false);
+        VERIFY(*it == u8'2');
     }
     {
         iss = u8"blah";
@@ -2137,8 +2129,8 @@ void test_numeric_char8_t_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b3 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8'b') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(b3 == false);
+        VERIFY(*it == u8'b');
     }
     {
         iss.clear(); b3 = true;
@@ -2150,19 +2142,19 @@ void test_numeric_char8_t_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b3 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(b3 == false);
     }
     {
         iss = u8"one";
         auto it = ng4.get(iss.begin(), iss.end(), ios, b4);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b4 != true) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b4 == true);
     }
     {
         iss = u8"two";
         auto it = ng4.get(iss.begin(), iss.end(), ios, b4);
-        if (it != iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(it == iss.end());
+        VERIFY(b4 == false);
     }
     {
         iss = u8"three"; b4 = true;
@@ -2174,8 +2166,8 @@ void test_numeric_char8_t_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-        if (*it != u8't') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(b4 == false);
+        VERIFY(*it == u8't');
     }
     {
         iss = u8"on"; b4 = true;
@@ -2187,7 +2179,7 @@ void test_numeric_char8_t_get_19()
             std::abort();
         }
         catch (IOv2::stream_error&) {}
-        if (b4 != false) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+        VERIFY(b4 == false);
     }
     dump_info("Done\n");
 }
@@ -2203,9 +2195,9 @@ void test_numeric_char8_t_get_20()
      
     std::u8string iss = u8"123,456";
     auto it = obj.get(iss.begin(), iss.end(), ios, l);
-    if (it == iss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-    if (l != 123) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-    if (*it != ',') throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+    VERIFY(it != iss.end());
+    VERIFY(l == 123);
+    VERIFY(*it == ',');
     
     dump_info("Done\n");
 }
@@ -2225,21 +2217,21 @@ void test_numeric_char8_t_get_21()
         {
             ss  = u8"-0";
             auto it = obj.get(ss.begin(), ss.end(), ios, ul0);
-            if (it != ss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ul0 != 0) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it == ss.end());
+            VERIFY(ul0 == 0);
         }
         {
             ss = u8"-1";
             auto it = obj.get(ss.begin(), ss.end(), ios, ul0);
-            if (it != ss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it == ss.end());
+            VERIFY(ul0 == ul1);
         }
         {
             std::stringstream ss0;
             ss0 << '-' << ul1; ss = str2u8str(ss0.str());
             auto it = obj.get(ss.begin(), ss.end(), ios, ul0);
-            if (it != ss.end()) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
-            if (ul0 != 1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(it == ss.end());
+            VERIFY(ul0 == 1);
         }
         {
             std::stringstream ss0;
@@ -2252,7 +2244,7 @@ void test_numeric_char8_t_get_21()
                 std::abort();
             }
             catch (IOv2::stream_error&) {}
-            if (ul0 != ul1) throw std::runtime_error("IOv2::numeric<char8_t>::get fails");
+            VERIFY(ul0 == ul1);
         }
     };
 
@@ -2275,15 +2267,12 @@ void test_numeric_char8_t_conf_multibyte_sep()
     //     so the grouping is cleared again on the equal-separator guard.
     IOv2::numeric_conf<char8_t> conf("fr_FR.UTF-8");
 
-    if (conf.decimal_point() != u8',')
-        throw std::runtime_error("numeric_conf<char8_t>::decimal_point incorrect");
+    VERIFY(conf.decimal_point() == u8',');
     // Multi-byte separator collapses onto the single-byte fallback u8','.
-    if (conf.thousands_sep() != u8',')
-        throw std::runtime_error("numeric_conf<char8_t>::thousands_sep incorrect");
+    VERIFY(conf.thousands_sep() == u8',');
     // Both clearing paths must leave grouping empty so downstream parsing
     // takes the no-grouping branch instead of misclassifying digits.
-    if (!conf.grouping().empty())
-        throw std::runtime_error("numeric_conf<char8_t>::grouping should be cleared");
+    VERIFY(conf.grouping().empty());
 
     dump_info("Done\n");
 }
