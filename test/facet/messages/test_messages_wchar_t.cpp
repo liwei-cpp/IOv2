@@ -4,9 +4,9 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <common/dump_info.h>
-#include <common/exe_path.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/exe_path.h>
+#include <support/verify.h>
 
 void test_messages_facet_wchar_t_common_1()
 {

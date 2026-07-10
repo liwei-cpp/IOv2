@@ -5,9 +5,9 @@
 #include <vector>
 #include <facet/numeric.h>
 #include <io/streambuf_iterator.h>
-#include <common/verify.h>
+#include <support/verify.h>
 
-#include <common/dump_info.h>
+#include <support/dump_info.h>
 
 namespace
 {

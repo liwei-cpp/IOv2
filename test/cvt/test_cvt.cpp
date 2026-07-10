@@ -1,6 +1,6 @@
 #include <exception>
 #include <string>
-#include <common/dump_info.h>
+#include <support/dump_info.h>
 
 void test_root_cvt();
 void test_code_cvt();

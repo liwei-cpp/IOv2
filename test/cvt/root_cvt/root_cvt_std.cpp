@@ -3,9 +3,9 @@
 #include <cvt/runtime_cvt.h>
 #include <device/std_device.h>
 
-#include <common/dump_info.h>
-#include <common/stdio_guard.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/stdio_guard.h>
+#include <support/verify.h>
 
 void test_root_cvt_std_gen_1()
 {

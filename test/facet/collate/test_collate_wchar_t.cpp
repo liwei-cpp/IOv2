@@ -4,8 +4,8 @@
 #include <vector>
 #include <facet/collate.h>
 
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 void test_collate_wchar_t_compare_1()
 {

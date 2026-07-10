@@ -4,9 +4,9 @@
 #include <tuple>
 #include <device/file_device.h>
 
-#include <common/dump_info.h>
-#include <common/file_guard.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/file_guard.h>
+#include <support/verify.h>
 
 void test_file_device_char8_t_gen_1()
 {

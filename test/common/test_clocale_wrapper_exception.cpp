@@ -28,8 +28,8 @@ inline locale_t mock_duplocale(locale_t loc)
 #define clocale_user clocale_user_mock
 
 #include <common/clocale_wrapper.h>
-#include <common/verify.h>
-#include <common/dump_info.h>
+#include <support/verify.h>
+#include <support/dump_info.h>
 
 #undef newlocale
 #undef duplocale

@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 
-#include <common/dump_info.h>
+#include <support/dump_info.h>
 
 template <typename T>
 inline void verify_impl(const T& val, const char* expr, const char* file, int line)

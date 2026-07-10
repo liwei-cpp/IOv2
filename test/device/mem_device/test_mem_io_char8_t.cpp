@@ -2,8 +2,8 @@
 #include <tuple>
 #include <device/mem_device.h>
 
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 void test_mem_device_char8_t_gen_1()
 {
