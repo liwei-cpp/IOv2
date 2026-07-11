@@ -415,6 +415,12 @@ template <io_device TDevice, cvt_creator TCreator>
 istreambuf(TDevice, const TCreator&) -> istreambuf<TDevice, ext_to_int<rb_root_cvt<TDevice>, TCreator>>;
 
 template <io_device TDevice>
+istreambuf(TDevice, bool) -> istreambuf<TDevice, typename TDevice::char_type>;
+
+template <io_device TDevice, cvt_creator TCreator>
+istreambuf(TDevice, const TCreator&, bool) -> istreambuf<TDevice, ext_to_int<rb_root_cvt<TDevice>, TCreator>>;
+
+template <io_device TDevice>
 ostreambuf(TDevice) -> ostreambuf<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
