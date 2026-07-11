@@ -202,7 +202,7 @@ public:
      * size_t value.
      * @endif
      */
-    size_t tell() const
+    [[nodiscard]] size_t tell() const
     {
         if constexpr (IsIn)
         {
@@ -323,7 +323,7 @@ public:
                     const size_t pos = tell();
                     m_cvt.seek(pos);
                 }
-                catch (...)
+                catch (...) // NOLINT(bugprone-empty-catch)
                 {
                     // Swallowed on purpose: a device that doesn't support positioning
                     // (e.g. a pipe/tty-backed stdin) can never honor this reposition,
