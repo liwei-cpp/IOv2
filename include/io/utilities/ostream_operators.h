@@ -84,36 +84,36 @@ public:
 template <typename T, typename TChar>
 struct ostream_operators : public abs_ostream
 {
-    T& put(TChar c)
+    template<typename TSelf>
+    TSelf& put(this TSelf& self, TChar c)
     {
-        T& obj = static_cast<T&>(*this);
         try
         {
-            using sentry_type = typename T::out_sentry_type;
-            sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), bool(obj.flags() & ios_defs::appmode));
-            obj.m_streambuf.sputc(c);
+            using sentry_type = typename TSelf::out_sentry_type;
+            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            self.m_streambuf.sputc(c);
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
-        return obj;
+        return self;
     }
 
-    T& write(const TChar* s, size_t n)
+    template<typename TSelf>
+    TSelf& write(this TSelf& self, const TChar* s, size_t n)
     {
-        T& obj = static_cast<T&>(*this);
         try
         {
-            using sentry_type = typename T::out_sentry_type;
-            sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), bool(obj.flags() & ios_defs::appmode));
-            obj.m_streambuf.sputn(s, n);
+            using sentry_type = typename TSelf::out_sentry_type;
+            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            self.m_streambuf.sputn(s, n);
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
-        return obj;
+        return self;
     }
 
     virtual void flush() override
@@ -139,10 +139,10 @@ struct ostream_operators : public abs_ostream
         }
     }
 
-    auto o_iter()
+    template <typename TSelf>
+    auto o_iter(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-        return ostreambuf_iterator(obj.m_streambuf);
+        return ostreambuf_iterator(self.m_streambuf);
     }
 };
 

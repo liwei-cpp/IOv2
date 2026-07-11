@@ -62,68 +62,65 @@ struct keep_sep;
 struct app_zt;
 struct no_zt;
 
-template <typename T, typename TChar>
+template <typename TChar>
 struct istream_operators
 {
-    std::optional<TChar> get()
+    template <typename TSelf>
+    std::optional<TChar> get(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-
         std::optional<TChar> c;
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
-            c = obj.m_streambuf.sbumpc();
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
+            c = self.m_streambuf.sbumpc();
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
         return c;
     }
 
-    T& get(TChar& c)
+    template <typename TSelf>
+    TSelf& get(this TSelf& self, TChar& c)
     {
-        T& obj = static_cast<T&>(*this);
-
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
-            auto tmp = obj.m_streambuf.sbumpc();
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
+            auto tmp = self.m_streambuf.sbumpc();
             if (tmp.has_value()) c = tmp.value();
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
-        return obj;
+        return self;
     }
 
-    template <typename DelimPolicy, typename CStrPolicy, typename TOut>
+    template <typename DelimPolicy, typename CStrPolicy, typename TOut, typename TSelf>
         requires ((std::is_same_v<DelimPolicy, cons_sep> || std::is_same_v<DelimPolicy, keep_sep>) &&
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
-    TOut get(TOut s, size_t n, TChar delim)
+    TOut get(this TSelf& self, TOut s, size_t n, TChar delim)
     {
         if (n == 0) return s;
-        T& obj = static_cast<T&>(*this);
         constexpr bool is_cstr = std::is_same_v<CStrPolicy, app_zt>;
 
         size_t gcount = 0;
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
-            auto c = obj.m_streambuf.sgetc();
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
+            auto c = self.m_streambuf.sgetc();
             while ((gcount + is_cstr < n) &&
                    (c.has_value()) &&
                    (c.value() != delim))
             {
                 *s++ = c.value();
                 ++gcount;
-                c = obj.m_streambuf.snextc();
+                c = self.m_streambuf.snextc();
             }
 
             if constexpr(is_cstr)
@@ -135,7 +132,7 @@ struct istream_operators
                 {
                     if (c.value() == delim)
                     {
-                        obj.m_streambuf.sbumpc();
+                        self.m_streambuf.sbumpc();
                         ++gcount;
                     }
                     else
@@ -144,128 +141,121 @@ struct istream_operators
             }
 
             if (gcount == 0)
-                throw IOv2::stream_error{"No character begin extracted"};
+                throw stream_error{"No character begin extracted"};
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
         return s;
     }
 
-    template <typename DelimPolicy, typename CStrPolicy, typename TOut>
+    template <typename DelimPolicy, typename CStrPolicy, typename TOut, typename TSelf>
         requires ((std::is_same_v<DelimPolicy, cons_sep> || std::is_same_v<DelimPolicy, keep_sep>) &&
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
-    TOut get(TOut s, size_t n)
+    TOut get(this TSelf& self, TOut s, size_t n)
     {
-        T& obj = static_cast<T&>(*this);
-
-        auto ct = obj.m_locale.template get<IOv2::ctype<TChar>>();
+        auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
         TChar delim = ct->widen('\n');
-        return get<DelimPolicy, CStrPolicy, TOut>(s, n, delim);
+        return self.template get<DelimPolicy, CStrPolicy, TOut>(s, n, delim);
     }
 
-    std::optional<TChar> peek()
+    template <typename TSelf>
+    std::optional<TChar> peek(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-
         std::optional<TChar> c;
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
-            c = obj.m_streambuf.sgetc();
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
+            c = self.m_streambuf.sgetc();
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
         return c;
     }
 
-    TChar* read(TChar* s, size_t n)
+    template <typename TSelf>
+    TChar* read(this TSelf& self, TChar* s, size_t n)
     {
-        T& obj = static_cast<T&>(*this);
-
         size_t gcount = 0;
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
-            gcount = obj.m_streambuf.sgetn(s, n);
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
+            gcount = self.m_streambuf.sgetn(s, n);
             if (gcount != n)
-                throw IOv2::stream_error{"cannot read enough characters"};
+                throw stream_error{"cannot read enough characters"};
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
         return s + gcount;
     }
 
-    T& ignore_ws()
+    template <typename TSelf>
+    TSelf& ignore_ws(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-
         try
         {
-            auto ct = obj.m_locale.template get<IOv2::ctype<TChar>>();
-            auto c = obj.m_streambuf.sgetc();
+            auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
+            auto c = self.m_streambuf.sgetc();
             while (c.has_value() &&
                     ct->is_any(base_ft<ctype>::space, c.value()))
             {
-                c = obj.m_streambuf.snextc();
+                c = self.m_streambuf.snextc();
             }
 
             if (!c.has_value())
-                throw IOv2::eof_error{};
+                throw eof_error{};
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
-        return obj;
+        return self;
     }
 
-    T& ignore(size_t n = 1)
+    template <typename TSelf>
+    TSelf& ignore(this TSelf& self, size_t n = 1)
     {
-        T& obj = static_cast<T&>(*this);
-
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
 
-            for (size_t gcount = 0; gcount < n && !obj.m_streambuf.is_eof(); ++gcount)
-                obj.m_streambuf.sbumpc();
+            for (size_t gcount = 0; gcount < n && !self.m_streambuf.is_eof(); ++gcount)
+                self.m_streambuf.sbumpc();
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
-        return obj;
+        return self;
     }
 
-    T& ignore(size_t n, TChar delim)
+    template <typename TSelf>
+    TSelf& ignore(this TSelf& self, size_t n, TChar delim)
     {
-        T& obj = static_cast<T&>(*this);
-
         size_t gcount = 0;
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
-            if (n == 0) return obj;
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
+            if (n == 0) return self;
 
-            auto c = obj.m_streambuf.sgetc();
+            auto c = self.m_streambuf.sgetc();
             while (gcount < n
                     && c.has_value()
                     && (c.value() != delim))
             {
                 ++gcount;
-                c = obj.m_streambuf.snextc();
+                c = self.m_streambuf.snextc();
             }
 
             if (gcount < n)
@@ -273,42 +263,41 @@ struct istream_operators
                 if (c.has_value())
                 {
                     ++gcount;
-                    obj.m_streambuf.sbumpc();
+                    self.m_streambuf.sbumpc();
                 }
             }
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
-        return obj;
+        return self;
     }
 
-    T& putback(TChar c)
+    template <typename TSelf>
+    TSelf& putback(this TSelf& self, TChar c)
     {
-        T& obj = static_cast<T&>(*this);
-
-        obj.clear(obj.rdstate() & ~IOv2::ios_defs::eofbit);
+        self.clear(self.rdstate() & ~IOv2::ios_defs::eofbit);
 
         try
         {
-            using sentry_type = typename T::in_sentry_type;
-            sentry_type cerb(obj, true);
-            obj.m_streambuf.sputbackc(c);
+            using sentry_type = typename TSelf::in_sentry_type;
+            sentry_type cerb(self, true);
+            self.m_streambuf.sputbackc(c);
         }
         catch(...)
         {
-            obj.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception());
         }
 
-        return obj;
+        return self;
     }
 
-    auto i_iter()
+    template <typename TSelf>
+    auto i_iter(this TSelf& self)
     {
-        T& obj = static_cast<T&>(*this);
-        return istreambuf_iterator(obj.m_streambuf);
+        return istreambuf_iterator(self.m_streambuf);
     }
 };
 

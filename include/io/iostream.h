@@ -15,7 +15,7 @@ namespace IOv2
 template <io_device TDevice, typename TChar>
 class iostream : public ios_base<TChar>
                , public io_state_and_exp
-               , public istream_operators<iostream<TDevice, TChar>, TChar>
+               , public istream_operators<TChar>
                , public ostream_operators<iostream<TDevice, TChar>, TChar>
                , public stream_common_operators<TDevice, TChar>
 {
@@ -27,7 +27,7 @@ public:
 
     friend in_sentry_type;
     friend out_sentry_type;
-    friend istream_operators<iostream<TDevice, TChar>, TChar>;
+    friend istream_operators<TChar>;
     friend ostream_operators<iostream<TDevice, TChar>, TChar>;
     friend stream_common_operators<TDevice, TChar>;
 
