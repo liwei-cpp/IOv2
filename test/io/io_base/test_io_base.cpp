@@ -6,6 +6,7 @@ void test_io_base_boolalpha_1();
 void test_io_base_storage_1();
 void test_io_base_storage_2();
 void test_io_base_storage_3();
+void test_io_base_storage_4();
 
 void test_io_base_manipulators();
 
@@ -19,6 +20,7 @@ void test_io_base()
     test_io_base_storage_1();
     test_io_base_storage_2();
     test_io_base_storage_3();
+    test_io_base_storage_4();
 
     test_io_base_manipulators();
 }

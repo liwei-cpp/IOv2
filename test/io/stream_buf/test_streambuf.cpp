@@ -15,6 +15,8 @@ void test_streambuf_char_seek_1();
 void test_streambuf_char_io_switch_1();
 void test_streambuf_char_io_switch_2();
 void test_streambuf_char_io_switch_3();
+void test_streambuf_char_detach_1();
+void test_streambuf_char_detach_2();
 
 void test_streambuf()
 {
@@ -36,4 +38,6 @@ void test_streambuf()
     test_streambuf_char_io_switch_1();
     test_streambuf_char_io_switch_2();
     test_streambuf_char_io_switch_3();
+    test_streambuf_char_detach_1();
+    test_streambuf_char_detach_2();
 }
