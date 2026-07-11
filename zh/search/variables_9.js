@@ -12,6 +12,5 @@ var searchData=
   ['is_5fsmall_5ftype_5fv_9',['is_small_type_v',['../namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a',1,'IOv2']]],
   ['is_5fstamp_5finput_5fiterator_5fv_10',['is_stamp_input_iterator_v',['../namespaceIOv2.html#a483775a55bb18278dba45ad39fc0b6a4',1,'IOv2']]],
   ['is_5fstreambuf_11',['is_streambuf',['../namespaceIOv2.html#a136bce589de832c1ebc954326400974b',1,'IOv2']]],
-  ['istream_5foperators_3c_20iostream_3c_20tdevice_2c_20tchar_20_3e_2c_20tchar_20_3e_12',['istream_operators&lt; iostream&lt; TDevice, TChar &gt;, TChar &gt;',['../classIOv2_1_1iostream.html#ac773f3d67adaaf18922cf5131fcf09b3',1,'IOv2::iostream']]],
-  ['istream_5foperators_3c_20istream_3c_20tdevice_2c_20tchar_20_3e_2c_20tchar_20_3e_13',['istream_operators&lt; istream&lt; TDevice, TChar &gt;, TChar &gt;',['../classIOv2_1_1istream.html#ac85c90eb1e0281868368fe37dd629eef',1,'IOv2::istream']]]
+  ['istream_5foperators_3c_20tchar_20_3e_12',['istream_operators&lt; tchar &gt;',['../classIOv2_1_1iostream.html#a590db7a6c3a51b6989e758652fcaed70',1,'IOv2::iostream::istream_operators&lt; TChar &gt;'],['../classIOv2_1_1istream.html#aaf941a6c283f992065adcc316ef2f4c5',1,'IOv2::istream::istream_operators&lt; TChar &gt;']]]
 ];

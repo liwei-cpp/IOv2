@@ -249,19 +249,15 @@ var hierarchy =
     [ "IOv2::is_mem_device_impl< mem_device< CharT, Traits, Allocator > >", "structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4.html", null ],
     [ "IOv2::is_out_sentry_impl< typename >", "structIOv2_1_1is__out__sentry__impl.html", null ],
     [ "IOv2::is_out_sentry_impl< out_sentry< TStream, involve_input, is_std > >", "structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html", null ],
-    [ "IOv2::istream_operators< T, TChar >", "structIOv2_1_1istream__operators.html", [
+    [ "IOv2::istream_operators< TChar >", "structIOv2_1_1istream__operators.html", [
       [ "IOv2::stdin_api< __cin, std_device< STDIN_FILENO >, char >", "classIOv2_1_1stdin__api.html", null ],
       [ "IOv2::stdin_api< __wcin, std_device< STDIN_FILENO >, wchar_t >", "classIOv2_1_1stdin__api.html", null ],
+      [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ],
+      [ "IOv2::istream< TDevice, TChar >", "classIOv2_1_1istream.html", null ],
       [ "IOv2::stdin_api< T, TDevice, TChar >", "classIOv2_1_1stdin__api.html", null ]
     ] ],
-    [ "IOv2::istream_operators< __cin, char >", "structIOv2_1_1istream__operators.html", null ],
-    [ "IOv2::istream_operators< __wcin, wchar_t >", "structIOv2_1_1istream__operators.html", null ],
-    [ "IOv2::istream_operators< iostream< TDevice, TChar >, TChar >", "structIOv2_1_1istream__operators.html", [
-      [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ]
-    ] ],
-    [ "IOv2::istream_operators< istream< TDevice, TChar >, TChar >", "structIOv2_1_1istream__operators.html", [
-      [ "IOv2::istream< TDevice, TChar >", "classIOv2_1_1istream.html", null ]
-    ] ],
+    [ "IOv2::istream_operators< char >", "structIOv2_1_1istream__operators.html", null ],
+    [ "IOv2::istream_operators< wchar_t >", "structIOv2_1_1istream__operators.html", null ],
     [ "IOv2::istreambuf_iterator< TStreamBuf >", "classIOv2_1_1istreambuf__iterator.html", null ],
     [ "IOv2::locale< TChar >", "classIOv2_1_1locale.html", null ],
     [ "IOv2::locale< char_type >", "classIOv2_1_1locale.html", null ],

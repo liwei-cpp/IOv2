@@ -9,6 +9,6 @@ var classIOv2_1_1istream =
     [ "istream", "classIOv2_1_1istream.html#a7437f3e82510573a9347af1b09c63bb9", null ],
     [ "istream", "classIOv2_1_1istream.html#a4de5104f3e342772f28c9df77a7ed744", null ],
     [ "in_sentry_type", "classIOv2_1_1istream.html#aaa2a54fefc787ae342a003a7c1d5d3e9", null ],
-    [ "istream_operators< istream< TDevice, TChar >, TChar >", "classIOv2_1_1istream.html#ac85c90eb1e0281868368fe37dd629eef", null ],
+    [ "istream_operators< TChar >", "classIOv2_1_1istream.html#aaf941a6c283f992065adcc316ef2f4c5", null ],
     [ "stream_common_operators< TDevice, TChar >", "classIOv2_1_1istream.html#a2028d2cf8ddc17bdbe3fcccb885bbdc0", null ]
 ];

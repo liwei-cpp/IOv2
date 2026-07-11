@@ -18,11 +18,9 @@ var searchData=
   ['is_5fout_5fsentry_5fimpl_3c_20out_5fsentry_3c_20tstream_2c_20involve_5finput_2c_20is_5fstd_20_3e_20_3e_15',['is_out_sentry_impl&lt; out_sentry&lt; TStream, involve_input, is_std &gt; &gt;',['../structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html',1,'IOv2']]],
   ['istream_16',['istream',['../classIOv2_1_1istream.html',1,'IOv2']]],
   ['istream_5foperators_17',['istream_operators',['../structIOv2_1_1istream__operators.html',1,'IOv2']]],
-  ['istream_5foperators_3c_20_5f_5fcin_2c_20char_20_3e_18',['istream_operators&lt; __cin, char &gt;',['../structIOv2_1_1istream__operators.html',1,'IOv2']]],
-  ['istream_5foperators_3c_20_5f_5fwcin_2c_20wchar_5ft_20_3e_19',['istream_operators&lt; __wcin, wchar_t &gt;',['../structIOv2_1_1istream__operators.html',1,'IOv2']]],
-  ['istream_5foperators_3c_20iostream_3c_20tdevice_2c_20tchar_20_3e_2c_20tchar_20_3e_20',['istream_operators&lt; iostream&lt; TDevice, TChar &gt;, TChar &gt;',['../structIOv2_1_1istream__operators.html',1,'IOv2']]],
-  ['istream_5foperators_3c_20istream_3c_20tdevice_2c_20tchar_20_3e_2c_20tchar_20_3e_21',['istream_operators&lt; istream&lt; TDevice, TChar &gt;, TChar &gt;',['../structIOv2_1_1istream__operators.html',1,'IOv2']]],
-  ['istreambuf_22',['istreambuf',['../structIOv2_1_1istreambuf.html',1,'IOv2']]],
-  ['istreambuf_3c_20device_5ftype_2c_20char_5ftype_20_3e_23',['istreambuf&lt; device_type, char_type &gt;',['../structIOv2_1_1istreambuf.html',1,'IOv2']]],
-  ['istreambuf_5fiterator_24',['istreambuf_iterator',['../classIOv2_1_1istreambuf__iterator.html',1,'IOv2']]]
+  ['istream_5foperators_3c_20char_20_3e_18',['istream_operators&lt; char &gt;',['../structIOv2_1_1istream__operators.html',1,'IOv2']]],
+  ['istream_5foperators_3c_20wchar_5ft_20_3e_19',['istream_operators&lt; wchar_t &gt;',['../structIOv2_1_1istream__operators.html',1,'IOv2']]],
+  ['istreambuf_20',['istreambuf',['../structIOv2_1_1istreambuf.html',1,'IOv2']]],
+  ['istreambuf_3c_20device_5ftype_2c_20char_5ftype_20_3e_21',['istreambuf&lt; device_type, char_type &gt;',['../structIOv2_1_1istreambuf.html',1,'IOv2']]],
+  ['istreambuf_5fiterator_22',['istreambuf_iterator',['../classIOv2_1_1istreambuf__iterator.html',1,'IOv2']]]
 ];

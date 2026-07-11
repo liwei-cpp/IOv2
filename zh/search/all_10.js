@@ -2,7 +2,7 @@ var searchData=
 [
   ['rb_5froot_5fcvt_0',['rb_root_cvt',['../classIOv2_1_1rb__root__cvt.html',1,'IOv2::rb_root_cvt&lt; DeviceType &gt;'],['../namespaceIOv2.html#a4d43e84ad8909b24c7ff9808c3447be3',1,'IOv2::rb_root_cvt(DeviceType) -&gt; rb_root_cvt&lt; DeviceType &gt;']]],
   ['rdstate_1',['rdstate',['../structIOv2_1_1io__state__and__exp.html#ae5897909a71b7528e0208652b7a186e4',1,'IOv2::io_state_and_exp']]],
-  ['read_2',['read',['../structIOv2_1_1istream__operators.html#a1383a0609244ca74e8c26ecea5b85cf4',1,'IOv2::istream_operators']]],
+  ['read_2',['read',['../structIOv2_1_1istream__operators.html#a85c69b7370b2a0caff2163b9d792f603',1,'IOv2::istream_operators']]],
   ['reader_3',['reader',['../structIOv2_1_1reader.html',1,'IOv2']]],
   ['reader_3c_20char_2c_20signed_20char_20_2a_20_3e_4',['reader&lt; char, signed char * &gt;',['../structIOv2_1_1reader_3_01char_00_01signed_01char_01_5_01_4.html',1,'IOv2']]],
   ['reader_3c_20char_2c_20signed_20char_20_3e_5',['reader&lt; char, signed char &gt;',['../structIOv2_1_1reader_3_01char_00_01signed_01char_01_4.html',1,'IOv2']]],

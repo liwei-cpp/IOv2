@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['o_5fiter_0',['o_iter',['../structIOv2_1_1ostream__operators.html#ac431075dcbbd3e6a2ed49e8ef7188047',1,'IOv2::ostream_operators']]],
+  ['o_5fiter_0',['o_iter',['../structIOv2_1_1ostream__operators.html#a8aec24fc1cd807c4d7ee160d3894ef3b',1,'IOv2::ostream_operators']]],
   ['objects_2eh_1',['objects.h',['../objects_8h.html',1,'']]],
   ['oct_2',['oct',['../namespaceIOv2_1_1ios__defs.html#ac60d70e115f9953e9acaab36ae2dd112',1,'IOv2::ios_defs::oct'],['../group__ios__manipulators.html#ga5f8ee2313b90a96b380258357f5573ec',1,'IOv2::oct()']]],
   ['offset_3',['offset',['../structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html#a86bb6d30adb52d30810ed2ce6acafbb8',1,'IOv2::ft_basic&lt; timeio&lt; CharT &gt; &gt;::era_entry']]],
