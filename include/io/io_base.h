@@ -49,7 +49,7 @@ namespace ios_defs
 
 struct io_state_and_exp
 {
-    ios_defs::iostate rdstate() const { return m_stream_state; }
+    [[nodiscard]] ios_defs::iostate rdstate() const { return m_stream_state; }
 
     void clear(ios_defs::iostate s = ios_defs::goodbit)
     {
@@ -95,26 +95,26 @@ struct io_state_and_exp
     }
 
     void setstate(ios_defs::iostate s) { clear(rdstate() | s); }
-    bool good() const { return rdstate() == 0; }
-    bool dev_fail() const { return rdstate() & ios_defs::devfailbit; }
-    bool cvt_fail() const { return rdstate() & ios_defs::cvtfailbit; }
-    bool str_fail() const { return rdstate() & ios_defs::strfailbit; }
-    bool other_fail() const { return rdstate() & ios_defs::otherfailbit; }
-    bool eof() const { return rdstate() & ios_defs::eofbit; }
+    [[nodiscard]] bool good() const { return rdstate() == 0; }
+    [[nodiscard]] bool dev_fail() const { return rdstate() & ios_defs::devfailbit; }
+    [[nodiscard]] bool cvt_fail() const { return rdstate() & ios_defs::cvtfailbit; }
+    [[nodiscard]] bool str_fail() const { return rdstate() & ios_defs::strfailbit; }
+    [[nodiscard]] bool other_fail() const { return rdstate() & ios_defs::otherfailbit; }
+    [[nodiscard]] bool eof() const { return rdstate() & ios_defs::eofbit; }
 
     explicit operator bool() const
     {
         return (rdstate() == 0) || (rdstate() == ios_defs::eofbit);
     }
 
-    ios_defs::iostate exceptions() const { return m_exception; }
+    [[nodiscard]] ios_defs::iostate exceptions() const { return m_exception; }
     void exceptions(ios_defs::iostate e)
     {
         m_exception = e;
         clear(m_stream_state);
     }
 
-    void handle_exception(std::exception_ptr ex)
+    void handle_exception(const std::exception_ptr& ex)
     {
         if (!ex) return;
         try
