@@ -7,7 +7,7 @@ var structIOv2_1_1io__state__and__exp =
     [ "exceptions", "structIOv2_1_1io__state__and__exp.html#a0b08b8296be46a8374730a0cdd739843", null ],
     [ "exceptions", "structIOv2_1_1io__state__and__exp.html#a4df3ab67d81dc523203502df00df3a62", null ],
     [ "good", "structIOv2_1_1io__state__and__exp.html#a2096703a66a3b6e83ccf1c39f63fb9e7", null ],
-    [ "handle_exception", "structIOv2_1_1io__state__and__exp.html#affb4783d1a8acf591b9043e6893dfc2a", null ],
+    [ "handle_exception", "structIOv2_1_1io__state__and__exp.html#aab8e998de9e2c0b5c49890001a52d13c", null ],
     [ "operator bool", "structIOv2_1_1io__state__and__exp.html#a24857dccb73bbcef98b1d1bcd2dc4a73", null ],
     [ "other_fail", "structIOv2_1_1io__state__and__exp.html#ae02907f048240aa1d71dfc2c4ffddd7b", null ],
     [ "rdstate", "structIOv2_1_1io__state__and__exp.html#ae5897909a71b7528e0208652b7a186e4", null ],
