@@ -246,10 +246,13 @@ streambuf_iterator.h 的引用(Include)关系图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator&lt; TStreamBuf &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输入流缓冲区迭代器（单遍输入迭代器）。  <a href="classIOv2_1_1istreambuf__iterator.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html">IOv2::istreambuf_iterator&lt; TStreamBuf &gt;::proxy</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>operator-&gt;</code> 的返回代理，持有一份字符值。  <a href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">IOv2::ostreambuf_iterator&lt; TStreamBuf &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出流缓冲区迭代器（输出迭代器）。  <a href="classIOv2_1_1ostreambuf__iterator.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -257,7 +260,13 @@ streambuf_iterator.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了在流缓冲区（streambuf）之上的迭代器适配器：</p><ul>
+<li><code>istreambuf_iterator</code>：单遍输入迭代器，从流缓冲区逐字符读取。</li>
+<li><code>ostreambuf_iterator</code>：输出迭代器，向流缓冲区逐字符写入。</li>
+</ul>
+<p>二者对应标准库的 <code>std::istreambuf_iterator</code> / <code>std::ostreambuf_iterator</code>，使得算法与 范围可以直接作用于本库的流缓冲区。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

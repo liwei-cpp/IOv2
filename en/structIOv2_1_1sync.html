@@ -97,13 +97,18 @@ $(document).ready(function(){initNavTree('structIOv2_1_1sync.html',''); initResi
 </div><!--header-->
 <div class="contents">
 
+<p>RAII helper that locks a stream's I/O mutex.  
+ <a href="structIOv2_1_1sync.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="io__base_8h_source.html">io_base.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a978350c010be4d229ec6e26531f4d4cd" id="r_a978350c010be4d229ec6e26531f4d4cd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sync.html#a978350c010be4d229ec6e26531f4d4cd">sync</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;str)</td></tr>
+<tr class="memdesc:a978350c010be4d229ec6e26531f4d4cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs and locks the stream's I/O mutex.  <br /></td></tr>
 <tr class="separator:a978350c010be4d229ec6e26531f4d4cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a95fac1c610b4ebf020300d2a571587f5" id="r_a95fac1c610b4ebf020300d2a571587f5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5">~sync</a> ()</td></tr>
+<tr class="memdesc:a95fac1c610b4ebf020300d2a571587f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroys and unlocks the stream's I/O mutex. .  <br /></td></tr>
 <tr class="separator:a95fac1c610b4ebf020300d2a571587f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7d6a057bff0af1f768794c698ad16a4" id="r_ae7d6a057bff0af1f768794c698ad16a4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sync.html#ae7d6a057bff0af1f768794c698ad16a4">sync</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1sync.html">sync</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:ae7d6a057bff0af1f768794c698ad16a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -113,9 +118,13 @@ Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a45b81d60d1b72c03f56109e5e305a66d" id="r_a45b81d60d1b72c03f56109e5e305a66d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a></td></tr>
+<tr class="memdesc:a45b81d60d1b72c03f56109e5e305a66d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reference to the locked stream.   <br /></td></tr>
 <tr class="separator:a45b81d60d1b72c03f56109e5e305a66d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>&gt;<br />
+struct IOv2::sync&lt; TStream &gt;</div><p>RAII helper that locks a stream's I/O mutex. </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a978350c010be4d229ec6e26531f4d4cd" name="a978350c010be4d229ec6e26531f4d4cd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a978350c010be4d229ec6e26531f4d4cd">&#9670;&#160;</a></span>sync() <span class="overload">[1/2]</span></h2>
 
@@ -141,6 +150,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Constructs and locks the stream's I/O mutex. </p>
 
 </div>
 </div>
@@ -168,6 +179,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Destroys and unlocks the stream's I/O mutex. . </p>
 
 </div>
 </div>
@@ -242,6 +255,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Reference to the locked stream.  </p>
 
 </div>
 </div>

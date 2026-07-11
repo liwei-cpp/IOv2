@@ -97,40 +97,49 @@ $(document).ready(function(){initNavTree('classIOv2_1_1ostreambuf__iterator.html
 </div><!--header-->
 <div class="contents">
 
+<p>输出流缓冲区迭代器（输出迭代器）。  
+ <a href="classIOv2_1_1ostreambuf__iterator.html#details">更多...</a></p>
+
 <p><code>#include &lt;<a class="el" href="streambuf__iterator_8h_source.html">streambuf_iterator.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public 类型</h2></td></tr>
 <tr class="memitem:a08bc1ca92f96368eaa992a41308d39a0" id="r_a08bc1ca92f96368eaa992a41308d39a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">value_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TStreamBuf::char_type</td></tr>
+<tr class="memdesc:a08bc1ca92f96368eaa992a41308d39a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">写入的字符类型。    <br /></td></tr>
 <tr class="separator:a08bc1ca92f96368eaa992a41308d39a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcd2d57b191453b192d6e4402f64587a" id="r_adcd2d57b191453b192d6e4402f64587a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#adcd2d57b191453b192d6e4402f64587a">difference_type</a> = std::ptrdiff_t</td></tr>
+<tr class="memdesc:adcd2d57b191453b192d6e4402f64587a"><td class="mdescLeft">&#160;</td><td class="mdescRight">迭代器差值类型。    <br /></td></tr>
 <tr class="separator:adcd2d57b191453b192d6e4402f64587a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
 <tr class="memitem:ac1c21d569f9ca2a426fac61e31be7921" id="r_ac1c21d569f9ca2a426fac61e31be7921"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#ac1c21d569f9ca2a426fac61e31be7921">ostreambuf_iterator</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>)</td></tr>
+<tr class="memdesc:ac1c21d569f9ca2a426fac61e31be7921"><td class="mdescLeft">&#160;</td><td class="mdescRight">绑定到一个流缓冲区，构造输出迭代器。  <br /></td></tr>
 <tr class="separator:ac1c21d569f9ca2a426fac61e31be7921"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79f92b6f1d3ed0b1cda127b5c30d3fe6" id="r_a79f92b6f1d3ed0b1cda127b5c30d3fe6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a79f92b6f1d3ed0b1cda127b5c30d3fe6">operator*</a> ()</td></tr>
+<tr class="memdesc:a79f92b6f1d3ed0b1cda127b5c30d3fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">解引用（空操作）：返回自身，以配合 <code>*it = c</code> 的输出迭代器惯用法。    <br /></td></tr>
 <tr class="separator:a79f92b6f1d3ed0b1cda127b5c30d3fe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae264e4f894c4d838ccc32364c53d94f5" id="r_ae264e4f894c4d838ccc32364c53d94f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#ae264e4f894c4d838ccc32364c53d94f5">operator++</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>)</td></tr>
+<tr class="memdesc:ae264e4f894c4d838ccc32364c53d94f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">后置自增（空操作）：返回自身。    <br /></td></tr>
 <tr class="separator:ae264e4f894c4d838ccc32364c53d94f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85612bcbbdc7037d53f859c102c214a9" id="r_a85612bcbbdc7037d53f859c102c214a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a85612bcbbdc7037d53f859c102c214a9">operator++</a> ()</td></tr>
+<tr class="memdesc:a85612bcbbdc7037d53f859c102c214a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">前置自增（空操作）：返回自身。    <br /></td></tr>
 <tr class="separator:a85612bcbbdc7037d53f859c102c214a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fe331a06affe5b139dfa376e47c84d2" id="r_a6fe331a06affe5b139dfa376e47c84d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a6fe331a06affe5b139dfa376e47c84d2">operator=</a> (<a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">value_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
+<tr class="memdesc:a6fe331a06affe5b139dfa376e47c84d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">写入一个字符：转发给底层流缓冲区的 sputc()。  <br /></td></tr>
 <tr class="separator:a6fe331a06affe5b139dfa376e47c84d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&gt;<br />
 requires (<a class="el" href="namespaceIOv2.html#a136bce589de832c1ebc954326400974b">is_streambuf</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&gt; || <a class="el" href="namespaceIOv2.html#af7a4dae87ad08ef52e28a92e8309a147">is_ostreambuf</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&gt;)<br />
-class IOv2::ostreambuf_iterator&lt; TStreamBuf &gt;</div><p>输出流缓冲区迭代器的前向声明。</p>
+class IOv2::ostreambuf_iterator&lt; TStreamBuf &gt;</div><p>输出流缓冲区迭代器（输出迭代器）。 </p>
+<p>输出流缓冲区迭代器的前向声明。</p>
 <dl class="tparams"><dt>模板参数</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">TStreamBuf</td><td>流缓冲区类型，必须是 streambuf 或 ostreambuf </td></tr>
   </table>
   </dd>
 </dl>
-<p>输出流缓冲区迭代器（输出迭代器）。</p>
-<dl class="section note"><dt>注解</dt><dd>与 <a class="el" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> 不同，本迭代器**不持有任何缓存或前瞻状态**， operator=(c) 仅将字符转发给 <a class="el" href="classIOv2_1_1base__streambuf.html#a7d679aaad7532ca75fac0eb939fe3b9b" title="put">streambuf::sputc()</a>。因此交错的其它流操作不会破坏本迭代器 自身的不变式；但它们仍会按调用发生的先后顺序改变底层流的写入/读取语义（例如穿插的 sputc()、或对双向流的读取导致的方向切换），故正确用法下仍应确保写入序列按预期进行。 </dd></dl>
 </div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="adcd2d57b191453b192d6e4402f64587a" name="adcd2d57b191453b192d6e4402f64587a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adcd2d57b191453b192d6e4402f64587a">&#9670;&#160;</a></span>difference_type</h2>
@@ -145,6 +154,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>迭代器差值类型。   </p>
 
 </div>
 </div>
@@ -161,6 +172,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>写入的字符类型。   </p>
 
 </div>
 </div>
@@ -191,6 +204,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>绑定到一个流缓冲区，构造输出迭代器。 </p>
+
 </div>
 </div>
 <h2 class="groupheader">成员函数说明</h2>
@@ -219,6 +234,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>解引用（空操作）：返回自身，以配合 <code>*it = c</code> 的输出迭代器惯用法。   </p>
+
 </div>
 </div>
 <a id="a85612bcbbdc7037d53f859c102c214a9" name="a85612bcbbdc7037d53f859c102c214a9"></a>
@@ -245,6 +262,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>前置自增（空操作）：返回自身。   </p>
 
 </div>
 </div>
@@ -274,6 +293,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>后置自增（空操作）：返回自身。   </p>
+
 </div>
 </div>
 <a id="a6fe331a06affe5b139dfa376e47c84d2" name="a6fe331a06affe5b139dfa376e47c84d2"></a>
@@ -301,6 +322,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>写入一个字符：转发给底层流缓冲区的 sputc()。 </p>
 
 </div>
 </div>

@@ -2,9 +2,9 @@
 <area shape="rect" id="Node000001" title="cin" alt="" coords="788,259,881,284"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="557,188,739,243"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="753,244,792,256,791,261,751,249"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="228,5,412,31"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="228,5,412,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,32,416,40,478,67,535,105,584,146,624,186,620,190,580,150,532,109,475,72,414,44,393,37"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="233,55,407,80"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="管理流状态位及其关联异常的组件。" alt="" coords="233,55,407,80"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,81,416,90,518,137,604,185,601,190,516,142,414,95,388,86"/>
 <area shape="rect" id="Node000005" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="231,105,409,145"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="407,146,558,188,556,193,406,151"/>
@@ -12,7 +12,7 @@
 <area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="419,200,557,208,557,213,419,205"/>
 <area shape="rect" id="Node000007" href="$structIOv2_1_1istreambuf.html" title=" " alt="" coords="225,249,415,289"/>
 <area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="428,248,557,227,557,233,429,254"/>
-<area shape="rect" id="Node000008" href="$classIOv2_1_1base__streambuf.html" title=" " alt="" coords="5,241,176,296"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1base__streambuf.html" title="流缓冲区的通用实现基类。" alt="" coords="5,241,176,296"/>
 <area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="190,266,225,266,225,271,190,271"/>
 <area shape="rect" id="Node000009" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="248,313,392,339"/>
 <area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="397,308,464,290,532,266,556,253,582,240,585,245,559,258,534,271,465,295,398,313"/>

@@ -97,13 +97,16 @@ $(document).ready(function(){initNavTree('classIOv2_1_1base__streambuf.html','')
 </div><!--header-->
 <div class="contents">
 
+<p>Common implementation base class for stream buffers.  
+ <a href="classIOv2_1_1base__streambuf.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="streambuf_8h_source.html">streambuf.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::base_streambuf&lt; TDevice, TChar, IsIn, IsOut &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1base__streambuf__inherit__graph.png" border="0" usemap="#aIOv2_1_1base__streambuf_3_01TDevice_00_01TChar_00_01IsIn_00_01IsOut_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1base__streambuf_3_01TDevice_00_01TChar_00_01IsIn_00_01IsOut_01_4_inherit__map" id="aIOv2_1_1base__streambuf_3_01TDevice_00_01TChar_00_01IsIn_00_01IsOut_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,30,176,85"/>
+<area shape="rect" title="Common implementation base class for stream buffers." alt="" coords="5,30,176,85"/>
 <area shape="rect" href="structIOv2_1_1istreambuf.html" title=" " alt="" coords="226,5,415,45"/>
 <area shape="poly" title=" " alt="" coords="189,41,225,36,226,41,190,46"/>
 <area shape="rect" href="structIOv2_1_1ostreambuf.html" title=" " alt="" coords="224,69,417,109"/>
@@ -121,16 +124,20 @@ Public Types</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a8136cd184dd524bc504068d9e3408f90" id="r_a8136cd184dd524bc504068d9e3408f90"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a8136cd184dd524bc504068d9e3408f90">base_streambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>)</td></tr>
+<tr class="memdesc:a8136cd184dd524bc504068d9e3408f90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an output-only stream buffer from a device (no conversion, wired directly to the root converter).  <br /></td></tr>
 <tr class="separator:a8136cd184dd524bc504068d9e3408f90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb24920e930c58f474744a3d5dba7d18" id="r_acb24920e930c58f474744a3d5dba7d18"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; <br />
 requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a>)</td></tr>
 <tr class="memitem:acb24920e930c58f474744a3d5dba7d18"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#acb24920e930c58f474744a3d5dba7d18">base_streambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>)</td></tr>
+<tr class="memdesc:acb24920e930c58f474744a3d5dba7d18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an output stream buffer, building a converter pipeline on top of the device via a converter creator.  <br /></td></tr>
 <tr class="separator:acb24920e930c58f474744a3d5dba7d18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8091d1552a1910ccb09f94de52d56246" id="r_a8091d1552a1910ccb09f94de52d56246"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a8091d1552a1910ccb09f94de52d56246">base_streambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">has_in_buf</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>)</td></tr>
+<tr class="memdesc:a8091d1552a1910ccb09f94de52d56246"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an input-only stream buffer from a device (no conversion).  <br /></td></tr>
 <tr class="separator:a8091d1552a1910ccb09f94de52d56246"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86a2a748185a5f7e615a694f0b708e64" id="r_a86a2a748185a5f7e615a694f0b708e64"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; <br />
 requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a> &amp;&amp; !<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a>)</td></tr>
 <tr class="memitem:a86a2a748185a5f7e615a694f0b708e64"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a86a2a748185a5f7e615a694f0b708e64">base_streambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">has_in_buf</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>)</td></tr>
+<tr class="memdesc:a86a2a748185a5f7e615a694f0b708e64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an input stream buffer, building a converter pipeline on top of the device via a converter creator.  <br /></td></tr>
 <tr class="separator:a86a2a748185a5f7e615a694f0b708e64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a824ec935d4d39d86eea0bfb493a1fd03" id="r_a824ec935d4d39d86eea0bfb493a1fd03"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a824ec935d4d39d86eea0bfb493a1fd03">base_streambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__streambuf.html">base_streambuf</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">val</a>)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a824ec935d4d39d86eea0bfb493a1fd03"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -140,51 +147,79 @@ requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d
 <tr class="separator:a1890c3a10307b10df2b99b3ab8677c42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8215fc9bf03e8901141ebc4cd7b8bf75" id="r_a8215fc9bf03e8901141ebc4cd7b8bf75"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1base__streambuf.html">base_streambuf</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a8215fc9bf03e8901141ebc4cd7b8bf75">operator=</a> (<a class="el" href="classIOv2_1_1base__streambuf.html">base_streambuf</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a8215fc9bf03e8901141ebc4cd7b8bf75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Read operations (IsIn only)</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
 <tr class="memitem:a307be716acf11f34197ab740f8c55a82" id="r_a307be716acf11f34197ab740f8c55a82"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82">sgetc</a> ()</td></tr>
-<tr class="memdesc:a307be716acf11f34197ab740f8c55a82"><td class="mdescLeft">&#160;</td><td class="mdescRight">get  <br /></td></tr>
+<tr class="memdesc:a307be716acf11f34197ab740f8c55a82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Peeks the current character without consuming it.  <br /></td></tr>
 <tr class="separator:a307be716acf11f34197ab740f8c55a82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0be8e004444f6364047b0212de00b49" id="r_ab0be8e004444f6364047b0212de00b49"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ab0be8e004444f6364047b0212de00b49">sbumpc</a> ()</td></tr>
+<tr class="memdesc:ab0be8e004444f6364047b0212de00b49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads and consumes the current character.  <br /></td></tr>
 <tr class="separator:ab0be8e004444f6364047b0212de00b49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab51d36672e716de55c432c9bf2d8edeb" id="r_ab51d36672e716de55c432c9bf2d8edeb"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ab51d36672e716de55c432c9bf2d8edeb">snextc</a> ()</td></tr>
+<tr class="memdesc:ab51d36672e716de55c432c9bf2d8edeb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Consumes the current character, then peeks the next one.  <br /></td></tr>
 <tr class="separator:ab51d36672e716de55c432c9bf2d8edeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b48b861f848f1b2669b609844bb6a71" id="r_a3b48b861f848f1b2669b609844bb6a71"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a3b48b861f848f1b2669b609844bb6a71">sgetn</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a3b48b861f848f1b2669b609844bb6a71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads up to <code>n</code> characters in bulk into the buffer <code>s</code>.  <br /></td></tr>
 <tr class="separator:a3b48b861f848f1b2669b609844bb6a71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05b98428e8ead8376365c621e9488c56" id="r_a05b98428e8ead8376365c621e9488c56"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a05b98428e8ead8376365c621e9488c56">is_eof</a> ()</td></tr>
+<tr class="memdesc:a05b98428e8ead8376365c621e9488c56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries whether the end of input has been reached.  <br /></td></tr>
 <tr class="separator:a05b98428e8ead8376365c621e9488c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd32efabb68ade612e9e8fe2c23eb75b" id="r_acd32efabb68ade612e9e8fe2c23eb75b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b">sputbackc</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
+<tr class="memdesc:acd32efabb68ade612e9e8fe2c23eb75b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pushes a character back into the read buffer so it becomes the next character returned by a subsequent read.  <br /></td></tr>
 <tr class="separator:acd32efabb68ade612e9e8fe2c23eb75b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Write operations (IsOut only)</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
 <tr class="memitem:a7d679aaad7532ca75fac0eb939fe3b9b" id="r_a7d679aaad7532ca75fac0eb939fe3b9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a7d679aaad7532ca75fac0eb939fe3b9b">sputc</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
-<tr class="memdesc:a7d679aaad7532ca75fac0eb939fe3b9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">put  <br /></td></tr>
+<tr class="memdesc:a7d679aaad7532ca75fac0eb939fe3b9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a single character.  <br /></td></tr>
 <tr class="separator:a7d679aaad7532ca75fac0eb939fe3b9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3eafc4b8231f88fe1cb1fe4c3d4a0073" id="r_a3eafc4b8231f88fe1cb1fe4c3d4a0073"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a3eafc4b8231f88fe1cb1fe4c3d4a0073">sputn</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a3eafc4b8231f88fe1cb1fe4c3d4a0073"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes <code>n</code> characters in bulk.  <br /></td></tr>
 <tr class="separator:a3eafc4b8231f88fe1cb1fe4c3d4a0073"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a865696de011370078090792e6a08e3dc" id="r_a865696de011370078090792e6a08e3dc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a865696de011370078090792e6a08e3dc">flush</a> ()</td></tr>
+<tr class="memdesc:a865696de011370078090792e6a08e3dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes output, pushing buffered data to the underlying device.  <br /></td></tr>
 <tr class="separator:a865696de011370078090792e6a08e3dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Positioning operations</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
 <tr class="memitem:a6d09c16149e43eb7ba4b4937d702580f" id="r_a6d09c16149e43eb7ba4b4937d702580f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
-<tr class="memdesc:a6d09c16149e43eb7ba4b4937d702580f"><td class="mdescLeft">&#160;</td><td class="mdescRight">positioning  <br /></td></tr>
+<tr class="memdesc:a6d09c16149e43eb7ba4b4937d702580f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current logical read position.  <br /></td></tr>
 <tr class="separator:a6d09c16149e43eb7ba4b4937d702580f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad89cbad13c7b26285e24a1dab5f9593e" id="r_ad89cbad13c7b26285e24a1dab5f9593e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ad89cbad13c7b26285e24a1dab5f9593e">seek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="memdesc:ad89cbad13c7b26285e24a1dab5f9593e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Seeks to the absolute position <code>pos</code>.  <br /></td></tr>
 <tr class="separator:ad89cbad13c7b26285e24a1dab5f9593e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a245a1080809464952994b5f07abae4de" id="r_a245a1080809464952994b5f07abae4de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a245a1080809464952994b5f07abae4de">rseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="memdesc:a245a1080809464952994b5f07abae4de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative seek (offset <code>pos</code> from the current position).  <br /></td></tr>
 <tr class="separator:a245a1080809464952994b5f07abae4de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Read/write direction switching (IsIn &amp;&amp; IsOut only)</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
 <tr class="memitem:a95cd9190e765da4b88d92dcd3bc90beb" id="r_a95cd9190e765da4b88d92dcd3bc90beb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a95cd9190e765da4b88d92dcd3bc90beb">switch_to_get</a> ()</td></tr>
-<tr class="memdesc:a95cd9190e765da4b88d92dcd3bc90beb"><td class="mdescLeft">&#160;</td><td class="mdescRight">io switch  <br /></td></tr>
+<tr class="memdesc:a95cd9190e765da4b88d92dcd3bc90beb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Switches to input mode.  <br /></td></tr>
 <tr class="separator:a95cd9190e765da4b88d92dcd3bc90beb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac145034e1f36f84828b232703a7b6f08" id="r_ac145034e1f36f84828b232703a7b6f08"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ac145034e1f36f84828b232703a7b6f08">switch_to_put</a> ()</td></tr>
+<tr class="memdesc:ac145034e1f36f84828b232703a7b6f08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Switches to output mode.  <br /></td></tr>
 <tr class="separator:ac145034e1f36f84828b232703a7b6f08"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Others (device/converter interface pass-through)</div></td></tr>
+<tr><td colspan="2"><div class="groupText"></div></td></tr>
 <tr class="memitem:a2fb8afb8c7ad29e54d37f414128a1db7" id="r_a2fb8afb8c7ad29e54d37f414128a1db7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1base__streambuf.html#a3b926a141e3cca380085134f607da2fd">device_type</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a2fb8afb8c7ad29e54d37f414128a1db7">device</a> ()</td></tr>
-<tr class="memdesc:a2fb8afb8c7ad29e54d37f414128a1db7"><td class="mdescLeft">&#160;</td><td class="mdescRight">others  <br /></td></tr>
+<tr class="memdesc:a2fb8afb8c7ad29e54d37f414128a1db7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a reference to the underlying device.  <br /></td></tr>
 <tr class="separator:a2fb8afb8c7ad29e54d37f414128a1db7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50ee707f2836d3bd8364a89ab6c7075b" id="r_a50ee707f2836d3bd8364a89ab6c7075b"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classIOv2_1_1base__streambuf.html#a3b926a141e3cca380085134f607da2fd">device_type</a>, std::exception_ptr &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a50ee707f2836d3bd8364a89ab6c7075b">detach</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a50ee707f2836d3bd8364a89ab6c7075b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detaches and retrieves the underlying device.  <br /></td></tr>
 <tr class="separator:a50ee707f2836d3bd8364a89ab6c7075b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc608edc3637b2d9e96ea38328e88e63" id="r_adc608edc3637b2d9e96ea38328e88e63"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#adc608edc3637b2d9e96ea38328e88e63">attach</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a3b926a141e3cca380085134f607da2fd">device_type</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>=<a class="el" href="classIOv2_1_1base__streambuf.html#a3b926a141e3cca380085134f607da2fd">device_type</a>{})</td></tr>
+<tr class="memdesc:adc608edc3637b2d9e96ea38328e88e63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Attaches a new device and re-initializes the converter.  <br /></td></tr>
 <tr class="separator:adc608edc3637b2d9e96ea38328e88e63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4e68f80557fee38531d41df0ca33857" id="r_ad4e68f80557fee38531d41df0ca33857"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ad4e68f80557fee38531d41df0ca33857">adjust</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1cvt__behavior.html">cvt_behavior</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>)</td></tr>
+<tr class="memdesc:ad4e68f80557fee38531d41df0ca33857"><td class="mdescLeft">&#160;</td><td class="mdescRight">Applies a behavior policy to the underlying converter.  <br /></td></tr>
 <tr class="separator:ad4e68f80557fee38531d41df0ca33857"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a269f6d5447d1f0fea46227731913192c" id="r_a269f6d5447d1f0fea46227731913192c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a269f6d5447d1f0fea46227731913192c">retrieve</a> (<a class="el" href="structIOv2_1_1cvt__status.html">cvt_status</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">acc</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a269f6d5447d1f0fea46227731913192c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts internal state from the underlying converter.  <br /></td></tr>
 <tr class="separator:a269f6d5447d1f0fea46227731913192c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsIn, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IsOut&gt;<br />
+requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a> || <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a>)<br />
+class IOv2::base_streambuf&lt; TDevice, TChar, IsIn, IsOut &gt;</div><p>Common implementation base class for stream buffers. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a483291cc43d07ba22917034ba96241f5" name="a483291cc43d07ba22917034ba96241f5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a483291cc43d07ba22917034ba96241f5">&#9670;&#160;</a></span>char_type</h2>
 
@@ -244,6 +279,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Constructs an output-only stream buffer from a device (no conversion, wired directly to the root converter). </p>
+
 </div>
 </div>
 <a id="acb24920e930c58f474744a3d5dba7d18" name="acb24920e930c58f474744a3d5dba7d18"></a>
@@ -285,6 +322,8 @@ requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d
 </table>
 </div><div class="memdoc">
 
+<p>Constructs an output stream buffer, building a converter pipeline on top of the device via a converter creator. </p>
+
 </div>
 </div>
 <a id="a8091d1552a1910ccb09f94de52d56246" name="a8091d1552a1910ccb09f94de52d56246"></a>
@@ -322,6 +361,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Constructs an input-only stream buffer from a device (no conversion). </p>
 
 </div>
 </div>
@@ -369,6 +410,8 @@ requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Constructs an input stream buffer, building a converter pipeline on top of the device via a converter creator. </p>
 
 </div>
 </div>
@@ -455,6 +498,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Applies a behavior policy to the underlying converter. </p>
+
 </div>
 </div>
 <a id="adc608edc3637b2d9e96ea38328e88e63" name="adc608edc3637b2d9e96ea38328e88e63"></a>
@@ -483,6 +528,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Attaches a new device and re-initializes the converter. </p>
+
 </div>
 </div>
 <a id="a50ee707f2836d3bd8364a89ab6c7075b" name="a50ee707f2836d3bd8364a89ab6c7075b"></a>
@@ -509,6 +556,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Detaches and retrieves the underlying device. </p>
 
 </div>
 </div>
@@ -537,7 +586,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
-<p>others </p>
+<p>Returns a reference to the underlying device. </p>
 
 </div>
 </div>
@@ -566,6 +615,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Flushes output, pushing buffered data to the underlying device. </p>
+
 </div>
 </div>
 <a id="a05b98428e8ead8376365c621e9488c56" name="a05b98428e8ead8376365c621e9488c56"></a>
@@ -592,6 +643,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Queries whether the end of input has been reached. </p>
 
 </div>
 </div>
@@ -677,6 +730,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Extracts internal state from the underlying converter. </p>
+
 </div>
 </div>
 <a id="a245a1080809464952994b5f07abae4de" name="a245a1080809464952994b5f07abae4de"></a>
@@ -705,6 +760,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Relative seek (offset <code>pos</code> from the current position). </p>
+
 </div>
 </div>
 <a id="ab0be8e004444f6364047b0212de00b49" name="ab0be8e004444f6364047b0212de00b49"></a>
@@ -731,6 +788,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Reads and consumes the current character. </p>
 
 </div>
 </div>
@@ -760,6 +819,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Seeks to the absolute position <code>pos</code>. </p>
+
 </div>
 </div>
 <a id="a307be716acf11f34197ab740f8c55a82" name="a307be716acf11f34197ab740f8c55a82"></a>
@@ -787,7 +848,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
-<p>get </p>
+<p>Peeks the current character without consuming it. </p>
 
 </div>
 </div>
@@ -827,6 +888,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Reads up to <code>n</code> characters in bulk into the buffer <code>s</code>. </p>
+
 </div>
 </div>
 <a id="ab51d36672e716de55c432c9bf2d8edeb" name="ab51d36672e716de55c432c9bf2d8edeb"></a>
@@ -853,6 +916,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Consumes the current character, then peeks the next one. </p>
 
 </div>
 </div>
@@ -881,7 +946,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Pushes a character back into the read buffer so it becomes the next character returned by a subsequent read. Put-back is counted by call count only; the pushed-back character is not required to match what was actually read, so the caller may substitute arbitrary content (e.g. push back '?' after <code><a class="el" href="classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82" title="get">sgetc()</a></code> returned 'b' — this still counts as one character rewound). There is no upper bound on how many times this may be called, including beyond the number of characters actually read; in that case the logical position reported by <a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f" title="positioning">tell()</a> saturates at the stream origin (clamped to 0) instead of wrapping around as a huge size_t value — see <a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f" title="positioning">tell()</a>.  </p>
+
+<p>Pushes a character back into the read buffer so it becomes the next character returned by a subsequent read. </p>
 
 </div>
 </div>
@@ -911,7 +977,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
-<p>put </p>
+<p>Writes a single character. </p>
 
 </div>
 </div>
@@ -951,6 +1017,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Writes <code>n</code> characters in bulk. </p>
+
 </div>
 </div>
 <a id="a95cd9190e765da4b88d92dcd3bc90beb" name="a95cd9190e765da4b88d92dcd3bc90beb"></a>
@@ -978,7 +1046,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
-<p>io switch </p>
+<p>Switches to input mode. </p>
 
 </div>
 </div>
@@ -1006,13 +1074,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Switches to output mode. If the read buffer (m_read_buf) still holds characters that were fetched by <a class="el" href="classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82" title="get">sgetc()</a>/sputbackc() but not yet consumed by <a class="el" href="classIOv2_1_1base__streambuf.html#ab0be8e004444f6364047b0212de00b49">sbumpc()</a>/sgetn(), the underlying converter's physical position must first be rewound to the logical position those characters represent, so that a later switch back to input mode can still read them — this step requires the underlying converter to support positioning (cvt_cpt::support_positioning). In other words: a converter that only satisfies cvt_cpt::support_io_switch (get + put + direction switching) but not positioning cannot call this function while the read buffer is non-empty; if the read buffer is empty (i.e. only <a class="el" href="classIOv2_1_1base__streambuf.html#ab0be8e004444f6364047b0212de00b49">sbumpc()</a>/sgetn() have been used, never <a class="el" href="classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82" title="get">sgetc()</a>/sputbackc()), switching direction does not require positioning support. On over-pushback: if <a class="el" href="classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b">sputbackc()</a> has pushed back more characters than were actually read, the rewind target (i.e. <a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f" title="positioning">tell()</a>) saturates at the stream origin 0 (see <a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f" title="positioning">tell()</a>/sputbackc()), so writing after the switch begins at position 0. This is consistent with the logical read cursor being at 0 at that moment; and because put-back is never written through to the underlying stream, writing from that position after switching to output changes the logical data stream accordingly — this is by-design behavior, not a bug. </p>
-<dl class="exception"><dt>Exceptions</dt><dd>
-  <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>Thrown when the read buffer is non-empty and the underlying positioning operation needed to rewind those characters fails (e.g. the underlying converter does not support positioning).  </td></tr>
-  </table>
-  </dd>
-</dl>
+
+<p>Switches to output mode. </p>
 
 </div>
 </div>
@@ -1041,8 +1104,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
-<p>positioning </p>
-<p>Returns the current logical read position. If more characters have been pushed back via <a class="el" href="classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b">sputbackc()</a> than have actually been read from the underlying converter (see <a class="el" href="classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b">sputbackc()</a>'s count-based, content-agnostic semantics), the position returned here saturates at the stream origin (0) rather than letting the subtraction wrap around to a huge size_t value.  </p>
+<p>Returns the current logical read position. </p>
 
 </div>
 </div>

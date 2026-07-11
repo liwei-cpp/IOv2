@@ -1,5 +1,5 @@
 <map id="IOv2::streambuf&lt; TDevice, TChar &gt;" name="IOv2::streambuf&lt; TDevice, TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,108,204,148"/>
+<area shape="rect" id="Node000001" title="Bidirectional stream buffer: supports both input and output." alt="" coords="5,108,204,148"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1base__streambuf.html" title=" " alt="" coords="18,5,191,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,74,107,108,102,108,102,74"/>
 </map>

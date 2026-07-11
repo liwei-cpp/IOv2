@@ -1,5 +1,5 @@
 <map id="IOv2::ios_base&lt; TChar &gt;" name="IOv2::ios_base&lt; TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,492,189,517"/>
+<area shape="rect" id="Node000001" title="Base class holding the formatting state of every stream." alt="" coords="5,492,189,517"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="264,5,445,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,478,103,399,123,290,141,231,165,173,196,118,236,69,262,50,265,55,239,73,200,121,170,175,146,233,128,291,108,400,102,478"/>
 <area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="259,84,451,139"/>

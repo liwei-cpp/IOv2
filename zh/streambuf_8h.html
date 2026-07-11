@@ -91,8 +91,7 @@ $(document).ready(function(){initNavTree('streambuf_8h.html',''); initResizable(
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">类</a> &#124;
-<a href="#namespaces">命名空间</a> &#124;
-<a href="#func-members">函数</a>  </div>
+<a href="#namespaces">命名空间</a>  </div>
   <div class="headertitle"><div class="title">streambuf.h 文件参考</div></div>
 </div><!--header-->
 <div class="contents">
@@ -249,12 +248,16 @@ streambuf.h 的引用(Include)关系图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf&lt; TDevice, TChar, IsIn, IsOut &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">流缓冲区的通用实现基类。  <a href="classIOv2_1_1base__streambuf.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1streambuf.html">IOv2::streambuf&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">双向流缓冲区：同时支持输入与输出。  <a href="structIOv2_1_1streambuf.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istreambuf.html">IOv2::istreambuf&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">只读流缓冲区：仅支持输入。  <a href="structIOv2_1_1istreambuf.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostreambuf.html">IOv2::ostreambuf&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">只写流缓冲区：仅支持输出。  <a href="structIOv2_1_1ostreambuf.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -264,6 +267,10 @@ streambuf.h 的引用(Include)关系图:</div>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 函数</h2></td></tr>
+<tr><td colspan="2"><div class="groupHeader">类模板实参推导指引（CTAD）</div></td></tr>
+<tr><td colspan="2"><div class="groupText"><p>由设备（及可选的转换器工厂）推导 streambuf/istreambuf/ostreambuf 的字符类型。</p>
+<p>无转换器工厂时，字符类型直接取设备的 <code>char_type</code>；提供转换器工厂时，则通过 <code>ext_to_int</code>（见 <a class="el" href="io__concepts_8h.html">io/io_concepts.h</a>）从转换管线推导出内部字符类型。</p>
+</div></td></tr>
 <tr class="memitem:aa377752da7b015ac116a9fa9cec43024" id="r_aa377752da7b015ac116a9fa9cec43024"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice&gt; </td></tr>
 <tr class="memitem:aa377752da7b015ac116a9fa9cec43024"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa377752da7b015ac116a9fa9cec43024">IOv2::streambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>) -&gt; <a class="el" href="structIOv2_1_1streambuf.html">streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type &gt;</td></tr>
 <tr class="separator:aa377752da7b015ac116a9fa9cec43024"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -289,7 +296,15 @@ streambuf.h 的引用(Include)关系图:</div>
 <tr class="memitem:a78929e055d34f774e2c6ae7536052498"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a78929e055d34f774e2c6ae7536052498">IOv2::ostreambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;) -&gt; <a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">ext_to_int</a>&lt; <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &gt; &gt;</td></tr>
 <tr class="separator:a78929e055d34f774e2c6ae7536052498"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了流缓冲区（stream buffer）体系，是设备、转换器与上层流之间的桥梁。</p>
+<p>核心是类模板 <code>base_streambuf</code>，它在一条转换器管线（<code>runtime_cvt</code>）之上再叠加一个 读缓冲区，向上层提供面向字符的读、写、回退、定位以及读/写方向切换等操作。基于它， 本文件还提供三个便捷别名类：</p><ul>
+<li><code>streambuf</code>：同时支持输入与输出。</li>
+<li><code>istreambuf</code>：仅支持输入。</li>
+<li><code>ostreambuf</code>：仅支持输出。</li>
+</ul>
+<p>文件末尾提供了一组类模板实参推导指引（CTAD），使得可以直接由「设备」或「设备 + 转换器 工厂」推导出对应的字符类型（后者借助 <a class="el" href="io__concepts_8h.html">io/io_concepts.h</a> 中的 <code>ext_to_int</code>）。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

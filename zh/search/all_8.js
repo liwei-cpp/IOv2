@@ -9,6 +9,6 @@ var searchData=
   ['hash_5fcvt_5fcreator_6',['hash_cvt_creator',['../structIOv2_1_1Crypt_1_1hash__cvt__creator.html#a6fe282a8e233c3f89ab1df454bd4cc67',1,'IOv2::Crypt::hash_cvt_creator::hash_cvt_creator()'],['../structIOv2_1_1Crypt_1_1hash__cvt__creator.html',1,'IOv2::Crypt::hash_cvt_creator&lt; TInt &gt;']]],
   ['hash_5ffmt_7',['hash_fmt',['../namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81',1,'IOv2::Crypt']]],
   ['head_5fentry_8',['head_entry',['../classIOv2_1_1messages.html#afa997cf419fab210e67dca75ea7129e9',1,'IOv2::messages']]],
-  ['hex_9',['hex',['../namespaceIOv2_1_1ios__defs.html#a9ca03dee2a63660c67a0207b8fe7e8b5',1,'IOv2::ios_defs::hex'],['../namespaceIOv2.html#a294fd2715f31cbf89f98b4365b3e88ad',1,'IOv2::hex(ios_base&lt; TChar &gt; &amp;base)']]],
-  ['hexfloat_10',['hexfloat',['../namespaceIOv2.html#af8089263337f8350c0cbbc7b2612bb24',1,'IOv2']]]
+  ['hex_9',['hex',['../namespaceIOv2_1_1ios__defs.html#a9ca03dee2a63660c67a0207b8fe7e8b5',1,'IOv2::ios_defs::hex'],['../group__ios__manipulators.html#ga294fd2715f31cbf89f98b4365b3e88ad',1,'IOv2::hex(ios_base&lt; TChar &gt; &amp;base)']]],
+  ['hexfloat_10',['hexfloat',['../group__ios__manipulators.html#gaf8089263337f8350c0cbbc7b2612bb24',1,'IOv2']]]
 ];

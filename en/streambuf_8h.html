@@ -91,8 +91,7 @@ $(document).ready(function(){initNavTree('streambuf_8h.html',''); initResizable(
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle"><div class="title">streambuf.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -249,12 +248,16 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf&lt; TDevice, TChar, IsIn, IsOut &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Common implementation base class for stream buffers.  <a href="classIOv2_1_1base__streambuf.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1streambuf.html">IOv2::streambuf&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bidirectional stream buffer: supports both input and output.  <a href="structIOv2_1_1streambuf.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istreambuf.html">IOv2::istreambuf&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input-only stream buffer: supports input only.  <a href="structIOv2_1_1istreambuf.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostreambuf.html">IOv2::ostreambuf&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output-only stream buffer: supports output only.  <a href="structIOv2_1_1ostreambuf.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -264,6 +267,10 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr><td colspan="2"><div class="groupHeader">Class-template argument deduction guides (CTAD)</div></td></tr>
+<tr><td colspan="2"><div class="groupText"><p>Deduce the character type of streambuf/istreambuf/ostreambuf from a device (and an optional converter creator).</p>
+<p>Without a converter creator, the character type is taken directly from the device's <code>char_type</code>; with a converter creator, the internal character type is deduced from the converter pipeline via <code>ext_to_int</code> (see <a class="el" href="io__concepts_8h.html">io/io_concepts.h</a>).</p>
+</div></td></tr>
 <tr class="memitem:aa377752da7b015ac116a9fa9cec43024" id="r_aa377752da7b015ac116a9fa9cec43024"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice&gt; </td></tr>
 <tr class="memitem:aa377752da7b015ac116a9fa9cec43024"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa377752da7b015ac116a9fa9cec43024">IOv2::streambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>) -&gt; <a class="el" href="structIOv2_1_1streambuf.html">streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type &gt;</td></tr>
 <tr class="separator:aa377752da7b015ac116a9fa9cec43024"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -289,7 +296,16 @@ Functions</h2></td></tr>
 <tr class="memitem:a78929e055d34f774e2c6ae7536052498"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a78929e055d34f774e2c6ae7536052498">IOv2::ostreambuf</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;) -&gt; <a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">ext_to_int</a>&lt; <a class="el" href="classIOv2_1_1no__rb__root__cvt.html">no_rb_root_cvt</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &gt; &gt;</td></tr>
 <tr class="separator:a78929e055d34f774e2c6ae7536052498"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Defines the stream-buffer hierarchy, the bridge between devices, converters, and the higher-level streams.</p>
+<p>At its core is the class template <code>base_streambuf</code>, which layers a read buffer on top of a converter pipeline (<code>runtime_cvt</code>) and offers the upper layers character-oriented read, write, put-back, positioning, and read/write direction-switching operations. Building on it, this file also provides three convenience alias classes:</p><ul>
+<li><code>streambuf</code>: supports both input and output.</li>
+<li><code>istreambuf</code>: input only.</li>
+<li><code>ostreambuf</code>: output only.</li>
+</ul>
+<p>At the end of the file, a set of class-template argument deduction guides (CTAD) lets the character type be deduced directly from a "device" or a "device + converter
+creator" pair (the latter via <code>ext_to_int</code> from <a class="el" href="io__concepts_8h.html">io/io_concepts.h</a>).  </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

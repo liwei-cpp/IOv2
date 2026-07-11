@@ -168,9 +168,12 @@ io_concepts.h 的引用(Include)关系图:</div>
 类型定义</h2></td></tr>
 <tr class="memitem:af5d914ec6e018ee23ee26db2b9877aac" id="r_af5d914ec6e018ee23ee26db2b9877aac"><td class="memTemplParams" colspan="2">template&lt;io_converter TRootCvt, cvt_creator TCreator&gt; </td></tr>
 <tr class="memitem:af5d914ec6e018ee23ee26db2b9877aac"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">IOv2::ext_to_int</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &gt;().create(std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TRootCvt</a> &gt;()))::internal_type</td></tr>
+<tr class="memdesc:af5d914ec6e018ee23ee26db2b9877aac"><td class="mdescLeft">&#160;</td><td class="mdescRight">推导转换器管线暴露的内部数据类型（<code>internal_type</code>）。  <br /></td></tr>
 <tr class="separator:af5d914ec6e018ee23ee26db2b9877aac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>I/O 层的概念与类型工具文件。 本文件在转换器体系（见 <a class="el" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>）之上提供 I/O 层使用的编译期类型工具， 目前包含 <code>ext_to_int</code>——用于从「根转换器 + 转换器工厂」推导出转换器管线最终暴露的 内部字符类型。该别名主要服务于 streambuf 系列类型的类模板实参推导（CTAD）。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

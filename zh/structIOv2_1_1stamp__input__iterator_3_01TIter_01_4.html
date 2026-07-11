@@ -225,12 +225,12 @@ struct IOv2::stamp_input_iterator&lt; TIter &gt;</div><p>双向迭代器的 <a c
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
 <div class="ttc" id="astructIOv2_1_1stamp__input__iterator_html"><div class="ttname"><a href="structIOv2_1_1stamp__input__iterator.html">IOv2::stamp_input_iterator</a></div><div class="ttdef"><b>Definition</b> stamp_input_iterator.h:37</div></div>
 </div><!-- fragment --> </dd></dl>
-<p><a class="el" href="namespaceIOv2.html">IOv2</a> <a class="el" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> 的 <a class="el" href="structIOv2_1_1stamp__input__iterator.html">stamp_input_iterator</a> 特化。</p>
-<p>此特化专为 <a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a> 设计，不兼容 std::istreambuf_iterator。 主要区别：</p><ol type="1">
+<p><a class="el" href="namespaceIOv2.html">IOv2</a> <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">istreambuf_iterator</a> 的 <a class="el" href="structIOv2_1_1stamp__input__iterator.html">stamp_input_iterator</a> 特化。</p>
+<p>此特化专为 <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">IOv2::istreambuf_iterator</a> 设计，不兼容 std::istreambuf_iterator。 主要区别：</p><ol type="1">
 <li><a class="el" href="namespaceIOv2.html">IOv2</a> 的 sputbackc() 返回 void 且永不失败（使用无限 deque）</li>
 <li>std::streambuf 的 sputbackc() 返回 int_type 且可能失败（有限的回退区域）</li>
 </ol>
-<p><a class="el" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> 概念约束确保此特化仅匹配 <a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a> 类型。</p>
+<p><a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">istreambuf_iterator</a> 概念约束确保此特化仅匹配 <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">IOv2::istreambuf_iterator</a> 类型。</p>
 <dl class="tparams"><dt>模板参数</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">TIter</td><td>必须满足 is_istreambuf_iterator（仅限 <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::istreambuf_iterator）</a> </td></tr>

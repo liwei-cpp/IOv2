@@ -1,8 +1,8 @@
 <map id="IOv2::ostream&lt; TDevice, TChar &gt;" name="IOv2::ostream&lt; TDevice, TChar &gt;">
 <area shape="rect" id="Node000001" title=" " alt="" coords="449,79,636,119"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="207,5,391,31"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="207,5,391,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="375,32,402,39,498,77,496,82,400,45,373,37"/>
-<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="212,55,387,80"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title="管理流状态位及其关联异常的组件。" alt="" coords="212,55,387,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="401,78,450,84,449,90,400,83"/>
 <area shape="rect" id="Node000004" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="197,104,401,159"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="414,114,449,109,449,114,415,119"/>

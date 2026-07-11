@@ -2,9 +2,9 @@
 <area shape="rect" id="Node000001" title="cin" alt="" coords="467,120,560,145"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="237,69,419,124"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="433,114,467,121,466,126,432,120"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="5,5,189,31"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="5,5,189,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="165,32,190,39,264,67,262,72,188,45,164,37"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="10,55,185,80"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="管理流状态位及其关联异常的组件。" alt="" coords="10,55,185,80"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="199,78,238,83,237,88,198,83"/>
 <area shape="rect" id="Node000005" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="8,105,187,145"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="200,110,237,105,238,110,200,115"/>

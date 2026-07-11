@@ -1,8 +1,8 @@
 <map id="IOv2::stdout_api&lt; T, TDevice, TChar &gt;" name="IOv2::stdout_api&lt; T, TDevice, TChar &gt;">
 <area shape="rect" id="Node000001" title=" " alt="" coords="429,77,584,117"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="197,5,381,31"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="197,5,381,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="359,32,382,39,465,74,463,79,380,45,357,37"/>
-<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="202,55,377,80"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="202,55,377,80"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="391,78,430,84,429,89,390,84"/>
 <area shape="rect" id="Node000004" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="198,105,381,145"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="394,109,429,104,430,109,395,114"/>

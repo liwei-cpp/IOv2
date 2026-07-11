@@ -1,5 +1,5 @@
 <map id="IOv2::io_state_and_exp" name="IOv2::io_state_and_exp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,492,180,517"/>
+<area shape="rect" id="Node000001" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="5,492,180,517"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="255,5,436,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,478,97,399,116,290,133,231,156,173,187,118,226,69,253,50,256,55,230,73,191,121,161,175,138,233,121,292,103,400,97,478"/>
 <area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="249,84,441,139"/>

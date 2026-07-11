@@ -225,15 +225,15 @@ struct IOv2::stamp_input_iterator&lt; TIter &gt;</div><p><a class="el" href="str
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
 <div class="ttc" id="astructIOv2_1_1stamp__input__iterator_html"><div class="ttname"><a href="structIOv2_1_1stamp__input__iterator.html">IOv2::stamp_input_iterator</a></div><div class="ttdef"><b>Definition</b> stamp_input_iterator.h:37</div></div>
 </div><!-- fragment --> </dd></dl>
-<p><a class="el" href="structIOv2_1_1stamp__input__iterator.html">stamp_input_iterator</a> specialization for <a class="el" href="namespaceIOv2.html">IOv2</a> <a class="el" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>.</p>
-<p>This specialization is designed specifically for <a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a> and is NOT compatible with std::istreambuf_iterator. Key differences:</p><ol type="1">
+<p><a class="el" href="structIOv2_1_1stamp__input__iterator.html">stamp_input_iterator</a> specialization for <a class="el" href="namespaceIOv2.html">IOv2</a> <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="Input stream-buffer iterator (single-pass input iterator).">istreambuf_iterator</a>.</p>
+<p>This specialization is designed specifically for <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="Input stream-buffer iterator (single-pass input iterator).">IOv2::istreambuf_iterator</a> and is NOT compatible with std::istreambuf_iterator. Key differences:</p><ol type="1">
 <li><a class="el" href="namespaceIOv2.html">IOv2</a>'s sputbackc() returns void and never fails (uses unlimited deque)</li>
 <li>std::streambuf's sputbackc() returns int_type and may fail (limited putback area)</li>
 </ol>
-<p>The <a class="el" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a> concept constraint ensures this specialization only matches <a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a> types.</p>
+<p>The <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="Input stream-buffer iterator (single-pass input iterator).">istreambuf_iterator</a> concept constraint ensures this specialization only matches <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="Input stream-buffer iterator (single-pass input iterator).">IOv2::istreambuf_iterator</a> types.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TIter</td><td>Must satisfy is_istreambuf_iterator (<a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a> only)  </td></tr>
+    <tr><td class="paramname">TIter</td><td>Must satisfy is_istreambuf_iterator (<a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="Input stream-buffer iterator (single-pass input iterator).">IOv2::istreambuf_iterator</a> only)  </td></tr>
   </table>
   </dd>
 </dl>

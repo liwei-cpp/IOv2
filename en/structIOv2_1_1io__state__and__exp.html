@@ -96,13 +96,16 @@ $(document).ready(function(){initNavTree('structIOv2_1_1io__state__and__exp.html
 </div><!--header-->
 <div class="contents">
 
+<p>Component that manages the stream state bits and their associated exceptions.  
+ <a href="structIOv2_1_1io__state__and__exp.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="io__base_8h_source.html">io_base.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::io_state_and_exp:</div>
 <div class="dyncontent">
 <div class="center"><img src="structIOv2_1_1io__state__and__exp__inherit__graph.png" border="0" usemap="#aIOv2_1_1io__state__and__exp_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1io__state__and__exp_inherit__map" id="aIOv2_1_1io__state__and__exp_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,492,180,517"/>
+<area shape="rect" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="5,492,180,517"/>
 <area shape="rect" href="classIOv2_1_1stdin__api.html" title=" " alt="" coords="255,5,436,60"/>
 <area shape="poly" title=" " alt="" coords="92,478,97,399,116,290,133,231,156,173,187,118,226,69,253,50,256,55,230,73,191,121,161,175,138,233,121,292,103,400,97,478"/>
 <area shape="rect" href="classIOv2_1_1stdin__api.html" title=" " alt="" coords="249,84,441,139"/>
@@ -151,33 +154,48 @@ Inheritance diagram for IOv2::io_state_and_exp:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae5897909a71b7528e0208652b7a186e4" id="r_ae5897909a71b7528e0208652b7a186e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae5897909a71b7528e0208652b7a186e4">rdstate</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ae5897909a71b7528e0208652b7a186e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current stream state bits.  <br /></td></tr>
 <tr class="separator:ae5897909a71b7528e0208652b7a186e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ed0d764a9454f534852421a8eaadb35" id="r_a5ed0d764a9454f534852421a8eaadb35"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a5ed0d764a9454f534852421a8eaadb35">clear</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>=<a class="el" href="namespaceIOv2_1_1ios__defs.html#ad7b2ff595618d0c4bb8c13e591d3fe5c">ios_defs::goodbit</a>)</td></tr>
+<tr class="memdesc:a5ed0d764a9454f534852421a8eaadb35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the stream state bits to <code>s</code>, triggering exceptions as required.  <br /></td></tr>
 <tr class="separator:a5ed0d764a9454f534852421a8eaadb35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa7eef2ce9daaeb70093ea1b8362e460" id="r_aaa7eef2ce9daaeb70093ea1b8362e460"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#aaa7eef2ce9daaeb70093ea1b8362e460">setstate</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>)</td></tr>
+<tr class="memdesc:aaa7eef2ce9daaeb70093ea1b8362e460"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds <code>s</code> on top of the existing state bits (bitwise-or), possibly triggering exceptions.  <br /></td></tr>
 <tr class="separator:aaa7eef2ce9daaeb70093ea1b8362e460"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2096703a66a3b6e83ccf1c39f63fb9e7" id="r_a2096703a66a3b6e83ccf1c39f63fb9e7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a2096703a66a3b6e83ccf1c39f63fb9e7">good</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a2096703a66a3b6e83ccf1c39f63fb9e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether there is no error at all (state bits all zero). .  <br /></td></tr>
 <tr class="separator:a2096703a66a3b6e83ccf1c39f63fb9e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae95ccde269ba8f474e1d8b0c1d1760e1" id="r_ae95ccde269ba8f474e1d8b0c1d1760e1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae95ccde269ba8f474e1d8b0c1d1760e1">dev_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ae95ccde269ba8f474e1d8b0c1d1760e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the device-failure bit is set. .  <br /></td></tr>
 <tr class="separator:ae95ccde269ba8f474e1d8b0c1d1760e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae74ef95d0a3862bf73d964a23d88ba0d" id="r_ae74ef95d0a3862bf73d964a23d88ba0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae74ef95d0a3862bf73d964a23d88ba0d">cvt_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ae74ef95d0a3862bf73d964a23d88ba0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the conversion-failure bit is set. .  <br /></td></tr>
 <tr class="separator:ae74ef95d0a3862bf73d964a23d88ba0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0bd797fb2b9ba1ac3241e691f75cf097" id="r_a0bd797fb2b9ba1ac3241e691f75cf097"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a0bd797fb2b9ba1ac3241e691f75cf097">str_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a0bd797fb2b9ba1ac3241e691f75cf097"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the stream-failure bit is set. .  <br /></td></tr>
 <tr class="separator:a0bd797fb2b9ba1ac3241e691f75cf097"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae02907f048240aa1d71dfc2c4ffddd7b" id="r_ae02907f048240aa1d71dfc2c4ffddd7b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#ae02907f048240aa1d71dfc2c4ffddd7b">other_fail</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ae02907f048240aa1d71dfc2c4ffddd7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the other-failure bit is set. .  <br /></td></tr>
 <tr class="separator:ae02907f048240aa1d71dfc2c4ffddd7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a173870002a71327e9e0c04c46ce9150f" id="r_a173870002a71327e9e0c04c46ce9150f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a173870002a71327e9e0c04c46ce9150f">eof</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a173870002a71327e9e0c04c46ce9150f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether end-of-file/input has been reached (<code>eofbit</code> set). .  <br /></td></tr>
 <tr class="separator:a173870002a71327e9e0c04c46ce9150f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24857dccb73bbcef98b1d1bcd2dc4a73" id="r_a24857dccb73bbcef98b1d1bcd2dc4a73"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a24857dccb73bbcef98b1d1bcd2dc4a73">operator bool</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a24857dccb73bbcef98b1d1bcd2dc4a73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Boolean conversion: <code>true</code> while the stream is still usable.  <br /></td></tr>
 <tr class="separator:a24857dccb73bbcef98b1d1bcd2dc4a73"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b08b8296be46a8374730a0cdd739843" id="r_a0b08b8296be46a8374730a0cdd739843"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a0b08b8296be46a8374730a0cdd739843">exceptions</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a0b08b8296be46a8374730a0cdd739843"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current exception mask. .  <br /></td></tr>
 <tr class="separator:a0b08b8296be46a8374730a0cdd739843"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4df3ab67d81dc523203502df00df3a62" id="r_a4df3ab67d81dc523203502df00df3a62"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a4df3ab67d81dc523203502df00df3a62">exceptions</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">e</a>)</td></tr>
+<tr class="memdesc:a4df3ab67d81dc523203502df00df3a62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the exception mask that specifies which state bits should throw.  <br /></td></tr>
 <tr class="separator:a4df3ab67d81dc523203502df00df3a62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aab8e998de9e2c0b5c49890001a52d13c" id="r_aab8e998de9e2c0b5c49890001a52d13c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#aab8e998de9e2c0b5c49890001a52d13c">handle_exception</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ex</a>)</td></tr>
+<tr class="memdesc:aab8e998de9e2c0b5c49890001a52d13c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Captures and categorizes an exception, turning it into the matching failure state bit.  <br /></td></tr>
 <tr class="separator:aab8e998de9e2c0b5c49890001a52d13c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Component that manages the stream state bits and their associated exceptions. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a5ed0d764a9454f534852421a8eaadb35" name="a5ed0d764a9454f534852421a8eaadb35"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5ed0d764a9454f534852421a8eaadb35">&#9670;&#160;</a></span>clear()</h2>
 
@@ -201,6 +219,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Sets the stream state bits to <code>s</code>, triggering exceptions as required. </p>
 
 </div>
 </div>
@@ -227,6 +247,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Whether the conversion-failure bit is set. . </p>
+
 </div>
 </div>
 <a id="ae95ccde269ba8f474e1d8b0c1d1760e1" name="ae95ccde269ba8f474e1d8b0c1d1760e1"></a>
@@ -251,6 +273,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether the device-failure bit is set. . </p>
 
 </div>
 </div>
@@ -277,6 +301,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Whether end-of-file/input has been reached (<code>eofbit</code> set). . </p>
+
 </div>
 </div>
 <a id="a0b08b8296be46a8374730a0cdd739843" name="a0b08b8296be46a8374730a0cdd739843"></a>
@@ -301,6 +327,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the current exception mask. . </p>
 
 </div>
 </div>
@@ -328,6 +356,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Sets the exception mask that specifies which state bits should throw. </p>
+
 </div>
 </div>
 <a id="a2096703a66a3b6e83ccf1c39f63fb9e7" name="a2096703a66a3b6e83ccf1c39f63fb9e7"></a>
@@ -352,6 +382,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether there is no error at all (state bits all zero). . </p>
 
 </div>
 </div>
@@ -379,6 +411,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Captures and categorizes an exception, turning it into the matching failure state bit. </p>
+
 </div>
 </div>
 <a id="a24857dccb73bbcef98b1d1bcd2dc4a73" name="a24857dccb73bbcef98b1d1bcd2dc4a73"></a>
@@ -403,6 +437,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Boolean conversion: <code>true</code> while the stream is still usable. </p>
 
 </div>
 </div>
@@ -429,6 +465,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Whether the other-failure bit is set. . </p>
+
 </div>
 </div>
 <a id="ae5897909a71b7528e0208652b7a186e4" name="ae5897909a71b7528e0208652b7a186e4"></a>
@@ -453,6 +491,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Returns the current stream state bits. </p>
 
 </div>
 </div>
@@ -480,6 +520,8 @@ Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>Adds <code>s</code> on top of the existing state bits (bitwise-or), possibly triggering exceptions. </p>
+
 </div>
 </div>
 <a id="a0bd797fb2b9ba1ac3241e691f75cf097" name="a0bd797fb2b9ba1ac3241e691f75cf097"></a>
@@ -504,6 +546,8 @@ Public Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Whether the stream-failure bit is set. . </p>
 
 </div>
 </div>

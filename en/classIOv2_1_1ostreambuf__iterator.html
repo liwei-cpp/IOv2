@@ -97,40 +97,49 @@ $(document).ready(function(){initNavTree('classIOv2_1_1ostreambuf__iterator.html
 </div><!--header-->
 <div class="contents">
 
+<p>Output stream-buffer iterator (output iterator).  
+ <a href="classIOv2_1_1ostreambuf__iterator.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="streambuf__iterator_8h_source.html">streambuf_iterator.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a08bc1ca92f96368eaa992a41308d39a0" id="r_a08bc1ca92f96368eaa992a41308d39a0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">value_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TStreamBuf::char_type</td></tr>
+<tr class="memdesc:a08bc1ca92f96368eaa992a41308d39a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The character type written.   <br /></td></tr>
 <tr class="separator:a08bc1ca92f96368eaa992a41308d39a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcd2d57b191453b192d6e4402f64587a" id="r_adcd2d57b191453b192d6e4402f64587a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#adcd2d57b191453b192d6e4402f64587a">difference_type</a> = std::ptrdiff_t</td></tr>
+<tr class="memdesc:adcd2d57b191453b192d6e4402f64587a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The iterator difference type.   <br /></td></tr>
 <tr class="separator:adcd2d57b191453b192d6e4402f64587a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac1c21d569f9ca2a426fac61e31be7921" id="r_ac1c21d569f9ca2a426fac61e31be7921"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#ac1c21d569f9ca2a426fac61e31be7921">ostreambuf_iterator</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>)</td></tr>
+<tr class="memdesc:ac1c21d569f9ca2a426fac61e31be7921"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds to a stream buffer, constructing an output iterator.  <br /></td></tr>
 <tr class="separator:ac1c21d569f9ca2a426fac61e31be7921"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79f92b6f1d3ed0b1cda127b5c30d3fe6" id="r_a79f92b6f1d3ed0b1cda127b5c30d3fe6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a79f92b6f1d3ed0b1cda127b5c30d3fe6">operator*</a> ()</td></tr>
+<tr class="memdesc:a79f92b6f1d3ed0b1cda127b5c30d3fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dereference (no-op): returns *this to support the <code>*it = c</code> output-iterator idiom. .  <br /></td></tr>
 <tr class="separator:a79f92b6f1d3ed0b1cda127b5c30d3fe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae264e4f894c4d838ccc32364c53d94f5" id="r_ae264e4f894c4d838ccc32364c53d94f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#ae264e4f894c4d838ccc32364c53d94f5">operator++</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>)</td></tr>
+<tr class="memdesc:ae264e4f894c4d838ccc32364c53d94f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Post-increment (no-op): returns *this. .  <br /></td></tr>
 <tr class="separator:ae264e4f894c4d838ccc32364c53d94f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85612bcbbdc7037d53f859c102c214a9" id="r_a85612bcbbdc7037d53f859c102c214a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a85612bcbbdc7037d53f859c102c214a9">operator++</a> ()</td></tr>
+<tr class="memdesc:a85612bcbbdc7037d53f859c102c214a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pre-increment (no-op): returns *this. .  <br /></td></tr>
 <tr class="separator:a85612bcbbdc7037d53f859c102c214a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fe331a06affe5b139dfa376e47c84d2" id="r_a6fe331a06affe5b139dfa376e47c84d2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a6fe331a06affe5b139dfa376e47c84d2">operator=</a> (<a class="el" href="classIOv2_1_1ostreambuf__iterator.html#a08bc1ca92f96368eaa992a41308d39a0">value_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
+<tr class="memdesc:a6fe331a06affe5b139dfa376e47c84d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a character: forwards to the underlying stream buffer's sputc().  <br /></td></tr>
 <tr class="separator:a6fe331a06affe5b139dfa376e47c84d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&gt;<br />
 requires (<a class="el" href="namespaceIOv2.html#a136bce589de832c1ebc954326400974b">is_streambuf</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&gt; || <a class="el" href="namespaceIOv2.html#af7a4dae87ad08ef52e28a92e8309a147">is_ostreambuf</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a>&gt;)<br />
-class IOv2::ostreambuf_iterator&lt; TStreamBuf &gt;</div><p>Forward declaration for output stream buffer iterator.</p>
+class IOv2::ostreambuf_iterator&lt; TStreamBuf &gt;</div><p>Output stream-buffer iterator (output iterator). </p>
+<p>Forward declaration for output stream buffer iterator.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
     <tr><td class="paramname">TStreamBuf</td><td>The stream buffer type, must be streambuf or ostreambuf </td></tr>
   </table>
   </dd>
 </dl>
-<p>Output stream-buffer iterator (output iterator).</p>
-<dl class="section note"><dt>Note</dt><dd>Unlike <a class="el" href="classIOv2_1_1istreambuf__iterator.html">istreambuf_iterator</a>, this iterator holds NO cache or look-ahead state; operator=(c) merely forwards the character to <a class="el" href="classIOv2_1_1base__streambuf.html#a7d679aaad7532ca75fac0eb939fe3b9b" title="put">streambuf::sputc()</a>. Interleaved stream operations therefore cannot break this iterator's own invariant, but they still alter the underlying stream's write/read semantics in call order (e.g. an interspersed sputc(), or a read on a bidirectional stream causing a direction switch), so under correct use the intended write sequence should still be preserved.  </dd></dl>
 </div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="adcd2d57b191453b192d6e4402f64587a" name="adcd2d57b191453b192d6e4402f64587a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adcd2d57b191453b192d6e4402f64587a">&#9670;&#160;</a></span>difference_type</h2>
@@ -145,6 +154,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The iterator difference type.  </p>
 
 </div>
 </div>
@@ -161,6 +172,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The character type written.  </p>
 
 </div>
 </div>
@@ -191,6 +204,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Binds to a stream buffer, constructing an output iterator. </p>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -219,6 +234,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Dereference (no-op): returns *this to support the <code>*it = c</code> output-iterator idiom. . </p>
+
 </div>
 </div>
 <a id="a85612bcbbdc7037d53f859c102c214a9" name="a85612bcbbdc7037d53f859c102c214a9"></a>
@@ -245,6 +262,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Pre-increment (no-op): returns *this. . </p>
 
 </div>
 </div>
@@ -274,6 +293,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Post-increment (no-op): returns *this. . </p>
+
 </div>
 </div>
 <a id="a6fe331a06affe5b139dfa376e47c84d2" name="a6fe331a06affe5b139dfa376e47c84d2"></a>
@@ -301,6 +322,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Writes a character: forwards to the underlying stream buffer's sputc(). </p>
 
 </div>
 </div>

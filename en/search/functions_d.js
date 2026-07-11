@@ -1,7 +1,7 @@
 var searchData=
 [
   ['o_5fiter_0',['o_iter',['../structIOv2_1_1ostream__operators.html#ac431075dcbbd3e6a2ed49e8ef7188047',1,'IOv2::ostream_operators']]],
-  ['oct_1',['oct',['../namespaceIOv2.html#a5f8ee2313b90a96b380258357f5573ec',1,'IOv2']]],
+  ['oct_1',['oct',['../group__ios__manipulators.html#ga5f8ee2313b90a96b380258357f5573ec',1,'IOv2']]],
   ['operator_20bool_2',['operator bool',['../structIOv2_1_1io__state__and__exp.html#a24857dccb73bbcef98b1d1bcd2dc4a73',1,'IOv2::io_state_and_exp']]],
   ['operator_20const_20std_3a_3achrono_3a_3atime_5fzone_20_2a_3',['time_zone *',['../structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#a73bcafa009b2bf2701efa39dafc3455c',1,'IOv2::time_zone_parse_helper&lt; true &gt;']]],
   ['operator_20const_20std_3a_3achrono_3a_3azoned_5ftime_3c_20std_3a_3achrono_3a_3aseconds_20_3e_4',['zoned_time&lt; std::chrono::seconds &gt;',['../structIOv2_1_1time__parse__context.html#a08785ab9861083ca5ee68d100f4271e2',1,'IOv2::time_parse_context']]],

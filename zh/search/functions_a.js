@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['left_0',['left',['../namespaceIOv2.html#a583e939dc20bb613178fe3fe2c1eb85b',1,'IOv2']]],
+  ['left_0',['left',['../group__ios__manipulators.html#ga583e939dc20bb613178fe3fe2c1eb85b',1,'IOv2']]],
   ['locale_1',['locale',['../structIOv2_1_1stream__common__operators.html#a5bb59965ce28840ee678f2bcb7f2c04d',1,'IOv2::stream_common_operators::locale(this const TSelf &amp;self)'],['../structIOv2_1_1stream__common__operators.html#a1e5f454fbc541fb2dd4cc4eb576b6efa',1,'IOv2::stream_common_operators::locale(this TSelf &amp;self, const IOv2::locale&lt; TChar &gt; &amp;loc)'],['../classIOv2_1_1locale.html#aaf34ba217f75cb35f0f669f774fdd1c2',1,'IOv2::locale::locale(const std::string &amp;name=&quot;&quot;)'],['../classIOv2_1_1locale.html#a7b711197706932a597adebb9e83b49ce',1,'IOv2::locale::locale(const locale &amp;val)'],['../classIOv2_1_1locale.html#aee822e700ac27152fc989de281271d15',1,'IOv2::locale::locale(locale &amp;&amp;val) noexcept']]],
   ['locale_5fname_2',['locale_name',['../classIOv2_1_1ori__facet__buf.html#ab0116abdc0891832084e2b87b67f4034',1,'IOv2::ori_facet_buf']]],
   ['lock_3',['lock',['../classIOv2_1_1copyable__mutex.html#a8aa24d1ec428b09c9efc47ca47cad1db',1,'IOv2::copyable_mutex']]],

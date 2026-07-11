@@ -246,10 +246,13 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator&lt; TStreamBuf &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input stream-buffer iterator (single-pass input iterator).  <a href="classIOv2_1_1istreambuf__iterator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istreambuf__iterator_1_1proxy.html">IOv2::istreambuf_iterator&lt; TStreamBuf &gt;::proxy</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return proxy for <code>operator-&gt;</code>, holding a copy of the character value.  <a href="structIOv2_1_1istreambuf__iterator_1_1proxy.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostreambuf__iterator.html">IOv2::ostreambuf_iterator&lt; TStreamBuf &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output stream-buffer iterator (output iterator).  <a href="classIOv2_1_1ostreambuf__iterator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -257,7 +260,13 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Defines the iterator adapters over stream buffers (streambuf):</p><ul>
+<li><code>istreambuf_iterator</code>: a single-pass input iterator that reads a stream buffer character by character.</li>
+<li><code>ostreambuf_iterator</code>: an output iterator that writes a stream buffer character by character.</li>
+</ul>
+<p>They correspond to the standard <code>std::istreambuf_iterator</code> / <code>std::ostreambuf_iterator</code>, letting algorithms and ranges operate directly on this library's stream buffers.  </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

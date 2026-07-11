@@ -2,9 +2,9 @@
 <area shape="rect" id="Node000001" title="wcin" alt="" coords="477,120,581,145"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="237,69,429,124"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="444,114,478,121,477,126,443,119"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title=" " alt="" coords="5,5,189,31"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="5,5,189,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="165,32,190,39,266,67,264,72,188,45,163,37"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title=" " alt="" coords="10,55,185,80"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="10,55,185,80"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="199,77,237,82,237,87,198,82"/>
 <area shape="rect" id="Node000005" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="8,105,187,145"/>
 <area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="200,110,237,105,237,111,201,115"/>

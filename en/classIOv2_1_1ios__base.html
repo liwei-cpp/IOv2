@@ -100,13 +100,16 @@ $(document).ready(function(){initNavTree('classIOv2_1_1ios__base.html',''); init
 </div><!--header-->
 <div class="contents">
 
+<p>Base class holding the formatting state of every stream.  
+ <a href="classIOv2_1_1ios__base.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="io__base_8h_source.html">io_base.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::ios_base&lt; TChar &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1ios__base__inherit__graph.png" border="0" usemap="#aIOv2_1_1ios__base_3_01TChar_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1ios__base_3_01TChar_01_4_inherit__map" id="aIOv2_1_1ios__base_3_01TChar_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,492,189,517"/>
+<area shape="rect" title="Base class holding the formatting state of every stream." alt="" coords="5,492,189,517"/>
 <area shape="rect" href="classIOv2_1_1stdin__api.html" title=" " alt="" coords="264,5,445,60"/>
 <area shape="poly" title=" " alt="" coords="97,478,103,399,123,290,141,231,165,173,196,118,236,69,262,50,265,55,239,73,200,121,170,175,146,233,128,291,108,400,102,478"/>
 <area shape="rect" href="classIOv2_1_1stdin__api.html" title=" " alt="" coords="259,84,451,139"/>
@@ -155,13 +158,16 @@ Inheritance diagram for IOv2::ios_base&lt; TChar &gt;:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:a54104c455ab7f72dbaebef7b293e3ff0" id="r_a54104c455ab7f72dbaebef7b293e3ff0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a> = std::function&lt; std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;)&gt;</td></tr>
+<tr class="memdesc:a54104c455ab7f72dbaebef7b293e3ff0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of a locale-change callback.  <br /></td></tr>
 <tr class="separator:a54104c455ab7f72dbaebef7b293e3ff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a12f1da1653653548185e97a1d9cfb8c2" id="r_a12f1da1653653548185e97a1d9cfb8c2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a12f1da1653653548185e97a1d9cfb8c2">ios_base</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="memdesc:a12f1da1653653548185e97a1d9cfb8c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor, with the default formatting state. .  <br /></td></tr>
 <tr class="separator:a12f1da1653653548185e97a1d9cfb8c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5e440cf78f9006be4dab370229c05484" id="r_a5e440cf78f9006be4dab370229c05484"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a5e440cf78f9006be4dab370229c05484">ios_base</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="memdesc:a5e440cf78f9006be4dab370229c05484"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy/move construction and assignment.  <br /></td></tr>
 <tr class="separator:a5e440cf78f9006be4dab370229c05484"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dcd18008e3a47386676c073be535268" id="r_a3dcd18008e3a47386676c073be535268"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a3dcd18008e3a47386676c073be535268">ios_base</a> (<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a3dcd18008e3a47386676c073be535268"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -170,60 +176,82 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:abdda3e4b1fb79636b2a54081a3d953e2" id="r_abdda3e4b1fb79636b2a54081a3d953e2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#abdda3e4b1fb79636b2a54081a3d953e2">operator=</a> (<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:abdda3e4b1fb79636b2a54081a3d953e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65a7c31c9e1f44d2ed6e4f4cdbfee69c" id="r_a65a7c31c9e1f44d2ed6e4f4cdbfee69c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a65a7c31c9e1f44d2ed6e4f4cdbfee69c">flags</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a65a7c31c9e1f44d2ed6e4f4cdbfee69c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current formatting flags. .  <br /></td></tr>
 <tr class="separator:a65a7c31c9e1f44d2ed6e4f4cdbfee69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a71ec0b8b535ac6a7ccf7a0d0d12c3c6c" id="r_a71ec0b8b535ac6a7ccf7a0d0d12c3c6c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a71ec0b8b535ac6a7ccf7a0d0d12c3c6c">flags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fmtfl</a>)</td></tr>
+<tr class="memdesc:a71ec0b8b535ac6a7ccf7a0d0d12c3c6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replaces the formatting flags wholesale with <code>fmtfl</code>.  <br /></td></tr>
 <tr class="separator:a71ec0b8b535ac6a7ccf7a0d0d12c3c6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2a4c377ee7cc8710068cfd8de3147c8" id="r_aa2a4c377ee7cc8710068cfd8de3147c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aa2a4c377ee7cc8710068cfd8de3147c8">setf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fmtfl</a>)</td></tr>
+<tr class="memdesc:aa2a4c377ee7cc8710068cfd8de3147c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the flags in <code>fmtfl</code> (bitwise-or).  <br /></td></tr>
 <tr class="separator:aa2a4c377ee7cc8710068cfd8de3147c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90c62abfea87b9e6991fe36c02a0a47d" id="r_a90c62abfea87b9e6991fe36c02a0a47d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a90c62abfea87b9e6991fe36c02a0a47d">setf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fmtfl</a>, <a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">msk</a>)</td></tr>
+<tr class="memdesc:a90c62abfea87b9e6991fe36c02a0a47d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the flags to <code>fmtfl</code> within the bit field limited by the mask <code>msk</code>.  <br /></td></tr>
 <tr class="separator:a90c62abfea87b9e6991fe36c02a0a47d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5f7d547d8377526af80a156e9b65a2b" id="r_ac5f7d547d8377526af80a156e9b65a2b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ac5f7d547d8377526af80a156e9b65a2b">unsetf</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">msk</a>)</td></tr>
+<tr class="memdesc:ac5f7d547d8377526af80a156e9b65a2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears the flags in <code>msk</code>.  <br /></td></tr>
 <tr class="separator:ac5f7d547d8377526af80a156e9b65a2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae170a2d62c36321798aca4920c8eb811" id="r_ae170a2d62c36321798aca4920c8eb811"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ae170a2d62c36321798aca4920c8eb811">precision</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ae170a2d62c36321798aca4920c8eb811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get/set the floating-point precision.  <br /></td></tr>
 <tr class="separator:ae170a2d62c36321798aca4920c8eb811"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7224059d4ee301d3e4d1cf4905fc7739" id="r_a7224059d4ee301d3e4d1cf4905fc7739"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a7224059d4ee301d3e4d1cf4905fc7739">precision</a> (std::uint8_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">prec</a>)</td></tr>
 <tr class="separator:a7224059d4ee301d3e4d1cf4905fc7739"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4edc460d588683d3db8eea346a4326e" id="r_af4edc460d588683d3db8eea346a4326e"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#af4edc460d588683d3db8eea346a4326e">width</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:af4edc460d588683d3db8eea346a4326e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get/set the field width.  <br /></td></tr>
 <tr class="separator:af4edc460d588683d3db8eea346a4326e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7927cd215e600ff0e9619b4f4dec9ab3" id="r_a7927cd215e600ff0e9619b4f4dec9ab3"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a7927cd215e600ff0e9619b4f4dec9ab3">width</a> (std::uint8_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wide</a>)</td></tr>
 <tr class="separator:a7927cd215e600ff0e9619b4f4dec9ab3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07a854a549fe07ddd93a62830565576e" id="r_a07a854a549fe07ddd93a62830565576e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a07a854a549fe07ddd93a62830565576e">fill</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="memdesc:a07a854a549fe07ddd93a62830565576e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get/set the fill character.  <br /></td></tr>
 <tr class="separator:a07a854a549fe07ddd93a62830565576e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac38a4bfcc74c8458a17dedaced1f89ed" id="r_ac38a4bfcc74c8458a17dedaced1f89ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ac38a4bfcc74c8458a17dedaced1f89ed">fill</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
 <tr class="separator:ac38a4bfcc74c8458a17dedaced1f89ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af38882ab0584ce24ff9cc1e2a7cc465b" id="r_af38882ab0584ce24ff9cc1e2a7cc465b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#af38882ab0584ce24ff9cc1e2a7cc465b">set_pword</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> id, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pword</a>)</td></tr>
+<tr class="memdesc:af38882ab0584ce24ff9cc1e2a7cc465b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the pword (per-stream user data) entry for an id.  <br /></td></tr>
 <tr class="separator:af38882ab0584ce24ff9cc1e2a7cc465b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f40137586900ea9cd15c5130a0285d5" id="r_a6f40137586900ea9cd15c5130a0285d5"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a6f40137586900ea9cd15c5130a0285d5">get_pword</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> id) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a6f40137586900ea9cd15c5130a0285d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the pword entry for an id.  <br /></td></tr>
 <tr class="separator:a6f40137586900ea9cd15c5130a0285d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8bf0205647f825bfd823b63c43fd202e" id="r_a8bf0205647f825bfd823b63c43fd202e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a8bf0205647f825bfd823b63c43fd202e">register_callback</a> (<a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">fn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> id)</td></tr>
+<tr class="memdesc:a8bf0205647f825bfd823b63c43fd202e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a locale-change callback.  <br /></td></tr>
 <tr class="separator:a8bf0205647f825bfd823b63c43fd202e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a587b07bd36583ba90a2bf063f5b59028" id="r_a587b07bd36583ba90a2bf063f5b59028"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a587b07bd36583ba90a2bf063f5b59028">xalloc</a> ()</td></tr>
+<tr class="memdesc:a587b07bd36583ba90a2bf063f5b59028"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a process-wide unique storage index.  <br /></td></tr>
 <tr class="separator:a587b07bd36583ba90a2bf063f5b59028"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a2a323cb01f2656a4e4ce3217e844e967" id="r_a2a323cb01f2656a4e4ce3217e844e967"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2a323cb01f2656a4e4ce3217e844e967">access_callbacks</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">new_loc</a>)</td></tr>
+<tr class="memdesc:a2a323cb01f2656a4e4ce3217e844e967"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invokes every registered locale-change callback in turn.  <br /></td></tr>
 <tr class="separator:a2a323cb01f2656a4e4ce3217e844e967"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:aa19d611acf7a916eaf3ce95181bc064b" id="r_aa19d611acf7a916eaf3ce95181bc064b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#aa19d611acf7a916eaf3ce95181bc064b">m_flags</a> = <a class="el" href="namespaceIOv2_1_1ios__defs.html#a665eedb3f7f272fa1c920b33b51dcee0">ios_defs::skipws</a> | <a class="el" href="namespaceIOv2_1_1ios__defs.html#a7d3d8be8ada04d6802eb1f7ee17d45ea">ios_defs::dec</a></td></tr>
+<tr class="memdesc:aa19d611acf7a916eaf3ce95181bc064b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatting flags; defaults to <code>skipws | dec</code>.   <br /></td></tr>
 <tr class="separator:aa19d611acf7a916eaf3ce95181bc064b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b4370e398a4a4473fc6535a2b9e7af3" id="r_a8b4370e398a4a4473fc6535a2b9e7af3"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a8b4370e398a4a4473fc6535a2b9e7af3">m_precision</a> = 6</td></tr>
+<tr class="memdesc:a8b4370e398a4a4473fc6535a2b9e7af3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Floating-point precision, default 6.   <br /></td></tr>
 <tr class="separator:a8b4370e398a4a4473fc6535a2b9e7af3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9a596cfc8edf2b832e358f31eef651c6" id="r_a9a596cfc8edf2b832e358f31eef651c6"><td class="memItemLeft" align="right" valign="top">std::uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a9a596cfc8edf2b832e358f31eef651c6">m_width</a> = 0</td></tr>
+<tr class="memdesc:a9a596cfc8edf2b832e358f31eef651c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Field width, default 0 (no padding).   <br /></td></tr>
 <tr class="separator:a9a596cfc8edf2b832e358f31eef651c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a813f0647feaaf8491f850e01a5243f2f" id="r_a813f0647feaaf8491f850e01a5243f2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a813f0647feaaf8491f850e01a5243f2f">m_fill</a> = (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>)' '</td></tr>
+<tr class="memdesc:a813f0647feaaf8491f850e01a5243f2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default fill character.  <br /></td></tr>
 <tr class="separator:a813f0647feaaf8491f850e01a5243f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a699d0fd9502ae5772970e7f6b4803c97" id="r_a699d0fd9502ae5772970e7f6b4803c97"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a699d0fd9502ae5772970e7f6b4803c97">m_pwords</a></td></tr>
+<tr class="memdesc:a699d0fd9502ae5772970e7f6b4803c97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Per-stream user-data storage indexed by id.   <br /></td></tr>
 <tr class="separator:a699d0fd9502ae5772970e7f6b4803c97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a7f2df7df55299255aee6af1fde9746" id="r_a2a7f2df7df55299255aee6af1fde9746"><td class="memItemLeft" align="right" valign="top">std::forward_list&lt; std::pair&lt; <a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2a7f2df7df55299255aee6af1fde9746">m_callbacks</a></td></tr>
+<tr class="memdesc:a2a7f2df7df55299255aee6af1fde9746"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registered locale-change callbacks with their associated ids (prepended; last registered runs first).   <br /></td></tr>
 <tr class="separator:a2a7f2df7df55299255aee6af1fde9746"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;<br />
+class IOv2::ios_base&lt; TChar &gt;</div><p>Base class holding the formatting state of every stream. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="a54104c455ab7f72dbaebef7b293e3ff0" name="a54104c455ab7f72dbaebef7b293e3ff0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a54104c455ab7f72dbaebef7b293e3ff0">&#9670;&#160;</a></span>event_callback</h2>
 
@@ -237,6 +265,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Type of a locale-change callback. </p>
 
 </div>
 </div>
@@ -266,6 +296,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Default constructor, with the default formatting state. . </p>
+
 </div>
 </div>
 <a id="a5e440cf78f9006be4dab370229c05484" name="a5e440cf78f9006be4dab370229c05484"></a>
@@ -293,7 +325,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Copy and move are intentionally supported (unlike the non-copyable std::ios_base; this is a deliberate design choice of this library). </p><dl class="section note"><dt>Note</dt><dd>Copy has shallow-sharing semantics: m_pwords and m_callbacks are copied by value (each instance owns an independent container), but m_pwords stores std::shared_ptr&lt;void&gt;, so after a copy the two <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a> instances' pword entries <b>share the same underlying objects</b>. Replacing an id's entry via <a class="el" href="classIOv2_1_1ios__base.html#af38882ab0584ce24ff9cc1e2a7cc465b">set_pword()</a> on one instance affects only that instance's own container, but as long as the entry is not replaced, dereferencing it on either side yields the same pword object, and mutations to that object made through one side are visible to the other. If independent pwords are required, deep-copy the relevant objects after copying.  </dd></dl>
+
+<p>Copy/move construction and assignment. </p>
 
 </div>
 </div>
@@ -352,6 +385,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Invokes every registered locale-change callback in turn. </p>
+
 </div>
 </div>
 <a id="a07a854a549fe07ddd93a62830565576e" name="a07a854a549fe07ddd93a62830565576e"></a>
@@ -378,6 +413,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Get/set the fill character. </p>
 
 </div>
 </div>
@@ -434,6 +471,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Returns the current formatting flags. . </p>
+
 </div>
 </div>
 <a id="a71ec0b8b535ac6a7ccf7a0d0d12c3c6c" name="a71ec0b8b535ac6a7ccf7a0d0d12c3c6c"></a>
@@ -462,6 +501,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Replaces the formatting flags wholesale with <code>fmtfl</code>. </p>
+
 </div>
 </div>
 <a id="a6f40137586900ea9cd15c5130a0285d5" name="a6f40137586900ea9cd15c5130a0285d5"></a>
@@ -489,6 +530,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Gets the pword entry for an id. </p>
 
 </div>
 </div>
@@ -572,7 +615,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get/set the floating-point precision. </p><dl class="section note"><dt>Note</dt><dd>The precision is stored as a std::uint8_t and is intentionally limited to the range 0..255. Unlike the standard std::ios_base, which uses std::streamsize, this library does not support precision values greater than 255; larger values cannot be expressed through this interface (the parameter type is std::uint8_t itself). This is by design.  </dd></dl>
+
+<p>Get/set the floating-point precision. </p>
 
 </div>
 </div>
@@ -640,6 +684,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Registers a locale-change callback. </p>
+
 </div>
 </div>
 <a id="af38882ab0584ce24ff9cc1e2a7cc465b" name="af38882ab0584ce24ff9cc1e2a7cc465b"></a>
@@ -678,6 +724,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Sets the pword (per-stream user data) entry for an id. </p>
+
 </div>
 </div>
 <a id="aa2a4c377ee7cc8710068cfd8de3147c8" name="aa2a4c377ee7cc8710068cfd8de3147c8"></a>
@@ -705,6 +753,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Sets the flags in <code>fmtfl</code> (bitwise-or). </p>
 
 </div>
 </div>
@@ -744,6 +794,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Sets the flags to <code>fmtfl</code> within the bit field limited by the mask <code>msk</code>. </p>
+
 </div>
 </div>
 <a id="ac5f7d547d8377526af80a156e9b65a2b" name="ac5f7d547d8377526af80a156e9b65a2b"></a>
@@ -772,6 +824,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Clears the flags in <code>msk</code>. </p>
+
 </div>
 </div>
 <a id="af4edc460d588683d3db8eea346a4326e" name="af4edc460d588683d3db8eea346a4326e"></a>
@@ -798,7 +852,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Get/set the field width. </p><dl class="section note"><dt>Note</dt><dd>The width is stored as a std::uint8_t and is intentionally limited to the range 0..255. Unlike the standard std::ios_base, which uses std::streamsize, this library does not support field widths greater than 255; larger values cannot be expressed through this interface (the parameter type is std::uint8_t itself). This is by design.  </dd></dl>
+
+<p>Get/set the field width. </p>
 
 </div>
 </div>
@@ -854,13 +909,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Allocates a process-wide unique storage index. </p><dl class="section note"><dt>Note</dt><dd>numeric_limits&lt;size_t&gt;::max() is reserved as an "exhausted" sentinel: once indices up to <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">max()</a>-1 have been handed out the space is considered exhausted and a further call throws <a class="el" href="structIOv2_1_1stream__error.html">stream_error</a>, instead of letting the counter wrap around and reuse an already-issued index. Implemented with a CAS loop so that concurrent calls stay unique and never step past the exhaustion point. </dd></dl>
-<dl class="exception"><dt>Exceptions</dt><dd>
-  <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>Thrown when the index space is exhausted.  </td></tr>
-  </table>
-  </dd>
-</dl>
+
+<p>Allocates a process-wide unique storage index. </p>
 
 </div>
 </div>
@@ -887,6 +937,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Registered locale-change callbacks with their associated ids (prepended; last registered runs first).  </p>
+
 </div>
 </div>
 <a id="a813f0647feaaf8491f850e01a5243f2f" name="a813f0647feaaf8491f850e01a5243f2f"></a>
@@ -910,7 +962,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Default fill character. Obtained directly via the C-style cast (TChar)' ', and deliberately NOT through a locale facility such as widen(): <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a> intentionally keeps no direct dependency on locale. </p><dl class="section note"><dt>Note</dt><dd>This requires TChar to be constructible/convertible from the char literal ' '. That holds for char/wchar_t/char8_t/char16_t/char32_t; instantiating with a TChar that does not meet this requirement fails to compile here (rather than silently yielding a non-space fill character). This is a deliberate constraint, not a defect.  </dd></dl>
+
+<p>Default fill character. </p>
 
 </div>
 </div>
@@ -936,6 +989,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Formatting flags; defaults to <code>skipws | dec</code>.  </p>
+
 </div>
 </div>
 <a id="a8b4370e398a4a4473fc6535a2b9e7af3" name="a8b4370e398a4a4473fc6535a2b9e7af3"></a>
@@ -959,6 +1014,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Floating-point precision, default 6.  </p>
 
 </div>
 </div>
@@ -984,6 +1041,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Per-stream user-data storage indexed by id.  </p>
+
 </div>
 </div>
 <a id="a9a596cfc8edf2b832e358f31eef651c6" name="a9a596cfc8edf2b832e358f31eef651c6"></a>
@@ -1007,6 +1066,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Field width, default 0 (no padding).  </p>
 
 </div>
 </div>
