@@ -5,8 +5,8 @@
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 void test_runtime_root_cvt_mem_gen_1()
 {

@@ -1,8 +1,8 @@
 #include <cvt/root_cvt.h>
 #include <device/mem_device.h>
 #include <io/streambuf.h>
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 void test_streambuf_char_gen_1()
 {

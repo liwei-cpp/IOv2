@@ -4,8 +4,8 @@
 #include <stdexcept>
 #include <type_traits>
 
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 namespace
 {
     constexpr auto charLen = 256;

@@ -5,9 +5,9 @@
 #include <cvt/runtime_cvt.h>
 #include <device/file_device.h>
 
-#include <common/dump_info.h>
-#include <common/file_guard.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/file_guard.h>
+#include <support/verify.h>
 
 namespace {
 // Minimal write-only device that can be told to throw on the next dput().

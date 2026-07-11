@@ -1,6 +1,6 @@
 #include <exception>
 #include <string>
-#include <common/dump_info.h>
+#include <support/dump_info.h>
 
 void test_ctype();
 void test_collate();

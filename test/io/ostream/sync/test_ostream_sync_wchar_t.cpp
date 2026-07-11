@@ -12,8 +12,8 @@
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 void test_ostream_sync_wchar_t_1()
 {

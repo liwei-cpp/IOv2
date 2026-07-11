@@ -1,6 +1,6 @@
 #include <common/lru_cache.h>
-#include <common/verify.h>
-#include <common/dump_info.h>
+#include <support/verify.h>
+#include <support/dump_info.h>
 #include <string>
 #include <stdexcept>
 

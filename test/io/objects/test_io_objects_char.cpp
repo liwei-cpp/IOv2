@@ -1,7 +1,7 @@
 #include <io/objects/objects.h>
-#include <common/dump_info.h>
-#include <common/stdio_guard.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/stdio_guard.h>
+#include <support/verify.h>
 
 void test_io_objects_char_1()
 {

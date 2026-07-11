@@ -8,9 +8,9 @@
 #include <io/io_manip.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <common/dump_info.h>
-#include <common/file_guard.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/file_guard.h>
+#include <support/verify.h>
 
 void test_istream_getline_wchar_t_1()
 {

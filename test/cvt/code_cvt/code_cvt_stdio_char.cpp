@@ -5,9 +5,9 @@
 #include <device/mem_device.h>
 #include <device/std_device.h>
 
-#include <common/dump_info.h>
-#include <common/stdio_guard.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/stdio_guard.h>
+#include <support/verify.h>
 void test_code_cvt_stdio_char_gen_1()
 {
     using namespace IOv2;

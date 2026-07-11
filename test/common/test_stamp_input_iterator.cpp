@@ -1,11 +1,11 @@
 #include <vector>
 #include <cassert>
 #include <common/stamp_input_iterator.h>
-#include <common/verify.h>
+#include <support/verify.h>
 #include <io/streambuf_iterator.h>
 #include <device/mem_device.h>
 #include <io/streambuf.h>
-#include <common/dump_info.h>
+#include <support/dump_info.h>
 
 using namespace IOv2;
 

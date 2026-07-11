@@ -8,8 +8,8 @@
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 namespace
 {

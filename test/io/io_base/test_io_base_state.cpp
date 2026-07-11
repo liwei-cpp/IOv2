@@ -3,8 +3,8 @@
 #include <device/mem_device.h>
 #include <io/fp_defs/arithmetic.h>
 #include <io/ostream.h>
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 void test_io_base_boolalpha_1()
 {

@@ -5,8 +5,8 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <locale/locale.h>
-#include <common/dump_info.h>
-#include <common/verify.h>
+#include <support/dump_info.h>
+#include <support/verify.h>
 
 void test_ostream_callbacks_1()
 {
