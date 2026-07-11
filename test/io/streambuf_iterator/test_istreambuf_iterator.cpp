@@ -271,3 +271,50 @@ void test_istreambuf_iterator_putback_1()
     }
     dump_info("Done\n");
 }
+
+void test_istreambuf_iterator_putback_2()
+{
+    dump_info("Test istreambuf_iterator::sputbackc case 2...");
+    using namespace IOv2;
+
+    // sputbackc on an iterator that still holds a cached look-ahead character
+    // (m_c has a value): the cached character must be pushed back first, then
+    // the supplied one. A postfix ++ leaves the returned iterator with m_c set.
+    auto helper = []<typename TStreamBuf>(TStreamBuf& in)
+    {
+        istreambuf_iterator it(in);
+        auto old = it++;            // 'old' caches 'a'; device has consumed 'a'
+        old.sputbackc('x');        // push back cached 'a', then 'x'
+
+        std::string got;
+        decltype(old) eos;
+        for (; old != eos; ++old) got.push_back(*old);
+        VERIFY(got == "xabc");
+    };
+
+    {
+        streambuf in(mem_device{"abc"});
+        helper(in);
+    }
+    {
+        istreambuf in(mem_device{"abc"});
+        helper(in);
+    }
+
+    // sputbackc on an end/singular iterator (no bound streambuf) must throw.
+    {
+        istreambuf_iterator<streambuf<mem_device<char>, char>> eos;
+        bool threw = false;
+        try
+        {
+            eos.sputbackc('z');
+        }
+        catch (const cvt_error&)
+        {
+            threw = true;
+        }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}

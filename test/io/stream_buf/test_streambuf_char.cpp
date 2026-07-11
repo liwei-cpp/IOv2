@@ -1,6 +1,8 @@
 #include <cvt/root_cvt.h>
+#include <cvt/comp/zlib_cvt.h>
 #include <device/mem_device.h>
 #include <io/streambuf.h>
+#include <string>
 #include <support/dump_info.h>
 #include <support/verify.h>
 
@@ -675,6 +677,76 @@ void test_streambuf_char_io_switch_3()
     obj.flush();
 
     VERIFY(obj.device().str() == "aBcde");
+
+    dump_info("Done\n");
+}
+
+void test_streambuf_char_detach_1()
+{
+    dump_info("Test streambuf<char>::detach with buffered read...");
+    using namespace IOv2;
+
+    // detach() with a non-empty read buffer over a positionable converter:
+    // the buffered/pushed-back lookahead is rewound (tell()+seek()) before the
+    // device is handed back, so the returned device is positioned at the logical
+    // read cursor.
+    {
+        streambuf obj{mem_device{"abcde"}};
+        VERIFY(obj.sgetc() == 'a');   // fills the read buffer with a lookahead 'a'
+        auto [dev, err] = obj.detach();
+        VERIFY(!err);
+        VERIFY(dev.str() == "abcde");
+
+        // Re-reading from the returned device begins at the logical read cursor.
+        istreambuf again{std::move(dev)};
+        VERIFY(again.sbumpc() == 'a');
+    }
+
+    // Same, but on an istreambuf and after consuming a couple of characters so
+    // the physical cursor is genuinely ahead of the logical one.
+    {
+        istreambuf obj{mem_device{"abcde"}};
+        VERIFY(obj.sbumpc() == 'a');
+        VERIFY(obj.sgetc() == 'b');   // buffered lookahead 'b'
+        VERIFY(obj.tell() == 1);
+        auto [dev, err] = obj.detach();
+        VERIFY(!err);
+        istreambuf again{std::move(dev)};
+        VERIFY(again.sbumpc() == 'b');
+    }
+
+    dump_info("Done\n");
+}
+
+void test_streambuf_char_detach_2()
+{
+    dump_info("Test streambuf<char>::detach with buffered read over non-positionable cvt...");
+    using namespace IOv2;
+
+    // Build a zlib-compressed payload.
+    std::string payload = "the quick brown fox jumps over the lazy dog";
+    std::string comp;
+    {
+        ostreambuf ost{mem_device{""}, Comp::zlib_cvt_creator<char>{6}};
+        ost.sputn(payload.data(), payload.size());
+        ost.flush();
+        auto [dev, err] = ost.detach();
+        VERIFY(!err);
+        comp = dev.str();
+        VERIFY(!comp.empty());
+    }
+
+    // detach() with a non-empty read buffer over a converter that does NOT
+    // support positioning (zlib): the attempted rewind fails and is swallowed
+    // on purpose (see base_streambuf::detach), so detach() still succeeds and
+    // reports no error - the lookahead character is the accepted, unavoidable
+    // loss for a non-positionable stream.
+    {
+        istreambuf isb{mem_device{comp}, Comp::zlib_cvt_creator<char>{6}};
+        VERIFY(isb.sgetc() == payload.front());  // buffers a lookahead char
+        auto [dev, err] = isb.detach();
+        VERIFY(!err);
+    }
 
     dump_info("Done\n");
 }
