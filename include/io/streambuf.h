@@ -1,3 +1,36 @@
+/**
+ * @file streambuf.h
+ * @lang{ZH}
+ * 定义了流缓冲区（stream buffer）体系，是设备、转换器与上层流之间的桥梁。
+ *
+ * 核心是类模板 `base_streambuf`，它在一条转换器管线（`runtime_cvt`）之上再叠加一个
+ * 读缓冲区，向上层提供面向字符的读、写、回退、定位以及读/写方向切换等操作。基于它，
+ * 本文件还提供三个便捷别名类：
+ * - `streambuf`：同时支持输入与输出。
+ * - `istreambuf`：仅支持输入。
+ * - `ostreambuf`：仅支持输出。
+ *
+ * 文件末尾提供了一组类模板实参推导指引（CTAD），使得可以直接由「设备」或「设备 + 转换器
+ * 工厂」推导出对应的字符类型（后者借助 io/io_concepts.h 中的 `ext_to_int`）。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the stream-buffer hierarchy, the bridge between devices, converters, and the
+ * higher-level streams.
+ *
+ * At its core is the class template `base_streambuf`, which layers a read buffer on top
+ * of a converter pipeline (`runtime_cvt`) and offers the upper layers character-oriented
+ * read, write, put-back, positioning, and read/write direction-switching operations.
+ * Building on it, this file also provides three convenience alias classes:
+ * - `streambuf`: supports both input and output.
+ * - `istreambuf`: input only.
+ * - `ostreambuf`: output only.
+ *
+ * At the end of the file, a set of class-template argument deduction guides (CTAD) lets
+ * the character type be deduced directly from a "device" or a "device + converter
+ * creator" pair (the latter via `ext_to_int` from io/io_concepts.h).
+ * @endif
+ */
 #pragma once
 #include <common/defs.h>
 #include <cvt/cvt_concepts.h>
@@ -18,6 +51,53 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 流缓冲区的通用实现基类。
+ *
+ * `base_streambuf` 在一条转换器管线（`runtime_cvt<TDevice, TChar>`）之上封装出面向字符
+ * 的缓冲接口。它按需持有一个读缓冲区 `m_read_buf`（`std::deque`，仅在 `IsIn` 为真时存在），
+ * 用于保存被 `sgetc()` 预读（peek）以及被 `sputbackc()` 压回的字符。
+ *
+ * 是否具备输入/输出能力由模板参数 `IsIn`/`IsOut` 在编译期决定，相应的成员函数通过
+ * `requires` 约束仅在对应能力开启时可用。当二者同时为真时，对象是双向的，输入与输出
+ * 操作会按需自动调用 `switch_to_get()`/`switch_to_put()` 切换底层转换器的方向。
+ *
+ * @note 关于读缓冲区与逻辑位置的语义细节（尤其是过度回退时位置在起点处饱和为 0），
+ *       见 sputbackc()、tell() 与 switch_to_put() 的说明。
+ *
+ * @tparam TDevice 底层设备类型，须满足 `io_device`。
+ * @tparam TChar 字符类型（转换器管线暴露的内部数据类型）。
+ * @tparam IsIn 是否支持输入操作。
+ * @tparam IsOut 是否支持输出操作。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Common implementation base class for stream buffers.
+ *
+ * `base_streambuf` wraps a converter pipeline (`runtime_cvt<TDevice, TChar>`) into a
+ * character-oriented buffered interface. It optionally holds a read buffer `m_read_buf`
+ * (a `std::deque`, present only when `IsIn` is true) that stores characters peeked by
+ * `sgetc()` and pushed back by `sputbackc()`.
+ *
+ * Whether input/output is available is decided at compile time by the template
+ * parameters `IsIn`/`IsOut`; the corresponding member functions are constrained via
+ * `requires` to be available only when the matching capability is enabled. When both are
+ * true the object is bidirectional, and input/output operations automatically call
+ * `switch_to_get()`/`switch_to_put()` to switch the underlying converter's direction as
+ * needed.
+ *
+ * @note For the detailed semantics of the read buffer and the logical position (in
+ *       particular, the position saturating at 0 on over-pushback), see sputbackc(),
+ *       tell(), and switch_to_put().
+ *
+ * @tparam TDevice The underlying device type; must satisfy `io_device`.
+ * @tparam TChar The character type (the internal data type exposed by the converter
+ *         pipeline).
+ * @tparam IsIn Whether input operations are supported.
+ * @tparam IsOut Whether output operations are supported.
+ * @endif
+ */
 template <io_device TDevice, typename TChar, bool IsIn, bool IsOut>
     requires (IsIn || IsOut)
 class base_streambuf
@@ -27,12 +107,41 @@ public:
     using char_type = TChar;
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 从设备构造一个仅输出的流缓冲区（无转换，直连根转换器）。
+     * @param dev 底层设备（按值取走所有权）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs an output-only stream buffer from a device (no conversion, wired
+     * directly to the root converter).
+     * @param dev The underlying device (ownership taken by value).
+     * @endif
+     */
     explicit base_streambuf(TDevice dev) requires (IsOut)
         : m_cvt(no_rb_root_cvt{std::move(dev)})
     {
         init_cvt();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 用转换器工厂在设备之上构建转换管线，构造一个输出流缓冲区。
+     * @tparam TCreator 转换器工厂类型，须满足 `cvt_creator`。
+     * @param dev 底层设备（按值取走所有权）。
+     * @param creator 用于在根转换器之上创建转换管线的工厂。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs an output stream buffer, building a converter pipeline on top of
+     * the device via a converter creator.
+     * @tparam TCreator The converter creator type; must satisfy `cvt_creator`.
+     * @param dev The underlying device (ownership taken by value).
+     * @param creator The creator used to build the converter pipeline over the root
+     * converter.
+     * @endif
+     */
     template <cvt_creator TCreator>
     base_streambuf(TDevice dev, const TCreator& creator) requires (IsOut)
         : m_cvt(creator.create(no_rb_root_cvt{std::move(dev)}))
@@ -40,6 +149,22 @@ public:
         init_cvt();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 从设备构造一个仅输入的流缓冲区（无转换）。
+     * @param dev 底层设备（按值取走所有权）。
+     * @param has_in_buf 是否为根转换器启用回读缓冲（`rb_root_cvt`）；为 false 时使用
+     *        不带回读缓冲的根转换器（`no_rb_root_cvt`）。默认 true。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs an input-only stream buffer from a device (no conversion).
+     * @param dev The underlying device (ownership taken by value).
+     * @param has_in_buf Whether to enable the read-back buffer on the root converter
+     *        (`rb_root_cvt`); when false, the root converter without a read-back buffer
+     *        (`no_rb_root_cvt`) is used. Defaults to true.
+     * @endif
+     */
     explicit base_streambuf(TDevice dev, bool has_in_buf = true) requires (IsIn && !IsOut)
         : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(rb_root_cvt{std::move(dev)})
                            : runtime_cvt<TDevice, TChar>(no_rb_root_cvt{std::move(dev)}))
@@ -47,6 +172,26 @@ public:
         init_cvt();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 用转换器工厂在设备之上构建转换管线，构造一个输入流缓冲区。
+     * @tparam TCreator 转换器工厂类型，须满足 `cvt_creator`。
+     * @param dev 底层设备（按值取走所有权）。
+     * @param creator 用于在根转换器之上创建转换管线的工厂。
+     * @param has_in_buf 是否为根转换器启用回读缓冲，语义同上。默认 true。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Constructs an input stream buffer, building a converter pipeline on top of
+     * the device via a converter creator.
+     * @tparam TCreator The converter creator type; must satisfy `cvt_creator`.
+     * @param dev The underlying device (ownership taken by value).
+     * @param creator The creator used to build the converter pipeline over the root
+     * converter.
+     * @param has_in_buf Whether to enable the read-back buffer on the root converter,
+     *        with the same meaning as above. Defaults to true.
+     * @endif
+     */
     template <cvt_creator TCreator>
     base_streambuf(TDevice dev, const TCreator& creator, bool has_in_buf = true) requires (IsIn && !IsOut)
         : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(creator.create(rb_root_cvt{std::move(dev)}))
@@ -61,7 +206,38 @@ public:
     base_streambuf& operator=(base_streambuf&&) = default;
 
 public:
-    /// get
+    /**
+     * @lang{ZH}
+     * @name 读取操作（仅 IsIn）
+     * @{
+     * @endif
+     * @lang{EN}
+     * @name Read operations (IsIn only)
+     * @{
+     * @endif
+     */
+
+    /**
+     * @lang{ZH}
+     * @brief 预读（peek）当前字符但不消费它。
+     *
+     * 若读缓冲区非空，返回其队首字符；否则从底层转换器读取一个字符，压入读缓冲区队首后
+     * 返回。因此该字符**下一次**仍会被 sgetc()/sbumpc() 读到。
+     * @return 当前字符；若已到达末尾则为空的 optional。
+     * @note 在双向模式下会先切换到输入方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Peeks the current character without consuming it.
+     *
+     * If the read buffer is non-empty, returns its front character; otherwise reads one
+     * character from the underlying converter, pushes it to the front of the read buffer,
+     * and returns it. The character therefore remains available to the **next**
+     * sgetc()/sbumpc().
+     * @return The current character; an empty optional if the end has been reached.
+     * @note In bidirectional mode it first switches to the input direction.
+     * @endif
+     */
     std::optional<char_type> sgetc() requires (IsIn)
     {
         if constexpr (IsOut)
@@ -75,6 +251,24 @@ public:
         return c;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 读取并消费当前字符。
+     *
+     * 若读缓冲区非空，弹出并返回其队首字符；否则直接从底层转换器读取一个字符返回。
+     * @return 被读取的字符；若已到达末尾则为空的 optional。
+     * @note 在双向模式下会先切换到输入方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Reads and consumes the current character.
+     *
+     * If the read buffer is non-empty, pops and returns its front character; otherwise
+     * reads one character directly from the underlying converter and returns it.
+     * @return The character read; an empty optional if the end has been reached.
+     * @note In bidirectional mode it first switches to the input direction.
+     * @endif
+     */
     std::optional<char_type> sbumpc() requires (IsIn)
     {
         if constexpr (IsOut)
@@ -92,6 +286,21 @@ public:
         return c;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 先消费当前字符，再预读下一个字符。
+     *
+     * 等价于先调用 sbumpc() 前进一个字符，再调用 sgetc() 预读。
+     * @return 下一个字符；若前进或预读遇到末尾则为空的 optional。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Consumes the current character, then peeks the next one.
+     *
+     * Equivalent to calling sbumpc() to advance by one character, then sgetc() to peek.
+     * @return The next character; an empty optional if advancing or peeking hits the end.
+     * @endif
+     */
     std::optional<char_type> snextc() requires (IsIn)
     {
         if (!sbumpc().has_value())
@@ -99,6 +308,28 @@ public:
         return sgetc();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 批量读取最多 `n` 个字符到缓冲区 `s`。
+     *
+     * 先耗尽读缓冲区中已有的字符，再从底层转换器继续读取，直到取满 `n` 个或到达末尾。
+     * @param s 目标缓冲区。
+     * @param n 最多读取的字符数。
+     * @return 实际读取的字符数；`s` 为 nullptr 或 `n` 为 0 时返回 0。
+     * @note 在双向模式下会先切换到输入方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Reads up to `n` characters in bulk into the buffer `s`.
+     *
+     * First drains the characters already in the read buffer, then continues reading from
+     * the underlying converter until `n` characters are obtained or the end is reached.
+     * @param s The destination buffer.
+     * @param n The maximum number of characters to read.
+     * @return The number of characters actually read; 0 if `s` is nullptr or `n` is 0.
+     * @note In bidirectional mode it first switches to the input direction.
+     * @endif
+     */
     size_t sgetn(char_type* s, size_t n) requires (IsIn)
     {
         if ((s == nullptr) || (n == 0)) return 0;
@@ -125,6 +356,26 @@ public:
         return res;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 查询是否已到达输入末尾。
+     *
+     * 仅当读缓冲区为空**且**底层转换器也报告 EOF 时才返回 true——只要读缓冲区中还残留
+     * 字符（例如 peek 或 put-back 的内容），就不算末尾。
+     * @return 已到达末尾则为 true。
+     * @note 在双向模式下会先切换到输入方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Queries whether the end of input has been reached.
+     *
+     * Returns true only when the read buffer is empty **and** the underlying converter
+     * also reports EOF — as long as characters remain in the read buffer (e.g. peeked or
+     * put-back content), the end is not considered reached.
+     * @return true if the end has been reached.
+     * @note In bidirectional mode it first switches to the input direction.
+     * @endif
+     */
     bool is_eof() requires (IsIn)
     {
         if constexpr (IsOut)
@@ -134,6 +385,8 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 将字符压回读缓冲区，使其成为下一次读取操作返回的字符。
+     *
      * 将字符压回读缓冲区，使其成为下一次读取操作返回的字符。
      * 回退按调用次数计数，不校验压回的字符是否与原始读取内容一致——调用方可以用任意
      * 字符替换原始内容（例如 `sgetc()` 读到 'b' 之后压回 '?'，之后仍按回退了 1 个字符计数）。
@@ -142,6 +395,9 @@ public:
      * @endif
      *
      * @lang{EN}
+     * @brief Pushes a character back into the read buffer so it becomes the next
+     * character returned by a subsequent read.
+     *
      * Pushes a character back into the read buffer so it becomes the next character
      * returned by a subsequent read. Put-back is counted by call count only; the
      * pushed-back character is not required to match what was actually read, so the
@@ -159,8 +415,35 @@ public:
             switch_to_get();
         m_read_buf.push_front(ch);
     }
+    /**
+     * @lang{ZH} @} @endif
+     * @lang{EN} @} @endif
+     */
 
-    /// put
+    /**
+     * @lang{ZH}
+     * @name 写入操作（仅 IsOut）
+     * @{
+     * @endif
+     * @lang{EN}
+     * @name Write operations (IsOut only)
+     * @{
+     * @endif
+     */
+
+    /**
+     * @lang{ZH}
+     * @brief 写入单个字符。
+     * @param ch 要写入的字符。
+     * @note 在双向模式下会先切换到输出方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes a single character.
+     * @param ch The character to write.
+     * @note In bidirectional mode it first switches to the output direction.
+     * @endif
+     */
     void sputc(char_type ch) requires (IsOut)
     {
         if constexpr (IsIn)
@@ -168,6 +451,22 @@ public:
         m_cvt.put(&ch, 1);
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 批量写入 `n` 个字符。
+     * @param s 源缓冲区。
+     * @param n 要写入的字符数。
+     * @note `s` 为 nullptr 或 `n` 为 0 时不做任何事。在双向模式下会先切换到输出方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes `n` characters in bulk.
+     * @param s The source buffer.
+     * @param n The number of characters to write.
+     * @note Does nothing if `s` is nullptr or `n` is 0. In bidirectional mode it first
+     * switches to the output direction.
+     * @endif
+     */
     void sputn(const char_type* s, size_t n) requires (IsOut)
     {
         if ((s == nullptr) || (n == 0)) return;
@@ -177,16 +476,42 @@ public:
         m_cvt.put(s, n);
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 刷新输出，将缓冲数据推送到底层设备。
+     * @note 在双向模式下会先切换到输出方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Flushes output, pushing buffered data to the underlying device.
+     * @note In bidirectional mode it first switches to the output direction.
+     * @endif
+     */
     void flush() requires (IsOut)
     {
         if constexpr (IsIn)
             switch_to_put();
         m_cvt.flush();
     }
+    /**
+     * @lang{ZH} @} @endif
+     * @lang{EN} @} @endif
+     */
 
-    /// positioning
     /**
      * @lang{ZH}
+     * @name 定位操作
+     * @{
+     * @endif
+     * @lang{EN}
+     * @name Positioning operations
+     * @{
+     * @endif
+     */
+    /**
+     * @lang{ZH}
+     * @brief 返回当前逻辑读取位置。
+     *
      * 返回当前逻辑读取位置。
      * 若通过 sputbackc() 压回的字符数超过了实际从底层转换器读取的字符数（见 sputbackc()
      * 的按次数计数、不校验内容的语义），本函数返回的位置在流起点处饱和为 0，而不是让
@@ -194,6 +519,8 @@ public:
      * @endif
      *
      * @lang{EN}
+     * @brief Returns the current logical read position.
+     *
      * Returns the current logical read position.
      * If more characters have been pushed back via sputbackc() than have actually
      * been read from the underlying converter (see sputbackc()'s count-based,
@@ -215,6 +542,20 @@ public:
             return m_cvt.tell();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 定位到绝对位置 `pos`。
+     * @param pos 目标绝对位置。
+     * @note 若支持输入，定位会清空读缓冲区（丢弃已 peek/put-back 的字符）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Seeks to the absolute position `pos`.
+     * @param pos The target absolute position.
+     * @note If input is supported, seeking clears the read buffer (discarding any
+     * peeked/put-back characters).
+     * @endif
+     */
     void seek(size_t pos)
     {
         m_cvt.seek(pos);
@@ -222,14 +563,52 @@ public:
             m_read_buf.clear();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 相对定位（相对当前位置偏移 `pos`）。
+     * @param pos 相对偏移量。
+     * @note 若支持输入，定位会清空读缓冲区（丢弃已 peek/put-back 的字符）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Relative seek (offset `pos` from the current position).
+     * @param pos The relative offset.
+     * @note If input is supported, seeking clears the read buffer (discarding any
+     * peeked/put-back characters).
+     * @endif
+     */
     void rseek(size_t pos)
     {
         m_cvt.rseek(pos);
         if constexpr (IsIn)
             m_read_buf.clear();
     }
+    /**
+     * @lang{ZH} @} @endif
+     * @lang{EN} @} @endif
+     */
 
-    /// io switch
+    /**
+     * @lang{ZH}
+     * @name 读/写方向切换（仅 IsIn && IsOut）
+     * @{
+     * @endif
+     * @lang{EN}
+     * @name Read/write direction switching (IsIn && IsOut only)
+     * @{
+     * @endif
+     */
+    /**
+     * @lang{ZH}
+     * @brief 切换到输入模式。
+     * @note 直接委托给底层转换器的 switch_to_get()。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Switches to input mode.
+     * @note Delegates directly to the underlying converter's switch_to_get().
+     * @endif
+     */
     void switch_to_get() requires (IsIn && IsOut)
     {
         m_cvt.switch_to_get();
@@ -237,6 +616,8 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 切换到输出模式。
+     *
      * 切换到输出模式。
      * 若读缓冲区（m_read_buf）中还留有已经被 sgetc()/sputbackc() 取出但尚未被
      * sbumpc()/sgetn() 消费的字符，则必须先把底层转换器的物理位置回退到这些字符对应
@@ -253,6 +634,8 @@ public:
      * @endif
      *
      * @lang{EN}
+     * @brief Switches to output mode.
+     *
      * Switches to output mode.
      * If the read buffer (m_read_buf) still holds characters that were fetched by
      * sgetc()/sputbackc() but not yet consumed by sbumpc()/sgetn(), the underlying
@@ -301,13 +684,67 @@ public:
         }
         m_cvt.switch_to_put();
     }
+    /**
+     * @lang{ZH} @} @endif
+     * @lang{EN} @} @endif
+     */
 
-    /// others
+    /**
+     * @lang{ZH}
+     * @name 其他（设备/转换器接口透传）
+     * @{
+     * @endif
+     * @lang{EN}
+     * @name Others (device/converter interface pass-through)
+     * @{
+     * @endif
+     */
+    /**
+     * @lang{ZH}
+     * @brief 返回对底层设备的引用。
+     * @return 底层设备的引用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns a reference to the underlying device.
+     * @return A reference to the underlying device.
+     * @endif
+     */
     device_type& device()
     {
         return m_cvt.device();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 分离并取回底层设备。
+     *
+     * 在支持输入且读缓冲区非空时，先尝试把底层转换器定位回逻辑读位置（tell()），以便交还
+     * 的设备停在正确位置，随后清空读缓冲区。该定位失败会被**有意吞掉**：不支持定位的设备
+     * （如管道/终端的 stdin）本就无法满足此重定位，这是设备固有属性而非可处理的错误——
+     * 报告它会让此类设备上例行的 detach()/attach() 循环开始抛异常；对这类设备而言，丢失
+     * 预读字符是可接受且不可避免的代价。
+     * @return 一个 pair：取回的设备，以及转换器在分离过程中捕获的异常指针（可能为空）。
+     * @note 本函数为 noexcept。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Detaches and retrieves the underlying device.
+     *
+     * When input is supported and the read buffer is non-empty, it first tries to
+     * reposition the underlying converter back to the logical read position (tell()), so
+     * that the returned device stops at the correct place, then clears the read buffer.
+     * A failure of that reposition is **swallowed on purpose**: a device that does not
+     * support positioning (e.g. a pipe/tty-backed stdin) inherently cannot honor this
+     * reposition — an intrinsic property of the device, not an actionable error.
+     * Reporting it would make routine detach()/attach() cycles on such devices start
+     * throwing; for those devices, losing the lookahead character is the accepted and
+     * unavoidable cost.
+     * @return A pair: the retrieved device, and the exception pointer captured by the
+     * converter during detach (possibly null).
+     * @note This function is noexcept.
+     * @endif
+     */
     std::pair<device_type, std::exception_ptr> detach() noexcept
     {
         if constexpr (IsIn)
@@ -342,6 +779,19 @@ public:
         return m_cvt.detach();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 附加一个新设备并重新初始化转换器。
+     * @param dev 要附加的设备；默认为一个默认构造的设备。
+     * @note 若支持输入，会先清空读缓冲区。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Attaches a new device and re-initializes the converter.
+     * @param dev The device to attach; defaults to a default-constructed device.
+     * @note If input is supported, the read buffer is cleared first.
+     * @endif
+     */
     void attach(device_type&& dev = device_type{})
     {
         if constexpr (IsIn)
@@ -350,17 +800,61 @@ public:
         init_cvt();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 向底层转换器应用一个行为策略。
+     * @param acc 行为策略对象。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Applies a behavior policy to the underlying converter.
+     * @param acc The behavior policy object.
+     * @endif
+     */
     void adjust(const cvt_behavior& acc)
     {
         m_cvt.adjust(acc);
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 从底层转换器提取内部状态。
+     * @param acc 用于接收状态的对象。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Extracts internal state from the underlying converter.
+     * @param acc The object that receives the state.
+     * @endif
+     */
     void retrieve(cvt_status& acc) const
     {
         m_cvt.retrieve(acc);
     }
+    /**
+     * @lang{ZH} @} @endif
+     * @lang{EN} @} @endif
+     */
 
 private:
+    /**
+     * @lang{ZH}
+     * @brief 初始化转换器：建立初始 I/O 状态并进入主内容阶段。
+     *
+     * 调用底层转换器的 bos()（建立初始状态并返回初始方向）与 main_cont_beg()。对于
+     * 单向的流缓冲区，若初始方向与所需方向不一致，则相应切换到输入或输出方向。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Initializes the converter: establishes the initial I/O state and enters the
+     * main content phase.
+     *
+     * Calls the underlying converter's bos() (which establishes the initial state and
+     * returns the initial direction) and main_cont_beg(). For a unidirectional stream
+     * buffer, if the initial direction does not match the required one, it switches to
+     * the input or output direction accordingly.
+     * @endif
+     */
     void init_cvt()
     {
         auto res = m_cvt.bos();
@@ -378,30 +872,121 @@ private:
     }
 
 private:
-    runtime_cvt<TDevice, TChar> m_cvt;
+    runtime_cvt<TDevice, TChar> m_cvt;      ///< @lang{ZH} 底层转换器管线。 @endif @lang{EN} The underlying converter pipeline. @endif
 
+    /**
+     * @lang{ZH}
+     * @brief 读缓冲区，保存已 peek/put-back 的字符（仅 IsIn 时存在）。
+     *
+     * 队首即为下一次读取将返回的字符。非输入模式下退化为 `std::monostate`，并借助
+     * `[[no_unique_address]]` 不占用对象空间。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Read buffer holding peeked/put-back characters (present only when IsIn).
+     *
+     * The front element is the character the next read will return. In non-input mode it
+     * degenerates to `std::monostate` and, thanks to `[[no_unique_address]]`, takes no
+     * object space.
+     * @endif
+     */
     [[no_unique_address]]
     std::conditional_t<IsIn, std::deque<char_type>, std::monostate> m_read_buf;
 };
 
+/**
+ * @lang{ZH}
+ * @brief 双向流缓冲区：同时支持输入与输出。
+ *
+ * `base_streambuf<TDevice, TChar, true, true>` 的便捷别名，并继承其全部构造函数。
+ * @tparam TDevice 底层设备类型。
+ * @tparam TChar 字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Bidirectional stream buffer: supports both input and output.
+ *
+ * A convenience alias for `base_streambuf<TDevice, TChar, true, true>` that inherits all
+ * of its constructors.
+ * @tparam TDevice The underlying device type.
+ * @tparam TChar The character type.
+ * @endif
+ */
 template <io_device TDevice, typename TChar>
 struct streambuf : public base_streambuf<TDevice, TChar, true, true>
 {
     using base_streambuf<TDevice, TChar, true, true>::base_streambuf;
 };
 
+/**
+ * @lang{ZH}
+ * @brief 只读流缓冲区：仅支持输入。
+ *
+ * `base_streambuf<TDevice, TChar, true, false>` 的便捷别名，并继承其全部构造函数。
+ * @tparam TDevice 底层设备类型。
+ * @tparam TChar 字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Input-only stream buffer: supports input only.
+ *
+ * A convenience alias for `base_streambuf<TDevice, TChar, true, false>` that inherits all
+ * of its constructors.
+ * @tparam TDevice The underlying device type.
+ * @tparam TChar The character type.
+ * @endif
+ */
 template <io_device TDevice, typename TChar>
 struct istreambuf : public base_streambuf<TDevice, TChar, true, false>
 {
     using base_streambuf<TDevice, TChar, true, false>::base_streambuf;
 };
 
+/**
+ * @lang{ZH}
+ * @brief 只写流缓冲区：仅支持输出。
+ *
+ * `base_streambuf<TDevice, TChar, false, true>` 的便捷别名，并继承其全部构造函数。
+ * @tparam TDevice 底层设备类型。
+ * @tparam TChar 字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Output-only stream buffer: supports output only.
+ *
+ * A convenience alias for `base_streambuf<TDevice, TChar, false, true>` that inherits all
+ * of its constructors.
+ * @tparam TDevice The underlying device type.
+ * @tparam TChar The character type.
+ * @endif
+ */
 template <io_device TDevice, typename TChar>
 struct ostreambuf : public base_streambuf<TDevice, TChar, false, true>
 {
     using base_streambuf<TDevice, TChar, false, true>::base_streambuf;
 };
 
+/**
+ * @lang{ZH}
+ * @name 类模板实参推导指引（CTAD）
+ * @brief 由设备（及可选的转换器工厂）推导 streambuf/istreambuf/ostreambuf 的字符类型。
+ *
+ * 无转换器工厂时，字符类型直接取设备的 `char_type`；提供转换器工厂时，则通过
+ * `ext_to_int`（见 io/io_concepts.h）从转换管线推导出内部字符类型。
+ * @{
+ * @endif
+ *
+ * @lang{EN}
+ * @name Class-template argument deduction guides (CTAD)
+ * @brief Deduce the character type of streambuf/istreambuf/ostreambuf from a device (and
+ * an optional converter creator).
+ *
+ * Without a converter creator, the character type is taken directly from the device's
+ * `char_type`; with a converter creator, the internal character type is deduced from the
+ * converter pipeline via `ext_to_int` (see io/io_concepts.h).
+ * @{
+ * @endif
+ */
 template <io_device TDevice>
 streambuf(TDevice) -> streambuf<TDevice, typename TDevice::char_type>;
 
@@ -425,4 +1010,8 @@ ostreambuf(TDevice) -> ostreambuf<TDevice, typename TDevice::char_type>;
 
 template <io_device TDevice, cvt_creator TCreator>
 ostreambuf(TDevice, const TCreator&) -> ostreambuf<TDevice, ext_to_int<no_rb_root_cvt<TDevice>, TCreator>>;
+/**
+ * @lang{ZH} @} @endif
+ * @lang{EN} @} @endif
+ */
 }
