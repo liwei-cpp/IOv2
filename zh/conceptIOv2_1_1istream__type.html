@@ -96,7 +96,7 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1istream__type.html','')
 <p><code>#include &lt;<a class="el" href="istream__operators_8h_source.html">istream_operators.h</a>&gt;</code></p>
 <h2 class="groupheader">概念定义</h2>
 <div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1istream__type.html">IOv2::istream_type</a> =  </div>
+<div class="line"><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1istream__type.html">IOv2::istream_type</a> = </div>
 <div class="line">    <span class="keyword">requires</span> (<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">a</a>)</div>
 <div class="line">    {</div>
 <div class="line">        <span class="keyword">typename</span> T::in_sentry_type;</div>
@@ -107,7 +107,7 @@ $(document).ready(function(){initNavTree('conceptIOv2_1_1istream__type.html','')
 <div class="line">    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_in_sentry&lt;typename T::in_sentry_type&gt;</a> &amp;&amp;</div>
 <div class="line">    std::derived_from&lt;T, ios_base&lt;typename T::char_type&gt;&gt;</div>
 <div class="ttc" id="aconceptIOv2_1_1is__istreambuf__iterator_html"><div class="ttname"><a href="conceptIOv2_1_1is__istreambuf__iterator.html">IOv2::is_istreambuf_iterator</a></div><div class="ttdef"><b>Definition</b> streambuf_defs.h:222</div></div>
-<div class="ttc" id="aconceptIOv2_1_1istream__type_html"><div class="ttname"><a href="conceptIOv2_1_1istream__type.html">IOv2::istream_type</a></div><div class="ttdef"><b>Definition</b> istream_operators.h:305</div></div>
+<div class="ttc" id="aconceptIOv2_1_1istream__type_html"><div class="ttname"><a href="conceptIOv2_1_1istream__type.html">IOv2::istream_type</a></div><div class="ttdef"><b>Definition</b> istream_operators.h:318</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
