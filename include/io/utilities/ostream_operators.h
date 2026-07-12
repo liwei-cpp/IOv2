@@ -34,20 +34,24 @@ public:
 
     ~out_sentry()
     {
-        if (m_os.good())
+        try
         {
-            if (m_is_unit_buf || m_sync_with_stdio)
+            if (m_os.good())
             {
-                m_os.m_streambuf.flush();
-            }
+                if (m_is_unit_buf || m_sync_with_stdio)
+                {
+                    m_os.m_streambuf.flush();
+                }
 
-            if (m_is_unit_buf)
-            {
-                m_os.m_streambuf.device().dflush();
+                if (m_is_unit_buf)
+                {
+                    m_os.m_streambuf.device().dflush();
+                }
             }
         }
+        catch (...) {} // NOLINT(bugprone-empty-catch)
     }
-    
+
     out_sentry(const out_sentry&) = delete;
     out_sentry& operator=(const out_sentry&) = delete;
 
@@ -147,7 +151,7 @@ struct ostream_operators : public abs_ostream
 };
 
 template <typename T>
-concept ostream_type = 
+concept ostream_type =
     requires (T a)
     {
         typename T::out_sentry_type;

@@ -1,8 +1,9 @@
 #pragma once
-#include <exception>
-#include <optional>
 
 #include <io/fp_defs/base_fp.h>
+
+#include <exception>
+#include <optional>
 
 namespace IOv2
 {
@@ -17,7 +18,7 @@ struct in_sentry
 
         if (is.tie())
             is.tie()->flush();
-        
+
         if (!noskip)
             is.ignore_ws();
 
@@ -141,7 +142,7 @@ struct istream_operators
             }
 
             if (gcount == 0)
-                throw stream_error{"No character begin extracted"};
+                throw stream_error{"No character being extracted"};
         }
         catch(...)
         {
@@ -155,9 +156,19 @@ struct istream_operators
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
     TOut get(this TSelf& self, TOut s, size_t n)
     {
-        auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
-        TChar delim = ct->widen('\n');
-        return self.template get<DelimPolicy, CStrPolicy, TOut>(s, n, delim);
+        try
+        {
+            auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
+            if (!ct)
+                throw stream_error{"istream get fail: no ctype facet"};
+            TChar delim = ct->widen('\n');
+            return self.template get<DelimPolicy, CStrPolicy, TOut>(s, n, delim);
+        }
+        catch(...)
+        {
+            self.handle_exception(std::current_exception());
+        }
+        return s;
     }
 
     template <typename TSelf>
@@ -202,6 +213,8 @@ struct istream_operators
         try
         {
             auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
+            if (!ct)
+                throw stream_error{"istream ignore_ws fail: no ctype facet"};
             auto c = self.m_streambuf.sgetc();
             while (c.has_value() &&
                     ct->is_any(base_ft<ctype>::space, c.value()))
@@ -278,10 +291,10 @@ struct istream_operators
     template <typename TSelf>
     TSelf& putback(this TSelf& self, TChar c)
     {
-        self.clear(self.rdstate() & ~IOv2::ios_defs::eofbit);
-
         try
         {
+            self.clear(self.rdstate() & ~IOv2::ios_defs::eofbit);
+
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
             self.m_streambuf.sputbackc(c);
@@ -302,7 +315,7 @@ struct istream_operators
 };
 
 template <typename T>
-concept istream_type = 
+concept istream_type =
     requires (T a)
     {
         typename T::in_sentry_type;
