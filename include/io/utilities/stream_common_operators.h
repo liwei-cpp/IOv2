@@ -1,12 +1,11 @@
 #pragma once
 
 #include <common/copyable_mutex.h>
+#include <io/utilities/istream_operators.h>
+#include <io/utilities/ostream_operators.h>
 
 #include <exception>
 #include <utility>
-
-#include <io/utilities/istream_operators.h>
-#include <io/utilities/ostream_operators.h>
 
 namespace IOv2
 {
@@ -94,6 +93,11 @@ struct stream_common_operators
     abs_ostream* tie(this TSelf& self, abs_ostream* str)
     {
         auto res = self.m_tie_stream;
+        if constexpr (std::derived_from<TSelf, abs_ostream>)
+        {
+            if (str == static_cast<abs_ostream*>(&self))
+                str = nullptr;
+        }
         self.m_tie_stream = str;
         return res;
     }
@@ -113,6 +117,9 @@ struct stream_common_operators
     template <typename TSelf>
     IOv2::locale<TChar> locale(this TSelf& self, const IOv2::locale<TChar>& loc)
     {
+        if (&loc == &self.m_locale)
+            return self.m_locale;
+
         auto res = std::move(self.m_locale);
         self.m_locale = loc;
         try
