@@ -6,7 +6,7 @@ var structIOv2_1_1stream__common__operators =
     [ "device", "structIOv2_1_1stream__common__operators.html#a4636e7a1ae2e163750e77cc436b14604", null ],
     [ "io_mutex", "structIOv2_1_1stream__common__operators.html#a31d3426d0a4e6696fc4cc9fa1741ed1b", null ],
     [ "locale", "structIOv2_1_1stream__common__operators.html#a5bb59965ce28840ee678f2bcb7f2c04d", null ],
-    [ "locale", "structIOv2_1_1stream__common__operators.html#a1e5f454fbc541fb2dd4cc4eb576b6efa", null ],
+    [ "locale", "structIOv2_1_1stream__common__operators.html#a8eb33cce53325ad9c85169915a0f03d3", null ],
     [ "retrieve", "structIOv2_1_1stream__common__operators.html#a86b810a1165969cfa44517d89c40d940", null ],
     [ "rseek", "structIOv2_1_1stream__common__operators.html#a019b42c8cf90534d964146425f5d225d", null ],
     [ "seek", "structIOv2_1_1stream__common__operators.html#a2409aed7accd9c0405eeca23a9241a38", null ],
