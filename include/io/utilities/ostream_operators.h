@@ -1,8 +1,11 @@
 #pragma once
 
+#include <common/copyable_mutex.h>
 #include <common/streambuf_defs.h>
 #include <io/fp_defs/base_fp.h>
 #include <locale/locale.h>
+
+#include <mutex>
 
 namespace IOv2
 {
@@ -120,10 +123,47 @@ struct ostream_operators : public abs_ostream
         return self;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 刷新本流：把缓冲区写出到底层设备。
+     *
+     * 刷新会经 sentry 触发 `tie()` 的刷新，因而可能沿 tie 链递归回到本流。为打断 tie 环，
+     * 并在并发下保护底层缓冲区，这里使用一个“正在刷新”标志，其判断与设置在 `m_flush_mutex`
+     * 保护下完成：若本流已在刷新中，则直接返回。
+     *
+     * @warning 并发语义为“先到者刷新，其余并发调用直接返回”。**跳过的线程返回时并不保证
+     *          本流已刷新完成，只保证有某个线程正在刷新它。** 若某线程依赖“它本身没有写入、
+     *          但要读取的本流内容一定已经落盘”，此跳过语义偏弱，需由调用方自行同步。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Flushes this stream: writes the buffer out to the underlying device.
+     *
+     * Flushing triggers `tie()`'s flush via the sentry and may therefore recurse back to
+     * this stream through the tie chain. To break tie cycles, and to protect the
+     * underlying buffer under concurrency, an "already flushing" flag is used; its test
+     * and set are performed under `m_flush_mutex`. If this stream is already being
+     * flushed, the call returns immediately.
+     *
+     * @warning Concurrency semantics are "the first caller flushes, other concurrent
+     *          callers return immediately". **A skipping thread does not, on return,
+     *          guarantee that this stream has finished flushing — only that some thread is
+     *          flushing it.** If a thread relies on content it did not write itself being
+     *          durably flushed before it reads, this skip semantics is too weak and the
+     *          caller must synchronize.
+     * @endif
+     */
     virtual void flush() override
     {
         T& obj = static_cast<T&>(*this);
         if (!obj.good()) return;
+
+        {
+            std::lock_guard g(m_flush_mutex);
+            if (m_flushing) return;
+            m_flushing = true;
+        }
+        struct reset { copyable_mutex& m; bool& f; ~reset() { std::lock_guard g(m); f = false; } } scope{m_flush_mutex, m_flushing};
 
         try
         {
@@ -148,6 +188,10 @@ struct ostream_operators : public abs_ostream
     {
         return ostreambuf_iterator(self.m_streambuf);
     }
+
+private:
+    bool           m_flushing = false;
+    copyable_mutex m_flush_mutex;
 };
 
 template <typename T>
