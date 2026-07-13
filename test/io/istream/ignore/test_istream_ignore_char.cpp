@@ -276,3 +276,33 @@ void test_istream_ignore_char_7()
 
     dump_info("Done\n");
 }
+
+void test_istream_ignore_char_8()
+{
+    dump_info("Test istream<char>::ignore case 8 (EOF x exception mask)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // eofbit masked: ignore() at EOF throws eof_error; eofbit set.
+        {
+            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
+            s.exceptions(IOv2::ios_defs::eofbit);
+            bool threw = false;
+            try { s.ignore(); }
+            catch (const IOv2::eof_error&) { threw = true; }
+            VERIFY(threw);
+            VERIFY(s.eof());
+        }
+        // eofbit unmasked (default): no throw, eofbit set (regression).
+        {
+            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
+            s.ignore();
+            VERIFY(s.eof());
+        }
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

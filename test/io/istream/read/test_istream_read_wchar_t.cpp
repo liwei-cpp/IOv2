@@ -103,3 +103,42 @@ void test_istream_read_wchar_t_3()
 
     dump_info("Done\n");
 }
+
+void test_istream_read_wchar_t_4()
+{
+    dump_info("Test istream<wchar_t>::read case 4 (short read at EOF x exception mask)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // eofbit masked: short read throws stream_error, which unwinds through the in_sentry
+        // destructor (which must not throw during unwinding -> no std::terminate). Reaching
+        // the assertions proves there was no terminate.
+        {
+            T s{IOv2::mem_device{std::wstring(L"ab")}, IOv2::locale<wchar_t>("C")};
+            s.exceptions(IOv2::ios_defs::eofbit);
+            wchar_t buf[8] = {};
+            bool caught = false;
+            try { s.read(buf, 5); }
+            catch (...) { caught = true; }
+            VERIFY(caught);
+            VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+            VERIFY(s.rdstate() & IOv2::ios_defs::eofbit);
+        }
+        // no mask: short read sets strfailbit + eofbit and returns without throwing.
+        {
+            T s{IOv2::mem_device{std::wstring(L"ab")}, IOv2::locale<wchar_t>("C")};
+            wchar_t buf[8] = {};
+            bool threw = false;
+            try { s.read(buf, 5); }
+            catch (...) { threw = true; }
+            VERIFY(!threw);
+            VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+            VERIFY(s.rdstate() & IOv2::ios_defs::eofbit);
+        }
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

@@ -12,6 +12,7 @@ void test_istream_extractors_arithmetic_char_11();
 void test_istream_extractors_arithmetic_char_12();
 void test_istream_extractors_arithmetic_char_13();
 void test_istream_extractors_arithmetic_char_14();
+void test_istream_extractors_arithmetic_char_15();
 
 void test_istream_extractors_arithmetic_wchar_t_1();
 void test_istream_extractors_arithmetic_wchar_t_2();
@@ -27,6 +28,7 @@ void test_istream_extractors_arithmetic_wchar_t_11();
 void test_istream_extractors_arithmetic_wchar_t_12();
 void test_istream_extractors_arithmetic_wchar_t_13();
 void test_istream_extractors_arithmetic_wchar_t_14();
+void test_istream_extractors_arithmetic_wchar_t_15();
 
 void test_istream_extractors_arithmetic()
 {
@@ -44,6 +46,7 @@ void test_istream_extractors_arithmetic()
     test_istream_extractors_arithmetic_char_12();
     test_istream_extractors_arithmetic_char_13();
     test_istream_extractors_arithmetic_char_14();
+    test_istream_extractors_arithmetic_char_15();
 
     test_istream_extractors_arithmetic_wchar_t_1();
     test_istream_extractors_arithmetic_wchar_t_2();
@@ -59,4 +62,5 @@ void test_istream_extractors_arithmetic()
     test_istream_extractors_arithmetic_wchar_t_12();
     test_istream_extractors_arithmetic_wchar_t_13();
     test_istream_extractors_arithmetic_wchar_t_14();
+    test_istream_extractors_arithmetic_wchar_t_15();
 }

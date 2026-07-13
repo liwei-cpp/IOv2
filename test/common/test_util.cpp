@@ -8,6 +8,7 @@ void test_clocale_wrapper();
 void test_clocale_wrapper_exception_paths();
 void test_stamp_input_iterator();
 void test_copyable_mutex();
+void test_copyable_atomic();
 
 int main()
 {
@@ -19,6 +20,7 @@ int main()
         test_clocale_wrapper_exception_paths();
         test_stamp_input_iterator();
         test_copyable_mutex();
+        test_copyable_atomic();
         return 0;
     }
     catch (const std::exception& e)

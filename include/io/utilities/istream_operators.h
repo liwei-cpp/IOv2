@@ -12,6 +12,7 @@ struct in_sentry
 {
     in_sentry(TStream& is, bool noskip)
         : m_is(is)
+        , m_uncaught(std::uncaught_exceptions())
     {
         if constexpr (involve_output)
             is.m_streambuf.switch_to_get();
@@ -26,14 +27,58 @@ struct in_sentry
             throw stream_error("istream_sentry create fail: Invalid istream");
     }
 
-    ~in_sentry()
+    /**
+     * @lang{ZH}
+     * @brief 析构时检测输入是否到达 EOF，并按异常掩码决定是否上报。
+     *
+     * 若本哨兵是在其作用域**正常退出**时析构——即没有新的异常正在展开，通过与构造时捕获的
+     * `std::uncaught_exceptions()` 基线比较判定——则允许 `handle_exception(eof_error)` 在
+     * `eofbit` 位于异常掩码时抛出；该异常会被发起本次 I/O 的操作自身的 try/catch 接住，并按
+     * 掩码传播给调用者。`eofbit` 未入掩码时（默认）`handle_exception` 只置位不抛，因此常见的
+     * EOF 路径不产生任何异常开销。
+     *
+     * 若本哨兵是在别处异常展开过程中被析构，则仅更新 `eofbit` 状态而**绝不抛出**，以免在栈
+     * 展开期间抛异常导致 `std::terminate`；此分支保持与旧实现一致的“置位并吞掉”行为。
+     *
+     * 为使正常退出分支的通知得以传播，本析构声明为 `noexcept(false)`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief On destruction, detects whether input reached EOF and decides whether to report
+     * it according to the exception mask.
+     *
+     * If this sentry is destroyed on a **normal scope exit** — i.e. no new exception is
+     * propagating, determined by comparing against the `std::uncaught_exceptions()` baseline
+     * captured at construction — then `handle_exception(eof_error)` is allowed to throw when
+     * `eofbit` is in the exception mask; that exception is caught by the originating I/O
+     * operation's own try/catch and propagated to the caller per the mask. When `eofbit` is
+     * not in the mask (the default) `handle_exception` only sets the bit and does not throw,
+     * so the common EOF path incurs no exception overhead.
+     *
+     * If this sentry is instead destroyed while another exception is unwinding, it only
+     * updates the `eofbit` state and **never throws**, so as not to throw during stack
+     * unwinding and trigger `std::terminate`; this branch preserves the prior
+     * "set-the-bit-and-swallow" behavior.
+     *
+     * To let the normal-exit notification propagate, this destructor is declared
+     * `noexcept(false)`.
+     * @endif
+     */
+    ~in_sentry() noexcept(false)
     {
-        try
+        if (std::uncaught_exceptions() != m_uncaught)
         {
-            if (m_is.m_streambuf.is_eof())
-                m_is.handle_exception(std::make_exception_ptr(eof_error{}));
+            try
+            {
+                if (m_is.m_streambuf.is_eof())
+                    m_is.handle_exception(std::make_exception_ptr(eof_error{}));
+            }
+            catch (...) {} // NOLINT(bugprone-empty-catch)
+            return;
         }
-        catch (...) {} // NOLINT(bugprone-empty-catch)
+
+        if (m_is.m_streambuf.is_eof())
+            m_is.handle_exception(std::make_exception_ptr(eof_error{}));
     }
 
     in_sentry(const in_sentry&) = delete;
@@ -41,6 +86,7 @@ struct in_sentry
 
 private:
     TStream& m_is;
+    int      m_uncaught;
 };
 
 template <typename>

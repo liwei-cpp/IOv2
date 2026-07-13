@@ -5,6 +5,7 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
+#include <support/failing_device.h>
 #include <support/verify.h>
 
 namespace
@@ -79,6 +80,69 @@ void test_ostream_exceptions_char_2()
 
     helper.operator()<IOv2::ostream>();
     helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_ostream_exceptions_char_3()
+{
+    dump_info("Test ostream<char> exceptions case 3 (flush failure x exception mask)...");
+
+    // devfailbit masked: a unitbuf stream whose device fails its flush reports the
+    // failure through the out_sentry destructor. Because the destructor runs on a
+    // normal scope exit (no unwinding), it routes the device_error through
+    // handle_exception, which rethrows the original device_error to the caller and
+    // leaves devfailbit set.
+    {
+        auto helper = []<template<typename, typename> class T>()
+        {
+            T out(failing_device<char>{std::string(""), true});
+            out.setf(IOv2::ios_defs::unitbuf);
+            out.exceptions(IOv2::ios_defs::devfailbit);
+            bool caught = false;
+            try { out.put('x'); }
+            catch (const IOv2::device_error&) { caught = true; }
+            catch (...) { VERIFY(false); }
+            VERIFY(caught);
+            VERIFY(out.rdstate() & IOv2::ios_defs::devfailbit);
+        };
+        helper.operator()<IOv2::ostream>();
+        helper.operator()<IOv2::iostream>();
+    }
+
+    // no mask: the same flush failure only sets devfailbit and does not throw.
+    {
+        auto helper = []<template<typename, typename> class T>()
+        {
+            T out(failing_device<char>{std::string(""), true});
+            out.setf(IOv2::ios_defs::unitbuf);
+            bool threw = false;
+            try { out.put('x'); }
+            catch (...) { threw = true; }
+            VERIFY(!threw);
+            VERIFY(out.rdstate() & IOv2::ios_defs::devfailbit);
+        };
+        helper.operator()<IOv2::ostream>();
+        helper.operator()<IOv2::iostream>();
+    }
+
+    // unwinding branch: the operation body itself throws (writer throws foobar) while
+    // unitbuf is set, so the out_sentry destructor runs during stack unwinding and the
+    // device flush also fails. The destructor must swallow that failure and never throw
+    // during unwinding (no std::terminate). operator<< then catches the writer's foobar
+    // and, with otherfailbit unmasked, only sets state, so control returns normally;
+    // reaching the assertion proves there was no terminate and the stream failed.
+    {
+        auto helper = []<template<typename, typename> class T>()
+        {
+            T out(failing_device<char>{std::string(""), true});
+            out.setf(IOv2::ios_defs::unitbuf);
+            out << dummy_type{};
+            VERIFY(!out);
+        };
+        helper.operator()<IOv2::ostream>();
+        helper.operator()<IOv2::iostream>();
+    }
 
     dump_info("Done\n");
 }
