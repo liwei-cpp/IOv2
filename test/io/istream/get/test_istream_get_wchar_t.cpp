@@ -116,3 +116,50 @@ void test_istream_get_wchar_t_2()
 
     dump_info("Done\n");
 }
+void test_istream_get_wchar_t_3()
+{
+    dump_info("Test istream<wchar_t>::get case 3 (EOF x exception mask)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // eofbit masked: get()/get(wchar_t&) at EOF throw eof_error; eofbit set.
+        {
+            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
+            s.exceptions(IOv2::ios_defs::eofbit);
+            bool threw = false;
+            try { (void)s.get(); }
+            catch (const IOv2::eof_error&) { threw = true; }
+            VERIFY(threw);
+            VERIFY(s.eof());
+        }
+        {
+            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
+            s.exceptions(IOv2::ios_defs::eofbit);
+            wchar_t c = L'Z';
+            bool threw = false;
+            try { s.get(c); }
+            catch (const IOv2::eof_error&) { threw = true; }
+            VERIFY(threw);
+            VERIFY(s.eof());
+        }
+        // eofbit unmasked (default): no throw, eofbit set (regression).
+        {
+            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
+            auto c = s.get();
+            VERIFY(!c.has_value());
+            VERIFY(s.eof());
+        }
+        {
+            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
+            wchar_t c = L'Z';
+            s.get(c);
+            VERIFY(c == L'Z');
+            VERIFY(s.eof());
+        }
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

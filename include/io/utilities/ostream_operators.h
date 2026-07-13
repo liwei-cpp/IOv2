@@ -1,11 +1,11 @@
 #pragma once
 
-#include <common/copyable_mutex.h>
+#include <common/copyable_atomic.h>
 #include <common/streambuf_defs.h>
 #include <io/fp_defs/base_fp.h>
 #include <locale/locale.h>
 
-#include <mutex>
+#include <exception>
 
 namespace IOv2
 {
@@ -16,6 +16,7 @@ public:
     out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode)
         : m_os(os)
         , m_is_unit_buf(is_unit_buf)
+        , m_uncaught(std::uncaught_exceptions())
     {
         if constexpr (is_std)
             m_sync_with_stdio = os.m_sync_with_stdio;
@@ -35,24 +36,81 @@ public:
             throw stream_error("ostream_sentry create fail: Invalid ostream");
     }
 
-    ~out_sentry()
+    /**
+     * @lang{ZH}
+     * @brief 析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。
+     *
+     * 对设置了 unitbuf 或与 stdio 同步的流，析构会把缓冲区 `flush()` 出去（unitbuf 时再对设备
+     * `dflush()`）。若本哨兵是在其作用域**正常退出**时析构——即没有新的异常正在展开，通过与
+     * 构造时捕获的 `std::uncaught_exceptions()` 基线比较判定——则刷新失败会经
+     * `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/`strfailbit`，并在该位处于
+     * 异常掩码时抛出；该异常会被发起本次输出的操作自身的 try/catch 接住，并按掩码传播给调用者。
+     * 无失败位入掩码时（默认）只置位不抛，因此正常输出路径不产生异常开销。
+     *
+     * 若本哨兵是在别处异常展开过程中被析构，则仍尝试刷新但**吞掉任何异常、绝不抛出**，以免在
+     * 栈展开期间抛异常导致 `std::terminate`；此分支保持与旧实现一致的“尽力刷新并吞掉”行为。
+     *
+     * 为使正常退出分支的通知得以传播，本析构声明为 `noexcept(false)`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief On destruction, auto-flushes a unitbuf / stdio-synced stream and decides whether
+     * to report a flush failure according to the exception mask.
+     *
+     * For a stream with unitbuf set or synced with stdio, destruction flushes the buffer via
+     * `flush()` (and, for unitbuf, `dflush()`es the device). If this sentry is destroyed on a
+     * **normal scope exit** — i.e. no new exception is propagating, determined by comparing
+     * against the `std::uncaught_exceptions()` baseline captured at construction — a flush
+     * failure is reported through `handle_exception`: it sets `devfailbit`/`cvtfailbit`/
+     * `strfailbit` by category and throws when that bit is in the exception mask; the thrown
+     * exception is caught by the originating output operation's own try/catch and propagated
+     * to the caller per the mask. When no such fail bit is in the mask (the default) the bit
+     * is only set and nothing is thrown, so the normal output path incurs no exception
+     * overhead.
+     *
+     * If this sentry is instead destroyed while another exception is unwinding, it still
+     * attempts the flush but **swallows any exception and never throws**, so as not to throw
+     * during stack unwinding and trigger `std::terminate`; this branch preserves the prior
+     * "best-effort flush and swallow" behavior.
+     *
+     * To let the normal-exit notification propagate, this destructor is declared
+     * `noexcept(false)`.
+     * @endif
+     */
+    ~out_sentry() noexcept(false)
     {
+        if (std::uncaught_exceptions() != m_uncaught)
+        {
+            try
+            {
+                if (m_os.good())
+                {
+                    if (m_is_unit_buf || m_sync_with_stdio)
+                        m_os.m_streambuf.flush();
+
+                    if (m_is_unit_buf)
+                        m_os.m_streambuf.device().dflush();
+                }
+            }
+            catch (...) {} // NOLINT(bugprone-empty-catch)
+            return;
+        }
+
         try
         {
             if (m_os.good())
             {
                 if (m_is_unit_buf || m_sync_with_stdio)
-                {
                     m_os.m_streambuf.flush();
-                }
 
                 if (m_is_unit_buf)
-                {
                     m_os.m_streambuf.device().dflush();
-                }
             }
         }
-        catch (...) {} // NOLINT(bugprone-empty-catch)
+        catch (...)
+        {
+            m_os.handle_exception(std::current_exception());
+        }
     }
 
     out_sentry(const out_sentry&) = delete;
@@ -62,6 +120,7 @@ private:
     TStream&    m_os;
     bool        m_is_unit_buf;
     bool        m_sync_with_stdio = false;
+    int         m_uncaught;
 };
 
 template <typename>
@@ -128,8 +187,13 @@ struct ostream_operators : public abs_ostream
      * @brief 刷新本流：把缓冲区写出到底层设备。
      *
      * 刷新会经 sentry 触发 `tie()` 的刷新，因而可能沿 tie 链递归回到本流。为打断 tie 环，
-     * 并在并发下保护底层缓冲区，这里使用一个“正在刷新”标志，其判断与设置在 `m_flush_mutex`
-     * 保护下完成：若本流已在刷新中，则直接返回。
+     * 并避免多个并发刷新同时操作底层缓冲区，这里使用一个原子的“正在刷新”标志 `m_flushing`：
+     * 以一次原子的 `exchange(true)` 完成“测试并置位”，若其旧值已为 true（本流已在刷新中）
+     * 则直接返回。
+     *
+     * 注意：该标志只序列化对本流的**并发刷新**（先到者刷新、其余并发刷新直接返回），
+     * 从而使底层缓冲区不会被多个刷新同时操作；它**并不**保护本流与并发 `put`/`write`/
+     * `operator<<` 之间的竞争——写与刷的并发仍需调用方经 `io_mutex()` 自行串行化。
      *
      * @warning 并发语义为“先到者刷新，其余并发调用直接返回”。**跳过的线程返回时并不保证
      *          本流已刷新完成，只保证有某个线程正在刷新它。** 若某线程依赖“它本身没有写入、
@@ -140,10 +204,17 @@ struct ostream_operators : public abs_ostream
      * @brief Flushes this stream: writes the buffer out to the underlying device.
      *
      * Flushing triggers `tie()`'s flush via the sentry and may therefore recurse back to
-     * this stream through the tie chain. To break tie cycles, and to protect the
-     * underlying buffer under concurrency, an "already flushing" flag is used; its test
-     * and set are performed under `m_flush_mutex`. If this stream is already being
-     * flushed, the call returns immediately.
+     * this stream through the tie chain. To break tie cycles, and to keep concurrent
+     * flushes from operating on the underlying buffer at the same time, an atomic "already
+     * flushing" flag `m_flushing` is used; its test-and-set is performed as a single atomic
+     * `exchange(true)`. If the previous value was already true (this stream is already being
+     * flushed), the call returns immediately.
+     *
+     * Note this flag only serializes **concurrent flushes** of this stream (the first
+     * caller flushes, other concurrent flushes return immediately), so the underlying buffer
+     * is not operated on by more than one flush at once; it does **not** guard this stream
+     * against a concurrent `put`/`write`/`operator<<` — write-vs-flush concurrency must still
+     * be serialized by the caller via `io_mutex()`.
      *
      * @warning Concurrency semantics are "the first caller flushes, other concurrent
      *          callers return immediately". **A skipping thread does not, on return,
@@ -158,12 +229,8 @@ struct ostream_operators : public abs_ostream
         T& obj = static_cast<T&>(*this);
         if (!obj.good()) return;
 
-        {
-            std::lock_guard g(m_flush_mutex);
-            if (m_flushing) return;
-            m_flushing = true;
-        }
-        struct reset { copyable_mutex& m; bool& f; ~reset() { std::lock_guard g(m); f = false; } } scope{m_flush_mutex, m_flushing};
+        if (m_flushing.exchange(true)) return;
+        struct reset { copyable_atomic<bool>& f; ~reset() noexcept { f.store(false); } } scope{m_flushing};
 
         try
         {
@@ -190,8 +257,7 @@ struct ostream_operators : public abs_ostream
     }
 
 private:
-    bool           m_flushing = false;
-    copyable_mutex m_flush_mutex;
+    copyable_atomic<bool> m_flushing;
 };
 
 template <typename T>

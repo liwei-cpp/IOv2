@@ -753,3 +753,36 @@ void test_istream_extractors_arithmetic_wchar_t_14()
 
     dump_info("Done\n");
 }
+void test_istream_extractors_arithmetic_wchar_t_15()
+{
+    dump_info("Test istream<wchar_t> operator>> (arithmetic) case 15 (trailing EOF x mask)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // 掩码开启："42" 解析成功后，尾随 EOF 在 in_sentry 析构正常退出分支抛 eof_error；值已被赋。
+        {
+            T s{IOv2::mem_device{std::wstring(L"42")}, IOv2::locale<wchar_t>("C")};
+            s.exceptions(IOv2::ios_defs::eofbit);
+            int x = 0;
+            bool threw = false;
+            try { s >> x; }
+            catch (const IOv2::eof_error&) { threw = true; }
+            VERIFY(threw);
+            VERIFY(x == 42);
+            VERIFY(s.eof());
+        }
+        // 掩码关闭：同样解析成功，尾随 EOF 只置位、不抛。
+        {
+            T s{IOv2::mem_device{std::wstring(L"42")}, IOv2::locale<wchar_t>("C")};
+            int x = 0;
+            s >> x;
+            VERIFY(x == 42);
+            VERIFY(s.eof());
+        }
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
