@@ -7,10 +7,11 @@ var searchData=
   ['code_5fcvt_5fstdio_2eh_4',['code_cvt_stdio.h',['../code__cvt__stdio_8h.html',1,'']]],
   ['collate_2eh_5',['collate.h',['../collate_8h.html',1,'']]],
   ['collate_5fdetails_2eh_6',['collate_details.h',['../collate__details_8h.html',1,'']]],
-  ['copyable_5fmutex_2eh_7',['copyable_mutex.h',['../copyable__mutex_8h.html',1,'']]],
-  ['ctype_2eh_8',['ctype.h',['../ctype_8h.html',1,'']]],
-  ['ctype_5fdetails_2eh_9',['ctype_details.h',['../ctype__details_8h.html',1,'']]],
-  ['cvt_5fconcepts_2eh_10',['cvt_concepts.h',['../cvt__concepts_8h.html',1,'']]],
-  ['cvt_5ffacilities_2eh_11',['cvt_facilities.h',['../cvt__facilities_8h.html',1,'']]],
-  ['cvt_5fpipe_5fcreator_2eh_12',['cvt_pipe_creator.h',['../cvt__pipe__creator_8h.html',1,'']]]
+  ['copyable_5fatomic_2eh_7',['copyable_atomic.h',['../copyable__atomic_8h.html',1,'']]],
+  ['copyable_5fmutex_2eh_8',['copyable_mutex.h',['../copyable__mutex_8h.html',1,'']]],
+  ['ctype_2eh_9',['ctype.h',['../ctype_8h.html',1,'']]],
+  ['ctype_5fdetails_2eh_10',['ctype_details.h',['../ctype__details_8h.html',1,'']]],
+  ['cvt_5fconcepts_2eh_11',['cvt_concepts.h',['../cvt__concepts_8h.html',1,'']]],
+  ['cvt_5ffacilities_2eh_12',['cvt_facilities.h',['../cvt__facilities_8h.html',1,'']]],
+  ['cvt_5fpipe_5fcreator_2eh_13',['cvt_pipe_creator.h',['../cvt__pipe__creator_8h.html',1,'']]]
 ];

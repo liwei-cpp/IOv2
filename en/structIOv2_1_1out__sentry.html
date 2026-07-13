@@ -102,8 +102,9 @@ $(document).ready(function(){initNavTree('structIOv2_1_1out__sentry.html',''); i
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a3eb4d56f578ad5fa94bc205280262b2f" id="r_a3eb4d56f578ad5fa94bc205280262b2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_unit_buf</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_app_mode</a>)</td></tr>
 <tr class="separator:a3eb4d56f578ad5fa94bc205280262b2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab118e27a80443d47901f4708240dfd15" id="r_ab118e27a80443d47901f4708240dfd15"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#ab118e27a80443d47901f4708240dfd15">~out_sentry</a> ()</td></tr>
-<tr class="separator:ab118e27a80443d47901f4708240dfd15"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad034c9b260a8fdfe6382273a9708c603" id="r_ad034c9b260a8fdfe6382273a9708c603"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#ad034c9b260a8fdfe6382273a9708c603">~out_sentry</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a>)</td></tr>
+<tr class="memdesc:ad034c9b260a8fdfe6382273a9708c603"><td class="mdescLeft">&#160;</td><td class="mdescRight">On destruction, auto-flushes a unitbuf / stdio-synced stream and decides whether to report a flush failure according to the exception mask.  <br /></td></tr>
+<tr class="separator:ad034c9b260a8fdfe6382273a9708c603"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11c184c273efe80b8f3c8e4dedc47395" id="r_a11c184c273efe80b8f3c8e4dedc47395"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a11c184c273efe80b8f3c8e4dedc47395">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a11c184c273efe80b8f3c8e4dedc47395"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a285ce1110a764cd9478985da52a18f1e" id="r_a285ce1110a764cd9478985da52a18f1e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a285ce1110a764cd9478985da52a18f1e">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
@@ -154,8 +155,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
-<a id="ab118e27a80443d47901f4708240dfd15" name="ab118e27a80443d47901f4708240dfd15"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab118e27a80443d47901f4708240dfd15">&#9670;&#160;</a></span>~out_sentry()</h2>
+<a id="ad034c9b260a8fdfe6382273a9708c603" name="ad034c9b260a8fdfe6382273a9708c603"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad034c9b260a8fdfe6382273a9708c603">&#9670;&#160;</a></span>~out_sentry()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -178,6 +179,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>On destruction, auto-flushes a unitbuf / stdio-synced stream and decides whether to report a flush failure according to the exception mask. </p>
 
 </div>
 </div>
