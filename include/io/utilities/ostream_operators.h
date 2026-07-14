@@ -16,7 +16,6 @@ public:
     out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode)
         : m_os(os)
         , m_is_unit_buf(is_unit_buf)
-        , m_uncaught(std::uncaught_exceptions())
     {
         if constexpr (is_std)
             m_sync_with_stdio = os.m_sync_with_stdio;
@@ -41,14 +40,15 @@ public:
      * @brief 析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。
      *
      * 对设置了 unitbuf 或与 stdio 同步的流，析构会把缓冲区 `flush()` 出去（unitbuf 时再对设备
-     * `dflush()`）。若本哨兵是在其作用域**正常退出**时析构——即没有新的异常正在展开，通过与
-     * 构造时捕获的 `std::uncaught_exceptions()` 基线比较判定——则刷新失败会经
-     * `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/`strfailbit`，并在该位处于
-     * 异常掩码时抛出；该异常会被发起本次输出的操作自身的 try/catch 接住，并按掩码传播给调用者。
-     * 无失败位入掩码时（默认）只置位不抛，因此正常输出路径不产生异常开销。
+     * `dflush()`）。若析构时当前线程没有任何异常正在展开（以 `std::uncaught_exceptions() == 0`
+     * 判定）——则刷新失败会经 `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/
+     * `strfailbit`，并在该位处于异常掩码时抛出；该异常会被发起本次输出的操作自身的 try/catch
+     * 接住，并按掩码传播给调用者。无失败位入掩码时（默认）只置位不抛，因此正常输出路径不产生
+     * 异常开销。
      *
-     * 若本哨兵是在别处异常展开过程中被析构，则仍尝试刷新但**吞掉任何异常、绝不抛出**，以免在
-     * 栈展开期间抛异常导致 `std::terminate`；此分支保持与旧实现一致的“尽力刷新并吞掉”行为。
+     * 反之，只要析构时已有任何异常正在展开（无论其是否早于本哨兵构造即已在飞），则仍尝试刷新但
+     * **吞掉任何异常、绝不抛出**，以免在栈展开期间抛异常导致 `std::terminate`；此分支保持与旧
+     * 实现一致的“尽力刷新并吞掉”行为。
      *
      * 为使正常退出分支的通知得以传播，本析构声明为 `noexcept(false)`。
      * @endif
@@ -58,19 +58,19 @@ public:
      * to report a flush failure according to the exception mask.
      *
      * For a stream with unitbuf set or synced with stdio, destruction flushes the buffer via
-     * `flush()` (and, for unitbuf, `dflush()`es the device). If this sentry is destroyed on a
-     * **normal scope exit** — i.e. no new exception is propagating, determined by comparing
-     * against the `std::uncaught_exceptions()` baseline captured at construction — a flush
-     * failure is reported through `handle_exception`: it sets `devfailbit`/`cvtfailbit`/
-     * `strfailbit` by category and throws when that bit is in the exception mask; the thrown
-     * exception is caught by the originating output operation's own try/catch and propagated
-     * to the caller per the mask. When no such fail bit is in the mask (the default) the bit
-     * is only set and nothing is thrown, so the normal output path incurs no exception
-     * overhead.
+     * `flush()` (and, for unitbuf, `dflush()`es the device). If no exception is currently
+     * propagating on this thread when the sentry is destroyed — determined by
+     * `std::uncaught_exceptions() == 0` — a flush failure is reported through
+     * `handle_exception`: it sets `devfailbit`/`cvtfailbit`/`strfailbit` by category and
+     * throws when that bit is in the exception mask; the thrown exception is caught by the
+     * originating output operation's own try/catch and propagated to the caller per the mask.
+     * When no such fail bit is in the mask (the default) the bit is only set and nothing is
+     * thrown, so the normal output path incurs no exception overhead.
      *
-     * If this sentry is instead destroyed while another exception is unwinding, it still
-     * attempts the flush but **swallows any exception and never throws**, so as not to throw
-     * during stack unwinding and trigger `std::terminate`; this branch preserves the prior
+     * If instead any exception is already unwinding when the sentry is destroyed — including
+     * one that was already in flight before this sentry was constructed — it still attempts
+     * the flush but **swallows any exception and never throws**, so as not to throw during
+     * stack unwinding and trigger `std::terminate`; this branch preserves the prior
      * "best-effort flush and swallow" behavior.
      *
      * To let the normal-exit notification propagate, this destructor is declared
@@ -79,7 +79,7 @@ public:
      */
     ~out_sentry() noexcept(false)
     {
-        if (std::uncaught_exceptions() != m_uncaught)
+        if (std::uncaught_exceptions() != 0)
         {
             try
             {
@@ -120,7 +120,6 @@ private:
     TStream&    m_os;
     bool        m_is_unit_buf;
     bool        m_sync_with_stdio = false;
-    int         m_uncaught;
 };
 
 template <typename>
