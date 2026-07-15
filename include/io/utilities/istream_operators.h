@@ -1,9 +1,17 @@
 #pragma once
 
+#include <common/defs.h>
+#include <common/metafunctions.h>
+#include <common/streambuf_defs.h>
+#include <facet/ctype.h>
 #include <io/fp_defs/base_fp.h>
+#include <io/io_base.h>
+#include <io/streambuf_iterator.h>
+#include <locale/locale.h>
 
 #include <exception>
 #include <optional>
+#include <type_traits>
 
 namespace IOv2
 {
@@ -119,6 +127,8 @@ struct istream_operators
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
             c = self.m_streambuf.sbumpc();
+            if (!c.has_value())
+                throw stream_error{"istream get fail: no character extracted"};
         }
         catch(...)
         {
@@ -136,6 +146,7 @@ struct istream_operators
             sentry_type cerb(self, true);
             auto tmp = self.m_streambuf.sbumpc();
             if (tmp.has_value()) c = tmp.value();
+            else throw stream_error{"istream get fail: no character extracted"};
         }
         catch(...)
         {
@@ -203,19 +214,23 @@ struct istream_operators
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
     TOut get(this TSelf& self, TOut s, size_t n)
     {
+        TChar delim;
         try
         {
             auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
             if (!ct)
                 throw stream_error{"istream get fail: no ctype facet"};
-            TChar delim = ct->widen('\n');
-            return self.template get<DelimPolicy, CStrPolicy, TOut>(s, n, delim);
+            delim = ct->widen('\n');
         }
         catch(...)
         {
+            if constexpr (std::is_same_v<CStrPolicy, app_zt>)
+                if (n != 0) *s++ = TChar{};
             self.handle_exception(std::current_exception());
+            return s;
         }
-        return s;
+
+        return self.template get<DelimPolicy, CStrPolicy, TOut>(s, n, delim);
     }
 
     template <typename TSelf>
