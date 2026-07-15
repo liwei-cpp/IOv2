@@ -315,6 +315,9 @@ public:
      * 先耗尽读缓冲区中已有的字符，再从底层转换器继续读取，直到取满 `n` 个或到达末尾。
      * @param s 目标缓冲区。
      * @param n 最多读取的字符数。
+     * @param got 可选出参。非空时，始终反映已读入 `s` 的字符数——包括**抛出异常时**：本函数
+     *        抛出后，`*got` 仍是已消费并写入 `s` 的准确数量，调用方据此可完整交付这批数据，
+     *        不会丢失。返回值只在正常返回时可用，故需要异常路径下的计数时必须使用本参数。
      * @return 实际读取的字符数；`s` 为 nullptr 或 `n` 为 0 时返回 0。
      * @note 在双向模式下会先切换到输入方向。
      * @endif
@@ -326,12 +329,19 @@ public:
      * the underlying converter until `n` characters are obtained or the end is reached.
      * @param s The destination buffer.
      * @param n The maximum number of characters to read.
+     * @param got Optional out-parameter. When non-null it always reflects the number of
+     *        characters already read into `s` -- including **when an exception is thrown**:
+     *        after this function throws, `*got` is still the exact number consumed and
+     *        written into `s`, so the caller can deliver that data instead of losing it.
+     *        The return value is only available on a normal return, so this parameter is
+     *        required whenever the count is needed on the exception path.
      * @return The number of characters actually read; 0 if `s` is nullptr or `n` is 0.
      * @note In bidirectional mode it first switches to the input direction.
      * @endif
      */
-    size_t sgetn(char_type* s, size_t n) requires (IsIn)
+    size_t sgetn(char_type* s, size_t n, size_t* got = nullptr) requires (IsIn)
     {
+        if (got) *got = 0;
         if ((s == nullptr) || (n == 0)) return 0;
 
         if constexpr (IsOut)
@@ -344,6 +354,7 @@ public:
             m_read_buf.pop_front();
             if (++res == n) break;
         }
+        if (got) *got = res;
 
         while (res < n)
         {
@@ -352,6 +363,7 @@ public:
             if (c == 0) break;
             res += c;
             s += c;
+            if (got) *got = res;
         }
         return res;
     }

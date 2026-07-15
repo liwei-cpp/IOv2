@@ -9,7 +9,11 @@
 #include <io/streambuf_iterator.h>
 #include <locale/locale.h>
 
+#include <concepts>
+#include <cstddef>
 #include <exception>
+#include <functional>
+#include <iterator>
 #include <optional>
 #include <type_traits>
 
@@ -21,6 +25,9 @@ struct in_sentry
     in_sentry(TStream& is, bool noskip)
         : m_is(is)
     {
+        if (!m_is)
+            throw stream_error("istream_sentry create fail: Invalid istream");
+
         if constexpr (involve_output)
             is.m_streambuf.switch_to_get();
 
@@ -258,7 +265,7 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
-            gcount = self.m_streambuf.sgetn(s, n);
+            self.m_streambuf.sgetn(s, n, &gcount);
             if (gcount != n)
                 throw stream_error{"cannot read enough characters"};
         }

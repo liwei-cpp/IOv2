@@ -10,7 +10,10 @@
 #include <io/streambuf_iterator.h>
 #include <locale/locale.h>
 
+#include <concepts>
+#include <cstddef>
 #include <exception>
+#include <functional>
 #include <type_traits>
 
 namespace IOv2
@@ -23,6 +26,9 @@ public:
         : m_os(os)
         , m_is_unit_buf(is_unit_buf)
     {
+        if (!static_cast<bool>(m_os))
+            throw stream_error("ostream_sentry create fail: Invalid ostream");
+
         if constexpr (is_std)
             m_sync_with_stdio = os.m_sync_with_stdio;
 
@@ -37,7 +43,7 @@ public:
                 m_os.m_streambuf.rseek(0);
         }
 
-        if (!m_os.good())
+        if (!static_cast<bool>(m_os))
             throw stream_error("ostream_sentry create fail: Invalid ostream");
     }
 
@@ -232,7 +238,7 @@ struct ostream_operators : public abs_ostream
     virtual void flush() override
     {
         T& obj = static_cast<T&>(*this);
-        if (!obj.good()) return;
+        if (!static_cast<bool>(obj)) return;
 
         if (m_flushing.exchange(true)) return;
         struct reset { copyable_atomic<bool>& f; ~reset() noexcept { f.store(false); } } scope{m_flushing};
