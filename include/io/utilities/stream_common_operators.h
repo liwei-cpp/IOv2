@@ -1,8 +1,11 @@
 #pragma once
 
 #include <common/copyable_mutex.h>
+#include <cvt/cvt_concepts.h>
+#include <io/io_base.h>
 #include <io/utilities/istream_operators.h>
 #include <io/utilities/ostream_operators.h>
+#include <locale/locale.h>
 
 #include <exception>
 #include <utility>
@@ -166,6 +169,48 @@ struct stream_common_operators
         return self.m_locale;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 设置本流使用的 locale，并返回先前的 locale。
+     *
+     * 新 locale 生效后会立即以其调用 `access_callbacks`，使已注册的 facet 相关回调据以
+     * 刷新缓存。
+     *
+     * @param loc 要设置的新 locale（按值接收，内部移动入 `m_locale`）。
+     * @return 先前的 locale（已被移出并通过返回值转交调用方）。
+     *
+     * @warning 本 setter 是写操作，须由调用方外部同步（经 `io_mutex()`）。同步范围**不仅**是
+     *          `locale(loc)` 这一次调用，而必须覆盖**整个** `operator>>`/`operator<<`/`get`/
+     *          `put` 等格式化 I/O 期间：`locale()` getter 返回的是绑定到 `m_locale` 的引用，
+     *          而格式化过程会在内部持有该引用直到操作结束。若在此期间另一路径对本流
+     *          `locale(loc)`（move-assign `m_locale`）或以其它方式变更本流状态，正在进行的操作
+     *          将读到被移走/被替换的对象，属数据竞争与未定义行为。
+     * @note 此约束与 `flush()`/`write()`/`tie()` 的 `io_mutex()` 契约一致，并非 locale 专有：
+     *       凡返回内部状态引用的 getter（如 `device()`）在并发变更下都有同样要求。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the locale used by this stream and returns the previous one.
+     *
+     * Once the new locale takes effect, `access_callbacks` is invoked with it immediately so
+     * that registered facet-related callbacks refresh their caches accordingly.
+     *
+     * @param loc The new locale to install (taken by value, moved into `m_locale`).
+     * @return The previous locale (moved out and handed back to the caller).
+     *
+     * @warning This setter is a write and must be serialized by the caller via `io_mutex()`.
+     *          The synchronization scope is **not** merely the `locale(loc)` call itself but the
+     *          **entire** duration of a formatted I/O operation (`operator>>`/`operator<<`/
+     *          `get`/`put`): the `locale()` getter returns a reference bound to `m_locale`, and
+     *          formatting holds that reference internally until the operation completes. If
+     *          another path re-imbues this stream (move-assigning `m_locale`) — or otherwise
+     *          mutates its state — while such an operation is in flight, the in-flight operation
+     *          reads a moved-from/replaced object: a data race and undefined behavior.
+     * @note This matches the `io_mutex()` contract of `flush()`/`write()`/`tie()` and is not
+     *       specific to locale: every getter returning a reference to internal state (e.g.
+     *       `device()`) carries the same requirement under concurrent mutation.
+     * @endif
+     */
     template <typename TSelf>
     IOv2::locale<TChar> locale(this TSelf& self, IOv2::locale<TChar> loc)
     {

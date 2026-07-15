@@ -159,7 +159,7 @@ void test_ostream_appmode_char_3()
 
     char ch = 0;
     str.get(ch);
-    VERIFY(static_cast<bool>(str));
+    VERIFY(!static_cast<bool>(str));
     VERIFY(ch == 0);
     VERIFY(str.eof());
     str.clear();
@@ -183,7 +183,7 @@ void test_ostream_appmode_char_sync_3()
 
     char ch = 0;
     IOv2::sync(str).stream.get(ch);
-    VERIFY(static_cast<bool>(IOv2::sync(str).stream));
+    VERIFY(!static_cast<bool>(IOv2::sync(str).stream));
     VERIFY(ch == 0);
     IOv2::sync(str).stream.clear();
 
