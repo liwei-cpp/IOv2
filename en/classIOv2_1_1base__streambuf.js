@@ -21,7 +21,7 @@ var classIOv2_1_1base__streambuf =
     [ "sbumpc", "classIOv2_1_1base__streambuf.html#ab0be8e004444f6364047b0212de00b49", null ],
     [ "seek", "classIOv2_1_1base__streambuf.html#ad89cbad13c7b26285e24a1dab5f9593e", null ],
     [ "sgetc", "classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82", null ],
-    [ "sgetn", "classIOv2_1_1base__streambuf.html#a3b48b861f848f1b2669b609844bb6a71", null ],
+    [ "sgetn", "classIOv2_1_1base__streambuf.html#a9c068814d77ae3d8fa187785a664c17a", null ],
     [ "snextc", "classIOv2_1_1base__streambuf.html#ab51d36672e716de55c432c9bf2d8edeb", null ],
     [ "sputbackc", "classIOv2_1_1base__streambuf.html#acd32efabb68ade612e9e8fe2c23eb75b", null ],
     [ "sputc", "classIOv2_1_1base__streambuf.html#a7d679aaad7532ca75fac0eb939fe3b9b", null ],

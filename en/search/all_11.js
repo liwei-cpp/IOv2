@@ -25,7 +25,7 @@ var searchData=
   ['setstate_22',['setstate',['../structIOv2_1_1io__state__and__exp.html#aaa7eef2ce9daaeb70093ea1b8362e460',1,'IOv2::io_state_and_exp']]],
   ['setw_23',['setw',['../namespaceIOv2.html#a5ea3dab8720430e1c4a6505ee483bd94',1,'IOv2']]],
   ['sgetc_24',['sgetc',['../classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82',1,'IOv2::base_streambuf']]],
-  ['sgetn_25',['sgetn',['../classIOv2_1_1base__streambuf.html#a3b48b861f848f1b2669b609844bb6a71',1,'IOv2::base_streambuf']]],
+  ['sgetn_25',['sgetn',['../classIOv2_1_1base__streambuf.html#a9c068814d77ae3d8fa187785a664c17a',1,'IOv2::base_streambuf']]],
   ['sha256_26',['SHA256',['../namespaceIOv2_1_1Crypt.html#ac448d23bf350eb1b1ca37a4b6e162d83ab505df5aa812b4f320420b8a952f20e5',1,'IOv2::Crypt']]],
   ['shared_5fptr_5fto_5fimpl_27',['shared_ptr_to_impl',['../structIOv2_1_1shared__ptr__to__impl.html',1,'IOv2']]],
   ['showbase_28',['showbase',['../group__ios__manipulators.html#ga0ee1d27c5ab91571b93c14c24a052bf4',1,'IOv2::showbase()'],['../namespaceIOv2_1_1ios__defs.html#a64a6d2acd31d7da34e27c8f7754d236c',1,'IOv2::ios_defs::showbase']]],

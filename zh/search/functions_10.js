@@ -18,7 +18,7 @@ var searchData=
   ['setstate_15',['setstate',['../structIOv2_1_1io__state__and__exp.html#aaa7eef2ce9daaeb70093ea1b8362e460',1,'IOv2::io_state_and_exp']]],
   ['setw_16',['setw',['../namespaceIOv2.html#a5ea3dab8720430e1c4a6505ee483bd94',1,'IOv2']]],
   ['sgetc_17',['sgetc',['../classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82',1,'IOv2::base_streambuf']]],
-  ['sgetn_18',['sgetn',['../classIOv2_1_1base__streambuf.html#a3b48b861f848f1b2669b609844bb6a71',1,'IOv2::base_streambuf']]],
+  ['sgetn_18',['sgetn',['../classIOv2_1_1base__streambuf.html#a9c068814d77ae3d8fa187785a664c17a',1,'IOv2::base_streambuf']]],
   ['showbase_19',['showbase',['../group__ios__manipulators.html#ga0ee1d27c5ab91571b93c14c24a052bf4',1,'IOv2']]],
   ['showpoint_20',['showpoint',['../group__ios__manipulators.html#gafe84b074431314e2d5c3d8cd14af4c75',1,'IOv2']]],
   ['showpos_21',['showpos',['../group__ios__manipulators.html#ga90614a49569201036e5a4ef39f360044',1,'IOv2']]],
