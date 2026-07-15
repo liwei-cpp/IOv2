@@ -333,6 +333,12 @@ struct io_state_and_exp
      *
      * @param ex 要处理的异常指针；若为空指针则不做任何事。
      * @note EOF 类别不保存异常指针（EOF 无需携带原始异常信息）。
+     * @warning **不支持对阻塞在本库 I/O 中的线程调用 `pthread_cancel`。** glibc 以抛出特殊异常
+     *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
+     *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
+     *          重新抛出，取消因而被吞掉，导致 `FATAL: exception not rethrown` 并 abort。线程取消
+     *          不属于 C++ 标准，也没有可移植的手段在 `catch(...)` 中将其识别出来。若需中断阻塞中
+     *          的 I/O，请改为关闭底层设备（使阻塞调用带错误返回），或使用超时 / 非阻塞 I/O。
      * @endif
      *
      * @lang{EN}
@@ -350,6 +356,16 @@ struct io_state_and_exp
      * @param ex The exception pointer to handle; does nothing if it is null.
      * @note The EOF category stores no exception pointer (EOF carries no original
      * exception information).
+     * @warning **Calling `pthread_cancel` on a thread blocked inside this library is not
+     *          supported.** glibc implements thread cancellation by throwing a special
+     *          exception (`__cxxabiv1::__forced_unwind`), which lands in this function's
+     *          final `catch(...)` and is categorized as `otherfailbit`; unless
+     *          `otherfailbit` is in the exception mask it is not rethrown, so the
+     *          cancellation is swallowed and the process aborts with
+     *          `FATAL: exception not rethrown`. Thread cancellation is not part of the C++
+     *          standard, and there is no portable way to recognize it inside a `catch(...)`.
+     *          To interrupt blocked I/O, close the underlying device instead (so the
+     *          blocking call returns with an error), or use timeouts / non-blocking I/O.
      * @endif
      */
     void handle_exception(const std::exception_ptr& ex)

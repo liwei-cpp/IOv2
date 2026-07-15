@@ -7,6 +7,8 @@
 #include <io/utilities/ostream_operators.h>
 #include <locale/locale.h>
 
+#include <concepts>
+#include <cstddef>
 #include <exception>
 #include <utility>
 

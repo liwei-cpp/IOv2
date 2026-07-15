@@ -104,7 +104,7 @@ private:
 
     ~__cout()
     {
-        flush();
+        try { flush(); } catch (...) {}
     }
 };
 
@@ -136,7 +136,7 @@ private:
 
     ~__cerr()
     {
-        flush();
+        try { flush(); } catch (...) {}
     }
 };
 
@@ -162,7 +162,7 @@ private:
 
     ~__clog()
     {
-        flush();
+        try { flush(); } catch (...) {}
     }
 };
 
@@ -190,7 +190,7 @@ private:
 
     ~__wcout()
     {
-        flush();
+        try { flush(); } catch (...) {}
     }
 };
 
@@ -221,7 +221,7 @@ private:
 
     ~__wcerr()
     {
-        flush();
+        try { flush(); } catch (...) {}
     }
 };
 
@@ -249,7 +249,7 @@ private:
 
     ~__wclog()
     {
-        flush();
+        try { flush(); } catch (...) {}
     }
 };
 
