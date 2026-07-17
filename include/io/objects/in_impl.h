@@ -20,10 +20,10 @@ template <typename T, io_device TDevice, typename TChar>
 class stdin_api : public ios_base<TChar>
                 , public io_state_and_exp
                 , public istream_operators<TChar>
-                , public stream_common_operators<TDevice, TChar>
+                , public stream_common_operators
 {
     friend istream_operators<TChar>;
-    friend stream_common_operators<TDevice, TChar>;
+    friend stream_common_operators;
 
 public:
     using device_type = TDevice;
@@ -92,8 +92,7 @@ public:
 
 protected:
     istreambuf<device_type, char_type>      m_streambuf;
-    abs_ostream*                            m_tie_stream = nullptr;
-    locale<char_type>                       m_locale;
+    IOv2::locale<char_type>                 m_locale;
     copyable_mutex                          m_io_mutex;
     bool m_sync_with_stdio = true;
 };

@@ -17,7 +17,7 @@ class iostream : public ios_base<TChar>
                , public io_state_and_exp
                , public istream_operators<TChar>
                , public ostream_operators<iostream<TDevice, TChar>, TChar>
-               , public stream_common_operators<TDevice, TChar>
+               , public stream_common_operators
 {
 public:
     using device_type = TDevice;
@@ -29,7 +29,7 @@ public:
     friend out_sentry_type;
     friend istream_operators<TChar>;
     friend ostream_operators<iostream<TDevice, TChar>, TChar>;
-    friend stream_common_operators<TDevice, TChar>;
+    friend stream_common_operators;
 
 public:
     iostream()
@@ -42,12 +42,12 @@ public:
     iostream(TDevice dev, const TCreator& creator)
         : m_streambuf(std::move(dev), creator) {}
 
-    iostream(TDevice dev, locale<char_type> loc)
+    iostream(TDevice dev, IOv2::locale<char_type> loc)
         : m_streambuf(std::move(dev))
         , m_locale(std::move(loc)) {}
 
     template <cvt_creator TCreator>
-    iostream(TDevice dev, const TCreator& creator, locale<char_type> loc)
+    iostream(TDevice dev, const TCreator& creator, IOv2::locale<char_type> loc)
         : m_streambuf(std::move(dev), creator)
         , m_locale(std::move(loc)) {}
 
@@ -80,8 +80,7 @@ public:
 
 private:
     streambuf<TDevice, TChar> m_streambuf;
-    abs_ostream* m_tie_stream = nullptr;
-    locale<char_type> m_locale;
+    IOv2::locale<char_type> m_locale;
     copyable_mutex    m_io_mutex;
 };
 

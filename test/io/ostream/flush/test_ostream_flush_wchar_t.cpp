@@ -40,21 +40,31 @@ void test_ostream_flush_wchar_t_1()
 
 void test_ostream_flush_wchar_t_2()
 {
-    dump_info("Test ostream<wchar_t>::flush case 2 (tie-cycle reentrancy)...");
+    dump_info("Test ostream<wchar_t>::flush case 2 (tie cycle rejected)...");
 
     auto helper = []<template<typename, typename> class T>()
     {
         T a(IOv2::mem_device{L""});
         T b(IOv2::mem_device{L""});
-        a.tie(&b);
-        b.tie(&a);
 
-        a.flush();
-        VERIFY(a.good());
-        VERIFY(b.good());
+        // A self-tie is the length-1 cycle and is rejected.
+        bool threw = false;
+        try { a.tie(&a); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(a.tie() == nullptr);
+
+        a.tie(&b);
+
+        // Closing the cycle a -> b -> a is rejected at set time; b stays untied.
+        threw = false;
+        try { b.tie(&a); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(b.tie() == nullptr);
+        VERIFY(a.tie() == &b);
 
         a.tie(nullptr);
-        b.tie(nullptr);
     };
 
     helper.operator()<IOv2::ostream>();
