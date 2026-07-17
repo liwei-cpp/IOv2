@@ -189,9 +189,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a4df3ab67d81dc523203502df00df3a62" id="r_a4df3ab67d81dc523203502df00df3a62"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#a4df3ab67d81dc523203502df00df3a62">exceptions</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423">ios_defs::iostate</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">e</a>)</td></tr>
 <tr class="memdesc:a4df3ab67d81dc523203502df00df3a62"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置异常掩码，指定哪些状态位应触发异常。  <br /></td></tr>
 <tr class="separator:a4df3ab67d81dc523203502df00df3a62"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aab8e998de9e2c0b5c49890001a52d13c" id="r_aab8e998de9e2c0b5c49890001a52d13c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#aab8e998de9e2c0b5c49890001a52d13c">handle_exception</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ex</a>)</td></tr>
-<tr class="memdesc:aab8e998de9e2c0b5c49890001a52d13c"><td class="mdescLeft">&#160;</td><td class="mdescRight">捕获并归类一个异常，将其转换为对应的失败状态位。  <br /></td></tr>
-<tr class="separator:aab8e998de9e2c0b5c49890001a52d13c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7c0554143e278de22e3e1763425dd66" id="r_af7c0554143e278de22e3e1763425dd66"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html#af7c0554143e278de22e3e1763425dd66">handle_exception</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ex</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">at_eof</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a>)</td></tr>
+<tr class="memdesc:af7c0554143e278de22e3e1763425dd66"><td class="mdescLeft">&#160;</td><td class="mdescRight">捕获并归类一个异常，将其转换为对应的失败状态位。  <br /></td></tr>
+<tr class="separator:af7c0554143e278de22e3e1763425dd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>管理流状态位及其关联异常的组件。 </p>
@@ -387,8 +387,8 @@ Public 成员函数</h2></td></tr>
 
 </div>
 </div>
-<a id="aab8e998de9e2c0b5c49890001a52d13c" name="aab8e998de9e2c0b5c49890001a52d13c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab8e998de9e2c0b5c49890001a52d13c">&#9670;&#160;</a></span>handle_exception()</h2>
+<a id="af7c0554143e278de22e3e1763425dd66" name="af7c0554143e278de22e3e1763425dd66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7c0554143e278de22e3e1763425dd66">&#9670;&#160;</a></span>handle_exception()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -400,8 +400,18 @@ Public 成员函数</h2></td></tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::io_state_and_exp::handle_exception </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::exception_ptr &amp;&#160;</td>
-          <td class="paramname"><em>ex</em></td><td>)</td>
+          <td class="paramname"><em>ex</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td>
+          <td class="paramname"><em>at_eof</em> = <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>

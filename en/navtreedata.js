@@ -66,7 +66,7 @@ var NAVTREEINDEX =
 "classIOv2_1_1base__ft.html#a94c144a978f0b828c99921a8f04d3903",
 "classIOv2_1_1code__cvt__stdio__creator.html#acf00e9042d26ca87e87ea7385b37e18c",
 "classIOv2_1_1cvt__reader_3_01KernelType_01_4.html#a8840905c5c8cfb7a9b5fde540ce59113",
-"classIOv2_1_1istreambuf__iterator.html#a024dc02793bce8bcf1ed18235bff760c",
+"classIOv2_1_1istreambuf__iterator.html#a32f6aeb2759cd29e8fd4fdfbdb3596aa",
 "classIOv2_1_1monetary__conf_3_01CharT_01_4.html#a5c3f58e125393fc0851c7d6a6e8802d3",
 "classIOv2_1_1root__cvt.html#a29b90923074039a6a1f701c1a378c6bd",
 "classIOv2_1_1stdin__api.html#a95eeba186ce964df753681f61ead7b18",

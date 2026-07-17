@@ -5,7 +5,7 @@ var classIOv2_1_1istreambuf__iterator =
     [ "value_type", "classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265", null ],
     [ "istreambuf_iterator", "classIOv2_1_1istreambuf__iterator.html#ac4fd1658bb250fe4e0f29b223ba76909", null ],
     [ "istreambuf_iterator", "classIOv2_1_1istreambuf__iterator.html#a8a6c1b0bf4bafdc0706dd6fa7182b6b5", null ],
-    [ "istreambuf_iterator", "classIOv2_1_1istreambuf__iterator.html#a01115ae856bd4f9e98a48d24b7dda98d", null ],
+    [ "istreambuf_iterator", "classIOv2_1_1istreambuf__iterator.html#aa8ad4cde6b76a66ca49cd5b4f0050fe6", null ],
     [ "operator*", "classIOv2_1_1istreambuf__iterator.html#a024dc02793bce8bcf1ed18235bff760c", null ],
     [ "operator++", "classIOv2_1_1istreambuf__iterator.html#a32f6aeb2759cd29e8fd4fdfbdb3596aa", null ],
     [ "operator++", "classIOv2_1_1istreambuf__iterator.html#a8295fb231e1fc6c8fc4c5a4ebfb6ec21", null ],

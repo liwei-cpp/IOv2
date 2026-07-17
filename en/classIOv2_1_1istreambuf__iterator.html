@@ -127,9 +127,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8a6c1b0bf4bafdc0706dd6fa7182b6b5" id="r_a8a6c1b0bf4bafdc0706dd6fa7182b6b5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istreambuf__iterator.html#a8a6c1b0bf4bafdc0706dd6fa7182b6b5">istreambuf_iterator</a> (std::default_sentinel_t) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="memdesc:a8a6c1b0bf4bafdc0706dd6fa7182b6b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs an end iterator from <code>std::default_sentinel_t</code>.  <br /></td></tr>
 <tr class="separator:a8a6c1b0bf4bafdc0706dd6fa7182b6b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01115ae856bd4f9e98a48d24b7dda98d" id="r_a01115ae856bd4f9e98a48d24b7dda98d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istreambuf__iterator.html#a01115ae856bd4f9e98a48d24b7dda98d">istreambuf_iterator</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>)</td></tr>
-<tr class="memdesc:a01115ae856bd4f9e98a48d24b7dda98d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds to a stream buffer, constructing a readable begin iterator.  <br /></td></tr>
-<tr class="separator:a01115ae856bd4f9e98a48d24b7dda98d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8ad4cde6b76a66ca49cd5b4f0050fe6" id="r_aa8ad4cde6b76a66ca49cd5b4f0050fe6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istreambuf__iterator.html#aa8ad4cde6b76a66ca49cd5b4f0050fe6">istreambuf_iterator</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">p_streambuf</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">saw_eof</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a>)</td></tr>
+<tr class="memdesc:aa8ad4cde6b76a66ca49cd5b4f0050fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binds to a stream buffer, constructing a readable begin iterator; optionally attaches an "observed end of input" report flag.  <br /></td></tr>
+<tr class="separator:aa8ad4cde6b76a66ca49cd5b4f0050fe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a024dc02793bce8bcf1ed18235bff760c" id="r_a024dc02793bce8bcf1ed18235bff760c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1istreambuf__iterator.html#a621d6baf22049b4ca79a8da61da03265">value_type</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istreambuf__iterator.html#a024dc02793bce8bcf1ed18235bff760c">operator*</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:a024dc02793bce8bcf1ed18235bff760c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dereferences, returning the current character (without advancing).  <br /></td></tr>
 <tr class="separator:a024dc02793bce8bcf1ed18235bff760c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -260,8 +260,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
-<a id="a01115ae856bd4f9e98a48d24b7dda98d" name="a01115ae856bd4f9e98a48d24b7dda98d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01115ae856bd4f9e98a48d24b7dda98d">&#9670;&#160;</a></span>istreambuf_iterator() <span class="overload">[3/3]</span></h2>
+<a id="aa8ad4cde6b76a66ca49cd5b4f0050fe6" name="aa8ad4cde6b76a66ca49cd5b4f0050fe6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8ad4cde6b76a66ca49cd5b4f0050fe6">&#9670;&#160;</a></span>istreambuf_iterator() <span class="overload">[3/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -275,8 +275,18 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
           <td class="memname"><a class="el" href="classIOv2_1_1istreambuf__iterator.html">IOv2::istreambuf_iterator</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a> &gt;::istreambuf_iterator </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStreamBuf</a> &amp;&#160;</td>
-          <td class="paramname"><em>p_streambuf</em></td><td>)</td>
+          <td class="paramname"><em>p_streambuf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> *&#160;</td>
+          <td class="paramname"><em>saw_eof</em> = <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a></code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -286,7 +296,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
-<p>Binds to a stream buffer, constructing a readable begin iterator. </p>
+<p>Binds to a stream buffer, constructing a readable begin iterator; optionally attaches an "observed end of input" report flag. </p>
 
 </div>
 </div>
