@@ -13,8 +13,7 @@ var classIOv2_1_1stdin__api =
     [ "sync_with_stdio", "classIOv2_1_1stdin__api.html#aa2d13f0d1709df344da50515b537b112", null ],
     [ "in_sentry_type", "classIOv2_1_1stdin__api.html#adadf027fe2fc78c280062ceef9d3c4fe", null ],
     [ "m_io_mutex", "classIOv2_1_1stdin__api.html#ab915cf91edea8492399ddcbec02cc89c", null ],
-    [ "m_locale", "classIOv2_1_1stdin__api.html#abbfb08443f771b2271b022680c88a5ff", null ],
+    [ "m_locale", "classIOv2_1_1stdin__api.html#a726d9fefc705b8c229d7a21083f6eb31", null ],
     [ "m_streambuf", "classIOv2_1_1stdin__api.html#a0be7f010cd970e29345819241016c541", null ],
-    [ "m_sync_with_stdio", "classIOv2_1_1stdin__api.html#a95eeba186ce964df753681f61ead7b18", null ],
-    [ "m_tie_stream", "classIOv2_1_1stdin__api.html#ab8a4648346386c52aadc265c5be659a6", null ]
+    [ "m_sync_with_stdio", "classIOv2_1_1stdin__api.html#a95eeba186ce964df753681f61ead7b18", null ]
 ];

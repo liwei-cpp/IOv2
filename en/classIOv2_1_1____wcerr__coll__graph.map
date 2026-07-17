@@ -1,26 +1,25 @@
 <map id="IOv2::__wcerr" name="IOv2::__wcerr">
-<area shape="rect" id="Node000001" title="wcerr" alt="" coords="840,276,951,301"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="559,205,791,260"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="796,261,845,273,844,278,795,266"/>
+<area shape="rect" id="Node000001" title="wcerr" alt="" coords="840,232,951,257"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="559,161,791,216"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="796,217,845,229,844,234,795,222"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="230,5,414,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="428,27,483,42,536,66,576,97,611,134,660,203,655,206,607,137,572,101,533,71,482,47,427,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="396,32,420,40,482,66,541,98,637,159,634,163,538,103,479,71,418,44,395,37"/>
 <area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="235,55,409,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="423,68,480,78,536,98,572,121,605,148,655,203,651,207,601,152,569,125,534,103,479,84,422,73"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="231,167,413,207"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="428,198,559,215,558,220,427,203"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="19,124,163,149"/>
-<area shape="poly" id="edge9_Node000002_Node000006" title=" " alt="" coords="177,133,292,138,419,153,514,175,601,203,599,208,513,180,418,158,292,143,177,139"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="164,150,231,165,230,170,163,155"/>
-<area shape="rect" id="Node000007" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="237,232,407,287"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="421,249,558,239,558,244,421,255"/>
-<area shape="rect" id="Node000008" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="225,311,419,351"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="407,305,576,257,577,263,409,310"/>
-<area shape="rect" id="Node000009" href="$classIOv2_1_1base__streambuf.html" title="Common implementation base class for stream buffers." alt="" coords="5,304,176,359"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="190,329,225,329,225,334,190,334"/>
-<area shape="rect" id="Node000010" href="$classIOv2_1_1locale.html" title=" " alt="" coords="251,375,393,415"/>
-<area shape="poly" id="edge10_Node000002_Node000010" title=" " alt="" coords="397,368,418,361,480,344,505,334,533,315,541,304,544,294,548,282,557,271,575,258,578,262,560,275,552,285,549,295,545,307,537,319,508,339,481,349,419,366,399,373"/>
-<area shape="rect" id="Node000011" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="238,440,406,465"/>
-<area shape="poly" id="edge11_Node000002_Node000011" title=" " alt="" coords="390,434,418,425,482,407,507,396,533,372,540,360,544,348,543,323,543,298,548,284,557,271,571,258,575,262,561,274,552,287,549,298,549,323,549,348,545,362,537,376,510,400,484,412,419,430,392,439"/>
-<area shape="rect" id="Node000012" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="599,285,750,325"/>
-<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="764,296,840,290,840,295,764,301"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,81,419,90,519,125,607,159,605,164,517,130,418,95,387,86"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="231,105,413,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="427,141,559,165,558,170,426,146"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="19,112,163,137"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="177,122,231,122,231,127,177,127"/>
+<area shape="rect" id="Node000007" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="237,169,407,209"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="421,186,558,186,558,191,421,191"/>
+<area shape="rect" id="Node000008" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="225,233,419,273"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="432,230,558,207,559,212,433,235"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1base__streambuf.html" title="Common implementation base class for stream buffers." alt="" coords="5,225,176,280"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="190,250,225,250,225,255,190,255"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1locale.html" title=" " alt="" coords="251,297,393,337"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="406,298,470,278,533,249,545,238,557,226,582,214,584,219,560,231,549,242,536,254,472,283,408,303"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="238,361,406,387"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="386,355,418,346,453,339,481,335,507,327,533,307,543,288,544,269,545,248,557,227,572,214,575,218,561,230,550,249,549,269,548,289,537,310,509,332,483,340,454,344,419,351,388,360"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="599,241,750,281"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="764,252,840,246,840,251,764,257"/>
 </map>

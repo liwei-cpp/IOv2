@@ -1,9 +1,5 @@
 var NAVTREEINDEX9 =
 {
-"io__manip_8h.html#a2d9efb4d2077d2b67b5cbc3c900b5e97":[4,0,0,4,5,31],
-"io__manip_8h.html#a4368eaa155cb63f3319fc38c14c08c00":[4,0,0,4,5,20],
-"io__manip_8h.html#a5ea3dab8720430e1c4a6505ee483bd94":[4,0,0,4,5,35],
-"io__manip_8h.html#a6819f7aa721ade8de2056409b0d83bcf":[4,0,0,4,5,17],
 "io__manip_8h.html#a8d1581c1571866c2d453d5c7cff01c45":[4,0,0,4,5,26],
 "io__manip_8h.html#a907d98611f6b75d3b9e2b2b1cb534d8b":[4,0,0,4,5,33],
 "io__manip_8h.html#a949e785951c135fb5ec1974003ae2677":[4,0,0,4,5,34],
@@ -249,5 +245,9 @@ var NAVTREEINDEX9 =
 "namespacemembers.html":[1,1,0],
 "namespacemembers_enum.html":[1,1,4],
 "namespacemembers_func.html":[1,1,1],
-"namespacemembers_type.html":[1,1,3]
+"namespacemembers_type.html":[1,1,3],
+"namespacemembers_vars.html":[1,1,2],
+"namespaces.html":[1,0],
+"namespacestd.html":[1,0,1],
+"nullptr_8h.html":[4,0,0,4,0,3]
 };

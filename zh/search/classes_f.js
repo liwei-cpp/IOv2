@@ -26,13 +26,7 @@ var searchData=
   ['stdout_5fapi_3c_20_5f_5fwclog_2c_20std_5fdevice_3c_20stderr_5ffileno_20_3e_2c_20wchar_5ft_20_3e_23',['stdout_api&lt; __wclog, std_device&lt; STDERR_FILENO &gt;, wchar_t &gt;',['../classIOv2_1_1stdout__api.html',1,'IOv2']]],
   ['stdout_5fapi_3c_20_5f_5fwcout_2c_20std_5fdevice_3c_20stdout_5ffileno_20_3e_2c_20wchar_5ft_20_3e_24',['stdout_api&lt; __wcout, std_device&lt; STDOUT_FILENO &gt;, wchar_t &gt;',['../classIOv2_1_1stdout__api.html',1,'IOv2']]],
   ['stream_5fcommon_5foperators_25',['stream_common_operators',['../structIOv2_1_1stream__common__operators.html',1,'IOv2']]],
-  ['stream_5fcommon_5foperators_3c_20std_5fdevice_3c_20stderr_5ffileno_20_3e_2c_20char_20_3e_26',['stream_common_operators&lt; std_device&lt; STDERR_FILENO &gt;, char &gt;',['../structIOv2_1_1stream__common__operators.html',1,'IOv2']]],
-  ['stream_5fcommon_5foperators_3c_20std_5fdevice_3c_20stderr_5ffileno_20_3e_2c_20wchar_5ft_20_3e_27',['stream_common_operators&lt; std_device&lt; STDERR_FILENO &gt;, wchar_t &gt;',['../structIOv2_1_1stream__common__operators.html',1,'IOv2']]],
-  ['stream_5fcommon_5foperators_3c_20std_5fdevice_3c_20stdout_5ffileno_20_3e_2c_20char_20_3e_28',['stream_common_operators&lt; std_device&lt; STDOUT_FILENO &gt;, char &gt;',['../structIOv2_1_1stream__common__operators.html',1,'IOv2']]],
-  ['stream_5fcommon_5foperators_3c_20std_5fdevice_3c_20stdout_5ffileno_20_3e_2c_20wchar_5ft_20_3e_29',['stream_common_operators&lt; std_device&lt; STDOUT_FILENO &gt;, wchar_t &gt;',['../structIOv2_1_1stream__common__operators.html',1,'IOv2']]],
-  ['stream_5fcommon_5foperators_3c_20tdevice_2c_20char_20_3e_30',['stream_common_operators&lt; TDevice, char &gt;',['../structIOv2_1_1stream__common__operators.html',1,'IOv2']]],
-  ['stream_5fcommon_5foperators_3c_20tdevice_2c_20wchar_5ft_20_3e_31',['stream_common_operators&lt; TDevice, wchar_t &gt;',['../structIOv2_1_1stream__common__operators.html',1,'IOv2']]],
-  ['stream_5ferror_32',['stream_error',['../structIOv2_1_1stream__error.html',1,'IOv2']]],
-  ['streambuf_33',['streambuf',['../structIOv2_1_1streambuf.html',1,'IOv2']]],
-  ['sync_34',['sync',['../structIOv2_1_1sync.html',1,'IOv2']]]
+  ['stream_5ferror_26',['stream_error',['../structIOv2_1_1stream__error.html',1,'IOv2']]],
+  ['streambuf_27',['streambuf',['../structIOv2_1_1streambuf.html',1,'IOv2']]],
+  ['sync_28',['sync',['../structIOv2_1_1sync.html',1,'IOv2']]]
 ];
