@@ -31,8 +31,8 @@ struct in_sentry
         if constexpr (involve_output)
             is.m_streambuf.switch_to_get();
 
-        if (is.tie())
-            is.tie()->flush();
+        if (auto* tied = is.tie())
+            tied->flush();
 
         if (!noskip)
             is.ignore_ws();
