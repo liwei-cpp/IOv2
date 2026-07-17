@@ -14,16 +14,22 @@
 #include <cstddef>
 #include <exception>
 #include <functional>
+#include <mutex>
 #include <type_traits>
+#include <utility>
 
 namespace IOv2
 {
 template <typename TStream, bool involve_input, bool is_std = false>
 struct out_sentry
 {
+    using lock_type =
+        std::unique_lock<std::remove_reference_t<decltype(std::declval<TStream&>().io_mutex())>>;
+
 public:
     out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode)
         : m_os(os)
+        , m_lock(m_os.io_mutex())
         , m_is_unit_buf(is_unit_buf)
     {
         if (!static_cast<bool>(m_os))
@@ -130,6 +136,7 @@ public:
 
 private:
     TStream&    m_os;
+    lock_type   m_lock;
     bool        m_is_unit_buf;
     bool        m_sync_with_stdio = false;
 };

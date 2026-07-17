@@ -93,7 +93,7 @@ public:
 protected:
     istreambuf<device_type, char_type>      m_streambuf;
     IOv2::locale<char_type>                 m_locale;
-    copyable_mutex                          m_io_mutex;
+    copyable_mutex<std::recursive_mutex>    m_io_mutex;
     bool m_sync_with_stdio = true;
 };
 

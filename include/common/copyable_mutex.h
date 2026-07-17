@@ -21,7 +21,7 @@ namespace IOv2
  *
  * `std::mutex` 既不可拷贝也不可移动，任何把它作为成员的类型都会因此丢失编译器
  * 合成的拷贝/移动构造函数。本包装把这一层挡掉：它自身可拷贝、可移动，但**不搬运
- * 锁状态**——拷贝或移动只是持有一把全新的、未加锁的 `std::mutex`。
+ * 锁状态**——拷贝或移动只是持有一把全新的、未加锁的底层互斥量。
  *
  * 于是含有它的流类型，其可拷贝/可移动性重新由**其余成员**（如底层 streambuf、
  * cvt、device）决定，无需手写任何拷贝/移动逻辑。
@@ -29,7 +29,11 @@ namespace IOv2
  * 语义上这也是正确的：互斥量保护的是“对象自身的临界区”，而非需要被复制的值；
  * 一个副本是独立的对象，理应拥有自己独立的锁。
  *
- * 满足 `BasicLockable` 与 `Lockable`，可直接用于 `std::lock_guard`、`std::scoped_lock` 等。
+ * 底层互斥量的**形态**由模板参数 `TMutex` 决定：默认 `std::mutex`（普通形态）；
+ * 传 `std::recursive_mutex` 即得到可重入形态——例如 sentry 在已被 `sync` 持有的
+ * `io_mutex()` 上再次加锁时必须用递归形态，否则同一线程自锁死锁。只要 `TMutex`
+ * 满足 `BasicLockable`/`Lockable`，本包装即照样满足，可直接用于 `std::lock_guard`、
+ * `std::unique_lock`、`std::scoped_lock` 等。
  *
  * @warning 拷贝/移动时**不会**转移锁的持有状态。请勿在锁被持有期间拷贝或移动
  *          外层对象——那本身就是对该对象的数据竞争。
@@ -41,7 +45,7 @@ namespace IOv2
  * `std::mutex` is neither copyable nor movable, so any type holding one as a member
  * loses its compiler-generated copy/move constructors. This wrapper absorbs that:
  * it is itself copyable and movable, but it does **not** carry lock state -- a copy
- * or move simply holds a fresh, unlocked `std::mutex`.
+ * or move simply holds a fresh, unlocked underlying mutex.
  *
  * As a result, an enclosing stream type's copyability/movability is decided again by
  * its **other** members (e.g. the underlying streambuf / cvt / device), with no
@@ -51,14 +55,20 @@ namespace IOv2
  * section", not a value that needs copying; a copy is a distinct object and should
  * own a distinct lock.
  *
- * Models `BasicLockable` and `Lockable`, so it drops directly into `std::lock_guard`,
- * `std::scoped_lock`, etc.
+ * The **flavor** of the underlying mutex is selected by the template parameter
+ * `TMutex`: it defaults to `std::mutex` (the plain flavor); passing
+ * `std::recursive_mutex` yields a reentrant flavor -- required, for instance, when a
+ * sentry re-locks an `io_mutex()` that a `sync` already holds, since a non-recursive
+ * mutex would self-deadlock the same thread. As long as `TMutex` models
+ * `BasicLockable`/`Lockable`, so does this wrapper, so it drops directly into
+ * `std::lock_guard`, `std::unique_lock`, `std::scoped_lock`, etc.
  *
  * @warning Copy/move does **not** transfer lock ownership. Do not copy or move the
  *          enclosing object while the lock is held -- that is itself a data race on
  *          the object.
  * @endif
  */
+template <typename TMutex = std::mutex>
 class copyable_mutex
 {
 public:
@@ -77,6 +87,6 @@ public:
     bool try_lock() { return m_mutex.try_lock(); }
 
 private:
-    std::mutex m_mutex;
+    TMutex m_mutex;
 };
 }
