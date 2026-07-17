@@ -35,7 +35,7 @@ public:
         if constexpr (involve_input)
             os.m_streambuf.switch_to_put();
 
-        if (m_os.tie()) m_os.tie()->flush();
+        if (auto* tied = m_os.tie()) tied->flush();
 
         if constexpr (!is_std)
         {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/defs.h"
+#include <common/copyable_atomic.h>
 #include <common/copyable_mutex.h>
 #include <cvt/cvt_concepts.h>
 #include <io/io_base.h>
@@ -231,7 +232,7 @@ struct stream_common_operators
     template <typename TSelf>
     abs_ostream* tie(this TSelf& self, abs_ostream* str)
     {
-        auto res = self.m_tie_stream;
+        auto res = self.m_tie_stream.load();
         if constexpr (std::derived_from<TSelf, abs_ostream>)
         {
             abs_ostream* ptr = str;
@@ -246,17 +247,17 @@ struct stream_common_operators
                 ptr = node->tie();
             }
         }
-        self.m_tie_stream = str;
+        self.m_tie_stream.store(str);
         return res;
     }
 
     template <typename TSelf>
     abs_ostream* tie(this const TSelf& self)
     {
-        return self.m_tie_stream;
+        return self.m_tie_stream.load();
     }
 
 private:
-    abs_ostream* m_tie_stream = nullptr;
+    copyable_atomic<abs_ostream*> m_tie_stream{nullptr};
 };
 }
