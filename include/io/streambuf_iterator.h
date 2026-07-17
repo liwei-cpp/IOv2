@@ -135,17 +135,37 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 绑定到一个流缓冲区，构造一个可读的起始迭代器。
+     * @brief 绑定到一个流缓冲区，构造一个可读的起始迭代器；可选地附加一个“已观察到输入
+     *        结束”的报告位。
+     *
+     * 若提供了 `saw_eof`，迭代器在**任何**观察到输入结束的时刻（`operator*` 取不到字符、
+     * 或判等时 `is_eof()` 为真）把它置为 true。所有副本共享同一个报告位，因此该信息既能
+     * 穿过按值传参（如 `reader::sread`），也能在读取过程抛出异常时存活——它位于调用方的
+     * 栈帧上，不随迭代器副本销毁。
+     *
      * @param p_streambuf 要绑定的流缓冲区。
+     * @param saw_eof 可选的报告位；`nullptr` 表示不上报。
+     * @warning 迭代器持有 `saw_eof` 的地址。**不得**让迭代器逃出 `saw_eof` 的生存期。
      * @endif
      *
      * @lang{EN}
-     * @brief Binds to a stream buffer, constructing a readable begin iterator.
+     * @brief Binds to a stream buffer, constructing a readable begin iterator; optionally
+     *        attaches an "observed end of input" report flag.
+     *
+     * When `saw_eof` is supplied, the iterator sets it to true at **any** point where it
+     * observes end of input (`operator*` cannot fetch a character, or `is_eof()` is true
+     * during comparison). All copies share the same flag, so the information survives both
+     * by-value passing (e.g. `reader::sread`) and an exception thrown mid-read -- it lives
+     * in the caller's frame, not in any iterator copy.
+     *
      * @param p_streambuf The stream buffer to bind to.
+     * @param saw_eof Optional report flag; `nullptr` means do not report.
+     * @warning The iterator holds the address of `saw_eof`. Do **not** let the iterator
+     *          outlive `saw_eof`.
      * @endif
      */
-    istreambuf_iterator(TStreamBuf& p_streambuf)
-        : m_streambuf(&p_streambuf) {}
+    istreambuf_iterator(TStreamBuf& p_streambuf, bool* saw_eof = nullptr)
+        : m_streambuf(&p_streambuf), m_saw_eof(saw_eof) {}
 
 public:
     /**
@@ -174,7 +194,11 @@ public:
         if (m_streambuf && (!res.has_value()))
         {
             res = m_streambuf->sgetc();
-            if (!res.has_value()) m_streambuf = nullptr;
+            if (!res.has_value())
+            {
+                m_streambuf = nullptr;
+                if (m_saw_eof) *m_saw_eof = true;
+            }
         }
         if (!res.has_value()) throw eof_error{};
         return res.value();
@@ -330,12 +354,18 @@ private:
     {
         if (it.m_c.has_value()) return false;
         if (it.m_streambuf == nullptr) return true;
-        return it.m_streambuf->is_eof();
+        if (it.m_streambuf->is_eof())
+        {
+            if (it.m_saw_eof) *it.m_saw_eof = true;
+            return true;
+        }
+        return false;
     }
 
 private:
     mutable TStreamBuf* m_streambuf;    ///< @lang{ZH} 绑定的流缓冲区；nullptr 表示末尾迭代器。 @endif @lang{EN} The bound stream buffer; nullptr denotes an end iterator. @endif
     std::optional<value_type> m_c;      ///< @lang{ZH} 前瞻缓存的字符（若有）。 @endif @lang{EN} The look-ahead cached character (if any). @endif
+    bool* m_saw_eof = nullptr;          ///< @lang{ZH} 可选的"已观察到输入结束"报告位；由所有副本共享，位于调用方栈帧。 @endif @lang{EN} Optional "observed end of input" report flag; shared by all copies, living in the caller's frame. @endif
 };
 
 /**

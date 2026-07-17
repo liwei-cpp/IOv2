@@ -358,7 +358,7 @@ void test_istream_extractors_character_char_7()
     
         T in(IOv2::mem_device{s});
         in >> buf;
-        VERIFY(in.eof());
+        VERIFY(in.good());
         VERIFY(buf[4] == '\0');
         VERIFY(std::string(buf) == "four");
 
@@ -368,7 +368,7 @@ void test_istream_extractors_character_char_7()
             buf[i] = 'x';
         in.width(5);
         in >> buf;
-        VERIFY(in.eof());
+        VERIFY(in.good());
         VERIFY(std::string(buf) == "four");
     };
 

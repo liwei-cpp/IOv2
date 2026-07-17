@@ -41,59 +41,7 @@ struct in_sentry
             throw stream_error("istream_sentry create fail: Invalid istream");
     }
 
-    /**
-     * @lang{ZH}
-     * @brief 析构时检测输入是否到达 EOF，并按异常掩码决定是否上报。
-     *
-     * 若析构时当前线程没有任何异常正在展开（以 `std::uncaught_exceptions() == 0` 判定）——
-     * 则允许 `handle_exception(eof_error)` 在 `eofbit` 位于异常掩码时抛出；该异常会被发起
-     * 本次 I/O 的操作自身的 try/catch 接住，并按掩码传播给调用者。`eofbit` 未入掩码时（默认）
-     * `handle_exception` 只置位不抛，因此常见的 EOF 路径不产生任何异常开销。
-     *
-     * 反之，只要析构时已有任何异常正在展开（无论其是否早于本哨兵构造即已在飞），则仅更新
-     * `eofbit` 状态而**绝不抛出**，以免在栈展开期间抛异常导致 `std::terminate`；此分支保持
-     * 与旧实现一致的“置位并吞掉”行为。
-     *
-     * 为使正常退出分支的通知得以传播，本析构声明为 `noexcept(false)`。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief On destruction, detects whether input reached EOF and decides whether to report
-     * it according to the exception mask.
-     *
-     * If no exception is currently propagating on this thread when the sentry is destroyed —
-     * determined by `std::uncaught_exceptions() == 0` — then `handle_exception(eof_error)` is
-     * allowed to throw when `eofbit` is in the exception mask; that exception is caught by the
-     * originating I/O operation's own try/catch and propagated to the caller per the mask.
-     * When `eofbit` is not in the mask (the default) `handle_exception` only sets the bit and
-     * does not throw, so the common EOF path incurs no exception overhead.
-     *
-     * If instead any exception is already unwinding when the sentry is destroyed — including
-     * one that was already in flight before this sentry was constructed — it only updates the
-     * `eofbit` state and **never throws**, so as not to throw during stack unwinding and
-     * trigger `std::terminate`; this branch preserves the prior "set-the-bit-and-swallow"
-     * behavior.
-     *
-     * To let the normal-exit notification propagate, this destructor is declared
-     * `noexcept(false)`.
-     * @endif
-     */
-    ~in_sentry() noexcept(false)
-    {
-        if (std::uncaught_exceptions() != 0)
-        {
-            try
-            {
-                if (m_is.m_streambuf.is_eof())
-                    m_is.handle_exception(std::make_exception_ptr(eof_error{}));
-            }
-            catch (...) {} // NOLINT(bugprone-empty-catch)
-            return;
-        }
-
-        if (m_is.m_streambuf.is_eof())
-            m_is.handle_exception(std::make_exception_ptr(eof_error{}));
-    }
+    ~in_sentry() = default;
 
     in_sentry(const in_sentry&) = delete;
     in_sentry& operator=(const in_sentry&) = delete;
@@ -129,17 +77,21 @@ struct istream_operators
     std::optional<TChar> get(this TSelf& self)
     {
         std::optional<TChar> c;
+        bool at_eof = false;
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
             c = self.m_streambuf.sbumpc();
             if (!c.has_value())
+            {
+                at_eof = true;
                 throw stream_error{"istream get fail: no character extracted"};
+            }
         }
         catch(...)
         {
-            self.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception(), at_eof);
         }
         return c;
     }
@@ -147,17 +99,22 @@ struct istream_operators
     template <typename TSelf>
     TSelf& get(this TSelf& self, TChar& c)
     {
+        bool at_eof = false;
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
             auto tmp = self.m_streambuf.sbumpc();
             if (tmp.has_value()) c = tmp.value();
-            else throw stream_error{"istream get fail: no character extracted"};
+            else
+            {
+                at_eof = true;
+                throw stream_error{"istream get fail: no character extracted"};
+            }
         }
         catch(...)
         {
-            self.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception(), at_eof);
         }
 
         return self;
@@ -172,6 +129,7 @@ struct istream_operators
         constexpr bool is_cstr = std::is_same_v<CStrPolicy, app_zt>;
 
         size_t gcount = 0;
+        bool at_eof = false;
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
@@ -185,6 +143,8 @@ struct istream_operators
                 ++gcount;
                 c = self.m_streambuf.snextc();
             }
+
+            at_eof = (gcount + is_cstr < n) && (!c.has_value());
 
             if constexpr (std::is_same_v<DelimPolicy, cons_sep>)
             {
@@ -202,12 +162,15 @@ struct istream_operators
 
             if (gcount == 0)
                 throw stream_error{"No character being extracted"};
+
+            if (at_eof)
+                self.setstate(ios_defs::eofbit);
         }
         catch(...)
         {
             if constexpr (is_cstr)
                 *s++ = TChar{};
-            self.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception(), at_eof);
             return s;
         }
 
@@ -249,6 +212,7 @@ struct istream_operators
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
             c = self.m_streambuf.sgetc();
+            if (!c.has_value()) throw eof_error{};
         }
         catch(...)
         {
@@ -261,17 +225,21 @@ struct istream_operators
     TChar* read(this TSelf& self, TChar* s, size_t n)
     {
         size_t gcount = 0;
+        bool at_eof = false;
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
             self.m_streambuf.sgetn(s, n, &gcount);
             if (gcount != n)
+            {
+                at_eof = true;
                 throw stream_error{"cannot read enough characters"};
+            }
         }
         catch(...)
         {
-            self.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception(), at_eof);
         }
         return s + gcount;
     }
@@ -305,17 +273,28 @@ struct istream_operators
     template <typename TSelf>
     TSelf& ignore(this TSelf& self, size_t n = 1)
     {
+        bool at_eof = false;
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
 
-            for (size_t gcount = 0; gcount < n && !self.m_streambuf.is_eof(); ++gcount)
+            for (size_t gcount = 0; gcount < n; ++gcount)
+            {
+                if (self.m_streambuf.is_eof())
+                {
+                    at_eof = true;
+                    break;
+                }
                 self.m_streambuf.sbumpc();
+            }
+
+            if (at_eof)
+                self.setstate(ios_defs::eofbit);
         }
         catch(...)
         {
-            self.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception(), at_eof);
         }
 
         return self;
@@ -325,6 +304,7 @@ struct istream_operators
     TSelf& ignore(this TSelf& self, size_t n, TChar delim)
     {
         size_t gcount = 0;
+        bool at_eof = false;
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
@@ -340,6 +320,8 @@ struct istream_operators
                 c = self.m_streambuf.snextc();
             }
 
+            at_eof = (gcount < n) && (!c.has_value());
+
             if (gcount < n)
             {
                 if (c.has_value())
@@ -348,10 +330,13 @@ struct istream_operators
                     self.m_streambuf.sbumpc();
                 }
             }
+
+            if (at_eof)
+                self.setstate(ios_defs::eofbit);
         }
         catch(...)
         {
-            self.handle_exception(std::current_exception());
+            self.handle_exception(std::current_exception(), at_eof);
         }
 
         return self;
@@ -376,10 +361,22 @@ struct istream_operators
         return self;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 取输入迭代器；可选地附加一个“已观察到输入结束”的报告位。
+     * @param saw_eof 可选的报告位；生存期必须覆盖迭代器及其所有副本，`nullptr` 表示不
+     *                上报。详见 istreambuf_iterator。
+     * @endif
+     * @lang{EN}
+     * @brief Gets an input iterator; optionally attaches an "observed end of input" flag.
+     * @param saw_eof Optional report flag; its lifetime must cover the iterator and all
+     *                copies, `nullptr` means do not report. See istreambuf_iterator.
+     * @endif
+     */
     template <typename TSelf>
-    auto i_iter(this TSelf& self)
+    auto i_iter(this TSelf& self, bool* saw_eof = nullptr)
     {
-        return istreambuf_iterator(self.m_streambuf);
+        return istreambuf_iterator(self.m_streambuf, saw_eof);
     }
 };
 
@@ -442,7 +439,8 @@ T& operator >> (T& obj, std::function<void(U&)> pf)
 template <istream_type T, typename TValue>
 T& operator>>(T& obj, TValue& value)
 {
-    auto iter = obj.i_iter();
+    bool saw_eof = false;
+    auto iter = obj.i_iter(&saw_eof);
 
     using TChar = typename T::char_type;
     using TCtx = typename parse_context_type<TChar, TValue>::type;
@@ -463,13 +461,15 @@ T& operator>>(T& obj, TValue& value)
                 reader<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
                 value = static_cast<TValue>(tmp);
             }
+
+            if (saw_eof) obj.setstate(ios_defs::eofbit);
         }
         else
             static_assert(dependent_false_v<TValue>, "No parse method provided");
     }
     catch(...)
     {
-        obj.handle_exception(std::current_exception());
+        obj.handle_exception(std::current_exception(), saw_eof);
     }
 
     return obj;

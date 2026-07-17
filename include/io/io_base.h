@@ -368,9 +368,10 @@ struct io_state_and_exp
      *          blocking call returns with an error), or use timeouts / non-blocking I/O.
      * @endif
      */
-    void handle_exception(const std::exception_ptr& ex)
+    void handle_exception(const std::exception_ptr& ex, bool at_eof = false)
     {
         if (!ex) return;
+        const ios_defs::iostate eof = at_eof ? ios_defs::eofbit : ios_defs::goodbit;
         try
         {
             std::rethrow_exception(ex);
@@ -379,19 +380,19 @@ struct io_state_and_exp
         {
             if (!m_exp_dev_fail)
                 m_exp_dev_fail = std::current_exception();
-            setstate(ios_defs::devfailbit);
+            setstate(ios_defs::devfailbit | eof);
         }
         catch (cvt_error&)
         {
             if (!m_exp_cvt_fail)
                 m_exp_cvt_fail = std::current_exception();
-            setstate(ios_defs::cvtfailbit);
+            setstate(ios_defs::cvtfailbit | eof);
         }
         catch (stream_error&)
         {
             if (!m_exp_str_fail)
                 m_exp_str_fail = std::current_exception();
-            setstate(ios_defs::strfailbit);
+            setstate(ios_defs::strfailbit | eof);
         }
         catch (eof_error&)
         {
@@ -401,7 +402,7 @@ struct io_state_and_exp
         {
             if (!m_exp_other_fail)
                 m_exp_other_fail = std::current_exception();
-            setstate(ios_defs::otherfailbit);
+            setstate(ios_defs::otherfailbit | eof);
         }
     }
 

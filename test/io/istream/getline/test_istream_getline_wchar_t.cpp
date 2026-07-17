@@ -192,7 +192,7 @@ void test_istream_getline_wchar_t_3()
         VERIFY(gcount == 5);
         VERIFY(std::wcslen(tmp) == 4);
         VERIFY(!istr.str_fail());
-        VERIFY(istr.eof());
+        VERIFY(!istr.eof());
 
         istr.clear(istr.rdstate() & ~IOv2::ios_defs::eofbit);
         wchar_t c = L'z';

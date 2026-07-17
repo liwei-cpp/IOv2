@@ -1,6 +1,8 @@
+#include <chrono>
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <device/mem_device.h>
 #include <device/file_device.h>
 #include <io/fp_defs/arithmetic.h>
@@ -10,7 +12,9 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
+#include <device/std_device.h>
 #include <support/file_guard.h>
+#include <support/stdio_guard.h>
 #include <support/verify.h>
 
 void test_istream_read_char_1()
@@ -140,6 +144,33 @@ void test_istream_read_char_4()
 
     helper.operator()<IOv2::istream>();
     helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_read_char_5()
+{
+    dump_info("Test istream<char>::read case 5 (no wait past the request)...");
+
+    // A pipe holding "42\n" with its write end still open: the data is all there, but the
+    // stream has not ended. read(buf, 3) consumes exactly the buffered characters, so
+    // nothing may go on to ask the device whether more is coming -- that question can only
+    // be answered by waiting for the writer, and no caller asked it.
+    //
+    // The write end is closed after a delay rather than left open, so a regression waits
+    // for that instead of hanging: the elapsed-time check then fails cleanly.
+    pipe_iguard g("42\n");
+    std::thread closer([&g]{ std::this_thread::sleep_for(std::chrono::seconds(3)); g.close_write(); });
+
+    IOv2::istream is{IOv2::std_device<STDIN_FILENO>{}};
+    char buf[3] = {};
+    const auto t0 = std::chrono::steady_clock::now();
+    is.read(buf, 3);
+    const auto elapsed = std::chrono::steady_clock::now() - t0;
+    closer.join();
+
+    VERIFY(std::string(buf, 3) == "42\n");
+    VERIFY(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() < 1000);
 
     dump_info("Done\n");
 }
