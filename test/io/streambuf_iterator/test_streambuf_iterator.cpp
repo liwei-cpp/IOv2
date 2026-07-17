@@ -3,6 +3,7 @@ void test_istreambuf_iterator_gen_2();
 void test_istreambuf_iterator_get_1();
 void test_istreambuf_iterator_sentinel_1();
 void test_istreambuf_iterator_sentinel_2();
+void test_istreambuf_iterator_sentinel_3();
 void test_istreambuf_iterator_chain_increment_1();
 void test_istreambuf_iterator_putback_1();
 void test_istreambuf_iterator_putback_2();
@@ -17,6 +18,7 @@ void test_streambuf_iterator()
     test_istreambuf_iterator_get_1();
     test_istreambuf_iterator_sentinel_1();
     test_istreambuf_iterator_sentinel_2();
+    test_istreambuf_iterator_sentinel_3();
     test_istreambuf_iterator_chain_increment_1();
     test_istreambuf_iterator_putback_1();
     test_istreambuf_iterator_putback_2();

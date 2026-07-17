@@ -193,7 +193,7 @@ void test_istream_getline_char_3()
         VERIFY(gcount == 5);
         VERIFY(strlen(tmp) == 4);
         VERIFY(!istr.str_fail());
-        VERIFY(istr.eof());
+        VERIFY(!istr.eof());
 
         istr.clear(istr.rdstate() & ~IOv2::ios_defs::eofbit);
         char c = 'z';

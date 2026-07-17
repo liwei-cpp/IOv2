@@ -1,7 +1,14 @@
+#include <chrono>
+#include <string>
+#include <thread>
 #include <cvt/root_cvt.h>
 #include <device/mem_device.h>
+#include <device/std_device.h>
+#include <io/fp_defs/char_and_str.h>
+#include <io/istream.h>
 #include <io/streambuf_iterator.h>
 #include <support/dump_info.h>
+#include <support/stdio_guard.h>
 #include <support/verify.h>
 
 void test_istreambuf_iterator_gen_1()
@@ -315,6 +322,40 @@ void test_istreambuf_iterator_putback_2()
         }
         VERIFY(threw);
     }
+
+    dump_info("Done\n");
+}
+
+void test_istreambuf_iterator_sentinel_3()
+{
+    dump_info("Test istreambuf_iterator sentinel case 3 (end detection may wait)...");
+    using namespace IOv2;
+
+    // A pipe carrying "ab" whose write end closes only after a delay. Comparing against the
+    // end iterator must answer whether the stream has ended, and on a stream that has data
+    // but has not ended, that answer only exists once the writer acts -- so the comparison
+    // has to wait, exactly as std::istreambuf_iterator's does via sgetc().
+    //
+    // Guards against "answer end-detection without waiting": a comparison that reported
+    // "not at end" merely because nothing had arrived yet would send the loop into
+    // operator*, which throws eof_error when the end does arrive. The loop must instead
+    // finish cleanly, having consumed exactly "ab".
+    pipe_iguard g("ab");
+    std::thread closer([&g]{ std::this_thread::sleep_for(std::chrono::seconds(1)); g.close_write(); });
+
+    istream is{std_device<STDIN_FILENO>{}};
+    std::string got;
+    bool threw = false;
+    try
+    {
+        for (auto it = is.i_iter(); it != decltype(is.i_iter()){}; ++it)
+            got.push_back(*it);
+    }
+    catch (...) { threw = true; }
+    closer.join();
+
+    VERIFY(!threw);
+    VERIFY(got == "ab");
 
     dump_info("Done\n");
 }

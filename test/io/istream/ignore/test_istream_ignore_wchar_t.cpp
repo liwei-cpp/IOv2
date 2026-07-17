@@ -92,7 +92,7 @@ void test_istream_ignore_wchar_t_2()
         }
         VERIFY( !stream.str_fail() );
         VERIFY( stream.eof() );
-        VERIFY( n == nchunks );
+        VERIFY( n == nchunks + 1 );
     };
 
     auto helper = [&prepare, &check]<template<typename, typename> class T>()

@@ -59,7 +59,7 @@ void test_ostream_seek_char_1()
                 else
                     break;
             }
-            VERIFY( i == times - 1 );
+            VERIFY( i == times );
             VERIFY( stream.rdstate() == IOv2::ios_defs::eofbit );
         }(ifstrm);
         auto [idev, ierr] = ifstrm.detach();
@@ -113,7 +113,7 @@ void test_ostream_seek_char_2()
             else
                 break;
         }
-        VERIFY( i == times - 1 );
+        VERIFY( i == times );
         VERIFY( stream.rdstate() == IOv2::ios_defs::eofbit );
     }();
 

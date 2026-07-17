@@ -301,7 +301,7 @@ void test_istream_extractors_character_wchar_t_7()
 
         T in(IOv2::mem_device{s});
         in >> buf;
-        VERIFY(in.eof());
+        VERIFY(in.good());
         VERIFY(buf[4] == L'\0');
         VERIFY(std::wstring(buf) == L"four");
 
@@ -311,7 +311,7 @@ void test_istream_extractors_character_wchar_t_7()
             buf[i] = L'x';
         in.width(5);
         in >> buf;
-        VERIFY(in.eof());
+        VERIFY(in.good());
         VERIFY(std::wstring(buf) == L"four");
     };
 

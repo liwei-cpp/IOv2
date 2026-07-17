@@ -54,6 +54,9 @@ locale_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(locale_SOURCES))
 io_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(io_SOURCES))
 common_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(common_SOURCES))
 
+ALL_OBJECTS := $(device_OBJECTS) $(cvt_OBJECTS) $(facet_OBJECTS) \
+               $(locale_OBJECTS) $(io_OBJECTS) $(common_OBJECTS)
+
 # Target binaries
 TARGETS := $(addprefix $(BIN_DIR)/test_,$(MODULES))
 
@@ -134,7 +137,17 @@ valgrind-common: common
 # Generic compilation rule
 $(OBJ_DIR)/%.o: ./%.cpp
 	@mkdir -p $(dir $@)
-	$(CXX) $(COMP_FLAGS) $(CPPFLAGS) -c $< -o $@
+	$(CXX) $(COMP_FLAGS) $(CPPFLAGS) $(DEP_FLAGS) -c $< -o $@
+
+# IOv2 is header-only, so nearly every change to the library is a change to a header.
+# Without these, make sees no reason to recompile and `make test` silently reports a pass
+# from a stale binary.
+#   -MMD  emit OBJ.d, a makefile fragment listing the headers OBJ depends on
+#   -MP   also emit an empty rule per header, so deleting one does not stall the build
+#         with "No rule to make target ..."
+DEP_FLAGS := -MMD -MP
+
+-include $(ALL_OBJECTS:.o=.d)
 
 # Run all tests
 test: all

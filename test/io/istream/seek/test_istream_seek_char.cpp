@@ -25,7 +25,7 @@ void test_istream_seek_char_1()
         VERIFY(p0 == 0);
 
         char ch[100];
-        iss.template get<IOv2::keep_sep, IOv2::no_zt>(ch, str.size());
+        iss.template get<IOv2::keep_sep, IOv2::no_zt>(ch, str.size() + 1);
         VERIFY( iss.rdstate() == IOv2::ios_defs::eofbit );
 
         iss.seek(0);
@@ -35,7 +35,7 @@ void test_istream_seek_char_1()
         VERIFY( (bool)iss );
         VERIFY( iss.tell() == p0 );
 
-        iss.template get<IOv2::keep_sep, IOv2::no_zt>(ch, str.size());
+        iss.template get<IOv2::keep_sep, IOv2::no_zt>(ch, str.size() + 1);
         VERIFY( iss.rdstate() == IOv2::ios_defs::eofbit );
 
         iss.seek(p0);
