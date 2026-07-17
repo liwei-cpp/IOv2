@@ -1,6 +1,5 @@
 #pragma once
 
-#include <common/copyable_atomic.h>
 #include <common/defs.h>
 #include <common/metafunctions.h>
 #include <common/streambuf_defs.h>
@@ -204,51 +203,40 @@ struct ostream_operators : public abs_ostream
      * @lang{ZH}
      * @brief 刷新本流：把缓冲区写出到底层设备。
      *
-     * 刷新会经 sentry 触发 `tie()` 的刷新，因而可能沿 tie 链递归回到本流。为打断 tie 环，
-     * 并避免多个并发刷新同时操作底层缓冲区，这里使用一个原子的“正在刷新”标志 `m_flushing`：
-     * 以一次原子的 `exchange(true)` 完成“测试并置位”，若其旧值已为 true（本流已在刷新中）
-     * 则直接返回。
+     * 刷新经 sentry 进行，故整个刷新期间持有本流的 `io_mutex()`（该锁为递归锁）。由此：
+     *   - **并发刷新被串行化**：多个线程同时 `flush()` 同一流时逐个进入，每个都真正完成一次
+     *     刷新（不是“先到者刷、其余跳过”的弱语义）；底层缓冲区不会被并发操作。
+     *   - **写与刷互斥**：`put`/`write`/`operator<<` 同样在其 sentry 生命周期内持有同一把
+     *     `io_mutex()`，故写与刷不会并发。
      *
-     * 注意：该标志只序列化对本流的**并发刷新**（先到者刷新、其余并发刷新直接返回），
-     * 从而使底层缓冲区不会被多个刷新同时操作；它**并不**保护本流与并发 `put`/`write`/
-     * `operator<<` 之间的竞争——写与刷的并发仍需调用方经 `io_mutex()` 自行串行化。
-     *
-     * @warning 并发语义为“先到者刷新，其余并发调用直接返回”。**跳过的线程返回时并不保证
-     *          本流已刷新完成，只保证有某个线程正在刷新它。** 若某线程依赖“它本身没有写入、
-     *          但要读取的本流内容一定已经落盘”，此跳过语义偏弱，需由调用方自行同步。
+     * sentry 还会触发 `tie()->flush()`，从而可能沿 tie 链继续刷下去。由于 tie 图恒为无环
+     * （成环在 `tie()` 设置时即被拒绝，并由 `tie_graph_mutex()` 保证并发下依然无环），该链
+     * 有限且必然终止，不会递归回到本流，因此无需任何“正在刷新”自旋/跳过标志。
      * @endif
      *
      * @lang{EN}
      * @brief Flushes this stream: writes the buffer out to the underlying device.
      *
-     * Flushing triggers `tie()`'s flush via the sentry and may therefore recurse back to
-     * this stream through the tie chain. To break tie cycles, and to keep concurrent
-     * flushes from operating on the underlying buffer at the same time, an atomic "already
-     * flushing" flag `m_flushing` is used; its test-and-set is performed as a single atomic
-     * `exchange(true)`. If the previous value was already true (this stream is already being
-     * flushed), the call returns immediately.
+     * Flushing runs through the sentry, so this stream's `io_mutex()` (a recursive mutex) is
+     * held for the whole flush. Therefore:
+     *   - **Concurrent flushes are serialized**: when several threads `flush()` the same
+     *     stream, they enter one at a time and each actually completes a flush (not the weak
+     *     "first caller flushes, the rest skip" semantics); the underlying buffer is never
+     *     operated on concurrently.
+     *   - **Write and flush are mutually excluded**: `put`/`write`/`operator<<` hold the same
+     *     `io_mutex()` for their sentry's lifetime, so a write never races a flush.
      *
-     * Note this flag only serializes **concurrent flushes** of this stream (the first
-     * caller flushes, other concurrent flushes return immediately), so the underlying buffer
-     * is not operated on by more than one flush at once; it does **not** guard this stream
-     * against a concurrent `put`/`write`/`operator<<` — write-vs-flush concurrency must still
-     * be serialized by the caller via `io_mutex()`.
-     *
-     * @warning Concurrency semantics are "the first caller flushes, other concurrent
-     *          callers return immediately". **A skipping thread does not, on return,
-     *          guarantee that this stream has finished flushing — only that some thread is
-     *          flushing it.** If a thread relies on content it did not write itself being
-     *          durably flushed before it reads, this skip semantics is too weak and the
-     *          caller must synchronize.
+     * The sentry also triggers `tie()->flush()`, which may keep flushing down the tie chain.
+     * Because the tie graph is always acyclic (a cycle is rejected at `tie()` set time and
+     * `tie_graph_mutex()` keeps it acyclic under concurrency), that chain is finite and
+     * terminates -- it never recurses back to this stream -- so no "already flushing"
+     * spin/skip flag is needed.
      * @endif
      */
     virtual void flush() override
     {
         T& obj = static_cast<T&>(*this);
         if (!static_cast<bool>(obj)) return;
-
-        if (m_flushing.exchange(true)) return;
-        struct reset { copyable_atomic<bool>& f; ~reset() noexcept { f.store(false); } } scope{m_flushing};
 
         try
         {
@@ -273,9 +261,6 @@ struct ostream_operators : public abs_ostream
     {
         return ostreambuf_iterator(self.m_streambuf);
     }
-
-private:
-    copyable_atomic<bool> m_flushing;
 };
 
 template <typename T>

@@ -164,4 +164,24 @@ IOV2_API __cin&    cin = *__cin::ptr();
 
 static __wcin::init _wcin_init;
 IOV2_API __wcin&    wcin = *__wcin::ptr();
+
+/**
+ * @lang{ZH}
+ * tie 图的进程级全局锁：shared 模式下的唯一定义点。函数被 `IOV2_API` 导出（默认可见），
+ * 故全进程只有本 TU 里这一个定义、其函数内静态量也只有一份——这正是并发 `tie()` 检测成环
+ * 所依赖的“单一实例”。懒构造，无静态初始化顺序依赖。详见 stream_common_operators.h。
+ * @endif
+ * @lang{EN}
+ * The process-wide tie-graph lock: its single definition point in shared mode. The function
+ * is exported via `IOV2_API` (default visibility), so the whole process sees exactly this
+ * one definition and thus one function-local static -- the single instance that concurrent
+ * `tie()` cycle detection relies on. Lazily constructed, no static-init-order dependency.
+ * See stream_common_operators.h.
+ * @endif
+ */
+IOV2_API std::mutex& tie_graph_mutex()
+{
+    static std::mutex m;
+    return m;
+}
 }
