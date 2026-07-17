@@ -13,13 +13,19 @@ using namespace IOv2;
 // ---------------------------------------------------------------------------
 // 1. copyable_mutex 自身的特殊成员特性：可拷贝、可移动，且 move 为 noexcept
 // ---------------------------------------------------------------------------
-static_assert(std::is_default_constructible_v<copyable_mutex>);
-static_assert(std::is_copy_constructible_v<copyable_mutex>);
-static_assert(std::is_copy_assignable_v<copyable_mutex>);
-static_assert(std::is_move_constructible_v<copyable_mutex>);
-static_assert(std::is_move_assignable_v<copyable_mutex>);
-static_assert(std::is_nothrow_copy_constructible_v<copyable_mutex>);
-static_assert(std::is_nothrow_move_constructible_v<copyable_mutex>);
+static_assert(std::is_default_constructible_v<copyable_mutex<>>);
+static_assert(std::is_copy_constructible_v<copyable_mutex<>>);
+static_assert(std::is_copy_assignable_v<copyable_mutex<>>);
+static_assert(std::is_move_constructible_v<copyable_mutex<>>);
+static_assert(std::is_move_assignable_v<copyable_mutex<>>);
+static_assert(std::is_nothrow_copy_constructible_v<copyable_mutex<>>);
+static_assert(std::is_nothrow_move_constructible_v<copyable_mutex<>>);
+
+// 递归形态同样保持“拷贝/移动透明”，其可拷贝/可移动性不受底层 recursive_mutex 影响。
+static_assert(std::is_copy_constructible_v<copyable_mutex<std::recursive_mutex>>);
+static_assert(std::is_move_constructible_v<copyable_mutex<std::recursive_mutex>>);
+static_assert(std::is_nothrow_copy_constructible_v<copyable_mutex<std::recursive_mutex>>);
+static_assert(std::is_nothrow_move_constructible_v<copyable_mutex<std::recursive_mutex>>);
 
 // ---------------------------------------------------------------------------
 // 2. 对拷贝性/移动性的“透明”传播：外层类型的可拷贝/可移动性由**其它成员**决定，
@@ -28,15 +34,15 @@ static_assert(std::is_nothrow_move_constructible_v<copyable_mutex>);
 struct MoveOnlyHolder
 {
     std::unique_ptr<int> p;
-    copyable_mutex       m;
+    copyable_mutex<>     m;
 };
 static_assert(std::is_move_constructible_v<MoveOnlyHolder>);
 static_assert(!std::is_copy_constructible_v<MoveOnlyHolder>);
 
 struct CopyableHolder
 {
-    int            x;
-    copyable_mutex m;
+    int              x;
+    copyable_mutex<> m;
 };
 static_assert(std::is_copy_constructible_v<CopyableHolder>);
 static_assert(std::is_move_constructible_v<CopyableHolder>);
@@ -64,7 +70,7 @@ void test_copyable_mutex_traits()
 void test_copyable_mutex_lockable()
 {
     dump_info("Test copyable_mutex lockable...");
-    copyable_mutex m;
+    copyable_mutex<> m;
 
     // 空闲时可 try_lock 成功，随后再次 try_lock 失败（非递归）。
     VERIFY(m.try_lock());
@@ -77,12 +83,43 @@ void test_copyable_mutex_lockable()
 
     // 可直接用于 std::lock_guard。
     {
-        std::lock_guard<copyable_mutex> g(m);
+        std::lock_guard g(m);
         VERIFY(!m.try_lock());
     }
     // 离开作用域后已解锁。
     VERIFY(m.try_lock());
     m.unlock();
+
+    dump_info("Done\n");
+}
+
+// ---------------------------------------------------------------------------
+// 3b. 递归形态 copyable_mutex<std::recursive_mutex>：同一线程可重入加锁，
+//     这是 sentry 在 sync() 已持有 io_mutex() 时再次加锁不自锁死的前提。
+// ---------------------------------------------------------------------------
+void test_copyable_mutex_recursive()
+{
+    dump_info("Test copyable_mutex recursive...");
+    copyable_mutex<std::recursive_mutex> m;
+
+    // 同一线程可重复获取递归锁，须逐次解锁。
+    m.lock();
+    VERIFY(m.try_lock());          // 同线程重入成功（非递归会失败）
+    m.lock();
+    m.unlock();
+    m.unlock();
+    m.unlock();
+
+    // 全部释放后再次可用。
+    VERIFY(m.try_lock());
+    m.unlock();
+
+    // 可直接用于 std::lock_guard，且与手动加锁在同线程内可叠加。
+    {
+        std::lock_guard g(m);
+        VERIFY(m.try_lock());      // 同线程重入
+        m.unlock();
+    }
 
     dump_info("Done\n");
 }
@@ -95,21 +132,21 @@ void test_copyable_mutex_fresh_on_copy()
     dump_info("Test copyable_mutex fresh-on-copy...");
 
     // 拷贝构造：源已加锁，副本仍应是独立且未加锁的。
-    copyable_mutex a;
+    copyable_mutex<> a;
     a.lock();
-    copyable_mutex b = a;          // copy ctor -> 全新未加锁 mutex
+    copyable_mutex<> b = a;         // copy ctor -> 全新未加锁 mutex
     VERIFY(b.try_lock());          // 与 a 相互独立
     b.unlock();
     a.unlock();
 
     // 移动构造：目标应是全新未加锁的锁。
-    copyable_mutex c;
-    copyable_mutex d = std::move(c);
+    copyable_mutex<> c;
+    copyable_mutex<> d = std::move(c);
     VERIFY(d.try_lock());
     d.unlock();
 
     // 拷贝赋值：不转移锁状态，目标保持可用。
-    copyable_mutex e, f;
+    copyable_mutex<> e, f;
     e.lock();
     f = e;                         // copy assign -> no-op wrt lock state
     VERIFY(f.try_lock());
@@ -117,7 +154,7 @@ void test_copyable_mutex_fresh_on_copy()
     e.unlock();
 
     // 移动赋值：同样不转移锁状态。
-    copyable_mutex g, h;
+    copyable_mutex<> g, h;
     h = std::move(g);
     VERIFY(h.try_lock());
     h.unlock();
@@ -132,7 +169,7 @@ void test_copyable_mutex_mutual_exclusion()
 {
     dump_info("Test copyable_mutex mutual exclusion...");
 
-    copyable_mutex     m;
+    copyable_mutex<>   m;
     long long          counter    = 0;          // 故意用非原子类型
     const int          kThreads   = 8;
     const long long    kPerThread = 50000;
@@ -145,7 +182,7 @@ void test_copyable_mutex_mutual_exclusion()
         {
             for (long long i = 0; i < kPerThread; ++i)
             {
-                std::lock_guard<copyable_mutex> guard(m);
+                std::lock_guard guard(m);
                 ++counter;
             }
         });
@@ -192,6 +229,7 @@ void test_copyable_mutex()
 {
     test_copyable_mutex_traits();
     test_copyable_mutex_lockable();
+    test_copyable_mutex_recursive();
     test_copyable_mutex_fresh_on_copy();
     test_copyable_mutex_mutual_exclusion();
     test_copyable_mutex_enclosing_type();
