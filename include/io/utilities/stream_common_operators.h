@@ -3,6 +3,7 @@
 #include "common/defs.h"
 #include <common/copyable_atomic.h>
 #include <common/copyable_mutex.h>
+#include <common/iov2_export.h>
 #include <cvt/cvt_concepts.h>
 #include <io/io_base.h>
 #include <io/utilities/istream_operators.h>
@@ -12,10 +13,65 @@
 #include <concepts>
 #include <cstddef>
 #include <exception>
+#include <mutex>
 #include <utility>
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 返回保护整张 tie 图的进程级全局锁。
+ *
+ * `tie()` setter 会以本锁把“沿目标链检测是否成环”与“提交新的 tie 指针”合成一个原子
+ * 步骤。若无此锁，两个线程并发 `A.tie(B)` 与 `B.tie(A)` 可能各自读到对方尚未指回的旧
+ * 状态、双双通过检测，从而形成环（详见 `tie()`）。有了本锁，所有 setter 串行化，任一
+ * 次检测期间图都被冻结，故并发也无法成环。
+ *
+ * 本锁是**普通**（非递归）互斥量即可：检测遍历调用的是 tie() 的 getter（一次原子读，
+ * 不取本锁），持锁期间不会重入 setter。它与各流的 `io_mutex()` 互不嵌套——setter 只取
+ * 本锁、sentry 只取 `io_mutex()`——故不引入新的加锁顺序约束。
+ *
+ * 采用按需构造的函数内静态量（Meyers 单例）：`tie()` 在静态初始化期间即被调用
+ * （如 `__cerr` 构造时 `tie(&cout)`），懒构造保证“首次使用前必已构造”，天然无静态
+ * 初始化顺序问题。为在共享库（DSO）模式下仍是**全进程唯一**一份，本函数在 `IOV2_SHARED`
+ * 下只声明、定义集中于 `iov2_objects.cpp` 并经 `IOV2_API` 导出；header-only 模式下则为
+ * inline 定义。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Returns the process-wide lock that guards the entire tie graph.
+ *
+ * The `tie()` setter uses this lock to fuse "walk the target chain to detect a cycle"
+ * and "commit the new tie pointer" into one atomic step. Without it, two threads doing
+ * `A.tie(B)` and `B.tie(A)` concurrently could each read the other's not-yet-updated
+ * state, both pass the check, and form a cycle (see `tie()`). With it, all setters are
+ * serialized and the graph is frozen for the duration of any walk, so no cycle can form
+ * even under concurrency.
+ *
+ * A **plain** (non-recursive) mutex suffices: the detection walk calls tie()'s getter (a
+ * single atomic load that does not take this lock), so a setter never re-enters while
+ * holding it. This lock never nests with a stream's `io_mutex()` -- the setter takes only
+ * this lock, a sentry takes only `io_mutex()` -- so it adds no new lock-ordering
+ * constraint.
+ *
+ * It is a lazily-constructed function-local static (Meyers singleton): `tie()` runs during
+ * static initialization (e.g. `__cerr`'s ctor does `tie(&cout)`), and lazy construction
+ * guarantees "constructed before first use", so there is no static-init-order problem. To
+ * stay a single process-wide instance under shared-library (DSO) mode, this function is
+ * only declared under `IOV2_SHARED` with its one definition living in `iov2_objects.cpp`
+ * and exported via `IOV2_API`; in header-only mode it is defined inline here.
+ * @endif
+ */
+#if defined(IOV2_SHARED)
+IOV2_API std::mutex& tie_graph_mutex();     // defined in iov2_objects.cpp
+#else
+inline std::mutex& tie_graph_mutex()
+{
+    static std::mutex m;
+    return m;
+}
+#endif
+
 struct stream_common_operators
 {
     template <typename TSelf>
@@ -184,13 +240,12 @@ struct stream_common_operators
      *       环。这满足了 `std::basic_ios::tie` “不得成环”的前置条件，而非像标准那样把成环留作
      *       未定义行为。仅当本流本身可作为 tie 目标（即派生自 `abs_ostream`）时才会遍历；纯输入
      *       流不可能被 tie，也就不可能出现在环中。
-     * @note 上述检测只在 `tie()` 被串行调用时才能杜绝环。若两个线程**未加锁并发** `tie()`
-     *       （如 `A.tie(B)` 与 `B.tie(A)`），二者可能各自读到对方尚未指回的旧状态、都通过检测
-     *       从而形成环。故 `flush()` 的“正在刷新”保护仍作为最后防线保留：它既能打断此类并发
-     *       成环，也用于序列化对同一流的并发刷新。其并发语义为“先到者刷新，其余并发调用直接
-     *       返回”：**跳过的线程返回时并不保证被 tie 的流已刷新完成，只保证有某个线程正在刷新
-     *       它**——详见 `flush()`。若某线程依赖“它本身没有写入、但要读取的目标流内容一定已经
-     *       落盘”，需自行同步。
+     * @note 上述“检测 + 提交”由进程级全局锁 `tie_graph_mutex()` 合成一个原子步骤，因此即便
+     *       两个线程并发 `tie()`（如 `A.tie(B)` 与 `B.tie(A)`）也无法成环：所有 setter 串行化，
+     *       任一次检测遍历期间整张 tie 图都被冻结，绝不会出现“各自读到对方旧状态、双双通过检测”
+     *       的窗口。该锁为**普通**互斥量即可——遍历调用的是 tie() 的 getter（一次原子读、不取该
+     *       锁），持锁期间不会重入 setter；它也不与各流的 `io_mutex()` 嵌套，故不引入新的加锁
+     *       顺序约束。
      * @endif
      *
      * @lang{EN}
@@ -216,22 +271,20 @@ struct stream_common_operators
      *       leaving a cycle as undefined behavior as the standard does. The walk runs only
      *       when this stream can itself be a tie target (i.e. derives from `abs_ostream`);
      *       a pure input stream can never be tied to, so it can never appear in a cycle.
-     * @note This check rejects cycles only when `tie()` calls are serialized. If two
-     *       threads call `tie()` **concurrently without locking** (e.g. `A.tie(B)` and
-     *       `B.tie(A)`), each may read the other's not-yet-updated state, both pass the
-     *       check, and a cycle forms. The "already flushing" guard in `flush()` is
-     *       therefore kept as the last line of defense: it breaks such concurrently formed
-     *       cycles and also serializes concurrent flushes of the same stream. Its
-     *       concurrency semantics are "the first caller flushes, other concurrent callers
-     *       return immediately": **a skipping thread does not, on return, guarantee that
-     *       the tied stream has finished flushing — only that some thread is flushing it**
-     *       (see `flush()`). A thread relying on content it did not write itself being
-     *       durably flushed before it reads must synchronize on its own.
+     * @note This "detect + commit" is fused into one atomic step by the process-wide lock
+     *       `tie_graph_mutex()`, so no cycle can form even under concurrent `tie()` (e.g.
+     *       `A.tie(B)` and `B.tie(A)`): all setters are serialized and the whole tie graph
+     *       is frozen for the duration of any detection walk, so the "each reads the other's
+     *       stale state and both pass the check" window never exists. A **plain** mutex
+     *       suffices -- the walk calls tie()'s getter (a single atomic load that does not
+     *       take this lock), so a setter never re-enters while holding it -- and it never
+     *       nests with a stream's `io_mutex()`, so it adds no new lock-ordering constraint.
      * @endif
      */
     template <typename TSelf>
     abs_ostream* tie(this TSelf& self, abs_ostream* str)
     {
+        std::lock_guard graph_lock(tie_graph_mutex());
         auto res = self.m_tie_stream.load();
         if constexpr (std::derived_from<TSelf, abs_ostream>)
         {
