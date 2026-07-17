@@ -14,16 +14,22 @@
 #include <exception>
 #include <functional>
 #include <iterator>
+#include <mutex>
 #include <optional>
 #include <type_traits>
+#include <utility>
 
 namespace IOv2
 {
 template <typename TStream, bool involve_output>
 struct in_sentry
 {
+    using lock_type =
+        std::unique_lock<std::remove_reference_t<decltype(std::declval<TStream&>().io_mutex())>>;
+
     in_sentry(TStream& is, bool noskip)
         : m_is(is)
+        , m_lock(m_is.io_mutex())
     {
         if (!m_is)
             throw stream_error("istream_sentry create fail: Invalid istream");
@@ -47,7 +53,8 @@ struct in_sentry
     in_sentry& operator=(const in_sentry&) = delete;
 
 private:
-    TStream& m_is;
+    TStream&  m_is;
+    lock_type m_lock;
 };
 
 template <typename>

@@ -160,7 +160,7 @@ struct stream_common_operators
     }
 
     template <typename TSelf>
-    copyable_mutex& io_mutex(this TSelf& self)
+    auto& io_mutex(this TSelf& self)
     {
         return self.m_io_mutex;
     }

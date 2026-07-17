@@ -49,7 +49,7 @@ public:
 private:
     istreambuf<TDevice, TChar> m_streambuf;
     IOv2::locale<char_type> m_locale;
-    copyable_mutex    m_io_mutex;
+    copyable_mutex<std::recursive_mutex> m_io_mutex;
 };
 
 template <io_device TDevice>
