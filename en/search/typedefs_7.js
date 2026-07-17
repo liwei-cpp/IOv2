@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['ofile_5fdevice_0',['ofile_device',['../namespaceIOv2.html#a1c51b058a9fc1d8fb4bd5fa8e79d4aa3',1,'IOv2']]],
-  ['out_5fsentry_5ftype_1',['out_sentry_type',['../classIOv2_1_1iostream.html#aaa24883ffdd45ea7c0e461b9bcb4e3fa',1,'IOv2::iostream::out_sentry_type'],['../classIOv2_1_1stdout__api.html#ac9832d29023a724b38e110d0dd8af33a',1,'IOv2::stdout_api::out_sentry_type'],['../classIOv2_1_1ostream.html#a1ea6b3f5e0e2999822c06b625088ac61',1,'IOv2::ostream::out_sentry_type']]]
+  ['mask_0',['mask',['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b',1,'IOv2::ctype&lt; CharT &gt;::mask'],['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2b148292b4e17393358402186af998b',1,'IOv2::ctype&lt; CharT &gt;::mask'],['../classIOv2_1_1base__ft_3_01ctype_01_4.html#a4dd2ea594ec23656994ff1ac52c004e2',1,'IOv2::base_ft&lt; ctype &gt;::mask']]],
+  ['match_5fout_5ftype_1',['match_out_type',['../classIOv2_1_1prefix__tree.html#a4bf19e5eab3eda8ee4732a9742ca4b59',1,'IOv2::prefix_tree']]]
 ];

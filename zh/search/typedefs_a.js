@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['std_5ferror_5fdevice_0',['std_error_device',['../namespaceIOv2.html#aea808e478da1169a394ddeb3072c45ec',1,'IOv2']]],
-  ['std_5finput_5fdevice_1',['std_input_device',['../namespaceIOv2.html#aab89f6e0618933bd64600fb0707f8115',1,'IOv2']]],
-  ['std_5foutput_5fdevice_2',['std_output_device',['../namespaceIOv2.html#a763cdb75083e33a60ef051a8210427f4',1,'IOv2']]]
+  ['reference_0',['reference',['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#abe6c0619e1a10b8caf1ed1e30ee45ff8',1,'IOv2::stamp_input_iterator&lt; TIter &gt;']]],
+  ['return_5ftype_1',['return_type',['../classIOv2_1_1lru__cache.html#a17538b11bf2ed9be154006d32a7a9764',1,'IOv2::lru_cache']]]
 ];

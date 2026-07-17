@@ -12,7 +12,7 @@ var classIOv2_1_1stdin__api =
     [ "switch_code", "classIOv2_1_1stdin__api.html#a67b4002c0d982718ef4bea0138808ee6", null ],
     [ "sync_with_stdio", "classIOv2_1_1stdin__api.html#aa2d13f0d1709df344da50515b537b112", null ],
     [ "in_sentry_type", "classIOv2_1_1stdin__api.html#adadf027fe2fc78c280062ceef9d3c4fe", null ],
-    [ "m_io_mutex", "classIOv2_1_1stdin__api.html#ab915cf91edea8492399ddcbec02cc89c", null ],
+    [ "m_io_mutex", "classIOv2_1_1stdin__api.html#a8eac1f00cbe47999b0b17be23ed925f6", null ],
     [ "m_locale", "classIOv2_1_1stdin__api.html#a726d9fefc705b8c229d7a21083f6eb31", null ],
     [ "m_streambuf", "classIOv2_1_1stdin__api.html#a0be7f010cd970e29345819241016c541", null ],
     [ "m_sync_with_stdio", "classIOv2_1_1stdin__api.html#a95eeba186ce964df753681f61ead7b18", null ]

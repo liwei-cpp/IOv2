@@ -90,6 +90,7 @@ $(document).ready(function(){initNavTree('structIOv2_1_1in__sentry.html',''); in
 
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public 类型</a> &#124;
 <a href="#pub-methods">Public 成员函数</a> &#124;
 <a href="structIOv2_1_1in__sentry-members.html">所有成员列表</a>  </div>
   <div class="headertitle"><div class="title">IOv2::in_sentry&lt; TStream, involve_output &gt; 模板结构体 参考</div></div>
@@ -98,6 +99,11 @@ $(document).ready(function(){initNavTree('structIOv2_1_1in__sentry.html',''); in
 
 <p><code>#include &lt;<a class="el" href="istream__operators_8h_source.html">istream_operators.h</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public 类型</h2></td></tr>
+<tr class="memitem:a817e433ebf00a43652600405f2a34d7d" id="r_a817e433ebf00a43652600405f2a34d7d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a817e433ebf00a43652600405f2a34d7d">lock_type</a> = std::unique_lock&lt; std::remove_reference_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp; &gt;().io_mutex())&gt; &gt;</td></tr>
+<tr class="separator:a817e433ebf00a43652600405f2a34d7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
 <tr class="memitem:a7926e969861a7c8a2191fdba29cfd4d8" id="r_a7926e969861a7c8a2191fdba29cfd4d8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a7926e969861a7c8a2191fdba29cfd4d8">in_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;is, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noskip</a>)</td></tr>
@@ -109,6 +115,23 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a57f42b2e48c43f5a9795aa57517df176" id="r_a57f42b2e48c43f5a9795aa57517df176"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1in__sentry.html">in_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a57f42b2e48c43f5a9795aa57517df176">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1in__sentry.html">in_sentry</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a57f42b2e48c43f5a9795aa57517df176"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">成员类型定义说明</h2>
+<a id="a817e433ebf00a43652600405f2a34d7d" name="a817e433ebf00a43652600405f2a34d7d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a817e433ebf00a43652600405f2a34d7d">&#9670;&#160;</a></span>lock_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_output&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="structIOv2_1_1in__sentry.html">IOv2::in_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_output</a> &gt;::lock_type =  std::unique_lock&lt;std::remove_reference_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>&amp;&gt;().io_mutex())&gt; &gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a7926e969861a7c8a2191fdba29cfd4d8" name="a7926e969861a7c8a2191fdba29cfd4d8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7926e969861a7c8a2191fdba29cfd4d8">&#9670;&#160;</a></span>in_sentry() <span class="overload">[1/2]</span></h2>
