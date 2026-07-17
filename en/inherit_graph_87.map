@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
 <area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,193,45"/>
-<area shape="rect" id="Node000001" href="$classIOv2_1_1monetary__conf_3_01char_01_4.html" title="Specialization of monetary_conf for char, reading monetary formatting data directly from POSIX lconv." alt="" coords="241,5,400,45"/>
-<area shape="poly" id="edge118_Node000000_Node000001" title=" " alt="" coords="207,23,241,23,241,28,207,28"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1monetary__conf_3_01CharT_01_4.html" title="Specialization of monetary_conf for wchar_t / char32_t, storing monetary formatting data as wide char..." alt="" coords="241,37,400,77"/>
+<area shape="poly" id="edge119_Node000000_Node000001" title=" " alt="" coords="207,38,242,43,241,49,207,44"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,69,193,109"/>
+<area shape="poly" id="edge120_Node000002_Node000001" title=" " alt="" coords="207,71,241,66,242,71,207,76"/>
 </map>

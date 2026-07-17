@@ -111,7 +111,6 @@ var hierarchy =
     [ "IOv2::codecvt_kernel< external_type, internal_type >", "structIOv2_1_1codecvt__kernel.html", null ],
     [ "IOv2::collate< CharT >", "classIOv2_1_1collate.html", null ],
     [ "IOv2::copyable_atomic< T >", "classIOv2_1_1copyable__atomic.html", null ],
-    [ "IOv2::copyable_atomic< bool >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< IOv2::abs_ostream * >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_mutex< TMutex >", "classIOv2_1_1copyable__mutex.html", null ],
     [ "IOv2::copyable_mutex< std::recursive_mutex >", "classIOv2_1_1copyable__mutex.html", null ],

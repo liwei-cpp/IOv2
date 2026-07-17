@@ -346,6 +346,7 @@ var namespaceIOv2 =
     [ "streambuf", "namespaceIOv2.html#aa377752da7b015ac116a9fa9cec43024", null ],
     [ "streambuf", "namespaceIOv2.html#a757ac4fc2dfe54983d40796636fc9c61", null ],
     [ "sync_with_stdio", "namespaceIOv2.html#a6bdbad1d507a9b94931e610303c16862", null ],
+    [ "tie_graph_mutex", "namespaceIOv2.html#ab91abcd60a649c65f879bef157fab8ff", null ],
     [ "type_id_v", "namespaceIOv2.html#aa979da4dd2fa7859e2f0d5dab0507702", null ],
     [ "unitbuf", "group__ios__manipulators.html#gad6bbf6428ff728f61543d172c78fce5a", null ],
     [ "uppercase", "group__ios__manipulators.html#ga272a91b2afe33a67fd3a700dda921419", null ],

@@ -905,6 +905,9 @@ requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b3101757
 <tr class="memitem:a1224e46146283353583241d861425de9" id="r_a1224e46146283353583241d861425de9"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </td></tr>
 <tr class="memitem:a1224e46146283353583241d861425de9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a1224e46146283353583241d861425de9">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
 <tr class="separator:a1224e46146283353583241d861425de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab91abcd60a649c65f879bef157fab8ff" id="r_ab91abcd60a649c65f879bef157fab8ff"><td class="memItemLeft" align="right" valign="top">std::mutex &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab91abcd60a649c65f879bef157fab8ff">tie_graph_mutex</a> ()</td></tr>
+<tr class="memdesc:ab91abcd60a649c65f879bef157fab8ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the process-wide lock that guards the entire tie graph.  <br /></td></tr>
+<tr class="separator:ab91abcd60a649c65f879bef157fab8ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Class-template argument deduction guides (CTAD)</div></td></tr>
 <tr><td colspan="2"><div class="groupText"><p>Deduce the character type of streambuf/istreambuf/ostreambuf from a device (and an optional converter creator).</p>
 <p>Without a converter creator, the character type is taken directly from the device's <code>char_type</code>; with a converter creator, the internal character type is deduced from the converter pipeline via <code>ext_to_int</code> (see <a class="el" href="io__concepts_8h.html">io/io_concepts.h</a>).</p>
@@ -3419,6 +3422,33 @@ template&lt;io_device TDevice, cvt_creator TCreator&gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab91abcd60a649c65f879bef157fab8ff" name="ab91abcd60a649c65f879bef157fab8ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab91abcd60a649c65f879bef157fab8ff">&#9670;&#160;</a></span>tie_graph_mutex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::mutex &amp; IOv2::tie_graph_mutex </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the process-wide lock that guards the entire tie graph. </p>
 
 </div>
 </div>
