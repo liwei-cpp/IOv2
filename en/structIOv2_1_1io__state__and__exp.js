@@ -12,5 +12,6 @@ var structIOv2_1_1io__state__and__exp =
     [ "other_fail", "structIOv2_1_1io__state__and__exp.html#ae02907f048240aa1d71dfc2c4ffddd7b", null ],
     [ "rdstate", "structIOv2_1_1io__state__and__exp.html#ae5897909a71b7528e0208652b7a186e4", null ],
     [ "setstate", "structIOv2_1_1io__state__and__exp.html#aaa7eef2ce9daaeb70093ea1b8362e460", null ],
-    [ "str_fail", "structIOv2_1_1io__state__and__exp.html#a0bd797fb2b9ba1ac3241e691f75cf097", null ]
+    [ "str_fail", "structIOv2_1_1io__state__and__exp.html#a0bd797fb2b9ba1ac3241e691f75cf097", null ],
+    [ "unset_state", "structIOv2_1_1io__state__and__exp.html#af0682931513df9978deab1c59029172d", null ]
 ];
