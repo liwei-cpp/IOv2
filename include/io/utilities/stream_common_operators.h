@@ -77,6 +77,7 @@ struct stream_common_operators
     template <typename TSelf>
     size_t tell(this TSelf& self)
     {
+        std::lock_guard guard(self.io_mutex());
         try
         {
             return self.m_streambuf.tell();
@@ -92,6 +93,7 @@ struct stream_common_operators
     template <typename TSelf>
     TSelf& seek(this TSelf& self, size_t pos)
     {
+        std::lock_guard guard(self.io_mutex());
         try
         {
             self.clear(self.rdstate() & ~ios_defs::eofbit);
@@ -108,6 +110,7 @@ struct stream_common_operators
     template <typename TSelf>
     TSelf& rseek(this TSelf& self, size_t pos)
     {
+        std::lock_guard guard(self.io_mutex());
         try
         {
             self.clear(self.rdstate() & ~ios_defs::eofbit);
@@ -130,24 +133,28 @@ struct stream_common_operators
     template <typename TSelf>
     auto detach(this TSelf& self) noexcept
     {
+        std::lock_guard guard(self.io_mutex());
         return self.m_streambuf.detach();
     }
 
     template <typename TSelf>
     void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
     {
+        std::lock_guard guard(self.io_mutex());
         self.m_streambuf.attach(std::move(dev));
     }
 
     template <typename TSelf>
     void adjust(this TSelf& self, const cvt_behavior& acc)
     {
+        std::lock_guard guard(self.io_mutex());
         return self.m_streambuf.adjust(acc);
     }
 
     template <typename TSelf>
     void retrieve(this const TSelf& self, cvt_status& acc)
     {
+        std::lock_guard guard(self.io_mutex());
         return self.m_streambuf.retrieve(acc);
     }
 
@@ -202,6 +209,7 @@ struct stream_common_operators
     template <typename TSelf, typename TChar>
     auto locale(this TSelf& self, IOv2::locale<TChar> loc)
     {
+        std::lock_guard guard(self.io_mutex());
         auto res = std::move(self.m_locale);
         self.m_locale = std::move(loc);
         try
