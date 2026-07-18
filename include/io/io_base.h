@@ -248,6 +248,12 @@ struct io_state_and_exp
         std::lock_guard guard(m_state_mutex);
         clear(rdstate() | s);
     }
+
+    void unset_state(ios_defs::iostate s)
+    {
+        std::lock_guard guard(m_state_mutex);
+        clear(rdstate() & ~s);
+    }
     /**
      * @lang{ZH} @brief 是否无任何错误（状态位全为 0）。 @endif
      * @lang{EN} @brief Whether there is no error at all (state bits all zero). @endif
@@ -1065,7 +1071,44 @@ inline void nouppercase(ios_base<TChar>& base)
     base.unsetf(ios_defs::uppercase);
 }
 
-/** @lang{ZH} @brief 置位 `appmode`：启用追加模式（本库扩展）。 @endif @lang{EN} @brief Set `appmode`: enable append mode (a library extension). @endif */
+/**
+ * @lang{ZH}
+ * @brief 置位 `appmode`：启用追加模式（本库扩展）。
+ *
+ * 置位后，每次输出操作在其 sentry 构造期间都会把流重新定位到末尾。该定位经由转换器
+ * 完成（`rseek`），因此需要转换器能由“距末尾的字节偏移”反推出对应的内部字符位置。
+ *
+ * @warning **仅支持定长且状态无关的编码。** 对 UTF-8 等变长编码或状态相关编码启用
+ *          `appmode` 后，首次输出即会在 sentry 构造中抛出 `cvt_error`，流被置
+ *          `cvtfailbit`，此后所有输出操作都会在 sentry 的有效性检查处失败——即该流
+ *          **一个字节也写不出去**。此限制继承自 `code_cvt::rseek`：变长/状态相关编码
+ *          下无法重建内部字符位置，而该位置是重定位的必要组成部分。
+ * @note 本操纵符只置标志位，不做上述能力检查（`ios_base` 与转换器解耦，此处看不到
+ *       流的转换器）。检查发生在首次输出时。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Set `appmode`: enable append mode (a library extension).
+ *
+ * Once set, every output operation repositions the stream to the end while its sentry is
+ * being constructed. That repositioning goes through the converter (`rseek`), which
+ * therefore must be able to recover the corresponding internal character position from a
+ * byte offset relative to the end.
+ *
+ * @warning **Only fixed-length, state-independent encodings are supported.** With
+ *          `appmode` enabled on a variable-length encoding such as UTF-8, or on a
+ *          state-dependent one, the very first output throws `cvt_error` during sentry
+ *          construction and sets `cvtfailbit`; every later output then fails at the
+ *          sentry's validity check -- i.e. **not a single byte can be written** to that
+ *          stream. The restriction is inherited from `code_cvt::rseek`: for
+ *          variable-length / state-dependent encodings the internal character position
+ *          cannot be reconstructed, and that position is an essential part of
+ *          repositioning.
+ * @note This manipulator only sets the flag; it does not perform the capability check
+ *       above (`ios_base` is decoupled from the converter and cannot see the stream's
+ *       converter here). The check happens on the first output.
+ * @endif
+ */
 template <typename TChar>
 inline void appmode(ios_base<TChar>& base)
 {

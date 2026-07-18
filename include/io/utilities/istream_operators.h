@@ -206,6 +206,7 @@ struct istream_operators
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
     TOut get(this TSelf& self, TOut s, size_t n)
     {
+        std::lock_guard guard(self.io_mutex());
         TChar delim;
         try
         {
@@ -368,9 +369,10 @@ struct istream_operators
     template <typename TSelf>
     TSelf& putback(this TSelf& self, TChar c)
     {
+        std::lock_guard guard(self.io_mutex());
         try
         {
-            self.clear(self.rdstate() & ~IOv2::ios_defs::eofbit);
+            self.unset_state(IOv2::ios_defs::eofbit);
 
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
