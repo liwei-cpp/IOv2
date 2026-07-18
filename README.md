@@ -23,6 +23,7 @@
 - **高度可组合**：使用 `operator|` 像搭积木一样自由串联转换器。
 - **基于 C++20 Concepts 的类型安全**：采用 Concepts 形式化描述原子能力（如读、写、定位），提供清晰的编译期约束与错误提示。
 - **零开销抽象**：大量使用模板元编程与静态多态，确保架构灵活性不以牺牲性能为代价。
+- **流级线程安全**：单次 I/O 操作在流这一层被整体串行化，详见下文“线程安全”。
 
 ### 架构与核心组件
 IOv2 的系统架构分为以下几个正交的维度：
@@ -124,6 +125,25 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 >
 > 在 ELF/macOS 且默认可见性下，header-only 模式跨多个共享库通常也会被动态链接器合并为单实例；只有在 `-fvisibility=hidden` 的多 `.so`，或 **Windows 多 DLL** 场景下才会每个模块各一份——此时改用共享库模式即可获得严格的单实例保证。
 
+### 线程安全
+
+线程安全在**流对象这一层**提供：每个流各自持有一把递归互斥量 `io_mutex()`，所有会触碰缓冲区或流状态的操作都在其保护下进行。
+
+**库提供的保证**
+
+- **单次操作是原子的**：`operator<<` / `operator>>` / `put` / `write` / `get` 等在其 sentry 的整个生命周期内持有 `io_mutex()`。多个线程同时对同一流做 I/O 时逐个进入，不会交错，也不会并发操作底层缓冲区。
+- **不建 sentry 的操作同样加锁**：`tell` / `seek` / `rseek` / `detach` / `attach` / `adjust` / `retrieve` / `ignore_ws` 以及 `locale(loc)` setter 都在流级锁下执行。
+- **写与刷互斥、并发刷新被串行化**：`flush()` 亦经 sentry 加锁，且每个调用者都真正完成一次刷新，而非“先到者刷、其余跳过”。
+- **tie 恒无环**：`tie()` setter 在进程级全局锁 `tie_graph_mutex()` 下把“成环检测”与“提交”合成一个原子步骤，因此即便两个线程并发 `A.tie(B)` 与 `B.tie(A)` 也无法成环；成环请求抛 `stream_error` 并保持原绑定不变。这比标准库把成环留作未定义行为更强。
+- **状态位与其异常指针一致**：`clear`/`setstate`/`exceptions`/`handle_exception` 对「状态位 + 各失败类别所保存的 `exception_ptr`」的更新是一次完整事务，不会被并发撕开。读取（`rdstate`/`good`/`eof`/`operator bool`）为无锁原子读，无额外开销。标准库在这一层不提供任何保证——`std::basic_ios` 的状态字是裸 `int`，且 `[iostream.objects]` 的豁免只覆盖 formatted/unformatted I/O 函数，不含状态位访问器。
+
+**不提供的保证（调用方责任）**
+
+- **多次操作的组合不是原子的**：`os << a << b` 是两次各自加锁的操作，另一线程可能插入其间。同理 `while (is >> x)` 这类「先查状态再动作」：单次 `>>` 与单次状态读各自原子，但两者之间仍有窗口。需要整体原子时，用 `IOv2::sync`（RAII 锁住该流的 `io_mutex()`）把它们圈进同一个临界区。
+- **返回内部引用的 getter**：`locale()` 与 `device()` 返回的是内部状态的引用，不要保存到临界区之外；跨多次操作使用时同样以 `IOv2::sync` 保护。
+- **tie 目标的生命周期**：`tie()` 只保存裸指针，不做生命周期管理，也不会自动解绑（与 `std::basic_ios::tie` 一致）。
+- **下层组件本身不是线程安全的**：device 与 converter 均按“并发由更高层处理”设计——并发保护正是由流层的 `io_mutex()` 统一提供（facet 各有各的契约，以其自身文档为准，例如 `ctype`、`messages` 明确声明线程安全）。因此两个**各自独立**的流对象若指向同一底层资源（如同一个 fd），彼此之间并不同步。
+
 ### 开发环境与测试
 - **标准**：C++23 及以上。
 - **编译器**：GCC 15+ 或 Clang 18+ (建议配合 libstdc++)。
@@ -153,6 +173,7 @@ By decoupling I/O into three orthogonal dimensions—**Physical Access (Device)*
 - **Highly Composable**: Use `operator|` to chain converters like building blocks.
 - **Type-Safe with C++20 Concepts**: Formalizes atomic capabilities (e.g., Read, Write, Seek) using Concepts for robust compile-time validation.
 - **Zero-Overhead Abstraction**: Powered by template metaprogramming and static polymorphism to ensure maximum flexibility without runtime penalties.
+- **Stream-Level Thread Safety**: A single I/O operation is serialized as a whole at the stream layer — see "Thread Safety" below.
 
 ### Architecture & Core Components
 The architecture is divided into the following orthogonal dimensions:
@@ -250,6 +271,25 @@ make IOV2_PKG=iov2-shared   # shared .so (no -DIOV2_SHARED needed)
 > **Note**: `IOV2_SHARED` must be consistent across every translation unit in a single link — baking the switch into the installed header is exactly what guarantees that.
 >
 > On ELF/macOS with default visibility, header-only mode is usually merged into a single instance across multiple shared libraries by the dynamic linker anyway; only under `-fvisibility=hidden` with multiple `.so`s, or **multiple Windows DLLs**, do you get one instance per module — switch to shared-library mode there for a strict single-instance guarantee.
+
+### Thread Safety
+
+Thread safety is provided **at the stream-object layer**: every stream owns a recursive mutex, `io_mutex()`, and every operation that touches the buffer or the stream state runs under it.
+
+**What the library guarantees**
+
+- **A single operation is atomic**: `operator<<` / `operator>>` / `put` / `write` / `get` hold `io_mutex()` for their sentry's entire lifetime. Threads doing I/O on the same stream enter one at a time — operations never interleave and the underlying buffer is never operated on concurrently.
+- **Sentry-less operations lock too**: `tell` / `seek` / `rseek` / `detach` / `attach` / `adjust` / `retrieve` / `ignore_ws` and the `locale(loc)` setter all run under the stream lock.
+- **Write and flush are mutually excluded; concurrent flushes are serialized**: `flush()` also locks via the sentry, and every caller actually completes a flush rather than the weak "first caller flushes, the rest skip" semantics.
+- **The tie graph is always acyclic**: the `tie()` setter fuses cycle detection and commit into one atomic step under the process-wide `tie_graph_mutex()`, so no cycle can form even under concurrent `A.tie(B)` / `B.tie(A)`. A cycling request throws `stream_error` and leaves the existing tie unchanged — stronger than the standard, which leaves cycles undefined.
+- **State bits stay consistent with their exception pointers**: `clear`/`setstate`/`exceptions`/`handle_exception` update the state bits together with the `exception_ptr` saved per failure category as one complete transaction, never torn apart by concurrency. Reads (`rdstate`/`good`/`eof`/`operator bool`) are lock-free atomic loads and cost nothing extra. The standard library guarantees nothing here — `std::basic_ios` keeps its state in a plain `int`, and the `[iostream.objects]` exemption covers only formatted/unformatted I/O functions, not the state accessors.
+
+**What it does not guarantee (caller's responsibility)**
+
+- **A sequence of operations is not atomic**: `os << a << b` is two separately-locked operations and another thread may interleave between them. The same applies to check-then-act patterns like `while (is >> x)`: the `>>` and the state read are each atomic, but there is still a window between them. To make a group atomic, wrap it in one critical section with `IOv2::sync` (an RAII lock on that stream's `io_mutex()`).
+- **Getters returning internal references**: `locale()` and `device()` hand back references to internal state — do not keep them past the critical section; guard cross-operation use with `IOv2::sync` as well.
+- **Tie-target lifetime**: `tie()` stores a raw pointer only; it performs no lifetime management and never auto-unties (matching `std::basic_ios::tie`).
+- **Lower-layer components are not thread-safe themselves**: devices and converters are designed as "concurrency is handled at a higher level" — that protection is exactly what the stream layer's `io_mutex()` provides. (Facets each state their own contract; `ctype` and `messages`, for instance, are explicitly thread-safe.) Consequently two **separate** stream objects over the same underlying resource (e.g. the same fd) are not synchronized with each other.
 
 ### Development Environment & Tests
 - **Standard**: C++23 or later.

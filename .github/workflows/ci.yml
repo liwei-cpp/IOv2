@@ -51,6 +51,39 @@ jobs:
         cd test
         make valgrind CXX=${{ matrix.compiler }} MODE=release
 
+  thread-safety:
+    runs-on: ubuntu-latest
+    container:
+      image: gcc:15
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata locales-all
+
+    - name: Run concurrency tests under ThreadSanitizer
+      run: |
+        # Only the concur module is built here. It collects every test that actually
+        # runs threads -- TSan has nothing to observe in a single-threaded test, so
+        # building the rest would cost minutes to inspect executions that cannot race.
+        # Devices/converters/facets document concurrency as a higher-level concern and
+        # are deliberately out of scope.
+        #
+        # Repeated because a race is only reported when the schedule actually exercises
+        # it -- a single clean run is weaker evidence than several. The reverse direction
+        # is reliable: TSan is a happens-before detector and does not invent races, so a
+        # red here is a real defect rather than CI flake.
+        cd test
+        make -j$(nproc) concur MODE=tsan
+        for i in $(seq 1 10); do
+          echo "--- ThreadSanitizer run $i"
+          bin_tsan/test_concur > /dev/null
+        done
+      env:
+        TSAN_OPTIONS: halt_on_error=1:exitcode=66:history_size=7
+
   coverage:
     runs-on: ubuntu-latest
     container:

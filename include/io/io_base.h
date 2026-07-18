@@ -24,6 +24,8 @@
  * @endif
  */
 #pragma once
+#include <common/copyable_atomic.h>
+#include <common/copyable_mutex.h>
 #include <common/defs.h>
 
 #include <atomic>
@@ -34,6 +36,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <utility>
 
@@ -141,7 +144,7 @@ struct io_state_and_exp
      * @return The bitwise-or of the current `iostate` bits.
      * @endif
      */
-    [[nodiscard]] ios_defs::iostate rdstate() const { return m_stream_state; }
+    [[nodiscard]] ios_defs::iostate rdstate() const { return m_stream_state.load(); }
 
     /**
      * @lang{ZH}
@@ -183,13 +186,14 @@ struct io_state_and_exp
      */
     void clear(ios_defs::iostate s = ios_defs::goodbit)
     {
-        m_stream_state = s;
-        if ((m_stream_state & ios_defs::devfailbit) == ios_defs::goodbit) m_exp_dev_fail = std::exception_ptr{};
-        if ((m_stream_state & ios_defs::cvtfailbit) == ios_defs::goodbit) m_exp_cvt_fail = std::exception_ptr{};
-        if ((m_stream_state & ios_defs::strfailbit) == ios_defs::goodbit) m_exp_str_fail = std::exception_ptr{};
-        if ((m_stream_state & ios_defs::otherfailbit) == ios_defs::goodbit) m_exp_other_fail = std::exception_ptr{};
+        std::lock_guard guard(m_state_mutex);
+        m_stream_state.store(s);
+        if ((s & ios_defs::devfailbit) == ios_defs::goodbit) m_exp_dev_fail = std::exception_ptr{};
+        if ((s & ios_defs::cvtfailbit) == ios_defs::goodbit) m_exp_cvt_fail = std::exception_ptr{};
+        if ((s & ios_defs::strfailbit) == ios_defs::goodbit) m_exp_str_fail = std::exception_ptr{};
+        if ((s & ios_defs::otherfailbit) == ios_defs::goodbit) m_exp_other_fail = std::exception_ptr{};
 
-        ios_defs::iostate state_in_exp = m_exception & m_stream_state;
+        ios_defs::iostate state_in_exp = m_exception & s;
         if (state_in_exp & ios_defs::devfailbit)
         {
             if (m_exp_dev_fail)
@@ -239,7 +243,11 @@ struct io_state_and_exp
      * exception mask; see clear().
      * @endif
      */
-    void setstate(ios_defs::iostate s) { clear(rdstate() | s); }
+    void setstate(ios_defs::iostate s)
+    {
+        std::lock_guard guard(m_state_mutex);
+        clear(rdstate() | s);
+    }
     /**
      * @lang{ZH} @brief 是否无任何错误（状态位全为 0）。 @endif
      * @lang{EN} @brief Whether there is no error at all (state bits all zero). @endif
@@ -289,14 +297,19 @@ struct io_state_and_exp
      */
     explicit operator bool() const
     {
-        return (rdstate() == 0) || (rdstate() == ios_defs::eofbit);
+        const ios_defs::iostate s = rdstate();
+        return (s == 0) || (s == ios_defs::eofbit);
     }
 
     /**
      * @lang{ZH} @brief 返回当前的异常掩码。 @endif
      * @lang{EN} @brief Returns the current exception mask. @endif
      */
-    [[nodiscard]] ios_defs::iostate exceptions() const { return m_exception; }
+    [[nodiscard]] ios_defs::iostate exceptions() const
+    {
+        std::lock_guard guard(m_state_mutex);
+        return m_exception;
+    }
     /**
      * @lang{ZH}
      * @brief 设置异常掩码，指定哪些状态位应触发异常。
@@ -317,8 +330,9 @@ struct io_state_and_exp
      */
     void exceptions(ios_defs::iostate e)
     {
+        std::lock_guard guard(m_state_mutex);
         m_exception = e;
-        clear(m_stream_state);
+        clear(m_stream_state.load());
     }
 
     /**
@@ -371,6 +385,7 @@ struct io_state_and_exp
     void handle_exception(const std::exception_ptr& ex, bool at_eof = false)
     {
         if (!ex) return;
+        std::lock_guard guard(m_state_mutex);
         const ios_defs::iostate eof = at_eof ? ios_defs::eofbit : ios_defs::goodbit;
         try
         {
@@ -407,8 +422,10 @@ struct io_state_and_exp
     }
 
 private:
+    mutable copyable_mutex<std::recursive_mutex> m_state_mutex;  ///< @lang{ZH} 串行化以下全部成员的**写**：状态位与其 `exception_ptr` 构成一个多字不变式，须整体加锁。递归形态因内部存在同对象嵌套（如 `setstate()` → `clear()`）。 @endif @lang{EN} Serializes all **writes** to the members below: the state bits and their `exception_ptr`s form one multi-word invariant that must be updated as a whole. Recursive because this component nests on itself (e.g. `setstate()` → `clear()`). @endif
+
     ios_defs::iostate  m_exception = ios_defs::goodbit;      ///< @lang{ZH} 异常掩码：哪些状态位应触发异常。 @endif @lang{EN} Exception mask: which state bits should throw. @endif
-    ios_defs::iostate  m_stream_state = ios_defs::goodbit;   ///< @lang{ZH} 当前流状态位。 @endif @lang{EN} Current stream state bits. @endif
+    copyable_atomic<ios_defs::iostate> m_stream_state{ios_defs::goodbit};   ///< @lang{ZH} 当前流状态位。原子量，使 `rdstate()` 及 `good()`/`eof()`/`operator bool` 等热路径无锁读取；其**写**仍与其余成员一同在 `m_state_mutex` 下完成，故不变式不受影响。 @endif @lang{EN} Current stream state bits. Atomic so that `rdstate()` -- and the hot `good()`/`eof()`/`operator bool` built on it -- reads lock-free; **writes** still happen under `m_state_mutex` together with the other members, so the invariant is unaffected. @endif
     std::exception_ptr m_exp_dev_fail = std::exception_ptr{};    ///< @lang{ZH} 设备失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the device-failure category. @endif
     std::exception_ptr m_exp_cvt_fail = std::exception_ptr{};    ///< @lang{ZH} 转换失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the conversion-failure category. @endif
     std::exception_ptr m_exp_str_fail = std::exception_ptr{};    ///< @lang{ZH} 流失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the stream-failure category. @endif
