@@ -18,6 +18,11 @@ ifeq ($(MODE),sanitizer)
     LINK_FLAGS := -lz -lbotan-2 -fsanitize=address,undefined
     OBJ_DIR := obj_sanitizer
     BIN_DIR := bin_sanitizer
+else ifeq ($(MODE),tsan)
+    COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O1 -fsanitize=thread -fno-omit-frame-pointer -I../include -I. -I/usr/include/botan-2/
+    LINK_FLAGS := -lz -lbotan-2 -fsanitize=thread
+    OBJ_DIR := obj_tsan
+    BIN_DIR := bin_tsan
 else ifeq ($(MODE),coverage)
     COMP_FLAGS := -Wall -Werror -Wshadow -std=c++23 -g -O0 --coverage -I../include -I. -I/usr/include/botan-2/
     LINK_FLAGS := -lz -lbotan-2 --coverage
@@ -36,7 +41,7 @@ else
 endif
 
 # Module definitions
-MODULES := device cvt facet locale io common
+MODULES := device cvt facet locale io common concur
 
 # Per-module source collection
 device_SOURCES := $(shell find ./device -name '*.cpp')
@@ -45,6 +50,7 @@ facet_SOURCES := $(shell find ./facet -name '*.cpp')
 locale_SOURCES := $(shell find ./locale -name '*.cpp')
 io_SOURCES := $(shell find ./io -name '*.cpp')
 common_SOURCES := $(shell find ./common -name '*.cpp')
+concur_SOURCES := $(shell find ./concur -name '*.cpp')
 
 # Per-module object files
 device_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(device_SOURCES))
@@ -53,9 +59,11 @@ facet_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(facet_SOURCES))
 locale_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(locale_SOURCES))
 io_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(io_SOURCES))
 common_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(common_SOURCES))
+concur_OBJECTS := $(patsubst ./%.cpp,$(OBJ_DIR)/%.o,$(concur_SOURCES))
 
 ALL_OBJECTS := $(device_OBJECTS) $(cvt_OBJECTS) $(facet_OBJECTS) \
-               $(locale_OBJECTS) $(io_OBJECTS) $(common_OBJECTS)
+               $(locale_OBJECTS) $(io_OBJECTS) $(common_OBJECTS) \
+               $(concur_OBJECTS)
 
 # Target binaries
 TARGETS := $(addprefix $(BIN_DIR)/test_,$(MODULES))
@@ -88,6 +96,10 @@ $(BIN_DIR)/test_common: $(common_OBJECTS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) -o $@ $^ $(LINK_FLAGS)
 
+$(BIN_DIR)/test_concur: $(concur_OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) -o $@ $^ $(LINK_FLAGS)
+
 # Convenience targets for building individual modules
 device: $(BIN_DIR)/test_device
 cvt: $(BIN_DIR)/test_cvt
@@ -95,6 +107,7 @@ facet: $(BIN_DIR)/test_facet
 locale: $(BIN_DIR)/test_locale
 io: $(BIN_DIR)/test_io
 common: $(BIN_DIR)/test_common
+concur: $(BIN_DIR)/test_concur
 
 # Convenience targets for building and running individual modules
 test-device: device
@@ -115,6 +128,9 @@ test-io: io
 test-common: common
 	@echo "Running $(BIN_DIR)/test_common..."; $(BIN_DIR)/test_common
 
+test-concur: concur
+	@echo "Running $(BIN_DIR)/test_concur..."; $(BIN_DIR)/test_concur
+
 # Convenience targets for building and running individual modules with valgrind
 valgrind-device: device
 	@echo "Running $(BIN_DIR)/test_device with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_device
@@ -133,6 +149,9 @@ valgrind-io: io
 
 valgrind-common: common
 	@echo "Running $(BIN_DIR)/test_common with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_common
+
+valgrind-concur: concur
+	@echo "Running $(BIN_DIR)/test_concur with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $(BIN_DIR)/test_concur
 
 # Generic compilation rule
 $(OBJ_DIR)/%.o: ./%.cpp
@@ -159,7 +178,7 @@ valgrind: all
 
 # Clean up
 clean:
-	rm -rf obj_debug bin_debug obj_coverage bin_coverage obj_release bin_release obj_sanitizer bin_sanitizer
+	rm -rf obj_debug bin_debug obj_coverage bin_coverage obj_release bin_release obj_sanitizer bin_sanitizer obj_tsan bin_tsan
 	find . -name "*.gcda" -delete
 	find . -name "*.gcno" -delete
 	find . -name "*.gcov" -delete
@@ -181,6 +200,7 @@ help:
 	@echo "  locale           Build locale tests"
 	@echo "  io               Build io tests"
 	@echo "  common             Build common tests"
+	@echo "  concur           Build concurrency tests"
 	@echo ""
 	@echo "  test-device      Build and run device tests"
 	@echo "  test-cvt         Build and run cvt tests"
@@ -188,22 +208,25 @@ help:
 	@echo "  test-locale      Build and run locale tests"
 	@echo "  test-io          Build and run io tests"
 	@echo "  test-common        Build and run common tests"
+	@echo "  test-concur      Build and run concurrency tests"
 	@echo ""
 	@echo "Options:"
 	@echo "  MODE=debug       Build with debug flags (default)"
 	@echo "  MODE=release     Build with release flags (-O3, -DNDEBUG)"
 	@echo "  MODE=sanitizer   Build with ASan/UBSan (-O1, -g)"
+	@echo "  MODE=tsan        Build with ThreadSanitizer (-O1, -g); use with test-concur"
 	@echo "  MODE=coverage    Build with coverage flags (--coverage)"
 	@echo "  CXX=...          Override compiler (e.g., CXX=clang++-19)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make                     Build all (debug)"
 	@echo "  make MODE=sanitizer      Build with sanitizers"
+	@echo "  make test-concur MODE=tsan  Run concurrency tests under ThreadSanitizer"
 	@echo "  make test MODE=release   Run release tests"
 	@echo "  make clean               Clean all build artifacts"
 
 # Phony targets
 .PHONY: all clean test valgrind help
-.PHONY: device cvt facet locale io
-.PHONY: test-device test-cvt test-facet test-locale test-io
-.PHONY: valgrind-device valgrind-cvt valgrind-facet valgrind-locale valgrind-io
+.PHONY: device cvt facet locale io common concur
+.PHONY: test-device test-cvt test-facet test-locale test-io test-common test-concur
+.PHONY: valgrind-device valgrind-cvt valgrind-facet valgrind-locale valgrind-io valgrind-common valgrind-concur

@@ -174,14 +174,15 @@ struct stream_common_operators
      * @param loc 要设置的新 locale（按值接收，内部移动入 `m_locale`）。
      * @return 先前的 locale（已被移出并通过返回值转交调用方）。
      *
-     * @warning 本 setter 是写操作，须由调用方外部同步（经 `io_mutex()`）。同步范围**不仅**是
-     *          `locale(loc)` 这一次调用，而必须覆盖**整个** `operator>>`/`operator<<`/`get`/
-     *          `put` 等格式化 I/O 期间：`locale()` getter 返回的是绑定到 `m_locale` 的引用，
-     *          而格式化过程会在内部持有该引用直到操作结束。若在此期间另一路径对本流
-     *          `locale(loc)`（move-assign `m_locale`）或以其它方式变更本流状态，正在进行的操作
-     *          将读到被移走/被替换的对象，属数据竞争与未定义行为。
-     * @note 此约束与 `flush()`/`write()`/`tie()` 的 `io_mutex()` 契约一致，并非 locale 专有：
-     *       凡返回内部状态引用的 getter（如 `device()`）在并发变更下都有同样要求。
+     * @note 本 setter 自身持有本流的 `io_mutex()`。由于 `operator>>`/`operator<<`/`get`/`put`
+     *       等格式化 I/O 在其 sentry 生命周期内持有同一把锁，本次 move-assign `m_locale` 绝不会
+     *       落在某次格式化操作的中途——格式化过程内部持有的 `locale()` 引用因此始终有效。
+     * @warning 仍属调用方责任的是：`locale()` getter 返回的是绑定到 `m_locale` 的引用，**不要
+     *          把它保存到临界区之外**再使用；一旦离开锁的保护，另一线程的 `locale(loc)` 会把它
+     *          指向的对象移走，读取即为数据竞争与未定义行为。若需跨多次操作稳定持有，请以
+     *          `IOv2::sync` 把这些操作圈进同一个临界区。
+     * @note 此约束并非 locale 专有：凡返回内部状态引用的 getter（如 `device()`）在并发变更下都
+     *       有同样要求。
      * @endif
      *
      * @lang{EN}
@@ -193,17 +194,19 @@ struct stream_common_operators
      * @param loc The new locale to install (taken by value, moved into `m_locale`).
      * @return The previous locale (moved out and handed back to the caller).
      *
-     * @warning This setter is a write and must be serialized by the caller via `io_mutex()`.
-     *          The synchronization scope is **not** merely the `locale(loc)` call itself but the
-     *          **entire** duration of a formatted I/O operation (`operator>>`/`operator<<`/
-     *          `get`/`put`): the `locale()` getter returns a reference bound to `m_locale`, and
-     *          formatting holds that reference internally until the operation completes. If
-     *          another path re-imbues this stream (move-assigning `m_locale`) — or otherwise
-     *          mutates its state — while such an operation is in flight, the in-flight operation
-     *          reads a moved-from/replaced object: a data race and undefined behavior.
-     * @note This matches the `io_mutex()` contract of `flush()`/`write()`/`tie()` and is not
-     *       specific to locale: every getter returning a reference to internal state (e.g.
-     *       `device()`) carries the same requirement under concurrent mutation.
+     * @note This setter itself holds the stream's `io_mutex()`. Since formatted I/O
+     *       (`operator>>`/`operator<<`/`get`/`put`) holds that same lock for its sentry's
+     *       lifetime, this move-assignment of `m_locale` can never land in the middle of a
+     *       formatting operation, so the `locale()` reference that formatting holds internally
+     *       stays valid throughout.
+     * @warning What remains the caller's responsibility: the `locale()` getter returns a
+     *          reference bound to `m_locale` — **do not keep it past the critical section**.
+     *          Outside the lock, another thread's `locale(loc)` can move the referenced object
+     *          out from under you, and reading it is a data race and undefined behavior. To
+     *          hold it stably across several operations, group them into one critical section
+     *          with `IOv2::sync`.
+     * @note This is not specific to locale: every getter returning a reference to internal
+     *       state (e.g. `device()`) carries the same requirement under concurrent mutation.
      * @endif
      */
     template <typename TSelf, typename TChar>
