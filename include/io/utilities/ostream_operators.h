@@ -14,6 +14,7 @@
 #include <exception>
 #include <functional>
 #include <mutex>
+#include <string>
 #include <type_traits>
 #include <utility>
 
@@ -45,7 +46,19 @@ public:
         if constexpr (!is_std)
         {
             if (is_app_mode)
-                m_os.m_streambuf.rseek(0);
+            {
+                try
+                {
+                    m_os.m_streambuf.rseek(0);
+                }
+                catch (const cvt_error& e)
+                {
+                    throw cvt_error(std::string("ostream_sentry create fail: appmode cannot "
+                                                "reposition to the end; appmode requires a "
+                                                "fixed-length, state-independent encoding: ")
+                                    + e.what());
+                }
+            }
         }
 
         if (!static_cast<bool>(m_os))

@@ -96,7 +96,7 @@ struct stream_common_operators
         std::lock_guard guard(self.io_mutex());
         try
         {
-            self.clear(self.rdstate() & ~ios_defs::eofbit);
+            self.unset_state(ios_defs::eofbit);
             self.m_streambuf.seek(pos);
         }
         catch(...)
@@ -113,7 +113,7 @@ struct stream_common_operators
         std::lock_guard guard(self.io_mutex());
         try
         {
-            self.clear(self.rdstate() & ~ios_defs::eofbit);
+            self.unset_state(ios_defs::eofbit);
             self.m_streambuf.rseek(pos);
         }
         catch(...)
@@ -174,6 +174,16 @@ struct stream_common_operators
      * @param loc 要设置的新 locale（按值接收，内部移动入 `m_locale`）。
      * @return 先前的 locale（已被移出并通过返回值转交调用方）。
      *
+     * @note 回调失败时的行为：新 locale 的安装（`m_locale` 的 move-assign）在调用回调**之前**
+     *       就已完成，且 `access_callbacks` 会先把所有回调**全部执行完毕**、再重抛其中第一个
+     *       捕获的异常（见 `access_callbacks`）。因此回调抛出并不意味着本次设置被中断或只完成了
+     *       一半：新 locale 已生效，全部回调也都已执行，异常只是“其中至少有一个失败了”的事后
+     *       报告。本 setter **不做任何回滚**——回滚会让已按新 locale 重建完毕的 pword 缓存与被
+     *       还原的旧 locale 相互矛盾，且为修复它而重跑一遍回调同样可能失败。
+     * @note 该异常随后交由 `handle_exception` 归类：置上相应失败位（`stream_error`→`strfailbit`、
+     *       `cvt_error`→`cvtfailbit` 等），并**仅当该位处于异常掩码中时**才向调用方传播。
+     *       故默认（掩码为空）情况下本函数不抛出，正常返回旧 locale，仅留下一个失败位供检查；
+     *       若该位在掩码中则本函数抛出，此时旧 locale 随返回值一同丢失，无法取回。
      * @note 本 setter 自身持有本流的 `io_mutex()`。由于 `operator>>`/`operator<<`/`get`/`put`
      *       等格式化 I/O 在其 sentry 生命周期内持有同一把锁，本次 move-assign `m_locale` 绝不会
      *       落在某次格式化操作的中途——格式化过程内部持有的 `locale()` 引用因此始终有效。
@@ -194,6 +204,22 @@ struct stream_common_operators
      * @param loc The new locale to install (taken by value, moved into `m_locale`).
      * @return The previous locale (moved out and handed back to the caller).
      *
+     * @note Behavior when a callback fails: the new locale is installed (the move-assignment
+     *       of `m_locale`) *before* the callbacks are invoked, and `access_callbacks` runs
+     *       *every* callback to completion before rethrowing the first exception it captured
+     *       (see `access_callbacks`). A throwing callback therefore does not mean the set was
+     *       interrupted or half-applied: the new locale is in effect and all callbacks have
+     *       run; the exception is merely an after-the-fact report that at least one of them
+     *       failed. This setter performs **no rollback** -- restoring the old locale would
+     *       contradict the pword caches already rebuilt for the new one, and re-running the
+     *       callbacks to repair that could fail just the same.
+     * @note The exception is then categorized by `handle_exception`: it sets the matching
+     *       failure bit (`stream_error`→`strfailbit`, `cvt_error`→`cvtfailbit`, etc.) and
+     *       propagates to the caller **only if that bit is in the exception mask**. So by
+     *       default (empty mask) this function does not throw: it returns the previous locale
+     *       normally and merely leaves a failure bit to be inspected. If the bit is in the
+     *       mask this function throws, and the previous locale is lost along with the return
+     *       value -- it cannot be recovered.
      * @note This setter itself holds the stream's `io_mutex()`. Since formatted I/O
      *       (`operator>>`/`operator<<`/`get`/`put`) holds that same lock for its sentry's
      *       lifetime, this move-assignment of `m_locale` can never land in the middle of a
