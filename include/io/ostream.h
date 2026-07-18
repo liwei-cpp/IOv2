@@ -19,7 +19,8 @@ namespace IOv2
 template <io_device TDevice, typename TChar>
 class ostream : public ios_base<TChar>
               , public io_state_and_exp
-              , public ostream_operators<ostream<TDevice, TChar>, TChar>
+              , public out_flusher<ostream<TDevice, TChar>>
+              , public ostream_operators<TChar>
               , public stream_common_operators
 {
 public:
@@ -28,7 +29,8 @@ public:
     using out_sentry_type = out_sentry<ostream<TDevice, TChar>, false>;
 
     friend out_sentry_type;
-    friend ostream_operators<ostream<TDevice, TChar>, TChar>;
+    friend out_flusher<ostream<TDevice, TChar>>;
+    friend ostream_operators<TChar>;
     friend stream_common_operators;
 
 public:

@@ -78,6 +78,21 @@ struct app_zt;
 struct no_zt;
 
 template <typename TChar>
+struct istream_operators;
+
+template <typename T>
+concept istream_type =
+    requires (T a)
+    {
+        typename T::in_sentry_type;
+        typename T::char_type;
+        { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
+    } &&
+    is_in_sentry<typename T::in_sentry_type> &&
+    std::derived_from<T, ios_base<typename T::char_type>> &&
+    std::derived_from<T, istream_operators<typename T::char_type>>;
+
+template <typename TChar>
 struct istream_operators
 {
     template <typename TSelf>
@@ -254,6 +269,7 @@ struct istream_operators
     template <typename TSelf>
     TSelf& ignore_ws(this TSelf& self)
     {
+        std::lock_guard guard(self.io_mutex());
         try
         {
             auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
@@ -380,24 +396,16 @@ struct istream_operators
      *                copies, `nullptr` means do not report. See istreambuf_iterator.
      * @endif
      */
+private:
     template <typename TSelf>
     auto i_iter(this TSelf& self, bool* saw_eof = nullptr)
     {
         return istreambuf_iterator(self.m_streambuf, saw_eof);
     }
-};
 
-template <typename T>
-concept istream_type =
-    requires (T a)
-    {
-        typename T::in_sentry_type;
-        typename T::char_type;
-        { a.i_iter() } -> is_istreambuf_iterator;
-        { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
-    } &&
-    is_in_sentry<typename T::in_sentry_type> &&
-    std::derived_from<T, ios_base<typename T::char_type>>;
+    template <istream_type U, typename TValue>
+    friend U& operator>>(U& obj, TValue& value);
+};
 
 template <istream_type T>
 T& operator >> (T& obj, void(*pf)(ios_base<typename T::char_type>&))

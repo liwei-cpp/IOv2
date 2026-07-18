@@ -24,7 +24,8 @@ class __wclog;
 template <typename T, typename TDevice, typename TChar>
 class stdout_api : public ios_base<TChar>
                  , public io_state_and_exp
-                 , public ostream_operators<T, TChar>
+                 , public out_flusher<T>
+                 , public ostream_operators<TChar>
                  , public stream_common_operators
 {
 public:
@@ -33,7 +34,8 @@ public:
     using out_sentry_type = out_sentry<T, false, true>;
 
     friend out_sentry_type;
-    friend ostream_operators<T, TChar>;
+    friend out_flusher<T>;
+    friend ostream_operators<TChar>;
     friend stream_common_operators;
 
 public:

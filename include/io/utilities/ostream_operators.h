@@ -155,50 +155,38 @@ struct is_out_sentry_impl<out_sentry<TStream, involve_input, is_std>>
 template <typename T>
 concept is_out_sentry = is_out_sentry_impl<T>::value;
 
-class abs_ostream
+class abs_flusher
 {
 public:
-    virtual ~abs_ostream() = default;
+    virtual ~abs_flusher() = default;
 
 public:
     virtual void flush() = 0;
 };
 
-template <typename T, typename TChar>
-struct ostream_operators : public abs_ostream
+/**
+ * @lang{ZH}
+ * @brief 承载多态 `flush()` 的 CRTP 基类：对具体流类型 `T` 的向下转型集中于此。
+ *
+ * `flush()` 覆盖 `abs_flusher::flush`，而虚函数无法使用 deducing-this，只能
+ * `static_cast<T&>(*this)` 取回具体流类型。单独引入本模板承载该 `T`，从而让
+ * `ostream_operators` 不必再携带 CRTP 自身参数（与 `istream_operators<TChar>` 对称）。
+ * 每个输出流同时派生 `out_flusher<自身>` 与 `ostream_operators<TChar>`。
+ * @endif
+ * @lang{EN}
+ * @brief CRTP base carrying the polymorphic `flush()`: the down-cast to the concrete stream
+ * type `T` is localized here.
+ *
+ * `flush()` overrides `abs_flusher::flush`; a virtual cannot use deducing-this, so it must
+ * `static_cast<T&>(*this)` to recover the concrete stream type. This template exists solely
+ * to carry that `T`, letting `ostream_operators` drop its CRTP self-parameter (making it
+ * symmetric with `istream_operators<TChar>`). Every output stream derives from both
+ * `out_flusher<Self>` and `ostream_operators<TChar>`.
+ * @endif
+ */
+template <typename T>
+struct out_flusher : public abs_flusher
 {
-    template<typename TSelf>
-    TSelf& put(this TSelf& self, TChar c)
-    {
-        try
-        {
-            using sentry_type = typename TSelf::out_sentry_type;
-            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
-            self.m_streambuf.sputc(c);
-        }
-        catch(...)
-        {
-            self.handle_exception(std::current_exception());
-        }
-        return self;
-    }
-
-    template<typename TSelf>
-    TSelf& write(this TSelf& self, const TChar* s, size_t n)
-    {
-        try
-        {
-            using sentry_type = typename TSelf::out_sentry_type;
-            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
-            self.m_streambuf.sputn(s, n);
-        }
-        catch(...)
-        {
-            self.handle_exception(std::current_exception());
-        }
-        return self;
-    }
-
     /**
      * @lang{ZH}
      * @brief 刷新本流：把缓冲区写出到底层设备。
@@ -248,20 +236,17 @@ struct ostream_operators : public abs_ostream
                 obj.m_streambuf.device().dflush();
             }
             else
-                throw stream_error("ostream_operators::flush fail: device does not support output");
+                throw stream_error("out_flusher::flush fail: device does not support output");
         }
         catch(...)
         {
             obj.handle_exception(std::current_exception());
         }
     }
-
-    template <typename TSelf>
-    auto o_iter(this TSelf& self)
-    {
-        return ostreambuf_iterator(self.m_streambuf);
-    }
 };
+
+template <typename TChar>
+struct ostream_operators;
 
 template <typename T>
 concept ostream_type =
@@ -269,11 +254,57 @@ concept ostream_type =
     {
         typename T::out_sentry_type;
         typename T::char_type;
-        { a.o_iter() } -> is_ostreambuf_iterator;
         { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
     } &&
     is_out_sentry<typename T::out_sentry_type> &&
-    std::derived_from<T, ios_base<typename T::char_type>>;
+    std::derived_from<T, ios_base<typename T::char_type>> &&
+    std::derived_from<T, ostream_operators<typename T::char_type>>;
+
+template <typename TChar>
+struct ostream_operators
+{
+    template<typename TSelf>
+    TSelf& put(this TSelf& self, TChar c)
+    {
+        try
+        {
+            using sentry_type = typename TSelf::out_sentry_type;
+            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            self.m_streambuf.sputc(c);
+        }
+        catch(...)
+        {
+            self.handle_exception(std::current_exception());
+        }
+        return self;
+    }
+
+    template<typename TSelf>
+    TSelf& write(this TSelf& self, const TChar* s, size_t n)
+    {
+        try
+        {
+            using sentry_type = typename TSelf::out_sentry_type;
+            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            self.m_streambuf.sputn(s, n);
+        }
+        catch(...)
+        {
+            self.handle_exception(std::current_exception());
+        }
+        return self;
+    }
+
+private:
+    template <typename TSelf>
+    auto o_iter(this TSelf& self)
+    {
+        return ostreambuf_iterator(self.m_streambuf);
+    }
+
+    template <ostream_type U, typename TValue>
+    friend U& operator<<(U& obj, const TValue& value);
+};
 
 template <ostream_type T>
 T& operator << (T& obj, void(*pf)(ios_base<typename T::char_type>&))
