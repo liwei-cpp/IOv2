@@ -1,25 +1,27 @@
 <map id="IOv2::__wcerr" name="IOv2::__wcerr">
-<area shape="rect" id="Node000001" title="wcerr" alt="" coords="840,232,951,257"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="559,161,791,216"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="796,217,845,229,844,234,795,222"/>
+<area shape="rect" id="Node000001" title="wcerr" alt="" coords="840,249,951,275"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="559,179,791,233"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="796,234,845,247,844,252,795,239"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="230,5,414,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="396,32,420,40,482,66,541,98,637,159,634,163,538,103,479,71,418,44,395,37"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="396,32,420,40,480,65,536,98,593,138,642,176,639,180,590,142,533,103,477,70,418,44,395,37"/>
 <area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="管理流状态位及其关联异常的组件。" alt="" coords="235,55,409,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,81,419,90,519,125,607,159,605,164,517,130,418,95,387,86"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="231,105,413,145"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="427,141,559,165,558,170,426,146"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="19,112,163,137"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="177,122,231,122,231,127,177,127"/>
-<area shape="rect" id="Node000007" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="237,169,407,209"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="421,186,558,186,558,191,421,191"/>
-<area shape="rect" id="Node000008" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="225,233,419,273"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="432,230,558,207,559,212,433,235"/>
-<area shape="rect" id="Node000009" href="$classIOv2_1_1base__streambuf.html" title="流缓冲区的通用实现基类。" alt="" coords="5,225,176,280"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="190,250,225,250,225,255,190,255"/>
-<area shape="rect" id="Node000010" href="$classIOv2_1_1locale.html" title=" " alt="" coords="251,297,393,337"/>
-<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="406,298,470,278,533,249,545,238,557,226,582,214,584,219,560,231,549,242,536,254,472,283,408,303"/>
-<area shape="rect" id="Node000011" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="227,361,417,401"/>
-<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="395,354,418,346,453,338,481,334,507,327,533,307,543,288,544,269,545,248,557,227,572,214,575,218,561,230,550,249,549,269,548,289,537,310,509,331,482,339,454,343,419,351,397,359"/>
-<area shape="rect" id="Node000012" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="599,241,750,281"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="764,252,840,246,840,251,764,257"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="394,81,420,89,529,132,622,176,619,181,526,137,418,94,393,86"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1out__flusher.html" title="承载多态 flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。" alt="" coords="237,104,407,129"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="387,130,567,176,565,181,386,135"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="23,104,158,129"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="172,114,236,114,236,119,172,119"/>
+<area shape="rect" id="Node000007" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="231,154,413,194"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="427,181,559,193,558,198,427,186"/>
+<area shape="rect" id="Node000008" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="237,218,407,258"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="421,226,558,214,558,219,421,232"/>
+<area shape="rect" id="Node000009" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="225,282,419,322"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="416,276,534,245,582,231,584,236,535,250,418,281"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1base__streambuf.html" title="流缓冲区的通用实现基类。" alt="" coords="5,275,176,329"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="190,299,225,299,225,305,190,305"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1locale.html" title=" " alt="" coords="251,346,393,386"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="396,339,418,331,452,322,480,317,505,308,533,289,541,279,544,268,548,256,557,244,575,231,578,236,561,248,552,258,549,269,546,281,537,293,508,313,481,322,453,327,419,337,398,344"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="227,410,417,450"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="429,408,485,383,511,366,533,344,540,332,544,320,543,296,543,271,548,257,557,244,571,232,575,236,561,248,552,260,549,271,549,296,549,321,545,334,537,348,514,370,488,388,431,412"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="599,258,750,298"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="764,269,840,263,840,269,764,274"/>
 </map>

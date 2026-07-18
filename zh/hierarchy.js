@@ -28,34 +28,20 @@ var hierarchy =
       [ "IOv2::Crypt::Classic::vigenere_cvt< KernelType >", "classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt.html", null ]
     ] ],
     [ "IOv2::abs_cvt< zlib_cvt< KernelType, typename KernelType::internal_type >, KernelType, typename KernelType::internal_type, false, false >", "classIOv2_1_1abs__cvt.html", null ],
-    [ "IOv2::abs_ft", "structIOv2_1_1abs__ft.html", [
-      [ "IOv2::base_ft< timeio >", "classIOv2_1_1base__ft.html", [
-        [ "IOv2::ft_basic< timeio< CharT > >", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html", [
-          [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", null ]
-        ] ]
-      ] ],
-      [ "IOv2::base_ft< IOv2::monetary >", "classIOv2_1_1base__ft.html", null ],
-      [ "IOv2::base_ft< TFacet >", "classIOv2_1_1base__ft.html", [
-        [ "IOv2::ft_basic< TFacet< CharT > >", "classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html", null ]
-      ] ],
-      [ "IOv2::base_ft< ctype >", "classIOv2_1_1base__ft_3_01ctype_01_4.html", null ],
-      [ "IOv2::base_ft< messages >", "classIOv2_1_1base__ft_3_01messages_01_4.html", null ],
-      [ "IOv2::base_ft< monetary >", "classIOv2_1_1base__ft_3_01monetary_01_4.html", null ]
-    ] ],
-    [ "IOv2::abs_ostream", "classIOv2_1_1abs__ostream.html", [
-      [ "IOv2::ostream_operators< __cerr, char >", "structIOv2_1_1ostream__operators.html", null ],
-      [ "IOv2::ostream_operators< __clog, char >", "structIOv2_1_1ostream__operators.html", null ],
-      [ "IOv2::ostream_operators< __cout, char >", "structIOv2_1_1ostream__operators.html", null ],
-      [ "IOv2::ostream_operators< __wcerr, wchar_t >", "structIOv2_1_1ostream__operators.html", null ],
-      [ "IOv2::ostream_operators< __wclog, wchar_t >", "structIOv2_1_1ostream__operators.html", null ],
-      [ "IOv2::ostream_operators< __wcout, wchar_t >", "structIOv2_1_1ostream__operators.html", null ],
-      [ "IOv2::ostream_operators< iostream< TDevice, TChar >, TChar >", "structIOv2_1_1ostream__operators.html", [
+    [ "IOv2::abs_flusher", "classIOv2_1_1abs__flusher.html", [
+      [ "IOv2::out_flusher< __cerr >", "structIOv2_1_1out__flusher.html", null ],
+      [ "IOv2::out_flusher< __clog >", "structIOv2_1_1out__flusher.html", null ],
+      [ "IOv2::out_flusher< __cout >", "structIOv2_1_1out__flusher.html", null ],
+      [ "IOv2::out_flusher< __wcerr >", "structIOv2_1_1out__flusher.html", null ],
+      [ "IOv2::out_flusher< __wclog >", "structIOv2_1_1out__flusher.html", null ],
+      [ "IOv2::out_flusher< __wcout >", "structIOv2_1_1out__flusher.html", null ],
+      [ "IOv2::out_flusher< iostream< TDevice, TChar > >", "structIOv2_1_1out__flusher.html", [
         [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ]
       ] ],
-      [ "IOv2::ostream_operators< ostream< TDevice, TChar >, TChar >", "structIOv2_1_1ostream__operators.html", [
+      [ "IOv2::out_flusher< ostream< TDevice, TChar > >", "structIOv2_1_1out__flusher.html", [
         [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ]
       ] ],
-      [ "IOv2::ostream_operators< T, TChar >", "structIOv2_1_1ostream__operators.html", [
+      [ "IOv2::out_flusher< T >", "structIOv2_1_1out__flusher.html", [
         [ "IOv2::stdout_api< __cerr, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", [
           [ "IOv2::__cerr", "classIOv2_1_1____cerr.html", null ]
         ] ],
@@ -76,6 +62,20 @@ var hierarchy =
         ] ],
         [ "IOv2::stdout_api< T, TDevice, TChar >", "classIOv2_1_1stdout__api.html", null ]
       ] ]
+    ] ],
+    [ "IOv2::abs_ft", "structIOv2_1_1abs__ft.html", [
+      [ "IOv2::base_ft< timeio >", "classIOv2_1_1base__ft.html", [
+        [ "IOv2::ft_basic< timeio< CharT > >", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html", [
+          [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", null ]
+        ] ]
+      ] ],
+      [ "IOv2::base_ft< IOv2::monetary >", "classIOv2_1_1base__ft.html", null ],
+      [ "IOv2::base_ft< TFacet >", "classIOv2_1_1base__ft.html", [
+        [ "IOv2::ft_basic< TFacet< CharT > >", "classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html", null ]
+      ] ],
+      [ "IOv2::base_ft< ctype >", "classIOv2_1_1base__ft_3_01ctype_01_4.html", null ],
+      [ "IOv2::base_ft< messages >", "classIOv2_1_1base__ft_3_01messages_01_4.html", null ],
+      [ "IOv2::base_ft< monetary >", "classIOv2_1_1base__ft_3_01monetary_01_4.html", null ]
     ] ],
     [ "IOv2::abs_runtime_cvt_imp< TDevice, TInt >", "classIOv2_1_1abs__runtime__cvt__imp.html", null ],
     [ "IOv2::abs_runtime_cvt_imp< KernelType::device_type, KernelType::internal_type >", "classIOv2_1_1abs__runtime__cvt__imp.html", [
@@ -111,7 +111,7 @@ var hierarchy =
     [ "IOv2::codecvt_kernel< external_type, internal_type >", "structIOv2_1_1codecvt__kernel.html", null ],
     [ "IOv2::collate< CharT >", "classIOv2_1_1collate.html", null ],
     [ "IOv2::copyable_atomic< T >", "classIOv2_1_1copyable__atomic.html", null ],
-    [ "IOv2::copyable_atomic< IOv2::abs_ostream * >", "classIOv2_1_1copyable__atomic.html", null ],
+    [ "IOv2::copyable_atomic< IOv2::abs_flusher * >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_mutex< TMutex >", "classIOv2_1_1copyable__mutex.html", null ],
     [ "IOv2::copyable_mutex< std::recursive_mutex >", "classIOv2_1_1copyable__mutex.html", null ],
     [ "IOv2::cpt_cvt_pipe_creator_helper< T >", "structIOv2_1_1cpt__cvt__pipe__creator__helper.html", null ],
@@ -274,6 +274,19 @@ var hierarchy =
     [ "IOv2::detail::msg_key", "structIOv2_1_1detail_1_1msg__key.html", null ],
     [ "IOv2::numeric< CharT >", "classIOv2_1_1numeric.html", null ],
     [ "IOv2::numeric_conf< CharT >", "classIOv2_1_1numeric__conf.html", null ],
+    [ "IOv2::ostream_operators< TChar >", "structIOv2_1_1ostream__operators.html", [
+      [ "IOv2::stdout_api< __cerr, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __clog, std_device< STDERR_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __cout, std_device< STDOUT_FILENO >, char >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wcerr, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wclog, std_device< STDERR_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::stdout_api< __wcout, std_device< STDOUT_FILENO >, wchar_t >", "classIOv2_1_1stdout__api.html", null ],
+      [ "IOv2::iostream< TDevice, TChar >", "classIOv2_1_1iostream.html", null ],
+      [ "IOv2::ostream< TDevice, TChar >", "classIOv2_1_1ostream.html", null ],
+      [ "IOv2::stdout_api< T, TDevice, TChar >", "classIOv2_1_1stdout__api.html", null ]
+    ] ],
+    [ "IOv2::ostream_operators< char >", "structIOv2_1_1ostream__operators.html", null ],
+    [ "IOv2::ostream_operators< wchar_t >", "structIOv2_1_1ostream__operators.html", null ],
     [ "IOv2::ostreambuf_iterator< TStreamBuf >", "classIOv2_1_1ostreambuf__iterator.html", null ],
     [ "IOv2::out_sentry< TStream, involve_input, is_std >", "structIOv2_1_1out__sentry.html", null ],
     [ "IOv2::parse_context_type< TChar, T >", "structIOv2_1_1parse__context__type.html", null ],

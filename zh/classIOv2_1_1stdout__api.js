@@ -15,7 +15,8 @@ var classIOv2_1_1stdout__api =
     [ "m_locale", "classIOv2_1_1stdout__api.html#a57c748b10f037cbf3ea746fa956ff15d", null ],
     [ "m_streambuf", "classIOv2_1_1stdout__api.html#af45b2fdaab8d24938e52df2afccd6fcf", null ],
     [ "m_sync_with_stdio", "classIOv2_1_1stdout__api.html#aec9bd7e690fc381c421278101091ca9c", null ],
-    [ "ostream_operators< T, TChar >", "classIOv2_1_1stdout__api.html#ab7d05a691afb5d58d947456558e06cc1", null ],
+    [ "ostream_operators< TChar >", "classIOv2_1_1stdout__api.html#a8274bfab5ce585c4d1089e87050ccd93", null ],
+    [ "out_flusher< T >", "classIOv2_1_1stdout__api.html#a5af4e1eee812b2f0d771a85e76706546", null ],
     [ "out_sentry_type", "classIOv2_1_1stdout__api.html#af12516dca1e5114e6eaa8726cb07d9ab", null ],
     [ "stream_common_operators", "classIOv2_1_1stdout__api.html#ad4ad020ce00548eca5ac7453bbabcfda", null ]
 ];

@@ -1,15 +1,17 @@
 <map id="IOv2::iostream&lt; TDevice, TChar &gt;" name="IOv2::iostream&lt; TDevice, TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="453,105,644,145"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="209,5,393,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="385,32,406,40,469,70,520,102,517,107,466,75,404,44,383,37"/>
-<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="214,55,389,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="371,81,463,102,461,107,369,86"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="212,105,391,145"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="404,122,453,122,453,127,404,127"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="197,169,405,224"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="408,163,478,142,480,147,410,168"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="5,184,149,209"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="164,194,197,194,197,199,164,199"/>
-<area shape="rect" id="Node000007" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="216,249,387,289"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="390,241,404,234,439,213,473,189,525,143,529,147,476,193,442,217,407,239,392,246"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="420,141,611,181"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="188,5,372,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="358,33,373,40,410,62,445,89,497,138,494,142,441,93,407,67,371,44,356,38"/>
+<area shape="rect" id="Node000003" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="193,55,367,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="347,81,373,90,429,114,478,138,476,143,426,119,371,95,345,86"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="191,105,369,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="384,138,420,143,419,149,383,143"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="202,169,358,224"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="371,180,419,173,420,178,372,185"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="5,184,140,209"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="154,194,202,194,202,199,154,199"/>
+<area shape="rect" id="Node000007" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="189,249,371,289"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="354,241,371,234,478,179,481,183,373,239,356,246"/>
+<area shape="rect" id="Node000008" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="195,313,365,353"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="360,305,371,298,409,270,444,238,496,179,500,183,448,242,412,274,373,303,362,309"/>
 </map>

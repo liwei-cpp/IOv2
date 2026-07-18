@@ -20,7 +20,7 @@ var searchData=
   ['collate_17',['collate',['../classIOv2_1_1collate.html',1,'IOv2']]],
   ['collate_5fconf_18',['collate_conf',['../classIOv2_1_1collate__conf.html',1,'IOv2']]],
   ['copyable_5fatomic_19',['copyable_atomic',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
-  ['copyable_5fatomic_3c_20iov2_3a_3aabs_5fostream_20_2a_20_3e_20',['copyable_atomic&lt; IOv2::abs_ostream * &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
+  ['copyable_5fatomic_3c_20iov2_3a_3aabs_5fflusher_20_2a_20_3e_20',['copyable_atomic&lt; IOv2::abs_flusher * &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
   ['copyable_5fmutex_21',['copyable_mutex',['../classIOv2_1_1copyable__mutex.html',1,'IOv2']]],
   ['copyable_5fmutex_3c_20std_3a_3arecursive_5fmutex_20_3e_22',['copyable_mutex&lt; std::recursive_mutex &gt;',['../classIOv2_1_1copyable__mutex.html',1,'IOv2']]],
   ['cpt_5fcvt_5fpipe_5fcreator_5fhelper_23',['cpt_cvt_pipe_creator_helper',['../structIOv2_1_1cpt__cvt__pipe__creator__helper.html',1,'IOv2']]],

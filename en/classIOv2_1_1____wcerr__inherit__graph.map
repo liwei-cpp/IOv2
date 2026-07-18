@@ -1,17 +1,19 @@
 <map id="IOv2::__wcerr" name="IOv2::__wcerr">
-<area shape="rect" id="Node000001" title="wcerr" alt="" coords="709,120,820,145"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="429,69,661,124"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="675,115,710,121,709,126,674,121"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="197,5,381,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="355,32,382,39,467,67,465,72,381,45,354,37"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="202,55,377,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="391,76,429,81,429,86,390,82"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="198,105,381,145"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="394,111,429,107,429,112,394,116"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="5,112,149,137"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="163,122,198,122,198,127,163,127"/>
-<area shape="rect" id="Node000007" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="204,169,375,209"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="361,162,380,154,428,134,463,122,465,127,430,139,382,159,363,167"/>
-<area shape="rect" id="Node000008" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="470,149,621,189"/>
-<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="634,151,709,139,710,144,635,157"/>
+<area shape="rect" id="Node000001" title="wcerr" alt="" coords="700,140,811,165"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="420,89,652,144"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="666,135,700,141,699,146,665,141"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="188,5,372,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,32,373,40,482,87,480,92,371,44,348,37"/>
+<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="193,55,367,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="360,80,420,92,419,97,359,85"/>
+<area shape="rect" id="Node000005" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down&#45;cast to the concrete stream type T is localized ..." alt="" coords="195,104,365,129"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="379,114,420,114,420,119,379,119"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="5,104,140,129"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="154,114,195,114,195,119,154,119"/>
+<area shape="rect" id="Node000007" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="189,154,371,194"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="382,148,419,140,420,145,384,154"/>
+<area shape="rect" id="Node000008" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="195,218,365,258"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="360,210,370,204,385,192,394,180,403,167,419,154,442,142,445,146,421,159,407,171,398,183,389,195,374,208,363,214"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="461,169,611,209"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="625,171,699,159,700,164,626,177"/>
 </map>

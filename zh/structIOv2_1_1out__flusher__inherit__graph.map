@@ -1,0 +1,31 @@
+<map id="IOv2::out_flusher&lt; T &gt;" name="IOv2::out_flusher&lt; T &gt;">
+<area shape="rect" id="Node000001" title="承载多态 flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。" alt="" coords="188,256,359,281"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="425,5,623,60"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="283,242,301,204,327,158,362,110,405,69,423,58,426,62,408,73,366,114,332,161,305,207,287,245"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="425,84,623,139"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="293,244,341,196,372,170,405,148,428,136,430,141,408,152,375,174,345,200,297,247"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="424,163,624,217"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="327,249,435,215,437,220,329,254"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="408,241,640,296"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="372,266,408,266,408,271,372,271"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="408,320,640,375"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="329,283,437,317,435,322,327,288"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="407,399,641,453"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="297,290,345,338,375,363,408,385,430,396,428,401,405,390,372,367,341,342,293,294"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="447,478,601,518"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="287,293,305,331,331,378,366,424,408,464,447,483,445,488,405,468,362,428,327,381,300,334,282,295"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="5,256,140,281"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,266,188,266,188,271,154,271"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1____cerr.html" title="cerr" alt="" coords="697,20,795,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="637,30,696,30,696,35,637,35"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1____clog.html" title="clog" alt="" coords="695,99,797,124"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="637,109,695,109,695,114,637,114"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1____cout.html" title="__cout" alt="" coords="695,177,797,203"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="638,187,694,187,694,193,638,193"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1____wcerr.html" title="wcerr" alt="" coords="691,256,801,281"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="654,266,691,266,691,271,654,271"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1____wclog.html" title="wclog" alt="" coords="690,335,802,360"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="654,345,690,345,690,350,654,350"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1____wcout.html" title="wcout" alt="" coords="689,413,803,439"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="655,423,689,423,689,429,655,429"/>
+</map>

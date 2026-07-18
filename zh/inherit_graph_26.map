@@ -1,5 +1,5 @@
 <map id="类继承关系图" name="类继承关系图">
 <area shape="rect" id="Node000000" href="$classIOv2_1_1base__streambuf.html" title=" " alt="" coords="5,5,184,60"/>
 <area shape="rect" id="Node000001" href="$structIOv2_1_1ostreambuf.html" title="只写流缓冲区：仅支持输出。" alt="" coords="232,13,439,53"/>
-<area shape="poly" id="edge100_Node000000_Node000001" title=" " alt="" coords="198,30,232,30,232,35,198,35"/>
+<area shape="poly" id="edge109_Node000000_Node000001" title=" " alt="" coords="198,30,232,30,232,35,198,35"/>
 </map>

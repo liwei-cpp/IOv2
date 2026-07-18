@@ -11,6 +11,6 @@ var structIOv2_1_1stream__common__operators =
     [ "rseek", "structIOv2_1_1stream__common__operators.html#a09c0dcf9c640a09310775335e78dab89", null ],
     [ "seek", "structIOv2_1_1stream__common__operators.html#a5d04f3b31ae058742dbf0e62904b075f", null ],
     [ "tell", "structIOv2_1_1stream__common__operators.html#a33b542a0090a0ce5d899d7b46e4602a6", null ],
-    [ "tie", "structIOv2_1_1stream__common__operators.html#a21d8708c04c5ed8114c47cca8bd0104d", null ],
-    [ "tie", "structIOv2_1_1stream__common__operators.html#a40829173c60b2b1913b133ff00249d62", null ]
+    [ "tie", "structIOv2_1_1stream__common__operators.html#acfbc3881cee9470dcb37c9b0ffcc7e52", null ],
+    [ "tie", "structIOv2_1_1stream__common__operators.html#ae555241409f8a169e9a4eb3101584f27", null ]
 ];

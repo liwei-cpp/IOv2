@@ -1,8 +1,8 @@
 var searchData=
 [
   ['_7eabs_5fcvt_0',['~abs_cvt',['../classIOv2_1_1abs__cvt.html#ab0bcc5aeb9ea81ae199aa9273de15970',1,'IOv2::abs_cvt']]],
-  ['_7eabs_5fft_1',['~abs_ft',['../structIOv2_1_1abs__ft.html#af21c95d12d9f4d106039b8482b3c3d05',1,'IOv2::abs_ft']]],
-  ['_7eabs_5fostream_2',['~abs_ostream',['../classIOv2_1_1abs__ostream.html#a4ba89b649179e36c30d7bc9605dee4cc',1,'IOv2::abs_ostream']]],
+  ['_7eabs_5fflusher_1',['~abs_flusher',['../classIOv2_1_1abs__flusher.html#a224a522129ead29ca7ebf08ab315c81a',1,'IOv2::abs_flusher']]],
+  ['_7eabs_5fft_2',['~abs_ft',['../structIOv2_1_1abs__ft.html#af21c95d12d9f4d106039b8482b3c3d05',1,'IOv2::abs_ft']]],
   ['_7eabs_5fruntime_5fcvt_5fimp_3',['~abs_runtime_cvt_imp',['../classIOv2_1_1abs__runtime__cvt__imp.html#aa8ad0975dd1060d637081bd2d80fb61c',1,'IOv2::abs_runtime_cvt_imp']]],
   ['_7ebasic_5ffile_5fdevice_4',['~basic_file_device',['../classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html#ad700195c8cf34ca54ad599a9020d2539',1,'IOv2::basic_file_device&lt; IsIn, IsOut, CharType &gt;']]],
   ['_7echacha20_5fcvt_5',['~chacha20_cvt',['../classIOv2_1_1Crypt_1_1chacha20__cvt.html#a5e025e04c79737f5b6cd895792d76ad7',1,'IOv2::Crypt::chacha20_cvt']]],

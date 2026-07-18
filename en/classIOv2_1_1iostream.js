@@ -13,7 +13,8 @@ var classIOv2_1_1iostream =
     [ "switch_to_put", "classIOv2_1_1iostream.html#ac48556dc70ab43d55494629f1e4ea524", null ],
     [ "in_sentry_type", "classIOv2_1_1iostream.html#a73ad400182a7886b50ab6ebb47ecbaf6", null ],
     [ "istream_operators< TChar >", "classIOv2_1_1iostream.html#a590db7a6c3a51b6989e758652fcaed70", null ],
-    [ "ostream_operators< iostream< TDevice, TChar >, TChar >", "classIOv2_1_1iostream.html#adf5f8716bd8b0fbb0a8001bcf5ee0f68", null ],
+    [ "ostream_operators< TChar >", "classIOv2_1_1iostream.html#a5d5c118bd220be8d704e12848c3c0a10", null ],
+    [ "out_flusher< iostream< TDevice, TChar > >", "classIOv2_1_1iostream.html#a03630fedb1532e6d7755501b1f137ce4", null ],
     [ "out_sentry_type", "classIOv2_1_1iostream.html#a161f318df67a3d0e19e5d380beb94bdb", null ],
     [ "stream_common_operators", "classIOv2_1_1iostream.html#aed34d12ad58ef5b26b23f08b0fc873b0", null ]
 ];

@@ -1,31 +1,33 @@
-<map id="IOv2::ostream_operators&lt; T, TChar &gt;" name="IOv2::ostream_operators&lt; T, TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="197,249,380,289"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="446,5,645,60"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="302,234,322,196,350,152,385,108,426,69,445,58,447,62,430,73,389,111,354,155,327,199,307,237"/>
-<area shape="rect" id="Node000005" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="446,84,645,139"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="316,236,365,191,427,148,450,136,452,141,429,152,369,195,320,240"/>
-<area shape="rect" id="Node000007" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="445,163,645,217"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="367,242,455,215,456,220,368,247"/>
-<area shape="rect" id="Node000009" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="429,241,661,296"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="394,266,429,266,429,271,394,271"/>
-<area shape="rect" id="Node000011" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="429,320,661,375"/>
-<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="368,290,456,317,455,322,367,295"/>
-<area shape="rect" id="Node000013" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="428,399,663,453"/>
-<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="320,297,369,342,429,385,452,396,450,401,427,390,365,346,316,301"/>
-<area shape="rect" id="Node000015" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="468,478,623,518"/>
-<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="307,300,326,338,353,383,388,427,429,464,469,483,466,487,427,468,384,430,349,386,321,341,302,303"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1abs__ostream.html" title=" " alt="" coords="5,256,149,281"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,266,197,266,197,271,163,271"/>
-<area shape="rect" id="Node000004" href="$classIOv2_1_1____cerr.html" title="cerr" alt="" coords="718,20,817,45"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="658,30,718,30,718,35,658,35"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1____clog.html" title="clog" alt="" coords="717,99,818,124"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="658,109,717,109,717,114,658,114"/>
-<area shape="rect" id="Node000008" href="$classIOv2_1_1____cout.html" title="__cout" alt="" coords="716,177,819,203"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="659,187,716,187,716,193,659,193"/>
-<area shape="rect" id="Node000010" href="$classIOv2_1_1____wcerr.html" title="wcerr" alt="" coords="712,256,823,281"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="675,266,712,266,712,271,675,271"/>
-<area shape="rect" id="Node000012" href="$classIOv2_1_1____wclog.html" title="wclog" alt="" coords="711,335,823,360"/>
-<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="675,345,711,345,711,350,675,350"/>
-<area shape="rect" id="Node000014" href="$classIOv2_1_1____wcout.html" title="wcout" alt="" coords="711,413,824,439"/>
-<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="676,423,711,423,711,429,676,429"/>
+<map id="IOv2::ostream_operators&lt; TChar &gt;" name="IOv2::ostream_operators&lt; TChar &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,327,188,367"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,5,453,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,313,119,260,145,195,183,128,207,97,234,69,252,57,255,61,238,73,211,100,188,131,150,197,124,262,108,315"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,84,453,139"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="110,313,130,275,158,231,193,186,234,148,253,136,255,141,238,152,197,190,162,234,135,278,115,316"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="253,163,453,217"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="124,315,173,270,235,226,258,215,260,220,237,231,177,274,128,319"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="237,241,469,296"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="175,321,263,294,264,299,176,326"/>
+<area shape="rect" id="Node000010" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="237,320,469,375"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="202,345,237,345,237,350,202,350"/>
+<area shape="rect" id="Node000012" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="236,399,471,453"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="176,369,264,396,263,401,175,374"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="258,478,449,518"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="127,375,176,421,206,444,237,464,264,475,262,480,235,468,203,448,172,425,123,379"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1ostream.html" title=" " alt="" coords="260,542,447,582"/>
+<area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="116,379,137,414,164,454,198,494,238,528,261,540,258,545,234,532,194,498,160,458,132,417,112,381"/>
+<area shape="rect" id="Node000016" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="276,606,431,646"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="110,380,127,427,153,485,190,543,213,569,238,592,256,603,277,612,274,617,254,608,234,596,209,573,186,546,149,487,122,429,105,381"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1____cerr.html" title="cerr" alt="" coords="526,20,625,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="466,30,526,30,526,35,466,35"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1____clog.html" title="clog" alt="" coords="525,99,626,124"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="466,109,525,109,525,114,466,114"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1____cout.html" title="__cout" alt="" coords="524,177,627,203"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="467,187,524,187,524,193,467,193"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1____wcerr.html" title="wcerr" alt="" coords="520,256,631,281"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="483,266,520,266,520,271,483,271"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1____wclog.html" title="wclog" alt="" coords="519,335,631,360"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="483,345,519,345,519,350,483,350"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1____wcout.html" title="wcout" alt="" coords="519,413,632,439"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="484,423,519,423,519,429,484,429"/>
 </map>
