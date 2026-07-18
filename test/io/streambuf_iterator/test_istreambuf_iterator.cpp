@@ -343,12 +343,12 @@ void test_istreambuf_iterator_sentinel_3()
     pipe_iguard g("ab");
     std::thread closer([&g]{ std::this_thread::sleep_for(std::chrono::seconds(1)); g.close_write(); });
 
-    istream is{std_device<STDIN_FILENO>{}};
+    istreambuf in{std_device<STDIN_FILENO>{}};
     std::string got;
     bool threw = false;
     try
     {
-        for (auto it = is.i_iter(); it != decltype(is.i_iter()){}; ++it)
+        for (istreambuf_iterator it(in); it != decltype(it){}; ++it)
             got.push_back(*it);
     }
     catch (...) { threw = true; }

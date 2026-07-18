@@ -246,7 +246,7 @@ struct stream_common_operators
      * @note 设置前会沿目标流 `str` 的 tie 链向前遍历：若该链会回到本流（即形成环，自绑定是
      *       长度为 1 的环），则抛出 `stream_error` 并**保持本流原绑定不变**，从而在设置时杜绝
      *       环。这满足了 `std::basic_ios::tie` “不得成环”的前置条件，而非像标准那样把成环留作
-     *       未定义行为。仅当本流本身可作为 tie 目标（即派生自 `abs_ostream`）时才会遍历；纯输入
+     *       未定义行为。仅当本流本身可作为 tie 目标（即派生自 `abs_flusher`）时才会遍历；纯输入
      *       流不可能被 tie，也就不可能出现在环中。
      * @note 上述“检测 + 提交”由进程级全局锁 `tie_graph_mutex()` 合成一个原子步骤，因此即便
      *       两个线程并发 `tie()`（如 `A.tie(B)` 与 `B.tie(A)`）也无法成环：所有 setter 串行化，
@@ -277,7 +277,7 @@ struct stream_common_operators
      *       stream's existing tie is left unchanged**, so cycles are rejected at set time.
      *       This satisfies the no-cycle precondition of `std::basic_ios::tie` rather than
      *       leaving a cycle as undefined behavior as the standard does. The walk runs only
-     *       when this stream can itself be a tie target (i.e. derives from `abs_ostream`);
+     *       when this stream can itself be a tie target (i.e. derives from `abs_flusher`);
      *       a pure input stream can never be tied to, so it can never appear in a cycle.
      * @note This "detect + commit" is fused into one atomic step by the process-wide lock
      *       `tie_graph_mutex()`, so no cycle can form even under concurrent `tie()` (e.g.
@@ -290,14 +290,14 @@ struct stream_common_operators
      * @endif
      */
     template <typename TSelf>
-    abs_ostream* tie(this TSelf& self, abs_ostream* str)
+    abs_flusher* tie(this TSelf& self, abs_flusher* str)
     {
         std::lock_guard graph_lock(tie_graph_mutex());
         auto res = self.m_tie_stream.load();
-        if constexpr (std::derived_from<TSelf, abs_ostream>)
+        if constexpr (std::derived_from<TSelf, abs_flusher>)
         {
-            abs_ostream* ptr = str;
-            auto check = static_cast<abs_ostream*>(&self);
+            abs_flusher* ptr = str;
+            auto check = static_cast<abs_flusher*>(&self);
             while (ptr != nullptr)
             {
                 if (ptr == check)
@@ -313,12 +313,12 @@ struct stream_common_operators
     }
 
     template <typename TSelf>
-    abs_ostream* tie(this const TSelf& self)
+    abs_flusher* tie(this const TSelf& self)
     {
         return self.m_tie_stream.load();
     }
 
 private:
-    copyable_atomic<abs_ostream*> m_tie_stream{nullptr};
+    copyable_atomic<abs_flusher*> m_tie_stream{nullptr};
 };
 }
