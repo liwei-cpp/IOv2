@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common/defs.h"
 #include <common/copyable_atomic.h>
 #include <common/copyable_mutex.h>
+#include <common/defs.h>
 #include <common/iov2_export.h>
 #include <cvt/cvt_concepts.h>
 #include <io/io_base.h>
@@ -130,17 +130,64 @@ struct stream_common_operators
         return self.m_streambuf.device();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 分离并取回底层设备（连同分离期间捕获的错误）。
+     *
+     * @warning 本操作**不做线程同步**：与本流的其它操作（`tell`/`seek`/格式化 I/O 等均持有
+     *          `io_mutex()`）不同，`detach()` 不获取任何锁。它是一个类似构造/析构的生命周期
+     *          操作——分离底层设备本就意味着流不再处于可用于读写的稳定状态。调用方必须保证在
+     *          `detach()` 执行期间没有任何其它线程对本流进行操作（读、写，或再次 attach/detach），
+     *          否则行为未定义；正如不应在对象构造/析构过程中使用该对象一样。
+     * @return 取回的设备，以及一个 `exception_ptr`（分离时若发生 flush 等错误则非空）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Detaches and retrieves the underlying device (along with any error captured
+     *        during detach).
+     *
+     * @warning This operation is **not synchronized**: unlike the stream's other operations
+     *          (`tell`/`seek`/formatted I/O, which all hold `io_mutex()`), `detach()` takes no
+     *          lock. It is a lifecycle operation akin to construction/destruction -- detaching
+     *          the underlying device inherently means the stream is no longer in a stable state
+     *          usable for I/O. The caller must ensure that no other thread operates on this
+     *          stream (reading, writing, or another attach/detach) while `detach()` runs;
+     *          otherwise the behavior is undefined, just as one must not use an object while it
+     *          is being constructed or destroyed.
+     * @return The retrieved device and an `exception_ptr` (non-null if e.g. a flush error
+     *         occurred during detach).
+     * @endif
+     */
     template <typename TSelf>
     auto detach(this TSelf& self) noexcept
     {
-        std::lock_guard guard(self.io_mutex());
         return self.m_streambuf.detach();
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 安装（替换）底层设备。
+     *
+     * @warning 与 `detach()` 相同，本操作**不做线程同步**、不获取 `io_mutex()`。它是类似构造的
+     *          生命周期操作：替换底层设备期间，任何并发读写本身都是不稳定且无意义的。调用方必须
+     *          保证在 `attach()` 执行期间没有任何其它线程对本流进行操作，否则行为未定义。
+     * @param dev 要安装的设备；默认为默认构造的设备。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Installs (replaces) the underlying device.
+     *
+     * @warning Like `detach()`, this operation is **not synchronized** and takes no
+     *          `io_mutex()`. It is a construction-like lifecycle operation: any concurrent
+     *          read/write while the underlying device is being replaced is itself unstable and
+     *          meaningless. The caller must ensure that no other thread operates on this stream
+     *          while `attach()` runs; otherwise the behavior is undefined.
+     * @param dev The device to install; defaults to a default-constructed device.
+     * @endif
+     */
     template <typename TSelf>
     void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
     {
-        std::lock_guard guard(self.io_mutex());
         self.m_streambuf.attach(std::move(dev));
     }
 

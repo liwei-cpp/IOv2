@@ -412,28 +412,64 @@ private:
 template <istream_type T>
 T& operator >> (T& obj, void(*pf)(ios_base<typename T::char_type>&))
 {
-    pf(obj);
+    try
+    {
+        if (!pf)
+            throw stream_error("istream manipulator fail: null or empty manipulator");
+        pf(obj);
+    }
+    catch (...)
+    {
+        obj.handle_exception(std::current_exception());
+    }
     return obj;
 }
 
 template <istream_type T>
-T& operator >> (T& obj, std::function<void(ios_base<typename T::char_type>&)> pf)
+T& operator >> (T& obj, const std::function<void(ios_base<typename T::char_type>&)>& pf)
 {
-    pf(obj);
+    try
+    {
+        if (!pf)
+            throw stream_error("istream manipulator fail: null or empty manipulator");
+        pf(obj);
+    }
+    catch (...)
+    {
+        obj.handle_exception(std::current_exception());
+    }
     return obj;
 }
 
 template <istream_type T>
 T& operator >> (T& obj, void(*pf)(T&))
 {
-    pf(obj);
+    try
+    {
+        if (!pf)
+            throw stream_error("istream manipulator fail: null or empty manipulator");
+        pf(obj);
+    }
+    catch (...)
+    {
+        obj.handle_exception(std::current_exception());
+    }
     return obj;
 }
 
 template <istream_type T>
-T& operator >> (T& obj, std::function<void(T&)> pf)
+T& operator >> (T& obj, const std::function<void(T&)>& pf)
 {
-    pf(obj);
+    try
+    {
+        if (!pf)
+            throw stream_error("istream manipulator fail: null or empty manipulator");
+        pf(obj);
+    }
+    catch (...)
+    {
+        obj.handle_exception(std::current_exception());
+    }
     return obj;
 }
 
@@ -441,15 +477,33 @@ template <istream_type T, typename U>
     requires std::derived_from<T, U>
 T& operator >> (T& obj, void(*pf)(U&))
 {
-    pf(obj);
+    try
+    {
+        if (!pf)
+            throw stream_error("istream manipulator fail: null or empty manipulator");
+        pf(obj);
+    }
+    catch (...)
+    {
+        obj.handle_exception(std::current_exception());
+    }
     return obj;
 }
 
 template <istream_type T, typename U>
     requires std::derived_from<T, U>
-T& operator >> (T& obj, std::function<void(U&)> pf)
+T& operator >> (T& obj, const std::function<void(U&)>& pf)
 {
-    pf(obj);
+    try
+    {
+        if (!pf)
+            throw stream_error("istream manipulator fail: null or empty manipulator");
+        pf(obj);
+    }
+    catch (...)
+    {
+        obj.handle_exception(std::current_exception());
+    }
     return obj;
 }
 
