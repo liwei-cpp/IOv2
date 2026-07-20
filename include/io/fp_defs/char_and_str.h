@@ -64,8 +64,11 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
     }
 
     *s = TChar{};
-    
+
     io.width(0);
+
+    if (extracted == 0)
+        throw stream_error("istream extraction fail: no characters extracted");
 
     return iter;
 }
@@ -315,7 +318,10 @@ struct reader<TChar, std::basic_string<TChar, TTraits, TAlloc>>
         str.append(buf, len);
 
         io.width(0);
-        
+
+        if (extracted == 0)
+            throw stream_error("istream extraction fail: no characters extracted");
+
         return iter;
     }
 };

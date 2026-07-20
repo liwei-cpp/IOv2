@@ -2,7 +2,6 @@
 
 #include <common/defs.h>
 #include <common/metafunctions.h>
-#include <common/streambuf_defs.h>
 #include <device/device_concepts.h>
 #include <io/fp_defs/base_fp.h>
 #include <io/io_base.h>
@@ -228,7 +227,7 @@ struct out_flusher : public abs_flusher
      *     stream, they enter one at a time and each actually completes a flush (not the weak
      *     "first caller flushes, the rest skip" semantics); the underlying buffer is never
      *     operated on concurrently.
-     *   - **Write and flush are mutually excluded**: `put`/`write`/`operator<<` hold the same
+     *   - **Write and flush are mutually exclusive**: `put`/`write`/`operator<<` hold the same
      *     `io_mutex()` for their sentry's lifetime, so a write never races a flush.
      *
      * This function **does not flush tied streams**: like the standard

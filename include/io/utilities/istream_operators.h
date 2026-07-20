@@ -2,7 +2,6 @@
 
 #include <common/defs.h>
 #include <common/metafunctions.h>
-#include <common/streambuf_defs.h>
 #include <facet/ctype.h>
 #include <io/fp_defs/base_fp.h>
 #include <io/io_base.h>
@@ -178,12 +177,12 @@ struct istream_operators
                         ++gcount;
                     }
                     else
-                        throw stream_error("istream get line fail");
+                        throw stream_error("istream getline fail: delimiter not found within n-1 characters");
                 }
             }
 
             if (gcount == 0)
-                throw stream_error{"No character being extracted"};
+                throw stream_error{"istream get fail: no character extracted"};
 
             if (at_eof)
                 self.setstate(ios_defs::eofbit);
@@ -523,8 +522,8 @@ T& operator>>(T& obj, TValue& value)
 
         if constexpr (is_reader_def<TChar, TCtx>)
         {
-            if (skip && obj.eof())
-                throw stream_error("istream extraction fail: reached EOF while skipping whitespace");
+            if (obj.eof())
+                throw stream_error("istream extraction fail: reached EOF with no value extracted");
 
             if constexpr (std::is_same_v<TCtx, TValue>)
                 reader<TChar, TValue>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
