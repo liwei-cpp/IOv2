@@ -1,12 +1,10 @@
 #pragma once
 
 #include <common/copyable_atomic.h>
-#include <common/copyable_mutex.h>
 #include <common/defs.h>
 #include <common/iov2_export.h>
 #include <cvt/cvt_concepts.h>
 #include <io/io_base.h>
-#include <io/utilities/istream_operators.h>
 #include <io/utilities/ostream_operators.h>
 #include <locale/locale.h>
 
@@ -189,6 +187,7 @@ struct stream_common_operators
     void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
     {
         self.m_streambuf.attach(std::move(dev));
+        self.unset_state(ios_defs::eofbit);
     }
 
     template <typename TSelf>
