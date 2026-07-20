@@ -510,20 +510,22 @@ T& operator >> (T& obj, const std::function<void(U&)>& pf)
 template <istream_type T, typename TValue>
 T& operator>>(T& obj, TValue& value)
 {
-    bool saw_eof = false;
-    auto iter = obj.i_iter(&saw_eof);
-
     using TChar = typename T::char_type;
     using TCtx = typename parse_context_type<TChar, TValue>::type;
     using sentry_type = typename T::in_sentry_type;
 
+    bool saw_eof = false;
     try
     {
+        auto iter = obj.i_iter(&saw_eof);
         bool skip = bool(obj.flags() & ios_defs::skipws);
         sentry_type cerb(obj, !skip);
 
         if constexpr (is_reader_def<TChar, TCtx>)
         {
+            if (skip && obj.eof())
+                throw stream_error("istream extraction fail: reached EOF while skipping whitespace");
+
             if constexpr (std::is_same_v<TCtx, TValue>)
                 reader<TChar, TValue>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
             else

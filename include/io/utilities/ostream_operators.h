@@ -204,22 +204,26 @@ struct out_flusher : public abs_flusher
      * @lang{ZH}
      * @brief 刷新本流：把缓冲区写出到底层设备。
      *
-     * 刷新经 sentry 进行，故整个刷新期间持有本流的 `io_mutex()`（该锁为递归锁）。由此：
+     * 刷新不经 sentry，而是直接以 `std::lock_guard` 持有本流的 `io_mutex()`（该锁为递归锁）
+     * 直至刷新结束。由此：
      *   - **并发刷新被串行化**：多个线程同时 `flush()` 同一流时逐个进入，每个都真正完成一次
      *     刷新（不是“先到者刷、其余跳过”的弱语义）；底层缓冲区不会被并发操作。
-     *   - **写与刷互斥**：`put`/`write`/`operator<<` 同样在其 sentry 生命周期内持有同一把
+     *   - **写与刷互斥**：`put`/`write`/`operator<<` 在其 sentry 生命周期内持有同一把
      *     `io_mutex()`，故写与刷不会并发。
      *
-     * sentry 还会触发 `tie()->flush()`，从而可能沿 tie 链继续刷下去。由于 tie 图恒为无环
-     * （成环在 `tie()` 设置时即被拒绝，并由 `tie_graph_mutex()` 保证并发下依然无环），该链
-     * 有限且必然终止，不会递归回到本流，因此无需任何“正在刷新”自旋/跳过标志。
+     * 本函数**不刷新 tie 流**：与标准 `std::basic_ostream::flush` 一致，刷新只作用于本流，
+     * 关联流的刷新仅由输出操作的 sentry 在其入口触发。因刷新不再沿 tie 链传播，也就不存在
+     * 递归回到本流的可能，无需任何“正在刷新”自旋/跳过标志。
+     *
+     * 输出前的读写模式切换由 `streambuf::flush()` 自行完成（其内部会 `switch_to_put()`），
+     * 故此处无需 sentry 代劳。
      * @endif
      *
      * @lang{EN}
      * @brief Flushes this stream: writes the buffer out to the underlying device.
      *
-     * Flushing runs through the sentry, so this stream's `io_mutex()` (a recursive mutex) is
-     * held for the whole flush. Therefore:
+     * Flushing does not go through the sentry; instead a `std::lock_guard` holds this stream's
+     * `io_mutex()` (a recursive mutex) for the whole flush. Therefore:
      *   - **Concurrent flushes are serialized**: when several threads `flush()` the same
      *     stream, they enter one at a time and each actually completes a flush (not the weak
      *     "first caller flushes, the rest skip" semantics); the underlying buffer is never
@@ -227,11 +231,14 @@ struct out_flusher : public abs_flusher
      *   - **Write and flush are mutually excluded**: `put`/`write`/`operator<<` hold the same
      *     `io_mutex()` for their sentry's lifetime, so a write never races a flush.
      *
-     * The sentry also triggers `tie()->flush()`, which may keep flushing down the tie chain.
-     * Because the tie graph is always acyclic (a cycle is rejected at `tie()` set time and
-     * `tie_graph_mutex()` keeps it acyclic under concurrency), that chain is finite and
-     * terminates -- it never recurses back to this stream -- so no "already flushing"
+     * This function **does not flush tied streams**: like the standard
+     * `std::basic_ostream::flush`, it acts on this stream alone; tied streams are flushed only
+     * by the sentry at the entry of an output operation. Since a flush no longer propagates
+     * down the tie chain, it can never recurse back into this stream, so no "already flushing"
      * spin/skip flag is needed.
+     *
+     * Switching the buffer from get to put mode is done by `streambuf::flush()` itself (it
+     * calls `switch_to_put()` internally), so no sentry is needed for that either.
      * @endif
      */
     virtual void flush() override
@@ -239,12 +246,11 @@ struct out_flusher : public abs_flusher
         T& obj = static_cast<T&>(*this);
         if (!static_cast<bool>(obj)) return;
 
+        std::lock_guard guard(obj.io_mutex());
         try
         {
             if constexpr (dev_cpt::support_put<typename T::device_type>)
             {
-                using sentry_type = typename T::out_sentry_type;
-                sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), false);
                 obj.m_streambuf.flush();
                 obj.m_streambuf.device().dflush();
             }
