@@ -76,6 +76,8 @@ struct stream_common_operators
     size_t tell(this TSelf& self)
     {
         std::lock_guard guard(self.io_mutex());
+        if (!static_cast<bool>(self))
+            return static_cast<size_t>(-1);
         try
         {
             return self.m_streambuf.tell();

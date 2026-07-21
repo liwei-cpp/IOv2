@@ -198,8 +198,8 @@ void test_istream_seek_char_4()
         state01 = if03.rdstate();
         if03.seek(10 + if03.tell());
         state02 = if03.rdstate();
-        pos05 = if03.tell(); 
-        VERIFY( pos05 == pos06 ); 
+        pos05 = if03.tell();
+        VERIFY( pos05 == static_cast<decltype(pos05)>(-1) );
         VERIFY( state01 != state02 );
         VERIFY(state02 == IOv2::ios_defs::devfailbit);
         pos06 = if03.tell(); 

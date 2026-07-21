@@ -82,6 +82,11 @@ public:
     void store(T value) noexcept { m_value.store(value); }
     T    exchange(T value) noexcept { return m_value.exchange(value); }
 
+    T    fetch_or(T value) noexcept  { return m_value.fetch_or(value); }
+    T    fetch_and(T value) noexcept { return m_value.fetch_and(value); }
+    bool compare_exchange_weak(T& expected, T desired) noexcept
+    { return m_value.compare_exchange_weak(expected, desired); }
+
 private:
     std::atomic<T> m_value{};
 };

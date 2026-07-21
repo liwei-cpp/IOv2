@@ -28,19 +28,25 @@ struct out_sentry
 public:
     out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode)
         : m_os(os)
-        , m_lock(m_os.io_mutex())
+        , m_lock(m_os.io_mutex(), std::defer_lock)
         , m_is_unit_buf(is_unit_buf)
     {
         if (!static_cast<bool>(m_os))
             throw stream_error("ostream_sentry create fail: Invalid ostream");
+
+        if (auto* tied = m_os.tie())
+        {
+            try { tied->flush(); }
+            catch (...) {}
+        }
+
+        m_lock.lock();
 
         if constexpr (is_std)
             m_sync_with_stdio = os.m_sync_with_stdio;
 
         if constexpr (involve_input)
             os.m_streambuf.switch_to_put();
-
-        if (auto* tied = m_os.tie()) tied->flush();
 
         if constexpr (!is_std)
         {
@@ -243,9 +249,8 @@ struct out_flusher : public abs_flusher
     virtual void flush() override
     {
         T& obj = static_cast<T&>(*this);
-        if (!static_cast<bool>(obj)) return;
-
         std::lock_guard guard(obj.io_mutex());
+        if (!static_cast<bool>(obj)) return;
         try
         {
             if constexpr (dev_cpt::support_put<typename T::device_type>)
@@ -304,6 +309,8 @@ struct ostream_operators
         {
             using sentry_type = typename TSelf::out_sentry_type;
             sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            if (s == nullptr && n != 0)
+                throw stream_error("ostream write fail: null character sequence");
             self.m_streambuf.sputn(s, n);
         }
         catch(...)

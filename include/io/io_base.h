@@ -569,7 +569,7 @@ public:
      * @lang{ZH} @brief 返回当前的格式化标志。 @endif
      * @lang{EN} @brief Returns the current formatting flags. @endif
      */
-    ios_defs::fmtflags flags() const { return m_flags; }
+    ios_defs::fmtflags flags() const { return m_flags.load(); }
     /**
      * @lang{ZH}
      * @brief 将格式化标志整体替换为 `fmtfl`。
@@ -585,9 +585,7 @@ public:
      */
     ios_defs::fmtflags flags(ios_defs::fmtflags fmtfl)
     {
-      ios_defs::fmtflags old = m_flags;
-      m_flags = fmtfl;
-      return old;
+      return m_flags.exchange(fmtfl);
     }
 
     /**
@@ -605,9 +603,7 @@ public:
      */
     ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl)
     {
-      ios_defs::fmtflags old = m_flags;
-      m_flags |= fmtfl;
-      return old;
+      return m_flags.fetch_or(fmtfl);
     }
 
     /**
@@ -633,9 +629,10 @@ public:
      */
     ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl, ios_defs::fmtflags msk)
     {
-      ios_defs::fmtflags old = m_flags;
-      m_flags &= ~msk;
-      m_flags |= (fmtfl & msk);
+      ios_defs::fmtflags old = m_flags.load();
+      while (!m_flags.compare_exchange_weak(
+                 old, static_cast<ios_defs::fmtflags>((old & ~msk) | (fmtfl & msk))))
+          ;
       return old;
     }
 
@@ -650,7 +647,8 @@ public:
      * @param msk The mask of flags to clear.
      * @endif
      */
-    void unsetf(ios_defs::fmtflags msk) { m_flags &= ~msk; }
+    void unsetf(ios_defs::fmtflags msk)
+    { m_flags.fetch_and(static_cast<ios_defs::fmtflags>(~msk)); }
 
     /**
      * @lang{ZH}
@@ -674,12 +672,10 @@ public:
      * type is std::uint8_t itself). This is by design.
      * @endif
      */
-    std::uint8_t precision() const { return m_precision; }
+    std::uint8_t precision() const { return m_precision.load(); }
     std::uint8_t precision(std::uint8_t prec)
     {
-        std::uint8_t old = m_precision;
-        m_precision = prec;
-        return old;
+        return m_precision.exchange(prec);
     }
 
     /**
@@ -704,12 +700,10 @@ public:
      * is std::uint8_t itself). This is by design.
      * @endif
      */
-    std::uint8_t width() const { return m_width; }
+    std::uint8_t width() const { return m_width.load(); }
     std::uint8_t width(std::uint8_t wide)
     {
-        std::uint8_t old = m_width;
-        m_width = wide;
-        return old;
+        return m_width.exchange(wide);
     }
 
     /**
@@ -728,12 +722,10 @@ public:
      * to pad output when the field width exceeds the content.
      * @endif
      */
-    TChar fill() const noexcept { return m_fill; }
+    TChar fill() const noexcept { return m_fill.load(); }
     TChar fill(TChar ch)
     {
-        TChar old = m_fill;
-        m_fill = ch;
-        return old;
+        return m_fill.exchange(ch);
     }
 
 public:
@@ -930,9 +922,9 @@ protected:
     }
 
 protected:
-    ios_defs::fmtflags m_flags     = ios_defs::skipws | ios_defs::dec;   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
-    std::uint8_t       m_precision = 6;     ///< @lang{ZH} 浮点精度，默认 6。 @endif @lang{EN} Floating-point precision, default 6. @endif
-    std::uint8_t       m_width     = 0;     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
+    copyable_atomic<ios_defs::fmtflags> m_flags{ios_defs::skipws | ios_defs::dec};   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
+    copyable_atomic<std::uint8_t>       m_precision{6};     ///< @lang{ZH} 浮点精度，默认 6。 @endif @lang{EN} Floating-point precision, default 6. @endif
+    copyable_atomic<std::uint8_t>       m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
     /**
      * @lang{ZH}
      * @brief 默认填充字符。
@@ -956,7 +948,7 @@ protected:
      * yielding a non-space fill character). This is a deliberate constraint, not a defect.
      * @endif
      */
-    TChar              m_fill      = (TChar)' ';
+    copyable_atomic<TChar>              m_fill{(TChar)' '};
 
     std::unordered_map<size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。 @endif @lang{EN} Per-stream user-data storage indexed by id. @endif
     std::forward_list<std::pair<event_callback, size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). @endif
