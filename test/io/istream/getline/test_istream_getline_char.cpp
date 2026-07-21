@@ -326,7 +326,7 @@ void test_istream_getline_char_6()
         VERIFY( istr01.eof() );
 
         VERIFY( istr01.template get<IOv2::cons_sep, IOv2::app_zt>(buf02, 0) == buf02 );
-        VERIFY( !istr01.str_fail() );
+        VERIFY( istr01.str_fail() );
 
         istr02.peek();
         VERIFY( istr02.eof() );

@@ -29,16 +29,21 @@ struct in_sentry
 
     in_sentry(TStream& is, bool noskip)
         : m_is(is)
-        , m_lock(m_is.io_mutex())
+        , m_lock(m_is.io_mutex(), std::defer_lock)
     {
         if (!m_is)
             throw stream_error("istream_sentry create fail: Invalid istream");
 
+        if (auto* tied = is.tie())
+        {
+            try { tied->flush(); }
+            catch (...) {}
+        }
+
+        m_lock.lock();
+
         if constexpr (involve_output)
             is.m_streambuf.switch_to_get();
-
-        if (auto* tied = is.tie())
-            tied->flush();
 
         if (!noskip)
             is.ignore_ws();
@@ -147,7 +152,6 @@ struct istream_operators
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
     TOut get(this TSelf& self, TOut s, size_t n, TChar delim)
     {
-        if (n == 0) return s;
         constexpr bool is_cstr = std::is_same_v<CStrPolicy, app_zt>;
 
         size_t gcount = 0;
@@ -156,6 +160,13 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
+            if constexpr (std::is_pointer_v<TOut>)
+            {
+                if (s == nullptr)
+                    throw stream_error("istream get fail: null character sequence");
+            }
+            if (n == 0)
+                throw stream_error("istream get fail: zero buffer size");
             auto c = self.m_streambuf.sgetc();
             while ((gcount + is_cstr < n) &&
                    (c.has_value()) &&
@@ -191,7 +202,15 @@ struct istream_operators
         catch(...)
         {
             if constexpr (is_cstr)
-                *s++ = TChar{};
+            {
+                if constexpr (std::is_pointer_v<TOut>)
+                {
+                    if (s != nullptr && n != 0)
+                        *s++ = TChar{};
+                }
+                else if (n != 0)
+                    *s++ = TChar{};
+            }
             self.handle_exception(std::current_exception(), at_eof);
             return s;
         }
@@ -218,7 +237,15 @@ struct istream_operators
         catch(...)
         {
             if constexpr (std::is_same_v<CStrPolicy, app_zt>)
-                if (n != 0) *s++ = TChar{};
+            {
+                if constexpr (std::is_pointer_v<TOut>)
+                {
+                    if (s != nullptr && n != 0)
+                        *s++ = TChar{};
+                }
+                else if (n != 0)
+                    *s++ = TChar{};
+            }
             self.handle_exception(std::current_exception());
             return s;
         }
@@ -253,6 +280,8 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
+            if (s == nullptr && n != 0)
+                throw stream_error{"istream read fail: null character sequence"};
             self.m_streambuf.sgetn(s, n, &gcount);
             if (gcount != n)
             {
