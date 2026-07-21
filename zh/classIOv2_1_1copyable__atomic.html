@@ -120,6 +120,12 @@ Public 成员函数</h2></td></tr>
 <tr class="separator:a7f61a9f83ac0130ae1e3c1ed2efe730b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a874020698f0454124e6ce91aa7dfa9de" id="r_a874020698f0454124e6ce91aa7dfa9de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1copyable__atomic.html#a874020698f0454124e6ce91aa7dfa9de">exchange</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> value) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:a874020698f0454124e6ce91aa7dfa9de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acaf4a938d555181a1b41d907a915015a" id="r_acaf4a938d555181a1b41d907a915015a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1copyable__atomic.html#acaf4a938d555181a1b41d907a915015a">fetch_or</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> value) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:acaf4a938d555181a1b41d907a915015a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adda7332a5ef019bbbb9c94dc7edaf4c1" id="r_adda7332a5ef019bbbb9c94dc7edaf4c1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1copyable__atomic.html#adda7332a5ef019bbbb9c94dc7edaf4c1">fetch_and</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> value) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:adda7332a5ef019bbbb9c94dc7edaf4c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a397fb1204b7c82747d7f828397160688" id="r_a397fb1204b7c82747d7f828397160688"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1copyable__atomic.html#a397fb1204b7c82747d7f828397160688">compare_exchange_weak</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">expected</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">desired</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:a397fb1204b7c82747d7f828397160688"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;<br />
@@ -268,6 +274,44 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 </div>
 <h2 class="groupheader">成员函数说明</h2>
+<a id="a397fb1204b7c82747d7f828397160688" name="a397fb1204b7c82747d7f828397160688"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a397fb1204b7c82747d7f828397160688">&#9670;&#160;</a></span>compare_exchange_weak()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1copyable__atomic.html">IOv2::copyable_atomic</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::compare_exchange_weak </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramname"><em>expected</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&#160;</td>
+          <td class="paramname"><em>desired</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a874020698f0454124e6ce91aa7dfa9de" name="a874020698f0454124e6ce91aa7dfa9de"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a874020698f0454124e6ce91aa7dfa9de">&#9670;&#160;</a></span>exchange()</h2>
 
@@ -281,6 +325,62 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> <a class="el" href="classIOv2_1_1copyable__atomic.html">IOv2::copyable_atomic</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::exchange </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adda7332a5ef019bbbb9c94dc7edaf4c1" name="adda7332a5ef019bbbb9c94dc7edaf4c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adda7332a5ef019bbbb9c94dc7edaf4c1">&#9670;&#160;</a></span>fetch_and()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> <a class="el" href="classIOv2_1_1copyable__atomic.html">IOv2::copyable_atomic</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::fetch_and </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acaf4a938d555181a1b41d907a915015a" name="acaf4a938d555181a1b41d907a915015a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acaf4a938d555181a1b41d907a915015a">&#9670;&#160;</a></span>fetch_or()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> <a class="el" href="classIOv2_1_1copyable__atomic.html">IOv2::copyable_atomic</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::fetch_or </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>

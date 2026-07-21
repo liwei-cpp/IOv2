@@ -1,5 +1,11 @@
 var NAVTREEINDEX8 =
 {
+"code__cvt__stdio_8h_source.html":[4,0,0,1,4],
+"collate_8h.html":[4,0,0,3,0],
+"collate_8h.html#a6646d109fa110b2bf6d93bb7ae5f1925":[4,0,0,3,0,1],
+"collate_8h_source.html":[4,0,0,3,0],
+"collate__details_8h.html":[4,0,0,3,1],
+"collate__details_8h_source.html":[4,0,0,3,1],
 "conceptIOv2_1_1cpt__cvt__pipe__creator.html":[1,0,0,188],
 "conceptIOv2_1_1cpt__cvt__pipe__creator.html":[2,0,7],
 "conceptIOv2_1_1cvt__cpt_1_1mandatory__methods.html":[2,0,0,4],
@@ -243,11 +249,5 @@ var NAVTREEINDEX8 =
 "io__base_8h.html#ae4cc15e6be98d41e2705c68229b9fe9d":[4,0,0,4,3,33],
 "io__base_8h.html#aede76c514ba78dca7c1cc0e6c204c2e2":[4,0,0,4,3,52],
 "io__base_8h.html#af05941c947925c729d5e87d923c2e909":[4,0,0,4,3,39],
-"io__base_8h_source.html":[4,0,0,4,3],
-"io__concepts_8h.html":[4,0,0,4,4],
-"io__concepts_8h.html#af5d914ec6e018ee23ee26db2b9877aac":[4,0,0,4,4,0],
-"io__concepts_8h_source.html":[4,0,0,4,4],
-"io__manip_8h.html":[4,0,0,4,5],
-"io__manip_8h.html#a15c566d2ab9c044b947f560551ae1f67":[4,0,0,4,5,21],
-"io__manip_8h.html#a17d1bcf0572802212a51d936d7c63463":[4,0,0,4,5,14]
+"io__base_8h_source.html":[4,0,0,4,3]
 };

@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,188,31"/>
+<area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,196,45"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1messages__conf_3_01char8__t_01_4.html" title="Specialization of messages_conf for char8_t, a translation facet keyed on UTF&#45;8 strings." alt="" coords="244,5,405,45"/>
+<area shape="poly" id="edge125_Node000000_Node000001" title=" " alt="" coords="210,23,244,23,244,28,210,28"/>
 </map>

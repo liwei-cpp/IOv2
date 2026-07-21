@@ -1,27 +1,33 @@
 <map id="IOv2::__cout" name="IOv2::__cout">
-<area shape="rect" id="Node000001" title="__cout" alt="" coords="808,249,911,275"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="559,179,759,233"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="770,234,814,247,812,252,769,240"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="230,5,414,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,32,420,40,480,65,536,100,587,138,630,176,627,180,584,143,533,104,478,70,418,44,395,37"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="235,55,409,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="394,81,420,89,523,132,610,176,608,181,521,136,418,94,393,86"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down&#45;cast to the concrete stream type T is localized ..." alt="" coords="237,104,407,129"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="388,130,535,169,562,176,560,181,534,174,386,135"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="23,104,158,129"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="172,114,236,114,236,119,172,119"/>
-<area shape="rect" id="Node000007" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="231,154,413,194"/>
-<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="427,181,559,194,558,199,427,187"/>
-<area shape="rect" id="Node000008" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="237,218,407,258"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="421,226,558,213,558,218,422,231"/>
-<area shape="rect" id="Node000009" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="225,282,419,322"/>
-<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="416,276,534,243,574,231,576,236,535,249,417,281"/>
-<area shape="rect" id="Node000010" href="$classIOv2_1_1base__streambuf.html" title="Common implementation base class for stream buffers." alt="" coords="5,275,176,329"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="190,299,225,299,225,305,190,305"/>
-<area shape="rect" id="Node000011" href="$classIOv2_1_1locale.html" title=" " alt="" coords="251,346,393,386"/>
-<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="396,339,418,331,452,322,480,317,505,308,533,289,541,279,544,268,548,256,557,244,574,231,577,236,561,248,553,259,549,270,546,281,537,293,508,313,481,322,453,327,419,337,398,344"/>
-<area shape="rect" id="Node000012" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="227,410,417,450"/>
-<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="398,403,418,395,453,385,482,378,507,367,533,344,540,332,544,320,544,296,544,271,548,258,557,244,570,232,574,236,561,248,553,260,549,272,549,296,549,321,545,334,537,348,510,372,484,383,455,390,420,401,400,408"/>
-<area shape="rect" id="Node000013" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="583,258,734,298"/>
-<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="747,268,808,263,808,269,748,274"/>
+<area shape="rect" id="Node000001" title="__cout" alt="" coords="891,337,993,362"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="641,266,841,321"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="853,322,896,334,895,339,851,327"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="313,82,497,107"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="458,109,502,127,562,154,619,187,670,226,713,264,709,268,666,230,616,192,560,158,500,132,456,114"/>
+<area shape="rect" id="Node000004" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,5,176,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="190,36,285,55,368,79,366,84,283,60,189,42"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,69,176,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="190,88,313,90,312,96,190,94"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,133,176,173"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="189,132,335,105,336,110,190,138"/>
+<area shape="rect" id="Node000007" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="317,142,492,167"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="477,168,502,176,606,219,693,263,690,268,603,224,500,181,475,173"/>
+<area shape="rect" id="Node000008" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down&#45;cast to the concrete stream type T is localized ..." alt="" coords="319,191,490,217"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="470,217,618,256,644,263,643,268,617,261,469,223"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="23,198,158,223"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="172,206,319,203,319,208,172,212"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="313,241,496,281"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="510,269,642,281,641,287,510,274"/>
+<area shape="rect" id="Node000011" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="319,305,490,345"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="504,313,641,300,641,305,504,319"/>
+<area shape="rect" id="Node000012" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="308,369,501,409"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="499,363,617,331,657,318,659,323,618,336,500,368"/>
+<area shape="rect" id="Node000013" href="$classIOv2_1_1base__streambuf.html" title="Common implementation base class for stream buffers." alt="" coords="5,362,176,417"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="190,387,307,387,307,392,190,392"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1locale.html" title=" " alt="" coords="333,433,476,473"/>
+<area shape="poly" id="edge13_Node000002_Node000014" title=" " alt="" coords="479,426,501,419,535,409,563,404,588,396,615,377,624,366,627,355,630,344,639,331,657,319,660,323,643,335,635,346,632,357,628,369,619,381,590,400,564,409,536,415,502,424,481,431"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="310,497,499,537"/>
+<area shape="poly" id="edge14_Node000002_Node000015" title=" " alt="" coords="481,490,500,483,536,472,565,465,590,455,615,432,623,419,627,407,626,383,626,358,631,345,639,332,653,319,657,323,643,335,635,347,632,359,632,383,632,408,628,421,619,435,593,459,566,470,537,477,502,488,483,495"/>
+<area shape="rect" id="Node000016" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="666,345,817,385"/>
+<area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="830,356,890,351,891,356,831,361"/>
 </map>
