@@ -22,7 +22,7 @@ var searchData=
   ['setfill_19',['setfill',['../namespaceIOv2.html#a99ad8123323453cf572de3f0f942efee',1,'IOv2']]],
   ['setiosflags_20',['setiosflags',['../namespaceIOv2.html#a907d98611f6b75d3b9e2b2b1cb534d8b',1,'IOv2']]],
   ['setprecision_21',['setprecision',['../namespaceIOv2.html#a949e785951c135fb5ec1974003ae2677',1,'IOv2']]],
-  ['setstate_22',['setstate',['../structIOv2_1_1io__state__and__exp.html#aaa7eef2ce9daaeb70093ea1b8362e460',1,'IOv2::io_state_and_exp']]],
+  ['setstate_22',['setstate',['../structIOv2_1_1io__state__and__exp.html#a081a4380ce7e109493c8babc87e8de00',1,'IOv2::io_state_and_exp']]],
   ['setw_23',['setw',['../namespaceIOv2.html#a5ea3dab8720430e1c4a6505ee483bd94',1,'IOv2']]],
   ['sgetc_24',['sgetc',['../classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82',1,'IOv2::base_streambuf']]],
   ['sgetn_25',['sgetn',['../classIOv2_1_1base__streambuf.html#a9c068814d77ae3d8fa187785a664c17a',1,'IOv2::base_streambuf']]],
