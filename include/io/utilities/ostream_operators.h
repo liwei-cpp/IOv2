@@ -127,7 +127,13 @@ public:
                         m_os.m_streambuf.device().dflush();
                 }
             }
-            catch (...) {} // NOLINT(bugprone-empty-catch)
+            catch (...)
+            {
+                // 展开期间：登记失败位并保留原始异常，但绝不外抛——即便 handle_exception 内部
+                // 因加锁失败等抛出底层异常，也一并吞掉，以免在栈展开期触发 std::terminate。
+                try { m_os.template handle_exception<true>(std::current_exception()); }
+                catch (...) {} // NOLINT(bugprone-empty-catch)
+            }
             return;
         }
 
