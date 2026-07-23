@@ -106,8 +106,9 @@ Public 类型</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
-<tr class="memitem:a3eb4d56f578ad5fa94bc205280262b2f" id="r_a3eb4d56f578ad5fa94bc205280262b2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_unit_buf</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_app_mode</a>)</td></tr>
-<tr class="separator:a3eb4d56f578ad5fa94bc205280262b2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59bbe2c1433277eb8ce28621d1881113" id="r_a59bbe2c1433277eb8ce28621d1881113"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a59bbe2c1433277eb8ce28621d1881113">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_unit_buf</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_app_mode</a>, <a class="el" href="structIOv2_1_1out__sentry.html#accada22856456a343aae0ae37409122b">lock_type</a> &amp;lock)</td></tr>
+<tr class="memdesc:a59bbe2c1433277eb8ce28621d1881113"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造输出哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需切换读写方向 / 定位到末尾。  <br /></td></tr>
+<tr class="separator:a59bbe2c1433277eb8ce28621d1881113"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad034c9b260a8fdfe6382273a9708c603" id="r_ad034c9b260a8fdfe6382273a9708c603"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#ad034c9b260a8fdfe6382273a9708c603">~out_sentry</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a>)</td></tr>
 <tr class="memdesc:ad034c9b260a8fdfe6382273a9708c603"><td class="mdescLeft">&#160;</td><td class="mdescRight">析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。  <br /></td></tr>
 <tr class="separator:ad034c9b260a8fdfe6382273a9708c603"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -134,8 +135,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 </div>
 <h2 class="groupheader">构造及析构函数说明</h2>
-<a id="a3eb4d56f578ad5fa94bc205280262b2f" name="a3eb4d56f578ad5fa94bc205280262b2f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3eb4d56f578ad5fa94bc205280262b2f">&#9670;&#160;</a></span>out_sentry() <span class="overload">[1/2]</span></h2>
+<a id="a59bbe2c1433277eb8ce28621d1881113" name="a59bbe2c1433277eb8ce28621d1881113"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59bbe2c1433277eb8ce28621d1881113">&#9670;&#160;</a></span>out_sentry() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -161,7 +162,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td>
-          <td class="paramname"><em>is_app_mode</em>&#160;</td>
+          <td class="paramname"><em>is_app_mode</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1out__sentry.html#accada22856456a343aae0ae37409122b">lock_type</a> &amp;&#160;</td>
+          <td class="paramname"><em>lock</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -175,6 +182,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>构造输出哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需切换读写方向 / 定位到末尾。 </p>
 
 </div>
 </div>

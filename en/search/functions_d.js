@@ -28,5 +28,5 @@ var searchData=
   ['other_5ffail_25',['other_fail',['../structIOv2_1_1io__state__and__exp.html#ae02907f048240aa1d71dfc2c4ffddd7b',1,'IOv2::io_state_and_exp']]],
   ['out_5fhelper_26',['out_helper',['../structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#a0026bd2c4c8484700197176c8e47b8a6',1,'IOv2::codecvt_kernel&lt; char8_t, TInt &gt;::out_helper()'],['../structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#a1a0279cb0bdeacb050cdcc59028971c2',1,'IOv2::codecvt_kernel&lt; char, TInt &gt;::out_helper()']]],
   ['out_5fof_5fwchar_5frange_27',['out_of_wchar_range',['../namespaceIOv2.html#ab693b72ad44b466bfb2fc085f2badef9',1,'IOv2']]],
-  ['out_5fsentry_28',['out_sentry',['../structIOv2_1_1out__sentry.html#a11c184c273efe80b8f3c8e4dedc47395',1,'IOv2::out_sentry::out_sentry(const out_sentry &amp;)=delete'],['../structIOv2_1_1out__sentry.html#a3eb4d56f578ad5fa94bc205280262b2f',1,'IOv2::out_sentry::out_sentry(TStream &amp;os, bool is_unit_buf, bool is_app_mode)']]]
+  ['out_5fsentry_28',['out_sentry',['../structIOv2_1_1out__sentry.html#a11c184c273efe80b8f3c8e4dedc47395',1,'IOv2::out_sentry::out_sentry(const out_sentry &amp;)=delete'],['../structIOv2_1_1out__sentry.html#a59bbe2c1433277eb8ce28621d1881113',1,'IOv2::out_sentry::out_sentry(TStream &amp;os, bool is_unit_buf, bool is_app_mode, lock_type &amp;lock)']]]
 ];

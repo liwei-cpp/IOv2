@@ -106,8 +106,9 @@ Public 类型</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
-<tr class="memitem:a7926e969861a7c8a2191fdba29cfd4d8" id="r_a7926e969861a7c8a2191fdba29cfd4d8"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a7926e969861a7c8a2191fdba29cfd4d8">in_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;is, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noskip</a>)</td></tr>
-<tr class="separator:a7926e969861a7c8a2191fdba29cfd4d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a26bb55aab060ade2c247e1c5165c06" id="r_a3a26bb55aab060ade2c247e1c5165c06"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a3a26bb55aab060ade2c247e1c5165c06">in_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;is, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noskip</a>, <a class="el" href="structIOv2_1_1in__sentry.html#a817e433ebf00a43652600405f2a34d7d">lock_type</a> &amp;lock)</td></tr>
+<tr class="memdesc:a3a26bb55aab060ade2c247e1c5165c06"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造输入哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需跳过前导空白。  <br /></td></tr>
+<tr class="separator:a3a26bb55aab060ade2c247e1c5165c06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5673c8a136a1916afa94eea8a0d46b1" id="r_ab5673c8a136a1916afa94eea8a0d46b1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#ab5673c8a136a1916afa94eea8a0d46b1">~in_sentry</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:ab5673c8a136a1916afa94eea8a0d46b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27464bc237a811aa73acfe192d4e2acc" id="r_a27464bc237a811aa73acfe192d4e2acc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a27464bc237a811aa73acfe192d4e2acc">in_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1in__sentry.html">in_sentry</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
@@ -133,8 +134,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 </div>
 <h2 class="groupheader">构造及析构函数说明</h2>
-<a id="a7926e969861a7c8a2191fdba29cfd4d8" name="a7926e969861a7c8a2191fdba29cfd4d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7926e969861a7c8a2191fdba29cfd4d8">&#9670;&#160;</a></span>in_sentry() <span class="overload">[1/2]</span></h2>
+<a id="a3a26bb55aab060ade2c247e1c5165c06" name="a3a26bb55aab060ade2c247e1c5165c06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a26bb55aab060ade2c247e1c5165c06">&#9670;&#160;</a></span>in_sentry() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -154,7 +155,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td>
-          <td class="paramname"><em>noskip</em>&#160;</td>
+          <td class="paramname"><em>noskip</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structIOv2_1_1in__sentry.html#a817e433ebf00a43652600405f2a34d7d">lock_type</a> &amp;&#160;</td>
+          <td class="paramname"><em>lock</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -168,6 +175,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>构造输入哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需跳过前导空白。 </p>
 
 </div>
 </div>
