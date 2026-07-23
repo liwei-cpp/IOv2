@@ -14,7 +14,7 @@ var classIOv2_1_1stdout__api =
     [ "m_io_mutex", "classIOv2_1_1stdout__api.html#a2f6f10964ca3a5393ecafcd77d312f61", null ],
     [ "m_locale", "classIOv2_1_1stdout__api.html#a57c748b10f037cbf3ea746fa956ff15d", null ],
     [ "m_streambuf", "classIOv2_1_1stdout__api.html#af45b2fdaab8d24938e52df2afccd6fcf", null ],
-    [ "m_sync_with_stdio", "classIOv2_1_1stdout__api.html#aec9bd7e690fc381c421278101091ca9c", null ],
+    [ "m_sync_with_stdio", "classIOv2_1_1stdout__api.html#a0b011f4d73f29ea5f43da2e7a2f21124", null ],
     [ "ostream_operators< TChar >", "classIOv2_1_1stdout__api.html#a8274bfab5ce585c4d1089e87050ccd93", null ],
     [ "out_flusher< T >", "classIOv2_1_1stdout__api.html#a5af4e1eee812b2f0d771a85e76706546", null ],
     [ "out_sentry_type", "classIOv2_1_1stdout__api.html#af12516dca1e5114e6eaa8726cb07d9ab", null ],
