@@ -96,24 +96,6 @@ void test_concur_sentryless_1()
     dump_info("Done\n");
 }
 
-void test_concur_ignore_ws_1()
-{
-    dump_info("Test concurrent ignore_ws against input case 1...");
-    using namespace IOv2;
-
-    istream is(mem_device<char>{std::string(8192, ' ')});
-    spawn([&is](int id)
-    {
-        for (int i = 0; i < kIters; ++i)
-        {
-            if (id % 2) is.ignore_ws();
-            else        { std::string s; is >> s; is.clear(); }
-        }
-    });
-
-    dump_info("Done\n");
-}
-
 void test_concur_state_1()
 {
     dump_info("Test concurrent stream-state access case 1...");

@@ -1,6 +1,7 @@
 #pragma once
 #include <type_traits>
 
+#include <common/copyable_atomic.h>
 #include <common/copyable_mutex.h>
 #include <common/sing_temp.h>
 #include <cvt/code_cvt_stdio.h>
@@ -49,9 +50,7 @@ public:
 public:
     bool sync_with_stdio(bool sync = true)
     {
-        auto res = m_sync_with_stdio;
-        m_sync_with_stdio = sync;
-        return res;
+        return m_sync_with_stdio.exchange(sync);
     }
 
     std::string code() const
@@ -88,7 +87,7 @@ protected:
     ostreambuf<device_type, char_type> m_streambuf;
     IOv2::locale<char_type> m_locale;
     mutable copyable_mutex<std::recursive_mutex> m_io_mutex;
-    bool m_sync_with_stdio = true;
+    copyable_atomic<bool> m_sync_with_stdio{true};   ///< @lang{ZH} 是否随析构与 stdio 同步刷新；原子量，使 `sync_with_stdio()` 可与并发输出操作安全竞争。 @endif @lang{EN} Whether destruction flushes in sync with stdio; atomic so `sync_with_stdio()` is safe against concurrent output operations. @endif
 };
 
 /// __cout

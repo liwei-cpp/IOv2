@@ -71,7 +71,27 @@ struct in_sentry
             is.m_streambuf.switch_to_get();
 
         if (!noskip)
-            is.ignore_ws();
+        {
+            try
+            {
+                auto ct = is.m_locale.template get<IOv2::ctype<typename TStream::char_type>>();
+                if (!ct)
+                    throw stream_error{"istream ignore_ws fail: no ctype facet"};
+                auto c = is.m_streambuf.sgetc();
+                while (c.has_value() &&
+                        ct->is_any(base_ft<ctype>::space, c.value()))
+                {
+                    c = is.m_streambuf.snextc();
+                }
+
+                if (!c.has_value())
+                    throw eof_error{};
+            }
+            catch(...)
+            {
+                is.handle_exception(std::current_exception());
+            }
+        }
 
         if (!m_is)
             throw stream_error("istream_sentry create fail: Invalid istream");
@@ -217,7 +237,7 @@ struct istream_operators
                         ++gcount;
                     }
                     else
-                        throw stream_error("istream getline fail: delimiter not found within n-1 characters");
+                        throw stream_error("istream getline fail: delimiter not found within buffer capacity");
                 }
             }
 
@@ -253,29 +273,31 @@ struct istream_operators
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
     TOut get(this TSelf& self, TOut s, size_t n)
     {
-        std::lock_guard guard(self.io_mutex());
         TChar delim;
-        try
         {
-            auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
-            if (!ct)
-                throw stream_error{"istream get fail: no ctype facet"};
-            delim = ct->widen('\n');
-        }
-        catch(...)
-        {
-            if constexpr (std::is_same_v<CStrPolicy, app_zt>)
+            std::lock_guard guard(self.io_mutex());
+            try
             {
-                if constexpr (std::is_pointer_v<TOut>)
+                auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
+                if (!ct)
+                    throw stream_error{"istream get fail: no ctype facet"};
+                delim = ct->widen('\n');
+            }
+            catch(...)
+            {
+                if constexpr (std::is_same_v<CStrPolicy, app_zt>)
                 {
-                    if (s != nullptr && n != 0)
+                    if constexpr (std::is_pointer_v<TOut>)
+                    {
+                        if (s != nullptr && n != 0)
+                            *s++ = TChar{};
+                    }
+                    else if (n != 0)
                         *s++ = TChar{};
                 }
-                else if (n != 0)
-                    *s++ = TChar{};
+                self.handle_exception(std::current_exception());
+                return s;
             }
-            self.handle_exception(std::current_exception());
-            return s;
         }
 
         return self.template get<DelimPolicy, CStrPolicy, TOut>(s, n, delim);
@@ -316,7 +338,7 @@ struct istream_operators
             if (gcount != n)
             {
                 at_eof = true;
-                throw stream_error{"cannot read enough characters"};
+                throw stream_error{"istream read fail: cannot read enough characters"};
             }
         }
         catch(...)
@@ -324,33 +346,6 @@ struct istream_operators
             self.handle_exception(std::current_exception(), at_eof);
         }
         return s + gcount;
-    }
-
-    template <typename TSelf>
-    TSelf& ignore_ws(this TSelf& self)
-    {
-        std::lock_guard guard(self.io_mutex());
-        try
-        {
-            auto ct = self.m_locale.template get<IOv2::ctype<TChar>>();
-            if (!ct)
-                throw stream_error{"istream ignore_ws fail: no ctype facet"};
-            auto c = self.m_streambuf.sgetc();
-            while (c.has_value() &&
-                    ct->is_any(base_ft<ctype>::space, c.value()))
-            {
-                c = self.m_streambuf.snextc();
-            }
-
-            if (!c.has_value())
-                throw eof_error{};
-        }
-        catch(...)
-        {
-            self.handle_exception(std::current_exception());
-        }
-
-        return self;
     }
 
     template <typename TSelf>

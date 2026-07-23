@@ -132,7 +132,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 **库提供的保证**
 
 - **单次操作是原子的**：`operator<<` / `operator>>` / `put` / `write` / `get` 等在其 sentry 的整个生命周期内持有 `io_mutex()`。多个线程同时对同一流做 I/O 时逐个进入，不会交错，也不会并发操作底层缓冲区。
-- **不建 sentry 的操作同样加锁**：`tell` / `seek` / `rseek` / `detach` / `attach` / `adjust` / `retrieve` / `ignore_ws` 以及 `locale(loc)` setter 都在流级锁下执行。
+- **不建 sentry 的操作同样加锁**：`tell` / `seek` / `rseek` / `detach` / `attach` / `adjust` / `retrieve` 以及 `locale(loc)` setter 都在流级锁下执行。
 - **写与刷互斥、并发刷新被串行化**：`flush()` 亦经 sentry 加锁，且每个调用者都真正完成一次刷新，而非“先到者刷、其余跳过”。
 - **tie 恒无环**：`tie()` setter 在进程级全局锁 `tie_graph_mutex()` 下把“成环检测”与“提交”合成一个原子步骤，因此即便两个线程并发 `A.tie(B)` 与 `B.tie(A)` 也无法成环；成环请求抛 `stream_error` 并保持原绑定不变。这比标准库把成环留作未定义行为更强。
 - **状态位与其异常指针一致**：`clear`/`setstate`/`exceptions`/`handle_exception` 对「状态位 + 各失败类别所保存的 `exception_ptr`」的更新是一次完整事务，不会被并发撕开。读取（`rdstate`/`good`/`eof`/`operator bool`）为无锁原子读，无额外开销。标准库在这一层不提供任何保证——`std::basic_ios` 的状态字是裸 `int`，且 `[iostream.objects]` 的豁免只覆盖 formatted/unformatted I/O 函数，不含状态位访问器。
@@ -279,7 +279,7 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 **What the library guarantees**
 
 - **A single operation is atomic**: `operator<<` / `operator>>` / `put` / `write` / `get` hold `io_mutex()` for their sentry's entire lifetime. Threads doing I/O on the same stream enter one at a time — operations never interleave and the underlying buffer is never operated on concurrently.
-- **Sentry-less operations lock too**: `tell` / `seek` / `rseek` / `detach` / `attach` / `adjust` / `retrieve` / `ignore_ws` and the `locale(loc)` setter all run under the stream lock.
+- **Sentry-less operations lock too**: `tell` / `seek` / `rseek` / `detach` / `attach` / `adjust` / `retrieve` and the `locale(loc)` setter all run under the stream lock.
 - **Write and flush are mutually excluded; concurrent flushes are serialized**: `flush()` also locks via the sentry, and every caller actually completes a flush rather than the weak "first caller flushes, the rest skip" semantics.
 - **The tie graph is always acyclic**: the `tie()` setter fuses cycle detection and commit into one atomic step under the process-wide `tie_graph_mutex()`, so no cycle can form even under concurrent `A.tie(B)` / `B.tie(A)`. A cycling request throws `stream_error` and leaves the existing tie unchanged — stronger than the standard, which leaves cycles undefined.
 - **State bits stay consistent with their exception pointers**: `clear`/`setstate`/`exceptions`/`handle_exception` update the state bits together with the `exception_ptr` saved per failure category as one complete transaction, never torn apart by concurrency. Reads (`rdstate`/`good`/`eof`/`operator bool`) are lock-free atomic loads and cost nothing extra. The standard library guarantees nothing here — `std::basic_ios` keeps its state in a plain `int`, and the `[iostream.objects]` exemption covers only formatted/unformatted I/O functions, not the state accessors.

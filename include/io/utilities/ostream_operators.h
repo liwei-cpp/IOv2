@@ -74,7 +74,7 @@ public:
         m_lock.lock();
 
         if constexpr (is_std)
-            m_sync_with_stdio = os.m_sync_with_stdio;
+            m_sync_with_stdio = os.m_sync_with_stdio.load();
 
         if constexpr (involve_input)
             os.m_streambuf.switch_to_put();
