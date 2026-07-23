@@ -1,3 +1,4 @@
+#include <functional>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -56,6 +57,49 @@ void test_istream_ws_char_1()
         iss01 >> IOv2::ws;
         VERIFY( (bool)iss01 );
         VERIFY( iss01.eof() );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// Regression for the std::function manipulator being shadowed on the extraction side.
+// A std::function manipulator held in a NON-CONST lvalue must dispatch to the
+// operator>>(T&, const std::function<void(T&)>&) manipulator overload. Before the generic
+// value operator>> was constrained (requires is_reader_def<...>), such an lvalue bound to
+// operator>>(T&, TValue&) instead and failed to compile ("No parse method provided").
+// The invocation counter proves dispatch reached the manipulator (the generic operator
+// would never invoke the callable). Also exercises the sibling function-pointer form.
+void test_istream_function_manip_char_1()
+{
+    dump_info("Test istream<char> std::function manipulator via operator>> case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T iss{IOv2::mem_device{std::string("hello world")}};
+        using S = decltype(iss);
+
+        int calls = 0;
+        std::function<void(S&)> manip = [&calls](S&){ ++calls; };
+
+        iss >> manip;                 // the previously-broken path
+        VERIFY( calls == 1 );
+
+        iss >> manip >> manip;        // operator>> returns the stream, so manipulators chain
+        VERIFY( calls == 3 );
+
+        // sibling function-pointer manipulator form: operator>>(T&, void(*)(T&))
+        static int fcalls;
+        fcalls = 0;
+        iss >> +[](S&){ ++fcalls; };
+        VERIFY( fcalls == 1 );
+
+        // the generic value operator>> still extracts real values afterwards
+        std::string tok;
+        iss >> tok;
+        VERIFY( tok == "hello" );
     };
 
     helper.operator()<IOv2::istream>();
