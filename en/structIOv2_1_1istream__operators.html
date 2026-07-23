@@ -158,9 +158,10 @@ requires ((std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
-<tr class="memitem:aa464a8e02749e59de93070fc53b191ea" id="r_aa464a8e02749e59de93070fc53b191ea"><td class="memTemplParams" colspan="2">template&lt;istream_type U, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </td></tr>
-<tr class="memitem:aa464a8e02749e59de93070fc53b191ea"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#aa464a8e02749e59de93070fc53b191ea">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
-<tr class="separator:aa464a8e02749e59de93070fc53b191ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adee082760e65da2a9b751ad874c25bb1" id="r_adee082760e65da2a9b751ad874c25bb1"><td class="memTemplParams" colspan="2">template&lt;istream_type U, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
+requires is_reader_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> U::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="structIOv2_1_1parse__context__type.html">parse_context_type</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> U::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;::type&gt;</td></tr>
+<tr class="memitem:adee082760e65da2a9b751ad874c25bb1"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html#adee082760e65da2a9b751ad874c25bb1">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="separator:adee082760e65da2a9b751ad874c25bb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="ad4efbe24badd568dce04e45fb563dae2" name="ad4efbe24badd568dce04e45fb563dae2"></a>
@@ -566,15 +567,16 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 </div>
 <h2 class="groupheader">Friends And Related Symbol Documentation</h2>
-<a id="aa464a8e02749e59de93070fc53b191ea" name="aa464a8e02749e59de93070fc53b191ea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa464a8e02749e59de93070fc53b191ea">&#9670;&#160;</a></span>operator&gt;&gt;</h2>
+<a id="adee082760e65da2a9b751ad874c25bb1" name="adee082760e65da2a9b751ad874c25bb1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adee082760e65da2a9b751ad874c25bb1">&#9670;&#160;</a></span>operator&gt;&gt;</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
 <div class="memtemplate">
-template&lt;istream_type U, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </div>
+template&lt;istream_type U, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
+requires is_reader_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> U::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="structIOv2_1_1parse__context__type.html">parse_context_type</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> U::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;::type&gt;</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">

@@ -10,5 +10,5 @@ var structIOv2_1_1istream__operators =
     [ "peek", "structIOv2_1_1istream__operators.html#a496d2dcab1e26c439f56cf83acdf4a02", null ],
     [ "putback", "structIOv2_1_1istream__operators.html#a6b0d9fa7f44b43075a103b59a9c534b6", null ],
     [ "read", "structIOv2_1_1istream__operators.html#a85c69b7370b2a0caff2163b9d792f603", null ],
-    [ "operator>>", "structIOv2_1_1istream__operators.html#aa464a8e02749e59de93070fc53b191ea", null ]
+    [ "operator>>", "structIOv2_1_1istream__operators.html#adee082760e65da2a9b751ad874c25bb1", null ]
 ];
