@@ -26,9 +26,40 @@ struct out_sentry
         std::unique_lock<std::remove_reference_t<decltype(std::declval<TStream&>().io_mutex())>>;
 
 public:
-    out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode)
+    /**
+     * @lang{ZH}
+     * @brief 构造输出哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需切换读写方向 / 定位到末尾。
+     *
+     * 锁不由哨兵自身持有，而是从调用方借入（`lock`，须处于 `defer_lock` 状态）：哨兵在构造中
+     * 对其加锁，但其生命周期由调用方的局部变量掌握。因此当哨兵在 `try` 块末尾析构后，锁仍被
+     * 调用方持有，`catch` 中的 `handle_exception` 得以在持锁状态下更新流状态，使成功路径与失败
+     * 路径对同一把 `io_mutex()` 的可见性保持一致。析构中的 unitbuf/stdio 刷新同样在这把仍被持有
+     * 的锁下进行（同一递归锁、同一线程），故哨兵析构先于调用方的锁析构时刷新依旧安全。
+     *
+     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。
+     * @endif
+     * @lang{EN}
+     * @brief Constructs the output sentry: validates the stream, flushes the tied stream
+     * (before locking), acquires the lock, and switches direction / repositions to end as
+     * needed.
+     *
+     * The lock is not owned by the sentry but borrowed from the caller (`lock`, which must be
+     * in `defer_lock` state): the sentry locks it during construction, yet its lifetime is
+     * owned by the caller's local variable. Thus, after the sentry is destroyed at the end of
+     * the enclosing `try`, the lock is still held by the caller, so `handle_exception` in the
+     * `catch` can update the stream state while holding the lock, keeping the success and
+     * failure paths consistent with respect to the same `io_mutex()`. The unitbuf/stdio flush
+     * in the destructor also runs under that still-held lock (same recursive mutex, same
+     * thread), so flushing remains safe even though the sentry is destroyed before the caller's
+     * lock.
+     *
+     * The tied stream is flushed before locking, so at most one stream lock is held by this
+     * thread at any time, preserving the no-deadlock guarantee.
+     * @endif
+     */
+    out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode, lock_type& lock)
         : m_os(os)
-        , m_lock(m_os.io_mutex(), std::defer_lock)
+        , m_lock(lock)
         , m_is_unit_buf(is_unit_buf)
     {
         if (!static_cast<bool>(m_os))
@@ -118,7 +149,7 @@ public:
         {
             try
             {
-                if (m_os.good())
+                if (m_os)
                 {
                     if (m_is_unit_buf || m_sync_with_stdio)
                         m_os.m_streambuf.flush();
@@ -129,8 +160,6 @@ public:
             }
             catch (...)
             {
-                // 展开期间：登记失败位并保留原始异常，但绝不外抛——即便 handle_exception 内部
-                // 因加锁失败等抛出底层异常，也一并吞掉，以免在栈展开期触发 std::terminate。
                 try { m_os.template handle_exception<true>(std::current_exception()); }
                 catch (...) {} // NOLINT(bugprone-empty-catch)
             }
@@ -139,7 +168,7 @@ public:
 
         try
         {
-            if (m_os.good())
+            if (m_os)
             {
                 if (m_is_unit_buf || m_sync_with_stdio)
                     m_os.m_streambuf.flush();
@@ -159,7 +188,7 @@ public:
 
 private:
     TStream&    m_os;
-    lock_type   m_lock;
+    lock_type&  m_lock;
     bool        m_is_unit_buf;
     bool        m_sync_with_stdio = false;
 };
@@ -295,10 +324,11 @@ struct ostream_operators
     template<typename TSelf>
     TSelf& put(this TSelf& self, TChar c)
     {
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::out_sentry_type;
-            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode), lk);
             self.m_streambuf.sputc(c);
         }
         catch(...)
@@ -311,10 +341,11 @@ struct ostream_operators
     template<typename TSelf>
     TSelf& write(this TSelf& self, const TChar* s, size_t n)
     {
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::out_sentry_type;
-            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
+            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode), lk);
             if (s == nullptr && n != 0)
                 throw stream_error("ostream write fail: null character sequence");
             self.m_streambuf.sputn(s, n);
@@ -440,10 +471,11 @@ T& operator<<(T& obj, const TValue& value)
 {
     using TDecay = std::decay_t<TValue>;
     using TChar = typename T::char_type;
+    std::unique_lock lk(obj.io_mutex(), std::defer_lock);
     try
     {
         using sentry_type = typename T::out_sentry_type;
-        sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), bool(obj.flags() & ios_defs::appmode));
+        sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), bool(obj.flags() & ios_defs::appmode), lk);
 
         if constexpr (is_writer_def<TChar, TValue>)
             writer<TChar, TValue>::swrite(obj.o_iter(), obj, obj.locale(), value);

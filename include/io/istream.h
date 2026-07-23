@@ -6,6 +6,7 @@
 #include <io/utilities/istream_operators.h>
 #include <io/utilities/stream_common_operators.h>
 
+#include <mutex>
 #include <type_traits>
 #include <utility>
 
@@ -77,9 +78,10 @@ template <istream_type T>
 inline void ws(T& is)
 {
     using sentry_type = typename T::in_sentry_type;
+    std::unique_lock lk(is.io_mutex(), std::defer_lock);
     try
     {
-        sentry_type cerb(is, false);
+        sentry_type cerb(is, false, lk);
     }
     catch(...)
     {
