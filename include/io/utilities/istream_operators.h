@@ -466,6 +466,8 @@ private:
     }
 
     template <istream_type U, typename TValue>
+        requires is_reader_def<typename U::char_type,
+                               typename parse_context_type<typename U::char_type, TValue>::type>
     friend U& operator>>(U& obj, TValue& value);
 };
 
@@ -568,6 +570,8 @@ T& operator >> (T& obj, const std::function<void(U&)>& pf)
 }
 
 template <istream_type T, typename TValue>
+    requires is_reader_def<typename T::char_type,
+                           typename parse_context_type<typename T::char_type, TValue>::type>
 T& operator>>(T& obj, TValue& value)
 {
     using TChar = typename T::char_type;

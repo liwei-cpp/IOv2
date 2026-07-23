@@ -317,9 +317,19 @@ struct stream_common_operators
      * @return 先前绑定的输出流（可能为 `nullptr`）。
      *
      * @warning 生命周期由调用方负责：`str` 仅以裸指针保存，本类不做任何生命周期管理，
-     *          也不会在析构时自动解绑。必须保证 `str` 所指的流在本流之后析构，或在 `str`
-     *          被销毁前调用 `tie(nullptr)` 解绑；否则后续任何 I/O 都会经由 `tie()->flush()`
-     *          解引用悬空指针，导致未定义行为。此契约与标准库 `std::basic_ios::tie` 一致。
+     *          也不会在析构时自动解绑。最简单且始终安全的规则是：让 `str` 所指的流存活于
+     *          所有绑定到它的流之后（这也是标准用法，如全局 `cout` 活得比 `cin` 久）。否则
+     *          任何 I/O 都会经由 `tie()->flush()` 解引用悬空指针，导致未定义行为。此契约与
+     *          标准库 `std::basic_ios::tie` 一致。
+     * @warning **并发下的加强约束**：单独调用 `tie(nullptr)` 并**不足以**使随后销毁 `str`
+     *          变得安全。sentry 会在获取本流 `io_mutex()` **之前**就（无锁）原子读出 tie 指针
+     *          并 `flush()` 该目标（见 in_sentry/out_sentry 构造函数），因此另一线程在途的
+     *          I/O 可能在你的 `tie(nullptr)` 写入变得可见之前，就已读到旧指针并正准备对目标
+     *          `flush()`。故若要在生命周期中途改绑或销毁某个 tie 目标 P，调用方必须：先保证
+     *          没有任何线程正在、也不会即将对任何 `tie() == P` 的流发起 I/O；再对这些流调用
+     *          `tie(nullptr)`（或确保其已析构）；最后才销毁 P。这一点无法用锁代劳——目标的
+     *          生命周期不受本流 `io_mutex()` 保护，且没有任何锁能保护一个正被其自身析构函数
+     *          销毁的对象。
      * @note 设置前会沿目标流 `str` 的 tie 链向前遍历：若该链会回到本流（即形成环，自绑定是
      *       长度为 1 的环），则抛出 `stream_error` 并**保持本流原绑定不变**，从而在设置时杜绝
      *       环。这满足了 `std::basic_ios::tie` “不得成环”的前置条件，而非像标准那样把成环留作
@@ -344,10 +354,24 @@ struct stream_common_operators
      *
      * @warning Lifetime is the caller's responsibility: `str` is stored as a raw pointer;
      *          this class performs no lifetime management and does not auto-untie on
-     *          destruction. The caller must ensure `str` outlives this stream, or call
-     *          `tie(nullptr)` before `str` is destroyed; otherwise any subsequent I/O
-     *          dereferences a dangling pointer through `tie()->flush()` — undefined
-     *          behavior. This matches the `std::basic_ios::tie` contract.
+     *          destruction. The simplest always-safe rule is to let `str` outlive every
+     *          stream tied to it (this is also the standard usage, e.g. a global `cout`
+     *          outlives `cin`); otherwise any I/O dereferences a dangling pointer through
+     *          `tie()->flush()` — undefined behavior. This matches the
+     *          `std::basic_ios::tie` contract.
+     * @warning **Concurrency addendum:** calling `tie(nullptr)` alone is **not** sufficient
+     *          to make a subsequent destruction of `str` safe. The sentry reads the tie
+     *          pointer (a lock-free atomic load) and `flush()`es the target *before* it
+     *          acquires this stream's `io_mutex()` (see the in_sentry/out_sentry
+     *          constructors), so another thread's in-flight I/O may have already latched the
+     *          old pointer -- and be about to `flush()` the target -- before your
+     *          `tie(nullptr)` store becomes visible. Therefore, to retarget or destroy a tie
+     *          target P during its lifetime, the caller must: first ensure no thread is
+     *          performing, or about to perform, I/O on any stream whose `tie() == P`; then
+     *          `tie(nullptr)` those streams (or ensure they are already destroyed); and only
+     *          then destroy P. No lock can do this for you -- the target's lifetime is not
+     *          guarded by this stream's `io_mutex()`, and no lock can protect an object while
+     *          it is being torn down by its own destructor.
      * @note Before setting, the tie chain reachable from the target `str` is walked
      *       forward: if that chain leads back to this stream (i.e. it would form a cycle;
      *       a self-tie is the length-1 cycle), a `stream_error` is thrown and **this

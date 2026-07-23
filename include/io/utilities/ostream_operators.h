@@ -365,6 +365,8 @@ private:
     }
 
     template <ostream_type U, typename TValue>
+        requires (is_writer_def<typename U::char_type, TValue>
+               || is_writer_def<typename U::char_type, std::decay_t<TValue>>)
     friend U& operator<<(U& obj, const TValue& value);
 };
 
@@ -467,6 +469,8 @@ T& operator << (T& obj, const std::function<void(U&)>& pf)
 }
 
 template <ostream_type T, typename TValue>
+    requires (is_writer_def<typename T::char_type, TValue>
+           || is_writer_def<typename T::char_type, std::decay_t<TValue>>)
 T& operator<<(T& obj, const TValue& value)
 {
     using TDecay = std::decay_t<TValue>;
