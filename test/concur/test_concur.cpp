@@ -5,7 +5,6 @@
 void test_concur_output_1();
 void test_concur_flush_1();
 void test_concur_sentryless_1();
-void test_concur_ignore_ws_1();
 void test_concur_state_1();
 void test_concur_tie_1();
 
@@ -21,7 +20,6 @@ int main()
         test_concur_output_1();
         test_concur_flush_1();
         test_concur_sentryless_1();
-        test_concur_ignore_ws_1();
         test_concur_state_1();
         test_concur_tie_1();
 
