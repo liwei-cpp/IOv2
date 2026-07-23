@@ -26,9 +26,35 @@ struct in_sentry
     using lock_type =
         std::unique_lock<std::remove_reference_t<decltype(std::declval<TStream&>().io_mutex())>>;
 
-    in_sentry(TStream& is, bool noskip)
+    /**
+     * @lang{ZH}
+     * @brief 构造输入哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需跳过前导空白。
+     *
+     * 锁不由哨兵自身持有，而是从调用方借入（`lock`，须处于 `defer_lock` 状态）：哨兵在构造
+     * 中对其加锁，但其生命周期由调用方的局部变量掌握。因此当哨兵在 `try` 块末尾析构后，锁
+     * 仍被调用方持有，`catch` 中的 `handle_exception` 得以在持锁状态下更新流状态，使成功路径
+     * 与失败路径对同一把 `io_mutex()` 的可见性保持一致。
+     *
+     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。
+     * @endif
+     * @lang{EN}
+     * @brief Constructs the input sentry: validates the stream, flushes the tied stream
+     * (before locking), acquires the lock, and skips leading whitespace if requested.
+     *
+     * The lock is not owned by the sentry but borrowed from the caller (`lock`, which must be
+     * in `defer_lock` state): the sentry locks it during construction, yet its lifetime is
+     * owned by the caller's local variable. Thus, after the sentry is destroyed at the end of
+     * the enclosing `try`, the lock is still held by the caller, so `handle_exception` in the
+     * `catch` can update the stream state while holding the lock, keeping the success and
+     * failure paths consistent with respect to the same `io_mutex()`.
+     *
+     * The tied stream is flushed before locking, so at most one stream lock is held by this
+     * thread at any time, preserving the no-deadlock guarantee.
+     * @endif
+     */
+    in_sentry(TStream& is, bool noskip, lock_type& lock)
         : m_is(is)
-        , m_lock(m_is.io_mutex(), std::defer_lock)
+        , m_lock(lock)
     {
         if (!m_is)
             throw stream_error("istream_sentry create fail: Invalid istream");
@@ -57,8 +83,8 @@ struct in_sentry
     in_sentry& operator=(const in_sentry&) = delete;
 
 private:
-    TStream&  m_is;
-    lock_type m_lock;
+    TStream&   m_is;
+    lock_type& m_lock;
 };
 
 template <typename>
@@ -104,10 +130,11 @@ struct istream_operators
     {
         std::optional<TChar> c;
         bool at_eof = false;
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
             c = self.m_streambuf.sbumpc();
             if (!c.has_value())
             {
@@ -126,10 +153,11 @@ struct istream_operators
     TSelf& get(this TSelf& self, TChar& c)
     {
         bool at_eof = false;
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
             auto tmp = self.m_streambuf.sbumpc();
             if (tmp.has_value()) c = tmp.value();
             else
@@ -155,10 +183,11 @@ struct istream_operators
 
         size_t gcount = 0;
         bool at_eof = false;
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
             if constexpr (std::is_pointer_v<TOut>)
             {
                 if (s == nullptr)
@@ -256,10 +285,11 @@ struct istream_operators
     std::optional<TChar> peek(this TSelf& self)
     {
         std::optional<TChar> c;
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
             c = self.m_streambuf.sgetc();
             if (!c.has_value()) throw eof_error{};
         }
@@ -275,10 +305,11 @@ struct istream_operators
     {
         size_t gcount = 0;
         bool at_eof = false;
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
             if (s == nullptr && n != 0)
                 throw stream_error{"istream read fail: null character sequence"};
             self.m_streambuf.sgetn(s, n, &gcount);
@@ -326,10 +357,11 @@ struct istream_operators
     TSelf& ignore(this TSelf& self, size_t n = 1)
     {
         bool at_eof = false;
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
 
             for (size_t gcount = 0; gcount < n; ++gcount)
             {
@@ -357,10 +389,11 @@ struct istream_operators
     {
         size_t gcount = 0;
         bool at_eof = false;
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
             if (n == 0) return self;
 
             auto c = self.m_streambuf.sgetc();
@@ -397,13 +430,12 @@ struct istream_operators
     template <typename TSelf>
     TSelf& putback(this TSelf& self, TChar c)
     {
-        std::lock_guard guard(self.io_mutex());
+        std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
-            self.unset_state(IOv2::ios_defs::eofbit);
-
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true);
+            sentry_type cerb(self, true, lk);
+            self.unset_state(IOv2::ios_defs::eofbit);
             self.m_streambuf.sputbackc(c);
         }
         catch(...)
@@ -543,11 +575,12 @@ T& operator>>(T& obj, TValue& value)
     using sentry_type = typename T::in_sentry_type;
 
     bool saw_eof = false;
+    std::unique_lock lk(obj.io_mutex(), std::defer_lock);
     try
     {
         auto iter = obj.i_iter(&saw_eof);
         bool skip = bool(obj.flags() & ios_defs::skipws);
-        sentry_type cerb(obj, !skip);
+        sentry_type cerb(obj, !skip, lk);
 
         if constexpr (is_reader_def<TChar, TCtx>)
         {
