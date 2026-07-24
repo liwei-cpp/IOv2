@@ -3,6 +3,7 @@
 #include <string>
 #include <device/mem_device.h>
 #include <device/file_device.h>
+#include <facet/ctype.h>
 #include <io/fp_defs/arithmetic.h>
 #include <io/fp_defs/char_and_str.h>
 #include <io/io_manip.h>
@@ -338,7 +339,54 @@ void test_istream_getline_wchar_t_6()
         VERIFY( istr02.eof() );
         VERIFY( istr02.template get<IOv2::cons_sep, IOv2::app_zt>(buf02, 1) == buf02 + 1);
         VERIFY( istr02.str_fail() );
-        VERIFY( buf02[0] == wchar_t{} );  
+        VERIFY( buf02[0] == wchar_t{} );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_getline_wchar_t_7()
+{
+    dump_info("Test istream<wchar_t>::getline case 7 (null destination pointer)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // Null output pointer + non-zero size -> stream_error -> strfailbit; no_zt writes no
+        // terminator, so the null pointer is never dereferenced and is returned unchanged.
+        T istr(IOv2::mem_device{std::wstring(L"hello")});
+        auto ret = istr.template get<IOv2::cons_sep, IOv2::no_zt>(
+                       static_cast<wchar_t*>(nullptr), 5, L'\n');
+        VERIFY( ret == nullptr );
+        VERIFY( istr.str_fail() );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_getline_wchar_t_8()
+{
+    dump_info("Test istream<wchar_t>::getline case 8 (no ctype facet)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // get(s, n) derives the L'\n' delimiter via ctype::widen; removing the ctype facet
+        // makes that throw stream_error -> strfailbit. The app_zt policy still writes the
+        // trailing terminator in the error path, so buf[0] == L'\0' and the return is buf + 1.
+        const auto loc = IOv2::locale<wchar_t>("C").remove<IOv2::ctype_conf<wchar_t>>();
+        T istr{IOv2::mem_device{std::wstring(L"hello")}, loc};
+
+        wchar_t buf[8];
+        buf[0] = L'*';
+        auto ret = istr.template get<IOv2::cons_sep, IOv2::app_zt>(buf, 8);
+        VERIFY( ret == buf + 1 );
+        VERIFY( buf[0] == wchar_t{} );
+        VERIFY( istr.str_fail() );
     };
 
     helper.operator()<IOv2::istream>();

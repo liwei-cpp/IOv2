@@ -246,3 +246,33 @@ void test_ostream_inserters_character_char_7()
     dump_info("Done\n");
 }
 
+void test_ostream_inserters_character_char_8()
+{
+    dump_info("Test ostream<char>::write case 8 (null source pointer)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // write() with a null source and a non-zero count is rejected with stream_error
+        // -> strfailbit. With no exception mask set it does not throw.
+        T oss{IOv2::mem_device{std::string("")}};
+        bool threw = false;
+        try { oss.write(nullptr, 5); }
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
+
+        // write() of a null source with a zero count is the well-defined no-op: nothing is
+        // emitted and no failure bit is set.
+        T oss2{IOv2::mem_device{std::string("")}};
+        oss2.write(nullptr, 0);
+        VERIFY( !(oss2.rdstate() & IOv2::ios_defs::strfailbit) );
+        auto [dev, err] = oss2.detach();
+        VERIFY( dev.str().empty() );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
