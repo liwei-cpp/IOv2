@@ -4,6 +4,7 @@
 #include <string>
 #include <device/mem_device.h>
 #include <device/file_device.h>
+#include <facet/ctype.h>
 #include <io/fp_defs/arithmetic.h>
 #include <io/fp_defs/char_and_str.h>
 #include <io/io_manip.h>
@@ -96,6 +97,79 @@ void test_istream_function_manip_wchar_t_1()
         std::wstring tok;
         iss >> tok;
         VERIFY( tok == L"hello" );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// wchar_t counterpart of test_istream_null_manip_char_1: a null manipulator must be
+// rejected by every manipulator overload, leaving strfailbit set (no mask -> no throw).
+void test_istream_null_manip_wchar_t_1()
+{
+    dump_info("Test istream<wchar_t> null manipulator via operator>> case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T iss{IOv2::mem_device{std::wstring(L"hello world")}};
+        using S = decltype(iss);
+
+        iss >> static_cast<void(*)(IOv2::ios_base<wchar_t>&)>(nullptr);
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        std::function<void(IOv2::ios_base<wchar_t>&)> empty_base_fn;
+        iss >> empty_base_fn;
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        int base_calls = 0;
+        std::function<void(IOv2::ios_base<wchar_t>&)> base_fn =
+            [&base_calls](IOv2::ios_base<wchar_t>&){ ++base_calls; };
+        iss >> base_fn;
+        VERIFY( base_calls == 1 );
+        VERIFY( !(iss.rdstate() & IOv2::ios_defs::strfailbit) );
+
+        iss >> static_cast<void(*)(S&)>(nullptr);
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        std::function<void(S&)> empty_self_fn;
+        iss >> empty_self_fn;
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        std::wstring tok;
+        iss >> tok;
+        VERIFY( tok == L"hello" );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// wchar_t counterpart of test_istream_ws_no_ctype_char_1: removing the ctype facet makes
+// the sentry's whitespace-skip fail with stream_error -> strfailbit (no mask -> no throw).
+void test_istream_ws_no_ctype_wchar_t_1()
+{
+    dump_info("Test istream<wchar_t> sentry with no ctype facet case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        const auto loc = IOv2::locale<wchar_t>("C").remove<IOv2::ctype_conf<wchar_t>>();
+
+        T iss{IOv2::mem_device{std::wstring(L"  42")}, loc};
+        iss >> IOv2::ws;
+        VERIFY( iss.str_fail() );
+
+        T iss2{IOv2::mem_device{std::wstring(L"  42")}, loc};
+        int v = 0;
+        iss2 >> v;
+        VERIFY( iss2.str_fail() );
     };
 
     helper.operator()<IOv2::istream>();

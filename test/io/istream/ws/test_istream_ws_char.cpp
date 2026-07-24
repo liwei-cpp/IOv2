@@ -4,6 +4,7 @@
 #include <string>
 #include <device/mem_device.h>
 #include <device/file_device.h>
+#include <facet/ctype.h>
 #include <io/fp_defs/arithmetic.h>
 #include <io/fp_defs/char_and_str.h>
 #include <io/io_manip.h>
@@ -100,6 +101,94 @@ void test_istream_function_manip_char_1()
         std::string tok;
         iss >> tok;
         VERIFY( tok == "hello" );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// A null manipulator (null function pointer / empty std::function) passed to operator>>
+// must be rejected by every manipulator overload: the operator throws stream_error, its
+// own handler categorizes it into strfailbit, and -- with no exception mask set -- returns
+// the stream without throwing. This exercises the error branch of each of the four
+// manipulator overloads (both function-pointer and std::function forms, both the
+// ios_base<char>& and the stream-typed callables).
+void test_istream_null_manip_char_1()
+{
+    dump_info("Test istream<char> null manipulator via operator>> case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T iss{IOv2::mem_device{std::string("hello world")}};
+        using S = decltype(iss);
+
+        // overload: operator>>(T&, void(*)(ios_base<char>&))
+        iss >> static_cast<void(*)(IOv2::ios_base<char>&)>(nullptr);
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        // overload: operator>>(T&, const std::function<void(ios_base<char>&)>&)
+        std::function<void(IOv2::ios_base<char>&)> empty_base_fn;
+        iss >> empty_base_fn;
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        // same overload, non-null: the callable runs against the stream's ios_base
+        int base_calls = 0;
+        std::function<void(IOv2::ios_base<char>&)> base_fn =
+            [&base_calls](IOv2::ios_base<char>&){ ++base_calls; };
+        iss >> base_fn;
+        VERIFY( base_calls == 1 );
+        VERIFY( !(iss.rdstate() & IOv2::ios_defs::strfailbit) );
+
+        // overload: operator>>(T&, void(*)(T&))
+        iss >> static_cast<void(*)(S&)>(nullptr);
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        // overload: operator>>(T&, const std::function<void(T&)>&)
+        std::function<void(S&)> empty_self_fn;
+        iss >> empty_self_fn;
+        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        iss.clear();
+
+        // stream is still usable after all the rejected manipulators
+        std::string tok;
+        iss >> tok;
+        VERIFY( tok == "hello" );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// The input sentry classifies leading whitespace through the ctype facet. With that facet
+// removed from the locale, the sentry's skip step throws stream_error ("no ctype facet"),
+// which is reported as strfailbit; the follow-up validity check inside the sentry then
+// re-throws on the now-failed stream. Both the ws manipulator and skipws-enabled
+// extraction drive this path. With no exception mask set nothing escapes to the caller.
+void test_istream_ws_no_ctype_char_1()
+{
+    dump_info("Test istream<char> sentry with no ctype facet case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        const auto loc = IOv2::locale<char>("C").remove<IOv2::ctype_conf<char>>();
+
+        // ws manipulator: sentry constructed with noskip == false -> needs the ctype facet
+        T iss{IOv2::mem_device{std::string("  42")}, loc};
+        iss >> IOv2::ws;
+        VERIFY( iss.str_fail() );
+
+        // skipws-enabled extraction takes the same sentry skip path
+        T iss2{IOv2::mem_device{std::string("  42")}, loc};
+        int v = 0;
+        iss2 >> v;
+        VERIFY( iss2.str_fail() );
     };
 
     helper.operator()<IOv2::istream>();

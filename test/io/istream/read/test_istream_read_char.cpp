@@ -174,3 +174,28 @@ void test_istream_read_char_5()
 
     dump_info("Done\n");
 }
+
+void test_istream_read_char_6()
+{
+    dump_info("Test istream<char>::read case 6 (null destination buffer)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // read into a null buffer with a non-zero count: the sentry succeeds, then read
+        // rejects the null pointer with stream_error -> strfailbit. With no exception mask
+        // set it does not throw, and the returned pointer is s + gcount == nullptr.
+        T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
+        bool threw = false;
+        char* ret = nullptr;
+        try { ret = s.read(nullptr, 5); }
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( ret == nullptr );
+        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

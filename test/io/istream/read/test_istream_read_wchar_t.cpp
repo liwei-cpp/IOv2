@@ -142,3 +142,27 @@ void test_istream_read_wchar_t_4()
 
     dump_info("Done\n");
 }
+
+void test_istream_read_wchar_t_5()
+{
+    dump_info("Test istream<wchar_t>::read case 5 (null destination buffer)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // read into a null buffer with a non-zero count: read rejects the null pointer with
+        // stream_error -> strfailbit; no mask means no throw and the return is nullptr.
+        T s{IOv2::mem_device{std::wstring(L"abc")}, IOv2::locale<wchar_t>("C")};
+        bool threw = false;
+        wchar_t* ret = nullptr;
+        try { ret = s.read(nullptr, 5); }
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( ret == nullptr );
+        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

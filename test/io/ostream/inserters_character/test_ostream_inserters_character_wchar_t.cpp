@@ -246,4 +246,33 @@ void test_ostream_inserters_character_wchar_t_7()
     dump_info("Done\n");
 }
 
+void test_ostream_inserters_character_wchar_t_8()
+{
+    dump_info("Test ostream<wchar_t>::write case 8 (null source pointer)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // write() with a null source and a non-zero count is rejected with stream_error
+        // -> strfailbit; no mask means no throw.
+        T oss{IOv2::mem_device{std::wstring(L"")}};
+        bool threw = false;
+        try { oss.write(nullptr, 5); }
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
+
+        // null source with a zero count is a well-defined no-op.
+        T oss2{IOv2::mem_device{std::wstring(L"")}};
+        oss2.write(nullptr, 0);
+        VERIFY( !(oss2.rdstate() & IOv2::ios_defs::strfailbit) );
+        auto [dev, err] = oss2.detach();
+        VERIFY( dev.str().empty() );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
 

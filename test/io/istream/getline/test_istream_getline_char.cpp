@@ -3,6 +3,7 @@
 #include <string>
 #include <device/mem_device.h>
 #include <device/file_device.h>
+#include <facet/ctype.h>
 #include <io/fp_defs/arithmetic.h>
 #include <io/fp_defs/char_and_str.h>
 #include <io/io_manip.h>
@@ -332,7 +333,56 @@ void test_istream_getline_char_6()
         VERIFY( istr02.eof() );
         VERIFY( istr02.template get<IOv2::cons_sep, IOv2::app_zt>(buf02, 1) == buf02 + 1 );
         VERIFY( istr02.str_fail() );
-        VERIFY( buf02[0] == char{} );  
+        VERIFY( buf02[0] == char{} );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_getline_char_7()
+{
+    dump_info("Test istream<char>::getline case 7 (null destination pointer)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // A null output pointer with a non-zero size is rejected up front with stream_error
+        // -> strfailbit. no_zt means no trailing terminator is written, so nothing touches
+        // the null pointer; the returned pointer is the (unmodified) null input.
+        T istr(IOv2::mem_device{std::string("hello")});
+        auto ret = istr.template get<IOv2::cons_sep, IOv2::no_zt>(
+                       static_cast<char*>(nullptr), 5, '\n');
+        VERIFY( ret == nullptr );
+        VERIFY( istr.str_fail() );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_getline_char_8()
+{
+    dump_info("Test istream<char>::getline case 8 (no ctype facet)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // The delimiter-less get(s, n) derives the '\n' delimiter via ctype::widen. With the
+        // ctype facet removed, that lookup throws stream_error ("no ctype facet") -> strfailbit.
+        // Because the app_zt (C-string) policy is in effect, the error path still writes the
+        // trailing terminator, so buf[0] == '\0' and the returned pointer is buf + 1.
+        const auto loc = IOv2::locale<char>("C").remove<IOv2::ctype_conf<char>>();
+        T istr{IOv2::mem_device{std::string("hello")}, loc};
+
+        char buf[8];
+        buf[0] = '*';
+        auto ret = istr.template get<IOv2::cons_sep, IOv2::app_zt>(buf, 8);
+        VERIFY( ret == buf + 1 );
+        VERIFY( buf[0] == char{} );
+        VERIFY( istr.str_fail() );
     };
 
     helper.operator()<IOv2::istream>();

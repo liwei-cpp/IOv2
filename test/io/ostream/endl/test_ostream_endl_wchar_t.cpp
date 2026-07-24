@@ -65,3 +65,50 @@ void test_ostream_function_manip_wchar_t_1()
 
     dump_info("Done\n");
 }
+
+// wchar_t counterpart of test_ostream_null_manip_char_1: a null manipulator must be
+// rejected by every manipulator overload, leaving strfailbit set (no mask -> no throw).
+void test_ostream_null_manip_wchar_t_1()
+{
+    dump_info("Test ostream<wchar_t> null manipulator via operator<< case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        auto oss = T(IOv2::mem_device{std::wstring(L"")});
+        using S = decltype(oss);
+
+        oss << static_cast<void(*)(IOv2::ios_base<wchar_t>&)>(nullptr);
+        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
+        oss.clear();
+
+        std::function<void(IOv2::ios_base<wchar_t>&)> empty_base_fn;
+        oss << empty_base_fn;
+        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
+        oss.clear();
+
+        int base_calls = 0;
+        std::function<void(IOv2::ios_base<wchar_t>&)> base_fn =
+            [&base_calls](IOv2::ios_base<wchar_t>&){ ++base_calls; };
+        oss << base_fn;
+        VERIFY( base_calls == 1 );
+        VERIFY( !(oss.rdstate() & IOv2::ios_defs::strfailbit) );
+
+        oss << static_cast<void(*)(S&)>(nullptr);
+        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
+        oss.clear();
+
+        std::function<void(S&)> empty_self_fn;
+        oss << empty_self_fn;
+        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
+        oss.clear();
+
+        oss << L"ok";
+        auto [dev, err] = oss.detach();
+        VERIFY( dev.str() == L"ok" );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
