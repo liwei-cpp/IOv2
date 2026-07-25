@@ -314,3 +314,30 @@ void test_istream_ignore_wchar_t_8()
 
     dump_info("Done\n");
 }
+
+// wchar_t counterpart of test_istream_ignore_char_9: ignore(n, delim) on a failed stream is
+// rejected by the sentry and routed through handle_exception (-> strfailbit), no throw.
+void test_istream_ignore_wchar_t_9()
+{
+    dump_info("Test istream<wchar_t>::ignore case 9 (failed stream, delimited)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T s{IOv2::mem_device{std::wstring(L"abc")}, IOv2::locale<wchar_t>("C")};
+
+        int v = 0;
+        s >> v;                       // non-numeric input -> strfailbit
+        VERIFY( !s );
+
+        bool threw = false;
+        try { s.ignore(5, L'x'); }
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

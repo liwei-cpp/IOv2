@@ -48,3 +48,30 @@ void test_istream_putback_wchar_t_1()
 
     dump_info("Done\n");
 }
+
+// wchar_t counterpart of test_istream_putback_char_2: putback() on a failed stream is
+// rejected by the sentry and routed through handle_exception (-> strfailbit), no throw.
+void test_istream_putback_wchar_t_2()
+{
+    dump_info("Test istream<wchar_t>::putback case 2 (failed stream)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T is{IOv2::mem_device{std::wstring(L"abc")}, IOv2::locale<wchar_t>("C")};
+
+        int v = 0;
+        is >> v;                      // non-numeric input -> strfailbit
+        VERIFY( !is );
+
+        bool threw = false;
+        try { is.putback(L'z'); }
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( is.rdstate() & IOv2::ios_defs::strfailbit );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

@@ -8,6 +8,7 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
+#include <support/failing_device.h>
 #include <support/verify.h>
 
 static_assert(std::is_copy_constructible_v<decltype(IOv2::ostream(IOv2::mem_device<wchar_t>{}))>,
@@ -65,6 +66,30 @@ void test_ostream_flush_wchar_t_2()
         VERIFY(a.tie() == &b);
 
         a.tie(nullptr);
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// wchar_t counterpart of test_ostream_flush_char_4: an explicit flush() whose device
+// dflush() throws is caught by out_flusher::flush() and reported as devfailbit (no mask ->
+// no throw).
+void test_ostream_flush_wchar_t_4()
+{
+    dump_info("Test ostream<wchar_t>::flush case 4 (device flush failure)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T out(failing_device<wchar_t>{std::wstring(L""), true});
+        out << L"abc";
+        bool threw = false;
+        try { out.flush(); }
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( out.rdstate() & IOv2::ios_defs::devfailbit );
     };
 
     helper.operator()<IOv2::ostream>();

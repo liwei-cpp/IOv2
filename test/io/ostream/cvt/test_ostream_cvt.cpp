@@ -10,6 +10,7 @@
 #include <io/fp_defs/arithmetic.h>
 #include <io/fp_defs/char_and_str.h>
 #include <io/io_base.h>
+#include <io/io_manip.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <locale/locale.h>
@@ -91,8 +92,41 @@ void test_ostream_cvt_sync_1()
     dump_info("Done\n");
 }
 
+// Appmode requires a fixed-length, state-independent encoding so the output sentry can
+// reposition to the end (rseek(0)) before every insertion. A UTF-8 code_cvt is
+// variable-length, so once appmode is set, the sentry's rseek(0) throws cvt_error; the
+// sentry rewraps it and operator<< classifies it into cvtfailbit. With no exception mask
+// set nothing escapes to the caller. This drives the appmode/cvt_error branch of out_sentry.
+void test_ostream_cvt_appmode_1()
+{
+    dump_info("Test ostream cvt appmode (variable-length encoding) case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        auto creator = IOv2::code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
+        T os(IOv2::mem_device{""}, creator, IOv2::locale<char32_t>("C"));
+
+        os << U"李伟";               // ordinary (non-appmode) insertion succeeds
+        os.flush();
+        VERIFY( os.good() );
+
+        os << IOv2::appmode;         // request append semantics
+        VERIFY( os.good() );
+
+        os << U"X";                  // sentry rseek(0) over UTF-8 -> cvt_error -> cvtfailbit
+        VERIFY( !os.good() );
+        VERIFY( os.rdstate() & IOv2::ios_defs::cvtfailbit );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
 void test_ostream_cvt()
 {
     test_ostream_cvt_1();
     test_ostream_cvt_sync_1();
+    test_ostream_cvt_appmode_1();
 }

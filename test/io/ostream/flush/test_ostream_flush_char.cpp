@@ -8,6 +8,7 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
+#include <support/failing_device.h>
 #include <support/verify.h>
 
 static_assert(std::is_copy_constructible_v<decltype(IOv2::ostream(IOv2::mem_device<char>{}))>,
@@ -65,6 +66,31 @@ void test_ostream_flush_char_2()
         VERIFY(a.tie() == &b);
 
         a.tie(nullptr);
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// An explicit flush() whose device dflush() throws routes the error through the flusher's
+// own try/catch into handle_exception -> devfailbit. With no exception mask set it does not
+// throw. This drives the catch branch of out_flusher::flush() itself (distinct from the
+// out_sentry destructor's unitbuf flush).
+void test_ostream_flush_char_4()
+{
+    dump_info("Test ostream<char>::flush case 4 (device flush failure)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T out(failing_device<char>{std::string(""), true});
+        out << "abc";                 // buffered; not yet flushed to the device
+        bool threw = false;
+        try { out.flush(); }          // device dflush() throws -> caught -> devfailbit
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( out.rdstate() & IOv2::ios_defs::devfailbit );
     };
 
     helper.operator()<IOv2::ostream>();
