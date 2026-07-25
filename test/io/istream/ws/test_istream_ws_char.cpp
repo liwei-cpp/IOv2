@@ -197,3 +197,42 @@ void test_istream_ws_no_ctype_char_1()
     dump_info("Done\n");
 }
 
+namespace
+{
+// A bare abs_flusher tie target whose flush() throws, to exercise the input sentry's
+// pre-lock "flush the tied stream" step and its swallowing catch(...).
+struct ThrowingTie : public IOv2::abs_flusher
+{
+    int flushed = 0;
+    void flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
+};
+}
+
+// An istream can have a tied stream; the input sentry flushes it before acquiring the lock.
+// When that flush throws, the sentry swallows it (catch(...)) and extraction proceeds
+// normally. Verifies the tied stream was flushed and the value still reads back.
+void test_istream_tied_flush_char_1()
+{
+    dump_info("Test istream<char> tied-stream flush throw case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        ThrowingTie tt;
+        T iss{IOv2::mem_device{std::string("42 rest")}, IOv2::locale<char>("C")};
+        iss.tie(&tt);
+
+        int v = 0;
+        iss >> v;                     // sentry flushes tt -> throws -> swallowed
+        VERIFY( tt.flushed >= 1 );
+        VERIFY( v == 42 );
+        VERIFY( iss.good() );
+
+        iss.tie(nullptr);
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+

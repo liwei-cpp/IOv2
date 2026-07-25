@@ -306,3 +306,32 @@ void test_istream_ignore_char_8()
 
     dump_info("Done\n");
 }
+
+// ignore(n, delim) on a stream already in a failed state: the input sentry rejects the
+// invalid stream (throws stream_error), which the function's own try/catch routes through
+// handle_exception (-> strfailbit). With no exception mask set nothing escapes. This drives
+// the catch branch of the delimited istream_operators::ignore(n, delim) overload.
+void test_istream_ignore_char_9()
+{
+    dump_info("Test istream<char>::ignore case 9 (failed stream, delimited)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
+
+        int v = 0;
+        s >> v;                       // non-numeric input -> strfailbit
+        VERIFY( !s );
+
+        bool threw = false;
+        try { s.ignore(5, 'x'); }     // sentry rejects the failed stream -> caught
+        catch (...) { threw = true; }
+        VERIFY( !threw );
+        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

@@ -178,3 +178,40 @@ void test_istream_ws_no_ctype_wchar_t_1()
     dump_info("Done\n");
 }
 
+namespace
+{
+// wchar_t counterpart: a bare abs_flusher tie target whose flush() throws.
+struct ThrowingTieW : public IOv2::abs_flusher
+{
+    int flushed = 0;
+    void flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
+};
+}
+
+// wchar_t counterpart of test_istream_tied_flush_char_1: the input sentry flushes the tied
+// stream before locking; a throwing flush is swallowed and extraction still succeeds.
+void test_istream_tied_flush_wchar_t_1()
+{
+    dump_info("Test istream<wchar_t> tied-stream flush throw case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        ThrowingTieW tt;
+        T iss{IOv2::mem_device{std::wstring(L"42 rest")}, IOv2::locale<wchar_t>("C")};
+        iss.tie(&tt);
+
+        int v = 0;
+        iss >> v;
+        VERIFY( tt.flushed >= 1 );
+        VERIFY( v == 42 );
+        VERIFY( iss.good() );
+
+        iss.tie(nullptr);
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+

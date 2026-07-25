@@ -73,8 +73,69 @@ void test_ostream_derive_2()
     VERIFY(str == "[DEBUG] User login\n[WARN] something happened");
 }
 
+namespace
+{
+// A tie target that is a bare abs_flusher, not a stream_common_operators. Used to drive two
+// otherwise-hard-to-reach branches:
+//   * ThrowingFlusher::flush() throws, so the sentry's pre-lock "flush the tied stream" step
+//     hits its catch(...) swallow (out_sentry / in_sentry).
+//   * a bare abs_flusher makes tie()'s cycle-detection walk dynamic_cast to
+//     stream_common_operators* -> null -> break (the non-stream node case).
+struct ThrowingFlusher : public IOv2::abs_flusher
+{
+    int flushed = 0;
+    void flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
+};
+
+struct QuietFlusher : public IOv2::abs_flusher
+{
+    int flushed = 0;
+    void flush() override { ++flushed; }
+};
+}
+
+// Tie an ostream to a bare abs_flusher and drive output. Two effects are checked:
+//   * the sentry flushes the tied target before locking; when that flush throws, the
+//     swallowing catch(...) keeps the insertion succeeding (ThrowingFlusher case).
+//   * tie() accepts a non-stream flusher node: its cycle-detection walk dynamic_casts the
+//     target to stream_common_operators*, gets null, and breaks (both cases reach it).
+void test_ostream_derive_3()
+{
+    dump_info("Test ostream derive case 3 (tied bare flusher)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        {
+            ThrowingFlusher tf;
+            T oss{IOv2::mem_device{std::string("")}};
+            oss.tie(&tf);                 // non-stream node -> cycle walk breaks
+            oss << "x";                   // sentry flushes tf -> throws -> swallowed
+            VERIFY( tf.flushed >= 1 );
+            VERIFY( oss.good() );         // swallowed flush must not fail the stream
+            oss.tie(nullptr);
+            auto [dev, err] = oss.detach();
+            VERIFY( dev.str() == "x" );
+        }
+        {
+            QuietFlusher qf;
+            T oss{IOv2::mem_device{std::string("")}};
+            oss.tie(&qf);
+            oss << "y";                   // tied flush succeeds
+            VERIFY( qf.flushed >= 1 );
+            VERIFY( oss.good() );
+            oss.tie(nullptr);
+        }
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
 void test_ostream_derive()
 {
     test_ostream_derive_1();
     test_ostream_derive_2();
+    test_ostream_derive_3();
 }
