@@ -100,8 +100,8 @@ $(document).ready(function(){initNavTree('structIOv2_1_1sing__temp_1_1init.html'
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a5a4ec0248b9e35313c74b62821c6d973" id="r_a5a4ec0248b9e35313c74b62821c6d973"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html#a5a4ec0248b9e35313c74b62821c6d973">init</a> ()</td></tr>
-<tr class="separator:a5a4ec0248b9e35313c74b62821c6d973"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57ed0619ca01e2bb5042e0c63bea1f24" id="r_a57ed0619ca01e2bb5042e0c63bea1f24"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html#a57ed0619ca01e2bb5042e0c63bea1f24">init</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
+<tr class="separator:a57ed0619ca01e2bb5042e0c63bea1f24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af70d7da2316b7dca30886571664bd6b4" id="r_af70d7da2316b7dca30886571664bd6b4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html#af70d7da2316b7dca30886571664bd6b4">~init</a> ()</td></tr>
 <tr class="separator:af70d7da2316b7dca30886571664bd6b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed0610ed4235418a89389d98933612f2" id="r_aed0610ed4235418a89389d98933612f2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html#aed0610ed4235418a89389d98933612f2">init</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
@@ -114,26 +114,26 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9ab75accaff37287fc42b5ac87427cb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T&gt;<br />
 struct IOv2::sing_temp&lt; T &gt;::init</div><p>Initializer class for managing singleton lifetime.</p>
 <p>Declare exactly one inline init object in the header. Because an inline variable is a single entity across the whole program, its constructor constructs the singleton and its destructor destroys it &ndash; each exactly once &ndash; so no reference counting is needed.</p>
 <dl class="section warning"><dt>Warning</dt><dd>The init object MUST be declared <code>inline</code>, not <code>static</code>. A <code>static</code> init produces one object per translation unit, which would construct and destroy the singleton multiple times (undefined behavior). </dd>
 <dd>
 If the derived class defines static members used during construction, they must be initialized BEFORE the init object. Use <code>inline static</code> to ensure this.  </dd></dl>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a5a4ec0248b9e35313c74b62821c6d973" name="a5a4ec0248b9e35313c74b62821c6d973"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5a4ec0248b9e35313c74b62821c6d973">&#9670;&#160;</a></span>init() <span class="overload">[1/3]</span></h2>
+<a id="a57ed0619ca01e2bb5042e0c63bea1f24" name="a57ed0619ca01e2bb5042e0c63bea1f24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57ed0619ca01e2bb5042e0c63bea1f24">&#9670;&#160;</a></span>init() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::init::init </td>
+          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; T &gt;::init::init </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -141,7 +141,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">noexcept</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -154,13 +154,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::init::~init </td>
+          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; T &gt;::init::~init </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -181,13 +181,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::init::init </td>
+          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; T &gt;::init::init </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -209,13 +209,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::init::init </td>
+          <td class="memname"><a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; T &gt;::init::init </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp;&amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -238,13 +238,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp; <a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::init::operator= </td>
+          <td class="memname"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp; <a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; T &gt;::init::operator= </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp;&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -266,13 +266,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp; <a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt;::init::operator= </td>
+          <td class="memname"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp; <a class="el" href="classIOv2_1_1sing__temp.html">IOv2::sing_temp</a>&lt; T &gt;::init::operator= </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structIOv2_1_1sing__temp_1_1init.html">init</a> &amp;&amp;&#160;</td>
           <td class="paramname"></td><td>)</td>

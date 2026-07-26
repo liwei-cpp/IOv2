@@ -130,7 +130,7 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename... T&gt;<br />
-requires (sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>) &gt; 2)<br />
+requires (sizeof...(T) &gt; 2)<br />
 class IOv2::cvt_pipe_creator&lt; T... &gt;</div><p>Multi-element pipeline creator (variadic specialization, requires more than two elements). Internally, all creators are stored flattened in a single <code>std::tuple</code>. When <code>create(kernel)</code> is called, it wraps <code>kernel</code> with each creator in index order, yielding a multi-layer nested converter. The outermost layer corresponds to the last creator (highest index), and the innermost layer (directly wrapping <code>kernel</code>) corresponds to the first creator (index 0). </p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">

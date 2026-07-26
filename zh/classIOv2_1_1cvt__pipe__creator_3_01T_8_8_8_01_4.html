@@ -130,7 +130,7 @@ requires (!cpt_cvt_pipe_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;typename... T&gt;<br />
-requires (sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>) &gt; 2)<br />
+requires (sizeof...(T) &gt; 2)<br />
 class IOv2::cvt_pipe_creator&lt; T... &gt;</div><p>由三个或更多转换器工厂组成的管道工厂（多元特化）。 内部将所有工厂展平存储于单一 <code>std::tuple</code> 中。 调用 <code>create(kernel)</code> 时，按索引从小到大依次将 <code>kernel</code> 包装进每个工厂， 最终得到多层嵌套的转换器：最外层为最后一个工厂（索引最大）， 最内层（直接包裹 <code>kernel</code>）为第一个工厂（索引 0）。 </p>
 <dl class="tparams"><dt>模板参数</dt><dd>
   <table class="tparams">

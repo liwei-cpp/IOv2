@@ -129,21 +129,21 @@ $(document).ready(function(){initNavTree('locale_8h_source.html',''); initResiza
 <div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <span class="keyword">struct </span>ft_wrapper;</div>
 <div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="keyword">struct </span>ft_wrapper&lt;<a class="code hl_struct" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>...&gt;&gt;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... T&gt;</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="keyword">struct </span>ft_wrapper&lt;<a class="code hl_struct" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;T...&gt;&gt;</div>
 <div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    {</div>
 <div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>        <span class="keyword">explicit</span> ft_wrapper(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>)</div>
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>            : m_ref(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>) {}</div>
 <div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
 <div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">has</a>()<span class="keyword"> const</span></div>
 <div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span><span class="keyword">        </span>{</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>            <span class="keywordflow">return</span> (m_ref.has&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;() &amp;&amp; ...);</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>            <span class="keywordflow">return</span> (m_ref.has&lt;T&gt;() &amp;&amp; ...);</div>
 <div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>        }</div>
 <div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span> </div>
 <div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> TF&gt;</div>
 <div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        std::shared_ptr&lt;TF&gt; <a class="code hl_function" href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">get</a>()</div>
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        {</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>            <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="code hl_struct" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>...&gt;&gt;();</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>            <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="code hl_struct" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt;T...&gt;&gt;();</div>
 <div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        }</div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span> </div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="keyword">private</span>:</div>
@@ -170,21 +170,21 @@ $(document).ready(function(){initNavTree('locale_8h_source.html',''); initResiza
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        <span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; m_ref; <span class="comment">// NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)</span></div>
 <div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    };</div>
 <div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span> </div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keyword">struct </span>ft_wrapper&lt;<a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>...&gt;&gt;</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keyword">template</span> &lt;<span class="keyword">typename</span>... T&gt;</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keyword">struct </span>ft_wrapper&lt;<a class="code hl_struct" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt;T...&gt;&gt;</div>
 <div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    {</div>
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="keyword">explicit</span> ft_wrapper(<span class="keyword">const</span> <a class="code hl_class" href="classIOv2_1_1locale.html">locale</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>)</div>
 <div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>            : m_ref(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">l</a>) {}</div>
 <div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span> </div>
 <div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        [[<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nodiscard</a>]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classIOv2_1_1locale.html#a66056281e99b51075841ee5de8add430">has</a>()<span class="keyword"> const</span></div>
 <div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span><span class="keyword">        </span>{</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>            <span class="keywordflow">return</span> has_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>...&gt;();</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>            <span class="keywordflow">return</span> has_helper&lt;T...&gt;();</div>
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>        }</div>
 <div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span> </div>
 <div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> TF&gt;</div>
 <div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        std::shared_ptr&lt;TF&gt; <a class="code hl_function" href="classIOv2_1_1locale.html#ab4c6dd69b44d9bb556d4e01bb3063040">get</a>()</div>
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        {</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>            <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>...&gt;();</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>            <span class="keywordflow">return</span> get_helper&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TF</a>, T...&gt;();</div>
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        }</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    <span class="keyword">private</span>:</div>
@@ -539,7 +539,7 @@ $(document).ready(function(){initNavTree('locale_8h_source.html',''); initResiza
 </div>
 <div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span> </div>
 <div class="line"><a id="l01068" name="l01068"></a><span class="lineno"> 1068</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l01088" name="l01088"></a><span class="lineno"> 1088</span>    <span class="keyword">template</span> &lt;<span class="keyword">template</span> &lt;<span class="keyword">typename</span>&gt; <span class="keyword">class </span><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;</div>
+<div class="line"><a id="l01088" name="l01088"></a><span class="lineno"> 1088</span>    <span class="keyword">template</span> &lt;<span class="keyword">template</span> &lt;<span class="keyword">typename</span>&gt; <span class="keyword">class </span>T&gt;</div>
 <div class="line"><a id="l01089" name="l01089"></a><span class="lineno"> 1089</span>    <span class="keywordtype">void</span> init(<span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ft_name</a>)</div>
 <div class="line"><a id="l01090" name="l01090"></a><span class="lineno"> 1090</span>    {</div>
 <div class="line"><a id="l01091" name="l01091"></a><span class="lineno"> 1091</span>        <a class="code hl_typedef" href="namespaceIOv2.html#a06f81b039c827c7af84dc9910c662753">facet_id_t</a> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">k</a> = T&lt;TChar&gt;::id();</div>

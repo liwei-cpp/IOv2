@@ -27,9 +27,8 @@ var searchData=
   ['_7eout_5fsentry_24',['~out_sentry',['../structIOv2_1_1out__sentry.html#ad034c9b260a8fdfe6382273a9708c603',1,'IOv2::out_sentry']]],
   ['_7eroot_5fcvt_25',['~root_cvt',['../classIOv2_1_1root__cvt.html#a10dd06d5b5a1e8bf7a27589787834ac8',1,'IOv2::root_cvt::~root_cvt()'],['../classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#afea9d88408ee9a248282b813bd610796',1,'IOv2::root_cvt&lt; mem_device&lt; CharT, Traits, Allocator &gt;, HasInBuffer &gt;::~root_cvt()']]],
   ['_7eruntime_5fcvt_26',['~runtime_cvt',['../classIOv2_1_1runtime__cvt.html#abd6b3b9ed7389eb6e3b412cb4756bc8e',1,'IOv2::runtime_cvt']]],
-  ['_7esing_5ftemp_27',['~sing_temp',['../classIOv2_1_1sing__temp.html#ac7e67c7a4439be29255e7d48e117abeb',1,'IOv2::sing_temp']]],
-  ['_7estamp_5finput_5fiterator_28',['~stamp_input_iterator',['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default'],['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default']]],
-  ['_7estd_5fdevice_29',['~std_device',['../classIOv2_1_1std__device.html#a0cc53231f91e408343bebd4a01f7f72f',1,'IOv2::std_device']]],
-  ['_7esync_30',['~sync',['../structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5',1,'IOv2::sync']]],
-  ['_7ezlib_5fcvt_31',['~zlib_cvt',['../classIOv2_1_1Comp_1_1zlib__cvt.html#a4fa8ee29a310d108dd9b07b9b50e8c3b',1,'IOv2::Comp::zlib_cvt']]]
+  ['_7estamp_5finput_5fiterator_27',['~stamp_input_iterator',['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default'],['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a04c6be15db39fdd5777115831f52337d',1,'IOv2::stamp_input_iterator&lt; TIter &gt;::~stamp_input_iterator()=default']]],
+  ['_7estd_5fdevice_28',['~std_device',['../classIOv2_1_1std__device.html#a0cc53231f91e408343bebd4a01f7f72f',1,'IOv2::std_device']]],
+  ['_7esync_29',['~sync',['../structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5',1,'IOv2::sync']]],
+  ['_7ezlib_5fcvt_30',['~zlib_cvt',['../classIOv2_1_1Comp_1_1zlib__cvt.html#a4fa8ee29a310d108dd9b07b9b50e8c3b',1,'IOv2::Comp::zlib_cvt']]]
 ];

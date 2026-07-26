@@ -108,7 +108,7 @@ $(document).ready(function(){initNavTree('base__fp_8h_source.html',''); initResi
 <div class="foldopen" id="foldopen00009" data-start="{" data-end="};">
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno"><a class="line" href="structIOv2_1_1parse__context__type.html">    9</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1parse__context__type.html">parse_context_type</a></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>{</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="structIOv2_1_1parse__context__type.html#aeb5a783976e847acf5e27dddd3a4322e">   11</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="structIOv2_1_1parse__context__type.html#aeb5a783976e847acf5e27dddd3a4322e">type</a> = <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>;</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="structIOv2_1_1parse__context__type.html#aeb5a783976e847acf5e27dddd3a4322e">   11</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="structIOv2_1_1parse__context__type.html#aeb5a783976e847acf5e27dddd3a4322e">type</a> = T;</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>};</div>
 </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
@@ -117,7 +117,7 @@ $(document).ready(function(){initNavTree('base__fp_8h_source.html',''); initResi
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar, <span class="keyword">typename</span> T&gt;</div>
 <div class="foldopen" id="foldopen00018" data-start="{" data-end="}">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1is__writer__def.html">   18</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1is__writer__def.html">is_writer_def</a> = <span class="keyword">requires</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>)</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1is__writer__def.html">   18</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1is__writer__def.html">is_writer_def</a> = <span class="keyword">requires</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, T)</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>{</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keyword">sizeof</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">writer&lt;TChar, T&gt;</a>);</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>};</div>
@@ -125,7 +125,7 @@ $(document).ready(function(){initNavTree('base__fp_8h_source.html',''); initResi
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar, <span class="keyword">typename</span> T&gt;</div>
 <div class="foldopen" id="foldopen00024" data-start="{" data-end="}">
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1is__reader__def.html">   24</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1is__reader__def.html">is_reader_def</a> = <span class="keyword">requires</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>)</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1is__reader__def.html">   24</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1is__reader__def.html">is_reader_def</a> = <span class="keyword">requires</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, T)</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>{</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="keyword">sizeof</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">reader&lt;TChar, T&gt;</a>);</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>};</div>

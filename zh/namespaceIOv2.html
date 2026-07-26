@@ -401,7 +401,7 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出流缓冲区迭代器（输出迭代器）。  <a href="classIOv2_1_1ostreambuf__iterator.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__flusher.html">out_flusher</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="structIOv2_1_1out__flusher.html#a9802ec1dc81f91a06cbb0efd337ad492" title="刷新本流：把缓冲区写出到底层设备。">flush()</a></code> 的 CRTP 基类：对具体流类型 <code>T</code> 的向下转型集中于此。  <a href="structIOv2_1_1out__flusher.html#details">更多...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54" title="刷新本流：把缓冲区写出到底层设备。">flush()</a></code> 的 CRTP 基类：对具体流类型 <code>T</code> 的向下转型集中于此。  <a href="structIOv2_1_1out__flusher.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -622,7 +622,7 @@ requires (cvt_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb54
 <tr class="memitem:ad9482e85e3002e85211e7aed04aa807e" id="r_ad9482e85e3002e85211e7aed04aa807e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a> &gt; </td></tr>
 <tr class="memitem:ad9482e85e3002e85211e7aed04aa807e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad9482e85e3002e85211e7aed04aa807e">ctype</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TConfPtr</a>) -&gt; <a class="el" href="classIOv2_1_1ctype.html">ctype</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TConfPtr::element_type::char_type &gt;</td></tr>
 <tr class="separator:ad9482e85e3002e85211e7aed04aa807e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa979da4dd2fa7859e2f0d5dab0507702" id="r_aa979da4dd2fa7859e2f0d5dab0507702"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
+<tr class="memitem:aa979da4dd2fa7859e2f0d5dab0507702" id="r_aa979da4dd2fa7859e2f0d5dab0507702"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
 <tr class="memitem:aa979da4dd2fa7859e2f0d5dab0507702"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a06f81b039c827c7af84dc9910c662753">facet_id_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa979da4dd2fa7859e2f0d5dab0507702">type_id_v</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:aa979da4dd2fa7859e2f0d5dab0507702"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab693b72ad44b466bfb2fc085f2badef9" id="r_ab693b72ad44b466bfb2fc085f2badef9"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <br />
@@ -748,51 +748,51 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 <tr class="memitem:ab2b843f239f0a963220fe8786954ba46" id="r_ab2b843f239f0a963220fe8786954ba46"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Resetiosflags.html">_Resetiosflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab2b843f239f0a963220fe8786954ba46">resetiosflags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> mask)</td></tr>
 <tr class="separator:ab2b843f239f0a963220fe8786954ba46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ace3b1e7971f57f8b88f9eb1b551b006d" id="r_ace3b1e7971f57f8b88f9eb1b551b006d"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:ace3b1e7971f57f8b88f9eb1b551b006d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ace3b1e7971f57f8b88f9eb1b551b006d">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Resetiosflags.html">_Resetiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:ace3b1e7971f57f8b88f9eb1b551b006d"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ace3b1e7971f57f8b88f9eb1b551b006d">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Resetiosflags.html">_Resetiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:ace3b1e7971f57f8b88f9eb1b551b006d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad92cc03f1de2d281f71120faf2a13cae" id="r_ad92cc03f1de2d281f71120faf2a13cae"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:ad92cc03f1de2d281f71120faf2a13cae"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad92cc03f1de2d281f71120faf2a13cae">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;is, <a class="el" href="structIOv2_1_1__Resetiosflags.html">_Resetiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:ad92cc03f1de2d281f71120faf2a13cae"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad92cc03f1de2d281f71120faf2a13cae">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Resetiosflags.html">_Resetiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:ad92cc03f1de2d281f71120faf2a13cae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a907d98611f6b75d3b9e2b2b1cb534d8b" id="r_a907d98611f6b75d3b9e2b2b1cb534d8b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Setiosflags.html">_Setiosflags</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a907d98611f6b75d3b9e2b2b1cb534d8b">setiosflags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ae114f7e76d32d0766db914a5162cdeca">ios_defs::fmtflags</a> mask)</td></tr>
 <tr class="separator:a907d98611f6b75d3b9e2b2b1cb534d8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1f132e6d54ebc3d7960c1a56dfab358" id="r_ae1f132e6d54ebc3d7960c1a56dfab358"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:ae1f132e6d54ebc3d7960c1a56dfab358"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae1f132e6d54ebc3d7960c1a56dfab358">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setiosflags.html">_Setiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:ae1f132e6d54ebc3d7960c1a56dfab358"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae1f132e6d54ebc3d7960c1a56dfab358">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setiosflags.html">_Setiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:ae1f132e6d54ebc3d7960c1a56dfab358"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb9a266330fa2f6ec7d29420b2e68ffb" id="r_acb9a266330fa2f6ec7d29420b2e68ffb"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:acb9a266330fa2f6ec7d29420b2e68ffb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#acb9a266330fa2f6ec7d29420b2e68ffb">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;is, <a class="el" href="structIOv2_1_1__Setiosflags.html">_Setiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:acb9a266330fa2f6ec7d29420b2e68ffb"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#acb9a266330fa2f6ec7d29420b2e68ffb">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Setiosflags.html">_Setiosflags</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:acb9a266330fa2f6ec7d29420b2e68ffb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d9efb4d2077d2b67b5cbc3c900b5e97" id="r_a2d9efb4d2077d2b67b5cbc3c900b5e97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Setbase.html">_Setbase</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a2d9efb4d2077d2b67b5cbc3c900b5e97">setbase</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">base</a>)</td></tr>
 <tr class="separator:a2d9efb4d2077d2b67b5cbc3c900b5e97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6819f7aa721ade8de2056409b0d83bcf" id="r_a6819f7aa721ade8de2056409b0d83bcf"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a6819f7aa721ade8de2056409b0d83bcf"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6819f7aa721ade8de2056409b0d83bcf">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setbase.html">_Setbase</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:a6819f7aa721ade8de2056409b0d83bcf"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6819f7aa721ade8de2056409b0d83bcf">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setbase.html">_Setbase</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:a6819f7aa721ade8de2056409b0d83bcf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad070e68fd63d4689c013eea1c769e3d4" id="r_ad070e68fd63d4689c013eea1c769e3d4"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:ad070e68fd63d4689c013eea1c769e3d4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad070e68fd63d4689c013eea1c769e3d4">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;is, <a class="el" href="structIOv2_1_1__Setbase.html">_Setbase</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:ad070e68fd63d4689c013eea1c769e3d4"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ad070e68fd63d4689c013eea1c769e3d4">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Setbase.html">_Setbase</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:ad070e68fd63d4689c013eea1c769e3d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99ad8123323453cf572de3f0f942efee" id="r_a99ad8123323453cf572de3f0f942efee"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_CharT</a> &gt; </td></tr>
 <tr class="memitem:a99ad8123323453cf572de3f0f942efee"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Setfill.html">_Setfill</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_CharT</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a99ad8123323453cf572de3f0f942efee">setfill</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_CharT</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
 <tr class="separator:a99ad8123323453cf572de3f0f942efee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa848cd71302e826f35f64ba8bccce38b" id="r_aa848cd71302e826f35f64ba8bccce38b"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:aa848cd71302e826f35f64ba8bccce38b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa848cd71302e826f35f64ba8bccce38b">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setfill.html">_Setfill</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:aa848cd71302e826f35f64ba8bccce38b"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa848cd71302e826f35f64ba8bccce38b">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setfill.html">_Setfill</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:aa848cd71302e826f35f64ba8bccce38b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab957590d0e6943ecb58bdfe1b534d4a0" id="r_ab957590d0e6943ecb58bdfe1b534d4a0"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:ab957590d0e6943ecb58bdfe1b534d4a0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab957590d0e6943ecb58bdfe1b534d4a0">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;is, <a class="el" href="structIOv2_1_1__Setfill.html">_Setfill</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:ab957590d0e6943ecb58bdfe1b534d4a0"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab957590d0e6943ecb58bdfe1b534d4a0">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Setfill.html">_Setfill</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:ab957590d0e6943ecb58bdfe1b534d4a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a949e785951c135fb5ec1974003ae2677" id="r_a949e785951c135fb5ec1974003ae2677"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Setprecision.html">_Setprecision</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a949e785951c135fb5ec1974003ae2677">setprecision</a> (std::uint8_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
 <tr class="separator:a949e785951c135fb5ec1974003ae2677"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4368eaa155cb63f3319fc38c14c08c00" id="r_a4368eaa155cb63f3319fc38c14c08c00"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a4368eaa155cb63f3319fc38c14c08c00"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4368eaa155cb63f3319fc38c14c08c00">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setprecision.html">_Setprecision</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:a4368eaa155cb63f3319fc38c14c08c00"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4368eaa155cb63f3319fc38c14c08c00">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setprecision.html">_Setprecision</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:a4368eaa155cb63f3319fc38c14c08c00"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d1581c1571866c2d453d5c7cff01c45" id="r_a8d1581c1571866c2d453d5c7cff01c45"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:a8d1581c1571866c2d453d5c7cff01c45"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8d1581c1571866c2d453d5c7cff01c45">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;is, <a class="el" href="structIOv2_1_1__Setprecision.html">_Setprecision</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:a8d1581c1571866c2d453d5c7cff01c45"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8d1581c1571866c2d453d5c7cff01c45">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Setprecision.html">_Setprecision</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:a8d1581c1571866c2d453d5c7cff01c45"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ea3dab8720430e1c4a6505ee483bd94" id="r_a5ea3dab8720430e1c4a6505ee483bd94"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Setw.html">_Setw</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a5ea3dab8720430e1c4a6505ee483bd94">setw</a> (std::uint8_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
 <tr class="separator:a5ea3dab8720430e1c4a6505ee483bd94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a15c566d2ab9c044b947f560551ae1f67" id="r_a15c566d2ab9c044b947f560551ae1f67"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a15c566d2ab9c044b947f560551ae1f67"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a15c566d2ab9c044b947f560551ae1f67">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setw.html">_Setw</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:a15c566d2ab9c044b947f560551ae1f67"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a15c566d2ab9c044b947f560551ae1f67">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="structIOv2_1_1__Setw.html">_Setw</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:a15c566d2ab9c044b947f560551ae1f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acaae8b63d7049dd919c820eadd8b39b2" id="r_acaae8b63d7049dd919c820eadd8b39b2"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:acaae8b63d7049dd919c820eadd8b39b2"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#acaae8b63d7049dd919c820eadd8b39b2">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;is, <a class="el" href="structIOv2_1_1__Setw.html">_Setw</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memitem:acaae8b63d7049dd919c820eadd8b39b2"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#acaae8b63d7049dd919c820eadd8b39b2">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Setw.html">_Setw</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
 <tr class="separator:acaae8b63d7049dd919c820eadd8b39b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4a034ea6bed28fdc37a9fe2572414b6" id="r_ae4a034ea6bed28fdc37a9fe2572414b6"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_MoneyT</a> &gt; </td></tr>
 <tr class="memitem:ae4a034ea6bed28fdc37a9fe2572414b6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Put__money.html">_Put_money</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_MoneyT</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae4a034ea6bed28fdc37a9fe2572414b6">put_money</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_MoneyT</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">mon</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">intl</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a>)</td></tr>
@@ -835,7 +835,7 @@ requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574
 <tr class="memitem:a93ab89097be35697e0669b44f7b6cfdc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a93ab89097be35697e0669b44f7b6cfdc">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
 <tr class="separator:a93ab89097be35697e0669b44f7b6cfdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a55e7fa96eab2f6f5fc59cc138c3c1584" id="r_a55e7fa96eab2f6f5fc59cc138c3c1584"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:a55e7fa96eab2f6f5fc59cc138c3c1584"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a55e7fa96eab2f6f5fc59cc138c3c1584">ws</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;is)</td></tr>
+<tr class="memitem:a55e7fa96eab2f6f5fc59cc138c3c1584"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a55e7fa96eab2f6f5fc59cc138c3c1584">ws</a> (T &amp;is)</td></tr>
 <tr class="separator:a55e7fa96eab2f6f5fc59cc138c3c1584"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bdbad1d507a9b94931e610303c16862" id="r_a6bdbad1d507a9b94931e610303c16862"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6bdbad1d507a9b94931e610303c16862">sync_with_stdio</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="structIOv2_1_1sync.html">sync</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>)</td></tr>
 <tr class="separator:a6bdbad1d507a9b94931e610303c16862"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -854,61 +854,61 @@ requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574
 <tr class="memitem:a71d298911d0688110350458b8c012c9e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a71d298911d0688110350458b8c012c9e">ostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
 <tr class="separator:a71d298911d0688110350458b8c012c9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8e5592d2e9b18121c272dedeeffb035" id="r_ae8e5592d2e9b18121c272dedeeffb035"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:ae8e5592d2e9b18121c272dedeeffb035"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae8e5592d2e9b18121c272dedeeffb035">endl</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>)</td></tr>
+<tr class="memitem:ae8e5592d2e9b18121c272dedeeffb035"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae8e5592d2e9b18121c272dedeeffb035">endl</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>)</td></tr>
 <tr class="separator:ae8e5592d2e9b18121c272dedeeffb035"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f1816337fce241e934314c33faee8e6" id="r_a0f1816337fce241e934314c33faee8e6"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a0f1816337fce241e934314c33faee8e6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a0f1816337fce241e934314c33faee8e6">ends</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>)</td></tr>
+<tr class="memitem:a0f1816337fce241e934314c33faee8e6"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a0f1816337fce241e934314c33faee8e6">ends</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>)</td></tr>
 <tr class="separator:a0f1816337fce241e934314c33faee8e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4980fffb02a1ec303bd5f692363fc7f5" id="r_a4980fffb02a1ec303bd5f692363fc7f5"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a4980fffb02a1ec303bd5f692363fc7f5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4980fffb02a1ec303bd5f692363fc7f5">flush</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>)</td></tr>
+<tr class="memitem:a4980fffb02a1ec303bd5f692363fc7f5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4980fffb02a1ec303bd5f692363fc7f5">flush</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>)</td></tr>
 <tr class="separator:a4980fffb02a1ec303bd5f692363fc7f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:affd1b46d3a901743e57fc6fd0cdd9a32" id="r_affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#affd1b46d3a901743e57fc6fd0cdd9a32">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
+<tr class="memitem:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#affd1b46d3a901743e57fc6fd0cdd9a32">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
 <tr class="separator:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b79a291c2c7ae79c87a2a4de83fb9af" id="r_a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a0b79a291c2c7ae79c87a2a4de83fb9af">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memitem:a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a0b79a291c2c7ae79c87a2a4de83fb9af">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
 <tr class="separator:a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0ed08c14a8e0faf594f19b4ecb3f2f7" id="r_ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab0ed08c14a8e0faf594f19b4ecb3f2f7">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;))</td></tr>
+<tr class="memitem:ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab0ed08c14a8e0faf594f19b4ecb3f2f7">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(T &amp;))</td></tr>
 <tr class="separator:ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a279535ac89f7ddc255959a28b36b3d40" id="r_a279535ac89f7ddc255959a28b36b3d40"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:a279535ac89f7ddc255959a28b36b3d40"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a279535ac89f7ddc255959a28b36b3d40">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memitem:a279535ac89f7ddc255959a28b36b3d40"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a279535ac89f7ddc255959a28b36b3d40">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(T &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
 <tr class="separator:a279535ac89f7ddc255959a28b36b3d40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3568a5aa0b66869bdc91095e286fea14" id="r_a3568a5aa0b66869bdc91095e286fea14"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
-<tr class="memitem:a3568a5aa0b66869bdc91095e286fea14"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a3568a5aa0b66869bdc91095e286fea14">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;))</td></tr>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
+<tr class="memitem:a3568a5aa0b66869bdc91095e286fea14"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a3568a5aa0b66869bdc91095e286fea14">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;))</td></tr>
 <tr class="separator:a3568a5aa0b66869bdc91095e286fea14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ad992b1af24c9c5182548d1a39ff8de" id="r_a6ad992b1af24c9c5182548d1a39ff8de"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
-<tr class="memitem:a6ad992b1af24c9c5182548d1a39ff8de"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6ad992b1af24c9c5182548d1a39ff8de">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
+<tr class="memitem:a6ad992b1af24c9c5182548d1a39ff8de"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6ad992b1af24c9c5182548d1a39ff8de">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
 <tr class="separator:a6ad992b1af24c9c5182548d1a39ff8de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97dedafa172a023bd073c5f93ae28794" id="r_a97dedafa172a023bd073c5f93ae28794"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
 requires is_reader_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="structIOv2_1_1parse__context__type.html">parse_context_type</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;::type&gt;</td></tr>
-<tr class="memitem:a97dedafa172a023bd073c5f93ae28794"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a97dedafa172a023bd073c5f93ae28794">operator&gt;&gt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="memitem:a97dedafa172a023bd073c5f93ae28794"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a97dedafa172a023bd073c5f93ae28794">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
 <tr class="separator:a97dedafa172a023bd073c5f93ae28794"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cf627b4b038a6b901bab099239a6b72" id="r_a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8cf627b4b038a6b901bab099239a6b72">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
+<tr class="memitem:a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8cf627b4b038a6b901bab099239a6b72">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
 <tr class="separator:a8cf627b4b038a6b901bab099239a6b72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37a665479733a4199ceb4d12f15edf34" id="r_a37a665479733a4199ceb4d12f15edf34"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a37a665479733a4199ceb4d12f15edf34"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a37a665479733a4199ceb4d12f15edf34">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memitem:a37a665479733a4199ceb4d12f15edf34"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a37a665479733a4199ceb4d12f15edf34">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
 <tr class="separator:a37a665479733a4199ceb4d12f15edf34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a309ea80a8ac4e3f38a343955c054bd6a" id="r_a309ea80a8ac4e3f38a343955c054bd6a"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a309ea80a8ac4e3f38a343955c054bd6a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a309ea80a8ac4e3f38a343955c054bd6a">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;))</td></tr>
+<tr class="memitem:a309ea80a8ac4e3f38a343955c054bd6a"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a309ea80a8ac4e3f38a343955c054bd6a">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(T &amp;))</td></tr>
 <tr class="separator:a309ea80a8ac4e3f38a343955c054bd6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd02f8624aa5da2d109f9fcdce62ac01" id="r_afd02f8624aa5da2d109f9fcdce62ac01"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:afd02f8624aa5da2d109f9fcdce62ac01"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#afd02f8624aa5da2d109f9fcdce62ac01">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memitem:afd02f8624aa5da2d109f9fcdce62ac01"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#afd02f8624aa5da2d109f9fcdce62ac01">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(T &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
 <tr class="separator:afd02f8624aa5da2d109f9fcdce62ac01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51198ad44e72fa662052cac879425b67" id="r_a51198ad44e72fa662052cac879425b67"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
-<tr class="memitem:a51198ad44e72fa662052cac879425b67"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a51198ad44e72fa662052cac879425b67">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;))</td></tr>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
+<tr class="memitem:a51198ad44e72fa662052cac879425b67"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a51198ad44e72fa662052cac879425b67">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;))</td></tr>
 <tr class="separator:a51198ad44e72fa662052cac879425b67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e4d05c302e4f85eca99bff0ac11f385" id="r_a9e4d05c302e4f85eca99bff0ac11f385"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
-<tr class="memitem:a9e4d05c302e4f85eca99bff0ac11f385"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9e4d05c302e4f85eca99bff0ac11f385">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
+<tr class="memitem:a9e4d05c302e4f85eca99bff0ac11f385"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9e4d05c302e4f85eca99bff0ac11f385">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
 <tr class="separator:a9e4d05c302e4f85eca99bff0ac11f385"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a61c3a221d1866a5d370fbc7944cfe307" id="r_a61c3a221d1866a5d370fbc7944cfe307"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
 requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt; || is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, std::decay_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;&gt;)</td></tr>
-<tr class="memitem:a61c3a221d1866a5d370fbc7944cfe307"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a61c3a221d1866a5d370fbc7944cfe307">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="memitem:a61c3a221d1866a5d370fbc7944cfe307"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a61c3a221d1866a5d370fbc7944cfe307">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
 <tr class="separator:a61c3a221d1866a5d370fbc7944cfe307"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab91abcd60a649c65f879bef157fab8ff" id="r_ab91abcd60a649c65f879bef157fab8ff"><td class="memItemLeft" align="right" valign="top">std::mutex &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab91abcd60a649c65f879bef157fab8ff">tie_graph_mutex</a> ()</td></tr>
 <tr class="memdesc:ab91abcd60a649c65f879bef157fab8ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回保护整张 tie 图的进程级全局锁。  <br /></td></tr>
@@ -957,71 +957,71 @@ requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 <tr class="separator:a09b31017574cb5471d2558481d0f4d7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa906165b0856579dd626eb3c84a2a523" id="r_aa906165b0856579dd626eb3c84a2a523"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a></td></tr>
 <tr class="separator:aa906165b0856579dd626eb3c84a2a523"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a483775a55bb18278dba45ad39fc0b6a4" id="r_a483775a55bb18278dba45ad39fc0b6a4"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
+<tr class="memitem:a483775a55bb18278dba45ad39fc0b6a4" id="r_a483775a55bb18278dba45ad39fc0b6a4"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
 <tr class="memitem:a483775a55bb18278dba45ad39fc0b6a4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a483775a55bb18278dba45ad39fc0b6a4">is_stamp_input_iterator_v</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:a483775a55bb18278dba45ad39fc0b6a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a136bce589de832c1ebc954326400974b" id="r_a136bce589de832c1ebc954326400974b"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
-<tr class="memitem:a136bce589de832c1ebc954326400974b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a136bce589de832c1ebc954326400974b">is_streambuf</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_streambuf_impl</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;::value</td></tr>
+<tr class="memitem:a136bce589de832c1ebc954326400974b" id="r_a136bce589de832c1ebc954326400974b"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
+<tr class="memitem:a136bce589de832c1ebc954326400974b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a136bce589de832c1ebc954326400974b">is_streambuf</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_streambuf_impl</a>&lt;T&gt;::value</td></tr>
 <tr class="separator:a136bce589de832c1ebc954326400974b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99873e57b1896835ba4b122d03eb1fc9" id="r_a99873e57b1896835ba4b122d03eb1fc9"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
-<tr class="memitem:a99873e57b1896835ba4b122d03eb1fc9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a99873e57b1896835ba4b122d03eb1fc9">is_istreambuf</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_istreambuf_impl</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;::value</td></tr>
+<tr class="memitem:a99873e57b1896835ba4b122d03eb1fc9" id="r_a99873e57b1896835ba4b122d03eb1fc9"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
+<tr class="memitem:a99873e57b1896835ba4b122d03eb1fc9"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a99873e57b1896835ba4b122d03eb1fc9">is_istreambuf</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_istreambuf_impl</a>&lt;T&gt;::value</td></tr>
 <tr class="separator:a99873e57b1896835ba4b122d03eb1fc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7a4dae87ad08ef52e28a92e8309a147" id="r_af7a4dae87ad08ef52e28a92e8309a147"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
-<tr class="memitem:af7a4dae87ad08ef52e28a92e8309a147"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af7a4dae87ad08ef52e28a92e8309a147">is_ostreambuf</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_ostreambuf_impl</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;::value</td></tr>
+<tr class="memitem:af7a4dae87ad08ef52e28a92e8309a147" id="r_af7a4dae87ad08ef52e28a92e8309a147"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
+<tr class="memitem:af7a4dae87ad08ef52e28a92e8309a147"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af7a4dae87ad08ef52e28a92e8309a147">is_ostreambuf</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_ostreambuf_impl</a>&lt;T&gt;::value</td></tr>
 <tr class="separator:af7a4dae87ad08ef52e28a92e8309a147"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60d8ca3bdd113f3565f8a9ba19ff414e" id="r_a60d8ca3bdd113f3565f8a9ba19ff414e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
+<tr class="memitem:a60d8ca3bdd113f3565f8a9ba19ff414e" id="r_a60d8ca3bdd113f3565f8a9ba19ff414e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
 <tr class="memitem:a60d8ca3bdd113f3565f8a9ba19ff414e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff414e">is_nonempty_facet_create_rule</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:a60d8ca3bdd113f3565f8a9ba19ff414e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1c7ee5f9f4c2d4f39ffb7d30e132e87" id="r_ae1c7ee5f9f4c2d4f39ffb7d30e132e87"><td class="memTemplParams" colspan="2">template&lt;typename... T&gt; </td></tr>
-<tr class="memitem:ae1c7ee5f9f4c2d4f39ffb7d30e132e87"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae1c7ee5f9f4c2d4f39ffb7d30e132e87">is_nonempty_facet_create_rule&lt; facet_create_rule&lt; T... &gt; &gt;</a> = (sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>) != 0)</td></tr>
+<tr class="memitem:ae1c7ee5f9f4c2d4f39ffb7d30e132e87"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae1c7ee5f9f4c2d4f39ffb7d30e132e87">is_nonempty_facet_create_rule&lt; facet_create_rule&lt; T... &gt; &gt;</a> = (sizeof...(T) != 0)</td></tr>
 <tr class="separator:ae1c7ee5f9f4c2d4f39ffb7d30e132e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01c7e54fbcd0bfc7b6c55f964a5fa211" id="r_a01c7e54fbcd0bfc7b6c55f964a5fa211"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
+<tr class="memitem:a01c7e54fbcd0bfc7b6c55f964a5fa211" id="r_a01c7e54fbcd0bfc7b6c55f964a5fa211"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
 <tr class="memitem:a01c7e54fbcd0bfc7b6c55f964a5fa211"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a01c7e54fbcd0bfc7b6c55f964a5fa211">is_nonempty_facet_create_pack</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a></td></tr>
 <tr class="separator:a01c7e54fbcd0bfc7b6c55f964a5fa211"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2a0640220245ee12ab42deab185f4fb" id="r_ab2a0640220245ee12ab42deab185f4fb"><td class="memTemplParams" colspan="2">template&lt;typename... T&gt; </td></tr>
-<tr class="memitem:ab2a0640220245ee12ab42deab185f4fb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab2a0640220245ee12ab42deab185f4fb">is_nonempty_facet_create_pack&lt; facet_create_pack&lt; T... &gt; &gt;</a> = (sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>) != 0)</td></tr>
+<tr class="memitem:ab2a0640220245ee12ab42deab185f4fb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab2a0640220245ee12ab42deab185f4fb">is_nonempty_facet_create_pack&lt; facet_create_pack&lt; T... &gt; &gt;</a> = (sizeof...(T) != 0)</td></tr>
 <tr class="separator:ab2a0640220245ee12ab42deab185f4fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef33f096a5c01e0cd33f71e016002c92" id="r_aef33f096a5c01e0cd33f71e016002c92"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </td></tr>
+<tr class="memitem:aef33f096a5c01e0cd33f71e016002c92" id="r_aef33f096a5c01e0cd33f71e016002c92"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </td></tr>
 <tr class="memitem:aef33f096a5c01e0cd33f71e016002c92"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aef33f096a5c01e0cd33f71e016002c92">facet_create_pack_size</a> = 0</td></tr>
 <tr class="separator:aef33f096a5c01e0cd33f71e016002c92"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab68d00138366f751154b6c10685ec824" id="r_ab68d00138366f751154b6c10685ec824"><td class="memTemplParams" colspan="2">template&lt;typename... T&gt; </td></tr>
-<tr class="memitem:ab68d00138366f751154b6c10685ec824"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab68d00138366f751154b6c10685ec824">facet_create_pack_size&lt; facet_create_pack&lt; T... &gt; &gt;</a> = sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>)</td></tr>
+<tr class="memitem:ab68d00138366f751154b6c10685ec824"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab68d00138366f751154b6c10685ec824">facet_create_pack_size&lt; facet_create_pack&lt; T... &gt; &gt;</a> = sizeof...(T)</td></tr>
 <tr class="separator:ab68d00138366f751154b6c10685ec824"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc5d76d784a651558e890913a67f0a3f" id="r_abc5d76d784a651558e890913a67f0a3f"><td class="memItemLeft" align="right" valign="top">__cin::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#abc5d76d784a651558e890913a67f0a3f">_cin_init</a></td></tr>
 <tr class="separator:abc5d76d784a651558e890913a67f0a3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9eae818e689df763ff9620574fdde61" id="r_ab9eae818e689df763ff9620574fdde61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____cin.html">__cin</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab9eae818e689df763ff9620574fdde61">cin</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__cin::ptr</a>()</td></tr>
+<tr class="memitem:ab9eae818e689df763ff9620574fdde61" id="r_ab9eae818e689df763ff9620574fdde61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____cin.html">__cin</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab9eae818e689df763ff9620574fdde61">cin</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__cin::ptr</a>()</td></tr>
 <tr class="separator:ab9eae818e689df763ff9620574fdde61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a867423ecf672219edb3cebb1f3ea7a07" id="r_a867423ecf672219edb3cebb1f3ea7a07"><td class="memItemLeft" align="right" valign="top">__wcin::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a867423ecf672219edb3cebb1f3ea7a07">_wcin_init</a></td></tr>
 <tr class="separator:a867423ecf672219edb3cebb1f3ea7a07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac616b0d4e435e3ec086c9298b778e858" id="r_ac616b0d4e435e3ec086c9298b778e858"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wcin.html">__wcin</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858">wcin</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wcin::ptr</a>()</td></tr>
+<tr class="memitem:ac616b0d4e435e3ec086c9298b778e858" id="r_ac616b0d4e435e3ec086c9298b778e858"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wcin.html">__wcin</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858">wcin</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wcin::ptr</a>()</td></tr>
 <tr class="separator:ac616b0d4e435e3ec086c9298b778e858"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc8fe6752aa0569437ae36b654c91a9b" id="r_acc8fe6752aa0569437ae36b654c91a9b"><td class="memItemLeft" align="right" valign="top">__cout::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#acc8fe6752aa0569437ae36b654c91a9b">_cout_init</a></td></tr>
 <tr class="separator:acc8fe6752aa0569437ae36b654c91a9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac22a1e03befce03f5bc24daf715b17fd" id="r_ac22a1e03befce03f5bc24daf715b17fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____cout.html">__cout</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ac22a1e03befce03f5bc24daf715b17fd">cout</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__cout::ptr</a>()</td></tr>
+<tr class="memitem:ac22a1e03befce03f5bc24daf715b17fd" id="r_ac22a1e03befce03f5bc24daf715b17fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____cout.html">__cout</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ac22a1e03befce03f5bc24daf715b17fd">cout</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__cout::ptr</a>()</td></tr>
 <tr class="separator:ac22a1e03befce03f5bc24daf715b17fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0690c406bce3ebc8d88224494b5b91c2" id="r_a0690c406bce3ebc8d88224494b5b91c2"><td class="memItemLeft" align="right" valign="top">__cerr::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a0690c406bce3ebc8d88224494b5b91c2">_cerr_init</a></td></tr>
 <tr class="separator:a0690c406bce3ebc8d88224494b5b91c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a519979506fa67d583072afb518c5af54" id="r_a519979506fa67d583072afb518c5af54"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____cerr.html">__cerr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a519979506fa67d583072afb518c5af54">cerr</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__cerr::ptr</a>()</td></tr>
+<tr class="memitem:a519979506fa67d583072afb518c5af54" id="r_a519979506fa67d583072afb518c5af54"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____cerr.html">__cerr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a519979506fa67d583072afb518c5af54">cerr</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__cerr::ptr</a>()</td></tr>
 <tr class="separator:a519979506fa67d583072afb518c5af54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ca04622441bdeb8035b439ac38028df" id="r_a8ca04622441bdeb8035b439ac38028df"><td class="memItemLeft" align="right" valign="top">__clog::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8ca04622441bdeb8035b439ac38028df">_clog_init</a></td></tr>
 <tr class="separator:a8ca04622441bdeb8035b439ac38028df"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a438e1d87067cc8de82e8c307773257bf" id="r_a438e1d87067cc8de82e8c307773257bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____clog.html">__clog</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a438e1d87067cc8de82e8c307773257bf">clog</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__clog::ptr</a>()</td></tr>
+<tr class="memitem:a438e1d87067cc8de82e8c307773257bf" id="r_a438e1d87067cc8de82e8c307773257bf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____clog.html">__clog</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a438e1d87067cc8de82e8c307773257bf">clog</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__clog::ptr</a>()</td></tr>
 <tr class="separator:a438e1d87067cc8de82e8c307773257bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a11e2d3a630ce49db5ba1583eac224e" id="r_a0a11e2d3a630ce49db5ba1583eac224e"><td class="memItemLeft" align="right" valign="top">__wcout::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a0a11e2d3a630ce49db5ba1583eac224e">_wcout_init</a></td></tr>
 <tr class="separator:a0a11e2d3a630ce49db5ba1583eac224e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a821cdca20e6c3e84855cecb0d3f2cbce" id="r_a821cdca20e6c3e84855cecb0d3f2cbce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wcout.html">__wcout</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce">wcout</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wcout::ptr</a>()</td></tr>
+<tr class="memitem:a821cdca20e6c3e84855cecb0d3f2cbce" id="r_a821cdca20e6c3e84855cecb0d3f2cbce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wcout.html">__wcout</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce">wcout</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wcout::ptr</a>()</td></tr>
 <tr class="separator:a821cdca20e6c3e84855cecb0d3f2cbce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01798dc08605638b1b54f182f09826ba" id="r_a01798dc08605638b1b54f182f09826ba"><td class="memItemLeft" align="right" valign="top">__wcerr::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a01798dc08605638b1b54f182f09826ba">_wcerr_init</a></td></tr>
 <tr class="separator:a01798dc08605638b1b54f182f09826ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abe4d0cd9111233940065a427bac23413" id="r_abe4d0cd9111233940065a427bac23413"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wcerr.html">__wcerr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#abe4d0cd9111233940065a427bac23413">wcerr</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wcerr::ptr</a>()</td></tr>
+<tr class="memitem:abe4d0cd9111233940065a427bac23413" id="r_abe4d0cd9111233940065a427bac23413"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wcerr.html">__wcerr</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#abe4d0cd9111233940065a427bac23413">wcerr</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wcerr::ptr</a>()</td></tr>
 <tr class="separator:abe4d0cd9111233940065a427bac23413"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a13cdd00ebb6a2cdcdfaa6dd649541bd4" id="r_a13cdd00ebb6a2cdcdfaa6dd649541bd4"><td class="memItemLeft" align="right" valign="top">__wclog::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a13cdd00ebb6a2cdcdfaa6dd649541bd4">_wclog_init</a></td></tr>
 <tr class="separator:a13cdd00ebb6a2cdcdfaa6dd649541bd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4dd1077c4e549888709cb89332ba18ff" id="r_a4dd1077c4e549888709cb89332ba18ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wclog.html">__wclog</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff">wclog</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wclog::ptr</a>()</td></tr>
+<tr class="memitem:a4dd1077c4e549888709cb89332ba18ff" id="r_a4dd1077c4e549888709cb89332ba18ff"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1____wclog.html">__wclog</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff">wclog</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wclog::ptr</a>()</td></tr>
 <tr class="separator:a4dd1077c4e549888709cb89332ba18ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af8167d487eb731f8a042d7bdb06bf8c3" id="r_af8167d487eb731f8a042d7bdb06bf8c3"><td class="memItemLeft" align="right" valign="top">ori_facet_buf::init&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af8167d487eb731f8a042d7bdb06bf8c3">_ori_facet_buf_init</a></td></tr>
 <tr class="separator:af8167d487eb731f8a042d7bdb06bf8c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a95cfe067d7dce4b9768d23b4593342e5" id="r_a95cfe067d7dce4b9768d23b4593342e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">ori_facet_buf::ptr</a>()</td></tr>
+<tr class="memitem:a95cfe067d7dce4b9768d23b4593342e5" id="r_a95cfe067d7dce4b9768d23b4593342e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a95cfe067d7dce4b9768d23b4593342e5">s_ori_facet_buf</a> = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">ori_facet_buf::ptr</a>()</td></tr>
 <tr class="separator:a95cfe067d7dce4b9768d23b4593342e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">类型定义说明</h2>
@@ -1285,7 +1285,7 @@ template&lt;ostream_type T&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::endl </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1313,7 +1313,7 @@ template&lt;ostream_type T&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::ends </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1341,7 +1341,7 @@ template&lt;ostream_type T&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::flush </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1898,9 +1898,9 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 template&lt;ostream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -1928,15 +1928,15 @@ template&lt;ostream_type T&gt; </div>
 template&lt;ostream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;)&gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(T &amp;)&gt; &amp;&#160;</td>
           <td class="paramname"><em>pf</em>&#160;</td>
         </tr>
         <tr>
@@ -1956,12 +1956,12 @@ template&lt;ostream_type T&gt; </div>
 <div class="memproto">
 <div class="memtemplate">
 template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -1990,9 +1990,9 @@ template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574c
 requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt; || is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, std::decay_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;&gt;)</div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -2020,9 +2020,9 @@ requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 template&lt;ostream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -2050,15 +2050,15 @@ template&lt;ostream_type T&gt; </div>
 template&lt;ostream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;)&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*)(T &amp;)&#160;</td>
           <td class="paramname"><em>pf</em>&#160;</td>
         </tr>
         <tr>
@@ -2078,12 +2078,12 @@ template&lt;ostream_type T&gt; </div>
 <div class="memproto">
 <div class="memtemplate">
 template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -2114,9 +2114,9 @@ template&lt;ostream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em>, </td>
         </tr>
         <tr>
@@ -2152,9 +2152,9 @@ template&lt;ostream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em>, </td>
         </tr>
         <tr>
@@ -2190,9 +2190,9 @@ template&lt;ostream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em>, </td>
         </tr>
         <tr>
@@ -2228,9 +2228,9 @@ template&lt;ostream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em>, </td>
         </tr>
         <tr>
@@ -2266,9 +2266,9 @@ template&lt;ostream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em>, </td>
         </tr>
         <tr>
@@ -2304,9 +2304,9 @@ template&lt;ostream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&lt;&lt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>os</em>, </td>
         </tr>
         <tr>
@@ -2342,9 +2342,9 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>is</em>, </td>
         </tr>
         <tr>
@@ -2380,9 +2380,9 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>is</em>, </td>
         </tr>
         <tr>
@@ -2418,9 +2418,9 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>is</em>, </td>
         </tr>
         <tr>
@@ -2456,9 +2456,9 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>is</em>, </td>
         </tr>
         <tr>
@@ -2494,9 +2494,9 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>is</em>, </td>
         </tr>
         <tr>
@@ -2532,9 +2532,9 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>is</em>, </td>
         </tr>
         <tr>
@@ -2567,9 +2567,9 @@ template&lt;istream_type T&gt; </div>
 template&lt;istream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -2597,15 +2597,15 @@ template&lt;istream_type T&gt; </div>
 template&lt;istream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;)&gt; &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(T &amp;)&gt; &amp;&#160;</td>
           <td class="paramname"><em>pf</em>&#160;</td>
         </tr>
         <tr>
@@ -2625,12 +2625,12 @@ template&lt;istream_type T&gt; </div>
 <div class="memproto">
 <div class="memtemplate">
 template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -2659,9 +2659,9 @@ template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574c
 requires is_reader_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="structIOv2_1_1parse__context__type.html">parse_context_type</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;::type&gt;</div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -2689,9 +2689,9 @@ requires is_reader_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5
 template&lt;istream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -2719,15 +2719,15 @@ template&lt;istream_type T&gt; </div>
 template&lt;istream_type T&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;)&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*)(T &amp;)&#160;</td>
           <td class="paramname"><em>pf</em>&#160;</td>
         </tr>
         <tr>
@@ -2747,12 +2747,12 @@ template&lt;istream_type T&gt; </div>
 <div class="memproto">
 <div class="memtemplate">
 template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
-requires std::derived_from&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
+requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</div>
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
+          <td class="memname">T &amp; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::operator</a>&gt;&gt; </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
         </tr>
         <tr>
@@ -3466,7 +3466,7 @@ template&lt;io_device TDevice, cvt_creator TCreator&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -3502,7 +3502,7 @@ template&lt;istream_type T&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::ws </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &amp;&#160;</td>
+          <td class="paramtype">T &amp;&#160;</td>
           <td class="paramname"><em>is</em></td><td>)</td>
           <td></td>
         </tr>
@@ -3726,7 +3726,7 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____cerr.html">__cerr</a>&amp; IOv2::cerr = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__cerr::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____cerr.html">__cerr</a>&amp; IOv2::cerr = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__cerr::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -3748,7 +3748,7 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____cin.html">__cin</a>&amp; IOv2::cin = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__cin::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____cin.html">__cin</a>&amp; IOv2::cin = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__cin::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -3770,7 +3770,7 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____clog.html">__clog</a>&amp; IOv2::clog = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__clog::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____clog.html">__clog</a>&amp; IOv2::clog = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__clog::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -3792,7 +3792,7 @@ template&lt;istream_type T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____cout.html">__cout</a>&amp; IOv2::cout = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__cout::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____cout.html">__cout</a>&amp; IOv2::cout = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__cout::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -3873,7 +3873,7 @@ template&lt;typename... T&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -3910,7 +3910,7 @@ template&lt;typename... T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#aef33f096a5c01e0cd33f71e016002c92">IOv2::facet_create_pack_size</a>&lt; <a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt; T... &gt; &gt; = sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>)</td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#aef33f096a5c01e0cd33f71e016002c92">IOv2::facet_create_pack_size</a>&lt; <a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt; T... &gt; &gt; = sizeof...(T)</td>
         </tr>
       </table>
   </td>
@@ -3928,13 +3928,13 @@ template&lt;typename... T&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::is_istreambuf = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_istreambuf_impl</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;::value</td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::is_istreambuf = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_istreambuf_impl</a>&lt;T&gt;::value</td>
         </tr>
       </table>
   </td>
@@ -3959,7 +3959,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -3996,7 +3996,7 @@ template&lt;typename... T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a01c7e54fbcd0bfc7b6c55f964a5fa211">IOv2::is_nonempty_facet_create_pack</a>&lt; <a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt; T... &gt; &gt; = (sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>) != 0)</td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a01c7e54fbcd0bfc7b6c55f964a5fa211">IOv2::is_nonempty_facet_create_pack</a>&lt; <a class="el" href="structIOv2_1_1facet__create__pack.html">facet_create_pack</a>&lt; T... &gt; &gt; = (sizeof...(T) != 0)</td>
         </tr>
       </table>
   </td>
@@ -4014,7 +4014,7 @@ template&lt;typename... T&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -4051,7 +4051,7 @@ template&lt;typename... T&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff414e">IOv2::is_nonempty_facet_create_rule</a>&lt; <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt; T... &gt; &gt; = (sizeof...(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>) != 0)</td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a60d8ca3bdd113f3565f8a9ba19ff414e">IOv2::is_nonempty_facet_create_rule</a>&lt; <a class="el" href="structIOv2_1_1facet__create__rule.html">facet_create_rule</a>&lt; T... &gt; &gt; = (sizeof...(T) != 0)</td>
         </tr>
       </table>
   </td>
@@ -4069,13 +4069,13 @@ template&lt;typename... T&gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::is_ostreambuf = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_ostreambuf_impl</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;::value</td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::is_ostreambuf = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_ostreambuf_impl</a>&lt;T&gt;::value</td>
         </tr>
       </table>
   </td>
@@ -4132,7 +4132,7 @@ template&lt;typename T &gt; </div>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -4163,13 +4163,13 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a> &gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::is_streambuf = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_streambuf_impl</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">T</a>&gt;::value</td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::is_streambuf = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_streambuf_impl</a>&lt;T&gt;::value</td>
         </tr>
       </table>
   </td>
@@ -4198,7 +4198,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a>&amp; IOv2::s_ori_facet_buf = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">ori_facet_buf::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1ori__facet__buf.html">ori_facet_buf</a>&amp; IOv2::s_ori_facet_buf = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">ori_facet_buf::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -4243,7 +4243,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____wcerr.html">__wcerr</a>&amp; IOv2::wcerr = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wcerr::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____wcerr.html">__wcerr</a>&amp; IOv2::wcerr = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wcerr::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -4294,7 +4294,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____wcin.html">__wcin</a>&amp; IOv2::wcin = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wcin::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____wcin.html">__wcin</a>&amp; IOv2::wcin = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wcin::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -4316,7 +4316,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____wclog.html">__wclog</a>&amp; IOv2::wclog = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wclog::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____wclog.html">__wclog</a>&amp; IOv2::wclog = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wclog::ptr</a>()</td>
         </tr>
       </table>
   </td>
@@ -4338,7 +4338,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1____wcout.html">__wcout</a>&amp; IOv2::wcout = *<a class="el" href="classIOv2_1_1sing__temp.html#a65863db295a0138c0ba9abe95a662c8c">__wcout::ptr</a>()</td>
+          <td class="memname"><a class="el" href="classIOv2_1_1____wcout.html">__wcout</a>&amp; IOv2::wcout = *<a class="el" href="classIOv2_1_1sing__temp.html#ae6b9070b16063c66ecc52350f1a12b34">__wcout::ptr</a>()</td>
         </tr>
       </table>
   </td>
