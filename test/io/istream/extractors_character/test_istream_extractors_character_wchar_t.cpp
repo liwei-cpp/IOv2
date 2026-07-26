@@ -181,10 +181,14 @@ void test_istream_extractors_character_wchar_t_4()
         return ret;
     };
     
+    // NB: The chunks here grow by doubling (666, 1332, ... 340992), so they far exceed the
+    // 0..255 range a field width can express. Extraction therefore targets std::wstring, whose
+    // reader grows dynamically; a raw wchar_t* target would need a setw() bound that cannot be
+    // expressed for these sizes. The point of the case -- streambuf refill across tokens much
+    // larger than the internal buffer -- is unaffected.
     auto check = [](auto& stream, const std::wstring& str, unsigned nchunks)
     {
-        wchar_t* chunk = new wchar_t[str.size()];
-        memset(chunk, 'X', str.size());
+        std::wstring chunk;
 
         std::string::size_type index = 0, index_new = 0;
         unsigned n = 0;
@@ -195,12 +199,9 @@ void test_istream_extractors_character_wchar_t_4()
             VERIFY(str.compare(index, index_new - index, chunk) == 0);
             index = index_new + 1;
             ++n;
-            memset(chunk, 'X', str.size());
         }
         VERIFY(stream.eof());
         VERIFY(n == nchunks);
-
-        delete[] chunk;
     };
 
     auto helper = [&prepare, &check]<template<typename, typename> class T>()

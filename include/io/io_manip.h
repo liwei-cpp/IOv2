@@ -4,7 +4,9 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 
+#include <cstddef>
 #include <cstdint>
+#include <limits>
 
 namespace IOv2
 {
@@ -84,7 +86,39 @@ inline T& operator >> (T& is, _Setfill<typename T::char_type> f)
 }
 
 struct _Setprecision { std::uint8_t m_n; };
-inline _Setprecision setprecision(std::uint8_t n) { return { n }; }
+
+/**
+ * @lang{ZH}
+ * @brief 构造设置浮点精度的操纵符。
+ *
+ * 精度以 `std::uint8_t` 存储（见 `ios_base::precision`），有效范围 0..255。参数取
+ * `size_t` 而非 `std::uint8_t`，是为了让越界值在此处**显式报错**而不是被静默回绕：
+ * 若形参本身就是 `std::uint8_t`，`setprecision(300)` 会经隐式转换悄悄变成 44，
+ * 而运行期变量连编译警告都不会有。
+ * @param n 目标精度，必须落在 0..255。
+ * @return 可用于 `os << setprecision(n)` / `is >> setprecision(n)` 的操纵符。
+ * @throw stream_error 若 `n > 255`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that sets the floating-point precision.
+ *
+ * The precision is stored as a `std::uint8_t` (see `ios_base::precision`), so the valid
+ * range is 0..255. The parameter is a `size_t` rather than a `std::uint8_t` so that an
+ * out-of-range value is **reported explicitly** here instead of silently wrapping: with a
+ * `std::uint8_t` parameter, `setprecision(300)` would quietly become 44 via the implicit
+ * conversion, and a run-time argument would not even produce a compiler warning.
+ * @param n The target precision; must lie in 0..255.
+ * @return A manipulator usable as `os << setprecision(n)` / `is >> setprecision(n)`.
+ * @throw stream_error If `n > 255`.
+ * @endif
+ */
+inline _Setprecision setprecision(size_t n)
+{
+    if (n > std::numeric_limits<std::uint8_t>::max())
+        throw stream_error("setprecision fail: precision out of range (0..255)");
+    return { static_cast<std::uint8_t>(n) };
+}
 
 template <ostream_type T>
 inline T& operator << (T& os, _Setprecision f)
@@ -101,7 +135,51 @@ inline T& operator >> (T& is, _Setprecision f)
 }
 
 struct _Setw { std::uint8_t m_n; };
-inline _Setw setw(std::uint8_t n) { return { n }; }
+
+/**
+ * @lang{ZH}
+ * @brief 构造设置字段宽度的操纵符。
+ *
+ * 宽度以 `std::uint8_t` 存储（见 `ios_base::width`），有效范围 0..255。参数取 `size_t`
+ * 而非 `std::uint8_t`，是为了让越界值在此处**显式报错**而不是被静默回绕。
+ *
+ * @warning 这不只是格式化精度问题，而是内存安全问题：`width == 0` 在提取端的语义是
+ *          **不限长度**（见 `istream_extract`），因此若形参是 `std::uint8_t`，
+ *          `setw(256)`、`setw(512)` 等会静默折叠为 0，把调用方本想加上的长度上限
+ *          **反向解除**——`is >> setw(sizeof(buf)) >> ptr` 会一路写到遇见空白为止，
+ *          造成缓冲区溢出，且运行期实参连编译警告都没有。改为在此抛异常后，
+ *          `width == 0` 就只可能表示"调用方没有要求上限"这一种含义。
+ * @param n 目标宽度，必须落在 0..255。
+ * @return 可用于 `os << setw(n)` / `is >> setw(n)` 的操纵符。
+ * @throw stream_error 若 `n > 255`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that sets the field width.
+ *
+ * The width is stored as a `std::uint8_t` (see `ios_base::width`), so the valid range is
+ * 0..255. The parameter is a `size_t` rather than a `std::uint8_t` so that an out-of-range
+ * value is **reported explicitly** here instead of silently wrapping.
+ *
+ * @warning This is not merely a formatting concern but a memory-safety one: on the
+ *          extraction side `width == 0` means **no length limit** (see `istream_extract`).
+ *          With a `std::uint8_t` parameter, `setw(256)`, `setw(512)` and friends would
+ *          silently fold to 0, **inverting** the very bound the caller meant to impose --
+ *          `is >> setw(sizeof(buf)) >> ptr` would then write on until whitespace,
+ *          overflowing the buffer, with no compiler warning for a run-time argument.
+ *          Throwing here leaves `width == 0` with exactly one meaning: "the caller asked
+ *          for no bound".
+ * @param n The target width; must lie in 0..255.
+ * @return A manipulator usable as `os << setw(n)` / `is >> setw(n)`.
+ * @throw stream_error If `n > 255`.
+ * @endif
+ */
+inline _Setw setw(size_t n)
+{
+    if (n > std::numeric_limits<std::uint8_t>::max())
+        throw stream_error("setw fail: width out of range (0..255)");
+    return { static_cast<std::uint8_t>(n) };
+}
 
 template <ostream_type T>
 inline T& operator << (T& os, _Setw f)
