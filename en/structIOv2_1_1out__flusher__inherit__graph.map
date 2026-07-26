@@ -14,7 +14,7 @@
 <area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="297,290,345,338,375,363,408,385,430,396,428,401,405,390,372,367,341,342,293,294"/>
 <area shape="rect" id="Node000015" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="447,478,601,518"/>
 <area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="287,293,305,331,331,378,366,424,408,464,447,483,445,488,405,468,362,428,327,381,300,334,282,295"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="5,256,140,281"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic flush() interface." alt="" coords="5,256,140,281"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,266,188,266,188,271,154,271"/>
 <area shape="rect" id="Node000004" href="$classIOv2_1_1____cerr.html" title="cerr" alt="" coords="697,20,795,45"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="637,30,696,30,696,35,637,35"/>

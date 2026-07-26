@@ -171,6 +171,7 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html">abs_flusher</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Abstract base carrying the polymorphic <code><a class="el" href="classIOv2_1_1abs__flusher.html#ab1442ee9cd6042c1b4cc671c1a2ec54a" title="Pure virtual interface to flush this stream; implemented by out_flusher&lt;T&gt;. .">flush()</a></code> interface.  <a href="classIOv2_1_1abs__flusher.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -303,6 +304,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class template specialization for the <code>timeio</code> facet.  <a href="classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html">in_sentry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII sentry for input operations: performs the shared setup at the entry of every extraction operation.  <a href="structIOv2_1_1in__sentry.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__error.html">io_error</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -318,8 +320,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html">iostream</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1is__in__sentry__impl.html">is_in_sentry_impl</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primary template of the type trait: by default any type is not an <code><a class="el" href="structIOv2_1_1in__sentry.html" title="RAII sentry for input operations: performs the shared setup at the entry of every extraction operatio...">in_sentry</a></code>.  <a href="structIOv2_1_1is__in__sentry__impl.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1is__in__sentry__impl_3_01in__sentry_3_01TStream_00_01involve__output_01_4_01_4.html">is_in_sentry_impl&lt; in_sentry&lt; TStream, involve_output &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Partial specialization of <code><a class="el" href="structIOv2_1_1is__in__sentry__impl.html" title="Primary template of the type trait: by default any type is not an in_sentry.">is_in_sentry_impl</a></code>: true for instances of <code><a class="el" href="structIOv2_1_1in__sentry.html" title="RAII sentry for input operations: performs the shared setup at the entry of every extraction operatio...">in_sentry</a></code>. .  <a href="structIOv2_1_1is__in__sentry__impl_3_01in__sentry_3_01TStream_00_01involve__output_01_4_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1is__mem__device__impl.html">is_mem_device_impl</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper template to determine if a type is <code><a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a></code>.  <a href="structIOv2_1_1is__mem__device__impl.html#details">More...</a><br /></td></tr>
@@ -328,12 +332,15 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specialization of <code><a class="el" href="structIOv2_1_1is__mem__device__impl.html" title="Helper template to determine if a type is mem_device.">is_mem_device_impl</a></code> for <code><a class="el" href="classIOv2_1_1mem__device.html" title="A device that performs I/O operations in memory.">mem_device</a></code>. .  <a href="structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1is__out__sentry__impl.html">is_out_sentry_impl</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Primary template of the type trait: by default any type is not an <code><a class="el" href="structIOv2_1_1out__sentry.html" title="RAII sentry for output operations: performs the shared setup at the entry of every insertion operatio...">out_sentry</a></code>.  <a href="structIOv2_1_1is__out__sentry__impl.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html">is_out_sentry_impl&lt; out_sentry&lt; TStream, involve_input, is_std &gt; &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Partial specialization of <code><a class="el" href="structIOv2_1_1is__out__sentry__impl.html" title="Primary template of the type trait: by default any type is not an out_sentry.">is_out_sentry_impl</a></code>: true for instances of <code><a class="el" href="structIOv2_1_1out__sentry.html" title="RAII sentry for output operations: performs the shared setup at the entry of every insertion operatio...">out_sentry</a></code>. .  <a href="structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html">istream</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istream__operators.html">istream_operators</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mix-in base that provides the various extraction operations for input streams.  <a href="structIOv2_1_1istream__operators.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input-only stream buffer: supports input only.  <a href="structIOv2_1_1istreambuf.html#details">More...</a><br /></td></tr>
@@ -393,6 +400,7 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostream.html">ostream</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html">ostream_operators</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mix-in base that provides the various insertion operations for output streams.  <a href="structIOv2_1_1ostream__operators.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output-only stream buffer: supports output only.  <a href="structIOv2_1_1ostreambuf.html#details">More...</a><br /></td></tr>
@@ -404,6 +412,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">CRTP base carrying the polymorphic <code><a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54" title="Flushes this stream: writes the buffer out to the underlying device.">flush()</a></code>: the down-cast to the concrete stream type <code>T</code> is localized here.  <a href="structIOv2_1_1out__flusher.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII sentry for output operations: performs the shared setup at the entry of every insertion operation and an automatic flush at its end.  <a href="structIOv2_1_1out__sentry.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1parse__context__type.html">parse_context_type</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -467,6 +476,7 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1stdout__api.html">stdout_api</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1stream__common__operators.html">stream_common_operators</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mix-in base that provides operations common to input and output streams.  <a href="structIOv2_1_1stream__common__operators.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -548,12 +558,16 @@ Concepts</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1is__reader__def.html">is_reader_def</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1is__in__sentry.html">is_in_sentry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concept that checks whether a type is an instance of <code>in_sentry</code>. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1istream__type.html">istream_type</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concept for an input stream type. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1is__out__sentry.html">is_out_sentry</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concept that checks whether a type is an instance of <code>out_sentry</code>. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1ostream__type.html">ostream_type</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concept for an output stream type. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
@@ -864,51 +878,65 @@ requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574
 <tr class="separator:a4980fffb02a1ec303bd5f692363fc7f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:affd1b46d3a901743e57fc6fd0cdd9a32" id="r_affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
 <tr class="memitem:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#affd1b46d3a901743e57fc6fd0cdd9a32">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
+<tr class="memdesc:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: applies a function-pointer manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>.  <br /></td></tr>
 <tr class="separator:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b79a291c2c7ae79c87a2a4de83fb9af" id="r_a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
 <tr class="memitem:a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a0b79a291c2c7ae79c87a2a4de83fb9af">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memdesc:a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: applies a <code>std::function</code> manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>.  <br /></td></tr>
 <tr class="separator:a0b79a291c2c7ae79c87a2a4de83fb9af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0ed08c14a8e0faf594f19b4ecb3f2f7" id="r_ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
 <tr class="memitem:ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab0ed08c14a8e0faf594f19b4ecb3f2f7">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(T &amp;))</td></tr>
+<tr class="memdesc:ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: applies a function-pointer manipulator taking the concrete stream type <code>T&amp;</code>.  <br /></td></tr>
 <tr class="separator:ab0ed08c14a8e0faf594f19b4ecb3f2f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a279535ac89f7ddc255959a28b36b3d40" id="r_a279535ac89f7ddc255959a28b36b3d40"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
 <tr class="memitem:a279535ac89f7ddc255959a28b36b3d40"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a279535ac89f7ddc255959a28b36b3d40">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(T &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memdesc:a279535ac89f7ddc255959a28b36b3d40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: applies a <code>std::function</code> manipulator taking the concrete stream type <code>T&amp;</code>.  <br /></td></tr>
 <tr class="separator:a279535ac89f7ddc255959a28b36b3d40"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3568a5aa0b66869bdc91095e286fea14" id="r_a3568a5aa0b66869bdc91095e286fea14"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
 requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
 <tr class="memitem:a3568a5aa0b66869bdc91095e286fea14"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a3568a5aa0b66869bdc91095e286fea14">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;))</td></tr>
+<tr class="memdesc:a3568a5aa0b66869bdc91095e286fea14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: applies a function-pointer manipulator taking a base class <code>U&amp;</code> of <code>T</code>.  <br /></td></tr>
 <tr class="separator:a3568a5aa0b66869bdc91095e286fea14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ad992b1af24c9c5182548d1a39ff8de" id="r_a6ad992b1af24c9c5182548d1a39ff8de"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
 requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
 <tr class="memitem:a6ad992b1af24c9c5182548d1a39ff8de"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6ad992b1af24c9c5182548d1a39ff8de">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memdesc:a6ad992b1af24c9c5182548d1a39ff8de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: applies a <code>std::function</code> manipulator taking a base class <code>U&amp;</code> of <code>T</code>.  <br /></td></tr>
 <tr class="separator:a6ad992b1af24c9c5182548d1a39ff8de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97dedafa172a023bd073c5f93ae28794" id="r_a97dedafa172a023bd073c5f93ae28794"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
 requires is_reader_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="structIOv2_1_1parse__context__type.html">parse_context_type</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;::type&gt;</td></tr>
 <tr class="memitem:a97dedafa172a023bd073c5f93ae28794"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a97dedafa172a023bd073c5f93ae28794">operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="memdesc:a97dedafa172a023bd073c5f93ae28794"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted extraction operator: parses a value of type <code>TValue</code> from the stream under the current locale.  <br /></td></tr>
 <tr class="separator:a97dedafa172a023bd073c5f93ae28794"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cf627b4b038a6b901bab099239a6b72" id="r_a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
 <tr class="memitem:a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8cf627b4b038a6b901bab099239a6b72">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
+<tr class="memdesc:a8cf627b4b038a6b901bab099239a6b72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion manipulator: applies a function-pointer manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>.  <br /></td></tr>
 <tr class="separator:a8cf627b4b038a6b901bab099239a6b72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37a665479733a4199ceb4d12f15edf34" id="r_a37a665479733a4199ceb4d12f15edf34"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
 <tr class="memitem:a37a665479733a4199ceb4d12f15edf34"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a37a665479733a4199ceb4d12f15edf34">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memdesc:a37a665479733a4199ceb4d12f15edf34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion manipulator: applies a <code>std::function</code> manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>.  <br /></td></tr>
 <tr class="separator:a37a665479733a4199ceb4d12f15edf34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a309ea80a8ac4e3f38a343955c054bd6a" id="r_a309ea80a8ac4e3f38a343955c054bd6a"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
 <tr class="memitem:a309ea80a8ac4e3f38a343955c054bd6a"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a309ea80a8ac4e3f38a343955c054bd6a">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(T &amp;))</td></tr>
+<tr class="memdesc:a309ea80a8ac4e3f38a343955c054bd6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion manipulator: applies a function-pointer manipulator taking the concrete stream type <code>T&amp;</code>.  <br /></td></tr>
 <tr class="separator:a309ea80a8ac4e3f38a343955c054bd6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd02f8624aa5da2d109f9fcdce62ac01" id="r_afd02f8624aa5da2d109f9fcdce62ac01"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
 <tr class="memitem:afd02f8624aa5da2d109f9fcdce62ac01"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#afd02f8624aa5da2d109f9fcdce62ac01">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(T &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memdesc:afd02f8624aa5da2d109f9fcdce62ac01"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion manipulator: applies a <code>std::function</code> manipulator taking the concrete stream type <code>T&amp;</code>.  <br /></td></tr>
 <tr class="separator:afd02f8624aa5da2d109f9fcdce62ac01"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51198ad44e72fa662052cac879425b67" id="r_a51198ad44e72fa662052cac879425b67"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
 requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
 <tr class="memitem:a51198ad44e72fa662052cac879425b67"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a51198ad44e72fa662052cac879425b67">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;))</td></tr>
+<tr class="memdesc:a51198ad44e72fa662052cac879425b67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion manipulator: applies a function-pointer manipulator taking a base class <code>U&amp;</code> of <code>T</code>.  <br /></td></tr>
 <tr class="separator:a51198ad44e72fa662052cac879425b67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e4d05c302e4f85eca99bff0ac11f385" id="r_a9e4d05c302e4f85eca99bff0ac11f385"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &gt; <br />
 requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a>&gt;</td></tr>
 <tr class="memitem:a9e4d05c302e4f85eca99bff0ac11f385"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9e4d05c302e4f85eca99bff0ac11f385">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::function&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;)&gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)</td></tr>
+<tr class="memdesc:a9e4d05c302e4f85eca99bff0ac11f385"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion manipulator: applies a <code>std::function</code> manipulator taking a base class <code>U&amp;</code> of <code>T</code>.  <br /></td></tr>
 <tr class="separator:a9e4d05c302e4f85eca99bff0ac11f385"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a61c3a221d1866a5d370fbc7944cfe307" id="r_a61c3a221d1866a5d370fbc7944cfe307"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
 requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt; || is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, std::decay_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;&gt;)</td></tr>
 <tr class="memitem:a61c3a221d1866a5d370fbc7944cfe307"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a61c3a221d1866a5d370fbc7944cfe307">operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="memdesc:a61c3a221d1866a5d370fbc7944cfe307"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formatted insertion operator: writes a value of type <code>TValue</code> to the stream under the current locale.  <br /></td></tr>
 <tr class="separator:a61c3a221d1866a5d370fbc7944cfe307"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab91abcd60a649c65f879bef157fab8ff" id="r_ab91abcd60a649c65f879bef157fab8ff"><td class="memItemLeft" align="right" valign="top">std::mutex &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ab91abcd60a649c65f879bef157fab8ff">tie_graph_mutex</a> ()</td></tr>
 <tr class="memdesc:ab91abcd60a649c65f879bef157fab8ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the process-wide lock that guards the entire tie graph.  <br /></td></tr>
@@ -1917,6 +1945,8 @@ template&lt;ostream_type T&gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p>Insertion manipulator: applies a <code>std::function</code> manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>. </p>
+
 </div>
 </div>
 <a id="afd02f8624aa5da2d109f9fcdce62ac01" name="afd02f8624aa5da2d109f9fcdce62ac01"></a>
@@ -1946,6 +1976,8 @@ template&lt;ostream_type T&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Insertion manipulator: applies a <code>std::function</code> manipulator taking the concrete stream type <code>T&amp;</code>. </p>
 
 </div>
 </div>
@@ -1978,6 +2010,8 @@ requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b3101
       </table>
 </div><div class="memdoc">
 
+<p>Insertion manipulator: applies a <code>std::function</code> manipulator taking a base class <code>U&amp;</code> of <code>T</code>. </p>
+
 </div>
 </div>
 <a id="a61c3a221d1866a5d370fbc7944cfe307" name="a61c3a221d1866a5d370fbc7944cfe307"></a>
@@ -2009,6 +2043,8 @@ requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
       </table>
 </div><div class="memdoc">
 
+<p>Formatted insertion operator: writes a value of type <code>TValue</code> to the stream under the current locale. </p>
+
 </div>
 </div>
 <a id="a8cf627b4b038a6b901bab099239a6b72" name="a8cf627b4b038a6b901bab099239a6b72"></a>
@@ -2038,6 +2074,8 @@ template&lt;ostream_type T&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Insertion manipulator: applies a function-pointer manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>. </p>
 
 </div>
 </div>
@@ -2069,6 +2107,8 @@ template&lt;ostream_type T&gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p>Insertion manipulator: applies a function-pointer manipulator taking the concrete stream type <code>T&amp;</code>. </p>
+
 </div>
 </div>
 <a id="a51198ad44e72fa662052cac879425b67" name="a51198ad44e72fa662052cac879425b67"></a>
@@ -2099,6 +2139,8 @@ requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b3101
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Insertion manipulator: applies a function-pointer manipulator taking a base class <code>U&amp;</code> of <code>T</code>. </p>
 
 </div>
 </div>
@@ -2586,6 +2628,8 @@ template&lt;istream_type T&gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p>Extraction manipulator: applies a <code>std::function</code> manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>. </p>
+
 </div>
 </div>
 <a id="a279535ac89f7ddc255959a28b36b3d40" name="a279535ac89f7ddc255959a28b36b3d40"></a>
@@ -2615,6 +2659,8 @@ template&lt;istream_type T&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Extraction manipulator: applies a <code>std::function</code> manipulator taking the concrete stream type <code>T&amp;</code>. </p>
 
 </div>
 </div>
@@ -2647,6 +2693,8 @@ requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b3101
       </table>
 </div><div class="memdoc">
 
+<p>Extraction manipulator: applies a <code>std::function</code> manipulator taking a base class <code>U&amp;</code> of <code>T</code>. </p>
+
 </div>
 </div>
 <a id="a97dedafa172a023bd073c5f93ae28794" name="a97dedafa172a023bd073c5f93ae28794"></a>
@@ -2678,6 +2726,8 @@ requires is_reader_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5
       </table>
 </div><div class="memdoc">
 
+<p>Formatted extraction operator: parses a value of type <code>TValue</code> from the stream under the current locale. </p>
+
 </div>
 </div>
 <a id="affd1b46d3a901743e57fc6fd0cdd9a32" name="affd1b46d3a901743e57fc6fd0cdd9a32"></a>
@@ -2707,6 +2757,8 @@ template&lt;istream_type T&gt; </div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Extraction manipulator: applies a function-pointer manipulator taking <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>. </p>
 
 </div>
 </div>
@@ -2738,6 +2790,8 @@ template&lt;istream_type T&gt; </div>
       </table>
 </div><div class="memdoc">
 
+<p>Extraction manipulator: applies a function-pointer manipulator taking the concrete stream type <code>T&amp;</code>. </p>
+
 </div>
 </div>
 <a id="a3568a5aa0b66869bdc91095e286fea14" name="a3568a5aa0b66869bdc91095e286fea14"></a>
@@ -2768,6 +2822,8 @@ requires std::derived_from&lt;T, <a class="el" href="namespaceIOv2.html#a09b3101
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Extraction manipulator: applies a function-pointer manipulator taking a base class <code>U&amp;</code> of <code>T</code>. </p>
 
 </div>
 </div>

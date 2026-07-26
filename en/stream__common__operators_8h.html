@@ -406,6 +406,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1stream__common__operators.html">IOv2::stream_common_operators</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mix-in base that provides operations common to input and output streams.  <a href="structIOv2_1_1stream__common__operators.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -419,7 +420,9 @@ Functions</h2></td></tr>
 <tr class="memdesc:ab91abcd60a649c65f879bef157fab8ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the process-wide lock that guards the entire tie graph.  <br /></td></tr>
 <tr class="separator:ab91abcd60a649c65f879bef157fab8ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Defines the common operations shared by input and output streams. Includes the process-wide lock <code>tie_graph_mutex()</code> that guards the entire tie graph, and the <code>stream_common_operators</code> mix-in base carrying positioning (<code>tell</code>/<code>seek</code>/<code>rseek</code>), underlying device management (<code>device</code>/<code>detach</code>/<code>attach</code>), conversion-behavior adjustment (<code>adjust</code>/<code>retrieve</code>), locale access, <code>io_mutex</code> access, and stream tying (<code>tie</code>).  </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

@@ -1,5 +1,5 @@
 <map id="IOv2::istream_operators&lt; TChar &gt;" name="IOv2::istream_operators&lt; TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,163,184,203"/>
+<area shape="rect" id="Node000001" title="为输入流提供各类提取操作的混入（mix&#45;in）基类。" alt="" coords="5,163,184,203"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="237,5,419,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,152,173,111,231,70,254,58,257,63,233,75,176,115,129,156"/>
 <area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="232,84,424,139"/>

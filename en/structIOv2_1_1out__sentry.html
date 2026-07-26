@@ -97,11 +97,15 @@ $(document).ready(function(){initNavTree('structIOv2_1_1out__sentry.html',''); i
 </div><!--header-->
 <div class="contents">
 
+<p>RAII sentry for output operations: performs the shared setup at the entry of every insertion operation and an automatic flush at its end.  
+ <a href="structIOv2_1_1out__sentry.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
 <tr class="memitem:accada22856456a343aae0ae37409122b" id="r_accada22856456a343aae0ae37409122b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#accada22856456a343aae0ae37409122b">lock_type</a> = std::unique_lock&lt; std::remove_reference_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp; &gt;().io_mutex())&gt; &gt;</td></tr>
+<tr class="memdesc:accada22856456a343aae0ae37409122b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The lock type used by the sentry: a <code>std::unique_lock</code> over the mutex returned by the stream's <code>io_mutex()</code>. .  <br /></td></tr>
 <tr class="separator:accada22856456a343aae0ae37409122b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -121,7 +125,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a71f1d7ae9886eea7107b7c52d3f3420f" id="r_a71f1d7ae9886eea7107b7c52d3f3420f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a71f1d7ae9886eea7107b7c52d3f3420f">operator=</a> (<a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a71f1d7ae9886eea7107b7c52d3f3420f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt;<br />
+struct IOv2::out_sentry&lt; TStream, involve_input, is_std &gt;</div><p>RAII sentry for output operations: performs the shared setup at the entry of every insertion operation and an automatic flush at its end. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="accada22856456a343aae0ae37409122b" name="accada22856456a343aae0ae37409122b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#accada22856456a343aae0ae37409122b">&#9670;&#160;</a></span>lock_type</h2>
 
@@ -135,6 +142,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>The lock type used by the sentry: a <code>std::unique_lock</code> over the mutex returned by the stream's <code>io_mutex()</code>. . </p>
 
 </div>
 </div>

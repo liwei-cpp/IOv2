@@ -1,5 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="5,516,140,541"/>
+<area shape="rect" id="Node000000" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic flush() interface." alt="" coords="5,516,140,541"/>
 <area shape="rect" id="Node000001" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,266,371,306"/>
 <area shape="poly" id="edge11_Node000000_Node000001" title=" " alt="" coords="78,501,92,460,114,410,145,360,165,336,186,316,206,304,227,295,229,300,208,308,190,320,168,340,150,363,119,413,97,462,84,503"/>
 <area shape="rect" id="Node000002" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,330,371,370"/>
@@ -84,13 +84,13 @@
 <area shape="poly" id="edge51_Node000013_Node000014" title=" " alt="" coords="405,908,413,915,432,940,445,966,453,991,456,1017,452,1067,440,1117,428,1167,423,1217,425,1242,431,1268,443,1293,461,1319,482,1337,478,1341,457,1322,438,1296,426,1269,420,1243,418,1217,423,1166,435,1116,446,1066,450,1017,448,992,440,968,428,943,409,918,401,911"/>
 <area shape="poly" id="edge59_Node000013_Node000018" title=" " alt="" coords="405,909,413,915,427,931,434,948,438,982,441,1015,448,1031,460,1047,486,1063,483,1068,457,1051,443,1034,436,1017,432,983,429,949,422,934,409,919,402,913"/>
 <area shape="poly" id="edge61_Node000013_Node000043" title=" " alt="" coords="405,908,413,915,431,939,439,964,440,989,438,1014,436,1039,436,1063,444,1087,461,1111,480,1125,503,1135,501,1140,477,1130,457,1115,439,1090,431,1064,430,1039,433,1014,435,989,434,965,426,942,409,918,402,913"/>
-<area shape="rect" id="Node000017" href="$structIOv2_1_1istream__operators.html" title=" " alt="" coords="210,1125,389,1165"/>
+<area shape="rect" id="Node000017" href="$structIOv2_1_1istream__operators.html" title="Mix&#45;in base that provides the various extraction operations for input streams." alt="" coords="210,1125,389,1165"/>
 <area shape="poly" id="edge65_Node000017_Node000008" title=" " alt="" coords="338,1115,393,1079,458,1046,490,1034,492,1039,460,1051,396,1084,341,1119"/>
 <area shape="poly" id="edge63_Node000017_Node000010" title=" " alt="" coords="391,1166,486,1191,484,1196,390,1171"/>
 <area shape="poly" id="edge64_Node000017_Node000014" title=" " alt="" coords="324,1175,380,1247,418,1285,460,1318,482,1331,480,1335,457,1323,414,1289,376,1250,319,1178"/>
 <area shape="poly" id="edge66_Node000017_Node000018" title=" " alt="" coords="399,1119,488,1098,490,1103,400,1124"/>
 <area shape="poly" id="edge67_Node000017_Node000043" title=" " alt="" coords="402,1142,503,1142,503,1147,402,1147"/>
-<area shape="rect" id="Node000027" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="208,573,391,613"/>
+<area shape="rect" id="Node000027" href="$structIOv2_1_1ostream__operators.html" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="208,573,391,613"/>
 <area shape="poly" id="edge74_Node000027_Node000008" title=" " alt="" coords="404,614,413,623,430,646,441,669,448,692,450,715,447,761,437,806,427,850,424,894,426,916,433,938,444,961,461,983,482,999,479,1004,457,987,440,963,428,940,421,917,419,894,422,849,432,804,441,760,445,715,442,693,436,671,425,649,409,626,400,618"/>
 <area shape="poly" id="edge75_Node000027_Node000040" title=" " alt="" coords="405,615,413,623,437,661,446,698,444,736,437,773,431,809,429,845,437,881,461,918,484,935,481,939,457,921,432,883,424,846,425,808,432,772,439,735,440,699,432,663,409,626,401,619"/>
 <area shape="poly" id="edge68_Node000027_Node000020" title=" " alt="" coords="401,565,409,559,422,543,429,527,432,493,436,458,443,440,457,423,475,409,478,413,461,427,448,443,441,459,438,493,434,528,427,545,413,563,404,569"/>
@@ -116,7 +116,7 @@
 <area shape="poly" id="edge83_Node000036_Node000035" title=" " alt="" coords="665,532,742,545,741,550,665,538"/>
 <area shape="rect" id="Node000039" href="$classIOv2_1_1sing__temp.html" title=" " alt="" coords="501,645,651,685"/>
 <area shape="poly" id="edge84_Node000039_Node000038" title=" " alt="" coords="665,676,742,689,741,694,664,682"/>
-<area shape="rect" id="Node000019" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="214,765,385,805"/>
+<area shape="rect" id="Node000019" href="$structIOv2_1_1stream__common__operators.html" title="Mix&#45;in base that provides operations common to input and output streams." alt="" coords="214,765,385,805"/>
 <area shape="poly" id="edge93_Node000019_Node000008" title=" " alt="" coords="399,804,413,815,429,836,436,858,437,901,438,943,445,963,461,983,482,998,479,1002,457,987,441,965,433,944,432,901,431,859,424,839,409,819,395,808"/>
 <area shape="poly" id="edge95_Node000019_Node000040" title=" " alt="" coords="399,805,412,815,424,828,431,841,437,867,443,893,449,905,460,917,484,932,481,937,457,921,445,908,438,895,432,869,426,843,420,831,409,819,396,809"/>
 <area shape="poly" id="edge87_Node000019_Node000020" title=" " alt="" coords="395,763,409,751,424,731,434,710,443,670,441,630,433,590,425,549,422,508,431,466,441,444,457,423,475,407,478,411,461,426,446,447,436,468,428,508,430,549,438,589,446,630,448,671,439,712,428,733,413,754,398,767"/>

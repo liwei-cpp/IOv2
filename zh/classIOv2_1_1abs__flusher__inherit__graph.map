@@ -1,5 +1,5 @@
 <map id="IOv2::abs_flusher" name="IOv2::abs_flusher">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,269,140,294"/>
+<area shape="rect" id="Node000001" title="承载多态 flush() 接口的抽象基类。" alt="" coords="5,269,140,294"/>
 <area shape="rect" id="Node000002" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,5,371,45"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,254,90,211,112,157,144,103,164,77,186,55,205,43,226,34,228,39,208,48,190,59,167,81,148,106,117,160,96,213,83,256"/>
 <area shape="rect" id="Node000003" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,69,371,109"/>

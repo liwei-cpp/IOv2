@@ -97,13 +97,16 @@ $(document).ready(function(){initNavTree('structIOv2_1_1ostream__operators.html'
 </div><!--header-->
 <div class="contents">
 
+<p>Mix-in base that provides the various insertion operations for output streams.  
+ <a href="structIOv2_1_1ostream__operators.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::ostream_operators&lt; TChar &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="structIOv2_1_1ostream__operators__inherit__graph.png" border="0" usemap="#aIOv2_1_1ostream__operators_3_01TChar_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1ostream__operators_3_01TChar_01_4_inherit__map" id="aIOv2_1_1ostream__operators_3_01TChar_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="5,327,188,367"/>
+<area shape="rect" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="5,327,188,367"/>
 <area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,5,453,60"/>
 <area shape="poly" title=" " alt="" coords="103,313,119,260,145,195,183,128,207,97,234,69,252,57,255,61,238,73,211,100,188,131,150,197,124,262,108,315"/>
 <area shape="rect" href="classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,84,453,139"/>
@@ -141,9 +144,11 @@ Inheritance diagram for IOv2::ostream_operators&lt; TChar &gt;:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aae8fda0762d505db0ada6009f40f955b" id="r_aae8fda0762d505db0ada6009f40f955b"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &gt; </td></tr>
 <tr class="memitem:aae8fda0762d505db0ada6009f40f955b"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#aae8fda0762d505db0ada6009f40f955b">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">this</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;self, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
+<tr class="memdesc:aae8fda0762d505db0ada6009f40f955b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a single character to the stream.  <br /></td></tr>
 <tr class="separator:aae8fda0762d505db0ada6009f40f955b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a830aa88220a9ce16592ca1f200f16cff" id="r_a830aa88220a9ce16592ca1f200f16cff"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &gt; </td></tr>
 <tr class="memitem:a830aa88220a9ce16592ca1f200f16cff"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#a830aa88220a9ce16592ca1f200f16cff">write</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">this</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;self, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:a830aa88220a9ce16592ca1f200f16cff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes <code>n</code> characters to the stream.  <br /></td></tr>
 <tr class="separator:a830aa88220a9ce16592ca1f200f16cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
@@ -151,9 +156,13 @@ Friends</h2></td></tr>
 <tr class="memitem:a1808ef6ebeada0688ff7cfcb0530e171" id="r_a1808ef6ebeada0688ff7cfcb0530e171"><td class="memTemplParams" colspan="2">template&lt;ostream_type U, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
 requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> U::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt; || is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> U::char_type, std::decay_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;&gt;)</td></tr>
 <tr class="memitem:a1808ef6ebeada0688ff7cfcb0530e171"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#a1808ef6ebeada0688ff7cfcb0530e171">operator&lt;&lt;</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">U</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="memdesc:a1808ef6ebeada0688ff7cfcb0530e171"><td class="mdescLeft">&#160;</td><td class="mdescRight">Befriends the formatted insertion operator so it can access the private <code>o_iter</code>. .  <br /></td></tr>
 <tr class="separator:a1808ef6ebeada0688ff7cfcb0530e171"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;<br />
+struct IOv2::ostream_operators&lt; TChar &gt;</div><p>Mix-in base that provides the various insertion operations for output streams. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="aae8fda0762d505db0ada6009f40f955b" name="aae8fda0762d505db0ada6009f40f955b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aae8fda0762d505db0ada6009f40f955b">&#9670;&#160;</a></span>put()</h2>
 
@@ -191,6 +200,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Writes a single character to the stream. </p>
 
 </div>
 </div>
@@ -238,6 +249,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
+<p>Writes <code>n</code> characters to the stream. </p>
+
 </div>
 </div>
 <h2 class="groupheader">Friends And Related Symbol Documentation</h2>
@@ -279,6 +292,8 @@ requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Befriends the formatted insertion operator so it can access the private <code>o_iter</code>. . </p>
 
 </div>
 </div>

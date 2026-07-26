@@ -1,5 +1,5 @@
 <map id="IOv2::ostream_operators&lt; TChar &gt;" name="IOv2::ostream_operators&lt; TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,327,188,367"/>
+<area shape="rect" id="Node000001" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="5,327,188,367"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,5,453,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,313,119,260,145,195,183,128,207,97,234,69,252,57,255,61,238,73,211,100,188,131,150,197,124,262,108,315"/>
 <area shape="rect" id="Node000004" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="254,84,453,139"/>

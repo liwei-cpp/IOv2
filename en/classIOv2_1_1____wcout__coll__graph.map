@@ -14,11 +14,11 @@
 <area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="475,168,502,176,581,202,656,235,709,265,757,296,754,300,707,270,653,240,579,207,501,181,474,173"/>
 <area shape="rect" id="Node000008" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down&#45;cast to the concrete stream type T is localized ..." alt="" coords="319,191,490,217"/>
 <area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="468,218,502,227,579,248,656,271,725,295,723,300,654,276,578,253,501,232,467,223"/>
-<area shape="rect" id="Node000009" href="$classIOv2_1_1abs__flusher.html" title=" " alt="" coords="23,198,158,223"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic flush() interface." alt="" coords="23,198,158,223"/>
 <area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="172,206,319,203,319,208,172,212"/>
-<area shape="rect" id="Node000010" href="$structIOv2_1_1ostream__operators.html" title=" " alt="" coords="313,241,496,281"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1ostream__operators.html" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="313,241,496,281"/>
 <area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="510,276,679,304,678,309,509,281"/>
-<area shape="rect" id="Node000011" href="$structIOv2_1_1stream__common__operators.html" title=" " alt="" coords="319,305,490,345"/>
+<area shape="rect" id="Node000011" href="$structIOv2_1_1stream__common__operators.html" title="Mix&#45;in base that provides operations common to input and output streams." alt="" coords="319,305,490,345"/>
 <area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="504,323,678,323,678,328,504,328"/>
 <area shape="rect" id="Node000012" href="$structIOv2_1_1ostreambuf.html" title=" " alt="" coords="308,369,501,409"/>
 <area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="515,369,678,342,679,347,515,374"/>

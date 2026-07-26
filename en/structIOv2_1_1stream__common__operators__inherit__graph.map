@@ -1,5 +1,5 @@
 <map id="IOv2::stream_common_operators" name="IOv2::stream_common_operators">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,485,176,525"/>
+<area shape="rect" id="Node000001" title="Mix&#45;in base that provides operations common to input and output streams." alt="" coords="5,485,176,525"/>
 <area shape="rect" id="Node000002" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="251,5,432,60"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,470,96,390,115,283,132,226,155,169,184,116,222,69,249,50,252,55,226,73,189,119,159,172,137,227,120,284,101,391,95,471"/>
 <area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="245,84,437,139"/>

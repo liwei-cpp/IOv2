@@ -406,6 +406,7 @@ stream_common_operators.h 的引用(Include)关系图:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1stream__common__operators.html">IOv2::stream_common_operators</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">为输入流与输出流提供公共操作的混入（mix-in）基类。  <a href="structIOv2_1_1stream__common__operators.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -419,7 +420,9 @@ stream_common_operators.h 的引用(Include)关系图:</div>
 <tr class="memdesc:ab91abcd60a649c65f879bef157fab8ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回保护整张 tie 图的进程级全局锁。  <br /></td></tr>
 <tr class="separator:ab91abcd60a649c65f879bef157fab8ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-</div><!-- contents -->
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>定义了输入流与输出流共用的公共操作。 包含保护整张 tie 图的进程级全局锁 <code>tie_graph_mutex()</code>，以及承载定位（<code>tell</code>/<code>seek</code>/ <code>rseek</code>）、底层设备管理（<code>device</code>/<code>detach</code>/<code>attach</code>）、转换行为调整（<code>adjust</code>/<code>retrieve</code>）、 locale 存取、<code>io_mutex</code> 访问与流绑定（<code>tie</code>）等操作的 <code>stream_common_operators</code> 混入基类。 </p>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

@@ -97,11 +97,15 @@ $(document).ready(function(){initNavTree('structIOv2_1_1in__sentry.html',''); in
 </div><!--header-->
 <div class="contents">
 
+<p>输入操作的 RAII 哨兵：在每次提取操作的入口统一完成前置准备。  
+ <a href="structIOv2_1_1in__sentry.html#details">更多...</a></p>
+
 <p><code>#include &lt;<a class="el" href="istream__operators_8h_source.html">istream_operators.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public 类型</h2></td></tr>
 <tr class="memitem:a817e433ebf00a43652600405f2a34d7d" id="r_a817e433ebf00a43652600405f2a34d7d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a817e433ebf00a43652600405f2a34d7d">lock_type</a> = std::unique_lock&lt; std::remove_reference_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp; &gt;().io_mutex())&gt; &gt;</td></tr>
+<tr class="memdesc:a817e433ebf00a43652600405f2a34d7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">哨兵所用锁的类型，即针对流 <code>io_mutex()</code> 返回的互斥量的 <code>std::unique_lock</code>。  <br /></td></tr>
 <tr class="separator:a817e433ebf00a43652600405f2a34d7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
@@ -120,7 +124,10 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a7d71c636a02bb1e3d7cb5da7f5050e24" id="r_a7d71c636a02bb1e3d7cb5da7f5050e24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1in__sentry.html">in_sentry</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1in__sentry.html#a7d71c636a02bb1e3d7cb5da7f5050e24">operator=</a> (<a class="el" href="structIOv2_1_1in__sentry.html">in_sentry</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">delete</a></td></tr>
 <tr class="separator:a7d71c636a02bb1e3d7cb5da7f5050e24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">成员类型定义说明</h2>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_output&gt;<br />
+struct IOv2::in_sentry&lt; TStream, involve_output &gt;</div><p>输入操作的 RAII 哨兵：在每次提取操作的入口统一完成前置准备。 </p>
+</div><h2 class="groupheader">成员类型定义说明</h2>
 <a id="a817e433ebf00a43652600405f2a34d7d" name="a817e433ebf00a43652600405f2a34d7d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a817e433ebf00a43652600405f2a34d7d">&#9670;&#160;</a></span>lock_type</h2>
 
@@ -134,6 +141,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>哨兵所用锁的类型，即针对流 <code>io_mutex()</code> 返回的互斥量的 <code>std::unique_lock</code>。 </p>
 
 </div>
 </div>
