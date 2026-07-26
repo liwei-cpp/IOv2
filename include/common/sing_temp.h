@@ -130,7 +130,7 @@ public:
      */
     struct init
     {
-        init()
+        init() noexcept
         {
             static_assert(std::is_class_v<T>, "sing_temp: T must be a class type");
             static_assert(!std::is_abstract_v<T>, "sing_temp: T cannot be abstract");
@@ -160,7 +160,9 @@ public:
         init& operator=(init&&) = delete;
     };
 
-protected:
+private:
+    friend T;
+
     sing_temp() = default;
     ~sing_temp() = default;
 
@@ -190,7 +192,7 @@ public:
      *          and dereferencing it causes undefined behavior.
      * @endif
      */
-    [[nodiscard]] static T* ptr()
+    [[nodiscard]] static T* ptr() noexcept
     {
         return instance();
     }
