@@ -68,7 +68,7 @@ public:
         if (auto* tied = m_os.tie())
         {
             try { tied->flush(); }
-            catch (...) {}
+            catch (...) {} // NOLINT(bugprone-empty-catch)
         }
 
         m_lock.lock();
@@ -185,6 +185,8 @@ public:
 
     out_sentry(const out_sentry&) = delete;
     out_sentry& operator=(const out_sentry&) = delete;
+    out_sentry(out_sentry&&) = delete;
+    out_sentry& operator=(out_sentry&&) = delete;
 
 private:
     TStream&    m_os;
@@ -212,6 +214,13 @@ class abs_flusher
 {
 public:
     virtual ~abs_flusher() = default;
+
+protected:
+    abs_flusher()                              = default;
+    abs_flusher(const abs_flusher&)            = default;
+    abs_flusher& operator=(const abs_flusher&) = default;
+    abs_flusher(abs_flusher&&)                 = default;
+    abs_flusher& operator=(abs_flusher&&)      = default;
 
 public:
     virtual void flush() = 0;
@@ -281,7 +290,7 @@ struct out_flusher : public abs_flusher
      * calls `switch_to_put()` internally), so no sentry is needed for that either.
      * @endif
      */
-    virtual void flush() override
+    void flush() override
     {
         T& obj = static_cast<T&>(*this);
         std::lock_guard guard(obj.io_mutex());

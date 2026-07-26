@@ -62,7 +62,7 @@ struct in_sentry
         if (auto* tied = is.tie())
         {
             try { tied->flush(); }
-            catch (...) {}
+            catch (...) {} // NOLINT(bugprone-empty-catch)
         }
 
         m_lock.lock();
@@ -101,6 +101,8 @@ struct in_sentry
 
     in_sentry(const in_sentry&) = delete;
     in_sentry& operator=(const in_sentry&) = delete;
+    in_sentry(in_sentry&&) = delete;
+    in_sentry& operator=(in_sentry&&) = delete;
 
 private:
     TStream&   m_is;
