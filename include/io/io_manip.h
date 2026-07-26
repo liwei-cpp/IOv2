@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <limits>
 
 namespace IOv2
@@ -221,9 +222,9 @@ inline _Get_money<_MoneyT> get_money(_MoneyT& mon, bool intl = false) { return {
 template <typename TChar, typename TMoney>
 struct reader<TChar, _Get_money<TMoney>>
 {
-    template <typename TIter>
+    template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter s, TIter s_end, ios_base<TChar>& io, const locale<TChar>& loc, _Get_money<TMoney>& f)
+    static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc, _Get_money<TMoney>& f)
     {
         auto mp = loc.template get<monetary<TChar>>();
         if (!mp)
@@ -233,6 +234,46 @@ struct reader<TChar, _Get_money<TMoney>>
     }
 };
 
+/**
+ * @lang{ZH}
+ * @brief 提取操纵符：按当前 locale 的货币格式解析并写入 `get_money` 所引用的对象。
+ *
+ * @note 本重载**按值**接收操纵符对象，因此支持 `is >> get_money(x)` 这一惯用写法。
+ *       泛型的格式化提取运算符取的是非常量左值引用 `TValue&`，而 `get_money(x)` 是
+ *       纯右值，绑不上去；若没有本重载，调用方只能先落成具名左值再提取。按值接收不
+ *       影响语义：`_Get_money` 的成员本身就是引用，拷贝聚合体只是重新绑定到同一个
+ *       被引对象。
+ * @param f 由 `get_money()` 构造的操纵符。
+ * @return 流自身的引用。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extraction manipulator: parses a monetary value under the current locale and
+ *        stores it into the object `get_money` refers to.
+ *
+ * @note This overload takes the manipulator **by value**, which is what makes the
+ *       idiomatic `is >> get_money(x)` work. The generic formatted-extraction operator
+ *       takes a non-const lvalue reference `TValue&`, and `get_money(x)` is a prvalue,
+ *       which cannot bind to it; without this overload a caller would first have to
+ *       materialize a named lvalue. Taking it by value changes nothing semantically:
+ *       `_Get_money`'s members are references already, so copying the aggregate merely
+ *       rebinds to the same referent.
+ * @param f The manipulator produced by `get_money()`.
+ * @return A reference to the stream itself.
+ * @endif
+ */
+template <istream_type T, typename TMoney>
+inline T& operator>>(T& is, _Get_money<TMoney> f)
+{
+    // Delegate to the generic formatted-extraction operator: it owns the sentry, the
+    // skipws handling, the stream iterator (i_iter is private and befriends only that
+    // template) and the eofbit bookkeeping. The explicit template argument list is
+    // required rather than stylistic -- `is >> f` would re-select *this* overload,
+    // because f is a named lvalue and the by-value candidate is the more specialized
+    // one, and recurse forever.
+    return operator>><T, _Get_money<TMoney>>(is, f);
+}
+
 template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* fmt; };
 template<typename _CharT>
 inline _Put_time<_CharT> put_time(const std::tm* tmb, const _CharT* fmt) { return { tmb, fmt }; }
@@ -240,14 +281,57 @@ inline _Put_time<_CharT> put_time(const std::tm* tmb, const _CharT* fmt) { retur
 template <typename TChar>
 struct writer<TChar, _Put_time<TChar>>
 {
+    /**
+     * @lang{ZH}
+     * @brief 按 `fmt` 的格式将 `*tmb` 写出。
+     *
+     * @note `put_time` 保存的是两个裸指针，两者都在此处校验后才解引用。空指针在这里是
+     *       **未定义行为**而非可恢复的错误：`*(f.tmb)` 会把引用绑定到空指针，而 `f.fmt`
+     *       会隐式转换成 `std::basic_string_view`，走 `char_traits::length(nullptr)`。
+     *       二者都不是异常，`operator<<` 外层的 `catch` 接不住，直接崩溃。这也是为什么
+     *       校验必须放在这里，而不是靠调用方自觉——`localtime()` 失败返回 `nullptr`、
+     *       格式串来自配置或环境变量，都是很常见的真实路径。
+     * @note 校验放在 `swrite` 而非 `put_time` 工厂里，是为了让异常落进 `operator<<` 的
+     *       catch，经 `handle_exception` 归类为 `strfailbit`，与 `ostream::write` 等处的
+     *       空指针处理保持一致的错误模型。
+     * @param f 待写出的时间与格式串；`f.tmb` 与 `f.fmt` 均不得为空。
+     * @return 指向最后一个写入位置之后的输出迭代器。
+     * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或缺少 timeio facet。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes `*tmb` formatted according to `fmt`.
+     *
+     * @note `put_time` stores two raw pointers; both are validated here before being
+     *       dereferenced. A null pointer is **undefined behavior** here, not a recoverable
+     *       error: `*(f.tmb)` binds a reference to a null pointer, and `f.fmt` converts
+     *       implicitly to a `std::basic_string_view`, reaching
+     *       `char_traits::length(nullptr)`. Neither is an exception, so the enclosing
+     *       `catch` in `operator<<` cannot intercept it and the process crashes. That is why
+     *       the check belongs here rather than being left to the caller -- a failing
+     *       `localtime()` returning `nullptr`, or a format string coming from configuration
+     *       or the environment, are entirely ordinary paths.
+     * @note The check lives in `swrite` rather than in the `put_time` factory so that the
+     *       exception lands in `operator<<`'s catch and is categorized as `strfailbit` by
+     *       `handle_exception`, matching the error model of the null-pointer checks in
+     *       `ostream::write` and friends.
+     * @param f The time and format string to write; neither `f.tmb` nor `f.fmt` may be null.
+     * @return An output iterator past the last written position.
+     * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, or the timeio facet is
+     *        missing.
+     * @endif
+     */
     template <typename TIter>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, _Put_time<TChar> f)
     {
+        if (f.tmb == nullptr || f.fmt == nullptr)
+            throw stream_error("put_time fail: null tm or format pointer");
+
         auto mp = loc.template get<timeio<TChar>>();
         if (!mp)
             throw stream_error("cannot get timeio facet");
-        
+
         return mp->put(s, *(f.tmb), f.fmt);
     }
 };
@@ -259,19 +343,81 @@ inline _Get_time<_CharT> get_time(std::tm* tmb, const _CharT* fmt) { return { tm
 template <typename TChar>
 struct reader<TChar, _Get_time<TChar>>
 {
-    template <typename TIter>
+    /**
+     * @lang{ZH}
+     * @brief 按 `fmt` 的格式解析时间并写入 `*tmb`。
+     *
+     * @note 与 `put_time` 同理，`get_time` 保存的两个裸指针在解引用前必须校验：`f.fmt`
+     *       为空时向 `std::basic_string_view` 的隐式转换即为未定义行为，`f.tmb` 为空时
+     *       回写 `*(f.tmb)` 是空指针写入。二者都绕过异常机制直接崩溃。
+     * @param f 用于接收解析结果的 `tm` 与格式串；`f.tmb` 与 `f.fmt` 均不得为空。
+     * @return 指向最后一个被消费字符之后的输入迭代器。
+     * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或缺少 timeio facet。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Parses a time according to `fmt` and stores it into `*tmb`.
+     *
+     * @note As with `put_time`, the two raw pointers `get_time` stores must be validated
+     *       before being dereferenced: a null `f.fmt` makes the implicit conversion to
+     *       `std::basic_string_view` undefined behavior, and a null `f.tmb` makes the
+     *       write-back through `*(f.tmb)` a null-pointer store. Both bypass the exception
+     *       machinery and crash outright.
+     * @param f The `tm` receiving the parsed result and the format string; neither `f.tmb`
+     *          nor `f.fmt` may be null.
+     * @return An input iterator past the last consumed character.
+     * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, or the timeio facet is
+     *        missing.
+     * @endif
+     */
+    template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter s, TIter s_end, ios_base<TChar>& io, const locale<TChar>& loc, _Get_time<TChar>& f)
+    static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc, _Get_time<TChar>& f)
     {
+        if (f.tmb == nullptr || f.fmt == nullptr)
+            throw stream_error("get_time fail: null tm or format pointer");
+
         auto mp = loc.template get<timeio<TChar>>();
         if (!mp)
             throw stream_error("cannot get timeio facet");
 
-        typename timeio<TChar>::get_context tmp;
+        // The context is date+time without a time zone, matching
+        // parse_context_type<TChar, std::tm>; that is also the combination whose
+        // explicit operator std::tm() is available.
+        time_parse_context<TChar, true, true, false> tmp;
         auto res = mp->get(s, s_end, tmp, f.fmt);
-        *(f.tmb) = tmp.to_tm();
+        *(f.tmb) = static_cast<std::tm>(tmp);
 
         return res;
     }
 };
+
+/**
+ * @lang{ZH}
+ * @brief 提取操纵符：按 `fmt` 的格式解析时间并写入 `get_time` 所指的 `std::tm`。
+ *
+ * @note 与 `get_money` 的重载同理，本重载**按值**接收操纵符对象，使 `is >> get_time(&tm, fmt)`
+ *       这一惯用写法可用；详见 `operator>>(T&, _Get_money<TMoney>)` 的说明。
+ * @param f 由 `get_time()` 构造的操纵符。
+ * @return 流自身的引用。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extraction manipulator: parses a time according to `fmt` and stores it into the
+ *        `std::tm` that `get_time` points to.
+ *
+ * @note As with the `get_money` overload, this one takes the manipulator **by value** so
+ *       that the idiomatic `is >> get_time(&tm, fmt)` works; see the note on
+ *       `operator>>(T&, _Get_money<TMoney>)`.
+ * @param f The manipulator produced by `get_time()`.
+ * @return A reference to the stream itself.
+ * @endif
+ */
+template <istream_type T, typename TChar>
+inline T& operator>>(T& is, _Get_time<TChar> f)
+{
+    // Explicit template arguments for the same reason as in the _Get_money overload:
+    // `is >> f` would recurse into this very function.
+    return operator>><T, _Get_time<TChar>>(is, f);
+}
 }
