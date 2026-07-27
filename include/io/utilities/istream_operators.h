@@ -1164,30 +1164,83 @@ T& operator>>(T& obj, TValue& value)
         bool skip = bool(obj.flags() & ios_defs::skipws);
         sentry_type cerb(obj, !skip, lk);
 
-        if constexpr (is_reader_def<TChar, TCtx>)
-        {
-            if (obj.eof())
-                throw stream_error("istream extraction fail: reached EOF with no value extracted");
+        if (obj.eof())
+            throw stream_error("istream extraction fail: reached EOF with no value extracted");
 
-            if constexpr (std::is_same_v<TCtx, TValue>)
-                reader<TChar, TValue>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
-            else
-            {
-                TCtx tmp;
-                reader<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
-                value = static_cast<TValue>(tmp);
-            }
-
-            if (saw_eof) obj.setstate(ios_defs::eofbit);
-        }
+        if constexpr (std::is_same_v<TCtx, TValue>)
+            reader<TChar, TValue>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
         else
-            static_assert(dependent_false_v<TValue>, "No parse method provided");
+        {
+            TCtx tmp;
+            reader<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
+            value = static_cast<TValue>(tmp);
+        }
+
+        if (saw_eof) obj.setstate(ios_defs::eofbit);
     }
     catch(...)
     {
         obj.handle_exception(std::current_exception(), saw_eof);
     }
 
+    return obj;
+}
+
+/**
+ * @lang{ZH}
+ * @brief 兜底重载：当提取无法成立时，给出一条简短的编译期错误。
+ *
+ * 覆盖两类失败：目标类型没有对应的 `reader` 特化；或目标不是可修改左值（临时量、`const`
+ * 对象）。若没有本重载，前者只会得到一句 `no match for 'operator>>'` 外加三十余个候选的
+ * 转储，后者更会在 facet 内部炸出几十行"向只读变量赋值"——真正的原因都埋在里面。
+ *
+ * @note 本重载**不加约束**是刻意的：它要能接住任意类型。它不会抢走本该成功的调用，因为
+ *       所有正常路径在重载决议中都严格优于它——
+ *       - 上面的格式化提取运算符收 `TValue&`，对非常量左值是非常量引用绑定，优于本重载的
+ *         常量引用绑定；两者签名不等价时由此决出，等价时则由"约束更多者胜"决出。
+ *       - 各操纵符重载（`void(*)(T&)`、`const std::function<void(T&)>&`、`_Setw` 等）与本
+ *         重载转换序列打平，转由模板偏序裁决，而它们的形参类型都比 `const TValue&` 更特化。
+ * @warning 形参必须是 `const TValue&` 而非 `TValue&`。写成后者会以非常量引用绑定**压过**
+ *          所有操纵符重载的常量引用绑定，把 `is >> manip` 之类的调用全部劫持到这里、变成
+ *          编译错误——这正是当初给上面那个运算符加 `requires` 所要修复的缺陷，
+ *          见 `test_istream_ws_char.cpp` 中的回归用例。
+ * @tparam TValue 被提取的目标类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Fallback overload: emits one short compile-time error when an extraction cannot work.
+ *
+ * It covers two kinds of failure: the target type has no `reader` specialization, or the target
+ * is not a modifiable lvalue (a temporary, or a `const` object). Without this overload the
+ * former yields only `no match for 'operator>>'` plus a dump of thirty-odd candidates, and the
+ * latter explodes into dozens of "assignment of read-only variable" lines inside the facets --
+ * in both cases burying the actual cause.
+ *
+ * @note Leaving this overload **unconstrained** is deliberate: it has to catch any type. It
+ *       cannot steal a call that ought to succeed, because every working path outranks it in
+ *       overload resolution:
+ *       - The formatted extraction operator above takes `TValue&`, a non-const reference
+ *         binding for a non-const lvalue, which beats this overload's const reference binding;
+ *         where the signatures are equivalent instead, the more-constrained one wins.
+ *       - The manipulator overloads (`void(*)(T&)`, `const std::function<void(T&)>&`, `_Setw`
+ *         and friends) tie with this one on conversion sequence, so partial ordering decides,
+ *         and their parameter types are all more specialized than `const TValue&`.
+ * @warning The parameter must be `const TValue&`, not `TValue&`. The latter would bind a
+ *          non-const reference and thereby **outrank** every manipulator overload's const
+ *          binding, hijacking calls such as `is >> manip` into this overload and turning them
+ *          into compile errors -- precisely the defect that constraining the operator above was
+ *          meant to fix; see the regression case in `test_istream_ws_char.cpp`.
+ * @tparam TValue The type being extracted into.
+ * @endif
+ */
+template <istream_type T, typename TValue>
+T& operator>>(T& obj, const TValue&)
+{
+    static_assert(dependent_false_v<TValue>,
+        "IOv2: cannot extract into this type. Either no reader<char_type, TValue> is defined "
+        "for it (define one -- see io/fp_defs/base_fp.h -- or extract into a supported type "
+        "such as an arithmetic type, CharT[N], or std::basic_string), or the target is not a "
+        "modifiable lvalue (extraction cannot write into a temporary or a const object).");
     return obj;
 }
 }
