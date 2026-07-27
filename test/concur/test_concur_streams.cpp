@@ -199,3 +199,42 @@ void test_concur_switch_1()
 
     dump_info("Done\n");
 }
+
+void test_concur_endl_1()
+{
+    dump_info("Test concurrent endl against the locale setter case 1...");
+    using namespace IOv2;
+
+    // endl has to widen '\n', which means reading the stream's locale. The locale setter
+    // move-assigns m_locale while holding io_mutex(), and locale's own move-assignment
+    // takes no lock at all, so that read must happen under the same lock -- reading it
+    // outside is a plain data race on locale's two maps.
+    //
+    // It is also why endl must not route "flush this time" through the format flags: that
+    // read-modify-write straddles the put(), so two threads can each observe the other's
+    // intermediate state and one of them silently skips its flush. m_flags is atomic, so
+    // that one is a lost update rather than a data race and TSan cannot see it; the only
+    // thing checked here is that the flags are not left disturbed afterwards.
+    const locale<char> loc("C");
+    ostream os(mem_device<char>{});
+    VERIFY((os.flags() & ios_defs::unitbuf) == 0);
+
+    spawn([&os, &loc](int id)
+    {
+        for (int i = 0; i < kIters; ++i)
+        {
+            switch (id % 4)
+            {
+                case 0:
+                case 1: os << IOv2::endl;        break;
+                case 2: (void)os.locale(loc);    break;
+                case 3: os << "x" << i;          break;
+            }
+        }
+    });
+
+    // A stream that started without unitbuf must not come out of this with it set.
+    VERIFY((os.flags() & ios_defs::unitbuf) == 0);
+
+    dump_info("Done\n");
+}

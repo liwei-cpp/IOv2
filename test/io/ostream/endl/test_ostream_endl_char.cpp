@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
+#include <facet/ctype.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
@@ -115,6 +116,45 @@ void test_ostream_null_manip_char_1()
         oss << "ok";
         auto [dev, err] = oss.detach();
         VERIFY( dev.str() == "ok" );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_ostream_endl_char_2()
+{
+    dump_info("Test ostream<char> with endl case 2 (facet failure leaves the flags alone)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // endl needs a ctype facet to widen '\n'; without one it fails. It used to set
+        // unitbuf before that point and restore it only on the normal path, so the failure
+        // left unitbuf set on the stream for good -- every later write then flushed to the
+        // device, silently and permanently. endl no longer touches the flags at all.
+        IOv2::locale<char> loc("C");
+        T str(IOv2::mem_device{""}, loc.remove<IOv2::ctype_conf<char>>());
+
+        const IOv2::ios_defs::fmtflags before = str.flags();
+        VERIFY((before & IOv2::ios_defs::unitbuf) == 0);
+
+        str << IOv2::endl;
+
+        VERIFY(str.str_fail());                 // reported as a stream failure
+        VERIFY(str.flags() == before);          // and nothing else was disturbed
+
+        // The same holds when the failure is reported by throwing.
+        T thr(IOv2::mem_device{""}, loc.remove<IOv2::ctype_conf<char>>());
+        thr.exceptions(IOv2::ios_defs::strfailbit);
+        const IOv2::ios_defs::fmtflags thr_before = thr.flags();
+
+        bool threw = false;
+        try { thr << IOv2::endl; }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(thr.flags() == thr_before);
     };
 
     helper.operator()<IOv2::ostream>();
