@@ -14,24 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - compiler: g++
-            image: gcc:15
-            extra_pkgs: ""
-          - compiler: clang++
-            image: gcc:15 # Use same base to ensure latest libstdc++
-            extra_pkgs: "clang"
+        # Both compilers run out of the one image; sharing a base is what keeps
+        # clang++ on the same libstdc++ that g++ uses.
+        compiler: [ g++, clang++ ]
 
     container:
-      image: ${{ matrix.image }}
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
 
     steps:
     - uses: actions/checkout@v6
-
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev valgrind locales-all make tzdata ${{ matrix.extra_pkgs }}
 
     - name: Run tests (Release)
       run: |
@@ -54,14 +45,9 @@ jobs:
   thread-safety:
     runs-on: ubuntu-latest
     container:
-      image: gcc:15
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
     steps:
     - uses: actions/checkout@v6
-
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata locales-all
 
     - name: Run concurrency tests under ThreadSanitizer
       run: |
@@ -87,14 +73,9 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     container:
-      image: gcc:15
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
     steps:
     - uses: actions/checkout@v6
-
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata lcov locales-all
 
     - name: Generate Coverage Report
       run: |
@@ -121,14 +102,9 @@ jobs:
   install-paths:
     runs-on: ubuntu-latest
     container:
-      image: gcc:15
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
     steps:
     - uses: actions/checkout@v6
-
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev make pkg-config tzdata locales-all
 
     - name: Build the shared library
       run: make shared
@@ -191,14 +167,9 @@ jobs:
   clang-tidy:
     runs-on: ubuntu-latest
     container:
-      image: gcc:15
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
     steps:
     - uses: actions/checkout@v6
-
-    - name: Install dependencies
-      run: |
-        apt-get update
-        apt-get install -y zlib1g-dev libbotan-2-dev make tzdata clang-tidy clang
 
     - name: Run clang-tidy
       run: |
