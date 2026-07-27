@@ -7,6 +7,7 @@
 #include <io/fp_defs/arithmetic.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
+#include <io/istream.h>
 #include <io/ostream.h>
 #include <support/dump_info.h>
 #include <support/verify.h>
@@ -71,6 +72,66 @@ void test_io_base_manipulators_put_money_wchar_t_2()
     VERIFY(oss.cvt_fail());
     auto [dev4, err4] = oss.detach();
     VERIFY(dev4.str().empty());
+
+    dump_info("Done\n");
+}
+void test_io_base_manipulators_get_money_char_1()
+{
+    dump_info("Test ios_base<char> get_money case 1...");
+
+    // Round-trips the put_money case-1 output. Exercises the idiomatic rvalue form
+    // `is >> get_money(x)`, which needs the by-value operator>> overload.
+    IOv2::istream iss{IOv2::mem_device{std::string("7.200.000.000,00 ")},
+                      IOv2::locale<char>("de_DE.ISO-8859-1")};
+
+    std::string str;
+    iss >> IOv2::get_money(str);
+    VERIFY(static_cast<bool>(iss));
+    VERIFY(!iss.str_fail());
+    VERIFY(str == "720000000000");
+
+    dump_info("Done\n");
+}
+
+void test_io_base_manipulators_get_money_char_2()
+{
+    dump_info("Test ios_base<char> get_money case 2...");
+
+    // Integral target, and the named-lvalue form `auto g = get_money(v); is >> g;`
+    // which resolves to the generic extraction operator instead.
+    IOv2::istream iss{IOv2::mem_device{std::string("1.234,56 ")},
+                      IOv2::locale<char>("de_DE.ISO-8859-1")};
+
+    long long units = -1;
+    auto manip = IOv2::get_money(units);
+    iss >> manip;
+    VERIFY(static_cast<bool>(iss));
+    VERIFY(units == 123456);
+
+    // A stream already in a failed state extracts nothing and leaves the target alone.
+    IOv2::istream iss2{IOv2::mem_device{std::string("1.234,56 ")},
+                       IOv2::locale<char>("de_DE.ISO-8859-1")};
+    long long untouched = -1;
+    iss2.setstate(IOv2::ios_defs::cvtfailbit);
+    iss2 >> IOv2::get_money(untouched);
+    VERIFY(iss2.cvt_fail());
+    VERIFY(untouched == -1);
+
+    dump_info("Done\n");
+}
+
+void test_io_base_manipulators_get_money_wchar_t_1()
+{
+    dump_info("Test ios_base<wchar_t> get_money case 1...");
+
+    IOv2::istream iss{IOv2::mem_device{std::wstring(L"7.200.000.000,00 ")},
+                      IOv2::locale<wchar_t>("de_DE.ISO-8859-1")};
+
+    std::wstring str;
+    iss >> IOv2::get_money(str);
+    VERIFY(static_cast<bool>(iss));
+    VERIFY(!iss.str_fail());
+    VERIFY(str == L"720000000000");
 
     dump_info("Done\n");
 }
