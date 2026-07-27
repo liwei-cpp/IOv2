@@ -496,19 +496,29 @@ $(document).ready(function(){initNavTree('ostream__operators_8h_source.html','')
 <div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span> </div>
 <div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>        <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptIOv2_1_1is__writer__def.html">is_writer_def&lt;TChar, TValue&gt;</a>)</div>
 <div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>            <a class="code hl_struct" href="structIOv2_1_1writer.html">writer&lt;TChar, TValue&gt;::swrite</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.o_iter(), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.locale(), value);</div>
-<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>        <span class="keywordflow">else</span> <span class="keywordflow">if</span> <span class="keyword">constexpr</span> (<a class="code hl_concept" href="conceptIOv2_1_1is__writer__def.html">is_writer_def&lt;TChar, TDecay&gt;</a>)</div>
+<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>        <span class="keywordflow">else</span></div>
 <div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>            <a class="code hl_struct" href="structIOv2_1_1writer.html">writer&lt;TChar, TDecay&gt;::swrite</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.o_iter(), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.locale(), value);</div>
-<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>        <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>            <span class="keyword">static_assert</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dependent_false_v&lt;TValue&gt;</a>, <span class="stringliteral">&quot;No format method provided&quot;</span>);</div>
-<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>    }</div>
-<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>    <span class="keywordflow">catch</span>(...)</div>
-<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>    {</div>
-<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.handle_exception(std::current_exception());</div>
-<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>    }</div>
-<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>;</div>
-<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>}</div>
+<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>    }</div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>    <span class="keywordflow">catch</span>(...)</div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>    {</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>        <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>.handle_exception(std::current_exception());</div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>    }</div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>;</div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>}</div>
 </div>
-<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>}</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span> </div>
+<div class="line"><a id="l00949" name="l00949"></a><span class="lineno">  949</span><span class="keyword">template</span> &lt;ostream_type T, <span class="keyword">typename</span> TValue&gt;</div>
+<div class="foldopen" id="foldopen00950" data-start="{" data-end="}">
+<div class="line"><a id="l00950" name="l00950"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#a9e1307cdd59a6acf1911ed82a61e1e67">  950</a></span>T&amp; <a class="code hl_function" href="namespaceIOv2.html#ace3b1e7971f57f8b88f9eb1b551b006d">operator&lt;&lt;</a>(T&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <span class="keyword">const</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&amp;)</div>
+<div class="line"><a id="l00951" name="l00951"></a><span class="lineno">  951</span>{</div>
+<div class="line"><a id="l00952" name="l00952"></a><span class="lineno">  952</span>    <span class="keyword">static_assert</span>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dependent_false_v&lt;TValue&gt;</a>,</div>
+<div class="line"><a id="l00953" name="l00953"></a><span class="lineno">  953</span>        <span class="stringliteral">&quot;IOv2: cannot insert this type into a stream: no writer&lt;char_type, TValue&gt; is defined &quot;</span></div>
+<div class="line"><a id="l00954" name="l00954"></a><span class="lineno">  954</span>        <span class="stringliteral">&quot;for it. Define one -- see io/fp_defs/base_fp.h -- or convert the value to a supported &quot;</span></div>
+<div class="line"><a id="l00955" name="l00955"></a><span class="lineno">  955</span>        <span class="stringliteral">&quot;type first (an arithmetic type, a character type, CharT*, or std::basic_string).&quot;</span>);</div>
+<div class="line"><a id="l00956" name="l00956"></a><span class="lineno">  956</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>;</div>
+<div class="line"><a id="l00957" name="l00957"></a><span class="lineno">  957</span>}</div>
+</div>
+<div class="line"><a id="l00958" name="l00958"></a><span class="lineno">  958</span>}</div>
 <div class="ttc" id="abase__fp_8h_html"><div class="ttname"><a href="base__fp_8h.html">base_fp.h</a></div></div>
 <div class="ttc" id="aclassIOv2_1_1abs__flusher_html"><div class="ttname"><a href="classIOv2_1_1abs__flusher.html">IOv2::abs_flusher</a></div><div class="ttdoc">Abstract base carrying the polymorphic flush() interface.</div><div class="ttdef"><b>Definition</b> ostream_operators.h:332</div></div>
 <div class="ttc" id="aclassIOv2_1_1abs__flusher_html_a224a522129ead29ca7ebf08ab315c81a"><div class="ttname"><a href="classIOv2_1_1abs__flusher.html#a224a522129ead29ca7ebf08ab315c81a">IOv2::abs_flusher::~abs_flusher</a></div><div class="ttdeci">virtual ~abs_flusher()=default</div></div>

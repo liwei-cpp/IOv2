@@ -96,19 +96,24 @@ $(document).ready(function(){initNavTree('structIOv2_1_1reader_3_01TChar_00_01TC
 </div><!--header-->
 <div class="contents">
 
+<p>Blocking specialization: extraction into a raw character pointer is rejected at compile time.  
+ <a href="structIOv2_1_1reader_3_01TChar_00_01TChar_01_5_01_4.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="char__and__str_8h_source.html">char_and_str.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:aa30d0489b886711fb69e5615d8fde87f" id="r_aa30d0489b886711fb69e5615d8fde87f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
+<tr class="memitem:aa6f10ee58b821539f085641e8558eac0" id="r_aa6f10ee58b821539f085641e8558eac0"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
 requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
-<tr class="memitem:aa30d0489b886711fb69e5615d8fde87f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1reader_3_01TChar_00_01TChar_01_5_01_4.html#aa30d0489b886711fb69e5615d8fde87f">sread</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">iter</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">iter_end</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
-<tr class="memdesc:aa30d0489b886711fb69e5615d8fde87f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts one whitespace-delimited token into the buffer a raw pointer refers to.  <br /></td></tr>
-<tr class="separator:aa30d0489b886711fb69e5615d8fde87f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6f10ee58b821539f085641e8558eac0"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1reader_3_01TChar_00_01TChar_01_5_01_4.html#aa6f10ee58b821539f085641e8558eac0">sread</a> (TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *)</td></tr>
+<tr class="separator:aa6f10ee58b821539f085641e8558eac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa30d0489b886711fb69e5615d8fde87f" name="aa30d0489b886711fb69e5615d8fde87f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa30d0489b886711fb69e5615d8fde87f">&#9670;&#160;</a></span>sread()</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;<br />
+struct IOv2::reader&lt; TChar, TChar * &gt;</div><p>Blocking specialization: extraction into a raw character pointer is rejected at compile time. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="aa6f10ee58b821539f085641e8558eac0" name="aa6f10ee58b821539f085641e8558eac0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6f10ee58b821539f085641e8558eac0">&#9670;&#160;</a></span>sread()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -125,31 +130,31 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter <a class="el" href="structIOv2_1_1reader.html">IOv2::reader</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> * &gt;::sread </td>
           <td>(</td>
           <td class="paramtype">TIter&#160;</td>
-          <td class="paramname"><em>iter</em>, </td>
+          <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a>&#160;</td>
-          <td class="paramname"><em>iter_end</em>, </td>
+          <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>io</em>, </td>
+          <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>loc</em>, </td>
+          <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *&#160;</td>
-          <td class="paramname"><em>c</em>&#160;</td>
+          <td class="paramname">&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -163,8 +168,6 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
   </tr>
 </table>
 </div><div class="memdoc">
-
-<p>Extracts one whitespace-delimited token into the buffer a raw pointer refers to. </p>
 
 </div>
 </div>
