@@ -11,6 +11,7 @@ void test_ostream_inserters_character();
 void test_ostream_inserters_time();
 void test_ostream_seek();
 void test_ostream_tell();
+void test_ostream_tie();
 
 void test_ostream()
 {
@@ -27,4 +28,5 @@ void test_ostream()
     test_ostream_inserters_time();
     test_ostream_seek();
     test_ostream_tell();
+    test_ostream_tie();
 }
