@@ -8,6 +8,7 @@ void test_concur_sentryless_1();
 void test_concur_state_1();
 void test_concur_tie_1();
 void test_concur_switch_1();
+void test_concur_endl_1();
 
 void test_istream_sync_char_1();
 void test_istream_sync_wchar_t_1();
@@ -24,6 +25,7 @@ int main()
         test_concur_state_1();
         test_concur_tie_1();
         test_concur_switch_1();
+        test_concur_endl_1();
 
         test_istream_sync_char_1();
         test_istream_sync_wchar_t_1();

@@ -506,24 +506,46 @@ struct ostream_operators
      * @brief 向流写入单个字符。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param c 要写入的字符。
+     * @param force_flush 为 `true` 时，无论 `unitbuf` 标志是否置位，本次写入结束后都刷新
+     *        缓冲区并对设备 `dflush()`；为 `false`（默认）时只遵循 `unitbuf`。
      * @return 流自身的引用。
+     * @note 本参数存在的原因：`out_sentry` 本就把"是否 unitbuf"作为构造参数接收，所以
+     *       "这一次要不要刷新"从来都是一个**局部**信息。若没有它，像 `endl` 这样需要强制
+     *       刷新的操纵符只能绕道去临时置位再复位全局的 `unitbuf` 标志，而那个读-改-写会
+     *       跨越本函数、既非原子也非异常安全：并发下两个线程会各自读到对方的中间态、其中
+     *       一个静默地不刷新，异常路径上则会把 `unitbuf` 永久遗留在流上。把它作为参数传入
+     *       就从根上消除了这两种失败，也不再污染其它线程看到的格式标志。
      * @endif
      *
      * @lang{EN}
      * @brief Writes a single character to the stream.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param c The character to write.
+     * @param force_flush When `true`, the buffer is flushed and the device `dflush()`ed after
+     *        this write regardless of the `unitbuf` flag; when `false` (the default), only
+     *        `unitbuf` governs that.
      * @return A reference to the stream itself.
+     * @note Why this parameter exists: `out_sentry` already takes "is this unitbuf" as a
+     *       constructor argument, so "should this particular call flush" has always been
+     *       **local** information. Without it, a manipulator that needs a forced flush -- `endl`
+     *       being the one -- has to detour through temporarily setting and clearing the global
+     *       `unitbuf` flag, and that read-modify-write straddles this function while being
+     *       neither atomic nor exception-safe: concurrently, two threads each observe the
+     *       other's intermediate state and one of them silently skips its flush, while on an
+     *       exception path `unitbuf` is left set on the stream for good. Passing it as an
+     *       argument removes both failures at the root, and stops perturbing the format flags
+     *       other threads observe.
      * @endif
      */
     template<typename TSelf>
-    TSelf& put(this TSelf& self, TChar c)
+    TSelf& put(this TSelf& self, TChar c, bool force_flush = false)
     {
         std::unique_lock lk(self.io_mutex(), std::defer_lock);
         try
         {
             using sentry_type = typename TSelf::out_sentry_type;
-            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode), lk);
+            sentry_type cerb(self, force_flush || bool(self.flags() & ios_defs::unitbuf),
+                             bool(self.flags() & ios_defs::appmode), lk);
             self.m_streambuf.sputc(c);
         }
         catch(...)
