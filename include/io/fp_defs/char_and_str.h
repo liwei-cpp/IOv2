@@ -1,8 +1,8 @@
 #pragma once
 #include <algorithm>
-#include <limits>
 #include <string>
 #include <type_traits>
+#include <common/metafunctions.h>
 #include <io/io_base.h>
 #include <io/fp_defs/base_fp.h>
 #include <facet/ctype.h>
@@ -167,77 +167,104 @@ struct writer<TChar, const TChar*>
     }
 };
 
+/**
+ * @lang{ZH}
+ * @brief 封锁特化：禁止向裸字符指针提取，`is >> ptr` 在编译期报错。
+ *
+ * 与 C++20 起的 `std::istream` 一致——P0487R1 删除了 `operator>>(basic_istream&, charT*)`，
+ * 只保留数组引用形式。理由见 `reader<TChar, TChar[N]>` 的说明。
+ *
+ * @warning **本特化不能简单地"删掉了事"。** `reader<TChar, TValue> requires is_pointer_v<TValue>`
+ *          （见 `fp_defs/arithmetic.h`）会匹配任意指针类型，用于按地址值解析指针。若此处不留
+ *          一个更特化的封锁项，`is >> charPtr` 不会变成编译错误，而是**静默改道**到那条路——
+ *          把输入里的地址字面量写进指针变量本身，使调用方拿到一个指向任意地址的野指针。
+ *          那比它取代的越界写更危险，因此这里必须显式拦截，而不是留空。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Blocking specialization: extraction into a raw character pointer is rejected at
+ *        compile time.
+ *
+ * This matches `std::istream` as of C++20 -- P0487R1 removed
+ * `operator>>(basic_istream&, charT*)`, keeping only the array-reference form. See
+ * `reader<TChar, TChar[N]>` for the rationale.
+ *
+ * @warning **This specialization must not simply be deleted.**
+ *          `reader<TChar, TValue> requires is_pointer_v<TValue>` (see `fp_defs/arithmetic.h`)
+ *          matches any pointer type in order to parse a pointer address. Without a more
+ *          specialized blocker here, `is >> charPtr` would not become a compile error but
+ *          would **silently reroute** to that reader -- storing an address literal parsed from
+ *          the input into the pointer variable itself, handing the caller a wild pointer to an
+ *          arbitrary address. That is more dangerous than the out-of-bounds write it replaced,
+ *          so the case has to be intercepted explicitly rather than left to fall through.
+ * @endif
+ */
 template <typename TChar>
 struct reader<TChar, TChar*>
 {
-    /**
-     * @lang{ZH}
-     * @brief 将一个以空白分隔的 token 提取到裸指针所指的缓冲区。
-     *
-     * @warning **本重载要求调用方以 `setw(n)` 显式给出字段宽度，否则拒绝提取。**
-     *          这是对 `std::istream` 的有意偏离，理由是内存安全：目标是裸指针时，本库
-     *          无从得知缓冲区容量——`istream_extract` 的循环只有三个终止条件（写满
-     *          `num`、输入流 EOF、遇到空白），而后两者描述的是**输入源**的状态，与目标
-     *          缓冲区大小无关。因此唯一的越界防线就是 `num`，它只能来自 `io.width()`。
-     *          标准库在这里选择"无 width 即无上界"，`is >> ptr` 会一路写到遇见空白为止，
-     *          输入受攻击者控制时即为可利用的缓冲区溢出。本库改为显式报错。
-     * @note 数组重载 `reader<TChar, TChar[N]>` **不**受此约束：它从类型中拿到真实容量
-     *       `N`，本身就是安全的，无需 `setw`。
-     * @note `width` 是一次性的（`istream_extract` 返回前会 `io.width(0)`），故链式提取
-     *       `is >> setw(n) >> p1 >> p2` 中 `p2` 同样需要自己的 `setw`——这正是本检查要
-     *       拦下的典型误用。
-     * @note 由于 `width` 以 `std::uint8_t` 存储（见 `ios_base::width`），本重载可读入的
-     *       token 上限为 255 个字符；更长的 token 请提取到 `std::basic_string`。
-     * @param c 目标缓冲区；不得为空指针。
-     * @return 指向最后一个被消费字符之后的输入迭代器。
-     * @throw stream_error 若 `c` 为空指针，或未经 `setw(n)` 设置字段宽度（`width == 0`）。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Extracts one whitespace-delimited token into the buffer a raw pointer refers to.
-     *
-     * @warning **This overload requires the caller to supply a field width via `setw(n)`;
-     *          otherwise it refuses to extract.** This is a deliberate divergence from
-     *          `std::istream`, made for memory safety: when the target is a raw pointer the
-     *          library cannot know the buffer's capacity -- `istream_extract`'s loop has only
-     *          three termination conditions (`num` reached, input at EOF, whitespace found),
-     *          and the latter two describe the state of the *input source* and say nothing
-     *          about the destination's size. The only bound left is `num`, which can only
-     *          come from `io.width()`. The standard library chooses "no width means no
-     *          bound", so `is >> ptr` writes on until whitespace -- an exploitable buffer
-     *          overflow when the input is attacker-controlled. This library reports an error
-     *          instead.
-     * @note The array overload `reader<TChar, TChar[N]>` is **not** subject to this: it takes
-     *       the real capacity `N` from the type and is safe on its own, with no `setw` needed.
-     * @note `width` is one-shot (`istream_extract` does `io.width(0)` before returning), so in
-     *       a chained extraction `is >> setw(n) >> p1 >> p2` the `p2` step needs its own
-     *       `setw` -- precisely the misuse this check is meant to catch.
-     * @note Because `width` is stored as a `std::uint8_t` (see `ios_base::width`), this
-     *       overload can read at most 255 characters; extract into a `std::basic_string` for
-     *       longer tokens.
-     * @param c The destination buffer; must not be a null pointer.
-     * @return An input iterator past the last consumed character.
-     * @throw stream_error If `c` is a null pointer, or no field width was set via `setw(n)`
-     *        (`width == 0`).
-     * @endif
-     */
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* c)
+    static TIter sread(TIter, TSent, ios_base<TChar>&, const locale<TChar>&, TChar*)
     {
-        if (c == nullptr) throw IOv2::stream_error("Cannot read NULL character sequence");
-
-        if (io.width() == 0)
-            throw IOv2::stream_error(
-                "istream extraction into a raw pointer requires an explicit field width: "
-                "the buffer capacity is unknown here, so use setw(n) to bound the read, "
-                "or extract into an array or a std::basic_string instead");
-
-        constexpr std::streamsize n = std::numeric_limits<std::streamsize>::max();
-        return istream_extract(iter, iter_end, io, loc, c, n);
+        static_assert(dependent_false_v<TChar>,
+            "IOv2: extraction into a raw character pointer is not supported, because the "
+            "buffer capacity cannot be known here (this matches std::istream as of C++20, "
+            "which removed the charT* overload). Extract into a CharT[N] array or a "
+            "std::basic_string, or use the unformatted read(s, n) / get(s, n).");
+        return TIter{};
     }
 };
 
+/**
+ * @lang{ZH}
+ * @brief 将一个以空白分隔的 token 提取到定长字符数组。
+ *
+ * @note **本库不提供向裸指针（`TChar*`）提取的 reader，`is >> ptr` 无法编译。** 这与
+ *       C++20 起的 `std::istream` 一致：P0487R1 删除了 `operator>>(basic_istream&, charT*)`，
+ *       只保留数组引用形式 `charT (&)[N]`。理由是内存安全——目标是裸指针时，库无从得知
+ *       缓冲区容量：`istream_extract` 的循环只有三个终止条件（写满 `num`、输入流 EOF、
+ *       遇到空白），而后两者描述的是**输入源**的状态，与目标缓冲区大小无关。C++17 及更早
+ *       的规定是"`width == 0` 即无上界"，于是 `is >> ptr` 会一路写到遇见空白为止，输入
+ *       受攻击者控制时即为可利用的缓冲区溢出。
+ * @note 本重载安全的原因是上界 `N` 来自**类型**而非流状态：实际读入量为
+ *       `min(width, N) - 1` 个字符加一个终止符。因此 `setw()` 在这里只能把边界**收紧**，
+ *       永远不可能放宽；即便携带了来自上一次操作的陈旧 `width`（算术提取、`get_money`、
+ *       `get_time` 等都不消费 `width`，与标准一致），也绝不会越过 `N`。
+ * @note 需要运行期确定容量的缓冲区，请提取到 `std::basic_string`（自动增长），或改用
+ *       非格式化的 `istream::read(s, n)` / `get(s, n)`，二者都显式接收容量。
+ * @param c 目标缓冲区。
+ * @return 指向最后一个被消费字符之后的输入迭代器。
+ * @throw stream_error 若 `N <= 1`（放不下终止符），或未提取到任何字符。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extracts one whitespace-delimited token into a fixed-size character array.
+ *
+ * @note **This library provides no reader for a raw pointer (`TChar*`); `is >> ptr` does not
+ *       compile.** This matches `std::istream` as of C++20: P0487R1 removed
+ *       `operator>>(basic_istream&, charT*)`, keeping only the array-reference form
+ *       `charT (&)[N]`. The reason is memory safety -- when the target is a raw pointer the
+ *       library cannot know the buffer's capacity: `istream_extract`'s loop has only three
+ *       termination conditions (`num` reached, input at EOF, whitespace found), and the
+ *       latter two describe the state of the *input source* and say nothing about the
+ *       destination's size. The rule through C++17 was "`width == 0` means no bound", so
+ *       `is >> ptr` wrote on until whitespace -- an exploitable buffer overflow when the
+ *       input is attacker-controlled.
+ * @note What makes this overload safe is that the bound `N` comes from the **type** rather
+ *       than from stream state: at most `min(width, N) - 1` characters plus a terminator are
+ *       stored. `setw()` can therefore only **tighten** the bound here, never loosen it --
+ *       even a stale `width` left over from an earlier operation (arithmetic extraction,
+ *       `get_money` and `get_time` do not consume `width`, matching the standard) can never
+ *       reach past `N`.
+ * @note For a buffer whose capacity is only known at run time, extract into a
+ *       `std::basic_string` (which grows on demand), or use the unformatted
+ *       `istream::read(s, n)` / `get(s, n)`, both of which take the capacity explicitly.
+ * @param c The destination buffer.
+ * @return An input iterator past the last consumed character.
+ * @throw stream_error If `N <= 1` (no room for the terminator), or no characters were
+ *        extracted.
+ * @endif
+ */
 template <typename TChar, size_t N>
 struct reader<TChar, TChar[N]>
 {
@@ -247,20 +274,25 @@ struct reader<TChar, TChar[N]>
     {
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
-        
+
         constexpr std::streamsize n = N;
         return istream_extract(iter, iter_end, io, loc, c, n);
     }
 };
 
+// Blocker, as for TChar*: without it, unsigned char* falls through to the is_pointer_v
+// reader in fp_defs/arithmetic.h and is silently parsed as an address. See reader<TChar, TChar*>.
 template <>
 struct reader<char, unsigned char*>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<char, typename TIter::value_type>)
-    static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, unsigned char* c)
+    static TIter sread(TIter, TSent, ios_base<char>&, const locale<char>&, unsigned char*)
     {
-        return reader<char, char*>::sread(iter, iter_end, io, loc, reinterpret_cast<char*>(c));
+        static_assert(dependent_false_v<TIter>,
+            "IOv2: extraction into a raw character pointer is not supported; "
+            "use an unsigned char[N] array, a std::basic_string, or read(s, n) / get(s, n).");
+        return TIter{};
     }
 };
 
@@ -278,14 +310,19 @@ struct reader<char, unsigned char[N]>
     }
 };
 
+// Blocker, as for TChar*: without it, signed char* falls through to the is_pointer_v
+// reader in fp_defs/arithmetic.h and is silently parsed as an address. See reader<TChar, TChar*>.
 template <>
 struct reader<char, signed char*>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<char, typename TIter::value_type>)
-    static TIter sread(TIter iter, TSent iter_end, ios_base<char>& io, const locale<char>& loc, signed char* c)
+    static TIter sread(TIter, TSent, ios_base<char>&, const locale<char>&, signed char*)
     {
-        return reader<char, char*>::sread(iter, iter_end, io, loc, reinterpret_cast<char*>(c));
+        static_assert(dependent_false_v<TIter>,
+            "IOv2: extraction into a raw character pointer is not supported; "
+            "use a signed char[N] array, a std::basic_string, or read(s, n) / get(s, n).");
+        return TIter{};
     }
 };
 
