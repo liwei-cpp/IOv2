@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <string>
 #include <type_traits>
-#include <common/metafunctions.h>
 #include <io/io_base.h>
 #include <io/fp_defs/base_fp.h>
 #include <facet/ctype.h>
@@ -169,54 +168,6 @@ struct writer<TChar, const TChar*>
 
 /**
  * @lang{ZH}
- * @brief 封锁特化：禁止向裸字符指针提取，`is >> ptr` 在编译期报错。
- *
- * 与 C++20 起的 `std::istream` 一致——P0487R1 删除了 `operator>>(basic_istream&, charT*)`，
- * 只保留数组引用形式。理由见 `reader<TChar, TChar[N]>` 的说明。
- *
- * @warning **本特化不能简单地"删掉了事"。** `reader<TChar, TValue> requires is_pointer_v<TValue>`
- *          （见 `fp_defs/arithmetic.h`）会匹配任意指针类型，用于按地址值解析指针。若此处不留
- *          一个更特化的封锁项，`is >> charPtr` 不会变成编译错误，而是**静默改道**到那条路——
- *          把输入里的地址字面量写进指针变量本身，使调用方拿到一个指向任意地址的野指针。
- *          那比它取代的越界写更危险，因此这里必须显式拦截，而不是留空。
- * @endif
- *
- * @lang{EN}
- * @brief Blocking specialization: extraction into a raw character pointer is rejected at
- *        compile time.
- *
- * This matches `std::istream` as of C++20 -- P0487R1 removed
- * `operator>>(basic_istream&, charT*)`, keeping only the array-reference form. See
- * `reader<TChar, TChar[N]>` for the rationale.
- *
- * @warning **This specialization must not simply be deleted.**
- *          `reader<TChar, TValue> requires is_pointer_v<TValue>` (see `fp_defs/arithmetic.h`)
- *          matches any pointer type in order to parse a pointer address. Without a more
- *          specialized blocker here, `is >> charPtr` would not become a compile error but
- *          would **silently reroute** to that reader -- storing an address literal parsed from
- *          the input into the pointer variable itself, handing the caller a wild pointer to an
- *          arbitrary address. That is more dangerous than the out-of-bounds write it replaced,
- *          so the case has to be intercepted explicitly rather than left to fall through.
- * @endif
- */
-template <typename TChar>
-struct reader<TChar, TChar*>
-{
-    template <typename TIter, std::sentinel_for<TIter> TSent>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter, TSent, ios_base<TChar>&, const locale<TChar>&, TChar*)
-    {
-        static_assert(dependent_false_v<TChar>,
-            "IOv2: extraction into a raw character pointer is not supported, because the "
-            "buffer capacity cannot be known here (this matches std::istream as of C++20, "
-            "which removed the charT* overload). Extract into a CharT[N] array or a "
-            "std::basic_string, or use the unformatted read(s, n) / get(s, n).");
-        return TIter{};
-    }
-};
-
-/**
- * @lang{ZH}
  * @brief 将一个以空白分隔的 token 提取到定长字符数组。
  *
  * @note **本库不提供向裸指针（`TChar*`）提取的 reader，`is >> ptr` 无法编译。** 这与
@@ -280,22 +231,6 @@ struct reader<TChar, TChar[N]>
     }
 };
 
-// Blocker, as for TChar*: without it, unsigned char* falls through to the is_pointer_v
-// reader in fp_defs/arithmetic.h and is silently parsed as an address. See reader<TChar, TChar*>.
-template <>
-struct reader<char, unsigned char*>
-{
-    template <typename TIter, std::sentinel_for<TIter> TSent>
-        requires (std::is_same_v<char, typename TIter::value_type>)
-    static TIter sread(TIter, TSent, ios_base<char>&, const locale<char>&, unsigned char*)
-    {
-        static_assert(dependent_false_v<TIter>,
-            "IOv2: extraction into a raw character pointer is not supported; "
-            "use an unsigned char[N] array, a std::basic_string, or read(s, n) / get(s, n).");
-        return TIter{};
-    }
-};
-
 template <size_t N>
 struct reader<char, unsigned char[N]>
 {
@@ -307,22 +242,6 @@ struct reader<char, unsigned char[N]>
             throw IOv2::stream_error("Character buffer not enough");
         constexpr std::streamsize n = N;
         return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
-    }
-};
-
-// Blocker, as for TChar*: without it, signed char* falls through to the is_pointer_v
-// reader in fp_defs/arithmetic.h and is silently parsed as an address. See reader<TChar, TChar*>.
-template <>
-struct reader<char, signed char*>
-{
-    template <typename TIter, std::sentinel_for<TIter> TSent>
-        requires (std::is_same_v<char, typename TIter::value_type>)
-    static TIter sread(TIter, TSent, ios_base<char>&, const locale<char>&, signed char*)
-    {
-        static_assert(dependent_false_v<TIter>,
-            "IOv2: extraction into a raw character pointer is not supported; "
-            "use a signed char[N] array, a std::basic_string, or read(s, n) / get(s, n).");
-        return TIter{};
     }
 };
 
