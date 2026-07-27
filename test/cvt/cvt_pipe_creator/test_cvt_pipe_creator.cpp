@@ -19,12 +19,12 @@ void test_cvt_pipe_creator_put_1()
     std::string e_lit; e_lit.resize(4102);
     for (int i = 0; i < 4102; i += 7)
     {
-        e_lit[i+0] = '\xE6' + 'a';
-        e_lit[i+1] = '\x9D' + 'b';
-        e_lit[i+2] = '\x8E' + 'c';
-        e_lit[i+3] = '\xE4' + 'd';
-        e_lit[i+4] = '\xBC' + 'e';
-        e_lit[i+5] = '\x9F' + 'f';
+        e_lit[i+0] = static_cast<char>('\xE6' + 'a');
+        e_lit[i+1] = static_cast<char>('\x9D' + 'b');
+        e_lit[i+2] = static_cast<char>('\x8E' + 'c');
+        e_lit[i+3] = static_cast<char>('\xE4' + 'd');
+        e_lit[i+4] = static_cast<char>('\xBC' + 'e');
+        e_lit[i+5] = static_cast<char>('\x9F' + 'f');
         e_lit[i+6] = (i / 7) % 127 + 1 + 'g';
     }
     std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
@@ -208,12 +208,12 @@ void test_cvt_pipe_creator_get_1()
     std::string e_lit; e_lit.resize(4102);
     for (int i = 0; i < 4102; i += 7)
     {
-        e_lit[i+0] = '\xE6' + 'a';
-        e_lit[i+1] = '\x9D' + 'b';
-        e_lit[i+2] = '\x8E' + 'c';
-        e_lit[i+3] = '\xE4' + 'd';
-        e_lit[i+4] = '\xBC' + 'e';
-        e_lit[i+5] = '\x9F' + 'f';
+        e_lit[i+0] = static_cast<char>('\xE6' + 'a');
+        e_lit[i+1] = static_cast<char>('\x9D' + 'b');
+        e_lit[i+2] = static_cast<char>('\x8E' + 'c');
+        e_lit[i+3] = static_cast<char>('\xE4' + 'd');
+        e_lit[i+4] = static_cast<char>('\xBC' + 'e');
+        e_lit[i+5] = static_cast<char>('\x9F' + 'f');
         e_lit[i+6] = (i / 7) % 127 + 1 + 'g';
     }
 

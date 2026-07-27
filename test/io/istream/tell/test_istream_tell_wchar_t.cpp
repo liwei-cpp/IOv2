@@ -90,7 +90,7 @@ void test_istream_tell_wchar_t_2()
             iss >> asNum;
             VERIFY( iss.eof() );
             VERIFY( (bool)iss );
-            iss.seek(pos1);
+            iss.seek(pos1.value());
             VERIFY( (bool)iss );
         }
     };
@@ -135,10 +135,10 @@ void test_istream_tell_wchar_t_3()
         // have _M_mode == ios_base::out will fail to have consistency
         // between seek and tell.
         state01 = if01.rdstate();
-        if01.seek(10 + if01.tell());
+        if01.seek(10 + if01.tell().value());
         state02 = if01.rdstate();
         pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02 + 10 ); 
+        VERIFY( pos01 == pos02.value() + 10 ); 
         VERIFY( state01 == state02 );
         pos02 = if01.tell(); 
         VERIFY( pos02 == pos01 ); 
@@ -187,10 +187,10 @@ void test_istream_tell_wchar_t_4()
         // have _M_mode == ios_base::out will fail to have consistency
         // between seek and tell.
         state01 = if01.rdstate();
-        if01.seek(10 + if01.tell());
+        if01.seek(10 + if01.tell().value());
         state02 = if01.rdstate();
         pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02 + 10 ); 
+        VERIFY( pos01 == pos02.value() + 10 ); 
         VERIFY( state01 == state02 );
         pos02 = if01.tell(); 
         VERIFY( pos02 == pos01 );

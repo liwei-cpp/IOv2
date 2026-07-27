@@ -1,5 +1,6 @@
 #include <limits>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -111,7 +112,7 @@ void test_ostream_tell_char_2()
 }
 
 // When the underlying device's dtell() throws, tell() routes it through handle_exception
-// (-> devfailbit) and returns (size_t)-1; with no exception mask set it does not throw.
+// (-> devfailbit) and returns an empty optional; with no exception mask set it does not throw.
 // This drives the catch branch of stream_common_operators::tell().
 void test_ostream_tell_char_3()
 {
@@ -126,12 +127,12 @@ void test_ostream_tell_char_3()
         VERIFY( ost.tell() == 0 );   // succeeds while the flag is false
         *flag = true;                // now the device's dtell() throws
 
-        size_t pos = 0;
+        std::optional<size_t> pos = 0;
         bool threw = false;
         try { pos = ost.tell(); }
         catch (...) { threw = true; }
         VERIFY( !threw );
-        VERIFY( pos == static_cast<size_t>(-1) );
+        VERIFY( !pos.has_value() );
         VERIFY( ost.rdstate() & IOv2::ios_defs::devfailbit );
 
         *flag = false;               // let teardown succeed
