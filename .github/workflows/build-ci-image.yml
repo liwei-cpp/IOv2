@@ -1,0 +1,55 @@
+name: Build CI Image
+
+# Manually triggered, plus on deliberate edits to the Dockerfile itself. There is
+# no schedule: upstream gcc:15 is a floating tag, and rebuilding on a timer would
+# reintroduce exactly the silent toolchain drift this image exists to prevent.
+#
+# Pull requests build the image but do not publish it, so a Dockerfile that no
+# longer builds is caught in review rather than after it has landed on main and
+# every CI job is already pulling from it.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: [ '.github/docker/gcc15.Dockerfile' ]
+  push:
+    branches: [ main ]
+    paths: [ '.github/docker/gcc15.Dockerfile' ]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - uses: actions/checkout@v6
+
+    # Skipped on pull requests: nothing is published there, and a fork's
+    # GITHUB_TOKEN is read-only, so logging in would fail rather than no-op.
+    - name: Log in to GHCR
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: .github/docker/gcc15.Dockerfile
+        push: ${{ github.event_name != 'pull_request' }}
+        # :latest is what ci.yml consumes; the commit-tagged copy is kept so a
+        # bad toolchain bump can be identified and rolled back to by digest.
+        tags: |
+          ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+          ghcr.io/liwei-cpp/iov2-ci-gcc15:${{ github.sha }}
+
+    - name: Show image digest
+      if: github.event_name != 'pull_request'
+      run: docker buildx imagetools inspect ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
