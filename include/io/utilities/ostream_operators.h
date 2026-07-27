@@ -898,15 +898,61 @@ T& operator<<(T& obj, const TValue& value)
 
         if constexpr (is_writer_def<TChar, TValue>)
             writer<TChar, TValue>::swrite(obj.o_iter(), obj, obj.locale(), value);
-        else if constexpr (is_writer_def<TChar, TDecay>)
-            writer<TChar, TDecay>::swrite(obj.o_iter(), obj, obj.locale(), value);
         else
-            static_assert(dependent_false_v<TValue>, "No format method provided");
+            writer<TChar, TDecay>::swrite(obj.o_iter(), obj, obj.locale(), value);
     }
     catch(...)
     {
         obj.handle_exception(std::current_exception());
     }
+    return obj;
+}
+
+/**
+ * @lang{ZH}
+ * @brief 兜底重载：当插入无法成立时，给出一条简短的编译期错误。
+ *
+ * 与提取端的同名兜底对称。若没有本重载，`os << obj`（`obj` 的类型没有 `writer` 特化）只会
+ * 得到一句 `no match for 'operator<<'` 外加三十余个候选的转储，真正的原因埋在里面。
+ *
+ * @note 本重载**不加约束**，靠重载决议让位而非靠约束互斥。与提取端不同的是，这里无法依赖
+ *       常量性排序——上面的格式化插入运算符本身就收 `const TValue&`，与本重载**签名等价**。
+ *       决出胜负的是"约束更多者胜"规则：两个函数模板的形参列表等价时，有约束的一方优于无
+ *       约束的一方。因此凡是存在 `writer` 特化的类型都会走上面那个。
+ * @note 各操纵符重载（`void(*)(T&)`、`const std::function<void(T&)>&`、`_Setw`、
+ *       `_Setfill<char_type>` 等）与本重载转换序列打平，转由模板偏序裁决，而它们的形参类型
+ *       都比 `const TValue&` 更特化，故一律胜出。
+ * @tparam TValue 被插入的源类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Fallback overload: emits one short compile-time error when an insertion cannot work.
+ *
+ * The mirror image of the extraction-side fallback. Without it, `os << obj` for a type with no
+ * `writer` specialization yields only `no match for 'operator<<'` plus a dump of thirty-odd
+ * candidates, burying the actual cause.
+ *
+ * @note This overload is **unconstrained**, relying on overload resolution to yield rather than
+ *       on mutually exclusive constraints. Unlike the extraction side, const-ness ranking cannot
+ *       be used here: the formatted insertion operator above already takes `const TValue&`, so
+ *       the two have **equivalent signatures**. What decides is the "more constrained wins"
+ *       rule: when two function templates have equivalent parameter-type-lists, the constrained
+ *       one is preferred over the unconstrained one. Any type with a `writer` therefore goes to
+ *       the operator above.
+ * @note The manipulator overloads (`void(*)(T&)`, `const std::function<void(T&)>&`, `_Setw`,
+ *       `_Setfill<char_type>` and friends) tie with this one on conversion sequence, so partial
+ *       ordering decides, and their parameter types are all more specialized than
+ *       `const TValue&`, so they all win.
+ * @tparam TValue The source type being inserted.
+ * @endif
+ */
+template <ostream_type T, typename TValue>
+T& operator<<(T& obj, const TValue&)
+{
+    static_assert(dependent_false_v<TValue>,
+        "IOv2: cannot insert this type into a stream: no writer<char_type, TValue> is defined "
+        "for it. Define one -- see io/fp_defs/base_fp.h -- or convert the value to a supported "
+        "type first (an arithmetic type, a character type, CharT*, or std::basic_string).");
     return obj;
 }
 }
