@@ -22,6 +22,8 @@ var io__manip_8h =
     [ "operator<<", "io__manip_8h.html#ae1f132e6d54ebc3d7960c1a56dfab358", null ],
     [ "operator<<", "io__manip_8h.html#a4368eaa155cb63f3319fc38c14c08c00", null ],
     [ "operator<<", "io__manip_8h.html#a15c566d2ab9c044b947f560551ae1f67", null ],
+    [ "operator>>", "io__manip_8h.html#ad8db7d8ac928386b429180f9f072ccb1", null ],
+    [ "operator>>", "io__manip_8h.html#a7f1b2a36c43248e5a4ada2546e973690", null ],
     [ "operator>>", "io__manip_8h.html#ad92cc03f1de2d281f71120faf2a13cae", null ],
     [ "operator>>", "io__manip_8h.html#ad070e68fd63d4689c013eea1c769e3d4", null ],
     [ "operator>>", "io__manip_8h.html#ab957590d0e6943ecb58bdfe1b534d4a0", null ],
