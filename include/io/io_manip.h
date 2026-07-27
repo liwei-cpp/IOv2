@@ -1,3 +1,56 @@
+/**
+ * @file io_manip.h
+ * @lang{ZH}
+ * 定义了带参数的流操纵符：`resetiosflags` / `setiosflags` / `setbase` / `setfill` /
+ * `setprecision` / `setw`（调整格式化状态），以及 `put_money` / `get_money` /
+ * `put_time` / `get_time`（按 locale 格式化或解析货币与时间）。
+ *
+ * 每个操纵符由一个工厂函数和一个 `_Xxx` 载体类型构成，后者是**实现细节**、不应被直接构造；
+ * 调整格式状态的那几个各配一对 `operator<<` / `operator>>`，货币与时间那几个则走
+ * `writer` / `reader` 特化，经通用的格式化插入/提取运算符生效。
+ *
+ * @warning **操纵符与随后的 I/O 不构成同一个临界区。** `os << setw(5) << value` 是两次
+ *          各自加锁的操作：`setw(5)` 写入 `width`，`<< value` 在另一个临界区里读取并用完
+ *          后把它清零。多线程共享同一个流时，另一个线程可能在两者之间插入自己的
+ *          `setw`，双方互相吃掉对方的宽度。这与标准库的行为一致，但本库在其余地方对
+ *          "单次操作原子"的保证更强，容易让人误以为这里也是。需要整体原子时，用
+ *          `IOv2::sync` 把它们圈进同一个临界区。
+ * @warning **工厂函数返回的是临时对象，只应作为同一个完整表达式的一部分立即使用。**
+ *          `_Put_money` / `_Get_money` 持有对实参的引用，`_Put_time` / `_Get_time` 持有
+ *          裸指针。写成 `os << put_money(x)` 是安全的——临时量活到完整表达式结束；但
+ *          `auto m = put_money(compute()); os << m;` 会悬垂，因为 `compute()` 的临时结果
+ *          在第一条语句结束时就已销毁。此契约与 `std::put_money` 等同。
+ * @endif
+ *
+ * @lang{EN}
+ * Defines the parameterized stream manipulators: `resetiosflags`, `setiosflags`, `setbase`,
+ * `setfill`, `setprecision` and `setw` (which adjust formatting state), plus `put_money`,
+ * `get_money`, `put_time` and `get_time` (which format or parse money and time under the
+ * locale).
+ *
+ * Each manipulator consists of a factory function and a `_Xxx` carrier type; the latter is an
+ * **implementation detail** and should never be constructed directly. The formatting-state
+ * ones each come with a matching `operator<<` / `operator>>` pair, while the money and time
+ * ones go through `writer` / `reader` specializations and take effect via the generic
+ * formatted insertion/extraction operators.
+ *
+ * @warning **A manipulator and the I/O that follows it are not one critical section.**
+ *          `os << setw(5) << value` is two separately-locked operations: `setw(5)` writes
+ *          `width`, and `<< value` reads it in a different critical section and resets it to
+ *          zero once used. With a stream shared between threads, another thread's `setw` can
+ *          land in between and the two steal each other's width. This matches the standard
+ *          library, but this library's stronger "a single operation is atomic" guarantee
+ *          elsewhere makes it easy to assume otherwise. To make a group atomic, wrap it in one
+ *          critical section with `IOv2::sync`.
+ * @warning **A factory returns a temporary, to be used only as part of the same full
+ *          expression.** `_Put_money` / `_Get_money` hold a reference to the argument, and
+ *          `_Put_time` / `_Get_time` hold raw pointers. `os << put_money(x)` is safe -- the
+ *          temporary lives to the end of the full expression -- but
+ *          `auto m = put_money(compute()); os << m;` dangles, because `compute()`'s temporary
+ *          result is already destroyed at the end of the first statement. This contract is the
+ *          same as `std::put_money`'s.
+ * @endif
+ */
 #pragma once
 
 #include <io/istream.h>
@@ -12,6 +65,11 @@
 namespace IOv2
 {
 struct _Resetiosflags { ios_defs::fmtflags m_mask; };
+
+/**
+ * @lang{ZH} @brief 构造清除 @p mask 中各标志的操纵符（其余标志不受影响）。 @endif
+ * @lang{EN} @brief Builds the manipulator that clears the flags in @p mask, leaving the rest untouched. @endif
+ */
 inline _Resetiosflags resetiosflags(ios_defs::fmtflags mask) { return { mask }; }
 
 template <ostream_type T>
@@ -29,6 +87,11 @@ inline T& operator >> (T& is, _Resetiosflags f)
 }
 
 struct _Setiosflags { ios_defs::fmtflags m_mask; };
+
+/**
+ * @lang{ZH} @brief 构造置位 @p mask 中各标志的操纵符（按位或，其余标志不受影响）。 @endif
+ * @lang{EN} @brief Builds the manipulator that sets the flags in @p mask (bitwise-or; the rest are untouched). @endif
+ */
 inline _Setiosflags setiosflags(ios_defs::fmtflags mask) { return { mask }; }
 
 template <ostream_type T>
@@ -46,6 +109,24 @@ inline T& operator >> (T& is, _Setiosflags f)
 }
 
 struct _Setbase { int m_base; };
+
+/**
+ * @lang{ZH}
+ * @brief 构造设置整数进制的操纵符。
+ * @param base 目标进制：8、10、16 分别对应 `oct` / `dec` / `hex`。
+ * @note 其它取值会把 `basefield` 整个清零，这不是错误：输出时按十进制处理，输入时按内容
+ *       自动判定进制（`0x` 前缀为十六进制、前导 `0` 为八进制，否则十进制）。行为与
+ *       `std::setbase` 一致。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that selects the integer base.
+ * @param base The target base: 8, 10 and 16 map to `oct` / `dec` / `hex`.
+ * @note Any other value clears `basefield` entirely, which is not an error: output is then
+ *       decimal, and input determines the base from its content (a `0x` prefix means
+ *       hexadecimal, a leading `0` octal, otherwise decimal). This matches `std::setbase`.
+ * @endif
+ */
 inline _Setbase setbase(int base) { return { base }; }
 
 template <ostream_type T>
@@ -69,6 +150,24 @@ inline T& operator >> (T& is, _Setbase f)
 }
 
 template<typename _CharT> struct _Setfill { _CharT m_c; };
+
+/**
+ * @lang{ZH}
+ * @brief 构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。
+ * @note `_CharT` 由实参推导，且必须与目标流的 `char_type` **完全一致**——`operator<<` 的
+ *       形参是 `_Setfill<typename T::char_type>`，属于非推导语境，不存在隐式转换。因此对
+ *       `wchar_t` 流须写 `setfill(L'*')`，写成 `setfill('*')` 会编译失败而非静默转换。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that sets the fill character, used to pad when the field width
+ *        exceeds the content.
+ * @note `_CharT` is deduced from the argument and must match the target stream's `char_type`
+ *       **exactly**: `operator<<` takes `_Setfill<typename T::char_type>`, a non-deduced
+ *       context, so no implicit conversion applies. A `wchar_t` stream therefore needs
+ *       `setfill(L'*')`; `setfill('*')` fails to compile rather than converting silently.
+ * @endif
+ */
 template<typename _CharT>
 inline _Setfill<_CharT> setfill(_CharT c) { return { c }; }
 
@@ -197,6 +296,29 @@ inline T& operator >> (T& is, _Setw f)
 }
 
 template<typename _MoneyT> struct _Put_money { const _MoneyT& m_mon; bool m_intl; };
+/**
+ * @lang{ZH}
+ * @brief 构造按 locale 的货币格式写出 @p mon 的操纵符。
+ * @param mon 货币值。可为整型（以最小货币单位计，如"分"），或已是 `char_type` 数字串的
+ *            `std::basic_string`。**注意本库不接受浮点**，这一点与接受 `long double` 的
+ *            `std::put_money` 不同（约束来自 `monetary::put`）。
+ * @param intl `true` 用国际格式（如 `USD`），`false` 用本地格式（如 `$`）。
+ * @warning 返回的对象**持有对 @p mon 的引用**，只应作为同一完整表达式的一部分立即使用；
+ *          详见本文件顶部的说明。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that writes @p mon in the locale's monetary format.
+ * @param mon The monetary value: either an integral type counted in the smallest currency unit
+ *            (cents, say), or a `std::basic_string` of `char_type` digits. **Floating-point is
+ *            not accepted here**, unlike `std::put_money` which takes a `long double`; the
+ *            constraint comes from `monetary::put`.
+ * @param intl `true` selects the international format (e.g. `USD`), `false` the national one
+ *             (e.g. `$`).
+ * @warning The returned object **holds a reference to @p mon** and should only be used as part
+ *          of the same full expression; see the note at the top of this file.
+ * @endif
+ */
 template<typename _MoneyT>
 inline _Put_money<_MoneyT> put_money(const _MoneyT& mon, bool intl = false) { return { mon, intl }; }
 
@@ -216,6 +338,25 @@ struct writer<TChar, _Put_money<TMoney>>
 };
 
 template<typename _MoneyT> struct _Get_money { _MoneyT& m_mon; bool m_intl; };
+/**
+ * @lang{ZH}
+ * @brief 构造按 locale 的货币格式解析并写入 @p mon 的操纵符。
+ * @param mon 接收解析结果的对象；可为整型（以最小货币单位计）或 `std::basic_string`。
+ * @param intl `true` 按国际格式解析，`false` 按本地格式解析。
+ * @warning 返回的对象**持有对 @p mon 的引用**，只应作为同一完整表达式的一部分立即使用；
+ *          详见本文件顶部的说明。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that parses a monetary value in the locale's format into
+ *        @p mon.
+ * @param mon Receives the parsed result; either an integral type counted in the smallest
+ *            currency unit, or a `std::basic_string`.
+ * @param intl `true` parses the international format, `false` the national one.
+ * @warning The returned object **holds a reference to @p mon** and should only be used as part
+ *          of the same full expression; see the note at the top of this file.
+ * @endif
+ */
 template<typename _MoneyT>
 inline _Get_money<_MoneyT> get_money(_MoneyT& mon, bool intl = false) { return { mon, intl }; }
 
@@ -275,6 +416,28 @@ inline T& operator>>(T& is, _Get_money<TMoney> f)
 }
 
 template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* fmt; };
+/**
+ * @lang{ZH}
+ * @brief 构造按 @p fmt 写出 `*tmb` 的操纵符。
+ * @param tmb 要写出的时间；不得为空。
+ * @param fmt `strftime` 风格的格式串；不得为空。
+ * @note 两个指针都会在写出前校验，为空时置流的失败位而非解引用；详见
+ *       `writer<TChar, _Put_time<TChar>>::swrite`。
+ * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
+ *          详见本文件顶部的说明。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that writes `*tmb` according to @p fmt.
+ * @param tmb The time to write; must not be null.
+ * @param fmt A `strftime`-style format string; must not be null.
+ * @note Both pointers are validated before the write, and a null one sets a failure bit on the
+ *       stream rather than being dereferenced; see
+ *       `writer<TChar, _Put_time<TChar>>::swrite`.
+ * @warning The returned object **holds those two raw pointers** and should only be used as part
+ *          of the same full expression; see the note at the top of this file.
+ * @endif
+ */
 template<typename _CharT>
 inline _Put_time<_CharT> put_time(const std::tm* tmb, const _CharT* fmt) { return { tmb, fmt }; }
 
@@ -337,6 +500,32 @@ struct writer<TChar, _Put_time<TChar>>
 };
 
 template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
+/**
+ * @lang{ZH}
+ * @brief 构造按 @p fmt 解析时间并写入 `*tmb` 的操纵符。
+ * @param tmb 接收解析结果的 `tm`；不得为空。
+ * @param fmt `strptime` 风格的格式串；不得为空。
+ * @note 两个指针都会在解析前校验，为空时置流的失败位而非解引用；详见
+ *       `reader<TChar, _Get_time<TChar>>::sread`。
+ * @note 格式串中未出现的字段仍是良定义的：解析上下文转换为 `std::tm` 时会值初始化整个结构、
+ *       把 `tm_isdst` 置为 -1，并由日期推算出 `tm_wday` / `tm_yday`。
+ * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
+ *          详见本文件顶部的说明。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Builds the manipulator that parses a time according to @p fmt into `*tmb`.
+ * @param tmb The `tm` receiving the parsed result; must not be null.
+ * @param fmt A `strptime`-style format string; must not be null.
+ * @note Both pointers are validated before parsing, and a null one sets a failure bit on the
+ *       stream rather than being dereferenced; see `reader<TChar, _Get_time<TChar>>::sread`.
+ * @note Fields absent from the format string are still well defined: converting the parse
+ *       context to `std::tm` value-initializes the whole struct, sets `tm_isdst` to -1, and
+ *       derives `tm_wday` / `tm_yday` from the date.
+ * @warning The returned object **holds those two raw pointers** and should only be used as part
+ *          of the same full expression; see the note at the top of this file.
+ * @endif
+ */
 template<typename _CharT>
 inline _Get_time<_CharT> get_time(std::tm* tmb, const _CharT* fmt) { return { tmb, fmt }; }
 
