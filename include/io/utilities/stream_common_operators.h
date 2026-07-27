@@ -116,6 +116,84 @@ struct stream_common_operators
 {
     /**
      * @lang{ZH}
+     * @brief 拷贝/移动语义：**tie 边不参与拷贝与移动**。
+     *
+     * 四个特殊成员都把目标的 tie 目标置为 `nullptr`，移动还会额外清空源。
+     *
+     * @note **为什么不搬运。** tie 边不是一个"值"，而是本节点在 tie 图中的一条出边，绑定于
+     *       对象身份。这与 `copyable_mutex` 的取舍完全一致——它的拷贝/移动同样是 no-op，
+     *       产生一把全新的未锁互斥量，理由是"锁标识的是本对象的临界区，而不是需要被拷贝的
+     *       值"。
+     * @note **不搬运也是正确性所必需的。** 若赋值把源的 tie 边搬进目标，就等于绕过 `tie()`
+     *       写入了 `m_tie_stream`，而 `tie()` 的环检测（`ensure_no_cycle`）是"图无环"这一
+     *       不变式的唯一把关处。例如 `b.tie(&c); c.tie(&a); a = b;` 会闭合出环 `a→c→a`，
+     *       且全程没有任何一次 `tie()` 调用；此后任意一次 `tie()` 都会在持有进程级全局锁的
+     *       情况下永久自旋。置空使 `tie()` 重新成为唯一写入者。
+     * @note **移动为何还要清空源。** 移动后的流，其 `m_streambuf` 与 `m_locale` 都已被掏空
+     *       （而格式标志、状态位等是按值搬运、源仍保留）。tie 边属于前一类——它驱动 flush，
+     *       是功能性状态。若不清空，一个被移走、随后又经 `attach()` 复活的流会继续静默地
+     *       刷新一个调用方以为早已解除的目标。
+     * @warning 这意味着拷贝或移动一个流之后，其 tie 关系**不会**保留，需要重新调用 `tie()`。
+     *          另需注意：若某个流是**别人的** tie 目标，移动它并不会更新那些指向它的流——
+     *          它们仍指向这个已被移空的对象，其后的 `tie()->flush()` 会静默失败（置上该目标
+     *          自己的失败位，并被 sentry 吞掉）。这一点与 tie 目标的生命周期约束同属调用方
+     *          责任，详见 `tie()`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Copy/move semantics: **the tie edge takes no part in copying or moving**.
+     *
+     * All four special members set the destination's tie target to `nullptr`; a move
+     * additionally clears the source.
+     *
+     * @note **Why it is not carried over.** A tie edge is not a "value" but this node's outgoing
+     *       edge in the tie graph, bound to object identity. This matches the choice made for
+     *       `copyable_mutex`, whose copy/move are likewise no-ops yielding a fresh unlocked
+     *       mutex, on the grounds that "a lock denotes this object's critical section, not a
+     *       value to be copied".
+     * @note **Not carrying it over is also required for correctness.** If assignment moved the
+     *       source's tie edge into the destination, that would write `m_tie_stream` while
+     *       bypassing `tie()`, whose cycle check (`ensure_no_cycle`) is the only place the
+     *       "graph is acyclic" invariant is enforced. For instance
+     *       `b.tie(&c); c.tie(&a); a = b;` closes the cycle `a→c→a` without a single `tie()`
+     *       call, after which any `tie()` spins forever while holding a process-wide lock.
+     *       Resetting restores `tie()` as the sole writer.
+     * @note **Why a move also clears the source.** After a move the stream's `m_streambuf` and
+     *       `m_locale` have both been emptied (whereas the format flags, state bits and so on
+     *       are carried by value and retained by the source). The tie edge belongs with the
+     *       former: it drives flushing and is functional state. Without clearing, a stream that
+     *       was moved from and then revived via `attach()` would keep silently flushing a target
+     *       the caller believed it had long since given up.
+     * @warning This means a stream's tie relationship is **not** preserved across a copy or a
+     *          move; call `tie()` again. Note also that moving a stream which is **someone
+     *          else's** tie target does not update the streams pointing at it -- they still
+     *          point at the emptied object, and their subsequent `tie()->flush()` fails silently
+     *          (setting a failure bit on that target, which the sentry swallows). Like the
+     *          lifetime constraint on tie targets, this is the caller's responsibility; see
+     *          `tie()`.
+     * @endif
+     */
+    stream_common_operators() = default;
+    stream_common_operators(const stream_common_operators&) noexcept {}
+    stream_common_operators(stream_common_operators&& other) noexcept
+    { other.m_tie_stream.store(nullptr); }
+    stream_common_operators& operator=(const stream_common_operators&) noexcept
+    {
+        m_tie_stream.store(nullptr);
+        return *this;
+    }
+    stream_common_operators& operator=(stream_common_operators&& other) noexcept
+    {
+        // No self-assignment guard on purpose: for `a = std::move(a)` both stores hit the
+        // same object and the result is still nullptr, which is what the rule prescribes.
+        m_tie_stream.store(nullptr);
+        other.m_tie_stream.store(nullptr);
+        return *this;
+    }
+    ~stream_common_operators() = default;
+
+    /**
+     * @lang{ZH}
      * @brief 返回底层流的当前位置。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 当前位置；若流处于失败状态或发生异常，则返回 `static_cast<size_t>(-1)`。
@@ -510,6 +588,15 @@ struct stream_common_operators
      *          所有绑定到它的流之后（这也是标准用法，如全局 `cout` 活得比 `cin` 久）。否则
      *          任何 I/O 都会经由 `tie()->flush()` 解引用悬空指针，导致未定义行为。此契约与
      *          标准库 `std::basic_ios::tie` 一致。
+     * @warning **销毁之外，"被移动"同样会让一个 tie 目标失效。** 移动一个流会掏空它的
+     *          `m_streambuf` 与 `m_locale`，但指向它的那些流并不会被更新——它们仍指向这个
+     *          已被移空的对象。这不会导致未定义行为（`tie()->flush()` 会在该目标上置一个失败
+     *          位，随后被 sentry 吞掉），但 tie 关系从此**静默失效**：绑定方仍报告 `good()`，
+     *          而刷新实际上什么也没做。因此上面那条规则应读作：让 tie 目标既不被销毁、也不被
+     *          移动，直到所有绑定到它的流都已解绑或销毁。
+     * @note 本流自身的 tie 边不随拷贝或移动传递——四个特殊成员都会把它重置为 `nullptr`
+     *       （移动还会清空源）。拷贝或移动一个流之后需要重新调用本函数。详见本类的拷贝/移动
+     *       语义说明。
      * @warning **并发下的加强约束**：单独调用 `tie(nullptr)` 并**不足以**使随后销毁 `str`
      *          变得安全。sentry 会在获取本流 `io_mutex()` **之前**就（无锁）原子读出 tie 指针
      *          并 `flush()` 该目标（见 in_sentry/out_sentry 构造函数），因此另一线程在途的
@@ -549,6 +636,18 @@ struct stream_common_operators
      *          outlives `cin`); otherwise any I/O dereferences a dangling pointer through
      *          `tie()->flush()` — undefined behavior. This matches the
      *          `std::basic_ios::tie` contract.
+     * @warning **Beyond destruction, *being moved from* also invalidates a tie target.**
+     *          Moving a stream empties its `m_streambuf` and `m_locale`, but the streams
+     *          pointing at it are not updated -- they still point at the emptied object. This
+     *          is not undefined behavior (`tie()->flush()` sets a failure bit on that target,
+     *          which the sentry then swallows), but the tie relationship **fails silently**:
+     *          the tied stream still reports `good()` while the flush does nothing. So read the
+     *          rule above as: let a tie target be neither destroyed nor moved from until every
+     *          stream tied to it has been untied or destroyed.
+     * @note This stream's own tie edge is not carried across a copy or a move -- all four
+     *       special members reset it to `nullptr` (a move also clears the source). Call this
+     *       function again after copying or moving a stream. See this class's copy/move
+     *       semantics for details.
      * @warning **Concurrency addendum:** calling `tie(nullptr)` alone is **not** sufficient
      *          to make a subsequent destruction of `str` safe. The sentry reads the tie
      *          pointer (a lock-free atomic load) and `flush()`es the target *before* it
@@ -586,19 +685,7 @@ struct stream_common_operators
         std::lock_guard graph_lock(tie_graph_mutex());
         auto res = self.m_tie_stream.load();
         if constexpr (std::derived_from<TSelf, abs_flusher>)
-        {
-            abs_flusher* ptr = str;
-            auto check = static_cast<abs_flusher*>(&self);
-            while (ptr != nullptr)
-            {
-                if (ptr == check)
-                    throw stream_error("stream tie fail: the requested tie would form a cycle in the tie chain");
-                auto* node = dynamic_cast<stream_common_operators*>(ptr);
-                if (!node)
-                    break;
-                ptr = node->tie();
-            }
-        }
+            self.ensure_no_cycle(str);
         self.m_tie_stream.store(str);
         return res;
     }
@@ -629,11 +716,100 @@ struct stream_common_operators
 private:
     /**
      * @lang{ZH}
+     * @brief 沿 `str` 的 tie 链向前遍历，若该链会回到 `*this` 则抛出。
+     *
+     * 遍历用 Floyd 判圈（龟兔赛跑）：慢指针每次一步、快指针每次两步。朴素的单指针写法只有
+     * 两个出口——走到 `nullptr`，或撞上 `*this`；一旦链上已经存在一个**不含** `*this` 的环，
+     * 两个出口都到不了，循环永不终止。而本函数是在 `tie()` 持有进程级全局锁
+     * `tie_graph_mutex()` 的情况下运行的，所以那不是一个线程卡住，而是**整个进程的 `tie()`
+     * 永久瘫痪**。快指针追上慢指针即说明有环，于是降级为一个可诊断的异常。
+     *
+     * @note 只要 `tie()` 保持为 `m_tie_stream` 的唯一写入者，第二种异常就不会发生——它是纵深
+     *       防御：若将来又出现绕过 `tie()` 的写入路径（本类的拷贝/移动赋值曾经就是这样一条），
+     *       结果是一个能定位的错误，而不是静默死锁。
+     * @note 用 Floyd 而不是"记录已访问节点"，是因为后者要分配内存，而这里持有全局锁；也不用
+     *       "迭代次数上限"，因为那需要一个既可能误伤长链、又可能失效的魔法常数。
+     * @param str 起点，即待设置的 tie 目标；为 `nullptr`、或指向一个不带出边的裸
+     *            `abs_flusher` 时，链长为零，本函数直接返回。
+     * @throw stream_error 若链会回到 `*this`（本次设置会成环），或链上已存在其它环。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Walks forward along `str`'s tie chain and throws if it leads back to `*this`.
+     *
+     * The walk uses Floyd's cycle detection (tortoise and hare): the slow pointer advances one
+     * step per round, the fast pointer two. The naive single-pointer formulation has only two
+     * exits -- reaching `nullptr`, or hitting `*this`; once the chain already contains a cycle
+     * that does **not** include `*this`, neither is reachable and the loop never terminates.
+     * And this runs while `tie()` holds the process-wide `tie_graph_mutex()`, so that is not one
+     * thread stuck but **every `tie()` in the process wedged forever**. The fast pointer catching
+     * the slow one means a cycle exists, which is then reported as a diagnosable exception.
+     *
+     * @note As long as `tie()` remains the sole writer of `m_tie_stream`, the second exception
+     *       cannot happen -- it is defense in depth: should another write path bypass `tie()`
+     *       again (this class's copy/move assignment once was exactly such a path), the result
+     *       is a locatable error rather than a silent deadlock.
+     * @note Floyd is used rather than "remember every visited node" because the latter
+     *       allocates and a process-wide lock is held here; and rather than "cap the iteration
+     *       count" because that needs a magic constant that can both falsely reject a long chain
+     *       and fail to catch a real cycle.
+     * @param str The starting node, i.e. the tie target being set. When it is `nullptr`, or a
+     *            bare `abs_flusher` that carries no outgoing edge, the chain has length zero and
+     *            this function returns immediately.
+     * @throw stream_error If the chain leads back to `*this` (this set would form a cycle), or
+     *        if the chain already contains another cycle.
+     * @endif
+     */
+    void ensure_no_cycle(abs_flusher* str) const
+    {
+        // Edges are stored as abs_flusher*, but only a stream_common_operators carries an
+        // outgoing edge, so each step has to cross-cast. A node that is a bare abs_flusher
+        // yields nullptr and ends the chain -- which is what keeps a plain flusher usable as a
+        // tie target.
+        auto next = [](stream_common_operators* p)
+        { return dynamic_cast<stream_common_operators*>(p->tie()); };
+
+        stream_common_operators* slow = dynamic_cast<stream_common_operators*>(str);
+        stream_common_operators* fast = slow;
+
+        while (slow != nullptr)
+        {
+            if (slow == this)
+                throw stream_error("stream tie fail: the requested tie would form a cycle in the tie chain");
+
+            slow = next(slow);
+            fast = (fast != nullptr) ? next(fast) : nullptr;
+            fast = (fast != nullptr) ? next(fast) : nullptr;
+
+            if (fast != nullptr && fast == slow)
+                throw stream_error("stream tie fail: the tie chain already contains a cycle; "
+                                   "something other than tie() has written a tie pointer");
+        }
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 本流所绑定（tie）目标的原子指针；`nullptr` 表示未绑定。
+     *
+     * @warning **`tie()` 必须保持为本成员的唯一写入者**（拷贝/移动特殊成员除外，它们只把它
+     *          重置为 `nullptr`，见上）。整张 tie 图"无环"这一不变式完全建立在这一点上：
+     *          `tie()` 在提交前会做环检测，而任何绕过它的写入都能悄无声息地制造出环，进而让
+     *          `ensure_no_cycle` 的遍历在持有进程级全局锁时不终止。此前编译器隐式生成的
+     *          拷贝/移动赋值就是这样一条路径——`m_tie_stream` 是 `copyable_atomic`，赋值会
+     *          直接搬运指针值，于是 `a = b` 等同于一次未经检查的 `tie()`。
      * @endif
      *
      * @lang{EN}
      * @brief Atomic pointer to this stream's tie target; `nullptr` means untied.
+     *
+     * @warning **`tie()` must remain the sole writer of this member** (apart from the copy/move
+     *          special members, which only reset it to `nullptr`; see above). The whole
+     *          "the tie graph is acyclic" invariant rests on that: `tie()` runs a cycle check
+     *          before committing, and any write that bypasses it can silently create a cycle,
+     *          which then makes `ensure_no_cycle`'s walk non-terminating while a process-wide
+     *          lock is held. The compiler-generated copy/move assignment used to be exactly such
+     *          a path -- `m_tie_stream` is a `copyable_atomic`, so assignment carried the
+     *          pointer value straight over, making `a = b` an unchecked `tie()`.
      * @endif
      */
     copyable_atomic<abs_flusher*> m_tie_stream{nullptr};
