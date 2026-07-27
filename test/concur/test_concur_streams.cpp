@@ -168,3 +168,34 @@ void test_concur_tie_1()
 
     dump_info("Done\n");
 }
+
+void test_concur_switch_1()
+{
+    dump_info("Test concurrent switch_to_get/switch_to_put case 1...");
+    using namespace IOv2;
+
+    // iostream::switch_to_get/switch_to_put are ordinary operations that mutate shared
+    // buffer state: base_streambuf::switch_to_*() repositions the converter, clears
+    // m_read_buf (a std::deque) and flips the converter's direction flag. The sentries
+    // call those very same functions -- but from inside io_mutex() -- so the explicit
+    // entry points must hold it too, or the two paths race on that deque.
+    //
+    // The reads below are what make the race reachable: switch_to_put() only does its
+    // interesting work (tell -> seek -> clear) while the read buffer is non-empty.
+    iostream ios(mem_device<char>{std::string(4096, 'q') + " tail"});
+    spawn([&ios](int id)
+    {
+        for (int i = 0; i < kIters; ++i)
+        {
+            switch (id % 4)
+            {
+                case 0: ios.switch_to_get();                     break;
+                case 1: ios.switch_to_put();                     break;
+                case 2: { std::string s; ios >> s; ios.seek(0); } break;  // in_sentry -> switch_to_get
+                case 3: ios << "sw" << i;                        break;  // out_sentry -> switch_to_put
+            }
+        }
+    });
+
+    dump_info("Done\n");
+}
