@@ -330,11 +330,11 @@ void test_vigenere_cvt_seek_1()
         VERIFY(obj.tell() == 3);
         
         char ch = 0;
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == '4' - 'e'));
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('4' - 'e')));
         
         obj.rseek(3);
         VERIFY(obj.tell() == 2);
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == '3' - 'w'));
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('3' - 'w')));
     };
     
     using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
@@ -373,11 +373,11 @@ void test_vigenere_cvt_seek_2()
         VERIFY(obj.tell() == 3);
         
         char ch = 0;
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'd' - 'e'));
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('d' - 'e')));
         
         obj.rseek(3);
         VERIFY(obj.tell() == 4);
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'e' - 'i'));
+        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('e' - 'i')));
 
         FAIL_RSEEK(obj, 60);
         VERIFY(obj.tell() == 5);

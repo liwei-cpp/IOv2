@@ -1,5 +1,6 @@
 #include <limits>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -110,7 +111,7 @@ void test_ostream_tell_wchar_t_2()
 }
 
 // wchar_t counterpart of test_ostream_tell_char_3: a throwing device dtell() drives tell()
-// into its catch -> devfailbit, returning (size_t)-1 without throwing (no exception mask).
+// into its catch -> devfailbit, returning an empty optional without throwing (no exception mask).
 void test_ostream_tell_wchar_t_3()
 {
     dump_info("Test ostream<wchar_t>::tell case 3 (device tell failure)...");
@@ -124,12 +125,12 @@ void test_ostream_tell_wchar_t_3()
         VERIFY( ost.tell() == 0 );
         *flag = true;
 
-        size_t pos = 0;
+        std::optional<size_t> pos = 0;
         bool threw = false;
         try { pos = ost.tell(); }
         catch (...) { threw = true; }
         VERIFY( !threw );
-        VERIFY( pos == static_cast<size_t>(-1) );
+        VERIFY( !pos.has_value() );
         VERIFY( ost.rdstate() & IOv2::ios_defs::devfailbit );
 
         *flag = false;

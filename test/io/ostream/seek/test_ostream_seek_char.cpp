@@ -35,7 +35,7 @@ void test_ostream_seek_char_1()
                 for (int i = 0; i < times; ++i)
                     stream << j << '-' << i << s << '\n';
 
-                stream.seek(begin);
+                stream.seek(begin.value());
             }
             VERIFY(stream.good());
         }(ofstrm);
@@ -92,7 +92,7 @@ void test_ostream_seek_char_2()
             for (int i = 0; i < times; ++i)
                 stream << j << '-' << i << s << '\n';
 
-            stream.seek(begin);
+            stream.seek(begin.value());
         }
         VERIFY(stream.good());
     }();

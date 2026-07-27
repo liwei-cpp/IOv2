@@ -37,10 +37,10 @@ void test_istream_seek_wchar_t_1()
         iss.template get<IOv2::keep_sep, IOv2::no_zt>(ch, str.size() + 1);
         VERIFY( iss.rdstate() == IOv2::ios_defs::eofbit );
 
-        iss.seek(p0);
+        iss.seek(p0.value());
         VERIFY( iss.good() );
 
-        iss.seek(p0);
+        iss.seek(p0.value());
         VERIFY( (bool)iss );
         VERIFY( iss.tell() == p0 );
     };
@@ -66,7 +66,7 @@ void test_istream_seek_wchar_t_2()
 
             VERIFY( iss.eof() );
             VERIFY( (bool)iss );
-            iss.seek(pos1);
+            iss.seek(pos1.value());
             VERIFY( (bool)iss );
         }
         {
@@ -124,10 +124,10 @@ void test_istream_seek_wchar_t_3()
         // have _M_mode == ios_base::out will fail to have consistency
         // between seek and tell.
         state01 = if01.rdstate();
-        if01.seek(10 + if01.tell());
+        if01.seek(10 + if01.tell().value());
         state02 = if01.rdstate();
         pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02 + 10 ); 
+        VERIFY( pos01 == pos02.value() + 10 ); 
         VERIFY( state01 == state02 );
         pos02 = if01.tell(); 
         VERIFY( pos02 == pos01 ); 
@@ -137,7 +137,7 @@ void test_istream_seek_wchar_t_3()
         if01.seek(20);
         state02 = if01.rdstate();
         pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02 + 10 ); 
+        VERIFY( pos01 == pos02.value() + 10 ); 
         VERIFY( state01 == state02 );
         pos02 = if01.tell();
         VERIFY( pos02 == pos01 ); 
@@ -184,19 +184,19 @@ void test_istream_seek_wchar_t_4()
         // have _M_mode == ios_base::out will fail to have consistency
         // between seek and tell.
         state01 = if01.rdstate();
-        if01.seek(10 + if01.tell());
+        if01.seek(10 + if01.tell().value());
         state02 = if01.rdstate();
         pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02 + 10 ); 
+        VERIFY( pos01 == pos02.value() + 10 ); 
         VERIFY( state01 == state02 );
         pos02 = if01.tell(); 
         VERIFY( pos02 == pos01 ); 
 
         state01 = if03.rdstate();
-        if03.seek(10 + if03.tell());
+        if03.seek(10 + if03.tell().value());
         state02 = if03.rdstate();
         pos05 = if03.tell();
-        VERIFY( pos05 == static_cast<decltype(pos05)>(-1) );
+        VERIFY( !pos05.has_value() );
         VERIFY( state01 != state02 );
         VERIFY(state02 == IOv2::ios_defs::devfailbit);
         pos06 = if03.tell(); 
@@ -207,7 +207,7 @@ void test_istream_seek_wchar_t_4()
         if01.seek(20);
         state02 = if01.rdstate();
         pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02 + 10 ); 
+        VERIFY( pos01 == pos02.value() + 10 ); 
         VERIFY( state01 == state02 );
         pos02 = if01.tell();
         VERIFY( pos02 == pos01 ); 

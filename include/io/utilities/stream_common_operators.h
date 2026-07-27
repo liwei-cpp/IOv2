@@ -29,6 +29,7 @@
 #include <cstddef>
 #include <exception>
 #include <mutex>
+#include <optional>
 #include <utility>
 
 namespace IOv2
@@ -196,22 +197,22 @@ struct stream_common_operators
      * @lang{ZH}
      * @brief 返回底层流的当前位置。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
-     * @return 当前位置；若流处于失败状态或发生异常，则返回 `static_cast<size_t>(-1)`。
+     * @return 当前位置；若流处于失败状态或发生异常，则返回空的 optional。
      * @endif
      *
      * @lang{EN}
      * @brief Returns the current position of the underlying stream.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
-     * @return The current position; `static_cast<size_t>(-1)` if the stream is in a failed
+     * @return The current position; an empty optional if the stream is in a failed
      *         state or an exception occurs.
      * @endif
      */
     template <typename TSelf>
-    size_t tell(this TSelf& self)
+    std::optional<size_t> tell(this TSelf& self)
     {
         std::lock_guard guard(self.io_mutex());
         if (!static_cast<bool>(self))
-            return static_cast<size_t>(-1);
+            return std::nullopt;
         try
         {
             return self.m_streambuf.tell();
@@ -221,7 +222,7 @@ struct stream_common_operators
             self.handle_exception(std::current_exception());
         }
 
-        return static_cast<size_t>(-1);
+        return std::nullopt;
     }
 
     /**
