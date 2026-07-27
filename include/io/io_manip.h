@@ -432,6 +432,11 @@ template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* f
  * @param fmt `strftime` 风格的格式串；不得为空。
  * @note 两个指针都会在写出前校验，为空时置流的失败位而非解引用；详见
  *       `writer<TChar, _Put_time<TChar>>::swrite`。
+ * @note `put_time` 既不应用也不消耗 `io.width()`：填充与随后的 `width(0)` 由各自的 facet
+ *       负责，而 `timeio` 的写出路径完全不涉及 width。因此 `os << setw(20) << put_time(...)`
+ *       不会补齐到 20 列，且这个 width 会原样留给下一次插入。这与 `std::put_time` 的行为
+ *       一致（`time_put` 同样不处理 width），但与 `put_money`、算术类型的插入不同——后两者
+ *       经由 `monetary` / `numeric` facet，会消费掉 width。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
@@ -443,6 +448,13 @@ template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* f
  * @note Both pointers are validated before the write, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see
  *       `writer<TChar, _Put_time<TChar>>::swrite`.
+ * @note `put_time` neither applies nor consumes `io.width()`. Padding and the subsequent
+ *       `width(0)` are the responsibility of the individual facets, and the `timeio` write path
+ *       never looks at the width. So `os << setw(20) << put_time(...)` does not pad to 20
+ *       columns, and that width is left in place for the next insertion. This matches
+ *       `std::put_time` (`time_put` likewise ignores the width), but differs from `put_money`
+ *       and from arithmetic insertion, both of which go through the `monetary` / `numeric`
+ *       facets and do consume it.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif
