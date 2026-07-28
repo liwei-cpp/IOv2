@@ -519,6 +519,9 @@ class ios_base<void>
  * （例如可拷贝、精度/宽度以 8 位存储等，详见各成员说明）。
  *
  * @note 本类不涉及流状态位（good/eof/fail），那些由 `io_state_and_exp` 负责。
+ * @note 本类同时持有**本流的对象锁** `m_io_mutex`（经 `io_mutex()` 暴露）。它并非只服务于
+ *       格式化状态——各具体流类的全部操作都以它作为临界区。锁放在这里而非各流类里的理由，
+ *       见 `io_mutex()`。
  *
  * @tparam TChar 字符类型（如 `char`、`wchar_t` 等）。用于填充字符与本地化回调的签名。
  * @endif
@@ -535,6 +538,10 @@ class ios_base<void>
  *
  * @note This class does not deal with the stream state bits (good/eof/fail); those are
  * handled by `io_state_and_exp`.
+ * @note This class also owns **the stream's object lock** `m_io_mutex` (exposed through
+ * `io_mutex()`). That lock is not confined to the formatting state -- every operation of the
+ * concrete stream classes uses it as its critical section. See `io_mutex()` for why it lives
+ * here rather than in each stream class.
  *
  * @tparam TChar The character type (e.g. `char`, `wchar_t`). Used by the fill character
  * and the locale-callback signature.
@@ -810,6 +817,54 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 返回本流的对象锁。
+     *
+     * 这是每个流**唯一**的一把锁：格式化 I/O 的 sentry、各定位/存取操作、locale setter，
+     * 以及下面的 pword / 回调接口，全都在它的临界区内工作。可配合 `IOv2::sync` 把多次操作
+     * 圈进同一临界区。
+     *
+     * @note 锁本身放在 `ios_base` 而非各个具体流类里，是因为 pword 存储与回调链表是
+     *       `ios_base` 自己的成员，而 `locale(loc)` setter 又会经 `access_callbacks()` 改动
+     *       它们。若把它们交给另一把锁，那么"格式化过程中读取 pword 缓存"这一 pword 的
+     *       固有用法就会形成 `io_mutex -> pword_mutex` 的嵌套，凭空多出一条加锁顺序约束。
+     *       一把锁则不存在这个问题。
+     * @note 递归形态是必需的：`access_callbacks()` 由已持锁的 locale setter 调用，而回调
+     *       允许重入地调用 `set_pword()`（见 `access_callbacks()` 的说明）。
+     * @note 流状态位另有 `io_state_and_exp::m_state_mutex`，**不**并入此处：那里采用
+     *       "写加锁 + 原子读"，为的是让 `rdstate()` / `good()` 免锁；合并会让每次 `good()`
+     *       都加一次锁。两者的加锁顺序是 `io_mutex` -> `m_state_mutex`。
+     * @return 本流 `m_io_mutex` 的引用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns this stream's object lock.
+     *
+     * This is the **one** lock a stream has: the sentries of formatted I/O, the
+     * positioning/access operations, the locale setter, and the pword / callback interface
+     * below all work inside its critical section. Combine it with `IOv2::sync` to group
+     * several operations into one critical section.
+     *
+     * @note The lock lives in `ios_base` rather than in each concrete stream class because
+     *       the pword storage and the callback list are `ios_base`'s own members, and the
+     *       `locale(loc)` setter mutates them through `access_callbacks()`. Giving those a
+     *       separate lock would make the natural use of a pword -- reading a cache from
+     *       inside a formatting operation -- nest `io_mutex -> pword_mutex`, inventing a
+     *       lock-ordering constraint the library does not otherwise have. One lock has no
+     *       such problem.
+     * @note The recursive flavor is required: `access_callbacks()` is called by the locale
+     *       setter, which already holds the lock, and a callback may reentrantly call
+     *       `set_pword()` (see `access_callbacks()`).
+     * @note The stream state bits have their own `io_state_and_exp::m_state_mutex`, which is
+     *       **not** folded in here: that one uses "lock for writes, atomic for reads" so that
+     *       `rdstate()` / `good()` stay lock-free, and merging would put a lock on every
+     *       `good()`. The lock order between them is `io_mutex` -> `m_state_mutex`.
+     * @return A reference to this stream's `m_io_mutex`.
+     * @endif
+     */
+    copyable_mutex<std::recursive_mutex>& io_mutex() const { return m_io_mutex; }
+
+    /**
+     * @lang{ZH}
      * @brief 设置 id 对应的 pword（per-stream 用户数据）条目。
      *
      * 若 @p pword 非空，则设置/替换 @p id 处的条目；若为空，则删除该条目。
@@ -831,6 +886,7 @@ public:
      */
     std::shared_ptr<void> set_pword(size_t id, std::shared_ptr<void> pword)
     {
+        std::lock_guard guard(m_io_mutex);
         if (auto it = m_pwords.find(id); it == m_pwords.end())
         {
             if (pword) m_pwords.emplace(id, std::move(pword));
@@ -860,6 +916,7 @@ public:
      */
     std::shared_ptr<void> get_pword(size_t id) const
     {
+        std::lock_guard guard(m_io_mutex);
         auto it = m_pwords.find(id);
         if (it != m_pwords.end()) return it->second;
         return nullptr;
@@ -887,6 +944,7 @@ public:
      */
     void register_callback(event_callback fn, size_t id)
     {
+        std::lock_guard guard(m_io_mutex);
         m_callbacks.push_front({std::move(fn), id});
     }
 
@@ -923,6 +981,7 @@ protected:
      */
     void access_callbacks(const locale<TChar>& new_loc)
     {
+        std::lock_guard guard(m_io_mutex);
         std::exception_ptr throw_exception = nullptr;
 
         for (const auto& [cb, id] : m_callbacks)
@@ -989,8 +1048,10 @@ protected:
      */
     copyable_atomic<TChar>              m_fill{(TChar)' '};
 
-    std::unordered_map<size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。 @endif @lang{EN} Per-stream user-data storage indexed by id. @endif
-    std::forward_list<std::pair<event_callback, size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). @endif
+    mutable copyable_mutex<std::recursive_mutex> m_io_mutex;                 ///< @lang{ZH} 本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。`mutable` 是因为 `get_pword()` 等只读接口也要加锁。详见 `io_mutex()`。 @endif @lang{EN} This stream's object lock; serializes all of the stream's operations, including access to the two containers below. `mutable` because read-only entry points such as `get_pword()` must lock too. See `io_mutex()`. @endif
+
+    std::unordered_map<size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `m_io_mutex` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `m_io_mutex`. @endif
+    std::forward_list<std::pair<event_callback, size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `m_io_mutex` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `m_io_mutex`. @endif
 };
 
 /**

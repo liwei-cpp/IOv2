@@ -1,3 +1,4 @@
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -235,6 +236,52 @@ void test_concur_endl_1()
 
     // A stream that started without unitbuf must not come out of this with it set.
     VERIFY((os.flags() & ios_defs::unitbuf) == 0);
+
+    dump_info("Done\n");
+}
+
+void test_concur_pword_1()
+{
+    dump_info("Test concurrent pword/callback access case 1...");
+    using namespace IOv2;
+
+    // ios_base's pword storage (m_pwords, an unordered_map) and its callback list
+    // (m_callbacks, a forward_list) are plain containers, not atomics. The locale(loc)
+    // setter reaches both through access_callbacks() while holding io_mutex(), but
+    // set_pword()/get_pword()/register_callback() are public entry points on ios_base --
+    // which owns no lock -- so they touch the very same containers with no
+    // synchronization. A mutex only excludes when every accessor takes it; here only one
+    // side does, and an insert that rehashes on that side against a concurrent find() on
+    // the other walks a freed bucket array rather than merely returning a stale value.
+    ostream os(mem_device<char>{});
+    const size_t id  = os.xalloc();
+    const size_t id2 = os.xalloc();
+
+    // Without a registered callback, locale(loc) iterates an empty list and never touches
+    // m_pwords at all -- the setter has to actually write to the map for this to bite.
+    const ios_base<char>::event_callback refresh =
+        [](const IOv2::locale<char>&, std::shared_ptr<void>)
+        { return std::make_shared<int>(1); };
+    os.register_callback(refresh, id);
+
+    spawn([&](int tid)
+    {
+        for (int i = 0; i < kIters; ++i)
+        {
+            switch (tid % 4)
+            {
+                // Holds io_mutex(); access_callbacks() iterates m_callbacks and
+                // inserts/erases in m_pwords.
+                case 0: (void)os.locale(IOv2::locale<char>{});      break;
+                // The three below take no lock at all.
+                case 1: os.set_pword(id, std::make_shared<int>(i)); break;
+                case 2: (void)os.get_pword(id);                     break;
+                case 3: os.register_callback(refresh, id2);         break;
+            }
+        }
+    });
+
+    VERIFY(static_cast<bool>(os));
 
     dump_info("Done\n");
 }
