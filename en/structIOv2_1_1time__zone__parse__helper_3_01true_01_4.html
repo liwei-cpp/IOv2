@@ -107,6 +107,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a73bcafa009b2bf2701efa39dafc3455c" id="r_a73bcafa009b2bf2701efa39dafc3455c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#a73bcafa009b2bf2701efa39dafc3455c">operator const std::chrono::time_zone *</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:a73bcafa009b2bf2701efa39dafc3455c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the parsed timezone information to <code>const std::chrono::time_zone*</code>.  <br /></td></tr>
 <tr class="separator:a73bcafa009b2bf2701efa39dafc3455c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a626f2ebcb1ecd08a86ad91074ab284d7" id="r_a626f2ebcb1ecd08a86ad91074ab284d7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#a626f2ebcb1ecd08a86ad91074ab284d7">set_time_zone_hint</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::time_zone *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">hint</a>)</td></tr>
+<tr class="memdesc:a626f2ebcb1ecd08a86ad91074ab284d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fallback time zone used when parsing yields none.  <br /></td></tr>
+<tr class="separator:a626f2ebcb1ecd08a86ad91074ab284d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -114,6 +117,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a0df236e001ebe4d79e74c0ff219518ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac7852d2c773aa61d88feb615d160948e" id="r_ac7852d2c773aa61d88feb615d160948e"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#ac7852d2c773aa61d88feb615d160948e">m_zone_abbrev</a></td></tr>
 <tr class="separator:ac7852d2c773aa61d88feb615d160948e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad997069e751326493708f29c175aca81" id="r_ad997069e751326493708f29c175aca81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::time_zone *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#ad997069e751326493708f29c175aca81">m_zone_hint</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a></td></tr>
+<tr class="separator:ad997069e751326493708f29c175aca81"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Time-zone-field accumulator helper struct (<code>HaveTimeZone = true</code> specialization). </p>
@@ -145,6 +150,34 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a626f2ebcb1ecd08a86ad91074ab284d7" name="a626f2ebcb1ecd08a86ad91074ab284d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a626f2ebcb1ecd08a86ad91074ab284d7">&#9670;&#160;</a></span>set_time_zone_hint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::time_zone_parse_helper&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a> &gt;::set_time_zone_hint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::time_zone *&#160;</td>
+          <td class="paramname"><em>hint</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the fallback time zone used when parsing yields none. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="ac7852d2c773aa61d88feb615d160948e" name="ac7852d2c773aa61d88feb615d160948e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ac7852d2c773aa61d88feb615d160948e">&#9670;&#160;</a></span>m_zone_abbrev</h2>
@@ -154,6 +187,20 @@ Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::string IOv2::time_zone_parse_helper&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a> &gt;::m_zone_abbrev</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad997069e751326493708f29c175aca81" name="ad997069e751326493708f29c175aca81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad997069e751326493708f29c175aca81">&#9670;&#160;</a></span>m_zone_hint</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::time_zone* IOv2::time_zone_parse_helper&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a> &gt;::m_zone_hint = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
