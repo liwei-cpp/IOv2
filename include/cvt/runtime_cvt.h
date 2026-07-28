@@ -514,14 +514,34 @@ public:
     /**
      * @lang{ZH}
      * 拷贝构造：通过 `clone()` 对内部实现进行多态拷贝。若源对象为空则拷贝结果也为空。
+     *
+     * @warning **本构造可能抛出 `cvt_error`，且 `std::is_copy_constructible_v<runtime_cvt>`
+     *          恒为 `true`，不能用来预判它是否会成功。** 内核类型在此已被擦除，可拷贝性只在
+     *          `clone()` 内部按具体内核判定（见 `runtime_cvt_imp::clone`）。这是有意的取舍：
+     *          `io_converter`（见 `cvt/cvt_concepts.h`）只要求可移动，而每个转换器最终都要
+     *          包进本类，若在包装点强制要求可拷贝，move-only 的转换器将完全无从使用。
+     *          持有本类的 `base_streambuf` 及各流类同样继承这一性质——
+     *          `std::is_copy_constructible_v<ostream<...>>` 同样恒为 `true`。
      * @endif
      *
      * @lang{EN}
      * Copy constructor: performs a polymorphic copy of the internal implementation via `clone()`.
      * If the source is null, the copy is also null.
+     *
+     * @warning **This constructor may throw `cvt_error`, and
+     *          `std::is_copy_constructible_v<runtime_cvt>` is unconditionally `true`, so it
+     *          cannot be used to predict whether the copy will succeed.** The kernel type is
+     *          erased here; copyability is decided inside `clone()` against the concrete kernel
+     *          (see `runtime_cvt_imp::clone`). This is a deliberate trade-off: `io_converter`
+     *          (see `cvt/cvt_concepts.h`) requires only movability, and since every converter
+     *          ends up wrapped in this class, demanding copyability at the wrapping point would
+     *          leave move-only converters with no use at all. `base_streambuf` and the stream
+     *          classes that hold this type inherit the property --
+     *          `std::is_copy_constructible_v<ostream<...>>` is likewise unconditionally `true`.
      * @endif
      *
      * @param val 源 `runtime_cvt` 实例。 / The source `runtime_cvt` instance.
+     * @throws cvt_error @lang{ZH} 若内核不支持拷贝构造。 @endif @lang{EN} If the kernel does not support copy construction. @endif
      */
     runtime_cvt(const runtime_cvt& val)
         : m_ptr(val.m_ptr ? val.m_ptr->clone() : nullptr) {}
