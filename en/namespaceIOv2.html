@@ -832,10 +832,11 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 <tr class="memitem:a28b6a753452f54af79856480a3f85501"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1__Get__time.html">_Get_time</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_CharT</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a28b6a753452f54af79856480a3f85501">get_time</a> (std::tm *tmb, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_CharT</a> *fmt)</td></tr>
 <tr class="memdesc:a28b6a753452f54af79856480a3f85501"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds the manipulator that parses a time according to <code>fmt</code> into <code>*tmb</code>.  <br /></td></tr>
 <tr class="separator:a28b6a753452f54af79856480a3f85501"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7f1b2a36c43248e5a4ada2546e973690" id="r_a7f1b2a36c43248e5a4ada2546e973690"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </td></tr>
-<tr class="memitem:a7f1b2a36c43248e5a4ada2546e973690"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a7f1b2a36c43248e5a4ada2546e973690">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Get__time.html">_Get_time</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
-<tr class="memdesc:a7f1b2a36c43248e5a4ada2546e973690"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: parses a time according to <code>fmt</code> and stores it into the <code>std::tm</code> that <code>get_time</code> points to.  <br /></td></tr>
-<tr class="separator:a7f1b2a36c43248e5a4ada2546e973690"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73bdffd225623e3b153e2465e232d355" id="r_a73bdffd225623e3b153e2465e232d355"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
+requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type&gt;</td></tr>
+<tr class="memitem:a73bdffd225623e3b153e2465e232d355"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a73bdffd225623e3b153e2465e232d355">operator&gt;&gt;</a> (T &amp;is, <a class="el" href="structIOv2_1_1__Get__time.html">_Get_time</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memdesc:a73bdffd225623e3b153e2465e232d355"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extraction manipulator: parses a time according to <code>fmt</code> and stores it into the <code>std::tm</code> that <code>get_time</code> points to.  <br /></td></tr>
+<tr class="separator:a73bdffd225623e3b153e2465e232d355"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc97cf34e1048a29a59490ce28251047" id="r_afc97cf34e1048a29a59490ce28251047"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice&gt; </td></tr>
 <tr class="memitem:afc97cf34e1048a29a59490ce28251047"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#afc97cf34e1048a29a59490ce28251047">iostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>) -&gt; <a class="el" href="classIOv2_1_1iostream.html">iostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type &gt;</td></tr>
 <tr class="separator:afc97cf34e1048a29a59490ce28251047"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2475,13 +2476,14 @@ template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574c
 
 </div>
 </div>
-<a id="a7f1b2a36c43248e5a4ada2546e973690" name="a7f1b2a36c43248e5a4ada2546e973690"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f1b2a36c43248e5a4ada2546e973690">&#9670;&#160;</a></span>operator&gt;&gt;() <span class="overload">[2/16]</span></h2>
+<a id="a73bdffd225623e3b153e2465e232d355" name="a73bdffd225623e3b153e2465e232d355"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73bdffd225623e3b153e2465e232d355">&#9670;&#160;</a></span>operator&gt;&gt;() <span class="overload">[2/16]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
+requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type&gt;</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">

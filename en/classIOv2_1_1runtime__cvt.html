@@ -290,10 +290,17 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
-<p>Copy constructor: performs a polymorphic copy of the internal implementation via <code>clone()</code>. If the source is null, the copy is also null. </p>
+<p>Copy constructor: performs a polymorphic copy of the internal implementation via <code>clone()</code>. If the source is null, the copy is also null.</p>
+<dl class="section warning"><dt>Warning</dt><dd><b>This constructor may throw <code><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></code>, and <code>std::is_copy_constructible_v&lt;<a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a>&gt;</code> is unconditionally <code>true</code>, so it cannot be used to predict whether the copy will succeed.</b> The kernel type is erased here; copyability is decided inside <code>clone()</code> against the concrete kernel (see <code><a class="el" href="classIOv2_1_1runtime__cvt__imp.html#adad5273d967d867e41deddc45c316515">runtime_cvt_imp::clone</a></code>). This is a deliberate trade-off: <code>io_converter</code> (see <code><a class="el" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a></code>) requires only movability, and since every converter ends up wrapped in this class, demanding copyability at the wrapping point would leave move-only converters with no use at all. <code><a class="el" href="classIOv2_1_1base__streambuf.html" title="Common implementation base class for stream buffers.">base_streambuf</a></code> and the stream classes that hold this type inherit the property &ndash; <code>std::is_copy_constructible_v&lt;ostream&lt;...&gt;&gt;</code> is likewise unconditionally <code>true</code>. </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">val</td><td>源 <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> 实例。 / The source <code><a class="el" href="classIOv2_1_1runtime__cvt.html">runtime_cvt</a></code> instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>If the kernel does not support copy construction.  </td></tr>
   </table>
   </dd>
 </dl>
