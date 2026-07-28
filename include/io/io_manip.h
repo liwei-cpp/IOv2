@@ -57,10 +57,12 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <string>
 
 namespace IOv2
 {
@@ -332,6 +334,8 @@ template<typename _MoneyT>
 inline _Put_money<_MoneyT> put_money(const _MoneyT& mon, bool intl = false) { return { mon, intl }; }
 
 template <typename TChar, typename TMoney>
+    requires ((std::integral<TMoney> && !std::same_as<TMoney, bool>)
+              || std::same_as<TMoney, std::basic_string<TChar>>)
 struct writer<TChar, _Put_money<TMoney>>
 {
     template <typename TIter>
@@ -370,6 +374,8 @@ template<typename _MoneyT>
 inline _Get_money<_MoneyT> get_money(_MoneyT& mon, bool intl = false) { return { mon, intl }; }
 
 template <typename TChar, typename TMoney>
+    requires ((std::integral<TMoney> && !std::same_as<TMoney, bool>)
+              || std::same_as<TMoney, std::basic_string<TChar>>)
 struct reader<TChar, _Get_money<TMoney>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -421,7 +427,7 @@ inline T& operator>>(T& is, _Get_money<TMoney> f)
     // required rather than stylistic -- `is >> f` would re-select *this* overload,
     // because f is a named lvalue and the by-value candidate is the more specialized
     // one, and recurse forever.
-    return operator>><T, _Get_money<TMoney>>(is, f);
+    return IOv2::operator>><T, _Get_money<TMoney>>(is, f);
 }
 
 template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* fmt; };
@@ -624,10 +630,11 @@ struct reader<TChar, _Get_time<TChar>>
  * @endif
  */
 template <istream_type T, typename TChar>
+    requires std::is_same_v<TChar, typename T::char_type>
 inline T& operator>>(T& is, _Get_time<TChar> f)
 {
     // Explicit template arguments for the same reason as in the _Get_money overload:
     // `is >> f` would recurse into this very function.
-    return operator>><T, _Get_time<TChar>>(is, f);
+    return IOv2::operator>><T, _Get_time<TChar>>(is, f);
 }
 }
