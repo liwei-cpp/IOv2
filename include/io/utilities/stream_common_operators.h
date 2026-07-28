@@ -4,7 +4,7 @@
  * 定义了输入流与输出流共用的公共操作。
  * 包含保护整张 tie 图的进程级全局锁 `tie_graph_mutex()`，以及承载定位（`tell`/`seek`/
  * `rseek`）、底层设备管理（`device`/`detach`/`attach`）、转换行为调整（`adjust`/`retrieve`）、
- * locale 存取、`io_mutex` 访问与流绑定（`tie`）等操作的 `stream_common_operators` 混入基类。
+ * locale 存取与流绑定（`tie`）等操作的 `stream_common_operators` 混入基类。
  * @endif
  *
  * @lang{EN}
@@ -12,7 +12,7 @@
  * Includes the process-wide lock `tie_graph_mutex()` that guards the entire tie graph, and the
  * `stream_common_operators` mix-in base carrying positioning (`tell`/`seek`/`rseek`), underlying
  * device management (`device`/`detach`/`attach`), conversion-behavior adjustment
- * (`adjust`/`retrieve`), locale access, `io_mutex` access, and stream tying (`tie`).
+ * (`adjust`/`retrieve`), locale access, and stream tying (`tie`).
  * @endif
  */
 #pragma once
@@ -94,7 +94,7 @@ inline std::mutex& tie_graph_mutex()
  * @lang{ZH}
  * @brief 为输入流与输出流提供公共操作的混入（mix-in）基类。
  *
- * 本结构集中承载定位、底层设备管理、转换行为调整、locale 存取、`io_mutex` 访问与流绑定
+ * 本结构集中承载定位、底层设备管理、转换行为调整、locale 存取与流绑定
  * 等成员，供具体流类型派生使用；这些成员通过 deducing-this（`this TSelf& self`）以派生类
  * 的具体类型执行操作。除显式标注为**不做线程同步**者（`device`/`detach`/`attach`）外，
  * 其余操作均持有本流的 `io_mutex()`，并将异常统一交由 `handle_exception` 处理。
@@ -105,7 +105,7 @@ inline std::mutex& tie_graph_mutex()
  * @brief Mix-in base that provides operations common to input and output streams.
  *
  * This struct centralizes members for positioning, underlying device management,
- * conversion-behavior adjustment, locale access, `io_mutex` access, and stream tying, for
+ * conversion-behavior adjustment, locale access, and stream tying, for
  * concrete stream types to derive from; these members use deducing-this (`this TSelf& self`)
  * to operate on the concrete derived type. Except for those explicitly documented as **not
  * synchronized** (`device`/`detach`/`attach`), all operations hold the stream's `io_mutex()`
@@ -545,32 +545,6 @@ struct stream_common_operators
             self.handle_exception(std::current_exception());
         }
         return res;
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 返回本流用于同步 I/O 的互斥量。
-     *
-     * 该锁为递归锁，格式化 I/O 与各定位/存取操作在其临界区内持有它；可配合 `IOv2::sync`
-     * 将多次操作圈进同一临界区。
-     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
-     * @return 本流 `m_io_mutex` 的引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the mutex this stream uses to synchronize I/O.
-     *
-     * The lock is recursive; formatted I/O and the positioning/access operations hold it within
-     * their critical sections. It can be combined with `IOv2::sync` to group several operations
-     * into one critical section.
-     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
-     * @return A reference to this stream's `m_io_mutex`.
-     * @endif
-     */
-    template <typename TSelf>
-    auto& io_mutex(this TSelf& self)
-    {
-        return self.m_io_mutex;
     }
 
     /**
