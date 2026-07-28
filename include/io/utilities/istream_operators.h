@@ -1171,7 +1171,13 @@ T& operator>>(T& obj, TValue& value)
             reader<TChar, TValue>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
         else
         {
-            TCtx tmp;
+            TCtx tmp = [&value]() -> TCtx {
+                if constexpr (requires (const TValue& v)
+                              { parse_context_type<TChar, TValue>::make_parse_context(v); })
+                    return parse_context_type<TChar, TValue>::make_parse_context(value);
+                else
+                    return TCtx{};
+            }();
             reader<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
             value = static_cast<TValue>(tmp);
         }

@@ -111,6 +111,44 @@ struct date_parse_helper<CharT, true>
 
     /**
      * @lang{ZH}
+     * @brief 用 @p hint 替换年 / 月 / 日的默认回退值。
+     *
+     * 覆盖默认构造时装入的回退值（当前年份 + 1 月 1 日），使格式串未解析到的日期字段取
+     * @p hint 的对应值，而不是取当前时间。已解析到的字段不受影响：解析会连同 `m_have_*`
+     * 标志一起覆盖这里写入的值。
+     * @note @p hint 的日在解析结果里不存在时会被夹到当月最后一天，而不是让整次转换因日期
+     *       无效而失败；详见 `compute_ymd()`。@p hint 的年与月不做这种让步，它们在任何
+     *       年 / 月组合下都是合法的。
+     * @warning 必须在 `get()` **之前**调用。本函数直接写入解析字段，在 `get()` 之后调用会
+     *          抹掉解析结果。
+     * @param hint 各日期字段的回退值。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Replaces the year / month / day fallbacks with @p hint.
+     *
+     * Overrides the fallbacks installed by the default constructor (the current year plus
+     * January 1) so that date fields the format string does not parse come from @p hint
+     * rather than from the current time. Parsed fields are unaffected: parsing overwrites
+     * what is stored here along with the matching `m_have_*` flag.
+     * @note The day of @p hint is clamped to the last day of the month when it does not
+     *       exist in the parsed result, rather than failing the whole conversion on an
+     *       invalid date; see `compute_ymd()`. The year and month of @p hint need no such
+     *       concession, as they are valid in any year/month combination.
+     * @warning Must be called **before** `get()`. This writes the parse fields directly, so
+     *          calling it afterwards discards the parsed result.
+     * @param hint The fallback value for each date field.
+     * @endif
+     */
+    void set_date_hint(const std::chrono::year_month_day& hint)
+    {
+        m_year = int(hint.year());
+        m_month = static_cast<uint8_t>(static_cast<unsigned>(hint.month()));
+        m_mday = static_cast<uint8_t>(static_cast<unsigned>(hint.day()));
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 将已累积的日期字段转换为 `std::chrono::year_month_day`。
      * @return 还原出的日历日期。
      * @throw stream_error 若还原结果不是有效的日历日期。
@@ -140,6 +178,12 @@ struct date_parse_helper<CharT, true>
      * 3. ISO-8601 周日期（`%G`/`%Y` + `%V` + 星期）；
      * 4. 根据周序号（`%U`/`%W`）和星期推算；
      * 5. 仅根据年份或世纪等做尽力推算。
+     *
+     * 若日不是从输入解析或推算出来的，而是 `set_date_hint()` / 默认构造留下的回退值，则它在
+     * 超出推算月份的天数时会被夹到该月最后一天。回退值的作用只是补齐格式串没说的字段，不应
+     * 让一次本可成功的解析失败——例如上下文回退到 1 月 31 日、格式串只有 `%m` 且输入为 `02`
+     * 时，结果是 2 月的最后一天而不是不存在的 2 月 31 日。日若确实来自输入则原样保留，此时
+     * 返回的日期可能无效。
      * @return 推算出的日历日期（可能无效，调用方需检查 `ok()`）。
      * @endif
      *
@@ -153,6 +197,15 @@ struct date_parse_helper<CharT, true>
      * 3. ISO-8601 week date (`%G`/`%Y` + `%V` + weekday);
      * 4. deduction from week-of-year (`%U`/`%W`) and weekday;
      * 5. best-effort deduction from year or century alone.
+     *
+     * When the day was neither parsed nor deduced from the input but is the fallback left
+     * by `set_date_hint()` or by the default constructor, it is clamped to the last day of
+     * the deduced month if it would overrun it. A fallback exists only to fill in fields
+     * the format string is silent about and must never turn a parse that succeeded into a
+     * failure -- a context falling back to January 31 with a format of just `%m` and an
+     * input of `02` yields the last day of February, not a nonexistent February 31. A day
+     * that really does come from the input is left alone, so the returned date may be
+     * invalid.
      * @return The deduced calendar date (may be invalid; caller must check `ok()`).
      * @endif
      */
@@ -271,13 +324,23 @@ struct date_parse_helper<CharT, true>
             // Fuzzy matching, we do not have enough information, but need to set year.
             else if (m_have_year_in_century) { /* do nothing */ }
             else if (m_have_century)
-                deduced_year = deduced_year % 100 + m_century * 100;
+                // %C with no year within the century: the year within the century is 0,
+                // as in POSIX strptime. Deriving it from m_year would make the result
+                // depend on whatever the fallback happens to be -- the wall-clock year
+                // for a default-constructed context, the caller's old value for a hinted
+                // one -- for a format string that says nothing about it.
+                deduced_year = m_century * 100;
             else if (!m_era_items.empty())
                 deduced_year = m_era_items.begin()->from_year;
         }
 
         auto deduced_month = m_month;
         auto deduced_mday = m_mday;
+        // True when no deduction path below can touch the day, i.e. the day is whatever
+        // set_date_hint() or the default constructor left behind. Every assignment to
+        // deduced_mday sits inside one of those paths and is guarded by !m_have_mday.
+        const bool mday_is_fallback = !m_have_mday
+            && !(m_have_yday || m_have_wday || m_have_uweek || m_have_wweek);
         int deduced_yday = static_cast<int>(m_yday);
         bool have_yday = m_have_yday;
         auto deduced_wday = m_wday;
@@ -373,6 +436,21 @@ struct date_parse_helper<CharT, true>
                         deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
                 }
             }
+        }
+
+        // A day that came from the fallback rather than from the input must give way when
+        // it cannot exist in the deduced month: the fallback only supplies fields the
+        // format string did not parse, so it must never turn a well-formed parse into an
+        // invalid date. A day the input really did specify is left alone and reported as
+        // invalid.
+        if (mday_is_fallback && deduced_month >= 1 && deduced_month <= 12)
+        {
+            auto last = static_cast<unsigned>(
+                year_month_day_last{year{deduced_year},
+                                    month_day_last{month{static_cast<unsigned>(deduced_month)}}}
+                    .day());
+            if (static_cast<unsigned>(deduced_mday) > last)
+                deduced_mday = static_cast<uint8_t>(last);
         }
 
         return year_month_day{ year{deduced_year}, month{static_cast<uint8_t>(deduced_month)}, day{static_cast<uint8_t>(deduced_mday)} };
@@ -505,6 +583,54 @@ struct time_parse_helper<true>
         return std::chrono::hh_mm_ss{time_sec};
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 用 @p hint 替换时 / 分 / 秒的默认回退值。
+     *
+     * 覆盖默认的 00:00:00，使格式串未解析到的时间字段取 @p hint 的对应值。已解析到的字段
+     * 不受影响。`m_have_I` / `m_is_pm` 不被触碰，因此后续的 `%I` / `%p` 解析照常生效。
+     * @note @p hint 按 24 小时取模后再拆分：`hours() >= 24` 或为负的 @p hint 都会被折回
+     *       一天之内（日期不受影响），因此本函数总是产出合法的时分秒。取模用
+     *       `to_duration()` 而非 `hours()` / `minutes()` / `seconds()`，后者对负的
+     *       `hh_mm_ss` 返回的是绝对值分量。
+     * @warning 必须在 `get()` **之前**调用；理由同 `date_parse_helper::set_date_hint`。
+     * @tparam TDur @p hint 的时长精度，可为任意精度；本结构只保存到秒，更细的精度按向零
+     *         取整丢弃。
+     * @param hint 各时间字段的回退值。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Replaces the hour / minute / second fallbacks with @p hint.
+     *
+     * Overrides the default 00:00:00 so that time fields the format string does not parse
+     * come from @p hint. Parsed fields are unaffected. `m_have_I` / `m_is_pm` are left
+     * untouched, so a later `%I` / `%p` parse still applies as usual.
+     * @note @p hint is reduced modulo 24 hours before being split, so a @p hint whose
+     *       `hours() >= 24`, or a negative one, folds back into a single day (the date is
+     *       not affected) and this function always yields a valid time of day. The
+     *       reduction uses `to_duration()` rather than `hours()` / `minutes()` /
+     *       `seconds()`, which report absolute-value components for a negative
+     *       `hh_mm_ss`.
+     * @warning Must be called **before** `get()`, for the reason given on
+     *          `date_parse_helper::set_date_hint`.
+     * @tparam TDur The duration precision of @p hint; any precision is accepted. This struct
+     *         only stores whole seconds, so anything finer is truncated toward zero.
+     * @param hint The fallback value for each time field.
+     * @endif
+     */
+    template <typename TDur>
+    void set_time_hint(const std::chrono::hh_mm_ss<TDur>& hint)
+    {
+        using namespace std::chrono;
+
+        auto tod = duration_cast<seconds>(hint.to_duration()) % days{1};
+        if (tod < seconds{0}) tod += days{1};
+
+        m_hour = static_cast<uint8_t>(duration_cast<hours>(tod).count());
+        m_minute = static_cast<uint8_t>(duration_cast<minutes>(tod % hours{1}).count());
+        m_second = static_cast<uint8_t>((tod % minutes{1}).count());
+    }
+
     uint8_t m_hour = 0;         // hours since midnight – [0, 23]
     uint8_t m_minute = 0;       // minutes after the hour – [0, 59]
     uint8_t m_second = 0;       // seconds after the minute – [0, 59]
@@ -578,6 +704,7 @@ struct time_zone_parse_helper<true>
         if (!m_zone_abbrev.empty())
             throw stream_error(
                 "timeio get error: timezone abbreviation '" + m_zone_abbrev + "' is ambiguous");
+        if (m_zone_hint) return m_zone_hint;
         try { return std::chrono::locate_zone("UTC"); }
         catch (...)
         {
@@ -585,8 +712,43 @@ struct time_zone_parse_helper<true>
                 "timeio parse error: no usable time zone (tz database unavailable)");
         }
     }
+
+    /**
+     * @lang{ZH}
+     * @brief 设置解析未得到时区时使用的回退时区。
+     *
+     * 与日期 / 时间的 hint 不同，本 hint **不写入解析字段**，而是单独保存、仅在转换时兜底：
+     * 解析到的完整时区名优先，其次是"缩写有歧义"这一错误，再次才是本 hint，最后才是 UTC。
+     * 因此本函数在 `get()` 之前或之后调用都可以。
+     * @note 日期 / 时间侧无法采用同样的写法：它们的回退值必须参与 `compute_ymd()` 的字段推导，
+     *       只能预置进解析字段。
+     * @param hint 回退时区；传 `nullptr` 恢复为默认的 UTC 兜底。指向的对象须在本上下文
+     *        转换期间保持有效（`locate_zone` 返回的指针指向 tz 数据库，其生命周期为整个程序）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the fallback time zone used when parsing yields none.
+     *
+     * Unlike the date / time hints, this one is **not written into the parse fields**: it is
+     * stored separately and consulted only on conversion, after a fully parsed zone name and
+     * after the ambiguous-abbreviation error, and before the UTC default. It may therefore be
+     * called either before or after `get()`.
+     * @note The date / time sides cannot work this way: their fallbacks have to take part in
+     *       the field deduction in `compute_ymd()`, so they must be pre-seeded into the parse
+     *       fields.
+     * @param hint The fallback zone; `nullptr` restores the default UTC fallback. The pointee
+     *        must stay valid for as long as this context is converted (a pointer from
+     *        `locate_zone` refers to the tz database and lives for the whole program).
+     * @endif
+     */
+    void set_time_zone_hint(const std::chrono::time_zone* hint)
+    {
+        m_zone_hint = hint;
+    }
+
     std::string m_zone_name;
     std::string m_zone_abbrev;
+    const std::chrono::time_zone* m_zone_hint = nullptr;
 };
 
 /**
@@ -601,9 +763,11 @@ struct time_zone_parse_helper<true>
  *
  * 典型用法：
  * 1. 默认构造一个 `time_parse_context`；
- * 2. 将其传入一次或多次 `get()` 调用（跨多次调用累积同一值的字段）；
- * 3. 调用转换运算符提取结果；
- * 4. 若要解析下一个不同的时间值，先调用 `reset()`。
+ * 2. 可选：调用 `set_hint()` 为格式串不会解析到的字段指定回退值，否则这些字段取默认回退值
+ *    （日期取"今年 1 月 1 日"，时间取 00:00:00，时区取 UTC）；
+ * 3. 将其传入一次或多次 `get()` 调用（跨多次调用累积同一值的字段）；
+ * 4. 调用转换运算符提取结果；
+ * 5. 若要解析下一个不同的时间值，先调用 `reset()`。
  *
  * @tparam CharT       字符类型。
  * @tparam HaveDate    为 `true` 时激活日期解析，默认 `true`。
@@ -623,10 +787,13 @@ struct time_zone_parse_helper<true>
  *
  * Typical usage:
  * 1. Default-construct a `time_parse_context`;
- * 2. Pass it to one or more `get()` calls (fields of the *same* value
+ * 2. Optionally call `set_hint()` to choose the fallbacks for fields the format string will
+ *    not parse; without it those fields take the default fallbacks (January 1 of the current
+ *    year for the date, 00:00:00 for the time, UTC for the zone);
+ * 3. Pass it to one or more `get()` calls (fields of the *same* value
  *    accumulate across multiple calls);
- * 3. Call a conversion operator to extract the result;
- * 4. Call `reset()` before parsing a *different* time value.
+ * 4. Call a conversion operator to extract the result;
+ * 5. Call `reset()` before parsing a *different* time value.
  *
  * @tparam CharT        The character type.
  * @tparam HaveDate     Activates date parsing when `true` (default `true`).
@@ -661,6 +828,8 @@ struct time_parse_context
      *
      * 在复用同一上下文解析**不同**时间值之前调用此函数；
      * 若要在多次 `get()` 调用中累积**同一**时间值的字段，则无需调用。
+     * @note "恢复到默认构造时的状态"包括**清除经 `set_hint()` 设置的回退值**；如需保留，
+     *       请在 `reset()` 之后重新设置。
      * @endif
      *
      * @lang{EN}
@@ -670,9 +839,90 @@ struct time_parse_context
      * Call this before reusing one context to parse a *different* time value;
      * skip it to keep accumulating fields of the *same* value across multiple
      * `get()` calls.
+     * @note "Restoring the default-constructed state" includes **discarding the fallbacks
+     *       installed by `set_hint()`**; install them again after `reset()` if they are still
+     *       wanted.
      * @endif
      */
     void reset() { *this = time_parse_context{}; }
+
+    /**
+     * @lang{ZH}
+     * @brief 设置日期字段的回退值。仅当 `HaveDate` 为 `true` 时可用。
+     *
+     * 转发到 `date_parse_helper::set_date_hint()`，语义与该函数完全一致，包括"必须在
+     * `get()` 之前调用"这一约束。日期未激活时本重载不在候选集中，传日期 hint 是编译错误
+     * 而非静默丢弃。
+     * @param hint 各日期字段的回退值。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the fallback for the date fields. Available only when `HaveDate` is `true`.
+     *
+     * Forwards to `date_parse_helper::set_date_hint()` and shares its semantics exactly,
+     * including the "must be called before `get()`" constraint. When the date is not
+     * activated this overload is not in the candidate set, so passing a date hint is a
+     * compile error rather than being silently discarded.
+     * @param hint The fallback value for each date field.
+     * @endif
+     */
+    void set_hint(const std::chrono::year_month_day& hint)
+        requires(HaveDate)
+    {
+        this->set_date_hint(hint);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 设置时间字段的回退值。仅当 `HaveTime` 为 `true` 时可用。
+     *
+     * 转发到 `time_parse_helper::set_time_hint()`，语义与该函数完全一致，包括 24 小时取模、
+     * 亚秒精度按向零取整丢弃，以及"必须在 `get()` 之前调用"。
+     * @tparam TDur @p hint 的时长精度，可为任意精度。
+     * @param hint 各时间字段的回退值。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the fallback for the time fields. Available only when `HaveTime` is `true`.
+     *
+     * Forwards to `time_parse_helper::set_time_hint()` and shares its semantics exactly,
+     * including the modulo-24-hour reduction, the truncation of sub-second precision toward
+     * zero, and the "must be called before `get()`" constraint.
+     * @tparam TDur The duration precision of @p hint; any precision is accepted.
+     * @param hint The fallback value for each time field.
+     * @endif
+     */
+    template <typename TDur>
+    void set_hint(const std::chrono::hh_mm_ss<TDur>& hint)
+        requires(HaveTime)
+    {
+        this->set_time_hint(hint);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 设置时区的回退值。仅当 `HaveTimeZone` 为 `true` 时可用。
+     *
+     * 转发到 `time_zone_parse_helper::set_time_zone_hint()`。注意该 hint 是转换时兜底而非
+     * 预置解析字段，因此在 `get()` 之前或之后调用都可以；详见被转发的函数。
+     * @param hint 回退时区；传 `nullptr` 恢复为默认的 UTC 兜底。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the fallback for the time zone. Available only when `HaveTimeZone` is
+     *        `true`.
+     *
+     * Forwards to `time_zone_parse_helper::set_time_zone_hint()`. Note that this hint is a
+     * conversion-time fallback rather than a pre-seeded parse field, so it may be called
+     * either before or after `get()`; see the forwarded-to function.
+     * @param hint The fallback zone; `nullptr` restores the default UTC fallback.
+     * @endif
+     */
+    void set_hint(const std::chrono::time_zone* hint)
+        requires(HaveTimeZone)
+    {
+        this->set_time_zone_hint(hint);
+    }
 
     /**
      * @lang{ZH}

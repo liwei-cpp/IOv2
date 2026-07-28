@@ -53,6 +53,7 @@
  */
 #pragma once
 
+#include <io/fp_defs/tm.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
@@ -534,8 +535,15 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  * @param fmt `strptime` 风格的格式串；不得为空。
  * @note 两个指针都会在解析前校验，为空时置流的失败位而非解引用；详见
  *       `reader<TChar, _Get_time<TChar>>::sread`。
- * @note 格式串中未出现的字段仍是良定义的：解析上下文转换为 `std::tm` 时会值初始化整个结构、
- *       把 `tm_isdst` 置为 -1，并由日期推算出 `tm_wday` / `tm_yday`。
+ * @note 格式串中未出现的字段保留 `*tmb` 原有的取值：解析上下文由 `*tmb` 铺好回退值，故
+ *       `%H:%M` 这样只解析时间的格式串不会动到日期。`tm_wday` / `tm_yday` 总是由最终日期
+ *       重新推算，`tm_isdst` 总是置为 -1——没有格式符携带夏令时信息，而沿用调用方的旧值会
+ *       在日期被改写后变成错的；-1 表示"未知，交由 C 库判定"。
+ * @note `*tmb` 中越界的字段在用作回退值前会先归一化（`tm_mday == 0` 取上月最后一天、
+ *       `tm_mon == 12` 进位到次年 1 月等，规则见 `io/fp_defs/tm.h`）；沿用下来的日若在
+ *       解析出的月份里不存在，则取该月最后一天，而不是让整次提取失败。因此
+ *       `std::tm t{}`（`tm_mday` 为 0）配上只解析时间的格式串，得到的日期与
+ *       `std::get_time` 之后再调用 `mktime()` 一致。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
@@ -546,9 +554,19 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  * @param fmt A `strptime`-style format string; must not be null.
  * @note Both pointers are validated before parsing, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see `reader<TChar, _Get_time<TChar>>::sread`.
- * @note Fields absent from the format string are still well defined: converting the parse
- *       context to `std::tm` value-initializes the whole struct, sets `tm_isdst` to -1, and
- *       derives `tm_wday` / `tm_yday` from the date.
+ * @note Fields absent from the format string keep the value they had in `*tmb`: the parse
+ *       context is seeded with fallbacks from `*tmb`, so a time-only format string such as
+ *       `%H:%M` does not disturb the date. `tm_wday` / `tm_yday` are always recomputed from the
+ *       resulting date, and `tm_isdst` is always set to -1 -- no format specifier carries DST
+ *       information, and carrying the caller's old value over would be wrong once the date has
+ *       been rewritten; -1 means "unknown, let the C library work it out".
+ * @note Out-of-range fields of `*tmb` are normalized before they are used as fallbacks
+ *       (`tm_mday == 0` is the last day of the previous month, `tm_mon == 12` carries into
+ *       January of the next year, and so on; see `io/fp_defs/tm.h` for the rules), and a day
+ *       carried over this way that does not exist in the parsed month becomes the last day of
+ *       that month rather than failing the extraction. A `std::tm t{}` (whose `tm_mday` is 0)
+ *       with a time-only format string therefore yields the same date as `std::get_time`
+ *       followed by `mktime()`.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif
@@ -600,7 +618,7 @@ struct reader<TChar, _Get_time<TChar>>
         // The context is date+time without a time zone, matching
         // parse_context_type<TChar, std::tm>; that is also the combination whose
         // explicit operator std::tm() is available.
-        time_parse_context<TChar, true, true, false> tmp;
+        auto tmp = parse_context_type<TChar, std::tm>::make_parse_context(*(f.tmb));
         auto res = mp->get(s, s_end, tmp, f.fmt);
         *(f.tmb) = static_cast<std::tm>(tmp);
 

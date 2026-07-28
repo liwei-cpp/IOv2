@@ -2768,11 +2768,10 @@ void test_timeio_char8_t_get_1()
 
     VERIFY(CheckGet<year_month_day>(obj, u8"20 24/09/04", u8"%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
 
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(CheckGet<year_month_day>(obj, u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(CheckGet<year_month_day>(obj, u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
     dump_info("Done\n");
 }
 
@@ -3042,11 +3041,10 @@ void test_timeio_char8_t_get_2()
     VERIFY(CheckGet<year_month_day>(obj, u8"99-W52-5", u8"%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(CheckGet<year_month_day>(obj, u8"20 24/09/04", u8"%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(CheckGet<year_month_day>(obj, u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(CheckGet<year_month_day>(obj, u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }
@@ -3332,11 +3330,10 @@ void test_timeio_char8_t_get_3()
     VERIFY(CheckGet<year_month_day>(obj, u8"99-W52-5", u8"%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(CheckGet<year_month_day>(obj, u8"20 24/09/04", u8"%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(CheckGet<year_month_day>(obj, u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(CheckGet<year_month_day>(obj, u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }
@@ -4338,11 +4335,10 @@ void test_timeio_char8_t_get_9()
     VERIFY(FYmd(u8"99-W52-5", u8"%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(FYmd(u8"20 24/09/04", u8"%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(FYmd(u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(FYmd(u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }
@@ -4615,11 +4611,10 @@ void test_timeio_char8_t_get_10()
     VERIFY(FYmd(u8"99-W52-5", u8"%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(FYmd(u8"20 24/09/04", u8"%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(FYmd(u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(FYmd(u8"20 01 01", u8"%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }

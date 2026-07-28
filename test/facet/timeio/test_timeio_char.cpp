@@ -2768,11 +2768,10 @@ void test_timeio_char_get_1()
 
     VERIFY(CheckGet<year_month_day>(obj, "20 24/09/04", "%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
 
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
     dump_info("Done\n");
 }
 
@@ -3042,11 +3041,10 @@ void test_timeio_char_get_2()
     VERIFY(CheckGet<year_month_day>(obj, "99-W52-5", "%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(CheckGet<year_month_day>(obj, "20 24/09/04", "%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }
@@ -3332,11 +3330,10 @@ void test_timeio_char_get_3()
     VERIFY(CheckGet<year_month_day>(obj, "99-W52-5", "%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(CheckGet<year_month_day>(obj, "20 24/09/04", "%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(CheckGet<year_month_day>(obj, "20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }
@@ -5120,11 +5117,10 @@ void test_timeio_char_get_14()
     VERIFY(FYmd("99-W52-5", "%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(FYmd("20 24/09/04", "%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(FYmd("20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(FYmd("20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }
@@ -5397,11 +5393,10 @@ void test_timeio_char_get_15()
     VERIFY(FYmd("99-W52-5", "%g-W%V-%u", IOv2::ios_defs::eofbit) == check_date4);
 
     VERIFY(FYmd("20 24/09/04", "%C %y/%m/%d", IOv2::ios_defs::eofbit) == check_date1);
-    {
-        auto now = floor<days>(system_clock::now());
-        year_month_day ymd{now};
-        VERIFY(FYmd("20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{ymd.year(), std::chrono::month{1}, std::chrono::day{1}});
-    }
+    // %C with no year within the century: the year within the century is 0, as in
+    // POSIX strptime -- not the wall-clock year, and not whatever the parse context
+    // happens to fall back to.
+    VERIFY(FYmd("20 01 01", "%C %m %d", IOv2::ios_defs::eofbit) == year_month_day{std::chrono::year{2000}, std::chrono::month{1}, std::chrono::day{1}});
 
     dump_info("Done\n");
 }
@@ -6108,6 +6103,201 @@ void test_timeio_char_get_18()
 
     // Format tail: bare '%' at format end (next==cend) causes break at line 2236
     CheckGet(obj, "Sep", std::string("%b%"), IOv2::ios_defs::strfailbit);
+
+    dump_info("Done\n");
+}
+namespace
+{
+    template <typename T>
+    concept can_hint_date = requires (T& c)
+    { c.set_hint(std::chrono::year_month_day{}); };
+
+    template <typename T>
+    concept can_hint_time = requires (T& c)
+    { c.set_hint(std::chrono::hh_mm_ss<std::chrono::seconds>{}); };
+
+    template <typename T>
+    concept can_hint_zone = requires (T& c)
+    { c.set_hint(static_cast<const std::chrono::time_zone*>(nullptr)); };
+}
+
+void test_timeio_char_get_19()
+{
+    dump_info("Test timeio<char> get 19...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    // set_hint(year_month_day): fields the format string does not parse keep the hint
+    // instead of falling back to the wall clock.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
+        const std::string in = "09";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, 'm', 0) == in.end());
+        VERIFY(static_cast<year_month_day>(ctx)
+               == year_month_day{year{1969}, month{9}, day{20}});
+    }
+
+    // A parsed field still wins over the hint.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
+        const std::string in = "2024 03 04";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, "%Y %m %d") == in.end());
+        VERIFY(static_cast<year_month_day>(ctx)
+               == year_month_day{year{2024}, month{3}, day{4}});
+    }
+
+    // The hint does not supply the year within the century %C leaves open: as in POSIX
+    // strptime that year is 0, so %C=18 is 1800 whatever the hint says. Month and day,
+    // which %C says nothing about at all, still come from the hint.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
+        const std::string in = "18";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, "%C") == in.end());
+        VERIFY(static_cast<year_month_day>(ctx)
+               == year_month_day{year{1800}, month{7}, day{20}});
+    }
+
+    // %C together with %y still combines the two into a full year.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
+        const std::string in = "18 24";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, "%C %y") == in.end());
+        VERIFY(static_cast<year_month_day>(ctx).year() == year{1824});
+    }
+
+    // A hinted day that cannot exist in the parsed month gives way to the month's last
+    // day instead of failing the conversion: the hint only fills in what the format
+    // string is silent about, so it must not break an otherwise well-formed parse.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{2020}, month{1}, day{31}});
+        const std::string in = "02";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, 'm', 0) == in.end());
+        VERIFY(static_cast<year_month_day>(ctx)
+               == year_month_day{year{2020}, month{2}, day{29}});
+    }
+
+    // The same when it is the year that is parsed and the hinted day is February 29.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{2020}, month{2}, day{29}});
+        const std::string in = "2021";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, 'Y', 0) == in.end());
+        VERIFY(static_cast<year_month_day>(ctx)
+               == year_month_day{year{2021}, month{2}, day{28}});
+    }
+
+    // A day that fits needs no adjustment.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{2020}, month{1}, day{31}});
+        const std::string in = "03";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, 'm', 0) == in.end());
+        VERIFY(static_cast<year_month_day>(ctx)
+               == year_month_day{year{2020}, month{3}, day{31}});
+    }
+
+    // A day that really was parsed does not give way: February 31 stays invalid and the
+    // conversion reports it.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{2020}, month{2}, day{15}});
+        const std::string in = "31";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, 'd', 0) == in.end());
+        bool threw = false;
+        try { (void)static_cast<year_month_day>(ctx); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // set_hint(hh_mm_ss): unparsed time fields keep the hint.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(hh_mm_ss{hours{13} + minutes{45} + seconds{7}});
+        const std::string in = "22";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, 'H', 0) == in.end());
+        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        VERIFY(hms.hours() == hours{22} && hms.minutes() == minutes{45}
+               && hms.seconds() == seconds{7});
+    }
+
+    // Any duration precision is accepted; finer than a second truncates toward zero.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(hh_mm_ss{milliseconds{(1 * 3600 + 2 * 60 + 3) * 1000 + 999}});
+        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        VERIFY(hms.hours() == hours{1} && hms.minutes() == minutes{2}
+               && hms.seconds() == seconds{3});
+    }
+
+    // A negative hint wraps into the day rather than producing garbage components.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(hh_mm_ss{-(hours{1} + minutes{2} + seconds{3})});
+        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        VERIFY(hms.hours() == hours{22} && hms.minutes() == minutes{57}
+               && hms.seconds() == seconds{57});
+    }
+
+    // A hint beyond one day is reduced modulo a day.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(hh_mm_ss{hours{49} + minutes{1}});
+        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        VERIFY(hms.hours() == hours{1} && hms.minutes() == minutes{1});
+    }
+
+    // set_hint(const time_zone*) replaces the UTC fallback when %Z was never parsed,
+    // and nullptr restores it.
+    {
+        IOv2::time_parse_context<char> ctx;
+        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("UTC"));
+        ctx.set_hint(locate_zone("Asia/Shanghai"));
+        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("Asia/Shanghai"));
+        ctx.set_hint(static_cast<const time_zone*>(nullptr));
+        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("UTC"));
+    }
+
+    // A parsed %Z wins over the zone hint.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(locate_zone("Asia/Shanghai"));
+        const std::string in = "America/Los_Angeles";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, 'Z', 0) == in.end());
+        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("America/Los_Angeles"));
+    }
+
+    // reset() keeps its "restore to default-constructed" meaning: every hint is wiped,
+    // so the date falls back to the current year again.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
+        ctx.set_hint(hh_mm_ss{hours{13} + minutes{45}});
+        ctx.set_hint(locate_zone("Asia/Shanghai"));
+        ctx.reset();
+        VERIFY(ctx == IOv2::time_parse_context<char>{});
+        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("UTC"));
+
+        auto now_year = year_month_day{floor<days>(system_clock::now())}.year();
+        VERIFY(static_cast<year_month_day>(ctx).year() == now_year);
+    }
+
+    // The setters are constrained, not silently ignored, when a field group is inactive.
+    // The checks go through concepts rather than `static_assert(!requires ...)`, which GCC
+    // reports as a hard error in a non-template context instead of a failed constraint.
+    {
+        static_assert(can_hint_date<IOv2::time_parse_context<char, true, true, true>>);
+        static_assert(can_hint_time<IOv2::time_parse_context<char, true, true, true>>);
+        static_assert(can_hint_zone<IOv2::time_parse_context<char, true, true, true>>);
+        static_assert(!can_hint_date<IOv2::time_parse_context<char, false, true, true>>);
+        static_assert(!can_hint_time<IOv2::time_parse_context<char, true, false, true>>);
+        static_assert(!can_hint_zone<IOv2::time_parse_context<char, true, true, false>>);
+    }
 
     dump_info("Done\n");
 }
