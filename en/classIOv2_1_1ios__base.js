@@ -10,6 +10,7 @@ var classIOv2_1_1ios__base =
     [ "flags", "classIOv2_1_1ios__base.html#a65a7c31c9e1f44d2ed6e4f4cdbfee69c", null ],
     [ "flags", "classIOv2_1_1ios__base.html#a71ec0b8b535ac6a7ccf7a0d0d12c3c6c", null ],
     [ "get_pword", "classIOv2_1_1ios__base.html#a6f40137586900ea9cd15c5130a0285d5", null ],
+    [ "io_mutex", "classIOv2_1_1ios__base.html#a2c689e1ea494e2c00a3ac842a197d853", null ],
     [ "operator=", "classIOv2_1_1ios__base.html#a6a36467c2a28f2dc953b3bf8ba27ae9b", null ],
     [ "operator=", "classIOv2_1_1ios__base.html#abdda3e4b1fb79636b2a54081a3d953e2", null ],
     [ "precision", "classIOv2_1_1ios__base.html#ae170a2d62c36321798aca4920c8eb811", null ],
@@ -25,6 +26,7 @@ var classIOv2_1_1ios__base =
     [ "m_callbacks", "classIOv2_1_1ios__base.html#a2a7f2df7df55299255aee6af1fde9746", null ],
     [ "m_fill", "classIOv2_1_1ios__base.html#addcbee9bd77937bc86be006dc3ba6207", null ],
     [ "m_flags", "classIOv2_1_1ios__base.html#a09110e3b35bdac1a3035831a0079fcfb", null ],
+    [ "m_io_mutex", "classIOv2_1_1ios__base.html#ad85e04e2b06caf7847eb22fbf6ea8a91", null ],
     [ "m_precision", "classIOv2_1_1ios__base.html#acde5e32929a1700b0969e1da4a7ef0a9", null ],
     [ "m_pwords", "classIOv2_1_1ios__base.html#a699d0fd9502ae5772970e7f6b4803c97", null ],
     [ "m_width", "classIOv2_1_1ios__base.html#a8572d89c158aaa51f679a7714b5a068a", null ]

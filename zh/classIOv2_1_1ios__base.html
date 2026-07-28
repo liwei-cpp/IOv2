@@ -159,13 +159,15 @@ IOv2::ios_base&lt; TChar &gt; 的协作图:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1ios__base__coll__graph.png" border="0" usemap="#aIOv2_1_1ios__base_3_01TChar_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="aIOv2_1_1ios__base_3_01TChar_01_4_coll__map" id="aIOv2_1_1ios__base_3_01TChar_01_4_coll__map">
-<area shape="rect" title="所有流的格式化状态基类。" alt="" coords="308,77,492,102"/>
-<area shape="rect" href="classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,5,176,45"/>
-<area shape="poly" title=" " alt="" coords="190,35,285,52,362,74,361,79,283,57,189,40"/>
-<area shape="rect" href="classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,69,176,109"/>
-<area shape="poly" title=" " alt="" coords="190,87,308,87,308,92,190,92"/>
-<area shape="rect" href="classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="5,133,176,173"/>
-<area shape="poly" title=" " alt="" coords="189,130,337,99,338,105,190,136"/>
+<area shape="rect" title="所有流的格式化状态基类。" alt="" coords="328,109,512,134"/>
+<area shape="rect" href="classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,5,185,45"/>
+<area shape="poly" title=" " alt="" coords="200,39,305,65,354,85,396,106,394,111,352,90,303,71,198,44"/>
+<area shape="rect" href="classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,69,185,109"/>
+<area shape="poly" title=" " alt="" coords="199,97,328,110,328,115,199,102"/>
+<area shape="rect" href="classIOv2_1_1copyable__atomic.html" title=" " alt="" coords="15,133,185,173"/>
+<area shape="poly" title=" " alt="" coords="199,141,328,128,328,133,199,146"/>
+<area shape="rect" href="classIOv2_1_1copyable__mutex.html" title=" " alt="" coords="5,197,195,237"/>
+<area shape="poly" title=" " alt="" coords="191,191,303,159,383,131,385,137,305,164,193,196"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
 <table class="memberdecls">
@@ -219,6 +221,9 @@ Public 成员函数</h2></td></tr>
 <tr class="separator:a07a854a549fe07ddd93a62830565576e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac38a4bfcc74c8458a17dedaced1f89ed" id="r_ac38a4bfcc74c8458a17dedaced1f89ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ac38a4bfcc74c8458a17dedaced1f89ed">fill</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
 <tr class="separator:ac38a4bfcc74c8458a17dedaced1f89ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c689e1ea494e2c00a3ac842a197d853" id="r_a2c689e1ea494e2c00a3ac842a197d853"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&lt; std::recursive_mutex &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2c689e1ea494e2c00a3ac842a197d853">io_mutex</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a2c689e1ea494e2c00a3ac842a197d853"><td class="mdescLeft">&#160;</td><td class="mdescRight">返回本流的对象锁。  <br /></td></tr>
+<tr class="separator:a2c689e1ea494e2c00a3ac842a197d853"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af38882ab0584ce24ff9cc1e2a7cc465b" id="r_af38882ab0584ce24ff9cc1e2a7cc465b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#af38882ab0584ce24ff9cc1e2a7cc465b">set_pword</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> id, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pword</a>)</td></tr>
 <tr class="memdesc:af38882ab0584ce24ff9cc1e2a7cc465b"><td class="mdescLeft">&#160;</td><td class="mdescRight">设置 id 对应的 pword（per-stream 用户数据）条目。  <br /></td></tr>
 <tr class="separator:af38882ab0584ce24ff9cc1e2a7cc465b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -255,11 +260,14 @@ Protected 属性</h2></td></tr>
 <tr class="memitem:addcbee9bd77937bc86be006dc3ba6207" id="r_addcbee9bd77937bc86be006dc3ba6207"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__atomic.html">copyable_atomic</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#addcbee9bd77937bc86be006dc3ba6207">m_fill</a> {(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>)' '}</td></tr>
 <tr class="memdesc:addcbee9bd77937bc86be006dc3ba6207"><td class="mdescLeft">&#160;</td><td class="mdescRight">默认填充字符。  <br /></td></tr>
 <tr class="separator:addcbee9bd77937bc86be006dc3ba6207"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad85e04e2b06caf7847eb22fbf6ea8a91" id="r_ad85e04e2b06caf7847eb22fbf6ea8a91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&lt; std::recursive_mutex &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#ad85e04e2b06caf7847eb22fbf6ea8a91">m_io_mutex</a></td></tr>
+<tr class="memdesc:ad85e04e2b06caf7847eb22fbf6ea8a91"><td class="mdescLeft">&#160;</td><td class="mdescRight">本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。<code>mutable</code> 是因为 <code><a class="el" href="classIOv2_1_1ios__base.html#a6f40137586900ea9cd15c5130a0285d5" title="获取 id 对应的 pword 条目。">get_pword()</a></code> 等只读接口也要加锁。详见 <code><a class="el" href="classIOv2_1_1ios__base.html#a2c689e1ea494e2c00a3ac842a197d853" title="返回本流的对象锁。">io_mutex()</a></code>。    <br /></td></tr>
+<tr class="separator:ad85e04e2b06caf7847eb22fbf6ea8a91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a699d0fd9502ae5772970e7f6b4803c97" id="r_a699d0fd9502ae5772970e7f6b4803c97"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a699d0fd9502ae5772970e7f6b4803c97">m_pwords</a></td></tr>
-<tr class="memdesc:a699d0fd9502ae5772970e7f6b4803c97"><td class="mdescLeft">&#160;</td><td class="mdescRight">按 id 索引的 per-stream 用户数据存储。    <br /></td></tr>
+<tr class="memdesc:a699d0fd9502ae5772970e7f6b4803c97"><td class="mdescLeft">&#160;</td><td class="mdescRight">按 id 索引的 per-stream 用户数据存储。由 <code>m_io_mutex</code> 保护。    <br /></td></tr>
 <tr class="separator:a699d0fd9502ae5772970e7f6b4803c97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a7f2df7df55299255aee6af1fde9746" id="r_a2a7f2df7df55299255aee6af1fde9746"><td class="memItemLeft" align="right" valign="top">std::forward_list&lt; std::pair&lt; <a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a2a7f2df7df55299255aee6af1fde9746">m_callbacks</a></td></tr>
-<tr class="memdesc:a2a7f2df7df55299255aee6af1fde9746"><td class="mdescLeft">&#160;</td><td class="mdescRight">已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。    <br /></td></tr>
+<tr class="memdesc:a2a7f2df7df55299255aee6af1fde9746"><td class="mdescLeft">&#160;</td><td class="mdescRight">已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 <code>m_io_mutex</code> 保护。    <br /></td></tr>
 <tr class="separator:a2a7f2df7df55299255aee6af1fde9746"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
@@ -546,6 +554,35 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div><div class="memdoc">
 
 <p>获取 id 对应的 pword 条目。 </p>
+
+</div>
+</div>
+<a id="a2c689e1ea494e2c00a3ac842a197d853" name="a2c689e1ea494e2c00a3ac842a197d853"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c689e1ea494e2c00a3ac842a197d853">&#9670;&#160;</a></span>io_mutex()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&lt; std::recursive_mutex &gt; &amp; <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::io_mutex </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>返回本流的对象锁。 </p>
 
 </div>
 </div>
@@ -951,7 +988,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
-<p>已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。   </p>
+<p>已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 <code>m_io_mutex</code> 保护。   </p>
 
 </div>
 </div>
@@ -1007,6 +1044,32 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
+<a id="ad85e04e2b06caf7847eb22fbf6ea8a91" name="ad85e04e2b06caf7847eb22fbf6ea8a91"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad85e04e2b06caf7847eb22fbf6ea8a91">&#9670;&#160;</a></span>m_io_mutex</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classIOv2_1_1copyable__mutex.html">copyable_mutex</a>&lt;std::recursive_mutex&gt; <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::m_io_mutex</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。<code>mutable</code> 是因为 <code><a class="el" href="classIOv2_1_1ios__base.html#a6f40137586900ea9cd15c5130a0285d5" title="获取 id 对应的 pword 条目。">get_pword()</a></code> 等只读接口也要加锁。详见 <code><a class="el" href="classIOv2_1_1ios__base.html#a2c689e1ea494e2c00a3ac842a197d853" title="返回本流的对象锁。">io_mutex()</a></code>。   </p>
+
+</div>
+</div>
 <a id="acde5e32929a1700b0969e1da4a7ef0a9" name="acde5e32929a1700b0969e1da4a7ef0a9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acde5e32929a1700b0969e1da4a7ef0a9">&#9670;&#160;</a></span>m_precision</h2>
 
@@ -1055,7 +1118,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
-<p>按 id 索引的 per-stream 用户数据存储。   </p>
+<p>按 id 索引的 per-stream 用户数据存储。由 <code>m_io_mutex</code> 保护。   </p>
 
 </div>
 </div>
