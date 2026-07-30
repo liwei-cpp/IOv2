@@ -36,20 +36,126 @@ public:
     friend stream_common_operators;
 
 public:
+    /**
+     * @lang{ZH}
+     * @brief 以默认构造的设备建立流。
+     *
+     * 供"先默认构造、之后 `attach()` 装设备"这一用法。
+     *
+     * @warning **构造流可能抛出异常，且异常不会被转成失败位。** 建流要初始化转换器，而这一步
+     *          会向设备询问流起点；设备若尚未就绪（例如默认构造的 `file_device` 对应一个未打开
+     *          的文件），询问就会抛出 `device_error`。异常来自成员初始化列表，C++ 规定它必然向
+     *          外传播——构造函数 function-try-block 的处理器执行到末尾时会自动重抛，其中也不允许
+     *          `return`——而且此时流对象尚未诞生，也就无处安放状态位。本库其余的操作（包括
+     *          `attach()`）都把异常转为状态位，唯独构造不能，调用方需要自行 `try`。
+     * @note 设备本身可用时（如 `mem_device`）默认构造不会抛，得到的是一个可直接使用的空流。
+     * @throw device_error 若设备无法完成转换器初始化所需的查询。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Builds a stream over a default-constructed device.
+     *
+     * For the "default-construct now, `attach()` a device later" usage.
+     *
+     * @warning **Constructing a stream may throw, and the exception is not turned into a failure
+     *          bit.** Building a stream initializes the converter, and that step asks the device
+     *          for the stream origin; a device that is not ready yet -- a default-constructed
+     *          `file_device`, which refers to no open file -- throws `device_error` when asked.
+     *          The exception comes from the member initializer list, which C++ requires to
+     *          propagate (the handler of a constructor function-try-block rethrows when control
+     *          reaches its end, and a `return` is not allowed there), and the stream object does
+     *          not exist yet, so there is nowhere to put a state bit. Every other operation in
+     *          this library, `attach()` included, turns exceptions into state; construction alone
+     *          cannot, so the caller must `try` around it.
+     * @note With a device that is usable as constructed (`mem_device`), this does not throw and
+     *       yields an empty stream ready for use.
+     * @throw device_error If the device cannot answer the queries the converter initialization
+     *        needs.
+     * @endif
+     */
     iostream()
         : m_streambuf(TDevice()) {}
 
+    /**
+     * @lang{ZH}
+     * @brief 以 @p dev 建立流。
+     * @param dev 底层设备。
+     * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Builds a stream over @p dev.
+     * @param dev The underlying device.
+     * @throw device_error If the device cannot answer the queries the converter initialization
+     *        needs; see the default constructor for why this is not reported as state.
+     * @endif
+     */
     iostream(TDevice dev)
         : m_streambuf(std::move(dev)) {}
 
+    /**
+     * @lang{ZH}
+     * @brief 以 @p dev 建立流，并由 @p creator 构造转换器。
+     * @tparam TCreator 转换器创建器类型。
+     * @param dev     底层设备。
+     * @param creator 转换器创建器。
+     * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Builds a stream over @p dev with the converter built by @p creator.
+     * @tparam TCreator The converter-creator type.
+     * @param dev     The underlying device.
+     * @param creator The converter creator.
+     * @throw device_error If the device cannot answer the queries the converter initialization
+     *        needs; see the default constructor for why this is not reported as state.
+     * @endif
+     */
     template <cvt_creator TCreator>
     iostream(TDevice dev, const TCreator& creator)
         : m_streambuf(std::move(dev), creator) {}
 
+    /**
+     * @lang{ZH}
+     * @brief 以 @p dev 建立流，并装入 locale @p loc。
+     * @param dev 底层设备。
+     * @param loc 本流的 locale。
+     * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Builds a stream over @p dev with locale @p loc installed.
+     * @param dev The underlying device.
+     * @param loc The stream's locale.
+     * @throw device_error If the device cannot answer the queries the converter initialization
+     *        needs; see the default constructor for why this is not reported as state.
+     * @endif
+     */
     iostream(TDevice dev, IOv2::locale<char_type> loc)
         : m_streambuf(std::move(dev))
         , m_locale(std::move(loc)) {}
 
+    /**
+     * @lang{ZH}
+     * @brief 以 @p dev 建立流，由 @p creator 构造转换器，并装入 locale @p loc。
+     * @tparam TCreator 转换器创建器类型。
+     * @param dev     底层设备。
+     * @param creator 转换器创建器。
+     * @param loc     本流的 locale。
+     * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Builds a stream over @p dev with the converter built by @p creator and locale
+     *        @p loc installed.
+     * @tparam TCreator The converter-creator type.
+     * @param dev     The underlying device.
+     * @param creator The converter creator.
+     * @param loc     The stream's locale.
+     * @throw device_error If the device cannot answer the queries the converter initialization
+     *        needs; see the default constructor for why this is not reported as state.
+     * @endif
+     */
     template <cvt_creator TCreator>
     iostream(TDevice dev, const TCreator& creator, IOv2::locale<char_type> loc)
         : m_streambuf(std::move(dev), creator)

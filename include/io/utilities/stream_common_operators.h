@@ -365,6 +365,24 @@ struct stream_common_operators
      * @lang{ZH}
      * @brief 安装（替换）底层设备。
      *
+     * 状态在换设备**之前**就被整体清回 `goodbit`，成功时的效果与 `std::basic_ifstream::open`
+     * 自 C++11 起的做法一致。已有的状态位描述的是**旧设备**上发生过什么——EOF 读到过尾、上一次
+     * 解析失败、上一次 `attach()` 装了个不可用的设备——设备既已换掉，这些结论便不再成立。若不清，
+     * 一次失败的 `attach()` 会把流永久毒化：即便随后装上完全正常的设备，流仍报告失败，调用方
+     * 必须自己记得 `clear()`，"换个设备重试"这条本该走通的恢复路径就断了。
+     *
+     * @note 清状态必须排在换设备**之前**，否则失败路径上留下的是新旧混合的状态。底层的
+     *       `streambuf::attach()` 先装入新设备、再初始化转换器，而抛异常的是后一步——异常抛出时
+     *       旧设备已经不复存在、新设备已经就位，没有回滚。若把 `clear()` 放在后面，它在失败时
+     *       根本不会执行，`handle_exception` 置上的新失败位便与旧设备遗留的位叠在一起，得到一个
+     *       描述两个不同设备的状态。清在前面，失败后的状态就只描述这一次 `attach()`。
+     *
+     * @note 安装设备时抛出的异常（如新设备无法确定流起点）交由 `handle_exception` 处理：置相应
+     *       失败位，并按流的异常掩码决定是否重新抛出。这一点与**构造函数**不同——构造函数的成员
+     *       初始化列表若抛出异常，C++ 规定它必然向外传播（构造函数 function-try-block 的处理器
+     *       执行到末尾时会自动重抛，且其中不允许 `return`），流对象根本没有诞生，也就无处安放
+     *       状态位。因此"默认构造后 `attach()`"这条生命周期上，构造那步可能抛，`attach()` 这步
+     *       不会。`detach()` 同样不抛，它把错误作为 `exception_ptr` 返回。
      * @warning 与 `detach()` 相同，本操作**不做线程同步**、不获取 `io_mutex()`。它是类似构造的
      *          生命周期操作：替换底层设备期间，任何并发读写本身都是不稳定且无意义的。调用方必须
      *          保证在 `attach()` 执行期间没有任何其它线程对本流进行操作，否则行为未定义。
@@ -375,6 +393,34 @@ struct stream_common_operators
      * @lang{EN}
      * @brief Installs (replaces) the underlying device.
      *
+     * The state is cleared back to `goodbit` **before** the device is replaced, which on success
+     * amounts to what `std::basic_ifstream::open` has done since C++11. Whatever bits are set
+     * describe what happened on the **old** device -- input was read to the end, the last parse
+     * failed, the last `attach()` installed an unusable device -- and none of those conclusions
+     * survive replacing it. Leaving them would let one failed `attach()` poison the stream for
+     * good: even after a perfectly good device is installed the stream would keep reporting
+     * failure until the caller remembered to `clear()`, which breaks the "install another device
+     * and retry" recovery path.
+     *
+     * @note Clearing has to come **before** the replacement, or the failure path is left holding
+     *       a mixture of old and new. The underlying `streambuf::attach()` installs the new
+     *       device first and initializes the converter second, and it is the second step that
+     *       throws -- by then the old device is gone and the new one is in place, with no
+     *       rollback. A `clear()` placed afterwards simply would not run on failure, so the bit
+     *       `handle_exception` sets would sit alongside the old device's leftovers and describe
+     *       two different devices at once. Clearing first leaves a state that describes only
+     *       this `attach()`.
+     *
+     * @note An exception thrown while installing the device (a new device whose stream origin
+     *       cannot be determined, say) goes to `handle_exception`: the matching failure bit is
+     *       set, and whether it is rethrown follows the stream's exception mask. This is unlike
+     *       a **constructor**, where C++ requires an exception from the member initializer list
+     *       to propagate (the handler of a constructor function-try-block rethrows when control
+     *       reaches its end, and a `return` is not allowed there), because the stream object
+     *       never came into existence and there is nowhere to put a state bit. So along the
+     *       "default-construct, then `attach()`" lifecycle the construction step may throw and
+     *       the `attach()` step will not. `detach()` likewise does not throw; it returns the
+     *       error as an `exception_ptr`.
      * @warning Like `detach()`, this operation is **not synchronized** and takes no
      *          `io_mutex()`. It is a construction-like lifecycle operation: any concurrent
      *          read/write while the underlying device is being replaced is itself unstable and
@@ -387,8 +433,15 @@ struct stream_common_operators
     template <typename TSelf>
     void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
     {
-        self.m_streambuf.attach(std::move(dev));
-        self.unset_state(ios_defs::eofbit);
+        try
+        {
+            self.clear();
+            self.m_streambuf.attach(std::move(dev));
+        }
+        catch (...)
+        {
+            self.handle_exception(std::current_exception());
+        }
     }
 
     /**
