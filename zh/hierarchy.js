@@ -4,12 +4,6 @@ var hierarchy =
     [ "IOv2::_Get_time< _CharT >", "structIOv2_1_1__Get__time.html", null ],
     [ "IOv2::_Put_money< _MoneyT >", "structIOv2_1_1__Put__money.html", null ],
     [ "IOv2::_Put_time< _CharT >", "structIOv2_1_1__Put__time.html", null ],
-    [ "IOv2::_Resetiosflags", "structIOv2_1_1__Resetiosflags.html", null ],
-    [ "IOv2::_Setbase", "structIOv2_1_1__Setbase.html", null ],
-    [ "IOv2::_Setfill< _CharT >", "structIOv2_1_1__Setfill.html", null ],
-    [ "IOv2::_Setiosflags", "structIOv2_1_1__Setiosflags.html", null ],
-    [ "IOv2::_Setprecision", "structIOv2_1_1__Setprecision.html", null ],
-    [ "IOv2::_Setw", "structIOv2_1_1__Setw.html", null ],
     [ "IOv2::abs_cvt< CurrentType, KernelType, InternalType, enable_positioning, enable_io_switch >", "classIOv2_1_1abs__cvt.html", [
       [ "IOv2::code_cvt< KernelType, wchar_t >", "classIOv2_1_1code__cvt.html", [
         [ "IOv2::code_cvt_stdio< KernelType >", "classIOv2_1_1code__cvt__stdio.html", null ]
@@ -214,6 +208,15 @@ var hierarchy =
     ] ],
     [ "std::hash< IOv2::detail::msg_key >", "structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4.html", null ],
     [ "IOv2::Crypt::hash_cvt_creator< TInt >", "structIOv2_1_1Crypt_1_1hash__cvt__creator.html", null ],
+    [ "IOv2::in_manip", "structIOv2_1_1in__manip.html", [
+      [ "IOv2::_Resetiosflags", "structIOv2_1_1__Resetiosflags.html", null ],
+      [ "IOv2::_Setbase", "structIOv2_1_1__Setbase.html", null ],
+      [ "IOv2::_Setfill< _CharT >", "structIOv2_1_1__Setfill.html", null ],
+      [ "IOv2::_Setiosflags", "structIOv2_1_1__Setiosflags.html", null ],
+      [ "IOv2::_Setprecision", "structIOv2_1_1__Setprecision.html", null ],
+      [ "IOv2::_Setw", "structIOv2_1_1__Setw.html", null ],
+      [ "IOv2::_Ws", "structIOv2_1_1__Ws.html", null ]
+    ] ],
     [ "IOv2::in_sentry< TStream, involve_output >", "structIOv2_1_1in__sentry.html", null ],
     [ "IOv2::sing_temp< T >::init", "structIOv2_1_1sing__temp_1_1init.html", null ],
     [ "IOv2::io_state_and_exp", "structIOv2_1_1io__state__and__exp.html", [
@@ -296,6 +299,17 @@ var hierarchy =
     [ "IOv2::ostream_operators< char >", "structIOv2_1_1ostream__operators.html", null ],
     [ "IOv2::ostream_operators< wchar_t >", "structIOv2_1_1ostream__operators.html", null ],
     [ "IOv2::ostreambuf_iterator< TStreamBuf >", "classIOv2_1_1ostreambuf__iterator.html", null ],
+    [ "IOv2::out_manip", "structIOv2_1_1out__manip.html", [
+      [ "IOv2::_Endl", "structIOv2_1_1__Endl.html", null ],
+      [ "IOv2::_Ends", "structIOv2_1_1__Ends.html", null ],
+      [ "IOv2::_Flush", "structIOv2_1_1__Flush.html", null ],
+      [ "IOv2::_Resetiosflags", "structIOv2_1_1__Resetiosflags.html", null ],
+      [ "IOv2::_Setbase", "structIOv2_1_1__Setbase.html", null ],
+      [ "IOv2::_Setfill< _CharT >", "structIOv2_1_1__Setfill.html", null ],
+      [ "IOv2::_Setiosflags", "structIOv2_1_1__Setiosflags.html", null ],
+      [ "IOv2::_Setprecision", "structIOv2_1_1__Setprecision.html", null ],
+      [ "IOv2::_Setw", "structIOv2_1_1__Setw.html", null ]
+    ] ],
     [ "IOv2::out_sentry< TStream, involve_input, is_std >", "structIOv2_1_1out__sentry.html", null ],
     [ "IOv2::parse_context_type< TChar, T >", "structIOv2_1_1parse__context__type.html", null ],
     [ "IOv2::parse_context_type< TChar, std::tm >", "structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html", null ],

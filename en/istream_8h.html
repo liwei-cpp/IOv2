@@ -92,7 +92,8 @@ $(document).ready(function(){initNavTree('istream_8h.html',''); initResizable();
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">istream.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -399,14 +400,17 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="istream_8h__dep__incl.png" border="0" usemap="#ainclude_2io_2istream_8hdep" alt=""/></div>
 <map name="ainclude_2io_2istream_8hdep" id="ainclude_2io_2istream_8hdep">
-<area shape="rect" title=" " alt="" coords="184,5,335,31"/>
-<area shape="rect" href="io__manip_8h.html" title=" " alt="" coords="5,86,167,111"/>
-<area shape="poly" title=" " alt="" coords="223,39,112,88,110,84,221,34"/>
-<area shape="rect" href="in__impl_8h.html" title=" " alt="" coords="191,79,327,119"/>
-<area shape="poly" title=" " alt="" coords="262,44,262,79,257,79,257,44"/>
-<area shape="rect" href="objects_8h.html" title=" " alt="" coords="243,167,379,207"/>
-<area shape="poly" title=" " alt="" coords="299,35,323,53,342,78,348,101,345,126,327,167,322,165,339,124,342,102,337,80,319,57,296,40"/>
-<area shape="poly" title=" " alt="" coords="280,129,302,165,298,168,276,132"/>
+<area shape="rect" title=" " alt="" coords="125,5,276,31"/>
+<area shape="rect" href="io__manip_8h.html" title=" " alt="" coords="5,174,167,199"/>
+<area shape="poly" title=" " alt="" coords="113,30,64,48,43,62,26,80,20,92,20,104,31,130,51,153,72,172,68,176,47,157,26,132,14,105,15,91,21,77,39,58,62,43,111,25"/>
+<area shape="rect" href="iostream_8h.html" title=" " alt="" coords="36,86,195,111"/>
+<area shape="poly" title=" " alt="" coords="180,42,130,88,126,84,176,38"/>
+<area shape="rect" href="in__impl_8h.html" title=" " alt="" coords="219,79,355,119"/>
+<area shape="poly" title=" " alt="" coords="225,38,268,77,265,80,222,42"/>
+<area shape="rect" href="objects_8h.html" title=" " alt="" coords="249,167,385,207"/>
+<area shape="poly" title=" " alt="" coords="291,28,334,46,354,59,370,77,375,89,377,101,370,126,356,149,339,168,335,165,352,146,365,124,371,101,370,90,365,80,350,63,331,50,288,33"/>
+<area shape="poly" title=" " alt="" coords="110,125,93,174,88,173,104,123"/>
+<area shape="poly" title=" " alt="" coords="301,131,313,166,308,167,296,133"/>
 </map>
 </div>
 </div>
@@ -415,6 +419,9 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html">IOv2::istream&lt; TDevice, TChar &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1__Ws.html">IOv2::_Ws</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of the <code>ws</code> manipulator.  <a href="structIOv2_1_1__Ws.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -438,9 +445,12 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
 <tr class="memitem:a93ab89097be35697e0669b44f7b6cfdc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a93ab89097be35697e0669b44f7b6cfdc">IOv2::istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
 <tr class="separator:a93ab89097be35697e0669b44f7b6cfdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55e7fa96eab2f6f5fc59cc138c3c1584" id="r_a55e7fa96eab2f6f5fc59cc138c3c1584"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:a55e7fa96eab2f6f5fc59cc138c3c1584"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a55e7fa96eab2f6f5fc59cc138c3c1584">IOv2::ws</a> (T &amp;is)</td></tr>
-<tr class="separator:a55e7fa96eab2f6f5fc59cc138c3c1584"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a6d022164f0f2220b81b9b467696a1a91" id="r_a6d022164f0f2220b81b9b467696a1a91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="structIOv2_1_1__Ws.html">_Ws</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6d022164f0f2220b81b9b467696a1a91">IOv2::ws</a> {}</td></tr>
+<tr class="memdesc:a6d022164f0f2220b81b9b467696a1a91"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whitespace-skipping manipulator object. Use as <code>is &gt;&gt; <a class="el" href="namespaceIOv2.html#a6d022164f0f2220b81b9b467696a1a91" title="The whitespace-skipping manipulator object. Use as is &gt;&gt; IOv2::ws; IOv2::ws(is) also works....">IOv2::ws</a></code>; <code><a class="el" href="namespaceIOv2.html#a6d022164f0f2220b81b9b467696a1a91" title="The whitespace-skipping manipulator object. Use as is &gt;&gt; IOv2::ws; IOv2::ws(is) also works....">IOv2::ws(is)</a></code> also works. .  <br /></td></tr>
+<tr class="separator:a6d022164f0f2220b81b9b467696a1a91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

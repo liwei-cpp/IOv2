@@ -17,5 +17,6 @@ var searchData=
   ['out_5fflusher_3c_20_5f_5fwcout_20_3e_14',['out_flusher&lt; __wcout &gt;',['../structIOv2_1_1out__flusher.html',1,'IOv2']]],
   ['out_5fflusher_3c_20iostream_3c_20tdevice_2c_20tchar_20_3e_20_3e_15',['out_flusher&lt; iostream&lt; TDevice, TChar &gt; &gt;',['../structIOv2_1_1out__flusher.html',1,'IOv2']]],
   ['out_5fflusher_3c_20ostream_3c_20tdevice_2c_20tchar_20_3e_20_3e_16',['out_flusher&lt; ostream&lt; TDevice, TChar &gt; &gt;',['../structIOv2_1_1out__flusher.html',1,'IOv2']]],
-  ['out_5fsentry_17',['out_sentry',['../structIOv2_1_1out__sentry.html',1,'IOv2']]]
+  ['out_5fmanip_17',['out_manip',['../structIOv2_1_1out__manip.html',1,'IOv2']]],
+  ['out_5fsentry_18',['out_sentry',['../structIOv2_1_1out__sentry.html',1,'IOv2']]]
 ];

@@ -3,6 +3,8 @@ var io__base_8h =
     [ "IOv2::io_state_and_exp", "structIOv2_1_1io__state__and__exp.html", "structIOv2_1_1io__state__and__exp" ],
     [ "IOv2::ios_base< void >", "classIOv2_1_1ios__base_3_01void_01_4.html", "classIOv2_1_1ios__base_3_01void_01_4" ],
     [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", "classIOv2_1_1ios__base" ],
+    [ "IOv2::in_manip", "structIOv2_1_1in__manip.html", null ],
+    [ "IOv2::out_manip", "structIOv2_1_1out__manip.html", null ],
     [ "IOv2::sync< TStream >", "structIOv2_1_1sync.html", "structIOv2_1_1sync" ],
     [ "fmtflags", "io__base_8h.html#ae114f7e76d32d0766db914a5162cdeca", null ],
     [ "iostate", "io__base_8h.html#a3f10a0388f55664b3dded151e7acb423", null ],

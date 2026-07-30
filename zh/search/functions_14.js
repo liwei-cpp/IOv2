@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['widen_0',['widen',['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92',1,'IOv2::ctype&lt; CharT &gt;::widen(char c) const'],['../classIOv2_1_1ctype_3_01CharT_01_4.html#ad2bf8f47849f9ee6874247eae9339e92',1,'IOv2::ctype&lt; CharT &gt;::widen(char c) const'],['../classIOv2_1_1ctype__conf_3_01char_01_4.html#a0e3f0c5cb2ab10bff200b5c4eddc61d7',1,'IOv2::ctype_conf&lt; char &gt;::widen()'],['../classIOv2_1_1ctype__conf_3_01CharT_01_4.html#ab6adf57a4ebb038d83debcf05bf7a32d',1,'IOv2::ctype_conf&lt; CharT &gt;::widen()'],['../classIOv2_1_1ctype__conf_3_01char8__t_01_4.html#acea585daab3e6b3a7596c824d5a9c30a',1,'IOv2::ctype_conf&lt; char8_t &gt;::widen()']]],
-  ['widen_5fseq_1',['widen_seq',['../classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e',1,'IOv2::detail::ctype_ops']]],
-  ['width_2',['width',['../classIOv2_1_1ios__base.html#af4edc460d588683d3db8eea346a4326e',1,'IOv2::ios_base::width() const'],['../classIOv2_1_1ios__base.html#a7927cd215e600ff0e9619b4f4dec9ab3',1,'IOv2::ios_base::width(std::uint8_t wide)']]],
-  ['write_3',['write',['../structIOv2_1_1ostream__operators.html#a830aa88220a9ce16592ca1f200f16cff',1,'IOv2::ostream_operators']]],
-  ['ws_4',['ws',['../namespaceIOv2.html#a55e7fa96eab2f6f5fc59cc138c3c1584',1,'IOv2']]]
+  ['verify_5fgrouping_0',['verify_grouping',['../namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b',1,'IOv2::FacetHelper']]],
+  ['vigenere_5fcvt_1',['vigenere_cvt',['../classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt.html#a57d1f140e7c99b8da622cc1d8cbe080e',1,'IOv2::Crypt::Classic::vigenere_cvt']]],
+  ['vigenere_5fcvt_5fcreator_2',['vigenere_cvt_creator',['../classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt__creator.html#abafa82a6b9328be7ea494f69a6ed2bb9',1,'IOv2::Crypt::Classic::vigenere_cvt_creator::vigenere_cvt_creator()'],['../namespaceIOv2_1_1Crypt_1_1Classic.html#afc14b1fd1e033f12ffd518d209b9d179',1,'IOv2::Crypt::Classic::vigenere_cvt_creator()']]]
 ];

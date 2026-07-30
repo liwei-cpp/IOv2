@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['endl_0',['endl',['../namespaceIOv2.html#ae8e5592d2e9b18121c272dedeeffb035',1,'IOv2']]],
-  ['ends_1',['ends',['../namespaceIOv2.html#a0f1816337fce241e934314c33faee8e6',1,'IOv2']]],
+  ['endl_0',['endl',['../namespaceIOv2.html#a2f8d5ca81da1a06b7854dbc9de1112d7',1,'IOv2']]],
+  ['ends_1',['ends',['../namespaceIOv2.html#acd365785fa036d2618875e469a30c5a1',1,'IOv2']]],
   ['eof_2',['eof',['../structIOv2_1_1io__state__and__exp.html#a173870002a71327e9e0c04c46ce9150f',1,'IOv2::io_state_and_exp']]],
   ['eof_5ferror_3',['eof_error',['../structIOv2_1_1eof__error.html#a4df82dfbef25e2281d22f5fb49a12a3d',1,'IOv2::eof_error::eof_error()'],['../structIOv2_1_1eof__error.html',1,'IOv2::eof_error']]],
   ['eofbit_4',['eofbit',['../namespaceIOv2_1_1ios__defs.html#af05941c947925c729d5e87d923c2e909',1,'IOv2::ios_defs']]],

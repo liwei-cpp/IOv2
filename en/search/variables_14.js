@@ -4,5 +4,6 @@ var searchData=
   ['wchar_5ft_5fis_5futf32_1',['wchar_t_is_utf32',['../namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523',1,'IOv2']]],
   ['wcin_2',['wcin',['../namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858',1,'IOv2']]],
   ['wclog_3',['wclog',['../namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff',1,'IOv2']]],
-  ['wcout_4',['wcout',['../namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce',1,'IOv2']]]
+  ['wcout_4',['wcout',['../namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce',1,'IOv2']]],
+  ['ws_5',['ws',['../namespaceIOv2.html#a6d022164f0f2220b81b9b467696a1a91',1,'IOv2']]]
 ];
