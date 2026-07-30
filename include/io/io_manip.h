@@ -464,8 +464,9 @@ template<typename _MoneyT>
 inline _Get_money<_MoneyT> get_money(_MoneyT& mon, bool intl = false) { return { mon, intl }; }
 
 template <typename TChar, typename TMoney>
-    requires ((std::integral<TMoney> && !std::same_as<TMoney, bool>)
-              || std::same_as<TMoney, std::basic_string<TChar>>)
+    requires (std::same_as<TMoney, std::remove_cv_t<TMoney>>
+              && ((std::integral<TMoney> && !std::same_as<TMoney, bool>)
+                  || std::same_as<TMoney, std::basic_string<TChar>>))
 struct reader<TChar, _Get_money<TMoney>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
