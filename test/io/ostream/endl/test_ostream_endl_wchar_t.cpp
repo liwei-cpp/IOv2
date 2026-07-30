@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
+#include <facet/ctype.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
@@ -42,10 +43,9 @@ void test_ostream_function_manip_wchar_t_1()
     auto helper = []<template<typename, typename> class T>()
     {
         auto oss = T(IOv2::mem_device{std::wstring(L"")});
-        using S = decltype(oss);
-
         int calls = 0;
-        std::function<void(S&)> manip = [&calls](S&){ ++calls; };
+        std::function<void(IOv2::ios_base<wchar_t>&)> manip =
+            [&calls](IOv2::ios_base<wchar_t>&){ ++calls; };
 
         oss << manip;                 // std::function manipulator via operator<<
         VERIFY( calls == 1 );
@@ -53,10 +53,10 @@ void test_ostream_function_manip_wchar_t_1()
         oss << manip << manip;        // operator<< returns the stream, so manipulators chain
         VERIFY( calls == 3 );
 
-        // sibling function-pointer manipulator form: operator<<(T&, void(*)(T&))
+        // sibling function-pointer form: operator<<(T&, void(*)(ios_base<wchar_t>&))
         static int fcalls;
         fcalls = 0;
-        oss << +[](S&){ ++fcalls; };
+        oss << +[](IOv2::ios_base<wchar_t>&){ ++fcalls; };
         VERIFY( fcalls == 1 );
     };
 
@@ -75,7 +75,6 @@ void test_ostream_null_manip_wchar_t_1()
     auto helper = []<template<typename, typename> class T>()
     {
         auto oss = T(IOv2::mem_device{std::wstring(L"")});
-        using S = decltype(oss);
 
         oss << static_cast<void(*)(IOv2::ios_base<wchar_t>&)>(nullptr);
         VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
@@ -93,18 +92,41 @@ void test_ostream_null_manip_wchar_t_1()
         VERIFY( base_calls == 1 );
         VERIFY( !(oss.rdstate() & IOv2::ios_defs::strfailbit) );
 
-        oss << static_cast<void(*)(S&)>(nullptr);
-        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
-        oss.clear();
-
-        std::function<void(S&)> empty_self_fn;
-        oss << empty_self_fn;
-        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
-        oss.clear();
-
         oss << L"ok";
         auto [dev, err] = oss.detach();
         VERIFY( dev.str() == L"ok" );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+// wchar_t counterpart of test_ostream_manip_direct_call_char_1.
+void test_ostream_manip_direct_call_wchar_t_1()
+{
+    dump_info("Test ostream<wchar_t> manipulator direct-call form case 1...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        auto oss = T(IOv2::mem_device{std::wstring(L"")});
+        IOv2::endl(oss);
+        VERIFY( oss.device().str() == L"\n" );
+        VERIFY( oss.good() );
+
+        IOv2::ends(oss);
+        VERIFY( oss.device().str().size() == 2 );
+        VERIFY( oss.good() );
+
+        IOv2::flush(oss);
+        VERIFY( oss.good() );
+
+        auto bad = T(IOv2::mem_device{std::wstring(L"")},
+                     IOv2::locale<wchar_t>("C").remove<IOv2::ctype_conf<wchar_t>>());
+        IOv2::endl(bad);
+        VERIFY( bad.str_fail() );
+        VERIFY( !bad.good() );
     };
 
     helper.operator()<IOv2::ostream>();

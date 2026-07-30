@@ -73,18 +73,77 @@ template <io_device TDevice, cvt_creator TCreator, typename TChar>
 istream(TDevice, const TCreator&, locale<TChar>) -> istream<TDevice, TChar>;
 
 // common manips
-template <istream_type T>
-inline void ws(T& is)
+/**
+ * @lang{ZH}
+ * @brief `ws` 操纵符的类型。
+ *
+ * 方向被编码进类型本身：只有 `operator>>` 接受本类型，对应的 `operator<<` 重载已被删除。
+ * 方向为何必须编码进类型、而非仅靠 `istream_type` / `ostream_type` 约束，见 `in_manip`。
+ *
+ * 保留 `operator()` 是为了与标准的 `std::ws(is)` 直接调用形式对齐。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `ws` manipulator.
+ *
+ * The direction is encoded in the type itself: only `operator>>` accepts this type, and the
+ * matching `operator<<` overload is deleted. See `in_manip` for why the direction must live in
+ * the type rather than in the `istream_type` / `ostream_type` constraints alone.
+ *
+ * `operator()` is kept to match the standard's `std::ws(is)` direct-call form.
+ * @endif
+ */
+struct _Ws : in_manip
 {
-    using sentry_type = typename T::in_sentry_type;
-    std::unique_lock lk(is.io_mutex(), std::defer_lock);
-    try
+    /**
+     * @lang{ZH}
+     * @brief 跳过流中接下来的空白字符。
+     *
+     * 空白的跳过由输入哨兵完成：以 `noskipws == false` 构造 `in_sentry` 即为跳过空白。
+     * @note 那把锁以 `defer_lock` 构造后交给哨兵，因此 `catch` 中的 `handle_exception` 仍在
+     *       持锁状态下运行——失败位的更新与本次操作处于同一个临界区内。消费本操纵符的
+     *       `operator>>` 外面还有一层 `catch`，但它在锁之外，只是兜底。
+     * @param is 目标输入流。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Skips the whitespace characters that follow in the stream.
+     *
+     * The skipping is done by the input sentry: constructing `in_sentry` with `noskipws == false`
+     * is what skips whitespace.
+     * @note The lock is constructed `defer_lock` and handed to the sentry, so `handle_exception`
+     *       in the `catch` still runs while holding it -- the failbit update lands in the same
+     *       critical section as the operation itself. The `operator>>` that consumes this
+     *       manipulator has a `catch` of its own, but that one runs outside the lock and is only
+     *       a backstop.
+     * @param is The target input stream.
+     * @endif
+     */
+    template <istream_type T>
+    void operator () (T& is) const
     {
-        sentry_type cerb(is, false, lk);
+        using sentry_type = typename T::in_sentry_type;
+        std::unique_lock lk(is.io_mutex(), std::defer_lock);
+        try
+        {
+            sentry_type cerb(is, false, lk);
+        }
+        catch(...)
+        {
+            is.handle_exception(std::current_exception());
+        }
     }
-    catch(...)
-    {
-        is.handle_exception(std::current_exception());
-    }
-}
+};
+
+/**
+ * @lang{ZH}
+ * @brief 跳过空白的操纵符对象。用法为 `is >> IOv2::ws`；亦支持 `IOv2::ws(is)`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The whitespace-skipping manipulator object. Use as `is >> IOv2::ws`; `IOv2::ws(is)`
+ *        also works.
+ * @endif
+ */
+inline constexpr _Ws ws{};
 }
