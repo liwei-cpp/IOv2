@@ -1,3 +1,4 @@
+void test_istream_attach();
 void test_istream_derive();
 void test_istream_extractors_arithmetic();
 void test_istream_extractors_character();
@@ -14,6 +15,7 @@ void test_istream_ws();
 
 void test_istream()
 {
+    test_istream_attach();
     test_istream_derive();
     test_istream_extractors_arithmetic();
     test_istream_extractors_character();

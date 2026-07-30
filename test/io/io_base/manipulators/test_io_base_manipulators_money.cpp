@@ -135,3 +135,38 @@ void test_io_base_manipulators_get_money_wchar_t_1()
 
     dump_info("Done\n");
 }
+
+namespace
+{
+using MoneyIs = IOv2::istream<IOv2::mem_device<char>, char>;
+using MoneyOs = IOv2::ostream<IOv2::mem_device<char>, char>;
+
+template <typename T> concept money_readable =
+    requires (MoneyIs& is, T& v) { is >> IOv2::get_money(v); };
+template <typename T> concept money_writable =
+    requires (MoneyOs& os, const T& v) { os << IOv2::put_money(v); };
+
+// get_money deduces its target type from the argument, so a const lvalue deduces `const int`
+// -- and std::integral<const int> is true, since std::is_integral_v ignores cv-qualification.
+// Without the cv exclusion on the reader, such a target selected the reader and then failed
+// deep inside the monetary facet on an assignment to a read-only reference, burying the real
+// cause. With it there is no reader, the call lands on the fallback operator>>, and its
+// static_assert says the target is not a modifiable lvalue.
+//
+// The check is on the reader's own constraint rather than on `is >> get_money(x)`, because the
+// fallback operator>> remains viable at overload resolution -- its static_assert fires only when
+// the body is instantiated -- so probing the expression reports true whatever the target is.
+static_assert(  IOv2::is_reader_def<char, IOv2::_Get_money<int>> );
+static_assert(  IOv2::is_reader_def<char, IOv2::_Get_money<std::string>> );
+static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<const int>> );
+static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<volatile int>> );
+static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<const std::string>> );
+static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<bool>> );
+static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<double>> );
+static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<std::wstring>> );
+
+// put_money carries no such restriction: output does not write to the target and put_money takes
+// const _MoneyT&, so inserting a const lvalue stays a legitimate use.
+static_assert(  money_writable<int> );
+static_assert(  money_readable<int> );
+}

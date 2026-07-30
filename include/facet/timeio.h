@@ -1022,6 +1022,25 @@ struct time_parse_context
  * 将结果累积到 `time_parse_context` 中；解析完成后通过转换运算符
  * 提取 `year_month_day`、`hh_mm_ss` 或 `zoned_time`。
  *
+ * **说明符与值不匹配时退化为字面量。** 每种值类型只携带一部分信息：`year_month_day`
+ * 只有日期，`hh_mm_ss` 只有时间，`std::tm` 有日期和时间但**没有时区**，只有
+ * `zoned_time` 三者齐全。当格式串里出现该值无法提供的说明符时，它不构成错误，而是被
+ * 当作字面量处理——`put` 原样写出 `%` + 修饰符 + 说明符字符，`get` 则要求输入中出现
+ * 同样的字面量。两侧对称，因此 `put` 的输出总能被同一格式串的 `get` 读回：
+ *
+ * | 值类型 | 格式串 | `put` 输出 | `get` 接受的输入 |
+ * |---|---|---|---|
+ * | `year_month_day` | `%Y-%m-%d` | `2020-05-17` | `2020-05-17` |
+ * | `year_month_day` | `%H:%M`    | `%H:%M`      | 字面量 `%H:%M` |
+ * | `hh_mm_ss`       | `%Y-%m-%d` | `%Y-%m-%d`   | 字面量 `%Y-%m-%d` |
+ * | `std::tm`        | `%Z`、`%z` | `%Z`、`%z`   | 字面量 `%Z`、`%z` |
+ *
+ * @warning 这一点与 `std::get_time` / `std::put_time` **不同**：libstdc++ 的 `%Z` 会解析出
+ *   一个时区名再丢弃，`std::put_time` 则按当前时区输出真实名称。因此
+ *   `get_time(&tm, "%Y-%m-%d %Z")` 在本库中读 `2020-05-17 UTC` 会失败（期待字面量 `%Z`），
+ *   而 `std` 会成功。作为交换，本库的失败是原子的：整次提取失败时目标对象完全不被改写，
+ *   而 `std` 会留下已写入一半的 `std::tm`。
+ *
  * @note 格式串来自 locale 数据库（`nl_langinfo`），视为受信任输入；
  *   含自引用格式串（如 `D_T_FMT == "%c"`）将导致无限递归。参见
  *   `do_get` 中关于受信任 locale 假设的说明。
@@ -1047,6 +1066,28 @@ struct time_parse_context
  * a format string, accumulating results into a `time_parse_context`; after
  * parsing, a conversion operator on the context extracts a `year_month_day`,
  * `hh_mm_ss`, or `zoned_time`.
+ *
+ * **A specifier the value cannot supply degrades to a literal.** Each value type carries only
+ * part of the information: `year_month_day` has the date, `hh_mm_ss` the time, `std::tm` both
+ * but **no time zone**, and only `zoned_time` has all three. A specifier the value cannot
+ * supply is not an error; it is treated as a literal -- `put` writes out the `%`, the modifier
+ * and the specifier character unchanged, and `get` requires that same literal in the input.
+ * The two sides are symmetric, so what `put` writes always reads back through `get` with the
+ * same format string:
+ *
+ * | Value type | Format | `put` writes | `get` accepts |
+ * |---|---|---|---|
+ * | `year_month_day` | `%Y-%m-%d` | `2020-05-17` | `2020-05-17` |
+ * | `year_month_day` | `%H:%M`    | `%H:%M`      | the literal `%H:%M` |
+ * | `hh_mm_ss`       | `%Y-%m-%d` | `%Y-%m-%d`   | the literal `%Y-%m-%d` |
+ * | `std::tm`        | `%Z`, `%z` | `%Z`, `%z`   | the literals `%Z`, `%z` |
+ *
+ * @warning This **differs** from `std::get_time` / `std::put_time`: libstdc++'s `%Z` parses a
+ *   time zone name and then discards it, and `std::put_time` writes the real name for the
+ *   current zone. So `get_time(&tm, "%Y-%m-%d %Z")` reading `2020-05-17 UTC` fails here (the
+ *   literal `%Z` was expected) where `std` succeeds. In exchange the failure here is atomic:
+ *   a failed extraction leaves the target completely unmodified, whereas `std` leaves a
+ *   half-written `std::tm` behind.
  *
  * @note Format strings sourced from the locale database (`nl_langinfo`) are
  *   treated as trusted input; a self-referential format string (e.g.
@@ -1321,6 +1362,8 @@ public:
      * @param format   格式字符（如 `'Y'`、`'m'`、`'d'`）。
      * @param modifier 可选修饰符（`'E'`、`'O'` 或 `0` 表示无修饰符）。
      * @return 写入后的输出迭代器。
+     * @note 值无法提供的说明符不构成错误，会原样写出 `%` + 修饰符 + 说明符字符；
+     *       详见 `timeio` 的类说明。
      * @endif
      *
      * @lang{EN}
@@ -1335,6 +1378,9 @@ public:
      * @param format   The format character (e.g. `'Y'`, `'m'`, `'d'`).
      * @param modifier Optional modifier (`'E'`, `'O'`, or `0` for none).
      * @return The output iterator after writing.
+     * @note A specifier this value cannot supply is not an error: the `%`, the modifier
+     *       and the specifier character are written out unchanged. See the `timeio`
+     *       class documentation.
      * @endif
      */
     template <typename OutIt, typename TVal>
@@ -1367,6 +1413,8 @@ public:
      * @param fmt 格式串（`strftime` 风格）。
      * @return 写入后的输出迭代器。
      * @throw stream_error 若 `zoned_time` 的日期超出范围。
+     * @note 值无法提供的说明符不构成错误，会原样写出 `%` + 修饰符 + 说明符字符；
+     *       详见 `timeio` 的类说明。
      * @endif
      *
      * @lang{EN}
@@ -1379,6 +1427,9 @@ public:
      * @param fmt The format string (`strftime`-style).
      * @return The output iterator after writing.
      * @throw stream_error If the date of the `zoned_time` is out of range.
+     * @note A specifier this value cannot supply is not an error: the `%`, the modifier
+     *       and the specifier character are written out unchanged. See the `timeio`
+     *       class documentation.
      * @endif
      */
     template <typename OutIt, typename Duration, typename TimeZonePtr>
@@ -1407,6 +1458,8 @@ public:
      * @param fmt 格式串（`strftime` 风格）。
      * @return 写入后的输出迭代器。
      * @throw stream_error 若 `t` 不是有效的日历日期。
+     * @note 值无法提供的说明符不构成错误，会原样写出 `%` + 修饰符 + 说明符字符；
+     *       详见 `timeio` 的类说明。
      * @endif
      *
      * @lang{EN}
@@ -1417,6 +1470,9 @@ public:
      * @param fmt The format string (`strftime`-style).
      * @return The output iterator after writing.
      * @throw stream_error If `t` is not a valid calendar date.
+     * @note A specifier this value cannot supply is not an error: the `%`, the modifier
+     *       and the specifier character are written out unchanged. See the `timeio`
+     *       class documentation.
      * @endif
      */
     template <typename OutIt>
@@ -1441,6 +1497,8 @@ public:
      * @param fmt 格式串（`strftime` 风格）。
      * @return 写入后的输出迭代器。
      * @throw stream_error 若 `t` 超出有效时间范围（负数或 ≥ 24 小时）。
+     * @note 值无法提供的说明符不构成错误，会原样写出 `%` + 修饰符 + 说明符字符；
+     *       详见 `timeio` 的类说明。
      * @endif
      *
      * @lang{EN}
@@ -1455,6 +1513,9 @@ public:
      * @param fmt The format string (`strftime`-style).
      * @return The output iterator after writing.
      * @throw stream_error If `t` is outside the valid range (negative or ≥ 24 hours).
+     * @note A specifier this value cannot supply is not an error: the `%`, the modifier
+     *       and the specifier character are written out unchanged. See the `timeio`
+     *       class documentation.
      * @endif
      */
     template <typename OutIt, typename TDuration>
@@ -1483,6 +1544,8 @@ public:
      * @param fmt 格式串（`strftime` 风格）。
      * @return 写入后的输出迭代器。
      * @throw stream_error 若任何字段超出范围或日期组合无效。
+     * @note 值无法提供的说明符不构成错误，会原样写出 `%` + 修饰符 + 说明符字符；
+     *       详见 `timeio` 的类说明。
      * @endif
      *
      * @lang{EN}
@@ -1498,6 +1561,9 @@ public:
      * @param fmt The format string (`strftime`-style).
      * @return The output iterator after writing.
      * @throw stream_error If any field is out of range or the date combination is invalid.
+     * @note A specifier this value cannot supply is not an error: the `%`, the modifier
+     *       and the specifier character are written out unchanged. See the `timeio`
+     *       class documentation.
      * @endif
      */
     template <typename OutIt>
@@ -1552,6 +1618,8 @@ public:
      * @param modifier 可选修饰符（`'E'`、`'O'` 或 `0` 表示无修饰符）。
      * @return 指向未被消费的第一个字符的迭代器。
      * @throw stream_error 若解析失败。
+     * @note 上下文无法接收的说明符不构成错误，会转而要求输入中出现 `%` + 修饰符 +
+     *       说明符字符这一字面量；详见 `timeio` 的类说明。
      * @endif
      *
      * @lang{EN}
@@ -1572,6 +1640,9 @@ public:
      * @param modifier Optional modifier (`'E'`, `'O'`, or `0` for none).
      * @return Iterator pointing to the first unconsumed character.
      * @throw stream_error If parsing fails.
+     * @note A specifier the context cannot receive is not an error: the input is instead
+     *       required to carry the literal `%`, modifier and specifier character. See
+     *       the `timeio` class documentation.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
@@ -1613,6 +1684,8 @@ public:
      * @param _fmt   格式串（`strptime` 风格）。
      * @return 指向未被消费的第一个字符的迭代器。
      * @throw stream_error 若解析失败（格式不匹配或字段值超出范围）。
+     * @note 上下文无法接收的说明符不构成错误，会转而要求输入中出现 `%` + 修饰符 +
+     *       说明符字符这一字面量；详见 `timeio` 的类说明。
      * @endif
      *
      * @lang{EN}
@@ -1634,6 +1707,9 @@ public:
      * @param _fmt   The format string (`strptime`-style).
      * @return Iterator pointing to the first unconsumed character.
      * @throw stream_error If parsing fails (format mismatch or field value out of range).
+     * @note A specifier the context cannot receive is not an error: the input is instead
+     *       required to carry the literal `%`, modifier and specifier character. See
+     *       the `timeio` class documentation.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
