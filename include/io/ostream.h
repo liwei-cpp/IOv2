@@ -82,6 +82,28 @@ ostream(TDevice, const TCreator&, locale<TChar>) -> ostream<TDevice, TChar>;
 // common manips
 /**
  * @lang{ZH}
+ * @brief `endl` 操纵符的类型。
+ *
+ * 方向被编码进类型本身：只有 `operator<<` 接受本类型，对应的 `operator>>` 重载在
+ * `io/utilities/istream_operators.h` 中被删除。方向为何必须编码进类型，见 `in_manip`。
+ *
+ * 保留 `operator()` 是为了与标准的 `std::endl(os)` 直接调用形式对齐。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `endl` manipulator.
+ *
+ * The direction is encoded in the type itself: only `operator<<` accepts this type, and the
+ * matching `operator>>` overload is deleted in `io/utilities/istream_operators.h`. See
+ * `in_manip` for why the direction must live in the type.
+ *
+ * `operator()` is kept to match the standard's `std::endl(os)` direct-call form.
+ * @endif
+ */
+struct _Endl : out_manip
+{
+/**
+ * @lang{ZH}
  * @brief 写出一个换行符并刷新本流。
  *
  * @note 本操纵符**不触碰格式标志**。强制刷新是经 `put()` 的 `force_flush` 参数传给
@@ -96,8 +118,11 @@ ostream(TDevice, const TCreator&, locale<TChar>) -> ostream<TDevice, TChar>;
  * @warning 那把锁**必须在 `put()` 之前释放**。`out_sentry` 在获取 `io_mutex()` 之前先
  *          `tie()->flush()` 目标流；若此处仍持有本流的锁，该步骤会让线程同时持有两把流锁，
  *          破坏 sentry 文档所依赖的"任一时刻本线程至多持有一把流锁"这一不死锁保证。
+ * @note 取 facet 这一段的异常在此处就地交给 `handle_exception`，而不是留给 `operator<<`。
+ *       直接调用形式 `IOv2::endl(os)` 绕过运算符，若不在此处理，facet 缺失就会既不置失败位
+ *       也不受异常掩码约束地抛到调用方，流反而报告 `good()`。随后的 `put()` 自己已经处理
+ *       异常，不再重复包裹。
  * @param os 目标输出流。
- * @throw stream_error 若缺少用于宽化 `'\n'` 的 ctype facet。
  * @endif
  *
  * @lang{EN}
@@ -118,39 +143,145 @@ ostream(TDevice, const TCreator&, locale<TChar>) -> ostream<TDevice, TChar>;
  *          before acquiring `io_mutex()`; holding this stream's lock across it would leave the
  *          thread holding two stream locks at once, breaking the "at most one stream lock per
  *          thread" no-deadlock guarantee the sentry documentation relies on.
+ * @note Exceptions from the facet lookup are handed to `handle_exception` right here rather
+ *       than left to `operator<<`. The direct-call form `IOv2::endl(os)` bypasses the operator,
+ *       so without this a missing facet would escape to the caller with no failure bit set and
+ *       no regard for the exception mask, leaving the stream reporting `good()`. The `put()`
+ *       that follows already handles its own exceptions and is not wrapped again.
  * @param os The target output stream.
- * @throw stream_error If the ctype facet used to widen `'\n'` is missing.
  * @endif
  */
-template <ostream_type T>
-inline void endl(T& os)
-{
-    using TChar = typename T::char_type;
-
-    TChar nl;
+    template <ostream_type T>
+    void operator () (T& os) const
     {
-        std::lock_guard guard(os.io_mutex());
-        auto mp = os.locale().template get<ctype<TChar>>();
-        if (!mp)
-            throw stream_error("endl fail: cannot get ctype facet");
-        nl = mp->widen('\n');
+        using TChar = typename T::char_type;
+
+        TChar nl;
+        try
+        {
+            std::lock_guard guard(os.io_mutex());
+            auto mp = os.locale().template get<ctype<TChar>>();
+            if (!mp)
+                throw stream_error("endl fail: cannot get ctype facet");
+            nl = mp->widen('\n');
+        }
+        catch (...)
+        {
+            os.handle_exception(std::current_exception());
+            return;
+        }
+
+        os.put(nl, /*force_flush=*/true);
     }
+};
 
-    os.put(nl, /*force_flush=*/true);
-}
+/**
+ * @lang{ZH}
+ * @brief 写出一个换行符并刷新本流的操纵符对象。
+ *
+ * 用法为 `os << IOv2::endl`；亦支持标准的直接调用形式 `IOv2::endl(os)`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The manipulator object that writes a newline and flushes the stream.
+ *
+ * Use as `os << IOv2::endl`; the standard's direct-call form `IOv2::endl(os)` also works.
+ * @endif
+ */
+inline constexpr _Endl endl{};
 
-template <ostream_type T>
-inline void ends(T& os)
+/**
+ * @lang{ZH}
+ * @brief `ends` 操纵符的类型。方向为何必须编码进类型，见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `ends` manipulator. See `in_manip` for why the direction must live in
+ *        the type.
+ * @endif
+ */
+struct _Ends : out_manip
 {
-    using TChar = typename T::char_type;
-    os.put(TChar());
-}
+    /**
+     * @lang{ZH}
+     * @brief 写出一个空字符（`TChar()`），不强制刷新。
+     * @note 无需显式加锁，也无需 `try`：`put()` 自己的 `out_sentry` 会获取 `io_mutex()`，
+     *       并且 `put()` 已将异常交由 `handle_exception` 处理。
+     * @param os 目标输出流。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes a null character (`TChar()`) without forcing a flush.
+     * @note Neither an explicit lock nor a `try` is needed: `put()`'s own `out_sentry` acquires
+     *       `io_mutex()`, and `put()` already routes exceptions through `handle_exception`.
+     * @param os The target output stream.
+     * @endif
+     */
+    template <ostream_type T>
+    void operator () (T& os) const
+    {
+        using TChar = typename T::char_type;
+        os.put(TChar());
+    }
+};
 
-template <ostream_type T>
-inline void flush(T& os)
+/**
+ * @lang{ZH}
+ * @brief 写出一个空字符的操纵符对象。用法为 `os << IOv2::ends` 或 `IOv2::ends(os)`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The manipulator object that writes a null character. Use as `os << IOv2::ends` or
+ *        `IOv2::ends(os)`.
+ * @endif
+ */
+inline constexpr _Ends ends{};
+
+/**
+ * @lang{ZH}
+ * @brief `flush` 操纵符的类型。方向为何必须编码进类型，见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `flush` manipulator. See `in_manip` for why the direction must live in
+ *        the type.
+ * @endif
+ */
+struct _Flush : out_manip
 {
-    os.flush();
-}
+    /**
+     * @lang{ZH}
+     * @brief 刷新本流。
+     * @note 无需显式加锁，也无需 `try`：`out_flusher::flush()` 自己持有 `io_mutex()`，并已
+     *       将异常交由 `handle_exception` 处理。
+     * @param os 目标输出流。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Flushes the stream.
+     * @note Neither an explicit lock nor a `try` is needed: `out_flusher::flush()` holds
+     *       `io_mutex()` itself and already routes exceptions through `handle_exception`.
+     * @param os The target output stream.
+     * @endif
+     */
+    template <ostream_type T>
+    void operator () (T& os) const
+    {
+        os.flush();
+    }
+};
+
+/**
+ * @lang{ZH}
+ * @brief 刷新流的操纵符对象。用法为 `os << IOv2::flush` 或 `IOv2::flush(os)`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The manipulator object that flushes the stream. Use as `os << IOv2::flush` or
+ *        `IOv2::flush(os)`.
+ * @endif
+ */
+inline constexpr _Flush flush{};
 
 // https://github.com/gcc-mirror/gcc/blob/075ec330307c5b1fe5ed166a633c718c06b01437/libstdc%2B%2B-v3/include/bits/ostream.h#L80
 // TODO: add quoted

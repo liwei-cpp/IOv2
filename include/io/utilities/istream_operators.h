@@ -965,32 +965,60 @@ T& operator >> (T& obj, const std::function<void(ios_base<typename T::char_type>
 
 /**
  * @lang{ZH}
- * @brief 提取操纵符：应用一个作用于具体流类型 `T&` 的函数指针操纵符。
+ * @brief 提取操纵符：应用一个可用于输入方向的操纵符对象。
+ *
+ * 本重载把流交给操纵符自己的 `operator()`：**加锁由操纵符负责**。各操纵符所需的锁作用域并
+ * 不相同（`ws` 要把一把处于 `defer_lock` 的锁交给 `in_sentry`，并要求 `handle_exception`
+ * 在持锁状态下运行；`endl` 只能在读取 locale 期间持锁、必须在 `put()` 之前释放；
+ * `ends`/`flush` 完全不需要显式加锁），无法上提到本函数。
+ *
+ * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的临界区里就地处理了异常，走
+ * 不到这里；它保证的是自定义操纵符即使漏了异常处理，也仍然按本库的错误模型置位并遵守异常
+ * 掩码，而不是把异常抛给调用方。
+ * @note 约束里的 `std::invocable` 不是多余的：只看基类的话，`is >> setfill(L'*')` 这种字符
+ *       类型不匹配的调用仍然可行，错误要到 `f(obj)` 实例化时才在模板体内爆出来。加上它，
+ *       本重载直接不可行，调用落到兜底重载，报出那条指明原因的 `static_assert`。
  * @tparam T 输入流类型。
+ * @tparam TManip 操纵符类型，须派生自 `in_manip` 且能以本流调用。
  * @param obj 输入流。
- * @param pf 操纵符函数指针。
+ * @param f 操纵符对象。
  * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
  * @endif
  *
  * @lang{EN}
- * @brief Extraction manipulator: applies a function-pointer manipulator taking the concrete
- *        stream type `T&`.
+ * @brief Extraction manipulator: applies a manipulator object usable in the input direction.
+ *
+ * This overload hands the stream to the manipulator's own `operator()`: **locking is the
+ * manipulator's job**. The required lock scope differs per manipulator (`ws` must hand a
+ * `defer_lock`ed lock to `in_sentry` and needs `handle_exception` to run while holding it;
+ * `endl` may hold the lock only while reading the locale and must release it before `put()`;
+ * `ends`/`flush` need no explicit lock at all), so it cannot be hoisted here.
+ *
+ * The `catch` here is a **backstop**, not the primary mechanism: the library's own manipulators
+ * handle their exceptions inside their own critical sections and never reach it. What it
+ * guarantees is that a user-defined manipulator which forgets to handle its exceptions still
+ * sets state through this library's error model and honours the exception mask, rather than
+ * throwing at the caller.
+ * @note The `std::invocable` in the constraint is not redundant: on the base classes alone a
+ *       call whose character type does not match, such as `is >> setfill(L'*')`, would still be
+ *       viable and would only blow up inside the template body when `f(obj)` is instantiated.
+ *       With it, this overload is simply not viable, the call lands on the fallback, and the
+ *       `static_assert` there says why.
  * @tparam T The input stream type.
+ * @tparam TManip The manipulator type, which must derive from `in_manip` and be callable with
+ *         this stream.
  * @param obj The input stream.
- * @param pf The manipulator function pointer.
+ * @param f The manipulator object.
  * @return A reference to the stream itself.
- * @throw stream_error If `pf` is null.
  * @endif
  */
-template <istream_type T>
-T& operator >> (T& obj, void(*pf)(T&))
+template <istream_type T, std::derived_from<in_manip> TManip>
+    requires std::invocable<const TManip&, T&>
+T& operator >> (T& obj, const TManip& f)
 {
     try
     {
-        if (!pf)
-            throw stream_error("istream manipulator fail: null or empty manipulator");
-        pf(obj);
+        f(obj);
     }
     catch (...)
     {
@@ -1001,117 +1029,37 @@ T& operator >> (T& obj, void(*pf)(T&))
 
 /**
  * @lang{ZH}
- * @brief 提取操纵符：应用一个作用于具体流类型 `T&` 的 `std::function` 操纵符。
+ * @brief 已删除：仅用于输出方向的操纵符不能被提取。
+ *
+ * 在双向流上，若无本重载，`io >> endl` 会静默地写出一个换行并刷新，而不读入任何东西——写法
+ * 与实际方向相反，且不置任何状态位。删除本重载使其成为编译错误，与标准库一致。正确写法是
+ * `os << endl`。
+ * @note 约束里必须排除同时派生自 `in_manip` 的类型。两个方向都合法的操纵符（如 `setw`）会
+ *       同时派生两个基类，若不排除，本重载与上面那个真实重载会同时可行且互不包含，导致该
+ *       操纵符在**任何**方向上都因二义性而不可用。
  * @tparam T 输入流类型。
- * @param obj 输入流。
- * @param pf 操纵符可调用对象。
- * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
+ * @tparam TManip 操纵符类型，派生自 `out_manip` 且不派生自 `in_manip`。
  * @endif
  *
  * @lang{EN}
- * @brief Extraction manipulator: applies a `std::function` manipulator taking the concrete
- *        stream type `T&`.
- * @tparam T The input stream type.
- * @param obj The input stream.
- * @param pf The manipulator callable.
- * @return A reference to the stream itself.
- * @throw stream_error If `pf` is empty.
- * @endif
- */
-template <istream_type T>
-T& operator >> (T& obj, const std::function<void(T&)>& pf)
-{
-    try
-    {
-        if (!pf)
-            throw stream_error("istream manipulator fail: null or empty manipulator");
-        pf(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 提取操纵符：应用一个作用于 `T` 某个基类 `U&` 的函数指针操纵符。
- * @tparam T 输入流类型。
- * @tparam U `T` 的基类类型。
- * @param obj 输入流。
- * @param pf 操纵符函数指针。
- * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
- * @endif
+ * @brief Deleted: a manipulator meant for the output direction only cannot be extracted.
  *
- * @lang{EN}
- * @brief Extraction manipulator: applies a function-pointer manipulator taking a base class
- *        `U&` of `T`.
+ * Without this overload, `io >> endl` on a bidirectional stream would silently write a newline
+ * and flush, reading nothing at all -- the opposite of what the expression reads like, and with
+ * no state bit set. Deleting it makes that a compile error, as in the standard library. Write
+ * `os << endl` instead.
+ * @note The constraint must exclude types that also derive from `in_manip`. A manipulator legal
+ *       in both directions (`setw`, say) derives from both bases; without the exclusion this
+ *       overload and the real one above would both be viable and neither would subsume the
+ *       other, making that manipulator ambiguous -- and therefore unusable -- in **either**
+ *       direction.
  * @tparam T The input stream type.
- * @tparam U A base class type of `T`.
- * @param obj The input stream.
- * @param pf The manipulator function pointer.
- * @return A reference to the stream itself.
- * @throw stream_error If `pf` is null.
+ * @tparam TManip The manipulator type, deriving from `out_manip` but not from `in_manip`.
  * @endif
  */
-template <istream_type T, typename U>
-    requires std::derived_from<T, U>
-T& operator >> (T& obj, void(*pf)(U&))
-{
-    try
-    {
-        if (!pf)
-            throw stream_error("istream manipulator fail: null or empty manipulator");
-        pf(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 提取操纵符：应用一个作用于 `T` 某个基类 `U&` 的 `std::function` 操纵符。
- * @tparam T 输入流类型。
- * @tparam U `T` 的基类类型。
- * @param obj 输入流。
- * @param pf 操纵符可调用对象。
- * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
- * @endif
- *
- * @lang{EN}
- * @brief Extraction manipulator: applies a `std::function` manipulator taking a base class
- *        `U&` of `T`.
- * @tparam T The input stream type.
- * @tparam U A base class type of `T`.
- * @param obj The input stream.
- * @param pf The manipulator callable.
- * @return A reference to the stream itself.
- * @throw stream_error If `pf` is empty.
- * @endif
- */
-template <istream_type T, typename U>
-    requires std::derived_from<T, U>
-T& operator >> (T& obj, const std::function<void(U&)>& pf)
-{
-    try
-    {
-        if (!pf)
-            throw stream_error("istream manipulator fail: null or empty manipulator");
-        pf(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
+template <istream_type T, typename TManip>
+    requires std::derived_from<TManip, out_manip> && (!std::derived_from<TManip, in_manip>)
+T& operator >> (T& obj, const TManip& f) = delete;
 
 /**
  * @lang{ZH}
@@ -1204,8 +1152,12 @@ T& operator>>(T& obj, TValue& value)
  *       所有正常路径在重载决议中都严格优于它——
  *       - 上面的格式化提取运算符收 `TValue&`，对非常量左值是非常量引用绑定，优于本重载的
  *         常量引用绑定；两者签名不等价时由此决出，等价时则由"约束更多者胜"决出。
- *       - 各操纵符重载（`void(*)(T&)`、`const std::function<void(T&)>&`、`_Setw` 等）与本
- *         重载转换序列打平，转由模板偏序裁决，而它们的形参类型都比 `const TValue&` 更特化。
+ *       - 取 `ios_base<char_type>&` 的两个操纵符重载与本重载转换序列打平，转由模板偏序裁决，
+ *         而它们的形参类型更特化；取 `const TManip&` 的方向标签重载与本重载签名等价，靠
+ *         "约束更多者胜"取胜。
+ * @note 因此落到本重载的操纵符只有两类：没有派生方向标签基类的（用户自己写的函数或
+ *       lambda），以及派生了但 `operator()` 不接受本流的（如在 `char` 流上用
+ *       `setfill(L'*')`）。下面的错误消息把这两类也一并点出来。
  * @warning 形参必须是 `const TValue&` 而非 `TValue&`。写成后者会以非常量引用绑定**压过**
  *          所有操纵符重载的常量引用绑定，把 `is >> manip` 之类的调用全部劫持到这里、变成
  *          编译错误——这正是当初给上面那个运算符加 `requires` 所要修复的缺陷，
@@ -1228,9 +1180,14 @@ T& operator>>(T& obj, TValue& value)
  *       - The formatted extraction operator above takes `TValue&`, a non-const reference
  *         binding for a non-const lvalue, which beats this overload's const reference binding;
  *         where the signatures are equivalent instead, the more-constrained one wins.
- *       - The manipulator overloads (`void(*)(T&)`, `const std::function<void(T&)>&`, `_Setw`
- *         and friends) tie with this one on conversion sequence, so partial ordering decides,
- *         and their parameter types are all more specialized than `const TValue&`.
+ *       - The two manipulator overloads taking `ios_base<char_type>&` tie with this one on
+ *         conversion sequence, so partial ordering decides and their more specialized parameter
+ *         types win; the direction-tag overload taking `const TManip&` has an equivalent
+ *         signature and wins on "more constrained".
+ * @note Only two kinds of manipulator therefore reach this overload: one that does not derive
+ *       from a direction tag base (a user's own function or lambda), and one that does but whose
+ *       `operator()` will not take this stream (`setfill(L'*')` on a `char` stream, say). The
+ *       message below names both.
  * @warning The parameter must be `const TValue&`, not `TValue&`. The latter would bind a
  *          non-const reference and thereby **outrank** every manipulator overload's const
  *          binding, hijacking calls such as `is >> manip` into this overload and turning them
@@ -1246,7 +1203,11 @@ T& operator>>(T& obj, const TValue&)
         "IOv2: cannot extract into this type. Either no reader<char_type, TValue> is defined "
         "for it (define one -- see io/fp_defs/base_fp.h -- or extract into a supported type "
         "such as an arithmetic type, CharT[N], or std::basic_string), or the target is not a "
-        "modifiable lvalue (extraction cannot write into a temporary or a const object).");
+        "modifiable lvalue (extraction cannot write into a temporary or a const object), or it "
+        "was meant to be a manipulator, in which case it must derive from IOv2::in_manip (see "
+        "io/io_base.h) and its operator() must accept this stream -- a fill character whose "
+        "type differs from the stream's char_type is the usual cause. A manipulator used in "
+        "the wrong direction is reported separately, as a deleted operator.");
     return obj;
 }
 }

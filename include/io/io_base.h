@@ -1056,6 +1056,74 @@ protected:
 
 /**
  * @lang{ZH}
+ * @brief 操纵符方向标签基类：标记一个操纵符只能用于**提取**（`operator>>`）。
+ *
+ * 标准库把方向编码在形参的类型上——`ws` 取 `basic_istream&`，`endl` 取 `basic_ostream&`，
+ * 而函数指针类型之间不存在协变转换，于是 `iostream << std::ws` 天然编译不过。本库以概念
+ * （`istream_type` / `ostream_type`）取代了那套继承体系，而**约束不是函数类型的组成部分**：
+ * `void(*)(T&)` 这个类型上看不出它当初受哪个概念约束。更要命的是 `iostream` 同时满足两个
+ * 概念，因此无论怎样约束流类型都推不出方向。于是在双向流上两个方向会推导出完全相同的指针
+ * 类型，`io << ws` 会静默地执行输入、`io >> endl` 会静默地执行输出——写法与实际方向相反，
+ * 编译期无提示，运行期也不置任何状态位。
+ *
+ * 从本类派生即把方向恢复到类型上：`operator>>` 只接受派生自 `in_manip` 的操纵符，对应的
+ * `operator<<` 重载被删除；`out_manip` 反之。两个方向都合法的操纵符（如 `setw`）同时派生
+ * 二者。自定义操纵符照此派生即可获得同样的保护。
+ *
+ * @note 只改格式状态、取 `ios_base<TChar>&` 的操纵符不必派生本类，也不受方向检查：
+ *       `ios_base` 不暴露 streambuf 或设备，做不了 I/O，因此无所谓方向。
+ * @note 消费本族的运算符形参**必须**是 `const TManip&` 而不能按值传。按值传时形参类型与
+ *       兜底重载的 `const TValue&` 在偏序变换后并不一致，"约束更强者胜"这条规则用不上，
+ *       任何一次 `os << endl` 都会因二义性而失败。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Manipulator direction tag base: marks a manipulator as usable only in **extraction**
+ *        (`operator>>`).
+ *
+ * The standard library encodes the direction in the parameter's type -- `ws` takes
+ * `basic_istream&`, `endl` takes `basic_ostream&` -- and since no covariant conversion exists
+ * between function-pointer types, `iostream << std::ws` simply does not compile. This library
+ * replaced that hierarchy with concepts (`istream_type` / `ostream_type`), and **a constraint is
+ * not part of a function's type**: nothing about `void(*)(T&)` records which concept constrained
+ * the template it came from. Worse, `iostream` satisfies both concepts, so no constraint on the
+ * stream type can recover the direction either. On a bidirectional stream both directions
+ * therefore deduce the very same pointer type, and `io << ws` silently performs input while
+ * `io >> endl` silently performs output -- the opposite of what the expression reads like, with
+ * no compile-time hint and no state bit set.
+ *
+ * Deriving from this class puts the direction back into the type: `operator>>` accepts only
+ * manipulators derived from `in_manip` and the matching `operator<<` overload is deleted;
+ * `out_manip` is the mirror image. A manipulator legal in both directions (`setw`, say) derives
+ * from both. User-defined manipulators get the same protection by deriving likewise.
+ *
+ * @note A manipulator that only touches format state and takes `ios_base<TChar>&` need not
+ *       derive from this class and is not direction-checked: `ios_base` exposes no streambuf and
+ *       no device, so it cannot do I/O and has no direction to get wrong.
+ * @note The parameter of an operator consuming this family **must** be `const TManip&` and
+ *       cannot be by value. By value the parameter type is not equivalent to the fallback's
+ *       `const TValue&` after the partial-ordering transformation, so the "more constrained
+ *       wins" tiebreak does not apply and every `os << endl` fails as ambiguous.
+ * @endif
+ */
+struct in_manip {};
+
+/**
+ * @lang{ZH}
+ * @brief 操纵符方向标签基类：标记一个操纵符只能用于**插入**（`operator<<`）。方向为何必须
+ *        编码在类型上、以及本族的形参为何必须按 const 引用传，见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Manipulator direction tag base: marks a manipulator as usable only in **insertion**
+ *        (`operator<<`). See `in_manip` for why the direction must be encoded in the type and
+ *        why this family must be taken by const reference.
+ * @endif
+ */
+struct out_manip {};
+
+/**
+ * @lang{ZH}
  * @defgroup ios_manipulators 格式化操纵符
  * @brief 直接作用于 ios_base 的无参操纵符，用于置位或清除相应的格式化标志。
  *

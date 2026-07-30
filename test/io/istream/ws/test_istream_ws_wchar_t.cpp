@@ -76,10 +76,10 @@ void test_istream_function_manip_wchar_t_1()
     auto helper = []<template<typename, typename> class T>()
     {
         T iss{IOv2::mem_device{std::wstring(L"hello world")}};
-        using S = decltype(iss);
 
         int calls = 0;
-        std::function<void(S&)> manip = [&calls](S&){ ++calls; };
+        std::function<void(IOv2::ios_base<wchar_t>&)> manip =
+            [&calls](IOv2::ios_base<wchar_t>&){ ++calls; };
 
         iss >> manip;                 // the previously-broken path
         VERIFY( calls == 1 );
@@ -87,10 +87,10 @@ void test_istream_function_manip_wchar_t_1()
         iss >> manip >> manip;        // operator>> returns the stream, so manipulators chain
         VERIFY( calls == 3 );
 
-        // sibling function-pointer manipulator form: operator>>(T&, void(*)(T&))
+        // sibling function-pointer form: operator>>(T&, void(*)(ios_base<wchar_t>&))
         static int fcalls;
         fcalls = 0;
-        iss >> +[](S&){ ++fcalls; };
+        iss >> +[](IOv2::ios_base<wchar_t>&){ ++fcalls; };
         VERIFY( fcalls == 1 );
 
         // the generic value operator>> still extracts real values afterwards
@@ -106,7 +106,8 @@ void test_istream_function_manip_wchar_t_1()
 }
 
 // wchar_t counterpart of test_istream_null_manip_char_1: a null manipulator must be
-// rejected by every manipulator overload, leaving strfailbit set (no mask -> no throw).
+// rejected by both surviving manipulator overloads, leaving strfailbit set (no mask ->
+// no throw). The tag-object manipulators need no such branch: an object cannot be null.
 void test_istream_null_manip_wchar_t_1()
 {
     dump_info("Test istream<wchar_t> null manipulator via operator>> case 1...");
@@ -114,7 +115,6 @@ void test_istream_null_manip_wchar_t_1()
     auto helper = []<template<typename, typename> class T>()
     {
         T iss{IOv2::mem_device{std::wstring(L"hello world")}};
-        using S = decltype(iss);
 
         iss >> static_cast<void(*)(IOv2::ios_base<wchar_t>&)>(nullptr);
         VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
@@ -131,15 +131,6 @@ void test_istream_null_manip_wchar_t_1()
         iss >> base_fn;
         VERIFY( base_calls == 1 );
         VERIFY( !(iss.rdstate() & IOv2::ios_defs::strfailbit) );
-
-        iss >> static_cast<void(*)(S&)>(nullptr);
-        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
-        iss.clear();
-
-        std::function<void(S&)> empty_self_fn;
-        iss >> empty_self_fn;
-        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
-        iss.clear();
 
         std::wstring tok;
         iss >> tok;
@@ -215,3 +206,54 @@ void test_istream_tied_flush_wchar_t_1()
     dump_info("Done\n");
 }
 
+
+namespace
+{
+using DirIn_w   = IOv2::istream<IOv2::mem_device<wchar_t>, wchar_t>;
+using DirOut_w  = IOv2::ostream<IOv2::mem_device<wchar_t>, wchar_t>;
+using DirBoth_w = IOv2::iostream<IOv2::mem_device<wchar_t>, wchar_t>;
+
+template <typename S, typename M> concept can_extract_w = requires (S& s, const M& m) { s >> m; };
+template <typename S, typename M> concept can_insert_w  = requires (S& s, const M& m) { s << m; };
+
+// wchar_t counterpart of the char direction matrix. The tags are character-type agnostic, so
+// the wrong direction has to be rejected here too.
+static_assert(  can_extract_w<DirBoth_w, IOv2::_Ws>   && !can_insert_w<DirBoth_w, IOv2::_Ws> );
+static_assert(  can_insert_w<DirBoth_w, IOv2::_Endl>  && !can_extract_w<DirBoth_w, IOv2::_Endl> );
+static_assert(  can_insert_w<DirBoth_w, IOv2::_Ends>  && !can_extract_w<DirBoth_w, IOv2::_Ends> );
+static_assert(  can_insert_w<DirBoth_w, IOv2::_Flush> && !can_extract_w<DirBoth_w, IOv2::_Flush> );
+
+static_assert(  can_extract_w<DirIn_w, IOv2::_Ws>     && !can_insert_w<DirIn_w, IOv2::_Ws> );
+static_assert( !can_extract_w<DirIn_w, IOv2::_Endl>   && !can_insert_w<DirIn_w, IOv2::_Endl> );
+static_assert(  can_insert_w<DirOut_w, IOv2::_Endl>   && !can_extract_w<DirOut_w, IOv2::_Endl> );
+static_assert( !can_extract_w<DirOut_w, IOv2::_Ws>    && !can_insert_w<DirOut_w, IOv2::_Ws> );
+
+// setfill is the one manipulator whose character type must match the stream's exactly. That
+// requirement used to live in the parameter type _Setfill<typename T::char_type>; it is now a
+// requires-clause on _Setfill::operator(), and the operators' std::invocable constraint is what
+// keeps a mismatch from reaching the template body.
+static_assert(  can_insert_w<DirBoth_w, IOv2::_Setfill<wchar_t>>
+             && can_extract_w<DirBoth_w, IOv2::_Setfill<wchar_t>> );
+static_assert( !std::invocable<const IOv2::_Setfill<char>&, DirBoth_w&> );
+static_assert(  std::invocable<const IOv2::_Setfill<wchar_t>&, DirBoth_w&> );
+}
+
+// wchar_t counterpart of test_istream_manip_direction_char_1.
+void test_istream_manip_direction_wchar_t_1()
+{
+    dump_info("Test istream<wchar_t> manipulator direction case 1...");
+
+    DirBoth_w iss{IOv2::mem_device{std::wstring(L"  santa")}};
+    iss >> IOv2::ws;
+    std::wstring tok;
+    iss >> tok;
+    VERIFY( tok == L"santa" );
+
+    DirBoth_w iss2{IOv2::mem_device{std::wstring(L"  santa")}};
+    IOv2::ws(iss2);                   // direct-call form, as in std::ws(is)
+    std::wstring tok2;
+    iss2 >> tok2;
+    VERIFY( tok2 == L"santa" );
+
+    dump_info("Done\n");
+}

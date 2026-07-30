@@ -2,6 +2,7 @@
 #include <common/copyable_mutex.h>
 #include <cvt/cvt_concepts.h>
 #include <device/device_concepts.h>
+#include <io/istream.h>
 #include <io/ostream.h>
 #include <io/utilities/istream_operators.h>
 #include <io/utilities/ostream_operators.h>

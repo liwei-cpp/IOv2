@@ -67,51 +67,110 @@
 
 namespace IOv2
 {
-struct _Resetiosflags { ios_defs::fmtflags m_mask; };
+/**
+ * @lang{ZH}
+ * @brief `resetiosflags` 操纵符的类型。
+ *
+ * 本操纵符只改格式标志，两个方向都合法，故同时派生自 `in_manip` 与 `out_manip`。方向为何
+ * 必须编码进类型、以及"两个方向都合法者须同时派生两个基类"的理由，见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `resetiosflags` manipulator.
+ *
+ * It only changes format flags and is legal in both directions, so it derives from both
+ * `in_manip` and `out_manip`. See `in_manip` for why the direction must live in the type, and
+ * why something legal in both directions has to derive from both bases.
+ * @endif
+ */
+struct _Resetiosflags : in_manip, out_manip
+{
+    explicit _Resetiosflags(ios_defs::fmtflags mask) : m_mask(mask) {}
+
+    /**
+     * @lang{ZH} @brief 清除 `m_mask` 中的各标志，其余不受影响。 @endif
+     * @lang{EN} @brief Clears the flags in `m_mask`, leaving the rest untouched. @endif
+     */
+    template <typename T>
+        requires (istream_type<T> || ostream_type<T>)
+    void operator () (T& s) const
+    {
+        s.setf(ios_defs::fmtflags(0), m_mask);
+    }
+
+    ios_defs::fmtflags m_mask;
+};
 
 /**
  * @lang{ZH} @brief 构造清除 @p mask 中各标志的操纵符（其余标志不受影响）。 @endif
  * @lang{EN} @brief Builds the manipulator that clears the flags in @p mask, leaving the rest untouched. @endif
  */
-inline _Resetiosflags resetiosflags(ios_defs::fmtflags mask) { return { mask }; }
+inline _Resetiosflags resetiosflags(ios_defs::fmtflags mask) { return _Resetiosflags{mask}; }
 
-template <ostream_type T>
-inline T& operator << (T& os, _Resetiosflags f)
+/**
+ * @lang{ZH}
+ * @brief `setiosflags` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setiosflags` manipulator. Legal in both directions, so it derives
+ *        from both direction tags; see `in_manip`.
+ * @endif
+ */
+struct _Setiosflags : in_manip, out_manip
 {
-    os.setf(ios_defs::fmtflags(0), f.m_mask);
-    return os;
-}
+    explicit _Setiosflags(ios_defs::fmtflags mask) : m_mask(mask) {}
 
-template <istream_type T>
-inline T& operator >> (T& is, _Resetiosflags f)
-{
-    is.setf(ios_defs::fmtflags(0), f.m_mask);
-    return is;
-}
+    /**
+     * @lang{ZH} @brief 置位 `m_mask` 中的各标志（按位或），其余不受影响。 @endif
+     * @lang{EN} @brief Sets the flags in `m_mask` (bitwise-or), leaving the rest untouched. @endif
+     */
+    template <typename T>
+        requires (istream_type<T> || ostream_type<T>)
+    void operator () (T& s) const
+    {
+        s.setf(m_mask);
+    }
 
-struct _Setiosflags { ios_defs::fmtflags m_mask; };
+    ios_defs::fmtflags m_mask;
+};
 
 /**
  * @lang{ZH} @brief 构造置位 @p mask 中各标志的操纵符（按位或，其余标志不受影响）。 @endif
  * @lang{EN} @brief Builds the manipulator that sets the flags in @p mask (bitwise-or; the rest are untouched). @endif
  */
-inline _Setiosflags setiosflags(ios_defs::fmtflags mask) { return { mask }; }
+inline _Setiosflags setiosflags(ios_defs::fmtflags mask) { return _Setiosflags{mask}; }
 
-template <ostream_type T>
-inline T& operator << (T& os, _Setiosflags f)
+/**
+ * @lang{ZH}
+ * @brief `setbase` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setbase` manipulator. Legal in both directions, so it derives from
+ *        both direction tags; see `in_manip`.
+ * @endif
+ */
+struct _Setbase : in_manip, out_manip
 {
-    os.setf(f.m_mask);
-    return os;
-}
+    explicit _Setbase(int base) : m_base(base) {}
 
-template <istream_type T>
-inline T& operator >> (T& is, _Setiosflags f)
-{
-    is.setf(f.m_mask);
-    return is;
-}
+    /**
+     * @lang{ZH} @brief 按 `m_base` 设置 `basefield`；取值的含义见 `setbase`。 @endif
+     * @lang{EN} @brief Sets `basefield` from `m_base`; see `setbase` for what the values mean. @endif
+     */
+    template <typename T>
+        requires (istream_type<T> || ostream_type<T>)
+    void operator () (T& s) const
+    {
+        s.setf(m_base ==  8 ? ios_defs::oct :
+               m_base == 10 ? ios_defs::dec :
+               m_base == 16 ? ios_defs::hex :
+               ios_defs::fmtflags(0), ios_defs::basefield);
+    }
 
-struct _Setbase { int m_base; };
+    int m_base;
+};
 
 /**
  * @lang{ZH}
@@ -130,65 +189,97 @@ struct _Setbase { int m_base; };
  *       hexadecimal, a leading `0` octal, otherwise decimal). This matches `std::setbase`.
  * @endif
  */
-inline _Setbase setbase(int base) { return { base }; }
+inline _Setbase setbase(int base) { return _Setbase{base}; }
 
-template <ostream_type T>
-inline T& operator << (T& os, _Setbase f)
+/**
+ * @lang{ZH}
+ * @brief `setfill` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setfill` manipulator. Legal in both directions, so it derives from
+ *        both direction tags; see `in_manip`.
+ * @endif
+ */
+template<typename _CharT>
+struct _Setfill : in_manip, out_manip
 {
-    os.setf(f.m_base ==  8 ? ios_defs::oct :
-        f.m_base == 10 ? ios_defs::dec :
-        f.m_base == 16 ? ios_defs::hex :
-        ios_defs::fmtflags(0), ios_defs::basefield);
-    return os;
-}
+    explicit _Setfill(_CharT c) : m_c(c) {}
 
-template <istream_type T>
-inline T& operator >> (T& is, _Setbase f)
-{
-    is.setf(f.m_base ==  8 ? ios_defs::oct :
-        f.m_base == 10 ? ios_defs::dec :
-        f.m_base == 16 ? ios_defs::hex :
-        ios_defs::fmtflags(0), ios_defs::basefield);
-    return is;
-}
+    /**
+     * @lang{ZH}
+     * @brief 设置流的填充字符。
+     * @note 约束要求 `_CharT` 与流的 `char_type` **完全一致**，不接受隐式转换；理由见
+     *       `setfill`。这条约束此前由形参类型 `_Setfill<typename T::char_type>`（非推导
+     *       语境）承担，现在由本 `requires` 承担，二者效果相同。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the stream's fill character.
+     * @note The constraint requires `_CharT` to match the stream's `char_type` **exactly**, with
+     *       no implicit conversion; see `setfill` for why. That requirement used to be carried
+     *       by the parameter type `_Setfill<typename T::char_type>`, a non-deduced context, and
+     *       is now carried by this `requires` to the same effect.
+     * @endif
+     */
+    template <typename T>
+        requires ((istream_type<T> || ostream_type<T>)
+                  && std::same_as<typename T::char_type, _CharT>)
+    void operator () (T& s) const
+    {
+        s.fill(m_c);
+    }
 
-template<typename _CharT> struct _Setfill { _CharT m_c; };
+    _CharT m_c;
+};
 
 /**
  * @lang{ZH}
  * @brief 构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。
- * @note `_CharT` 由实参推导，且必须与目标流的 `char_type` **完全一致**——`operator<<` 的
- *       形参是 `_Setfill<typename T::char_type>`，属于非推导语境，不存在隐式转换。因此对
- *       `wchar_t` 流须写 `setfill(L'*')`，写成 `setfill('*')` 会编译失败而非静默转换。
+ * @note `_CharT` 由实参推导，且必须与目标流的 `char_type` **完全一致**——`_Setfill` 的
+ *       `operator()` 要求二者 `same_as`，不存在隐式转换。因此对 `wchar_t` 流须写
+ *       `setfill(L'*')`，写成 `setfill('*')` 会编译失败而非静默转换。
  * @endif
  *
  * @lang{EN}
  * @brief Builds the manipulator that sets the fill character, used to pad when the field width
  *        exceeds the content.
  * @note `_CharT` is deduced from the argument and must match the target stream's `char_type`
- *       **exactly**: `operator<<` takes `_Setfill<typename T::char_type>`, a non-deduced
- *       context, so no implicit conversion applies. A `wchar_t` stream therefore needs
- *       `setfill(L'*')`; `setfill('*')` fails to compile rather than converting silently.
+ *       **exactly**: `_Setfill`'s `operator()` requires the two to be `same_as`, so no implicit
+ *       conversion applies. A `wchar_t` stream therefore needs `setfill(L'*')`; `setfill('*')`
+ *       fails to compile rather than converting silently.
  * @endif
  */
 template<typename _CharT>
-inline _Setfill<_CharT> setfill(_CharT c) { return { c }; }
+inline _Setfill<_CharT> setfill(_CharT c) { return _Setfill<_CharT>{c}; }
 
-template <ostream_type T>
-inline T& operator << (T& os, _Setfill<typename T::char_type> f)
+/**
+ * @lang{ZH}
+ * @brief `setprecision` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setprecision` manipulator. Legal in both directions, so it derives
+ *        from both direction tags; see `in_manip`.
+ * @endif
+ */
+struct _Setprecision : in_manip, out_manip
 {
-    os.fill(f.m_c);
-    return os;
-}
+    explicit _Setprecision(std::uint8_t n) : m_n(n) {}
 
-template <istream_type T>
-inline T& operator >> (T& is, _Setfill<typename T::char_type> f)
-{
-    is.fill(f.m_c);
-    return is;
-}
+    /**
+     * @lang{ZH} @brief 设置流的浮点精度。 @endif
+     * @lang{EN} @brief Sets the stream's floating-point precision. @endif
+     */
+    template <typename T>
+        requires (istream_type<T> || ostream_type<T>)
+    void operator () (T& s) const
+    {
+        s.precision(m_n);
+    }
 
-struct _Setprecision { std::uint8_t m_n; };
+    std::uint8_t m_n;
+};
 
 /**
  * @lang{ZH}
@@ -220,24 +311,36 @@ inline _Setprecision setprecision(size_t n)
 {
     if (n > std::numeric_limits<std::uint8_t>::max())
         throw stream_error("setprecision fail: precision out of range (0..255)");
-    return { static_cast<std::uint8_t>(n) };
+    return _Setprecision{static_cast<std::uint8_t>(n)};
 }
 
-template <ostream_type T>
-inline T& operator << (T& os, _Setprecision f)
+/**
+ * @lang{ZH}
+ * @brief `setw` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setw` manipulator. Legal in both directions, so it derives from both
+ *        direction tags; see `in_manip`.
+ * @endif
+ */
+struct _Setw : in_manip, out_manip
 {
-    os.precision(f.m_n);
-    return os;
-}
+    explicit _Setw(std::uint8_t n) : m_n(n) {}
 
-template <istream_type T>
-inline T& operator >> (T& is, _Setprecision f)
-{
-    is.precision(f.m_n);
-    return is;
-}
+    /**
+     * @lang{ZH} @brief 设置流的字段宽度。 @endif
+     * @lang{EN} @brief Sets the stream's field width. @endif
+     */
+    template <typename T>
+        requires (istream_type<T> || ostream_type<T>)
+    void operator () (T& s) const
+    {
+        s.width(m_n);
+    }
 
-struct _Setw { std::uint8_t m_n; };
+    std::uint8_t m_n;
+};
 
 /**
  * @lang{ZH}
@@ -290,21 +393,7 @@ inline _Setw setw(size_t n)
 {
     if (n > std::numeric_limits<std::uint8_t>::max())
         throw stream_error("setw fail: width out of range (0..255)");
-    return { static_cast<std::uint8_t>(n) };
-}
-
-template <ostream_type T>
-inline T& operator << (T& os, _Setw f)
-{
-    os.width(f.m_n);
-    return os;
-}
-
-template <istream_type T>
-inline T& operator >> (T& is, _Setw f)
-{
-    is.width(f.m_n);
-    return is;
+    return _Setw{static_cast<std::uint8_t>(n)};
 }
 
 template<typename _MoneyT> struct _Put_money { const _MoneyT& m_mon; bool m_intl; };
