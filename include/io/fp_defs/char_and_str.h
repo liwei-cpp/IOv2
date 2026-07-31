@@ -11,9 +11,9 @@ namespace IOv2
 {
 template <typename TIter, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
-TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::streamsize n)
+TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, size_t n)
 {
-    const std::streamsize w = io.width();
+    const size_t w = io.width();
     if (w > n)
     {
         const bool left = ((io.flags() & ios_defs::adjustfield) == ios_defs::left);
@@ -32,9 +32,9 @@ TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::strea
 
 template <typename TIter, std::sentinel_for<TIter> TSent, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
-TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, std::streamsize num)
+TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, size_t num)
 {
-    std::streamsize width = io.width();
+    const size_t width = io.width();
     if (0 < width && width < num)
         num = width;
 
@@ -51,7 +51,7 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
 
     if (iter == iter_end) throw stream_error("cannot extract character from empty stream");
 
-    std::streamsize extracted = 0;
+    size_t extracted = 0;
 
     while (extracted < num - 1
            && (iter != iter_end)
@@ -226,7 +226,7 @@ struct reader<TChar, TChar[N]>
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
 
-        constexpr std::streamsize n = N;
+        constexpr size_t n = N;
         return istream_extract(iter, iter_end, io, loc, c, n);
     }
 };
@@ -240,7 +240,7 @@ struct reader<char, unsigned char[N]>
     {
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
-        constexpr std::streamsize n = N;
+        constexpr size_t n = N;
         return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }
 };
@@ -254,7 +254,7 @@ struct reader<char, signed char[N]>
     {
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
-        constexpr std::streamsize n = N;
+        constexpr size_t n = N;
         return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }
 };
@@ -308,8 +308,8 @@ struct reader<TChar, std::basic_string<TChar, TTraits, TAlloc>>
         str.erase();
         TChar buf[128];
         size_t len = 0;
-        auto w = io.width();
-        size_t n = w > 0  ? static_cast<size_t>(w) : str.max_size();
+        const size_t w = io.width();
+        const size_t n = w > 0 ? w : str.max_size();
         size_t extracted = 0;
 
         auto ct = loc.template get<ctype<TChar>>();
