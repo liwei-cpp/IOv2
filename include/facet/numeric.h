@@ -743,7 +743,7 @@ private:
         // Consume the field width up front, before any allocation or conversion
         // that can throw: width() is one-shot and a stale value must not survive
         // onto the stream if we leave by an exception. Used for padding below.
-        const std::streamsize w = io.width();
+        const size_t w = io.width();
         io.width(0);
 
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
@@ -904,7 +904,7 @@ private:
         // Consume the field width up front, before any allocation that can throw:
         // width() is one-shot and a stale value must not survive onto the stream
         // if we leave by an exception. Used for padding below.
-        const std::streamsize w = io.width();
+        const size_t w = io.width();
         io.width(0);
 
         // Long enough to hold hex, dec, and octal representations.
@@ -1065,14 +1065,14 @@ private:
      * @param start0x Whether the original content begins with `0x`/`0X`.
      * @endif
      */
-    void pad(char_type fill, std::streamsize w, ios_defs::fmtflags adjust,
+    void pad(char_type fill, size_t w, ios_defs::fmtflags adjust,
              char_type* new_buf, const char_type* cs, size_t& len,
              bool startSign, bool start0x) const
     {
       // [22.2.2.2.2] Stage 3.
       // If necessary, pad.
-      pad_impl_(adjust, fill, new_buf, cs, w, static_cast<std::streamsize>(len), startSign, start0x);
-      len = static_cast<size_t>(w);
+      pad_impl_(adjust, fill, new_buf, cs, w, len, startSign, start0x);
+      len = w;
     }
 
     /**
@@ -1115,11 +1115,11 @@ private:
      */
     void pad_impl_(ios_defs::fmtflags adjust, char_type fill,
                    char_type* news, const char_type* olds,
-                   std::streamsize newlen, std::streamsize oldlen,
+                   size_t newlen, size_t oldlen,
                    bool startSign, bool start0x) const
     {
 
-        const auto plen = static_cast<size_t>(newlen - oldlen);
+        const size_t plen = newlen - oldlen;
 
         // Padding last.
         if (adjust == ios_defs::left)

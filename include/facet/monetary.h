@@ -650,7 +650,7 @@ private:
         // leaks into the next output operation on whichever path we leave by,
         // including an exception thrown while formatting. The captured value is
         // used for padding below.
-        const int width = static_cast<int>(io.width());
+        const size_t width = io.width();
         io.width(0);
 
         // Determine if negative or positive formats are to be used, and
@@ -673,7 +673,7 @@ private:
         }
 
         // Look for valid numbers in input digits.
-        int len = 0;
+        size_t len = 0;
         for (auto i = beg; i != digits.data() + digits.size(); ++i)
         {
             char_type ch = *i;
@@ -695,11 +695,14 @@ private:
 
             // Add thousands separators to non-decimal digits, per
             // grouping rules.
-            long paddec = len - info.m_frac_digits;
+            // len counts characters of `digits`, so it never exceeds PTRDIFF_MAX and
+            // the conversion is lossless; the subtraction must stay signed because
+            // m_frac_digits may exceed len (and may itself be negative).
+            std::ptrdiff_t paddec = static_cast<std::ptrdiff_t>(len) - info.m_frac_digits;
             if (paddec > 0)
             {
                 if (info.m_frac_digits < 0)
-                    paddec = len;
+                    paddec = static_cast<std::ptrdiff_t>(len);
                 if (!m_grouping.empty())
                 {
                     value.assign(2 * paddec, char_type());

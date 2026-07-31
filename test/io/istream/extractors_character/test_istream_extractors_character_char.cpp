@@ -378,3 +378,43 @@ void test_istream_extractors_character_char_7()
 
     dump_info("Done\n");
 }
+
+void test_istream_extractors_character_char_8()
+{
+    dump_info("Test istream<char> operator>> (character) case 8...");
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // width() bounds the read, so it must be able to express any length a
+        // destination can hold -- not just the small values a field width takes.
+        const std::string src(1000, 'a');
+
+        {
+            T in(IOv2::mem_device{src});
+            std::string s;
+            in >> IOv2::setw(600) >> s;
+            VERIFY(in.good());
+            VERIFY(s.size() == 600);
+            VERIFY(in.width() == 0);
+        }
+        {
+            // The array bound N still wins: min(width, N) - 1 characters are read.
+            T in(IOv2::mem_device{src});
+            char buf[300];
+            in >> IOv2::setw(600) >> buf;
+            VERIFY(in.good());
+            VERIFY(std::string(buf).size() == 299);
+        }
+        {
+            T in(IOv2::mem_device{src});
+            char buf[300];
+            in >> IOv2::setw(280) >> buf;
+            VERIFY(in.good());
+            VERIFY(std::string(buf).size() == 279);
+        }
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

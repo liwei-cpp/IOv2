@@ -729,9 +729,8 @@ public:
      * @brief 获取/设置字段宽度。
      *
      * 无参重载返回当前宽度；带参重载将宽度设置为 @p wide 并返回旧值。
-     * @note 宽度以 std::uint8_t 存储，取值范围被有意限制在 0..255。这与标准
-     * std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的字段宽度，
-     * 更大的值无法通过本接口表达（参数类型即为 std::uint8_t）。此为有意设计。
+     * @note 宽度以 size_t 存储，不设上限：它既是输出端的填充目标列数，也是提取端的
+     * 读取长度上界。这与标准 std::ios_base 的 std::streamsize 只差在无符号。
      * @endif
      *
      * @lang{EN}
@@ -739,15 +738,14 @@ public:
      *
      * The argument-less overload returns the current width; the overload taking an
      * argument sets the width to @p wide and returns the old value.
-     * @note The width is stored as a std::uint8_t and is intentionally limited to
-     * the range 0..255. Unlike the standard std::ios_base, which uses
-     * std::streamsize, this library does not support field widths greater than 255;
-     * larger values cannot be expressed through this interface (the parameter type
-     * is std::uint8_t itself). This is by design.
+     * @note The width is stored as a size_t, with no upper bound: it serves both as the
+     * target column count for padding on output and as the bound on how much extraction
+     * reads. It differs from the standard std::ios_base's std::streamsize only in being
+     * unsigned.
      * @endif
      */
-    std::uint8_t width() const { return m_width.load(); }
-    std::uint8_t width(std::uint8_t wide)
+    size_t width() const { return m_width.load(); }
+    size_t width(size_t wide)
     {
         return m_width.exchange(wide);
     }
@@ -1022,7 +1020,7 @@ protected:
 protected:
     copyable_atomic<ios_defs::fmtflags> m_flags{ios_defs::skipws | ios_defs::dec};   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
     copyable_atomic<std::uint8_t>       m_precision{6};     ///< @lang{ZH} 浮点精度，默认 6。 @endif @lang{EN} Floating-point precision, default 6. @endif
-    copyable_atomic<std::uint8_t>       m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
+    copyable_atomic<size_t>             m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
     /**
      * @lang{ZH}
      * @brief 默认填充字符。

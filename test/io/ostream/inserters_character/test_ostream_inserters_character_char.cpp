@@ -221,21 +221,21 @@ void test_ostream_inserters_character_char_7()
         {
             T oss_01{IOv2::mem_device{""}};
             oss_01.width(WIDTH);
-            const std::streamsize width = oss_01.width();
+            const size_t width = oss_01.width();
             oss_01 << 'a';
             VERIFY(oss_01.good());
             auto [dev11, err11] = oss_01.detach();
-            VERIFY(dev11.str().size() == std::string::size_type(width));
+            VERIFY(dev11.str().size() == width);
         }
         {
             const std::string str_01(50, 'a');
             T oss_01{IOv2::mem_device{""}};
             oss_01.width(WIDTH);
-            const std::streamsize width = oss_01.width();
+            const size_t width = oss_01.width();
             oss_01 << str_01.c_str();
             VERIFY(oss_01.good());
             auto [dev12, err12] = oss_01.detach();
-            VERIFY(dev12.str().size() == std::string::size_type(width));
+            VERIFY(dev12.str().size() == width);
         }
     };
 

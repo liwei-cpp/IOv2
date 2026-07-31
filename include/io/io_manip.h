@@ -326,7 +326,7 @@ inline _Setprecision setprecision(size_t n)
  */
 struct _Setw : in_manip, out_manip
 {
-    explicit _Setw(std::uint8_t n) : m_n(n) {}
+    explicit _Setw(size_t n) : m_n(n) {}
 
     /**
      * @lang{ZH} @brief 设置流的字段宽度。 @endif
@@ -339,61 +339,45 @@ struct _Setw : in_manip, out_manip
         s.width(m_n);
     }
 
-    std::uint8_t m_n;
+    size_t m_n;
 };
 
 /**
  * @lang{ZH}
  * @brief 构造设置字段宽度的操纵符。
  *
- * 宽度以 `std::uint8_t` 存储（见 `ios_base::width`），有效范围 0..255。参数取 `size_t`
- * 而非 `std::uint8_t`，是为了让越界值在此处**显式报错**而不是被静默回绕。
+ * 宽度以 `size_t` 存储（见 `ios_base::width`），不设上限。
  *
- * @warning 越界值抛异常而非回绕，是为了让 `setw(256)`、`setw(512)` 这类误用**显式失败**，
- *          而不是静默折叠为 0 —— 后者会让"设了一个宽度"看起来生效，实际却等同于从未调用
- *          `setw`，从而给出与调用方意图完全无关的结果。
  * @note **提取端的长度安全不依赖本函数。** 目标缓冲区的上界始终来自类型本身：
  *       `reader<TChar, TChar[N]>` 以 `min(width, N)` 为界，`std::basic_string` 自动增长，
  *       而裸指针根本没有对应的 reader（`is >> ptr` 无法编译，与 C++20 起的 `std::istream`
- *       一致）。因此 `width` 只能把边界**收紧**，越界的 `setw` 至多是一次被拒绝的调用，
- *       不会造成越界写。
+ *       一致）。因此 `width` 只能把边界**收紧**，不会造成越界写。
  * @note 与标准一致，`width` 只被字符数组与 `std::basic_string` 的提取消费；算术提取、
  *       `get_money`、`get_time` 之后 `width` 仍然保留。
- * @param n 目标宽度，必须落在 0..255。
+ * @param n 目标宽度。
  * @return 可用于 `os << setw(n)` / `is >> setw(n)` 的操纵符。
- * @throw stream_error 若 `n > 255`。
  * @endif
  *
  * @lang{EN}
  * @brief Builds the manipulator that sets the field width.
  *
- * The width is stored as a `std::uint8_t` (see `ios_base::width`), so the valid range is
- * 0..255. The parameter is a `size_t` rather than a `std::uint8_t` so that an out-of-range
- * value is **reported explicitly** here instead of silently wrapping.
+ * The width is stored as a `size_t` (see `ios_base::width`), with no upper bound.
  *
- * @warning Throwing on an out-of-range value rather than wrapping makes misuse such as
- *          `setw(256)` or `setw(512)` **fail loudly** instead of silently folding to 0 --
- *          which would leave "a width was set" looking effective while behaving exactly as
- *          if `setw` had never been called, giving a result unrelated to the caller's intent.
  * @note **Length safety on the extraction side does not depend on this function.** The bound
  *       on a destination buffer always comes from its type: `reader<TChar, TChar[N]>` bounds
  *       at `min(width, N)`, `std::basic_string` grows on demand, and a raw pointer has no
  *       reader at all (`is >> ptr` does not compile, matching `std::istream` as of C++20).
- *       `width` can therefore only **tighten** a bound, and an out-of-range `setw` is at
- *       worst a rejected call, never an out-of-bounds write.
+ *       `width` can therefore only **tighten** a bound, never cause an out-of-bounds write.
  * @note Matching the standard, `width` is consumed only by character-array and
  *       `std::basic_string` extraction; it survives arithmetic extraction, `get_money` and
  *       `get_time`.
- * @param n The target width; must lie in 0..255.
+ * @param n The target width.
  * @return A manipulator usable as `os << setw(n)` / `is >> setw(n)`.
- * @throw stream_error If `n > 255`.
  * @endif
  */
 inline _Setw setw(size_t n)
 {
-    if (n > std::numeric_limits<std::uint8_t>::max())
-        throw stream_error("setw fail: width out of range (0..255)");
-    return _Setw{static_cast<std::uint8_t>(n)};
+    return _Setw{n};
 }
 
 template<typename _MoneyT> struct _Put_money { const _MoneyT& m_mon; bool m_intl; };
