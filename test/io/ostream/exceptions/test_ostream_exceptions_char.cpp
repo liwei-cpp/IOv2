@@ -1,11 +1,14 @@
 #include <stdexcept>
 #include <string>
+#include <device/file_device.h>
 #include <device/mem_device.h>
 #include <io/fp_defs/char_and_str.h>
+#include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
 #include <support/failing_device.h>
+#include <support/file_guard.h>
 #include <support/verify.h>
 
 namespace
@@ -142,6 +145,117 @@ void test_ostream_exceptions_char_3()
         };
         helper.operator()<IOv2::ostream>();
         helper.operator()<IOv2::iostream>();
+    }
+
+    dump_info("Done\n");
+}
+
+// Copy assignment gives the strong exception guarantee. The copy is made into a temporary
+// first, so a throw leaves the destination exactly as it was; only a move assignment, which
+// is noexcept throughout, commits it. A file_device is move-only, so copying its converter
+// kernel always throws -- which is what makes this observable at all.
+void test_ostream_exceptions_char_4()
+{
+    dump_info("Test ostream<char> exceptions case 4...");
+
+    const std::string f1 = "test_ostream_exceptions_char_4_1.txt";
+    const std::string f2 = "test_ostream_exceptions_char_4_2.txt";
+
+    // Output direction: a failed assignment must not leak the source's format state or
+    // status bits into the destination, nor swap out its device.
+    {
+        file_guard g1(f1);
+        file_guard g2(f2);
+
+        auto helper = [&]<template<typename, typename> class T>()
+        {
+            T<IOv2::ofile_device<char>, char> src(IOv2::ofile_device<char>{f1});
+            T<IOv2::ofile_device<char>, char> dst(IOv2::ofile_device<char>{f2});
+
+            src.width(42);
+            src.precision(9);
+            src.fill('#');
+            src.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
+            src.setstate(IOv2::ios_defs::strfailbit);
+
+            const auto w = dst.width();
+            const auto p = dst.precision();
+            const auto fl = dst.fill();
+            const auto fg = dst.flags();
+            const auto st = dst.rdstate();
+
+            bool threw = false;
+            try { dst = src; }
+            catch (const IOv2::cvt_error&) { threw = true; }
+
+            VERIFY(threw);
+            VERIFY(dst.width() == w);
+            VERIFY(dst.precision() == p);
+            VERIFY(dst.fill() == fl);
+            VERIFY(dst.flags() == fg);
+            VERIFY(dst.rdstate() == st);
+            VERIFY(static_cast<bool>(dst));
+
+            // Still bound to its own device, and unpadded: a leaked width would show up here.
+            dst << "abc";
+            dst.flush();
+        };
+
+        helper.operator()<IOv2::ostream>();
+        VERIFY(g2.contents() == "abc");
+    }
+
+    // Input direction, and a self-assignment: without the self-check the temporary copy
+    // would throw on `s = s` even though nothing needs to happen.
+    {
+        file_guard g1(f1, std::string("hello world"));
+
+        IOv2::istream<IOv2::ifile_device<char>, char> s(IOv2::ifile_device<char>{f1});
+        s.width(11);
+
+        // Through a pointer, so that the self-assignment survives to run time instead of
+        // being rejected by -Wself-assign-overloaded.
+        auto* self = &s;
+
+        bool threw = false;
+        try { s = *self; }
+        catch (const IOv2::cvt_error&) { threw = true; }
+
+        VERIFY(!threw);
+        VERIFY(s.width() == 11u);
+        VERIFY(static_cast<bool>(s));
+
+        std::string got;
+        s >> got;
+        VERIFY(got == "hello");
+    }
+
+    // The happy path is unchanged: with a copyable device the assignment still copies.
+    {
+        auto helper = []<template<typename, typename> class T>()
+        {
+            T src(IOv2::mem_device{""});
+            T dst(IOv2::mem_device{""});
+
+            src.width(7);
+            src.precision(3);
+            src.fill('*');
+
+            dst = src;
+
+            VERIFY(dst.width() == 7u);
+            VERIFY(dst.precision() == 3);
+            VERIFY(dst.fill() == '*');
+
+            auto* self = &dst;
+            dst = *self;
+            VERIFY(dst.width() == 7u);
+            VERIFY(dst.precision() == 3);
+        };
+
+        helper.operator()<IOv2::ostream>();
+        helper.operator()<IOv2::iostream>();
+        helper.operator()<IOv2::istream>();
     }
 
     dump_info("Done\n");
