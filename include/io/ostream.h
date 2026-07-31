@@ -160,6 +160,35 @@ public:
         : m_streambuf(std::move(dev), creator)
         , m_locale(std::move(loc)) {}
 
+    ostream(const ostream&) = default;
+    ostream(ostream&&) = default;
+    ostream& operator=(ostream&&) = default;
+    ~ostream() = default;
+
+    /**
+     * @lang{ZH}
+     * @brief 拷贝赋值；提供强异常保证：先整体拷进临时对象（可能抛出，此时目标尚未被触碰），
+     *        再以全程 noexcept 的移动赋值提交。move-only 内核（如 `file_device`）上的拷贝必然
+     *        抛出，故自赋值也要先挡掉。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Copy assignment with the strong exception guarantee: the copy is made into a
+     *        temporary first (which may throw, with the destination still untouched), and the
+     *        commit is a move assignment, noexcept throughout. A copy always throws on a
+     *        move-only kernel (`file_device`), which is why self-assignment is short-circuited.
+     * @endif
+     */
+    ostream& operator=(const ostream& other)
+    {
+        if (this != &other)
+        {
+            ostream tmp(other);
+            *this = std::move(tmp);
+        }
+        return *this;
+    }
+
 private:
     ostreambuf<TDevice, TChar> m_streambuf;
     IOv2::locale<char_type> m_locale;
