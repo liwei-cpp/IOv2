@@ -111,6 +111,7 @@ var hierarchy =
     [ "IOv2::copyable_atomic< ios_defs::fmtflags >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< ios_defs::iostate >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< IOv2::abs_flusher * >", "classIOv2_1_1copyable__atomic.html", null ],
+    [ "IOv2::copyable_atomic< size_t >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< std::uint8_t >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< TChar >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< wchar_t >", "classIOv2_1_1copyable__atomic.html", null ],

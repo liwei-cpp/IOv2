@@ -13,6 +13,6 @@ var char__and__str_8h =
     [ "IOv2::reader< char, signed char >", "structIOv2_1_1reader_3_01char_00_01signed_01char_01_4.html", "structIOv2_1_1reader_3_01char_00_01signed_01char_01_4" ],
     [ "IOv2::writer< TChar, std::basic_string< TChar, TTraits, TAlloc > >", "structIOv2_1_1writer_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html", "structIOv2_1_1writer_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4" ],
     [ "IOv2::reader< TChar, std::basic_string< TChar, TTraits, TAlloc > >", "structIOv2_1_1reader_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html", "structIOv2_1_1reader_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4" ],
-    [ "istream_extract", "char__and__str_8h.html#af7fb973c57f917e753f9ff7a081e9aee", null ],
-    [ "ostream_insert", "char__and__str_8h.html#a851f4a4138b089bb79f788f4445323dc", null ]
+    [ "istream_extract", "char__and__str_8h.html#a6d5bc11646484d80f27df54a9f476dfe", null ],
+    [ "ostream_insert", "char__and__str_8h.html#a3a5f1ed9f2a1dbf8aa1ed719d2920fa8", null ]
 ];
