@@ -134,6 +134,9 @@ struct stream_common_operators
      *       （而格式标志、状态位等是按值搬运、源仍保留）。tie 边属于前一类——它驱动 flush，
      *       是功能性状态。若不清空，一个被移走、随后又经 `attach()` 复活的流会继续静默地
      *       刷新一个调用方以为早已解除的目标。
+     * @note **移后窗口内不得调用 `device()` 与 `detach()`。** 被移走的流可经 `attach()`（或被
+     *       赋值）复活，但在复活之前它不持有设备，而这两个函数正以"持有设备"为前置条件，其间
+     *       调用即为未定义行为；详见各自的文档。其余操作不受影响，照常把错误转为状态位。
      * @warning 这意味着拷贝或移动一个流之后，其 tie 关系**不会**保留，需要重新调用 `tie()`。
      *          另需注意：若某个流是**别人的** tie 目标，移动它并不会更新那些指向它的流——
      *          它们仍指向这个已被移空的对象，其后的 `tie()->flush()` 会静默失败（置上该目标
@@ -165,6 +168,11 @@ struct stream_common_operators
      *       former: it drives flushing and is functional state. Without clearing, a stream that
      *       was moved from and then revived via `attach()` would keep silently flushing a target
      *       the caller believed it had long since given up.
+     * @note **`device()` and `detach()` must not be called inside the moved-from window.** A
+     *       moved-from stream can be revived by `attach()` (or by assignment), but until then it
+     *       holds no device -- which is precisely what those two functions require -- so calling
+     *       them meanwhile is undefined behavior; see their own documentation. The other
+     *       operations are unaffected and keep turning errors into state bits as usual.
      * @warning This means a stream's tie relationship is **not** preserved across a copy or a
      *          move; call `tie()` again. Note also that moving a stream which is **someone
      *          else's** tie target does not update the streams pointing at it -- they still
@@ -304,6 +312,12 @@ struct stream_common_operators
      * @warning 本操作**不做线程同步**，不获取 `io_mutex()`。返回的是绑定到底层设备的引用，
      *          **不要把它保存到临界区之外**再使用：在并发变更（如 `attach`/`detach`）下，
      *          离开锁的保护后读取该引用即为数据竞争与未定义行为。
+     * @warning **本函数要求流当前持有设备。** 移动之后（转换器已被掏空）与 `detach()` 之后
+     *          （设备已交还调用方）都不满足这个前置条件，其间调用即为未定义行为。当前实现在
+     *          这两种情形下的表现并不相同——移后会抛出 `cvt_error`（来自 `runtime_cvt::device()`），
+     *          `detach()` 之后则返回一个指向已被移走的设备对象的引用——但两者都只是实现细节、
+     *          不构成契约，尤其**不得**以抛不抛异常来判断流是否持有设备。经 `attach()`（或被
+     *          赋值）重新装上设备之后，本函数即恢复正常。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 底层设备的引用。
      * @endif
@@ -315,6 +329,16 @@ struct stream_common_operators
      *          reference bound to the underlying device; **do not keep it past the critical
      *          section**: under concurrent mutation (e.g. `attach`/`detach`), reading the
      *          reference outside the lock is a data race and undefined behavior.
+     * @warning **This function requires the stream to currently hold a device.** Neither a
+     *          moved-from stream (its converter has been emptied) nor one after `detach()` (its
+     *          device has been handed back to the caller) meets that precondition, and calling
+     *          it meanwhile is undefined behavior. What the current implementation does differs
+     *          between the two -- a moved-from stream throws a `cvt_error` (from
+     *          `runtime_cvt::device()`), while after `detach()` it returns a reference to a
+     *          moved-from device object -- but both are implementation details rather than a
+     *          contract, and in particular whether it throws must **not** be used to test
+     *          whether the stream holds a device. Installing a device again with `attach()` (or
+     *          by assignment) restores normal use.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return A reference to the underlying device.
      * @endif
@@ -334,6 +358,10 @@ struct stream_common_operators
      *          操作——分离底层设备本就意味着流不再处于可用于读写的稳定状态。调用方必须保证在
      *          `detach()` 执行期间没有任何其它线程对本流进行操作（读、写，或再次 attach/detach），
      *          否则行为未定义；正如不应在对象构造/析构过程中使用该对象一样。
+     * @warning 与 `device()` 相同，**流处于移后（moved-from）状态时不得调用本函数**：此时转换器
+     *          已被掏空，没有可分离的设备，调用即为未定义行为。本函数是 `noexcept`，底层
+     *          （`runtime_cvt::detach()`）当前在这种情形下直接 `std::terminate()`；这同样只是
+     *          实现细节，不构成契约。经 `attach()`（或被赋值）重新装上设备之后即恢复正常。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 取回的设备，以及一个 `exception_ptr`（分离时若发生 flush 等错误则非空）。
      * @endif
@@ -350,6 +378,12 @@ struct stream_common_operators
      *          stream (reading, writing, or another attach/detach) while `detach()` runs;
      *          otherwise the behavior is undefined, just as one must not use an object while it
      *          is being constructed or destroyed.
+     * @warning As with `device()`, **this function must not be called on a moved-from stream**:
+     *          its converter has been emptied, so there is no device to detach, and calling it
+     *          then is undefined behavior. This function is `noexcept`, and the underlying
+     *          `runtime_cvt::detach()` currently calls `std::terminate()` in that case; that too
+     *          is an implementation detail rather than a contract. Installing a device again
+     *          with `attach()` (or by assignment) restores normal use.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return The retrieved device and an `exception_ptr` (non-null if e.g. a flush error
      *         occurred during detach).

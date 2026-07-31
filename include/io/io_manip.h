@@ -521,8 +521,8 @@ template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* f
 /**
  * @lang{ZH}
  * @brief 构造按 @p fmt 写出 `*tmb` 的操纵符。
- * @param tmb 要写出的时间；不得为空。
- * @param fmt `strftime` 风格的格式串；不得为空。
+ * @param tmb 要写出的时间；允许为空，见下。
+ * @param fmt `strftime` 风格的格式串；允许为空，见下。
  * @note 两个指针都会在写出前校验，为空时置流的失败位而非解引用；详见
  *       `writer<TChar, _Put_time<TChar>>::swrite`。
  * @note `put_time` 既不应用也不消耗 `io.width()`：填充与随后的 `width(0)` 由各自的 facet
@@ -530,14 +530,32 @@ template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* f
  *       不会补齐到 20 列，且这个 width 会原样留给下一次插入。这与 `std::put_time` 的行为
  *       一致（`time_put` 同样不处理 width），但与 `put_money`、算术类型的插入不同——后两者
  *       经由 `monetary` / `numeric` facet，会消费掉 width。
+ * @warning **`*tmb` 必须描述一个完整且真实存在的时刻，而不只是 @p fmt 用到的那几个字段。**
+ *          写出前 `timeio::put` 会校验全部字段：`tm_mon` 属于 [0,11]、`tm_mday` 属于 [1,31]、
+ *          `tm_hour` 属于 [0,23]、`tm_min` 与 `tm_sec` 属于 [0,59]（**不接受闰秒 `tm_sec == 60`**）、
+ *          年份在 `std::chrono::year` 的范围内，且三者组合必须是真实存在的日历日（2 月 30 日
+ *          会被拒）。任一项不满足都会抛出，经 `handle_exception` 置 `strfailbit`：本次插入什么
+ *          都不输出，且在 `clear()` 之前该流上后续的插入都会被 sentry 拒掉。
+ * @note **与 `std::put_time` 的分歧。** 标准是 `strftime` 语义，逐说明符取字段（C11 7.27.3.5：
+ *       每个说明符只读其描述中方括号列出的成员，且"若任一被用到的值超出正常范围，存入的字符
+ *       未指定"——是 unspecified，不是错误）。因此 `std::put_time(&t, "%Y")` 配 `std::tm t{}`
+ *       会正常输出 `1900`（`%Y` 不读 `tm_mday`），`%S` 也接受闰秒。本库则把 `*tmb` 整体转成
+ *       `std::chrono` 类型再格式化，要求它整体自洽，上述用法在这里都会失败。从 `std::ostream`
+ *       迁移"只格式化部分字段"的代码（如 `os << put_time(&t, "%H:%M")` 而 `t` 的日期未填）时
+ *       需要注意这一点。
+ * @note **`tm_wday` 与 `tm_yday` 不被读取。** 星期由 y/m/d 重新推算，与调用方填的值无关。
+ *       这与 `strftime` 的 `%a`/`%A`（读 `tm_wday`）、`%j`（读 `tm_yday`）不同：若调用方填入
+ *       与日期不符的值，标准库按该值输出，本库按真实日期输出，双方都不报错。
+ * @note 提取侧的契约**更宽松**：`get_time` 接受 `std::tm t{}`（`tm_mday == 0` 会被归一化成上月
+ *       最后一天），`put_time` 不接受。两者刻意不对称，详见 `get_time`。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
  *
  * @lang{EN}
  * @brief Builds the manipulator that writes `*tmb` according to @p fmt.
- * @param tmb The time to write; must not be null.
- * @param fmt A `strftime`-style format string; must not be null.
+ * @param tmb The time to write; may be null, see below.
+ * @param fmt A `strftime`-style format string; may be null, see below.
  * @note Both pointers are validated before the write, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see
  *       `writer<TChar, _Put_time<TChar>>::swrite`.
@@ -548,6 +566,32 @@ template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* f
  *       `std::put_time` (`time_put` likewise ignores the width), but differs from `put_money`
  *       and from arithmetic insertion, both of which go through the `monetary` / `numeric`
  *       facets and do consume it.
+ * @warning **`*tmb` must describe a complete instant that really exists, not merely the fields
+ *          @p fmt happens to use.** Before writing, `timeio::put` validates every field:
+ *          `tm_mon` in [0,11], `tm_mday` in [1,31], `tm_hour` in [0,23], `tm_min` and `tm_sec`
+ *          in [0,59] (**a leap second, `tm_sec == 60`, is rejected**), the year within the range
+ *          of `std::chrono::year`, and the three date fields together must form a calendar day
+ *          that exists (February 30 is rejected). Anything else throws, and `handle_exception`
+ *          turns that into `strfailbit`: the insertion writes nothing, and every later insertion
+ *          on that stream is refused by the sentry until an explicit `clear()`.
+ * @note **Divergence from `std::put_time`.** The standard has `strftime` semantics, taking
+ *       fields per specifier (C11 7.27.3.5: a specifier reads only the members listed in
+ *       brackets in its description, and "if any of the specified values is outside the normal
+ *       range, the characters stored are unspecified" -- unspecified, not an error). So
+ *       `std::put_time(&t, "%Y")` with a `std::tm t{}` prints `1900` (`%Y` never looks at
+ *       `tm_mday`), and `%S` accepts a leap second. This library instead converts `*tmb` as a
+ *       whole into `std::chrono` types before formatting, and so requires it to be internally
+ *       consistent; every one of those uses fails here. Keep this in mind when migrating code
+ *       from `std::ostream` that formats only some fields, such as
+ *       `os << put_time(&t, "%H:%M")` with the date left unset.
+ * @note **`tm_wday` and `tm_yday` are not read.** The weekday is recomputed from y/m/d,
+ *       independently of whatever the caller stored. This differs from `strftime`, whose
+ *       `%a`/`%A` read `tm_wday` and whose `%j` reads `tm_yday`: given a value inconsistent with
+ *       the date, the standard library prints that value while this library prints the one
+ *       implied by the date, neither reporting an error.
+ * @note The extraction side is **more permissive**: `get_time` accepts a `std::tm t{}` (a
+ *       `tm_mday` of 0 is normalized to the last day of the previous month) whereas `put_time`
+ *       does not. The asymmetry is deliberate; see `get_time`.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif
@@ -571,9 +615,12 @@ struct writer<TChar, _Put_time<TChar>>
      * @note 校验放在 `swrite` 而非 `put_time` 工厂里，是为了让异常落进 `operator<<` 的
      *       catch，经 `handle_exception` 归类为 `strfailbit`，与 `ostream::write` 等处的
      *       空指针处理保持一致的错误模型。
-     * @param f 待写出的时间与格式串；`f.tmb` 与 `f.fmt` 均不得为空。
+     * @param f 待写出的时间与格式串；`*(f.tmb)` 必须是完整有效的时刻（见 `put_time`）。
+     *          `f.tmb` 或 `f.fmt` 为空指针时什么都不写出，抛出的 `stream_error` 由流转为
+     *          `strfailbit`。
      * @return 指向最后一个写入位置之后的输出迭代器。
-     * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或缺少 timeio facet。
+     * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或 `*(f.tmb)` 的字段越界（含闰秒
+     *        `tm_sec == 60`）、或其日期组合不是真实存在的日历日，或缺少 timeio facet。
      * @endif
      *
      * @lang{EN}
@@ -592,10 +639,13 @@ struct writer<TChar, _Put_time<TChar>>
      *       exception lands in `operator<<`'s catch and is categorized as `strfailbit` by
      *       `handle_exception`, matching the error model of the null-pointer checks in
      *       `ostream::write` and friends.
-     * @param f The time and format string to write; neither `f.tmb` nor `f.fmt` may be null.
+     * @param f The time and format string to write; `*(f.tmb)` must be a complete, valid instant
+     *          (see `put_time`). If `f.tmb` or `f.fmt` is null nothing is written, and the
+     *          `stream_error` thrown is turned into `strfailbit` by the stream.
      * @return An output iterator past the last written position.
-     * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, or the timeio facet is
-     *        missing.
+     * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, if a field of `*(f.tmb)` is
+     *        out of range (including a leap second, `tm_sec == 60`) or its date fields do not
+     *        form a calendar day that exists, or the timeio facet is missing.
      * @endif
      */
     template <typename TIter>
@@ -617,27 +667,43 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
 /**
  * @lang{ZH}
  * @brief 构造按 @p fmt 解析时间并写入 `*tmb` 的操纵符。
- * @param tmb 接收解析结果的 `tm`；不得为空。
- * @param fmt `strptime` 风格的格式串；不得为空。
+ * @param tmb 接收解析结果的 `tm`；允许为空，见下。
+ * @param fmt `strptime` 风格的格式串；允许为空，见下。
  * @note 两个指针都会在解析前校验，为空时置流的失败位而非解引用；详见
  *       `reader<TChar, _Get_time<TChar>>::sread`。
  * @note 格式串中未出现的字段保留 `*tmb` 原有的取值：解析上下文由 `*tmb` 铺好回退值，故
  *       `%H:%M` 这样只解析时间的格式串不会动到日期。`tm_wday` / `tm_yday` 总是由最终日期
  *       重新推算，`tm_isdst` 总是置为 -1——没有格式符携带夏令时信息，而沿用调用方的旧值会
  *       在日期被改写后变成错的；-1 表示"未知，交由 C 库判定"。
+ * @note 被读作回退值的只有 `tm_year`、`tm_mon`、`tm_mday`、`tm_hour`、`tm_min`、`tm_sec` 六项。
+ *       因此格式串若已解析出全部六项，结果与 `*tmb` 传入时的内容**无关**；只有格式串留下空缺
+ *       时，传入的内容才会影响结果。
+ * @warning **`*tmb` 必须是已初始化的对象**（例如 `std::tm t{}`）。上一条说的"无关"指的是
+ *          结果，不是读取：那六项在解析开始前会被**无条件读取**一次以铺好回退值，与格式串
+ *          之后是否覆盖它们无关。因此传入未初始化的 `std::tm` 即为未定义行为
+ *          （[basic.indet]/2 —— 读取 indeterminate value），即使格式串填满了全部六项亦然。
+ *          这一点与 `std::get_time` 不同：`std::time_get::get` 只写不读，配未初始化的
+ *          `std::tm` 是良好定义的，迁移时需要注意。
+ * @note 标准把"沿用还是整体覆盖 `*tmb` 的原有内容"列为 unspecified
+ *       （[locale.time.get.virtuals]/15），本库明确选择沿用，并且更进一步：沿用下来的值会参与
+ *       日期推导。例如 `*tmb` 为 1 月 31 日、格式串只有 `%m`、输入 `02` 时，本库得到 2 月
+ *       28/29 日，而 `std::get_time` 只改写 `tm_mon`，留下并不存在的"2 月 31 日"。
  * @note `*tmb` 中越界的字段在用作回退值前会先归一化（`tm_mday == 0` 取上月最后一天、
  *       `tm_mon == 12` 进位到次年 1 月等，规则见 `io/fp_defs/tm.h`）；沿用下来的日若在
  *       解析出的月份里不存在，则取该月最后一天，而不是让整次提取失败。因此
  *       `std::tm t{}`（`tm_mday` 为 0）配上只解析时间的格式串，得到的日期与
  *       `std::get_time` 之后再调用 `mktime()` 一致。
+ * @note 插入侧不对称：`put_time` 要求 `*tmb` 的所有字段都在范围内、且日期组合真实存在，
+ *       `std::tm t{}` 在那边会被拒绝并置 `strfailbit`。本函数接受它（见上一条）。详见
+ *       `put_time`。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
  *
  * @lang{EN}
  * @brief Builds the manipulator that parses a time according to @p fmt into `*tmb`.
- * @param tmb The `tm` receiving the parsed result; must not be null.
- * @param fmt A `strptime`-style format string; must not be null.
+ * @param tmb The `tm` receiving the parsed result; may be null, see below.
+ * @param fmt A `strptime`-style format string; may be null, see below.
  * @note Both pointers are validated before parsing, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see `reader<TChar, _Get_time<TChar>>::sread`.
  * @note Fields absent from the format string keep the value they had in `*tmb`: the parse
@@ -646,6 +712,24 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  *       resulting date, and `tm_isdst` is always set to -1 -- no format specifier carries DST
  *       information, and carrying the caller's old value over would be wrong once the date has
  *       been rewritten; -1 means "unknown, let the C library work it out".
+ * @note Only `tm_year`, `tm_mon`, `tm_mday`, `tm_hour`, `tm_min` and `tm_sec` are read as
+ *       fallbacks. A format string that parses all six therefore makes the result **independent**
+ *       of what `*tmb` held on entry; the incoming contents matter only where the format string
+ *       leaves a gap.
+ * @warning **`*tmb` must be an initialized object** (a `std::tm t{}`, say). What the previous
+ *          note calls independent is the result, not the read: those six fields are read
+ *          **unconditionally**, before parsing starts, to seed the fallbacks -- whether the
+ *          format string later overwrites them makes no difference. Passing an uninitialized
+ *          `std::tm` is therefore undefined behavior ([basic.indet]/2, reading an indeterminate
+ *          value) even when the format string fills in all six. This differs from
+ *          `std::get_time`, where `std::time_get::get` only writes and never reads, so an
+ *          uninitialized `std::tm` is well-defined; keep it in mind when migrating.
+ * @note The standard leaves it unspecified whether the previous contents of `*tmb` are kept or
+ *       simply overwritten ([locale.time.get.virtuals]/15). This library deliberately keeps them,
+ *       and goes one step further: the values kept take part in deducing the date. With `*tmb`
+ *       holding January 31, a format string of just `%m` and an input of `02`, this library
+ *       yields February 28/29, whereas `std::get_time` rewrites only `tm_mon` and leaves behind a
+ *       "February 31" that does not exist.
  * @note Out-of-range fields of `*tmb` are normalized before they are used as fallbacks
  *       (`tm_mday == 0` is the last day of the previous month, `tm_mon == 12` carries into
  *       January of the next year, and so on; see `io/fp_defs/tm.h` for the rules), and a day
@@ -653,6 +737,9 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  *       that month rather than failing the extraction. A `std::tm t{}` (whose `tm_mday` is 0)
  *       with a time-only format string therefore yields the same date as `std::get_time`
  *       followed by `mktime()`.
+ * @note The insertion side is not symmetric: `put_time` requires every field of `*tmb` to be in
+ *       range and the date fields to form a day that exists, and rejects a `std::tm t{}` with
+ *       `strfailbit`. This function accepts it (see the previous note). See `put_time`.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif
@@ -670,7 +757,9 @@ struct reader<TChar, _Get_time<TChar>>
      * @note 与 `put_time` 同理，`get_time` 保存的两个裸指针在解引用前必须校验：`f.fmt`
      *       为空时向 `std::basic_string_view` 的隐式转换即为未定义行为，`f.tmb` 为空时
      *       回写 `*(f.tmb)` 是空指针写入。二者都绕过异常机制直接崩溃。
-     * @param f 用于接收解析结果的 `tm` 与格式串；`f.tmb` 与 `f.fmt` 均不得为空。
+     * @param f 用于接收解析结果的 `tm` 与格式串。`*(f.tmb)` 的现有内容会作为格式串未解析字段
+     *          的回退值，详见 `get_time`。`f.tmb` 或 `f.fmt` 为空指针时不解析：不消耗输入、
+     *          不回写 `*(f.tmb)`，抛出的 `stream_error` 由流转为 `strfailbit`。
      * @return 指向最后一个被消费字符之后的输入迭代器。
      * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或缺少 timeio facet。
      * @endif
@@ -683,8 +772,11 @@ struct reader<TChar, _Get_time<TChar>>
      *       `std::basic_string_view` undefined behavior, and a null `f.tmb` makes the
      *       write-back through `*(f.tmb)` a null-pointer store. Both bypass the exception
      *       machinery and crash outright.
-     * @param f The `tm` receiving the parsed result and the format string; neither `f.tmb`
-     *          nor `f.fmt` may be null.
+     * @param f The `tm` receiving the parsed result and the format string. The current contents
+     *          of `*(f.tmb)` serve as the fallbacks for the fields the format string does not
+     *          parse; see `get_time`. If `f.tmb` or `f.fmt` is null nothing is parsed: no input
+     *          is consumed, `*(f.tmb)` is not written, and the `stream_error` thrown is turned
+     *          into `strfailbit` by the stream.
      * @return An input iterator past the last consumed character.
      * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, or the timeio facet is
      *        missing.
