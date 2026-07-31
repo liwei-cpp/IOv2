@@ -1580,14 +1580,16 @@ public:
         // represent a leap second (23:59:60 would normalise to 24:00:00 and be
         // mis-formatted), so a leap-second tm is rejected up front here rather
         // than silently corrupted on output.
-        const int y = t.tm_year + 1900;
         if (t.tm_mon  < 0 || t.tm_mon  > 11 ||
             t.tm_mday < 1 || t.tm_mday > 31 ||
             t.tm_hour < 0 || t.tm_hour > 23 ||
             t.tm_min  < 0 || t.tm_min  > 59 ||
             t.tm_sec  < 0 || t.tm_sec  > 59 ||
-            y < static_cast<int>(year::min()) || y > static_cast<int>(year::max()))
+            t.tm_year > static_cast<int>(year::max()) - 1900 ||
+            t.tm_year + 1900 < static_cast<int>(year::min()))
             throw stream_error("timeio put error: std::tm field out of range");
+
+        const int y = t.tm_year + 1900;
 
         year_month_day ymd{ year{y}, month{static_cast<unsigned>(t.tm_mon) + 1}, day{static_cast<unsigned>(t.tm_mday)} };
         if (!ymd.ok())
