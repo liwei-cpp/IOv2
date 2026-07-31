@@ -328,7 +328,7 @@ var namespaceIOv2 =
     [ "setfill", "namespaceIOv2.html#a99ad8123323453cf572de3f0f942efee", null ],
     [ "setiosflags", "namespaceIOv2.html#a907d98611f6b75d3b9e2b2b1cb534d8b", null ],
     [ "setprecision", "namespaceIOv2.html#a83ea5c0a2aaa3eed9f28feaa538facf4", null ],
-    [ "setw", "namespaceIOv2.html#a37f9134c82e10179692acddd4624edfb", null ],
+    [ "setw", "namespaceIOv2.html#a5b330eea9452bcbfb04934cd6b82231e", null ],
     [ "showbase", "group__ios__manipulators.html#ga0ee1d27c5ab91571b93c14c24a052bf4", null ],
     [ "showpoint", "group__ios__manipulators.html#gafe84b074431314e2d5c3d8cd14af4c75", null ],
     [ "showpos", "group__ios__manipulators.html#ga90614a49569201036e5a4ef39f360044", null ],

@@ -27,7 +27,7 @@ var searchData=
   ['setiosflags_24',['setiosflags',['../namespaceIOv2.html#a907d98611f6b75d3b9e2b2b1cb534d8b',1,'IOv2']]],
   ['setprecision_25',['setprecision',['../namespaceIOv2.html#a83ea5c0a2aaa3eed9f28feaa538facf4',1,'IOv2']]],
   ['setstate_26',['setstate',['../structIOv2_1_1io__state__and__exp.html#a081a4380ce7e109493c8babc87e8de00',1,'IOv2::io_state_and_exp']]],
-  ['setw_27',['setw',['../namespaceIOv2.html#a37f9134c82e10179692acddd4624edfb',1,'IOv2']]],
+  ['setw_27',['setw',['../namespaceIOv2.html#a5b330eea9452bcbfb04934cd6b82231e',1,'IOv2']]],
   ['sgetc_28',['sgetc',['../classIOv2_1_1base__streambuf.html#a307be716acf11f34197ab740f8c55a82',1,'IOv2::base_streambuf']]],
   ['sgetn_29',['sgetn',['../classIOv2_1_1base__streambuf.html#a9c068814d77ae3d8fa187785a664c17a',1,'IOv2::base_streambuf']]],
   ['sha256_30',['SHA256',['../namespaceIOv2_1_1Crypt.html#ac448d23bf350eb1b1ca37a4b6e162d83ab505df5aa812b4f320420b8a952f20e5',1,'IOv2::Crypt']]],

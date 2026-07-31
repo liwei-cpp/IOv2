@@ -21,7 +21,7 @@ var classIOv2_1_1ios__base =
     [ "setf", "classIOv2_1_1ios__base.html#a90c62abfea87b9e6991fe36c02a0a47d", null ],
     [ "unsetf", "classIOv2_1_1ios__base.html#ac5f7d547d8377526af80a156e9b65a2b", null ],
     [ "width", "classIOv2_1_1ios__base.html#afadad0d596cacdba60513cf27281f4af", null ],
-    [ "width", "classIOv2_1_1ios__base.html#aaebc9cc5b1d8a1dc399581055655ec05", null ],
+    [ "width", "classIOv2_1_1ios__base.html#a599b72fe4cfa5fd32b4b900352b5e7a4", null ],
     [ "xalloc", "classIOv2_1_1ios__base.html#a587b07bd36583ba90a2bf063f5b59028", null ],
     [ "m_callbacks", "classIOv2_1_1ios__base.html#a2a7f2df7df55299255aee6af1fde9746", null ],
     [ "m_fill", "classIOv2_1_1ios__base.html#addcbee9bd77937bc86be006dc3ba6207", null ],
