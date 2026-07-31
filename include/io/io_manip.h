@@ -348,14 +348,18 @@ struct _Setw : in_manip, out_manip
  *
  * 宽度以 `size_t` 存储（见 `ios_base::width`），不设上限。
  *
+ * @note 形参有符号而存储用 `size_t`，是为了挡住负宽度：`setw(total - str.size())` 这类算式在
+ *       `total < str.size()` 时按无符号回绕成接近 `2^64` 的巨值，取 `ptrdiff_t` 形参可让传参
+ *       时的窄化把回绕抵消回来、还原成负数并在此被拒。判负后转 `size_t` 不会溢出。
  * @note **提取端的长度安全不依赖本函数。** 目标缓冲区的上界始终来自类型本身：
  *       `reader<TChar, TChar[N]>` 以 `min(width, N)` 为界，`std::basic_string` 自动增长，
  *       而裸指针根本没有对应的 reader（`is >> ptr` 无法编译，与 C++20 起的 `std::istream`
  *       一致）。因此 `width` 只能把边界**收紧**，不会造成越界写。
  * @note 与标准一致，`width` 只被字符数组与 `std::basic_string` 的提取消费；算术提取、
  *       `get_money`、`get_time` 之后 `width` 仍然保留。
- * @param n 目标宽度。
+ * @param n 目标宽度，不得为负。
  * @return 可用于 `os << setw(n)` / `is >> setw(n)` 的操纵符。
+ * @throw stream_error 若 @p n 为负。
  * @endif
  *
  * @lang{EN}
@@ -363,6 +367,11 @@ struct _Setw : in_manip, out_manip
  *
  * The width is stored as a `size_t` (see `ios_base::width`), with no upper bound.
  *
+ * @note The parameter is signed while the storage is a `size_t`, so that a negative width can
+ *       be rejected: an expression such as `setw(total - str.size())` wraps as unsigned into a
+ *       value near `2^64` when `total < str.size()`, and a `ptrdiff_t` parameter lets the
+ *       narrowing at the call undo that wrap, restoring the negative value to be rejected here.
+ *       The conversion to `size_t` after the check cannot overflow.
  * @note **Length safety on the extraction side does not depend on this function.** The bound
  *       on a destination buffer always comes from its type: `reader<TChar, TChar[N]>` bounds
  *       at `min(width, N)`, `std::basic_string` grows on demand, and a raw pointer has no
@@ -371,13 +380,16 @@ struct _Setw : in_manip, out_manip
  * @note Matching the standard, `width` is consumed only by character-array and
  *       `std::basic_string` extraction; it survives arithmetic extraction, `get_money` and
  *       `get_time`.
- * @param n The target width.
+ * @param n The target width; must not be negative.
  * @return A manipulator usable as `os << setw(n)` / `is >> setw(n)`.
+ * @throw stream_error If @p n is negative.
  * @endif
  */
-inline _Setw setw(size_t n)
+inline _Setw setw(std::ptrdiff_t n)
 {
-    return _Setw{n};
+    if (n < 0)
+        throw stream_error("setw fail: negative width");
+    return _Setw{static_cast<size_t>(n)};
 }
 
 template<typename _MoneyT> struct _Put_money { const _MoneyT& m_mon; bool m_intl; };

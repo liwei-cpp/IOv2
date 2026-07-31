@@ -730,7 +730,11 @@ public:
      *
      * 无参重载返回当前宽度；带参重载将宽度设置为 @p wide 并返回旧值。
      * @note 宽度以 size_t 存储，不设上限：它既是输出端的填充目标列数，也是提取端的
-     * 读取长度上界。这与标准 std::ios_base 的 std::streamsize 只差在无符号。
+     * 读取长度上界。
+     * @note setter 取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），getter 与存储仍用
+     * size_t。宽度常由含 size_t 的算式得出，越界时会回绕成接近 2^64 的巨值；有符号形参可让
+     * 传参时的窄化把回绕抵消回来、还原成负数并在此拒掉。判负后转 size_t 不会溢出。
+     * @throw stream_error 若 @p wide 为负。
      * @endif
      *
      * @lang{EN}
@@ -740,14 +744,22 @@ public:
      * argument sets the width to @p wide and returns the old value.
      * @note The width is stored as a size_t, with no upper bound: it serves both as the
      * target column count for padding on output and as the bound on how much extraction
-     * reads. It differs from the standard std::ios_base's std::streamsize only in being
-     * unsigned.
+     * reads.
+     * @note The setter takes a signed ptrdiff_t (as the standard's std::streamsize is),
+     * while the getter and the storage stay size_t. A width is often computed by an
+     * expression involving a size_t, which wraps to a value near 2^64 when it goes below
+     * zero; a signed parameter lets the narrowing at the call undo that wrap, restoring the
+     * negative value to be rejected here. The conversion to size_t after the check cannot
+     * overflow.
+     * @throw stream_error If @p wide is negative.
      * @endif
      */
     size_t width() const { return m_width.load(); }
-    size_t width(size_t wide)
+    size_t width(std::ptrdiff_t wide)
     {
-        return m_width.exchange(wide);
+        if (wide < 0)
+            throw stream_error("width fail: negative width");
+        return m_width.exchange(static_cast<size_t>(wide));
     }
 
     /**
