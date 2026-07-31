@@ -1,5 +1,6 @@
 #include <chrono>
 #include <functional>
+#include <limits>
 #include <list>
 #include <facet/timeio.h>
 #include <io/streambuf_iterator.h>
@@ -5963,6 +5964,41 @@ void test_timeio_char_put_18()
         try { obj.put(std::back_inserter(res), bad_tm, std::string_view("%F")); }
         catch (IOv2::stream_error&) { threw = true; }
         VERIFY(threw);
+    }
+
+    // put(std::tm) with a tm_year whose +1900 would overflow int: rejected, not UB.
+    // The "not UB" half is what the fix is about, and only the sanitizer build can see it:
+    // the wrapped sum lands in [-2^31, -2^31+1899], entirely below year::min(), so the
+    // pre-fix code rejects exactly the same tm values and every VERIFY below still passes.
+    // What catches a regression is the signed-overflow report, i.e. MODE=sanitizer with
+    // UBSAN_OPTIONS=halt_on_error=1 (which the CI sets).
+    {
+        for (int bad_year : {std::numeric_limits<int>::max(), std::numeric_limits<int>::min(),
+                             30868, -34668})
+        {
+            std::tm bad_tm{};
+            bad_tm.tm_year = bad_year; bad_tm.tm_mon = 0; bad_tm.tm_mday = 1;
+            bad_tm.tm_hour = 0; bad_tm.tm_min = 0; bad_tm.tm_sec = 0;
+            bool threw = false;
+            try { obj.put(std::back_inserter(res), bad_tm, std::string_view("%Y")); }
+            catch (IOv2::stream_error&) { threw = true; }
+            VERIFY(threw);
+        }
+    }
+
+    // put(std::tm) at the year bounds themselves: still accepted
+    {
+        std::tm edge_tm{};
+        edge_tm.tm_mon = 0; edge_tm.tm_mday = 1;
+        edge_tm.tm_hour = 0; edge_tm.tm_min = 0; edge_tm.tm_sec = 0;
+
+        edge_tm.tm_year = static_cast<int>(year::max()) - 1900;
+        res.clear(); obj.put(std::back_inserter(res), edge_tm, std::string_view("%Y"));
+        VERIFY(res == "32767");
+
+        edge_tm.tm_year = static_cast<int>(year::min()) - 1900;
+        res.clear(); obj.put(std::back_inserter(res), edge_tm, std::string_view("%Y"));
+        VERIFY(res == "-32767");
     }
 
     // put(year_month_day) with negative year: %Y and %C output sign (lines 2860-2861, 2543-2544)
