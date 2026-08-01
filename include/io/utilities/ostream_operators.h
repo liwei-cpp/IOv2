@@ -91,7 +91,10 @@ public:
      * 路径对同一把 `io_mutex()` 的可见性保持一致。析构中的 unitbuf/stdio 刷新同样在这把仍被持有
      * 的锁下进行（同一递归锁、同一线程），故哨兵析构先于调用方的锁析构时刷新依旧安全。
      *
-     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。
+     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。这也把
+     * 有效性检查（须先于刷新）一并留在了锁外：流本身已失败时，构造在加锁之前就抛出，上一段所
+     * 述的持锁前提不成立，调用方 `catch` 中的 `handle_exception` 在锁外运行。那条路径依然安全
+     * ——状态位的更新由 `m_state_mutex` 自行串行化。
      * @param os 要操作的输出流。
      * @param is_unit_buf 是否为 unitbuf 流（决定析构时是否自动刷新并对设备 `dflush`）。
      * @param is_app_mode 是否为追加模式；非标准流在追加模式下会在构造时定位到末尾。
@@ -115,7 +118,11 @@ public:
      * lock.
      *
      * The tied stream is flushed before locking, so at most one stream lock is held by this
-     * thread at any time, preserving the no-deadlock guarantee.
+     * thread at any time, preserving the no-deadlock guarantee. That also leaves the validity
+     * check -- which has to precede the flush -- outside the lock: when the stream is already
+     * failed, construction throws before locking, the premise of the paragraph above does not
+     * hold, and `handle_exception` in the caller's `catch` runs unlocked. That path is still
+     * safe -- `m_state_mutex` serializes the state update on its own.
      * @param os The output stream to operate on.
      * @param is_unit_buf Whether this is a unitbuf stream (governs the auto-flush and device
      *                    `dflush` on destruction).

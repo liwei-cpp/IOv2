@@ -270,9 +270,12 @@ struct _Ws : in_manip
      * @brief 跳过流中接下来的空白字符。
      *
      * 空白的跳过由输入哨兵完成：以 `noskipws == false` 构造 `in_sentry` 即为跳过空白。
-     * @note 那把锁以 `defer_lock` 构造后交给哨兵，因此 `catch` 中的 `handle_exception` 仍在
-     *       持锁状态下运行——失败位的更新与本次操作处于同一个临界区内。消费本操纵符的
-     *       `operator>>` 外面还有一层 `catch`，但它在锁之外，只是兜底。
+     * @note 那把锁以 `defer_lock` 构造后交给哨兵，而哨兵先做有效性检查、再刷新关联流，最后
+     *       才加锁：刷新必须留在锁外，否则 `out_flusher::flush()` 取走对方流的 `io_mutex`
+     *       之后，本线程将同时持有两把流锁，破坏"任一时刻至多一把"的不死锁保证。于是流本身
+     *       已处于失败态时，哨兵在加锁之前就抛出，此处的 `handle_exception` 在锁外运行；其余
+     *       失败路径都在锁内。锁外那条路径同样安全——状态位的更新由 `m_state_mutex` 自行
+     *       串行化。消费本操纵符的 `operator>>` 外面还有一层 `catch`，但它在锁之外，只是兜底。
      * @param is 目标输入流。
      * @endif
      *
@@ -281,11 +284,15 @@ struct _Ws : in_manip
      *
      * The skipping is done by the input sentry: constructing `in_sentry` with `noskipws == false`
      * is what skips whitespace.
-     * @note The lock is constructed `defer_lock` and handed to the sentry, so `handle_exception`
-     *       in the `catch` still runs while holding it -- the failbit update lands in the same
-     *       critical section as the operation itself. The `operator>>` that consumes this
-     *       manipulator has a `catch` of its own, but that one runs outside the lock and is only
-     *       a backstop.
+     * @note The lock is constructed `defer_lock` and handed to the sentry, which checks validity
+     *       and flushes the tied stream *before* locking: the flush has to stay outside, or
+     *       `out_flusher::flush()` would take the tied stream's `io_mutex` and this thread would
+     *       hold two stream locks at once, breaking the at-most-one no-deadlock guarantee. So
+     *       when the stream is already failed the sentry throws before locking and this
+     *       `handle_exception` runs unlocked; every other failure path runs locked. The unlocked
+     *       path is just as safe -- `m_state_mutex` serializes the state update on its own. The
+     *       `operator>>` that consumes this manipulator has a `catch` of its own, but that one
+     *       runs outside the lock and is only a backstop.
      * @param is The target input stream.
      * @endif
      */

@@ -85,7 +85,10 @@ struct in_sentry
      * 仍被调用方持有，`catch` 中的 `handle_exception` 得以在持锁状态下更新流状态，使成功路径
      * 与失败路径对同一把 `io_mutex()` 的可见性保持一致。
      *
-     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。
+     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。这也把
+     * 有效性检查（须先于刷新）一并留在了锁外：流本身已失败时，构造在加锁之前就抛出，上一段所
+     * 述的持锁前提不成立，调用方 `catch` 中的 `handle_exception` 在锁外运行。那条路径依然安全
+     * ——状态位的更新由 `m_state_mutex` 自行串行化。
      * @param is 要操作的输入流。
      * @param noskip 若为 `true`，则不跳过前导空白；若为 `false`，按当前 locale 的
      *               空白定义跳过前导空白。
@@ -105,7 +108,11 @@ struct in_sentry
      * failure paths consistent with respect to the same `io_mutex()`.
      *
      * The tied stream is flushed before locking, so at most one stream lock is held by this
-     * thread at any time, preserving the no-deadlock guarantee.
+     * thread at any time, preserving the no-deadlock guarantee. That also leaves the validity
+     * check -- which has to precede the flush -- outside the lock: when the stream is already
+     * failed, construction throws before locking, the premise of the paragraph above does not
+     * hold, and `handle_exception` in the caller's `catch` runs unlocked. That path is still
+     * safe -- `m_state_mutex` serializes the state update on its own.
      * @param is The input stream to operate on.
      * @param noskip If `true`, leading whitespace is not skipped; if `false`, leading
      *               whitespace is skipped according to the current locale's definition.
@@ -968,8 +975,8 @@ T& operator >> (T& obj, const std::function<void(ios_base<typename T::char_type>
  * @brief 提取操纵符：应用一个可用于输入方向的操纵符对象。
  *
  * 本重载把流交给操纵符自己的 `operator()`：**加锁由操纵符负责**。各操纵符所需的锁作用域并
- * 不相同（`ws` 要把一把处于 `defer_lock` 的锁交给 `in_sentry`，并要求 `handle_exception`
- * 在持锁状态下运行；`endl` 只能在读取 locale 期间持锁、必须在 `put()` 之前释放；
+ * 不相同（`ws` 要把一把处于 `defer_lock` 的锁交给 `in_sentry`，并在哨兵已加锁时于锁内调用
+ * `handle_exception`；`endl` 只能在读取 locale 期间持锁、必须在 `put()` 之前释放；
  * `ends`/`flush` 完全不需要显式加锁），无法上提到本函数。
  *
  * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的临界区里就地处理了异常，走
@@ -990,9 +997,10 @@ T& operator >> (T& obj, const std::function<void(ios_base<typename T::char_type>
  *
  * This overload hands the stream to the manipulator's own `operator()`: **locking is the
  * manipulator's job**. The required lock scope differs per manipulator (`ws` must hand a
- * `defer_lock`ed lock to `in_sentry` and needs `handle_exception` to run while holding it;
- * `endl` may hold the lock only while reading the locale and must release it before `put()`;
- * `ends`/`flush` need no explicit lock at all), so it cannot be hoisted here.
+ * `defer_lock`ed lock to `in_sentry` and calls `handle_exception` under that lock whenever the
+ * sentry got as far as taking it; `endl` may hold the lock only while reading the locale and
+ * must release it before `put()`; `ends`/`flush` need no explicit lock at all), so it cannot be
+ * hoisted here.
  *
  * The `catch` here is a **backstop**, not the primary mechanism: the library's own manipulators
  * handle their exceptions inside their own critical sections and never reach it. What it
