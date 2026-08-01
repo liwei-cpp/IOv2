@@ -189,6 +189,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af3bce3847e0cfd98e32dadb3407cf160"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over <code>dev</code> with the converter built by <code>creator</code> and locale <code>loc</code> installed.  <br /></td></tr>
 <tr class="separator:af3bce3847e0cfd98e32dadb3407cf160"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58622020edfbc0382ce49a3d5fc157e3" id="r_a58622020edfbc0382ce49a3d5fc157e3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#a58622020edfbc0382ce49a3d5fc157e3">iostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="memdesc:a58622020edfbc0382ce49a3d5fc157e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy construction, move construction and move assignment.  <br /></td></tr>
 <tr class="separator:a58622020edfbc0382ce49a3d5fc157e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0b22b5df79fae49d6af68f2ffc12e91" id="r_ac0b22b5df79fae49d6af68f2ffc12e91"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#ac0b22b5df79fae49d6af68f2ffc12e91">iostream</a> (<a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;&amp;)=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:ac0b22b5df79fae49d6af68f2ffc12e91"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -197,7 +198,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a00077052d7f7c10acbd6b0570d395e7f" id="r_a00077052d7f7c10acbd6b0570d395e7f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#a00077052d7f7c10acbd6b0570d395e7f">~iostream</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a00077052d7f7c10acbd6b0570d395e7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c6f824506da37ce2ee2065126a4f5ba" id="r_a9c6f824506da37ce2ee2065126a4f5ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#a9c6f824506da37ce2ee2065126a4f5ba">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</td></tr>
-<tr class="memdesc:a9c6f824506da37ce2ee2065126a4f5ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment with the strong exception guarantee: the copy is made into a temporary first (which may throw, with the destination still untouched), and the commit is a move assignment, noexcept throughout. A copy always throws on a move-only kernel (<code>file_device</code>), which is why self-assignment is short-circuited. .  <br /></td></tr>
+<tr class="memdesc:a9c6f824506da37ce2ee2065126a4f5ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment with the strong exception guarantee: the copy is made into a temporary first (which may throw, with the destination still untouched), and the commit is a move assignment, noexcept throughout. A copy always throws on a move-only kernel (<code>file_device</code>), which is why self-assignment is short-circuited.  <br /></td></tr>
 <tr class="separator:a9c6f824506da37ce2ee2065126a4f5ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac48556dc70ab43d55494629f1e4ea524" id="r_ac48556dc70ab43d55494629f1e4ea524"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#ac48556dc70ab43d55494629f1e4ea524">switch_to_put</a> ()</td></tr>
 <tr class="memdesc:ac48556dc70ab43d55494629f1e4ea524"><td class="mdescLeft">&#160;</td><td class="mdescRight">Switches the underlying buffer to the put direction.  <br /></td></tr>
@@ -763,6 +764,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
+<p>Copy construction, move construction and move assignment. </p>
+
 </div>
 </div>
 <a id="ac0b22b5df79fae49d6af68f2ffc12e91" name="ac0b22b5df79fae49d6af68f2ffc12e91"></a>
@@ -847,7 +850,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </table>
 </div><div class="memdoc">
 
-<p>Copy assignment with the strong exception guarantee: the copy is made into a temporary first (which may throw, with the destination still untouched), and the commit is a move assignment, noexcept throughout. A copy always throws on a move-only kernel (<code>file_device</code>), which is why self-assignment is short-circuited. . </p>
+<p>Copy assignment with the strong exception guarantee: the copy is made into a temporary first (which may throw, with the destination still untouched), and the commit is a move assignment, noexcept throughout. A copy always throws on a move-only kernel (<code>file_device</code>), which is why self-assignment is short-circuited. </p>
 
 </div>
 </div>
