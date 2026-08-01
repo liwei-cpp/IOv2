@@ -161,6 +161,20 @@ public:
         : m_streambuf(std::move(dev), creator)
         , m_locale(std::move(loc)) {}
 
+    /**
+     * @lang{ZH}
+     * @brief 拷贝构造、移动构造与移动赋值。
+     * @warning 与拷贝赋值一样，这三者都是**不同步**的生命周期操作，不持有 `io_mutex()`；
+     *          移动还会把源流置于移后状态。并发契约详见 `operator=(const iostream&)`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Copy construction, move construction and move assignment.
+     * @warning Like copy assignment, all three are **unsynchronized** lifecycle operations that
+     *          do not hold `io_mutex()`; a move additionally leaves the source moved-from. See
+     *          `operator=(const iostream&)` for the concurrency contract.
+     * @endif
+     */
     iostream(const iostream&) = default;
     iostream(iostream&&) = default;
     iostream& operator=(iostream&&) = default;
@@ -171,6 +185,14 @@ public:
      * @brief 拷贝赋值；提供强异常保证：先整体拷进临时对象（可能抛出，此时目标尚未被触碰），
      *        再以全程 noexcept 的移动赋值提交。move-only 内核（如 `file_device`）上的拷贝必然
      *        抛出，故自赋值也要先挡掉。
+     *
+     * @warning 本操作**不做线程同步**：与本流的其它操作（`tell`/`seek`/`switch_to_*`/格式化
+     *          I/O 等均持有 `io_mutex()`）不同，赋值不获取任何锁——它整体替换 `m_streambuf`
+     *          （内含转换器管线——方向状态即在其中——与一个 `std::deque` 读缓冲区）与
+     *          `m_locale`（内含两张哈希表），与 `detach()`/`attach()` 同属生命周期操作。
+     *          区别在于赋值涉及**两个**操作数，**两者都要独占**：调用期间源与目标上都不得有
+     *          其它线程进行操作（读、写、方向切换、attach/detach 或再次赋值），否则行为未
+     *          定义。需要在并发环境下更换流的内容，请由调用方自行串行化。
      * @endif
      *
      * @lang{EN}
@@ -178,10 +200,24 @@ public:
      *        temporary first (which may throw, with the destination still untouched), and the
      *        commit is a move assignment, noexcept throughout. A copy always throws on a
      *        move-only kernel (`file_device`), which is why self-assignment is short-circuited.
+     *
+     * @warning This operation is **not synchronized**: unlike the stream's other operations
+     *          (`tell`/`seek`/`switch_to_*`/formatted I/O, which all hold `io_mutex()`),
+     *          assignment takes no lock -- it replaces `m_streambuf` (which holds the converter
+     *          pipeline, the direction state included, and a `std::deque` read buffer) and
+     *          `m_locale` (which holds two hash tables) wholesale, and is a lifecycle operation
+     *          just like `detach()`/`attach()`. The difference is that assignment involves
+     *          **two** operands and **both** must be exclusively owned: no other thread may
+     *          operate on either the source or the destination (reading, writing, switching
+     *          direction, attach/detach, or another assignment) while it runs, or the behavior
+     *          is undefined. Serialize in the caller when stream contents must be replaced
+     *          concurrently.
      * @endif
      */
     iostream& operator=(const iostream& other)
     {
+        static_assert(std::is_nothrow_move_assignable_v<iostream<TDevice, TChar>>,
+                      "copy assignment's strong guarantee requires a noexcept move assignment");
         if (this != &other)
         {
             iostream tmp(other);
