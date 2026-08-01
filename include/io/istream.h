@@ -153,6 +153,20 @@ public:
         : m_streambuf(std::move(dev), creator)
         , m_locale(std::move(loc)) {}
 
+    /**
+     * @lang{ZH}
+     * @brief 拷贝构造、移动构造与移动赋值。
+     * @warning 与拷贝赋值一样，这三者都是**不同步**的生命周期操作，不持有 `io_mutex()`；
+     *          移动还会把源流置于移后状态。并发契约详见 `operator=(const istream&)`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Copy construction, move construction and move assignment.
+     * @warning Like copy assignment, all three are **unsynchronized** lifecycle operations that
+     *          do not hold `io_mutex()`; a move additionally leaves the source moved-from. See
+     *          `operator=(const istream&)` for the concurrency contract.
+     * @endif
+     */
     istream(const istream&) = default;
     istream(istream&&) = default;
     istream& operator=(istream&&) = default;
@@ -163,6 +177,14 @@ public:
      * @brief 拷贝赋值；提供强异常保证：先整体拷进临时对象（可能抛出，此时目标尚未被触碰），
      *        再以全程 noexcept 的移动赋值提交。move-only 内核（如 `file_device`）上的拷贝必然
      *        抛出，故自赋值也要先挡掉。
+     *
+     * @warning 本操作**不做线程同步**：与本流的其它操作（`tell`/`seek`/格式化 I/O 等均持有
+     *          `io_mutex()`）不同，赋值不获取任何锁——它整体替换 `m_streambuf`（内含转换器
+     *          管线与一个 `std::deque` 读缓冲区）与 `m_locale`（内含两张哈希表），与
+     *          `detach()`/`attach()` 同属生命周期操作。区别在于赋值涉及**两个**操作数，
+     *          **两者都要独占**：调用期间源与目标上都不得有其它线程进行操作（读、写、
+     *          attach/detach 或再次赋值），否则行为未定义。需要在并发环境下更换流的内容，
+     *          请由调用方自行串行化。
      * @endif
      *
      * @lang{EN}
@@ -170,10 +192,23 @@ public:
      *        temporary first (which may throw, with the destination still untouched), and the
      *        commit is a move assignment, noexcept throughout. A copy always throws on a
      *        move-only kernel (`file_device`), which is why self-assignment is short-circuited.
+     *
+     * @warning This operation is **not synchronized**: unlike the stream's other operations
+     *          (`tell`/`seek`/formatted I/O, which all hold `io_mutex()`), assignment takes no
+     *          lock -- it replaces `m_streambuf` (which holds the converter pipeline and a
+     *          `std::deque` read buffer) and `m_locale` (which holds two hash tables)
+     *          wholesale, and is a lifecycle operation just like `detach()`/`attach()`. The
+     *          difference is that assignment involves **two** operands and **both** must be
+     *          exclusively owned: no other thread may operate on either the source or the
+     *          destination (reading, writing, attach/detach, or another assignment) while it
+     *          runs, or the behavior is undefined. Serialize in the caller when stream
+     *          contents must be replaced concurrently.
      * @endif
      */
     istream& operator=(const istream& other)
     {
+        static_assert(std::is_nothrow_move_assignable_v<istream<TDevice, TChar>>,
+                      "copy assignment's strong guarantee requires a noexcept move assignment");
         if (this != &other)
         {
             istream tmp(other);
@@ -235,9 +270,12 @@ struct _Ws : in_manip
      * @brief 跳过流中接下来的空白字符。
      *
      * 空白的跳过由输入哨兵完成：以 `noskipws == false` 构造 `in_sentry` 即为跳过空白。
-     * @note 那把锁以 `defer_lock` 构造后交给哨兵，因此 `catch` 中的 `handle_exception` 仍在
-     *       持锁状态下运行——失败位的更新与本次操作处于同一个临界区内。消费本操纵符的
-     *       `operator>>` 外面还有一层 `catch`，但它在锁之外，只是兜底。
+     * @note 那把锁以 `defer_lock` 构造后交给哨兵，而哨兵先做有效性检查、再刷新关联流，最后
+     *       才加锁：刷新必须留在锁外，否则 `out_flusher::flush()` 取走对方流的 `io_mutex`
+     *       之后，本线程将同时持有两把流锁，破坏"任一时刻至多一把"的不死锁保证。于是流本身
+     *       已处于失败态时，哨兵在加锁之前就抛出，此处的 `handle_exception` 在锁外运行；其余
+     *       失败路径都在锁内。锁外那条路径同样安全——状态位的更新由 `m_state_mutex` 自行
+     *       串行化。消费本操纵符的 `operator>>` 外面还有一层 `catch`，但它在锁之外，只是兜底。
      * @param is 目标输入流。
      * @endif
      *
@@ -246,11 +284,15 @@ struct _Ws : in_manip
      *
      * The skipping is done by the input sentry: constructing `in_sentry` with `noskipws == false`
      * is what skips whitespace.
-     * @note The lock is constructed `defer_lock` and handed to the sentry, so `handle_exception`
-     *       in the `catch` still runs while holding it -- the failbit update lands in the same
-     *       critical section as the operation itself. The `operator>>` that consumes this
-     *       manipulator has a `catch` of its own, but that one runs outside the lock and is only
-     *       a backstop.
+     * @note The lock is constructed `defer_lock` and handed to the sentry, which checks validity
+     *       and flushes the tied stream *before* locking: the flush has to stay outside, or
+     *       `out_flusher::flush()` would take the tied stream's `io_mutex` and this thread would
+     *       hold two stream locks at once, breaking the at-most-one no-deadlock guarantee. So
+     *       when the stream is already failed the sentry throws before locking and this
+     *       `handle_exception` runs unlocked; every other failure path runs locked. The unlocked
+     *       path is just as safe -- `m_state_mutex` serializes the state update on its own. The
+     *       `operator>>` that consumes this manipulator has a `catch` of its own, but that one
+     *       runs outside the lock and is only a backstop.
      * @param is The target input stream.
      * @endif
      */

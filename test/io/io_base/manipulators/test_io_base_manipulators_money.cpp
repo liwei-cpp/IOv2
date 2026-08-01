@@ -7,6 +7,7 @@
 #include <io/fp_defs/arithmetic.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <support/dump_info.h>
@@ -40,6 +41,31 @@ void test_io_base_manipulators_put_money_char_2()
     VERIFY(oss.cvt_fail());
     auto [dev2, err2] = oss.detach();
     VERIFY(dev2.str().empty());
+
+    dump_info("Done\n");
+}
+
+void test_io_base_manipulators_put_money_char_3()
+{
+    dump_info("Test ios_base<char> put_money case 3...");
+
+    // A volatile integral formats exactly as the plain one: monetary::put takes it by value,
+    // so deduction drops the cv-qualifier.
+    const long long plain = 123456;
+    volatile long long vol = 123456;
+
+    IOv2::ostream oss1{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.ISO-8859-1")};
+    oss1 << IOv2::put_money(plain);
+    VERIFY(oss1.good());
+
+    IOv2::ostream oss2{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.ISO-8859-1")};
+    oss2 << IOv2::put_money(vol);
+    VERIFY(oss2.good());
+
+    auto [dev5, err5] = oss1.detach();
+    auto [dev6, err6] = oss2.detach();
+    VERIFY(!dev5.str().empty());
+    VERIFY(dev5.str() == dev6.str());
 
     dump_info("Done\n");
 }
@@ -169,4 +195,61 @@ static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<std::wstring>> );
 // const _MoneyT&, so inserting a const lvalue stays a legitimate use.
 static_assert(  money_writable<int> );
 static_assert(  money_readable<int> );
+
+// The writer's bool exclusion normalizes cv, its string branch does not: put() takes the integral
+// by value (cv dropped), but its string overload takes a plain const&, which volatile cannot bind.
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<int>> );
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<const int>> );
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<volatile int>> );
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<std::string>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<bool>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<const bool>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<volatile bool>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<double>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<volatile std::string>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<std::wstring>> );
+
+// Direction: put_money inserts only, get_money extracts only, enforced by a deleted overload
+// per carrier. Here the expression is the right thing to probe -- unlike the cv cases above,
+// what is being checked is exactly that the catch-all fallback no longer swallows the call.
+using MoneyIos = IOv2::iostream<IOv2::mem_device<char>, char>;
+
+// The probes go through templates because a requires-expression whose requirements depend on no
+// template parameter is checked where it is written, and there selecting the deleted overload is
+// a plain error rather than a substitution failure.
+template <typename TStream, typename T> concept inserts_put_money =
+    requires (TStream& s, T& v) { s << IOv2::put_money(v); };
+template <typename TStream, typename T> concept extracts_put_money =
+    requires (TStream& s, T& v) { s >> IOv2::put_money(v); };
+template <typename TStream, typename T> concept extracts_get_money =
+    requires (TStream& s, T& v) { s >> IOv2::get_money(v); };
+template <typename TStream, typename T> concept inserts_get_money =
+    requires (TStream& s, T& v) { s << IOv2::get_money(v); };
+
+static_assert(  inserts_put_money <MoneyOs, int> );
+static_assert( !extracts_put_money<MoneyIs, int> );
+static_assert(  extracts_get_money<MoneyIs, int> );
+static_assert( !inserts_get_money <MoneyOs, int> );
+
+static_assert(  inserts_put_money <MoneyOs, std::string> );
+static_assert( !extracts_put_money<MoneyIs, std::string> );
+static_assert(  extracts_get_money<MoneyIs, std::string> );
+static_assert( !inserts_get_money <MoneyOs, std::string> );
+
+// The named-lvalue form resolves through a different candidate than the prvalue form, so it
+// needs its own check.
+template <typename TStream, typename TManip> concept extracts_manip =
+    requires (TStream& s, TManip m) { s >> m; };
+template <typename TStream, typename TManip> concept inserts_manip =
+    requires (TStream& s, TManip m) { s << m; };
+
+static_assert( !extracts_manip<MoneyIs, IOv2::_Put_money<int>> );
+static_assert( !inserts_manip <MoneyOs, IOv2::_Get_money<int>> );
+
+// The bidirectional stream is the case the direction check exists for: it satisfies both
+// istream_type and ostream_type, so nothing but the deletion rules the wrong direction out.
+static_assert(  inserts_put_money <MoneyIos, int> );
+static_assert( !extracts_put_money<MoneyIos, int> );
+static_assert(  extracts_get_money<MoneyIos, int> );
+static_assert( !inserts_get_money <MoneyIos, int> );
 }
