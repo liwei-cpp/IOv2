@@ -438,6 +438,18 @@ struct writer<TChar, _Put_money<TMoney>>
     }
 };
 
+/**
+ * @lang{ZH}
+ * @brief 已删除：`put_money` 只能插入，不能提取。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deleted: `put_money` inserts only; it cannot be extracted.
+ * @endif
+ */
+template <istream_type T, typename TMoney>
+T& operator>>(T& is, _Put_money<TMoney> f) = delete;
+
 template<typename _MoneyT> struct _Get_money { _MoneyT& m_mon; bool m_intl; };
 /**
  * @lang{ZH}
@@ -518,6 +530,18 @@ inline T& operator>>(T& is, _Get_money<TMoney> f)
     // one, and recurse forever.
     return IOv2::operator>><T, _Get_money<TMoney>>(is, f);
 }
+
+/**
+ * @lang{ZH}
+ * @brief 已删除：`get_money` 只能提取，不能插入。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deleted: `get_money` extracts only; it cannot be inserted.
+ * @endif
+ */
+template <ostream_type T, typename TMoney>
+T& operator<<(T& os, _Get_money<TMoney> f) = delete;
 
 template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* fmt; };
 /**
@@ -664,6 +688,18 @@ struct writer<TChar, _Put_time<TChar>>
         return mp->put(s, *(f.tmb), f.fmt);
     }
 };
+
+/**
+ * @lang{ZH}
+ * @brief 已删除：`put_time` 只能插入，不能提取。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deleted: `put_time` inserts only; it cannot be extracted.
+ * @endif
+ */
+template <istream_type T, typename TChar>
+T& operator>>(T& is, _Put_time<TChar> f) = delete;
 
 template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
 /**
@@ -835,4 +871,16 @@ inline T& operator>>(T& is, _Get_time<TChar> f)
     // `is >> f` would recurse into this very function.
     return IOv2::operator>><T, _Get_time<TChar>>(is, f);
 }
+
+/**
+ * @lang{ZH}
+ * @brief 已删除：`get_time` 只能提取，不能插入。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deleted: `get_time` extracts only; it cannot be inserted.
+ * @endif
+ */
+template <ostream_type T, typename TChar>
+T& operator<<(T& os, _Get_time<TChar> f) = delete;
 }

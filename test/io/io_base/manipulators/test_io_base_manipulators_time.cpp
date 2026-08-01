@@ -8,6 +8,7 @@
 #include <io/fp_defs/tm.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <support/dump_info.h>
@@ -369,4 +370,47 @@ void test_io_base_manipulators_get_time_wchar_t_2()
     VERIFY(parsed.tm_hour == 23 && parsed.tm_min == 45 && parsed.tm_sec == 7);
 
     dump_info("Done\n");
+}
+
+namespace
+{
+// Direction: put_time inserts only, get_time extracts only, enforced by a deleted overload per
+// carrier. Without them the wrong direction lands on the catch-all fallback, whose static_assert
+// only fires once the body is instantiated, so the expression compiles in a requires-clause.
+using TimeIs  = IOv2::istream<IOv2::mem_device<char>, char>;
+using TimeOs  = IOv2::ostream<IOv2::mem_device<char>, char>;
+using TimeIos = IOv2::iostream<IOv2::mem_device<char>, char>;
+
+// The probes go through templates because a requires-expression whose requirements depend on no
+// template parameter is checked where it is written, and there selecting the deleted overload is
+// a plain error rather than a substitution failure.
+template <typename TStream, typename TTm> concept inserts_put_time =
+    requires (TStream& s, TTm t) { s << IOv2::put_time(t, "%Y"); };
+template <typename TStream, typename TTm> concept extracts_put_time =
+    requires (TStream& s, TTm t) { s >> IOv2::put_time(t, "%Y"); };
+template <typename TStream, typename TTm> concept extracts_get_time =
+    requires (TStream& s, TTm t) { s >> IOv2::get_time(t, "%Y"); };
+template <typename TStream, typename TTm> concept inserts_get_time =
+    requires (TStream& s, TTm t) { s << IOv2::get_time(t, "%Y"); };
+
+static_assert(  inserts_put_time <TimeOs, const std::tm*> );
+static_assert( !extracts_put_time<TimeIs, const std::tm*> );
+static_assert(  extracts_get_time<TimeIs, std::tm*> );
+static_assert( !inserts_get_time <TimeOs, std::tm*> );
+
+// The named-lvalue form resolves through a different candidate than the prvalue form.
+template <typename TStream, typename TManip> concept extracts_manip =
+    requires (TStream& s, TManip m) { s >> m; };
+template <typename TStream, typename TManip> concept inserts_manip =
+    requires (TStream& s, TManip m) { s << m; };
+
+static_assert( !extracts_manip<TimeIs, IOv2::_Put_time<char>> );
+static_assert( !inserts_manip <TimeOs, IOv2::_Get_time<char>> );
+
+// The bidirectional stream satisfies both istream_type and ostream_type, so nothing but the
+// deletion rules the wrong direction out.
+static_assert(  inserts_put_time <TimeIos, const std::tm*> );
+static_assert( !extracts_put_time<TimeIos, const std::tm*> );
+static_assert(  extracts_get_time<TimeIos, std::tm*> );
+static_assert( !inserts_get_time <TimeIos, std::tm*> );
 }
