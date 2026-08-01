@@ -44,6 +44,31 @@ void test_io_base_manipulators_put_money_char_2()
     dump_info("Done\n");
 }
 
+void test_io_base_manipulators_put_money_char_3()
+{
+    dump_info("Test ios_base<char> put_money case 3...");
+
+    // A volatile integral formats exactly as the plain one: monetary::put takes it by value,
+    // so deduction drops the cv-qualifier.
+    const long long plain = 123456;
+    volatile long long vol = 123456;
+
+    IOv2::ostream oss1{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.ISO-8859-1")};
+    oss1 << IOv2::put_money(plain);
+    VERIFY(oss1.good());
+
+    IOv2::ostream oss2{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.ISO-8859-1")};
+    oss2 << IOv2::put_money(vol);
+    VERIFY(oss2.good());
+
+    auto [dev5, err5] = oss1.detach();
+    auto [dev6, err6] = oss2.detach();
+    VERIFY(!dev5.str().empty());
+    VERIFY(dev5.str() == dev6.str());
+
+    dump_info("Done\n");
+}
+
 void test_io_base_manipulators_put_money_wchar_t_1()
 {
     dump_info("Test ios_base<wchar_t> put_money case 1...");
@@ -169,4 +194,17 @@ static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<std::wstring>> );
 // const _MoneyT&, so inserting a const lvalue stays a legitimate use.
 static_assert(  money_writable<int> );
 static_assert(  money_readable<int> );
+
+// The writer's bool exclusion normalizes cv, its string branch does not: put() takes the integral
+// by value (cv dropped), but its string overload takes a plain const&, which volatile cannot bind.
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<int>> );
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<const int>> );
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<volatile int>> );
+static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<std::string>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<bool>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<const bool>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<volatile bool>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<double>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<volatile std::string>> );
+static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<std::wstring>> );
 }

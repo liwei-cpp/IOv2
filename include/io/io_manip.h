@@ -419,8 +419,10 @@ template<typename _MoneyT> struct _Put_money { const _MoneyT& m_mon; bool m_intl
 template<typename _MoneyT>
 inline _Put_money<_MoneyT> put_money(const _MoneyT& mon, bool intl = false) { return { mon, intl }; }
 
+// remove_cv_t on the bool exclusion only: put() takes the integral by value, so cv is dropped
+// there, but its string overload takes a plain const&, which a volatile string cannot bind to.
 template <typename TChar, typename TMoney>
-    requires ((std::integral<TMoney> && !std::same_as<TMoney, bool>)
+    requires ((std::integral<TMoney> && !std::same_as<std::remove_cv_t<TMoney>, bool>)
               || std::same_as<TMoney, std::basic_string<TChar>>)
 struct writer<TChar, _Put_money<TMoney>>
 {
