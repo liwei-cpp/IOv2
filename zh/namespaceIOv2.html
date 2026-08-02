@@ -189,7 +189,7 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html">abs_flusher</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="classIOv2_1_1abs__flusher.html#ab1442ee9cd6042c1b4cc671c1a2ec54a" title="刷新本流的纯虚接口；由 out_flusher&lt;T&gt; 实现。">flush()</a></code> 接口的抽象基类。  <a href="classIOv2_1_1abs__flusher.html#details">更多...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="classIOv2_1_1abs__flusher.html#a1473480bce1f8a5bfae6cbdfa81309fd" title="尽力刷新本流的纯虚接口；由 out_flusher&lt;T&gt; 实现。">try_flush()</a></code> 接口的抽象基类。  <a href="classIOv2_1_1abs__flusher.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -430,7 +430,7 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出流缓冲区迭代器（输出迭代器）。  <a href="classIOv2_1_1ostreambuf__iterator.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__flusher.html">out_flusher</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54" title="刷新本流：把缓冲区写出到底层设备。">flush()</a></code> 的 CRTP 基类：对具体流类型 <code>T</code> 的向下转型集中于此。  <a href="structIOv2_1_1out__flusher.html#details">更多...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8" title="尽力刷新本流：取到锁就 flush()，取不到就放弃。">try_flush()</a></code> 的 CRTP 基类：对具体流类型 <code>T</code> 的向下转型集中于此。  <a href="structIOv2_1_1out__flusher.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__manip.html">out_manip</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">操纵符方向标签基类：标记一个操纵符只能用于**插入**（<code>operator&lt;&lt;</code>）。方向为何必须 编码在类型上、以及本族的形参为何必须按 const 引用传，见 <code><a class="el" href="structIOv2_1_1in__manip.html" title="操纵符方向标签基类：标记一个操纵符只能用于**提取**（operator&gt;&gt;）。">in_manip</a></code>。  <a href="structIOv2_1_1out__manip.html#details">更多...</a><br /></td></tr>

@@ -8,7 +8,7 @@
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="384,138,420,143,419,149,383,143"/>
 <area shape="rect" id="Node000005" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="202,169,358,224"/>
 <area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="371,180,419,173,420,178,372,185"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic flush() interface." alt="" coords="5,184,140,209"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic try_flush() interface." alt="" coords="5,184,140,209"/>
 <area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="154,194,202,194,202,199,154,199"/>
 <area shape="rect" id="Node000007" href="$structIOv2_1_1ostream__operators.html" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="189,249,371,289"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="354,241,371,234,478,179,481,183,373,239,356,246"/>

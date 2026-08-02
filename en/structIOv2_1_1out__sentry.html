@@ -90,7 +90,6 @@ $(document).ready(function(){initNavTree('structIOv2_1_1out__sentry.html',''); i
 
 <div class="header">
   <div class="summary">
-<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="structIOv2_1_1out__sentry-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">IOv2::out_sentry&lt; TStream, involve_input, is_std &gt; Struct Template Reference</div></div>
@@ -102,17 +101,11 @@ $(document).ready(function(){initNavTree('structIOv2_1_1out__sentry.html',''); i
 
 <p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
-Public Types</h2></td></tr>
-<tr class="memitem:accada22856456a343aae0ae37409122b" id="r_accada22856456a343aae0ae37409122b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#accada22856456a343aae0ae37409122b">lock_type</a> = std::unique_lock&lt; std::remove_reference_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp; &gt;().io_mutex())&gt; &gt;</td></tr>
-<tr class="memdesc:accada22856456a343aae0ae37409122b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The lock type used by the sentry: a <code>std::unique_lock</code> over the mutex returned by the stream's <code>io_mutex()</code>. .  <br /></td></tr>
-<tr class="separator:accada22856456a343aae0ae37409122b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a59bbe2c1433277eb8ce28621d1881113" id="r_a59bbe2c1433277eb8ce28621d1881113"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a59bbe2c1433277eb8ce28621d1881113">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_unit_buf</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_app_mode</a>, <a class="el" href="structIOv2_1_1out__sentry.html#accada22856456a343aae0ae37409122b">lock_type</a> &amp;lock)</td></tr>
-<tr class="memdesc:a59bbe2c1433277eb8ce28621d1881113"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs the output sentry: validates the stream, flushes the tied stream (before locking), acquires the lock, and switches direction / repositions to end as needed.  <br /></td></tr>
-<tr class="separator:a59bbe2c1433277eb8ce28621d1881113"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3eb4d56f578ad5fa94bc205280262b2f" id="r_a3eb4d56f578ad5fa94bc205280262b2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#a3eb4d56f578ad5fa94bc205280262b2f">out_sentry</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_unit_buf</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_app_mode</a>)</td></tr>
+<tr class="memdesc:a3eb4d56f578ad5fa94bc205280262b2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs the output sentry: validates the stream, flushes the tied stream, and switches direction / repositions to end as needed.  <br /></td></tr>
+<tr class="separator:a3eb4d56f578ad5fa94bc205280262b2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad034c9b260a8fdfe6382273a9708c603" id="r_ad034c9b260a8fdfe6382273a9708c603"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html#ad034c9b260a8fdfe6382273a9708c603">~out_sentry</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a>(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a>)</td></tr>
 <tr class="memdesc:ad034c9b260a8fdfe6382273a9708c603"><td class="mdescLeft">&#160;</td><td class="mdescRight">On destruction, auto-flushes a unitbuf / stdio-synced stream and decides whether to report a flush failure according to the exception mask.  <br /></td></tr>
 <tr class="separator:ad034c9b260a8fdfe6382273a9708c603"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -128,28 +121,9 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt;<br />
 struct IOv2::out_sentry&lt; TStream, involve_input, is_std &gt;</div><p>RAII sentry for output operations: performs the shared setup at the entry of every insertion operation and an automatic flush at its end. </p>
-</div><h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="accada22856456a343aae0ae37409122b" name="accada22856456a343aae0ae37409122b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#accada22856456a343aae0ae37409122b">&#9670;&#160;</a></span>lock_type</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> involve_input, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> is_std = false&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="structIOv2_1_1out__sentry.html">IOv2::out_sentry</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">involve_input</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">is_std</a> &gt;::lock_type =  std::unique_lock&lt;std::remove_reference_t&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>&amp;&gt;().io_mutex())&gt; &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The lock type used by the sentry: a <code>std::unique_lock</code> over the mutex returned by the stream's <code>io_mutex()</code>. . </p>
-
-</div>
-</div>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a59bbe2c1433277eb8ce28621d1881113" name="a59bbe2c1433277eb8ce28621d1881113"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a59bbe2c1433277eb8ce28621d1881113">&#9670;&#160;</a></span>out_sentry() <span class="overload">[1/3]</span></h2>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a3eb4d56f578ad5fa94bc205280262b2f" name="a3eb4d56f578ad5fa94bc205280262b2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3eb4d56f578ad5fa94bc205280262b2f">&#9670;&#160;</a></span>out_sentry() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -175,13 +149,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td>
-          <td class="paramname"><em>is_app_mode</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structIOv2_1_1out__sentry.html#accada22856456a343aae0ae37409122b">lock_type</a> &amp;&#160;</td>
-          <td class="paramname"><em>lock</em>&#160;</td>
+          <td class="paramname"><em>is_app_mode</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -196,7 +164,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
-<p>Constructs the output sentry: validates the stream, flushes the tied stream (before locking), acquires the lock, and switches direction / repositions to end as needed. </p>
+<p>Constructs the output sentry: validates the stream, flushes the tied stream, and switches direction / repositions to end as needed. </p>
 
 </div>
 </div>

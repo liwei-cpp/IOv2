@@ -717,32 +717,32 @@ $(document).ready(function(){initNavTree('io__base_8h_source.html',''); initResi
 <div class="line"><a id="l01376" name="l01376"></a><span class="lineno"> 1376</span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">base</a>.unsetf(<a class="code hl_variable" href="namespaceIOv2_1_1ios__defs.html#a4f3b3dcdabc72ec6609808fbce8f4fed">ios_defs::floatfield</a>);</div>
 <div class="line"><a id="l01377" name="l01377"></a><span class="lineno"> 1377</span>}</div>
 </div>
-<div class="line"><a id="l01405" name="l01405"></a><span class="lineno"> 1405</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TStream&gt;</div>
-<div class="foldopen" id="foldopen01406" data-start="{" data-end="};">
-<div class="line"><a id="l01406" name="l01406"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html"> 1406</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a></div>
-<div class="line"><a id="l01407" name="l01407"></a><span class="lineno"> 1407</span>{</div>
-<div class="foldopen" id="foldopen01419" data-start="{" data-end="}">
-<div class="line"><a id="l01419" name="l01419"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#a978350c010be4d229ec6e26531f4d4cd"> 1419</a></span>    <a class="code hl_function" href="structIOv2_1_1sync.html#a978350c010be4d229ec6e26531f4d4cd">sync</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>&amp; str)</div>
-<div class="line"><a id="l01420" name="l01420"></a><span class="lineno"> 1420</span>        : <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>(str)</div>
-<div class="line"><a id="l01421" name="l01421"></a><span class="lineno"> 1421</span>    {</div>
-<div class="line"><a id="l01422" name="l01422"></a><span class="lineno"> 1422</span>        <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>.io_mutex().lock();</div>
-<div class="line"><a id="l01423" name="l01423"></a><span class="lineno"> 1423</span>    }</div>
+<div class="line"><a id="l01419" name="l01419"></a><span class="lineno"> 1419</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TStream&gt;</div>
+<div class="foldopen" id="foldopen01420" data-start="{" data-end="};">
+<div class="line"><a id="l01420" name="l01420"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html"> 1420</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a></div>
+<div class="line"><a id="l01421" name="l01421"></a><span class="lineno"> 1421</span>{</div>
+<div class="foldopen" id="foldopen01433" data-start="{" data-end="}">
+<div class="line"><a id="l01433" name="l01433"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#a978350c010be4d229ec6e26531f4d4cd"> 1433</a></span>    <a class="code hl_function" href="structIOv2_1_1sync.html#a978350c010be4d229ec6e26531f4d4cd">sync</a>(<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>&amp; str)</div>
+<div class="line"><a id="l01434" name="l01434"></a><span class="lineno"> 1434</span>        : <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>(str)</div>
+<div class="line"><a id="l01435" name="l01435"></a><span class="lineno"> 1435</span>    {</div>
+<div class="line"><a id="l01436" name="l01436"></a><span class="lineno"> 1436</span>        <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>.io_mutex().lock();</div>
+<div class="line"><a id="l01437" name="l01437"></a><span class="lineno"> 1437</span>    }</div>
 </div>
-<div class="line"><a id="l01424" name="l01424"></a><span class="lineno"> 1424</span> </div>
-<div class="foldopen" id="foldopen01429" data-start="{" data-end="}">
-<div class="line"><a id="l01429" name="l01429"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5"> 1429</a></span>    <a class="code hl_function" href="structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5">~sync</a>()</div>
-<div class="line"><a id="l01430" name="l01430"></a><span class="lineno"> 1430</span>    {</div>
-<div class="line"><a id="l01431" name="l01431"></a><span class="lineno"> 1431</span>        <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>.io_mutex().unlock();</div>
-<div class="line"><a id="l01432" name="l01432"></a><span class="lineno"> 1432</span>    }</div>
+<div class="line"><a id="l01438" name="l01438"></a><span class="lineno"> 1438</span> </div>
+<div class="foldopen" id="foldopen01443" data-start="{" data-end="}">
+<div class="line"><a id="l01443" name="l01443"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5"> 1443</a></span>    <a class="code hl_function" href="structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5">~sync</a>()</div>
+<div class="line"><a id="l01444" name="l01444"></a><span class="lineno"> 1444</span>    {</div>
+<div class="line"><a id="l01445" name="l01445"></a><span class="lineno"> 1445</span>        <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>.io_mutex().unlock();</div>
+<div class="line"><a id="l01446" name="l01446"></a><span class="lineno"> 1446</span>    }</div>
 </div>
-<div class="line"><a id="l01433" name="l01433"></a><span class="lineno"> 1433</span> </div>
-<div class="line"><a id="l01434" name="l01434"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#ae7d6a057bff0af1f768794c698ad16a4"> 1434</a></span>    <a class="code hl_function" href="structIOv2_1_1sync.html#ae7d6a057bff0af1f768794c698ad16a4">sync</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l01435" name="l01435"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#ab57c5f0636a0d26dab66776770f34caa"> 1435</a></span>    <a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>&amp; <a class="code hl_function" href="structIOv2_1_1sync.html#ab57c5f0636a0d26dab66776770f34caa">operator=</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l01436" name="l01436"></a><span class="lineno"> 1436</span> </div>
-<div class="line"><a id="l01437" name="l01437"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d"> 1437</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>&amp; <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>;   </div>
-<div class="line"><a id="l01438" name="l01438"></a><span class="lineno"> 1438</span>};</div>
+<div class="line"><a id="l01447" name="l01447"></a><span class="lineno"> 1447</span> </div>
+<div class="line"><a id="l01448" name="l01448"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#ae7d6a057bff0af1f768794c698ad16a4"> 1448</a></span>    <a class="code hl_function" href="structIOv2_1_1sync.html#ae7d6a057bff0af1f768794c698ad16a4">sync</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l01449" name="l01449"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#ab57c5f0636a0d26dab66776770f34caa"> 1449</a></span>    <a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>&amp; <a class="code hl_function" href="structIOv2_1_1sync.html#ab57c5f0636a0d26dab66776770f34caa">operator=</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1sync.html">sync</a>&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l01450" name="l01450"></a><span class="lineno"> 1450</span> </div>
+<div class="line"><a id="l01451" name="l01451"></a><span class="lineno"><a class="line" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d"> 1451</a></span>    <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TStream</a>&amp; <a class="code hl_variable" href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">stream</a>;   </div>
+<div class="line"><a id="l01452" name="l01452"></a><span class="lineno"> 1452</span>};</div>
 </div>
-<div class="line"><a id="l01439" name="l01439"></a><span class="lineno"> 1439</span>}</div>
+<div class="line"><a id="l01453" name="l01453"></a><span class="lineno"> 1453</span>}</div>
 <div class="ttc" id="aclassIOv2_1_1copyable__atomic_html"><div class="ttname"><a href="classIOv2_1_1copyable__atomic.html">IOv2::copyable_atomic</a></div><div class="ttdef"><b>Definition</b> copyable_atomic.h:59</div></div>
 <div class="ttc" id="aclassIOv2_1_1copyable__atomic_html_a397fb1204b7c82747d7f828397160688"><div class="ttname"><a href="classIOv2_1_1copyable__atomic.html#a397fb1204b7c82747d7f828397160688">IOv2::copyable_atomic::compare_exchange_weak</a></div><div class="ttdeci">bool compare_exchange_weak(T &amp;expected, T desired) noexcept</div><div class="ttdef"><b>Definition</b> copyable_atomic.h:87</div></div>
 <div class="ttc" id="aclassIOv2_1_1copyable__atomic_html_a7f61a9f83ac0130ae1e3c1ed2efe730b"><div class="ttname"><a href="classIOv2_1_1copyable__atomic.html#a7f61a9f83ac0130ae1e3c1ed2efe730b">IOv2::copyable_atomic::store</a></div><div class="ttdeci">void store(T value) noexcept</div><div class="ttdef"><b>Definition</b> copyable_atomic.h:82</div></div>
@@ -861,10 +861,10 @@ $(document).ready(function(){initNavTree('io__base_8h_source.html',''); initResi
 <div class="ttc" id="astructIOv2_1_1io__state__and__exp_html_af0682931513df9978deab1c59029172d"><div class="ttname"><a href="structIOv2_1_1io__state__and__exp.html#af0682931513df9978deab1c59029172d">IOv2::io_state_and_exp::unset_state</a></div><div class="ttdeci">void unset_state(ios_defs::iostate s)</div><div class="ttdef"><b>Definition</b> io_base.h:276</div></div>
 <div class="ttc" id="astructIOv2_1_1out__manip_html"><div class="ttname"><a href="structIOv2_1_1out__manip.html">IOv2::out_manip</a></div><div class="ttdoc">操纵符方向标签基类：标记一个操纵符只能用于**插入**（operator&lt;&lt;）。方向为何必须 编码在类型上、以及本族的形参为何必须按 const 引用传，见 in_manip。</div><div class="ttdef"><b>Definition</b> io_base.h:1133</div></div>
 <div class="ttc" id="astructIOv2_1_1stream__error_html"><div class="ttname"><a href="structIOv2_1_1stream__error.html">IOv2::stream_error</a></div><div class="ttdef"><b>Definition</b> defs.h:105</div></div>
-<div class="ttc" id="astructIOv2_1_1sync_html"><div class="ttname"><a href="structIOv2_1_1sync.html">IOv2::sync</a></div><div class="ttdoc">对流的 I/O 互斥量进行 RAII 加锁的辅助类。</div><div class="ttdef"><b>Definition</b> io_base.h:1407</div></div>
-<div class="ttc" id="astructIOv2_1_1sync_html_a45b81d60d1b72c03f56109e5e305a66d"><div class="ttname"><a href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">IOv2::sync::stream</a></div><div class="ttdeci">TStream &amp; stream</div><div class="ttdoc">被加锁的流的引用。</div><div class="ttdef"><b>Definition</b> io_base.h:1437</div></div>
-<div class="ttc" id="astructIOv2_1_1sync_html_a95fac1c610b4ebf020300d2a571587f5"><div class="ttname"><a href="structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5">IOv2::sync::~sync</a></div><div class="ttdeci">~sync()</div><div class="ttdoc">析构并解锁流的 I/O 互斥量。</div><div class="ttdef"><b>Definition</b> io_base.h:1429</div></div>
-<div class="ttc" id="astructIOv2_1_1sync_html_a978350c010be4d229ec6e26531f4d4cd"><div class="ttname"><a href="structIOv2_1_1sync.html#a978350c010be4d229ec6e26531f4d4cd">IOv2::sync::sync</a></div><div class="ttdeci">sync(TStream &amp;str)</div><div class="ttdoc">构造并锁定流的 I/O 互斥量。</div><div class="ttdef"><b>Definition</b> io_base.h:1419</div></div>
+<div class="ttc" id="astructIOv2_1_1sync_html"><div class="ttname"><a href="structIOv2_1_1sync.html">IOv2::sync</a></div><div class="ttdoc">对流的 I/O 互斥量进行 RAII 加锁的辅助类。</div><div class="ttdef"><b>Definition</b> io_base.h:1421</div></div>
+<div class="ttc" id="astructIOv2_1_1sync_html_a45b81d60d1b72c03f56109e5e305a66d"><div class="ttname"><a href="structIOv2_1_1sync.html#a45b81d60d1b72c03f56109e5e305a66d">IOv2::sync::stream</a></div><div class="ttdeci">TStream &amp; stream</div><div class="ttdoc">被加锁的流的引用。</div><div class="ttdef"><b>Definition</b> io_base.h:1451</div></div>
+<div class="ttc" id="astructIOv2_1_1sync_html_a95fac1c610b4ebf020300d2a571587f5"><div class="ttname"><a href="structIOv2_1_1sync.html#a95fac1c610b4ebf020300d2a571587f5">IOv2::sync::~sync</a></div><div class="ttdeci">~sync()</div><div class="ttdoc">析构并解锁流的 I/O 互斥量。</div><div class="ttdef"><b>Definition</b> io_base.h:1443</div></div>
+<div class="ttc" id="astructIOv2_1_1sync_html_a978350c010be4d229ec6e26531f4d4cd"><div class="ttname"><a href="structIOv2_1_1sync.html#a978350c010be4d229ec6e26531f4d4cd">IOv2::sync::sync</a></div><div class="ttdeci">sync(TStream &amp;str)</div><div class="ttdoc">构造并锁定流的 I/O 互斥量。</div><div class="ttdef"><b>Definition</b> io_base.h:1433</div></div>
 <div class="ttc" id="astructIOv2_1_1sync_html_ab57c5f0636a0d26dab66776770f34caa"><div class="ttname"><a href="structIOv2_1_1sync.html#ab57c5f0636a0d26dab66776770f34caa">IOv2::sync::operator=</a></div><div class="ttdeci">sync &amp; operator=(const sync &amp;)=delete</div></div>
 <div class="ttc" id="astructIOv2_1_1sync_html_ae7d6a057bff0af1f768794c698ad16a4"><div class="ttname"><a href="structIOv2_1_1sync.html#ae7d6a057bff0af1f768794c698ad16a4">IOv2::sync::sync</a></div><div class="ttdeci">sync(const sync &amp;)=delete</div></div>
 </div><!-- fragment --></div><!-- contents -->

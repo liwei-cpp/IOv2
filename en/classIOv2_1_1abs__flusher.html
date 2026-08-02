@@ -97,7 +97,7 @@ $(document).ready(function(){initNavTree('classIOv2_1_1abs__flusher.html',''); i
 </div><!--header-->
 <div class="contents">
 
-<p>Abstract base carrying the polymorphic <code><a class="el" href="classIOv2_1_1abs__flusher.html#ab1442ee9cd6042c1b4cc671c1a2ec54a" title="Pure virtual interface to flush this stream; implemented by out_flusher&lt;T&gt;. .">flush()</a></code> interface.  
+<p>Abstract base carrying the polymorphic <code><a class="el" href="classIOv2_1_1abs__flusher.html#a1473480bce1f8a5bfae6cbdfa81309fd" title="Pure virtual interface that flushes this stream on a best-effort basis; implemented by out_flusher&lt;T&gt;...">try_flush()</a></code> interface.  
  <a href="classIOv2_1_1abs__flusher.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="ostream__operators_8h_source.html">ostream_operators.h</a>&gt;</code></p>
@@ -106,7 +106,7 @@ Inheritance diagram for IOv2::abs_flusher:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1abs__flusher__inherit__graph.png" border="0" usemap="#aIOv2_1_1abs__flusher_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1abs__flusher_inherit__map" id="aIOv2_1_1abs__flusher_inherit__map">
-<area shape="rect" title="Abstract base carrying the polymorphic flush() interface." alt="" coords="5,269,140,294"/>
+<area shape="rect" title="Abstract base carrying the polymorphic try_flush() interface." alt="" coords="5,269,140,294"/>
 <area shape="rect" href="structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,5,371,45"/>
 <area shape="poly" title=" " alt="" coords="77,254,90,211,112,157,144,103,164,77,186,55,205,43,226,34,228,39,208,48,190,59,167,81,148,106,117,160,96,213,83,256"/>
 <area shape="rect" href="structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,69,371,109"/>
@@ -123,7 +123,7 @@ Inheritance diagram for IOv2::abs_flusher:</div>
 <area shape="poly" title=" " alt="" coords="98,302,138,339,189,375,222,391,220,396,187,380,135,343,94,306"/>
 <area shape="rect" href="structIOv2_1_1out__flusher.html" title=" " alt="" coords="188,469,411,509"/>
 <area shape="poly" title=" " alt="" coords="86,306,102,340,124,379,154,420,190,454,212,467,209,471,186,458,150,423,120,382,97,342,81,308"/>
-<area shape="rect" href="structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down&#45;cast to the concrete stream type T is localized ..." alt="" coords="214,741,385,766"/>
+<area shape="rect" href="structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic try_flush(): the down&#45;cast to the concrete stream type T is locali..." alt="" coords="214,741,385,766"/>
 <area shape="poly" title=" " alt="" coords="88,305,294,739,290,742,84,308"/>
 <area shape="rect" href="classIOv2_1_1iostream.html" title=" " alt="" coords="481,397,671,437"/>
 <area shape="poly" title=" " alt="" coords="391,415,480,415,480,420,391,420"/>
@@ -162,9 +162,9 @@ Inheritance diagram for IOv2::abs_flusher:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a224a522129ead29ca7ebf08ab315c81a" id="r_a224a522129ead29ca7ebf08ab315c81a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html#a224a522129ead29ca7ebf08ab315c81a">~abs_flusher</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
 <tr class="separator:a224a522129ead29ca7ebf08ab315c81a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1442ee9cd6042c1b4cc671c1a2ec54a" id="r_ab1442ee9cd6042c1b4cc671c1a2ec54a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html#ab1442ee9cd6042c1b4cc671c1a2ec54a">flush</a> ()=0</td></tr>
-<tr class="memdesc:ab1442ee9cd6042c1b4cc671c1a2ec54a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pure virtual interface to flush this stream; implemented by <code><a class="el" href="structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down-cast to the concrete stream type T is localized ...">out_flusher</a>&lt;T&gt;</code>. .  <br /></td></tr>
-<tr class="separator:ab1442ee9cd6042c1b4cc671c1a2ec54a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1473480bce1f8a5bfae6cbdfa81309fd" id="r_a1473480bce1f8a5bfae6cbdfa81309fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html#a1473480bce1f8a5bfae6cbdfa81309fd">try_flush</a> ()=0</td></tr>
+<tr class="memdesc:a1473480bce1f8a5bfae6cbdfa81309fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pure virtual interface that flushes this stream on a best-effort basis; implemented by <code><a class="el" href="structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic try_flush(): the down-cast to the concrete stream type T is locali...">out_flusher</a>&lt;T&gt;</code>.  <br /></td></tr>
+<tr class="separator:a1473480bce1f8a5bfae6cbdfa81309fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -180,7 +180,7 @@ Protected Member Functions</h2></td></tr>
 <tr class="separator:af57bb2010f52f0773306ca7221677f3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Abstract base carrying the polymorphic <code><a class="el" href="classIOv2_1_1abs__flusher.html#ab1442ee9cd6042c1b4cc671c1a2ec54a" title="Pure virtual interface to flush this stream; implemented by out_flusher&lt;T&gt;. .">flush()</a></code> interface. </p>
+<div class="textblock"><p>Abstract base carrying the polymorphic <code><a class="el" href="classIOv2_1_1abs__flusher.html#a1473480bce1f8a5bfae6cbdfa81309fd" title="Pure virtual interface that flushes this stream on a best-effort basis; implemented by out_flusher&lt;T&gt;...">try_flush()</a></code> interface. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a224a522129ead29ca7ebf08ab315c81a" name="a224a522129ead29ca7ebf08ab315c81a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a224a522129ead29ca7ebf08ab315c81a">&#9670;&#160;</a></span>~abs_flusher()</h2>
@@ -285,35 +285,6 @@ Protected Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="ab1442ee9cd6042c1b4cc671c1a2ec54a" name="ab1442ee9cd6042c1b4cc671c1a2ec54a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab1442ee9cd6042c1b4cc671c1a2ec54a">&#9670;&#160;</a></span>flush()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::abs_flusher::flush </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Pure virtual interface to flush this stream; implemented by <code><a class="el" href="structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down-cast to the concrete stream type T is localized ...">out_flusher</a>&lt;T&gt;</code>. . </p>
-
-<p>Implemented in <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; T &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; __cerr &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; __clog &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; __cout &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; __wcerr &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; __wclog &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; __wcout &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; iostream&lt; TDevice, TChar &gt; &gt;</a>, and <a class="el" href="structIOv2_1_1out__flusher.html#a6a76bedc48cfc3093915ccdebef28e54">IOv2::out_flusher&lt; ostream&lt; TDevice, TChar &gt; &gt;</a>.</p>
-
-</div>
-</div>
 <a id="af57bb2010f52f0773306ca7221677f3e" name="af57bb2010f52f0773306ca7221677f3e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af57bb2010f52f0773306ca7221677f3e">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
@@ -363,6 +334,35 @@ Protected Member Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1473480bce1f8a5bfae6cbdfa81309fd" name="a1473480bce1f8a5bfae6cbdfa81309fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1473480bce1f8a5bfae6cbdfa81309fd">&#9670;&#160;</a></span>try_flush()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">virtual</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::abs_flusher::try_flush </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Pure virtual interface that flushes this stream on a best-effort basis; implemented by <code><a class="el" href="structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic try_flush(): the down-cast to the concrete stream type T is locali...">out_flusher</a>&lt;T&gt;</code>. </p>
+
+<p>Implemented in <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; T &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; __cerr &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; __clog &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; __cout &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; __wcerr &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; __wclog &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; __wcout &gt;</a>, <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; iostream&lt; TDevice, TChar &gt; &gt;</a>, and <a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8">IOv2::out_flusher&lt; ostream&lt; TDevice, TChar &gt; &gt;</a>.</p>
 
 </div>
 </div>

@@ -18,7 +18,7 @@
 <area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="524,269,561,273,561,278,523,275"/>
 <area shape="rect" id="Node000010" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="342,309,498,363"/>
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="511,313,567,300,568,305,512,318"/>
-<area shape="rect" id="Node000011" href="$classIOv2_1_1abs__flusher.html" title="承载多态 flush() 接口的抽象基类。" alt="" coords="33,326,167,351"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1abs__flusher.html" title="承载多态 try_flush() 接口的抽象基类。" alt="" coords="33,326,167,351"/>
 <area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="181,335,341,334,341,339,181,341"/>
 <area shape="rect" id="Node000012" href="$structIOv2_1_1ostream__operators.html" title="为输出流提供各类插入操作的混入（mix&#45;in）基类。" alt="" coords="329,388,511,428"/>
 <area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="493,380,511,372,574,336,626,301,629,305,577,341,513,377,495,385"/>

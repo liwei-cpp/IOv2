@@ -1,5 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic flush() interface." alt="" coords="5,516,140,541"/>
+<area shape="rect" id="Node000000" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic try_flush() interface." alt="" coords="5,516,140,541"/>
 <area shape="rect" id="Node000001" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,266,371,306"/>
 <area shape="poly" id="edge11_Node000000_Node000001" title=" " alt="" coords="78,501,92,460,114,410,145,360,165,336,186,316,206,304,227,295,229,300,208,308,190,320,168,340,150,363,119,413,97,462,84,503"/>
 <area shape="rect" id="Node000002" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="228,330,371,370"/>
@@ -16,7 +16,7 @@
 <area shape="poly" id="edge17_Node000000_Node000007" title=" " alt="" coords="80,555,94,649,118,776,150,898,169,946,190,979,205,992,222,1001,220,1006,202,996,186,982,165,949,145,900,113,777,89,650,75,556"/>
 <area shape="rect" id="Node000041" href="$structIOv2_1_1out__flusher.html" title=" " alt="" coords="188,929,411,969"/>
 <area shape="poly" id="edge19_Node000000_Node000041" title=" " alt="" coords="76,555,80,626,96,722,110,774,130,824,156,872,190,913,207,926,204,931,186,917,152,875,125,827,105,775,90,723,75,626,71,555"/>
-<area shape="rect" id="Node000023" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down&#45;cast to the concrete stream type T is localized ..." alt="" coords="214,459,385,484"/>
+<area shape="rect" id="Node000023" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic try_flush(): the down&#45;cast to the concrete stream type T is locali..." alt="" coords="214,459,385,484"/>
 <area shape="poly" id="edge21_Node000000_Node000023" title=" " alt="" coords="130,510,187,494,240,482,241,487,189,499,131,515"/>
 <area shape="rect" id="Node000008" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="481,997,671,1037"/>
 <area shape="poly" id="edge18_Node000007_Node000008" title=" " alt="" coords="391,1017,480,1015,480,1021,391,1022"/>

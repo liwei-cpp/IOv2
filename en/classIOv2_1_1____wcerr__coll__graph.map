@@ -16,9 +16,9 @@
 <area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="187,255,303,219,392,185,394,190,305,224,188,260"/>
 <area shape="rect" id="Node000009" href="$structIOv2_1_1io__state__and__exp.html" title="Component that manages the stream state bits and their associated exceptions." alt="" coords="337,254,512,279"/>
 <area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="492,280,522,288,600,310,676,336,762,375,760,380,674,341,598,315,521,293,491,285"/>
-<area shape="rect" id="Node000010" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic flush(): the down&#45;cast to the concrete stream type T is localized ..." alt="" coords="339,303,510,329"/>
+<area shape="rect" id="Node000010" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic try_flush(): the down&#45;cast to the concrete stream type T is locali..." alt="" coords="339,303,510,329"/>
 <area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="500,329,675,368,706,375,705,381,674,373,499,334"/>
-<area shape="rect" id="Node000011" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic flush() interface." alt="" coords="33,326,167,351"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1abs__flusher.html" title="Abstract base carrying the polymorphic try_flush() interface." alt="" coords="33,326,167,351"/>
 <area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="181,330,339,319,339,325,182,336"/>
 <area shape="rect" id="Node000012" href="$structIOv2_1_1ostream__operators.html" title="Mix&#45;in base that provides the various insertion operations for output streams." alt="" coords="333,353,516,393"/>
 <area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="530,379,699,393,698,399,530,385"/>

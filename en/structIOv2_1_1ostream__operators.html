@@ -150,6 +150,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a830aa88220a9ce16592ca1f200f16cff"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#a830aa88220a9ce16592ca1f200f16cff">write</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">this</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;self, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
 <tr class="memdesc:a830aa88220a9ce16592ca1f200f16cff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes <code>n</code> characters to the stream.  <br /></td></tr>
 <tr class="separator:a830aa88220a9ce16592ca1f200f16cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af91de8151c29e3bf4f395880c995d5f3" id="r_af91de8151c29e3bf4f395880c995d5f3"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &gt; </td></tr>
+<tr class="memitem:af91de8151c29e3bf4f395880c995d5f3"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ostream__operators.html#af91de8151c29e3bf4f395880c995d5f3">flush</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">this</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;self)</td></tr>
+<tr class="memdesc:af91de8151c29e3bf4f395880c995d5f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes this stream: writes the buffer out to the underlying device.  <br /></td></tr>
+<tr class="separator:af91de8151c29e3bf4f395880c995d5f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
 Friends</h2></td></tr>
@@ -163,6 +167,38 @@ requires (is_writer_def&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;<br />
 struct IOv2::ostream_operators&lt; TChar &gt;</div><p>Mix-in base that provides the various insertion operations for output streams. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="af91de8151c29e3bf4f395880c995d5f3" name="af91de8151c29e3bf4f395880c995d5f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af91de8151c29e3bf4f395880c995d5f3">&#9670;&#160;</a></span>flush()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="structIOv2_1_1ostream__operators.html">IOv2::ostream_operators</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::flush </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">this</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSelf</a> &amp;&#160;</td>
+          <td class="paramname"><em>self</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Flushes this stream: writes the buffer out to the underlying device. </p>
+
+</div>
+</div>
 <a id="a9150e283c8b68aa30b9a706bccf98626" name="a9150e283c8b68aa30b9a706bccf98626"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9150e283c8b68aa30b9a706bccf98626">&#9670;&#160;</a></span>put()</h2>
 
