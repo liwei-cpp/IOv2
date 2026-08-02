@@ -7,6 +7,7 @@ void test_concur_flush_1();
 void test_concur_sentryless_1();
 void test_concur_state_1();
 void test_concur_tie_1();
+void test_concur_tie_nonblocking_1();
 void test_concur_switch_1();
 void test_concur_endl_1();
 void test_concur_pword_1();
@@ -25,6 +26,7 @@ int main()
         test_concur_sentryless_1();
         test_concur_state_1();
         test_concur_tie_1();
+        test_concur_tie_nonblocking_1();
         test_concur_switch_1();
         test_concur_endl_1();
         test_concur_pword_1();

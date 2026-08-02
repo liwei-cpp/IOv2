@@ -2,7 +2,7 @@
  * @file ostream_operators.h
  * @lang{ZH}
  * 定义了输出流的格式化与非格式化插入设施。
- * 包含输出哨兵 `out_sentry`、承载多态 `flush()` 的 CRTP 基类 `out_flusher`、
+ * 包含输出哨兵 `out_sentry`、承载多态 `try_flush()` 的 CRTP 基类 `out_flusher`、
  * 输出流概念 `ostream_type`、承载各类插入操作（`put`/`write`）的 `ostream_operators`
  * 混入基类，以及插入运算符 `operator<<`（含操纵符重载）。
  * @endif
@@ -10,7 +10,7 @@
  * @lang{EN}
  * Defines the formatted and unformatted insertion facilities for output streams.
  * Includes the output sentry `out_sentry`, the CRTP base `out_flusher` that carries the
- * polymorphic `flush()`, the output-stream concept `ostream_type`, the `ostream_operators`
+ * polymorphic `try_flush()`, the output-stream concept `ostream_type`, the `ostream_operators`
  * mix-in base that carries the various insertion operations (`put`/`write`), and the
  * insertion `operator<<` (including manipulator overloads).
  * @endif
@@ -31,6 +31,7 @@
 #include <functional>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <utility>
 
@@ -40,7 +41,7 @@ namespace IOv2
  * @lang{ZH}
  * @brief 输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。
  *
- * 哨兵负责校验流的有效性、刷新关联（tie）流、获取流锁，并在需要时切换读写方向、
+ * 哨兵负责校验流的有效性、刷新关联（tie）流，并在需要时切换读写方向、
  * （追加模式下）定位到末尾；析构时对 unitbuf / 与 stdio 同步的流执行自动刷新。
  * 哨兵不可拷贝、不可移动。
  * @tparam TStream 关联的输出流类型。
@@ -54,7 +55,7 @@ namespace IOv2
  * @brief RAII sentry for output operations: performs the shared setup at the entry of every
  *        insertion operation and an automatic flush at its end.
  *
- * The sentry validates the stream, flushes the tied stream, acquires the stream lock, and
+ * The sentry validates the stream, flushes the tied stream, and
  * optionally switches direction and (in append mode) repositions to the end; on destruction it
  * auto-flushes a unitbuf / stdio-synced stream. The sentry is neither copyable nor movable.
  * @tparam TStream The associated output stream type.
@@ -69,75 +70,55 @@ struct out_sentry
 {
     /**
      * @lang{ZH}
-     * @brief 哨兵所用锁的类型，即针对流 `io_mutex()` 返回的互斥量的 `std::unique_lock`。
-     * @endif
+     * @brief 构造输出哨兵：校验流、刷新关联流，并按需切换读写方向 / 定位到末尾。
      *
-     * @lang{EN}
-     * @brief The lock type used by the sentry: a `std::unique_lock` over the mutex
-     *        returned by the stream's `io_mutex()`.
-     * @endif
-     */
-    using lock_type =
-        std::unique_lock<std::remove_reference_t<decltype(std::declval<TStream&>().io_mutex())>>;
-
-public:
-    /**
-     * @lang{ZH}
-     * @brief 构造输出哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需切换读写方向 / 定位到末尾。
+     * @warning **调用方必须已经持有 `os.io_mutex()`，且要持到自己的 `catch` 之后。** 哨兵自己
+     *          不加锁：它在 `try` 块末尾就析构了，而 `catch` 里的 `handle_exception` 需要在锁内
+     *          更新流状态，才能让成功路径与失败路径对同一把 `io_mutex()` 的可见性保持一致；析构中
+     *          的 unitbuf/stdio 刷新同样依赖那把仍被持有的锁。锁因此必须是调用方的局部变量，而不是
+     *          哨兵的成员。该前置条件无法在运行期校验——`copyable_mutex` 不记录属主，递归锁的
+     *          `try_lock()` 也分不清"我已持有"与"无人持有"。
      *
-     * 锁不由哨兵自身持有，而是从调用方借入（`lock`，须处于 `defer_lock` 状态）：哨兵在构造中
-     * 对其加锁，但其生命周期由调用方的局部变量掌握。因此当哨兵在 `try` 块末尾析构后，锁仍被
-     * 调用方持有，`catch` 中的 `handle_exception` 得以在持锁状态下更新流状态，使成功路径与失败
-     * 路径对同一把 `io_mutex()` 的可见性保持一致。析构中的 unitbuf/stdio 刷新同样在这把仍被持有
-     * 的锁下进行（同一递归锁、同一线程），故哨兵析构先于调用方的锁析构时刷新依旧安全。
-     *
-     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。这也把
-     * 有效性检查（须先于刷新）一并留在了锁外：流本身已失败时，构造在加锁之前就抛出，上一段所
-     * 述的持锁前提不成立，调用方 `catch` 中的 `handle_exception` 在锁外运行。那条路径依然安全
-     * ——状态位的更新由 `m_state_mutex` 自行串行化。
+     * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
+     * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
+     * 由用户自己能定序的锁构成。
      * @param os 要操作的输出流。
      * @param is_unit_buf 是否为 unitbuf 流（决定析构时是否自动刷新并对设备 `dflush`）。
      * @param is_app_mode 是否为追加模式；非标准流在追加模式下会在构造时定位到末尾。
-     * @param lock 从调用方借入的锁，必须处于 `defer_lock` 状态；哨兵在构造时对其加锁。
      * @throw stream_error 若流无效。
      * @throw cvt_error 若追加模式下无法定位到末尾（追加模式要求定长、与状态无关的编码）。
      * @endif
      * @lang{EN}
-     * @brief Constructs the output sentry: validates the stream, flushes the tied stream
-     * (before locking), acquires the lock, and switches direction / repositions to end as
-     * needed.
+     * @brief Constructs the output sentry: validates the stream, flushes the tied stream, and
+     * switches direction / repositions to end as needed.
      *
-     * The lock is not owned by the sentry but borrowed from the caller (`lock`, which must be
-     * in `defer_lock` state): the sentry locks it during construction, yet its lifetime is
-     * owned by the caller's local variable. Thus, after the sentry is destroyed at the end of
-     * the enclosing `try`, the lock is still held by the caller, so `handle_exception` in the
-     * `catch` can update the stream state while holding the lock, keeping the success and
-     * failure paths consistent with respect to the same `io_mutex()`. The unitbuf/stdio flush
-     * in the destructor also runs under that still-held lock (same recursive mutex, same
-     * thread), so flushing remains safe even though the sentry is destroyed before the caller's
-     * lock.
+     * @warning **The caller must already hold `os.io_mutex()`, and must keep holding it past its
+     *          own `catch`.** The sentry does not lock: it is destroyed at the end of the
+     *          enclosing `try`, while `handle_exception` in the `catch` needs the lock to update
+     *          the stream state, so that the success and failure paths stay consistent with
+     *          respect to the same `io_mutex()`; the unitbuf/stdio flush in the destructor relies
+     *          on that still-held lock as well. The lock therefore has to be a local of the caller
+     *          rather than a member of the sentry. The precondition cannot be checked at run time
+     *          -- `copyable_mutex` tracks no owner, and a recursive mutex's `try_lock()` cannot
+     *          tell "this thread already holds it" from "nobody holds it".
      *
-     * The tied stream is flushed before locking, so at most one stream lock is held by this
-     * thread at any time, preserving the no-deadlock guarantee. That also leaves the validity
-     * check -- which has to precede the flush -- outside the lock: when the stream is already
-     * failed, construction throws before locking, the premise of the paragraph above does not
-     * hold, and `handle_exception` in the caller's `catch` runs unlocked. That path is still
-     * safe -- `m_state_mutex` serializes the state update on its own.
+     * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
+     * than wait when the target's lock cannot be taken. This thread can therefore start it safely
+     * while holding its own stream's lock: the tie edge -- the one lock edge the user cannot see
+     * -- never becomes a waiting edge, so any deadlock can only be built from locks the user is
+     * able to order.
      * @param os The output stream to operate on.
      * @param is_unit_buf Whether this is a unitbuf stream (governs the auto-flush and device
      *                    `dflush` on destruction).
      * @param is_app_mode Whether this is append mode; a non-standard stream repositions to the
      *                    end during construction in append mode.
-     * @param lock The lock borrowed from the caller; must be in `defer_lock` state. The sentry
-     *             locks it during construction.
      * @throw stream_error If the stream is invalid.
      * @throw cvt_error If append mode cannot reposition to the end (append mode requires a
      *                  fixed-length, state-independent encoding).
      * @endif
      */
-    out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode, lock_type& lock)
+    out_sentry(TStream& os, bool is_unit_buf, bool is_app_mode)
         : m_os(os)
-        , m_lock(lock)
         , m_is_unit_buf(is_unit_buf)
     {
         if (!static_cast<bool>(m_os))
@@ -145,11 +126,9 @@ public:
 
         if (auto* tied = m_os.tie())
         {
-            try { tied->flush(); }
+            try { tied->try_flush(); }
             catch (...) {} // NOLINT(bugprone-empty-catch)
         }
-
-        m_lock.lock();
 
         if constexpr (is_std)
             m_sync_with_stdio = os.m_sync_with_stdio.load();
@@ -268,7 +247,6 @@ public:
 
 private:
     TStream&    m_os;
-    lock_type&  m_lock;
     bool        m_is_unit_buf;
     bool        m_sync_with_stdio = false;
 };
@@ -321,17 +299,17 @@ concept is_out_sentry = is_out_sentry_impl<T>::value;
 
 /**
  * @lang{ZH}
- * @brief 承载多态 `flush()` 接口的抽象基类。
+ * @brief 承载多态 `try_flush()` 接口的抽象基类。
  *
- * 提供纯虚的 `flush()`，使得可通过基类指针以类型无关的方式刷新任意输出流；具体实现由
- * CRTP 派生类 `out_flusher<T>` 给出。
+ * 提供纯虚的 `try_flush()`，使得可通过基类指针以类型无关的方式刷新任意 tie 目标；输出流的
+ * 实现由 CRTP 派生类 `out_flusher<T>` 给出。
  * @endif
  *
  * @lang{EN}
- * @brief Abstract base carrying the polymorphic `flush()` interface.
+ * @brief Abstract base carrying the polymorphic `try_flush()` interface.
  *
- * Provides a pure virtual `flush()` so that any output stream can be flushed type-erased
- * through a base pointer; the concrete implementation is given by the CRTP-derived
+ * Provides a pure virtual `try_flush()` so that any tie target can be flushed type-erased
+ * through a base pointer; for output streams the implementation is given by the CRTP-derived
  * `out_flusher<T>`.
  * @endif
  */
@@ -350,32 +328,42 @@ protected:
 public:
     /**
      * @lang{ZH}
-     * @brief 刷新本流的纯虚接口；由 `out_flusher<T>` 实现。
+     * @brief 尽力刷新本流的纯虚接口；由 `out_flusher<T>` 实现。
+     * @warning **实现必须非阻塞。** 哨兵在持有自己流的锁时调用本函数，而这条加锁边对用户不可见，
+     *          他无从把它纳入自己的锁序；实现若改用阻塞的 `lock()`，AB-BA 死锁立即回归。取锁
+     *          失败时必须直接返回，不得等待，也不留任何补偿——tie 因此是尽力而为，不是保证。
      * @endif
      *
      * @lang{EN}
-     * @brief Pure virtual interface to flush this stream; implemented by `out_flusher<T>`.
+     * @brief Pure virtual interface that flushes this stream on a best-effort basis; implemented
+     *        by `out_flusher<T>`.
+     * @warning **An implementation must never block.** The sentry calls this while holding its
+     *          own stream's lock, and that lock edge is invisible to the user, who therefore
+     *          cannot fold it into a lock order of their own; an implementation that takes a
+     *          blocking `lock()` brings the AB-BA deadlock straight back. On failure to acquire
+     *          the lock it must return at once, without waiting and without leaving anything
+     *          pending -- which is why a tie is best-effort rather than a guarantee.
      * @endif
      */
-    virtual void flush() = 0;
+    virtual void try_flush() = 0;
 };
 
 /**
  * @lang{ZH}
- * @brief 承载多态 `flush()` 的 CRTP 基类：对具体流类型 `T` 的向下转型集中于此。
+ * @brief 承载多态 `try_flush()` 的 CRTP 基类：对具体流类型 `T` 的向下转型集中于此。
  *
- * `flush()` 覆盖 `abs_flusher::flush`，而虚函数无法使用 deducing-this，只能
+ * `try_flush()` 覆盖 `abs_flusher::try_flush`，而虚函数无法使用 deducing-this，只能
  * `static_cast<T&>(*this)` 取回具体流类型。单独引入本模板承载该 `T`，从而让
  * `ostream_operators` 不必再携带 CRTP 自身参数（与 `istream_operators<TChar>` 对称）。
  * 每个输出流同时派生 `out_flusher<自身>` 与 `ostream_operators<TChar>`。
  * @tparam T 具体的输出流类型。
  * @endif
  * @lang{EN}
- * @brief CRTP base carrying the polymorphic `flush()`: the down-cast to the concrete stream
+ * @brief CRTP base carrying the polymorphic `try_flush()`: the down-cast to the concrete stream
  * type `T` is localized here.
  *
- * `flush()` overrides `abs_flusher::flush`; a virtual cannot use deducing-this, so it must
- * `static_cast<T&>(*this)` to recover the concrete stream type. This template exists solely
+ * `try_flush()` overrides `abs_flusher::try_flush`; a virtual cannot use deducing-this, so it
+ * must `static_cast<T&>(*this)` to recover the concrete stream type. This template exists solely
  * to carry that `T`, letting `ostream_operators` drop its CRTP self-parameter (making it
  * symmetric with `istream_operators<TChar>`). Every output stream derives from both
  * `out_flusher<Self>` and `ostream_operators<TChar>`.
@@ -387,63 +375,39 @@ struct out_flusher : public abs_flusher
 {
     /**
      * @lang{ZH}
-     * @brief 刷新本流：把缓冲区写出到底层设备。
+     * @brief 尽力刷新本流：取到锁就 `flush()`，取不到就放弃。
      *
-     * 刷新不经 sentry，而是直接以 `std::lock_guard` 持有本流的 `io_mutex()`（该锁为递归锁）
-     * 直至刷新结束。由此：
-     *   - **并发刷新被串行化**：多个线程同时 `flush()` 同一流时逐个进入，每个都真正完成一次
-     *     刷新（不是“先到者刷、其余跳过”的弱语义）；底层缓冲区不会被并发操作。
-     *   - **写与刷互斥**：`put`/`write`/`operator<<` 在其 sentry 生命周期内持有同一把
-     *     `io_mutex()`，故写与刷不会并发。
-     *
-     * 本函数**不刷新 tie 流**：与标准 `std::basic_ostream::flush` 一致，刷新只作用于本流，
-     * 关联流的刷新仅由输出操作的 sentry 在其入口触发。因刷新不再沿 tie 链传播，也就不存在
-     * 递归回到本流的可能，无需任何“正在刷新”自旋/跳过标志。
-     *
-     * 输出前的读写模式切换由 `streambuf::flush()` 自行完成（其内部会 `switch_to_put()`），
-     * 故此处无需 sentry 代劳。
+     * 锁一律以 `std::try_to_lock` 获取，至多尝试三次、其间让出时间片。放弃时不做任何补偿，
+     * 该次 tie 刷新就此跳过。调大尝试次数不会更安全：真正的 AB-BA 场景下对方线程正阻塞在本
+     * 线程持有的锁上，所有尝试注定失败，只是让每次 I/O 更慢。
      * @endif
      *
      * @lang{EN}
-     * @brief Flushes this stream: writes the buffer out to the underlying device.
+     * @brief Flushes this stream on a best-effort basis: `flush()`es if the lock can be taken,
+     *        gives up otherwise.
      *
-     * Flushing does not go through the sentry; instead a `std::lock_guard` holds this stream's
-     * `io_mutex()` (a recursive mutex) for the whole flush. Therefore:
-     *   - **Concurrent flushes are serialized**: when several threads `flush()` the same
-     *     stream, they enter one at a time and each actually completes a flush (not the weak
-     *     "first caller flushes, the rest skip" semantics); the underlying buffer is never
-     *     operated on concurrently.
-     *   - **Write and flush are mutually exclusive**: `put`/`write`/`operator<<` hold the same
-     *     `io_mutex()` for their sentry's lifetime, so a write never races a flush.
-     *
-     * This function **does not flush tied streams**: like the standard
-     * `std::basic_ostream::flush`, it acts on this stream alone; tied streams are flushed only
-     * by the sentry at the entry of an output operation. Since a flush no longer propagates
-     * down the tie chain, it can never recurse back into this stream, so no "already flushing"
-     * spin/skip flag is needed.
-     *
-     * Switching the buffer from get to put mode is done by `streambuf::flush()` itself (it
-     * calls `switch_to_put()` internally), so no sentry is needed for that either.
+     * The lock is always taken with `std::try_to_lock`, for at most three attempts with a yield
+     * in between. Giving up leaves nothing pending; that tie flush is simply skipped. Raising
+     * the attempt count does not buy safety: in a genuine AB-BA the other thread is blocked on a
+     * lock this thread holds, so every attempt is doomed and a larger budget only makes each I/O
+     * slower.
      * @endif
      */
-    void flush() override
+    void try_flush() override
     {
+        constexpr int attempts = 3;
+
         T& obj = static_cast<T&>(*this);
-        std::lock_guard guard(obj.io_mutex());
-        if (!static_cast<bool>(obj)) return;
-        try
+        for (int i = 0; i < attempts; ++i)
         {
-            if constexpr (dev_cpt::support_put<typename T::device_type>)
+            std::unique_lock lk(obj.io_mutex(), std::try_to_lock);
+            if (lk)
             {
-                obj.m_streambuf.flush();
-                obj.m_streambuf.device().dflush();
+                obj.flush();
+                return;
             }
-            else
-                throw stream_error("out_flusher::flush fail: device does not support output");
-        }
-        catch(...)
-        {
-            obj.handle_exception(std::current_exception());
+            if (i + 1 < attempts)
+                std::this_thread::yield();
         }
     }
 };
@@ -488,9 +452,9 @@ concept ostream_type =
  * @brief 为输出流提供各类插入操作的混入（mix-in）基类。
  *
  * 本模板集中承载 `put`、`write` 等成员，供具体输出流类型派生使用；这些成员通过
- * deducing-this（`this TSelf& self`）以派生类的具体类型执行操作。每个操作都在其内部
- * 构造输出哨兵以完成加锁与前置准备，并将异常统一交由流的 `handle_exception` 处理，
- * 从而按异常掩码更新流状态。
+ * deducing-this（`this TSelf& self`）以派生类的具体类型执行操作。每个操作先取本流的
+ * `io_mutex()`，再在锁内构造输出哨兵以完成前置准备，并将异常统一交由流的 `handle_exception`
+ * 处理，从而按异常掩码更新流状态。
  * @tparam TChar 字符类型。
  * @endif
  *
@@ -499,9 +463,9 @@ concept ostream_type =
  *
  * This template centralizes members such as `put` and `write` for concrete output stream
  * types to derive from; these members use deducing-this (`this TSelf& self`) to operate on
- * the concrete derived type. Each operation constructs an output sentry internally to handle
- * locking and setup, and routes exceptions through the stream's `handle_exception`, which
- * updates the stream state according to the exception mask.
+ * the concrete derived type. Each operation takes the stream's `io_mutex()` and then constructs
+ * an output sentry under it to handle the setup, and routes exceptions through the stream's
+ * `handle_exception`, which updates the stream state according to the exception mask.
  * @tparam TChar The character type.
  * @endif
  */
@@ -547,12 +511,12 @@ struct ostream_operators
     template<typename TSelf>
     TSelf& put(this TSelf& self, TChar c, bool force_flush = false)
     {
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::out_sentry_type;
             sentry_type cerb(self, force_flush || bool(self.flags() & ios_defs::unitbuf),
-                             bool(self.flags() & ios_defs::appmode), lk);
+                             bool(self.flags() & ios_defs::appmode));
             self.m_streambuf.sputc(c);
         }
         catch(...)
@@ -588,11 +552,11 @@ struct ostream_operators
     template<typename TSelf>
     TSelf& write(this TSelf& self, const TChar* s, size_t n)
     {
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::out_sentry_type;
-            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode), lk);
+            sentry_type cerb(self, bool(self.flags() & ios_defs::unitbuf), bool(self.flags() & ios_defs::appmode));
             if (s == nullptr && n != 0)
                 throw stream_error("ostream write fail: null character sequence");
             self.m_streambuf.sputn(s, n);
@@ -602,6 +566,70 @@ struct ostream_operators
             self.handle_exception(std::current_exception());
         }
         return self;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 刷新本流：把缓冲区写出到底层设备。
+     *
+     * 刷新不经哨兵，而是直接以 `std::lock_guard` 持有本流的 `io_mutex()`（该锁为递归锁）
+     * 直至刷新结束。由此：
+     *   - **并发刷新被串行化**：多个线程同时 `flush()` 同一流时逐个进入，每个都真正完成一次
+     *     刷新（不是"先到者刷、其余跳过"的弱语义）；底层缓冲区不会被并发操作。
+     *   - **写与刷互斥**：`put`/`write`/`operator<<` 在其哨兵生命周期内持有同一把
+     *     `io_mutex()`，故写与刷不会并发。
+     *
+     * 本函数**不刷新 tie 流**：与标准 `std::basic_ostream::flush` 一致，刷新只作用于本流，
+     * 关联流的刷新仅由输出操作的哨兵在其入口触发。因刷新不再沿 tie 链传播，也就不存在递归回
+     * 到本流的可能，无需任何"正在刷新"自旋/跳过标志。
+     *
+     * 输出前的读写模式切换由 `streambuf::flush()` 自行完成（其内部会 `switch_to_put()`），
+     * 故此处无需哨兵代劳。
+     * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Flushes this stream: writes the buffer out to the underlying device.
+     *
+     * Flushing does not go through the sentry; instead a `std::lock_guard` holds this stream's
+     * `io_mutex()` (a recursive mutex) for the whole flush. Therefore:
+     *   - **Concurrent flushes are serialized**: when several threads `flush()` the same
+     *     stream, they enter one at a time and each actually completes a flush (not the weak
+     *     "first caller flushes, the rest skip" semantics); the underlying buffer is never
+     *     operated on concurrently.
+     *   - **Write and flush are mutually exclusive**: `put`/`write`/`operator<<` hold the same
+     *     `io_mutex()` for their sentry's lifetime, so a write never races a flush.
+     *
+     * This function **does not flush tied streams**: like the standard
+     * `std::basic_ostream::flush`, it acts on this stream alone; tied streams are flushed only
+     * by the sentry at the entry of an output operation. Since a flush no longer propagates
+     * down the tie chain, it can never recurse back into this stream, so no "already flushing"
+     * spin/skip flag is needed.
+     *
+     * Switching the buffer from get to put mode is done by `streambuf::flush()` itself (it
+     * calls `switch_to_put()` internally), so no sentry is needed for that either.
+     * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
+     * @endif
+     */
+    template <typename TSelf>
+    void flush(this TSelf& self)
+    {
+        std::lock_guard guard(self.io_mutex());
+        if (!static_cast<bool>(self)) return;
+        try
+        {
+            if constexpr (dev_cpt::support_put<typename TSelf::device_type>)
+            {
+                self.m_streambuf.flush();
+                self.m_streambuf.device().dflush();
+            }
+            else
+                throw stream_error("ostream flush fail: device does not support output");
+        }
+        catch (...)
+        {
+            self.handle_exception(std::current_exception());
+        }
     }
 
     /**
@@ -716,9 +744,8 @@ T& operator << (T& obj, const std::function<void(ios_base<typename T::char_type>
  * @brief 插入操纵符：应用一个可用于输出方向的操纵符对象。
  *
  * 本重载把流交给操纵符自己的 `operator()`：**加锁由操纵符负责**。各操纵符所需的锁作用域并
- * 不相同（`endl` 只能在读取 locale 期间持锁、必须在 `put()` 之前释放；`ends`/`flush` 完全
- * 不需要显式加锁；输入方向的 `ws` 还要把一把处于 `defer_lock` 的锁交给 `in_sentry`），无法
- * 上提到本函数。
+ * 不相同（`endl` 要把读 locale 与 `put()` 一起罩在锁内；`ends`/`flush` 完全不需要显式加锁；
+ * 输入方向的 `ws` 要在构造 `in_sentry` 之前先加锁），无法上提到本函数。
  *
  * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的临界区里就地处理了异常，走
  * 不到这里；它保证的是自定义操纵符即使漏了异常处理，也仍然按本库的错误模型置位并遵守异常
@@ -737,10 +764,9 @@ T& operator << (T& obj, const std::function<void(ios_base<typename T::char_type>
  * @brief Insertion manipulator: applies a manipulator object usable in the output direction.
  *
  * This overload hands the stream to the manipulator's own `operator()`: **locking is the
- * manipulator's job**. The required lock scope differs per manipulator (`endl` may hold the
- * lock only while reading the locale and must release it before `put()`; `ends`/`flush` need no
- * explicit lock at all; on the input side `ws` must hand a `defer_lock`ed lock to `in_sentry`),
- * so it cannot be hoisted here.
+ * manipulator's job**. The required lock scope differs per manipulator (`endl` must cover both
+ * the locale read and the `put()`; `ends`/`flush` need no explicit lock at all; on the input
+ * side `ws` must take the lock before constructing `in_sentry`), so it cannot be hoisted here.
  *
  * The `catch` here is a **backstop**, not the primary mechanism: the library's own manipulators
  * handle their exceptions inside their own critical sections and never reach it. What it
@@ -841,11 +867,11 @@ T& operator<<(T& obj, const TValue& value)
 {
     using TDecay = std::decay_t<TValue>;
     using TChar = typename T::char_type;
-    std::unique_lock lk(obj.io_mutex(), std::defer_lock);
+    std::lock_guard guard(obj.io_mutex());
     try
     {
         using sentry_type = typename T::out_sentry_type;
-        sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), bool(obj.flags() & ios_defs::appmode), lk);
+        sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), bool(obj.flags() & ios_defs::appmode));
 
         if constexpr (is_writer_def<TChar, TValue>)
             writer<TChar, TValue>::swrite(obj.o_iter(), obj, obj.locale(), value);
