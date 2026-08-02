@@ -129,6 +129,31 @@ void test_io_base_manipulators_get_time_char_2()
     iss2 >> IOv2::get_time(static_cast<std::tm*>(nullptr), "%Y-%m-%d %H:%M:%S");
     VERIFY(iss2.str_fail());
 
+    // The null check runs before the sentry, so not even the leading whitespace skipws would
+    // otherwise consume is taken: the position is unchanged and the caller can clear() and
+    // retry from where it started.
+    for (int null_fmt = 0; null_fmt < 2; ++null_fmt)
+    {
+        std::tm target{};
+        IOv2::istream iss3{IOv2::mem_device{std::string("   1971-04-04")},
+                           IOv2::locale<char>("C")};
+        VERIFY(iss3.tell() == 0);
+
+        if (null_fmt != 0)
+            iss3 >> IOv2::get_time(&target, static_cast<const char*>(nullptr));
+        else
+            iss3 >> IOv2::get_time(static_cast<std::tm*>(nullptr), "%Y-%m-%d");
+
+        VERIFY(iss3.str_fail());
+        iss3.clear();
+        VERIFY(iss3.tell() == 0);
+
+        // Retrying from that position still sees the whole input.
+        iss3 >> IOv2::get_time(&target, "%Y-%m-%d");
+        VERIFY(!iss3.str_fail());
+        VERIFY(target.tm_year == 71 && target.tm_mon == 3 && target.tm_mday == 4);
+    }
+
     dump_info("Done\n");
 }
 

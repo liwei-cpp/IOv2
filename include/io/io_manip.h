@@ -869,6 +869,14 @@ template <istream_type T, typename TChar>
     requires std::is_same_v<TChar, typename T::char_type>
 inline T& operator>>(T& is, _Get_time<TChar> f)
 {
+    if (f.tmb == nullptr || f.fmt == nullptr)
+    {
+        std::lock_guard guard(is.io_mutex());
+        is.handle_exception(
+            std::make_exception_ptr(stream_error("get_time fail: null tm or format pointer")));
+        return is;
+    }
+
     // Explicit template arguments for the same reason as in the _Get_money overload:
     // `is >> f` would recurse into this very function.
     return IOv2::operator>><T, _Get_time<TChar>>(is, f);
