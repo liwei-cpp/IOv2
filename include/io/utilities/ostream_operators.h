@@ -420,8 +420,12 @@ struct ostream_operators;
  * @brief 输出流类型的概念。
  *
  * 一个类型要成为输出流，必须提供 `out_sentry_type` 与 `char_type` 类型、可返回其
- * locale，且其 `out_sentry_type` 满足 `is_out_sentry`；同时它必须同时派生自
- * `ios_base<char_type>` 与 `ostream_operators<char_type>`。
+ * locale，且其 `out_sentry_type` 满足 `is_out_sentry`；同时它必须派生自
+ * `ios_base<char_type>`、`io_state_and_exp` 与 `ostream_operators<char_type>`。
+ * @note `io_state_and_exp` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
+ *       `handle_exception()`（`_Endl::operator()`、`out_sentry` 的析构）与 `operator bool`。
+ *       缺了它，这些调用要到模板**体**实例化时才报错，而消费操纵符的运算符只用
+ *       `std::invocable` 检查声明层面的可调用性，兜底重载那条简短诊断路径就被绕开了。
  * @tparam T 待检测的类型。
  * @endif
  *
@@ -430,8 +434,14 @@ struct ostream_operators;
  *
  * To qualify as an output stream, a type must expose the `out_sentry_type` and `char_type`
  * types, be able to return its locale, and have an `out_sentry_type` that satisfies
- * `is_out_sentry`; it must also derive from both `ios_base<char_type>` and
+ * `is_out_sentry`; it must also derive from `ios_base<char_type>`, `io_state_and_exp` and
  * `ostream_operators<char_type>`.
+ * @note The `io_state_and_exp` clause is a requirement, not just a description: code
+ *       constrained by this concept calls `handle_exception()` (in `_Endl::operator()` and in
+ *       `out_sentry`'s destructor) and `operator bool` directly. Without it those calls only
+ *       fail once the template **body** is instantiated, and since the operators that consume
+ *       manipulators check callability with `std::invocable` -- a declaration-level check --
+ *       the short diagnostic the fallback overload exists to produce is bypassed.
  * @tparam T The type under inspection.
  * @endif
  */
@@ -445,6 +455,7 @@ concept ostream_type =
     } &&
     is_out_sentry<typename T::out_sentry_type> &&
     std::derived_from<T, ios_base<typename T::char_type>> &&
+    std::derived_from<T, io_state_and_exp> &&
     std::derived_from<T, ostream_operators<typename T::char_type>>;
 
 /**
