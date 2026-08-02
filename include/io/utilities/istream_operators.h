@@ -41,7 +41,7 @@ namespace IOv2
  * @lang{ZH}
  * @brief 输入操作的 RAII 哨兵：在每次提取操作的入口统一完成前置准备。
  *
- * 哨兵负责校验流的有效性、刷新关联（tie）流、获取流锁，并在需要时跳过前导空白，
+ * 哨兵负责校验流的有效性、刷新关联（tie）流，并在需要时跳过前导空白，
  * 从而让每个提取操作以一致的前置条件开始。哨兵不可拷贝、不可移动。
  * @tparam TStream 关联的输入流类型。
  * @tparam involve_output 若为 `true`，表示该流同时支持输出，构造时会将底层缓冲区
@@ -52,7 +52,7 @@ namespace IOv2
  * @brief RAII sentry for input operations: performs the shared setup at the entry of
  *        every extraction operation.
  *
- * The sentry validates the stream, flushes the tied stream, acquires the stream lock,
+ * The sentry validates the stream, flushes the tied stream,
  * and optionally skips leading whitespace, so that each extraction begins with a
  * consistent set of preconditions. The sentry is neither copyable nor movable.
  * @tparam TStream The associated input stream type.
@@ -65,77 +65,59 @@ struct in_sentry
 {
     /**
      * @lang{ZH}
-     * @brief 哨兵所用锁的类型，即针对流 `io_mutex()` 返回的互斥量的 `std::unique_lock`。
-     * @endif
+     * @brief 构造输入哨兵：校验流、刷新关联流，并按需跳过前导空白。
      *
-     * @lang{EN}
-     * @brief The lock type used by the sentry: a `std::unique_lock` over the mutex
-     *        returned by the stream's `io_mutex()`.
-     * @endif
-     */
-    using lock_type =
-        std::unique_lock<std::remove_reference_t<decltype(std::declval<TStream&>().io_mutex())>>;
-
-    /**
-     * @lang{ZH}
-     * @brief 构造输入哨兵：校验流、（在加锁前）刷新关联流、加锁，并按需跳过前导空白。
+     * @warning **调用方必须已经持有 `is.io_mutex()`，且要持到自己的 `catch` 之后。** 哨兵自己
+     *          不加锁：它在 `try` 块末尾就析构了，而 `catch` 里的 `handle_exception` 需要在锁内
+     *          更新流状态，才能让成功路径与失败路径对同一把 `io_mutex()` 的可见性保持一致。锁因此
+     *          必须是调用方的局部变量，而不是哨兵的成员。该前置条件无法在运行期校验——
+     *          `copyable_mutex` 不记录属主，递归锁的 `try_lock()` 也分不清"我已持有"与"无人持有"。
      *
-     * 锁不由哨兵自身持有，而是从调用方借入（`lock`，须处于 `defer_lock` 状态）：哨兵在构造
-     * 中对其加锁，但其生命周期由调用方的局部变量掌握。因此当哨兵在 `try` 块末尾析构后，锁
-     * 仍被调用方持有，`catch` 中的 `handle_exception` 得以在持锁状态下更新流状态，使成功路径
-     * 与失败路径对同一把 `io_mutex()` 的可见性保持一致。
-     *
-     * 关联流的刷新在加锁之前完成，保证任一时刻本线程至多持有一把流锁，维持不死锁保证。这也把
-     * 有效性检查（须先于刷新）一并留在了锁外：流本身已失败时，构造在加锁之前就抛出，上一段所
-     * 述的持锁前提不成立，调用方 `catch` 中的 `handle_exception` 在锁外运行。那条路径依然安全
-     * ——状态位的更新由 `m_state_mutex` 自行串行化。
+     * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
+     * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
+     * 由用户自己能定序的锁构成。
      * @param is 要操作的输入流。
      * @param noskip 若为 `true`，则不跳过前导空白；若为 `false`，按当前 locale 的
      *               空白定义跳过前导空白。
-     * @param lock 从调用方借入的锁，必须处于 `defer_lock` 状态；哨兵在构造时对其加锁。
      * @throw stream_error 若流无效，或缺少 ctype facet。
      * @throw eof_error 若在跳过空白的过程中到达输入结尾。
      * @endif
      * @lang{EN}
-     * @brief Constructs the input sentry: validates the stream, flushes the tied stream
-     * (before locking), acquires the lock, and skips leading whitespace if requested.
+     * @brief Constructs the input sentry: validates the stream, flushes the tied stream, and
+     * skips leading whitespace if requested.
      *
-     * The lock is not owned by the sentry but borrowed from the caller (`lock`, which must be
-     * in `defer_lock` state): the sentry locks it during construction, yet its lifetime is
-     * owned by the caller's local variable. Thus, after the sentry is destroyed at the end of
-     * the enclosing `try`, the lock is still held by the caller, so `handle_exception` in the
-     * `catch` can update the stream state while holding the lock, keeping the success and
-     * failure paths consistent with respect to the same `io_mutex()`.
+     * @warning **The caller must already hold `is.io_mutex()`, and must keep holding it past its
+     *          own `catch`.** The sentry does not lock: it is destroyed at the end of the
+     *          enclosing `try`, while `handle_exception` in the `catch` needs the lock to update
+     *          the stream state, so that the success and failure paths stay consistent with
+     *          respect to the same `io_mutex()`. The lock therefore has to be a local of the
+     *          caller rather than a member of the sentry. The precondition cannot be checked at
+     *          run time -- `copyable_mutex` tracks no owner, and a recursive mutex's `try_lock()`
+     *          cannot tell "this thread already holds it" from "nobody holds it".
      *
-     * The tied stream is flushed before locking, so at most one stream lock is held by this
-     * thread at any time, preserving the no-deadlock guarantee. That also leaves the validity
-     * check -- which has to precede the flush -- outside the lock: when the stream is already
-     * failed, construction throws before locking, the premise of the paragraph above does not
-     * hold, and `handle_exception` in the caller's `catch` runs unlocked. That path is still
-     * safe -- `m_state_mutex` serializes the state update on its own.
+     * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
+     * than wait when the target's lock cannot be taken. This thread can therefore start it safely
+     * while holding its own stream's lock: the tie edge -- the one lock edge the user cannot see
+     * -- never becomes a waiting edge, so any deadlock can only be built from locks the user is
+     * able to order.
      * @param is The input stream to operate on.
      * @param noskip If `true`, leading whitespace is not skipped; if `false`, leading
      *               whitespace is skipped according to the current locale's definition.
-     * @param lock The lock borrowed from the caller; must be in `defer_lock` state. The
-     *             sentry locks it during construction.
      * @throw stream_error If the stream is invalid or the ctype facet is missing.
      * @throw eof_error If end of input is reached while skipping whitespace.
      * @endif
      */
-    in_sentry(TStream& is, bool noskip, lock_type& lock)
+    in_sentry(TStream& is, bool noskip)
         : m_is(is)
-        , m_lock(lock)
     {
         if (!m_is)
             throw stream_error("istream_sentry create fail: Invalid istream");
 
         if (auto* tied = is.tie())
         {
-            try { tied->flush(); }
+            try { tied->try_flush(); }
             catch (...) {} // NOLINT(bugprone-empty-catch)
         }
-
-        m_lock.lock();
 
         if constexpr (involve_output)
             is.m_streambuf.switch_to_get();
@@ -175,8 +157,7 @@ struct in_sentry
     in_sentry& operator=(in_sentry&&) = delete;
 
 private:
-    TStream&   m_is;
-    lock_type& m_lock;
+    TStream& m_is;
 };
 
 /**
@@ -311,7 +292,7 @@ concept istream_type =
  *
  * 本模板集中承载 `get`、`peek`、`read`、`ignore`、`putback` 等成员，供具体输入流类型
  * 派生使用；这些成员通过 deducing-this（`this TSelf& self`）以派生类的具体类型执行操作。
- * 每个操作都在其内部构造输入哨兵以完成加锁与前置准备，并将异常统一交由流的
+ * 每个操作先取本流的 `io_mutex()`，再在锁内构造输入哨兵以完成前置准备，并将异常统一交由流的
  * `handle_exception` 处理，从而按异常掩码更新流状态。
  * @tparam TChar 字符类型。
  * @endif
@@ -321,9 +302,10 @@ concept istream_type =
  *
  * This template centralizes members such as `get`, `peek`, `read`, `ignore`, and `putback`
  * for concrete input stream types to derive from; these members use deducing-this
- * (`this TSelf& self`) to operate on the concrete derived type. Each operation constructs
- * an input sentry internally to handle locking and setup, and routes exceptions through the
- * stream's `handle_exception`, which updates the stream state according to the exception mask.
+ * (`this TSelf& self`) to operate on the concrete derived type. Each operation takes the
+ * stream's `io_mutex()` and then constructs an input sentry under it to handle the setup, and
+ * routes exceptions through the stream's `handle_exception`, which updates the stream state
+ * according to the exception mask.
  * @tparam TChar The character type.
  * @endif
  */
@@ -356,11 +338,11 @@ struct istream_operators
     {
         std::optional<TChar> c;
         bool at_eof = false;
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
             c = self.m_streambuf.sbumpc();
             if (!c.has_value())
             {
@@ -401,11 +383,11 @@ struct istream_operators
     TSelf& get(this TSelf& self, TChar& c)
     {
         bool at_eof = false;
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
             auto tmp = self.m_streambuf.sbumpc();
             if (tmp.has_value()) c = tmp.value();
             else
@@ -479,11 +461,11 @@ struct istream_operators
 
         size_t gcount = 0;
         bool at_eof = false;
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
             if constexpr (std::is_pointer_v<TOut>)
             {
                 if (s == nullptr)
@@ -634,11 +616,11 @@ struct istream_operators
     std::optional<TChar> peek(this TSelf& self)
     {
         std::optional<TChar> c;
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
             c = self.m_streambuf.sgetc();
             if (!c.has_value()) throw eof_error{};
         }
@@ -681,11 +663,11 @@ struct istream_operators
     {
         size_t gcount = 0;
         bool at_eof = false;
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
             if (s == nullptr && n != 0)
                 throw stream_error{"istream read fail: null character sequence"};
             self.m_streambuf.sgetn(s, n, &gcount);
@@ -723,11 +705,11 @@ struct istream_operators
     TSelf& ignore(this TSelf& self, size_t n = 1)
     {
         bool at_eof = false;
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
 
             for (size_t gcount = 0; gcount < n; ++gcount)
             {
@@ -780,11 +762,11 @@ struct istream_operators
     {
         size_t gcount = 0;
         bool at_eof = false;
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
             if (n == 0) return self;
 
             auto c = self.m_streambuf.sgetc();
@@ -844,11 +826,11 @@ struct istream_operators
     template <typename TSelf>
     TSelf& putback(this TSelf& self, TChar c)
     {
-        std::unique_lock lk(self.io_mutex(), std::defer_lock);
+        std::lock_guard guard(self.io_mutex());
         try
         {
             using sentry_type = typename TSelf::in_sentry_type;
-            sentry_type cerb(self, true, lk);
+            sentry_type cerb(self, true);
             self.unset_state(IOv2::ios_defs::eofbit);
             self.m_streambuf.sputbackc(c);
         }
@@ -975,9 +957,8 @@ T& operator >> (T& obj, const std::function<void(ios_base<typename T::char_type>
  * @brief 提取操纵符：应用一个可用于输入方向的操纵符对象。
  *
  * 本重载把流交给操纵符自己的 `operator()`：**加锁由操纵符负责**。各操纵符所需的锁作用域并
- * 不相同（`ws` 要把一把处于 `defer_lock` 的锁交给 `in_sentry`，并在哨兵已加锁时于锁内调用
- * `handle_exception`；`endl` 只能在读取 locale 期间持锁、必须在 `put()` 之前释放；
- * `ends`/`flush` 完全不需要显式加锁），无法上提到本函数。
+ * 不相同（`ws` 要在构造 `in_sentry` 之前先加锁，并在锁内调用 `handle_exception`；`endl` 要把
+ * 读 locale 与 `put()` 一起罩在锁内；`ends`/`flush` 完全不需要显式加锁），无法上提到本函数。
  *
  * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的临界区里就地处理了异常，走
  * 不到这里；它保证的是自定义操纵符即使漏了异常处理，也仍然按本库的错误模型置位并遵守异常
@@ -996,10 +977,9 @@ T& operator >> (T& obj, const std::function<void(ios_base<typename T::char_type>
  * @brief Extraction manipulator: applies a manipulator object usable in the input direction.
  *
  * This overload hands the stream to the manipulator's own `operator()`: **locking is the
- * manipulator's job**. The required lock scope differs per manipulator (`ws` must hand a
- * `defer_lock`ed lock to `in_sentry` and calls `handle_exception` under that lock whenever the
- * sentry got as far as taking it; `endl` may hold the lock only while reading the locale and
- * must release it before `put()`; `ends`/`flush` need no explicit lock at all), so it cannot be
+ * manipulator's job**. The required lock scope differs per manipulator (`ws` must take the lock
+ * before constructing `in_sentry` and calls `handle_exception` under it; `endl` must cover both
+ * the locale read and the `put()`; `ends`/`flush` need no explicit lock at all), so it cannot be
  * hoisted here.
  *
  * The `catch` here is a **backstop**, not the primary mechanism: the library's own manipulators
@@ -1113,12 +1093,12 @@ T& operator>>(T& obj, TValue& value)
     using sentry_type = typename T::in_sentry_type;
 
     bool saw_eof = false;
-    std::unique_lock lk(obj.io_mutex(), std::defer_lock);
+    std::lock_guard guard(obj.io_mutex());
     try
     {
         auto iter = obj.i_iter(&saw_eof);
         bool skip = bool(obj.flags() & ios_defs::skipws);
-        sentry_type cerb(obj, !skip, lk);
+        sentry_type cerb(obj, !skip);
 
         if (obj.eof())
             throw stream_error("istream extraction fail: reached EOF with no value extracted");

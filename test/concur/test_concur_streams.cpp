@@ -1,3 +1,4 @@
+#include <atomic>
 #include <memory>
 #include <string>
 #include <thread>
@@ -282,6 +283,80 @@ void test_concur_pword_1()
     });
 
     VERIFY(static_cast<bool>(os));
+
+    dump_info("Done\n");
+}
+
+void test_concur_tie_nonblocking_1()
+{
+    dump_info("Test tie flush never blocks case 1...");
+    using namespace IOv2;
+
+    // A tie flush goes through try_flush(), which never waits for the target's lock. Two
+    // checks, both of which used to hang:
+    //   * a thread parked on the tie target's sync() cannot stall a writer on a stream tied
+    //     to it;
+    //   * the hidden-edge AB-BA -- X tied to Q, Y tied to P, one thread holding P and the
+    //     other Q -- completes instead of deadlocking.
+    // The visible-edge AB-BA (two sync() guards taken in opposite orders, no tie involved)
+    // is deliberately NOT covered: that one is the caller's own lock-order bug.
+    {
+        ostream target(mem_device<char>{});
+        ostream writer(mem_device<char>{});
+        writer.tie(&target);
+
+        std::atomic<bool> release{false};
+        std::atomic<bool> written{false};
+
+        std::thread holder([&]
+        {
+            IOv2::sync guard(target);
+            while (!release.load()) std::this_thread::yield();
+        });
+
+        std::thread w([&]
+        {
+            writer << "x";
+            written.store(true);
+        });
+
+        w.join();                   // hangs here before the fix
+        VERIFY(written.load());
+        release.store(true);
+        holder.join();
+
+        writer.tie(nullptr);
+    }
+
+    {
+        ostream p(mem_device<char>{});
+        ostream q(mem_device<char>{});
+        ostream x(mem_device<char>{});
+        ostream y(mem_device<char>{});
+        x.tie(&q);
+        y.tie(&p);
+
+        std::atomic<int> ready{0};
+        std::atomic<int> done{0};
+
+        auto body = [&ready, &done](auto& held, auto& used, int v)
+        {
+            IOv2::sync guard(held);
+            ready.fetch_add(1);
+            while (ready.load() < 2) std::this_thread::yield();
+            used << v;
+            done.fetch_add(1);
+        };
+
+        std::thread t1([&] { body(p, x, 1); });
+        std::thread t2([&] { body(q, y, 2); });
+        t1.join();                  // hangs here before the fix
+        t2.join();
+        VERIFY(done.load() == 2);
+
+        x.tie(nullptr);
+        y.tie(nullptr);
+    }
 
     dump_info("Done\n");
 }

@@ -139,7 +139,7 @@ struct stream_common_operators
      *       调用即为未定义行为；详见各自的文档。其余操作不受影响，照常把错误转为状态位。
      * @warning 这意味着拷贝或移动一个流之后，其 tie 关系**不会**保留，需要重新调用 `tie()`。
      *          另需注意：若某个流是**别人的** tie 目标，移动它并不会更新那些指向它的流——
-     *          它们仍指向这个已被移空的对象，其后的 `tie()->flush()` 会静默失败（置上该目标
+     *          它们仍指向这个已被移空的对象，其后的 `tie()->try_flush()` 会静默失败（置上该目标
      *          自己的失败位，并被 sentry 吞掉）。这一点与 tie 目标的生命周期约束同属调用方
      *          责任，详见 `tie()`。
      * @endif
@@ -176,7 +176,7 @@ struct stream_common_operators
      * @warning This means a stream's tie relationship is **not** preserved across a copy or a
      *          move; call `tie()` again. Note also that moving a stream which is **someone
      *          else's** tie target does not update the streams pointing at it -- they still
-     *          point at the emptied object, and their subsequent `tie()->flush()` fails silently
+     *          point at the emptied object, and their subsequent `tie()->try_flush()` fails silently
      *          (setting a failure bit on that target, which the sentry swallows). Like the
      *          lifetime constraint on tie targets, this is the caller's responsibility; see
      *          `tie()`.
@@ -638,21 +638,28 @@ struct stream_common_operators
      * @lang{ZH}
      * @brief 设置本流所绑定（tie）的输出流，并返回先前绑定的流。
      *
-     * 绑定后，本流在每次 I/O 前都会（经 sentry）调用 `tie()->flush()`，以保证例如提示符
+     * 绑定后，本流在每次 I/O 前都会（经 sentry）调用 `tie()->try_flush()`，以保证例如提示符
      * 先于其对应的输入被刷出。
      *
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param str 要绑定的输出流；传 `nullptr` 解除绑定。
      * @return 先前绑定的输出流（可能为 `nullptr`）。
      *
+     * @warning **tie 是尽力而为，不是保证。** 刷新走 `try_flush()`：目标流的锁被别的线程占着
+     *          时，本次刷新会被**整个跳过**，且不留任何补偿，本流的操作照常进行。这是为了不在
+     *          用户看不见的 tie 边上制造阻塞等待——否则 `sync(P); X << 1;` 这类代码会构造出用户
+     *          无从定序的 AB-BA 死锁。代价是：持续竞争下 tie 目标可能一直没被刷出，最终兜底只有
+     *          流析构。无竞争时刷新必定成功，短暂竞争由 `try_flush()` 内部的有限次重试覆盖，
+     *          因此绝大多数场景的行为与"保证刷新"没有区别。
+     *
      * @warning 生命周期由调用方负责：`str` 仅以裸指针保存，本类不做任何生命周期管理，
      *          也不会在析构时自动解绑。最简单且始终安全的规则是：让 `str` 所指的流存活于
      *          所有绑定到它的流之后（这也是标准用法，如全局 `cout` 活得比 `cin` 久）。否则
-     *          任何 I/O 都会经由 `tie()->flush()` 解引用悬空指针，导致未定义行为。此契约与
+     *          任何 I/O 都会经由 `tie()->try_flush()` 解引用悬空指针，导致未定义行为。此契约与
      *          标准库 `std::basic_ios::tie` 一致。
      * @warning **销毁之外，"被移动"同样会让一个 tie 目标失效。** 移动一个流会掏空它的
      *          `m_streambuf` 与 `m_locale`，但指向它的那些流并不会被更新——它们仍指向这个
-     *          已被移空的对象。这不会导致未定义行为（`tie()->flush()` 会在该目标上置一个失败
+     *          已被移空的对象。这不会导致未定义行为（`tie()->try_flush()` 会在该目标上置一个失败
      *          位，随后被 sentry 吞掉），但 tie 关系从此**静默失效**：绑定方仍报告 `good()`，
      *          而刷新实际上什么也没做。因此上面那条规则应读作：让 tie 目标既不被销毁、也不被
      *          移动，直到所有绑定到它的流都已解绑或销毁。
@@ -684,24 +691,35 @@ struct stream_common_operators
      * @lang{EN}
      * @brief Sets the output stream this stream is tied to and returns the previous one.
      *
-     * Once tied, before every I/O operation this stream calls `tie()->flush()` (via the
+     * Once tied, before every I/O operation this stream calls `tie()->try_flush()` (via the
      * sentry), so that e.g. a prompt is flushed before its matching input is read.
      *
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param str The stream to tie to; pass `nullptr` to untie.
      * @return The previously tied stream (may be `nullptr`).
      *
+     * @warning **A tie is best-effort, not a guarantee.** The flush goes through `try_flush()`:
+     *          when another thread holds the target's lock, the flush is **skipped entirely**,
+     *          nothing is left pending, and this stream's operation proceeds as usual. That is
+     *          what keeps the library from creating a blocking wait on a lock edge the user
+     *          cannot see -- otherwise code such as `sync(P); X << 1;` could build an AB-BA
+     *          deadlock the user has no way to order. The price is that under sustained
+     *          contention a tie target may never get flushed, with stream destruction as the
+     *          only backstop. With no contention the flush always succeeds, and brief contention
+     *          is covered by the bounded retry inside `try_flush()`, so in the vast majority of
+     *          cases the behavior is indistinguishable from a guaranteed flush.
+     *
      * @warning Lifetime is the caller's responsibility: `str` is stored as a raw pointer;
      *          this class performs no lifetime management and does not auto-untie on
      *          destruction. The simplest always-safe rule is to let `str` outlive every
      *          stream tied to it (this is also the standard usage, e.g. a global `cout`
      *          outlives `cin`); otherwise any I/O dereferences a dangling pointer through
-     *          `tie()->flush()` — undefined behavior. This matches the
+     *          `tie()->try_flush()` — undefined behavior. This matches the
      *          `std::basic_ios::tie` contract.
      * @warning **Beyond destruction, *being moved from* also invalidates a tie target.**
      *          Moving a stream empties its `m_streambuf` and `m_locale`, but the streams
      *          pointing at it are not updated -- they still point at the emptied object. This
-     *          is not undefined behavior (`tie()->flush()` sets a failure bit on that target,
+     *          is not undefined behavior (`tie()->try_flush()` sets a failure bit on that target,
      *          which the sentry then swallows), but the tie relationship **fails silently**:
      *          the tied stream still reports `good()` while the flush does nothing. So read the
      *          rule above as: let a tie target be neither destroyed nor moved from until every

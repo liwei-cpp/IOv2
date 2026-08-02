@@ -198,7 +198,7 @@ namespace
 struct ThrowingTie : public IOv2::abs_flusher
 {
     int flushed = 0;
-    void flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
+    void try_flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
 };
 }
 

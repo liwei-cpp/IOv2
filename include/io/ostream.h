@@ -281,12 +281,10 @@ struct _Endl : out_manip
  *       静默地不刷新；`ctype` facet 缺失等异常路径上则会把 `unitbuf` 永久遗留下来，此后
  *       每一次输出都被降级为逐字符刷新。顺带地，其它线程也不会再观察到本流的格式标志被
  *       临时改动。
- * @note `locale` 在持有 `io_mutex()` 的情况下读取。`locale(loc)` setter 会 move-assign
- *       `m_locale`，而 `locale` 自身的移动赋值不加任何锁——锁外读取即为对其内部两个哈希表
- *       的数据竞争。
- * @warning 那把锁**必须在 `put()` 之前释放**。`out_sentry` 在获取 `io_mutex()` 之前先
- *          `tie()->flush()` 目标流；若此处仍持有本流的锁，该步骤会让线程同时持有两把流锁，
- *          破坏 sentry 文档所依赖的"任一时刻本线程至多持有一把流锁"这一不死锁保证。
+ * @note 整个操纵符在一把 `io_mutex()` 之下完成：`locale` 的读取与随后的 `put()` 之间没有窗口，
+ *       因此 `endl` 是原子的。`locale(loc)` setter 会 move-assign `m_locale`，而 `locale` 自身
+ *       的移动赋值不加任何锁——锁外读取即为对其内部两个哈希表的数据竞争。`put()` 内部会在这把
+ *       递归锁上重入，无碍。
  * @note 取 facet 这一段的异常在此处就地交给 `handle_exception`，而不是留给 `operator<<`。
  *       直接调用形式 `IOv2::endl(os)` 绕过运算符，若不在此处理，facet 缺失就会既不置失败位
  *       也不受异常掩码约束地抛到调用方，流反而报告 `good()`。随后的 `put()` 自己已经处理
@@ -305,13 +303,11 @@ struct _Endl : out_manip
  *       path (a missing `ctype` facet, say) `unitbuf` is left set for good, degrading every
  *       later write to a per-character flush. As a bonus, other threads no longer observe this
  *       stream's format flags being perturbed.
- * @note The locale is read while holding `io_mutex()`. The `locale(loc)` setter move-assigns
- *       `m_locale`, and locale's own move-assignment takes no lock whatsoever, so reading it
- *       outside that lock is a data race on its two internal hash maps.
- * @warning That lock **must be released before `put()`**. `out_sentry` flushes the tied stream
- *          before acquiring `io_mutex()`; holding this stream's lock across it would leave the
- *          thread holding two stream locks at once, breaking the "at most one stream lock per
- *          thread" no-deadlock guarantee the sentry documentation relies on.
+ * @note The whole manipulator runs under a single `io_mutex()`: there is no window between
+ *       reading the locale and the `put()` that follows, so `endl` is atomic. The `locale(loc)`
+ *       setter move-assigns `m_locale`, and locale's own move-assignment takes no lock
+ *       whatsoever, so reading it outside that lock is a data race on its two internal hash
+ *       maps. `put()` re-enters the same recursive mutex, which is harmless.
  * @note Exceptions from the facet lookup are handed to `handle_exception` right here rather
  *       than left to `operator<<`. The direct-call form `IOv2::endl(os)` bypasses the operator,
  *       so without this a missing facet would escape to the caller with no failure bit set and
@@ -325,10 +321,11 @@ struct _Endl : out_manip
     {
         using TChar = typename T::char_type;
 
-        TChar nl;
+        std::lock_guard guard(os.io_mutex());
+
+        TChar nl{};
         try
         {
-            std::lock_guard guard(os.io_mutex());
             auto mp = os.locale().template get<ctype<TChar>>();
             if (!mp)
                 throw stream_error("endl fail: cannot get ctype facet");
@@ -421,14 +418,14 @@ struct _Flush : out_manip
     /**
      * @lang{ZH}
      * @brief 刷新本流。
-     * @note 无需显式加锁，也无需 `try`：`out_flusher::flush()` 自己持有 `io_mutex()`，并已
-     *       将异常交由 `handle_exception` 处理。
+     * @note 无需显式加锁，也无需 `try`：`ostream_operators::flush()` 自己持有 `io_mutex()`，
+     *       并已将异常交由 `handle_exception` 处理。
      * @param os 目标输出流。
      * @endif
      *
      * @lang{EN}
      * @brief Flushes the stream.
-     * @note Neither an explicit lock nor a `try` is needed: `out_flusher::flush()` holds
+     * @note Neither an explicit lock nor a `try` is needed: `ostream_operators::flush()` holds
      *       `io_mutex()` itself and already routes exceptions through `handle_exception`.
      * @param os The target output stream.
      * @endif

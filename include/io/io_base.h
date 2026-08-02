@@ -1387,6 +1387,12 @@ inline void defaultfloat(ios_base<TChar>& base)
  * 构造时锁定 `stream.io_mutex()`，析构时解锁，从而在其生命周期内保证对该流的独占访问。
  * 常用于把对同一流的多次 I/O 操作合并为一个原子的临界区。本类不可拷贝。
  *
+ * @warning **持有本类期间对另一个流做 I/O，其锁序由调用方负责。** 每次 I/O 都会取该流的
+ *          `io_mutex()`，于是 `sync(A); B << 1;` 就是同时持有两把流锁；两个线程以相反次序
+ *          这么做即为经典的 AB-BA 死锁，与直接用两把 `std::mutex` 写错顺序无异。库这边保证
+ *          自己不制造**用户看不见的**加锁边——tie 的刷新一律用非阻塞的 `try_flush()`
+ *          （见 `stream_common_operators::tie`）——但用户自己写下的锁序，库无从代劳。
+ *
  * @tparam TStream 流类型，需提供 `io_mutex()` 接口（返回可 lock()/unlock() 的互斥量）。
  * @endif
  *
@@ -1397,6 +1403,14 @@ inline void defaultfloat(ios_base<TChar>& base)
  * exclusive access to the stream for its lifetime. Commonly used to group several I/O
  * operations on the same stream into one atomic critical section. This class is
  * non-copyable.
+ *
+ * @warning **Doing I/O on another stream while holding one of these puts the lock order in the
+ *          caller's hands.** Every I/O takes that stream's `io_mutex()`, so `sync(A); B << 1;`
+ *          holds two stream locks at once; two threads doing that in opposite orders is the
+ *          classic AB-BA deadlock, no different from misordering two plain `std::mutex`es. The
+ *          library guarantees only that it creates no lock edge the user **cannot see** -- a tie
+ *          flush always goes through the non-blocking `try_flush()`, see
+ *          `stream_common_operators::tie` -- but it cannot order the locks the user writes.
  *
  * @tparam TStream The stream type, which must provide an `io_mutex()` interface
  * (returning a mutex that can be lock()/unlock()'d).
