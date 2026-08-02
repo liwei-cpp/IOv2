@@ -357,6 +357,81 @@ void test_io_base_manipulators_get_time_char_6()
     dump_info("Done\n");
 }
 
+void test_io_base_manipulators_get_time_char_7()
+{
+    dump_info("Test ios_base<char> get_time case 7...");
+
+    // An out-of-range time field in the target carries into the date, exactly as the date
+    // group already did. Before the fix the time was reduced modulo 24 hours and the day that
+    // fell out was dropped, so 00:00:-5 stayed on the same day instead of moving back one --
+    // an error of a full 86400 seconds, reported with the stream still good().
+    //
+    // The format string is a bare literal, so it parses nothing and every field of the result
+    // comes from the normalized fallback. All cases start from 2021-01-01.
+    struct { int hour, min, sec;
+             int exp_year, exp_mon, exp_mday, exp_hour, exp_min, exp_sec; } carry[] = {
+        {  0,  0,      -5, 2020, 12, 31, 23, 59, 55 },   // borrows a day
+        {  0, -1,       0, 2020, 12, 31, 23, 59,  0 },
+        { -1,  0,       0, 2020, 12, 31, 23,  0,  0 },
+        { 24,  0,       0, 2021,  1,  2,  0,  0,  0 },   // carries one
+        {  0,  0,     125, 2021,  1,  1,  0,  2,  5 },   // seconds beyond 59 are not truncated
+        { 48,  0,       0, 2021,  1,  3,  0,  0,  0 },   // more than one day carries too
+        {  0,  0,  -86400, 2020, 12, 31,  0,  0,  0 },   // exactly one day back
+        {  0,  0,  -86401, 2020, 12, 30, 23, 59, 59 },   // just past it
+        { 23, 59,      59, 2021,  1,  1, 23, 59, 59 },   // the in-range boundary is untouched
+    };
+
+    for (const auto& c : carry)
+    {
+        std::tm parsed = test_tm(c.sec, c.min, c.hour, 1, 0, 121, 0, 0, 0);
+        IOv2::istream iss{IOv2::mem_device{std::string("|")}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, "|");
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == c.exp_year - 1900);
+        VERIFY(parsed.tm_mon == c.exp_mon - 1);
+        VERIFY(parsed.tm_mday == c.exp_mday);
+        VERIFY(parsed.tm_hour == c.exp_hour);
+        VERIFY(parsed.tm_min == c.exp_min);
+        VERIFY(parsed.tm_sec == c.exp_sec);
+    }
+
+    // The time carry and the date group's own normalization share one carry rather than being
+    // applied one after the other: mday 0 (the last day of December) plus 24 hours lands back
+    // on January 1.
+    {
+        std::tm parsed = test_tm(0, 0, 24, 0, 0, 121, 0, 0, 0);
+        IOv2::istream iss{IOv2::mem_device{std::string("|")}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, "|");
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 0 && parsed.tm_mday == 1);
+        VERIFY(parsed.tm_hour == 0 && parsed.tm_min == 0 && parsed.tm_sec == 0);
+    }
+
+    // A leap second is still the one truncation in the time group: 60 becomes 59 and carries
+    // nothing, so 23:59:60 stays on its own day.
+    {
+        std::tm parsed = test_tm(60, 59, 23, 1, 0, 121, 0, 0, 0);
+        IOv2::istream iss{IOv2::mem_device{std::string("|")}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, "|");
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 0 && parsed.tm_mday == 1);
+        VERIFY(parsed.tm_hour == 23 && parsed.tm_min == 59 && parsed.tm_sec == 59);
+    }
+
+    // Parsed fields still win over the fallback: the carry only decides what the format string
+    // leaves alone. Here the day has already moved to the 2nd when %H overwrites the hour.
+    {
+        std::tm parsed = test_tm(0, 0, 24, 1, 0, 121, 0, 0, 0);
+        IOv2::istream iss{IOv2::mem_device{std::string("07")}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, "%H");
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 0 && parsed.tm_mday == 2);
+        VERIFY(parsed.tm_hour == 7);
+    }
+
+    dump_info("Done\n");
+}
+
 void test_io_base_manipulators_get_time_wchar_t_2()
 {
     dump_info("Test ios_base<wchar_t> get_time case 2...");

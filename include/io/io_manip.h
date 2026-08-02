@@ -727,7 +727,8 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  *       日期推导。例如 `*tmb` 为 1 月 31 日、格式串只有 `%m`、输入 `02` 时，本库得到 2 月
  *       28/29 日，而 `std::get_time` 只改写 `tm_mon`，留下并不存在的"2 月 31 日"。
  * @note `*tmb` 中越界的字段在用作回退值前会先归一化（`tm_mday == 0` 取上月最后一天、
- *       `tm_mon == 12` 进位到次年 1 月等，规则见 `io/fp_defs/tm.h`）；沿用下来的日若在
+ *       `tm_mon == 12` 进位到次年 1 月、时/分/秒超出 `[0, 24h)` 的部分按天进位或借位并入
+ *       日期，规则见 `io/fp_defs/tm.h`）；沿用下来的日若在
  *       解析出的月份里不存在，则取该月最后一天，而不是让整次提取失败。因此
  *       `std::tm t{}`（`tm_mday` 为 0）配上只解析时间的格式串，得到的日期与
  *       `std::get_time` 之后再调用 `mktime()` 一致。
@@ -770,7 +771,8 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  *       "February 31" that does not exist.
  * @note Out-of-range fields of `*tmb` are normalized before they are used as fallbacks
  *       (`tm_mday == 0` is the last day of the previous month, `tm_mon == 12` carries into
- *       January of the next year, and so on; see `io/fp_defs/tm.h` for the rules), and a day
+ *       January of the next year, and an hour/minute/second outside `[0, 24h)` carries into or
+ *       borrows from the date; see `io/fp_defs/tm.h` for the rules), and a day
  *       carried over this way that does not exist in the parsed month becomes the last day of
  *       that month rather than failing the extraction. A `std::tm t{}` (whose `tm_mday` is 0)
  *       with a time-only format string therefore yields the same date as `std::get_time`

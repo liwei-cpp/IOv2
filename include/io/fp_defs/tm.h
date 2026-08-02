@@ -30,7 +30,11 @@ struct parse_context_type<TChar, std::tm>
      * 对一个仅用来提供回退值的纯变换来说，这些副作用都不可接受。归一化规则为：
      * - `tm_mon` 不限于 `0..11`，溢出部分按月进位并入年份；
      * - `tm_mday` 按"自当月 1 日起的天数偏移"处理，故 `0` 表示上月最后一天；
-     * - `tm_sec == 60`（闰秒）取 `59`，因为 `hh_mm_ss` 无法表示它；
+     * - `tm_hour` / `tm_min` / `tm_sec` 同样不限于范围：三者先折成"当日秒数"，超出
+     *   `[0, 24h)` 的部分按天进位或借位并入日期，余下部分才作为时刻。故
+     *   `00:00:-5` 得到前一天的 `23:59:55`，`24:00:00` 得到次日的 `00:00:00`；
+     * - `tm_sec == 60`（闰秒）取 `59`，因为 `hh_mm_ss` 无法表示它。这是时间组唯一的
+     *   截断，其余越界值一律进位；
      * - 结果被夹取到 `std::chrono::year` 可表示的日历范围内。
      *
      * @param tmb 提供回退值的 `std::tm`；其 `tm_wday` / `tm_yday` / `tm_isdst` 不参与计算。
@@ -53,7 +57,12 @@ struct parse_context_type<TChar, std::tm>
      * - `tm_mon` is not restricted to `0..11`; anything out of range carries into the year;
      * - `tm_mday` is treated as a day offset from the 1st of the month, so `0` denotes the last
      *   day of the previous month;
-     * - `tm_sec == 60` (a leap second) becomes `59`, as `hh_mm_ss` cannot represent it;
+     * - `tm_hour`, `tm_min` and `tm_sec` are likewise unrestricted: the three are folded into a
+     *   second-of-day count, whatever falls outside `[0, 24h)` carries into (or borrows from)
+     *   the date, and only the remainder becomes the time. So `00:00:-5` yields `23:59:55` on
+     *   the previous day, and `24:00:00` yields `00:00:00` on the next one;
+     * - `tm_sec == 60` (a leap second) becomes `59`, as `hh_mm_ss` cannot represent it. That is
+     *   the only truncation in the time group; every other out-of-range value carries;
      * - the result is clamped to the calendar range `std::chrono::year` can represent.
      *
      * @param tmb The `std::tm` supplying the fallbacks; its `tm_wday`, `tm_yday`, and
@@ -80,18 +89,28 @@ struct parse_context_type<TChar, std::tm>
 
         constexpr sys_days cal_min{year::min() / January / 1};
         constexpr sys_days cal_max{year::max() / December / 31};
+        constexpr std::int64_t secs_per_day = 24 * 60 * 60;
+
+        // The time group is folded into one second-of-day count and normalized with the same
+        // carry the date group uses, so an out-of-range hour/minute/second moves the date
+        // instead of silently wrapping within it. A leap second is the one exception: it
+        // becomes 59 because hh_mm_ss cannot represent it.
+        std::int64_t sec = (tmb.tm_sec == 60) ? 59 : tmb.tm_sec;
+        std::int64_t tod = static_cast<std::int64_t>(tmb.tm_hour) * 3600
+                         + static_cast<std::int64_t>(tmb.tm_min) * 60
+                         + sec;
+        std::int64_t day_carry = (tod >= 0) ? tod / secs_per_day
+                                            : -((secs_per_day - 1 - tod) / secs_per_day);
 
         auto first = sys_days{year{static_cast<int>(norm_year)}
                               / month{static_cast<unsigned>(norm_mon) + 1} / day{1}};
-        auto offset = std::clamp<std::int64_t>(static_cast<std::int64_t>(tmb.tm_mday) - 1,
-                                              -4'000'000,
-                                              4'000'000);
-        auto sec = std::min(static_cast<std::int64_t>(tmb.tm_sec), std::int64_t{59});
+        auto offset = std::clamp<std::int64_t>(
+            static_cast<std::int64_t>(tmb.tm_mday) - 1 + day_carry, -4'000'000, 4'000'000);
 
         type ctx;
         ctx.set_hint(
             year_month_day{std::clamp(first + days{static_cast<int>(offset)}, cal_min, cal_max)});
-        ctx.set_hint(hh_mm_ss<seconds>{hours{tmb.tm_hour} + minutes{tmb.tm_min} + seconds{sec}});
+        ctx.set_hint(hh_mm_ss<seconds>{seconds{tod - day_carry * secs_per_day}});
         return ctx;
     }
 };
