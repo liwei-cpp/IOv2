@@ -382,6 +382,12 @@ struct io_state_and_exp
      * @tparam ignore_exception_mask `false`（默认）遵循异常掩码、可能（重）抛出；`true` 只登记
      *         失败位、不因掩码抛出（供需避免掩码驱动抛出的上下文使用，如析构器）。
      * @note EOF 类别不保存异常指针（EOF 无需携带原始异常信息）。
+     * @note 本函数对同一异常是**幂等**的：以同一个 `ex` 重复调用，与只调用一次的可观测效果
+     *       相同。重复调用出现在嵌套的处理点上——例如 `put()` 自己处理完异常后因掩码重抛，
+     *       异常再落到调用方的 `catch`。第二遍的三步都无害：`m_exp_*` 在首遍 `clear()` 重抛
+     *       时已被消费置空，于是同一异常被重新存入；`setstate` 对已置位的位是按位或空操作；
+     *       `clear()` 再次重抛同一个原始异常。调用方因此**不需要**为了躲开重复调用而在嵌套
+     *       处省略 try。
      * @warning **不支持对阻塞在本库 I/O 中的线程调用 `pthread_cancel`。** glibc 以抛出特殊异常
      *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
      *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
@@ -414,6 +420,15 @@ struct io_state_and_exp
      *         the mask (for a context that must avoid a mask-driven throw, such as a destructor).
      * @note The EOF category stores no exception pointer (EOF carries no original
      * exception information).
+     * @note This function is **idempotent** for a given exception: calling it repeatedly with
+     * the same `ex` has the same observable effect as calling it once. Repeat calls arise at
+     * nested handling points -- `put()`, for one, handles its own exception and then rethrows
+     * on account of the mask, so the exception reaches the caller's `catch` as well. All three
+     * steps of the second pass are harmless: `m_exp_*` was consumed and nulled by the first
+     * pass's rethrow inside `clear()`, so the same exception is stored again; `setstate` is a
+     * bitwise-or no-op on an already-set bit; and `clear()` rethrows the same original
+     * exception. Callers therefore do **not** need to omit a try at a nested site merely to
+     * avoid a repeat call.
      * @warning **Calling `pthread_cancel` on a thread blocked inside this library is not
      *          supported.** glibc implements thread cancellation by throwing a special
      *          exception (`__cxxabiv1::__forced_unwind`), which lands in this function's
