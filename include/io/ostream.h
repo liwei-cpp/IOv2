@@ -371,15 +371,15 @@ struct _Ends : out_manip
     /**
      * @lang{ZH}
      * @brief 写出一个空字符（`TChar()`），不强制刷新。
-     * @note 无需显式加锁，也无需 `try`：`put()` 自己的 `out_sentry` 会获取 `io_mutex()`，
-     *       并且 `put()` 已将异常交由 `handle_exception` 处理。
+     * @note 无需显式加锁，也无需 `try`：`ostream_operators::put()` 自己持有 `io_mutex()`，
+     *       并已将异常交由 `handle_exception` 处理。
      * @param os 目标输出流。
      * @endif
      *
      * @lang{EN}
      * @brief Writes a null character (`TChar()`) without forcing a flush.
-     * @note Neither an explicit lock nor a `try` is needed: `put()`'s own `out_sentry` acquires
-     *       `io_mutex()`, and `put()` already routes exceptions through `handle_exception`.
+     * @note Neither an explicit lock nor a `try` is needed: `ostream_operators::put()` holds
+     *       `io_mutex()` itself and already routes exceptions through `handle_exception`.
      * @param os The target output stream.
      * @endif
      */
