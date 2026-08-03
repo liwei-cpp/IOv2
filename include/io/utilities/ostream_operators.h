@@ -758,9 +758,9 @@ T& operator << (T& obj, const std::function<void(ios_base<typename T::char_type>
  * 不相同（`endl` 要把读 locale 与 `put()` 一起罩在锁内；`ends`/`flush` 完全不需要显式加锁；
  * 输入方向的 `ws` 要在构造 `in_sentry` 之前先加锁），无法上提到本函数。
  *
- * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的临界区里就地处理了异常，走
- * 不到这里；它保证的是自定义操纵符即使漏了异常处理，也仍然按本库的错误模型置位并遵守异常
- * 掩码，而不是把异常抛给调用方。
+ * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的 `operator()` 里就地处理了异常
+ * （需要锁的还会在锁内处理），走不到这里；它保证的是自定义操纵符即使漏了异常处理，也仍然按
+ * 本库的错误模型置位并遵守异常掩码，而不是把异常抛给调用方。
  * @note 约束里的 `std::invocable` 不是多余的：只看基类的话，`os << setfill(L'*')` 这种字符
  *       类型不匹配的调用仍然可行，错误要到 `f(obj)` 实例化时才在模板体内爆出来。加上它，
  *       本重载直接不可行，调用落到兜底重载，报出那条指明原因的 `static_assert`。
@@ -780,10 +780,10 @@ T& operator << (T& obj, const std::function<void(ios_base<typename T::char_type>
  * side `ws` must take the lock before constructing `in_sentry`), so it cannot be hoisted here.
  *
  * The `catch` here is a **backstop**, not the primary mechanism: the library's own manipulators
- * handle their exceptions inside their own critical sections and never reach it. What it
- * guarantees is that a user-defined manipulator which forgets to handle its exceptions still
- * sets state through this library's error model and honours the exception mask, rather than
- * throwing at the caller.
+ * handle their exceptions in place, inside their own `operator()` (under the lock where one is
+ * needed), and never reach it. What it guarantees is that a user-defined manipulator which
+ * forgets to handle its exceptions still sets state through this library's error model and
+ * honours the exception mask, rather than throwing at the caller.
  * @tparam T The output stream type.
  * @tparam TManip The manipulator type, which must derive from `out_manip` and be callable with
  *         this stream.
