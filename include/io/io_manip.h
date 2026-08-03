@@ -268,18 +268,28 @@ struct _Setprecision : in_manip, out_manip
     explicit _Setprecision(size_t n) : m_n(n) {}
 
     /**
-     * @lang{ZH} @brief 设置流的浮点精度。 @throw stream_error 若精度超出 0..255。 @endif
-     * @lang{EN} @brief Sets the stream's floating-point precision. @throw stream_error If the
-     *           precision is outside 0..255. @endif
+     * @lang{ZH} @brief 设置流的浮点精度。
+     *           @throw stream_error 若精度超出 0..255：置 `strfailbit`，并仅当该位在流的异常
+     *           掩码中时才抛出。 @endif
+     * @lang{EN} @brief Sets the stream's floating-point precision.
+     *           @throw stream_error If the precision is outside 0..255: `strfailbit` is set, and
+     *           it is thrown only if that bit is in the stream's exception mask. @endif
      */
     template <typename T>
         requires (istream_type<T> || ostream_type<T>)
     void operator () (T& s) const
     {
-        if (m_n > std::numeric_limits<std::uint8_t>::max())
-            throw stream_error("setprecision fail: precision out of range (0..255)");
+        try
+        {
+            if (m_n > std::numeric_limits<std::uint8_t>::max())
+                throw stream_error("setprecision fail: precision out of range (0..255)");
 
-        s.precision(static_cast<std::uint8_t>(m_n));
+            s.precision(static_cast<std::uint8_t>(m_n));
+        }
+        catch (...)
+        {
+            s.handle_exception(std::current_exception());
+        }
     }
 
     size_t m_n;
@@ -293,10 +303,11 @@ struct _Setprecision : in_manip, out_manip
  * `size_t` 而非 `std::uint8_t`，是为了让越界值被**显式拒绝**而不是被静默回绕：
  * 若形参本身就是 `std::uint8_t`，`setprecision(300)` 会经隐式转换悄悄变成 44，
  * 而运行期变量连编译警告都不会有。
- * @note 越界的检查在操纵符**作用于流时**才做，本函数只保存原值。这样抛出的 `stream_error`
- *       落在 `operator<<` / `operator>>` 的 catch 里，经 `handle_exception` 转成 `strfailbit`
- *       并遵守流的异常掩码，与本库其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式
- *       里直接逃逸到调用方，流却仍报告 `good()`。
+ * @note 越界的检查在操纵符**作用于流时**才做，本函数只保存原值。`_Setprecision::operator()`
+ *       就地把 `stream_error` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常掩码，
+ *       与本库其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到调用方，
+ *       流却仍报告 `good()`。就地处理而非依赖 `operator<<` / `operator>>` 的兜底 catch，是为了
+ *       让直接调用形式 `setprecision(n)(os)` 也走同一条错误路径。
  * @param n 目标精度，必须落在 0..255。
  * @return 可用于 `os << setprecision(n)` / `is >> setprecision(n)` 的操纵符。
  * @endif
@@ -310,11 +321,13 @@ struct _Setprecision : in_manip, out_manip
  * `std::uint8_t` parameter, `setprecision(300)` would quietly become 44 via the implicit
  * conversion, and a run-time argument would not even produce a compiler warning.
  * @note The range check runs when the manipulator is **applied to a stream**; this function
- *       only stores the value. The `stream_error` then lands in the `catch` of `operator<<` /
- *       `operator>>`, becomes a `strfailbit` through `handle_exception` and honours the
- *       stream's exception mask, like every other failure in this library. Thrown at
- *       construction it would instead escape an `os << ...` expression straight to the caller
- *       while the stream still reported `good()`.
+ *       only stores the value. `_Setprecision::operator()` hands the `stream_error` to
+ *       `handle_exception` in place, where it becomes a `strfailbit` and honours the stream's
+ *       exception mask, like every other failure in this library. Thrown at construction it
+ *       would instead escape an `os << ...` expression straight to the caller while the stream
+ *       still reported `good()`. Handling it in place rather than leaning on the backstop
+ *       `catch` in `operator<<` / `operator>>` is what puts the direct-call form
+ *       `setprecision(n)(os)` on the same error path.
  * @param n The target precision; must lie in 0..255.
  * @return A manipulator usable as `os << setprecision(n)` / `is >> setprecision(n)`.
  * @endif
@@ -336,18 +349,28 @@ struct _Setw : in_manip, out_manip
     explicit _Setw(std::ptrdiff_t n) : m_n(n) {}
 
     /**
-     * @lang{ZH} @brief 设置流的字段宽度。 @throw stream_error 若宽度为负。 @endif
-     * @lang{EN} @brief Sets the stream's field width. @throw stream_error If the width is
-     *           negative. @endif
+     * @lang{ZH} @brief 设置流的字段宽度。
+     *           @throw stream_error 若宽度为负：置 `strfailbit`，并仅当该位在流的异常掩码中时
+     *           才抛出。 @endif
+     * @lang{EN} @brief Sets the stream's field width.
+     *           @throw stream_error If the width is negative: `strfailbit` is set, and it is
+     *           thrown only if that bit is in the stream's exception mask. @endif
      */
     template <typename T>
         requires (istream_type<T> || ostream_type<T>)
     void operator () (T& s) const
     {
-        if (m_n < 0)
-            throw stream_error("setw fail: negative width");
+        try
+        {
+            if (m_n < 0)
+                throw stream_error("setw fail: negative width");
 
-        s.width(static_cast<size_t>(m_n));
+            s.width(static_cast<size_t>(m_n));
+        }
+        catch (...)
+        {
+            s.handle_exception(std::current_exception());
+        }
     }
 
     std::ptrdiff_t m_n;
@@ -362,10 +385,11 @@ struct _Setw : in_manip, out_manip
  * @note 形参有符号，是为了挡住负宽度：`setw(total - str.size())` 这类算式在
  *       `total < str.size()` 时按无符号回绕成接近 `2^64` 的巨值，取 `ptrdiff_t` 形参可让传参
  *       时的窄化把回绕抵消回来、还原成负数并被拒。判负后转 `size_t` 不会溢出。
- * @note 判负在操纵符**作用于流时**才做，本函数只保存原值。这样抛出的 `stream_error` 落在
- *       `operator<<` / `operator>>` 的 catch 里，经 `handle_exception` 转成 `strfailbit` 并
- *       遵守流的异常掩码，与本库其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式里
- *       直接逃逸到调用方，流却仍报告 `good()`。
+ * @note 判负在操纵符**作用于流时**才做，本函数只保存原值。`_Setw::operator()` 就地把
+ *       `stream_error` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常掩码，与本库
+ *       其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到调用方，流却仍
+ *       报告 `good()`。就地处理而非依赖 `operator<<` / `operator>>` 的兜底 catch，是为了让直接
+ *       调用形式 `setw(n)(os)` 也走同一条错误路径。
  * @note **提取端的长度安全不依赖本函数。** 目标缓冲区的上界始终来自类型本身：
  *       `reader<TChar, TChar[N]>` 以 `min(width, N)` 为界，`std::basic_string` 自动增长，
  *       而裸指针根本没有对应的 reader（`is >> ptr` 无法编译，与 C++20 起的 `std::istream`
@@ -387,11 +411,12 @@ struct _Setw : in_manip, out_manip
  *       that wrap, restoring the negative value to be rejected. The conversion to `size_t`
  *       after the check cannot overflow.
  * @note The sign check runs when the manipulator is **applied to a stream**; this function only
- *       stores the value. The `stream_error` then lands in the `catch` of `operator<<` /
- *       `operator>>`, becomes a `strfailbit` through `handle_exception` and honours the
- *       stream's exception mask, like every other failure in this library. Thrown at
- *       construction it would instead escape an `os << ...` expression straight to the caller
- *       while the stream still reported `good()`.
+ *       stores the value. `_Setw::operator()` hands the `stream_error` to `handle_exception` in
+ *       place, where it becomes a `strfailbit` and honours the stream's exception mask, like
+ *       every other failure in this library. Thrown at construction it would instead escape an
+ *       `os << ...` expression straight to the caller while the stream still reported `good()`.
+ *       Handling it in place rather than leaning on the backstop `catch` in `operator<<` /
+ *       `operator>>` is what puts the direct-call form `setw(n)(os)` on the same error path.
  * @note **Length safety on the extraction side does not depend on this function.** The bound
  *       on a destination buffer always comes from its type: `reader<TChar, TChar[N]>` bounds
  *       at `min(width, N)`, `std::basic_string` grows on demand, and a raw pointer has no
