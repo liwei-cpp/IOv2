@@ -201,7 +201,7 @@ requires (istream_type&lt;T&gt; || ostream_type&lt;T&gt;)</div>
 <p>Sets the stream's field width. </p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>If the width is negative.  </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>If the width is negative: <code>strfailbit</code> is set, and it is thrown only if that bit is in the stream's exception mask.  </td></tr>
   </table>
   </dd>
 </dl>

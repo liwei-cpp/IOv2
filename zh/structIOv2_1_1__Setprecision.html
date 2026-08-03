@@ -201,7 +201,7 @@ requires (istream_type&lt;T&gt; || ostream_type&lt;T&gt;)</div>
 <p>设置流的浮点精度。 </p>
 <dl class="exception"><dt>异常</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若精度超出 0..255。   </td></tr>
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1stream__error.html">stream_error</a></td><td>若精度超出 0..255：置 <code>strfailbit</code>，并仅当该位在流的异常 掩码中时才抛出。   </td></tr>
   </table>
   </dd>
 </dl>
