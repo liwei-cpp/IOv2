@@ -44,6 +44,28 @@ void test_istream_derive_1()
     dump_info("Done\n");
 }
 
+namespace
+{
+// istream_type requires io_state_and_exp for the same reason ostream_type does: code
+// constrained by the concept calls handle_exception() and operator bool directly
+// (_Ws::operator(), in_sentry's constructor). See the note on the concept.
+struct StatelessIs : IOv2::ios_base<char>
+                   , IOv2::stream_common_operators
+                   , IOv2::istream_operators<char>
+{
+    using char_type = char;
+    using in_sentry_type = IOv2::in_sentry<StatelessIs, false>;
+    IOv2::locale<char> m_locale;
+};
+
+struct StatefulIs : StatelessIs, IOv2::io_state_and_exp {};
+
+static_assert( IOv2::istream_type<IOv2::istream<IOv2::mem_device<char>, char>> );
+static_assert( IOv2::istream_type<IOv2::iostream<IOv2::mem_device<char>, char>> );
+static_assert(!IOv2::istream_type<StatelessIs> );
+static_assert( IOv2::istream_type<StatefulIs> );
+}
+
 void test_istream_derive()
 {
     test_istream_derive_1();

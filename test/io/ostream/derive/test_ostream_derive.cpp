@@ -133,6 +133,32 @@ void test_ostream_derive_3()
     dump_info("Done\n");
 }
 
+namespace
+{
+// ostream_type requires io_state_and_exp, because code constrained by the concept calls
+// handle_exception() and operator bool directly (_Endl::operator(), out_sentry's destructor).
+// Without the clause those calls only fail when the template body is instantiated, which
+// bypasses the fallback overload's short diagnostic -- the operators that consume manipulators
+// only check callability with std::invocable, a declaration-level check.
+struct StatelessOs : IOv2::ios_base<char>
+                   , IOv2::stream_common_operators
+                   , IOv2::ostream_operators<char>
+{
+    using char_type = char;
+    using out_sentry_type = IOv2::out_sentry<StatelessOs, false>;
+    IOv2::locale<char> m_locale;
+};
+
+// The same thing with the state component: everything else about it is unchanged, so this
+// pair isolates the new clause.
+struct StatefulOs : StatelessOs, IOv2::io_state_and_exp {};
+
+static_assert( IOv2::ostream_type<IOv2::ostream<IOv2::mem_device<char>, char>> );
+static_assert( IOv2::ostream_type<IOv2::iostream<IOv2::mem_device<char>, char>> );
+static_assert(!IOv2::ostream_type<StatelessOs> );
+static_assert( IOv2::ostream_type<StatefulOs> );
+}
+
 void test_ostream_derive()
 {
     test_ostream_derive_1();
