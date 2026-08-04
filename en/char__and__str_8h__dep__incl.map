@@ -1,10 +1,12 @@
 <map id="include/io/fp_defs/char_and_str.h" name="include/io/fp_defs/char_and_str.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="57,5,194,45"/>
-<area shape="rect" id="Node000002" href="$out__impl_8h.html" title=" " alt="" coords="57,93,193,133"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,59,128,93,123,93,123,59"/>
-<area shape="rect" id="Node000003" href="$in__impl_8h.html" title=" " alt="" coords="5,181,141,221"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="109,146,87,183,83,180,105,144"/>
-<area shape="rect" id="Node000004" href="$objects_8h.html" title=" " alt="" coords="57,269,193,309"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="144,145,156,181,159,201,156,222,138,270,133,268,151,221,153,201,151,182,139,147"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,232,116,268,112,271,90,234"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,223,45"/>
+<area shape="rect" id="Node000002" href="$nullptr_8h.html" title=" " alt="" coords="5,93,143,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,57,94,95,90,91,125,54"/>
+<area shape="rect" id="Node000003" href="$out__impl_8h.html" title=" " alt="" coords="167,93,303,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,54,219,91,215,95,180,57"/>
+<area shape="rect" id="Node000004" href="$in__impl_8h.html" title=" " alt="" coords="114,181,250,221"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="219,146,196,183,192,180,214,144"/>
+<area shape="rect" id="Node000005" href="$objects_8h.html" title=" " alt="" coords="166,269,302,309"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="253,145,265,181,267,201,265,222,247,270,242,268,259,221,262,201,259,182,248,147"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="203,232,225,268,220,271,198,234"/>
 </map>
