@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <string>
 #include <type_traits>
+#include <vector>
 #include <io/io_base.h>
 #include <io/fp_defs/base_fp.h>
 #include <facet/ctype.h>
@@ -139,6 +140,28 @@ struct writer<char, char>
     }
 };
 
+template <>
+struct writer<char, unsigned char>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, unsigned char c)
+    {
+        return writer<char, char>::swrite(iter, io, loc, static_cast<char>(c));
+    }
+};
+
+template <>
+struct writer<char, signed char>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, signed char c)
+    {
+        return writer<char, char>::swrite(iter, io, loc, static_cast<char>(c));
+    }
+};
+
 template <typename TChar>
 struct writer<TChar, TChar*>
 {
@@ -163,6 +186,182 @@ struct writer<TChar, const TChar*>
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const TChar* c)
     {
         return writer<TChar, TChar*>::swrite(iter, io, loc, c);
+    }
+};
+
+/**
+ * @lang{ZH}
+ * @brief 把一个窄字符串加宽后写入 `TChar` 流。
+ *
+ * @note 这条对应标准里对 `charT` 模板化的
+ *       `operator<<(basic_ostream<charT>&, const char*)`：窄字符串可以写进**任意**字符类型的
+ *       流，逐字符经 `ctype<TChar>::widen()` 加宽。少了它，`wos << "hi"` 会被
+ *       `arithmetic.h` 的通用指针 writer 接走而打印地址（本库早先正是如此），或者干脆
+ *       编译不过。
+ * @note `TChar` 就是 `char` 时不走这里，而由下面的全特化 `writer<char, char*>` 承接：那时
+ *       无需加宽，也就不必为此分配缓冲区。之所以要那条全特化，是因为
+ *       `writer<TChar, TChar*>` 与 `writer<TChar, char*>` 在 `TChar == char` 上互不更特化，
+ *       会直接构成歧义——与 `writer<char, char>` 打破 `writer<TChar, TChar>` /
+ *       `writer<TChar, char>` 歧义的道理相同。
+ * @note 加宽必须先落到一段连续缓冲区再交给 `ostream_insert`，因为补齐要预先知道总宽度。
+ *       这是本 writer 与直接写出的 `writer<TChar, TChar*>` 之间唯一的额外代价。
+ * @param c 以空字符结尾的窄字符串。
+ * @throw stream_error 若 `c` 为空指针，或 locale 中没有 `ctype<TChar>` facet。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Widens a narrow string and writes it to a `TChar` stream.
+ *
+ * @note This mirrors the standard's `operator<<(basic_ostream<charT>&, const char*)`, which
+ *       is templated on `charT`: a narrow string may be written to a stream of **any**
+ *       character type, each character widened through `ctype<TChar>::widen()`. Without it
+ *       `wos << "hi"` is picked up by the generic pointer writer in `arithmetic.h` and prints
+ *       an address (as this library used to do), or fails to compile outright.
+ * @note When `TChar` is `char` this specialization is not used; the explicit
+ *       `writer<char, char*>` below takes over, where no widening -- and hence no buffer --
+ *       is needed. That explicit specialization is required because `writer<TChar, TChar*>`
+ *       and `writer<TChar, char*>` are neither more specialized than the other at
+ *       `TChar == char` and would simply be ambiguous -- the same reason
+ *       `writer<char, char>` exists to break the tie between `writer<TChar, TChar>` and
+ *       `writer<TChar, char>`.
+ * @note Widening has to land in a contiguous buffer before reaching `ostream_insert`, because
+ *       padding needs the total width up front. That is the one extra cost this writer
+ *       carries over the straight-through `writer<TChar, TChar*>`.
+ * @param c A null-terminated narrow string.
+ * @throw stream_error If `c` is null, or the locale carries no `ctype<TChar>` facet.
+ * @endif
+ */
+template <typename TChar>
+struct writer<TChar, char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const char* c)
+    {
+        if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
+
+        auto mp = loc.template get<ctype<TChar>>();
+        if (!mp)
+            throw stream_error("cannot get ctype facet");
+
+        size_t n = 0;
+        for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
+
+        std::vector<TChar> buf(n);
+        mp->widen_seq(c, c + n, buf.data());
+
+        return ostream_insert(iter, io, buf.data(), n);
+    }
+};
+
+template <typename TChar>
+struct writer<TChar, const char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const char* c)
+    {
+        return writer<TChar, char*>::swrite(iter, io, loc, c);
+    }
+};
+
+template <>
+struct writer<char, char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>&, const char* c)
+    {
+        if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
+
+        size_t n = 0;
+        for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
+
+        return ostream_insert(iter, io, c, n);
+    }
+};
+
+template <>
+struct writer<char, const char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const char* c)
+    {
+        return writer<char, char*>::swrite(iter, io, loc, c);
+    }
+};
+
+/**
+ * @lang{ZH}
+ * @brief 把 `signed char` / `unsigned char` 字符串写入 `char` 流。
+ *
+ * @note 标准为 `char` 流单独给出了 `operator<<(basic_ostream<char>&, const signed char*)` 与
+ *       `const unsigned char*` 两个重载，规定就是 `return out << reinterpret_cast<const
+ *       char*>(s);`——**按字节原样写出，不经加宽**，所以这里转交 `writer<char, char*>`。三种
+ *       窄字符类型的对象表示相同，且通过 `char*` 读取任何对象都是允许的。
+ * @note 宽流上没有对应重载。`wos << (const unsigned char*)s` 在标准里经隐式转换落到
+ *       `operator<<(const void*)` 打印地址，本库交由 `arithmetic.h` 的通用指针 writer 得到
+ *       同样结果——这正是那条 writer 的排除名单里不含 `signed char` / `unsigned char` 的原因。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Writes a `signed char` / `unsigned char` string to a `char` stream.
+ *
+ * @note The standard gives `char` streams their own
+ *       `operator<<(basic_ostream<char>&, const signed char*)` and `const unsigned char*`
+ *       overloads, specified as `return out << reinterpret_cast<const char*>(s);` -- the
+ *       bytes are written **as they are, with no widening** -- so these delegate to
+ *       `writer<char, char*>`. The three narrow character types share an object
+ *       representation, and reading any object through a `char*` is permitted.
+ * @note Wide streams have no counterpart overload. By the standard
+ *       `wos << (const unsigned char*)s` falls through the implicit conversion to
+ *       `operator<<(const void*)` and prints an address; here the generic pointer writer in
+ *       `arithmetic.h` produces the same result -- which is exactly why `signed char` /
+ *       `unsigned char` are absent from that writer's exclusion list.
+ * @endif
+ */
+template <>
+struct writer<char, unsigned char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const unsigned char* c)
+    {
+        return writer<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
+    }
+};
+
+template <>
+struct writer<char, const unsigned char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const unsigned char* c)
+    {
+        return writer<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
+    }
+};
+
+template <>
+struct writer<char, signed char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const signed char* c)
+    {
+        return writer<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
+    }
+};
+
+template <>
+struct writer<char, const signed char*>
+{
+    template <typename TIter>
+        requires (std::is_same_v<char, typename TIter::value_type>)
+    static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const signed char* c)
+    {
+        return writer<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
     }
 };
 

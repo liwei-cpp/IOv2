@@ -6,6 +6,7 @@ void test_ostream_inserters_character_char_5();
 void test_ostream_inserters_character_char_6();
 void test_ostream_inserters_character_char_7();
 void test_ostream_inserters_character_char_8();
+void test_ostream_inserters_character_char_9();
 
 void test_ostream_inserters_character_wchar_t_1();
 void test_ostream_inserters_character_wchar_t_2();
@@ -15,6 +16,7 @@ void test_ostream_inserters_character_wchar_t_5();
 void test_ostream_inserters_character_wchar_t_6();
 void test_ostream_inserters_character_wchar_t_7();
 void test_ostream_inserters_character_wchar_t_8();
+void test_ostream_inserters_character_wchar_t_9();
 
 void test_ostream_inserters_character()
 {
@@ -26,6 +28,7 @@ void test_ostream_inserters_character()
     test_ostream_inserters_character_char_6();
     test_ostream_inserters_character_char_7();
     test_ostream_inserters_character_char_8();
+    test_ostream_inserters_character_char_9();
 
     test_ostream_inserters_character_wchar_t_1();
     test_ostream_inserters_character_wchar_t_2();
@@ -35,4 +38,5 @@ void test_ostream_inserters_character()
     test_ostream_inserters_character_wchar_t_6();
     test_ostream_inserters_character_wchar_t_7();
     test_ostream_inserters_character_wchar_t_8();
+    test_ostream_inserters_character_wchar_t_9();
 }
