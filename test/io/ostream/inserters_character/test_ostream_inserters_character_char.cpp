@@ -1,9 +1,11 @@
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
 #include <io/fp_defs/arithmetic.h>
 #include <io/fp_defs/char_and_str.h>
+#include <io/fp_defs/nullptr.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
@@ -268,6 +270,94 @@ void test_ostream_inserters_character_char_8()
         VERIFY( !(oss2.rdstate() & IOv2::ios_defs::strfailbit) );
         auto [dev, err] = oss2.detach();
         VERIFY( dev.str().empty() );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_ostream_inserters_character_char_9()
+{
+    dump_info("Test ostream<char> operator<< case 9 (character conformance)...");
+
+    // Availability is probed through is_writer_def, not `requires { oss << v; }`:
+    // operator<<'s unconstrained fallback makes the latter true for every type.
+    static_assert( IOv2::is_writer_def<char, signed char> );
+    static_assert( IOv2::is_writer_def<char, unsigned char> );
+    static_assert( IOv2::is_writer_def<char, std::nullptr_t> );
+    static_assert( !IOv2::is_writer_def<char, wchar_t> );
+    static_assert( !IOv2::is_writer_def<char, char8_t> );
+    static_assert( !IOv2::is_writer_def<char, char16_t> );
+    static_assert( !IOv2::is_writer_def<char, char32_t> );
+
+    // The string-pointer overloads mirror the single-character ones exactly.
+    static_assert( IOv2::is_writer_def<char, const char*> );
+    static_assert( IOv2::is_writer_def<char, const signed char*> );
+    static_assert( IOv2::is_writer_def<char, const unsigned char*> );
+    static_assert( !IOv2::is_writer_def<char, const wchar_t*> );
+    static_assert( !IOv2::is_writer_def<char, const char8_t*> );
+    static_assert( !IOv2::is_writer_def<char, const char16_t*> );
+    static_assert( !IOv2::is_writer_def<char, const char32_t*> );
+    // A non-character pointer keeps the address path, as it does for std::ostream.
+    static_assert( IOv2::is_writer_def<char, int*> );
+    static_assert( IOv2::is_writer_def<char, void*> );
+
+    auto helper = []<template <typename, typename> class T>()
+    {
+        {
+            T oss{IOv2::mem_device{""}};
+            oss << static_cast<signed char>('A') << static_cast<unsigned char>('B');
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == "AB");
+        }
+        {
+            T oss{IOv2::mem_device{""}};
+            oss << nullptr;
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == "nullptr");
+        }
+        {
+            // << nullptr is a formatted output function: it pads to width() and then
+            // clears it. Skipping the clear would leak the width into the next
+            // insertion, so '|' is what actually pins that half down.
+            T oss{IOv2::mem_device{""}};
+            oss << IOv2::setw(10) << nullptr << '|';
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == "   nullptr|");
+        }
+        {
+            T oss{IOv2::mem_device{""}};
+            oss << IOv2::setw(10) << IOv2::left << IOv2::setfill('*') << nullptr << '|';
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == "nullptr***|");
+        }
+        {
+            // A char stream writes signed char / unsigned char strings as text, byte for
+            // byte. Without their own writers these are swallowed by the generic pointer
+            // writer and come out as an address, with the stream still good().
+            T oss{IOv2::mem_device{""}};
+            oss << reinterpret_cast<const unsigned char*>("hi")
+                << '/'
+                << reinterpret_cast<const signed char*>("yo");
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == "hi/yo");
+        }
+        {
+            // Being a formatted output function, it pads and then clears width; '|' pins
+            // the clearing half down.
+            T oss{IOv2::mem_device{""}};
+            oss << IOv2::setw(6) << reinterpret_cast<const unsigned char*>("hi") << '|';
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == "    hi|");
+        }
     };
 
     helper.operator()<IOv2::ostream>();

@@ -1,9 +1,11 @@
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
 #include <io/fp_defs/arithmetic.h>
 #include <io/fp_defs/char_and_str.h>
+#include <io/fp_defs/nullptr.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
@@ -267,6 +269,97 @@ void test_ostream_inserters_character_wchar_t_8()
         VERIFY( !(oss2.rdstate() & IOv2::ios_defs::strfailbit) );
         auto [dev, err] = oss2.detach();
         VERIFY( dev.str().empty() );
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_ostream_inserters_character_wchar_t_9()
+{
+    dump_info("Test ostream<wchar_t> operator<< case 9 (character conformance)...");
+
+    // Availability is probed through is_writer_def, not `requires { oss << v; }`:
+    // operator<<'s unconstrained fallback makes the latter true for every type.
+    static_assert( IOv2::is_writer_def<wchar_t, char> );
+    static_assert( IOv2::is_writer_def<wchar_t, wchar_t> );
+    static_assert( IOv2::is_writer_def<wchar_t, std::nullptr_t> );
+    static_assert( !IOv2::is_writer_def<wchar_t, char8_t> );
+    static_assert( !IOv2::is_writer_def<wchar_t, char16_t> );
+    static_assert( !IOv2::is_writer_def<wchar_t, char32_t> );
+
+    // The string-pointer overloads mirror the single-character ones exactly.
+    static_assert( IOv2::is_writer_def<wchar_t, const char*> );
+    static_assert( IOv2::is_writer_def<wchar_t, const wchar_t*> );
+    static_assert( !IOv2::is_writer_def<wchar_t, const char8_t*> );
+    static_assert( !IOv2::is_writer_def<wchar_t, const char16_t*> );
+    static_assert( !IOv2::is_writer_def<wchar_t, const char32_t*> );
+    // A wide stream has no signed char / unsigned char string overload; as for
+    // std::wostream these reach the address path instead.
+    static_assert( IOv2::is_writer_def<wchar_t, const unsigned char*> );
+    static_assert( IOv2::is_writer_def<wchar_t, int*> );
+
+    auto helper = []<template <typename, typename> class T>()
+    {
+        {
+            // On a wide stream signed char / unsigned char are numeric, as they are for
+            // std::wostream, where they reach operator<<(int) through integral promotion.
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            oss << static_cast<signed char>(65) << L'-' << static_cast<unsigned char>(66);
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"65-66");
+        }
+        {
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            oss << 'A' << L'B';
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"AB");
+        }
+        {
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            oss << nullptr;
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"nullptr");
+        }
+        {
+            // << nullptr is a formatted output function: it pads to width() and then
+            // clears it. Skipping the clear would leak the width into the next
+            // insertion, so L'|' is what actually pins that half down.
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            oss << IOv2::setw(10) << nullptr << L'|';
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"   nullptr|");
+        }
+        {
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            oss << IOv2::setw(10) << IOv2::left << IOv2::setfill(L'*') << nullptr << L'|';
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"nullptr***|");
+        }
+        {
+            // A narrow string is widened into a wide stream, matching the charT-templated
+            // operator<<(basic_ostream<charT>&, const char*). It used to print an address.
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            const char* p = "yo";
+            oss << "hi" << L'/' << p;
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"hi/yo");
+        }
+        {
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            oss << IOv2::setw(5) << "hi" << L'|';
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"   hi|");
+        }
     };
 
     helper.operator()<IOv2::ostream>();

@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -411,6 +412,39 @@ void test_istream_extractors_character_char_8()
             VERIFY(in.good());
             VERIFY(std::string(buf).size() == 279);
         }
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_extractors_character_char_9()
+{
+    dump_info("Test istream<char> operator>> case 9 (character conformance)...");
+
+    // Availability is probed through is_reader_def, not `requires { in >> v; }`:
+    // operator>>'s unconstrained fallback makes the latter true for every type.
+    static_assert( IOv2::is_reader_def<char, char> );
+    static_assert( IOv2::is_reader_def<char, signed char> );
+    static_assert( IOv2::is_reader_def<char, unsigned char> );
+    static_assert( !IOv2::is_reader_def<char, wchar_t> );
+    static_assert( !IOv2::is_reader_def<char, char8_t> );
+    static_assert( !IOv2::is_reader_def<char, char16_t> );
+    static_assert( !IOv2::is_reader_def<char, char32_t> );
+    static_assert( !IOv2::is_reader_def<char, std::nullptr_t> );
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // A char stream reads signed char / unsigned char as characters, not as numbers.
+        T in(IOv2::mem_device{std::string("65")});
+        signed char sc = 0;
+        unsigned char uc = 0;
+        in >> sc >> uc;
+        VERIFY(in.good());
+        VERIFY(sc == static_cast<signed char>('6'));
+        VERIFY(uc == static_cast<unsigned char>('5'));
     };
 
     helper.operator()<IOv2::istream>();

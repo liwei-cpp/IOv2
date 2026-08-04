@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -314,6 +315,40 @@ void test_istream_extractors_character_wchar_t_7()
         in >> buf;
         VERIFY(in.good());
         VERIFY(std::wstring(buf) == L"four");
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_extractors_character_wchar_t_8()
+{
+    dump_info("Test istream<wchar_t> operator>> case 8 (character conformance)...");
+
+    // Availability is probed through is_reader_def, not `requires { in >> v; }`:
+    // operator>>'s unconstrained fallback makes the latter true for every type.
+    // Extraction is by reference, so unlike insertion it gets no integral promotion
+    // and therefore no numeric fallback -- a wide stream extracts wchar_t only.
+    static_assert( IOv2::is_reader_def<wchar_t, wchar_t> );
+    static_assert( !IOv2::is_reader_def<wchar_t, char> );
+    static_assert( !IOv2::is_reader_def<wchar_t, signed char> );
+    static_assert( !IOv2::is_reader_def<wchar_t, unsigned char> );
+    static_assert( !IOv2::is_reader_def<wchar_t, char8_t> );
+    static_assert( !IOv2::is_reader_def<wchar_t, char16_t> );
+    static_assert( !IOv2::is_reader_def<wchar_t, char32_t> );
+    static_assert( !IOv2::is_reader_def<wchar_t, std::nullptr_t> );
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        T in(IOv2::mem_device{std::wstring(L"65 ")});
+        wchar_t wc = 0;
+        int n = 0;
+        in >> wc >> n;
+        VERIFY(in.good());
+        VERIFY(wc == L'6');
+        VERIFY(n == 5);
     };
 
     helper.operator()<IOv2::istream>();
