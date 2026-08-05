@@ -172,11 +172,12 @@ using MoneyOs = IOv2::ostream<IOv2::mem_device<char>, char>;
 // -- and std::integral<const int> is true, since std::is_integral_v ignores cv-qualification.
 // Without the cv exclusion on io_traits, such a target selected sread and then failed
 // deep inside the monetary facet on an assignment to a read-only reference, burying the real
-// cause. With it there is no sread and the operator's static_assert says so instead.
+// cause. With it there is no sread, so `detail::extractable` is false and the operator is simply
+// not viable.
 //
-// Every probe here goes through io_traits rather than through `is >> get_money(x)`: the operators
-// are unconstrained on the value type and reject in the body with a static_assert, which no
-// requires-expression can see, so probing the expression reports true whatever the target is.
+// Every probe here goes through io_traits rather than through `is >> get_money(x)`, so a failure
+// points at the io_traits specialization itself rather than at the value-category and
+// parse-context handling operator>> layers on top of it.
 static_assert(  extractable<char, IOv2::_Get_money<int>> );
 static_assert(  extractable<char, IOv2::_Get_money<std::string>> );
 static_assert( !extractable<char, IOv2::_Get_money<const int>> );

@@ -126,8 +126,8 @@ struct io_traits<TChar, TValue>
  * @note 排除的四个指向类型对应标准里 `= delete` 的字符串重载：`const wchar_t*`（窄流上）、
  *       `const char8_t*`、`const char16_t*`、`const char32_t*`。它们**不该退化成打印地址**——
  *       `os << L"hi"` 打出 `0x...` 是个静默的错误答案，而流还是 `good()`。排除之后没有任何
- *       `io_traits` 匹配，由 `operator<<` 的兜底重载给出一条 `static_assert`，这是类模板能
- *       表达 `= delete` 的唯一方式。
+ *       `io_traits` 匹配，`operator<<` 的约束不被满足、没有可行重载，于是编译不过——这是类模板
+ *       能表达 `= delete` 的唯一方式。
  * @note 指向类型与流的 `char_type` 一致时（`wos << L"hi"`），`io_traits<TChar, const TChar*>`
  *       更特化，本特化本来就轮不到；这里的排除项只影响不一致的那些组合。
  * @note 名单里**没有** `char` / `signed char` / `unsigned char`，这不是遗漏。这三者的字符串
@@ -144,9 +144,9 @@ struct io_traits<TChar, TValue>
  *       `= delete`s: `const wchar_t*` (on a narrow stream), `const char8_t*`,
  *       `const char16_t*` and `const char32_t*`. They must **not** degrade into printing an
  *       address -- `os << L"hi"` yielding `0x...` is a silently wrong answer while the stream
- *       stays `good()`. With them excluded no `io_traits` matches at all and `operator<<`'s
- *       fallback overload issues a `static_assert`, which is the only way a class template
- *       can express `= delete`.
+ *       stays `good()`. With them excluded no `io_traits` matches at all, `operator<<`'s
+ *       constraint is not satisfied and no overload is viable, so it does not compile -- which is
+ *       the only way a class template can express `= delete`.
  * @note When the pointee matches the stream's `char_type` (`wos << L"hi"`),
  *       `io_traits<TChar, const TChar*>` is more specialized and this specialization was never
  *       in the running; the exclusions only affect the mismatched combinations.
@@ -189,7 +189,7 @@ struct io_traits<TChar, TValue>
      * @note 这条成员级约束是**有意收窄**的，不要把它去掉。放宽会带来两个后果：一是把文本里的
      *       地址 `reinterpret_cast` 进任意类型的指针，产生野指针而流仍为 `good`；二是会静默
      *       接管 `char*`，使字符缓冲区的提取变成地址解析。收窄之后，`is >> charptr` /
-     *       `is >> intptr` 没有 `sread` 可匹配，由 `operator>>` 给出一条简短的 `static_assert`。
+     *       `is >> intptr` 没有 `sread` 可匹配，`operator>>` 没有可行重载，编译不过。
      * @endif
      *
      * @lang{EN}
@@ -203,8 +203,8 @@ struct io_traits<TChar, TValue>
      *       two consequences: it `reinterpret_cast`s a textual address into a pointer of arbitrary
      *       type, yielding a wild pointer while the stream stays `good`; and it silently captures
      *       `char*`, turning character buffer extraction into address parsing. As narrowed,
-     *       `is >> charptr` / `is >> intptr` have no `sread` to match and are diagnosed by
-     *       `operator>>` with one short `static_assert`.
+     *       `is >> charptr` / `is >> intptr` have no `sread` to match, so `operator>>` has no
+     *       viable overload and they do not compile.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>

@@ -101,13 +101,35 @@ struct io_traits<TChar, my_point>
 }
 ```
 
-三条要点：
+四条要点：
 
-- **方向由"哪个成员存在"决定**：只有 `swrite` 即只能插入，只有 `sread` 即只能提取，两个都有即两个方向都行。这一点不能改用约束来表达——`iostream` 同时满足 `istream_type` 与 `ostream_type`。用反了会撞上运算符里的 `static_assert`，它会区分"根本没有 `io_traits`"和"有 `io_traits`，但这个方向没有能用的成员"。
+- **方向由"哪个成员存在"决定**：只有 `swrite` 即只能插入，只有 `sread` 即只能提取，两个都有即两个方向都行。这一点不能改用约束来表达——`iostream` 同时满足 `istream_type` 与 `ostream_type`。用反了，那一侧的运算符不满足约束、没有可行重载，因此编译不过。
 - **出错就直接抛**，不要自己去动流的状态位：运算符会接住并交给 `handle_exception`，转成相应的状态位、并遵守流的异常掩码。本库自己抛的一律是 `stream_error`。
 - 上面是**迭代器形式**，格式化 I/O 用这一档。操纵符用的是**流形式**——`static void swrite(T& s, const my_point& v)` / `sread`，直接拿到流本身，**不加锁、不建哨兵**，需要就自己来。两种形式靠参数个数区分，一个特化**只能提供其中一种**：两种都提供是编译错误。库内置的操纵符没有 `operator()`，逻辑全在扩展点里，`os << m` / `is >> m` 是仅有的入口；标准的 `std::ws(is)` / `std::endl(os)` 直接调用形式在本库不存在。
+- **扩展只能走特化 `io_traits` 这一条路，不要在自己的命名空间里写 `operator<<` / `operator>>`。** 加锁、建哨兵、消费 `width` / `fill`、把异常转交 `handle_exception`——这些都是运算符的职责，手写一条就全部绕开了，而且在多线程下不再与其它插入互斥。特化扩展点则完全没有这个问题：它不参与重载决议，运算符照常负责上述全部工作。真要给某个类型两条路都留（既特化了 `io_traits`，又自己写了一条运算符），两条候选同样好，调用点就是二义性错误。
 
 细节（含提取端可选的 `parse_context_type` 中转）见 `io/traits/traits_base.h` 的文件头注释。
+
+### 从 `writer` / `reader` 迁移
+
+上一版有三套并行的"把 I/O 逻辑挂到类型上"的机制：类模板 `writer` / `reader`、方向标签基类 `in_manip` / `out_manip`（配一对 `= delete` 重载）、以及每侧六条运算符重载。现在只剩一个扩展点 `io_traits`，每侧两条运算符（泛型的那条，加一条收 `ios_base` 函数指针操纵符的）。破坏面如下：
+
+| 旧写法 | 新写法 |
+| --- | --- |
+| `#include <io/fp_defs/xxx.h>` | `#include <io/traits/xxx.h>`；`base_fp.h` → `traits_base.h` |
+| `struct writer<TChar, T> { swrite(...); };` | `struct io_traits<TChar, T> { swrite(...); };`，`swrite` 签名不变 |
+| `struct reader<TChar, T> { sread(...); };` | 同一个 `io_traits<TChar, T>` 里的 `sread`，签名不变 |
+| 分别特化 `writer` 和 `reader` | 在**同一个** `io_traits` 特化里同时给出 `swrite` 与 `sread` |
+| `is_writer_def<TChar, T>` / `is_reader_def<TChar, T>` | 已删除。问"能不能流"直接写 `requires { os << v; }` / `requires { is >> v; }` |
+| 操纵符派生 `in_manip` / `out_manip` 并写 `operator()` | 特化 `io_traits`，写**流形式**的 `swrite(T& s, const M& m)` / `sread(T& s, const M& m)`；方向由哪个成员存在决定，两个标签基类和那对 `= delete` 重载一并消失 |
+| `setw(5)(os)`、`ws(is)`、`endl(os)` 直接调用 | 没有了。只能写 `os << setw(5)`、`is >> ws`、`os << endl` |
+| `os << std::function<void(ios_base<TChar>&)>{f}` | 没有了。操纵符只认**函数指针**一种形状；无捕获 lambda 写 `+lambda` 退化，带状态的操纵符请走流形式 |
+| `parse_context_type` | 保留，从 `io/fp_defs/base_fp.h` 挪到 `io/traits/traits_base.h`，用法不变 |
+
+另有两处行为变化：
+
+- **异常只在运算符里接一次。** 操纵符不再有 `operator()`，也就不再各自 try/catch；`os << m` / `is >> m` 里抛出的一切统一由运算符转交 `handle_exception`。
+- **用错类型时的报错措辞变了。** 旧的泛型运算符无约束，用错会撞上函数体里的 `static_assert`，能区分"根本没有 `io_traits`"和"有 `io_traits` 但这个方向没成员"。现在运算符带约束，用错类型就是**没有可行重载**，编译器给的是通用的 `no match for 'operator<<'`。这是换取可探测性必须付的代价：定制诊断需要无约束的运算符，而无约束的运算符没法被 `requires` 探测，二者不可兼得。**忘了 include 对应的 `io/traits/*.h` 现在也是这一条报错，遇到它先检查 include。**
 
 ### 使用方式：Header-Only 与共享库（DSO/DLL）
 
@@ -286,13 +308,35 @@ struct io_traits<TChar, my_point>
 }
 ```
 
-Three things to know:
+Four things to know:
 
-- **The direction is decided by which member exists**: `swrite` only means insertion only, `sread` only means extraction only, and both means both. Constraints cannot express this -- an `iostream` satisfies `istream_type` and `ostream_type` alike. Using one backwards hits a `static_assert` in the operator, which distinguishes "no `io_traits` at all" from "an `io_traits` exists, but offers no member usable in this direction".
+- **The direction is decided by which member exists**: `swrite` only means insertion only, `sread` only means extraction only, and both means both. Constraints cannot express this -- an `iostream` satisfies `istream_type` and `ostream_type` alike. Using one backwards leaves the operator on that side unsatisfied, so there is no viable overload and it does not compile.
 - **Just throw on error**; do not touch the stream's state bits yourself. The operator catches and hands the exception to `handle_exception`, which turns it into the matching state bit and honours the stream's exception mask. Everything this library throws itself is a `stream_error`.
 - The above is the **iterator form**, used by formatted I/O. Manipulators use the **stream form** instead -- `static void swrite(T& s, const my_point& v)` / `sread`, which get the stream itself with **no lock and no sentry**; do it yourself if you need one. The two forms are told apart by arity, and a specialization may provide **only one of them**: providing both is a compile error. The library's own manipulators have no `operator()`: all their logic lives in the extension point and `os << m` / `is >> m` is the only entry, so the standard's direct-call forms `std::ws(is)` and `std::endl(os)` do not exist here.
+- **Specializing `io_traits` is the only supported way to extend; do not write your own `operator<<` / `operator>>` in your namespace.** Taking the lock, building the sentry, consuming `width` / `fill`, and routing exceptions to `handle_exception` are the operator's job, and a hand-written one bypasses all of it -- including mutual exclusion with other insertions under threads. The extension point has none of that risk: it does not take part in overload resolution, and the operator still does all of the above. And if you do both for one type -- specialize `io_traits` *and* write your own operator -- the two candidates are equally good and the call site is an ambiguity error.
 
 For the details -- including the optional `parse_context_type` relay on the extraction side -- see the file-level comment in `io/traits/traits_base.h`.
+
+### Migrating from `writer` / `reader`
+
+The previous version had three parallel mechanisms for attaching I/O logic to a type: the `writer` / `reader` class templates, the `in_manip` / `out_manip` direction tag bases (with a matching pair of `= delete` overloads), and six operator overloads per side. All of it is now one extension point, `io_traits`, and two operators per side (the generic one, plus one that takes an `ios_base` function-pointer manipulator). The break surface:
+
+| Old | New |
+| --- | --- |
+| `#include <io/fp_defs/xxx.h>` | `#include <io/traits/xxx.h>`; `base_fp.h` → `traits_base.h` |
+| `struct writer<TChar, T> { swrite(...); };` | `struct io_traits<TChar, T> { swrite(...); };` -- `swrite`'s signature is unchanged |
+| `struct reader<TChar, T> { sread(...); };` | `sread` in that same `io_traits<TChar, T>`, signature unchanged |
+| Specializing `writer` and `reader` separately | Give `swrite` and `sread` in **one** `io_traits` specialization |
+| `is_writer_def<TChar, T>` / `is_reader_def<TChar, T>` | Removed. To ask whether a type is streamable, write `requires { os << v; }` / `requires { is >> v; }` |
+| A manipulator deriving from `in_manip` / `out_manip` with an `operator()` | Specialize `io_traits` with the **stream form** `swrite(T& s, const M& m)` / `sread(T& s, const M& m)`; the direction comes from which member exists, and both tag bases and the `= delete` pair are gone with them |
+| Direct calls `setw(5)(os)`, `ws(is)`, `endl(os)` | Gone. Write `os << setw(5)`, `is >> ws`, `os << endl` |
+| `os << std::function<void(ios_base<TChar>&)>{f}` | Gone. A function pointer is the only manipulator shape accepted; a capture-less lambda can be written `+lambda` to decay, and a stateful manipulator belongs in the stream form |
+| `parse_context_type` | Kept, moved from `io/fp_defs/base_fp.h` to `io/traits/traits_base.h`; usage unchanged |
+
+Two behavioural changes come with it:
+
+- **Exceptions are caught once, in the operator.** Manipulators no longer have an `operator()` and so no longer try/catch individually; everything thrown out of `os << m` / `is >> m` is handed to `handle_exception` by the operator.
+- **The wording you get for a wrong type changed.** The old generic operators were unconstrained, so a wrong type hit a `static_assert` in the body that distinguished "no `io_traits` at all" from "an `io_traits` exists but has no member for this direction". The operators are constrained now, so a wrong type simply leaves **no viable overload** and the compiler emits its generic `no match for 'operator<<'`. That is the price of detectability: a tailored diagnostic needs an unconstrained operator, and an unconstrained operator cannot be probed with `requires` -- you cannot have both. **A forgotten `io/traits/*.h` include now produces this same error, so check your includes first when you see it.**
 
 ### Usage Modes: Header-Only vs Shared Library (DSO/DLL)
 

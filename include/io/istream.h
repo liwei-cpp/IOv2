@@ -249,8 +249,8 @@ istream(TDevice, const TCreator&, locale<TChar>) -> istream<TDevice, TChar>;
  * @brief 跳过空白的操纵符对象，用法为 `is >> IOv2::ws`；类型是个空标签，逻辑全在
  *        `io_traits<TChar, _Ws>::sread` 里。
  *
- * 方向被编码进类型本身：`io_traits<TChar, _Ws>` 只提供 `sread`，`os << ws` 因此在插入运算符的
- * 链末尾撞上 `static_assert`。方向为何要这样表达，见 `io_traits<TChar, _Ws>`。
+ * 方向被编码进类型本身：`io_traits<TChar, _Ws>` 只提供 `sread`，`os << ws` 因此不满足插入运算符
+ * 的约束、没有可行重载，编译不过。方向为何要这样表达，见 `io_traits<TChar, _Ws>`。
  * @note 本类型没有 `operator()`：单向操纵符的逻辑只需写一处，直接写在扩展点里即可，`is >> ws`
  *       于是成为唯一入口，异常统一由提取运算符转交 `handle_exception`。标准的 `std::ws(is)`
  *       直接调用形式因此不存在。
@@ -261,8 +261,8 @@ istream(TDevice, const TCreator&, locale<TChar>) -> istream<TDevice, TChar>;
  *        empty tag, with all the logic in `io_traits<TChar, _Ws>::sread`.
  *
  * The direction is encoded in the type itself: `io_traits<TChar, _Ws>` provides only `sread`, so
- * `os << ws` hits the `static_assert` at the end of the insertion operator's chain. See
- * `io_traits<TChar, _Ws>` for why the direction is expressed this way.
+ * `os << ws` leaves the insertion operator unsatisfied -- no viable overload, and it does not
+ * compile. See `io_traits<TChar, _Ws>` for why the direction is expressed this way.
  * @note This type has no `operator()`: a one-way manipulator needs its logic in one place only,
  *       so it lives in the extension point directly. That makes `is >> ws` the sole entry and
  *       leaves exceptions to the extraction operator and `handle_exception`. The standard's
@@ -277,8 +277,8 @@ inline constexpr struct _Ws {} ws{};
  *
  * 空白的跳过由输入哨兵完成：以 `noskipws == false` 构造 `in_sentry` 即为跳过空白。
  *
- * 操纵符的方向由**成员的有无**表达：这里只有 `sread`，于是 `os << ws` 在插入运算符的链末尾
- * 撞上 `static_assert`。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供成员，
+ * 操纵符的方向由**成员的有无**表达：这里只有 `sread`，于是 `os << ws` 不满足插入运算符的约束、
+ * 没有可行重载。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供成员，
  * 两个方向都会调用成功。
  * @note 锁由本成员自己取——流形式不加锁，而这里需要把哨兵罩在锁内。异常直接抛出，由
  *       `operator>>` 接住交给 `handle_exception`；那层 `catch` 在锁之外，因此失败路径上的置位
@@ -293,9 +293,9 @@ inline constexpr struct _Ws {} ws{};
  * what skips whitespace.
  *
  * A manipulator's direction is expressed by **which member exists**: only `sread` is here, so
- * `os << ws` hits the `static_assert` at the end of the insertion operator's chain. A constraint
- * would not be enough -- `iostream` satisfies both stream concepts, so if both members existed
- * both directions would call successfully.
+ * `os << ws` leaves the insertion operator unsatisfied and there is no viable overload. A
+ * constraint would not be enough -- `iostream` satisfies both stream concepts, so if both members
+ * existed both directions would call successfully.
  * @note The lock is taken here: the stream form is never locked by the operator, and the sentry
  *       has to run under one. Exceptions simply propagate, and `operator>>` hands them to
  *       `handle_exception`; that `catch` sits outside the lock, so on a failure path the state

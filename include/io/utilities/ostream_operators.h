@@ -911,9 +911,9 @@ T& operator<<(T& obj, const TValue& value)
  * 提取侧有形状相同的重载，`os << pf` 与 `is >> pf` 等价。两条都不加锁、不建哨兵——操纵符
  * 改的只是格式化状态，而那些访问器自己就是线程安全的。
  * @note 只有函数指针这一种形状：`std::function`、`std::move_only_function`、仿函数、裸 lambda
- *       都走不到这里，会撞上泛型运算符链末尾的 `static_assert`。无捕获的 lambda 写 `+lambda`
- *       可退化成函数指针；带状态的操纵符请走 `io_traits` 的流形式——它拿到的是真正的流，比
- *       `ios_base&` 能做的更多。
+ *       都走不到这里，泛型运算符的约束也不满足，于是没有可行重载、编译不过。无捕获的 lambda
+ *       写 `+lambda` 可退化成函数指针；带状态的操纵符请走 `io_traits` 的流形式——它拿到的是
+ *       真正的流，比 `ios_base&` 能做的更多。
  * @param obj 输出流。
  * @param pf 操纵符；为空指针时置 `strfailbit`。
  * @return 流自身的引用。
@@ -938,11 +938,11 @@ T& operator<<(T& obj, const TValue& value)
  * sentry -- a manipulator only changes formatting state, and those accessors are thread-safe
  * themselves.
  * @note A function pointer is the only shape accepted: `std::function`,
- *       `std::move_only_function`, a functor and a bare lambda all miss this overload and hit the
- *       `static_assert` at the end of the generic operator's chain. A capture-less lambda can be
- *       written `+lambda` to decay to a function pointer; a manipulator that carries state belongs
- *       in the stream form of `io_traits`, which gets the real stream and can do more than
- *       `ios_base&` allows.
+ *       `std::move_only_function`, a functor and a bare lambda all miss this overload and do not
+ *       satisfy the generic one either, so no overload is viable and they do not compile. A
+ *       capture-less lambda can be written `+lambda` to decay to a function pointer; a manipulator
+ *       that carries state belongs in the stream form of `io_traits`, which gets the real stream
+ *       and can do more than `ios_base&` allows.
  * @param obj The output stream.
  * @param pf The manipulator; a null pointer sets `strfailbit`.
  * @return A reference to the stream itself.

@@ -282,9 +282,9 @@ void test_ostream_inserters_character_wchar_t_9()
 {
     dump_info("Test ostream<wchar_t> operator<< case 9 (character conformance)...");
 
-    // Availability is probed through `insertable` (support/io_traits_probe.h), not
-    // `requires { oss << v; }`: operator<<'s unconstrained fallback makes the latter true for
-    // every type.
+    // Availability is probed through `insertable` (support/io_traits_probe.h) rather than
+    // `requires { oss << v; }`, so a failure points at io_traits itself and not at the
+    // value-category and decay handling operator<< layers on top of it.
     static_assert( insertable<wchar_t, char> );
     static_assert( insertable<wchar_t, wchar_t> );
     static_assert( insertable<wchar_t, std::nullptr_t> );

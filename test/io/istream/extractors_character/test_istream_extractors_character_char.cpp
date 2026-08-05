@@ -426,9 +426,9 @@ void test_istream_extractors_character_char_9()
 {
     dump_info("Test istream<char> operator>> case 9 (character conformance)...");
 
-    // Availability is probed through `extractable` (support/io_traits_probe.h), not
-    // `requires { in >> v; }`: operator>>'s unconstrained fallback makes the latter true for
-    // every type.
+    // Availability is probed through `extractable` (support/io_traits_probe.h) rather than
+    // `requires { in >> v; }`, so a failure points at io_traits itself and not at the
+    // value-category and parse-context handling operator>> layers on top of it.
     static_assert( extractable<char, char> );
     static_assert( extractable<char, signed char> );
     static_assert( extractable<char, unsigned char> );
