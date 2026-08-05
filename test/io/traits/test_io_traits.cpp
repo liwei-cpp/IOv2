@@ -88,12 +88,27 @@ static_assert(  extractable_rvalue<ios_c, IOv2::_Ws> && !insertable<os_c, IOv2::
 static_assert(  insertable<os_c, std::nullptr_t> );
 static_assert( !IOv2::detail::extractable<is_c, std::nullptr_t&> );
 
-// ...but `is >> nullptr` still compiles, because a null pointer constant converts to the
-// function-pointer manipulator overload, which is not an io_traits channel at all and reports
-// its null argument at run time (strfailbit) rather than at compile time. Now that the generic
-// operator is constrained it no longer outranks that overload, so this is asserted as the known
-// behaviour rather than left to be rediscovered. Same for `is >> 0`. See issues.md item 7.
-static_assert(  extractable_lvalue<is_c, std::nullptr_t> );
+// ...and `is >> nullptr` does not compile either. A null pointer constant converts to the
+// function-pointer manipulator overload, whose parameter has to stay a non-deduced context, so no
+// constraint on it can exclude one. The deleted `operator>>(T&, std::nullptr_t)` is what closes
+// that hole and keeps the diagnosis at compile time instead of at run time (strfailbit).
+static_assert( !extractable_lvalue<is_c, std::nullptr_t> );
+static_assert( !extractable_rvalue<is_c, std::nullptr_t> );
+
+// The literal spellings have to be pinned as expressions rather than as types: only a literal is a
+// null pointer constant, and a concept parameterized on the target type cannot carry one. They are
+// asked through a concept on the *stream* type so the requires-expression stays dependent -- a
+// non-dependent one is ill-formed for any invalid requirement ([expr.prim.req]) instead of `false`,
+// which is why these cannot simply be inlined into the static_assert.
+template <typename S> concept extracts_literal_zero    = requires (S& s) { s >> 0; };
+template <typename S> concept extracts_literal_nullptr = requires (S& s) { s >> nullptr; };
+static_assert( !extracts_literal_zero<is_c> );     // ambiguous: two equal-rank pointer conversions
+static_assert( !extracts_literal_nullptr<is_c> );  // exact match on the deleted overload
+
+// The manipulator overload itself is untouched: a function pointer, and a function lvalue that
+// decays to one, both still reach it.
+static_assert(  extractable_lvalue<is_c, void (*)(IOv2::ios_base<char>&)> );
+static_assert(  extractable_lvalue<is_c, void (IOv2::ios_base<char>&)> );
 
 // The two-way manipulators work in both directions.
 static_assert(  insertable<os_c, IOv2::_Setw> && extractable_rvalue<is_c, IOv2::_Setw> );

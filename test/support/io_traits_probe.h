@@ -15,9 +15,11 @@
 // signed char / unsigned char. These probe swrite / sread themselves, against the same kind of
 // iterator the generic operator<< / operator>> hand them.
 //
-// Do not substitute `requires { os << v; }` / `requires { is >> v; }`: the operators are
-// unconstrained on TValue and reject the type with a static_assert in the body, which no
-// requires-expression can see, so both are true for every type.
+// Do not substitute `requires { os << v; }` / `requires { is >> v; }`. Those are valid probes now
+// that the operators are constrained, but they answer a broader question: they also fold in value
+// category, the insertion side's decay rung, the parse-context rung and the function-pointer
+// manipulator overload. Asking io_traits directly keeps a failure pointing at the extension point
+// rather than at the layers above it.
 //
 // These probe the iterator form only -- the form the generic operators use for formatted I/O.
 // Manipulators go through the stream form instead and are not covered here.

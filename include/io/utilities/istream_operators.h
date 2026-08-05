@@ -1188,10 +1188,13 @@ T& operator>>(T& obj, TValue&& value)
  * @lang{ZH}
  * @brief 提取运算符：应用一个作用于 `ios_base<char_type>&` 的函数指针操纵符。
  *
- * 与插入侧同形状的那条完全对称，理由与行为都相同；详见
+ * 与插入侧同形状的那条对称，理由与行为都相同；详见
  * `operator<<(T&, void (*)(ios_base<typename T::char_type>&))`。
+ * @note 只有一处不对称：紧随其后那条已删除的 `operator>>(T&, std::nullptr_t)`。提取侧需要它，
+ *       因为提取到空指针常量永远没有意义；插入侧的 `os << nullptr` 则是有意义的。
  * @param obj 输入流。
- * @param pf 操纵符；为空指针时置 `strfailbit`。
+ * @param pf 操纵符；为空指针时置 `strfailbit`。此处指的是**空的函数指针变量**：字面量
+ *       `is >> 0` / `is >> nullptr` 已被随后那条已删除的重载挡在编译期。
  * @return 流自身的引用。
  * @endif
  *
@@ -1199,10 +1202,15 @@ T& operator>>(T& obj, TValue&& value)
  * @brief Extraction operator: applies a function-pointer manipulator acting on
  *        `ios_base<char_type>&`.
  *
- * Exactly symmetric to the insertion-side overload of the same shape, with the same reasons and
- * the same behaviour; see `operator<<(T&, void (*)(ios_base<typename T::char_type>&))`.
+ * Symmetric to the insertion-side overload of the same shape, with the same reasons and the same
+ * behaviour; see `operator<<(T&, void (*)(ios_base<typename T::char_type>&))`.
+ * @note There is one asymmetry: the deleted `operator>>(T&, std::nullptr_t)` that follows. The
+ *       extraction side needs it because extracting into a null pointer constant is never
+ *       meaningful, whereas `os << nullptr` on the insertion side is.
  * @param obj The input stream.
- * @param pf The manipulator; a null pointer sets `strfailbit`.
+ * @param pf The manipulator; a null pointer sets `strfailbit`. That means a **null
+ *       function-pointer variable**: the literal spellings `is >> 0` / `is >> nullptr` are
+ *       rejected at compile time by the deleted overload that follows.
  * @return A reference to the stream itself.
  * @endif
  */
@@ -1212,5 +1220,55 @@ T& operator>>(T& obj, void (*pf)(ios_base<typename T::char_type>&))
     apply_ios_manip<typename T::char_type>(obj, pf);
     return obj;
 }
+
+/**
+ * @lang{ZH}
+ * @brief 已删除：提取到空指针常量。把 `is >> 0` / `is >> nullptr` 挡在编译期。
+ *
+ * 上一条操纵符重载的形参必须是非推导语境，因此**没有任何约束能排除空指针常量**：`0` 与
+ * `nullptr` 都会经指针转换悄悄选中它，把一个纯粹的书写错误推迟到运行期（置 `strfailbit`）。
+ * 本声明补上这个缺口——`nullptr` 精确匹配到此处即报删除；`0` 到 `std::nullptr_t` 与到函数指针
+ * 同为指针转换、等级相同，于是报歧义。`std::cin >> 0` 在标准库里同样是歧义。
+ * @note 能让本重载可行的只有两种实参：空指针常量，以及 `std::nullptr_t` 类型的对象——除此之外
+ *       没有任何类型能转换到 `std::nullptr_t`，因此对其他类型的可探测性都不受影响。后一种也一并
+ *       拒绝是对的：提取到一个 `std::nullptr_t` 对象同样没有意义。
+ * @note **空的函数指针变量不受影响**：它精确匹配上一条重载，仍按文档所述在运行期置
+ *       `strfailbit`。能在编译期判定的只有字面量写法。
+ * @note 插入侧没有对应声明：`os << nullptr` 是有意义的，由 `io_traits<TChar, std::nullptr_t>`
+ *       打印 `nullptr`，泛型运算符以精确匹配直接胜出。但这只在 `<io/traits/nullptr.h>` 被包含时
+ *       成立——漏掉它，`os << nullptr` 仍会被上一条形状的插入侧操纵符重载接走，退回运行期置
+ *       `strfailbit`。这里**有意不补**对应的已删除声明：漏 include 是个普遍的失败模式，不该在
+ *       `nullptr` 这一处特事特办。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Deleted: extraction into a null pointer constant. Rejects `is >> 0` / `is >> nullptr`
+ *        at compile time.
+ *
+ * The manipulator overload above must take a non-deduced parameter, so **no constraint on it can
+ * exclude a null pointer constant**: both `0` and `nullptr` convert to it silently and turn a
+ * plain typo into a run-time report (`strfailbit`). This declaration closes that hole --
+ * `nullptr` is an exact match here and is diagnosed as deleted, while `0` converts to
+ * `std::nullptr_t` and to the function pointer as pointer conversions of equal rank and so is
+ * diagnosed as ambiguous. `std::cin >> 0` is ambiguous in the standard library for the same
+ * reason.
+ * @note Exactly two kinds of argument make this overload viable: a null pointer constant, and an
+ *       object of type `std::nullptr_t` -- nothing else converts to `std::nullptr_t`, so
+ *       detectability for every other type is unaffected. Rejecting the latter too is right:
+ *       extracting into a `std::nullptr_t` object is no more meaningful.
+ * @note **A null function-pointer variable is unaffected**: it is an exact match for the
+ *       overload above and still reports `strfailbit` at run time, as documented there. Only the
+ *       literal spellings can be decided at compile time.
+ * @note The insertion side carries no counterpart: `os << nullptr` is meaningful --
+ *       `io_traits<TChar, std::nullptr_t>` prints `nullptr` -- and the generic operator wins there
+ *       outright as an exact match. That holds only where `<io/traits/nullptr.h>` is included,
+ *       though: without it `os << nullptr` is still swallowed by the insertion-side manipulator
+ *       overload of the shape above and falls back to reporting `strfailbit` at run time. No
+ *       counterpart deletion is added there **on purpose**: a forgotten include is a general
+ *       failure mode and does not deserve a special case at `nullptr`.
+ * @endif
+ */
+template <istream_type T>
+T& operator>>(T& obj, std::nullptr_t) = delete;
 
 }

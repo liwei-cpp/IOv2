@@ -255,8 +255,8 @@ ostream(TDevice, const TCreator&, locale<TChar>) -> ostream<TDevice, TChar>;
  * @brief 写出一个换行符并刷新本流的操纵符对象，用法为 `os << IOv2::endl`；类型是个空标签，
  *        逻辑全在 `io_traits<TChar, _Endl>::swrite` 里。
  *
- * 方向被编码进类型本身：`io_traits<TChar, _Endl>` 只提供 `swrite`，`is >> endl` 因此在提取
- * 运算符的链末尾撞上 `static_assert`。方向为何要这样表达，见 `io_traits<TChar, _Endl>`。
+ * 方向被编码进类型本身：`io_traits<TChar, _Endl>` 只提供 `swrite`，`is >> endl` 因此不满足提取
+ * 运算符的约束、没有可行重载，编译不过。方向为何要这样表达，见 `io_traits<TChar, _Endl>`。
  * @note 本类型没有 `operator()`：单向操纵符的逻辑只需写一处，直接写在扩展点里即可，`os << endl`
  *       于是成为唯一入口，异常统一由插入运算符转交 `handle_exception`。标准的 `std::endl(os)`
  *       直接调用形式因此不存在。
@@ -268,8 +268,8 @@ ostream(TDevice, const TCreator&, locale<TChar>) -> ostream<TDevice, TChar>;
  *        `io_traits<TChar, _Endl>::swrite`.
  *
  * The direction is encoded in the type itself: `io_traits<TChar, _Endl>` provides only
- * `swrite`, so `is >> endl` hits the `static_assert` at the end of the extraction operator's
- * chain. See `io_traits<TChar, _Endl>` for why the direction is expressed this way.
+ * `swrite`, so `is >> endl` leaves the extraction operator unsatisfied -- no viable overload, and
+ * it does not compile. See `io_traits<TChar, _Endl>` for why the direction is expressed this way.
  * @note This type has no `operator()`: a one-way manipulator needs its logic in one place only,
  *       so it lives in the extension point directly. That makes `os << endl` the sole entry and
  *       leaves exceptions to the insertion operator and `handle_exception`. The standard's
@@ -282,8 +282,8 @@ inline constexpr struct _Endl {} endl{};
  * @lang{ZH}
  * @brief `endl` 的扩展点特化：只提供 `swrite`，写出一个换行符并刷新本流。
  *
- * 操纵符的方向由**成员的有无**表达：这里只有 `swrite`，于是 `is >> endl` 在提取运算符的链
- * 末尾撞上 `static_assert`。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供
+ * 操纵符的方向由**成员的有无**表达：这里只有 `swrite`，于是 `is >> endl` 不满足提取运算符的
+ * 约束、没有可行重载。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供
  * 成员，两个方向都会调用成功。
  *
  * @note 本操纵符**不触碰格式标志**。强制刷新是经 `put()` 的 `force_flush` 参数传给
@@ -307,7 +307,7 @@ inline constexpr struct _Endl {} endl{};
  *        newline and flushes the stream.
  *
  * A manipulator's direction is expressed by **which member exists**: only `swrite` is here, so
- * `is >> endl` hits the `static_assert` at the end of the extraction operator's chain. A
+ * `is >> endl` leaves the extraction operator unsatisfied and there is no viable overload. A
  * constraint would not be enough -- `iostream` satisfies both stream concepts, so if both members
  * existed both directions would call successfully.
  *

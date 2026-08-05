@@ -10,7 +10,7 @@
  * 逻辑写在**流形式**的 `swrite` / `sread` 里，`os << m` / `is >> m` 是仅有的入口（标准里
  * `setw(5)(os)` 那样的直接调用形式不存在）；货币与时间那几个提供**迭代器形式**，由通用的格式化
  * 插入/提取运算符负责加锁与哨兵。方向由**哪个成员存在**表达：只有 `swrite` 即只能插入，
- * 只有 `sread` 即只能提取，用反了会撞上运算符链末尾的 `static_assert`。
+ * 只有 `sread` 即只能提取，用反了那一侧的运算符不满足约束、没有可行重载，因此编译不过。
  *
  * @warning **操纵符与随后的 I/O 不构成同一个临界区。** `os << setw(5) << value` 是两次
  *          各自加锁的操作：`setw(5)` 写入 `width`，`<< value` 在另一个临界区里读取并用完
@@ -39,8 +39,8 @@
  * `setw(5)(os)` does not exist here); the money and time ones provide the **iterator form**, and
  * the generic formatted insertion/extraction operators own the lock and the sentry. The
  * direction is expressed by **which member exists**: `swrite` only means insertion only, `sread`
- * only means extraction only, and using one backwards hits the `static_assert` at the end of the
- * operator's chain.
+ * only means extraction only, and using one backwards leaves the operator on that side
+ * unsatisfied, so there is no viable overload and it does not compile.
  *
  * @warning **A manipulator and the I/O that follows it are not one critical section.**
  *          `os << setw(5) << value` is two separately-locked operations: `setw(5)` writes

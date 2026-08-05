@@ -224,9 +224,9 @@ using DirOut_c  = IOv2::ostream<IOv2::mem_device<char>, char>;
 using DirBoth_c = IOv2::iostream<IOv2::mem_device<char>, char>;
 
 // These probe the stream form of io_traits directly -- the rung the insertion / extraction
-// operators try first for a manipulator. `requires { s >> m; }` would not do: the operators are
-// unconstrained on the value type and reject it with a static_assert in the body, which no
-// requires-expression can see, so it is true for everything.
+// operators try first for a manipulator. `requires { s >> m; }` would answer a broader question:
+// it also folds in the operator's other rungs and the function-pointer manipulator overload, so a
+// failure would no longer point at the stream form itself.
 template <typename S, typename M>
 concept can_extract = requires (S& s, const M& m)
 { IOv2::io_traits<typename S::char_type, M>::sread(s, m); };

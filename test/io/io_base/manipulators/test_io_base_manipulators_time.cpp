@@ -477,10 +477,10 @@ void test_io_base_manipulators_get_time_wchar_t_2()
 namespace
 {
 // Direction: put_time inserts only, get_time extracts only. It is expressed by which member
-// io_traits provides, so the probes go through io_traits: the operators are unconstrained on the
-// value type and reject in the body with a static_assert, which no requires-expression can see.
-// The stream type drops out for the same reason it could never have carried the direction -- an
-// iostream satisfies istream_type and ostream_type alike.
+// io_traits provides, so the probes go through io_traits: a failure then points at the io_traits
+// specialization itself rather than at the value-category and parse-context handling the operators
+// layer on top of it. The stream type drops out for the same reason it could never have carried
+// the direction -- an iostream satisfies istream_type and ostream_type alike.
 static_assert(  insertable <char, IOv2::_Put_time<char>> );
 static_assert( !extractable<char, IOv2::_Put_time<char>> );
 static_assert(  extractable<char, IOv2::_Get_time<char>> );

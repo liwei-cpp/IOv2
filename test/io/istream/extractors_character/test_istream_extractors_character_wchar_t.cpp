@@ -329,9 +329,9 @@ void test_istream_extractors_character_wchar_t_8()
 {
     dump_info("Test istream<wchar_t> operator>> case 8 (character conformance)...");
 
-    // Availability is probed through `extractable` (support/io_traits_probe.h), not
-    // `requires { in >> v; }`: operator>>'s unconstrained fallback makes the latter true for
-    // every type.
+    // Availability is probed through `extractable` (support/io_traits_probe.h) rather than
+    // `requires { in >> v; }`, so a failure points at io_traits itself and not at the
+    // value-category and parse-context handling operator>> layers on top of it.
     // Extraction is by reference, so unlike insertion it gets no integral promotion
     // and therefore no numeric fallback -- a wide stream extracts wchar_t only.
     static_assert( extractable<wchar_t, wchar_t> );
