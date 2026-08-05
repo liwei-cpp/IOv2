@@ -89,79 +89,17 @@ $(document).ready(function(){initNavTree('structIOv2_1_1__Ws.html',''); initResi
 </div>
 
 <div class="header">
-  <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="structIOv2_1_1__Ws-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">IOv2::_Ws Struct Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>The type of the <code>ws</code> manipulator.  
+<p>The whitespace-skipping manipulator object, used as <code>is &gt;&gt; <a class="el" href="namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c">IOv2::ws</a></code>; its type is an empty tag, with all the logic in <code><a class="el" href="structIOv2_1_1io__traits.html" title="The extension point that attaches read/write logic for a TChar stream to a type T....">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1__Ws.html" title="The whitespace-skipping manipulator object, used as is &gt;&gt; IOv2::ws; its type is an empty tag,...">_Ws</a>&gt;::sread</code>.  
  <a href="structIOv2_1_1__Ws.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="istream_8h_source.html">istream.h</a>&gt;</code></p>
-<div class="dynheader">
-Inheritance diagram for IOv2::_Ws:</div>
-<div class="dyncontent">
-<div class="center"><img src="structIOv2_1_1__Ws__inherit__graph.png" border="0" usemap="#aIOv2_1_1__Ws_inherit__map" alt="Inheritance graph"/></div>
-<map name="aIOv2_1_1__Ws_inherit__map" id="aIOv2_1_1__Ws_inherit__map">
-<area shape="rect" title="The type of the ws manipulator." alt="" coords="22,79,109,104"/>
-<area shape="rect" href="structIOv2_1_1in__manip.html" title="Manipulator direction tag base: marks a manipulator as usable only in extraction (operator&gt;&gt;)." alt="" coords="5,5,125,31"/>
-<area shape="poly" title=" " alt="" coords="68,44,68,79,63,79,63,44"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<div class="dynheader">
-Collaboration diagram for IOv2::_Ws:</div>
-<div class="dyncontent">
-<div class="center"><img src="structIOv2_1_1__Ws__coll__graph.png" border="0" usemap="#aIOv2_1_1__Ws_coll__map" alt="Collaboration graph"/></div>
-<map name="aIOv2_1_1__Ws_coll__map" id="aIOv2_1_1__Ws_coll__map">
-<area shape="rect" title="The type of the ws manipulator." alt="" coords="22,79,109,104"/>
-<area shape="rect" href="structIOv2_1_1in__manip.html" title="Manipulator direction tag base: marks a manipulator as usable only in extraction (operator&gt;&gt;)." alt="" coords="5,5,125,31"/>
-<area shape="poly" title=" " alt="" coords="68,44,68,79,63,79,63,44"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a4717872bb113f419f061db6103d27e2a" id="r_a4717872bb113f419f061db6103d27e2a"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
-<tr class="memitem:a4717872bb113f419f061db6103d27e2a"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1__Ws.html#a4717872bb113f419f061db6103d27e2a">operator()</a> (T &amp;is) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
-<tr class="memdesc:a4717872bb113f419f061db6103d27e2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Skips the whitespace characters that follow in the stream.  <br /></td></tr>
-<tr class="separator:a4717872bb113f419f061db6103d27e2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The type of the <code>ws</code> manipulator. </p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a4717872bb113f419f061db6103d27e2a" name="a4717872bb113f419f061db6103d27e2a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4717872bb113f419f061db6103d27e2a">&#9670;&#160;</a></span>operator()()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;istream_type T&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::_Ws::operator() </td>
-          <td>(</td>
-          <td class="paramtype">T &amp;&#160;</td>
-          <td class="paramname"><em>is</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Skips the whitespace characters that follow in the stream. </p>
-
-</div>
-</div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<div class="textblock"><p>The whitespace-skipping manipulator object, used as <code>is &gt;&gt; <a class="el" href="namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c">IOv2::ws</a></code>; its type is an empty tag, with all the logic in <code><a class="el" href="structIOv2_1_1io__traits.html" title="The extension point that attaches read/write logic for a TChar stream to a type T....">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1__Ws.html" title="The whitespace-skipping manipulator object, used as is &gt;&gt; IOv2::ws; its type is an empty tag,...">_Ws</a>&gt;::sread</code>. </p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>include/io/<a class="el" href="istream_8h_source.html">istream.h</a></li>
 </ul>
 </div><!-- contents -->

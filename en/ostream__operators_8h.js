@@ -8,10 +8,6 @@ var ostream__operators_8h =
     [ "IOv2::ostream_operators< TChar >", "structIOv2_1_1ostream__operators.html", "structIOv2_1_1ostream__operators" ],
     [ "IOv2::is_out_sentry", "conceptIOv2_1_1is__out__sentry.html", null ],
     [ "IOv2::ostream_type", "conceptIOv2_1_1ostream__type.html", null ],
-    [ "operator<<", "ostream__operators_8h.html#a37a665479733a4199ceb4d12f15edf34", null ],
-    [ "operator<<", "ostream__operators_8h.html#ace645d4d69f3cb8d2b0f806f72b0149a", null ],
-    [ "operator<<", "ostream__operators_8h.html#a6efbbbef65683bfb94ca89b979543e4a", null ],
-    [ "operator<<", "ostream__operators_8h.html#a9e1307cdd59a6acf1911ed82a61e1e67", null ],
-    [ "operator<<", "ostream__operators_8h.html#a61c3a221d1866a5d370fbc7944cfe307", null ],
+    [ "operator<<", "ostream__operators_8h.html#a1224e46146283353583241d861425de9", null ],
     [ "operator<<", "ostream__operators_8h.html#a8cf627b4b038a6b901bab099239a6b72", null ]
 ];

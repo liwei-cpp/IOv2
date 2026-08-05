@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['格式化操纵符_0',['格式化操纵符',['../group__ios__manipulators.html',1,'']]]
+  ['扩展点_0',['扩展点',['../traits__base_8h.html#autotoc_md0',1,'']]]
 ];

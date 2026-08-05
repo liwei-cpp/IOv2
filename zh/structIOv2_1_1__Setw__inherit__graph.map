@@ -1,7 +1,0 @@
-<map id="IOv2::_Setw" name="IOv2::_Setw">
-<area shape="rect" id="Node000001" title="setw 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 in_manip。" alt="" coords="91,79,189,104"/>
-<area shape="rect" id="Node000002" href="$structIOv2_1_1in__manip.html" title="操纵符方向标签基类：标记一个操纵符只能用于**提取**（operator&gt;&gt;）。" alt="" coords="5,5,125,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,38,130,77,126,80,85,42"/>
-<area shape="rect" id="Node000003" href="$structIOv2_1_1out__manip.html" title="操纵符方向标签基类：标记一个操纵符只能用于**插入**（operator&lt;&lt;）。方向为何必须 编码在类型上、以及本族的形参为何必须按 const 引用传，见 in_manip。" alt="" coords="150,5,279,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,42,154,80,150,77,191,38"/>
-</map>

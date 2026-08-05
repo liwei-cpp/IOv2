@@ -1,9 +1,9 @@
 var indexSectionsWithContent =
 {
-  0: "_abcdefghiklmnoprstuvwxz~格",
-  1: "_abcdefhilmnoprstvwz",
+  0: "_abcdefghiklmnoprstuvwxz~扩方格解错",
+  1: "_abcdefhilmnoprstvz",
   2: "is",
-  3: "abcdfhilmnoprstvz",
+  3: "acdfhilmnoprstvz",
   4: "_abcdefghiklmnoprstuvwxz~",
   5: "_abcdefghilmnoprstuvwx",
   6: "cdefikmoprstv",

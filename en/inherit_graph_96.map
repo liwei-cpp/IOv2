@@ -1,30 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structIOv2_1_1in__manip.html" title="Manipulator direction tag base: marks a manipulator as usable only in extraction (operator&gt;&gt;)." alt="" coords="10,153,130,179"/>
-<area shape="rect" id="Node000001" href="$structIOv2_1_1__Resetiosflags.html" title="The type of the resetiosflags manipulator." alt="" coords="195,55,349,80"/>
-<area shape="poly" id="edge134_Node000000_Node000001" title=" " alt="" coords="96,142,135,115,182,89,212,78,214,83,184,94,138,119,99,147"/>
-<area shape="rect" id="Node000006" href="$structIOv2_1_1__Setbase.html" title="The type of the setbase manipulator. Legal in both directions, so it derives from both direction tags..." alt="" coords="213,104,331,129"/>
-<area shape="poly" id="edge135_Node000000_Node000006" title=" " alt="" coords="135,147,219,127,220,132,137,153"/>
-<area shape="rect" id="Node000007" href="$structIOv2_1_1__Setfill.html" title="The type of the setfill manipulator. Legal in both directions, so it derives from both direction tags..." alt="" coords="183,153,361,179"/>
-<area shape="poly" id="edge136_Node000000_Node000007" title=" " alt="" coords="143,163,182,163,182,169,143,169"/>
-<area shape="rect" id="Node000008" href="$structIOv2_1_1__Setiosflags.html" title="The type of the setiosflags manipulator. Legal in both directions, so it derives from both direction ..." alt="" coords="203,203,341,228"/>
-<area shape="poly" id="edge137_Node000000_Node000008" title=" " alt="" coords="137,179,220,200,219,205,135,185"/>
-<area shape="rect" id="Node000009" href="$structIOv2_1_1__Setprecision.html" title="The type of the setprecision manipulator. Legal in both directions, so it derives from both direction..." alt="" coords="199,252,345,277"/>
-<area shape="poly" id="edge138_Node000000_Node000009" title=" " alt="" coords="100,185,139,212,184,237,218,249,216,254,182,242,136,216,97,189"/>
-<area shape="rect" id="Node000010" href="$structIOv2_1_1__Setw.html" title="The type of the setw manipulator. Legal in both directions, so it derives from both direction tags; s..." alt="" coords="223,301,321,327"/>
-<area shape="poly" id="edge139_Node000000_Node000010" title=" " alt="" coords="93,188,146,247,184,286,224,303,221,308,181,291,142,251,89,191"/>
-<area shape="rect" id="Node000011" href="$structIOv2_1_1__Ws.html" title="The type of the ws manipulator." alt="" coords="229,5,315,31"/>
-<area shape="poly" id="edge140_Node000000_Node000011" title=" " alt="" coords="84,140,124,89,151,63,181,40,204,29,228,22,229,27,206,34,184,44,154,67,128,93,89,144"/>
-<area shape="rect" id="Node000002" href="$structIOv2_1_1out__manip.html" title="Manipulator direction tag base: marks a manipulator as usable only in insertion (operator&lt;&lt;)...." alt="" coords="5,252,135,277"/>
-<area shape="poly" id="edge144_Node000002_Node000001" title=" " alt="" coords="91,240,132,189,146,161,152,136,161,113,181,89,200,78,202,82,184,93,165,115,157,138,151,163,137,191,95,244"/>
-<area shape="poly" id="edge145_Node000002_Node000006" title=" " alt="" coords="89,240,141,179,181,138,211,125,213,130,184,143,145,183,93,243"/>
-<area shape="poly" id="edge146_Node000002_Node000007" title=" " alt="" coords="96,241,135,213,182,188,212,176,214,181,184,192,138,218,99,245"/>
-<area shape="poly" id="edge147_Node000002_Node000008" title=" " alt="" coords="135,246,219,225,220,231,137,251"/>
-<area shape="poly" id="edge148_Node000002_Node000009" title=" " alt="" coords="149,262,199,262,199,267,149,267"/>
-<area shape="poly" id="edge149_Node000002_Node000010" title=" " alt="" coords="136,278,223,300,222,305,135,283"/>
-<area shape="rect" id="Node000003" href="$structIOv2_1_1__Endl.html" title="The type of the endl manipulator." alt="" coords="225,351,319,376"/>
-<area shape="poly" id="edge141_Node000002_Node000003" title=" " alt="" coords="100,284,139,310,184,336,225,350,224,355,182,340,136,315,97,288"/>
-<area shape="rect" id="Node000004" href="$structIOv2_1_1__Ends.html" title="The type of the ends manipulator. See in_manip for why the direction must live in the type...." alt="" coords="223,400,321,425"/>
-<area shape="poly" id="edge142_Node000002_Node000004" title=" " alt="" coords="89,287,129,337,155,363,184,385,224,401,221,406,181,390,151,367,125,341,85,290"/>
-<area shape="rect" id="Node000005" href="$structIOv2_1_1__Flush.html" title="The type of the flush manipulator. See in_manip for why the direction must live in the type...." alt="" coords="221,449,323,475"/>
-<area shape="poly" id="edge143_Node000002_Node000005" title=" " alt="" coords="84,289,99,323,121,362,149,401,184,435,202,445,221,452,219,457,200,449,181,439,145,405,116,365,94,325,79,292"/>
+<area shape="rect" id="Node000000" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="5,5,196,45"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1messages__conf_3_01char_01_4.html" title="Specialization of messages_conf for char, with encoding conversion via a wchar_t converter." alt="" coords="244,5,405,45"/>
+<area shape="poly" id="edge124_Node000000_Node000001" title=" " alt="" coords="210,23,244,23,244,28,210,28"/>
 </map>
