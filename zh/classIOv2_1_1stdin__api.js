@@ -2,6 +2,7 @@ var classIOv2_1_1stdin__api =
 [
     [ "char_type", "classIOv2_1_1stdin__api.html#a726ef24b4d7ef6bf87fc67eb6f60c6de", null ],
     [ "device_type", "classIOv2_1_1stdin__api.html#af86ca9490d1c707bfd9f757e4c0a8d00", null ],
+    [ "in_iter_type", "classIOv2_1_1stdin__api.html#a9057b8a6464a243fa9e5ad11932fcd8b", null ],
     [ "in_sentry_type", "classIOv2_1_1stdin__api.html#acf29f10a40d6cf803b49591be685519d", null ],
     [ "stdin_api", "classIOv2_1_1stdin__api.html#a07f02f768c6d0df586661de71696e5a0", null ],
     [ "stdin_api", "classIOv2_1_1stdin__api.html#a11d6a8b85323179f744bdf50c306cc7e", null ],

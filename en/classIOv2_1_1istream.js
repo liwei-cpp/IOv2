@@ -2,6 +2,7 @@ var classIOv2_1_1istream =
 [
     [ "char_type", "classIOv2_1_1istream.html#a6c8d2ebc233966538bbfff919be43345", null ],
     [ "device_type", "classIOv2_1_1istream.html#a58a46c0cbf5169f1466d799e5c38bd82", null ],
+    [ "in_iter_type", "classIOv2_1_1istream.html#a1f6c52ca47ad436765babe7ebff71662", null ],
     [ "in_sentry_type", "classIOv2_1_1istream.html#af8a39ddc7d18591782d59f3c1aa76899", null ],
     [ "istream", "classIOv2_1_1istream.html#a3c1dedcab1a2597afc02284b973cbf30", null ],
     [ "istream", "classIOv2_1_1istream.html#a21ccecc03d372e9e6ebe1b8e3a2137ed", null ],

@@ -2,6 +2,7 @@ var classIOv2_1_1stdout__api =
 [
     [ "char_type", "classIOv2_1_1stdout__api.html#afc0af1d9cfe853738830482410cc7c2b", null ],
     [ "device_type", "classIOv2_1_1stdout__api.html#a8648b99abc6bf657e2548d1041de597a", null ],
+    [ "out_iter_type", "classIOv2_1_1stdout__api.html#a9c42c13c7cafef3cecf3984da86205e0", null ],
     [ "out_sentry_type", "classIOv2_1_1stdout__api.html#ac9832d29023a724b38e110d0dd8af33a", null ],
     [ "stdout_api", "classIOv2_1_1stdout__api.html#a990752b3c11870974172e0ec2fe744ed", null ],
     [ "stdout_api", "classIOv2_1_1stdout__api.html#a10d9e4ee1eacb7738d8d95f58cad421d", null ],

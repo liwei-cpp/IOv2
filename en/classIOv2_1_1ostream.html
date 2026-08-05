@@ -158,6 +158,8 @@ Public Types</h2></td></tr>
 <tr class="separator:aacccd6567413c13b66a49d266a1d699f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ea6b3f5e0e2999822c06b625088ac61" id="r_a1ea6b3f5e0e2999822c06b625088ac61"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostream.html#a1ea6b3f5e0e2999822c06b625088ac61">out_sentry_type</a> = <a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a>&lt; <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">false</a> &gt;</td></tr>
 <tr class="separator:a1ea6b3f5e0e2999822c06b625088ac61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a746067147788a73e89bf690fa701863c" id="r_a746067147788a73e89bf690fa701863c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ostream.html#a746067147788a73e89bf690fa701863c">out_iter_type</a> = <a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a>&lt; <a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &gt;</td></tr>
+<tr class="separator:a746067147788a73e89bf690fa701863c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_types_classIOv2_1_1ios__base"><td colspan="2" onclick="javascript:toggleInherit('pub_types_classIOv2_1_1ios__base')"><img src="closed.png" alt="-"/>&#160;Public Types inherited from <a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
 <tr class="memitem:a54104c455ab7f72dbaebef7b293e3ff0 inherit pub_types_classIOv2_1_1ios__base" id="r_a54104c455ab7f72dbaebef7b293e3ff0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html#a54104c455ab7f72dbaebef7b293e3ff0">event_callback</a> = std::function&lt; std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;(<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;, std::shared_ptr&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> &gt;)&gt;</td></tr>
 <tr class="memdesc:a54104c455ab7f72dbaebef7b293e3ff0 inherit pub_types_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of a locale-change callback.  <br /></td></tr>
@@ -459,6 +461,22 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::device_type =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a746067147788a73e89bf690fa701863c" name="a746067147788a73e89bf690fa701863c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a746067147788a73e89bf690fa701863c">&#9670;&#160;</a></span>out_iter_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;::out_iter_type =  <a class="el" href="classIOv2_1_1ostreambuf__iterator.html">ostreambuf_iterator</a>&lt;<a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt; &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">

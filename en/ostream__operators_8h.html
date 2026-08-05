@@ -427,6 +427,8 @@ Classes</h2></td></tr>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceIOv2_1_1detail" id="r_namespaceIOv2_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html">IOv2::detail</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
 Concepts</h2></td></tr>
@@ -436,13 +438,23 @@ Concepts</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1ostream__type.html">IOv2::ostream_type</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concept for an output stream type. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1insertable__with__stream.html">IOv2::detail::insertable_with_stream</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a <code>TValue</code> can be inserted into <code>T</code> through the <b>stream form</b> of <code>io_traits</code>, <code>swrite(stream, value)</code>. . <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1insertable__with__iter.html">IOv2::detail::insertable_with_iter</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a <code>TValue</code> can be inserted into <code>T</code> through the <b>iterator form</b> of <code>io_traits</code>, <code>swrite(iter, io, loc, value)</code>. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1insertable.html">IOv2::detail::insertable</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether <code>os &lt;&lt; value</code> is valid: either form will do, and within each form both <code>TValue</code> and its decayed type are tried. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1224e46146283353583241d861425de9" id="r_a1224e46146283353583241d861425de9"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </td></tr>
-<tr class="memitem:a1224e46146283353583241d861425de9"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a1224e46146283353583241d861425de9">IOv2::operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
-<tr class="memdesc:a1224e46146283353583241d861425de9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion operator: writes a value of type <code>TValue</code>, or a manipulator, to the stream.  <br /></td></tr>
-<tr class="separator:a1224e46146283353583241d861425de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9058d8cf9d8e707d878737f4d1fc6ffd" id="r_a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="memTemplParams" colspan="2">template&lt;ostream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
+requires detail::insertable&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;</td></tr>
+<tr class="memitem:a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9058d8cf9d8e707d878737f4d1fc6ffd">IOv2::operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;value)</td></tr>
+<tr class="memdesc:a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion operator: writes a value of type <code>TValue</code>, or a manipulator, to the stream.  <br /></td></tr>
+<tr class="separator:a9058d8cf9d8e707d878737f4d1fc6ffd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cf627b4b038a6b901bab099239a6b72" id="r_a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
 <tr class="memitem:a8cf627b4b038a6b901bab099239a6b72"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a8cf627b4b038a6b901bab099239a6b72">IOv2::operator&lt;&lt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
 <tr class="memdesc:a8cf627b4b038a6b901bab099239a6b72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Insertion operator: applies a function-pointer manipulator acting on <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a>&lt;char_type&gt;&amp;</code>.  <br /></td></tr>

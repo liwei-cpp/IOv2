@@ -93,6 +93,7 @@ $(document).ready(function(){initNavTree('istream__operators_8h.html',''); initR
 <a href="#nested-classes">类</a> &#124;
 <a href="#namespaces">命名空间</a> &#124;
 <a href="#concepts">概念</a> &#124;
+<a href="#typedef-members">类型定义</a> &#124;
 <a href="#func-members">函数</a>  </div>
   <div class="headertitle"><div class="title">istream_operators.h 文件参考</div></div>
 </div><!--header-->
@@ -404,6 +405,8 @@ istream_operators.h 的引用(Include)关系图:</div>
 命名空间</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespaceIOv2_1_1detail" id="r_namespaceIOv2_1_1detail"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html">IOv2::detail</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
 概念</h2></td></tr>
@@ -413,13 +416,37 @@ istream_operators.h 的引用(Include)关系图:</div>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1istream__type.html">IOv2::istream_type</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输入流类型的概念。 <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1extractable__with__stream.html">IOv2::detail::extractable_with_stream</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>T</code> 能否用 <code>io_traits</code> 的**流形式** <code>sread(stream, value)</code> 提取到 <code>TValue</code>。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1extractable__with__iter.html">IOv2::detail::extractable_with_iter</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>T</code> 能否用 <code>io_traits</code> 的**迭代器形式**直接提取到 <code>TValue</code>（不经解析上下文）。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1extractable__with__ctx.html">IOv2::detail::extractable_with_ctx</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>T</code> 能否用**迭代器形式经解析上下文**提取到 <code>TValue</code>：先解析进 <code>in_ctx_t</code>，再转回来。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1detail_1_1extractable.html">IOv2::detail::extractable</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>is &gt;&gt; value</code> 是否成立。<code>TValue</code> 取 <code>operator&gt;&gt;</code> **推导出来的**那个类型：目标是左值就 写 <code>int&amp;</code>，是右值就写 <code>int</code>——值类别参与判定，<code>is &gt;&gt; 5</code> 与 <code>is &gt;&gt; setw(5)</code> 的区别正在 于此。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+类型定义</h2></td></tr>
+<tr class="memitem:a4d20df608cdaa0a8c12354e549745b69" id="r_a4d20df608cdaa0a8c12354e549745b69"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </td></tr>
+<tr class="memitem:a4d20df608cdaa0a8c12354e549745b69"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a4d20df608cdaa0a8c12354e549745b69">IOv2::detail::in_ctx_t</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="structIOv2_1_1parse__context__type.html">parse_context_type</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, std::remove_cvref_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; &gt;::type</td></tr>
+<tr class="memdesc:a4d20df608cdaa0a8c12354e549745b69"><td class="mdescLeft">&#160;</td><td class="mdescRight">提取 <code>TValue</code> 时实际解析进的类型，即 <code><a class="el" href="structIOv2_1_1parse__context__type.html" title="提取 T 时实际解析进的中转类型；主模板为恒等映射。见本文件头部&quot;解析上下文&quot;。">parse_context_type</a></code> 的中转结果。  <br /></td></tr>
+<tr class="separator:a4d20df608cdaa0a8c12354e549745b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5403f275c56b27b3041fed5945eb5f7d" id="r_a5403f275c56b27b3041fed5945eb5f7d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </td></tr>
+<tr class="memitem:a5403f275c56b27b3041fed5945eb5f7d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1detail.html#a5403f275c56b27b3041fed5945eb5f7d">IOv2::detail::in_target_t</a> = std::conditional_t&lt; std::is_lvalue_reference_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt;, std::remove_reference_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt;, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::remove_cvref_t&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; &gt;</td></tr>
+<tr class="memdesc:a5403f275c56b27b3041fed5945eb5f7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">提取时实际写回的目标类型：左值目标保持原样，右值目标降为 <code>const</code>。  <br /></td></tr>
+<tr class="separator:a5403f275c56b27b3041fed5945eb5f7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 函数</h2></td></tr>
-<tr class="memitem:a2dbb573ef881196d1df74a200834bf7f" id="r_a2dbb573ef881196d1df74a200834bf7f"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </td></tr>
-<tr class="memitem:a2dbb573ef881196d1df74a200834bf7f"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a2dbb573ef881196d1df74a200834bf7f">IOv2::operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;&amp;value)</td></tr>
-<tr class="memdesc:a2dbb573ef881196d1df74a200834bf7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">提取运算符：从流中解析出一个 <code>TValue</code> 类型的值，或应用一个操纵符。  <br /></td></tr>
-<tr class="separator:a2dbb573ef881196d1df74a200834bf7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a35dce28b07a75b8a68712a54c54833" id="r_a7a35dce28b07a75b8a68712a54c54833"><td class="memTemplParams" colspan="2">template&lt;istream_type T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; <br />
+requires detail::extractable&lt;T, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a>&gt;</td></tr>
+<tr class="memitem:a7a35dce28b07a75b8a68712a54c54833"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a7a35dce28b07a75b8a68712a54c54833">IOv2::operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &amp;&amp;value)</td></tr>
+<tr class="memdesc:a7a35dce28b07a75b8a68712a54c54833"><td class="mdescLeft">&#160;</td><td class="mdescRight">提取运算符：从流中解析出一个 <code>TValue</code> 类型的值，或应用一个操纵符。  <br /></td></tr>
+<tr class="separator:a7a35dce28b07a75b8a68712a54c54833"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:affd1b46d3a901743e57fc6fd0cdd9a32" id="r_affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memTemplParams" colspan="2">template&lt;istream_type T&gt; </td></tr>
 <tr class="memitem:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#affd1b46d3a901743e57fc6fd0cdd9a32">IOv2::operator&gt;&gt;</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">obj</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>(*<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pf</a>)(<a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type &gt; &amp;))</td></tr>
 <tr class="memdesc:affd1b46d3a901743e57fc6fd0cdd9a32"><td class="mdescLeft">&#160;</td><td class="mdescRight">提取运算符：应用一个作用于 <code><a class="el" href="classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。">ios_base</a>&lt;char_type&gt;&amp;</code> 的函数指针操纵符。  <br /></td></tr>

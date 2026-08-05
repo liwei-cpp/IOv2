@@ -2,7 +2,9 @@ var classIOv2_1_1iostream =
 [
     [ "char_type", "classIOv2_1_1iostream.html#ae1b892f26d6bd6895a02f67dab7bbd7f", null ],
     [ "device_type", "classIOv2_1_1iostream.html#a1d4758138a701bd50bd2bbbc8d78c8e7", null ],
+    [ "in_iter_type", "classIOv2_1_1iostream.html#aa2b9425f08693ee7856eba421b3f08d7", null ],
     [ "in_sentry_type", "classIOv2_1_1iostream.html#a2d87ebcc99c0697b4d50e1a56332ac15", null ],
+    [ "out_iter_type", "classIOv2_1_1iostream.html#a00376acd81101533820684c3821c4459", null ],
     [ "out_sentry_type", "classIOv2_1_1iostream.html#aaa24883ffdd45ea7c0e461b9bcb4e3fa", null ],
     [ "iostream", "classIOv2_1_1iostream.html#aa72b404774f896a8307c6eb2957bdab8", null ],
     [ "iostream", "classIOv2_1_1iostream.html#a359369d5de88fb5933370f9dd71cecba", null ],

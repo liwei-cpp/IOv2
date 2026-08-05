@@ -91,8 +91,7 @@ $(document).ready(function(){initNavTree('traits__base_8h.html',''); initResizab
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#concepts">Concepts</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle"><div class="title">traits_base.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -166,12 +165,6 @@ Classes</h2></td></tr>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
-Concepts</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1has__io__traits.html">IOv2::has_io_traits</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether <code>io_traits&lt;TChar, T&gt;</code> is defined (that is, whether a specialization exists), regardless of direction. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Declares this library's single I/O extension point, <code>io_traits&lt;TChar, T&gt;</code>, together with the optional relay type used on the extraction side, <code>parse_context_type&lt;TChar, T&gt;</code>.</p>
@@ -194,16 +187,17 @@ The extension point</h3>
 <div class="line">                       <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">MyType</a>&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>);</div>
 <div class="line">};</div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
-<div class="ttc" id="astructIOv2_1_1io__traits_html"><div class="ttname"><a href="structIOv2_1_1io__traits.html">IOv2::io_traits</a></div><div class="ttdoc">The extension point that attaches read/write logic for a TChar stream to a type T....</div><div class="ttdef"><b>Definition</b> traits_base.h:185</div></div>
+<div class="ttc" id="astructIOv2_1_1io__traits_html"><div class="ttname"><a href="structIOv2_1_1io__traits.html">IOv2::io_traits</a></div><div class="ttdoc">The extension point that attaches read/write logic for a TChar stream to a type T....</div><div class="ttdef"><b>Definition</b> traits_base.h:202</div></div>
 </div><!-- fragment --><p><b>Stream form</b> (used by manipulators; the member gets the stream itself and there is <b>no lock and no sentry</b> &ndash; do it yourself if you need one, as <code>io_traits&lt;TChar, _Ws&gt;::sread</code> does): </p><div class="fragment"><div class="line"><span class="keyword">template</span> &lt;ostream_type T&gt; <span class="keyword">static</span> <span class="keywordtype">void</span> swrite(T&amp; s, <span class="keyword">const</span> MyType&amp; v);</div>
 <div class="line"><span class="keyword">template</span> &lt;istream_type T&gt; <span class="keyword">static</span> <span class="keywordtype">void</span> sread (T&amp; s, <span class="keyword">const</span> MyType&amp; v);</div>
-</div><!-- fragment --><p>The two forms are told apart by <b>arity</b>, and a specialization should provide <b>only one of them</b> &ndash; when both are present, which one the operator picks is unspecified. The insertion side also retries with <code>TValue</code> decayed once, which is what lets an array name decay to a pointer and a function name to a function pointer; within one form the undecayed <code>TValue</code> wins.</p>
+</div><!-- fragment --><p>The two forms are told apart by <b>arity</b>, and a specialization may provide <b>only one of them</b>: providing both is a compile error, diagnosed by a <code>static_assert</code> in the operator. The insertion side also retries with <code>TValue</code> decayed once, which is what lets an array name decay to a pointer and a function name to a function pointer; within one form the undecayed <code>TValue</code> wins.</p>
 <p>The library's own manipulators have no <code>operator()</code>: the one-way ones (<code>ws</code>, <code>endl</code>, <code>ends</code>, <code>flush</code>) are empty tag types, the two-way ones carry their parameters only, and the logic always lives in this extension point &ndash; spelled out in both members when it fits on one line, factored into a private static helper when it does not. That leaves <code>os &lt;&lt; m</code> / <code>is &gt;&gt; m</code> as the only entry, so exceptions are caught by the operator and handed to <code>handle_exception</code> in one place instead of in every manipulator. The price is that the standard's direct-call forms, <code>std::ws(is)</code> and <code>std::endl(os)</code>, do not exist here.</p>
 <p>The one thing that does not go through this extension point is a <b>function-pointer</b> manipulator taking only <code>ios_base&lt;TChar&gt;&amp;</code>: each of the insertion and extraction sides carries one dedicated operator overload for it, whose parameter type must be a non-deduced context &ndash; the manipulator in <code>os &lt;&lt; <a class="el" href="group__ios__manipulators.html#ga0dc9293a3d364044d765f759e5b46c40" title="Set boolalpha: represent bool values as text. .">IOv2::boolalpha</a></code> is a function template, and without a parameter type fixed in advance its template arguments cannot be deduced nor its address taken. A function pointer is the only shape supported; a manipulator that carries state belongs in the stream form of this extension point, which gets the real stream and can do more than <code>ios_base&amp;</code> allows.</p>
 <h3><a class="anchor" id="autotoc_md5"></a>
 Direction</h3>
-<p>The direction is decided by <b>which member exists</b>: <code>swrite</code> only means insertion only, <code>sread</code> only means extraction only, and both means both. Constraints cannot express this &ndash; an <code>iostream</code> satisfies <code>istream_type</code> and <code>ostream_type</code> alike, so a constraint alone cannot stop a backwards use. Using one backwards hits the <code>static_assert</code> at the end of the operator's chain, which distinguishes "no `io_traits` at all" from "an `io_traits` exists, but
-offers no member usable in this direction".</p>
+<p>The direction is decided by <b>which member exists</b>: <code>swrite</code> only means insertion only, <code>sread</code> only means extraction only, and both means both. A constraint on the <b>stream type</b> cannot express this &ndash; an <code>iostream</code> satisfies <code>istream_type</code> and <code>ostream_type</code> alike, so that alone cannot stop a backwards use. What actually decides the direction are the operators' own constraints, <code>detail::insertable</code> and <code>detail::extractable</code>, which probe for exactly those members. Using one backwards therefore does not produce a tailored message: the operator simply drops out of overload resolution and the compiler reports its generic "no match for
+`operator&lt;&lt;`".</p>
+<p>The flip side is that streamability becomes <b>detectable</b>: <code>requires { os &lt;&lt; x; }</code> and <code>requires { is &gt;&gt; x; }</code> now report the truth, so generic code (logging, serialization, debug printing) can branch on them without having to know which of the two forms is underneath. Tailored diagnostics and detectability cannot coexist &ndash; a reachable <code>static_assert</code> requires an unconstrained operator, and an unconstrained operator cannot be probed. This library picks the latter.</p>
 <h3><a class="anchor" id="autotoc_md6"></a>
 Errors</h3>
 <p>Members should simply <b>throw</b>; do not touch the stream's state bits yourself. The operator catches and hands the exception to <code>handle_exception</code>, which turns it into the matching state bit and honours the stream's exception mask. Everything this library throws itself is a <code>stream_error</code>.</p>
