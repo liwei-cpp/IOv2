@@ -259,21 +259,27 @@ struct istream_operators;
  * @lang{ZH}
  * @brief 输入流类型的概念。
  *
- * 一个类型要成为输入流，必须提供 `in_sentry_type` 与 `char_type` 类型、可返回其
- * locale，且其 `in_sentry_type` 满足 `is_in_sentry`；同时它必须派生自
+ * 一个类型要成为输入流，必须提供 `in_sentry_type`、`in_iter_type` 与 `char_type` 类型、
+ * 可返回其 locale，且其 `in_sentry_type` 满足 `is_in_sentry`；同时它必须派生自
  * `ios_base<char_type>`、`io_state_and_exp` 与 `istream_operators<char_type>`。
  * @note `io_state_and_exp` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
  *       `handle_exception()`（提取运算符的 `catch`、`in_sentry` 的构造）与 `operator bool`。
  *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
  *       “这个类型不是输入流”上。
+ * @note `in_iter_type` 必须是 `i_iter()` 的返回类型（`i_iter()` 的返回类型就写成它，因此两者
+ *       不会漂移）。之所以要把这个**类型**公开出来，理由与插入侧的 `out_iter_type` 相同：
+ *       `i_iter()` 本身是私有的，而 `detail::extractable` 这类命名概念不是友元，无法在自己的
+ *       requires 表达式里调用它。公开类型不等于公开对象——`istreambuf_iterator` 只能由
+ *       `TStreamBuf&` 构造，而 `m_streambuf` 仍是私有的。详见
+ *       `ostream_operators.h` 中 `ostream_type` 的对应说明。
  * @tparam T 待检测的类型。
  * @endif
  *
  * @lang{EN}
  * @brief Concept for an input stream type.
  *
- * To qualify as an input stream, a type must expose the `in_sentry_type` and `char_type`
- * types, be able to return its locale, and have an `in_sentry_type` that satisfies
+ * To qualify as an input stream, a type must expose the `in_sentry_type`, `in_iter_type` and
+ * `char_type` types, be able to return its locale, and have an `in_sentry_type` that satisfies
  * `is_in_sentry`; it must also derive from `ios_base<char_type>`, `io_state_and_exp` and
  * `istream_operators<char_type>`.
  * @note The `io_state_and_exp` clause is a requirement, not just a description: code
@@ -282,6 +288,13 @@ struct istream_operators;
  *       calls only fail once the template **body** is instantiated, putting the diagnostic
  *       deep inside the library's implementation rather than on "this type is not an input
  *       stream".
+ * @note `in_iter_type` must be the return type of `i_iter()` -- which is spelled as exactly that
+ *       type, so the two cannot drift apart. The **type** has to be public for the same reason
+ *       as `out_iter_type` on the insertion side: `i_iter()` itself is private, and a named
+ *       concept such as `detail::extractable` is not a friend and so cannot call it from its own
+ *       requires-expression. Exposing the type is not exposing the object -- an
+ *       `istreambuf_iterator` can only be built from a `TStreamBuf&`, and `m_streambuf` stays
+ *       private. See the matching note on `ostream_type` in `ostream_operators.h`.
  * @tparam T The type under inspection.
  * @endif
  */
@@ -290,6 +303,7 @@ concept istream_type =
     requires (T a)
     {
         typename T::in_sentry_type;
+        typename T::in_iter_type;
         typename T::char_type;
         { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
     } &&
@@ -297,6 +311,131 @@ concept istream_type =
     std::derived_from<T, ios_base<typename T::char_type>> &&
     std::derived_from<T, io_state_and_exp> &&
     std::derived_from<T, istream_operators<typename T::char_type>>;
+
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * @brief 提取 `TValue` 时实际解析进的类型，即 `parse_context_type` 的中转结果。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type actually parsed into when extracting a `TValue`, that is the relay result of
+ *        `parse_context_type`.
+ * @endif
+ */
+template <typename TChar, typename TValue>
+using in_ctx_t = typename parse_context_type<TChar, std::remove_cvref_t<TValue>>::type;
+
+/**
+ * @lang{ZH}
+ * @brief 提取时实际写回的目标类型：左值目标保持原样，右值目标降为 `const`。
+ * @note 这一层就是"能不能写进去"的判据。`is >> 5` / `is >> const_obj` 靠它挡下——`int` 的
+ *       `sread` 收 `int&`，配不上 `const int&`；而 `setw(5)` 这类工厂产出的操纵符是纯右值，
+ *       它们的 `sread` 本就不修改操纵符对象、收 const 引用，因此通得过。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type actually written back to on extraction: an lvalue target keeps its type, an
+ *        rvalue target is demoted to `const`.
+ * @note This layer is what decides "can this be written into". It is what rejects `is >> 5` and
+ *       `is >> const_obj`: the `sread` for `int` takes an `int&`, which a `const int&` cannot
+ *       match. A manipulator produced by a factory such as `setw(5)` is a prvalue, but its
+ *       `sread` does not modify the manipulator object and takes a const reference, so it passes.
+ * @endif
+ */
+template <typename TValue>
+using in_target_t = std::conditional_t<std::is_lvalue_reference_v<TValue>,
+                                       std::remove_reference_t<TValue>,
+                                       const std::remove_cvref_t<TValue>>;
+
+/**
+ * @lang{ZH}
+ * @brief `T` 能否用 `io_traits` 的**流形式** `sread(stream, value)` 提取到 `TValue`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether a `TValue` can be extracted from `T` through the **stream form** of
+ *        `io_traits`, `sread(stream, value)`.
+ * @endif
+ */
+template <typename T, typename TValue>
+concept extractable_with_stream = istream_type<T> &&
+    requires(T& obj, in_target_t<TValue>& value)
+    { io_traits<typename T::char_type, std::remove_cvref_t<TValue>>::sread(obj, value); };
+
+/**
+ * @lang{ZH}
+ * @brief `T` 能否用 `io_traits` 的**迭代器形式**直接提取到 `TValue`（不经解析上下文）。
+ * @note 迭代器以 `in_iter_type&` 也就是**左值**参与探测，与运算符里 `auto iter = obj.i_iter(...);`
+ *       之后传 `iter` 的形式一致。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether a `TValue` can be extracted from `T` through the **iterator form** directly,
+ *        with no parse-context relay.
+ * @note The iterator is probed as an `in_iter_type&`, that is as an **lvalue**, matching the
+ *       operator's `auto iter = obj.i_iter(...);` followed by passing `iter`.
+ * @endif
+ */
+template <typename T, typename TValue>
+concept extractable_with_iter = istream_type<T> &&
+    std::is_same_v<in_ctx_t<typename T::char_type, TValue>, std::remove_cvref_t<TValue>> &&
+    requires(T& obj, typename T::in_iter_type& iter, in_target_t<TValue>& value)
+    {
+        io_traits<typename T::char_type, std::remove_cvref_t<TValue>>::sread(
+            iter, std::default_sentinel, obj, obj.locale(), value);
+    };
+
+/**
+ * @lang{ZH}
+ * @brief `T` 能否用**迭代器形式经解析上下文**提取到 `TValue`：先解析进 `in_ctx_t`，再转回来。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether a `TValue` can be extracted from `T` through the **iterator form via a parse
+ *        context**: parse into `in_ctx_t` first, then convert back.
+ * @endif
+ */
+template <typename T, typename TValue>
+concept extractable_with_ctx = istream_type<T> &&
+    !std::is_same_v<in_ctx_t<typename T::char_type, TValue>, std::remove_cvref_t<TValue>> &&
+    requires(T& obj, typename T::in_iter_type& iter, in_target_t<TValue>& value,
+             in_ctx_t<typename T::char_type, TValue>& ctx)
+    {
+        io_traits<typename T::char_type, in_ctx_t<typename T::char_type, TValue>>::sread(
+            iter, std::default_sentinel, obj, obj.locale(), ctx);
+        value = static_cast<std::remove_cvref_t<TValue>>(ctx);
+    };
+
+/**
+ * @lang{ZH}
+ * @brief `is >> value` 是否成立。`TValue` 取 `operator>>` **推导出来的**那个类型：目标是左值就
+ *        写 `int&`，是右值就写 `int`——值类别参与判定，`is >> 5` 与 `is >> setw(5)` 的区别正在
+ *        于此。
+ * @note 与插入侧不同，这里**没有衰退档**：提取按引用写回，数组目标衰退成指针就会丢掉长度。
+ * @note 本概念就是 `operator>>` 的约束，运算符体内的分派也复用它的三个组成部分，因此
+ *       `requires { is >> x; }` 与运算符实际选中的通道永远一致。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether `is >> value` is valid. `TValue` is the type **as deduced by** `operator>>`:
+ *        write `int&` for an lvalue target and `int` for an rvalue one -- value category takes
+ *        part in the decision, which is exactly what separates `is >> 5` from `is >> setw(5)`.
+ * @note Unlike the insertion side there is **no decay rung**: extraction writes back through a
+ *       reference, and decaying an array target to a pointer would throw away its length.
+ * @note This concept *is* the constraint on `operator>>`, and the dispatch inside the operator
+ *       reuses its three components, so `requires { is >> x; }` and the channel the operator
+ *       actually picks can never disagree.
+ * @endif
+ */
+template <typename T, typename TValue>
+concept extractable =
+    istream_type<T> &&
+    (extractable_with_stream<T, TValue> ||
+     extractable_with_iter<T, TValue> ||
+     extractable_with_ctx<T, TValue>);
+}
 
 /**
  * @lang{ZH}
@@ -861,6 +1000,9 @@ struct istream_operators
      * @param saw_eof 可选的报告位；生存期必须覆盖迭代器及其所有副本，`nullptr` 表示不
      *                上报。详见 istreambuf_iterator。
      * @return 绑定到本流缓冲区的 `istreambuf_iterator`。
+     * @note 返回类型写成 `TSelf::in_iter_type` 而不是 `auto`：探测那一侧
+     *       （`detail::extractable_with_iter`）只能拿到那个公开别名，本函数的返回类型若与它
+     *       不符，这里就直接编译不过——别名与实现因此不可能漂移。
      * @endif
      * @lang{EN}
      * @brief Gets an input iterator; optionally attaches an "observed end of input" flag.
@@ -868,11 +1010,15 @@ struct istream_operators
      * @param saw_eof Optional report flag; its lifetime must cover the iterator and all
      *                copies, `nullptr` means do not report. See istreambuf_iterator.
      * @return An `istreambuf_iterator` bound to this stream's buffer.
+     * @note The return type is spelled `TSelf::in_iter_type` rather than `auto`: the probing side
+     *       (`detail::extractable_with_iter`) has only that public alias to go on, and if this
+     *       function's return type did not match it, this very line would fail to compile -- so
+     *       the alias and the implementation cannot drift apart.
      * @endif
      */
 private:
     template <typename TSelf>
-    auto i_iter(this TSelf& self, bool* saw_eof = nullptr)
+    typename TSelf::in_iter_type i_iter(this TSelf& self, bool* saw_eof = nullptr)
     {
         return istreambuf_iterator(self.m_streambuf, saw_eof);
     }
@@ -887,6 +1033,7 @@ private:
      * @endif
      */
     template <istream_type U, typename TValue>
+        requires detail::extractable<U, TValue>
     friend U& operator>>(U& obj, TValue&& value);
 };
 
@@ -896,19 +1043,22 @@ private:
  *
  * 本运算符是提取侧**唯一**的入口。它在 `if constexpr` 里挑出可用的通道：流形式
  * `sread(stream, value)`（操纵符）与迭代器形式 `sread(iter, end, io, loc, value)`（格式化提取，
- * 目标类型先过一道解析上下文 `TCtx`）。都不可用时就地 `static_assert`，并按"扩展点是否存在"
- * 给出两条不同的诊断。与插入侧不同，这里**不做退化**：提取按引用写回，数组目标退化成指针就会
- * 丢掉长度。
+ * 目标类型先过一道解析上下文 `TCtx`）。与插入侧不同，这里**不做退化**：提取按引用写回，数组
+ * 目标退化成指针就会丢掉长度。
  *
- * @note 同一个 `io_traits` 特化**只应提供其中一种形式**的 `sread`。两种形式靠实参个数区分、
- *       不会互相误配，但同时提供时选中哪一种**不作保证**。
+ * @note 同一个 `io_traits` 特化**只能提供其中一种形式**的 `sread`：两种都提供会撞上本函数体
+ *       开头的 `static_assert`。
  * @note 形参是转发引用而非 `TValue&`。工厂函数产出的操纵符（`setw(5)`、`get_money(x)`）都是
  *       纯右值，绑不上非常量左值引用；从前那是靠两条按值传的 `operator>>` 特事特办的。改成
- *       转发引用之后，"能不能写进去"由第二档的探测自己判定：右值目标一律以 `const` 左值
- *       (`TTarget`) 探测——`get_money(x)` 的 `sread` 不修改操纵符对象本身、收 const 引用，
- *       因而通过；而 `int` 的 `sread` 收 `int&`，`is >> 5` 便落到 `static_assert`，不会静默地
- *       解析进一个临时量。常量左值目标同理被挡下。
- * @note 探测里直接写 `io_traits<TChar, TCtx>::sread(...)` 是安全的：未特化时它是不完整类型，
+ *       转发引用之后，"能不能写进去"由 `detail::in_target_t` 判定：右值目标一律以 `const` 左值
+ *       探测**并以同一形式传给** `sread`——`get_money(x)` 的 `sread` 不修改操纵符对象本身、
+ *       收 const 引用，因而通过；而 `int` 的 `sread` 收 `int&`，`is >> 5` 于是连重载都选不中，
+ *       不会静默地解析进一个临时量。常量左值目标同理被挡下。
+ * @note 本运算符由 `detail::extractable` 约束，而**函数体内的分派复用同一组概念**，因此
+ *       `requires { is >> x; }` 与运算符实际选中的通道永远一致。链末尾那个 `else` 因此不可达，
+ *       只留一句写给维护者的内部不变式断言。代价与插入侧相同：类型不支持时的诊断退化为通用的
+ *       "no match for `operator>>`"。
+ * @note 概念里直接写 `io_traits<TChar, TCtx>::sread(...)` 是安全的：未特化时它是不完整类型，
  *       在 requires 表达式里属于可 SFINAE 的替换失败，结果为 `false` 而非硬错误。
  * @tparam T 输入流类型。
  * @tparam TValue 目标类型（或操纵符类型）。
@@ -925,24 +1075,28 @@ private:
  * This is the **only** entry point on the extraction side. An `if constexpr` chain picks whichever
  * channel is usable: the stream form `sread(stream, value)` (manipulators) or the iterator form
  * `sread(iter, end, io, loc, value)` (formatted extraction, with the target type relayed through
- * the parse-context type `TCtx`). When neither is usable a `static_assert` fires in place, with
- * one of two diagnostics depending on whether the extension point exists at all. Unlike the
- * insertion side there is **no decay rung**: extraction writes back through a reference, and
- * decaying an array target to a pointer would throw away its length.
+ * the parse-context type `TCtx`). Unlike the insertion side there is **no decay rung**:
+ * extraction writes back through a reference, and decaying an array target to a pointer would
+ * throw away its length.
  *
- * @note One `io_traits` specialization should provide **only one of the two forms** of `sread`.
- *       The forms differ in argument count and so cannot be mistaken for each other, but which
- *       one is picked when both are present is **unspecified**.
+ * @note One `io_traits` specialization may provide **only one of the two forms** of `sread`:
+ *       providing both hits the `static_assert` at the top of this function body.
  * @note The parameter is a forwarding reference rather than `TValue&`. Manipulators produced by
  *       a factory (`setw(5)`, `get_money(x)`) are prvalues and cannot bind to a non-const lvalue
  *       reference; that used to be worked around with two by-value `operator>>` overloads. With
- *       a forwarding reference, "can this be written into" is decided by the second rung's own
- *       probe: an rvalue target is always probed as a `const` lvalue (`TTarget`) -- the `sread`
- *       of `get_money(x)` does not modify the manipulator object and takes a const reference, so
- *       it passes, while the one for `int` takes `int&`, so `is >> 5` lands on the
- *       `static_assert` instead of silently parsing into a temporary. A const lvalue target is
- *       rejected the same way.
- * @note Naming `io_traits<TChar, TCtx>::sread(...)` directly in the probes is safe: where it is
+ *       a forwarding reference, "can this be written into" is decided by `detail::in_target_t`:
+ *       an rvalue target is probed as a `const` lvalue **and passed to `sread` in that same
+ *       form** -- the `sread` of `get_money(x)` does not modify the manipulator object and takes
+ *       a const reference, so it passes, while the one for `int` takes `int&`, so `is >> 5` does
+ *       not select the overload at all instead of silently parsing into a temporary. A const
+ *       lvalue target is rejected the same way.
+ * @note This operator is constrained by `detail::extractable`, and the dispatch **inside the body
+ *       reuses the same concepts**, so `requires { is >> x; }` and the channel the operator
+ *       actually picks can never disagree. That also makes the `else` at the end of the chain
+ *       unreachable, leaving only an internal-invariant assertion aimed at maintainers. The price
+ *       is the same as on the insertion side: an unsupported type gets the generic "no match for
+ *       `operator>>`" diagnostic.
+ * @note Naming `io_traits<TChar, TCtx>::sread(...)` directly in the concepts is safe: where it is
  *       not specialized it is an incomplete type, which inside a requires-expression is a
  *       SFINAE-able substitution failure yielding `false` rather than a hard error.
  * @tparam T The input stream type.
@@ -954,31 +1108,29 @@ private:
  * @endif
  */
 template <istream_type T, typename TValue>
+    requires detail::extractable<T, TValue>
 T& operator>>(T& obj, TValue&& value)
 {
     using TChar   = typename T::char_type;
     using TV      = std::remove_cvref_t<TValue>;
-    using TCtx    = typename parse_context_type<TChar, TV>::type;
-    using TTarget = std::conditional_t<std::is_lvalue_reference_v<TValue>,
-                                       std::remove_reference_t<TValue>, const TV>;
+    using TCtx    = detail::in_ctx_t<TChar, TValue>;
+    using TTarget = detail::in_target_t<TValue>;
 
-    constexpr bool stream_r = requires
-        { io_traits<TChar, TV>::sread(obj, value); };
-    constexpr bool iter_v   = std::is_same_v<TCtx, TV> && requires (TTarget& v)
-        { io_traits<TChar, TV>::sread(obj.i_iter(), std::default_sentinel,
-                                      obj, obj.locale(), v); };
-    constexpr bool iter_c   = !std::is_same_v<TCtx, TV> && requires (TTarget& v, TCtx& c)
-        {
-            io_traits<TChar, TCtx>::sread(obj.i_iter(), std::default_sentinel,
-                                          obj, obj.locale(), c);
-            v = static_cast<TV>(c);
-        };
+    constexpr bool stream_r = detail::extractable_with_stream<T, TValue>;
+    constexpr bool iter_v   = detail::extractable_with_iter<T, TValue>;
+    constexpr bool iter_c   = detail::extractable_with_ctx<T, TValue>;
+
+    static_assert(!(stream_r && (iter_v || iter_c)),
+        "IOv2: this io_traits specialization provides both forms of sread() -- the stream form "
+        "sread(stream, value) and the iterator form sread(iter, end, io, loc, value). Provide "
+        "exactly one: the iterator form for formatted extraction, the stream form for a "
+        "manipulator. See io/traits/traits_base.h.");
 
     if constexpr (stream_r)
     {
         try
         {
-            io_traits<TChar, TV>::sread(obj, value);
+            io_traits<TChar, TV>::sread(obj, static_cast<TTarget&>(value));
         }
         catch (...)
         {
@@ -1001,7 +1153,8 @@ T& operator>>(T& obj, TValue&& value)
                 throw stream_error("istream extraction fail: reached EOF with no value extracted");
 
             if constexpr (iter_v)
-                io_traits<TChar, TV>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
+                io_traits<TChar, TV>::sread(iter, std::default_sentinel, obj, obj.locale(),
+                                            static_cast<TTarget&>(value));
             else
             {
                 TCtx tmp = [&value]() -> TCtx {
@@ -1012,7 +1165,7 @@ T& operator>>(T& obj, TValue&& value)
                         return TCtx{};
                 }();
                 io_traits<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
-                value = static_cast<TV>(tmp);
+                static_cast<TTarget&>(value) = static_cast<TV>(tmp);
             }
 
             if (saw_eof) obj.setstate(ios_defs::eofbit);
@@ -1022,20 +1175,11 @@ T& operator>>(T& obj, TValue&& value)
             obj.handle_exception(std::current_exception(), saw_eof);
         }
     }
-    else if constexpr (has_io_traits<TChar, TV> || has_io_traits<TChar, TCtx>)
-        static_assert(dependent_false_v<TValue>,
-            "IOv2: cannot extract into this type. An io_traits<char_type, TValue> exists but "
-            "offers no sread() usable with this stream. The usual cause is a direction mismatch "
-            "-- the type provides swrite() only and is meant for insertion (write `os << x`, not "
-            "`is >> x`). Otherwise the target is not writable: extraction needs a non-const "
-            "lvalue, so `is >> 5` and `is >> const_obj` are rejected here. A fill character whose "
-            "type differs from the stream's char_type lands here too. "
-            "See io/traits/traits_base.h.");
     else
         static_assert(dependent_false_v<TValue>,
-            "IOv2: cannot extract into this type. No io_traits<char_type, TValue> is defined for "
-            "it. Define one -- see io/traits/traits_base.h -- or extract into a supported type "
-            "such as an arithmetic type, a character type, CharT* or std::basic_string.");
+            "IOv2 internal: detail::extractable admitted this type but the dispatch chain has no "
+            "branch for it. The concept and the chain must stay in step -- see "
+            "io/utilities/istream_operators.h.");
 
     return obj;
 }

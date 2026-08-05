@@ -33,6 +33,7 @@ public:
     using device_type = TDevice;
     using char_type = TChar;
     using out_sentry_type = out_sentry<T, false, true>;
+    using out_iter_type = ostreambuf_iterator<ostreambuf<device_type, char_type>>;
 
     friend out_sentry_type;
     friend out_flusher<T>;

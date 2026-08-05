@@ -146,6 +146,10 @@ struct StatelessOs : IOv2::ios_base<char>
 {
     using char_type = char;
     using out_sentry_type = IOv2::out_sentry<StatelessOs, false>;
+    // ostream_type also demands the iterator type: o_iter() is private, so the insertion
+    // concepts have only this alias to probe with. Nothing here can actually do I/O, so any
+    // well-formed ostreambuf_iterator will do.
+    using out_iter_type = IOv2::ostreambuf_iterator<IOv2::ostreambuf<IOv2::mem_device<char>, char>>;
     IOv2::locale<char> m_locale;
 };
 

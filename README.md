@@ -105,7 +105,7 @@ struct io_traits<TChar, my_point>
 
 - **方向由"哪个成员存在"决定**：只有 `swrite` 即只能插入，只有 `sread` 即只能提取，两个都有即两个方向都行。这一点不能改用约束来表达——`iostream` 同时满足 `istream_type` 与 `ostream_type`。用反了会撞上运算符里的 `static_assert`，它会区分"根本没有 `io_traits`"和"有 `io_traits`，但这个方向没有能用的成员"。
 - **出错就直接抛**，不要自己去动流的状态位：运算符会接住并交给 `handle_exception`，转成相应的状态位、并遵守流的异常掩码。本库自己抛的一律是 `stream_error`。
-- 上面是**迭代器形式**，格式化 I/O 用这一档。操纵符用的是**流形式**——`static void swrite(T& s, const my_point& v)` / `sread`，直接拿到流本身，**不加锁、不建哨兵**，需要就自己来。两种形式靠参数个数区分，一个特化**只应提供其中一种**——两种都提供时选中哪一种不作保证。库内置的操纵符没有 `operator()`，逻辑全在扩展点里，`os << m` / `is >> m` 是仅有的入口；标准的 `std::ws(is)` / `std::endl(os)` 直接调用形式在本库不存在。
+- 上面是**迭代器形式**，格式化 I/O 用这一档。操纵符用的是**流形式**——`static void swrite(T& s, const my_point& v)` / `sread`，直接拿到流本身，**不加锁、不建哨兵**，需要就自己来。两种形式靠参数个数区分，一个特化**只能提供其中一种**：两种都提供是编译错误。库内置的操纵符没有 `operator()`，逻辑全在扩展点里，`os << m` / `is >> m` 是仅有的入口；标准的 `std::ws(is)` / `std::endl(os)` 直接调用形式在本库不存在。
 
 细节（含提取端可选的 `parse_context_type` 中转）见 `io/traits/traits_base.h` 的文件头注释。
 
@@ -290,7 +290,7 @@ Three things to know:
 
 - **The direction is decided by which member exists**: `swrite` only means insertion only, `sread` only means extraction only, and both means both. Constraints cannot express this -- an `iostream` satisfies `istream_type` and `ostream_type` alike. Using one backwards hits a `static_assert` in the operator, which distinguishes "no `io_traits` at all" from "an `io_traits` exists, but offers no member usable in this direction".
 - **Just throw on error**; do not touch the stream's state bits yourself. The operator catches and hands the exception to `handle_exception`, which turns it into the matching state bit and honours the stream's exception mask. Everything this library throws itself is a `stream_error`.
-- The above is the **iterator form**, used by formatted I/O. Manipulators use the **stream form** instead -- `static void swrite(T& s, const my_point& v)` / `sread`, which get the stream itself with **no lock and no sentry**; do it yourself if you need one. The two forms are told apart by arity, and a specialization should provide **only one of them** -- when both are present, which one is picked is unspecified. The library's own manipulators have no `operator()`: all their logic lives in the extension point and `os << m` / `is >> m` is the only entry, so the standard's direct-call forms `std::ws(is)` and `std::endl(os)` do not exist here.
+- The above is the **iterator form**, used by formatted I/O. Manipulators use the **stream form** instead -- `static void swrite(T& s, const my_point& v)` / `sread`, which get the stream itself with **no lock and no sentry**; do it yourself if you need one. The two forms are told apart by arity, and a specialization may provide **only one of them**: providing both is a compile error. The library's own manipulators have no `operator()`: all their logic lives in the extension point and `os << m` / `is >> m` is the only entry, so the standard's direct-call forms `std::ws(is)` and `std::endl(os)` do not exist here.
 
 For the details -- including the optional `parse_context_type` relay on the extraction side -- see the file-level comment in `io/traits/traits_base.h`.
 
