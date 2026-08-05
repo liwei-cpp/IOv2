@@ -206,21 +206,28 @@ $(document).ready(function(){initNavTree('istream_8h_source.html',''); initResiz
 <div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span><span class="comment">// common manips</span></div>
 <div class="line"><a id="l00272" name="l00272"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c">  272</a></span><span class="keyword">inline</span> <span class="keyword">constexpr</span> <span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1__Ws.html">_Ws</a> {} <a class="code hl_variable" href="namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c">ws</a>{};</div>
 <div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span> </div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar&gt;</div>
-<div class="foldopen" id="foldopen00306" data-start="{" data-end="};">
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno"><a class="line" href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html">  306</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1io__traits.html">io_traits</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="code hl_struct" href="structIOv2_1_1__Ws.html">_Ws</a>&gt;</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>{</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>    <span class="keyword">template</span> &lt;istream_type T&gt;</div>
-<div class="foldopen" id="foldopen00309" data-start="{" data-end="}">
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno"><a class="line" href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html#a3e332f295d33046f777741247ec3bf44">  309</a></span>    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code hl_function" href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html#a3e332f295d33046f777741247ec3bf44">sread</a>(T&amp; is, <span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1__Ws.html">_Ws</a>&amp;)</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>    {</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>        std::lock_guard <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">guard</a>(is.io_mutex());</div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>        <span class="keyword">typename</span> T::in_sentry_type <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cerb</a>(is, <span class="keyword">false</span>);</div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    }</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TChar&gt;</div>
+<div class="foldopen" id="foldopen00307" data-start="{" data-end="};">
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno"><a class="line" href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html">  307</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structIOv2_1_1io__traits.html">io_traits</a>&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="code hl_struct" href="structIOv2_1_1__Ws.html">_Ws</a>&gt;</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>{</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="keyword">template</span> &lt;istream_type T&gt;</div>
+<div class="foldopen" id="foldopen00310" data-start="{" data-end="}">
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno"><a class="line" href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html#a3e332f295d33046f777741247ec3bf44">  310</a></span>    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code hl_function" href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html#a3e332f295d33046f777741247ec3bf44">sread</a>(T&amp; is, <span class="keyword">const</span> <a class="code hl_struct" href="structIOv2_1_1__Ws.html">_Ws</a>&amp;)</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>    {</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>        std::lock_guard <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">guard</a>(is.io_mutex());</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>        <span class="keywordflow">try</span></div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        {</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>            <span class="keyword">typename</span> T::in_sentry_type <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">cerb</a>(is, <span class="keyword">false</span>);</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>        }</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>        <span class="keywordflow">catch</span>(...)</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        {</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>            is.handle_exception(std::current_exception());</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>        }</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>    }</div>
 </div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>};</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>};</div>
 </div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>}</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>}</div>
 <div class="ttc" id="aclassIOv2_1_1ios__base_html"><div class="ttname"><a href="classIOv2_1_1ios__base.html">IOv2::ios_base</a></div><div class="ttdoc">所有流的格式化状态基类。</div><div class="ttdef"><b>Definition</b> io_base.h:567</div></div>
 <div class="ttc" id="aclassIOv2_1_1istream_html"><div class="ttname"><a href="classIOv2_1_1istream.html">IOv2::istream</a></div><div class="ttdef"><b>Definition</b> istream.h:20</div></div>
 <div class="ttc" id="aclassIOv2_1_1istream_html_a0dc2e8a787911abf3047e32c6e2f6d54"><div class="ttname"><a href="classIOv2_1_1istream.html#a0dc2e8a787911abf3047e32c6e2f6d54">IOv2::istream::operator=</a></div><div class="ttdeci">istream &amp; operator=(istream &amp;&amp;)=default</div></div>
@@ -252,9 +259,9 @@ $(document).ready(function(){initNavTree('istream_8h_source.html',''); initResiz
 <div class="ttc" id="astructIOv2_1_1__Ws_html"><div class="ttname"><a href="structIOv2_1_1__Ws.html">IOv2::_Ws</a></div><div class="ttdoc">跳过空白的操纵符对象，用法为 is &gt;&gt; IOv2::ws；类型是个空标签，逻辑全在 io_traits&lt;TChar, _Ws&gt;::sread 里。</div><div class="ttdef"><b>Definition</b> istream.h:272</div></div>
 <div class="ttc" id="astructIOv2_1_1in__sentry_html"><div class="ttname"><a href="structIOv2_1_1in__sentry.html">IOv2::in_sentry</a></div><div class="ttdoc">输入操作的 RAII 哨兵：在每次提取操作的入口统一完成前置准备。</div><div class="ttdef"><b>Definition</b> istream_operators.h:66</div></div>
 <div class="ttc" id="astructIOv2_1_1io__state__and__exp_html"><div class="ttname"><a href="structIOv2_1_1io__state__and__exp.html">IOv2::io_state_and_exp</a></div><div class="ttdoc">管理流状态位及其关联异常的组件。</div><div class="ttdef"><b>Definition</b> io_base.h:135</div></div>
-<div class="ttc" id="astructIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4_html_a3e332f295d33046f777741247ec3bf44"><div class="ttname"><a href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html#a3e332f295d33046f777741247ec3bf44">IOv2::io_traits&lt; TChar, _Ws &gt;::sread</a></div><div class="ttdeci">static void sread(T &amp;is, const _Ws &amp;)</div><div class="ttdef"><b>Definition</b> istream.h:309</div></div>
-<div class="ttc" id="astructIOv2_1_1io__traits_html"><div class="ttname"><a href="structIOv2_1_1io__traits.html">IOv2::io_traits</a></div><div class="ttdoc">把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。</div><div class="ttdef"><b>Definition</b> traits_base.h:202</div></div>
-<div class="ttc" id="astructIOv2_1_1istream__operators_html"><div class="ttname"><a href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a></div><div class="ttdoc">为输入流提供各类提取操作的混入（mix-in）基类。</div><div class="ttdef"><b>Definition</b> istream_operators.h:465</div></div>
+<div class="ttc" id="astructIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4_html_a3e332f295d33046f777741247ec3bf44"><div class="ttname"><a href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html#a3e332f295d33046f777741247ec3bf44">IOv2::io_traits&lt; TChar, _Ws &gt;::sread</a></div><div class="ttdeci">static void sread(T &amp;is, const _Ws &amp;)</div><div class="ttdef"><b>Definition</b> istream.h:310</div></div>
+<div class="ttc" id="astructIOv2_1_1io__traits_html"><div class="ttname"><a href="structIOv2_1_1io__traits.html">IOv2::io_traits</a></div><div class="ttdoc">把 TChar 流的读写逻辑接到类型 T 上的扩展点。主模板故意不定义；见本文件头部。</div><div class="ttdef"><b>Definition</b> traits_base.h:226</div></div>
+<div class="ttc" id="astructIOv2_1_1istream__operators_html"><div class="ttname"><a href="structIOv2_1_1istream__operators.html">IOv2::istream_operators</a></div><div class="ttdoc">为输入流提供各类提取操作的混入（mix-in）基类。</div><div class="ttdef"><b>Definition</b> istream_operators.h:470</div></div>
 <div class="ttc" id="astructIOv2_1_1istreambuf_html"><div class="ttname"><a href="structIOv2_1_1istreambuf.html">IOv2::istreambuf</a></div><div class="ttdoc">只读流缓冲区：仅支持输入。</div><div class="ttdef"><b>Definition</b> streambuf.h:953</div></div>
 <div class="ttc" id="astructIOv2_1_1stream__common__operators_html"><div class="ttname"><a href="structIOv2_1_1stream__common__operators.html">IOv2::stream_common_operators</a></div><div class="ttdoc">为输入流与输出流提供公共操作的混入（mix-in）基类。</div><div class="ttdef"><b>Definition</b> stream_common_operators.h:117</div></div>
 </div><!-- fragment --></div><!-- contents -->
