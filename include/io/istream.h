@@ -22,6 +22,7 @@ public:
     using device_type = TDevice;
     using char_type = TChar;
     using in_sentry_type = in_sentry<istream<device_type, char_type>, false>;
+    using in_iter_type = istreambuf_iterator<istreambuf<TDevice, TChar>>;
 
     friend in_sentry_type;
     friend istream_operators<TChar>;

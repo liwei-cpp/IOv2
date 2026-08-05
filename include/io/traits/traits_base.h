@@ -39,9 +39,9 @@
  * template <istream_type T> static void sread (T& s, const MyType& v);
  * ```
  *
- * 两种形式靠**参数个数**区分，一个特化**只应提供其中一种**——两种都提供时，运算符选中哪一种
- * 不作保证。插入端还会把 `TValue` 衰退一次再试一遍（这样数组名能衰退成指针、函数名能衰退成
- * 函数指针），同一种形式内不衰退的 `TValue` 优先。
+ * 两种形式靠**参数个数**区分，一个特化**只能提供其中一种**：两种都提供是编译错误，运算符会就地
+ * `static_assert`。插入端还会把 `TValue` 衰退一次再试一遍（这样数组名能衰退成指针、函数名能衰退
+ * 成函数指针），同一种形式内不衰退的 `TValue` 优先。
  *
  * 库内置的操纵符没有 `operator()`：单向的（`ws`、`endl`、`ends`、`flush`）是空标记类型，双向的
  * 只携带参数，逻辑一律写在本扩展点里——一行写得下的就两个成员各写一遍，写不下的走一个私有静态
@@ -57,9 +57,16 @@
  * ### 方向
  *
  * 方向由**哪个成员存在**决定：只有 `swrite` 即只能插入，只有 `sread` 即只能提取，两个都有
- * 即两个方向都行。这一点不能改用约束来表达——`iostream` 同时满足 `istream_type` 与
- * `ostream_type`，光靠约束挡不住反向用法。用反了会撞上运算符链末尾的 `static_assert`，它会
- * 区分"根本没有 `io_traits`"和"有 `io_traits`，但这个方向没有能用的成员"。
+ * 即两个方向都行。这一点不能改用**流类型**的约束来表达——`iostream` 同时满足 `istream_type`
+ * 与 `ostream_type`，光靠那个挡不住反向用法；真正判定方向的是运算符的约束
+ * `detail::insertable` / `detail::extractable`，它们探的就是对应的成员在不在。用反了因此不是
+ * 报一句定制信息，而是这条运算符根本不参与重载决议，得到编译器通用的
+ * "no match for `operator<<`"。
+ *
+ * 反过来说，这也让"能不能流式化"变成可以**探测**的：`requires { os << x; }` /
+ * `requires { is >> x; }` 现在如实反映结果，泛型代码（日志、序列化、调试打印）可以直接用它分支，
+ * 不必知道底下走的是哪一种形式。定制诊断与可探测性二者不可兼得——`static_assert` 要可达就得让
+ * 运算符不加约束，而不加约束就无法探测；本库选了后者。
  *
  * ### 错误
  *
@@ -119,10 +126,11 @@
  * template <istream_type T> static void sread (T& s, const MyType& v);
  * ```
  *
- * The two forms are told apart by **arity**, and a specialization should provide **only one of
- * them** -- when both are present, which one the operator picks is unspecified. The insertion side
- * also retries with `TValue` decayed once, which is what lets an array name decay to a pointer and
- * a function name to a function pointer; within one form the undecayed `TValue` wins.
+ * The two forms are told apart by **arity**, and a specialization may provide **only one of
+ * them**: providing both is a compile error, diagnosed by a `static_assert` in the operator. The
+ * insertion side also retries with `TValue` decayed once, which is what lets an array name decay
+ * to a pointer and a function name to a function pointer; within one form the undecayed `TValue`
+ * wins.
  *
  * The library's own manipulators have no `operator()`: the one-way ones (`ws`, `endl`, `ends`,
  * `flush`) are empty tag types, the two-way ones carry their parameters only, and the logic always
@@ -143,11 +151,20 @@
  * ### Direction
  *
  * The direction is decided by **which member exists**: `swrite` only means insertion only,
- * `sread` only means extraction only, and both means both. Constraints cannot express this --
- * an `iostream` satisfies `istream_type` and `ostream_type` alike, so a constraint alone cannot
- * stop a backwards use. Using one backwards hits the `static_assert` at the end of the
- * operator's chain, which distinguishes "no `io_traits` at all" from "an `io_traits` exists, but
- * offers no member usable in this direction".
+ * `sread` only means extraction only, and both means both. A constraint on the **stream type**
+ * cannot express this -- an `iostream` satisfies `istream_type` and `ostream_type` alike, so that
+ * alone cannot stop a backwards use. What actually decides the direction are the operators' own
+ * constraints, `detail::insertable` and `detail::extractable`, which probe for exactly those
+ * members. Using one backwards therefore does not produce a tailored message: the operator simply
+ * drops out of overload resolution and the compiler reports its generic "no match for
+ * `operator<<`".
+ *
+ * The flip side is that streamability becomes **detectable**: `requires { os << x; }` and
+ * `requires { is >> x; }` now report the truth, so generic code (logging, serialization, debug
+ * printing) can branch on them without having to know which of the two forms is underneath.
+ * Tailored diagnostics and detectability cannot coexist -- a reachable `static_assert` requires
+ * an unconstrained operator, and an unconstrained operator cannot be probed. This library picks
+ * the latter.
  *
  * ### Errors
  *
@@ -200,24 +217,4 @@ struct parse_context_type
     using type = T;
 };
 
-/**
- * @lang{ZH}
- * @brief `io_traits<TChar, T>` 是否有定义（即是否存在特化），不问方向。
- * @note 运算符用它把"根本没有扩展点"与"有扩展点、但这个方向没有能用的成员"分成两条不同的
- *       诊断。方向本身不能靠它判断——一个 `io_traits` 可以只提供其中一个方向。
- * @endif
- *
- * @lang{EN}
- * @brief Whether `io_traits<TChar, T>` is defined (that is, whether a specialization exists),
- *        regardless of direction.
- * @note The operators use it to split "no extension point at all" from "an extension point
- *       exists, but has no member usable in this direction" into two distinct diagnostics. It
- *       says nothing about direction -- an `io_traits` may provide only one of the two.
- * @endif
- */
-template <typename TChar, typename T>
-concept has_io_traits = requires(TChar, T)
-{
-    sizeof(io_traits<TChar, T>);
-};
 }

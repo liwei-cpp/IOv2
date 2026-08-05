@@ -28,6 +28,7 @@ public:
     using device_type = TDevice;
     using char_type = TChar;
     using out_sentry_type = out_sentry<ostream<TDevice, TChar>, false>;
+    using out_iter_type = ostreambuf_iterator<ostreambuf<TDevice, TChar>>;
 
     friend out_sentry_type;
     friend out_flusher<ostream<TDevice, TChar>>;

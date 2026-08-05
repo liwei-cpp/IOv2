@@ -27,6 +27,8 @@ public:
     using char_type = TChar;
     using in_sentry_type = in_sentry<iostream<TDevice, TChar>, true>;
     using out_sentry_type = out_sentry<iostream<TDevice, TChar>, true>;
+    using in_iter_type = istreambuf_iterator<streambuf<TDevice, TChar>>;
+    using out_iter_type = ostreambuf_iterator<streambuf<TDevice, TChar>>;
 
     friend in_sentry_type;
     friend out_sentry_type;

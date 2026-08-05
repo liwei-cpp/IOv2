@@ -55,6 +55,10 @@ struct StatelessIs : IOv2::ios_base<char>
 {
     using char_type = char;
     using in_sentry_type = IOv2::in_sentry<StatelessIs, false>;
+    // istream_type also demands the iterator type: i_iter() is private, so the extraction
+    // concepts have only this alias to probe with. Nothing here can actually do I/O, so any
+    // well-formed istreambuf_iterator will do.
+    using in_iter_type = IOv2::istreambuf_iterator<IOv2::istreambuf<IOv2::mem_device<char>, char>>;
     IOv2::locale<char> m_locale;
 };
 

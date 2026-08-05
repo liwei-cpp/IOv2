@@ -29,6 +29,7 @@ public:
     using device_type = TDevice;
     using char_type = TChar;
     using in_sentry_type = in_sentry<T, false>;
+    using in_iter_type = istreambuf_iterator<istreambuf<device_type, char_type>>;
     friend in_sentry_type;
 
 public:

@@ -4,6 +4,7 @@
 
 void test_io_base();
 void test_io_state_and_exp();
+void test_io_traits();
 void test_streambuf();
 void test_streambuf_iterator();
 
@@ -19,6 +20,7 @@ int main()
     {
         test_io_base();
         test_io_state_and_exp();
+        test_io_traits();
         test_streambuf();
         test_streambuf_iterator();
         test_istream();

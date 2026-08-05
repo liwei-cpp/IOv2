@@ -420,21 +420,28 @@ struct ostream_operators;
  * @lang{ZH}
  * @brief 输出流类型的概念。
  *
- * 一个类型要成为输出流，必须提供 `out_sentry_type` 与 `char_type` 类型、可返回其
- * locale，且其 `out_sentry_type` 满足 `is_out_sentry`；同时它必须派生自
+ * 一个类型要成为输出流，必须提供 `out_sentry_type`、`out_iter_type` 与 `char_type` 类型、
+ * 可返回其 locale，且其 `out_sentry_type` 满足 `is_out_sentry`；同时它必须派生自
  * `ios_base<char_type>`、`io_state_and_exp` 与 `ostream_operators<char_type>`。
  * @note `io_state_and_exp` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
  *       `handle_exception()`（插入运算符的 `catch`、`out_sentry` 的析构）与 `operator bool`。
  *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
  *       “这个类型不是输出流”上。
+ * @note `out_iter_type` 必须是 `o_iter()` 的返回类型（`o_iter()` 的返回类型就写成它，因此两者
+ *       不会漂移）。之所以要把这个**类型**公开出来，是因为 `o_iter()` 本身是私有的——它是一条
+ *       绕开哨兵与 `io_mutex()` 直达 `m_streambuf` 的路，不能给出去；而 `detail::insertable`
+ *       这类命名概念不是友元，无法在自己的 requires 表达式里调用它。公开类型不等于公开对象：
+ *       `ostreambuf_iterator` 只能由 `TStreamBuf&` 构造，而 `m_streambuf` 仍是私有的，所以
+ *       这个别名给不出任何构造它的途径。有了它，概念里的探测表达式与运算符里的调用表达式用的
+ *       是同一个类型，两者不可能给出不同答案。
  * @tparam T 待检测的类型。
  * @endif
  *
  * @lang{EN}
  * @brief Concept for an output stream type.
  *
- * To qualify as an output stream, a type must expose the `out_sentry_type` and `char_type`
- * types, be able to return its locale, and have an `out_sentry_type` that satisfies
+ * To qualify as an output stream, a type must expose the `out_sentry_type`, `out_iter_type` and
+ * `char_type` types, be able to return its locale, and have an `out_sentry_type` that satisfies
  * `is_out_sentry`; it must also derive from `ios_base<char_type>`, `io_state_and_exp` and
  * `ostream_operators<char_type>`.
  * @note The `io_state_and_exp` clause is a requirement, not just a description: code
@@ -443,6 +450,16 @@ struct ostream_operators;
  *       calls only fail once the template **body** is instantiated, putting the diagnostic
  *       deep inside the library's implementation rather than on "this type is not an output
  *       stream".
+ * @note `out_iter_type` must be the return type of `o_iter()` -- which is spelled as exactly
+ *       that type, so the two cannot drift apart. The **type** has to be public because
+ *       `o_iter()` itself is private: it is an unlocked path to `m_streambuf` that bypasses the
+ *       sentry and `io_mutex()`, so it cannot be handed out, yet a named concept such as
+ *       `detail::insertable` is not a friend and so cannot call it from its own
+ *       requires-expression. Exposing the type is not exposing the object: an
+ *       `ostreambuf_iterator` can only be built from a `TStreamBuf&`, and `m_streambuf` stays
+ *       private, so the alias offers no way to construct one. With it, the probe expression in
+ *       the concept and the call expression in the operator name the same type and cannot
+ *       disagree.
  * @tparam T The type under inspection.
  * @endif
  */
@@ -451,6 +468,7 @@ concept ostream_type =
     requires (T a)
     {
         typename T::out_sentry_type;
+        typename T::out_iter_type;
         typename T::char_type;
         { a.locale() } -> std::same_as<const locale<typename T::char_type>&>;
     } &&
@@ -458,6 +476,70 @@ concept ostream_type =
     std::derived_from<T, ios_base<typename T::char_type>> &&
     std::derived_from<T, io_state_and_exp> &&
     std::derived_from<T, ostream_operators<typename T::char_type>>;
+
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * @brief `T` 能否用 `io_traits` 的**流形式** `swrite(stream, value)` 插入 `TValue`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether a `TValue` can be inserted into `T` through the **stream form** of
+ *        `io_traits`, `swrite(stream, value)`.
+ * @endif
+ */
+template <typename T, typename TValue>
+concept insertable_with_stream = ostream_type<T> &&
+    requires(T& obj, const TValue& value) { io_traits<typename T::char_type, TValue>::swrite(obj, value); };
+
+/**
+ * @lang{ZH}
+ * @brief `T` 能否用 `io_traits` 的**迭代器形式** `swrite(iter, io, loc, value)` 插入 `TValue`。
+ * @note 迭代器以 `out_iter_type&` 也就是**左值**参与探测，与运算符里 `auto iter = obj.o_iter();`
+ *       之后传 `iter` 的形式一致：探测与调用必须是同一个表达式，否则两者会给出不同答案。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether a `TValue` can be inserted into `T` through the **iterator form** of
+ *        `io_traits`, `swrite(iter, io, loc, value)`.
+ * @note The iterator is probed as an `out_iter_type&`, that is as an **lvalue**, matching the
+ *       operator's `auto iter = obj.o_iter();` followed by passing `iter`: the probe and the
+ *       call have to be the same expression, or the two can disagree.
+ * @endif
+ */
+template <typename T, typename TValue>
+concept insertable_with_iter = ostream_type<T> &&
+    requires(T& obj, typename T::out_iter_type& iter, const TValue& value)
+    { io_traits<typename T::char_type, TValue>::swrite(iter, obj, obj.locale(), value); };
+
+/**
+ * @lang{ZH}
+ * @brief `os << value` 是否成立：两种形式任一可用即可，每种形式内 `TValue` 与其衰退型都试。
+ * @note 本概念就是 `operator<<` 的约束，运算符体内的分派也复用它的两个组成部分，因此
+ *       "能不能插入"只有一份真相：`requires { os << x; }` 与运算符实际选中的通道永远一致。
+ *       衰退那两档不能省——数组名要衰退成指针、函数名要衰退成函数指针，`os << "hello"`
+ *       靠的就是它们。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether `os << value` is valid: either form will do, and within each form both
+ *        `TValue` and its decayed type are tried.
+ * @note This concept *is* the constraint on `operator<<`, and the dispatch inside the operator
+ *       reuses its two components, so "can this be inserted" has a single source of truth:
+ *       `requires { os << x; }` and the channel the operator actually picks can never disagree.
+ *       The two decay rungs are not optional -- they are what lets an array name decay to a
+ *       pointer and a function name to a function pointer, which is how `os << "hello"` works.
+ * @endif
+ */
+template <typename T, typename TValue>
+concept insertable =
+    ostream_type<T> &&
+    (insertable_with_stream<T, TValue> ||
+     insertable_with_stream<T, std::decay_t<TValue>> ||
+     insertable_with_iter<T, TValue> ||
+     insertable_with_iter<T, std::decay_t<TValue>>);
+}
 
 /**
  * @lang{ZH}
@@ -649,17 +731,24 @@ struct ostream_operators
      * @brief 取绑定到本流缓冲区的输出迭代器。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @return 绑定到本流缓冲区的 `ostreambuf_iterator`。
+     * @note 返回类型写成 `TSelf::out_iter_type` 而不是 `auto`：探测那一侧
+     *       （`detail::insertable_with_iter`）只能拿到那个公开别名，本函数的返回类型若与它
+     *       不符，这里就直接编译不过——别名与实现因此不可能漂移。
      * @endif
      *
      * @lang{EN}
      * @brief Gets an output iterator bound to this stream's buffer.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @return An `ostreambuf_iterator` bound to this stream's buffer.
+     * @note The return type is spelled `TSelf::out_iter_type` rather than `auto`: the probing
+     *       side (`detail::insertable_with_iter`) has only that public alias to go on, and if
+     *       this function's return type did not match it, this very line would fail to compile
+     *       -- so the alias and the implementation cannot drift apart.
      * @endif
      */
 private:
     template <typename TSelf>
-    auto o_iter(this TSelf& self)
+    typename TSelf::out_iter_type o_iter(this TSelf& self)
     {
         return ostreambuf_iterator(self.m_streambuf);
     }
@@ -674,6 +763,7 @@ private:
      * @endif
      */
     template <ostream_type U, typename TValue>
+        requires detail::insertable<U, TValue>
     friend U& operator<<(U& obj, const TValue& value);
 };
 
@@ -684,15 +774,20 @@ private:
  * 本运算符是插入侧**唯一**的入口。它在 `if constexpr` 里挑出可用的通道：流形式
  * `swrite(stream, value)`（操纵符）与迭代器形式 `swrite(iter, io, loc, value)`（格式化输出）；
  * 每种形式内先试 `TValue`，不成再试 `std::decay_t<TValue>`（数组实参经此退化成指针，函数名退化
- * 成函数指针）。都不可用时就地 `static_assert`，并按"扩展点是否存在"给出两条不同的诊断。
+ * 成函数指针）。
  *
- * @note 同一个 `io_traits` 特化**只应提供其中一种形式**的 `swrite`。两种形式靠实参个数区分、
- *       不会互相误配，但同时提供时选中哪一种**不作保证**；形式内部则保证不衰退的 `TValue`
- *       优先于 `std::decay_t<TValue>`。
- * @note 本运算符**不加约束**。链末尾的 `static_assert` 必须对任意类型都可达——它取代了从前
- *       那条无约束的兜底重载，也取代了用 `= delete` 表达的方向诊断。探测里直接写
- *       `io_traits<TChar, TValue>::swrite(...)` 是安全的：未特化时它是不完整类型，在
- *       requires 表达式里属于可 SFINAE 的替换失败，结果为 `false` 而非硬错误。
+ * @note 同一个 `io_traits` 特化**只能提供其中一种形式**的 `swrite`：两种都提供会撞上本函数体
+ *       开头的 `static_assert`。形式内部则保证不衰退的 `TValue` 优先于
+ *       `std::decay_t<TValue>`。
+ * @note 本运算符由 `detail::insertable` 约束，而**函数体内的分派复用同一组概念**，因此
+ *       `requires { os << x; }` 与运算符实际选中的通道永远一致——泛型代码（日志、序列化、
+ *       调试打印）可以直接探测可流式性，不必知道底下是哪一种形式。链末尾那个 `else` 因此
+ *       不可达，只留一句写给维护者的内部不变式断言。
+ *       代价是类型不支持时的诊断退化为通用的 "no match for `operator<<`"：从前那两条区分
+ *       "根本没有 `io_traits`" 与 "有 `io_traits` 但方向不对" 的定制信息，与"可探测"不可兼得
+ *       ——`static_assert` 要可达就得不加约束，不加约束就无法探测。
+ * @note 概念里直接写 `io_traits<TChar, TValue>::swrite(...)` 是安全的：未特化时它是不完整
+ *       类型，在 requires 表达式里属于可 SFINAE 的替换失败，结果为 `false` 而非硬错误。
  * @note 加锁位置分两种：迭代器形式由本运算符取 `io_mutex()`，并保证 `handle_exception()`
  *       也在锁内；流形式一律不加锁，由操纵符自己决定——各操纵符所需的锁作用域并不相同
  *       （`endl` 要把读 locale 与 `put()` 一起罩在锁内；`ends` / `flush` 完全不需要显式加锁），
@@ -712,18 +807,24 @@ private:
  * channel is usable: the stream form `swrite(stream, value)` (manipulators) or the iterator form
  * `swrite(iter, io, loc, value)` (formatted output). Within each form `TValue` is tried first and
  * `std::decay_t<TValue>` second -- that is where array arguments decay to pointers and function
- * names to function pointers. When neither is usable a `static_assert` fires in place, with one
- * of two diagnostics depending on whether the extension point exists at all.
+ * names to function pointers.
  *
- * @note One `io_traits` specialization should provide **only one of the two forms** of `swrite`.
- *       The forms differ in argument count and so cannot be mistaken for each other, but which
- *       one is picked when both are present is **unspecified**; within a form, the undecayed
- *       `TValue` is guaranteed to win over `std::decay_t<TValue>`.
- * @note This operator is **unconstrained**. The `static_assert` at the end of the chain has to
- *       be reachable for an arbitrary type -- it replaces both the old unconstrained fallback
- *       overload and the direction diagnostics that used to be spelled `= delete`. Naming
- *       `io_traits<TChar, TValue>::swrite(...)` directly in the probes is safe: where it is not
- *       specialized it is an incomplete type, which inside a requires-expression is a
+ * @note One `io_traits` specialization may provide **only one of the two forms** of `swrite`:
+ *       providing both hits the `static_assert` at the top of this function body. Within a form,
+ *       the undecayed `TValue` is guaranteed to win over `std::decay_t<TValue>`.
+ * @note This operator is constrained by `detail::insertable`, and the dispatch **inside the body
+ *       reuses the same concepts**, so `requires { os << x; }` and the channel the operator
+ *       actually picks can never disagree -- generic code (logging, serialization, debug
+ *       printing) can test streamability directly without having to know which form is
+ *       underneath. That also makes the `else` at the end of the chain unreachable, leaving only
+ *       an internal-invariant assertion aimed at maintainers.
+ *       The price is that an unsupported type now gets the generic "no match for `operator<<`"
+ *       diagnostic: the two tailored messages that used to separate "no `io_traits` at all" from
+ *       "an `io_traits` exists but points the other way" cannot coexist with detectability --
+ *       a reachable `static_assert` requires an unconstrained operator, and an unconstrained
+ *       operator cannot be probed.
+ * @note Naming `io_traits<TChar, TValue>::swrite(...)` directly in the concepts is safe: where it
+ *       is not specialized it is an incomplete type, which inside a requires-expression is a
  *       SFINAE-able substitution failure yielding `false` rather than a hard error.
  * @note Locking splits two ways: for the iterator form this operator takes `io_mutex()` and
  *       keeps `handle_exception()` inside it; the stream form is never locked here and decides
@@ -741,19 +842,22 @@ private:
  * @endif
  */
 template <ostream_type T, typename TValue>
+    requires detail::insertable<T, TValue>
 T& operator<<(T& obj, const TValue& value)
 {
     using TChar  = typename T::char_type;
     using TDecay = std::decay_t<TValue>;
 
-    constexpr bool stream_v = requires
-        { io_traits<TChar, TValue>::swrite(obj, value); };
-    constexpr bool iter_v   = requires
-        { io_traits<TChar, TValue>::swrite(obj.o_iter(), obj, obj.locale(), value); };
-    constexpr bool stream_d = requires
-        { io_traits<TChar, TDecay>::swrite(obj, value); };
-    constexpr bool iter_d   = requires
-        { io_traits<TChar, TDecay>::swrite(obj.o_iter(), obj, obj.locale(), value); };
+    constexpr bool stream_v = detail::insertable_with_stream<T, TValue>;
+    constexpr bool iter_v   = detail::insertable_with_iter<T, TValue>;
+    constexpr bool stream_d = detail::insertable_with_stream<T, TDecay>;
+    constexpr bool iter_d   = detail::insertable_with_iter<T, TDecay>;
+
+    static_assert(!(stream_v && iter_v) && !(stream_d && iter_d),
+        "IOv2: this io_traits specialization provides both forms of swrite() -- the stream form "
+        "swrite(stream, value) and the iterator form swrite(iter, io, loc, value). Provide "
+        "exactly one: the iterator form for formatted output, the stream form for a manipulator. "
+        "See io/traits/traits_base.h.");
 
     if constexpr (stream_v || stream_d)
     {
@@ -784,20 +888,11 @@ T& operator<<(T& obj, const TValue& value)
             obj.handle_exception(std::current_exception());
         }
     }
-    else if constexpr (has_io_traits<TChar, TValue> || has_io_traits<TChar, TDecay>)
-        static_assert(dependent_false_v<TValue>,
-            "IOv2: cannot insert this type into a stream. An io_traits<char_type, TValue> "
-            "exists but offers no swrite() usable with this stream. The usual cause is a "
-            "direction mismatch -- the type provides sread() only and is meant for extraction "
-            "(write `is >> x`, not `os << x`). Otherwise its swrite() is constrained away for "
-            "this stream: a fill character whose type differs from the stream's char_type is the "
-            "common case. See io/traits/traits_base.h.");
     else
         static_assert(dependent_false_v<TValue>,
-            "IOv2: cannot insert this type into a stream. No io_traits<char_type, TValue> is "
-            "defined for it. Define one -- see io/traits/traits_base.h -- or convert the value "
-            "to a supported type such as an arithmetic type, a character type, CharT* or "
-            "std::basic_string.");
+            "IOv2 internal: detail::insertable admitted this type but the dispatch chain has no "
+            "branch for it. The concept and the chain must stay in step -- see "
+            "io/utilities/ostream_operators.h.");
 
     return obj;
 }
