@@ -12,6 +12,7 @@ var istream__operators_8h =
     [ "IOv2::detail::extractable", "conceptIOv2_1_1detail_1_1extractable.html", null ],
     [ "in_ctx_t", "istream__operators_8h.html#a4d20df608cdaa0a8c12354e549745b69", null ],
     [ "in_target_t", "istream__operators_8h.html#a5403f275c56b27b3041fed5945eb5f7d", null ],
+    [ "operator>>", "istream__operators_8h.html#a847d9df0e25e0f7f27a638ab5734261c", null ],
     [ "operator>>", "istream__operators_8h.html#a7a35dce28b07a75b8a68712a54c54833", null ],
     [ "operator>>", "istream__operators_8h.html#affd1b46d3a901743e57fc6fd0cdd9a32", null ]
 ];

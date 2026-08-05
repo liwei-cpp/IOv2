@@ -305,6 +305,7 @@ var namespaceIOv2 =
     [ "oct", "group__ios__manipulators.html#ga5f8ee2313b90a96b380258357f5573ec", null ],
     [ "operator<<", "namespaceIOv2.html#a9058d8cf9d8e707d878737f4d1fc6ffd", null ],
     [ "operator<<", "namespaceIOv2.html#a8cf627b4b038a6b901bab099239a6b72", null ],
+    [ "operator>>", "namespaceIOv2.html#a847d9df0e25e0f7f27a638ab5734261c", null ],
     [ "operator>>", "namespaceIOv2.html#a7a35dce28b07a75b8a68712a54c54833", null ],
     [ "operator>>", "namespaceIOv2.html#affd1b46d3a901743e57fc6fd0cdd9a32", null ],
     [ "operator|", "namespaceIOv2.html#aa3c625c139258093180435e3a46586e1", null ],
