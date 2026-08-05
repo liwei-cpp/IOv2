@@ -33,7 +33,7 @@
  * ```
  *
  * **流形式**（操纵符用这一档；成员直接拿到流本身，**不加锁、不建哨兵**，需要就自己来——
- * `io_traits<TChar, _Ws>::sread` 就是自己加锁并构造哨兵的）：
+ * `io_traits<TChar, _Ws>::sread` 就是自己加锁、自己构造哨兵、并自己 `catch` 的）：
  * ```cpp
  * template <ostream_type T> static void swrite(T& s, const MyType& v);
  * template <istream_type T> static void sread (T& s, const MyType& v);
@@ -45,9 +45,19 @@
  *
  * 库内置的操纵符没有 `operator()`：单向的（`ws`、`endl`、`ends`、`flush`）是空标记类型，双向的
  * 只携带参数，逻辑一律写在本扩展点里——一行写得下的就两个成员各写一遍，写不下的走一个私有静态
- * 辅助函数。入口于是只剩 `os << m` / `is >> m` 一条，异常统一由运算符接住转交
- * `handle_exception`，操纵符自身不必各兜一遍。代价是标准的 `std::ws(is)` / `std::endl(os)`
- * 直接调用形式在本库不存在。
+ * 辅助函数。入口于是只剩 `os << m` / `is >> m` 一条，抛出的异常最终都由运算符接住转交
+ * `handle_exception`，绝大多数操纵符因此不必自己兜。代价是标准的 `std::ws(is)` /
+ * `std::endl(os)` 直接调用形式在本库不存在。
+ *
+ * @warning **自己加了锁的流形式成员，必须自己 `catch`：运算符那层的 `catch` 罩不住你的锁。**
+ *          运算符对流形式不加锁，它的 `try` / `catch` 在你的 `lock_guard` 之外；异常一旦逃出去，
+ *          栈展开会先析构你那个局部的锁守卫，`handle_exception` 的置位就落到**解锁之后**，失败
+ *          路径与成功路径对同一把 `io_mutex()` 的可见性时序于是对不上。因此凡是取了
+ *          `io_mutex()` 的流形式成员——库内是 `io_traits<TChar, _Ws>::sread` 与
+ *          `io_traits<TChar, _Endl>::swrite`——都在锁内自己 `catch` 并调 `handle_exception`。
+ *          掩码命中时异常仍会逃到运算符那层再处理一遍，这是无害的：`handle_exception` 是幂等的
+ *          （见 `io_base` 上的说明）。反过来，压根不加锁的流形式成员（`setw`、`setfill` 那些）
+ *          两条路径同样不加锁，一致，交给运算符即可。
  *
  * 唯一不经过本扩展点的是只取 `ios_base<TChar>&` 的**函数指针**操纵符：插入端与提取端各有一条
  * 专门的运算符重载，其形参类型必须是非推导语境——`os << IOv2::boolalpha` 里的操纵符是函数
@@ -119,8 +129,8 @@
  * ```
  *
  * **Stream form** (used by manipulators; the member gets the stream itself and there is **no
- * lock and no sentry** -- do it yourself if you need one, as `io_traits<TChar, _Ws>::sread`
- * does):
+ * lock and no sentry** -- do it yourself if you need one, as `io_traits<TChar, _Ws>::sread` does,
+ * which takes the lock, builds the sentry and catches, all itself):
  * ```cpp
  * template <ostream_type T> static void swrite(T& s, const MyType& v);
  * template <istream_type T> static void sread (T& s, const MyType& v);
@@ -136,9 +146,23 @@
  * `flush`) are empty tag types, the two-way ones carry their parameters only, and the logic always
  * lives in this extension point -- spelled out in both members when it fits on one line, factored
  * into a private static helper when it does not. That leaves `os << m` / `is >> m` as the only
- * entry, so exceptions are caught by the operator and handed to `handle_exception` in one place
- * instead of in every manipulator. The price is that the standard's direct-call forms,
- * `std::ws(is)` and `std::endl(os)`, do not exist here.
+ * entry, so every exception ends up caught by the operator and handed to `handle_exception`, and
+ * most manipulators need no `catch` of their own. The price is that the standard's direct-call
+ * forms, `std::ws(is)` and `std::endl(os)`, do not exist here.
+ *
+ * @warning **A stream-form member that takes a lock must catch for itself: the operator's `catch`
+ *          cannot cover your lock.** The operator never locks for the stream form, so its
+ *          `try` / `catch` sits outside your `lock_guard`; once an exception escapes, unwinding
+ *          destroys that local guard first and `handle_exception` sets the state bits **after the
+ *          unlock**, leaving the failure path inconsistent with the success path with respect to
+ *          the same `io_mutex()`. Every stream-form member that takes `io_mutex()` -- in this
+ *          library, `io_traits<TChar, _Ws>::sread` and `io_traits<TChar, _Endl>::swrite` --
+ *          therefore catches under its own lock and calls `handle_exception` there. On a masked
+ *          rethrow the exception still reaches the operator and is handled once more, which is
+ *          harmless: `handle_exception` is idempotent (see its description on `io_base`).
+ *          Conversely, a stream-form member that takes no lock at all (`setw`, `setfill` and the
+ *          rest) has both paths equally unlocked, is therefore consistent, and can leave the
+ *          exception to the operator.
  *
  * The one thing that does not go through this extension point is a **function-pointer**
  * manipulator taking only `ios_base<TChar>&`: each of the insertion and extraction sides carries

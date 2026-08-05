@@ -296,9 +296,10 @@ inline constexpr struct _Endl {} endl{};
  *       因此 `endl` 是原子的。`locale(loc)` setter 会 move-assign `m_locale`，而 `locale` 自身
  *       的移动赋值不加任何锁——锁外读取即为对其内部两个哈希表的数据竞争。`put()` 内部会在这把
  *       递归锁上重入，无碍。
- * @note 取 facet 这一段直接抛出，由 `operator<<` 接住交给 `handle_exception`；那层 `catch`
- *       在锁之外，因此失败路径上的置位发生在解锁之后。随后的 `put()` 自己已经处理异常，
- *       不再重复包裹。
+ * @note 抛出在这把锁内被接住并交给 `handle_exception`：`operator<<` 那层 `catch` 在锁之外，
+ *       只靠它的话置位会发生在解锁之后。掩码命中时这里同样会重抛，异常继续逃到运算符那层再处理
+ *       一遍；`put()` 抛出的更是三处依次处理（`put()` 自己、这里、运算符）。都是无害的，
+ *       `handle_exception` 是幂等的。
  * @param os 目标输出流。
  * @endif
  *
@@ -324,10 +325,12 @@ inline constexpr struct _Endl {} endl{};
  *       setter move-assigns `m_locale`, and locale's own move-assignment takes no lock
  *       whatsoever, so reading it outside that lock is a data race on its two internal hash
  *       maps. `put()` re-enters the same recursive mutex, which is harmless.
- * @note Exceptions from the facet lookup simply propagate; `operator<<` catches them and hands
- *       them to `handle_exception`. That `catch` sits outside the lock, so on a failure path the
- *       state bits are set after the unlock. The `put()` that follows already handles its own
- *       exceptions and is not wrapped again.
+ * @note A throw is caught under this same lock and handed to `handle_exception`: `operator<<`'s
+ *       own `catch` sits outside it, so relying on that one alone would set the state bits after
+ *       the unlock. On a masked bit this rethrows in turn and the exception goes on to be handled
+ *       once more by the operator; one thrown out of `put()` passes three handling points in a row
+ *       (`put()` itself, here, and the operator). All of it is harmless: `handle_exception` is
+ *       idempotent.
  * @param os The target output stream.
  * @endif
  */
@@ -338,12 +341,18 @@ struct io_traits<TChar, _Endl>
     static void swrite(T& os, const _Endl&)
     {
         std::lock_guard guard(os.io_mutex());
+        try
+        {
+            auto mp = os.locale().template get<ctype<TChar>>();
+            if (!mp)
+                throw stream_error("endl fail: cannot get ctype facet");
 
-        auto mp = os.locale().template get<ctype<TChar>>();
-        if (!mp)
-            throw stream_error("endl fail: cannot get ctype facet");
-
-        os.put(mp->widen('\n'), /*force_flush=*/true);
+            os.put(mp->widen('\n'), /*force_flush=*/true);
+        }
+        catch(...)
+        {
+            os.handle_exception(std::current_exception());
+        }
     }
 };
 

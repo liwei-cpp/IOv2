@@ -73,12 +73,14 @@ struct out_sentry
      * @lang{ZH}
      * @brief 构造输出哨兵：校验流、刷新关联流，并按需切换读写方向 / 定位到末尾。
      *
-     * @warning **调用方必须已经持有 `os.io_mutex()`，且要持到自己的 `catch` 之后。** 哨兵自己
-     *          不加锁：它在 `try` 块末尾就析构了，而 `catch` 里的 `handle_exception` 需要在锁内
-     *          更新流状态，才能让成功路径与失败路径对同一把 `io_mutex()` 的可见性保持一致；析构中
-     *          的 unitbuf/stdio 刷新同样依赖那把仍被持有的锁。锁因此必须是调用方的局部变量，而不是
-     *          哨兵的成员。该前置条件无法在运行期校验——`copyable_mutex` 不记录属主，递归锁的
-     *          `try_lock()` 也分不清"我已持有"与"无人持有"。
+     * @warning **调用方必须已经持有 `os.io_mutex()`，必须有自己的 `catch`，且锁要持到那个 `catch`
+     *          之后。** 哨兵自己不加锁：它在 `try` 块末尾就析构了，而 `catch` 里的
+     *          `handle_exception` 需要在锁内更新流状态，才能让成功路径与失败路径对同一把
+     *          `io_mutex()` 的可见性保持一致；析构中的 unitbuf/stdio 刷新同样依赖那把仍被持有的锁。
+     *          把异常留给外层的 `catch`（例如运算符那层）**不够**：栈展开会先析构本地的锁守卫，置位
+     *          就落到解锁之后了。锁因此必须是调用方的局部变量，而不是哨兵的成员。该前置条件无法在
+     *          运行期校验——`copyable_mutex` 不记录属主，递归锁的 `try_lock()` 也分不清"我已持有"
+     *          与"无人持有"。
      *
      * 关联流的刷新走 `abs_flusher::try_flush()`，取不到对方的锁就跳过，绝不阻塞。本线程因此可以
      * 安全地在持有本流锁的状态下发起它：tie 这条用户看不见的加锁边永远不会成为等待边，死锁只可能
@@ -93,15 +95,18 @@ struct out_sentry
      * @brief Constructs the output sentry: validates the stream, flushes the tied stream, and
      * switches direction / repositions to end as needed.
      *
-     * @warning **The caller must already hold `os.io_mutex()`, and must keep holding it past its
-     *          own `catch`.** The sentry does not lock: it is destroyed at the end of the
-     *          enclosing `try`, while `handle_exception` in the `catch` needs the lock to update
-     *          the stream state, so that the success and failure paths stay consistent with
-     *          respect to the same `io_mutex()`; the unitbuf/stdio flush in the destructor relies
-     *          on that still-held lock as well. The lock therefore has to be a local of the caller
-     *          rather than a member of the sentry. The precondition cannot be checked at run time
-     *          -- `copyable_mutex` tracks no owner, and a recursive mutex's `try_lock()` cannot
-     *          tell "this thread already holds it" from "nobody holds it".
+     * @warning **The caller must already hold `os.io_mutex()`, must have a `catch` of its own, and
+     *          must keep holding the lock past that `catch`.** The sentry does not lock: it is
+     *          destroyed at the end of the enclosing `try`, while `handle_exception` in the
+     *          `catch` needs the lock to update the stream state, so that the success and failure
+     *          paths stay consistent with respect to the same `io_mutex()`; the unitbuf/stdio
+     *          flush in the destructor relies on that still-held lock as well. Leaving the
+     *          exception to an outer `catch` -- the operator's, say -- is **not** enough:
+     *          unwinding destroys the local lock guard first, so the state bits land after the
+     *          unlock. The lock therefore has to be a local of the caller rather than a member of
+     *          the sentry. The precondition cannot be checked at run time -- `copyable_mutex`
+     *          tracks no owner, and a recursive mutex's `try_lock()` cannot tell "this thread
+     *          already holds it" from "nobody holds it".
      *
      * The tied stream is flushed through `abs_flusher::try_flush()`, which skips the flush rather
      * than wait when the target's lock cannot be taken. This thread can therefore start it safely

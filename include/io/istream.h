@@ -280,9 +280,9 @@ inline constexpr struct _Ws {} ws{};
  * 操纵符的方向由**成员的有无**表达：这里只有 `sread`，于是 `os << ws` 不满足插入运算符的约束、
  * 没有可行重载。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供成员，
  * 两个方向都会调用成功。
- * @note 锁由本成员自己取——流形式不加锁，而这里需要把哨兵罩在锁内。异常直接抛出，由
- *       `operator>>` 接住交给 `handle_exception`；那层 `catch` 在锁之外，因此失败路径上的置位
- *       发生在解锁之后。
+ * @note 锁由本成员自己取——流形式不加锁，而这里需要把哨兵罩在锁内。`catch` 也必须在同一把锁内：
+ *       `operator>>` 那层 `catch` 在锁之外，只靠它的话失败路径上的置位会发生在解锁之后。掩码命中
+ *       时异常仍会逃到运算符那层再处理一次，`handle_exception` 是幂等的。
  * @endif
  *
  * @lang{EN}
@@ -297,9 +297,10 @@ inline constexpr struct _Ws {} ws{};
  * constraint would not be enough -- `iostream` satisfies both stream concepts, so if both members
  * existed both directions would call successfully.
  * @note The lock is taken here: the stream form is never locked by the operator, and the sentry
- *       has to run under one. Exceptions simply propagate, and `operator>>` hands them to
- *       `handle_exception`; that `catch` sits outside the lock, so on a failure path the state
- *       bits are set after the unlock.
+ *       has to run under one. The `catch` has to be under that same lock: `operator>>`'s own
+ *       `catch` sits outside it, so relying on that one alone would set the state bits after the
+ *       unlock. On a masked rethrow the exception still reaches the operator and is handled a
+ *       second time; `handle_exception` is idempotent.
  * @endif
  */
 template <typename TChar>
@@ -309,7 +310,14 @@ struct io_traits<TChar, _Ws>
     static void sread(T& is, const _Ws&)
     {
         std::lock_guard guard(is.io_mutex());
-        typename T::in_sentry_type cerb(is, false);
+        try
+        {
+            typename T::in_sentry_type cerb(is, false);
+        }
+        catch(...)
+        {
+            is.handle_exception(std::current_exception());
+        }
     }
 };
 }
