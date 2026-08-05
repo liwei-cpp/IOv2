@@ -5,8 +5,8 @@
 #include <type_traits>
 #include <facet/ctype.h>
 #include <io/io_base.h>
-#include <io/fp_defs/base_fp.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/traits_base.h>
+#include <io/traits/char_and_str.h>
 #include <locale/locale.h>
 
 namespace IOv2
@@ -20,7 +20,7 @@ namespace IOv2
  *       （`s` 为实现定义的 NTBS），即转交给字符串插入器。由此继承到两条行为——按
  *       `width()` 和 `fill()` 补齐（遵守 `adjustfield`），以及**完成后把 `width()` 清零**。
  * @note 清零那条不是可有可无的收尾。`width` 是一次性的、跨操作可见的流状态；若某个
- *       writer 不消费它，残留值会漏给**下一次**插入，让一个与 `nullptr` 无关的输出被
+ *       `swrite` 不消费它，残留值会漏给**下一次**插入，让一个与 `nullptr` 无关的输出被
  *       莫名其妙地补齐。`ostream_insert` 无条件承担了这个义务，所以走它是本库中
  *       "格式化输出函数"这一契约的落实方式。
  * @note 文本 `"nullptr"` 在标准里是实现定义的。它只用到基本源字符集，因此
@@ -38,7 +38,7 @@ namespace IOv2
  *       that -- padding to `width()` with `fill()` (honouring `adjustfield`), and
  *       **resetting `width()` to 0** on completion.
  * @note The reset is not optional housekeeping. `width` is one-shot stream state that is
- *       visible across operations; a writer that fails to consume it leaks the leftover
+ *       visible across operations; an `swrite` that fails to consume it leaks the leftover
  *       value into the **next** insertion, padding some unrelated output for no visible
  *       reason. `ostream_insert` discharges that obligation unconditionally, which is how
  *       the "formatted output function" contract is honoured throughout this library.
@@ -49,7 +49,7 @@ namespace IOv2
  * @endif
  */
 template <typename TChar>
-struct writer<TChar, std::nullptr_t>
+struct io_traits<TChar, std::nullptr_t>
 {
     template <typename TIter>
         requires (std::is_same_v<TChar, typename TIter::value_type>)

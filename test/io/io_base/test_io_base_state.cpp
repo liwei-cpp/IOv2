@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/arithmetic.h>
+#include <io/traits/arithmetic.h>
 #include <io/ostream.h>
 #include <support/dump_info.h>
 #include <support/verify.h>

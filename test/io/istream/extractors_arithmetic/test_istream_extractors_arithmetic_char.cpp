@@ -2,8 +2,8 @@
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/arithmetic.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
 #include <io/io_manip.h>
 #include <io/istream.h>
 #include <io/ostream.h>
@@ -602,7 +602,7 @@ namespace
 namespace IOv2
 {
 template <typename TChar>
-struct reader<TChar, dum_str>
+struct io_traits<TChar, dum_str>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)

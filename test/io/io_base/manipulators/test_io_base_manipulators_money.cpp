@@ -3,14 +3,15 @@
 #include <system_error>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/char_and_str.h>
-#include <io/fp_defs/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <io/traits/arithmetic.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <support/dump_info.h>
+#include <support/io_traits_probe.h>
 #include <support/verify.h>
 
 void test_io_base_manipulators_put_money_char_1()
@@ -167,89 +168,55 @@ namespace
 using MoneyIs = IOv2::istream<IOv2::mem_device<char>, char>;
 using MoneyOs = IOv2::ostream<IOv2::mem_device<char>, char>;
 
-template <typename T> concept money_readable =
-    requires (MoneyIs& is, T& v) { is >> IOv2::get_money(v); };
-template <typename T> concept money_writable =
-    requires (MoneyOs& os, const T& v) { os << IOv2::put_money(v); };
-
 // get_money deduces its target type from the argument, so a const lvalue deduces `const int`
 // -- and std::integral<const int> is true, since std::is_integral_v ignores cv-qualification.
-// Without the cv exclusion on the reader, such a target selected the reader and then failed
+// Without the cv exclusion on io_traits, such a target selected sread and then failed
 // deep inside the monetary facet on an assignment to a read-only reference, burying the real
-// cause. With it there is no reader, the call lands on the fallback operator>>, and its
-// static_assert says the target is not a modifiable lvalue.
+// cause. With it there is no sread and the operator's static_assert says so instead.
 //
-// The check is on the reader's own constraint rather than on `is >> get_money(x)`, because the
-// fallback operator>> remains viable at overload resolution -- its static_assert fires only when
-// the body is instantiated -- so probing the expression reports true whatever the target is.
-static_assert(  IOv2::is_reader_def<char, IOv2::_Get_money<int>> );
-static_assert(  IOv2::is_reader_def<char, IOv2::_Get_money<std::string>> );
-static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<const int>> );
-static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<volatile int>> );
-static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<const std::string>> );
-static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<bool>> );
-static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<double>> );
-static_assert( !IOv2::is_reader_def<char, IOv2::_Get_money<std::wstring>> );
+// Every probe here goes through io_traits rather than through `is >> get_money(x)`: the operators
+// are unconstrained on the value type and reject in the body with a static_assert, which no
+// requires-expression can see, so probing the expression reports true whatever the target is.
+static_assert(  extractable<char, IOv2::_Get_money<int>> );
+static_assert(  extractable<char, IOv2::_Get_money<std::string>> );
+static_assert( !extractable<char, IOv2::_Get_money<const int>> );
+static_assert( !extractable<char, IOv2::_Get_money<volatile int>> );
+static_assert( !extractable<char, IOv2::_Get_money<const std::string>> );
+static_assert( !extractable<char, IOv2::_Get_money<bool>> );
+static_assert( !extractable<char, IOv2::_Get_money<double>> );
+static_assert( !extractable<char, IOv2::_Get_money<std::wstring>> );
 
 // put_money carries no such restriction: output does not write to the target and put_money takes
 // const _MoneyT&, so inserting a const lvalue stays a legitimate use.
-static_assert(  money_writable<int> );
-static_assert(  money_readable<int> );
 
-// The writer's bool exclusion normalizes cv, its string branch does not: put() takes the integral
+// The io_traits bool exclusion normalizes cv, its string branch does not: put() takes the integral
 // by value (cv dropped), but its string overload takes a plain const&, which volatile cannot bind.
-static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<int>> );
-static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<const int>> );
-static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<volatile int>> );
-static_assert(  IOv2::is_writer_def<char, IOv2::_Put_money<std::string>> );
-static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<bool>> );
-static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<const bool>> );
-static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<volatile bool>> );
-static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<double>> );
-static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<volatile std::string>> );
-static_assert( !IOv2::is_writer_def<char, IOv2::_Put_money<std::wstring>> );
+static_assert(  insertable<char, IOv2::_Put_money<int>> );
+static_assert(  insertable<char, IOv2::_Put_money<const int>> );
+static_assert(  insertable<char, IOv2::_Put_money<volatile int>> );
+static_assert(  insertable<char, IOv2::_Put_money<std::string>> );
+static_assert( !insertable<char, IOv2::_Put_money<bool>> );
+static_assert( !insertable<char, IOv2::_Put_money<const bool>> );
+static_assert( !insertable<char, IOv2::_Put_money<volatile bool>> );
+static_assert( !insertable<char, IOv2::_Put_money<double>> );
+static_assert( !insertable<char, IOv2::_Put_money<volatile std::string>> );
+static_assert( !insertable<char, IOv2::_Put_money<std::wstring>> );
 
-// Direction: put_money inserts only, get_money extracts only, enforced by a deleted overload
-// per carrier. Here the expression is the right thing to probe -- unlike the cv cases above,
-// what is being checked is exactly that the catch-all fallback no longer swallows the call.
-using MoneyIos = IOv2::iostream<IOv2::mem_device<char>, char>;
+// Direction: put_money inserts only, get_money extracts only. It is expressed by which member
+// io_traits provides, so the stream type drops out of the probe -- and it always had to: an
+// iostream satisfies istream_type and ostream_type alike, so no constraint on the stream could
+// ever have carried the direction.
+static_assert(  insertable <char, IOv2::_Put_money<int>> );
+static_assert( !extractable<char, IOv2::_Put_money<int>> );
+static_assert(  extractable<char, IOv2::_Get_money<int>> );
+static_assert( !insertable <char, IOv2::_Get_money<int>> );
 
-// The probes go through templates because a requires-expression whose requirements depend on no
-// template parameter is checked where it is written, and there selecting the deleted overload is
-// a plain error rather than a substitution failure.
-template <typename TStream, typename T> concept inserts_put_money =
-    requires (TStream& s, T& v) { s << IOv2::put_money(v); };
-template <typename TStream, typename T> concept extracts_put_money =
-    requires (TStream& s, T& v) { s >> IOv2::put_money(v); };
-template <typename TStream, typename T> concept extracts_get_money =
-    requires (TStream& s, T& v) { s >> IOv2::get_money(v); };
-template <typename TStream, typename T> concept inserts_get_money =
-    requires (TStream& s, T& v) { s << IOv2::get_money(v); };
+static_assert(  insertable <char, IOv2::_Put_money<std::string>> );
+static_assert( !extractable<char, IOv2::_Put_money<std::string>> );
+static_assert(  extractable<char, IOv2::_Get_money<std::string>> );
+static_assert( !insertable <char, IOv2::_Get_money<std::string>> );
 
-static_assert(  inserts_put_money <MoneyOs, int> );
-static_assert( !extracts_put_money<MoneyIs, int> );
-static_assert(  extracts_get_money<MoneyIs, int> );
-static_assert( !inserts_get_money <MoneyOs, int> );
-
-static_assert(  inserts_put_money <MoneyOs, std::string> );
-static_assert( !extracts_put_money<MoneyIs, std::string> );
-static_assert(  extracts_get_money<MoneyIs, std::string> );
-static_assert( !inserts_get_money <MoneyOs, std::string> );
-
-// The named-lvalue form resolves through a different candidate than the prvalue form, so it
-// needs its own check.
-template <typename TStream, typename TManip> concept extracts_manip =
-    requires (TStream& s, TManip m) { s >> m; };
-template <typename TStream, typename TManip> concept inserts_manip =
-    requires (TStream& s, TManip m) { s << m; };
-
-static_assert( !extracts_manip<MoneyIs, IOv2::_Put_money<int>> );
-static_assert( !inserts_manip <MoneyOs, IOv2::_Get_money<int>> );
-
-// The bidirectional stream is the case the direction check exists for: it satisfies both
-// istream_type and ostream_type, so nothing but the deletion rules the wrong direction out.
-static_assert(  inserts_put_money <MoneyIos, int> );
-static_assert( !extracts_put_money<MoneyIos, int> );
-static_assert(  extracts_get_money<MoneyIos, int> );
-static_assert( !inserts_get_money <MoneyIos, int> );
+// The char_type has to match too: a char-stream money manipulator is not usable on a wide stream.
+static_assert( !insertable <wchar_t, IOv2::_Put_money<std::string>> );
+static_assert( !extractable<wchar_t, IOv2::_Get_money<std::string>> );
 }

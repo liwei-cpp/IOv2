@@ -1,12 +1,11 @@
-#include <functional>
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
 #include <device/file_device.h>
 #include <facet/ctype.h>
-#include <io/fp_defs/arithmetic.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
 #include <io/io_manip.h>
 #include <io/istream.h>
 #include <io/ostream.h>
@@ -66,43 +65,38 @@ void test_istream_ws_char_1()
     dump_info("Done\n");
 }
 
-// Regression for the std::function manipulator being shadowed on the extraction side. A
-// std::function manipulator held in a NON-CONST lvalue must dispatch to the manipulator
-// overload. Before the generic value operator>> was constrained (requires is_reader_def<...>),
-// such an lvalue bound to operator>>(T&, TValue&) instead and failed to compile ("No parse
-// method provided"). The invocation counter proves dispatch reached the manipulator (the
-// generic operator would never invoke the callable). Also exercises the sibling
-// function-pointer form.
+// A function pointer is the only manipulator shape that bypasses io_traits, and it must beat
+// the generic operator>> -- whose parameter is a forwarding reference -- on overload
+// resolution. The invocation counter proves dispatch reached the manipulator (the generic
+// operator would never invoke the callable).
 //
-// The callable now takes ios_base<char>& rather than the concrete stream: the overloads taking
-// a stream are gone, because a callable taking a stream can do I/O while its type carries no
+// The callable takes ios_base<char>& rather than the concrete stream: the overloads taking a
+// stream are gone, because a callable taking a stream can do I/O while its type carries no
 // direction, so on a bidirectional stream it could be applied through either operator. The
 // ios_base<char>& form is direction-free by construction -- ios_base exposes no streambuf and
-// no device, so such a manipulator cannot do I/O at all. Anything that does need I/O derives
-// from in_manip / out_manip instead.
+// no device, so such a manipulator cannot do I/O at all. Anything that does need I/O declares
+// its direction through io_traits instead.
 void test_istream_function_manip_char_1()
 {
-    dump_info("Test istream<char> std::function manipulator via operator>> case 1...");
+    dump_info("Test istream<char> function-pointer manipulator via operator>> case 1...");
 
     auto helper = []<template<typename, typename> class T>()
     {
         T iss{IOv2::mem_device{std::string("hello world")}};
 
-        int calls = 0;
-        std::function<void(IOv2::ios_base<char>&)> manip =
-            [&calls](IOv2::ios_base<char>&){ ++calls; };
+        static int calls;
+        calls = 0;
+        void (*manip)(IOv2::ios_base<char>&) = [](IOv2::ios_base<char>&){ ++calls; };
 
-        iss >> manip;                 // the previously-broken path
+        iss >> manip;                 // a non-const lvalue must still reach this overload
         VERIFY( calls == 1 );
 
         iss >> manip >> manip;        // operator>> returns the stream, so manipulators chain
         VERIFY( calls == 3 );
 
-        // sibling function-pointer form: operator>>(T&, void(*)(ios_base<char>&))
-        static int fcalls;
-        fcalls = 0;
-        iss >> +[](IOv2::ios_base<char>&){ ++fcalls; };
-        VERIFY( fcalls == 1 );
+        // a capture-less lambda reaches the same overload once decayed with unary +
+        iss >> +[](IOv2::ios_base<char>&){ ++calls; };
+        VERIFY( calls == 4 );
 
         // the generic value operator>> still extracts real values afterwards
         std::string tok;
@@ -116,11 +110,10 @@ void test_istream_function_manip_char_1()
     dump_info("Done\n");
 }
 
-// A null manipulator (null function pointer / empty std::function) passed to operator>>
-// must be rejected: the operator throws stream_error, its own handler categorizes it into
-// strfailbit, and -- with no exception mask set -- returns the stream without throwing.
-// This exercises the error branch of both surviving manipulator overloads. The tag-object
-// manipulators need no such branch: an object cannot be null.
+// A null function-pointer manipulator passed to operator>> must be rejected: the operator
+// throws stream_error, its own handler categorizes it into strfailbit, and -- with no
+// exception mask set -- returns the stream without throwing. The tag-object manipulators
+// need no such branch: an object cannot be null.
 void test_istream_null_manip_char_1()
 {
     dump_info("Test istream<char> null manipulator via operator>> case 1...");
@@ -134,21 +127,14 @@ void test_istream_null_manip_char_1()
         VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
         iss.clear();
 
-        // overload: operator>>(T&, const std::function<void(ios_base<char>&)>&)
-        std::function<void(IOv2::ios_base<char>&)> empty_base_fn;
-        iss >> empty_base_fn;
-        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
-        iss.clear();
-
         // same overload, non-null: the callable runs against the stream's ios_base
-        int base_calls = 0;
-        std::function<void(IOv2::ios_base<char>&)> base_fn =
-            [&base_calls](IOv2::ios_base<char>&){ ++base_calls; };
-        iss >> base_fn;
+        static int base_calls;
+        base_calls = 0;
+        iss >> +[](IOv2::ios_base<char>&){ ++base_calls; };
         VERIFY( base_calls == 1 );
         VERIFY( !(iss.rdstate() & IOv2::ios_defs::strfailbit) );
 
-        // stream is still usable after all the rejected manipulators
+        // stream is still usable after the rejected manipulator
         std::string tok;
         iss >> tok;
         VERIFY( tok == "hello" );
@@ -237,32 +223,57 @@ using DirIn_c   = IOv2::istream<IOv2::mem_device<char>, char>;
 using DirOut_c  = IOv2::ostream<IOv2::mem_device<char>, char>;
 using DirBoth_c = IOv2::iostream<IOv2::mem_device<char>, char>;
 
-template <typename S, typename M> concept can_extract = requires (S& s, const M& m) { s >> m; };
-template <typename S, typename M> concept can_insert  = requires (S& s, const M& m) { s << m; };
+// These probe the stream form of io_traits directly -- the rung the insertion / extraction
+// operators try first for a manipulator. `requires { s >> m; }` would not do: the operators are
+// unconstrained on the value type and reject it with a static_assert in the body, which no
+// requires-expression can see, so it is true for everything.
+template <typename S, typename M>
+concept can_extract = requires (S& s, const M& m)
+{ IOv2::io_traits<typename S::char_type, M>::sread(s, m); };
 
-// A manipulator legal in both directions derives from both tags. The deleted overloads carry
-// an exclusion clause for exactly this case -- without it both the real and the deleted
-// overload would be viable and neither would subsume the other, leaving such a manipulator
-// ambiguous, and therefore unusable, in EITHER direction. No library manipulator of this shape
-// existed before the flag manipulators grew tags, so it is asserted here directly.
-struct both_manip : IOv2::in_manip, IOv2::out_manip
+template <typename S, typename M>
+concept can_insert = requires (S& s, const M& m)
+{ IOv2::io_traits<typename S::char_type, M>::swrite(s, m); };
+
+// A manipulator legal in both directions declares both members. No library manipulator outside
+// io_manip.h has this shape, so one is defined here to pin the behaviour down.
+struct both_manip
 {
     template <typename T> void operator () (T&) const {}
 };
 
 // Same, but counting its invocations, for the runtime half of the check. It lives here rather
 // than inside the test function because a local class cannot have a member template.
-struct counting_manip : IOv2::in_manip, IOv2::out_manip
+struct counting_manip
 {
     int* m_n;
     template <typename T> void operator () (T&) const { ++*m_n; }
 };
+}
 
-// The point of the direction tags: on a bidirectional stream, where istream_type and
-// ostream_type are both satisfied, the wrong direction must not compile. Before the tags the
-// manipulators were void(*)(T&) function templates whose direction lived only in a constraint
-// -- and a constraint is not part of a function's type -- so `io << ws` and `io >> endl` both
-// compiled and silently did the opposite of what they read like.
+namespace IOv2
+{
+template <typename TChar>
+struct io_traits<TChar, both_manip>
+{
+    template <ostream_type T> static void swrite(T& s, const both_manip& f) { f(s); }
+    template <istream_type T> static void sread (T& s, const both_manip& f) { f(s); }
+};
+
+template <typename TChar>
+struct io_traits<TChar, counting_manip>
+{
+    template <ostream_type T> static void swrite(T& s, const counting_manip& f) { f(s); }
+    template <istream_type T> static void sread (T& s, const counting_manip& f) { f(s); }
+};
+}
+
+namespace
+{
+// The point of putting the direction in io_traits: on a bidirectional stream, where
+// istream_type and ostream_type are both satisfied, the wrong direction must not compile.
+// A constraint alone cannot achieve that -- such a stream satisfies either one -- so the
+// direction has to be which member exists.
 static_assert(  can_extract<DirBoth_c, IOv2::_Ws>    && !can_insert<DirBoth_c, IOv2::_Ws> );
 static_assert(  can_insert<DirBoth_c, IOv2::_Endl>   && !can_extract<DirBoth_c, IOv2::_Endl> );
 static_assert(  can_insert<DirBoth_c, IOv2::_Ends>   && !can_extract<DirBoth_c, IOv2::_Ends> );
@@ -280,18 +291,15 @@ static_assert(  can_insert<DirBoth_c, IOv2::_Setw>   &&  can_extract<DirBoth_c, 
 static_assert(  can_insert<DirBoth_c, IOv2::_Setfill<char>>
              && can_extract<DirBoth_c, IOv2::_Setfill<char>> );
 
-// The tag and the accepted stream type agree: ws will not take a pure output stream, endl
-// will not take a pure input one. (A mismatched _Setfill char type cannot be probed this way
-// -- the unconstrained fallback stays viable and reports through its static_assert instead.)
-static_assert(  std::invocable<const IOv2::_Ws&,   DirIn_c&>  );
-static_assert( !std::invocable<const IOv2::_Ws&,   DirOut_c&> );
-static_assert(  std::invocable<const IOv2::_Endl&, DirOut_c&> );
-static_assert( !std::invocable<const IOv2::_Endl&, DirIn_c&>  );
+// A _Setfill whose character type does not match the stream is rejected in both directions:
+// io_traits carries the same_as constraint on its members precisely so this stays visible to a
+// requires-expression rather than erroring inside the body.
+static_assert( !can_insert<DirBoth_c, IOv2::_Setfill<wchar_t>>
+            && !can_extract<DirBoth_c, IOv2::_Setfill<wchar_t>> );
 }
 
 // Runtime companion to the direction static_asserts above: the surviving direction still works
-// on a bidirectional stream, and the standard's direct-call form ws(is) -- which is why the tag
-// keeps an operator() -- behaves like the operator form.
+// on a bidirectional stream.
 void test_istream_manip_direction_char_1()
 {
     dump_info("Test istream<char> manipulator direction case 1...");
@@ -302,17 +310,11 @@ void test_istream_manip_direction_char_1()
     iss >> tok;
     VERIFY( tok == "santa" );
 
-    DirBoth_c iss2{IOv2::mem_device{std::string("  santa")}};
-    IOv2::ws(iss2);                   // direct-call form, as in std::ws(is)
-    std::string tok2;
-    iss2 >> tok2;
-    VERIFY( tok2 == "santa" );
-
     // A manipulator tagged both ways runs from either operator.
     int calls = 0;
     DirBoth_c iss3{IOv2::mem_device{std::string("x")}};
-    iss3 >> counting_manip{{}, {}, &calls};
-    iss3 << counting_manip{{}, {}, &calls};
+    iss3 >> counting_manip{&calls};
+    iss3 << counting_manip{&calls};
     VERIFY( calls == 2 );
 
     dump_info("Done\n");

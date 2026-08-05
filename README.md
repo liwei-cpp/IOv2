@@ -58,7 +58,7 @@ IOv2 的系统架构分为以下几个正交的维度：
 ```cpp
 #include <io/iostream.h>
 #include <device/file_device.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/char_and_str.h>
 
 using namespace IOv2;
 
@@ -71,6 +71,43 @@ int main() {
     return 0;
 }
 ```
+
+### 扩展点：让自定义类型支持 `<<` / `>>`
+
+全库只有**一个** I/O 扩展点：`IOv2::io_traits<TChar, T>`（声明在 `io/traits/traits_base.h`）。它的主模板**故意不定义**——"某个类型不支持某个方向"就表达为"该特化不存在"。内置类型的特化按类别分放在 `io/traits/` 下（`char_and_str.h`、`arithmetic.h`、`tm.h`、`nullptr.h` 等），它们**不会**被流头文件自动带上，用到哪个就 include 哪个。
+
+给自己的类型接上 `os << t` / `is >> t`，只需在命名空间 `IOv2` 里特化它，并按需要提供下列成员。名字里的 `s` 是 **static** 的意思，与 sentry 无关。
+
+```cpp
+#include <io/traits/traits_base.h>
+
+namespace IOv2
+{
+template <typename TChar>
+struct io_traits<TChar, my_point>
+{
+    // 插入：加锁与哨兵由 operator<< 负责，这里只管把字符写进迭代器。
+    template <typename TIter>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter swrite(TIter it, ios_base<TChar>& io, const locale<TChar>& loc,
+                        const my_point& v);
+
+    // 提取：同理，只管从 [it, end) 里解析。
+    template <typename TIter, std::sentinel_for<TIter> TSent>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter sread(TIter it, TSent end, ios_base<TChar>& io, const locale<TChar>& loc,
+                       my_point& v);
+};
+}
+```
+
+三条要点：
+
+- **方向由"哪个成员存在"决定**：只有 `swrite` 即只能插入，只有 `sread` 即只能提取，两个都有即两个方向都行。这一点不能改用约束来表达——`iostream` 同时满足 `istream_type` 与 `ostream_type`。用反了会撞上运算符里的 `static_assert`，它会区分"根本没有 `io_traits`"和"有 `io_traits`，但这个方向没有能用的成员"。
+- **出错就直接抛**，不要自己去动流的状态位：运算符会接住并交给 `handle_exception`，转成相应的状态位、并遵守流的异常掩码。本库自己抛的一律是 `stream_error`。
+- 上面是**迭代器形式**，格式化 I/O 用这一档。操纵符用的是**流形式**——`static void swrite(T& s, const my_point& v)` / `sread`，直接拿到流本身，**不加锁、不建哨兵**，需要就自己来。两种形式靠参数个数区分，一个特化**只应提供其中一种**——两种都提供时选中哪一种不作保证。库内置的操纵符没有 `operator()`，逻辑全在扩展点里，`os << m` / `is >> m` 是仅有的入口；标准的 `std::ws(is)` / `std::endl(os)` 直接调用形式在本库不存在。
+
+细节（含提取端可选的 `parse_context_type` 中转）见 `io/traits/traits_base.h` 的文件头注释。
 
 ### 使用方式：Header-Only 与共享库（DSO/DLL）
 
@@ -205,7 +242,7 @@ The architecture is divided into the following orthogonal dimensions:
 ```cpp
 #include <io/iostream.h>
 #include <device/file_device.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/char_and_str.h>
 
 using namespace IOv2;
 
@@ -218,6 +255,44 @@ int main() {
     return 0;
 }
 ```
+
+### Extension Point: Making Your Own Types Work with `<<` / `>>`
+
+The whole library has exactly **one** I/O extension point: `IOv2::io_traits<TChar, T>` (declared in `io/traits/traits_base.h`). Its primary template is **deliberately left undefined** -- "this type does not support this direction" is expressed as "the specialization does not exist". Specializations for the built-in types live under `io/traits/` grouped by category (`char_and_str.h`, `arithmetic.h`, `tm.h`, `nullptr.h`, ...); the stream headers do **not** pull them in, so include the ones you use.
+
+To make `os << t` / `is >> t` work for your own type, specialize it in namespace `IOv2` and provide whichever members you need. The `s` in the names means **static** and has nothing to do with the sentry.
+
+```cpp
+#include <io/traits/traits_base.h>
+
+namespace IOv2
+{
+template <typename TChar>
+struct io_traits<TChar, my_point>
+{
+    // Insertion: operator<< owns the lock and the sentry; this only writes characters
+    // through the iterator.
+    template <typename TIter>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter swrite(TIter it, ios_base<TChar>& io, const locale<TChar>& loc,
+                        const my_point& v);
+
+    // Extraction: likewise, this only parses out of [it, end).
+    template <typename TIter, std::sentinel_for<TIter> TSent>
+        requires (std::is_same_v<TChar, typename TIter::value_type>)
+    static TIter sread(TIter it, TSent end, ios_base<TChar>& io, const locale<TChar>& loc,
+                       my_point& v);
+};
+}
+```
+
+Three things to know:
+
+- **The direction is decided by which member exists**: `swrite` only means insertion only, `sread` only means extraction only, and both means both. Constraints cannot express this -- an `iostream` satisfies `istream_type` and `ostream_type` alike. Using one backwards hits a `static_assert` in the operator, which distinguishes "no `io_traits` at all" from "an `io_traits` exists, but offers no member usable in this direction".
+- **Just throw on error**; do not touch the stream's state bits yourself. The operator catches and hands the exception to `handle_exception`, which turns it into the matching state bit and honours the stream's exception mask. Everything this library throws itself is a `stream_error`.
+- The above is the **iterator form**, used by formatted I/O. Manipulators use the **stream form** instead -- `static void swrite(T& s, const my_point& v)` / `sread`, which get the stream itself with **no lock and no sentry**; do it yourself if you need one. The two forms are told apart by arity, and a specialization should provide **only one of them** -- when both are present, which one is picked is unspecified. The library's own manipulators have no `operator()`: all their logic lives in the extension point and `os << m` / `is >> m` is the only entry, so the standard's direct-call forms `std::ws(is)` and `std::endl(os)` do not exist here.
+
+For the details -- including the optional `parse_context_type` relay on the extraction side -- see the file-level comment in `io/traits/traits_base.h`.
 
 ### Usage Modes: Header-Only vs Shared Library (DSO/DLL)
 

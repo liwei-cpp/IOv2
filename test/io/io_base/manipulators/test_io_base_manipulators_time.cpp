@@ -3,15 +3,16 @@
 #include <system_error>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/char_and_str.h>
-#include <io/fp_defs/arithmetic.h>
-#include <io/fp_defs/tm.h>
+#include <io/traits/char_and_str.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/tm.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <support/dump_info.h>
+#include <support/io_traits_probe.h>
 #include <support/verify.h>
 
 namespace
@@ -129,9 +130,10 @@ void test_io_base_manipulators_get_time_char_2()
     iss2 >> IOv2::get_time(static_cast<std::tm*>(nullptr), "%Y-%m-%d %H:%M:%S");
     VERIFY(iss2.str_fail());
 
-    // The null check runs before the sentry, so not even the leading whitespace skipws would
-    // otherwise consume is taken: the position is unchanged and the caller can clear() and
-    // retry from where it started.
+    // The null check lives in io_traits<...>::sread, which the extraction operator calls after
+    // building its sentry, so the leading whitespace skipws consumes is gone by the time the
+    // failure is reported. Nothing else is consumed and nothing is written, so a clear() and a
+    // retry still see the whole value.
     for (int null_fmt = 0; null_fmt < 2; ++null_fmt)
     {
         std::tm target{};
@@ -146,7 +148,7 @@ void test_io_base_manipulators_get_time_char_2()
 
         VERIFY(iss3.str_fail());
         iss3.clear();
-        VERIFY(iss3.tell() == 0);
+        VERIFY(iss3.tell() == 3);
 
         // Retrying from that position still sees the whole input.
         iss3 >> IOv2::get_time(&target, "%Y-%m-%d");
@@ -474,43 +476,19 @@ void test_io_base_manipulators_get_time_wchar_t_2()
 
 namespace
 {
-// Direction: put_time inserts only, get_time extracts only, enforced by a deleted overload per
-// carrier. Without them the wrong direction lands on the catch-all fallback, whose static_assert
-// only fires once the body is instantiated, so the expression compiles in a requires-clause.
-using TimeIs  = IOv2::istream<IOv2::mem_device<char>, char>;
-using TimeOs  = IOv2::ostream<IOv2::mem_device<char>, char>;
-using TimeIos = IOv2::iostream<IOv2::mem_device<char>, char>;
+// Direction: put_time inserts only, get_time extracts only. It is expressed by which member
+// io_traits provides, so the probes go through io_traits: the operators are unconstrained on the
+// value type and reject in the body with a static_assert, which no requires-expression can see.
+// The stream type drops out for the same reason it could never have carried the direction -- an
+// iostream satisfies istream_type and ostream_type alike.
+static_assert(  insertable <char, IOv2::_Put_time<char>> );
+static_assert( !extractable<char, IOv2::_Put_time<char>> );
+static_assert(  extractable<char, IOv2::_Get_time<char>> );
+static_assert( !insertable <char, IOv2::_Get_time<char>> );
 
-// The probes go through templates because a requires-expression whose requirements depend on no
-// template parameter is checked where it is written, and there selecting the deleted overload is
-// a plain error rather than a substitution failure.
-template <typename TStream, typename TTm> concept inserts_put_time =
-    requires (TStream& s, TTm t) { s << IOv2::put_time(t, "%Y"); };
-template <typename TStream, typename TTm> concept extracts_put_time =
-    requires (TStream& s, TTm t) { s >> IOv2::put_time(t, "%Y"); };
-template <typename TStream, typename TTm> concept extracts_get_time =
-    requires (TStream& s, TTm t) { s >> IOv2::get_time(t, "%Y"); };
-template <typename TStream, typename TTm> concept inserts_get_time =
-    requires (TStream& s, TTm t) { s << IOv2::get_time(t, "%Y"); };
-
-static_assert(  inserts_put_time <TimeOs, const std::tm*> );
-static_assert( !extracts_put_time<TimeIs, const std::tm*> );
-static_assert(  extracts_get_time<TimeIs, std::tm*> );
-static_assert( !inserts_get_time <TimeOs, std::tm*> );
-
-// The named-lvalue form resolves through a different candidate than the prvalue form.
-template <typename TStream, typename TManip> concept extracts_manip =
-    requires (TStream& s, TManip m) { s >> m; };
-template <typename TStream, typename TManip> concept inserts_manip =
-    requires (TStream& s, TManip m) { s << m; };
-
-static_assert( !extracts_manip<TimeIs, IOv2::_Put_time<char>> );
-static_assert( !inserts_manip <TimeOs, IOv2::_Get_time<char>> );
-
-// The bidirectional stream satisfies both istream_type and ostream_type, so nothing but the
-// deletion rules the wrong direction out.
-static_assert(  inserts_put_time <TimeIos, const std::tm*> );
-static_assert( !extracts_put_time<TimeIos, const std::tm*> );
-static_assert(  extracts_get_time<TimeIos, std::tm*> );
-static_assert( !inserts_get_time <TimeIos, std::tm*> );
+// The char_type has to match the manipulator's own: put_time/get_time carry the format string.
+static_assert( !insertable <wchar_t, IOv2::_Put_time<char>> );
+static_assert( !extractable<wchar_t, IOv2::_Get_time<char>> );
+static_assert(  insertable <wchar_t, IOv2::_Put_time<wchar_t>> );
+static_assert(  extractable<wchar_t, IOv2::_Get_time<wchar_t>> );
 }

@@ -3,13 +3,14 @@
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/arithmetic.h>
-#include <io/fp_defs/char_and_str.h>
-#include <io/fp_defs/nullptr.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <io/traits/nullptr.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
+#include <support/io_traits_probe.h>
 #include <support/verify.h>
 
 void test_ostream_inserters_character_wchar_t_1()
@@ -281,25 +282,26 @@ void test_ostream_inserters_character_wchar_t_9()
 {
     dump_info("Test ostream<wchar_t> operator<< case 9 (character conformance)...");
 
-    // Availability is probed through is_writer_def, not `requires { oss << v; }`:
-    // operator<<'s unconstrained fallback makes the latter true for every type.
-    static_assert( IOv2::is_writer_def<wchar_t, char> );
-    static_assert( IOv2::is_writer_def<wchar_t, wchar_t> );
-    static_assert( IOv2::is_writer_def<wchar_t, std::nullptr_t> );
-    static_assert( !IOv2::is_writer_def<wchar_t, char8_t> );
-    static_assert( !IOv2::is_writer_def<wchar_t, char16_t> );
-    static_assert( !IOv2::is_writer_def<wchar_t, char32_t> );
+    // Availability is probed through `insertable` (support/io_traits_probe.h), not
+    // `requires { oss << v; }`: operator<<'s unconstrained fallback makes the latter true for
+    // every type.
+    static_assert( insertable<wchar_t, char> );
+    static_assert( insertable<wchar_t, wchar_t> );
+    static_assert( insertable<wchar_t, std::nullptr_t> );
+    static_assert( !insertable<wchar_t, char8_t> );
+    static_assert( !insertable<wchar_t, char16_t> );
+    static_assert( !insertable<wchar_t, char32_t> );
 
     // The string-pointer overloads mirror the single-character ones exactly.
-    static_assert( IOv2::is_writer_def<wchar_t, const char*> );
-    static_assert( IOv2::is_writer_def<wchar_t, const wchar_t*> );
-    static_assert( !IOv2::is_writer_def<wchar_t, const char8_t*> );
-    static_assert( !IOv2::is_writer_def<wchar_t, const char16_t*> );
-    static_assert( !IOv2::is_writer_def<wchar_t, const char32_t*> );
+    static_assert( insertable<wchar_t, const char*> );
+    static_assert( insertable<wchar_t, const wchar_t*> );
+    static_assert( !insertable<wchar_t, const char8_t*> );
+    static_assert( !insertable<wchar_t, const char16_t*> );
+    static_assert( !insertable<wchar_t, const char32_t*> );
     // A wide stream has no signed char / unsigned char string overload; as for
     // std::wostream these reach the address path instead.
-    static_assert( IOv2::is_writer_def<wchar_t, const unsigned char*> );
-    static_assert( IOv2::is_writer_def<wchar_t, int*> );
+    static_assert( insertable<wchar_t, const unsigned char*> );
+    static_assert( insertable<wchar_t, int*> );
 
     auto helper = []<template <typename, typename> class T>()
     {

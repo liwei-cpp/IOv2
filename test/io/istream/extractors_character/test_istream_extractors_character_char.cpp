@@ -4,14 +4,16 @@
 #include <string>
 #include <device/mem_device.h>
 #include <device/file_device.h>
-#include <io/fp_defs/arithmetic.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <io/traits/nullptr.h>
 #include <io/io_manip.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
 #include <support/file_guard.h>
+#include <support/io_traits_probe.h>
 #include <support/verify.h>
 
 void test_istream_extractors_character_char_1()
@@ -235,7 +237,7 @@ void test_istream_extractors_character_char_4()
     
     // NB: The chunks here grow by doubling (666, 1332, ... 340992), so they far exceed the
     // 0..255 range a field width can express. Extraction therefore targets std::string, whose
-    // reader grows dynamically; a raw char* target would need a setw() bound that cannot be
+    // sread grows dynamically; a raw char* target would need a setw() bound that cannot be
     // expressed for these sizes. The point of the case -- streambuf refill across tokens much
     // larger than the internal buffer -- is unaffected.
     auto check = [](auto& stream, const std::string& str, unsigned nchunks)
@@ -424,16 +426,17 @@ void test_istream_extractors_character_char_9()
 {
     dump_info("Test istream<char> operator>> case 9 (character conformance)...");
 
-    // Availability is probed through is_reader_def, not `requires { in >> v; }`:
-    // operator>>'s unconstrained fallback makes the latter true for every type.
-    static_assert( IOv2::is_reader_def<char, char> );
-    static_assert( IOv2::is_reader_def<char, signed char> );
-    static_assert( IOv2::is_reader_def<char, unsigned char> );
-    static_assert( !IOv2::is_reader_def<char, wchar_t> );
-    static_assert( !IOv2::is_reader_def<char, char8_t> );
-    static_assert( !IOv2::is_reader_def<char, char16_t> );
-    static_assert( !IOv2::is_reader_def<char, char32_t> );
-    static_assert( !IOv2::is_reader_def<char, std::nullptr_t> );
+    // Availability is probed through `extractable` (support/io_traits_probe.h), not
+    // `requires { in >> v; }`: operator>>'s unconstrained fallback makes the latter true for
+    // every type.
+    static_assert( extractable<char, char> );
+    static_assert( extractable<char, signed char> );
+    static_assert( extractable<char, unsigned char> );
+    static_assert( !extractable<char, wchar_t> );
+    static_assert( !extractable<char, char8_t> );
+    static_assert( !extractable<char, char16_t> );
+    static_assert( !extractable<char, char32_t> );
+    static_assert( !extractable<char, std::nullptr_t> );
 
     auto helper = []<template<typename, typename> class T>()
     {

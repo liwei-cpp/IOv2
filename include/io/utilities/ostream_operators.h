@@ -4,7 +4,8 @@
  * 定义了输出流的格式化与非格式化插入设施。
  * 包含输出哨兵 `out_sentry`、承载多态 `try_flush()` 的 CRTP 基类 `out_flusher`、
  * 输出流概念 `ostream_type`、承载各类插入操作（`put`/`write`）的 `ostream_operators`
- * 混入基类，以及插入运算符 `operator<<`（含操纵符重载）。
+ * 混入基类，以及插入运算符 `operator<<`：一条泛型的（把类型分派到扩展点
+ * `io_traits<TChar, TValue>`），外加一条给 `ios_base` 函数指针操纵符的。
  * @endif
  *
  * @lang{EN}
@@ -12,7 +13,8 @@
  * Includes the output sentry `out_sentry`, the CRTP base `out_flusher` that carries the
  * polymorphic `try_flush()`, the output-stream concept `ostream_type`, the `ostream_operators`
  * mix-in base that carries the various insertion operations (`put`/`write`), and the
- * insertion `operator<<` (including manipulator overloads).
+ * insertion `operator<<`: one generic (dispatching the type to the `io_traits<TChar, TValue>`
+ * extension point) plus one for function-pointer `ios_base` manipulators.
  * @endif
  */
 #pragma once
@@ -20,7 +22,7 @@
 #include <common/defs.h>
 #include <common/metafunctions.h>
 #include <device/device_concepts.h>
-#include <io/fp_defs/base_fp.h>
+#include <io/traits/traits_base.h>
 #include <io/io_base.h>
 #include <io/streambuf_iterator.h>
 #include <locale/locale.h>
@@ -28,7 +30,6 @@
 #include <concepts>
 #include <cstddef>
 #include <exception>
-#include <functional>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -423,9 +424,9 @@ struct ostream_operators;
  * locale，且其 `out_sentry_type` 满足 `is_out_sentry`；同时它必须派生自
  * `ios_base<char_type>`、`io_state_and_exp` 与 `ostream_operators<char_type>`。
  * @note `io_state_and_exp` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
- *       `handle_exception()`（`_Endl::operator()`、`out_sentry` 的析构）与 `operator bool`。
- *       缺了它，这些调用要到模板**体**实例化时才报错，而消费操纵符的运算符只用
- *       `std::invocable` 检查声明层面的可调用性，兜底重载那条简短诊断路径就被绕开了。
+ *       `handle_exception()`（插入运算符的 `catch`、`out_sentry` 的析构）与 `operator bool`。
+ *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
+ *       “这个类型不是输出流”上。
  * @tparam T 待检测的类型。
  * @endif
  *
@@ -437,11 +438,11 @@ struct ostream_operators;
  * `is_out_sentry`; it must also derive from `ios_base<char_type>`, `io_state_and_exp` and
  * `ostream_operators<char_type>`.
  * @note The `io_state_and_exp` clause is a requirement, not just a description: code
- *       constrained by this concept calls `handle_exception()` (in `_Endl::operator()` and in
- *       `out_sentry`'s destructor) and `operator bool` directly. Without it those calls only
- *       fail once the template **body** is instantiated, and since the operators that consume
- *       manipulators check callability with `std::invocable` -- a declaration-level check --
- *       the short diagnostic the fallback overload exists to produce is bypassed.
+ *       constrained by this concept calls `handle_exception()` (the insertion operator's
+ *       `catch`, `out_sentry`'s destructor) and `operator bool` directly. Without it those
+ *       calls only fail once the template **body** is instantiated, putting the diagnostic
+ *       deep inside the library's implementation rather than on "this type is not an output
+ *       stream".
  * @tparam T The type under inspection.
  * @endif
  */
@@ -673,286 +674,190 @@ private:
      * @endif
      */
     template <ostream_type U, typename TValue>
-        requires (is_writer_def<typename U::char_type, TValue>
-               || is_writer_def<typename U::char_type, std::decay_t<TValue>>)
     friend U& operator<<(U& obj, const TValue& value);
 };
 
 /**
  * @lang{ZH}
- * @brief 插入操纵符：应用一个作用于 `ios_base<char_type>&` 的函数指针操纵符。
+ * @brief 插入运算符：把一个 `TValue` 类型的值或一个操纵符写入流。
+ *
+ * 本运算符是插入侧**唯一**的入口。它在 `if constexpr` 里挑出可用的通道：流形式
+ * `swrite(stream, value)`（操纵符）与迭代器形式 `swrite(iter, io, loc, value)`（格式化输出）；
+ * 每种形式内先试 `TValue`，不成再试 `std::decay_t<TValue>`（数组实参经此退化成指针，函数名退化
+ * 成函数指针）。都不可用时就地 `static_assert`，并按"扩展点是否存在"给出两条不同的诊断。
+ *
+ * @note 同一个 `io_traits` 特化**只应提供其中一种形式**的 `swrite`。两种形式靠实参个数区分、
+ *       不会互相误配，但同时提供时选中哪一种**不作保证**；形式内部则保证不衰退的 `TValue`
+ *       优先于 `std::decay_t<TValue>`。
+ * @note 本运算符**不加约束**。链末尾的 `static_assert` 必须对任意类型都可达——它取代了从前
+ *       那条无约束的兜底重载，也取代了用 `= delete` 表达的方向诊断。探测里直接写
+ *       `io_traits<TChar, TValue>::swrite(...)` 是安全的：未特化时它是不完整类型，在
+ *       requires 表达式里属于可 SFINAE 的替换失败，结果为 `false` 而非硬错误。
+ * @note 加锁位置分两种：迭代器形式由本运算符取 `io_mutex()`，并保证 `handle_exception()`
+ *       也在锁内；流形式一律不加锁，由操纵符自己决定——各操纵符所需的锁作用域并不相同
+ *       （`endl` 要把读 locale 与 `put()` 一起罩在锁内；`ends` / `flush` 完全不需要显式加锁），
+ *       无法上提到这里。流形式外面的 `catch` 是**唯一**的异常出口：操纵符自己不再各兜一遍，
+ *       抛出什么都由这里转交 `handle_exception`，按本库的错误模型置位并遵守异常掩码。
  * @tparam T 输出流类型。
+ * @tparam TValue 源值类型。
  * @param obj 输出流。
- * @param pf 操纵符函数指针。
- * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
- * @endif
- *
- * @lang{EN}
- * @brief Insertion manipulator: applies a function-pointer manipulator taking
- *        `ios_base<char_type>&`.
- * @tparam T The output stream type.
- * @param obj The output stream.
- * @param pf The manipulator function pointer.
- * @return A reference to the stream itself.
- * @throw stream_error If `pf` is null.
- * @endif
- */
-template <ostream_type T>
-T& operator << (T& obj, void(*pf)(ios_base<typename T::char_type>&))
-{
-    try
-    {
-        if (!pf)
-            throw stream_error("ostream manipulator fail: null or empty manipulator");
-        pf(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 插入操纵符：应用一个作用于 `ios_base<char_type>&` 的 `std::function` 操纵符。
- * @tparam T 输出流类型。
- * @param obj 输出流。
- * @param pf 操纵符可调用对象。
- * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
- * @endif
- *
- * @lang{EN}
- * @brief Insertion manipulator: applies a `std::function` manipulator taking
- *        `ios_base<char_type>&`.
- * @tparam T The output stream type.
- * @param obj The output stream.
- * @param pf The manipulator callable.
- * @return A reference to the stream itself.
- * @throw stream_error If `pf` is empty.
- * @endif
- */
-template <ostream_type T>
-T& operator << (T& obj, const std::function<void(ios_base<typename T::char_type>&)>& pf)
-{
-    try
-    {
-        if (!pf)
-            throw stream_error("ostream manipulator fail: null or empty manipulator");
-        pf(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 插入操纵符：应用一个可用于输出方向的操纵符对象。
- *
- * 本重载把流交给操纵符自己的 `operator()`：**加锁由操纵符负责**。各操纵符所需的锁作用域并
- * 不相同（`endl` 要把读 locale 与 `put()` 一起罩在锁内；`ends`/`flush` 完全不需要显式加锁；
- * 输入方向的 `ws` 要在构造 `in_sentry` 之前先加锁），无法上提到本函数。
- *
- * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的 `operator()` 里就地处理了异常
- * （需要锁的还会在锁内处理），走不到这里；它保证的是自定义操纵符即使漏了异常处理，也仍然按
- * 本库的错误模型置位并遵守异常掩码，而不是把异常抛给调用方。
- * @note 约束里的 `std::invocable` 不是多余的：只看基类的话，`os << setfill(L'*')` 这种字符
- *       类型不匹配的调用仍然可行，错误要到 `f(obj)` 实例化时才在模板体内爆出来。加上它，
- *       本重载直接不可行，调用落到兜底重载，报出那条指明原因的 `static_assert`。
- * @tparam T 输出流类型。
- * @tparam TManip 操纵符类型，须派生自 `out_manip` 且能以本流调用。
- * @param obj 输出流。
- * @param f 操纵符对象。
+ * @param value 要写入的值或操纵符。
  * @return 流自身的引用。
  * @endif
  *
  * @lang{EN}
- * @brief Insertion manipulator: applies a manipulator object usable in the output direction.
+ * @brief Insertion operator: writes a value of type `TValue`, or a manipulator, to the stream.
  *
- * This overload hands the stream to the manipulator's own `operator()`: **locking is the
- * manipulator's job**. The required lock scope differs per manipulator (`endl` must cover both
- * the locale read and the `put()`; `ends`/`flush` need no explicit lock at all; on the input
- * side `ws` must take the lock before constructing `in_sentry`), so it cannot be hoisted here.
+ * This is the **only** entry point on the insertion side. An `if constexpr` chain picks whichever
+ * channel is usable: the stream form `swrite(stream, value)` (manipulators) or the iterator form
+ * `swrite(iter, io, loc, value)` (formatted output). Within each form `TValue` is tried first and
+ * `std::decay_t<TValue>` second -- that is where array arguments decay to pointers and function
+ * names to function pointers. When neither is usable a `static_assert` fires in place, with one
+ * of two diagnostics depending on whether the extension point exists at all.
  *
- * The `catch` here is a **backstop**, not the primary mechanism: the library's own manipulators
- * handle their exceptions in place, inside their own `operator()` (under the lock where one is
- * needed), and never reach it. What it guarantees is that a user-defined manipulator which
- * forgets to handle its exceptions still sets state through this library's error model and
- * honours the exception mask, rather than throwing at the caller.
+ * @note One `io_traits` specialization should provide **only one of the two forms** of `swrite`.
+ *       The forms differ in argument count and so cannot be mistaken for each other, but which
+ *       one is picked when both are present is **unspecified**; within a form, the undecayed
+ *       `TValue` is guaranteed to win over `std::decay_t<TValue>`.
+ * @note This operator is **unconstrained**. The `static_assert` at the end of the chain has to
+ *       be reachable for an arbitrary type -- it replaces both the old unconstrained fallback
+ *       overload and the direction diagnostics that used to be spelled `= delete`. Naming
+ *       `io_traits<TChar, TValue>::swrite(...)` directly in the probes is safe: where it is not
+ *       specialized it is an incomplete type, which inside a requires-expression is a
+ *       SFINAE-able substitution failure yielding `false` rather than a hard error.
+ * @note Locking splits two ways: for the iterator form this operator takes `io_mutex()` and
+ *       keeps `handle_exception()` inside it; the stream form is never locked here and decides
+ *       for itself -- the lock scope each manipulator needs differs (`endl` must cover both the
+ *       locale read and the `put()`; `ends` / `flush` need no explicit lock at all), so it
+ *       cannot be hoisted here. The `catch` around the stream form is the **only** exception
+ *       exit: manipulators no longer catch anything themselves, and whatever they throw is
+ *       handed to `handle_exception` here, which sets state through this library's error model
+ *       and honours the exception mask.
  * @tparam T The output stream type.
- * @tparam TManip The manipulator type, which must derive from `out_manip` and be callable with
- *         this stream.
+ * @tparam TValue The source value type.
  * @param obj The output stream.
- * @param f The manipulator object.
+ * @param value The value or manipulator to write.
  * @return A reference to the stream itself.
- * @endif
- */
-template <ostream_type T, std::derived_from<out_manip> TManip>
-    requires std::invocable<const TManip&, T&>
-T& operator << (T& obj, const TManip& f)
-{
-    try
-    {
-        f(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 已删除：仅用于输入方向的操纵符不能被插入。
- *
- * 在双向流上，若无本重载，`io << ws` 会静默地跑一遍输入哨兵：吃掉前导空白、把 streambuf
- * 翻转成 get 方向、移动读位置，而不写出任何东西——写法与实际方向相反，且不置任何状态位。
- * 删除本重载使其成为编译错误，与标准库一致。正确写法是 `is >> ws`。
- * @note 约束里必须排除同时派生自 `out_manip` 的类型。两个方向都合法的操纵符（如 `setw`）会
- *       同时派生两个基类，若不排除，本重载与上面那个真实重载会同时可行且互不包含，导致该
- *       操纵符在**任何**方向上都因二义性而不可用。
- * @tparam T 输出流类型。
- * @tparam TManip 操纵符类型，派生自 `in_manip` 且不派生自 `out_manip`。
- * @endif
- *
- * @lang{EN}
- * @brief Deleted: a manipulator meant for the input direction only cannot be inserted.
- *
- * Without this overload, `io << ws` on a bidirectional stream would silently run the input
- * sentry: eat the leading whitespace, flip the streambuf to get mode and move the read
- * position, while writing nothing -- the opposite of what the expression reads like, and with
- * no state bit set. Deleting it makes that a compile error, as in the standard library. Write
- * `is >> ws` instead.
- * @note The constraint must exclude types that also derive from `out_manip`. A manipulator
- *       legal in both directions (`setw`, say) derives from both bases; without the exclusion
- *       this overload and the real one above would both be viable and neither would subsume the
- *       other, making that manipulator ambiguous -- and therefore unusable -- in **either**
- *       direction.
- * @tparam T The output stream type.
- * @tparam TManip The manipulator type, deriving from `in_manip` but not from `out_manip`.
- * @endif
- */
-template <ostream_type T, typename TManip>
-    requires std::derived_from<TManip, in_manip> && (!std::derived_from<TManip, out_manip>)
-T& operator << (T& obj, const TManip& f) = delete;
-
-/**
- * @lang{ZH}
- * @brief 格式化插入运算符：按当前 locale 将一个 `TValue` 类型的值写入流。
- *
- * 借助为该值类型（或其退化类型 `std::decay_t<TValue>`）注册的 `writer` 完成格式化输出；
- * 优先匹配原类型，其次匹配退化类型。
- * @tparam T 输出流类型。
- * @tparam TValue 源值类型；必须存在对应的 `writer` 定义。
- * @param obj 输出流。
- * @param value 要写入的值。
- * @return 流自身的引用。
- * @note 异常统一交由 `handle_exception` 处理，并按异常掩码更新流状态。
- * @endif
- *
- * @lang{EN}
- * @brief Formatted insertion operator: writes a value of type `TValue` to the stream under
- *        the current locale.
- *
- * Formatting is delegated to the `writer` registered for the value type (or its decayed type
- * `std::decay_t<TValue>`); the original type is matched first, then the decayed type.
- * @tparam T The output stream type.
- * @tparam TValue The source value type; a corresponding `writer` definition must exist.
- * @param obj The output stream.
- * @param value The value to write.
- * @return A reference to the stream itself.
- * @note Exceptions are routed through `handle_exception`, which updates the stream state
- *       according to the exception mask.
  * @endif
  */
 template <ostream_type T, typename TValue>
-    requires (is_writer_def<typename T::char_type, TValue>
-           || is_writer_def<typename T::char_type, std::decay_t<TValue>>)
 T& operator<<(T& obj, const TValue& value)
 {
+    using TChar  = typename T::char_type;
     using TDecay = std::decay_t<TValue>;
-    using TChar = typename T::char_type;
-    std::lock_guard guard(obj.io_mutex());
-    try
+
+    constexpr bool stream_v = requires
+        { io_traits<TChar, TValue>::swrite(obj, value); };
+    constexpr bool iter_v   = requires
+        { io_traits<TChar, TValue>::swrite(obj.o_iter(), obj, obj.locale(), value); };
+    constexpr bool stream_d = requires
+        { io_traits<TChar, TDecay>::swrite(obj, value); };
+    constexpr bool iter_d   = requires
+        { io_traits<TChar, TDecay>::swrite(obj.o_iter(), obj, obj.locale(), value); };
+
+    if constexpr (stream_v || stream_d)
+    {
+        try
+        {
+            io_traits<TChar, std::conditional_t<stream_v, TValue, TDecay>>::swrite(obj, value);
+        }
+        catch (...)
+        {
+            obj.handle_exception(std::current_exception());
+        }
+    }
+    else if constexpr (iter_v || iter_d)
     {
         using sentry_type = typename T::out_sentry_type;
-        sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf), bool(obj.flags() & ios_defs::appmode));
+        std::lock_guard guard(obj.io_mutex());
+        try
+        {
+            sentry_type cerb(obj, bool(obj.flags() & ios_defs::unitbuf),
+                                  bool(obj.flags() & ios_defs::appmode));
 
-        if constexpr (is_writer_def<TChar, TValue>)
-            writer<TChar, TValue>::swrite(obj.o_iter(), obj, obj.locale(), value);
-        else
-            writer<TChar, TDecay>::swrite(obj.o_iter(), obj, obj.locale(), value);
+            auto iter = obj.o_iter();
+            io_traits<TChar, std::conditional_t<iter_v, TValue, TDecay>>::swrite(
+                iter, obj, obj.locale(), value);
+        }
+        catch (...)
+        {
+            obj.handle_exception(std::current_exception());
+        }
     }
-    catch(...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
+    else if constexpr (has_io_traits<TChar, TValue> || has_io_traits<TChar, TDecay>)
+        static_assert(dependent_false_v<TValue>,
+            "IOv2: cannot insert this type into a stream. An io_traits<char_type, TValue> "
+            "exists but offers no swrite() usable with this stream. The usual cause is a "
+            "direction mismatch -- the type provides sread() only and is meant for extraction "
+            "(write `is >> x`, not `os << x`). Otherwise its swrite() is constrained away for "
+            "this stream: a fill character whose type differs from the stream's char_type is the "
+            "common case. See io/traits/traits_base.h.");
+    else
+        static_assert(dependent_false_v<TValue>,
+            "IOv2: cannot insert this type into a stream. No io_traits<char_type, TValue> is "
+            "defined for it. Define one -- see io/traits/traits_base.h -- or convert the value "
+            "to a supported type such as an arithmetic type, a character type, CharT* or "
+            "std::basic_string.");
+
     return obj;
 }
 
 /**
  * @lang{ZH}
- * @brief 兜底重载：当插入无法成立时，给出一条简短的编译期错误。
+ * @brief 插入运算符：应用一个作用于 `ios_base<char_type>&` 的函数指针操纵符。
  *
- * 与提取端的同名兜底对称。若没有本重载，`os << obj`（`obj` 的类型没有 `writer` 特化）只会
- * 得到一句 `no match for 'operator<<'` 外加三十余个候选的转储，真正的原因埋在里面。
+ * 本条是插入侧唯一**不走 `io_traits` 扩展点**的重载，它的形参类型必须是**非推导语境**：
+ * `boolalpha` / `hex` / `defaultfloat` 这些操纵符是函数模板，`os << IOv2::boolalpha` 给出的
+ * 是一个模板名而不是某个具体函数，只有形参类型事先确定，编译器才能反推出模板实参、取到函数
+ * 地址。泛型运算符的形参是 `const TValue&`，`TValue` 要从实参推导，那里只会报"无法推导
+ * TValue"。用户自己写的操纵符函数模板同样依赖这一条。
  *
- * @note 本重载**不加约束**，靠重载决议让位而非靠约束互斥。与提取端不同的是，这里无法依赖
- *       常量性排序——上面的格式化插入运算符本身就收 `const TValue&`，与本重载**签名等价**。
- *       决出胜负的是"约束更多者胜"规则：两个函数模板的形参列表等价时，有约束的一方优于无
- *       约束的一方。因此凡是存在 `writer` 特化的类型都会走上面那个。
- * @note 取 `ios_base<char_type>&` 的两个操纵符重载与本重载转换序列打平，转由模板偏序裁决，
- *       而它们的形参类型更特化，故胜出。取 `const TManip&` 的方向标签重载与本重载签名等价，
- *       同样靠"约束更多者胜"取胜。
- * @note 因此落到本重载的操纵符只有两类：没有派生方向标签基类的（用户自己写的函数或
- *       lambda），以及派生了但 `operator()` 不接受本流的（如在 `char` 流上用
- *       `setfill(L'*')`）。下面的错误消息把这两类也一并点出来。
- * @tparam TValue 被插入的源类型。
+ * 只取 `ios_base<char_type>&` 的操纵符碰不到 streambuf 与设备，做不了 I/O，因此**无所谓方向**：
+ * 提取侧有形状相同的重载，`os << pf` 与 `is >> pf` 等价。两条都不加锁、不建哨兵——操纵符
+ * 改的只是格式化状态，而那些访问器自己就是线程安全的。
+ * @note 只有函数指针这一种形状：`std::function`、`std::move_only_function`、仿函数、裸 lambda
+ *       都走不到这里，会撞上泛型运算符链末尾的 `static_assert`。无捕获的 lambda 写 `+lambda`
+ *       可退化成函数指针；带状态的操纵符请走 `io_traits` 的流形式——它拿到的是真正的流，比
+ *       `ios_base&` 能做的更多。
+ * @param obj 输出流。
+ * @param pf 操纵符；为空指针时置 `strfailbit`。
+ * @return 流自身的引用。
  * @endif
  *
  * @lang{EN}
- * @brief Fallback overload: emits one short compile-time error when an insertion cannot work.
+ * @brief Insertion operator: applies a function-pointer manipulator acting on
+ *        `ios_base<char_type>&`.
  *
- * The mirror image of the extraction-side fallback. Without it, `os << obj` for a type with no
- * `writer` specialization yields only `no match for 'operator<<'` plus a dump of thirty-odd
- * candidates, burying the actual cause.
+ * This is the only insertion-side overload that does **not** go through the `io_traits` extension
+ * point, and its parameter type has to be a **non-deduced context**: manipulators
+ * such as `boolalpha`, `hex` and `defaultfloat` are function templates, so `os << IOv2::boolalpha`
+ * names a template rather than one function, and only a parameter type fixed in advance lets the
+ * compiler work backwards to the template arguments and take the function's address. The generic
+ * operator's parameter is `const TValue&`, with `TValue` deduced from the argument, so there it
+ * can only report "could not deduce TValue". User-written manipulator function templates depend
+ * on this too.
  *
- * @note This overload is **unconstrained**, relying on overload resolution to yield rather than
- *       on mutually exclusive constraints. Unlike the extraction side, const-ness ranking cannot
- *       be used here: the formatted insertion operator above already takes `const TValue&`, so
- *       the two have **equivalent signatures**. What decides is the "more constrained wins"
- *       rule: when two function templates have equivalent parameter-type-lists, the constrained
- *       one is preferred over the unconstrained one. Any type with a `writer` therefore goes to
- *       the operator above.
- * @note The two manipulator overloads taking `ios_base<char_type>&` tie with this one on
- *       conversion sequence, so partial ordering decides and their more specialized parameter
- *       types win. The direction-tag overload taking `const TManip&` has an equivalent
- *       signature and wins on "more constrained" just as above.
- * @note Only two kinds of manipulator therefore reach this overload: one that does not derive
- *       from a direction tag base (a user's own function or lambda), and one that does but
- *       whose `operator()` will not take this stream (`setfill(L'*')` on a `char` stream, say).
- *       The message below names both.
- * @tparam TValue The source type being inserted.
+ * A manipulator taking only `ios_base<char_type>&` cannot reach the streambuf or the device and
+ * so cannot do I/O; it therefore has **no direction**. The extraction side carries an overload of
+ * the same shape and `os << pf` is equivalent to `is >> pf`. Neither overload locks nor builds a
+ * sentry -- a manipulator only changes formatting state, and those accessors are thread-safe
+ * themselves.
+ * @note A function pointer is the only shape accepted: `std::function`,
+ *       `std::move_only_function`, a functor and a bare lambda all miss this overload and hit the
+ *       `static_assert` at the end of the generic operator's chain. A capture-less lambda can be
+ *       written `+lambda` to decay to a function pointer; a manipulator that carries state belongs
+ *       in the stream form of `io_traits`, which gets the real stream and can do more than
+ *       `ios_base&` allows.
+ * @param obj The output stream.
+ * @param pf The manipulator; a null pointer sets `strfailbit`.
+ * @return A reference to the stream itself.
  * @endif
  */
-template <ostream_type T, typename TValue>
-T& operator<<(T& obj, const TValue&)
+template <ostream_type T>
+T& operator<<(T& obj, void (*pf)(ios_base<typename T::char_type>&))
 {
-    static_assert(dependent_false_v<TValue>,
-        "IOv2: cannot insert this type into a stream. Either no writer<char_type, TValue> is "
-        "defined for it (define one -- see io/fp_defs/base_fp.h -- or convert the value to a "
-        "supported type such as an arithmetic type, a character type, CharT*, or "
-        "std::basic_string), or it was meant to be a manipulator, in which case it must derive "
-        "from IOv2::out_manip (see io/io_base.h) and its operator() must accept this stream -- "
-        "a fill character whose type differs from the stream's char_type is the usual cause. "
-        "A manipulator used in the wrong direction is reported separately, as a deleted "
-        "operator.");
+    apply_ios_manip<typename T::char_type>(obj, pf);
     return obj;
 }
+
 }

@@ -6,8 +6,11 @@
  * `put_time` / `get_time`（按 locale 格式化或解析货币与时间）。
  *
  * 每个操纵符由一个工厂函数和一个 `_Xxx` 载体类型构成，后者是**实现细节**、不应被直接构造；
- * 调整格式状态的那几个各配一对 `operator<<` / `operator>>`，货币与时间那几个则走
- * `writer` / `reader` 特化，经通用的格式化插入/提取运算符生效。
+ * 全都经由 `io_traits` 特化生效。载体只携带参数、不带 `operator()`：调整格式状态的那几个把
+ * 逻辑写在**流形式**的 `swrite` / `sread` 里，`os << m` / `is >> m` 是仅有的入口（标准里
+ * `setw(5)(os)` 那样的直接调用形式不存在）；货币与时间那几个提供**迭代器形式**，由通用的格式化
+ * 插入/提取运算符负责加锁与哨兵。方向由**哪个成员存在**表达：只有 `swrite` 即只能插入，
+ * 只有 `sread` 即只能提取，用反了会撞上运算符链末尾的 `static_assert`。
  *
  * @warning **操纵符与随后的 I/O 不构成同一个临界区。** `os << setw(5) << value` 是两次
  *          各自加锁的操作：`setw(5)` 写入 `width`，`<< value` 在另一个临界区里读取并用完
@@ -29,10 +32,15 @@
  * locale).
  *
  * Each manipulator consists of a factory function and a `_Xxx` carrier type; the latter is an
- * **implementation detail** and should never be constructed directly. The formatting-state
- * ones each come with a matching `operator<<` / `operator>>` pair, while the money and time
- * ones go through `writer` / `reader` specializations and take effect via the generic
- * formatted insertion/extraction operators.
+ * **implementation detail** and should never be constructed directly. All of them take effect
+ * through an `io_traits` specialization. A carrier holds the parameters only and has no
+ * `operator()`: the formatting-state ones keep their logic in the **stream form** of `swrite` /
+ * `sread`, so `os << m` / `is >> m` is the only entry point (the standard's direct-call form
+ * `setw(5)(os)` does not exist here); the money and time ones provide the **iterator form**, and
+ * the generic formatted insertion/extraction operators own the lock and the sentry. The
+ * direction is expressed by **which member exists**: `swrite` only means insertion only, `sread`
+ * only means extraction only, and using one backwards hits the `static_assert` at the end of the
+ * operator's chain.
  *
  * @warning **A manipulator and the I/O that follows it are not one critical section.**
  *          `os << setw(5) << value` is two separately-locked operations: `setw(5)` writes
@@ -53,7 +61,7 @@
  */
 #pragma once
 
-#include <io/fp_defs/tm.h>
+#include <io/traits/tm.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
@@ -71,32 +79,26 @@ namespace IOv2
  * @lang{ZH}
  * @brief `resetiosflags` 操纵符的类型。
  *
- * 本操纵符只改格式标志，两个方向都合法，故同时派生自 `in_manip` 与 `out_manip`。方向为何
- * 必须编码进类型、以及"两个方向都合法者须同时派生两个基类"的理由，见 `in_manip`。
+ * 本操纵符只改格式标志，两个方向都合法，故 `io_traits<TChar, _Resetiosflags>` 同时提供
+ * `swrite` 与 `sread`。本类型只携带参数，不带 `operator()`：逻辑全在扩展点里——一行写得下的就
+ * 两个成员各写一遍，写不下的走一个私有静态辅助函数。这样 `os << m` / `is >> m` 是仅有的入口，
+ * 异常统一由运算符转交 `handle_exception`，标准里 `setbase(8)(os)` 那样的直接调用形式不存在。
  * @endif
  *
  * @lang{EN}
  * @brief The type of the `resetiosflags` manipulator.
  *
- * It only changes format flags and is legal in both directions, so it derives from both
- * `in_manip` and `out_manip`. See `in_manip` for why the direction must live in the type, and
- * why something legal in both directions has to derive from both bases.
+ * It only changes format flags and is legal in both directions, so
+ * `io_traits<TChar, _Resetiosflags>` provides both `swrite` and `sread`. This type carries the
+ * parameter only and has no `operator()`: all the logic lives in the extension point -- spelled
+ * out in both members when it fits on one line, and factored into a private static helper when it
+ * does not. That leaves `os << m` / `is >> m` as the only entries, with exceptions handed to
+ * `handle_exception` by the operator, and no direct-call form such as `setbase(8)(os)`.
  * @endif
  */
-struct _Resetiosflags : in_manip, out_manip
+struct _Resetiosflags
 {
     explicit _Resetiosflags(ios_defs::fmtflags mask) : m_mask(mask) {}
-
-    /**
-     * @lang{ZH} @brief 清除 `m_mask` 中的各标志，其余不受影响。 @endif
-     * @lang{EN} @brief Clears the flags in `m_mask`, leaving the rest untouched. @endif
-     */
-    template <typename T>
-        requires (istream_type<T> || ostream_type<T>)
-    void operator () (T& s) const
-    {
-        s.setf(ios_defs::fmtflags(0), m_mask);
-    }
 
     ios_defs::fmtflags m_mask;
 };
@@ -109,28 +111,53 @@ inline _Resetiosflags resetiosflags(ios_defs::fmtflags mask) { return _Resetiosf
 
 /**
  * @lang{ZH}
- * @brief `setiosflags` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @brief `resetiosflags` 的扩展点特化：两个方向都提供，都清除 `m_mask` 中的各标志，其余不受
+ *        影响。
+ *
+ * 操纵符的方向由**成员的有无**表达：两个成员都在，于是 `os << resetiosflags(f)` 与
+ * `is >> resetiosflags(f)` 都成立。改用约束是不够的——`iostream` 同时满足两个流概念，单向操纵符
+ * 若只靠约束就挡不住反向用法，故方向一律落在这里。
+ * @note 流类型不匹配时，成员在**声明**层面（`ostream_type` / `istream_type`）就不可行，插入/
+ *       提取运算符的链条得以落到那条指明原因的诊断上，而不是在函数体里硬报错。
  * @endif
  *
  * @lang{EN}
- * @brief The type of the `setiosflags` manipulator. Legal in both directions, so it derives
- *        from both direction tags; see `in_manip`.
+ * @brief Extension-point specialization for `resetiosflags`: both directions are provided, and
+ *        both clear the flags in `m_mask`, leaving the rest untouched.
+ *
+ * A manipulator's direction is expressed by **which member exists**: both are here, so
+ * `os << resetiosflags(f)` and `is >> resetiosflags(f)` both work. A constraint would not be
+ * enough -- `iostream` satisfies both stream concepts, so constraints alone could not stop a
+ * one-way manipulator from being used backwards; direction therefore always lives here.
+ * @note On a stream-type mismatch the members are non-viable at the **declaration** level
+ *       (`ostream_type` / `istream_type`), so the insertion/extraction chain reaches the
+ *       diagnostic that says why instead of erroring inside the body.
  * @endif
  */
-struct _Setiosflags : in_manip, out_manip
+template <typename TChar>
+struct io_traits<TChar, _Resetiosflags>
+{
+    template <ostream_type T>
+    static void swrite(T& s, const _Resetiosflags& f) { s.setf(ios_defs::fmtflags(0), f.m_mask); }
+
+    template <istream_type T>
+    static void sread(T& s, const _Resetiosflags& f) { s.setf(ios_defs::fmtflags(0), f.m_mask); }
+};
+
+/**
+ * @lang{ZH}
+ * @brief `setiosflags` 操纵符的类型。两个方向都合法；方向如何表达见
+ *        `io_traits<TChar, _Resetiosflags>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setiosflags` manipulator. Legal in both directions; see
+ *        `io_traits<TChar, _Resetiosflags>` for how the direction is expressed.
+ * @endif
+ */
+struct _Setiosflags
 {
     explicit _Setiosflags(ios_defs::fmtflags mask) : m_mask(mask) {}
-
-    /**
-     * @lang{ZH} @brief 置位 `m_mask` 中的各标志（按位或），其余不受影响。 @endif
-     * @lang{EN} @brief Sets the flags in `m_mask` (bitwise-or), leaving the rest untouched. @endif
-     */
-    template <typename T>
-        requires (istream_type<T> || ostream_type<T>)
-    void operator () (T& s) const
-    {
-        s.setf(m_mask);
-    }
 
     ios_defs::fmtflags m_mask;
 };
@@ -143,31 +170,40 @@ inline _Setiosflags setiosflags(ios_defs::fmtflags mask) { return _Setiosflags{m
 
 /**
  * @lang{ZH}
- * @brief `setbase` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @brief `setiosflags` 的扩展点特化：两个方向都提供，都置位 `m_mask` 中的各标志（按位或），
+ *        其余不受影响。见 `io_traits<TChar, _Resetiosflags>`。
  * @endif
  *
  * @lang{EN}
- * @brief The type of the `setbase` manipulator. Legal in both directions, so it derives from
- *        both direction tags; see `in_manip`.
+ * @brief Extension-point specialization for `setiosflags`: both directions, each setting the
+ *        flags in `m_mask` (bitwise-or) and leaving the rest untouched. See
+ *        `io_traits<TChar, _Resetiosflags>`.
  * @endif
  */
-struct _Setbase : in_manip, out_manip
+template <typename TChar>
+struct io_traits<TChar, _Setiosflags>
+{
+    template <ostream_type T>
+    static void swrite(T& s, const _Setiosflags& f) { s.setf(f.m_mask); }
+
+    template <istream_type T>
+    static void sread(T& s, const _Setiosflags& f) { s.setf(f.m_mask); }
+};
+
+/**
+ * @lang{ZH}
+ * @brief `setbase` 操纵符的类型。两个方向都合法；方向如何表达见
+ *        `io_traits<TChar, _Resetiosflags>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setbase` manipulator. Legal in both directions; see
+ *        `io_traits<TChar, _Resetiosflags>` for how the direction is expressed.
+ * @endif
+ */
+struct _Setbase
 {
     explicit _Setbase(int base) : m_base(base) {}
-
-    /**
-     * @lang{ZH} @brief 按 `m_base` 设置 `basefield`；取值的含义见 `setbase`。 @endif
-     * @lang{EN} @brief Sets `basefield` from `m_base`; see `setbase` for what the values mean. @endif
-     */
-    template <typename T>
-        requires (istream_type<T> || ostream_type<T>)
-    void operator () (T& s) const
-    {
-        s.setf(m_base ==  8 ? ios_defs::oct :
-               m_base == 10 ? ios_defs::dec :
-               m_base == 16 ? ios_defs::hex :
-               ios_defs::fmtflags(0), ios_defs::basefield);
-    }
 
     int m_base;
 };
@@ -193,42 +229,51 @@ inline _Setbase setbase(int base) { return _Setbase{base}; }
 
 /**
  * @lang{ZH}
- * @brief `setfill` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @brief `setbase` 的扩展点特化：两个方向都提供，都转调私有的 `apply`——按 `m_base` 设置
+ *        `basefield`，取值的含义见 `setbase`。见 `io_traits<TChar, _Resetiosflags>`。
  * @endif
  *
  * @lang{EN}
- * @brief The type of the `setfill` manipulator. Legal in both directions, so it derives from
- *        both direction tags; see `in_manip`.
+ * @brief Extension-point specialization for `setbase`: both directions, each forwarding to the
+ *        private `apply`, which sets `basefield` from `m_base`; see `setbase` for what the values
+ *        mean, and `io_traits<TChar, _Resetiosflags>` for the direction.
+ * @endif
+ */
+template <typename TChar>
+struct io_traits<TChar, _Setbase>
+{
+    template <ostream_type T>
+    static void swrite(T& s, const _Setbase& f) { apply(s, f); }
+
+    template <istream_type T>
+    static void sread(T& s, const _Setbase& f) { apply(s, f); }
+
+private:
+    template <typename T>
+    static void apply(T& s, const _Setbase& f)
+    {
+        s.setf(f.m_base ==  8 ? ios_defs::oct :
+               f.m_base == 10 ? ios_defs::dec :
+               f.m_base == 16 ? ios_defs::hex :
+               ios_defs::fmtflags(0), ios_defs::basefield);
+    }
+};
+
+/**
+ * @lang{ZH}
+ * @brief `setfill` 操纵符的类型。两个方向都合法；方向如何表达见
+ *        `io_traits<TChar, _Resetiosflags>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setfill` manipulator. Legal in both directions; see
+ *        `io_traits<TChar, _Resetiosflags>` for how the direction is expressed.
  * @endif
  */
 template<typename _CharT>
-struct _Setfill : in_manip, out_manip
+struct _Setfill
 {
     explicit _Setfill(_CharT c) : m_c(c) {}
-
-    /**
-     * @lang{ZH}
-     * @brief 设置流的填充字符。
-     * @note 约束要求 `_CharT` 与流的 `char_type` **完全一致**，不接受隐式转换；理由见
-     *       `setfill`。这条约束此前由形参类型 `_Setfill<typename T::char_type>`（非推导
-     *       语境）承担，现在由本 `requires` 承担，二者效果相同。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Sets the stream's fill character.
-     * @note The constraint requires `_CharT` to match the stream's `char_type` **exactly**, with
-     *       no implicit conversion; see `setfill` for why. That requirement used to be carried
-     *       by the parameter type `_Setfill<typename T::char_type>`, a non-deduced context, and
-     *       is now carried by this `requires` to the same effect.
-     * @endif
-     */
-    template <typename T>
-        requires ((istream_type<T> || ostream_type<T>)
-                  && std::same_as<typename T::char_type, _CharT>)
-    void operator () (T& s) const
-    {
-        s.fill(m_c);
-    }
 
     _CharT m_c;
 };
@@ -236,18 +281,18 @@ struct _Setfill : in_manip, out_manip
 /**
  * @lang{ZH}
  * @brief 构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。
- * @note `_CharT` 由实参推导，且必须与目标流的 `char_type` **完全一致**——`_Setfill` 的
- *       `operator()` 要求二者 `same_as`，不存在隐式转换。因此对 `wchar_t` 流须写
- *       `setfill(L'*')`，写成 `setfill('*')` 会编译失败而非静默转换。
+ * @note `_CharT` 由实参推导，且必须与目标流的 `char_type` **完全一致**——
+ *       `io_traits<TChar, _Setfill<_CharT>>` 的两个成员都要求二者 `same_as`，不存在隐式转换。
+ *       因此对 `wchar_t` 流须写 `setfill(L'*')`，写成 `setfill('*')` 会编译失败而非静默转换。
  * @endif
  *
  * @lang{EN}
  * @brief Builds the manipulator that sets the fill character, used to pad when the field width
  *        exceeds the content.
  * @note `_CharT` is deduced from the argument and must match the target stream's `char_type`
- *       **exactly**: `_Setfill`'s `operator()` requires the two to be `same_as`, so no implicit
- *       conversion applies. A `wchar_t` stream therefore needs `setfill(L'*')`; `setfill('*')`
- *       fails to compile rather than converting silently.
+ *       **exactly**: both members of `io_traits<TChar, _Setfill<_CharT>>` require the two to be
+ *       `same_as`, so no implicit conversion applies. A `wchar_t` stream therefore needs
+ *       `setfill(L'*')`; `setfill('*')` fails to compile rather than converting silently.
  * @endif
  */
 template<typename _CharT>
@@ -255,42 +300,49 @@ inline _Setfill<_CharT> setfill(_CharT c) { return _Setfill<_CharT>{c}; }
 
 /**
  * @lang{ZH}
- * @brief `setprecision` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @brief `setfill` 的扩展点特化：两个方向都提供，都设置流的填充字符。见
+ *        `io_traits<TChar, _Resetiosflags>`。
+ * @note 两个成员都带 `same_as` 约束，要求 `_CharT` 与流的 `char_type` **完全一致**，不接受
+ *       隐式转换；理由见 `setfill`。约束写在这里而不是函数体里，字符类型不匹配的 `setfill`
+ *       才能在**声明**层面就不可行，链条落到那条把填充字符点名为常见原因的诊断上。
  * @endif
  *
  * @lang{EN}
- * @brief The type of the `setprecision` manipulator. Legal in both directions, so it derives
- *        from both direction tags; see `in_manip`.
+ * @brief Extension-point specialization for `setfill`: both directions, each setting the stream's
+ *        fill character. See `io_traits<TChar, _Resetiosflags>`.
+ * @note Both members carry a `same_as` constraint requiring `_CharT` to match the stream's
+ *       `char_type` **exactly**, with no implicit conversion; see `setfill` for why. Keeping it in
+ *       the constraint rather than the body is what makes a mismatched `setfill` non-viable at the
+ *       **declaration** level, so the chain reaches the diagnostic that names the fill character
+ *       as a common cause.
  * @endif
  */
-struct _Setprecision : in_manip, out_manip
+template <typename TChar, typename _CharT>
+struct io_traits<TChar, _Setfill<_CharT>>
+{
+    template <ostream_type T>
+        requires std::same_as<typename T::char_type, _CharT>
+    static void swrite(T& s, const _Setfill<_CharT>& f) { s.fill(f.m_c); }
+
+    template <istream_type T>
+        requires std::same_as<typename T::char_type, _CharT>
+    static void sread(T& s, const _Setfill<_CharT>& f) { s.fill(f.m_c); }
+};
+
+/**
+ * @lang{ZH}
+ * @brief `setprecision` 操纵符的类型。两个方向都合法；方向如何表达见
+ *        `io_traits<TChar, _Resetiosflags>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setprecision` manipulator. Legal in both directions; see
+ *        `io_traits<TChar, _Resetiosflags>` for how the direction is expressed.
+ * @endif
+ */
+struct _Setprecision
 {
     explicit _Setprecision(size_t n) : m_n(n) {}
-
-    /**
-     * @lang{ZH} @brief 设置流的浮点精度。
-     *           @throw stream_error 若精度超出 0..255：置 `strfailbit`，并仅当该位在流的异常
-     *           掩码中时才抛出。 @endif
-     * @lang{EN} @brief Sets the stream's floating-point precision.
-     *           @throw stream_error If the precision is outside 0..255: `strfailbit` is set, and
-     *           it is thrown only if that bit is in the stream's exception mask. @endif
-     */
-    template <typename T>
-        requires (istream_type<T> || ostream_type<T>)
-    void operator () (T& s) const
-    {
-        try
-        {
-            if (m_n > std::numeric_limits<std::uint8_t>::max())
-                throw stream_error("setprecision fail: precision out of range (0..255)");
-
-            s.precision(static_cast<std::uint8_t>(m_n));
-        }
-        catch (...)
-        {
-            s.handle_exception(std::current_exception());
-        }
-    }
 
     size_t m_n;
 };
@@ -303,11 +355,10 @@ struct _Setprecision : in_manip, out_manip
  * `size_t` 而非 `std::uint8_t`，是为了让越界值被**显式拒绝**而不是被静默回绕：
  * 若形参本身就是 `std::uint8_t`，`setprecision(300)` 会经隐式转换悄悄变成 44，
  * 而运行期变量连编译警告都不会有。
- * @note 越界的检查在操纵符**作用于流时**才做，本函数只保存原值。`_Setprecision::operator()`
- *       就地把 `stream_error` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常掩码，
- *       与本库其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到调用方，
- *       流却仍报告 `good()`。就地处理而非依赖 `operator<<` / `operator>>` 的兜底 catch，是为了
- *       让直接调用形式 `setprecision(n)(os)` 也走同一条错误路径。
+ * @note 越界的检查在操纵符**作用于流时**才做，本函数只保存原值。届时抛出的 `stream_error` 由
+ *       `operator<<` / `operator>>` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常
+ *       掩码，与本库其余的失败一致；若改在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到
+ *       调用方，流却仍报告 `good()`。
  * @param n 目标精度，必须落在 0..255。
  * @return 可用于 `os << setprecision(n)` / `is >> setprecision(n)` 的操纵符。
  * @endif
@@ -320,14 +371,12 @@ struct _Setprecision : in_manip, out_manip
  * out-of-range value is **rejected explicitly** instead of silently wrapping: with a
  * `std::uint8_t` parameter, `setprecision(300)` would quietly become 44 via the implicit
  * conversion, and a run-time argument would not even produce a compiler warning.
- * @note The range check runs when the manipulator is **applied to a stream**; this function
- *       only stores the value. `_Setprecision::operator()` hands the `stream_error` to
- *       `handle_exception` in place, where it becomes a `strfailbit` and honours the stream's
- *       exception mask, like every other failure in this library. Thrown at construction it
- *       would instead escape an `os << ...` expression straight to the caller while the stream
- *       still reported `good()`. Handling it in place rather than leaning on the backstop
- *       `catch` in `operator<<` / `operator>>` is what puts the direct-call form
- *       `setprecision(n)(os)` on the same error path.
+ * @note The range check runs when the manipulator is **applied to a stream**; this function only
+ *       stores the value. The `stream_error` thrown there is handed to `handle_exception` by
+ *       `operator<<` / `operator>>`, where it becomes a `strfailbit` and honours the stream's
+ *       exception mask, like every other failure in this library. Thrown at construction it would
+ *       instead escape an `os << ...` expression straight to the caller while the stream still
+ *       reported `good()`.
  * @param n The target precision; must lie in 0..255.
  * @return A manipulator usable as `os << setprecision(n)` / `is >> setprecision(n)`.
  * @endif
@@ -336,42 +385,48 @@ inline _Setprecision setprecision(size_t n) { return _Setprecision{n}; }
 
 /**
  * @lang{ZH}
- * @brief `setw` 操纵符的类型。两个方向都合法，故同时派生两个方向标签；见 `in_manip`。
+ * @brief `setprecision` 的扩展点特化：两个方向都提供。见 `io_traits<TChar, _Resetiosflags>`。
  * @endif
  *
  * @lang{EN}
- * @brief The type of the `setw` manipulator. Legal in both directions, so it derives from both
- *        direction tags; see `in_manip`.
+ * @brief Extension-point specialization for `setprecision`: both directions. See
+ *        `io_traits<TChar, _Resetiosflags>`.
  * @endif
  */
-struct _Setw : in_manip, out_manip
+template <typename TChar>
+struct io_traits<TChar, _Setprecision>
+{
+    template <ostream_type T>
+    static void swrite(T& s, const _Setprecision& f) { apply(s, f); }
+
+    template <istream_type T>
+    static void sread(T& s, const _Setprecision& f) { apply(s, f); }
+
+private:
+    template <typename T>
+    static void apply(T& s, const _Setprecision& f)
+    {
+        if (f.m_n > std::numeric_limits<std::uint8_t>::max())
+            throw stream_error("setprecision fail: precision out of range (0..255)");
+
+        s.precision(static_cast<std::uint8_t>(f.m_n));
+    }
+};
+
+/**
+ * @lang{ZH}
+ * @brief `setw` 操纵符的类型。两个方向都合法；方向如何表达见
+ *        `io_traits<TChar, _Resetiosflags>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The type of the `setw` manipulator. Legal in both directions; see
+ *        `io_traits<TChar, _Resetiosflags>` for how the direction is expressed.
+ * @endif
+ */
+struct _Setw
 {
     explicit _Setw(std::ptrdiff_t n) : m_n(n) {}
-
-    /**
-     * @lang{ZH} @brief 设置流的字段宽度。
-     *           @throw stream_error 若宽度为负：置 `strfailbit`，并仅当该位在流的异常掩码中时
-     *           才抛出。 @endif
-     * @lang{EN} @brief Sets the stream's field width.
-     *           @throw stream_error If the width is negative: `strfailbit` is set, and it is
-     *           thrown only if that bit is in the stream's exception mask. @endif
-     */
-    template <typename T>
-        requires (istream_type<T> || ostream_type<T>)
-    void operator () (T& s) const
-    {
-        try
-        {
-            if (m_n < 0)
-                throw stream_error("setw fail: negative width");
-
-            s.width(static_cast<size_t>(m_n));
-        }
-        catch (...)
-        {
-            s.handle_exception(std::current_exception());
-        }
-    }
 
     std::ptrdiff_t m_n;
 };
@@ -385,14 +440,13 @@ struct _Setw : in_manip, out_manip
  * @note 形参有符号，是为了挡住负宽度：`setw(total - str.size())` 这类算式在
  *       `total < str.size()` 时按无符号回绕成接近 `2^64` 的巨值，取 `ptrdiff_t` 形参可让传参
  *       时的窄化把回绕抵消回来、还原成负数并被拒。判负后转 `size_t` 不会溢出。
- * @note 判负在操纵符**作用于流时**才做，本函数只保存原值。`_Setw::operator()` 就地把
- *       `stream_error` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常掩码，与本库
- *       其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到调用方，流却仍
- *       报告 `good()`。就地处理而非依赖 `operator<<` / `operator>>` 的兜底 catch，是为了让直接
- *       调用形式 `setw(n)(os)` 也走同一条错误路径。
+ * @note 判负在操纵符**作用于流时**才做，本函数只保存原值。届时抛出的 `stream_error` 由
+ *       `operator<<` / `operator>>` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常
+ *       掩码，与本库其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到
+ *       调用方，流却仍报告 `good()`。
  * @note **提取端的长度安全不依赖本函数。** 目标缓冲区的上界始终来自类型本身：
- *       `reader<TChar, TChar[N]>` 以 `min(width, N)` 为界，`std::basic_string` 自动增长，
- *       而裸指针根本没有对应的 reader（`is >> ptr` 无法编译，与 C++20 起的 `std::istream`
+ *       `io_traits<TChar, TChar[N]>` 以 `min(width, N)` 为界，`std::basic_string` 自动增长，
+ *       而裸指针根本没有对应的 `sread`（`is >> ptr` 无法编译，与 C++20 起的 `std::istream`
  *       一致）。因此 `width` 只能把边界**收紧**，不会造成越界写。
  * @note 与标准一致，`width` 只被字符数组与 `std::basic_string` 的提取消费；算术提取、
  *       `get_money`、`get_time` 之后 `width` 仍然保留。
@@ -411,16 +465,15 @@ struct _Setw : in_manip, out_manip
  *       that wrap, restoring the negative value to be rejected. The conversion to `size_t`
  *       after the check cannot overflow.
  * @note The sign check runs when the manipulator is **applied to a stream**; this function only
- *       stores the value. `_Setw::operator()` hands the `stream_error` to `handle_exception` in
- *       place, where it becomes a `strfailbit` and honours the stream's exception mask, like
- *       every other failure in this library. Thrown at construction it would instead escape an
- *       `os << ...` expression straight to the caller while the stream still reported `good()`.
- *       Handling it in place rather than leaning on the backstop `catch` in `operator<<` /
- *       `operator>>` is what puts the direct-call form `setw(n)(os)` on the same error path.
+ *       stores the value. The `stream_error` thrown there is handed to `handle_exception` by
+ *       `operator<<` / `operator>>`, where it becomes a `strfailbit` and honours the stream's
+ *       exception mask, like every other failure in this library. Thrown at construction it would
+ *       instead escape an `os << ...` expression straight to the caller while the stream still
+ *       reported `good()`.
  * @note **Length safety on the extraction side does not depend on this function.** The bound
- *       on a destination buffer always comes from its type: `reader<TChar, TChar[N]>` bounds
+ *       on a destination buffer always comes from its type: `io_traits<TChar, TChar[N]>` bounds
  *       at `min(width, N)`, `std::basic_string` grows on demand, and a raw pointer has no
- *       reader at all (`is >> ptr` does not compile, matching `std::istream` as of C++20).
+ *       `sread` at all (`is >> ptr` does not compile, matching `std::istream` as of C++20).
  *       `width` can therefore only **tighten** a bound, never cause an out-of-bounds write.
  * @note Matching the standard, `width` is consumed only by character-array and
  *       `std::basic_string` extraction; it survives arithmetic extraction, `get_money` and
@@ -430,6 +483,36 @@ struct _Setw : in_manip, out_manip
  * @endif
  */
 inline _Setw setw(std::ptrdiff_t n) { return _Setw{n}; }
+
+/**
+ * @lang{ZH}
+ * @brief `setw` 的扩展点特化：两个方向都提供。见 `io_traits<TChar, _Resetiosflags>`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extension-point specialization for `setw`: both directions. See
+ *        `io_traits<TChar, _Resetiosflags>`.
+ * @endif
+ */
+template <typename TChar>
+struct io_traits<TChar, _Setw>
+{
+    template <ostream_type T>
+    static void swrite(T& s, const _Setw& f) { apply(s, f); }
+
+    template <istream_type T>
+    static void sread(T& s, const _Setw& f) { apply(s, f); }
+
+private:
+    template <typename T>
+    static void apply(T& s, const _Setw& f)
+    {
+        if (f.m_n < 0)
+            throw stream_error("setw fail: negative width");
+
+        s.width(static_cast<size_t>(f.m_n));
+    }
+};
 
 template<typename _MoneyT> struct _Put_money { const _MoneyT& m_mon; bool m_intl; };
 /**
@@ -463,7 +546,7 @@ inline _Put_money<_MoneyT> put_money(const _MoneyT& mon, bool intl = false) { re
 template <typename TChar, typename TMoney>
     requires ((std::integral<TMoney> && !std::same_as<std::remove_cv_t<TMoney>, bool>)
               || std::same_as<TMoney, std::basic_string<TChar>>)
-struct writer<TChar, _Put_money<TMoney>>
+struct io_traits<TChar, _Put_money<TMoney>>
 {
     template <typename TIter>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
@@ -476,18 +559,6 @@ struct writer<TChar, _Put_money<TMoney>>
         return mp->put(s, f.m_intl, io, f.m_mon);
     }
 };
-
-/**
- * @lang{ZH}
- * @brief 已删除：`put_money` 只能插入，不能提取。
- * @endif
- *
- * @lang{EN}
- * @brief Deleted: `put_money` inserts only; it cannot be extracted.
- * @endif
- */
-template <istream_type T, typename TMoney>
-T& operator>>(T& is, _Put_money<TMoney> f) = delete;
 
 template<typename _MoneyT> struct _Get_money { _MoneyT& m_mon; bool m_intl; };
 /**
@@ -516,11 +587,12 @@ template <typename TChar, typename TMoney>
     requires (std::same_as<TMoney, std::remove_cv_t<TMoney>>
               && ((std::integral<TMoney> && !std::same_as<TMoney, bool>)
                   || std::same_as<TMoney, std::basic_string<TChar>>))
-struct reader<TChar, _Get_money<TMoney>>
+struct io_traits<TChar, _Get_money<TMoney>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc, _Get_money<TMoney>& f)
+    static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc,
+                       const _Get_money<TMoney>& f)
     {
         auto mp = loc.template get<monetary<TChar>>();
         if (!mp)
@@ -530,58 +602,6 @@ struct reader<TChar, _Get_money<TMoney>>
     }
 };
 
-/**
- * @lang{ZH}
- * @brief 提取操纵符：按当前 locale 的货币格式解析并写入 `get_money` 所引用的对象。
- *
- * @note 本重载**按值**接收操纵符对象，因此支持 `is >> get_money(x)` 这一惯用写法。
- *       泛型的格式化提取运算符取的是非常量左值引用 `TValue&`，而 `get_money(x)` 是
- *       纯右值，绑不上去；若没有本重载，调用方只能先落成具名左值再提取。按值接收不
- *       影响语义：`_Get_money` 的成员本身就是引用，拷贝聚合体只是重新绑定到同一个
- *       被引对象。
- * @param f 由 `get_money()` 构造的操纵符。
- * @return 流自身的引用。
- * @endif
- *
- * @lang{EN}
- * @brief Extraction manipulator: parses a monetary value under the current locale and
- *        stores it into the object `get_money` refers to.
- *
- * @note This overload takes the manipulator **by value**, which is what makes the
- *       idiomatic `is >> get_money(x)` work. The generic formatted-extraction operator
- *       takes a non-const lvalue reference `TValue&`, and `get_money(x)` is a prvalue,
- *       which cannot bind to it; without this overload a caller would first have to
- *       materialize a named lvalue. Taking it by value changes nothing semantically:
- *       `_Get_money`'s members are references already, so copying the aggregate merely
- *       rebinds to the same referent.
- * @param f The manipulator produced by `get_money()`.
- * @return A reference to the stream itself.
- * @endif
- */
-template <istream_type T, typename TMoney>
-inline T& operator>>(T& is, _Get_money<TMoney> f)
-{
-    // Delegate to the generic formatted-extraction operator: it owns the sentry, the
-    // skipws handling, the stream iterator (i_iter is private and befriends only that
-    // template) and the eofbit bookkeeping. The explicit template argument list is
-    // required rather than stylistic -- `is >> f` would re-select *this* overload,
-    // because f is a named lvalue and the by-value candidate is the more specialized
-    // one, and recurse forever.
-    return IOv2::operator>><T, _Get_money<TMoney>>(is, f);
-}
-
-/**
- * @lang{ZH}
- * @brief 已删除：`get_money` 只能提取，不能插入。
- * @endif
- *
- * @lang{EN}
- * @brief Deleted: `get_money` extracts only; it cannot be inserted.
- * @endif
- */
-template <ostream_type T, typename TMoney>
-T& operator<<(T& os, _Get_money<TMoney> f) = delete;
-
 template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* fmt; };
 /**
  * @lang{ZH}
@@ -589,7 +609,7 @@ template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* f
  * @param tmb 要写出的时间；允许为空，见下。
  * @param fmt `strftime` 风格的格式串；允许为空，见下。
  * @note 两个指针都会在写出前校验，为空时置流的失败位而非解引用；详见
- *       `writer<TChar, _Put_time<TChar>>::swrite`。
+ *       `io_traits<TChar, _Put_time<TChar>>::swrite`。
  * @note `put_time` 既不应用也不消耗 `io.width()`：填充与随后的 `width(0)` 由各自的 facet
  *       负责，而 `timeio` 的写出路径完全不涉及 width。因此 `os << setw(20) << put_time(...)`
  *       不会补齐到 20 列，且这个 width 会原样留给下一次插入。这与 `std::put_time` 的行为
@@ -623,7 +643,7 @@ template<typename _CharT> struct _Put_time { const std::tm* tmb; const _CharT* f
  * @param fmt A `strftime`-style format string; may be null, see below.
  * @note Both pointers are validated before the write, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see
- *       `writer<TChar, _Put_time<TChar>>::swrite`.
+ *       `io_traits<TChar, _Put_time<TChar>>::swrite`.
  * @note `put_time` neither applies nor consumes `io.width()`. Padding and the subsequent
  *       `width(0)` are the responsibility of the individual facets, and the `timeio` write path
  *       never looks at the width. So `os << setw(20) << put_time(...)` does not pad to 20
@@ -665,7 +685,7 @@ template<typename _CharT>
 inline _Put_time<_CharT> put_time(const std::tm* tmb, const _CharT* fmt) { return { tmb, fmt }; }
 
 template <typename TChar>
-struct writer<TChar, _Put_time<TChar>>
+struct io_traits<TChar, _Put_time<TChar>>
 {
     /**
      * @lang{ZH}
@@ -728,18 +748,6 @@ struct writer<TChar, _Put_time<TChar>>
     }
 };
 
-/**
- * @lang{ZH}
- * @brief 已删除：`put_time` 只能插入，不能提取。
- * @endif
- *
- * @lang{EN}
- * @brief Deleted: `put_time` inserts only; it cannot be extracted.
- * @endif
- */
-template <istream_type T, typename TChar>
-T& operator>>(T& is, _Put_time<TChar> f) = delete;
-
 template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
 /**
  * @lang{ZH}
@@ -747,7 +755,7 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  * @param tmb 接收解析结果的 `tm`；允许为空，见下。
  * @param fmt `strptime` 风格的格式串；允许为空，见下。
  * @note 两个指针都会在解析前校验，为空时置流的失败位而非解引用；详见
- *       `reader<TChar, _Get_time<TChar>>::sread`。
+ *       `io_traits<TChar, _Get_time<TChar>>::sread`。
  * @note 格式串中未出现的字段保留 `*tmb` 原有的取值：解析上下文由 `*tmb` 铺好回退值，故
  *       `%H:%M` 这样只解析时间的格式串不会动到日期。`tm_wday` / `tm_yday` 总是由最终日期
  *       重新推算，`tm_isdst` 总是置为 -1——没有格式符携带夏令时信息，而沿用调用方的旧值会
@@ -767,7 +775,7 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  *       28/29 日，而 `std::get_time` 只改写 `tm_mon`，留下并不存在的"2 月 31 日"。
  * @note `*tmb` 中越界的字段在用作回退值前会先归一化（`tm_mday == 0` 取上月最后一天、
  *       `tm_mon == 12` 进位到次年 1 月、时/分/秒超出 `[0, 24h)` 的部分按天进位或借位并入
- *       日期，规则见 `io/fp_defs/tm.h`）；沿用下来的日若在
+ *       日期，规则见 `io/traits/tm.h`）；沿用下来的日若在
  *       解析出的月份里不存在，则取该月最后一天，而不是让整次提取失败。因此
  *       `std::tm t{}`（`tm_mday` 为 0）配上只解析时间的格式串，得到的日期与
  *       `std::get_time` 之后再调用 `mktime()` 一致。
@@ -783,7 +791,7 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  * @param tmb The `tm` receiving the parsed result; may be null, see below.
  * @param fmt A `strptime`-style format string; may be null, see below.
  * @note Both pointers are validated before parsing, and a null one sets a failure bit on the
- *       stream rather than being dereferenced; see `reader<TChar, _Get_time<TChar>>::sread`.
+ *       stream rather than being dereferenced; see `io_traits<TChar, _Get_time<TChar>>::sread`.
  * @note Fields absent from the format string keep the value they had in `*tmb`: the parse
  *       context is seeded with fallbacks from `*tmb`, so a time-only format string such as
  *       `%H:%M` does not disturb the date. `tm_wday` / `tm_yday` are always recomputed from the
@@ -811,7 +819,7 @@ template<typename _CharT> struct _Get_time { std::tm* tmb; const _CharT* fmt; };
  * @note Out-of-range fields of `*tmb` are normalized before they are used as fallbacks
  *       (`tm_mday == 0` is the last day of the previous month, `tm_mon == 12` carries into
  *       January of the next year, and an hour/minute/second outside `[0, 24h)` carries into or
- *       borrows from the date; see `io/fp_defs/tm.h` for the rules), and a day
+ *       borrows from the date; see `io/traits/tm.h` for the rules), and a day
  *       carried over this way that does not exist in the parsed month becomes the last day of
  *       that month rather than failing the extraction. A `std::tm t{}` (whose `tm_mday` is 0)
  *       with a time-only format string therefore yields the same date as `std::get_time`
@@ -827,7 +835,7 @@ template<typename _CharT>
 inline _Get_time<_CharT> get_time(std::tm* tmb, const _CharT* fmt) { return { tmb, fmt }; }
 
 template <typename TChar>
-struct reader<TChar, _Get_time<TChar>>
+struct io_traits<TChar, _Get_time<TChar>>
 {
     /**
      * @lang{ZH}
@@ -837,8 +845,9 @@ struct reader<TChar, _Get_time<TChar>>
      *       为空时向 `std::basic_string_view` 的隐式转换即为未定义行为，`f.tmb` 为空时
      *       回写 `*(f.tmb)` 是空指针写入。二者都绕过异常机制直接崩溃。
      * @param f 用于接收解析结果的 `tm` 与格式串。`*(f.tmb)` 的现有内容会作为格式串未解析字段
-     *          的回退值，详见 `get_time`。`f.tmb` 或 `f.fmt` 为空指针时不解析：不消耗输入、
-     *          不回写 `*(f.tmb)`，抛出的 `stream_error` 由流转为 `strfailbit`。
+     *          的回退值，详见 `get_time`。`f.tmb` 或 `f.fmt` 为空指针时不解析：不回写
+     *          `*(f.tmb)`，抛出的 `stream_error` 由流转为 `strfailbit`。校验在提取运算符
+     *          构造哨兵**之后**才做，故 `skipws` 已跳过的前导空白不会退回。
      * @return 指向最后一个被消费字符之后的输入迭代器。
      * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或缺少 timeio facet。
      * @endif
@@ -853,9 +862,11 @@ struct reader<TChar, _Get_time<TChar>>
      *       machinery and crash outright.
      * @param f The `tm` receiving the parsed result and the format string. The current contents
      *          of `*(f.tmb)` serve as the fallbacks for the fields the format string does not
-     *          parse; see `get_time`. If `f.tmb` or `f.fmt` is null nothing is parsed: no input
-     *          is consumed, `*(f.tmb)` is not written, and the `stream_error` thrown is turned
-     *          into `strfailbit` by the stream.
+     *          parse; see `get_time`. If `f.tmb` or `f.fmt` is null nothing is parsed:
+     *          `*(f.tmb)` is not written and the `stream_error` thrown is turned into
+     *          `strfailbit` by the stream. The check runs **after** the extraction operator has
+     *          built its sentry, so leading whitespace already skipped by `skipws` is not put
+     *          back.
      * @return An input iterator past the last consumed character.
      * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, or the timeio facet is
      *        missing.
@@ -863,7 +874,8 @@ struct reader<TChar, _Get_time<TChar>>
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc, _Get_time<TChar>& f)
+    static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc,
+                       const _Get_time<TChar>& f)
     {
         if (f.tmb == nullptr || f.fmt == nullptr)
             throw stream_error("get_time fail: null tm or format pointer");
@@ -882,54 +894,4 @@ struct reader<TChar, _Get_time<TChar>>
         return res;
     }
 };
-
-/**
- * @lang{ZH}
- * @brief 提取操纵符：按 `fmt` 的格式解析时间并写入 `get_time` 所指的 `std::tm`。
- *
- * @note 与 `get_money` 的重载同理，本重载**按值**接收操纵符对象，使 `is >> get_time(&tm, fmt)`
- *       这一惯用写法可用；详见 `operator>>(T&, _Get_money<TMoney>)` 的说明。
- * @param f 由 `get_time()` 构造的操纵符。
- * @return 流自身的引用。
- * @endif
- *
- * @lang{EN}
- * @brief Extraction manipulator: parses a time according to `fmt` and stores it into the
- *        `std::tm` that `get_time` points to.
- *
- * @note As with the `get_money` overload, this one takes the manipulator **by value** so
- *       that the idiomatic `is >> get_time(&tm, fmt)` works; see the note on
- *       `operator>>(T&, _Get_money<TMoney>)`.
- * @param f The manipulator produced by `get_time()`.
- * @return A reference to the stream itself.
- * @endif
- */
-template <istream_type T, typename TChar>
-    requires std::is_same_v<TChar, typename T::char_type>
-inline T& operator>>(T& is, _Get_time<TChar> f)
-{
-    if (f.tmb == nullptr || f.fmt == nullptr)
-    {
-        std::lock_guard guard(is.io_mutex());
-        is.handle_exception(
-            std::make_exception_ptr(stream_error("get_time fail: null tm or format pointer")));
-        return is;
-    }
-
-    // Explicit template arguments for the same reason as in the _Get_money overload:
-    // `is >> f` would recurse into this very function.
-    return IOv2::operator>><T, _Get_time<TChar>>(is, f);
-}
-
-/**
- * @lang{ZH}
- * @brief 已删除：`get_time` 只能提取，不能插入。
- * @endif
- *
- * @lang{EN}
- * @brief Deleted: `get_time` extracts only; it cannot be inserted.
- * @endif
- */
-template <ostream_type T, typename TChar>
-T& operator<<(T& os, _Get_time<TChar> f) = delete;
 }

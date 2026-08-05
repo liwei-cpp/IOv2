@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/tm.h>
+#include <io/traits/tm.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
