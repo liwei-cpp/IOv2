@@ -3,13 +3,14 @@
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/arithmetic.h>
-#include <io/fp_defs/char_and_str.h>
-#include <io/fp_defs/nullptr.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <io/traits/nullptr.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
+#include <support/io_traits_probe.h>
 #include <support/verify.h>
 
 void test_ostream_inserters_character_char_1()
@@ -282,27 +283,28 @@ void test_ostream_inserters_character_char_9()
 {
     dump_info("Test ostream<char> operator<< case 9 (character conformance)...");
 
-    // Availability is probed through is_writer_def, not `requires { oss << v; }`:
-    // operator<<'s unconstrained fallback makes the latter true for every type.
-    static_assert( IOv2::is_writer_def<char, signed char> );
-    static_assert( IOv2::is_writer_def<char, unsigned char> );
-    static_assert( IOv2::is_writer_def<char, std::nullptr_t> );
-    static_assert( !IOv2::is_writer_def<char, wchar_t> );
-    static_assert( !IOv2::is_writer_def<char, char8_t> );
-    static_assert( !IOv2::is_writer_def<char, char16_t> );
-    static_assert( !IOv2::is_writer_def<char, char32_t> );
+    // Availability is probed through `insertable` (support/io_traits_probe.h), not
+    // `requires { oss << v; }`: operator<<'s unconstrained fallback makes the latter true for
+    // every type.
+    static_assert( insertable<char, signed char> );
+    static_assert( insertable<char, unsigned char> );
+    static_assert( insertable<char, std::nullptr_t> );
+    static_assert( !insertable<char, wchar_t> );
+    static_assert( !insertable<char, char8_t> );
+    static_assert( !insertable<char, char16_t> );
+    static_assert( !insertable<char, char32_t> );
 
     // The string-pointer overloads mirror the single-character ones exactly.
-    static_assert( IOv2::is_writer_def<char, const char*> );
-    static_assert( IOv2::is_writer_def<char, const signed char*> );
-    static_assert( IOv2::is_writer_def<char, const unsigned char*> );
-    static_assert( !IOv2::is_writer_def<char, const wchar_t*> );
-    static_assert( !IOv2::is_writer_def<char, const char8_t*> );
-    static_assert( !IOv2::is_writer_def<char, const char16_t*> );
-    static_assert( !IOv2::is_writer_def<char, const char32_t*> );
+    static_assert( insertable<char, const char*> );
+    static_assert( insertable<char, const signed char*> );
+    static_assert( insertable<char, const unsigned char*> );
+    static_assert( !insertable<char, const wchar_t*> );
+    static_assert( !insertable<char, const char8_t*> );
+    static_assert( !insertable<char, const char16_t*> );
+    static_assert( !insertable<char, const char32_t*> );
     // A non-character pointer keeps the address path, as it does for std::ostream.
-    static_assert( IOv2::is_writer_def<char, int*> );
-    static_assert( IOv2::is_writer_def<char, void*> );
+    static_assert( insertable<char, int*> );
+    static_assert( insertable<char, void*> );
 
     auto helper = []<template <typename, typename> class T>()
     {
@@ -340,7 +342,7 @@ void test_ostream_inserters_character_char_9()
         {
             // A char stream writes signed char / unsigned char strings as text, byte for
             // byte. Without their own writers these are swallowed by the generic pointer
-            // writer and come out as an address, with the stream still good().
+            // io_traits and come out as an address, with the stream still good().
             T oss{IOv2::mem_device{""}};
             oss << reinterpret_cast<const unsigned char*>("hi")
                 << '/'

@@ -7,7 +7,7 @@
 #include <cvt/code_cvt_stdio.h>
 #include <cvt/runtime_cvt.h>
 #include <device/std_device.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/char_and_str.h>
 #include <io/ostream.h>
 #include <io/utilities/ostream_operators.h>
 #include <io/utilities/stream_common_operators.h>

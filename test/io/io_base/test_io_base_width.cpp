@@ -2,7 +2,7 @@
 #include <limits>
 #include <string>
 #include <device/mem_device.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/char_and_str.h>
 #include <io/io_base.h>
 #include <io/ostream.h>
 #include <support/dump_info.h>

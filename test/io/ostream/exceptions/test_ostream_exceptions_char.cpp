@@ -2,7 +2,7 @@
 #include <string>
 #include <device/file_device.h>
 #include <device/mem_device.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/char_and_str.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
@@ -20,7 +20,7 @@ namespace
 namespace IOv2
 {
     template <typename TChar>
-    struct writer<TChar, dummy_type>
+    struct io_traits<TChar, dummy_type>
     {
         template <typename TIter>
             requires (std::is_same_v<TChar, typename TIter::value_type>)
@@ -129,10 +129,10 @@ void test_ostream_exceptions_char_3()
         helper.operator()<IOv2::iostream>();
     }
 
-    // unwinding branch: the operation body itself throws (writer throws foobar) while
+    // unwinding branch: the operation body itself throws (swrite throws foobar) while
     // unitbuf is set, so the out_sentry destructor runs during stack unwinding and the
     // device flush also fails. The destructor must swallow that failure and never throw
-    // during unwinding (no std::terminate). operator<< then catches the writer's foobar
+    // during unwinding (no std::terminate). operator<< then catches swrite's foobar
     // and, with otherfailbit unmasked, only sets state, so control returns normally;
     // reaching the assertion proves there was no terminate and the stream failed.
     {

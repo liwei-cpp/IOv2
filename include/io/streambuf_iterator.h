@@ -140,7 +140,7 @@ public:
      *
      * 若提供了 `saw_eof`，迭代器在**任何**观察到输入结束的时刻（`operator*` 取不到字符、
      * 或判等时 `is_eof()` 为真）把它置为 true。所有副本共享同一个报告位，因此该信息既能
-     * 穿过按值传参（如 `reader::sread`），也能在读取过程抛出异常时存活——它位于调用方的
+     * 穿过按值传参（如 `io_traits::sread`），也能在读取过程抛出异常时存活——它位于调用方的
      * 栈帧上，不随迭代器副本销毁。
      *
      * @param p_streambuf 要绑定的流缓冲区。
@@ -155,7 +155,7 @@ public:
      * When `saw_eof` is supplied, the iterator sets it to true at **any** point where it
      * observes end of input (`operator*` cannot fetch a character, or `is_eof()` is true
      * during comparison). All copies share the same flag, so the information survives both
-     * by-value passing (e.g. `reader::sread`) and an exception thrown mid-read -- it lives
+     * by-value passing (e.g. `io_traits::sread`) and an exception thrown mid-read -- it lives
      * in the caller's frame, not in any iterator copy.
      *
      * @param p_streambuf The stream buffer to bind to.

@@ -1,7 +1,7 @@
 #pragma once
 #include <type_traits>
 #include <io/io_base.h>
-#include <io/fp_defs/base_fp.h>
+#include <io/traits/traits_base.h>
 #include <facet/timeio.h>
 #include <locale/locale.h>
 
@@ -117,7 +117,7 @@ struct parse_context_type<TChar, std::tm>
 
 
 template <typename TChar>
-struct writer<TChar, std::tm>
+struct io_traits<TChar, std::tm>
 {
     template <typename TIter>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
@@ -132,7 +132,7 @@ struct writer<TChar, std::tm>
 };
 
 template <typename TChar>
-struct reader<TChar, time_parse_context<TChar, true, true, false>>
+struct io_traits<TChar, time_parse_context<TChar, true, true, false>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)

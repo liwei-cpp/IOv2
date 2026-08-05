@@ -7,8 +7,8 @@
 #include <cvt/crypt/hash_cvt.h>
 #include <cvt/cvt_pipe_creator.h>
 #include <device/mem_device.h>
-#include <io/fp_defs/arithmetic.h>
-#include <io/fp_defs/char_and_str.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
 #include <io/io_base.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
@@ -136,10 +136,10 @@ void test_ostream_derive_3()
 namespace
 {
 // ostream_type requires io_state_and_exp, because code constrained by the concept calls
-// handle_exception() and operator bool directly (_Endl::operator(), out_sentry's destructor).
-// Without the clause those calls only fail when the template body is instantiated, which
-// bypasses the fallback overload's short diagnostic -- the operators that consume manipulators
-// only check callability with std::invocable, a declaration-level check.
+// handle_exception() and operator bool directly (out_sentry's destructor). Without the clause
+// those calls only fail when the template body is instantiated, which bypasses the fallback
+// overload's short diagnostic -- the operators that consume manipulators only check callability
+// with std::invocable, a declaration-level check.
 struct StatelessOs : IOv2::ios_base<char>
                    , IOv2::stream_common_operators
                    , IOv2::ostream_operators<char>

@@ -4,15 +4,17 @@
  * 定义了输入流的格式化与非格式化提取设施。
  * 包含输入哨兵 `in_sentry`、输入流概念 `istream_type`、承载各类提取操作
  * （`get`/`peek`/`read`/`ignore`/`putback`）的 `istream_operators` 混入基类，
- * 以及提取运算符 `operator>>`（含操纵符重载）。
+ * 以及提取运算符 `operator>>`：一条泛型的（把类型分派到扩展点
+ * `io_traits<TChar, TValue>`），外加一条给 `ios_base` 函数指针操纵符的。
  * @endif
  *
  * @lang{EN}
  * Defines the formatted and unformatted extraction facilities for input streams.
  * Includes the input sentry `in_sentry`, the input-stream concept `istream_type`,
  * the `istream_operators` mix-in base that carries the various extraction operations
- * (`get`/`peek`/`read`/`ignore`/`putback`), and the extraction `operator>>`
- * (including manipulator overloads).
+ * (`get`/`peek`/`read`/`ignore`/`putback`), and the extraction `operator>>`: one generic
+ * (dispatching the type to the `io_traits<TChar, TValue>` extension point) plus one for
+ * function-pointer `ios_base` manipulators.
  * @endif
  */
 #pragma once
@@ -20,7 +22,7 @@
 #include <common/defs.h>
 #include <common/metafunctions.h>
 #include <facet/ctype.h>
-#include <io/fp_defs/base_fp.h>
+#include <io/traits/traits_base.h>
 #include <io/io_base.h>
 #include <io/streambuf_iterator.h>
 #include <locale/locale.h>
@@ -28,7 +30,6 @@
 #include <concepts>
 #include <cstddef>
 #include <exception>
-#include <functional>
 #include <iterator>
 #include <mutex>
 #include <optional>
@@ -262,9 +263,9 @@ struct istream_operators;
  * locale，且其 `in_sentry_type` 满足 `is_in_sentry`；同时它必须派生自
  * `ios_base<char_type>`、`io_state_and_exp` 与 `istream_operators<char_type>`。
  * @note `io_state_and_exp` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
- *       `handle_exception()`（`_Ws::operator()`、`in_sentry` 的构造）与 `operator bool`。
- *       缺了它，这些调用要到模板**体**实例化时才报错，而消费操纵符的运算符只用
- *       `std::invocable` 检查声明层面的可调用性，兜底重载那条简短诊断路径就被绕开了。
+ *       `handle_exception()`（提取运算符的 `catch`、`in_sentry` 的构造）与 `operator bool`。
+ *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
+ *       “这个类型不是输入流”上。
  * @tparam T 待检测的类型。
  * @endif
  *
@@ -276,11 +277,11 @@ struct istream_operators;
  * `is_in_sentry`; it must also derive from `ios_base<char_type>`, `io_state_and_exp` and
  * `istream_operators<char_type>`.
  * @note The `io_state_and_exp` clause is a requirement, not just a description: code
- *       constrained by this concept calls `handle_exception()` (in `_Ws::operator()` and in
- *       `in_sentry`'s constructor) and `operator bool` directly. Without it those calls only
- *       fail once the template **body** is instantiated, and since the operators that consume
- *       manipulators check callability with `std::invocable` -- a declaration-level check --
- *       the short diagnostic the fallback overload exists to produce is bypassed.
+ *       constrained by this concept calls `handle_exception()` (the extraction operator's
+ *       `catch`, `in_sentry`'s constructor) and `operator bool` directly. Without it those
+ *       calls only fail once the template **body** is instantiated, putting the diagnostic
+ *       deep inside the library's implementation rather than on "this type is not an input
+ *       stream".
  * @tparam T The type under inspection.
  * @endif
  */
@@ -886,327 +887,186 @@ private:
      * @endif
      */
     template <istream_type U, typename TValue>
-        requires is_reader_def<typename U::char_type,
-                               typename parse_context_type<typename U::char_type, TValue>::type>
-    friend U& operator>>(U& obj, TValue& value);
+    friend U& operator>>(U& obj, TValue&& value);
 };
 
 /**
  * @lang{ZH}
- * @brief 提取操纵符：应用一个作用于 `ios_base<char_type>&` 的函数指针操纵符。
+ * @brief 提取运算符：从流中解析出一个 `TValue` 类型的值，或应用一个操纵符。
+ *
+ * 本运算符是提取侧**唯一**的入口。它在 `if constexpr` 里挑出可用的通道：流形式
+ * `sread(stream, value)`（操纵符）与迭代器形式 `sread(iter, end, io, loc, value)`（格式化提取，
+ * 目标类型先过一道解析上下文 `TCtx`）。都不可用时就地 `static_assert`，并按"扩展点是否存在"
+ * 给出两条不同的诊断。与插入侧不同，这里**不做退化**：提取按引用写回，数组目标退化成指针就会
+ * 丢掉长度。
+ *
+ * @note 同一个 `io_traits` 特化**只应提供其中一种形式**的 `sread`。两种形式靠实参个数区分、
+ *       不会互相误配，但同时提供时选中哪一种**不作保证**。
+ * @note 形参是转发引用而非 `TValue&`。工厂函数产出的操纵符（`setw(5)`、`get_money(x)`）都是
+ *       纯右值，绑不上非常量左值引用；从前那是靠两条按值传的 `operator>>` 特事特办的。改成
+ *       转发引用之后，"能不能写进去"由第二档的探测自己判定：右值目标一律以 `const` 左值
+ *       (`TTarget`) 探测——`get_money(x)` 的 `sread` 不修改操纵符对象本身、收 const 引用，
+ *       因而通过；而 `int` 的 `sread` 收 `int&`，`is >> 5` 便落到 `static_assert`，不会静默地
+ *       解析进一个临时量。常量左值目标同理被挡下。
+ * @note 探测里直接写 `io_traits<TChar, TCtx>::sread(...)` 是安全的：未特化时它是不完整类型，
+ *       在 requires 表达式里属于可 SFINAE 的替换失败，结果为 `false` 而非硬错误。
  * @tparam T 输入流类型。
+ * @tparam TValue 目标类型（或操纵符类型）。
  * @param obj 输入流。
- * @param pf 操纵符函数指针。
- * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
- * @endif
- *
- * @lang{EN}
- * @brief Extraction manipulator: applies a function-pointer manipulator taking
- *        `ios_base<char_type>&`.
- * @tparam T The input stream type.
- * @param obj The input stream.
- * @param pf The manipulator function pointer.
- * @return A reference to the stream itself.
- * @throw stream_error If `pf` is null.
- * @endif
- */
-template <istream_type T>
-T& operator >> (T& obj, void(*pf)(ios_base<typename T::char_type>&))
-{
-    try
-    {
-        if (!pf)
-            throw stream_error("istream manipulator fail: null or empty manipulator");
-        pf(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 提取操纵符：应用一个作用于 `ios_base<char_type>&` 的 `std::function` 操纵符。
- * @tparam T 输入流类型。
- * @param obj 输入流。
- * @param pf 操纵符可调用对象。
- * @return 流自身的引用。
- * @throw stream_error 若 `pf` 为空。
- * @endif
- *
- * @lang{EN}
- * @brief Extraction manipulator: applies a `std::function` manipulator taking
- *        `ios_base<char_type>&`.
- * @tparam T The input stream type.
- * @param obj The input stream.
- * @param pf The manipulator callable.
- * @return A reference to the stream itself.
- * @throw stream_error If `pf` is empty.
- * @endif
- */
-template <istream_type T>
-T& operator >> (T& obj, const std::function<void(ios_base<typename T::char_type>&)>& pf)
-{
-    try
-    {
-        if (!pf)
-            throw stream_error("istream manipulator fail: null or empty manipulator");
-        pf(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 提取操纵符：应用一个可用于输入方向的操纵符对象。
- *
- * 本重载把流交给操纵符自己的 `operator()`：**加锁由操纵符负责**。各操纵符所需的锁作用域并
- * 不相同（`ws` 要在构造 `in_sentry` 之前先加锁，并在锁内调用 `handle_exception`；`endl` 要把
- * 读 locale 与 `put()` 一起罩在锁内；`ends`/`flush` 完全不需要显式加锁），无法上提到本函数。
- *
- * 这里的 `catch` 是**兜底**而非主机制：库内置的操纵符都在自己的 `operator()` 里就地处理了异常
- * （需要锁的还会在锁内处理），走不到这里；它保证的是自定义操纵符即使漏了异常处理，也仍然按
- * 本库的错误模型置位并遵守异常掩码，而不是把异常抛给调用方。
- * @note 约束里的 `std::invocable` 不是多余的：只看基类的话，`is >> setfill(L'*')` 这种字符
- *       类型不匹配的调用仍然可行，错误要到 `f(obj)` 实例化时才在模板体内爆出来。加上它，
- *       本重载直接不可行，调用落到兜底重载，报出那条指明原因的 `static_assert`。
- * @tparam T 输入流类型。
- * @tparam TManip 操纵符类型，须派生自 `in_manip` 且能以本流调用。
- * @param obj 输入流。
- * @param f 操纵符对象。
- * @return 流自身的引用。
- * @endif
- *
- * @lang{EN}
- * @brief Extraction manipulator: applies a manipulator object usable in the input direction.
- *
- * This overload hands the stream to the manipulator's own `operator()`: **locking is the
- * manipulator's job**. The required lock scope differs per manipulator (`ws` must take the lock
- * before constructing `in_sentry` and calls `handle_exception` under it; `endl` must cover both
- * the locale read and the `put()`; `ends`/`flush` need no explicit lock at all), so it cannot be
- * hoisted here.
- *
- * The `catch` here is a **backstop**, not the primary mechanism: the library's own manipulators
- * handle their exceptions in place, inside their own `operator()` (under the lock where one is
- * needed), and never reach it. What it guarantees is that a user-defined manipulator which
- * forgets to handle its exceptions still sets state through this library's error model and
- * honours the exception mask, rather than throwing at the caller.
- * @note The `std::invocable` in the constraint is not redundant: on the base classes alone a
- *       call whose character type does not match, such as `is >> setfill(L'*')`, would still be
- *       viable and would only blow up inside the template body when `f(obj)` is instantiated.
- *       With it, this overload is simply not viable, the call lands on the fallback, and the
- *       `static_assert` there says why.
- * @tparam T The input stream type.
- * @tparam TManip The manipulator type, which must derive from `in_manip` and be callable with
- *         this stream.
- * @param obj The input stream.
- * @param f The manipulator object.
- * @return A reference to the stream itself.
- * @endif
- */
-template <istream_type T, std::derived_from<in_manip> TManip>
-    requires std::invocable<const TManip&, T&>
-T& operator >> (T& obj, const TManip& f)
-{
-    try
-    {
-        f(obj);
-    }
-    catch (...)
-    {
-        obj.handle_exception(std::current_exception());
-    }
-    return obj;
-}
-
-/**
- * @lang{ZH}
- * @brief 已删除：仅用于输出方向的操纵符不能被提取。
- *
- * 在双向流上，若无本重载，`io >> endl` 会静默地写出一个换行并刷新，而不读入任何东西——写法
- * 与实际方向相反，且不置任何状态位。删除本重载使其成为编译错误，与标准库一致。正确写法是
- * `os << endl`。
- * @note 约束里必须排除同时派生自 `in_manip` 的类型。两个方向都合法的操纵符（如 `setw`）会
- *       同时派生两个基类，若不排除，本重载与上面那个真实重载会同时可行且互不包含，导致该
- *       操纵符在**任何**方向上都因二义性而不可用。
- * @tparam T 输入流类型。
- * @tparam TManip 操纵符类型，派生自 `out_manip` 且不派生自 `in_manip`。
- * @endif
- *
- * @lang{EN}
- * @brief Deleted: a manipulator meant for the output direction only cannot be extracted.
- *
- * Without this overload, `io >> endl` on a bidirectional stream would silently write a newline
- * and flush, reading nothing at all -- the opposite of what the expression reads like, and with
- * no state bit set. Deleting it makes that a compile error, as in the standard library. Write
- * `os << endl` instead.
- * @note The constraint must exclude types that also derive from `in_manip`. A manipulator legal
- *       in both directions (`setw`, say) derives from both bases; without the exclusion this
- *       overload and the real one above would both be viable and neither would subsume the
- *       other, making that manipulator ambiguous -- and therefore unusable -- in **either**
- *       direction.
- * @tparam T The input stream type.
- * @tparam TManip The manipulator type, deriving from `out_manip` but not from `in_manip`.
- * @endif
- */
-template <istream_type T, typename TManip>
-    requires std::derived_from<TManip, out_manip> && (!std::derived_from<TManip, in_manip>)
-T& operator >> (T& obj, const TManip& f) = delete;
-
-/**
- * @lang{ZH}
- * @brief 格式化提取运算符：按当前 locale 从流中解析出一个 `TValue` 类型的值。
- *
- * 依据 `ios_defs::skipws` 标志决定是否跳过前导空白，随后借助为该值类型（或其解析上下文
- * 类型 `TCtx`）注册的 `reader` 完成解析。当解析上下文类型与目标类型不同时，先解析到临时
- * 上下文对象，再显式转换为 `TValue`。
- * @tparam T 输入流类型。
- * @tparam TValue 目标值类型；必须存在对应的 `reader` 定义。
- * @param obj 输入流。
- * @param value 用于接收解析结果的引用。
+ * @param value 接收解析结果的对象，或操纵符。
  * @return 流自身的引用。
  * @throw stream_error 若在未提取到任何值时已处于 EOF。
- * @note 解析过程中观察到输入结束时置位 `eofbit`；其他异常统一交由 `handle_exception` 处理。
  * @endif
  *
  * @lang{EN}
- * @brief Formatted extraction operator: parses a value of type `TValue` from the stream
- *        under the current locale.
+ * @brief Extraction operator: parses a value of type `TValue` from the stream, or applies a
+ *        manipulator.
  *
- * Whether leading whitespace is skipped is governed by the `ios_defs::skipws` flag; parsing
- * is then delegated to the `reader` registered for the value type (or its parse-context type
- * `TCtx`). When the parse-context type differs from the target type, the value is first parsed
- * into a temporary context object and then explicitly converted to `TValue`.
+ * This is the **only** entry point on the extraction side. An `if constexpr` chain picks whichever
+ * channel is usable: the stream form `sread(stream, value)` (manipulators) or the iterator form
+ * `sread(iter, end, io, loc, value)` (formatted extraction, with the target type relayed through
+ * the parse-context type `TCtx`). When neither is usable a `static_assert` fires in place, with
+ * one of two diagnostics depending on whether the extension point exists at all. Unlike the
+ * insertion side there is **no decay rung**: extraction writes back through a reference, and
+ * decaying an array target to a pointer would throw away its length.
+ *
+ * @note One `io_traits` specialization should provide **only one of the two forms** of `sread`.
+ *       The forms differ in argument count and so cannot be mistaken for each other, but which
+ *       one is picked when both are present is **unspecified**.
+ * @note The parameter is a forwarding reference rather than `TValue&`. Manipulators produced by
+ *       a factory (`setw(5)`, `get_money(x)`) are prvalues and cannot bind to a non-const lvalue
+ *       reference; that used to be worked around with two by-value `operator>>` overloads. With
+ *       a forwarding reference, "can this be written into" is decided by the second rung's own
+ *       probe: an rvalue target is always probed as a `const` lvalue (`TTarget`) -- the `sread`
+ *       of `get_money(x)` does not modify the manipulator object and takes a const reference, so
+ *       it passes, while the one for `int` takes `int&`, so `is >> 5` lands on the
+ *       `static_assert` instead of silently parsing into a temporary. A const lvalue target is
+ *       rejected the same way.
+ * @note Naming `io_traits<TChar, TCtx>::sread(...)` directly in the probes is safe: where it is
+ *       not specialized it is an incomplete type, which inside a requires-expression is a
+ *       SFINAE-able substitution failure yielding `false` rather than a hard error.
  * @tparam T The input stream type.
- * @tparam TValue The target value type; a corresponding `reader` definition must exist.
+ * @tparam TValue The target type (or the manipulator type).
  * @param obj The input stream.
- * @param value Reference receiving the parsed result.
+ * @param value The object receiving the parsed result, or the manipulator.
  * @return A reference to the stream itself.
  * @throw stream_error If EOF is already reached with no value extracted.
- * @note Sets `eofbit` when end of input is observed during parsing; other exceptions are
- *       routed through `handle_exception`.
  * @endif
  */
 template <istream_type T, typename TValue>
-    requires is_reader_def<typename T::char_type,
-                           typename parse_context_type<typename T::char_type, TValue>::type>
-T& operator>>(T& obj, TValue& value)
+T& operator>>(T& obj, TValue&& value)
 {
-    using TChar = typename T::char_type;
-    using TCtx = typename parse_context_type<TChar, TValue>::type;
-    using sentry_type = typename T::in_sentry_type;
+    using TChar   = typename T::char_type;
+    using TV      = std::remove_cvref_t<TValue>;
+    using TCtx    = typename parse_context_type<TChar, TV>::type;
+    using TTarget = std::conditional_t<std::is_lvalue_reference_v<TValue>,
+                                       std::remove_reference_t<TValue>, const TV>;
 
-    bool saw_eof = false;
-    std::lock_guard guard(obj.io_mutex());
-    try
-    {
-        auto iter = obj.i_iter(&saw_eof);
-        bool skip = bool(obj.flags() & ios_defs::skipws);
-        sentry_type cerb(obj, !skip);
-
-        if (obj.eof())
-            throw stream_error("istream extraction fail: reached EOF with no value extracted");
-
-        if constexpr (std::is_same_v<TCtx, TValue>)
-            reader<TChar, TValue>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
-        else
+    constexpr bool stream_r = requires
+        { io_traits<TChar, TV>::sread(obj, value); };
+    constexpr bool iter_v   = std::is_same_v<TCtx, TV> && requires (TTarget& v)
+        { io_traits<TChar, TV>::sread(obj.i_iter(), std::default_sentinel,
+                                      obj, obj.locale(), v); };
+    constexpr bool iter_c   = !std::is_same_v<TCtx, TV> && requires (TTarget& v, TCtx& c)
         {
-            TCtx tmp = [&value]() -> TCtx {
-                if constexpr (requires (const TValue& v)
-                              { parse_context_type<TChar, TValue>::make_parse_context(v); })
-                    return parse_context_type<TChar, TValue>::make_parse_context(value);
-                else
-                    return TCtx{};
-            }();
-            reader<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
-            value = static_cast<TValue>(tmp);
-        }
+            io_traits<TChar, TCtx>::sread(obj.i_iter(), std::default_sentinel,
+                                          obj, obj.locale(), c);
+            v = static_cast<TV>(c);
+        };
 
-        if (saw_eof) obj.setstate(ios_defs::eofbit);
-    }
-    catch(...)
+    if constexpr (stream_r)
     {
-        obj.handle_exception(std::current_exception(), saw_eof);
+        try
+        {
+            io_traits<TChar, TV>::sread(obj, value);
+        }
+        catch (...)
+        {
+            obj.handle_exception(std::current_exception());
+        }
     }
+    else if constexpr (iter_v || iter_c)
+    {
+        using sentry_type = typename T::in_sentry_type;
+
+        bool saw_eof = false;
+        std::lock_guard guard(obj.io_mutex());
+        try
+        {
+            auto iter = obj.i_iter(&saw_eof);
+            bool skip = bool(obj.flags() & ios_defs::skipws);
+            sentry_type cerb(obj, !skip);
+
+            if (obj.eof())
+                throw stream_error("istream extraction fail: reached EOF with no value extracted");
+
+            if constexpr (iter_v)
+                io_traits<TChar, TV>::sread(iter, std::default_sentinel, obj, obj.locale(), value);
+            else
+            {
+                TCtx tmp = [&value]() -> TCtx {
+                    if constexpr (requires (const TV& v)
+                                  { parse_context_type<TChar, TV>::make_parse_context(v); })
+                        return parse_context_type<TChar, TV>::make_parse_context(value);
+                    else
+                        return TCtx{};
+                }();
+                io_traits<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
+                value = static_cast<TV>(tmp);
+            }
+
+            if (saw_eof) obj.setstate(ios_defs::eofbit);
+        }
+        catch(...)
+        {
+            obj.handle_exception(std::current_exception(), saw_eof);
+        }
+    }
+    else if constexpr (has_io_traits<TChar, TV> || has_io_traits<TChar, TCtx>)
+        static_assert(dependent_false_v<TValue>,
+            "IOv2: cannot extract into this type. An io_traits<char_type, TValue> exists but "
+            "offers no sread() usable with this stream. The usual cause is a direction mismatch "
+            "-- the type provides swrite() only and is meant for insertion (write `os << x`, not "
+            "`is >> x`). Otherwise the target is not writable: extraction needs a non-const "
+            "lvalue, so `is >> 5` and `is >> const_obj` are rejected here. A fill character whose "
+            "type differs from the stream's char_type lands here too. "
+            "See io/traits/traits_base.h.");
+    else
+        static_assert(dependent_false_v<TValue>,
+            "IOv2: cannot extract into this type. No io_traits<char_type, TValue> is defined for "
+            "it. Define one -- see io/traits/traits_base.h -- or extract into a supported type "
+            "such as an arithmetic type, a character type, CharT* or std::basic_string.");
 
     return obj;
 }
 
 /**
  * @lang{ZH}
- * @brief 兜底重载：当提取无法成立时，给出一条简短的编译期错误。
+ * @brief 提取运算符：应用一个作用于 `ios_base<char_type>&` 的函数指针操纵符。
  *
- * 覆盖两类失败：目标类型没有对应的 `reader` 特化；或目标不是可修改左值（临时量、`const`
- * 对象）。若没有本重载，前者只会得到一句 `no match for 'operator>>'` 外加三十余个候选的
- * 转储，后者更会在 facet 内部炸出几十行"向只读变量赋值"——真正的原因都埋在里面。
- *
- * @note 本重载**不加约束**是刻意的：它要能接住任意类型。它不会抢走本该成功的调用，因为
- *       所有正常路径在重载决议中都严格优于它——
- *       - 上面的格式化提取运算符收 `TValue&`，对非常量左值是非常量引用绑定，优于本重载的
- *         常量引用绑定；两者签名不等价时由此决出，等价时则由"约束更多者胜"决出。
- *       - 取 `ios_base<char_type>&` 的两个操纵符重载与本重载转换序列打平，转由模板偏序裁决，
- *         而它们的形参类型更特化；取 `const TManip&` 的方向标签重载与本重载签名等价，靠
- *         "约束更多者胜"取胜。
- * @note 因此落到本重载的操纵符只有两类：没有派生方向标签基类的（用户自己写的函数或
- *       lambda），以及派生了但 `operator()` 不接受本流的（如在 `char` 流上用
- *       `setfill(L'*')`）。下面的错误消息把这两类也一并点出来。
- * @warning 形参必须是 `const TValue&` 而非 `TValue&`。写成后者会以非常量引用绑定**压过**
- *          所有操纵符重载的常量引用绑定，把 `is >> manip` 之类的调用全部劫持到这里、变成
- *          编译错误——这正是当初给上面那个运算符加 `requires` 所要修复的缺陷，
- *          见 `test_istream_ws_char.cpp` 中的回归用例。
- * @tparam TValue 被提取的目标类型。
+ * 与插入侧同形状的那条完全对称，理由与行为都相同；详见
+ * `operator<<(T&, void (*)(ios_base<typename T::char_type>&))`。
+ * @param obj 输入流。
+ * @param pf 操纵符；为空指针时置 `strfailbit`。
+ * @return 流自身的引用。
  * @endif
  *
  * @lang{EN}
- * @brief Fallback overload: emits one short compile-time error when an extraction cannot work.
+ * @brief Extraction operator: applies a function-pointer manipulator acting on
+ *        `ios_base<char_type>&`.
  *
- * It covers two kinds of failure: the target type has no `reader` specialization, or the target
- * is not a modifiable lvalue (a temporary, or a `const` object). Without this overload the
- * former yields only `no match for 'operator>>'` plus a dump of thirty-odd candidates, and the
- * latter explodes into dozens of "assignment of read-only variable" lines inside the facets --
- * in both cases burying the actual cause.
- *
- * @note Leaving this overload **unconstrained** is deliberate: it has to catch any type. It
- *       cannot steal a call that ought to succeed, because every working path outranks it in
- *       overload resolution:
- *       - The formatted extraction operator above takes `TValue&`, a non-const reference
- *         binding for a non-const lvalue, which beats this overload's const reference binding;
- *         where the signatures are equivalent instead, the more-constrained one wins.
- *       - The two manipulator overloads taking `ios_base<char_type>&` tie with this one on
- *         conversion sequence, so partial ordering decides and their more specialized parameter
- *         types win; the direction-tag overload taking `const TManip&` has an equivalent
- *         signature and wins on "more constrained".
- * @note Only two kinds of manipulator therefore reach this overload: one that does not derive
- *       from a direction tag base (a user's own function or lambda), and one that does but whose
- *       `operator()` will not take this stream (`setfill(L'*')` on a `char` stream, say). The
- *       message below names both.
- * @warning The parameter must be `const TValue&`, not `TValue&`. The latter would bind a
- *          non-const reference and thereby **outrank** every manipulator overload's const
- *          binding, hijacking calls such as `is >> manip` into this overload and turning them
- *          into compile errors -- precisely the defect that constraining the operator above was
- *          meant to fix; see the regression case in `test_istream_ws_char.cpp`.
- * @tparam TValue The type being extracted into.
+ * Exactly symmetric to the insertion-side overload of the same shape, with the same reasons and
+ * the same behaviour; see `operator<<(T&, void (*)(ios_base<typename T::char_type>&))`.
+ * @param obj The input stream.
+ * @param pf The manipulator; a null pointer sets `strfailbit`.
+ * @return A reference to the stream itself.
  * @endif
  */
-template <istream_type T, typename TValue>
-T& operator>>(T& obj, const TValue&)
+template <istream_type T>
+T& operator>>(T& obj, void (*pf)(ios_base<typename T::char_type>&))
 {
-    static_assert(dependent_false_v<TValue>,
-        "IOv2: cannot extract into this type. Either no reader<char_type, TValue> is defined "
-        "for it (define one -- see io/fp_defs/base_fp.h -- or extract into a supported type "
-        "such as an arithmetic type, CharT[N], or std::basic_string), or the target is not a "
-        "modifiable lvalue (extraction cannot write into a temporary or a const object), or it "
-        "was meant to be a manipulator, in which case it must derive from IOv2::in_manip (see "
-        "io/io_base.h) and its operator() must accept this stream -- a fill character whose "
-        "type differs from the stream's char_type is the usual cause. A manipulator used in "
-        "the wrong direction is reported separately, as a deleted operator.");
+    apply_ios_manip<typename T::char_type>(obj, pf);
     return obj;
 }
+
 }

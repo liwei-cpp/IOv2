@@ -245,74 +245,70 @@ istream(TDevice, const TCreator&, locale<TChar>) -> istream<TDevice, TChar>;
 // common manips
 /**
  * @lang{ZH}
- * @brief `ws` 操纵符的类型。
+ * @brief 跳过空白的操纵符对象，用法为 `is >> IOv2::ws`；类型是个空标签，逻辑全在
+ *        `io_traits<TChar, _Ws>::sread` 里。
  *
- * 方向被编码进类型本身：只有 `operator>>` 接受本类型，对应的 `operator<<` 重载已被删除。
- * 方向为何必须编码进类型、而非仅靠 `istream_type` / `ostream_type` 约束，见 `in_manip`。
- *
- * 保留 `operator()` 是为了与标准的 `std::ws(is)` 直接调用形式对齐。
+ * 方向被编码进类型本身：`io_traits<TChar, _Ws>` 只提供 `sread`，`os << ws` 因此在插入运算符的
+ * 链末尾撞上 `static_assert`。方向为何要这样表达，见 `io_traits<TChar, _Ws>`。
+ * @note 本类型没有 `operator()`：单向操纵符的逻辑只需写一处，直接写在扩展点里即可，`is >> ws`
+ *       于是成为唯一入口，异常统一由提取运算符转交 `handle_exception`。标准的 `std::ws(is)`
+ *       直接调用形式因此不存在。
  * @endif
  *
  * @lang{EN}
- * @brief The type of the `ws` manipulator.
+ * @brief The whitespace-skipping manipulator object, used as `is >> IOv2::ws`; its type is an
+ *        empty tag, with all the logic in `io_traits<TChar, _Ws>::sread`.
  *
- * The direction is encoded in the type itself: only `operator>>` accepts this type, and the
- * matching `operator<<` overload is deleted. See `in_manip` for why the direction must live in
- * the type rather than in the `istream_type` / `ostream_type` constraints alone.
- *
- * `operator()` is kept to match the standard's `std::ws(is)` direct-call form.
+ * The direction is encoded in the type itself: `io_traits<TChar, _Ws>` provides only `sread`, so
+ * `os << ws` hits the `static_assert` at the end of the insertion operator's chain. See
+ * `io_traits<TChar, _Ws>` for why the direction is expressed this way.
+ * @note This type has no `operator()`: a one-way manipulator needs its logic in one place only,
+ *       so it lives in the extension point directly. That makes `is >> ws` the sole entry and
+ *       leaves exceptions to the extraction operator and `handle_exception`. The standard's
+ *       `std::ws(is)` direct-call form therefore does not exist.
  * @endif
  */
-struct _Ws : in_manip
-{
-    /**
-     * @lang{ZH}
-     * @brief 跳过流中接下来的空白字符。
-     *
-     * 空白的跳过由输入哨兵完成：以 `noskipws == false` 构造 `in_sentry` 即为跳过空白。
-     * @note 锁在构造哨兵之前就已持有，并一直持到本函数的 `catch` 之后，故所有失败路径的
-     *       `handle_exception` 都在锁内运行。消费本操纵符的 `operator>>` 外面还有一层 `catch`，
-     *       但它在锁之外，只是兜底。
-     * @param is 目标输入流。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Skips the whitespace characters that follow in the stream.
-     *
-     * The skipping is done by the input sentry: constructing `in_sentry` with `noskipws == false`
-     * is what skips whitespace.
-     * @note The lock is held before the sentry is constructed and kept past this function's
-     *       `catch`, so `handle_exception` runs under it on every failure path. The `operator>>`
-     *       that consumes this manipulator has a `catch` of its own, but that one runs outside
-     *       the lock and is only a backstop.
-     * @param is The target input stream.
-     * @endif
-     */
-    template <istream_type T>
-    void operator () (T& is) const
-    {
-        using sentry_type = typename T::in_sentry_type;
-        std::lock_guard guard(is.io_mutex());
-        try
-        {
-            sentry_type cerb(is, false);
-        }
-        catch(...)
-        {
-            is.handle_exception(std::current_exception());
-        }
-    }
-};
+inline constexpr struct _Ws {} ws{};
 
 /**
  * @lang{ZH}
- * @brief 跳过空白的操纵符对象。用法为 `is >> IOv2::ws`；亦支持 `IOv2::ws(is)`。
+ * @brief `ws` 的扩展点特化：只提供 `sread`，跳过流中接下来的空白字符。
+ *
+ * 空白的跳过由输入哨兵完成：以 `noskipws == false` 构造 `in_sentry` 即为跳过空白。
+ *
+ * 操纵符的方向由**成员的有无**表达：这里只有 `sread`，于是 `os << ws` 在插入运算符的链末尾
+ * 撞上 `static_assert`。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供成员，
+ * 两个方向都会调用成功。
+ * @note 锁由本成员自己取——流形式不加锁，而这里需要把哨兵罩在锁内。异常直接抛出，由
+ *       `operator>>` 接住交给 `handle_exception`；那层 `catch` 在锁之外，因此失败路径上的置位
+ *       发生在解锁之后。
  * @endif
  *
  * @lang{EN}
- * @brief The whitespace-skipping manipulator object. Use as `is >> IOv2::ws`; `IOv2::ws(is)`
- *        also works.
+ * @brief Extension-point specialization for `ws`: provides only `sread`, which skips the
+ *        whitespace characters that follow in the stream.
+ *
+ * The skipping is done by the input sentry: constructing `in_sentry` with `noskipws == false` is
+ * what skips whitespace.
+ *
+ * A manipulator's direction is expressed by **which member exists**: only `sread` is here, so
+ * `os << ws` hits the `static_assert` at the end of the insertion operator's chain. A constraint
+ * would not be enough -- `iostream` satisfies both stream concepts, so if both members existed
+ * both directions would call successfully.
+ * @note The lock is taken here: the stream form is never locked by the operator, and the sentry
+ *       has to run under one. Exceptions simply propagate, and `operator>>` hands them to
+ *       `handle_exception`; that `catch` sits outside the lock, so on a failure path the state
+ *       bits are set after the unlock.
  * @endif
  */
-inline constexpr _Ws ws{};
+template <typename TChar>
+struct io_traits<TChar, _Ws>
+{
+    template <istream_type T>
+    static void sread(T& is, const _Ws&)
+    {
+        std::lock_guard guard(is.io_mutex());
+        typename T::in_sentry_type cerb(is, false);
+    }
+};
 }

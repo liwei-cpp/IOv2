@@ -1,4 +1,3 @@
-#include <functional>
 #include <stdexcept>
 #include <string>
 #include <device/mem_device.h>
@@ -32,32 +31,29 @@ void test_ostream_endl_wchar_t_1()
     dump_info("Done\n");
 }
 
-// wchar_t counterpart of test_ostream_function_manip_char_1: a std::function manipulator
-// must dispatch to operator<<(T&, const std::function<void(T&)>&); guards that value
-// insertion and both manipulator forms keep working after the generic operator<< was
-// constrained (requires is_writer_def<...>).
+// wchar_t counterpart of test_ostream_function_manip_char_1: a function-pointer manipulator
+// must dispatch to operator<<(T&, void(*)(ios_base<wchar_t>&)) rather than to the generic
+// operator<<.
 void test_ostream_function_manip_wchar_t_1()
 {
-    dump_info("Test ostream<wchar_t> std::function manipulator via operator<< case 1...");
+    dump_info("Test ostream<wchar_t> function-pointer manipulator via operator<< case 1...");
 
     auto helper = []<template<typename, typename> class T>()
     {
         auto oss = T(IOv2::mem_device{std::wstring(L"")});
-        int calls = 0;
-        std::function<void(IOv2::ios_base<wchar_t>&)> manip =
-            [&calls](IOv2::ios_base<wchar_t>&){ ++calls; };
+        static int calls;
+        calls = 0;
+        void (*manip)(IOv2::ios_base<wchar_t>&) = [](IOv2::ios_base<wchar_t>&){ ++calls; };
 
-        oss << manip;                 // std::function manipulator via operator<<
+        oss << manip;
         VERIFY( calls == 1 );
 
         oss << manip << manip;        // operator<< returns the stream, so manipulators chain
         VERIFY( calls == 3 );
 
-        // sibling function-pointer form: operator<<(T&, void(*)(ios_base<wchar_t>&))
-        static int fcalls;
-        fcalls = 0;
-        oss << +[](IOv2::ios_base<wchar_t>&){ ++fcalls; };
-        VERIFY( fcalls == 1 );
+        // a capture-less lambda reaches the same overload once decayed with unary +
+        oss << +[](IOv2::ios_base<wchar_t>&){ ++calls; };
+        VERIFY( calls == 4 );
     };
 
     helper.operator()<IOv2::ostream>();
@@ -67,7 +63,7 @@ void test_ostream_function_manip_wchar_t_1()
 }
 
 // wchar_t counterpart of test_ostream_null_manip_char_1: a null manipulator must be
-// rejected by every manipulator overload, leaving strfailbit set (no mask -> no throw).
+// rejected, leaving strfailbit set (no mask -> no throw).
 void test_ostream_null_manip_wchar_t_1()
 {
     dump_info("Test ostream<wchar_t> null manipulator via operator<< case 1...");
@@ -80,15 +76,9 @@ void test_ostream_null_manip_wchar_t_1()
         VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
         oss.clear();
 
-        std::function<void(IOv2::ios_base<wchar_t>&)> empty_base_fn;
-        oss << empty_base_fn;
-        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
-        oss.clear();
-
-        int base_calls = 0;
-        std::function<void(IOv2::ios_base<wchar_t>&)> base_fn =
-            [&base_calls](IOv2::ios_base<wchar_t>&){ ++base_calls; };
-        oss << base_fn;
+        static int base_calls;
+        base_calls = 0;
+        oss << +[](IOv2::ios_base<wchar_t>&){ ++base_calls; };
         VERIFY( base_calls == 1 );
         VERIFY( !(oss.rdstate() & IOv2::ios_defs::strfailbit) );
 
@@ -103,30 +93,24 @@ void test_ostream_null_manip_wchar_t_1()
     dump_info("Done\n");
 }
 
-// wchar_t counterpart of test_ostream_manip_direct_call_char_1.
-void test_ostream_manip_direct_call_wchar_t_1()
+// wchar_t counterpart of test_ostream_manip_tag_char_1.
+void test_ostream_manip_tag_wchar_t_1()
 {
-    dump_info("Test ostream<wchar_t> manipulator direct-call form case 1...");
+    dump_info("Test ostream<wchar_t> tag manipulators case 1...");
 
     auto helper = []<template<typename, typename> class T>()
     {
         auto oss = T(IOv2::mem_device{std::wstring(L"")});
-        IOv2::endl(oss);
+        oss << IOv2::endl;
         VERIFY( oss.device().str() == L"\n" );
         VERIFY( oss.good() );
 
-        IOv2::ends(oss);
+        oss << IOv2::ends;
         VERIFY( oss.device().str().size() == 2 );
         VERIFY( oss.good() );
 
-        IOv2::flush(oss);
+        oss << IOv2::flush;
         VERIFY( oss.good() );
-
-        auto bad = T(IOv2::mem_device{std::wstring(L"")},
-                     IOv2::locale<wchar_t>("C").remove<IOv2::ctype_conf<wchar_t>>());
-        IOv2::endl(bad);
-        VERIFY( bad.str_fail() );
-        VERIFY( !bad.good() );
     };
 
     helper.operator()<IOv2::ostream>();
