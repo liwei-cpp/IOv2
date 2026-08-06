@@ -216,24 +216,24 @@ concept can_insert_w = requires (S& s, const M& m)
 
 // wchar_t counterpart of the char direction matrix. Which io_traits member exists is
 // character-type agnostic, so the wrong direction has to be rejected here too.
-static_assert(  can_extract_w<DirBoth_w, IOv2::_Ws>   && !can_insert_w<DirBoth_w, IOv2::_Ws> );
-static_assert(  can_insert_w<DirBoth_w, IOv2::_Endl>  && !can_extract_w<DirBoth_w, IOv2::_Endl> );
-static_assert(  can_insert_w<DirBoth_w, IOv2::_Ends>  && !can_extract_w<DirBoth_w, IOv2::_Ends> );
-static_assert(  can_insert_w<DirBoth_w, IOv2::_Flush> && !can_extract_w<DirBoth_w, IOv2::_Flush> );
+static_assert(  can_extract_w<DirBoth_w, IOv2::ws_t>   && !can_insert_w<DirBoth_w, IOv2::ws_t> );
+static_assert(  can_insert_w<DirBoth_w, IOv2::endl_t>  && !can_extract_w<DirBoth_w, IOv2::endl_t> );
+static_assert(  can_insert_w<DirBoth_w, IOv2::ends_t>  && !can_extract_w<DirBoth_w, IOv2::ends_t> );
+static_assert(  can_insert_w<DirBoth_w, IOv2::flush_t> && !can_extract_w<DirBoth_w, IOv2::flush_t> );
 
-static_assert(  can_extract_w<DirIn_w, IOv2::_Ws>     && !can_insert_w<DirIn_w, IOv2::_Ws> );
-static_assert( !can_extract_w<DirIn_w, IOv2::_Endl>   && !can_insert_w<DirIn_w, IOv2::_Endl> );
-static_assert(  can_insert_w<DirOut_w, IOv2::_Endl>   && !can_extract_w<DirOut_w, IOv2::_Endl> );
-static_assert( !can_extract_w<DirOut_w, IOv2::_Ws>    && !can_insert_w<DirOut_w, IOv2::_Ws> );
+static_assert(  can_extract_w<DirIn_w, IOv2::ws_t>     && !can_insert_w<DirIn_w, IOv2::ws_t> );
+static_assert( !can_extract_w<DirIn_w, IOv2::endl_t>   && !can_insert_w<DirIn_w, IOv2::endl_t> );
+static_assert(  can_insert_w<DirOut_w, IOv2::endl_t>   && !can_extract_w<DirOut_w, IOv2::endl_t> );
+static_assert( !can_extract_w<DirOut_w, IOv2::ws_t>    && !can_insert_w<DirOut_w, IOv2::ws_t> );
 
 // setfill is the one manipulator whose character type must match the stream's exactly. That
-// requirement used to live in the parameter type _Setfill<typename T::char_type>; it is now a
+// requirement used to live in the parameter type setfill_t<typename T::char_type>; it is now a
 // requires-clause on both io_traits members, so a mismatch is rejected at the declaration
 // rather than inside the body.
-static_assert(  can_insert_w<DirBoth_w, IOv2::_Setfill<wchar_t>>
-             && can_extract_w<DirBoth_w, IOv2::_Setfill<wchar_t>> );
-static_assert( !can_insert_w<DirBoth_w, IOv2::_Setfill<char>>
-            && !can_extract_w<DirBoth_w, IOv2::_Setfill<char>> );
+static_assert(  can_insert_w<DirBoth_w, IOv2::setfill_t<wchar_t>>
+             && can_extract_w<DirBoth_w, IOv2::setfill_t<wchar_t>> );
+static_assert( !can_insert_w<DirBoth_w, IOv2::setfill_t<char>>
+            && !can_extract_w<DirBoth_w, IOv2::setfill_t<char>> );
 }
 
 // wchar_t counterpart of test_istream_manip_direction_char_1.

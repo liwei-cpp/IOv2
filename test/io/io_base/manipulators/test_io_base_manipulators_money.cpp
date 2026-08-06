@@ -178,46 +178,73 @@ using MoneyOs = IOv2::ostream<IOv2::mem_device<char>, char>;
 // Every probe here goes through io_traits rather than through `is >> get_money(x)`, so a failure
 // points at the io_traits specialization itself rather than at the value-category and
 // parse-context handling operator>> layers on top of it.
-static_assert(  extractable<char, IOv2::_Get_money<int>> );
-static_assert(  extractable<char, IOv2::_Get_money<std::string>> );
-static_assert( !extractable<char, IOv2::_Get_money<const int>> );
-static_assert( !extractable<char, IOv2::_Get_money<volatile int>> );
-static_assert( !extractable<char, IOv2::_Get_money<const std::string>> );
-static_assert( !extractable<char, IOv2::_Get_money<bool>> );
-static_assert( !extractable<char, IOv2::_Get_money<double>> );
-static_assert( !extractable<char, IOv2::_Get_money<std::wstring>> );
+static_assert(  extractable<char, IOv2::get_money_t<int>> );
+static_assert(  extractable<char, IOv2::get_money_t<std::string>> );
+static_assert( !extractable<char, IOv2::get_money_t<const int>> );
+static_assert( !extractable<char, IOv2::get_money_t<volatile int>> );
+static_assert( !extractable<char, IOv2::get_money_t<const std::string>> );
+static_assert( !extractable<char, IOv2::get_money_t<bool>> );
+static_assert( !extractable<char, IOv2::get_money_t<double>> );
+static_assert( !extractable<char, IOv2::get_money_t<std::wstring>> );
 
 // put_money carries no such restriction: output does not write to the target and put_money takes
 // const _MoneyT&, so inserting a const lvalue stays a legitimate use.
 
 // The io_traits bool exclusion normalizes cv, its string branch does not: put() takes the integral
 // by value (cv dropped), but its string overload takes a plain const&, which volatile cannot bind.
-static_assert(  insertable<char, IOv2::_Put_money<int>> );
-static_assert(  insertable<char, IOv2::_Put_money<const int>> );
-static_assert(  insertable<char, IOv2::_Put_money<volatile int>> );
-static_assert(  insertable<char, IOv2::_Put_money<std::string>> );
-static_assert( !insertable<char, IOv2::_Put_money<bool>> );
-static_assert( !insertable<char, IOv2::_Put_money<const bool>> );
-static_assert( !insertable<char, IOv2::_Put_money<volatile bool>> );
-static_assert( !insertable<char, IOv2::_Put_money<double>> );
-static_assert( !insertable<char, IOv2::_Put_money<volatile std::string>> );
-static_assert( !insertable<char, IOv2::_Put_money<std::wstring>> );
+static_assert(  insertable<char, IOv2::put_money_t<int>> );
+static_assert(  insertable<char, IOv2::put_money_t<const int>> );
+static_assert(  insertable<char, IOv2::put_money_t<volatile int>> );
+static_assert(  insertable<char, IOv2::put_money_t<std::string>> );
+static_assert( !insertable<char, IOv2::put_money_t<bool>> );
+static_assert( !insertable<char, IOv2::put_money_t<const bool>> );
+static_assert( !insertable<char, IOv2::put_money_t<volatile bool>> );
+static_assert( !insertable<char, IOv2::put_money_t<double>> );
+static_assert( !insertable<char, IOv2::put_money_t<volatile std::string>> );
+static_assert( !insertable<char, IOv2::put_money_t<std::wstring>> );
 
 // Direction: put_money inserts only, get_money extracts only. It is expressed by which member
 // io_traits provides, so the stream type drops out of the probe -- and it always had to: an
 // iostream satisfies istream_type and ostream_type alike, so no constraint on the stream could
 // ever have carried the direction.
-static_assert(  insertable <char, IOv2::_Put_money<int>> );
-static_assert( !extractable<char, IOv2::_Put_money<int>> );
-static_assert(  extractable<char, IOv2::_Get_money<int>> );
-static_assert( !insertable <char, IOv2::_Get_money<int>> );
+static_assert(  insertable <char, IOv2::put_money_t<int>> );
+static_assert( !extractable<char, IOv2::put_money_t<int>> );
+static_assert(  extractable<char, IOv2::get_money_t<int>> );
+static_assert( !insertable <char, IOv2::get_money_t<int>> );
 
-static_assert(  insertable <char, IOv2::_Put_money<std::string>> );
-static_assert( !extractable<char, IOv2::_Put_money<std::string>> );
-static_assert(  extractable<char, IOv2::_Get_money<std::string>> );
-static_assert( !insertable <char, IOv2::_Get_money<std::string>> );
+static_assert(  insertable <char, IOv2::put_money_t<std::string>> );
+static_assert( !extractable<char, IOv2::put_money_t<std::string>> );
+static_assert(  extractable<char, IOv2::get_money_t<std::string>> );
+static_assert( !insertable <char, IOv2::get_money_t<std::string>> );
 
 // The char_type has to match too: a char-stream money manipulator is not usable on a wide stream.
-static_assert( !insertable <wchar_t, IOv2::_Put_money<std::string>> );
-static_assert( !extractable<wchar_t, IOv2::_Get_money<std::string>> );
+static_assert( !insertable <wchar_t, IOv2::put_money_t<std::string>> );
+static_assert( !extractable<wchar_t, IOv2::get_money_t<std::string>> );
+}
+
+// put_money / get_money are function objects rather than function templates, so that an
+// unqualified call under `using namespace IOv2` stays unambiguous. With a function template the
+// std overloads win a seat by ADL whenever the argument is a std::basic_string -- its associated
+// namespace is std -- and neither candidate is more specialized, so the call is ambiguous. The
+// user cannot dodge it either: <iomanip> arrives transitively through io/io_manip.h, so
+// std::put_money is always declared. Integral arguments never had the problem (a fundamental
+// type has no associated namespace), which is what made the failure so lopsided: put_money(n)
+// compiled while put_money(str) did not, in the same translation unit.
+//
+// These probes must be unqualified and must sit under a using-directive, since that is the only
+// spelling that ever broke. Every other test in this file writes IOv2::put_money, which is why
+// the gap went unnoticed.
+namespace adl_probe
+{
+using namespace IOv2;
+
+template <typename T> concept unqualified_put = requires (T& v) { put_money(v); };
+template <typename T> concept unqualified_get = requires (T& v) { get_money(v); };
+
+static_assert( unqualified_put<std::string> );      // was ambiguous with std::put_money
+static_assert( unqualified_get<std::string> );      // was ambiguous with std::get_money
+static_assert( unqualified_put<std::wstring> );     // the factory is unconstrained; io_traits rejects it later
+static_assert( unqualified_get<std::wstring> );
+static_assert( unqualified_put<long> );             // never affected, kept as the control
+static_assert( unqualified_get<long> );
 }

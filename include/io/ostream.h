@@ -295,10 +295,10 @@ ostream(TDevice, const TCreator&, locale<TChar>) -> ostream<TDevice, TChar>;
 /**
  * @lang{ZH}
  * @brief 写出一个换行符并刷新本流的操纵符对象，用法为 `os << IOv2::endl`；类型是个空标签，
- *        逻辑全在 `io_traits<TChar, _Endl>::swrite` 里。
+ *        逻辑全在 `io_traits<TChar, endl_t>::swrite` 里。
  *
- * 方向被编码进类型本身：`io_traits<TChar, _Endl>` 只提供 `swrite`，`is >> endl` 因此不满足提取
- * 运算符的约束、没有可行重载，编译不过。方向为何要这样表达，见 `io_traits<TChar, _Endl>`。
+ * 方向被编码进类型本身：`io_traits<TChar, endl_t>` 只提供 `swrite`，`is >> endl` 因此不满足提取
+ * 运算符的约束、没有可行重载，编译不过。方向为何要这样表达，见 `io_traits<TChar, endl_t>`。
  * @note 本类型没有 `operator()`：单向操纵符的逻辑只需写一处，直接写在扩展点里即可，`os << endl`
  *       于是成为唯一入口，异常统一由插入运算符转交 `handle_exception`。标准的 `std::endl(os)`
  *       直接调用形式因此不存在。
@@ -307,18 +307,18 @@ ostream(TDevice, const TCreator&, locale<TChar>) -> ostream<TDevice, TChar>;
  * @lang{EN}
  * @brief The manipulator object that writes a newline and flushes the stream, used as
  *        `os << IOv2::endl`; its type is an empty tag, with all the logic in
- *        `io_traits<TChar, _Endl>::swrite`.
+ *        `io_traits<TChar, endl_t>::swrite`.
  *
- * The direction is encoded in the type itself: `io_traits<TChar, _Endl>` provides only
+ * The direction is encoded in the type itself: `io_traits<TChar, endl_t>` provides only
  * `swrite`, so `is >> endl` leaves the extraction operator unsatisfied -- no viable overload, and
- * it does not compile. See `io_traits<TChar, _Endl>` for why the direction is expressed this way.
+ * it does not compile. See `io_traits<TChar, endl_t>` for why the direction is expressed this way.
  * @note This type has no `operator()`: a one-way manipulator needs its logic in one place only,
  *       so it lives in the extension point directly. That makes `os << endl` the sole entry and
  *       leaves exceptions to the insertion operator and `handle_exception`. The standard's
  *       `std::endl(os)` direct-call form therefore does not exist.
  * @endif
  */
-inline constexpr struct _Endl {} endl{};
+inline constexpr struct endl_t {} endl{};
 
 /**
  * @lang{ZH}
@@ -377,10 +377,10 @@ inline constexpr struct _Endl {} endl{};
  * @endif
  */
 template <typename TChar>
-struct io_traits<TChar, _Endl>
+struct io_traits<TChar, endl_t>
 {
     template <ostream_type T>
-    static void swrite(T& os, const _Endl&)
+    static void swrite(T& os, const endl_t&)
     {
         std::lock_guard guard(os.io_mutex());
         try
@@ -401,78 +401,78 @@ struct io_traits<TChar, _Endl>
 /**
  * @lang{ZH}
  * @brief 写出一个空字符的操纵符对象，用法为 `os << IOv2::ends`；类型是个空标签，逻辑全在
- *        `io_traits<TChar, _Ends>::swrite` 里。方向为何要用 `io_traits` 成员的有无来表达、
+ *        `io_traits<TChar, ends_t>::swrite` 里。方向为何要用 `io_traits` 成员的有无来表达、
  *        又为何不留 `operator()`，见 `endl`。
  * @endif
  *
  * @lang{EN}
  * @brief The manipulator object that writes a null character, used as `os << IOv2::ends`; its
- *        type is an empty tag, with all the logic in `io_traits<TChar, _Ends>::swrite`. See
+ *        type is an empty tag, with all the logic in `io_traits<TChar, ends_t>::swrite`. See
  *        `endl` for why the direction is expressed by which `io_traits` member exists and why
  *        there is no `operator()`.
  * @endif
  */
-inline constexpr struct _Ends {} ends{};
+inline constexpr struct ends_t {} ends{};
 
 /**
  * @lang{ZH}
  * @brief `ends` 的扩展点特化：只提供 `swrite`，写出一个空字符（`TChar()`），不强制刷新。
- *        方向为何这样表达，见 `io_traits<TChar, _Endl>`。
+ *        方向为何这样表达，见 `io_traits<TChar, endl_t>`。
  * @note 无需显式加锁，也无需 `try`：`ostream_operators::put()` 自己持有 `io_mutex()`，并已将
  *       异常交由 `handle_exception` 处理。
  * @endif
  *
  * @lang{EN}
  * @brief Extension-point specialization for `ends`: provides only `swrite`, which writes a null
- *        character (`TChar()`) without forcing a flush. See `io_traits<TChar, _Endl>` for why the
+ *        character (`TChar()`) without forcing a flush. See `io_traits<TChar, endl_t>` for why the
  *        direction is expressed this way.
  * @note Neither an explicit lock nor a `try` is needed: `ostream_operators::put()` holds
  *       `io_mutex()` itself and already routes exceptions through `handle_exception`.
  * @endif
  */
 template <typename TChar>
-struct io_traits<TChar, _Ends>
+struct io_traits<TChar, ends_t>
 {
     template <ostream_type T>
-    static void swrite(T& os, const _Ends&) { os.put(TChar()); }
+    static void swrite(T& os, const ends_t&) { os.put(TChar()); }
 };
 
 /**
  * @lang{ZH}
  * @brief 刷新流的操纵符对象，用法为 `os << IOv2::flush`；类型是个空标签，逻辑全在
- *        `io_traits<TChar, _Flush>::swrite` 里。方向为何要用 `io_traits` 成员的有无来表达、
+ *        `io_traits<TChar, flush_t>::swrite` 里。方向为何要用 `io_traits` 成员的有无来表达、
  *        又为何不留 `operator()`，见 `endl`。
  * @endif
  *
  * @lang{EN}
  * @brief The manipulator object that flushes the stream, used as `os << IOv2::flush`; its type is
- *        an empty tag, with all the logic in `io_traits<TChar, _Flush>::swrite`. See `endl` for
+ *        an empty tag, with all the logic in `io_traits<TChar, flush_t>::swrite`. See `endl` for
  *        why the direction is expressed by which `io_traits` member exists and why there is no
  *        `operator()`.
  * @endif
  */
-inline constexpr struct _Flush {} flush{};
+inline constexpr struct flush_t {} flush{};
 
 /**
  * @lang{ZH}
  * @brief `flush` 的扩展点特化：只提供 `swrite`，刷新本流。方向为何这样表达，见
- *        `io_traits<TChar, _Endl>`。
+ *        `io_traits<TChar, endl_t>`。
  * @note 无需显式加锁，也无需 `try`：`ostream_operators::flush()` 自己持有 `io_mutex()`，并已将
  *       异常交由 `handle_exception` 处理。
  * @endif
  *
  * @lang{EN}
  * @brief Extension-point specialization for `flush`: provides only `swrite`, which flushes the
- *        stream. See `io_traits<TChar, _Endl>` for why the direction is expressed this way.
+ *        stream. See `io_traits<TChar, endl_t>` for why the direction is expressed this way.
  * @note Neither an explicit lock nor a `try` is needed: `ostream_operators::flush()` holds
  *       `io_mutex()` itself and already routes exceptions through `handle_exception`.
  * @endif
  */
 template <typename TChar>
-struct io_traits<TChar, _Flush>
+struct io_traits<TChar, flush_t>
 {
     template <ostream_type T>
-    static void swrite(T& os, const _Flush&) { os.flush(); }
+    static void swrite(T& os, const flush_t&) { os.flush(); }
 };
 
 // https://github.com/gcc-mirror/gcc/blob/075ec330307c5b1fe5ed166a633c718c06b01437/libstdc%2B%2B-v3/include/bits/ostream.h#L80

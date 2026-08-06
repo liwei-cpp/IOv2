@@ -274,28 +274,28 @@ namespace
 // istream_type and ostream_type are both satisfied, the wrong direction must not compile.
 // A constraint alone cannot achieve that -- such a stream satisfies either one -- so the
 // direction has to be which member exists.
-static_assert(  can_extract<DirBoth_c, IOv2::_Ws>    && !can_insert<DirBoth_c, IOv2::_Ws> );
-static_assert(  can_insert<DirBoth_c, IOv2::_Endl>   && !can_extract<DirBoth_c, IOv2::_Endl> );
-static_assert(  can_insert<DirBoth_c, IOv2::_Ends>   && !can_extract<DirBoth_c, IOv2::_Ends> );
-static_assert(  can_insert<DirBoth_c, IOv2::_Flush>  && !can_extract<DirBoth_c, IOv2::_Flush> );
+static_assert(  can_extract<DirBoth_c, IOv2::ws_t>    && !can_insert<DirBoth_c, IOv2::ws_t> );
+static_assert(  can_insert<DirBoth_c, IOv2::endl_t>   && !can_extract<DirBoth_c, IOv2::endl_t> );
+static_assert(  can_insert<DirBoth_c, IOv2::ends_t>   && !can_extract<DirBoth_c, IOv2::ends_t> );
+static_assert(  can_insert<DirBoth_c, IOv2::flush_t>  && !can_extract<DirBoth_c, IOv2::flush_t> );
 
 // Unidirectional streams keep their own direction and gain nothing in the other one.
-static_assert(  can_extract<DirIn_c, IOv2::_Ws>      && !can_insert<DirIn_c, IOv2::_Ws> );
-static_assert( !can_extract<DirIn_c, IOv2::_Endl>    && !can_insert<DirIn_c, IOv2::_Endl> );
-static_assert(  can_insert<DirOut_c, IOv2::_Endl>    && !can_extract<DirOut_c, IOv2::_Endl> );
-static_assert( !can_extract<DirOut_c, IOv2::_Ws>     && !can_insert<DirOut_c, IOv2::_Ws> );
+static_assert(  can_extract<DirIn_c, IOv2::ws_t>      && !can_insert<DirIn_c, IOv2::ws_t> );
+static_assert( !can_extract<DirIn_c, IOv2::endl_t>    && !can_insert<DirIn_c, IOv2::endl_t> );
+static_assert(  can_insert<DirOut_c, IOv2::endl_t>    && !can_extract<DirOut_c, IOv2::endl_t> );
+static_assert( !can_extract<DirOut_c, IOv2::ws_t>     && !can_insert<DirOut_c, IOv2::ws_t> );
 
 // Manipulators tagged both ways stay usable both ways.
 static_assert(  can_insert<DirBoth_c, both_manip>    &&  can_extract<DirBoth_c, both_manip> );
-static_assert(  can_insert<DirBoth_c, IOv2::_Setw>   &&  can_extract<DirBoth_c, IOv2::_Setw> );
-static_assert(  can_insert<DirBoth_c, IOv2::_Setfill<char>>
-             && can_extract<DirBoth_c, IOv2::_Setfill<char>> );
+static_assert(  can_insert<DirBoth_c, IOv2::setw_t>   &&  can_extract<DirBoth_c, IOv2::setw_t> );
+static_assert(  can_insert<DirBoth_c, IOv2::setfill_t<char>>
+             && can_extract<DirBoth_c, IOv2::setfill_t<char>> );
 
-// A _Setfill whose character type does not match the stream is rejected in both directions:
+// A setfill_t whose character type does not match the stream is rejected in both directions:
 // io_traits carries the same_as constraint on its members precisely so this stays visible to a
 // requires-expression rather than erroring inside the body.
-static_assert( !can_insert<DirBoth_c, IOv2::_Setfill<wchar_t>>
-            && !can_extract<DirBoth_c, IOv2::_Setfill<wchar_t>> );
+static_assert( !can_insert<DirBoth_c, IOv2::setfill_t<wchar_t>>
+            && !can_extract<DirBoth_c, IOv2::setfill_t<wchar_t>> );
 }
 
 // Runtime companion to the direction static_asserts above: the surviving direction still works
