@@ -358,11 +358,13 @@ struct stream_common_operators
      * @lang{ZH}
      * @brief 分离并取回底层设备（连同分离期间捕获的错误）。
      *
-     * @warning 本操作**不做线程同步**：与本流的其它操作（`tell`/`seek`/格式化 I/O 等均持有
-     *          `io_mutex()`）不同，`detach()` 不获取任何锁。它是一个类似构造/析构的生命周期
-     *          操作——分离底层设备本就意味着流不再处于可用于读写的稳定状态。调用方必须保证在
-     *          `detach()` 执行期间没有任何其它线程对本流进行操作（读、写，或再次 attach/detach），
-     *          否则行为未定义；正如不应在对象构造/析构过程中使用该对象一样。
+     * @warning 本操作全程持有 `io_mutex()`，因此不会与本流的读写、`attach()`/`detach()` 或
+     *          赋值相互撕裂。但它仍是一个类似构造/析构的生命周期操作——分离底层设备本就意味着
+     *          流不再处于可用于读写的稳定状态：并发的读写不会是未定义行为，却会看到一个没有设备
+     *          的流并按常规失败路径报错。锁覆盖不到的只有析构，正如不应在对象析构过程中使用该
+     *          对象一样。
+     * @note 本函数是 `noexcept`，加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
+     *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
      * @warning 与 `device()` 相同，**流处于移后（moved-from）状态时不得调用本函数**：此时转换器
      *          已被掏空，没有可分离的设备，调用即为未定义行为。本函数是 `noexcept`，底层
      *          （`runtime_cvt::detach()`）当前在这种情形下直接 `std::terminate()`；这同样只是
@@ -377,14 +379,18 @@ struct stream_common_operators
      * @brief Detaches and retrieves the underlying device (along with any error captured
      *        during detach).
      *
-     * @warning This operation is **not synchronized**: unlike the stream's other operations
-     *          (`tell`/`seek`/formatted I/O, which all hold `io_mutex()`), `detach()` takes no
-     *          lock. It is a lifecycle operation akin to construction/destruction -- detaching
-     *          the underlying device inherently means the stream is no longer in a stable state
-     *          usable for I/O. The caller must ensure that no other thread operates on this
-     *          stream (reading, writing, or another attach/detach) while `detach()` runs;
-     *          otherwise the behavior is undefined, just as one must not use an object while it
-     *          is being constructed or destroyed.
+     * @warning This operation holds `io_mutex()` throughout, so it cannot be torn against the
+     *          stream's reads and writes, another `attach()`/`detach()`, or an assignment. It is
+     *          still a lifecycle operation akin to construction/destruction -- detaching the
+     *          underlying device inherently means the stream is no longer in a stable state
+     *          usable for I/O: a concurrent read or write is not undefined behavior, but it will
+     *          find a stream with no device and fail through the ordinary path. What the lock
+     *          cannot cover is destruction, just as one must not use an object while it is being
+     *          destroyed.
+     * @note This function is `noexcept`. Taking the lock can formally throw, but for an
+     *       already-constructed recursive mutex the only remaining cause is an exhausted
+     *       recursion count, which this library treats as unrecoverable -- that is, it
+     *       terminates.
      * @warning As with `device()`, **this function must not be called on a moved-from stream**:
      *          its converter has been emptied, so there is no device to detach, and calling it
      *          then is undefined behavior. This function is `noexcept`, and the underlying
@@ -401,6 +407,7 @@ struct stream_common_operators
     template <typename TSelf>
     auto detach(this TSelf& self) noexcept
     {
+        std::lock_guard guard(self.io_mutex());
         return self.m_streambuf.detach();
     }
 
@@ -426,9 +433,9 @@ struct stream_common_operators
      *       执行到末尾时会自动重抛，且其中不允许 `return`），流对象根本没有诞生，也就无处安放
      *       状态位。因此"默认构造后 `attach()`"这条生命周期上，构造那步可能抛，`attach()` 这步
      *       不会。`detach()` 同样不抛，它把错误作为 `exception_ptr` 返回。
-     * @warning 与 `detach()` 相同，本操作**不做线程同步**、不获取 `io_mutex()`。它是类似构造的
-     *          生命周期操作：替换底层设备期间，任何并发读写本身都是不稳定且无意义的。调用方必须
-     *          保证在 `attach()` 执行期间没有任何其它线程对本流进行操作，否则行为未定义。
+     * @warning 与 `detach()` 相同，本操作全程持有 `io_mutex()`，清状态与换设备这两步合起来对
+     *          其它线程是原子的。它仍是类似构造的生命周期操作：替换底层设备期间的并发读写不再是
+     *          未定义行为，但本身仍是不稳定且无意义的——它们只会看到换设备前或换设备后的流。
      * @throw cvt_error 若在**移后（moved-from）状态**的流上调用。此时转换器已被掏空，本函数
      *        复活不了这样的流：错误经 `handle_exception` 归为 `cvtfailbit`，并仅当该位在异常
      *        掩码中时才向调用方抛出，否则 `attach()` 静默返回、流仍停在失败态。移后的流**只能
@@ -468,11 +475,12 @@ struct stream_common_operators
      *       "default-construct, then `attach()`" lifecycle the construction step may throw and
      *       the `attach()` step will not. `detach()` likewise does not throw; it returns the
      *       error as an `exception_ptr`.
-     * @warning Like `detach()`, this operation is **not synchronized** and takes no
-     *          `io_mutex()`. It is a construction-like lifecycle operation: any concurrent
-     *          read/write while the underlying device is being replaced is itself unstable and
-     *          meaningless. The caller must ensure that no other thread operates on this stream
-     *          while `attach()` runs; otherwise the behavior is undefined.
+     * @warning Like `detach()`, this operation holds `io_mutex()` throughout, so clearing the
+     *          state and replacing the device are atomic together as far as other threads are
+     *          concerned. It is still a construction-like lifecycle operation: a concurrent
+     *          read/write while the underlying device is being replaced is no longer undefined
+     *          behavior, but it remains unstable and meaningless -- it only ever sees the stream
+     *          from before or from after the replacement.
      * @throw cvt_error If called on a **moved-from** stream. Its converter has been emptied and
      *        this function cannot revive such a stream: the error goes through
      *        `handle_exception` as `cvtfailbit` and reaches the caller only if that bit is in
@@ -486,6 +494,7 @@ struct stream_common_operators
     template <typename TSelf>
     void attach(this TSelf& self, typename TSelf::device_type&& dev = typename TSelf::device_type{})
     {
+        std::lock_guard guard(self.io_mutex());
         try
         {
             self.clear();
@@ -686,14 +695,14 @@ struct stream_common_operators
      *       （移动还会清空源）。拷贝或移动一个流之后需要重新调用本函数。详见本类的拷贝/移动
      *       语义说明。
      * @warning **并发下的加强约束**：单独调用 `tie(nullptr)` 并**不足以**使随后销毁 `str`
-     *          变得安全。sentry 会在获取本流 `io_mutex()` **之前**就（无锁）原子读出 tie 指针
-     *          并 `flush()` 该目标（见 in_sentry/out_sentry 构造函数），因此另一线程在途的
-     *          I/O 可能在你的 `tie(nullptr)` 写入变得可见之前，就已读到旧指针并正准备对目标
-     *          `flush()`。故若要在生命周期中途改绑或销毁某个 tie 目标 P，调用方必须：先保证
-     *          没有任何线程正在、也不会即将对任何 `tie() == P` 的流发起 I/O；再对这些流调用
-     *          `tie(nullptr)`（或确保其已析构）；最后才销毁 P。这一点无法用锁代劳——目标的
-     *          生命周期不受本流 `io_mutex()` 保护，且没有任何锁能保护一个正被其自身析构函数
-     *          销毁的对象。
+     *          变得安全。sentry 在持有本流 `io_mutex()` 期间（无锁）原子读出 tie 指针并对该
+     *          目标 `try_flush()`（见 in_sentry/out_sentry 构造函数），因此另一线程在途的
+     *          I/O 可能在你的 `tie(nullptr)` 写入变得可见之前，就已读出旧指针并正准备刷新它。
+     *          这个窗口关不上，是因为 `try_flush()` 取的是**目标自己**的锁，而目标的**析构**
+     *          不受任何锁保护——目标上的赋值与 `attach()`/`detach()` 已由它的 `io_mutex()`
+     *          覆盖，析构则没有任何锁覆盖得了。故若要在生命周期中途销毁（或移动）某个 tie
+     *          目标 P，调用方必须：先保证没有任何线程正在、也不会即将对任何 `tie() == P` 的流
+     *          发起 I/O；再对这些流调用 `tie(nullptr)`（或确保其已析构）；最后才销毁 P。
      * @note 设置前会沿目标流 `str` 的 tie 链向前遍历：若该链会回到本流（即形成环，自绑定是
      *       长度为 1 的环），则抛出 `stream_error` 并**保持本流原绑定不变**，从而在设置时杜绝
      *       环。这满足了 `std::basic_ios::tie` “不得成环”的前置条件，而非像标准那样把成环留作
@@ -748,18 +757,19 @@ struct stream_common_operators
      *       function again after copying or moving a stream. See this class's copy/move
      *       semantics for details.
      * @warning **Concurrency addendum:** calling `tie(nullptr)` alone is **not** sufficient
-     *          to make a subsequent destruction of `str` safe. The sentry reads the tie
-     *          pointer (a lock-free atomic load) and `flush()`es the target *before* it
-     *          acquires this stream's `io_mutex()` (see the in_sentry/out_sentry
-     *          constructors), so another thread's in-flight I/O may have already latched the
-     *          old pointer -- and be about to `flush()` the target -- before your
-     *          `tie(nullptr)` store becomes visible. Therefore, to retarget or destroy a tie
-     *          target P during its lifetime, the caller must: first ensure no thread is
-     *          performing, or about to perform, I/O on any stream whose `tie() == P`; then
-     *          `tie(nullptr)` those streams (or ensure they are already destroyed); and only
-     *          then destroy P. No lock can do this for you -- the target's lifetime is not
-     *          guarded by this stream's `io_mutex()`, and no lock can protect an object while
-     *          it is being torn down by its own destructor.
+     *          to make a subsequent destruction of `str` safe. While holding this stream's
+     *          `io_mutex()`, the sentry reads the tie pointer (a lock-free atomic load) and
+     *          `try_flush()`es the target (see the in_sentry/out_sentry constructors), so
+     *          another thread's in-flight I/O may have already latched the old pointer -- and
+     *          be about to flush the target -- before your `tie(nullptr)` store becomes
+     *          visible. What keeps that window open is that `try_flush()` takes the **target's
+     *          own** lock, and the target's **destruction** is guarded by no lock at all:
+     *          assignment and `attach()`/`detach()` on the target are covered by its
+     *          `io_mutex()`, destruction is coverable by nothing. Therefore, to destroy (or
+     *          move from) a tie target P during its lifetime, the caller must: first ensure no
+     *          thread is performing, or about to perform, I/O on any stream whose
+     *          `tie() == P`; then `tie(nullptr)` those streams (or ensure they are already
+     *          destroyed); and only then destroy P.
      * @note Before setting, the tie chain reachable from the target `str` is walked
      *       forward: if that chain leads back to this stream (i.e. it would form a cycle;
      *       a self-tie is the length-1 cycle), a `stream_error` is thrown and **this

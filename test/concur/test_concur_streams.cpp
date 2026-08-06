@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <device/mem_device.h>
@@ -357,6 +358,132 @@ void test_concur_tie_nonblocking_1()
         x.tie(nullptr);
         y.tie(nullptr);
     }
+
+    dump_info("Done\n");
+}
+
+void test_concur_assign_tie_target_1()
+{
+    dump_info("Test concurrent assignment to a tie target case 1...");
+    using namespace IOv2;
+
+    // Assignment replaces m_streambuf wholesale, destroying the converter a concurrent tie
+    // flush is about to walk into -- runtime_cvt checks its impl pointer for null and then
+    // dereferences it, so the window between the two is a use-after-free. The written contract
+    // ("no other thread may operate on this stream") cannot be honored here even in principle:
+    // the flush is library-initiated and invisible to the caller, fired by a sentry on some
+    // other stream. Hence the destination is covered by its own io_mutex().
+    // The writers spin until the mutator signals done rather than running a fixed count: a
+    // mutator iteration costs far more than a put(), so a fixed count lets the writers retire
+    // early and leaves the tail of the run single-threaded.
+    ostream target(mem_device<char>{});
+    ostream writer(mem_device<char>{});
+    writer.tie(&target);
+
+    const ostream src(mem_device<char>{});
+    std::atomic<bool> done{false};
+    spawn([&](int id)
+    {
+        if (id != 0)
+        {
+            while (!done.load(std::memory_order_relaxed))
+                writer.put('x');                                 // drives target.try_flush()
+            return;
+        }
+
+        for (int i = 0; i < kIters; ++i)
+        {
+            if (i % 2) target = src;                             // copy assignment
+            else       target = ostream(mem_device<char>{});     // move assignment
+        }
+        done.store(true, std::memory_order_relaxed);
+    });
+
+    VERIFY(static_cast<bool>(writer));
+    VERIFY(static_cast<bool>(target));
+    writer.tie(nullptr);
+
+    dump_info("Done\n");
+}
+
+void test_concur_copy_tie_source_1()
+{
+    dump_info("Test concurrent copy of a tie target case 1...");
+    using namespace IOv2;
+
+    // The mirror image: copying reads the target's device, buffer and cursors while a tie flush
+    // runs on that same target. The symptom of a torn read is not a crash but a bad snapshot,
+    // so surviving the run proves nothing; the copy's contents are asserted instead. Only one
+    // thread ever writes to `target`, which makes the expectation exact: after the i-th put, a
+    // flushed copy must hold exactly i+1 'y's.
+    ostream target(mem_device<char>{});
+    ostream writer(mem_device<char>{});
+    writer.tie(&target);
+
+    std::atomic<bool> done{false};
+    spawn([&](int id)
+    {
+        if (id != 0)
+        {
+            while (!done.load(std::memory_order_relaxed))
+                writer.put('x');
+            return;
+        }
+
+        for (int i = 0; i < kIters; ++i)
+        {
+            target.put('y');
+            auto copy = target;                  // NOLINT(performance-unnecessary-copy-initialization)
+            copy.flush();
+            auto [dev, err] = copy.detach();
+            VERIFY(!err);
+            VERIFY(dev.str() == std::string(static_cast<size_t>(i) + 1, 'y'));
+        }
+        done.store(true, std::memory_order_relaxed);
+    });
+
+    VERIFY(static_cast<bool>(writer));
+    VERIFY(static_cast<bool>(target));
+    writer.tie(nullptr);
+
+    dump_info("Done\n");
+}
+
+void test_concur_attach_detach_1()
+{
+    dump_info("Test concurrent attach/detach on a tie target case 1...");
+    using namespace IOv2;
+
+    // The same window entered through a different door: detach() guts m_streambuf and attach()
+    // rebuilds it, both while a tie flush may be walking it. With both sides under io_mutex()
+    // the undefined behavior becomes the silent failure that is already documented -- the flush
+    // finds a stream with no device and sets a bit the writer's sentry swallows. attach()
+    // clears the state before installing, so the last one leaves `target` good again.
+    ostream target(mem_device<char>{});
+    ostream writer(mem_device<char>{});
+    writer.tie(&target);
+
+    std::atomic<bool> done{false};
+    spawn([&](int id)
+    {
+        if (id != 0)
+        {
+            while (!done.load(std::memory_order_relaxed))
+                writer.put('x');
+            return;
+        }
+
+        for (int i = 0; i < kIters; ++i)
+        {
+            auto [dev, err] = target.detach();
+            target.attach(std::move(dev));
+        }
+        done.store(true, std::memory_order_relaxed);
+    });
+
+    VERIFY(static_cast<bool>(writer));
+    VERIFY(static_cast<bool>(target));
+    writer.tie(nullptr);
 
     dump_info("Done\n");
 }
