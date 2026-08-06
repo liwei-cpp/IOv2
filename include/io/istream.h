@@ -154,23 +154,60 @@ public:
         : m_streambuf(std::move(dev), creator)
         , m_locale(std::move(loc)) {}
 
+private:
+    template <typename TLock>
+    istream(TLock&&, const istream& other)
+        : ios_base<TChar>(other)
+        , io_state_and_exp(other)
+        , istream_operators<TChar>(other)
+        , stream_common_operators(other)
+        , m_streambuf(other.m_streambuf)
+        , m_locale(other.m_locale) {}
+
+public:
     /**
      * @lang{ZH}
      * @brief 拷贝构造、移动构造与移动赋值。
-     * @warning 与拷贝赋值一样，这三者都是**不同步**的生命周期操作，不持有 `io_mutex()`；
-     *          移动还会把源流置于移后状态。并发契约详见 `operator=(const istream&)`。
+     * @warning 拷贝构造全程持有**源流**的 `io_mutex()`，移动赋值全程持有**目标流**的
+     *          `io_mutex()`；移动构造不加锁，且移动会把源流置于移后状态。仍由调用方负责的是：
+     *          不得在其它线程仍可能使用某流时销毁它、或把它作为移动的源。并发契约详见
+     *          `operator=(const istream&)`。
+     * @note 移动赋值的 `noexcept` 是有意为之：拷贝赋值的强异常保证依赖它（见其中的
+     *       `static_assert`）。加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
+     *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
      * @endif
      *
      * @lang{EN}
      * @brief Copy construction, move construction and move assignment.
-     * @warning Like copy assignment, all three are **unsynchronized** lifecycle operations that
-     *          do not hold `io_mutex()`; a move additionally leaves the source moved-from. See
-     *          `operator=(const istream&)` for the concurrency contract.
+     * @warning Copy construction holds the **source's** `io_mutex()` throughout, and move
+     *          assignment holds the **destination's** throughout; move construction takes no
+     *          lock, and a move leaves the source moved-from. What remains the caller's
+     *          responsibility: never destroy, or move from, a stream another thread may still
+     *          be using. See `operator=(const istream&)` for the concurrency contract.
+     * @note The `noexcept` on move assignment is deliberate: copy assignment's strong guarantee
+     *       depends on it (see the `static_assert` there). Taking the lock can formally throw,
+     *       but for an already-constructed recursive mutex the only remaining cause is an
+     *       exhausted recursion count, which this library treats as unrecoverable -- that is,
+     *       it terminates.
      * @endif
      */
-    istream(const istream&) = default;
+    istream(const istream& other) : istream(std::lock_guard{other.io_mutex()}, other) {}
     istream(istream&&) = default;
-    istream& operator=(istream&&) = default;
+
+    istream& operator=(istream&& other) noexcept
+    {
+        if (this == &other) return *this;
+
+        std::lock_guard guard(this->io_mutex());
+        ios_base<TChar>::operator=(std::move(other));
+        io_state_and_exp::operator=(std::move(other));
+        istream_operators<TChar>::operator=(std::move(other));
+        stream_common_operators::operator=(std::move(other));
+        m_streambuf = std::move(other.m_streambuf);
+        m_locale    = std::move(other.m_locale);
+        return *this;
+    }
+
     ~istream() = default;
 
     /**
@@ -179,13 +216,14 @@ public:
      *        再以全程 noexcept 的移动赋值提交。move-only 内核（如 `file_device`）上的拷贝必然
      *        抛出，故自赋值也要先挡掉。
      *
-     * @warning 本操作**不做线程同步**：与本流的其它操作（`tell`/`seek`/格式化 I/O 等均持有
-     *          `io_mutex()`）不同，赋值不获取任何锁——它整体替换 `m_streambuf`（内含转换器
-     *          管线与一个 `std::deque` 读缓冲区）与 `m_locale`（内含两张哈希表），与
-     *          `detach()`/`attach()` 同属生命周期操作。区别在于赋值涉及**两个**操作数，
-     *          **两者都要独占**：调用期间源与目标上都不得有其它线程进行操作（读、写、
-     *          attach/detach 或再次赋值），否则行为未定义。需要在并发环境下更换流的内容，
-     *          请由调用方自行串行化。
+     * @warning 赋值整体替换 `m_streambuf`（内含转换器管线与一个 `std::deque` 读缓冲区）与
+     *          `m_locale`（内含两张哈希表），与 `detach()`/`attach()` 同属生命周期操作，区别
+     *          在于它涉及**两个**操作数。两个操作数都受 `io_mutex()` 保护：拷贝构造持有源流的
+     *          锁读出副本，随后的移动赋值持有目标流的锁完成替换。两把锁**先后获取、互不重叠**，
+     *          因此任一线程在任一时刻至多持有一把流锁。仍由调用方负责的是：不得在其它线程仍
+     *          可能使用某流时销毁它、或把它作为移动的源。另需注意，赋值由此参与调用方自身的
+     *          锁定序——`sync(P); X = Q;` 与 `sync(Q); Y = P;` 反向配对仍会死锁，这与 `sync`
+     *          一贯的表述一致。
      * @endif
      *
      * @lang{EN}
@@ -194,16 +232,17 @@ public:
      *        commit is a move assignment, noexcept throughout. A copy always throws on a
      *        move-only kernel (`file_device`), which is why self-assignment is short-circuited.
      *
-     * @warning This operation is **not synchronized**: unlike the stream's other operations
-     *          (`tell`/`seek`/formatted I/O, which all hold `io_mutex()`), assignment takes no
-     *          lock -- it replaces `m_streambuf` (which holds the converter pipeline and a
+     * @warning Assignment replaces `m_streambuf` (which holds the converter pipeline and a
      *          `std::deque` read buffer) and `m_locale` (which holds two hash tables)
-     *          wholesale, and is a lifecycle operation just like `detach()`/`attach()`. The
-     *          difference is that assignment involves **two** operands and **both** must be
-     *          exclusively owned: no other thread may operate on either the source or the
-     *          destination (reading, writing, attach/detach, or another assignment) while it
-     *          runs, or the behavior is undefined. Serialize in the caller when stream
-     *          contents must be replaced concurrently.
+     *          wholesale, and is a lifecycle operation just like `detach()`/`attach()`, except
+     *          that it involves **two** operands. Both are covered by `io_mutex()`: the copy
+     *          construction holds the source's lock while reading it out, and the move
+     *          assignment that follows holds the destination's lock while replacing it. The two
+     *          locks are taken **in sequence and never overlap**, so a thread holds at most one
+     *          stream lock at any instant. What remains the caller's responsibility: never
+     *          destroy, or move from, a stream another thread may still be using. Note also
+     *          that assignment thereby joins the caller's own lock order -- `sync(P); X = Q;`
+     *          paired with `sync(Q); Y = P;` still deadlocks, exactly as documented for `sync`.
      * @endif
      */
     istream& operator=(const istream& other)

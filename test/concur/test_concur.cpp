@@ -11,6 +11,9 @@ void test_concur_tie_nonblocking_1();
 void test_concur_switch_1();
 void test_concur_endl_1();
 void test_concur_pword_1();
+void test_concur_assign_tie_target_1();
+void test_concur_copy_tie_source_1();
+void test_concur_attach_detach_1();
 
 void test_istream_sync_char_1();
 void test_istream_sync_wchar_t_1();
@@ -30,6 +33,9 @@ int main()
         test_concur_switch_1();
         test_concur_endl_1();
         test_concur_pword_1();
+        test_concur_assign_tie_target_1();
+        test_concur_copy_tie_source_1();
+        test_concur_attach_detach_1();
 
         test_istream_sync_char_1();
         test_istream_sync_wchar_t_1();

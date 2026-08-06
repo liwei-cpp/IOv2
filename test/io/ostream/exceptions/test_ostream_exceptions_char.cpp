@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <device/file_device.h>
 #include <device/mem_device.h>
 #include <io/traits/char_and_str.h>
@@ -256,6 +257,139 @@ void test_ostream_exceptions_char_4()
         helper.operator()<IOv2::ostream>();
         helper.operator()<IOv2::iostream>();
         helper.operator()<IOv2::istream>();
+    }
+
+    dump_info("Done\n");
+}
+
+// Copy construction reads the source under the source's io_mutex(), taken in a mem-initializer
+// that delegates to a private constructor -- one full-expression, so the lock spans every
+// subobject's initialization instead of being released after the first one. The other half of
+// that idiom is unwinding: when copying a move-only converter kernel throws, the lock temporary
+// must be destroyed too, or the source stays locked for good and every later tie flush on it
+// silently skips. Checked from another thread, because io_mutex() is recursive and a try_lock()
+// on the thread that leaked it would succeed and prove nothing.
+void test_ostream_exceptions_char_5()
+{
+    dump_info("Test ostream<char> exceptions case 5...");
+
+    const std::string f1 = "test_ostream_exceptions_char_5_1.txt";
+    const std::string f2 = "test_ostream_exceptions_char_5_2.txt";
+
+    auto unlocked = [](auto& s)
+    {
+        bool res = false;
+        std::thread t([&s, &res]
+        {
+            if (s.io_mutex().try_lock())
+            {
+                res = true;
+                s.io_mutex().unlock();
+            }
+        });
+        t.join();
+        return res;
+    };
+
+    {
+        file_guard g1(f1);
+
+        auto helper = [&]<template<typename, typename> class T>()
+        {
+            T<IOv2::ofile_device<char>, char> src(IOv2::ofile_device<char>{f1});
+            VERIFY(unlocked(src));
+
+            bool threw = false;
+            try { auto copy = src; (void)copy; }  // NOLINT(performance-unnecessary-copy-initialization)
+            catch (const IOv2::cvt_error&) { threw = true; }
+
+            VERIFY(threw);
+            VERIFY(unlocked(src));
+        };
+
+        helper.operator()<IOv2::ostream>();
+        helper.operator()<IOv2::iostream>();
+    }
+
+    {
+        file_guard g2(f2, std::string("hello world"));
+
+        IOv2::istream<IOv2::ifile_device<char>, char> src(IOv2::ifile_device<char>{f2});
+        VERIFY(unlocked(src));
+
+        bool threw = false;
+        try { auto copy = src; (void)copy; }  // NOLINT(performance-unnecessary-copy-initialization)
+        catch (const IOv2::cvt_error&) { threw = true; }
+
+        VERIFY(threw);
+        VERIFY(unlocked(src));
+
+        // The source is still usable: a failed copy must not disturb it either.
+        std::string got;
+        src >> got;
+        VERIFY(got == "hello");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_ostream_exceptions_char_6()
+{
+    dump_info("Test ostream<char> exceptions case 6...");
+
+    // flush() must report a failed stream the same way endl/ends do. It used to return early,
+    // before its try block, so on a failed stream it flushed nothing, set no bit and threw
+    // nothing -- bypassing the exception mask entirely and turning `os << flush` into a silent
+    // no-op exactly when the caller had asked to be told about failures.
+
+    // Without the bit in the mask the failure is recorded but not thrown, as everywhere else.
+    {
+        IOv2::ostream<IOv2::mem_device<char>, char> os(IOv2::mem_device<char>{});
+        os.put('a');
+        os.setstate(IOv2::ios_defs::strfailbit);
+
+        bool threw = false;
+        try { os.flush(); }
+        catch (const IOv2::stream_error&) { threw = true; }
+
+        VERIFY(!threw);
+        VERIFY(os.rdstate() == IOv2::ios_defs::strfailbit);
+    }
+
+    // With the bit masked in, all four flush spellings must throw.
+    {
+        IOv2::ostream<IOv2::mem_device<char>, char> os(IOv2::mem_device<char>{});
+        os.put('a');
+        os.exceptions(IOv2::ios_defs::strfailbit);
+        try { os.setstate(IOv2::ios_defs::strfailbit); }
+        catch (const IOv2::stream_error&) {}
+        VERIFY(!static_cast<bool>(os));
+
+        auto throws = [&os](auto op)
+        {
+            bool threw = false;
+            try { op(os); }
+            catch (const IOv2::stream_error&) { threw = true; }
+            return threw;
+        };
+
+        VERIFY(throws([](auto& s) { s.flush(); }));
+        VERIFY(throws([](auto& s) { s << IOv2::flush; }));
+        VERIFY(throws([](auto& s) { s << IOv2::endl; }));
+        VERIFY(throws([](auto& s) { s << IOv2::ends; }));
+    }
+
+    // A good stream is untouched by all of this.
+    {
+        IOv2::ostream<IOv2::mem_device<char>, char> os(IOv2::mem_device<char>{});
+        os.exceptions(IOv2::ios_defs::strfailbit);
+        os.put('a');
+        os.flush();
+        os << IOv2::flush;
+
+        VERIFY(static_cast<bool>(os));
+        VERIFY(os.rdstate() == IOv2::ios_defs::goodbit);
+        VERIFY(os.detach().first.str() == "a");
     }
 
     dump_info("Done\n");

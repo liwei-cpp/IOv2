@@ -714,9 +714,11 @@ struct ostream_operators
     void flush(this TSelf& self)
     {
         std::lock_guard guard(self.io_mutex());
-        if (!static_cast<bool>(self)) return;
         try
         {
+            if (!static_cast<bool>(self))
+                throw stream_error("ostream flush fail: Invalid ostream");
+
             if constexpr (dev_cpt::support_put<typename TSelf::device_type>)
             {
                 self.m_streambuf.flush();
