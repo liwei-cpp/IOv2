@@ -481,14 +481,14 @@ namespace
 // specialization itself rather than at the value-category and parse-context handling the operators
 // layer on top of it. The stream type drops out for the same reason it could never have carried
 // the direction -- an iostream satisfies istream_type and ostream_type alike.
-static_assert(  insertable <char, IOv2::_Put_time<char>> );
-static_assert( !extractable<char, IOv2::_Put_time<char>> );
-static_assert(  extractable<char, IOv2::_Get_time<char>> );
-static_assert( !insertable <char, IOv2::_Get_time<char>> );
+static_assert(  insertable <char, IOv2::put_time_t<char>> );
+static_assert( !extractable<char, IOv2::put_time_t<char>> );
+static_assert(  extractable<char, IOv2::get_time_t<char>> );
+static_assert( !insertable <char, IOv2::get_time_t<char>> );
 
 // The char_type has to match the manipulator's own: put_time/get_time carry the format string.
-static_assert( !insertable <wchar_t, IOv2::_Put_time<char>> );
-static_assert( !extractable<wchar_t, IOv2::_Get_time<char>> );
-static_assert(  insertable <wchar_t, IOv2::_Put_time<wchar_t>> );
-static_assert(  extractable<wchar_t, IOv2::_Get_time<wchar_t>> );
+static_assert( !insertable <wchar_t, IOv2::put_time_t<char>> );
+static_assert( !extractable<wchar_t, IOv2::get_time_t<char>> );
+static_assert(  insertable <wchar_t, IOv2::put_time_t<wchar_t>> );
+static_assert(  extractable<wchar_t, IOv2::get_time_t<wchar_t>> );
 }

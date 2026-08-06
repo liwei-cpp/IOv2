@@ -286,10 +286,10 @@ istream(TDevice, const TCreator&, locale<TChar>) -> istream<TDevice, TChar>;
 /**
  * @lang{ZH}
  * @brief 跳过空白的操纵符对象，用法为 `is >> IOv2::ws`；类型是个空标签，逻辑全在
- *        `io_traits<TChar, _Ws>::sread` 里。
+ *        `io_traits<TChar, ws_t>::sread` 里。
  *
- * 方向被编码进类型本身：`io_traits<TChar, _Ws>` 只提供 `sread`，`os << ws` 因此不满足插入运算符
- * 的约束、没有可行重载，编译不过。方向为何要这样表达，见 `io_traits<TChar, _Ws>`。
+ * 方向被编码进类型本身：`io_traits<TChar, ws_t>` 只提供 `sread`，`os << ws` 因此不满足插入运算符
+ * 的约束、没有可行重载，编译不过。方向为何要这样表达，见 `io_traits<TChar, ws_t>`。
  * @note 本类型没有 `operator()`：单向操纵符的逻辑只需写一处，直接写在扩展点里即可，`is >> ws`
  *       于是成为唯一入口，异常统一由提取运算符转交 `handle_exception`。标准的 `std::ws(is)`
  *       直接调用形式因此不存在。
@@ -297,18 +297,18 @@ istream(TDevice, const TCreator&, locale<TChar>) -> istream<TDevice, TChar>;
  *
  * @lang{EN}
  * @brief The whitespace-skipping manipulator object, used as `is >> IOv2::ws`; its type is an
- *        empty tag, with all the logic in `io_traits<TChar, _Ws>::sread`.
+ *        empty tag, with all the logic in `io_traits<TChar, ws_t>::sread`.
  *
- * The direction is encoded in the type itself: `io_traits<TChar, _Ws>` provides only `sread`, so
+ * The direction is encoded in the type itself: `io_traits<TChar, ws_t>` provides only `sread`, so
  * `os << ws` leaves the insertion operator unsatisfied -- no viable overload, and it does not
- * compile. See `io_traits<TChar, _Ws>` for why the direction is expressed this way.
+ * compile. See `io_traits<TChar, ws_t>` for why the direction is expressed this way.
  * @note This type has no `operator()`: a one-way manipulator needs its logic in one place only,
  *       so it lives in the extension point directly. That makes `is >> ws` the sole entry and
  *       leaves exceptions to the extraction operator and `handle_exception`. The standard's
  *       `std::ws(is)` direct-call form therefore does not exist.
  * @endif
  */
-inline constexpr struct _Ws {} ws{};
+inline constexpr struct ws_t {} ws{};
 
 /**
  * @lang{ZH}
@@ -343,10 +343,10 @@ inline constexpr struct _Ws {} ws{};
  * @endif
  */
 template <typename TChar>
-struct io_traits<TChar, _Ws>
+struct io_traits<TChar, ws_t>
 {
     template <istream_type T>
-    static void sread(T& is, const _Ws&)
+    static void sread(T& is, const ws_t&)
     {
         std::lock_guard guard(is.io_mutex());
         try

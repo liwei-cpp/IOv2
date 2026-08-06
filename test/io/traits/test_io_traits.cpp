@@ -67,11 +67,11 @@ static_assert( !IOv2::detail::extractable<is_c, no_traits_t&> );
 static_assert( !insertable<os_c, no_traits_t> );
 static_assert( !extractable_lvalue<is_c, no_traits_t> );
 
-// The same rule, asked of a type that is streamable in the other direction: io_traits<char, _Ws>
+// The same rule, asked of a type that is streamable in the other direction: io_traits<char, ws_t>
 // is complete but has no swrite, so the failure is a missing member rather than an incomplete
 // type. Both paths must yield `false` too.
-static_assert( !insertable<os_c, IOv2::_Ws> );
-static_assert( !extractable_rvalue<is_c, IOv2::_Endl> );
+static_assert( !insertable<os_c, IOv2::ws_t> );
+static_assert( !extractable_rvalue<is_c, IOv2::endl_t> );
 
 // ---------------------------------------------------------------------------------------------
 // 2. Direction is decided by which member exists, not by the stream type.
@@ -79,10 +79,10 @@ static_assert( !extractable_rvalue<is_c, IOv2::_Endl> );
 // An iostream satisfies both istream_type and ostream_type, so it is the sharpest test that the
 // direction really comes from io_traits and not from a constraint on the stream.
 // ---------------------------------------------------------------------------------------------
-static_assert(  insertable<ios_c, IOv2::_Endl>  && !extractable_rvalue<is_c, IOv2::_Endl>  );
-static_assert(  insertable<ios_c, IOv2::_Ends>  && !extractable_rvalue<is_c, IOv2::_Ends>  );
-static_assert(  insertable<ios_c, IOv2::_Flush> && !extractable_rvalue<is_c, IOv2::_Flush> );
-static_assert(  extractable_rvalue<ios_c, IOv2::_Ws> && !insertable<os_c, IOv2::_Ws> );
+static_assert(  insertable<ios_c, IOv2::endl_t>  && !extractable_rvalue<is_c, IOv2::endl_t>  );
+static_assert(  insertable<ios_c, IOv2::ends_t>  && !extractable_rvalue<is_c, IOv2::ends_t>  );
+static_assert(  insertable<ios_c, IOv2::flush_t> && !extractable_rvalue<is_c, IOv2::flush_t> );
+static_assert(  extractable_rvalue<ios_c, IOv2::ws_t> && !insertable<os_c, IOv2::ws_t> );
 
 // nullptr is insertion-only, so the extraction concept rejects it.
 static_assert(  insertable<os_c, std::nullptr_t> );
@@ -111,7 +111,7 @@ static_assert(  extractable_lvalue<is_c, void (*)(IOv2::ios_base<char>&)> );
 static_assert(  extractable_lvalue<is_c, void (IOv2::ios_base<char>&)> );
 
 // The two-way manipulators work in both directions.
-static_assert(  insertable<os_c, IOv2::_Setw> && extractable_rvalue<is_c, IOv2::_Setw> );
+static_assert(  insertable<os_c, IOv2::setw_t> && extractable_rvalue<is_c, IOv2::setw_t> );
 
 // ---------------------------------------------------------------------------------------------
 // 3. Char-type mismatches are rejected, mirroring the overloads the standard deletes.
@@ -126,9 +126,9 @@ static_assert(  insertable<os_w, const char*> );
 
 // A fill character whose type differs from the stream's char_type. The old operator()-based
 // manipulators could not express this at declaration level; the member constraint can.
-static_assert( !insertable<os_c, IOv2::_Setfill<wchar_t>> );
-static_assert(  insertable<os_c, IOv2::_Setfill<char>>    );
-static_assert( !insertable<os_w, IOv2::_Setfill<char>>    );
+static_assert( !insertable<os_c, IOv2::setfill_t<wchar_t>> );
+static_assert(  insertable<os_c, IOv2::setfill_t<char>>    );
+static_assert( !insertable<os_w, IOv2::setfill_t<char>>    );
 
 // ---------------------------------------------------------------------------------------------
 // 4. The insertion side decays once, the extraction side never does.
@@ -150,7 +150,7 @@ static_assert(  extractable_lvalue<is_c, char[8]> );
 static_assert(  extractable_lvalue<is_c, int> );
 static_assert( !extractable_rvalue<is_c, int> );
 static_assert( !extractable_const <is_c, int> );
-static_assert(  extractable_rvalue<is_c, IOv2::_Setw> );
+static_assert(  extractable_rvalue<is_c, IOv2::setw_t> );
 
 // ---------------------------------------------------------------------------------------------
 // 6. The parse-context relay is transparent to detection.

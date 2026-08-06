@@ -33,7 +33,7 @@
  * ```
  *
  * **流形式**（操纵符用这一档；成员直接拿到流本身，**不加锁、不建哨兵**，需要就自己来——
- * `io_traits<TChar, _Ws>::sread` 就是自己加锁、自己构造哨兵、并自己 `catch` 的）：
+ * `io_traits<TChar, ws_t>::sread` 就是自己加锁、自己构造哨兵、并自己 `catch` 的）：
  * ```cpp
  * template <ostream_type T> static void swrite(T& s, const MyType& v);
  * template <istream_type T> static void sread (T& s, const MyType& v);
@@ -53,8 +53,8 @@
  *          运算符对流形式不加锁，它的 `try` / `catch` 在你的 `lock_guard` 之外；异常一旦逃出去，
  *          栈展开会先析构你那个局部的锁守卫，`handle_exception` 的置位就落到**解锁之后**，失败
  *          路径与成功路径对同一把 `io_mutex()` 的可见性时序于是对不上。因此凡是取了
- *          `io_mutex()` 的流形式成员——库内是 `io_traits<TChar, _Ws>::sread` 与
- *          `io_traits<TChar, _Endl>::swrite`——都在锁内自己 `catch` 并调 `handle_exception`。
+ *          `io_mutex()` 的流形式成员——库内是 `io_traits<TChar, ws_t>::sread` 与
+ *          `io_traits<TChar, endl_t>::swrite`——都在锁内自己 `catch` 并调 `handle_exception`。
  *          掩码命中时异常仍会逃到运算符那层再处理一遍，这是无害的：`handle_exception` 是幂等的
  *          （见 `io_base` 上的说明）。反过来，压根不加锁的流形式成员（`setw`、`setfill` 那些）
  *          两条路径同样不加锁，一致，交给运算符即可。
@@ -129,7 +129,7 @@
  * ```
  *
  * **Stream form** (used by manipulators; the member gets the stream itself and there is **no
- * lock and no sentry** -- do it yourself if you need one, as `io_traits<TChar, _Ws>::sread` does,
+ * lock and no sentry** -- do it yourself if you need one, as `io_traits<TChar, ws_t>::sread` does,
  * which takes the lock, builds the sentry and catches, all itself):
  * ```cpp
  * template <ostream_type T> static void swrite(T& s, const MyType& v);
@@ -156,7 +156,7 @@
  *          destroys that local guard first and `handle_exception` sets the state bits **after the
  *          unlock**, leaving the failure path inconsistent with the success path with respect to
  *          the same `io_mutex()`. Every stream-form member that takes `io_mutex()` -- in this
- *          library, `io_traits<TChar, _Ws>::sread` and `io_traits<TChar, _Endl>::swrite` --
+ *          library, `io_traits<TChar, ws_t>::sread` and `io_traits<TChar, endl_t>::swrite` --
  *          therefore catches under its own lock and calls `handle_exception` there. On a masked
  *          rethrow the exception still reaches the operator and is handled once more, which is
  *          harmless: `handle_exception` is idempotent (see its description on `io_base`).

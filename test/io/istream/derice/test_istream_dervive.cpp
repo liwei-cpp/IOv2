@@ -48,7 +48,7 @@ namespace
 {
 // istream_type requires io_state_and_exp for the same reason ostream_type does: code
 // constrained by the concept calls handle_exception() and operator bool directly
-// (_Ws::operator(), in_sentry's constructor). See the note on the concept.
+// (ws_t::operator(), in_sentry's constructor). See the note on the concept.
 struct StatelessIs : IOv2::ios_base<char>
                    , IOv2::stream_common_operators
                    , IOv2::istream_operators<char>
