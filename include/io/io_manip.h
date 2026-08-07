@@ -662,7 +662,7 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  * @lang{ZH}
  * @brief 构造按 @p fmt 写出 `*tmb` 的操纵符。
  * @param tmb 要写出的时间；允许为空，见下。
- * @param fmt `strftime` 风格的格式串；允许为空，见下。
+ * @param fmt `strftime` 风格的格式串，但不支持 `%Z` / `%z`（见下）；允许为空，见下。
  * @note 两个指针都会在写出前校验，为空时置流的失败位而非解引用；详见
  *       `io_traits<TChar, put_time_t<TChar>>::swrite`。
  * @note `put_time` 既不应用也不消耗 `io.width()`：填充与随后的 `width(0)` 由各自的 facet
@@ -683,6 +683,12 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *       `std::chrono` 类型再格式化，要求它整体自洽，上述用法在这里都会失败。从 `std::ostream`
  *       迁移"只格式化部分字段"的代码（如 `os << put_time(&t, "%H:%M")` 而 `t` 的日期未填）时
  *       需要注意这一点。
+ * @warning **`%Z` 与 `%z` 不受支持，且不会失败。** `std::tm` 没有可移植的时区字段，按
+ *          `timeio` 的既定规则，值提供不了的说明符退化为字面量：这两个说明符被**原样写出**
+ *          为 `%Z`、`%z`，流仍保持 `good()`。于是 `os << put_time(&t, "%H:%M %Z")` 得到
+ *          `01:02 %Z`，而 `std::put_time` 会写出当前时区的真实名称。这是 `put_time` 唯一一处
+ *          不置失败位的分歧，只能靠检查输出发现。退化本身与 `get_time` 对称——这样写出的内容
+ *          仍能被同一格式串读回，详见 `timeio` 与 `get_time`。
  * @note **`tm_wday` 与 `tm_yday` 不被读取。** 星期由 y/m/d 重新推算，与调用方填的值无关。
  *       这与 `strftime` 的 `%a`/`%A`（读 `tm_wday`）、`%j`（读 `tm_yday`）不同：若调用方填入
  *       与日期不符的值，标准库按该值输出，本库按真实日期输出，双方都不报错。
@@ -695,7 +701,8 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  * @lang{EN}
  * @brief Builds the manipulator that writes `*tmb` according to @p fmt.
  * @param tmb The time to write; may be null, see below.
- * @param fmt A `strftime`-style format string; may be null, see below.
+ * @param fmt A `strftime`-style format string, except that `%Z` / `%z` are unsupported (see
+ *            below); may be null, see below.
  * @note Both pointers are validated before the write, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see
  *       `io_traits<TChar, put_time_t<TChar>>::swrite`.
@@ -724,6 +731,14 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *       consistent; every one of those uses fails here. Keep this in mind when migrating code
  *       from `std::ostream` that formats only some fields, such as
  *       `os << put_time(&t, "%H:%M")` with the date left unset.
+ * @warning **`%Z` and `%z` are unsupported, and do not fail.** `std::tm` has no portable
+ *          time-zone field, and by `timeio`'s standing rule a specifier the value cannot supply
+ *          degrades to a literal: these two are **written out verbatim** as `%Z` and `%z`, with
+ *          the stream left `good()`. So `os << put_time(&t, "%H:%M %Z")` yields `01:02 %Z`,
+ *          where `std::put_time` writes the real name of the current zone. This is the one
+ *          `put_time` divergence that sets no failure bit, so it shows up only on inspecting
+ *          the output. The degradation itself is symmetric with `get_time`: what is written
+ *          still reads back through the same format string. See `timeio` and `get_time`.
  * @note **`tm_wday` and `tm_yday` are not read.** The weekday is recomputed from y/m/d,
  *       independently of whatever the caller stored. This differs from `strftime`, whose
  *       `%a`/`%A` read `tm_wday` and whose `%j` reads `tm_yday`: given a value inconsistent with
@@ -808,7 +823,7 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  * @lang{ZH}
  * @brief 构造按 @p fmt 解析时间并写入 `*tmb` 的操纵符。
  * @param tmb 接收解析结果的 `tm`；允许为空，见下。
- * @param fmt `strptime` 风格的格式串；允许为空，见下。
+ * @param fmt `strptime` 风格的格式串，但不支持 `%Z` / `%z`（见下）；允许为空，见下。
  * @note 两个指针都会在解析前校验，为空时置流的失败位而非解引用；详见
  *       `io_traits<TChar, get_time_t<TChar>>::sread`。
  * @note 格式串中未出现的字段保留 `*tmb` 原有的取值：解析上下文由 `*tmb` 铺好回退值，故
@@ -842,6 +857,13 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  * @note 插入侧不对称：`put_time` 要求 `*tmb` 的所有字段都在范围内、且日期组合真实存在，
  *       `std::tm t{}` 在那边会被拒绝并置 `strfailbit`。本函数接受它（见上一条）。详见
  *       `put_time`。
+ * @warning **`%Z` 与 `%z` 不受支持。** `std::tm` 没有可移植的时区字段，本函数使用的解析
+ *          上下文（`time_parse_context<TChar, true, true, false>`，见 `io/traits/tm.h`）
+ *          因此未激活时区字段组。按 `timeio` 的既定规则，上下文接不住的说明符不算错误，
+ *          而是退化为字面量：`%Z` 要求输入里真的出现 `%Z` 这两个字符。于是
+ *          `get_time(&t, "%H:%M %Z")` 读 `01:02 UTC` 会**整次提取失败**并置 `strfailbit`，
+ *          `*tmb` 保持不变；而 `std::get_time` 会解析出一个时区名再丢弃，看上去是成功的。
+ *          从 `std::istream` 迁移时，这类失败很容易被误判成输入数据有问题。详见 `timeio`。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
@@ -849,7 +871,8 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  * @lang{EN}
  * @brief Builds the manipulator that parses a time according to @p fmt into `*tmb`.
  * @param tmb The `tm` receiving the parsed result; may be null, see below.
- * @param fmt A `strptime`-style format string; may be null, see below.
+ * @param fmt A `strptime`-style format string, except that `%Z` / `%z` are unsupported (see
+ *            below); may be null, see below.
  * @note Both pointers are validated before parsing, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see `io_traits<TChar, get_time_t<TChar>>::sread`.
  * @note Fields absent from the format string keep the value they had in `*tmb`: the parse
@@ -894,6 +917,15 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  * @note The insertion side is not symmetric: `put_time` requires every field of `*tmb` to be in
  *       range and the date fields to form a day that exists, and rejects a `std::tm t{}` with
  *       `strfailbit`. This function accepts it (see the previous note). See `put_time`.
+ * @warning **`%Z` and `%z` are not supported.** `std::tm` has no portable time-zone field, so
+ *          the parse context this function uses (`time_parse_context<TChar, true, true, false>`,
+ *          see `io/traits/tm.h`) does not activate the time-zone field group. By `timeio`'s
+ *          standing rule a specifier the context cannot hold is not an error but degrades to a
+ *          literal: `%Z` requires the two characters `%Z` to actually appear in the input. So
+ *          `get_time(&t, "%H:%M %Z")` reading `01:02 UTC` fails the **whole extraction** with
+ *          `strfailbit` and leaves `*tmb` unchanged, where `std::get_time` parses a zone name,
+ *          discards it, and appears to have succeeded. Migrating from `std::istream`, such a
+ *          failure is easily misread as a problem with the input data. See `timeio`.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif
