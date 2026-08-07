@@ -38,6 +38,7 @@ void test_io_base_manipulators_get_time_char_4();
 void test_io_base_manipulators_get_time_char_5();
 void test_io_base_manipulators_get_time_char_6();
 void test_io_base_manipulators_get_time_char_7();
+void test_io_base_manipulators_get_time_char_8();
 void test_io_base_manipulators_get_time_wchar_t_1();
 void test_io_base_manipulators_get_time_wchar_t_2();
 
@@ -83,6 +84,7 @@ void test_io_base_manipulators()
     test_io_base_manipulators_get_time_char_5();
     test_io_base_manipulators_get_time_char_6();
     test_io_base_manipulators_get_time_char_7();
+    test_io_base_manipulators_get_time_char_8();
     test_io_base_manipulators_get_time_wchar_t_1();
     test_io_base_manipulators_get_time_wchar_t_2();
 }

@@ -459,6 +459,92 @@ void test_io_base_manipulators_get_time_char_7()
     dump_info("Done\n");
 }
 
+void test_io_base_manipulators_get_time_char_8()
+{
+    dump_info("Test ios_base<char> get_time case 8...");
+
+    // Weekday and week-number specifiers against a fallback date. A weekday states only a
+    // position within some week, so a date can be rebuilt from it only against a reference.
+    // That reference used to be January 1 of the deduced year -- "assume week number is 1" --
+    // which threw the fallback's month and day away and landed up to a full year off, with the
+    // stream still good(). It is now the fallback date itself, so the result stays within six
+    // days of what the caller passed in.
+    //
+    // All cases start from 2020-05-17, itself a Sunday.
+    struct { const char* fmt; const char* input;
+             int exp_mon, exp_mday, exp_wday; } wd[] = {
+        { "%a",        "Sun",       5, 17, 0 },   // already the right weekday: no movement at all
+        { "%A",        "Sunday",    5, 17, 0 },
+        { "%w",        "0",         5, 17, 0 },
+        { "%u",        "7",         5, 17, 0 },
+        { "%a",        "Mon",       5, 18, 1 },   // the nearest one forward, not week 1 of the year
+        { "%a",        "Wed",       5, 20, 3 },
+        { "%a",        "Sat",       5, 23, 6 },   // six days is the worst case
+        { "%U %w",     "20 0",      5, 17, 0 },   // a week number pins the week down on its own
+        { "%W %w",     "20 0",      5, 24, 0 },   // %W weeks start on Monday, so week 20 ends later
+        { "%V %a",     "20 Sun",    5, 17, 0 },   // ISO week 20 of 2020 really is 05-11..05-17
+        { "%V %u",     "20 7",      5, 17, 0 },
+        { "%d %a",     "09 Wed",    5,  9, 6 },   // an explicit day wins; the weekday is inert
+        { "%m %a",     "02 Sun",    2, 17, 1 },   // so does an explicit month
+    };
+
+    for (const auto& c : wd)
+    {
+        std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 0);    // 2020-05-17 09:08:07
+        IOv2::istream iss{IOv2::mem_device{std::string(c.input)}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, c.fmt);
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == 120);
+        VERIFY(parsed.tm_mon == c.exp_mon - 1);
+        VERIFY(parsed.tm_mday == c.exp_mday);
+        VERIFY(parsed.tm_wday == c.exp_wday);
+        VERIFY(parsed.tm_hour == 9 && parsed.tm_min == 8 && parsed.tm_sec == 7);
+    }
+
+    // %V without %G takes the year from the same deduction every other path uses, so a week
+    // number is never silently dropped. Deducing it from a century plus %y has to beat the
+    // expanded year %y leaves behind on its own (1985 here), which is why the ISO branch runs
+    // after the year has been settled rather than before.
+    struct { const char* fmt; const char* input;
+             int exp_year, exp_mon, exp_mday; } iso[] = {
+        { "%G-%V-%u",   "2021-20-7", 2021, 5, 23 },
+        { "%Y %V %u",   "2021 20 7", 2021, 5, 23 },   // %Y stands in for a missing %G
+        { "%V %u",      "20 7",      2020, 5, 17 },   // and so does the fallback year
+        { "%C%y %V %u", "2085 20 7", 2085, 5, 20 },
+    };
+
+    for (const auto& c : iso)
+    {
+        std::tm parsed = test_tm(0, 0, 0, 17, 4, 120, 0, 0, 0);
+        IOv2::istream iss{IOv2::mem_device{std::string(c.input)}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, c.fmt);
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == c.exp_year - 1900);
+        VERIFY(parsed.tm_mon == c.exp_mon - 1);
+        VERIFY(parsed.tm_mday == c.exp_mday);
+    }
+
+    // An inert weekday must not keep the day out of the clamp: the fallback day is still a
+    // fallback, so January 31 plus %m=02 lands on the last day of February rather than
+    // reaching year_month_day as a nonexistent February 31.
+    {
+        std::tm parsed = test_tm(0, 0, 0, 31, 0, 120, 0, 0, 0);    // 2020-01-31, a leap year
+        IOv2::istream iss{IOv2::mem_device{std::string("02 Sun")}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, "%m %a");
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == 120 && parsed.tm_mon == 1 && parsed.tm_mday == 29);
+    }
+    {
+        std::tm parsed = test_tm(0, 0, 0, 31, 0, 121, 0, 0, 0);    // 2021-01-31, not a leap year
+        IOv2::istream iss{IOv2::mem_device{std::string("02 Sun")}, IOv2::locale<char>("C")};
+        iss >> IOv2::get_time(&parsed, "%m %a");
+        VERIFY(!iss.str_fail());
+        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 1 && parsed.tm_mday == 28);
+    }
+
+    dump_info("Done\n");
+}
+
 void test_io_base_manipulators_get_time_wchar_t_2()
 {
     dump_info("Test ios_base<wchar_t> get_time case 2...");

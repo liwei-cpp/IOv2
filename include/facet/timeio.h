@@ -175,9 +175,15 @@ struct date_parse_helper<CharT, true>
      * 按以下优先级尝试各种推算路径：
      * 1. 年 + 月 + 日；
      * 2. 年 + 年内第几天（`%j`）；
-     * 3. ISO-8601 周日期（`%G`/`%Y` + `%V` + 星期）；
+     * 3. ISO-8601 周日期（`%V` + 星期，年份取 `%G`，无 `%G` 时取上一步推算出的年份）；
      * 4. 根据周序号（`%U`/`%W`）和星期推算；
-     * 5. 仅根据年份或世纪等做尽力推算。
+     * 5. 仅有星期时，按回退日期就近推算；
+     * 6. 仅根据年份或世纪等做尽力推算。
+     *
+     * 只有星期、没有任何周号、也没有月与日时（路径 5），星期解析为**回退日期当天或之后**第一个
+     * 匹配的日子。一个星期几只说明它在某一周里的位置，定位不到具体日期，所以必须补一个基准；
+     * 取回退日期作基准，结果与回退值至多相差 6 天，而不会跳到当年碰巧匹配的某一周去。月或日
+     * 只要有一个来自输入，星期就不再参与推算，缺的那个仍按回退值补齐。
      *
      * 若日不是从输入解析或推算出来的，而是 `set_date_hint()` / 默认构造留下的回退值，则它在
      * 超出推算月份的天数时会被夹到该月最后一天。回退值的作用只是补齐格式串没说的字段，不应
@@ -194,9 +200,19 @@ struct date_parse_helper<CharT, true>
      * The following deduction paths are tried in priority order:
      * 1. year + month + day;
      * 2. year + day-of-year (`%j`);
-     * 3. ISO-8601 week date (`%G`/`%Y` + `%V` + weekday);
+     * 3. ISO-8601 week date (`%V` + weekday, with the year taken from `%G`, or from the
+     *    year deduced by the previous step when `%G` is absent);
      * 4. deduction from week-of-year (`%U`/`%W`) and weekday;
-     * 5. best-effort deduction from year or century alone.
+     * 5. deduction from a lone weekday, relative to the fallback date;
+     * 6. best-effort deduction from year or century alone.
+     *
+     * A weekday with no week number and no month or day of its own (path 5) resolves to the
+     * first matching day **on or after the fallback date**. A weekday only states a position
+     * within some week, so locating a date from it needs a reference point; taking the
+     * fallback as that reference keeps the result within six days of it, rather than jumping
+     * to whichever week of the year happens to match. Once either the month or the day comes
+     * from the input, the weekday takes no part in the deduction and the missing one of the
+     * two is filled from the fallback as usual.
      *
      * When the day was neither parsed nor deduced from the input but is the fallback left
      * by `set_date_hint()` or by the default constructor, it is clamped to the last day of
@@ -218,24 +234,6 @@ struct date_parse_helper<CharT, true>
         {
             sys_days sd = sys_days{ year{m_year} / 1 / 1 } + days{ m_yday };
             return year_month_day{sd};
-        }
-
-        // ISO-8601 week date. Prefer the ISO year (%G); if it is absent but a
-        // Gregorian year (%Y) was supplied alongside %V and a weekday, fall back
-        // to that year instead of dropping the week number -- otherwise the
-        // deduction path below would silently default %V to week 1. The two
-        // fully-specified branches above (year+mon+mday, year+yday) already
-        // returned, so reaching here means the date is not pinned down by an
-        // explicit month/day or day-of-year.
-        if (m_have_iso_8601_week && m_have_wday && (m_have_iso_8601_year || m_have_year))
-        {
-            int iso_year = m_have_iso_8601_year ? m_iso_8601_year : m_year;
-            int iso_wd = (m_wday == 0 ? 7 : m_wday);
-            year_month_day jan4 = year{iso_year}/January/4;
-            weekday wd_jan4{sys_days{jan4}};
-            sys_days week1_monday = sys_days{jan4} - (wd_jan4 - Monday);
-            sys_days final = week1_monday + days{7 * (m_iso_8601_week - 1)} + days{iso_wd - 1};
-            return year_month_day{final};
         }
 
         auto deduced_year = m_year;
@@ -334,16 +332,35 @@ struct date_parse_helper<CharT, true>
                 deduced_year = m_era_items.begin()->from_year;
         }
 
+        // ISO-8601 week date. Prefer the ISO year (%G); otherwise use the year deduced
+        // above -- an explicit %Y, a century plus %y, an era, or the fallback -- instead
+        // of dropping the week number. The two fully-specified branches above
+        // (year+mon+mday, year+yday) already returned, so reaching here means the date is
+        // not pinned down by an explicit month/day or day-of-year.
+        if (m_have_iso_8601_week && m_have_wday)
+        {
+            int iso_year = m_have_iso_8601_year ? m_iso_8601_year : deduced_year;
+            int iso_wd = (m_wday == 0 ? 7 : m_wday);
+            year_month_day jan4 = year{iso_year}/January/4;
+            weekday wd_jan4{sys_days{jan4}};
+            sys_days week1_monday = sys_days{jan4} - (wd_jan4 - Monday);
+            sys_days final = week1_monday + days{7 * (m_iso_8601_week - 1)} + days{iso_wd - 1};
+            return year_month_day{final};
+        }
+
         auto deduced_month = m_month;
         auto deduced_mday = m_mday;
         // True when no deduction path below can touch the day, i.e. the day is whatever
         // set_date_hint() or the default constructor left behind. Every assignment to
         // deduced_mday sits inside one of those paths and is guarded by !m_have_mday.
+        // A lone weekday, with no week number and no month or day of its own, is resolved
+        // against the fallback date rather than against January 1: see the branch below.
+        const bool wday_snaps = m_have_wday && !m_have_mon && !m_have_mday
+            && !(m_have_yday || m_have_uweek || m_have_wweek);
         const bool mday_is_fallback = !m_have_mday
-            && !(m_have_yday || m_have_wday || m_have_uweek || m_have_wweek);
+            && !(m_have_yday || m_have_uweek || m_have_wweek || wday_snaps);
         int deduced_yday = static_cast<int>(m_yday);
         bool have_yday = m_have_yday;
-        auto deduced_wday = m_wday;
         // Deduce month / mday. When neither is given, both are derived from the
         // day-of-year. When the month IS given but the day is not, the day-of-month
         // is computed relative to the *reported* month (deduced_month) rather than
@@ -381,27 +398,24 @@ struct date_parse_helper<CharT, true>
                 if (!m_have_mon) deduced_month = t_mon;
                 if (!m_have_mday) deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
             }
-            else if (m_have_wday)
+            else if (wday_snaps)
             {
-                // assume week number is 1;
-                auto j1_wday = day_of_the_week(deduced_year, 1, 1);
-
-                if (!have_yday)
-                {
-                    deduced_yday = ((7 - (j1_wday)) % 7 + (deduced_wday + 7) % 7);
-                    have_yday = true;
-                }
-
-                if (!m_have_mday || !m_have_mon)
-                {
-                    int t_mon = 0;
-                    while (t_mon < 12 && s_mon_yday[isleap(deduced_year)][t_mon] <= deduced_yday)
-                        t_mon++;
-                    if (!m_have_mon)
-                        deduced_month = t_mon;
-                    if (!m_have_mday)
-                        deduced_mday = (deduced_yday - s_mon_yday[isleap(deduced_year)][deduced_month - 1] + 1);
-                }
+                // A weekday on its own cannot locate a date; only the offset within some
+                // week is known. Resolve it as the first matching weekday on or after the
+                // fallback date, so the result stays within six days of the fallback
+                // instead of jumping to whichever week of the year happens to match.
+                auto last = static_cast<unsigned>(
+                    year_month_day_last{year{deduced_year},
+                                        month_day_last{month{static_cast<unsigned>(deduced_month)}}}
+                        .day());
+                sys_days base{year{deduced_year}
+                              / month{static_cast<unsigned>(deduced_month)}
+                              / day{std::min<unsigned>(deduced_mday, last)}};
+                auto cur = static_cast<int>(weekday{base}.c_encoding());
+                year_month_day snapped{base + days{(static_cast<int>(m_wday) - cur + 7) % 7}};
+                deduced_year  = int(snapped.year());
+                deduced_month = static_cast<uint8_t>(static_cast<unsigned>(snapped.month()));
+                deduced_mday  = static_cast<uint8_t>(static_cast<unsigned>(snapped.day()));
             }
             else if (m_have_uweek || m_have_wweek)
             {
