@@ -267,7 +267,8 @@ public:
     istream& operator=(const istream& other)
     {
         static_assert(std::is_nothrow_move_assignable_v<istream<TDevice, TChar>>,
-                      "copy assignment's strong guarantee requires a noexcept move assignment");
+                      "the noexcept on move assignment must stay: it is what keeps the commit "
+                      "step below from leaving *this half-updated");
         if (this != &other)
         {
             istream tmp(other);
