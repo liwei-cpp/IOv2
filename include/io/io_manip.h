@@ -815,6 +815,11 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *       `%H:%M` 这样只解析时间的格式串不会动到日期。`tm_wday` / `tm_yday` 总是由最终日期
  *       重新推算，`tm_isdst` 总是置为 -1——没有格式符携带夏令时信息，而沿用调用方的旧值会
  *       在日期被改写后变成错的；-1 表示"未知，交由 C 库判定"。
+ * @note 上一条讲的是"格式串没提到的字段"，不是"格式符与 `tm` 成员一一对应"。周号说明符
+ *       (`%U`/`%W`/`%V`) 解析出的是整整一周，即便格式串里没有 `%m`/`%d`，月与日也会被移到那
+ *       一周里去——回退值只填格式串真正确定不了的字段。只有星期而没有周号时，日期取回退日期
+ *       当天或之后第一个匹配的日子，与 `*tmb` 至多相差 6 天；
+ *       见 `date_parse_helper::compute_ymd()`。
  * @note 被读作回退值的只有 `tm_year`、`tm_mon`、`tm_mday`、`tm_hour`、`tm_min`、`tm_sec` 六项。
  *       因此格式串若已解析出全部六项，结果与 `*tmb` 传入时的内容**无关**；只有格式串留下空缺
  *       时，传入的内容才会影响结果。
@@ -853,6 +858,13 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *       resulting date, and `tm_isdst` is always set to -1 -- no format specifier carries DST
  *       information, and carrying the caller's old value over would be wrong once the date has
  *       been rewritten; -1 means "unknown, let the C library work it out".
+ * @note The previous note is about fields the format string says nothing about, not about a
+ *       one-to-one mapping between specifiers and `tm` members. A week-number specifier
+ *       (`%U`/`%W`/`%V`) parses a whole week, so it moves the month and day into that week
+ *       even with no `%m`/`%d` in the format string -- a fallback only fills in what the
+ *       format string genuinely cannot determine. A weekday with no week number moves the
+ *       date to the first matching day on or after the one in `*tmb`, so at most six days;
+ *       see `date_parse_helper::compute_ymd()`.
  * @note Only `tm_year`, `tm_mon`, `tm_mday`, `tm_hour`, `tm_min` and `tm_sec` are read as
  *       fallbacks. A format string that parses all six therefore makes the result **independent**
  *       of what `*tmb` held on entry; the incoming contents matter only where the format string
