@@ -9,8 +9,6 @@ var ostream_8h =
     [ "IOv2::io_traits< TChar, flush_t >", "structIOv2_1_1io__traits_3_01TChar_00_01flush__t_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01flush__t_01_4" ],
     [ "ostream", "ostream_8h.html#aec9b9844a03ee835401a7749bc90f88b", null ],
     [ "ostream", "ostream_8h.html#af9f6c1e9c355ef4ae2db83070aa9c5aa", null ],
-    [ "ostream", "ostream_8h.html#a71d298911d0688110350458b8c012c9e", null ],
-    [ "ostream", "ostream_8h.html#abeaff59fe3c7a840560cf5e237f535f0", null ],
     [ "endl", "ostream_8h.html#a7929840205374feca6b505f968e57ff5", null ],
     [ "ends", "ostream_8h.html#acc71fe01b93ec967067999d552452bab", null ],
     [ "flush", "ostream_8h.html#ad6174b7289d2487b638d51cda9b9fe9a", null ]

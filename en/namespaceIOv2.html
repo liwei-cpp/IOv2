@@ -845,28 +845,12 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 <tr class="memitem:a9210e923a8b4ec67aefbc7a20ea1b2b3" id="r_a9210e923a8b4ec67aefbc7a20ea1b2b3"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, cvt_creator TCreator&gt; </td></tr>
 <tr class="memitem:a9210e923a8b4ec67aefbc7a20ea1b2b3"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9210e923a8b4ec67aefbc7a20ea1b2b3">iostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;) -&gt; <a class="el" href="classIOv2_1_1iostream.html">iostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1streambuf.html">streambuf</a>{std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> &gt;(), std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp; &gt;()})::char_type &gt;</td></tr>
 <tr class="separator:a9210e923a8b4ec67aefbc7a20ea1b2b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00cb8b9af6cfccc97b7a6614bae68762" id="r_a00cb8b9af6cfccc97b7a6614bae68762"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
-<tr class="memitem:a00cb8b9af6cfccc97b7a6614bae68762"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a00cb8b9af6cfccc97b7a6614bae68762">iostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1iostream.html">iostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
-<tr class="separator:a00cb8b9af6cfccc97b7a6614bae68762"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1c49d3e1796648f093af4ea25d76cd1f" id="r_a1c49d3e1796648f093af4ea25d76cd1f"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, cvt_creator TCreator, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1streambuf.html">streambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
-<tr class="memitem:a1c49d3e1796648f093af4ea25d76cd1f"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a1c49d3e1796648f093af4ea25d76cd1f">iostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1iostream.html">iostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
-<tr class="separator:a1c49d3e1796648f093af4ea25d76cd1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafd6cad725dd9894551b87e4509c4387" id="r_aafd6cad725dd9894551b87e4509c4387"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice&gt; </td></tr>
 <tr class="memitem:aafd6cad725dd9894551b87e4509c4387"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#aafd6cad725dd9894551b87e4509c4387">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>) -&gt; <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type &gt;</td></tr>
 <tr class="separator:aafd6cad725dd9894551b87e4509c4387"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a512cc6f7a31f0a32a29854c684e8e7b3" id="r_a512cc6f7a31f0a32a29854c684e8e7b3"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, cvt_creator TCreator&gt; </td></tr>
 <tr class="memitem:a512cc6f7a31f0a32a29854c684e8e7b3"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a512cc6f7a31f0a32a29854c684e8e7b3">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;) -&gt; <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a>{std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> &gt;(), std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp; &gt;()})::char_type &gt;</td></tr>
 <tr class="separator:a512cc6f7a31f0a32a29854c684e8e7b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9aca34e4e74b0ab69aa911719e75f9fa" id="r_a9aca34e4e74b0ab69aa911719e75f9fa"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
-<tr class="memitem:a9aca34e4e74b0ab69aa911719e75f9fa"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a9aca34e4e74b0ab69aa911719e75f9fa">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
-<tr class="separator:a9aca34e4e74b0ab69aa911719e75f9fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a93ab89097be35697e0669b44f7b6cfdc" id="r_a93ab89097be35697e0669b44f7b6cfdc"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, cvt_creator TCreator, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
-<tr class="memitem:a93ab89097be35697e0669b44f7b6cfdc"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a93ab89097be35697e0669b44f7b6cfdc">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
-<tr class="separator:a93ab89097be35697e0669b44f7b6cfdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6bdbad1d507a9b94931e610303c16862" id="r_a6bdbad1d507a9b94931e610303c16862"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a6bdbad1d507a9b94931e610303c16862">sync_with_stdio</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="structIOv2_1_1sync.html">sync</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a>)</td></tr>
 <tr class="separator:a6bdbad1d507a9b94931e610303c16862"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec9b9844a03ee835401a7749bc90f88b" id="r_aec9b9844a03ee835401a7749bc90f88b"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice&gt; </td></tr>
@@ -875,14 +859,6 @@ requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574
 <tr class="memitem:af9f6c1e9c355ef4ae2db83070aa9c5aa" id="r_af9f6c1e9c355ef4ae2db83070aa9c5aa"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, cvt_creator TCreator&gt; </td></tr>
 <tr class="memitem:af9f6c1e9c355ef4ae2db83070aa9c5aa"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#af9f6c1e9c355ef4ae2db83070aa9c5aa">ostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;) -&gt; <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>{std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> &gt;(), std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp; &gt;()})::char_type &gt;</td></tr>
 <tr class="separator:af9f6c1e9c355ef4ae2db83070aa9c5aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abeaff59fe3c7a840560cf5e237f535f0" id="r_abeaff59fe3c7a840560cf5e237f535f0"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
-<tr class="memitem:abeaff59fe3c7a840560cf5e237f535f0"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#abeaff59fe3c7a840560cf5e237f535f0">ostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
-<tr class="separator:abeaff59fe3c7a840560cf5e237f535f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71d298911d0688110350458b8c012c9e" id="r_a71d298911d0688110350458b8c012c9e"><td class="memTemplParams" colspan="2">template&lt;io_device TDevice, cvt_creator TCreator, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
-<tr class="memitem:a71d298911d0688110350458b8c012c9e"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a71d298911d0688110350458b8c012c9e">ostream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;, <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;) -&gt; <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td></tr>
-<tr class="separator:a71d298911d0688110350458b8c012c9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a5f1ed9f2a1dbf8aa1ed719d2920fa8" id="r_a3a5f1ed9f2a1dbf8aa1ed719d2920fa8"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
 requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
 <tr class="memitem:a3a5f1ed9f2a1dbf8aa1ed719d2920fa8"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a3a5f1ed9f2a1dbf8aa1ed719d2920fa8">ostream_insert</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">iter</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
@@ -1359,7 +1335,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div>
 </div>
 <a id="afc97cf34e1048a29a59490ce28251047" name="afc97cf34e1048a29a59490ce28251047"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc97cf34e1048a29a59490ce28251047">&#9670;&#160;</a></span>iostream() <span class="overload">[1/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afc97cf34e1048a29a59490ce28251047">&#9670;&#160;</a></span>iostream() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1379,7 +1355,7 @@ template&lt;io_device TDevice&gt; </div>
 </div>
 </div>
 <a id="a9210e923a8b4ec67aefbc7a20ea1b2b3" name="a9210e923a8b4ec67aefbc7a20ea1b2b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9210e923a8b4ec67aefbc7a20ea1b2b3">&#9670;&#160;</a></span>iostream() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9210e923a8b4ec67aefbc7a20ea1b2b3">&#9670;&#160;</a></span>iostream() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1408,76 +1384,8 @@ template&lt;io_device TDevice, cvt_creator TCreator&gt; </div>
 
 </div>
 </div>
-<a id="a1c49d3e1796648f093af4ea25d76cd1f" name="a1c49d3e1796648f093af4ea25d76cd1f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1c49d3e1796648f093af4ea25d76cd1f">&#9670;&#160;</a></span>iostream() <span class="overload">[3/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_device TDevice, cvt_creator TCreator, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1streambuf.html">streambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1iostream.html">IOv2::iostream</a> </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1iostream.html">iostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a00cb8b9af6cfccc97b7a6614bae68762" name="a00cb8b9af6cfccc97b7a6614bae68762"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a00cb8b9af6cfccc97b7a6614bae68762">&#9670;&#160;</a></span>iostream() <span class="overload">[4/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1iostream.html">IOv2::iostream</a> </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1iostream.html">iostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="aafd6cad725dd9894551b87e4509c4387" name="aafd6cad725dd9894551b87e4509c4387"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aafd6cad725dd9894551b87e4509c4387">&#9670;&#160;</a></span>istream() <span class="overload">[1/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aafd6cad725dd9894551b87e4509c4387">&#9670;&#160;</a></span>istream() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1497,7 +1405,7 @@ template&lt;io_device TDevice&gt; </div>
 </div>
 </div>
 <a id="a512cc6f7a31f0a32a29854c684e8e7b3" name="a512cc6f7a31f0a32a29854c684e8e7b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a512cc6f7a31f0a32a29854c684e8e7b3">&#9670;&#160;</a></span>istream() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a512cc6f7a31f0a32a29854c684e8e7b3">&#9670;&#160;</a></span>istream() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1520,74 +1428,6 @@ template&lt;io_device TDevice, cvt_creator TCreator&gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a>{std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> &gt;(), std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp; &gt;()})::char_type &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a93ab89097be35697e0669b44f7b6cfdc" name="a93ab89097be35697e0669b44f7b6cfdc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a93ab89097be35697e0669b44f7b6cfdc">&#9670;&#160;</a></span>istream() <span class="overload">[3/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_device TDevice, cvt_creator TCreator, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1istream.html">IOv2::istream</a> </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a9aca34e4e74b0ab69aa911719e75f9fa" name="a9aca34e4e74b0ab69aa911719e75f9fa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9aca34e4e74b0ab69aa911719e75f9fa">&#9670;&#160;</a></span>istream() <span class="overload">[4/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1istream.html">IOv2::istream</a> </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1istream.html">istream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2034,7 +1874,7 @@ requires (cvt_creator&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb54
 </div>
 </div>
 <a id="aec9b9844a03ee835401a7749bc90f88b" name="aec9b9844a03ee835401a7749bc90f88b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec9b9844a03ee835401a7749bc90f88b">&#9670;&#160;</a></span>ostream() <span class="overload">[1/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aec9b9844a03ee835401a7749bc90f88b">&#9670;&#160;</a></span>ostream() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2054,7 +1894,7 @@ template&lt;io_device TDevice&gt; </div>
 </div>
 </div>
 <a id="af9f6c1e9c355ef4ae2db83070aa9c5aa" name="af9f6c1e9c355ef4ae2db83070aa9c5aa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af9f6c1e9c355ef4ae2db83070aa9c5aa">&#9670;&#160;</a></span>ostream() <span class="overload">[2/4]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af9f6c1e9c355ef4ae2db83070aa9c5aa">&#9670;&#160;</a></span>ostream() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2077,74 +1917,6 @@ template&lt;io_device TDevice, cvt_creator TCreator&gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>{std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> &gt;(), std::declval&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp; &gt;()})::char_type &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a71d298911d0688110350458b8c012c9e" name="a71d298911d0688110350458b8c012c9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71d298911d0688110350458b8c012c9e">&#9670;&#160;</a></span>ostream() <span class="overload">[3/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_device TDevice, cvt_creator TCreator, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1ostreambuf.html">ostreambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a> </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="abeaff59fe3c7a840560cf5e237f535f0" name="abeaff59fe3c7a840560cf5e237f535f0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abeaff59fe3c7a840560cf5e237f535f0">&#9670;&#160;</a></span>ostream() <span class="overload">[4/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TDevice::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classIOv2_1_1ostream.html">IOv2::ostream</a> </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> -&gt;  <a class="el" href="classIOv2_1_1ostream.html">ostream</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
