@@ -123,6 +123,10 @@ public:
      * @param dev 底层设备。
      * @param loc 本流的 locale。
      * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @note 本重载要求 @p loc 的字符类型与设备的 `char_type` 一致。约束落在**构造函数**上而不是
+     *       只落在推导指引上：构造函数生成的隐式推导指引会继承它的约束，故 CTAD 与显式写出
+     *       模板实参这两条路径同时被挡住；只约束推导指引则挡不住后者，不匹配的组合会一路走到
+     *       转换器内部才失败。
      * @endif
      *
      * @lang{EN}
@@ -131,9 +135,16 @@ public:
      * @param loc The stream's locale.
      * @throw device_error If the device cannot answer the queries the converter initialization
      *        needs; see the default constructor for why this is not reported as state.
+     * @note This overload requires @p loc's character type to match the device's `char_type`.
+     *       The constraint sits on the **constructor** rather than only on a deduction guide,
+     *       because the implicit guide a constructor generates inherits its constraints: that
+     *       closes both CTAD and explicitly-written template arguments. Constraining only the
+     *       guide leaves the latter open, and a mismatched pair then fails deep inside the
+     *       converter instead.
      * @endif
      */
     iostream(TDevice dev, IOv2::locale<char_type> loc)
+        requires (std::is_same_v<typename TDevice::char_type, TChar>)
         : m_streambuf(std::move(dev))
         , m_locale(std::move(loc)) {}
 
@@ -145,6 +156,9 @@ public:
      * @param creator 转换器创建器。
      * @param loc     本流的 locale。
      * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @note 本重载要求 @p loc 的字符类型与**转换管线产出的** `char_type` 一致——那未必是设备的
+     *       字符类型，例如 char 设备配上编码转换器即产出 wchar_t 流。约束为何落在构造函数上，
+     *       见只带 locale 的那个重载。
      * @endif
      *
      * @lang{EN}
@@ -156,10 +170,18 @@ public:
      * @param loc     The stream's locale.
      * @throw device_error If the device cannot answer the queries the converter initialization
      *        needs; see the default constructor for why this is not reported as state.
+     * @note This overload requires @p loc's character type to match the `char_type` the
+     *       **converter pipeline produces**, which need not be the device's -- a char device
+     *       with a code converter yields a wide stream. See the locale-only overload for why the
+     *       constraint sits on the constructor.
      * @endif
      */
     template <cvt_creator TCreator>
     iostream(TDevice dev, const TCreator& creator, IOv2::locale<char_type> loc)
+        requires (std::is_same_v<
+                      typename decltype(streambuf{std::declval<TDevice>(),
+                                              std::declval<const TCreator&>()})::char_type,
+                      TChar>)
         : m_streambuf(std::move(dev), creator)
         , m_locale(std::move(loc)) {}
 
@@ -350,6 +372,11 @@ private:
     IOv2::locale<char_type> m_locale;
 };
 
+// Only these two need a guide: TChar appears nowhere in their parameters, so the implicit guide
+// cannot deduce it. The two overloads that take a locale deduce TChar from it through their own
+// implicit guide, which inherits the constraint written on the constructor -- repeating that
+// constraint here would just duplicate it, and the constructor's copy is the one that also covers
+// explicitly-written template arguments.
 template <io_device TDevice>
 iostream(TDevice) -> iostream<TDevice, typename TDevice::char_type>;
 
@@ -359,14 +386,4 @@ iostream(TDevice, const TCreator&)
                 typename decltype(streambuf{std::declval<TDevice>(),
                                             std::declval<const TCreator&>()})::char_type>;
 
-template <io_device TDevice, typename TChar>
-    requires (std::is_same_v<typename TDevice::char_type, TChar>)
-iostream(TDevice, locale<TChar>) -> iostream<TDevice, TChar>;
-
-template <io_device TDevice, cvt_creator TCreator, typename TChar>
-    requires (std::is_same_v<
-                  typename decltype(streambuf{std::declval<TDevice>(),
-                                              std::declval<const TCreator&>()})::char_type,
-                  TChar>)
-iostream(TDevice, const TCreator&, locale<TChar>) -> iostream<TDevice, TChar>;
 }
