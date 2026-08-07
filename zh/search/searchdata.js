@@ -1,10 +1,10 @@
 var indexSectionsWithContent =
 {
   0: "_abcdefghiklmnoprstuvwxz~扩方格解错",
-  1: "_abcdefhilmnoprstvz",
+  1: "_abcdefghilmnoprstvwz",
   2: "is",
   3: "acdfhilmnoprstvz",
-  4: "_abcdefghiklmnoprstuvwxz~",
+  4: "abcdefghiklmnoprstuvwxz~",
   5: "_abcdefghilmnoprstuvwx",
   6: "cdefikmoprstv",
   7: "fhip",

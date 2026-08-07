@@ -1,3 +1,3 @@
 <map id="类继承关系图" name="类继承关系图">
-<area shape="rect" id="Node000000" href="$classIOv2_1_1cvt__writer.html" title=" " alt="" coords="5,5,187,45"/>
+<area shape="rect" id="Node000000" href="$structIOv2_1_1flush__t.html" title="刷新流的操纵符对象，用法为 os &lt;&lt; IOv2::flush；类型是个空标签，逻辑全在 io_traits&lt;TChar, flush_t&gt;::swrite 里。方向为何要用 io_traits 成员的..." alt="" coords="5,5,108,31"/>
 </map>

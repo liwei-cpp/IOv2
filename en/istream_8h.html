@@ -417,11 +417,11 @@ This graph shows which files directly or indirectly include this file:</div>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html">IOv2::istream&lt; TDevice, TChar &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1__Ws.html">IOv2::_Ws</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whitespace-skipping manipulator object, used as <code>is &gt;&gt; <a class="el" href="namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c">IOv2::ws</a></code>; its type is an empty tag, with all the logic in <code><a class="el" href="structIOv2_1_1io__traits.html" title="The extension point that attaches read/write logic for a TChar stream to a type T....">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1__Ws.html" title="The whitespace-skipping manipulator object, used as is &gt;&gt; IOv2::ws; its type is an empty tag,...">_Ws</a>&gt;::sread</code>.  <a href="structIOv2_1_1__Ws.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ws__t.html">IOv2::ws_t</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whitespace-skipping manipulator object, used as <code>is &gt;&gt; <a class="el" href="namespaceIOv2.html#acf808d12ab0d83facf8beade807de602">IOv2::ws</a></code>; its type is an empty tag, with all the logic in <code><a class="el" href="structIOv2_1_1io__traits.html" title="The extension point that attaches read/write logic for a TChar stream to a type T....">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1ws__t.html" title="The whitespace-skipping manipulator object, used as is &gt;&gt; IOv2::ws; its type is an empty tag,...">ws_t</a>&gt;::sread</code>.  <a href="structIOv2_1_1ws__t.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html">IOv2::io_traits&lt; TChar, _Ws &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension-point specialization for <code>ws</code>: provides only <code>sread</code>, which skips the whitespace characters that follow in the stream.  <a href="structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4.html">IOv2::io_traits&lt; TChar, ws_t &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extension-point specialization for <code>ws</code>: provides only <code>sread</code>, which skips the whitespace characters that follow in the stream.  <a href="structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -448,8 +448,8 @@ requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a269e40673871f7fa97e10a1cfc2a111c" id="r_a269e40673871f7fa97e10a1cfc2a111c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">struct</a> <a class="el" href="structIOv2_1_1__Ws.html">IOv2::_Ws</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c">IOv2::ws</a></td></tr>
-<tr class="separator:a269e40673871f7fa97e10a1cfc2a111c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf808d12ab0d83facf8beade807de602" id="r_acf808d12ab0d83facf8beade807de602"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">struct</a> <a class="el" href="structIOv2_1_1ws__t.html">IOv2::ws_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#acf808d12ab0d83facf8beade807de602">IOv2::ws</a></td></tr>
+<tr class="separator:acf808d12ab0d83facf8beade807de602"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

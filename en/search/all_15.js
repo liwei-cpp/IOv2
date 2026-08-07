@@ -9,5 +9,6 @@ var searchData=
   ['widen_5fseq_6',['widen_seq',['../classIOv2_1_1detail_1_1ctype__ops.html#a325e0de1e52893786bf9a41afe91756e',1,'IOv2::detail::ctype_ops']]],
   ['width_7',['width',['../classIOv2_1_1ios__base.html#afadad0d596cacdba60513cf27281f4af',1,'IOv2::ios_base::width() const'],['../classIOv2_1_1ios__base.html#a599b72fe4cfa5fd32b4b900352b5e7a4',1,'IOv2::ios_base::width(std::ptrdiff_t wide)']]],
   ['write_8',['write',['../structIOv2_1_1ostream__operators.html#a830aa88220a9ce16592ca1f200f16cff',1,'IOv2::ostream_operators']]],
-  ['ws_9',['ws',['../namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c',1,'IOv2']]]
+  ['ws_9',['ws',['../namespaceIOv2.html#acf808d12ab0d83facf8beade807de602',1,'IOv2']]],
+  ['ws_5ft_10',['ws_t',['../structIOv2_1_1ws__t.html',1,'IOv2']]]
 ];

@@ -5,5 +5,5 @@ var searchData=
   ['wcin_2',['wcin',['../namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858',1,'IOv2']]],
   ['wclog_3',['wclog',['../namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff',1,'IOv2']]],
   ['wcout_4',['wcout',['../namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce',1,'IOv2']]],
-  ['ws_5',['ws',['../namespaceIOv2.html#a269e40673871f7fa97e10a1cfc2a111c',1,'IOv2']]]
+  ['ws_5',['ws',['../namespaceIOv2.html#acf808d12ab0d83facf8beade807de602',1,'IOv2']]]
 ];

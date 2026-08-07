@@ -1,3 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$structIOv2_1_1__Setfill.html" title="The type of the setfill manipulator. Legal in both directions; see io_traits&lt;TChar,..." alt="" coords="5,5,184,31"/>
+<area shape="rect" id="Node000000" href="$classIOv2_1_1abs__runtime__cvt__imp.html" title=" " alt="" coords="5,5,252,60"/>
+<area shape="rect" id="Node000001" href="$classIOv2_1_1runtime__cvt__imp.html" title=" " alt="" coords="300,13,471,53"/>
+<area shape="poly" id="edge108_Node000000_Node000001" title=" " alt="" coords="266,30,300,30,300,35,266,35"/>
 </map>

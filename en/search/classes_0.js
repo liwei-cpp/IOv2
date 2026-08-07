@@ -7,19 +7,5 @@ var searchData=
   ['_5f_5fwcerr_4',['__wcerr',['../classIOv2_1_1____wcerr.html',1,'IOv2']]],
   ['_5f_5fwcin_5',['__wcin',['../classIOv2_1_1____wcin.html',1,'IOv2']]],
   ['_5f_5fwclog_6',['__wclog',['../classIOv2_1_1____wclog.html',1,'IOv2']]],
-  ['_5f_5fwcout_7',['__wcout',['../classIOv2_1_1____wcout.html',1,'IOv2']]],
-  ['_5fendl_8',['_Endl',['../structIOv2_1_1__Endl.html',1,'IOv2']]],
-  ['_5fends_9',['_Ends',['../structIOv2_1_1__Ends.html',1,'IOv2']]],
-  ['_5fflush_10',['_Flush',['../structIOv2_1_1__Flush.html',1,'IOv2']]],
-  ['_5fget_5fmoney_11',['_Get_money',['../structIOv2_1_1__Get__money.html',1,'IOv2']]],
-  ['_5fget_5ftime_12',['_Get_time',['../structIOv2_1_1__Get__time.html',1,'IOv2']]],
-  ['_5fput_5fmoney_13',['_Put_money',['../structIOv2_1_1__Put__money.html',1,'IOv2']]],
-  ['_5fput_5ftime_14',['_Put_time',['../structIOv2_1_1__Put__time.html',1,'IOv2']]],
-  ['_5fresetiosflags_15',['_Resetiosflags',['../structIOv2_1_1__Resetiosflags.html',1,'IOv2']]],
-  ['_5fsetbase_16',['_Setbase',['../structIOv2_1_1__Setbase.html',1,'IOv2']]],
-  ['_5fsetfill_17',['_Setfill',['../structIOv2_1_1__Setfill.html',1,'IOv2']]],
-  ['_5fsetiosflags_18',['_Setiosflags',['../structIOv2_1_1__Setiosflags.html',1,'IOv2']]],
-  ['_5fsetprecision_19',['_Setprecision',['../structIOv2_1_1__Setprecision.html',1,'IOv2']]],
-  ['_5fsetw_20',['_Setw',['../structIOv2_1_1__Setw.html',1,'IOv2']]],
-  ['_5fws_21',['_Ws',['../structIOv2_1_1__Ws.html',1,'IOv2']]]
+  ['_5f_5fwcout_7',['__wcout',['../classIOv2_1_1____wcout.html',1,'IOv2']]]
 ];

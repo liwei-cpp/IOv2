@@ -1,19 +1,5 @@
 var hierarchy =
 [
-    [ "IOv2::_Endl", "structIOv2_1_1__Endl.html", null ],
-    [ "IOv2::_Ends", "structIOv2_1_1__Ends.html", null ],
-    [ "IOv2::_Flush", "structIOv2_1_1__Flush.html", null ],
-    [ "IOv2::_Get_money< _MoneyT >", "structIOv2_1_1__Get__money.html", null ],
-    [ "IOv2::_Get_time< _CharT >", "structIOv2_1_1__Get__time.html", null ],
-    [ "IOv2::_Put_money< _MoneyT >", "structIOv2_1_1__Put__money.html", null ],
-    [ "IOv2::_Put_time< _CharT >", "structIOv2_1_1__Put__time.html", null ],
-    [ "IOv2::_Resetiosflags", "structIOv2_1_1__Resetiosflags.html", null ],
-    [ "IOv2::_Setbase", "structIOv2_1_1__Setbase.html", null ],
-    [ "IOv2::_Setfill< _CharT >", "structIOv2_1_1__Setfill.html", null ],
-    [ "IOv2::_Setiosflags", "structIOv2_1_1__Setiosflags.html", null ],
-    [ "IOv2::_Setprecision", "structIOv2_1_1__Setprecision.html", null ],
-    [ "IOv2::_Setw", "structIOv2_1_1__Setw.html", null ],
-    [ "IOv2::_Ws", "structIOv2_1_1__Ws.html", null ],
     [ "IOv2::abs_cvt< CurrentType, KernelType, InternalType, enable_positioning, enable_io_switch >", "classIOv2_1_1abs__cvt.html", [
       [ "IOv2::code_cvt< KernelType, wchar_t >", "classIOv2_1_1code__cvt.html", [
         [ "IOv2::code_cvt_stdio< KernelType >", "classIOv2_1_1code__cvt__stdio.html", null ]
@@ -161,6 +147,8 @@ var hierarchy =
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
     [ "IOv2::date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html", null ],
+    [ "IOv2::endl_t", "structIOv2_1_1endl__t.html", null ],
+    [ "IOv2::ends_t", "structIOv2_1_1ends__t.html", null ],
     [ "IOv2::ft_basic< timeio< CharT > >::era_entry", "structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html", null ],
     [ "IOv2::facet_create_pack<... >", "structIOv2_1_1facet__create__pack.html", null ],
     [ "IOv2::facet_create_pack_head< T >", "structIOv2_1_1facet__create__pack__head.html", null ],
@@ -171,6 +159,7 @@ var hierarchy =
     [ "std::false_type", null, [
       [ "IOv2::shared_ptr_to_impl< typename, typename >", "structIOv2_1_1shared__ptr__to__impl.html", null ]
     ] ],
+    [ "IOv2::flush_t", "structIOv2_1_1flush__t.html", null ],
     [ "IOv2::ft_basic< TFacet >", "classIOv2_1_1ft__basic.html", null ],
     [ "IOv2::ft_basic< collate< CharT > >", "classIOv2_1_1ft__basic.html", [
       [ "IOv2::collate_conf< CharT >", "classIOv2_1_1collate__conf.html", null ]
@@ -217,6 +206,9 @@ var hierarchy =
     [ "IOv2::ft_basic< timeio< char8_t > >", "classIOv2_1_1ft__basic.html", [
       [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", null ]
     ] ],
+    [ "IOv2::get_money_fn", "structIOv2_1_1get__money__fn.html", null ],
+    [ "IOv2::get_money_t< TMoney >", "structIOv2_1_1get__money__t.html", null ],
+    [ "IOv2::get_time_t< TChar >", "structIOv2_1_1get__time__t.html", null ],
     [ "std::hash< IOv2::detail::msg_key >", "structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4.html", null ],
     [ "IOv2::Crypt::hash_cvt_creator< TInt >", "structIOv2_1_1Crypt_1_1hash__cvt__creator.html", null ],
     [ "IOv2::in_sentry< TStream, involve_output >", "structIOv2_1_1in__sentry.html", null ],
@@ -251,24 +243,23 @@ var hierarchy =
     [ "IOv2::io_traits< char, unsigned char * >", "structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_01_5_01_4.html", null ],
     [ "IOv2::io_traits< char, unsigned char >", "structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_01_4.html", null ],
     [ "IOv2::io_traits< char, unsigned char[N]>", "structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_0fN_0e_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Endl >", "structIOv2_1_1io__traits_3_01TChar_00_01__Endl_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Ends >", "structIOv2_1_1io__traits_3_01TChar_00_01__Ends_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Flush >", "structIOv2_1_1io__traits_3_01TChar_00_01__Flush_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Get_money< TMoney > >", "structIOv2_1_1io__traits_3_01TChar_00_01__Get__money_3_01TMoney_01_4_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Get_time< TChar > >", "structIOv2_1_1io__traits_3_01TChar_00_01__Get__time_3_01TChar_01_4_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Put_money< TMoney > >", "structIOv2_1_1io__traits_3_01TChar_00_01__Put__money_3_01TMoney_01_4_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Put_time< TChar > >", "structIOv2_1_1io__traits_3_01TChar_00_01__Put__time_3_01TChar_01_4_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Resetiosflags >", "structIOv2_1_1io__traits_3_01TChar_00_01__Resetiosflags_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Setbase >", "structIOv2_1_1io__traits_3_01TChar_00_01__Setbase_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Setfill< _CharT > >", "structIOv2_1_1io__traits_3_01TChar_00_01__Setfill_3_01__CharT_01_4_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Setiosflags >", "structIOv2_1_1io__traits_3_01TChar_00_01__Setiosflags_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Setprecision >", "structIOv2_1_1io__traits_3_01TChar_00_01__Setprecision_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Setw >", "structIOv2_1_1io__traits_3_01TChar_00_01__Setw_01_4.html", null ],
-    [ "IOv2::io_traits< TChar, _Ws >", "structIOv2_1_1io__traits_3_01TChar_00_01__Ws_01_4.html", null ],
     [ "IOv2::io_traits< TChar, char * >", "structIOv2_1_1io__traits_3_01TChar_00_01char_01_5_01_4.html", null ],
     [ "IOv2::io_traits< TChar, char >", "structIOv2_1_1io__traits_3_01TChar_00_01char_01_4.html", null ],
     [ "IOv2::io_traits< TChar, const char * >", "structIOv2_1_1io__traits_3_01TChar_00_01const_01char_01_5_01_4.html", null ],
     [ "IOv2::io_traits< TChar, const TChar * >", "structIOv2_1_1io__traits_3_01TChar_00_01const_01TChar_01_5_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, endl_t >", "structIOv2_1_1io__traits_3_01TChar_00_01endl__t_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, ends_t >", "structIOv2_1_1io__traits_3_01TChar_00_01ends__t_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, flush_t >", "structIOv2_1_1io__traits_3_01TChar_00_01flush__t_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, get_money_t< TMoney > >", "structIOv2_1_1io__traits_3_01TChar_00_01get__money__t_3_01TMoney_01_4_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, get_time_t< TChar > >", "structIOv2_1_1io__traits_3_01TChar_00_01get__time__t_3_01TChar_01_4_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, put_money_t< TMoney > >", "structIOv2_1_1io__traits_3_01TChar_00_01put__money__t_3_01TMoney_01_4_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, put_time_t< TChar > >", "structIOv2_1_1io__traits_3_01TChar_00_01put__time__t_3_01TChar_01_4_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, resetiosflags_t >", "structIOv2_1_1io__traits_3_01TChar_00_01resetiosflags__t_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, setbase_t >", "structIOv2_1_1io__traits_3_01TChar_00_01setbase__t_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, setfill_t< TFill > >", "structIOv2_1_1io__traits_3_01TChar_00_01setfill__t_3_01TFill_01_4_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, setiosflags_t >", "structIOv2_1_1io__traits_3_01TChar_00_01setiosflags__t_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, setprecision_t >", "structIOv2_1_1io__traits_3_01TChar_00_01setprecision__t_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, setw_t >", "structIOv2_1_1io__traits_3_01TChar_00_01setw__t_01_4.html", null ],
     [ "IOv2::io_traits< TChar, std::basic_string< TChar, TTraits, TAlloc > >", "structIOv2_1_1io__traits_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html", null ],
     [ "IOv2::io_traits< TChar, std::nullptr_t >", "structIOv2_1_1io__traits_3_01TChar_00_01std_1_1nullptr__t_01_4.html", null ],
     [ "IOv2::io_traits< TChar, std::tm >", "structIOv2_1_1io__traits_3_01TChar_00_01std_1_1tm_01_4.html", null ],
@@ -277,6 +268,7 @@ var hierarchy =
     [ "IOv2::io_traits< TChar, TChar[N]>", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html", null ],
     [ "IOv2::io_traits< TChar, time_parse_context< TChar, true, true, false > >", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01false_01_4_01_4.html", null ],
     [ "IOv2::io_traits< TChar, TValue >", "structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, ws_t >", "structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4.html", null ],
     [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", [
       [ "IOv2::stdin_api< __cin, std_device< STDIN_FILENO >, char >", "classIOv2_1_1stdin__api.html", null ],
       [ "IOv2::stdin_api< __wcin, std_device< STDIN_FILENO >, wchar_t >", "classIOv2_1_1stdin__api.html", null ],
@@ -347,6 +339,10 @@ var hierarchy =
     [ "IOv2::prefix_tree< CharT, std::basic_string< CharT > >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, std::string >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::istreambuf_iterator< TStreamBuf >::proxy", "structIOv2_1_1istreambuf__iterator_1_1proxy.html", null ],
+    [ "IOv2::put_money_fn", "structIOv2_1_1put__money__fn.html", null ],
+    [ "IOv2::put_money_t< TMoney >", "structIOv2_1_1put__money__t.html", null ],
+    [ "IOv2::put_time_t< TChar >", "structIOv2_1_1put__time__t.html", null ],
+    [ "IOv2::resetiosflags_t", "structIOv2_1_1resetiosflags__t.html", null ],
     [ "IOv2::root_cvt< DeviceType, HasInBuffer >", "classIOv2_1_1root__cvt.html", null ],
     [ "IOv2::root_cvt< DeviceType, false >", "classIOv2_1_1root__cvt.html", [
       [ "IOv2::no_rb_root_cvt< DeviceType >", "classIOv2_1_1no__rb__root__cvt.html", null ]
@@ -366,6 +362,11 @@ var hierarchy =
         [ "IOv2::stream_error", "structIOv2_1_1stream__error.html", null ]
       ] ]
     ] ],
+    [ "IOv2::setbase_t", "structIOv2_1_1setbase__t.html", null ],
+    [ "IOv2::setfill_t< TFill >", "structIOv2_1_1setfill__t.html", null ],
+    [ "IOv2::setiosflags_t", "structIOv2_1_1setiosflags__t.html", null ],
+    [ "IOv2::setprecision_t", "structIOv2_1_1setprecision__t.html", null ],
+    [ "IOv2::setw_t", "structIOv2_1_1setw__t.html", null ],
     [ "IOv2::sing_temp< T >", "classIOv2_1_1sing__temp.html", null ],
     [ "IOv2::sing_temp< __cerr >", "classIOv2_1_1sing__temp.html", [
       [ "IOv2::__cerr", "classIOv2_1_1____cerr.html", null ]
@@ -426,5 +427,6 @@ var hierarchy =
     [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf.html", null ],
     [ "IOv2::type_id< T >", "structIOv2_1_1type__id.html", null ],
     [ "IOv2::Crypt::Classic::vigenere_cvt_creator< TChar >", "classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt__creator.html", null ],
+    [ "IOv2::ws_t", "structIOv2_1_1ws__t.html", null ],
     [ "IOv2::Comp::zlib_cvt_creator< TInt >", "classIOv2_1_1Comp_1_1zlib__cvt__creator.html", null ]
 ];
