@@ -14,12 +14,17 @@
  * 插入/提取运算符负责加锁与哨兵。方向由**哪个成员存在**表达：只有 `swrite` 即只能插入，
  * 只有 `sread` 即只能提取，用反了那一侧的运算符不满足约束、没有可行重载，因此编译不过。
  *
- * @warning **操纵符与随后的 I/O 不构成同一个临界区。** `os << setw(5) << value` 是两次
- *          各自加锁的操作：`setw(5)` 写入 `width`，`<< value` 在另一个临界区里读取并用完
- *          后把它清零。多线程共享同一个流时，另一个线程可能在两者之间插入自己的
- *          `setw`，双方互相吃掉对方的宽度。这与标准库的行为一致，但本库在其余地方对
- *          "单次操作原子"的保证更强，容易让人误以为这里也是。需要整体原子时，用
- *          `IOv2::sync` 把它们圈进同一个临界区。
+ * @warning **操纵符与随后的 I/O 不构成同一个临界区。** `os << setw(5) << value` 里，
+ *          `setw(5)` 走流形式，插入运算符**不为它加锁**——它只是对 `width` 做一次原子写；
+ *          `<< value` 走迭代器形式，在自己的临界区里读取 `width` 并在用完后清零。两者之间
+ *          没有任何互斥，另一个线程的 `setw` 可以落在中间，双方互相吃掉对方的宽度。这与
+ *          标准库的行为一致，但本库在其余地方对"单次操作原子"的保证更强，容易让人误以为
+ *          这里也是。需要整体原子时，用 `IOv2::sync` 把它们圈进同一个临界区。
+ * @warning **往流形式的 `swrite` / `sread` 里放读-改-写逻辑，必须自己取 `io_mutex()`。**
+ *          本文件这几个操纵符不取锁，只因为它们各自都是对 `ios_base` 上某个原子成员的单次
+ *          读-改-写（`exchange` / `fetch_or` / `fetch_and` / CAS 循环）。像"先读 `flags()`
+ *          再按结果 `setf()`"这样跨两次调用的逻辑不在此列，写在流形式里就是竞态；范例见
+ *          `endl` 与 `ws`，两者都自己取锁并自己 `catch`（理由见 `traits/traits_base.h`）。
  * @warning **工厂函数返回的是临时对象，只应作为同一个完整表达式的一部分立即使用。**
  *          `put_money_t` / `get_money_t` 持有对实参的引用，`put_time_t` / `get_time_t` 持有
  *          裸指针。写成 `os << put_money(x)` 是安全的——临时量活到完整表达式结束；但
@@ -46,14 +51,22 @@
  * only means extraction only, and using one backwards leaves the operator on that side
  * unsatisfied, so there is no viable overload and it does not compile.
  *
- * @warning **A manipulator and the I/O that follows it are not one critical section.**
- *          `os << setw(5) << value` is two separately-locked operations: `setw(5)` writes
- *          `width`, and `<< value` reads it in a different critical section and resets it to
- *          zero once used. With a stream shared between threads, another thread's `setw` can
- *          land in between and the two steal each other's width. This matches the standard
- *          library, but this library's stronger "a single operation is atomic" guarantee
- *          elsewhere makes it easy to assume otherwise. To make a group atomic, wrap it in one
- *          critical section with `IOv2::sync`.
+ * @warning **A manipulator and the I/O that follows it are not one critical section.** In
+ *          `os << setw(5) << value`, `setw(5)` goes through the stream form and the insertion
+ *          operator **does not lock for it** -- it is just one atomic write to `width`;
+ *          `<< value` goes through the iterator form and reads `width` in its own critical
+ *          section, resetting it to zero once used. Nothing mutually excludes the two, so
+ *          another thread's `setw` can land in between and the two steal each other's width.
+ *          This matches the standard library, but this library's stronger "a single operation
+ *          is atomic" guarantee elsewhere makes it easy to assume otherwise. To make a group
+ *          atomic, wrap it in one critical section with `IOv2::sync`.
+ * @warning **Read-modify-write logic in a stream-form `swrite` / `sread` must take
+ *          `io_mutex()` itself.** The manipulators in this file get away without a lock only
+ *          because each is a single read-modify-write on one atomic member of `ios_base`
+ *          (`exchange`, `fetch_or`, `fetch_and`, a CAS loop). Logic spanning two calls -- say
+ *          reading `flags()` and then calling `setf()` on the result -- is not, and is a race
+ *          if written in the stream form; `endl` and `ws` are the examples to follow, taking
+ *          the lock and catching for themselves (see `traits/traits_base.h` for why).
  * @warning **A factory returns a temporary, to be used only as part of the same full
  *          expression.** `put_money_t` / `get_money_t` hold a reference to the argument, and
  *          `put_time_t` / `get_time_t` hold raw pointers. `os << put_money(x)` is safe -- the
@@ -443,11 +456,11 @@ struct setw_t
  *
  * @note 形参有符号，是为了挡住负宽度：`setw(total - str.size())` 这类算式在
  *       `total < str.size()` 时按无符号回绕成接近 `2^64` 的巨值，取 `ptrdiff_t` 形参可让传参
- *       时的窄化把回绕抵消回来、还原成负数并被拒。判负后转 `size_t` 不会溢出。
- * @note 判负在操纵符**作用于流时**才做，本函数只保存原值。届时抛出的 `stream_error` 由
- *       `operator<<` / `operator>>` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常
- *       掩码，与本库其余的失败一致；若在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到
- *       调用方，流却仍报告 `good()`。
+ *       时的窄化把回绕抵消回来、还原成负数并被拒。
+ * @note 判负由 `ios_base::width` 自己完成，在操纵符**作用于流时**才做，本函数只保存原值。
+ *       届时抛出的 `stream_error` 由 `operator<<` / `operator>>` 交给 `handle_exception`，
+ *       转成 `strfailbit` 并遵守流的异常掩码，与本库其余的失败一致；若在构造时抛，异常会从
+ *       `os << ...` 表达式里直接逃逸到调用方，流却仍报告 `good()`。
  * @note **提取端的长度安全不依赖本函数。** 目标缓冲区的上界始终来自类型本身：
  *       `io_traits<TChar, TChar[N]>` 以 `min(width, N)` 为界，`std::basic_string` 自动增长，
  *       而裸指针根本没有对应的 `sread`（`is >> ptr` 无法编译，与 C++20 起的 `std::istream`
@@ -466,14 +479,13 @@ struct setw_t
  * @note The parameter is signed so that a negative width can be rejected: an expression such as
  *       `setw(total - str.size())` wraps as unsigned into a value near `2^64` when
  *       `total < str.size()`, and a `ptrdiff_t` parameter lets the narrowing at the call undo
- *       that wrap, restoring the negative value to be rejected. The conversion to `size_t`
- *       after the check cannot overflow.
- * @note The sign check runs when the manipulator is **applied to a stream**; this function only
- *       stores the value. The `stream_error` thrown there is handed to `handle_exception` by
- *       `operator<<` / `operator>>`, where it becomes a `strfailbit` and honours the stream's
- *       exception mask, like every other failure in this library. Thrown at construction it would
- *       instead escape an `os << ...` expression straight to the caller while the stream still
- *       reported `good()`.
+ *       that wrap, restoring the negative value to be rejected.
+ * @note The sign check is `ios_base::width`'s own and runs when the manipulator is **applied to
+ *       a stream**; this function only stores the value. The `stream_error` thrown there is
+ *       handed to `handle_exception` by `operator<<` / `operator>>`, where it becomes a
+ *       `strfailbit` and honours the stream's exception mask, like every other failure in this
+ *       library. Thrown at construction it would instead escape an `os << ...` expression
+ *       straight to the caller while the stream still reported `good()`.
  * @note **Length safety on the extraction side does not depend on this function.** The bound
  *       on a destination buffer always comes from its type: `io_traits<TChar, TChar[N]>` bounds
  *       at `min(width, N)`, `std::basic_string` grows on demand, and a raw pointer has no
@@ -511,10 +523,7 @@ private:
     template <typename T>
     static void apply(T& s, const setw_t& f)
     {
-        if (f.m_n < 0)
-            throw stream_error("setw fail: negative width");
-
-        s.width(static_cast<size_t>(f.m_n));
+        s.width(f.m_n);
     }
 };
 
