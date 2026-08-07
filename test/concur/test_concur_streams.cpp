@@ -449,6 +449,89 @@ void test_concur_copy_tie_source_1()
     dump_info("Done\n");
 }
 
+void test_concur_copy_vs_state_1()
+{
+    dump_info("Test concurrent copy against state writes case 1...");
+    using namespace IOv2;
+
+    // Copy construction reads the source's whole state component -- the bits, the exception
+    // mask and the four exception_ptrs -- while another thread writes exactly those. The two
+    // sides used to take different mutexes (io_mutex() for the copy, a separate state mutex
+    // for the writer), so they never excluded each other: a refcount race on
+    // std::exception_ptr, which can double-free or leak. handle_exception() is what puts a
+    // real exception_ptr in there; clear() is what releases it, so the pointer churns on
+    // every iteration. Nothing here asserts a value -- the run exists to give TSan the
+    // interleaving.
+    ostream source(mem_device<char>{});
+
+    std::atomic<bool> done{false};
+    spawn([&](int id)
+    {
+        if (id != 0)
+        {
+            while (!done.load(std::memory_order_relaxed))
+            {
+                source.handle_exception(std::make_exception_ptr(device_error("boom")));
+                // strfailbit is never set here, so the mask write cannot make clear() throw.
+                source.exceptions(ios_defs::strfailbit);
+                source.clear();
+                source.exceptions(ios_defs::goodbit);
+            }
+            return;
+        }
+
+        for (int i = 0; i < kIters; ++i)
+        {
+            auto copy = source;              // NOLINT(performance-unnecessary-copy-initialization)
+            (void)copy.rdstate();
+            (void)copy.exceptions();
+        }
+        done.store(true, std::memory_order_relaxed);
+    });
+
+    source.clear();
+    VERIFY(static_cast<bool>(source));
+
+    dump_info("Done\n");
+}
+
+void test_concur_move_assign_vs_state_1()
+{
+    dump_info("Test concurrent move assignment against state writes case 1...");
+    using namespace IOv2;
+
+    // The other half of the same hole, entered from the destination side: move assignment
+    // replaces the destination's state under the destination's io_mutex(), while another
+    // thread writes that state under the old state mutex. Moving *from* a stream another
+    // thread may still be using stays out of contract, so every source here is a temporary
+    // this thread alone can see.
+    ostream dest(mem_device<char>{});
+
+    std::atomic<bool> done{false};
+    spawn([&](int id)
+    {
+        if (id != 0)
+        {
+            while (!done.load(std::memory_order_relaxed))
+            {
+                dest.handle_exception(std::make_exception_ptr(device_error("boom")));
+                dest.clear();
+            }
+            return;
+        }
+
+        for (int i = 0; i < kIters; ++i)
+            dest = ostream(mem_device<char>{});
+
+        done.store(true, std::memory_order_relaxed);
+    });
+
+    dest.clear();
+    VERIFY(static_cast<bool>(dest));
+
+    dump_info("Done\n");
+}
+
 void test_concur_attach_detach_1()
 {
     dump_info("Test concurrent attach/detach on a tie target case 1...");

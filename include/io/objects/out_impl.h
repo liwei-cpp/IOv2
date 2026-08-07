@@ -23,8 +23,7 @@ class __wcerr;
 class __wclog;
 
 template <typename T, typename TDevice, typename TChar>
-class stdout_api : public ios_base<TChar>
-                 , public io_state_and_exp
+class stdout_api : public ios_state<TChar>
                  , public out_flusher<T>
                  , public ostream_operators<TChar>
                  , public stream_common_operators

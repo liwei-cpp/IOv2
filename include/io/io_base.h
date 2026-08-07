@@ -3,9 +3,10 @@
  * @lang{ZH}
  * 定义了 I/O 流体系的基础设施，包括：
  * - `ios_defs`：格式化标志（`fmtflags`）与流状态位（`iostate`）的定义。
- * - `io_state_and_exp`：管理流状态位以及与之关联的异常（异常掩码 / 异常指针）。
  * - `ios_base`：所有流的格式化状态基类，持有格式标志、精度、宽度、填充字符、
- *   pword 存储以及本地化变更回调。
+ *   pword 存储、本地化变更回调，以及本流唯一的那把对象锁。
+ * - `ios_state`：在 `ios_base` 之上再管理流状态位与之关联的异常（异常掩码 /
+ *   异常指针）。具体流类都从它派生。
  * - 一组用于修改流格式的操纵符（manipulator），如 `hex`、`left`、`fixed` 等。
  * - `sync`：对流的 I/O 互斥量进行 RAII 加锁的辅助类。
  * @endif
@@ -14,10 +15,12 @@
  * Defines the infrastructure for the I/O stream hierarchy, including:
  * - `ios_defs`: definitions of the formatting flags (`fmtflags`) and stream state
  *   bits (`iostate`).
- * - `io_state_and_exp`: manages the stream state bits together with their associated
- *   exceptions (exception mask / exception pointers).
  * - `ios_base`: the base class holding the formatting state of every stream: format
- *   flags, precision, width, fill character, pword storage, and locale-change callbacks.
+ *   flags, precision, width, fill character, pword storage, locale-change callbacks, and
+ *   the one object lock a stream has.
+ * - `ios_state`: adds, on top of `ios_base`, the stream state bits together with
+ *   their associated exceptions (exception mask / exception pointers). The concrete
+ *   stream classes all derive from it.
  * - A set of manipulators that modify a stream's formatting, such as `hex`, `left`,
  *   `fixed`, etc.
  * - `sync`: an RAII helper that locks a stream's I/O mutex.
@@ -100,398 +103,6 @@ namespace ios_defs
     constexpr static iostate otherfailbit   = 1L << 4;  ///< @lang{ZH} 其他（未归类）失败。 @endif @lang{EN} Some other (uncategorized) failure. @endif
 };
 
-/**
- * @lang{ZH}
- * @brief 管理流状态位及其关联异常的组件。
- *
- * 本类同时维护两部分信息：
- * - **状态位**（`m_stream_state`）：当前流的健康状况，由 `ios_defs::iostate` 位组成。
- * - **异常掩码**（`m_exception`）：指定哪些状态位一旦被置位就应当抛出异常。
- *
- * 与标准 `std::ios` 不同，本类为每个失败类别额外保存了一个 `std::exception_ptr`
- * （设备/转换/流/其他），因此当某个失败位对应的异常被触发时，可以**重新抛出最初
- * 捕获的原始异常**，而不是抛出一个信息量更少的通用异常。当对应异常指针为空时，则回退
- * 到抛出一个与该失败类别匹配的默认异常。
- * @endif
- *
- * @lang{EN}
- * @brief Component that manages the stream state bits and their associated exceptions.
- *
- * This class maintains two pieces of information at once:
- * - The **state bits** (`m_stream_state`): the current health of the stream, made of
- *   `ios_defs::iostate` bits.
- * - The **exception mask** (`m_exception`): which state bits, once set, should cause an
- *   exception to be thrown.
- *
- * Unlike the standard `std::ios`, this class additionally stores a `std::exception_ptr`
- * per failure category (device / conversion / stream / other), so that when the
- * exception for a failure bit fires it can **rethrow the original exception that was
- * first captured** rather than a less informative generic one. When the corresponding
- * exception pointer is empty it falls back to throwing a default exception matching that
- * failure category.
- * @endif
- */
-struct io_state_and_exp
-{
-    /**
-     * @lang{ZH}
-     * @brief 返回当前的流状态位。
-     * @return 当前 `iostate` 位的按位或。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the current stream state bits.
-     * @return The bitwise-or of the current `iostate` bits.
-     * @endif
-     */
-    [[nodiscard]] ios_defs::iostate rdstate() const { return m_stream_state.load(); }
-
-    /**
-     * @lang{ZH}
-     * @brief 将流状态位设置为 `s`，并按需触发异常。
-     *
-     * 先把状态位整体替换为 `s`。对于被清除（不再置位）的失败位，其保存的
-     * `std::exception_ptr` 会被一并释放。随后，若 `s` 中仍被置位的失败位同时也在异常
-     * 掩码 `exceptions()` 中，则触发异常：优先按 设备 → 转换 → 流 → 其他 → EOF 的顺序，
-     * 重新抛出对应类别先前保存的原始异常；若该指针为空，则抛出与该类别匹配的默认异常。
-     *
-     * @param s 新的流状态位，默认为 `goodbit`（即清除所有状态）。
-     * @tparam ignore_exception_mask 为 `false`（默认）时遵循异常掩码，按上述规则触发异常；
-     *         为 `true` 时跳过“按掩码触发异常”这一步：仍替换状态位、并释放被清除失败位的
-     *         `exception_ptr`，但**不会因异常掩码而（重）抛出**，也不消费仍被置位类别已保存的
-     *         `exception_ptr`。因此下列 @throw 仅在 `ignore_exception_mask == false` 时可能发生
-     *         （加锁失败等底层抛出不受本参数影响，两种取值下均可能发生）。
-     * @throw device_error 当 `devfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
-     * @throw cvt_error 当 `cvtfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
-     * @throw stream_error 当 `strfailbit`/`otherfailbit` 被置位且在异常掩码中，
-     *        且无保存的原始异常时。
-     * @throw eof_error 当 `eofbit` 被置位且在异常掩码中时。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Sets the stream state bits to `s`, triggering exceptions as required.
-     *
-     * The state bits are first replaced wholesale by `s`. For any failure bit that is
-     * cleared (no longer set), its stored `std::exception_ptr` is released as well.
-     * Then, for any failure bit still set in `s` that is also present in the exception
-     * mask `exceptions()`, an exception is triggered: in the order
-     * device → conversion → stream → other → EOF, the original exception previously
-     * captured for that category is rethrown; if that pointer is empty, a default
-     * exception matching the category is thrown instead.
-     *
-     * @param s The new stream state bits; defaults to `goodbit` (i.e. clears all state).
-     * @tparam ignore_exception_mask When `false` (default), honors the exception mask and
-     *         triggers exceptions per the rules above; when `true`, the "trigger per the mask"
-     *         step is skipped: the state bits are still replaced and the `exception_ptr`s of
-     *         cleared failure bits released, but it **does not (re)throw on account of the
-     *         exception mask**, nor consume the stored `exception_ptr` of a still-set category.
-     *         The @throw cases below can therefore occur only when
-     *         `ignore_exception_mask == false` (a lower-level throw such as a lock failure is
-     *         unaffected by this parameter and may occur either way).
-     * @throw device_error When `devfailbit` is set and in the exception mask, with no
-     *        stored original exception.
-     * @throw cvt_error When `cvtfailbit` is set and in the exception mask, with no stored
-     *        original exception.
-     * @throw stream_error When `strfailbit`/`otherfailbit` is set and in the exception
-     *        mask, with no stored original exception.
-     * @throw eof_error When `eofbit` is set and in the exception mask.
-     * @endif
-     */
-    template <bool ignore_exception_mask = false>
-    void clear(ios_defs::iostate s = ios_defs::goodbit)
-    {
-        std::lock_guard guard(m_state_mutex);
-        m_stream_state.store(s);
-        if ((s & ios_defs::devfailbit) == ios_defs::goodbit) m_exp_dev_fail = std::exception_ptr{};
-        if ((s & ios_defs::cvtfailbit) == ios_defs::goodbit) m_exp_cvt_fail = std::exception_ptr{};
-        if ((s & ios_defs::strfailbit) == ios_defs::goodbit) m_exp_str_fail = std::exception_ptr{};
-        if ((s & ios_defs::otherfailbit) == ios_defs::goodbit) m_exp_other_fail = std::exception_ptr{};
-
-        if constexpr(!ignore_exception_mask)
-        {
-            ios_defs::iostate state_in_exp = m_exception & s;
-            if (state_in_exp & ios_defs::devfailbit)
-            {
-                if (m_exp_dev_fail)
-                    std::rethrow_exception(std::exchange(m_exp_dev_fail, nullptr));
-                else
-                    throw device_error("device failure bit has been set");
-            }
-            else if (state_in_exp & ios_defs::cvtfailbit)
-            {
-                if (m_exp_cvt_fail)
-                    std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr));
-                else
-                    throw cvt_error("converter failure bit has been set");
-            }
-            else if (state_in_exp & ios_defs::strfailbit)
-            {
-                if (m_exp_str_fail)
-                    std::rethrow_exception(std::exchange(m_exp_str_fail, nullptr));
-                else
-                    throw stream_error("stream failure bit has been set");
-            }
-            else if (state_in_exp & ios_defs::otherfailbit)
-            {
-                if (m_exp_other_fail)
-                    std::rethrow_exception(std::exchange(m_exp_other_fail, nullptr));
-                else
-                    throw stream_error("other failure bit has been set");
-            }
-            else if (state_in_exp & ios_defs::eofbit)
-            {
-                throw eof_error{};
-            }
-        }
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 在现有状态位的基础上附加 `s`（按位或），并可能触发异常。
-     * @param s 要附加置位的状态位。
-     * @tparam ignore_exception_mask 透传给 `clear`：`false`（默认）遵循异常掩码、可能（重）抛出；
-     *         `true` 置位但不因掩码抛出。见 clear()。
-     * @note 等价于 `clear<ignore_exception_mask>(rdstate() | s)`，因此是否遵循异常掩码同样由
-     *       `ignore_exception_mask` 决定。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Adds `s` on top of the existing state bits (bitwise-or), possibly
-     * triggering exceptions.
-     * @param s The state bits to additionally set.
-     * @tparam ignore_exception_mask Forwarded to `clear`: `false` (default) honors the
-     * exception mask and may (re)throw; `true` sets the bits without throwing on account of
-     * the mask. See clear().
-     * @note Equivalent to `clear<ignore_exception_mask>(rdstate() | s)`, so whether the
-     * exception mask is honored is likewise governed by `ignore_exception_mask`.
-     * @endif
-     */
-    template <bool ignore_exception_mask = false>
-    void setstate(ios_defs::iostate s)
-    {
-        std::lock_guard guard(m_state_mutex);
-        clear<ignore_exception_mask>(rdstate() | s);
-    }
-
-    void unset_state(ios_defs::iostate s)
-    {
-        std::lock_guard guard(m_state_mutex);
-        clear<false>(rdstate() & ~s);
-    }
-    /**
-     * @lang{ZH} @brief 是否无任何错误（状态位全为 0）。 @endif
-     * @lang{EN} @brief Whether there is no error at all (state bits all zero). @endif
-     */
-    [[nodiscard]] bool good() const { return rdstate() == 0; }
-    /**
-     * @lang{ZH} @brief 是否置位了设备失败位。 @endif
-     * @lang{EN} @brief Whether the device-failure bit is set. @endif
-     */
-    [[nodiscard]] bool dev_fail() const { return rdstate() & ios_defs::devfailbit; }
-    /**
-     * @lang{ZH} @brief 是否置位了转换失败位。 @endif
-     * @lang{EN} @brief Whether the conversion-failure bit is set. @endif
-     */
-    [[nodiscard]] bool cvt_fail() const { return rdstate() & ios_defs::cvtfailbit; }
-    /**
-     * @lang{ZH} @brief 是否置位了流失败位。 @endif
-     * @lang{EN} @brief Whether the stream-failure bit is set. @endif
-     */
-    [[nodiscard]] bool str_fail() const { return rdstate() & ios_defs::strfailbit; }
-    /**
-     * @lang{ZH} @brief 是否置位了其他失败位。 @endif
-     * @lang{EN} @brief Whether the other-failure bit is set. @endif
-     */
-    [[nodiscard]] bool other_fail() const { return rdstate() & ios_defs::otherfailbit; }
-    /**
-     * @lang{ZH} @brief 是否已到达文件/输入末尾（`eofbit` 置位）。 @endif
-     * @lang{EN} @brief Whether end-of-file/input has been reached (`eofbit` set). @endif
-     */
-    [[nodiscard]] bool eof() const { return rdstate() & ios_defs::eofbit; }
-
-    /**
-     * @lang{ZH}
-     * @brief 布尔转换：当流仍可用时为 `true`。
-     *
-     * 仅当状态为 `goodbit`，或仅置位了 `eofbit`（无任何失败位）时返回 `true`。
-     * 换言之，只要出现任何失败位即返回 `false`；单纯的 EOF 不视为不可用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Boolean conversion: `true` while the stream is still usable.
-     *
-     * Returns `true` only when the state is `goodbit`, or when only `eofbit` is set
-     * (without any failure bit). In other words, any failure bit makes it `false`;
-     * plain EOF alone is not treated as unusable.
-     * @endif
-     */
-    explicit operator bool() const
-    {
-        const ios_defs::iostate s = rdstate();
-        return (s == 0) || (s == ios_defs::eofbit);
-    }
-
-    /**
-     * @lang{ZH} @brief 返回当前的异常掩码。 @endif
-     * @lang{EN} @brief Returns the current exception mask. @endif
-     */
-    [[nodiscard]] ios_defs::iostate exceptions() const
-    {
-        std::lock_guard guard(m_state_mutex);
-        return m_exception;
-    }
-    /**
-     * @lang{ZH}
-     * @brief 设置异常掩码，指定哪些状态位应触发异常。
-     *
-     * 设置后会立即以当前状态位调用 `clear(m_stream_state)`，因此若当前已置位的状态位
-     * 落入新掩码，会**立刻**触发相应异常。
-     * @param e 新的异常掩码。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Sets the exception mask that specifies which state bits should throw.
-     *
-     * After setting, `clear(m_stream_state)` is immediately called with the current
-     * state bits, so if an already-set state bit falls within the new mask the
-     * corresponding exception fires **immediately**.
-     * @param e The new exception mask.
-     * @endif
-     */
-    void exceptions(ios_defs::iostate e)
-    {
-        std::lock_guard guard(m_state_mutex);
-        m_exception = e;
-        clear(m_stream_state.load());
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 捕获并归类一个异常，将其转换为对应的失败状态位。
-     *
-     * 重新抛出 `ex` 并按类型归类：`device_error`→`devfailbit`、`cvt_error`→`cvtfailbit`、
-     * `stream_error`→`strfailbit`、`eof_error`→`eofbit`、其余→`otherfailbit`。对于设备/
-     * 转换/流/其他类别，若该类别尚无保存的异常指针，则记录当前异常，以便日后经 clear()/
-     * setstate() 重新抛出原始异常。随后通过 `setstate<ignore_exception_mask>()` 置位相应状态
-     * 位。是否再抛由模板参数决定：`ignore_exception_mask == false`（默认）时，若该位在异常掩码
-     * 中则**（重）抛出异常**；`ignore_exception_mask == true` 时**只置位、不因掩码抛出**，且不
-     * 消费已保存的 `exception_ptr`（适用于需避免掩码驱动抛出的上下文，如 `noexcept` 析构器）。
-     * 注意：无论取值如何，加锁失败等底层抛出仍可能发生，故本函数并非 `noexcept`。
-     *
-     * @param ex 要处理的异常指针；若为空指针则不做任何事。
-     * @tparam ignore_exception_mask `false`（默认）遵循异常掩码、可能（重）抛出；`true` 只登记
-     *         失败位、不因掩码抛出（供需避免掩码驱动抛出的上下文使用，如析构器）。
-     * @note EOF 类别不保存异常指针（EOF 无需携带原始异常信息）。
-     * @note 本函数对同一异常是**幂等**的：以同一个 `ex` 重复调用，与只调用一次的可观测效果
-     *       相同。重复调用出现在嵌套的处理点上——例如 `put()` 自己处理完异常后因掩码重抛，
-     *       异常再落到调用方的 `catch`。第二遍的三步都无害：`m_exp_*` 在首遍 `clear()` 重抛
-     *       时已被消费置空，于是同一异常被重新存入；`setstate` 对已置位的位是按位或空操作；
-     *       `clear()` 再次重抛同一个原始异常。调用方因此**不需要**为了躲开重复调用而在嵌套
-     *       处省略 try。
-     * @warning **不支持对阻塞在本库 I/O 中的线程调用 `pthread_cancel`。** glibc 以抛出特殊异常
-     *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
-     *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
-     *          重新抛出，取消因而被吞掉，导致 `FATAL: exception not rethrown` 并 abort。线程取消
-     *          不属于 C++ 标准，也没有可移植的手段在 `catch(...)` 中将其识别出来。若需中断阻塞中
-     *          的 I/O，请改为关闭底层设备（使阻塞调用带错误返回），或使用超时 / 非阻塞 I/O。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Captures and categorizes an exception, turning it into the matching
-     * failure state bit.
-     *
-     * Rethrows `ex` and categorizes it by type: `device_error`→`devfailbit`,
-     * `cvt_error`→`cvtfailbit`, `stream_error`→`strfailbit`, `eof_error`→`eofbit`,
-     * everything else→`otherfailbit`. For the device/conversion/stream/other categories,
-     * if that category has no stored exception pointer yet, the current exception is
-     * recorded so the original can later be rethrown via clear()/setstate(). It then
-     * sets the matching state bit through `setstate<ignore_exception_mask>()`. Whether it
-     * throws is governed by the template parameter: when `ignore_exception_mask == false`
-     * (default) it **(re)throws** if that bit is in the exception mask; when
-     * `ignore_exception_mask == true` it **only sets the bit and does not throw on account of
-     * the mask**, leaving the stored `exception_ptr` unconsumed (for a context that must avoid
-     * a mask-driven throw, such as a `noexcept` destructor). Note that, regardless of the
-     * value, a lower-level throw such as a lock failure may still occur, so this function is
-     * not `noexcept`.
-     *
-     * @param ex The exception pointer to handle; does nothing if it is null.
-     * @tparam ignore_exception_mask `false` (default) honors the exception mask and may
-     *         (re)throw; `true` only records the failure bit and does not throw on account of
-     *         the mask (for a context that must avoid a mask-driven throw, such as a destructor).
-     * @note The EOF category stores no exception pointer (EOF carries no original
-     * exception information).
-     * @note This function is **idempotent** for a given exception: calling it repeatedly with
-     * the same `ex` has the same observable effect as calling it once. Repeat calls arise at
-     * nested handling points -- `put()`, for one, handles its own exception and then rethrows
-     * on account of the mask, so the exception reaches the caller's `catch` as well. All three
-     * steps of the second pass are harmless: `m_exp_*` was consumed and nulled by the first
-     * pass's rethrow inside `clear()`, so the same exception is stored again; `setstate` is a
-     * bitwise-or no-op on an already-set bit; and `clear()` rethrows the same original
-     * exception. Callers therefore do **not** need to omit a try at a nested site merely to
-     * avoid a repeat call.
-     * @warning **Calling `pthread_cancel` on a thread blocked inside this library is not
-     *          supported.** glibc implements thread cancellation by throwing a special
-     *          exception (`__cxxabiv1::__forced_unwind`), which lands in this function's
-     *          final `catch(...)` and is categorized as `otherfailbit`; unless
-     *          `otherfailbit` is in the exception mask it is not rethrown, so the
-     *          cancellation is swallowed and the process aborts with
-     *          `FATAL: exception not rethrown`. Thread cancellation is not part of the C++
-     *          standard, and there is no portable way to recognize it inside a `catch(...)`.
-     *          To interrupt blocked I/O, close the underlying device instead (so the
-     *          blocking call returns with an error), or use timeouts / non-blocking I/O.
-     * @endif
-     */
-    template <bool ignore_exception_mask = false>
-    void handle_exception(const std::exception_ptr& ex, bool at_eof = false)
-    {
-        if (!ex) return;
-        std::lock_guard guard(m_state_mutex);
-        const ios_defs::iostate eof = at_eof ? ios_defs::eofbit : ios_defs::goodbit;
-        try
-        {
-            std::rethrow_exception(ex);
-        }
-        catch (device_error&)
-        {
-            if (!m_exp_dev_fail)
-                m_exp_dev_fail = std::current_exception();
-            setstate<ignore_exception_mask>(ios_defs::devfailbit | eof);
-        }
-        catch (cvt_error&)
-        {
-            if (!m_exp_cvt_fail)
-                m_exp_cvt_fail = std::current_exception();
-            setstate<ignore_exception_mask>(ios_defs::cvtfailbit | eof);
-        }
-        catch (stream_error&)
-        {
-            if (!m_exp_str_fail)
-                m_exp_str_fail = std::current_exception();
-            setstate<ignore_exception_mask>(ios_defs::strfailbit | eof);
-        }
-        catch (eof_error&)
-        {
-            setstate<ignore_exception_mask>(ios_defs::eofbit);
-        }
-        catch(...)
-        {
-            if (!m_exp_other_fail)
-                m_exp_other_fail = std::current_exception();
-            setstate<ignore_exception_mask>(ios_defs::otherfailbit | eof);
-        }
-    }
-
-private:
-    mutable copyable_mutex<std::recursive_mutex> m_state_mutex;  ///< @lang{ZH} 串行化以下全部成员的**写**：状态位与其 `exception_ptr` 构成一个多字不变式，须整体加锁。递归形态因内部存在同对象嵌套（如 `setstate()` → `clear()`）。 @endif @lang{EN} Serializes all **writes** to the members below: the state bits and their `exception_ptr`s form one multi-word invariant that must be updated as a whole. Recursive because this component nests on itself (e.g. `setstate()` → `clear()`). @endif
-
-    ios_defs::iostate  m_exception = ios_defs::goodbit;      ///< @lang{ZH} 异常掩码：哪些状态位应触发异常。 @endif @lang{EN} Exception mask: which state bits should throw. @endif
-    copyable_atomic<ios_defs::iostate> m_stream_state{ios_defs::goodbit};   ///< @lang{ZH} 当前流状态位。原子量，使 `rdstate()` 及 `good()`/`eof()`/`operator bool` 等热路径无锁读取；其**写**仍与其余成员一同在 `m_state_mutex` 下完成，故不变式不受影响。 @endif @lang{EN} Current stream state bits. Atomic so that `rdstate()` -- and the hot `good()`/`eof()`/`operator bool` built on it -- reads lock-free; **writes** still happen under `m_state_mutex` together with the other members, so the invariant is unaffected. @endif
-    std::exception_ptr m_exp_dev_fail = std::exception_ptr{};    ///< @lang{ZH} 设备失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the device-failure category. @endif
-    std::exception_ptr m_exp_cvt_fail = std::exception_ptr{};    ///< @lang{ZH} 转换失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the conversion-failure category. @endif
-    std::exception_ptr m_exp_str_fail = std::exception_ptr{};    ///< @lang{ZH} 流失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the stream-failure category. @endif
-    std::exception_ptr m_exp_other_fail = std::exception_ptr{};  ///< @lang{ZH} 其他失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the other-failure category. @endif
-};
-
 template <typename TChar> class locale;
 
 template <typename TChar> class ios_base;
@@ -533,7 +144,9 @@ class ios_base<void>
  * `std::ios_base` 与 `std::basic_ios` 中与格式化相关的部分，但按本库的设计做了取舍
  * （例如可拷贝、精度/宽度以 8 位存储等，详见各成员说明）。
  *
- * @note 本类不涉及流状态位（good/eof/fail），那些由 `io_state_and_exp` 负责。
+ * @note 本类不涉及流状态位（good/eof/fail），那些由派生自本类的 `ios_state` 负责。
+ *       这个方向是有意的：facet（如 `numeric`）拿到的是 `ios_base&`，只应看见格式化标志，
+ *       看不见流状态。
  * @note 本类同时持有**本流的对象锁** `m_io_mutex`（经 `io_mutex()` 暴露）。它并非只服务于
  *       格式化状态——各具体流类的全部操作都以它作为临界区。锁放在这里而非各流类里的理由，
  *       见 `io_mutex()`。
@@ -552,7 +165,9 @@ class ios_base<void>
  * 8 bits — see the individual members for details).
  *
  * @note This class does not deal with the stream state bits (good/eof/fail); those are
- * handled by `io_state_and_exp`.
+ * handled by `ios_state`, which derives from this class. The direction is
+ * deliberate: a facet (`numeric`, say) is handed an `ios_base&` and should see the
+ * formatting flags, not the stream state.
  * @note This class also owns **the stream's object lock** `m_io_mutex` (exposed through
  * `io_mutex()`). That lock is not confined to the formatting state -- every operation of the
  * concrete stream classes uses it as its critical section. See `io_mutex()` for why it lives
@@ -855,9 +470,9 @@ public:
      *       一把锁则不存在这个问题。
      * @note 递归形态是必需的：`access_callbacks()` 由已持锁的 locale setter 调用，而回调
      *       允许重入地调用 `set_pword()`（见 `access_callbacks()` 的说明）。
-     * @note 流状态位另有 `io_state_and_exp::m_state_mutex`，**不**并入此处：那里采用
-     *       "写加锁 + 原子读"，为的是让 `rdstate()` / `good()` 免锁；合并会让每次 `good()`
-     *       都加一次锁。两者的加锁顺序是 `io_mutex` -> `m_state_mutex`。
+     * @note 流状态位也归本锁保护：`ios_state` 派生自本类，其状态**写**同样在这把锁下
+     *       完成。`rdstate()` / `good()` 仍免锁，因为状态位存在原子量里，读取不经过本锁。
+     *       由此每个流只有一把锁，不存在流内部的加锁顺序。
      * @return 本流 `m_io_mutex` 的引用。
      * @endif
      *
@@ -879,10 +494,11 @@ public:
      * @note The recursive flavor is required: `access_callbacks()` is called by the locale
      *       setter, which already holds the lock, and a callback may reentrantly call
      *       `set_pword()` (see `access_callbacks()`).
-     * @note The stream state bits have their own `io_state_and_exp::m_state_mutex`, which is
-     *       **not** folded in here: that one uses "lock for writes, atomic for reads" so that
-     *       `rdstate()` / `good()` stay lock-free, and merging would put a lock on every
-     *       `good()`. The lock order between them is `io_mutex` -> `m_state_mutex`.
+     * @note The stream state bits are covered by this lock too: `ios_state` derives
+     *       from this class and performs its state **writes** under it. `rdstate()` / `good()`
+     *       remain lock-free, because the state bits live in an atomic that is read without
+     *       going through this lock. A stream therefore has exactly one lock, and no
+     *       intra-stream lock order exists.
      * @return A reference to this stream's `m_io_mutex`.
      * @endif
      */
@@ -1077,6 +693,430 @@ protected:
 
     std::unordered_map<size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `m_io_mutex` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `m_io_mutex`. @endif
     std::forward_list<std::pair<event_callback, size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `m_io_mutex` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `m_io_mutex`. @endif
+};
+
+/**
+ * @lang{ZH}
+ * @brief 在格式化状态之上，管理流状态位及其关联异常的组件。
+ *
+ * 本类在 `ios_base<TChar>` 的基础上追加两部分信息：
+ * - **状态位**（`m_stream_state`）：当前流的健康状况，由 `ios_defs::iostate` 位组成。
+ * - **异常掩码**（`m_exception`）：指定哪些状态位一旦被置位就应当抛出异常。
+ *
+ * 与标准 `std::ios` 不同，本类为每个失败类别额外保存了一个 `std::exception_ptr`
+ * （设备/转换/流/其他），因此当某个失败位对应的异常被触发时，可以**重新抛出最初
+ * 捕获的原始异常**，而不是抛出一个信息量更少的通用异常。当对应异常指针为空时，则回退
+ * 到抛出一个与该失败类别匹配的默认异常。
+ *
+ * 本类与 `ios_base` 的层次关系，对应标准库里 `std::basic_ios<charT> : std::ios_base`：
+ * 只吃格式化状态的接口（facet 等）取 `ios_base<TChar>&`，从而看不见流状态。
+ *
+ * @note 状态位的**写**在继承来的 `io_mutex()` 下完成——就是流自己的那把锁，没有第二把。
+ *       因此在已持有 `io_mutex()` 的上下文里（格式化 I/O 的 sentry 内、`sync` 作用域内）
+ *       写状态只是一次递归重入。`rdstate()` / `good()` / `eof()` / `operator bool` 仍免锁，
+ *       状态位存在原子量里。
+ * @warning 派生时只继承本类，**不要**同时再继承一次 `ios_base<TChar>`：那会产生两个
+ *          `ios_base` 子对象，`std::derived_from<T, ios_base<TChar>>` 因基类二义而为假，
+ *          于是 `ostream_type` / `istream_type` 概念不再满足。两个概念都保留了那一条
+ *          `derived_from<T, ios_base<char_type>>` 约束，正是为了把这种写法挡在编译期。
+ *
+ * @tparam TChar 字符类型；透传给 `ios_base`。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Component that adds the stream state bits and their associated exceptions on top
+ * of the formatting state.
+ *
+ * On top of `ios_base<TChar>`, this class adds two pieces of information:
+ * - The **state bits** (`m_stream_state`): the current health of the stream, made of
+ *   `ios_defs::iostate` bits.
+ * - The **exception mask** (`m_exception`): which state bits, once set, should cause an
+ *   exception to be thrown.
+ *
+ * Unlike the standard `std::ios`, this class additionally stores a `std::exception_ptr`
+ * per failure category (device / conversion / stream / other), so that when the
+ * exception for a failure bit fires it can **rethrow the original exception that was
+ * first captured** rather than a less informative generic one. When the corresponding
+ * exception pointer is empty it falls back to throwing a default exception matching that
+ * failure category.
+ *
+ * The layering mirrors `std::basic_ios<charT> : std::ios_base` in the standard library: an
+ * interface that only consumes formatting state (a facet, for one) takes an
+ * `ios_base<TChar>&` and therefore cannot see the stream state.
+ *
+ * @note State **writes** happen under the inherited `io_mutex()` -- the stream's own lock,
+ *       and the only one it has. A state write from a context that already holds
+ *       `io_mutex()` (inside a formatted-I/O sentry, inside a `sync` scope) is therefore
+ *       just a recursive re-entry. `rdstate()` / `good()` / `eof()` / `operator bool` stay
+ *       lock-free; the state bits live in an atomic.
+ * @warning Derive from this class alone; do **not** additionally derive from
+ *          `ios_base<TChar>` a second time. That yields two `ios_base` subobjects, which
+ *          makes `std::derived_from<T, ios_base<TChar>>` false through base ambiguity, so
+ *          the `ostream_type` / `istream_type` concepts are no longer satisfied. Both
+ *          concepts keep their `derived_from<T, ios_base<char_type>>` clause precisely to
+ *          reject that shape at compile time.
+ *
+ * @tparam TChar The character type; forwarded to `ios_base`.
+ * @endif
+ */
+template <typename TChar>
+struct ios_state : public ios_base<TChar>
+{
+    /**
+     * @lang{ZH}
+     * @brief 返回当前的流状态位。
+     * @return 当前 `iostate` 位的按位或。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the current stream state bits.
+     * @return The bitwise-or of the current `iostate` bits.
+     * @endif
+     */
+    [[nodiscard]] ios_defs::iostate rdstate() const { return m_stream_state.load(); }
+
+    /**
+     * @lang{ZH}
+     * @brief 将流状态位设置为 `s`，并按需触发异常。
+     *
+     * 先把状态位整体替换为 `s`。对于被清除（不再置位）的失败位，其保存的
+     * `std::exception_ptr` 会被一并释放。随后，若 `s` 中仍被置位的失败位同时也在异常
+     * 掩码 `exceptions()` 中，则触发异常：优先按 设备 → 转换 → 流 → 其他 → EOF 的顺序，
+     * 重新抛出对应类别先前保存的原始异常；若该指针为空，则抛出与该类别匹配的默认异常。
+     *
+     * @param s 新的流状态位，默认为 `goodbit`（即清除所有状态）。
+     * @tparam ignore_exception_mask 为 `false`（默认）时遵循异常掩码，按上述规则触发异常；
+     *         为 `true` 时跳过“按掩码触发异常”这一步：仍替换状态位、并释放被清除失败位的
+     *         `exception_ptr`，但**不会因异常掩码而（重）抛出**，也不消费仍被置位类别已保存的
+     *         `exception_ptr`。因此下列 @throw 仅在 `ignore_exception_mask == false` 时可能发生
+     *         （加锁失败等底层抛出不受本参数影响，两种取值下均可能发生）。
+     * @throw device_error 当 `devfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
+     * @throw cvt_error 当 `cvtfailbit` 被置位且在异常掩码中，且无保存的原始异常时。
+     * @throw stream_error 当 `strfailbit`/`otherfailbit` 被置位且在异常掩码中，
+     *        且无保存的原始异常时。
+     * @throw eof_error 当 `eofbit` 被置位且在异常掩码中时。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the stream state bits to `s`, triggering exceptions as required.
+     *
+     * The state bits are first replaced wholesale by `s`. For any failure bit that is
+     * cleared (no longer set), its stored `std::exception_ptr` is released as well.
+     * Then, for any failure bit still set in `s` that is also present in the exception
+     * mask `exceptions()`, an exception is triggered: in the order
+     * device → conversion → stream → other → EOF, the original exception previously
+     * captured for that category is rethrown; if that pointer is empty, a default
+     * exception matching the category is thrown instead.
+     *
+     * @param s The new stream state bits; defaults to `goodbit` (i.e. clears all state).
+     * @tparam ignore_exception_mask When `false` (default), honors the exception mask and
+     *         triggers exceptions per the rules above; when `true`, the "trigger per the mask"
+     *         step is skipped: the state bits are still replaced and the `exception_ptr`s of
+     *         cleared failure bits released, but it **does not (re)throw on account of the
+     *         exception mask**, nor consume the stored `exception_ptr` of a still-set category.
+     *         The @throw cases below can therefore occur only when
+     *         `ignore_exception_mask == false` (a lower-level throw such as a lock failure is
+     *         unaffected by this parameter and may occur either way).
+     * @throw device_error When `devfailbit` is set and in the exception mask, with no
+     *        stored original exception.
+     * @throw cvt_error When `cvtfailbit` is set and in the exception mask, with no stored
+     *        original exception.
+     * @throw stream_error When `strfailbit`/`otherfailbit` is set and in the exception
+     *        mask, with no stored original exception.
+     * @throw eof_error When `eofbit` is set and in the exception mask.
+     * @endif
+     */
+    template <bool ignore_exception_mask = false>
+    void clear(ios_defs::iostate s = ios_defs::goodbit)
+    {
+        std::lock_guard guard(this->io_mutex());
+        m_stream_state.store(s);
+        if ((s & ios_defs::devfailbit) == ios_defs::goodbit) m_exp_dev_fail = std::exception_ptr{};
+        if ((s & ios_defs::cvtfailbit) == ios_defs::goodbit) m_exp_cvt_fail = std::exception_ptr{};
+        if ((s & ios_defs::strfailbit) == ios_defs::goodbit) m_exp_str_fail = std::exception_ptr{};
+        if ((s & ios_defs::otherfailbit) == ios_defs::goodbit) m_exp_other_fail = std::exception_ptr{};
+
+        if constexpr(!ignore_exception_mask)
+        {
+            ios_defs::iostate state_in_exp = m_exception & s;
+            if (state_in_exp & ios_defs::devfailbit)
+            {
+                if (m_exp_dev_fail)
+                    std::rethrow_exception(std::exchange(m_exp_dev_fail, nullptr));
+                else
+                    throw device_error("device failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::cvtfailbit)
+            {
+                if (m_exp_cvt_fail)
+                    std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr));
+                else
+                    throw cvt_error("converter failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::strfailbit)
+            {
+                if (m_exp_str_fail)
+                    std::rethrow_exception(std::exchange(m_exp_str_fail, nullptr));
+                else
+                    throw stream_error("stream failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::otherfailbit)
+            {
+                if (m_exp_other_fail)
+                    std::rethrow_exception(std::exchange(m_exp_other_fail, nullptr));
+                else
+                    throw stream_error("other failure bit has been set");
+            }
+            else if (state_in_exp & ios_defs::eofbit)
+            {
+                throw eof_error{};
+            }
+        }
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 在现有状态位的基础上附加 `s`（按位或），并可能触发异常。
+     * @param s 要附加置位的状态位。
+     * @tparam ignore_exception_mask 透传给 `clear`：`false`（默认）遵循异常掩码、可能（重）抛出；
+     *         `true` 置位但不因掩码抛出。见 clear()。
+     * @note 等价于 `clear<ignore_exception_mask>(rdstate() | s)`，因此是否遵循异常掩码同样由
+     *       `ignore_exception_mask` 决定。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Adds `s` on top of the existing state bits (bitwise-or), possibly
+     * triggering exceptions.
+     * @param s The state bits to additionally set.
+     * @tparam ignore_exception_mask Forwarded to `clear`: `false` (default) honors the
+     * exception mask and may (re)throw; `true` sets the bits without throwing on account of
+     * the mask. See clear().
+     * @note Equivalent to `clear<ignore_exception_mask>(rdstate() | s)`, so whether the
+     * exception mask is honored is likewise governed by `ignore_exception_mask`.
+     * @endif
+     */
+    template <bool ignore_exception_mask = false>
+    void setstate(ios_defs::iostate s)
+    {
+        std::lock_guard guard(this->io_mutex());
+        clear<ignore_exception_mask>(rdstate() | s);
+    }
+
+    void unset_state(ios_defs::iostate s)
+    {
+        std::lock_guard guard(this->io_mutex());
+        clear<false>(rdstate() & ~s);
+    }
+    /**
+     * @lang{ZH} @brief 是否无任何错误（状态位全为 0）。 @endif
+     * @lang{EN} @brief Whether there is no error at all (state bits all zero). @endif
+     */
+    [[nodiscard]] bool good() const { return rdstate() == 0; }
+    /**
+     * @lang{ZH} @brief 是否置位了设备失败位。 @endif
+     * @lang{EN} @brief Whether the device-failure bit is set. @endif
+     */
+    [[nodiscard]] bool dev_fail() const { return rdstate() & ios_defs::devfailbit; }
+    /**
+     * @lang{ZH} @brief 是否置位了转换失败位。 @endif
+     * @lang{EN} @brief Whether the conversion-failure bit is set. @endif
+     */
+    [[nodiscard]] bool cvt_fail() const { return rdstate() & ios_defs::cvtfailbit; }
+    /**
+     * @lang{ZH} @brief 是否置位了流失败位。 @endif
+     * @lang{EN} @brief Whether the stream-failure bit is set. @endif
+     */
+    [[nodiscard]] bool str_fail() const { return rdstate() & ios_defs::strfailbit; }
+    /**
+     * @lang{ZH} @brief 是否置位了其他失败位。 @endif
+     * @lang{EN} @brief Whether the other-failure bit is set. @endif
+     */
+    [[nodiscard]] bool other_fail() const { return rdstate() & ios_defs::otherfailbit; }
+    /**
+     * @lang{ZH} @brief 是否已到达文件/输入末尾（`eofbit` 置位）。 @endif
+     * @lang{EN} @brief Whether end-of-file/input has been reached (`eofbit` set). @endif
+     */
+    [[nodiscard]] bool eof() const { return rdstate() & ios_defs::eofbit; }
+
+    /**
+     * @lang{ZH}
+     * @brief 布尔转换：当流仍可用时为 `true`。
+     *
+     * 仅当状态为 `goodbit`，或仅置位了 `eofbit`（无任何失败位）时返回 `true`。
+     * 换言之，只要出现任何失败位即返回 `false`；单纯的 EOF 不视为不可用。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Boolean conversion: `true` while the stream is still usable.
+     *
+     * Returns `true` only when the state is `goodbit`, or when only `eofbit` is set
+     * (without any failure bit). In other words, any failure bit makes it `false`;
+     * plain EOF alone is not treated as unusable.
+     * @endif
+     */
+    explicit operator bool() const
+    {
+        const ios_defs::iostate s = rdstate();
+        return (s == 0) || (s == ios_defs::eofbit);
+    }
+
+    /**
+     * @lang{ZH} @brief 返回当前的异常掩码。 @endif
+     * @lang{EN} @brief Returns the current exception mask. @endif
+     */
+    [[nodiscard]] ios_defs::iostate exceptions() const
+    {
+        std::lock_guard guard(this->io_mutex());
+        return m_exception;
+    }
+    /**
+     * @lang{ZH}
+     * @brief 设置异常掩码，指定哪些状态位应触发异常。
+     *
+     * 设置后会立即以当前状态位调用 `clear(m_stream_state)`，因此若当前已置位的状态位
+     * 落入新掩码，会**立刻**触发相应异常。
+     * @param e 新的异常掩码。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the exception mask that specifies which state bits should throw.
+     *
+     * After setting, `clear(m_stream_state)` is immediately called with the current
+     * state bits, so if an already-set state bit falls within the new mask the
+     * corresponding exception fires **immediately**.
+     * @param e The new exception mask.
+     * @endif
+     */
+    void exceptions(ios_defs::iostate e)
+    {
+        std::lock_guard guard(this->io_mutex());
+        m_exception = e;
+        clear(m_stream_state.load());
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 捕获并归类一个异常，将其转换为对应的失败状态位。
+     *
+     * 重新抛出 `ex` 并按类型归类：`device_error`→`devfailbit`、`cvt_error`→`cvtfailbit`、
+     * `stream_error`→`strfailbit`、`eof_error`→`eofbit`、其余→`otherfailbit`。对于设备/
+     * 转换/流/其他类别，若该类别尚无保存的异常指针，则记录当前异常，以便日后经 clear()/
+     * setstate() 重新抛出原始异常。随后通过 `setstate<ignore_exception_mask>()` 置位相应状态
+     * 位。是否再抛由模板参数决定：`ignore_exception_mask == false`（默认）时，若该位在异常掩码
+     * 中则**（重）抛出异常**；`ignore_exception_mask == true` 时**只置位、不因掩码抛出**，且不
+     * 消费已保存的 `exception_ptr`（适用于需避免掩码驱动抛出的上下文，如 `noexcept` 析构器）。
+     * 注意：无论取值如何，加锁失败等底层抛出仍可能发生，故本函数并非 `noexcept`。
+     *
+     * @param ex 要处理的异常指针；若为空指针则不做任何事。
+     * @tparam ignore_exception_mask `false`（默认）遵循异常掩码、可能（重）抛出；`true` 只登记
+     *         失败位、不因掩码抛出（供需避免掩码驱动抛出的上下文使用，如析构器）。
+     * @note EOF 类别不保存异常指针（EOF 无需携带原始异常信息）。
+     * @note 本函数对同一异常是**幂等**的：以同一个 `ex` 重复调用，与只调用一次的可观测效果
+     *       相同。重复调用出现在嵌套的处理点上——例如 `put()` 自己处理完异常后因掩码重抛，
+     *       异常再落到调用方的 `catch`。第二遍的三步都无害：`m_exp_*` 在首遍 `clear()` 重抛
+     *       时已被消费置空，于是同一异常被重新存入；`setstate` 对已置位的位是按位或空操作；
+     *       `clear()` 再次重抛同一个原始异常。调用方因此**不需要**为了躲开重复调用而在嵌套
+     *       处省略 try。
+     * @warning **不支持对阻塞在本库 I/O 中的线程调用 `pthread_cancel`。** glibc 以抛出特殊异常
+     *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
+     *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
+     *          重新抛出，取消因而被吞掉，导致 `FATAL: exception not rethrown` 并 abort。线程取消
+     *          不属于 C++ 标准，也没有可移植的手段在 `catch(...)` 中将其识别出来。若需中断阻塞中
+     *          的 I/O，请改为关闭底层设备（使阻塞调用带错误返回），或使用超时 / 非阻塞 I/O。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Captures and categorizes an exception, turning it into the matching
+     * failure state bit.
+     *
+     * Rethrows `ex` and categorizes it by type: `device_error`→`devfailbit`,
+     * `cvt_error`→`cvtfailbit`, `stream_error`→`strfailbit`, `eof_error`→`eofbit`,
+     * everything else→`otherfailbit`. For the device/conversion/stream/other categories,
+     * if that category has no stored exception pointer yet, the current exception is
+     * recorded so the original can later be rethrown via clear()/setstate(). It then
+     * sets the matching state bit through `setstate<ignore_exception_mask>()`. Whether it
+     * throws is governed by the template parameter: when `ignore_exception_mask == false`
+     * (default) it **(re)throws** if that bit is in the exception mask; when
+     * `ignore_exception_mask == true` it **only sets the bit and does not throw on account of
+     * the mask**, leaving the stored `exception_ptr` unconsumed (for a context that must avoid
+     * a mask-driven throw, such as a `noexcept` destructor). Note that, regardless of the
+     * value, a lower-level throw such as a lock failure may still occur, so this function is
+     * not `noexcept`.
+     *
+     * @param ex The exception pointer to handle; does nothing if it is null.
+     * @tparam ignore_exception_mask `false` (default) honors the exception mask and may
+     *         (re)throw; `true` only records the failure bit and does not throw on account of
+     *         the mask (for a context that must avoid a mask-driven throw, such as a destructor).
+     * @note The EOF category stores no exception pointer (EOF carries no original
+     * exception information).
+     * @note This function is **idempotent** for a given exception: calling it repeatedly with
+     * the same `ex` has the same observable effect as calling it once. Repeat calls arise at
+     * nested handling points -- `put()`, for one, handles its own exception and then rethrows
+     * on account of the mask, so the exception reaches the caller's `catch` as well. All three
+     * steps of the second pass are harmless: `m_exp_*` was consumed and nulled by the first
+     * pass's rethrow inside `clear()`, so the same exception is stored again; `setstate` is a
+     * bitwise-or no-op on an already-set bit; and `clear()` rethrows the same original
+     * exception. Callers therefore do **not** need to omit a try at a nested site merely to
+     * avoid a repeat call.
+     * @warning **Calling `pthread_cancel` on a thread blocked inside this library is not
+     *          supported.** glibc implements thread cancellation by throwing a special
+     *          exception (`__cxxabiv1::__forced_unwind`), which lands in this function's
+     *          final `catch(...)` and is categorized as `otherfailbit`; unless
+     *          `otherfailbit` is in the exception mask it is not rethrown, so the
+     *          cancellation is swallowed and the process aborts with
+     *          `FATAL: exception not rethrown`. Thread cancellation is not part of the C++
+     *          standard, and there is no portable way to recognize it inside a `catch(...)`.
+     *          To interrupt blocked I/O, close the underlying device instead (so the
+     *          blocking call returns with an error), or use timeouts / non-blocking I/O.
+     * @endif
+     */
+    template <bool ignore_exception_mask = false>
+    void handle_exception(const std::exception_ptr& ex, bool at_eof = false)
+    {
+        if (!ex) return;
+        std::lock_guard guard(this->io_mutex());
+        const ios_defs::iostate eof = at_eof ? ios_defs::eofbit : ios_defs::goodbit;
+        try
+        {
+            std::rethrow_exception(ex);
+        }
+        catch (device_error&)
+        {
+            if (!m_exp_dev_fail)
+                m_exp_dev_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::devfailbit | eof);
+        }
+        catch (cvt_error&)
+        {
+            if (!m_exp_cvt_fail)
+                m_exp_cvt_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::cvtfailbit | eof);
+        }
+        catch (stream_error&)
+        {
+            if (!m_exp_str_fail)
+                m_exp_str_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::strfailbit | eof);
+        }
+        catch (eof_error&)
+        {
+            setstate<ignore_exception_mask>(ios_defs::eofbit);
+        }
+        catch(...)
+        {
+            if (!m_exp_other_fail)
+                m_exp_other_fail = std::current_exception();
+            setstate<ignore_exception_mask>(ios_defs::otherfailbit | eof);
+        }
+    }
+
+private:
+    ios_defs::iostate  m_exception = ios_defs::goodbit;      ///< @lang{ZH} 异常掩码：哪些状态位应触发异常。由 `ios_base::m_io_mutex` 保护。 @endif @lang{EN} Exception mask: which state bits should throw. Guarded by `ios_base::m_io_mutex`. @endif
+    copyable_atomic<ios_defs::iostate> m_stream_state{ios_defs::goodbit};   ///< @lang{ZH} 当前流状态位。原子量，使 `rdstate()` 及 `good()`/`eof()`/`operator bool` 等热路径无锁读取；其**写**仍与其余成员一同在 `io_mutex()` 下完成，故不变式不受影响。 @endif @lang{EN} Current stream state bits. Atomic so that `rdstate()` -- and the hot `good()`/`eof()`/`operator bool` built on it -- reads lock-free; **writes** still happen under `io_mutex()` together with the other members, so the invariant is unaffected. @endif
+    std::exception_ptr m_exp_dev_fail = std::exception_ptr{};    ///< @lang{ZH} 设备失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the device-failure category. @endif
+    std::exception_ptr m_exp_cvt_fail = std::exception_ptr{};    ///< @lang{ZH} 转换失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the conversion-failure category. @endif
+    std::exception_ptr m_exp_str_fail = std::exception_ptr{};    ///< @lang{ZH} 流失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the stream-failure category. @endif
+    std::exception_ptr m_exp_other_fail = std::exception_ptr{};  ///< @lang{ZH} 其他失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the other-failure category. @endif
 };
 
 /**
