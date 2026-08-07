@@ -135,7 +135,7 @@ void test_ostream_derive_3()
 
 namespace
 {
-// ostream_type requires io_state_and_exp, because code constrained by the concept calls
+// ostream_type requires ios_state, because code constrained by the concept calls
 // handle_exception() and operator bool directly (out_sentry's destructor). Without the clause
 // those calls only fail when the template body is instantiated, which bypasses the fallback
 // overload's short diagnostic -- the operators that consume manipulators only check callability
@@ -153,14 +153,34 @@ struct StatelessOs : IOv2::ios_base<char>
     IOv2::locale<char> m_locale;
 };
 
-// The same thing with the state component: everything else about it is unchanged, so this
-// pair isolates the new clause.
-struct StatefulOs : StatelessOs, IOv2::io_state_and_exp {};
+// The same thing with the state component: ios_state<char> derives from
+// ios_base<char>, so it replaces that base rather than joining it. Everything else is
+// unchanged, so this pair isolates the clause.
+struct StatefulOs : IOv2::ios_state<char>
+                  , IOv2::stream_common_operators
+                  , IOv2::ostream_operators<char>
+{
+    using char_type = char;
+    using out_sentry_type = IOv2::out_sentry<StatefulOs, false>;
+    using out_iter_type = IOv2::ostreambuf_iterator<IOv2::ostreambuf<IOv2::mem_device<char>, char>>;
+    IOv2::locale<char> m_locale;
+};
+
+// Deriving from ios_base<char> again on top of ios_state<char> gives two ios_base
+// subobjects. That is what the concept's now-redundant derived_from<T, ios_base<char_type>>
+// clause is there to reject: base ambiguity makes the conversion, and so the clause, false.
+// This build would reject the shape one step earlier via -Winaccessible-base; the warning is
+// silenced here so the concept itself is what gets tested.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winaccessible-base"
+struct DoubleBaseOs : StatefulOs, IOv2::ios_base<char> {};
+#pragma GCC diagnostic pop
 
 static_assert( IOv2::ostream_type<IOv2::ostream<IOv2::mem_device<char>, char>> );
 static_assert( IOv2::ostream_type<IOv2::iostream<IOv2::mem_device<char>, char>> );
 static_assert(!IOv2::ostream_type<StatelessOs> );
 static_assert( IOv2::ostream_type<StatefulOs> );
+static_assert(!IOv2::ostream_type<DoubleBaseOs> );
 }
 
 void test_ostream_derive()

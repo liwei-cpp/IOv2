@@ -18,8 +18,7 @@
 namespace IOv2
 {
 template <io_device TDevice, typename TChar>
-class ostream : public ios_base<TChar>
-              , public io_state_and_exp
+class ostream : public ios_state<TChar>
               , public out_flusher<ostream<TDevice, TChar>>
               , public ostream_operators<TChar>
               , public stream_common_operators
@@ -186,8 +185,7 @@ public:
 private:
     template <typename TLock>
     ostream(TLock&&, const ostream& other)
-        : ios_base<TChar>(other)
-        , io_state_and_exp(other)
+        : ios_state<TChar>(other)
         , out_flusher<ostream<TDevice, TChar>>(other)
         , ostream_operators<TChar>(other)
         , stream_common_operators(other)
@@ -229,8 +227,7 @@ public:
         if (this == &other) return *this;
 
         std::lock_guard guard(this->io_mutex());
-        ios_base<TChar>::operator=(std::move(other));
-        io_state_and_exp::operator=(std::move(other));
+        ios_state<TChar>::operator=(std::move(other));
         out_flusher<ostream<TDevice, TChar>>::operator=(std::move(other));
         ostream_operators<TChar>::operator=(std::move(other));
         stream_common_operators::operator=(std::move(other));

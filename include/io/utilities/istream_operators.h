@@ -266,11 +266,13 @@ struct istream_operators;
  *
  * 一个类型要成为输入流，必须提供 `in_sentry_type`、`in_iter_type` 与 `char_type` 类型、
  * 可返回其 locale，且其 `in_sentry_type` 满足 `is_in_sentry`；同时它必须派生自
- * `ios_base<char_type>`、`io_state_and_exp` 与 `istream_operators<char_type>`。
- * @note `io_state_and_exp` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
+ * `ios_state<char_type>` 与 `istream_operators<char_type>`。
+ * @note `ios_state` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
  *       `handle_exception()`（提取运算符的 `catch`、`in_sentry` 的构造）与 `operator bool`。
  *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
  *       “这个类型不是输入流”上。
+ * @note `ios_base<char_type>` 那一条如今是 `ios_state<char_type>` 的推论，保留它当
+ *       检查用；理由见 `ostream_operators.h` 中 `ostream_type` 的对应说明。
  * @note `in_iter_type` 必须是 `i_iter()` 的返回类型（`i_iter()` 的返回类型就写成它，因此两者
  *       不会漂移）。之所以要把这个**类型**公开出来，理由与插入侧的 `out_iter_type` 相同：
  *       `i_iter()` 本身是私有的，而 `detail::extractable` 这类命名概念不是友元，无法在自己的
@@ -285,14 +287,17 @@ struct istream_operators;
  *
  * To qualify as an input stream, a type must expose the `in_sentry_type`, `in_iter_type` and
  * `char_type` types, be able to return its locale, and have an `in_sentry_type` that satisfies
- * `is_in_sentry`; it must also derive from `ios_base<char_type>`, `io_state_and_exp` and
+ * `is_in_sentry`; it must also derive from `ios_state<char_type>` and
  * `istream_operators<char_type>`.
- * @note The `io_state_and_exp` clause is a requirement, not just a description: code
+ * @note The `ios_state` clause is a requirement, not just a description: code
  *       constrained by this concept calls `handle_exception()` (the extraction operator's
  *       `catch`, `in_sentry`'s constructor) and `operator bool` directly. Without it those
  *       calls only fail once the template **body** is instantiated, putting the diagnostic
  *       deep inside the library's implementation rather than on "this type is not an input
  *       stream".
+ * @note The `ios_base<char_type>` clause now follows from `ios_state<char_type>` and
+ *       is kept as a check; see the matching note on `ostream_type` in
+ *       `ostream_operators.h`.
  * @note `in_iter_type` must be the return type of `i_iter()` -- which is spelled as exactly that
  *       type, so the two cannot drift apart. The **type** has to be public for the same reason
  *       as `out_iter_type` on the insertion side: `i_iter()` itself is private, and a named
@@ -314,7 +319,7 @@ concept istream_type =
     } &&
     is_in_sentry<typename T::in_sentry_type> &&
     std::derived_from<T, ios_base<typename T::char_type>> &&
-    std::derived_from<T, io_state_and_exp> &&
+    std::derived_from<T, ios_state<typename T::char_type>> &&
     std::derived_from<T, istream_operators<typename T::char_type>>;
 
 namespace detail

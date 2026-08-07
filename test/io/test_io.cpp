@@ -3,7 +3,7 @@
 #include <support/dump_info.h>
 
 void test_io_base();
-void test_io_state_and_exp();
+void test_ios_state();
 void test_io_traits();
 void test_streambuf();
 void test_streambuf_iterator();
@@ -19,7 +19,7 @@ int main()
     try
     {
         test_io_base();
-        test_io_state_and_exp();
+        test_ios_state();
         test_io_traits();
         test_streambuf();
         test_streambuf_iterator();

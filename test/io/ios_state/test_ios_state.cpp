@@ -3,15 +3,15 @@
 #include <support/dump_info.h>
 #include <support/verify.h>
 
-void test_io_state_and_exp_1()
+void test_ios_state_1()
 {
-    dump_info("Test io_state_and_exp case 1...");
+    dump_info("Test ios_state case 1...");
     {
-        IOv2::io_state_and_exp ios_01;
+        IOv2::ios_state<char> ios_01;
         VERIFY(ios_01.exceptions() == IOv2::ios_defs::goodbit);
     }
     {
-        IOv2::io_state_and_exp ios_01;
+        IOv2::ios_state<char> ios_01;
         try
         {
             ios_01.exceptions(IOv2::ios_defs::cvtfailbit);
@@ -26,7 +26,7 @@ void test_io_state_and_exp_1()
     }
     {
         IOv2::ios_defs::iostate iostate02 = IOv2::ios_defs::goodbit;
-        IOv2::io_state_and_exp ios_01;
+        IOv2::ios_state<char> ios_01;
         ios_01.clear(IOv2::ios_defs::cvtfailbit);
         try
         {
@@ -48,11 +48,11 @@ void test_io_state_and_exp_1()
     dump_info("Done\n");
 }
 
-void test_io_state_and_exp_2()
+void test_ios_state_2()
 {
-    dump_info("Test io_state_and_exp case 2...");
+    dump_info("Test ios_state case 2...");
 
-    IOv2::io_state_and_exp stream;
+    IOv2::ios_state<char> stream;
     try
     {
         stream.setstate(IOv2::ios_defs::cvtfailbit);
@@ -77,9 +77,9 @@ void test_io_state_and_exp_2()
     dump_info("Done\n");
 }
 
-void test_io_state_and_exp_handle_exception_eof_1()
+void test_ios_state_handle_exception_eof_1()
 {
-    dump_info("Test io_state_and_exp::handle_exception with eof_error case 1...");
+    dump_info("Test ios_state::handle_exception with eof_error case 1...");
 
     // Regression test: handle_exception() routes a caught eof_error through
     // setstate(eofbit) -> clear(). When exceptions(eofbit) is enabled, this
@@ -90,7 +90,7 @@ void test_io_state_and_exp_handle_exception_eof_1()
     // handle_exception's own catch block, so the exception was silently
     // swallowed.
     {
-        IOv2::io_state_and_exp stream;
+        IOv2::ios_state<char> stream;
         stream.exceptions(IOv2::ios_defs::eofbit);
 
         bool threw = false;
@@ -115,7 +115,7 @@ void test_io_state_and_exp_handle_exception_eof_1()
     // Without exceptions(eofbit) enabled, the state bit is still set but no
     // exception should be raised.
     {
-        IOv2::io_state_and_exp stream;
+        IOv2::ios_state<char> stream;
 
         try
         {
@@ -133,9 +133,9 @@ void test_io_state_and_exp_handle_exception_eof_1()
     dump_info("Done\n");
 }
 
-void test_io_state_and_exp_clear_exceptions_1()
+void test_ios_state_clear_exceptions_1()
 {
-    dump_info("Test io_state_and_exp::clear exception routing case 1...");
+    dump_info("Test ios_state::clear exception routing case 1...");
     using namespace IOv2;
 
     // For each failure category, clear() must, when the corresponding exception
@@ -145,7 +145,7 @@ void test_io_state_and_exp_clear_exceptions_1()
 
     // --- devfailbit: stashed exception is re-thrown ---
     {
-        io_state_and_exp s;
+        ios_state<char> s;
         s.exceptions(ios_defs::devfailbit);
         bool threw = false;
         try
@@ -162,7 +162,7 @@ void test_io_state_and_exp_clear_exceptions_1()
 
     // --- devfailbit: no stashed exception -> fresh device_error ---
     {
-        io_state_and_exp s;
+        ios_state<char> s;
         s.exceptions(ios_defs::devfailbit);
         bool threw = false;
         try
@@ -178,7 +178,7 @@ void test_io_state_and_exp_clear_exceptions_1()
 
     // --- cvtfailbit: stashed exception is re-thrown ---
     {
-        io_state_and_exp s;
+        ios_state<char> s;
         s.exceptions(ios_defs::cvtfailbit);
         bool threw = false;
         try
@@ -195,7 +195,7 @@ void test_io_state_and_exp_clear_exceptions_1()
 
     // --- strfailbit: stashed exception is re-thrown ---
     {
-        io_state_and_exp s;
+        ios_state<char> s;
         s.exceptions(ios_defs::strfailbit);
         bool threw = false;
         try
@@ -212,7 +212,7 @@ void test_io_state_and_exp_clear_exceptions_1()
 
     // --- strfailbit: no stashed exception -> fresh stream_error ---
     {
-        io_state_and_exp s;
+        ios_state<char> s;
         s.exceptions(ios_defs::strfailbit);
         bool threw = false;
         try
@@ -228,7 +228,7 @@ void test_io_state_and_exp_clear_exceptions_1()
 
     // --- otherfailbit: no stashed exception -> fresh stream_error ---
     {
-        io_state_and_exp s;
+        ios_state<char> s;
         s.exceptions(ios_defs::otherfailbit);
         bool threw = false;
         try
@@ -246,10 +246,10 @@ void test_io_state_and_exp_clear_exceptions_1()
     dump_info("Done\n");
 }
 
-void test_io_state_and_exp()
+void test_ios_state()
 {
-    test_io_state_and_exp_1();
-    test_io_state_and_exp_2();
-    test_io_state_and_exp_handle_exception_eof_1();
-    test_io_state_and_exp_clear_exceptions_1();
+    test_ios_state_1();
+    test_ios_state_2();
+    test_ios_state_handle_exception_eof_1();
+    test_ios_state_clear_exceptions_1();
 }

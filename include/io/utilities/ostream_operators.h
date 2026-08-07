@@ -427,11 +427,15 @@ struct ostream_operators;
  *
  * 一个类型要成为输出流，必须提供 `out_sentry_type`、`out_iter_type` 与 `char_type` 类型、
  * 可返回其 locale，且其 `out_sentry_type` 满足 `is_out_sentry`；同时它必须派生自
- * `ios_base<char_type>`、`io_state_and_exp` 与 `ostream_operators<char_type>`。
- * @note `io_state_and_exp` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
+ * `ios_state<char_type>` 与 `ostream_operators<char_type>`。
+ * @note `ios_state` 这一条是必需的，不只是描述性的：本概念约束下的代码会直接调用
  *       `handle_exception()`（插入运算符的 `catch`、`out_sentry` 的析构）与 `operator bool`。
  *       缺了它，这些调用要到模板**体**实例化时才报错，诊断落在库的内部实现里，而不是落在
  *       “这个类型不是输出流”上。
+ * @note `ios_base<char_type>` 那一条如今是 `ios_state<char_type>` 的推论，保留它当
+ *       检查用：若某个类型在继承 `ios_state<char_type>` 之外又单独继承了一次
+ *       `ios_base<char_type>`，就会有两个 `ios_base` 子对象，这一条因基类二义而为假，从而在
+ *       概念处报错，而不是拖到后面某个 `io_mutex()` 调用上才报二义。
  * @note `out_iter_type` 必须是 `o_iter()` 的返回类型（`o_iter()` 的返回类型就写成它，因此两者
  *       不会漂移）。之所以要把这个**类型**公开出来，是因为 `o_iter()` 本身是私有的——它是一条
  *       绕开哨兵与 `io_mutex()` 直达 `m_streambuf` 的路，不能给出去；而 `detail::insertable`
@@ -447,14 +451,19 @@ struct ostream_operators;
  *
  * To qualify as an output stream, a type must expose the `out_sentry_type`, `out_iter_type` and
  * `char_type` types, be able to return its locale, and have an `out_sentry_type` that satisfies
- * `is_out_sentry`; it must also derive from `ios_base<char_type>`, `io_state_and_exp` and
+ * `is_out_sentry`; it must also derive from `ios_state<char_type>` and
  * `ostream_operators<char_type>`.
- * @note The `io_state_and_exp` clause is a requirement, not just a description: code
+ * @note The `ios_state` clause is a requirement, not just a description: code
  *       constrained by this concept calls `handle_exception()` (the insertion operator's
  *       `catch`, `out_sentry`'s destructor) and `operator bool` directly. Without it those
  *       calls only fail once the template **body** is instantiated, putting the diagnostic
  *       deep inside the library's implementation rather than on "this type is not an output
  *       stream".
+ * @note The `ios_base<char_type>` clause now follows from `ios_state<char_type>`; it
+ *       is kept as a check. A type that derives from `ios_base<char_type>` separately, on
+ *       top of `ios_state<char_type>`, has two `ios_base` subobjects, which makes
+ *       this clause false through base ambiguity -- so the diagnostic lands on the concept
+ *       rather than on some later `io_mutex()` call being ambiguous.
  * @note `out_iter_type` must be the return type of `o_iter()` -- which is spelled as exactly
  *       that type, so the two cannot drift apart. The **type** has to be public because
  *       `o_iter()` itself is private: it is an unlocked path to `m_streambuf` that bypasses the
@@ -479,7 +488,7 @@ concept ostream_type =
     } &&
     is_out_sentry<typename T::out_sentry_type> &&
     std::derived_from<T, ios_base<typename T::char_type>> &&
-    std::derived_from<T, io_state_and_exp> &&
+    std::derived_from<T, ios_state<typename T::char_type>> &&
     std::derived_from<T, ostream_operators<typename T::char_type>>;
 
 namespace detail
