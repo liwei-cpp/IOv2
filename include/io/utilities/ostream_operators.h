@@ -807,8 +807,13 @@ private:
  * @note 加锁位置分两种：迭代器形式由本运算符取 `io_mutex()`，并保证 `handle_exception()`
  *       也在锁内；流形式一律不加锁，由操纵符自己决定——各操纵符所需的锁作用域并不相同
  *       （`endl` 要把读 locale 与 `put()` 一起罩在锁内；`ends` / `flush` 完全不需要显式加锁），
- *       无法上提到这里。流形式外面的 `catch` 是**唯一**的异常出口：操纵符自己不再各兜一遍，
- *       抛出什么都由这里转交 `handle_exception`，按本库的错误模型置位并遵守异常掩码。
+ *       无法上提到这里。相应地，流形式外面的 `catch` 是**最外层**的异常出口，而不是唯一的：
+ *       自己取了 `io_mutex()` 的操纵符必须在锁内自己 `catch` 并调 `handle_exception`（库内是
+ *       `io_traits<TChar, endl_t>::swrite` 与 `io_traits<TChar, ws_t>::sread`），否则栈展开会先
+ *       析构它的锁守卫，置位就落到解锁之后；理由见 `traits_base.h` 上的 `@warning`。这里接住的
+ *       是不加锁的那些操纵符，以及掩码命中时从操纵符自己的 `handle_exception` 再抛出来的异常
+ *       ——后者被处理两次，但 `handle_exception` 幂等，无害。置位一律按本库的错误模型进行并
+ *       遵守异常掩码。
  * @tparam T 输出流类型。
  * @tparam TValue 源值类型。
  * @param obj 输出流。
@@ -846,10 +851,16 @@ private:
  *       keeps `handle_exception()` inside it; the stream form is never locked here and decides
  *       for itself -- the lock scope each manipulator needs differs (`endl` must cover both the
  *       locale read and the `put()`; `ends` / `flush` need no explicit lock at all), so it
- *       cannot be hoisted here. The `catch` around the stream form is the **only** exception
- *       exit: manipulators no longer catch anything themselves, and whatever they throw is
- *       handed to `handle_exception` here, which sets state through this library's error model
- *       and honours the exception mask.
+ *       cannot be hoisted here. Correspondingly, the `catch` around the stream form is the
+ *       **outermost** exception exit, not the only one: a manipulator that takes `io_mutex()`
+ *       itself must `catch` and call `handle_exception` inside its own lock
+ *       (`io_traits<TChar, endl_t>::swrite` and `io_traits<TChar, ws_t>::sread` in this
+ *       library), or unwinding destroys its lock guard first and the state write lands after
+ *       the unlock; see the `@warning` in `traits_base.h` for why. What this `catch` handles is
+ *       the manipulators that do not lock, plus whatever a manipulator's own
+ *       `handle_exception` rethrows on a mask hit -- handled twice, harmlessly, since
+ *       `handle_exception` is idempotent. Either way the state is set through this library's
+ *       error model and honours the exception mask.
  * @tparam T The output stream type.
  * @tparam TValue The source value type.
  * @param obj The output stream.
