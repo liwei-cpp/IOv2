@@ -1,7 +1,7 @@
 var searchData=
 [
   ['rb_5froot_5fcvt_0',['rb_root_cvt',['../namespaceIOv2.html#a4d43e84ad8909b24c7ff9808c3447be3',1,'IOv2::rb_root_cvt(DeviceType) -&gt; rb_root_cvt&lt; DeviceType &gt;'],['../classIOv2_1_1rb__root__cvt.html',1,'IOv2::rb_root_cvt&lt; DeviceType &gt;']]],
-  ['rdstate_1',['rdstate',['../structIOv2_1_1io__state__and__exp.html#ae5897909a71b7528e0208652b7a186e4',1,'IOv2::io_state_and_exp']]],
+  ['rdstate_1',['rdstate',['../structIOv2_1_1ios__state.html#a52ba99ee189073e2f51e68e5c62d25b7',1,'IOv2::ios_state']]],
   ['read_2',['read',['../structIOv2_1_1istream__operators.html#a85c69b7370b2a0caff2163b9d792f603',1,'IOv2::istream_operators']]],
   ['reference_3',['reference',['../structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#abe6c0619e1a10b8caf1ed1e30ee45ff8',1,'IOv2::stamp_input_iterator&lt; TIter &gt;']]],
   ['register_5fcallback_4',['register_callback',['../classIOv2_1_1ios__base.html#a8bf0205647f825bfd823b63c43fd202e',1,'IOv2::ios_base']]],

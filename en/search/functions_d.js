@@ -1,7 +1,7 @@
 var searchData=
 [
   ['oct_0',['oct',['../group__ios__manipulators.html#ga5f8ee2313b90a96b380258357f5573ec',1,'IOv2']]],
-  ['operator_20bool_1',['operator bool',['../structIOv2_1_1io__state__and__exp.html#a24857dccb73bbcef98b1d1bcd2dc4a73',1,'IOv2::io_state_and_exp']]],
+  ['operator_20bool_1',['operator bool',['../structIOv2_1_1ios__state.html#ac6e00f5b515e14cd5ef4e499c6e0c10a',1,'IOv2::ios_state']]],
   ['operator_20const_20std_3a_3achrono_3a_3atime_5fzone_20_2a_2',['time_zone *',['../structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#a73bcafa009b2bf2701efa39dafc3455c',1,'IOv2::time_zone_parse_helper&lt; true &gt;']]],
   ['operator_20const_20std_3a_3achrono_3a_3azoned_5ftime_3c_20std_3a_3achrono_3a_3aseconds_20_3e_3',['zoned_time&lt; std::chrono::seconds &gt;',['../structIOv2_1_1time__parse__context.html#a08785ab9861083ca5ee68d100f4271e2',1,'IOv2::time_parse_context']]],
   ['operator_20std_3a_3achrono_3a_3ahh_5fmm_5fss_3c_20std_3a_3achrono_3a_3aseconds_20_3e_4',['hh_mm_ss&lt; std::chrono::seconds &gt;',['../structIOv2_1_1time__parse__helper_3_01true_01_4.html#a264ead053fcbdf910186bfbebdea51cf',1,'IOv2::time_parse_helper&lt; true &gt;']]],
@@ -25,7 +25,7 @@ var searchData=
   ['ostream_5finsert_22',['ostream_insert',['../namespaceIOv2.html#a3a5f1ed9f2a1dbf8aa1ed719d2920fa8',1,'IOv2']]],
   ['ostreambuf_23',['ostreambuf',['../namespaceIOv2.html#a78929e055d34f774e2c6ae7536052498',1,'IOv2::ostreambuf(TDevice, const TCreator &amp;) -&gt; ostreambuf&lt; TDevice, ext_to_int&lt; no_rb_root_cvt&lt; TDevice &gt;, TCreator &gt; &gt;'],['../namespaceIOv2.html#a941c7043836ef414f05a0a79e9fb55b7',1,'IOv2::ostreambuf(TDevice) -&gt; ostreambuf&lt; TDevice, typename TDevice::char_type &gt;']]],
   ['ostreambuf_5fiterator_24',['ostreambuf_iterator',['../classIOv2_1_1ostreambuf__iterator.html#ac1c21d569f9ca2a426fac61e31be7921',1,'IOv2::ostreambuf_iterator']]],
-  ['other_5ffail_25',['other_fail',['../structIOv2_1_1io__state__and__exp.html#ae02907f048240aa1d71dfc2c4ffddd7b',1,'IOv2::io_state_and_exp']]],
+  ['other_5ffail_25',['other_fail',['../structIOv2_1_1ios__state.html#aaf1423b38f17523b9890aeaac4e355bb',1,'IOv2::ios_state']]],
   ['out_5fhelper_26',['out_helper',['../structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#a0026bd2c4c8484700197176c8e47b8a6',1,'IOv2::codecvt_kernel&lt; char8_t, TInt &gt;::out_helper()'],['../structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#a1a0279cb0bdeacb050cdcc59028971c2',1,'IOv2::codecvt_kernel&lt; char, TInt &gt;::out_helper()']]],
   ['out_5fof_5fwchar_5frange_27',['out_of_wchar_range',['../namespaceIOv2.html#ab693b72ad44b466bfb2fc085f2badef9',1,'IOv2']]],
   ['out_5fsentry_28',['out_sentry',['../structIOv2_1_1out__sentry.html#a463ef8f90f554015e1b887a92fe9c376',1,'IOv2::out_sentry::out_sentry(out_sentry &amp;&amp;)=delete'],['../structIOv2_1_1out__sentry.html#a11c184c273efe80b8f3c8e4dedc47395',1,'IOv2::out_sentry::out_sentry(const out_sentry &amp;)=delete'],['../structIOv2_1_1out__sentry.html#a3eb4d56f578ad5fa94bc205280262b2f',1,'IOv2::out_sentry::out_sentry(TStream &amp;os, bool is_unit_buf, bool is_app_mode)']]]

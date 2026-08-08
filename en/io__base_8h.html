@@ -234,14 +234,14 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html">IOv2::io_state_and_exp</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Component that manages the stream state bits and their associated exceptions.  <a href="structIOv2_1_1io__state__and__exp.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base_3_01void_01_4.html">IOv2::ios_base&lt; void &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>void</code> specialization of <code><a class="el" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream.">ios_base</a></code>, carrying global state shared by all character types.  <a href="classIOv2_1_1ios__base_3_01void_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base class holding the formatting state of every stream.  <a href="classIOv2_1_1ios__base.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html">IOv2::ios_state&lt; TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Component that adds the stream state bits and their associated exceptions on top of the formatting state.  <a href="structIOv2_1_1ios__state.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sync.html">IOv2::sync&lt; TStream &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII helper that locks a stream's I/O mutex.  <a href="structIOv2_1_1sync.html#details">More...</a><br /></td></tr>
@@ -454,8 +454,8 @@ Variables</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Defines the infrastructure for the I/O stream hierarchy, including:</p><ul>
 <li><code>ios_defs</code>: definitions of the formatting flags (<code>fmtflags</code>) and stream state bits (<code>iostate</code>).</li>
-<li><code>io_state_and_exp</code>: manages the stream state bits together with their associated exceptions (exception mask / exception pointers).</li>
-<li><code>ios_base</code>: the base class holding the formatting state of every stream: format flags, precision, width, fill character, pword storage, and locale-change callbacks.</li>
+<li><code>ios_base</code>: the base class holding the formatting state of every stream: format flags, precision, width, fill character, pword storage, locale-change callbacks, and the one object lock a stream has.</li>
+<li><code>ios_state</code>: adds, on top of <code>ios_base</code>, the stream state bits together with their associated exceptions (exception mask / exception pointers). The concrete stream classes all derive from it.</li>
 <li>A set of manipulators that modify a stream's formatting, such as <code>hex</code>, <code>left</code>, <code>fixed</code>, etc.</li>
 <li><code>sync</code>: an RAII helper that locks a stream's I/O mutex.  </li>
 </ul>

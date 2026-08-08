@@ -234,14 +234,14 @@ io_base.h 的引用(Include)关系图:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 类</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__state__and__exp.html">IOv2::io_state_and_exp</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">管理流状态位及其关联异常的组件。  <a href="structIOv2_1_1io__state__and__exp.html#details">更多...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base_3_01void_01_4.html">IOv2::ios_base&lt; void &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。">ios_base</a></code> 的 <code>void</code> 特化，承载所有字符类型共享的全局状态。  <a href="classIOv2_1_1ios__base_3_01void_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1ios__base.html">IOv2::ios_base&lt; TChar &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">所有流的格式化状态基类。  <a href="classIOv2_1_1ios__base.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ios__state.html">IOv2::ios_state&lt; TChar &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">在格式化状态之上，管理流状态位及其关联异常的组件。  <a href="structIOv2_1_1ios__state.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1sync.html">IOv2::sync&lt; TStream &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">对流的 I/O 互斥量进行 RAII 加锁的辅助类。  <a href="structIOv2_1_1sync.html#details">更多...</a><br /></td></tr>
@@ -454,8 +454,8 @@ io_base.h 的引用(Include)关系图:</div>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>定义了 I/O 流体系的基础设施，包括：</p><ul>
 <li><code>ios_defs</code>：格式化标志（<code>fmtflags</code>）与流状态位（<code>iostate</code>）的定义。</li>
-<li><code>io_state_and_exp</code>：管理流状态位以及与之关联的异常（异常掩码 / 异常指针）。</li>
-<li><code>ios_base</code>：所有流的格式化状态基类，持有格式标志、精度、宽度、填充字符、 pword 存储以及本地化变更回调。</li>
+<li><code>ios_base</code>：所有流的格式化状态基类，持有格式标志、精度、宽度、填充字符、 pword 存储、本地化变更回调，以及本流唯一的那把对象锁。</li>
+<li><code>ios_state</code>：在 <code>ios_base</code> 之上再管理流状态位与之关联的异常（异常掩码 / 异常指针）。具体流类都从它派生。</li>
 <li>一组用于修改流格式的操纵符（manipulator），如 <code>hex</code>、<code>left</code>、<code>fixed</code> 等。</li>
 <li><code>sync</code>：对流的 I/O 互斥量进行 RAII 加锁的辅助类。 </li>
 </ul>

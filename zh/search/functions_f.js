@@ -1,7 +1,7 @@
 var searchData=
 [
   ['rb_5froot_5fcvt_0',['rb_root_cvt',['../namespaceIOv2.html#a4d43e84ad8909b24c7ff9808c3447be3',1,'IOv2']]],
-  ['rdstate_1',['rdstate',['../structIOv2_1_1io__state__and__exp.html#ae5897909a71b7528e0208652b7a186e4',1,'IOv2::io_state_and_exp']]],
+  ['rdstate_1',['rdstate',['../structIOv2_1_1ios__state.html#a52ba99ee189073e2f51e68e5c62d25b7',1,'IOv2::ios_state']]],
   ['read_2',['read',['../structIOv2_1_1istream__operators.html#a85c69b7370b2a0caff2163b9d792f603',1,'IOv2::istream_operators']]],
   ['register_5fcallback_3',['register_callback',['../classIOv2_1_1ios__base.html#a8bf0205647f825bfd823b63c43fd202e',1,'IOv2::ios_base']]],
   ['remove_4',['remove',['../classIOv2_1_1locale.html#a9c07f0642c50f2baeb4b09c3ca80b078',1,'IOv2::locale']]],
