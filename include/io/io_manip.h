@@ -985,10 +985,11 @@ struct io_traits<TChar, get_time_t<TChar>>
 
         // The context is date+time without a time zone, matching
         // parse_context_type<TChar, std::tm>; that is also the combination whose
-        // explicit operator std::tm() is available.
+        // convert_to(std::tm&) is available.
         auto tmp = parse_context_type<TChar, std::tm>::make_parse_context(*(f.tmb));
         auto res = mp->get(s, s_end, tmp, f.fmt);
-        *(f.tmb) = static_cast<std::tm>(tmp);
+
+        tmp.convert_to(*(f.tmb));
 
         return res;
     }

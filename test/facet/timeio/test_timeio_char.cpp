@@ -1,4 +1,5 @@
 #include <chrono>
+#include <type_traits>
 #include <functional>
 #include <limits>
 #include <list>
@@ -9,6 +10,23 @@
 #include <support/verify.h>
 namespace
 {
+    // Retrieves one conversion target from a parse context as a value.
+    // time_parse_context fills into an out-parameter (convert_to) so that a std::tm keeps
+    // whatever it held in fields the context does not reconstruct; these tests only ever
+    // want the value, so they start from a value-initialised object.
+    template <typename T, typename TCtx>
+    T ctx_to(const TCtx& ctx)
+    {
+        if constexpr (std::is_same_v<T, std::remove_cvref_t<TCtx>>)
+            return ctx;
+        else
+        {
+            T v{};
+            ctx.convert_to(v);
+            return v;
+        }
+    }
+
     std::tm test_tm(int sec, int min, int hour, int mday, int mon, int year, int wday, int yday, int isdst)
     {
         static std::tm tmp;
@@ -2423,7 +2441,7 @@ namespace
             dump_info("unreachable code");
             std::abort();
         }
-        return static_cast<T>(ctx1);
+        return ctx_to<T>(ctx1);
     }
 
     template <typename T = IOv2::time_parse_context<char>, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
@@ -2497,7 +2515,7 @@ namespace
             dump_info("unreachable code");
             std::abort();
         }
-        return static_cast<T>(ctx1);
+        return ctx_to<T>(ctx1);
     }
 }
 
@@ -3350,7 +3368,7 @@ void test_timeio_char_get_4()
         
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 114);
         VERIFY(time.tm_mon == 3);
@@ -3366,7 +3384,7 @@ void test_timeio_char_get_4()
         
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret != input.end());
         VERIFY(time.tm_year == 120);
     }
@@ -3390,7 +3408,7 @@ void test_timeio_char_get_4()
         
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, 'Y');
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_year == 120);
         VERIFY(ret == input.end());
     }
@@ -3423,7 +3441,7 @@ void test_timeio_char_get_5()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 114);
         VERIFY(time.tm_mon == 3);
@@ -3435,7 +3453,7 @@ void test_timeio_char_get_5()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, 'A');
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_wday == 3);
     }
@@ -3454,7 +3472,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_wday == 1);
     }
@@ -3465,7 +3483,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == input.end()) || (*ret != ' ')));
         VERIFY(time.tm_wday == 2);
     }
@@ -3476,7 +3494,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_wday == 3);
     }
@@ -3487,7 +3505,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_wday == 4);
     }
@@ -3498,7 +3516,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == input.end()) || (*ret != ' ')));
         VERIFY(time.tm_wday == 5);
     }
@@ -3509,7 +3527,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_wday == 6);
     }
@@ -3520,7 +3538,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_mon == 1);
     }
@@ -3531,7 +3549,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == input.end()) || (*ret != ' ')));
         VERIFY(time.tm_mon == 2);
     }
@@ -3542,7 +3560,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_mon == 3);
     }
@@ -3553,7 +3571,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_mon == 4);
     }
@@ -3564,7 +3582,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == input.end()) || (*ret != ' ')));
         VERIFY(time.tm_mon == 5);
     }
@@ -3575,7 +3593,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_mon == 6);
     }
@@ -3586,7 +3604,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_mon == 7);
     }
@@ -3597,7 +3615,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == input.end()) || (*ret != ' ')));
         VERIFY(time.tm_mon == 4);
     }
@@ -3608,7 +3626,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_mon == 9);
     }
@@ -3620,7 +3638,7 @@ void test_timeio_char_get_6()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_mday == 2);
     }
@@ -3660,7 +3678,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_mday == 5);
     }
 
@@ -3671,7 +3689,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_mday == 6);
     }
 
@@ -3710,7 +3728,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 0);
         VERIFY(time.tm_min == 0);
     }
@@ -3722,7 +3740,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 0);
         VERIFY(time.tm_min == 37);
     }
@@ -3734,7 +3752,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 1);
         VERIFY(time.tm_min == 25);
     }
@@ -3746,7 +3764,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 12);
         VERIFY(time.tm_min == 0);
     }
@@ -3758,7 +3776,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 12);
         VERIFY(time.tm_min == 42);
     }
@@ -3770,7 +3788,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 19);
         VERIFY(time.tm_min == 23);
     }
@@ -3782,7 +3800,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 17);
         VERIFY(time.tm_min == 20);
     }
@@ -3808,7 +3826,7 @@ void test_timeio_char_get_6()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         VERIFY(ret == input.end());
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_mon == 10);
     }
 
@@ -3826,7 +3844,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_hour == 13);
         VERIFY(time.tm_min == 38);
@@ -3839,7 +3857,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 537 - 1900);
     }
@@ -3850,7 +3868,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2068 - 1900);
     }
@@ -3861,7 +3879,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 1969 - 1900);
     }
@@ -3872,7 +3890,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2003 - 1900);
         VERIFY(time.tm_mon == 1);
@@ -3887,7 +3905,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 11);
@@ -3902,7 +3920,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2021 - 1900);
         VERIFY(time.tm_mon == 11);
@@ -3917,7 +3935,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 8);
@@ -3932,7 +3950,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2021 - 1900);
         VERIFY(time.tm_mon == 7);
@@ -3947,7 +3965,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -3962,7 +3980,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -3977,7 +3995,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2021 - 1900);
         VERIFY(time.tm_mon == 9);
@@ -3992,7 +4010,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2024 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -4007,7 +4025,7 @@ void test_timeio_char_get_7()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_year == 2024 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -4030,7 +4048,7 @@ void test_timeio_char_get_8()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_hour == 13);
         VERIFY(time.tm_min == 38);
@@ -4043,7 +4061,7 @@ void test_timeio_char_get_8()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == input.end());
         VERIFY(time.tm_hour == 23);
         VERIFY(time.tm_min == 17);
@@ -4066,7 +4084,7 @@ void test_timeio_char_get_9()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 114);
         VERIFY(time.tm_mon == 3);
@@ -4084,7 +4102,7 @@ void test_timeio_char_get_9()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret != std::default_sentinel);
         VERIFY(time.tm_year == 120);
     }
@@ -4112,7 +4130,7 @@ void test_timeio_char_get_9()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, 'Y');
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_year == 120);
         VERIFY(ret == std::default_sentinel);
     }
@@ -4150,7 +4168,7 @@ void test_timeio_char_get_10()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 114);
         VERIFY(time.tm_mon == 3);
@@ -4164,7 +4182,7 @@ void test_timeio_char_get_10()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, 'A');
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_wday == 3);
     }
@@ -4185,7 +4203,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_wday == 1);
     }
@@ -4197,7 +4215,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
         VERIFY(time.tm_wday == 2);
     }
@@ -4209,7 +4227,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_wday == 3);
     }
@@ -4221,7 +4239,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_wday == 4);
     }
@@ -4233,7 +4251,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
         VERIFY(time.tm_wday == 5);
     }
@@ -4245,7 +4263,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_wday == 6);
     }
@@ -4257,7 +4275,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_mon == 1);
     }
@@ -4269,7 +4287,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
         VERIFY(time.tm_mon == 2);
     }
@@ -4281,7 +4299,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_mon == 3);
     }
@@ -4293,7 +4311,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_mon == 4);
     }
@@ -4305,7 +4323,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
         VERIFY(time.tm_mon == 5);
     }
@@ -4317,7 +4335,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_mon == 6);
     }
@@ -4329,7 +4347,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_mon == 7);
     }
@@ -4341,7 +4359,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(!((ret == std::default_sentinel) || (*ret != ' ')));
         VERIFY(time.tm_mon == 4);
     }
@@ -4353,7 +4371,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_mon == 9);
     }
@@ -4366,7 +4384,7 @@ void test_timeio_char_get_11()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_mday == 2);
     }
@@ -4409,7 +4427,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_mday == 5);
     }
 
@@ -4421,7 +4439,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_mday == 6);
     }
 
@@ -4463,7 +4481,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 0);
         VERIFY(time.tm_min == 0);
     }
@@ -4476,7 +4494,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 0);
         VERIFY(time.tm_min == 37);
     }
@@ -4489,7 +4507,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 1);
         VERIFY(time.tm_min == 25);
     }
@@ -4502,7 +4520,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 12);
         VERIFY(time.tm_min == 0);
     }
@@ -4515,7 +4533,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 12);
         VERIFY(time.tm_min == 42);
     }
@@ -4528,7 +4546,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 19);
         VERIFY(time.tm_min == 23);
     }
@@ -4541,7 +4559,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_hour == 17);
         VERIFY(time.tm_min == 20);
     }
@@ -4571,7 +4589,7 @@ void test_timeio_char_get_11()
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         VERIFY(ret == std::default_sentinel);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(time.tm_mon == 10);
     }
 
@@ -4592,7 +4610,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_hour == 13);
         VERIFY(time.tm_min == 38);
@@ -4606,7 +4624,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 537 - 1900);
     }
@@ -4618,7 +4636,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2068 - 1900);
     }
@@ -4630,7 +4648,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 1969 - 1900);
     }
@@ -4642,7 +4660,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2003 - 1900);
         VERIFY(time.tm_mon == 1);
@@ -4658,7 +4676,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 11);
@@ -4674,7 +4692,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2021 - 1900);
         VERIFY(time.tm_mon == 11);
@@ -4690,7 +4708,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 8);
@@ -4706,7 +4724,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2021 - 1900);
         VERIFY(time.tm_mon == 7);
@@ -4722,7 +4740,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -4738,7 +4756,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2020 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -4754,7 +4772,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2021 - 1900);
         VERIFY(time.tm_mon == 9);
@@ -4770,7 +4788,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2024 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -4786,7 +4804,7 @@ void test_timeio_char_get_12()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_year == 2024 - 1900);
         VERIFY(time.tm_mon == 5);
@@ -4811,7 +4829,7 @@ void test_timeio_char_get_13()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_hour == 13);
         VERIFY(time.tm_min == 38);
@@ -4825,7 +4843,7 @@ void test_timeio_char_get_13()
 
         IOv2::time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        auto time = static_cast<std::tm>(ctx);
+        auto time = ctx_to<std::tm>(ctx);
         VERIFY(ret == std::default_sentinel);
         VERIFY(time.tm_hour == 23);
         VERIFY(time.tm_min == 17);
@@ -6041,7 +6059,7 @@ void test_timeio_char_get_18()
     {
         auto ctx = CheckGet(obj, "02 30", "%m %d", IOv2::ios_defs::eofbit);
         bool threw = false;
-        try { auto ymd = static_cast<year_month_day>(ctx); (void)ymd; }
+        try { auto ymd = ctx_to<year_month_day>(ctx); (void)ymd; }
         catch (IOv2::stream_error&) { threw = true; }
         VERIFY(threw);
     }
@@ -6050,7 +6068,7 @@ void test_timeio_char_get_18()
     // 令和6 January: est_year=2024, Jan is within 令和 era -> deduced_year=2024
     {
         auto ctx = CheckGet(obj_ja, "令和6 01", "%EC%Ey %m", IOv2::ios_defs::eofbit);
-        auto ymd = static_cast<year_month_day>(ctx);
+        auto ymd = ctx_to<year_month_day>(ctx);
         VERIFY(ymd.year() == year{2024} && ymd.month() == month{1});
     }
 
@@ -6058,7 +6076,7 @@ void test_timeio_char_get_18()
     // 平成31 May: est_year=2019, May 2019 past 平成 end (Apr 30) -> from_year=1990
     {
         auto ctx = CheckGet(obj_ja, "平成31 05", "%EC%Ey %m", IOv2::ios_defs::eofbit);
-        auto ymd = static_cast<year_month_day>(ctx);
+        auto ymd = ctx_to<year_month_day>(ctx);
         VERIFY(ymd.year() == year{1990} && ymd.month() == month{5});
     }
 
@@ -6066,7 +6084,7 @@ void test_timeio_char_get_18()
     // 平成31 May 1: May 1, 2019 past 平成 end (Apr 30) -> from_year=1990
     {
         auto ctx = CheckGet(obj_ja, "平成31 05 01", "%EC%Ey %m %d", IOv2::ios_defs::eofbit);
-        auto ymd = static_cast<year_month_day>(ctx);
+        auto ymd = ctx_to<year_month_day>(ctx);
         VERIFY(ymd == year_month_day{year{1990}, month{5}, day{1}});
     }
 
@@ -6171,7 +6189,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
         const std::string in = "09";
         VERIFY(obj.get(in.begin(), in.end(), ctx, 'm', 0) == in.end());
-        VERIFY(static_cast<year_month_day>(ctx)
+        VERIFY(ctx_to<year_month_day>(ctx)
                == year_month_day{year{1969}, month{9}, day{20}});
     }
 
@@ -6181,7 +6199,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
         const std::string in = "2024 03 04";
         VERIFY(obj.get(in.begin(), in.end(), ctx, "%Y %m %d") == in.end());
-        VERIFY(static_cast<year_month_day>(ctx)
+        VERIFY(ctx_to<year_month_day>(ctx)
                == year_month_day{year{2024}, month{3}, day{4}});
     }
 
@@ -6193,7 +6211,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
         const std::string in = "18";
         VERIFY(obj.get(in.begin(), in.end(), ctx, "%C") == in.end());
-        VERIFY(static_cast<year_month_day>(ctx)
+        VERIFY(ctx_to<year_month_day>(ctx)
                == year_month_day{year{1800}, month{7}, day{20}});
     }
 
@@ -6203,7 +6221,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(year_month_day{year{1969}, month{7}, day{20}});
         const std::string in = "18 24";
         VERIFY(obj.get(in.begin(), in.end(), ctx, "%C %y") == in.end());
-        VERIFY(static_cast<year_month_day>(ctx).year() == year{1824});
+        VERIFY(ctx_to<year_month_day>(ctx).year() == year{1824});
     }
 
     // A hinted day that cannot exist in the parsed month gives way to the month's last
@@ -6214,7 +6232,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(year_month_day{year{2020}, month{1}, day{31}});
         const std::string in = "02";
         VERIFY(obj.get(in.begin(), in.end(), ctx, 'm', 0) == in.end());
-        VERIFY(static_cast<year_month_day>(ctx)
+        VERIFY(ctx_to<year_month_day>(ctx)
                == year_month_day{year{2020}, month{2}, day{29}});
     }
 
@@ -6224,7 +6242,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(year_month_day{year{2020}, month{2}, day{29}});
         const std::string in = "2021";
         VERIFY(obj.get(in.begin(), in.end(), ctx, 'Y', 0) == in.end());
-        VERIFY(static_cast<year_month_day>(ctx)
+        VERIFY(ctx_to<year_month_day>(ctx)
                == year_month_day{year{2021}, month{2}, day{28}});
     }
 
@@ -6234,7 +6252,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(year_month_day{year{2020}, month{1}, day{31}});
         const std::string in = "03";
         VERIFY(obj.get(in.begin(), in.end(), ctx, 'm', 0) == in.end());
-        VERIFY(static_cast<year_month_day>(ctx)
+        VERIFY(ctx_to<year_month_day>(ctx)
                == year_month_day{year{2020}, month{3}, day{31}});
     }
 
@@ -6246,7 +6264,7 @@ void test_timeio_char_get_19()
         const std::string in = "31";
         VERIFY(obj.get(in.begin(), in.end(), ctx, 'd', 0) == in.end());
         bool threw = false;
-        try { (void)static_cast<year_month_day>(ctx); }
+        try { (void)ctx_to<year_month_day>(ctx); }
         catch (const IOv2::stream_error&) { threw = true; }
         VERIFY(threw);
     }
@@ -6257,7 +6275,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(hh_mm_ss{hours{13} + minutes{45} + seconds{7}});
         const std::string in = "22";
         VERIFY(obj.get(in.begin(), in.end(), ctx, 'H', 0) == in.end());
-        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        auto hms = ctx_to<hh_mm_ss<seconds>>(ctx);
         VERIFY(hms.hours() == hours{22} && hms.minutes() == minutes{45}
                && hms.seconds() == seconds{7});
     }
@@ -6266,7 +6284,7 @@ void test_timeio_char_get_19()
     {
         IOv2::time_parse_context<char> ctx;
         ctx.set_hint(hh_mm_ss{milliseconds{(1 * 3600 + 2 * 60 + 3) * 1000 + 999}});
-        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        auto hms = ctx_to<hh_mm_ss<seconds>>(ctx);
         VERIFY(hms.hours() == hours{1} && hms.minutes() == minutes{2}
                && hms.seconds() == seconds{3});
     }
@@ -6275,7 +6293,7 @@ void test_timeio_char_get_19()
     {
         IOv2::time_parse_context<char> ctx;
         ctx.set_hint(hh_mm_ss{-(hours{1} + minutes{2} + seconds{3})});
-        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        auto hms = ctx_to<hh_mm_ss<seconds>>(ctx);
         VERIFY(hms.hours() == hours{22} && hms.minutes() == minutes{57}
                && hms.seconds() == seconds{57});
     }
@@ -6284,7 +6302,7 @@ void test_timeio_char_get_19()
     {
         IOv2::time_parse_context<char> ctx;
         ctx.set_hint(hh_mm_ss{hours{49} + minutes{1}});
-        auto hms = static_cast<hh_mm_ss<seconds>>(ctx);
+        auto hms = ctx_to<hh_mm_ss<seconds>>(ctx);
         VERIFY(hms.hours() == hours{1} && hms.minutes() == minutes{1});
     }
 
@@ -6292,11 +6310,11 @@ void test_timeio_char_get_19()
     // and nullptr restores it.
     {
         IOv2::time_parse_context<char> ctx;
-        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("UTC"));
+        VERIFY(ctx_to<const time_zone*>(ctx) == locate_zone("UTC"));
         ctx.set_hint(locate_zone("Asia/Shanghai"));
-        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("Asia/Shanghai"));
+        VERIFY(ctx_to<const time_zone*>(ctx) == locate_zone("Asia/Shanghai"));
         ctx.set_hint(static_cast<const time_zone*>(nullptr));
-        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("UTC"));
+        VERIFY(ctx_to<const time_zone*>(ctx) == locate_zone("UTC"));
     }
 
     // A parsed %Z wins over the zone hint.
@@ -6305,7 +6323,7 @@ void test_timeio_char_get_19()
         ctx.set_hint(locate_zone("Asia/Shanghai"));
         const std::string in = "America/Los_Angeles";
         VERIFY(obj.get(in.begin(), in.end(), ctx, 'Z', 0) == in.end());
-        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("America/Los_Angeles"));
+        VERIFY(ctx_to<const time_zone*>(ctx) == locate_zone("America/Los_Angeles"));
     }
 
     // reset() keeps its "restore to default-constructed" meaning: every hint is wiped,
@@ -6317,10 +6335,10 @@ void test_timeio_char_get_19()
         ctx.set_hint(locate_zone("Asia/Shanghai"));
         ctx.reset();
         VERIFY(ctx == IOv2::time_parse_context<char>{});
-        VERIFY(static_cast<const time_zone*>(ctx) == locate_zone("UTC"));
+        VERIFY(ctx_to<const time_zone*>(ctx) == locate_zone("UTC"));
 
         auto now_year = year_month_day{floor<days>(system_clock::now())}.year();
-        VERIFY(static_cast<year_month_day>(ctx).year() == now_year);
+        VERIFY(ctx_to<year_month_day>(ctx).year() == now_year);
     }
 
     // The setters are constrained, not silently ignored, when a field group is inactive.
