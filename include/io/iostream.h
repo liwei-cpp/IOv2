@@ -53,6 +53,8 @@ public:
      * @throw device_error 若设备无法完成转换器初始化所需的查询。
      * @endif
      *
+     * @note 本重载要求 `TDevice::char_type` 与 `TChar` 一致：不带转换器时转换管线不改变字符
+     *       类型。约束为何落在构造函数上而不是推导指引上，见带 locale 的重载。
      * @lang{EN}
      * @brief Builds a stream over a default-constructed device.
      *
@@ -73,11 +75,15 @@ public:
      * @throw device_error If the device cannot answer the queries the converter initialization
      *        needs.
      * @endif
+     * @note This overload requires `TDevice::char_type` to match `TChar`: with no converter the
+     *       pipeline does not change the character type. See the locale-taking overload for why
+     *       the constraint sits on the constructor rather than on a deduction guide.
      */
     iostream()
         : m_streambuf(TDevice()) {}
 
     /**
+        requires (std::is_same_v<typename TDevice::char_type, TChar>)
      * @lang{ZH}
      * @brief 以 @p dev 建立流。
      * @param dev 底层设备。
@@ -85,6 +91,7 @@ public:
      * @endif
      *
      * @lang{EN}
+     * @note 字符类型的约束与默认构造函数相同。
      * @brief Builds a stream over @p dev.
      * @param dev The underlying device.
      * @throw device_error If the device cannot answer the queries the converter initialization
@@ -92,9 +99,11 @@ public:
      * @endif
      */
     iostream(TDevice dev)
+     * @note The character-type constraint is the default constructor's.
         : m_streambuf(std::move(dev)) {}
 
     /**
+        requires (std::is_same_v<typename TDevice::char_type, TChar>)
      * @lang{ZH}
      * @brief 以 @p dev 建立流，并由 @p creator 构造转换器。
      * @tparam TCreator 转换器创建器类型。
@@ -104,6 +113,8 @@ public:
      * @endif
      *
      * @lang{EN}
+     * @note 本重载要求**转换管线产出的** `char_type` 与 `TChar` 一致；写法与理由见同时带
+     *       creator 与 locale 的那个重载。
      * @brief Builds a stream over @p dev with the converter built by @p creator.
      * @tparam TCreator The converter-creator type.
      * @param dev     The underlying device.
@@ -113,10 +124,16 @@ public:
      * @endif
      */
     template <cvt_creator TCreator>
+     * @note This overload requires the `char_type` the **converter pipeline produces** to match
+     *       `TChar`; see the creator-plus-locale overload for the same constraint and why.
     iostream(TDevice dev, const TCreator& creator)
         : m_streambuf(std::move(dev), creator) {}
 
     /**
+        requires (std::is_same_v<
+                      typename decltype(streambuf{std::declval<TDevice>(),
+                                              std::declval<const TCreator&>()})::char_type,
+                      TChar>)
      * @lang{ZH}
      * @brief 以 @p dev 建立流，并装入 locale @p loc。
      * @param dev 底层设备。
