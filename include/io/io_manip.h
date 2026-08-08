@@ -6,8 +6,8 @@
  * `put_time` / `get_time`（按 locale 格式化或解析货币与时间）。
  *
  * 每个操纵符由一个工厂和一个 `xxx_t` 载体类型构成，后者是**实现细节**、不应被直接构造；
- * 工厂大多是函数模板，`put_money` / `get_money` 例外——它们是**函数对象**，为的是关掉 ADL，
- * 理由见 `put_money`；
+ * 工厂是普通函数（如 `setw`）或函数模板（如 `setfill`），`put_money` / `get_money` 例外——
+ * 它们是**函数对象**，为的是关掉 ADL，理由见 `put_money`；
  * 全都经由 `io_traits` 特化生效。载体只携带参数、不带 `operator()`：调整格式状态的那几个把
  * 逻辑写在**流形式**的 `swrite` / `sread` 里，`os << m` / `is >> m` 是仅有的入口（标准里
  * `setw(5)(os)` 那样的直接调用形式不存在）；货币与时间那几个提供**迭代器形式**，由通用的格式化
@@ -39,17 +39,17 @@
  * locale).
  *
  * Each manipulator consists of a factory and an `xxx_t` carrier type; the latter is an
- * **implementation detail** and should never be constructed directly. Most factories are function
- * templates; `put_money` and `get_money` are the exception -- they are **function objects**, in
- * order to turn ADL off, for the reason given on `put_money`. All of them take effect
- * through an `io_traits` specialization. A carrier holds the parameters only and has no
- * `operator()`: the formatting-state ones keep their logic in the **stream form** of `swrite` /
- * `sread`, so `os << m` / `is >> m` is the only entry point (the standard's direct-call form
- * `setw(5)(os)` does not exist here); the money and time ones provide the **iterator form**, and
- * the generic formatted insertion/extraction operators own the lock and the sentry. The
- * direction is expressed by **which member exists**: `swrite` only means insertion only, `sread`
- * only means extraction only, and using one backwards leaves the operator on that side
- * unsatisfied, so there is no viable overload and it does not compile.
+ * **implementation detail** and should never be constructed directly. A factory is either a plain
+ * function (`setw`) or a function template (`setfill`); `put_money` and `get_money` are the
+ * exception -- they are **function objects**, in order to turn ADL off, for the reason given on
+ * `put_money`. All of them take effect through an `io_traits` specialization. A carrier holds the
+ * parameters only and has no `operator()`: the formatting-state ones keep their logic in the
+ * **stream form** of `swrite` / `sread`, so `os << m` / `is >> m` is the only entry point (the
+ * standard's direct-call form `setw(5)(os)` does not exist here); the money and time ones provide
+ * the **iterator form**, and the generic formatted insertion/extraction operators own the lock and
+ * the sentry. The direction is expressed by **which member exists**: `swrite` only means insertion
+ * only, `sread` only means extraction only, and using one backwards leaves the operator on that
+ * side unsatisfied, so there is no viable overload and it does not compile.
  *
  * @warning **A manipulator and the I/O that follows it are not one critical section.** In
  *          `os << setw(5) << value`, `setw(5)` goes through the stream form and the insertion
@@ -134,8 +134,9 @@ inline resetiosflags_t resetiosflags(ios_defs::fmtflags mask) { return resetiosf
  * 操纵符的方向由**成员的有无**表达：两个成员都在，于是 `os << resetiosflags(f)` 与
  * `is >> resetiosflags(f)` 都成立。改用约束是不够的——`iostream` 同时满足两个流概念，单向操纵符
  * 若只靠约束就挡不住反向用法，故方向一律落在这里。
- * @note 流类型不匹配时，成员在**声明**层面（`ostream_type` / `istream_type`）就不可行，插入/
- *       提取运算符的链条得以落到那条指明原因的诊断上，而不是在函数体里硬报错。
+ * @note 流类型不匹配时，成员在**声明**层面（`ostream_type` / `istream_type`）就不可行，而不是
+ *       在函数体里硬报错——后者会让 `requires { os << x; }` 探测不出来。代价是诊断为通用的
+ *       "没有匹配的 `operator<<` / `operator>>`"，不会点明原因。
  * @endif
  *
  * @lang{EN}
@@ -147,8 +148,9 @@ inline resetiosflags_t resetiosflags(ios_defs::fmtflags mask) { return resetiosf
  * enough -- `iostream` satisfies both stream concepts, so constraints alone could not stop a
  * one-way manipulator from being used backwards; direction therefore always lives here.
  * @note On a stream-type mismatch the members are non-viable at the **declaration** level
- *       (`ostream_type` / `istream_type`), so the insertion/extraction chain reaches the
- *       diagnostic that says why instead of erroring inside the body.
+ *       (`ostream_type` / `istream_type`) rather than erroring inside the body, which would make
+ *       `requires { os << x; }` unprobeable. The price is that the diagnostic is the generic
+ *       "no match for `operator<<` / `operator>>`" and does not say why.
  * @endif
  */
 template <typename TChar>
@@ -321,7 +323,8 @@ inline setfill_t<TFill> setfill(TFill c) { return setfill_t<TFill>{c}; }
  *        `io_traits<TChar, resetiosflags_t>`。
  * @note 两个成员都带 `same_as` 约束，要求 `TFill` 与流的 `char_type` **完全一致**，不接受
  *       隐式转换；理由见 `setfill`。约束写在这里而不是函数体里，字符类型不匹配的 `setfill`
- *       才能在**声明**层面就不可行，链条落到那条把填充字符点名为常见原因的诊断上。
+ *       才能在**声明**层面就不可行；代价是诊断为通用的"没有匹配的 `operator<<`"，不会点名
+ *       填充字符。
  * @endif
  *
  * @lang{EN}
@@ -330,8 +333,8 @@ inline setfill_t<TFill> setfill(TFill c) { return setfill_t<TFill>{c}; }
  * @note Both members carry a `same_as` constraint requiring `TFill` to match the stream's
  *       `char_type` **exactly**, with no implicit conversion; see `setfill` for why. Keeping it in
  *       the constraint rather than the body is what makes a mismatched `setfill` non-viable at the
- *       **declaration** level, so the chain reaches the diagnostic that names the fill character
- *       as a common cause.
+ *       **declaration** level; the price is that the diagnostic is the generic "no match for
+ *       `operator<<`" and does not name the fill character.
  * @endif
  */
 template <typename TChar, typename TFill>
@@ -390,7 +393,7 @@ struct setprecision_t
  * conversion, and a run-time argument would not even produce a compiler warning.
  * @note The range check runs when the manipulator is **applied to a stream**; this function only
  *       stores the value. The `stream_error` thrown there is handed to `handle_exception` by
- *       `operator<<` / `operator>>`, where it becomes a `strfailbit` and honours the stream's
+ *       `operator<<` / `operator>>`, where it becomes a `strfailbit` and honors the stream's
  *       exception mask, like every other failure in this library. Thrown at construction it would
  *       instead escape an `os << ...` expression straight to the caller while the stream still
  *       reported `good()`.
@@ -483,7 +486,7 @@ struct setw_t
  * @note The sign check is `ios_base::width`'s own and runs when the manipulator is **applied to
  *       a stream**; this function only stores the value. The `stream_error` thrown there is
  *       handed to `handle_exception` by `operator<<` / `operator>>`, where it becomes a
- *       `strfailbit` and honours the stream's exception mask, like every other failure in this
+ *       `strfailbit` and honors the stream's exception mask, like every other failure in this
  *       library. Thrown at construction it would instead escape an `os << ...` expression
  *       straight to the caller while the stream still reported `good()`.
  * @note **Length safety on the extraction side does not depend on this function.** The bound
