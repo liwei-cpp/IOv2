@@ -61,6 +61,7 @@ namespace IOv2
 template <typename, bool> struct date_parse_helper
 {
     bool operator==(const date_parse_helper&) const = default;  // for test
+    void convert_to() const = delete;
 };
 /// @endcond
 
@@ -149,23 +150,23 @@ struct date_parse_helper<CharT, true>
 
     /**
      * @lang{ZH}
-     * @brief 将已累积的日期字段转换为 `std::chrono::year_month_day`。
-     * @return 还原出的日历日期。
+     * @brief 将已累积的日期字段转换为 `std::chrono::year_month_day`，写入 @p out。
+     * @param out 接收还原出的日历日期；抛出时不被写入。
      * @throw stream_error 若还原结果不是有效的日历日期。
      * @endif
      *
      * @lang{EN}
-     * @brief Converts the accumulated date fields to `std::chrono::year_month_day`.
-     * @return The reconstructed calendar date.
+     * @brief Converts the accumulated date fields to a `std::chrono::year_month_day` in @p out.
+     * @param out Receives the reconstructed calendar date; left untouched if this throws.
      * @throw stream_error If the reconstructed date is not a valid calendar date.
      * @endif
      */
-    explicit operator std::chrono::year_month_day() const
+    void convert_to(std::chrono::year_month_day& out) const
     {
         auto ymd = compute_ymd();
         if (!ymd.ok())
             throw stream_error("timeio get error: year_month_day is not a valid calendar date");
-        return ymd;
+        out = ymd;
     }
 
     /**
@@ -533,6 +534,7 @@ private:
 template <bool> struct time_parse_helper
 {
     bool operator==(const time_parse_helper&) const = default;  // for test
+    void convert_to() const = delete;
 };
 /// @endcond
 
@@ -565,22 +567,35 @@ struct time_parse_helper<true>
     /// @endcond
     /**
      * @lang{ZH}
-     * @brief 将已累积的时间字段转换为 `std::chrono::hh_mm_ss<std::chrono::seconds>`。
+     * @brief 将已累积的时间字段转换为 `std::chrono::hh_mm_ss<TDuration>`，写入 @p out。
      *
      * 若通过 `%I`（12 小时制）解析并设置了 PM 标志，则自动加上 12 小时。
-     * @return 还原出的 24 小时制时间。
+     *
+     * @tparam TDuration 目标精度。约束为"`std::chrono::seconds` 可**隐式**转换成它"，即周期
+     *         不粗于秒：`milliseconds` 可以（精确加宽），`minutes` 不可以（会丢掉秒）。本上下文
+     *         只累积到整秒，这条约束保证转换永不静默截断，与本库"有损即报错"的一贯立场一致。
+     * @param out 接收还原出的 24 小时制时间。
      * @endif
      *
      * @lang{EN}
-     * @brief Converts the accumulated time fields to
-     *        `std::chrono::hh_mm_ss<std::chrono::seconds>`.
+     * @brief Converts the accumulated time fields to a `std::chrono::hh_mm_ss<TDuration>` in
+     *        @p out.
      *
      * If the hour was parsed via `%I` (12-hour clock) and the PM flag is set,
      * 12 hours are added automatically.
-     * @return The reconstructed 24-hour time-of-day.
+     *
+     * @tparam TDuration The target precision, constrained so that `std::chrono::seconds` is
+     *         **implicitly** convertible to it -- that is, a period no coarser than a second:
+     *         `milliseconds` qualifies (an exact widening), `minutes` does not (it would drop the
+     *         seconds). This context only ever accumulates whole seconds, so the constraint makes
+     *         a silent truncation impossible, matching this library's standing rule that a lossy
+     *         operation is an error rather than a quiet one.
+     * @param out Receives the reconstructed 24-hour time-of-day.
      * @endif
      */
-    explicit operator std::chrono::hh_mm_ss<std::chrono::seconds>() const
+    template <typename TDuration>
+        requires std::convertible_to<std::chrono::seconds, TDuration>
+    void convert_to(std::chrono::hh_mm_ss<TDuration>& out) const
     {
         uint8_t hour_in_24 = m_hour;
         // When %I sets m_have_I, m_hour was stored as (mem % 12), so 12 AM is
@@ -594,7 +609,7 @@ struct time_parse_helper<true>
             std::chrono::minutes{m_minute} +
             std::chrono::seconds{m_second};
 
-        return std::chrono::hh_mm_ss{time_sec};
+        out = std::chrono::hh_mm_ss<TDuration>{time_sec};
     }
 
     /**
@@ -656,6 +671,7 @@ struct time_parse_helper<true>
 template <bool> struct time_zone_parse_helper
 {
     bool operator==(const time_zone_parse_helper&) const = default;  // for test
+    void convert_to() const = delete;
 };
 /// @endcond
 
@@ -688,38 +704,40 @@ struct time_zone_parse_helper<true>
     /// @endcond
     /**
      * @lang{ZH}
-     * @brief 将已解析的时区信息转换为 `const std::chrono::time_zone*`。
+     * @brief 将已解析的时区信息转换为 `const std::chrono::time_zone*`，写入 @p out。
      *
      * 若已解析到完整 IANA 时区名称，则通过 `std::chrono::locate_zone` 定位；
      * 若仅有时区缩写（有歧义），则抛出 `stream_error`；
-     * 若两者均无，则默认返回 UTC。
-     * @return 指向时区对象的指针（从不为 null）。
+     * 若两者均无，则默认写入 UTC。
+     * @param out 接收指向时区对象的指针（从不为 null）；抛出时不被写入。
      * @throw stream_error 若时区缩写有歧义或时区数据库不可用。
      * @endif
      *
      * @lang{EN}
-     * @brief Converts the parsed timezone information to `const std::chrono::time_zone*`.
+     * @brief Converts the parsed timezone information to a `const std::chrono::time_zone*` in
+     *        @p out.
      *
      * If a full IANA timezone name was parsed, it is located via
      * `std::chrono::locate_zone`. If only an abbreviation was parsed (ambiguous),
-     * a `stream_error` is thrown. If neither is present, UTC is returned as default.
-     * @return A non-null pointer to the timezone object.
+     * a `stream_error` is thrown. If neither is present, UTC is written as the default.
+     * @param out Receives a non-null pointer to the timezone object; left untouched if this
+     *            throws.
      * @throw stream_error If the timezone abbreviation is ambiguous or the tz
      *        database is unavailable.
      * @endif
      */
-    explicit operator const std::chrono::time_zone*() const
+    void convert_to(const std::chrono::time_zone*& out) const
     {
         if (!m_zone_name.empty())
         {
-            try { return std::chrono::locate_zone(m_zone_name); }
+            try { out = std::chrono::locate_zone(m_zone_name); return; }
             catch (...) {} // NOLINT(bugprone-empty-catch)
         }
         if (!m_zone_abbrev.empty())
             throw stream_error(
                 "timeio get error: timezone abbreviation '" + m_zone_abbrev + "' is ambiguous");
-        if (m_zone_hint) return m_zone_hint;
-        try { return std::chrono::locate_zone("UTC"); }
+        if (m_zone_hint) { out = m_zone_hint; return; }
+        try { out = std::chrono::locate_zone("UTC"); }
         catch (...)
         {
             throw stream_error(
@@ -821,6 +839,36 @@ struct time_parse_context
     , time_parse_helper<HaveTime>
     , time_zone_parse_helper<HaveTimeZone>
 {
+    /**
+     * @lang{ZH}
+     * @brief 把三个字段组各自的 `convert_to` 并入本类的同一个重载集。
+     *
+     * 没有这三条，`ctx.convert_to(x)` 是编译错误而非重载决议问题：同名成员分散在多个基类里
+     * 会在**名字查找**阶段就歧义，而本类自己声明的 `convert_to`（`zoned_time` 与 `std::tm`
+     * 那两个）又会把基类版本整体隐藏掉。两者都发生在比较参数类型之前。
+     *
+     * 字段组被关掉时，用到的是各 helper 的主模板，其中只有一个零参且已删除的 `convert_to`
+     * 占位——它使这里的 `using` 始终合法，而自身永远不会被选中。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Merges each field group's `convert_to` into this class's single overload set.
+     *
+     * Without these three, `ctx.convert_to(x)` is a compile error rather than an overload
+     * resolution question: a member name spread across several base classes is ambiguous at
+     * **name lookup** time, and this class's own `convert_to` declarations (the `zoned_time` and
+     * `std::tm` ones) would otherwise hide every base version outright. Both happen before
+     * parameter types are ever compared.
+     *
+     * When a field group is switched off, the helper's primary template is used instead, which
+     * carries nothing but a zero-argument deleted `convert_to` placeholder -- enough to keep
+     * these `using` declarations well-formed, and never selectable itself.
+     * @endif
+     */
+    using date_parse_helper<CharT, HaveDate>::convert_to;
+    using time_parse_helper<HaveTime>::convert_to;
+    using time_zone_parse_helper<HaveTimeZone>::convert_to;
+
     /// @cond
     bool operator==(const time_parse_context&) const = default;
     /// @endcond
@@ -940,81 +988,102 @@ struct time_parse_context
 
     /**
      * @lang{ZH}
-     * @brief 将已累积的日期、时间和时区字段转换为 `std::chrono::zoned_time<seconds>`。
+     * @brief 将已累积的日期、时间和时区字段转换为 `std::chrono::zoned_time<seconds>`，
+     *        写入 @p out。
      *
      * 仅当 `HaveDate`、`HaveTime` 和 `HaveTimeZone` 均为 `true` 时可用。
-     * @return 还原出的带时区时间点。
+     * @param out 接收还原出的带时区时间点；抛出时不被写入。
      * @throw stream_error 若日期无效或时区解析失败。
      * @endif
      *
      * @lang{EN}
-     * @brief Converts the accumulated date, time, and timezone fields to
-     *        `std::chrono::zoned_time<seconds>`.
+     * @brief Converts the accumulated date, time, and timezone fields to a
+     *        `std::chrono::zoned_time<seconds>` in @p out.
      *
      * Available only when `HaveDate`, `HaveTime`, and `HaveTimeZone` are all `true`.
-     * @return The reconstructed zoned time point.
+     * @param out Receives the reconstructed zoned time point; left untouched if this throws.
      * @throw stream_error If the date is invalid or the timezone lookup fails.
      * @endif
      */
-    explicit operator const std::chrono::zoned_time<std::chrono::seconds>() const
+    void convert_to(std::chrono::zoned_time<std::chrono::seconds>& out) const
         requires(HaveDate && HaveTime && HaveTimeZone)
     {
         using namespace std::chrono;
-        auto ymd = static_cast<year_month_day>(*this);
-        auto hms = static_cast<std::chrono::hh_mm_ss<std::chrono::seconds>>(*this);
-        auto tz = static_cast<const std::chrono::time_zone*>(*this);
+        year_month_day ymd{};
+        hh_mm_ss<seconds> hms{};
+        const time_zone* tz = nullptr;
+        convert_to(ymd);
+        convert_to(hms);
+        convert_to(tz);
 
         local_time<seconds> lt{ local_days{ymd} + hms.to_duration() };
-        return zoned_time<seconds>{tz, lt};
+        out = zoned_time<seconds>{tz, lt};
     }
 
     /**
      * @lang{ZH}
-     * @brief 将已累积的日期和时间字段转换为 `std::tm`。
+     * @brief 将已累积的日期和时间字段写入 @p out。
      *
      * 仅当 `HaveDate` 和 `HaveTime` 均为 `true` 时可用。
-     * @return 还原出的 `std::tm` 结构体。
+     *
+     * **只覆盖它真正重建出来的九项**：`tm_year` / `tm_mon` / `tm_mday` / `tm_hour` /
+     * `tm_min` / `tm_sec` / `tm_wday` / `tm_yday` / `tm_isdst`。@p out 的其余成员保持原值——
+     * `std::tm` 在 glibc / BSD 上还带有实现定义的扩展成员（`tm_gmtoff`、`tm_zone`），
+     * 整体覆盖会把它们清成 `0` 与 `nullptr`，等于把调用方结构体里一个有效指针改成空指针。
+     * 逐字段写入不必知道结构体里还有什么，因而无需任何平台判断，也与 `std::time_get::get`
+     * 的行为一致（后者同样只写它解析到的字段）。
+     *
+     * @param out 接收还原出的日期与时间；抛出时不被写入。
      * @throw stream_error 若日期无效。
      * @endif
      *
      * @lang{EN}
-     * @brief Converts the accumulated date and time fields to `std::tm`.
+     * @brief Writes the accumulated date and time fields into @p out.
      *
      * Available only when both `HaveDate` and `HaveTime` are `true`.
-     * @return The reconstructed `std::tm` struct.
+     *
+     * **Only the nine fields it actually reconstructs are overwritten**: `tm_year`, `tm_mon`,
+     * `tm_mday`, `tm_hour`, `tm_min`, `tm_sec`, `tm_wday`, `tm_yday` and `tm_isdst`. Every other
+     * member of @p out keeps its value -- a `std::tm` on glibc / BSD also carries the
+     * implementation-defined members `tm_gmtoff` and `tm_zone`, and overwriting the struct as a
+     * whole would clear them to `0` and `nullptr`, turning a valid pointer in the caller's struct
+     * into a null one. Assigning field by field needs no knowledge of what else the struct holds,
+     * so it needs no platform check, and it matches `std::time_get::get`, which likewise writes
+     * only the fields it parsed.
+     *
+     * @param out Receives the reconstructed date and time; left untouched if this throws.
      * @throw stream_error If the date is invalid.
      * @endif
      */
-    explicit operator std::tm() const
+    void convert_to(std::tm& out) const
         requires(HaveDate && HaveTime)
     {
         using namespace std::chrono;
-        auto ymd = static_cast<year_month_day>(*this);
-        auto hms = static_cast<std::chrono::hh_mm_ss<std::chrono::seconds>>(*this);
+        year_month_day ymd{};
+        hh_mm_ss<seconds> hms{};
+        convert_to(ymd);
+        convert_to(hms);
 
         int d = static_cast<int>(static_cast<unsigned>(ymd.day()));
         int m = static_cast<int>(static_cast<unsigned>(ymd.month()));
         int y = int(ymd.year());
 
-        std::tm res{};
-        res.tm_year = y - 1900;
-        res.tm_mon  = m - 1;
-        res.tm_mday = d;
+        out.tm_year = y - 1900;
+        out.tm_mon  = m - 1;
+        out.tm_mday = d;
 
         // Time fields
-        res.tm_hour = int(hms.hours().count());
-        res.tm_min  = int(hms.minutes().count());
-        res.tm_sec  = int(hms.seconds().count());
+        out.tm_hour = int(hms.hours().count());
+        out.tm_min  = int(hms.minutes().count());
+        out.tm_sec  = int(hms.seconds().count());
 
-        res.tm_isdst = -1;   // let the C library figure out DST
+        out.tm_isdst = -1;   // let the C library figure out DST
 
-        res.tm_wday = static_cast<int>(weekday{sys_days{ymd}}.c_encoding());
+        out.tm_wday = static_cast<int>(weekday{sys_days{ymd}}.c_encoding());
         bool isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
 
         const int days[12] = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
-        res.tm_yday = days[res.tm_mon] + res.tm_mday + (isLeap && res.tm_mon >= 2 ? 1 : 0);
-
-        return res;
+        out.tm_yday = days[out.tm_mon] + out.tm_mday + (isLeap && out.tm_mon >= 2 ? 1 : 0);
     }
 };
 

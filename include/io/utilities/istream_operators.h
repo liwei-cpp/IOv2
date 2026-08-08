@@ -415,7 +415,7 @@ concept extractable_with_ctx = istream_type<T> &&
     {
         io_traits<typename T::char_type, in_ctx_t<typename T::char_type, TValue>>::sread(
             iter, std::default_sentinel, obj, obj.locale(), ctx);
-        value = static_cast<std::remove_cvref_t<TValue>>(ctx);
+        ctx.convert_to(value);
     };
 
 /**
@@ -1175,7 +1175,7 @@ T& operator>>(T& obj, TValue&& value)
                         return TCtx{};
                 }();
                 io_traits<TChar, TCtx>::sread(iter, std::default_sentinel, obj, obj.locale(), tmp);
-                static_cast<TTarget&>(value) = static_cast<TV>(tmp);
+                tmp.convert_to(static_cast<TTarget&>(value));
             }
 
             if (saw_eof) obj.setstate(ios_defs::eofbit);
