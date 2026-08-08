@@ -78,14 +78,23 @@
  */
 #pragma once
 
-#include <io/traits/tm.h>
+#include <common/defs.h>
+#include <facet/monetary.h>
+#include <facet/timeio.h>
+#include <io/io_base.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <io/iostream.h>
+#include <io/traits/tm.h>
+#include <io/traits/traits_base.h>
+#include <io/utilities/istream_operators.h>
+#include <io/utilities/ostream_operators.h>
+#include <locale/locale.h>
 
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
 #include <iterator>
 #include <limits>
 #include <string>
@@ -599,7 +608,7 @@ struct io_traits<TChar, put_money_t<TMoney>>
         auto mp = loc.template get<monetary<TChar>>();
         if (!mp)
             throw stream_error("cannot get monetary facet");
-        
+
         return mp->put(s, f.m_intl, io, f.m_mon);
     }
 };
