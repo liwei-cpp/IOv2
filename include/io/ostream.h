@@ -48,6 +48,8 @@ public:
      *          `return`——而且此时流对象尚未诞生，也就无处安放状态位。本库其余的操作（包括
      *          `attach()`）都把异常转为状态位，唯独构造不能，调用方需要自行 `try`。
      * @note 设备本身可用时（如 `mem_device`）默认构造不会抛，得到的是一个可直接使用的空流。
+     * @note 本重载要求 `TDevice::char_type` 与 `TChar` 一致：不带转换器时转换管线不改变字符
+     *       类型。约束为何落在构造函数上而不是推导指引上，见带 locale 的重载。
      * @throw device_error 若设备无法完成转换器初始化所需的查询。
      * @endif
      *
@@ -68,11 +70,15 @@ public:
      *          cannot, so the caller must `try` around it.
      * @note With a device that is usable as constructed (`mem_device`), this does not throw and
      *       yields an empty stream ready for use.
+     * @note This overload requires `TDevice::char_type` to match `TChar`: with no converter the
+     *       pipeline does not change the character type. See the locale-taking overload for why
+     *       the constraint sits on the constructor rather than on a deduction guide.
      * @throw device_error If the device cannot answer the queries the converter initialization
      *        needs.
      * @endif
      */
     ostream()
+        requires (std::is_same_v<typename TDevice::char_type, TChar>)
         : m_streambuf(TDevice()) {}
 
     /**
@@ -80,6 +86,7 @@ public:
      * @brief 以 @p dev 建立流。
      * @param dev 底层设备。
      * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @note 字符类型的约束与默认构造函数相同。
      * @endif
      *
      * @lang{EN}
@@ -87,9 +94,11 @@ public:
      * @param dev The underlying device.
      * @throw device_error If the device cannot answer the queries the converter initialization
      *        needs; see the default constructor for why this is not reported as state.
+     * @note The character-type constraint is the default constructor's.
      * @endif
      */
     ostream(TDevice dev)
+        requires (std::is_same_v<typename TDevice::char_type, TChar>)
         : m_streambuf(std::move(dev)) {}
 
     /**
@@ -99,6 +108,8 @@ public:
      * @param dev     底层设备。
      * @param creator 转换器创建器。
      * @throw device_error 若设备无法完成转换器初始化所需的查询；理由见默认构造函数。
+     * @note 本重载要求**转换管线产出的** `char_type` 与 `TChar` 一致；写法与理由见同时带
+     *       creator 与 locale 的那个重载。
      * @endif
      *
      * @lang{EN}
@@ -108,10 +119,16 @@ public:
      * @param creator The converter creator.
      * @throw device_error If the device cannot answer the queries the converter initialization
      *        needs; see the default constructor for why this is not reported as state.
+     * @note This overload requires the `char_type` the **converter pipeline produces** to match
+     *       `TChar`; see the creator-plus-locale overload for the same constraint and why.
      * @endif
      */
     template <cvt_creator TCreator>
     ostream(TDevice dev, const TCreator& creator)
+        requires (std::is_same_v<
+                      typename decltype(ostreambuf{std::declval<TDevice>(),
+                                              std::declval<const TCreator&>()})::char_type,
+                      TChar>)
         : m_streambuf(std::move(dev), creator) {}
 
     /**
