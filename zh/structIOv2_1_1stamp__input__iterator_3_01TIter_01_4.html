@@ -116,6 +116,10 @@ Public 类型</h2></td></tr>
 <tr class="separator:a31a777617997a6af01f6337a5e85bdc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad307c17b611554b41027eedff28f2b4b" id="r_ad307c17b611554b41027eedff28f2b4b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#ad307c17b611554b41027eedff28f2b4b">difference_type</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::difference_type</td></tr>
 <tr class="separator:ad307c17b611554b41027eedff28f2b4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9cf12e8e33c69c25062f09c1d4bc0c33" id="r_a9cf12e8e33c69c25062f09c1d4bc0c33"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a9cf12e8e33c69c25062f09c1d4bc0c33">iterator_category</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> std::iterator_traits&lt; TIter &gt;::iterator_category</td></tr>
+<tr class="separator:a9cf12e8e33c69c25062f09c1d4bc0c33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aebe697771f3adbcae7b071bc6c84cc68" id="r_aebe697771f3adbcae7b071bc6c84cc68"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#aebe697771f3adbcae7b071bc6c84cc68">iterator_concept</a> = <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> std::iterator_traits&lt; TIter &gt;<a class="el" href="structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a9cf12e8e33c69c25062f09c1d4bc0c33">::iterator_category</a></td></tr>
+<tr class="separator:aebe697771f3adbcae7b071bc6c84cc68"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public 成员函数</h2></td></tr>
@@ -222,7 +226,7 @@ struct IOv2::stamp_input_iterator&lt; TIter &gt;</div><p>双向迭代器的 <a c
 <div class="line">++<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>; ++<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>;  <span class="comment">// 前进两步</span></div>
 <div class="line"><a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">it</a>.rollback();  <span class="comment">// 回滚到初始位置</span></div>
 <div class="line"><span class="comment">// *it == 1</span></div>
-<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:80</div></div>
 <div class="ttc" id="astructIOv2_1_1stamp__input__iterator_html"><div class="ttname"><a href="structIOv2_1_1stamp__input__iterator.html">IOv2::stamp_input_iterator</a></div><div class="ttdef"><b>Definition</b> stamp_input_iterator.h:37</div></div>
 </div><!-- fragment --> </dd></dl>
 <p><a class="el" href="namespaceIOv2.html">IOv2</a> <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">istreambuf_iterator</a> 的 <a class="el" href="structIOv2_1_1stamp__input__iterator.html">stamp_input_iterator</a> 特化。</p>
@@ -271,7 +275,7 @@ template&lt;std::bidirectional_iterator TIter&gt; </div>
 </div>
 </div>
 <a id="a9cf12e8e33c69c25062f09c1d4bc0c33" name="a9cf12e8e33c69c25062f09c1d4bc0c33"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9cf12e8e33c69c25062f09c1d4bc0c33">&#9670;&#160;</a></span>iterator_category</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cf12e8e33c69c25062f09c1d4bc0c33">&#9670;&#160;</a></span>iterator_category <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -280,6 +284,38 @@ template&lt;std::bidirectional_iterator TIter&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="structIOv2_1_1stamp__input__iterator.html">IOv2::stamp_input_iterator</a>&lt; TIter &gt;::iterator_category =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> std::iterator_traits&lt;TIter&gt;::iterator_category</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9cf12e8e33c69c25062f09c1d4bc0c33" name="a9cf12e8e33c69c25062f09c1d4bc0c33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cf12e8e33c69c25062f09c1d4bc0c33">&#9670;&#160;</a></span>iterator_category <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;std::bidirectional_iterator TIter&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="structIOv2_1_1stamp__input__iterator.html">IOv2::stamp_input_iterator</a>&lt; TIter &gt;::iterator_category =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> std::iterator_traits&lt;TIter&gt;::iterator_category</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aebe697771f3adbcae7b071bc6c84cc68" name="aebe697771f3adbcae7b071bc6c84cc68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aebe697771f3adbcae7b071bc6c84cc68">&#9670;&#160;</a></span>iterator_concept</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;std::bidirectional_iterator TIter&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">using</a> <a class="el" href="structIOv2_1_1stamp__input__iterator.html">IOv2::stamp_input_iterator</a>&lt; TIter &gt;::iterator_concept =  <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> std::iterator_traits&lt;TIter&gt;<a class="el" href="structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a9cf12e8e33c69c25062f09c1d4bc0c33">::iterator_category</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

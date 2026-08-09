@@ -11,7 +11,7 @@ var structIOv2_1_1stream__common__operators =
     [ "locale", "structIOv2_1_1stream__common__operators.html#a474b6849f87d21e5745c2770f814b9d5", null ],
     [ "operator=", "structIOv2_1_1stream__common__operators.html#aba7b275a80c00cce68ebc195beb4e155", null ],
     [ "operator=", "structIOv2_1_1stream__common__operators.html#aca2459bb92eabdafa5b7cbf54a6c2d26", null ],
-    [ "retrieve", "structIOv2_1_1stream__common__operators.html#a161f2b2fad273ac1eb8419c06f7e68c0", null ],
+    [ "retrieve", "structIOv2_1_1stream__common__operators.html#a749446fd5abd06a7c564d786e75146d7", null ],
     [ "rseek", "structIOv2_1_1stream__common__operators.html#a09c0dcf9c640a09310775335e78dab89", null ],
     [ "seek", "structIOv2_1_1stream__common__operators.html#a5d04f3b31ae058742dbf0e62904b075f", null ],
     [ "tell", "structIOv2_1_1stream__common__operators.html#ac728f6bd5ddd1aa328bba49b81b2f0ea", null ],

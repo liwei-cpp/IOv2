@@ -3,6 +3,8 @@ var structIOv2_1_1stamp__input__iterator_3_01TIter_01_4 =
     [ "difference_type", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a137150b4b4dd65f1eec4c3270558f737", null ],
     [ "difference_type", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#ad307c17b611554b41027eedff28f2b4b", null ],
     [ "iterator_category", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a9cf12e8e33c69c25062f09c1d4bc0c33", null ],
+    [ "iterator_category", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a9cf12e8e33c69c25062f09c1d4bc0c33", null ],
+    [ "iterator_concept", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#aebe697771f3adbcae7b071bc6c84cc68", null ],
     [ "pointer", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a64eaecd96185c735183b528f0ef83f66", null ],
     [ "reference", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#abe6c0619e1a10b8caf1ed1e30ee45ff8", null ],
     [ "value_type", "structIOv2_1_1stamp__input__iterator_3_01TIter_01_4.html#a00233a4c3b3a4f76494c7842d792c435", null ],

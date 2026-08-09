@@ -47,6 +47,7 @@ var io__base_8h =
     [ "hex", "io__base_8h.html#a9ca03dee2a63660c67a0207b8fe7e8b5", null ],
     [ "internal", "io__base_8h.html#acc4949ff819177993336a4a4adef5d9d", null ],
     [ "left", "io__base_8h.html#abe097e64e1d3068bbfe63436c39e4f99", null ],
+    [ "max_pad_count", "io__base_8h.html#a89d41b6db4943bdaa43ba16707cffb78", null ],
     [ "oct", "io__base_8h.html#ac60d70e115f9953e9acaab36ae2dd112", null ],
     [ "otherfailbit", "io__base_8h.html#a3ad1a1b362d26b0b9da6ae5c45b51916", null ],
     [ "right", "io__base_8h.html#ae047e6a3debb347be0900d934439ef6b", null ],

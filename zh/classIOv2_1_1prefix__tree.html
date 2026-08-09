@@ -115,7 +115,7 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:acec294eea2b672b9b6db15747176fd9e" id="r_acec294eea2b672b9b6db15747176fd9e"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; </td></tr>
 <tr class="memitem:acec294eea2b672b9b6db15747176fd9e"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1prefix__tree.html#acec294eea2b672b9b6db15747176fd9e">add</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>, TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">e</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)</td></tr>
 <tr class="separator:acec294eea2b672b9b6db15747176fd9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b89033bb98853428612632039580e8f" id="r_a3b89033bb98853428612632039580e8f"><td class="memTemplParams" colspan="2">template&lt;std::bidirectional_iterator TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </td></tr>
+<tr class="memitem:a3b89033bb98853428612632039580e8f" id="r_a3b89033bb98853428612632039580e8f"><td class="memTemplParams" colspan="2">template&lt;steppable_back TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </td></tr>
 <tr class="memitem:a3b89033bb98853428612632039580e8f"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1prefix__tree.html#a3b89033bb98853428612632039580e8f">max_match</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">b</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">e</a>, <a class="el" href="classIOv2_1_1prefix__tree.html#a4bf19e5eab3eda8ee4732a9742ca4b59">match_out_type</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="separator:a3b89033bb98853428612632039580e8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b89033bb98853428612632039580e8f" id="r_a3b89033bb98853428612632039580e8f"><td class="memTemplParams" colspan="2">template&lt;is_istreambuf_iterator TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </td></tr>
@@ -148,7 +148,7 @@ class IOv2::prefix_tree&lt; CharT, TValue &gt;</div><p>前缀树（Trie）实现
 <div class="ttc" id="aclassIOv2_1_1prefix__tree_html"><div class="ttname"><a href="classIOv2_1_1prefix__tree.html">IOv2::prefix_tree</a></div><div class="ttdef"><b>Definition</b> prefix_tree.h:87</div></div>
 <div class="ttc" id="aclassIOv2_1_1prefix__tree_html_a4bf19e5eab3eda8ee4732a9742ca4b59"><div class="ttname"><a href="classIOv2_1_1prefix__tree.html#a4bf19e5eab3eda8ee4732a9742ca4b59">IOv2::prefix_tree::match_out_type</a></div><div class="ttdeci">std::conditional_t&lt; is_small_type_v&lt; TValue &gt;, std::optional&lt; TValue &gt;, const TValue * &gt; match_out_type</div><div class="ttdef"><b>Definition</b> prefix_tree.h:120</div></div>
 <div class="ttc" id="aclassIOv2_1_1prefix__tree_html_adab7d7b09676fbdee1bf3db5810020eb"><div class="ttname"><a href="classIOv2_1_1prefix__tree.html#adab7d7b09676fbdee1bf3db5810020eb">IOv2::prefix_tree::add</a></div><div class="ttdeci">void add(std::basic_string_view&lt; CharT &gt; str, TValue v)</div><div class="ttdef"><b>Definition</b> prefix_tree.h:189</div></div>
-<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:78</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:80</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967"><div class="ttname"><a href="namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967">IOv2::io_status::input</a></div><div class="ttdeci">@ input</div><div class="ttdoc">输入（读取）模式 / Input (reading) mode.</div></div>
 </div><!-- fragment --> </dd></dl>
 </div><h2 class="groupheader">成员类型定义说明</h2>
@@ -371,7 +371,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <div class="memtemplate">
 template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TValue</a> &gt; </div>
 <div class="memtemplate">
-template&lt;std::bidirectional_iterator TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </div>
+template&lt;steppable_back TIter, std::sentinel_for&lt; TIter &gt; TSent&gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -407,10 +407,10 @@ template&lt;std::bidirectional_iterator TIter, std::sentinel_for&lt; TIter &gt; 
 </table>
 </div><div class="memdoc">
 <p>在输入范围中查找最长匹配的前缀。</p>
-<p>此重载适用于双向迭代器（如 std::string::iterator）。</p>
+<p>此重载适用于能后退的迭代器：双向迭代器（如 std::string::iterator），以及 <code><a class="el" href="structIOv2_1_1stamp__input__iterator.html">stamp_input_iterator</a></code> 这类单趟但提供 <code>operator--</code> 的迭代器。约束直接写成 <code>steppable_back</code> 而不是 <code>std::bidirectional_iterator</code>，理由见该概念的说明。</p>
 <dl class="tparams"><dt>模板参数</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TIter</td><td>双向迭代器类型 </td></tr>
+    <tr><td class="paramname">TIter</td><td>能后退的迭代器类型（见 <code>steppable_back</code>） </td></tr>
     <tr><td class="paramname">TSent</td><td>哨兵类型 </td></tr>
   </table>
   </dd>
