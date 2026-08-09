@@ -1,4 +1,5 @@
 #include <common/prefix_tree.h>
+#include <common/stamp_input_iterator.h>
 #include <support/verify.h>
 #include <support/dump_info.h>
 #include <string>
@@ -194,6 +195,74 @@ void test_prefix_tree_istreambuf()
     dump_info("Done\n");
 }
 
+void test_prefix_tree_stamp_input_iterator()
+{
+    dump_info("Test prefix_tree stamp_input_iterator backtracking...");
+    // A stamp_input_iterator wrapping an istreambuf_iterator is what timeio's era path hands
+    // to max_match. It is single-pass yet steps back through sputbackc, so it satisfies
+    // steppable_back but not std::bidirectional_iterator -- backing up must go through
+    // operator--, never std::advance, which would take its input_iterator_tag branch and
+    // walk forward with a negative count.
+    {
+        prefix_tree<char, int> tree;
+        tree.add("abc", 1);
+
+        // The input is a proper prefix of a stored key, so the walk descends two levels,
+        // finds no value on the way and has to back up both of them.
+        mem_device dev("abq");
+        istreambuf sb(dev);
+        istreambuf_iterator raw(sb);
+        stamp_input_iterator beg(raw);
+        decltype(beg) end;
+
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(beg, end, out);
+
+        VERIFY(!out);
+        VERIFY(*it == 'a');   // back at the position it started from
+        ++it;
+        VERIFY(*it == 'b');   // the underlying buffer was repositioned, not just the wrapper
+    }
+
+    // Backing up to a value found at a shallower depth.
+    {
+        prefix_tree<char, int> tree;
+        tree.add("a", 5);
+        tree.add("abc", 1);
+
+        mem_device dev("abq");
+        istreambuf sb(dev);
+        istreambuf_iterator raw(sb);
+        stamp_input_iterator beg(raw);
+        decltype(beg) end;
+
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(beg, end, out);
+
+        VERIFY(out && *out == 5);
+        VERIFY(*it == 'b');   // one step back, just past the matched "a"
+    }
+
+    // A full match needs no backtracking at all.
+    {
+        prefix_tree<char, int> tree;
+        tree.add("abc", 1);
+
+        mem_device dev("abcz");
+        istreambuf sb(dev);
+        istreambuf_iterator raw(sb);
+        stamp_input_iterator beg(raw);
+        decltype(beg) end;
+
+        decltype(tree)::match_out_type out;
+        auto it = tree.max_match(beg, end, out);
+
+        VERIFY(out && *out == 1);
+        VERIFY(*it == 'z');
+    }
+    dump_info("Done\n");
+}
+
 void test_prefix_tree_overflow()
 {
     dump_info("Test prefix_tree TValue overflow check...");
@@ -350,6 +419,7 @@ void test_prefix_tree()
     test_prefix_tree_root_value();
     test_prefix_tree_greedy_match();
     test_prefix_tree_istreambuf();
+    test_prefix_tree_stamp_input_iterator();
     test_prefix_tree_overflow();
     test_prefix_tree_uninitialized_out();
     test_prefix_tree_nullptr_check();

@@ -1,5 +1,7 @@
 #include <vector>
 #include <cassert>
+#include <iterator>
+#include <string>
 #include <common/stamp_input_iterator.h>
 #include <support/verify.h>
 #include <io/streambuf_iterator.h>
@@ -251,6 +253,42 @@ void test_stamp_input_iterator() {
         IOv2::stamp_input_iterator s_it2(is_it);
         s_it2 = std::move(s_it);
         VERIFY(*s_it2 == 'a');
+    }
+    dump_info("Done\n");
+
+    dump_info("Test stamp_input_iterator category consistency...");
+    {
+        IOv2::mem_device dev("abc");
+        IOv2::istreambuf buf(dev);
+        IOv2::istreambuf_iterator raw(buf);
+        IOv2::stamp_input_iterator s_it(raw);
+
+        using raw_t   = decltype(raw);
+        using stamp_t = decltype(s_it);
+
+        // Both tags are stated, and both report the wrapped iterator's category. Leaving them
+        // unstated is not neutral: iterator_traits would synthesize input_iterator_tag while
+        // ITER_CONCEPT, finding no member, falls back to random_access_iterator_tag -- the
+        // C++20 concepts would then call this type bidirectional while the C++17 traits call
+        // it input, and an algorithm dispatching on the latter takes the wrong branch.
+        static_assert(std::is_same_v<std::iterator_traits<stamp_t>::iterator_category,
+                                     std::input_iterator_tag>);
+        static_assert(std::input_iterator<stamp_t>);
+        static_assert(!std::forward_iterator<stamp_t>);
+        static_assert(!std::bidirectional_iterator<stamp_t>);
+
+        // It steps back all the same, which is what steppable_back names.
+        static_assert(IOv2::steppable_back<stamp_t>);
+        static_assert(!IOv2::steppable_back<raw_t>);              // istreambuf_iterator has no --
+        static_assert(IOv2::steppable_back<std::string::iterator>); // bidirectional is subsumed
+
+        ++s_it;
+        ++s_it;
+        VERIFY(*s_it == 'c');
+        --s_it;
+        VERIFY(*s_it == 'b');
+        --s_it;
+        VERIFY(*s_it == 'a');
     }
     dump_info("Done\n");
 }

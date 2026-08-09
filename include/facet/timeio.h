@@ -1731,7 +1731,7 @@ public:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
-        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
+        requires (steppable_back<TIter> || is_istreambuf_iterator<TIter>)
     TIter get(TIter beg, TSent end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
               char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
@@ -1798,7 +1798,7 @@ public:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
-        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
+        requires (steppable_back<TIter> || is_istreambuf_iterator<TIter>)
     TIter get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
               std::basic_string_view<CharT> _fmt) const
     {
@@ -1875,7 +1875,7 @@ private:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, bool HaveTimeZone>
-        requires (std::bidirectional_iterator<TIter> || is_istreambuf_iterator<TIter>)
+        requires (steppable_back<TIter> || is_istreambuf_iterator<TIter>)
     TIter do_get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
                  bool& succ, std::basic_string_view<CharT> _fmt) const
     {

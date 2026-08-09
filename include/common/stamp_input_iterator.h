@@ -270,6 +270,8 @@ struct stamp_input_iterator<TIter>
 
     using value_type        = typename TIter::value_type;
     using difference_type   = typename TIter::difference_type;
+    using iterator_category = typename std::iterator_traits<TIter>::iterator_category;
+    using iterator_concept  = typename std::iterator_traits<TIter>::iterator_category;
 
     [[nodiscard]] auto operator*() const { return *m_internal; }
     [[nodiscard]] auto operator->() const

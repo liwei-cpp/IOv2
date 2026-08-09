@@ -243,9 +243,11 @@ public:
      * @lang{ZH}
      * 在输入范围中查找最长匹配的前缀。
      *
-     * 此重载适用于双向迭代器（如 std::string::iterator）。
+     * 此重载适用于能后退的迭代器：双向迭代器（如 std::string::iterator），以及
+     * `stamp_input_iterator` 这类单趟但提供 `operator--` 的迭代器。约束直接写成
+     * `steppable_back` 而不是 `std::bidirectional_iterator`，理由见该概念的说明。
      *
-     * @tparam TIter 双向迭代器类型
+     * @tparam TIter 能后退的迭代器类型（见 `steppable_back`）
      * @tparam TSent 哨兵类型
      * @param b 范围起始迭代器
      * @param e 范围结束迭代器/哨兵
@@ -256,9 +258,12 @@ public:
      * @lang{EN}
      * Finds the longest matching prefix in the input range.
      *
-     * This overload is for bidirectional iterators (e.g., std::string::iterator).
+     * This overload is for iterators that can step back: bidirectional ones (e.g.,
+     * std::string::iterator) as well as single-pass ones providing `operator--`, such as
+     * `stamp_input_iterator`. The constraint is spelled `steppable_back` rather than
+     * `std::bidirectional_iterator`; see that concept for why.
      *
-     * @tparam TIter Bidirectional iterator type
+     * @tparam TIter An iterator that can step back (see `steppable_back`)
      * @tparam TSent Sentinel type
      * @param b Begin iterator of the range
      * @param e End iterator/sentinel of the range
@@ -266,7 +271,7 @@ public:
      * @return Iterator pointing to the position after the longest match
      * @endif
      */
-    template <std::bidirectional_iterator TIter, std::sentinel_for<TIter> TSent>
+    template <steppable_back TIter, std::sentinel_for<TIter> TSent>
     [[nodiscard]] TIter max_match(TIter b, TSent e, match_out_type& out) const
     {
         // Debug assertion: check for valid range (only for random access iterators)
@@ -308,7 +313,15 @@ public:
         if (node_ptr->depth != found_depth)
         {
             const size_t steps_back = node_ptr->depth - found_depth;
-            std::advance(b, -static_cast<std::ptrdiff_t>(steps_back));
+            // Not std::advance / std::ranges::advance: the former dispatches on the C++17
+            // iterator_category, the latter requires the bidirectional_iterator concept, and a
+            // negative distance violates the precondition of both for a single-pass iterator
+            // that merely offers operator-- (see steppable_back). `--` is the primitive every
+            // type admitted here provides; random access keeps its O(1) path explicitly.
+            if constexpr (std::random_access_iterator<TIter>)
+                b -= static_cast<std::iter_difference_t<TIter>>(steps_back);
+            else
+                for (size_t k = 0; k < steps_back; ++k) --b;
         }
         return b;
     }
