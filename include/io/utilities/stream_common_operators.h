@@ -523,7 +523,8 @@ struct stream_common_operators
     void adjust(this TSelf& self, const cvt_behavior& acc)
     {
         std::lock_guard guard(self.io_mutex());
-        return self.m_streambuf.adjust(acc);
+        try { self.m_streambuf.adjust(acc); }
+        catch (...) { self.handle_exception(std::current_exception()); }
     }
 
     /**
@@ -540,10 +541,11 @@ struct stream_common_operators
      * @endif
      */
     template <typename TSelf>
-    void retrieve(this const TSelf& self, cvt_status& acc)
+    void retrieve(this TSelf& self, cvt_status& acc)
     {
         std::lock_guard guard(self.io_mutex());
-        return self.m_streambuf.retrieve(acc);
+        try { self.m_streambuf.retrieve(acc); }
+        catch (...) { self.handle_exception(std::current_exception()); }
     }
 
     /**
