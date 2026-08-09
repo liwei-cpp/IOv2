@@ -115,9 +115,9 @@ Public 成员函数</h2></td></tr>
 <tr class="memitem:a953132fa7d570dc6719d2b84cdf662b8" id="r_a953132fa7d570dc6719d2b84cdf662b8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a953132fa7d570dc6719d2b84cdf662b8">set_date_hint</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::year_month_day &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">hint</a>)</td></tr>
 <tr class="memdesc:a953132fa7d570dc6719d2b84cdf662b8"><td class="mdescLeft">&#160;</td><td class="mdescRight">用 <code>hint</code> 替换年 / 月 / 日的默认回退值。  <br /></td></tr>
 <tr class="separator:a953132fa7d570dc6719d2b84cdf662b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a39dba344c77679938ec6e5a04a5fed31" id="r_a39dba344c77679938ec6e5a04a5fed31"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a39dba344c77679938ec6e5a04a5fed31">operator std::chrono::year_month_day</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
-<tr class="memdesc:a39dba344c77679938ec6e5a04a5fed31"><td class="mdescLeft">&#160;</td><td class="mdescRight">将已累积的日期字段转换为 <code>std::chrono::year_month_day</code>。  <br /></td></tr>
-<tr class="separator:a39dba344c77679938ec6e5a04a5fed31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4dfca3fbb87178bf75fc212fd8ab6cb6" id="r_a4dfca3fbb87178bf75fc212fd8ab6cb6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a4dfca3fbb87178bf75fc212fd8ab6cb6">convert_to</a> (std::chrono::year_month_day &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:a4dfca3fbb87178bf75fc212fd8ab6cb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">将已累积的日期字段转换为 <code>std::chrono::year_month_day</code>，写入 <code>out。</code>  <br /></td></tr>
+<tr class="separator:a4dfca3fbb87178bf75fc212fd8ab6cb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51bf223a5d7d4f1842bf021c86848738" id="r_a51bf223a5d7d4f1842bf021c86848738"><td class="memItemLeft" align="right" valign="top">std::chrono::year_month_day&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a51bf223a5d7d4f1842bf021c86848738">compute_ymd</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:a51bf223a5d7d4f1842bf021c86848738"><td class="mdescLeft">&#160;</td><td class="mdescRight">根据已累积的字段推算 <code>std::chrono::year_month_day</code>（不做有效性检查）。  <br /></td></tr>
 <tr class="separator:a51bf223a5d7d4f1842bf021c86848738"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -251,8 +251,8 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
-<a id="a39dba344c77679938ec6e5a04a5fed31" name="a39dba344c77679938ec6e5a04a5fed31"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a39dba344c77679938ec6e5a04a5fed31">&#9670;&#160;</a></span>operator std::chrono::year_month_day()</h2>
+<a id="a4dfca3fbb87178bf75fc212fd8ab6cb6" name="a4dfca3fbb87178bf75fc212fd8ab6cb6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4dfca3fbb87178bf75fc212fd8ab6cb6">&#9670;&#160;</a></span>convert_to()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -263,20 +263,21 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">IOv2::date_parse_helper&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a> &gt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">::operator</a> std::chrono::year_month_day </td>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> IOv2::date_parse_helper&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">true</a> &gt;::convert_to </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">std::chrono::year_month_day &amp;&#160;</td>
+          <td class="paramname"><em>out</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>将已累积的日期字段转换为 <code>std::chrono::year_month_day</code>。 </p>
+<p>将已累积的日期字段转换为 <code>std::chrono::year_month_day</code>，写入 <code>out。</code> </p>
 
 </div>
 </div>

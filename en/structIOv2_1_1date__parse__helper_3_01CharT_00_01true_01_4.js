@@ -3,7 +3,7 @@ var structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4 =
     [ "era_entry", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#aa9aa6be67f8b8bb30fbe4191fbeb105c", null ],
     [ "date_parse_helper", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a325ed7224c670640668dcd0ef318f88c", null ],
     [ "compute_ymd", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a51bf223a5d7d4f1842bf021c86848738", null ],
-    [ "operator std::chrono::year_month_day", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a39dba344c77679938ec6e5a04a5fed31", null ],
+    [ "convert_to", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a4dfca3fbb87178bf75fc212fd8ab6cb6", null ],
     [ "set_date_hint", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a953132fa7d570dc6719d2b84cdf662b8", null ],
     [ "is_init", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a89a1117356c78a78576237741f5f3c0b", null ],
     [ "m_century", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#af2d4f29c5b4f9f7af18b5eeb5cc121ca", null ],

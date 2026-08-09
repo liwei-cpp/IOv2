@@ -159,16 +159,17 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3c1dedcab1a2597afc02284b973cbf30" id="r_a3c1dedcab1a2597afc02284b973cbf30"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html#a3c1dedcab1a2597afc02284b973cbf30">istream</a> ()</td></tr>
-<tr class="memdesc:a3c1dedcab1a2597afc02284b973cbf30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over a default-constructed device.  <br /></td></tr>
-<tr class="separator:a3c1dedcab1a2597afc02284b973cbf30"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21ccecc03d372e9e6ebe1b8e3a2137ed" id="r_a21ccecc03d372e9e6ebe1b8e3a2137ed"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html#a21ccecc03d372e9e6ebe1b8e3a2137ed">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>)</td></tr>
-<tr class="memdesc:a21ccecc03d372e9e6ebe1b8e3a2137ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over <code>dev</code>.  <br /></td></tr>
-<tr class="separator:a21ccecc03d372e9e6ebe1b8e3a2137ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e76253d0631ca9419983ffb601e5820" id="r_a7e76253d0631ca9419983ffb601e5820"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; </td></tr>
-<tr class="memitem:a7e76253d0631ca9419983ffb601e5820"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html#a7e76253d0631ca9419983ffb601e5820">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>)</td></tr>
-<tr class="memdesc:a7e76253d0631ca9419983ffb601e5820"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over <code>dev</code> with the converter built by <code>creator</code>.  <br /></td></tr>
-<tr class="separator:a7e76253d0631ca9419983ffb601e5820"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb9485573d940b3c5014a45bedcba473" id="r_aeb9485573d940b3c5014a45bedcba473"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html#aeb9485573d940b3c5014a45bedcba473">istream</a> ()</td></tr>
+<tr class="memdesc:aeb9485573d940b3c5014a45bedcba473"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over a default-constructed device.  <br /></td></tr>
+<tr class="separator:aeb9485573d940b3c5014a45bedcba473"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9d51f313c3ef778e719f2e7faa35bad" id="r_ad9d51f313c3ef778e719f2e7faa35bad"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html#ad9d51f313c3ef778e719f2e7faa35bad">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>)</td></tr>
+<tr class="memdesc:ad9d51f313c3ef778e719f2e7faa35bad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over <code>dev</code>.  <br /></td></tr>
+<tr class="separator:ad9d51f313c3ef778e719f2e7faa35bad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a825c42c504efe67beab94358ad175662" id="r_a825c42c504efe67beab94358ad175662"><td class="memTemplParams" colspan="2">template&lt;cvt_creator TCreator&gt; <br />
+requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})<a class="el" href="classIOv2_1_1istream.html#a6c8d2ebc233966538bbfff919be43345">::char_type</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
+<tr class="memitem:a825c42c504efe67beab94358ad175662"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html#a825c42c504efe67beab94358ad175662">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">creator</a>)</td></tr>
+<tr class="memdesc:a825c42c504efe67beab94358ad175662"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over <code>dev</code> with the converter built by <code>creator</code>.  <br /></td></tr>
+<tr class="separator:a825c42c504efe67beab94358ad175662"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0dc1c2ae1d2970481258f1cc70b20c1c" id="r_a0dc1c2ae1d2970481258f1cc70b20c1c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1istream.html#a0dc1c2ae1d2970481258f1cc70b20c1c">istream</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">dev</a>, <a class="el" href="classIOv2_1_1locale.html">IOv2::locale</a>&lt; <a class="el" href="classIOv2_1_1istream.html#a6c8d2ebc233966538bbfff919be43345">char_type</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>)</td></tr>
 <tr class="memdesc:a0dc1c2ae1d2970481258f1cc70b20c1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds a stream over <code>dev</code> with locale <code>loc</code> installed.  <br /></td></tr>
 <tr class="separator:a0dc1c2ae1d2970481258f1cc70b20c1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -499,8 +500,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a3c1dedcab1a2597afc02284b973cbf30" name="a3c1dedcab1a2597afc02284b973cbf30"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c1dedcab1a2597afc02284b973cbf30">&#9670;&#160;</a></span>istream() <span class="overload">[1/7]</span></h2>
+<a id="aeb9485573d940b3c5014a45bedcba473" name="aeb9485573d940b3c5014a45bedcba473"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb9485573d940b3c5014a45bedcba473">&#9670;&#160;</a></span>istream() <span class="overload">[1/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -528,8 +529,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="a21ccecc03d372e9e6ebe1b8e3a2137ed" name="a21ccecc03d372e9e6ebe1b8e3a2137ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21ccecc03d372e9e6ebe1b8e3a2137ed">&#9670;&#160;</a></span>istream() <span class="overload">[2/7]</span></h2>
+<a id="ad9d51f313c3ef778e719f2e7faa35bad" name="ad9d51f313c3ef778e719f2e7faa35bad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9d51f313c3ef778e719f2e7faa35bad">&#9670;&#160;</a></span>istream() <span class="overload">[2/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -558,15 +559,16 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="a7e76253d0631ca9419983ffb601e5820" name="a7e76253d0631ca9419983ffb601e5820"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e76253d0631ca9419983ffb601e5820">&#9670;&#160;</a></span>istream() <span class="overload">[3/7]</span></h2>
+<a id="a825c42c504efe67beab94358ad175662" name="a825c42c504efe67beab94358ad175662"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a825c42c504efe67beab94358ad175662">&#9670;&#160;</a></span>istream() <span class="overload">[3/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
 <div class="memtemplate">
-template&lt;cvt_creator TCreator&gt; </div>
+template&lt;cvt_creator TCreator&gt; <br />
+requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">decltype</a>(<a class="el" href="structIOv2_1_1istreambuf.html">istreambuf</a>{std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;(), std::declval&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCreator</a>&amp;&gt;()})<a class="el" href="classIOv2_1_1istream.html#a6c8d2ebc233966538bbfff919be43345">::char_type</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
