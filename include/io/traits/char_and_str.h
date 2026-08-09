@@ -15,19 +15,24 @@ template <typename TIter, typename TChar>
 TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, size_t n)
 {
     const size_t w = io.width();
+    // Consumed up front, so it cannot leak into the next insertion if a step below throws.
+    io.width(0);
     if (w > n)
     {
+        const size_t pad = w - n;
+        if (pad > ios_defs::max_pad_count)
+            throw stream_error("ostream insert fail: fill count exceeds max_pad_count");
+
         const bool left = ((io.flags() & ios_defs::adjustfield) == ios_defs::left);
         const TChar f = io.fill();
         if (!left)
-            iter = std::fill_n(iter, w - n, f);
+            iter = std::fill_n(iter, pad, f);
         iter = std::copy(s, s + n, iter);
         if (left)
-            iter = std::fill_n(iter, w - n, f);
+            iter = std::fill_n(iter, pad, f);
     }
     else
         iter = std::copy(s, s + n, iter);
-    io.width(0);
     return iter;
 }
 
@@ -36,13 +41,14 @@ template <typename TIter, std::sentinel_for<TIter> TSent, typename TChar>
 TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, size_t num)
 {
     const size_t width = io.width();
+    // Consumed up front, so it cannot leak into the next extraction if a step below throws.
+    io.width(0);
     if (0 < width && width < num)
         num = width;
 
     if (num <= 1)
     {
         if (num == 1) *s = TChar{};
-        io.width(0);
         throw stream_error("DO not have enough buffer to save character");
     }
 
@@ -64,8 +70,6 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
     }
 
     *s = TChar{};
-
-    io.width(0);
 
     if (extracted == 0)
         throw stream_error("istream extraction fail: no characters extracted");

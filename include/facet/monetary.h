@@ -732,6 +732,9 @@ private:
             len = value.size() + sign_ptr->size();
             len += ((io.flags() & ios_defs::showbase) ? info.m_curr_symbol.size() : 0);
 
+            if (width > len && width - len > ios_defs::max_pad_count)
+                throw stream_error("monetary put fail: fill count exceeds max_pad_count");
+
             std::basic_string<char_type> res;
             res.reserve(2 * len);
 

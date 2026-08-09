@@ -286,6 +286,8 @@ public:
         if (w > static_cast<decltype(w)>(len))
         {
             const auto plen = w - len;
+            if (plen > ios_defs::max_pad_count)
+                throw stream_error("numeric put fail: fill count exceeds max_pad_count");
 
             if ((flags & ios_defs::adjustfield) == ios_defs::left)
             {
@@ -846,6 +848,9 @@ private:
         // Pad.
         if (std::cmp_greater(w, len))
         {
+            if (w - len > ios_defs::max_pad_count)
+                throw stream_error("numeric put fail: fill count exceeds max_pad_count");
+
             std::vector<CharT> vec_ws3(w);
             CharT* ws3 = vec_ws3.data();
             bool startSign = (ws[0] == m_out_atoms[s_ominus]) || (ws[0] == m_out_atoms[s_oplus]);
@@ -962,6 +967,9 @@ private:
         // Pad.
         if (std::cmp_greater(w, len))
         {
+            if (w - len > ios_defs::max_pad_count)
+                throw stream_error("numeric put fail: fill count exceeds max_pad_count");
+
             std::vector<char_type> cs_vec3(w);
             char_type* cs3 = cs_vec3.data();
             bool startSign = (cs[0] == m_out_atoms[s_ominus]) || (cs[0] == m_out_atoms[s_oplus]);
