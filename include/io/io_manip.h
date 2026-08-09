@@ -98,6 +98,7 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <type_traits>
 
 namespace IOv2
 {
