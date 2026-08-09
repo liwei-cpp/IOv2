@@ -11,6 +11,7 @@
 #include <io/utilities/stream_common_operators.h>
 #include <locale/locale.h>
 
+#include <exception>
 #include <mutex>
 #include <type_traits>
 #include <utility>
