@@ -79,6 +79,8 @@
 #pragma once
 
 #include <common/defs.h>
+#include <common/metafunctions.h>
+#include <common/streambuf_defs.h>
 #include <facet/monetary.h>
 #include <facet/timeio.h>
 #include <io/io_base.h>
@@ -985,7 +987,8 @@ struct io_traits<TChar, get_time_t<TChar>>
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (std::is_same_v<TChar, typename TIter::value_type>
+                  && (steppable_back<TIter> || is_istreambuf_iterator<TIter>))
     static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc,
                        const get_time_t<TChar>& f)
     {
