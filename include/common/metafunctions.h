@@ -9,6 +9,8 @@
  */
 
 #pragma once
+#include <concepts>
+#include <iterator>
 #include <memory>
 #include <type_traits>
 
@@ -173,4 +175,60 @@ namespace IOv2
      */
     template<typename P, typename T>
     concept shared_ptr_to = shared_ptr_to_impl<std::decay_t<P>, T>::value;
+
+    /**
+     * @lang{ZH}
+     * 判定一个输入迭代器能否后退一步。
+     *
+     * 标准的迭代器分类里没有"单趟但可后退"这一档：`std::bidirectional_iterator` 蕴含
+     * `forward_iterator`，因而要求 multi-pass 保证与真正的引用语义。这两条对
+     * `stamp_input_iterator<istreambuf_iterator<...>>` 都不成立——它的流位置在共享的
+     * streambuf 里（递增一个副本会改变原件看到的内容），`operator*` 也只返回纯右值；
+     * 但它靠内部记录的回退日志确实提供了 `operator--`（经 `sputbackc` 把字符放回）。
+     *
+     * 于是"需要回退"的算法不能拿 `std::bidirectional_iterator` 当代理：这样写会漏掉上面
+     * 那种迭代器，而给它贴双向标签又是谎报。本概念直接命名"能后退"这一能力本身，让约束
+     * 只要求真正用到的东西。
+     *
+     * @note 双向迭代器被完全包含，无需另行析取：`std::bidirectional_iterator` 的定义中
+     *       已含 `{ --i } -> std::same_as<I&>`，且它蕴含 `input_iterator`。
+     * @warning 满足本概念**不代表**可以交给 `std::advance` / `std::ranges::advance` 后退。
+     *          前者按 C++17 的 `iterator_category` 分派、后者要求 `bidirectional_iterator`
+     *          概念，负数实参在两边都是前置条件违反（libstdc++ 开启断言时直接 `abort`）。
+     *          请直接调用 `--`。
+     *
+     * @tparam I 待检测的迭代器类型
+     * @endif
+     *
+     * @lang{EN}
+     * Whether an input iterator can step one position backwards.
+     *
+     * The standard iterator taxonomy has no category for "single-pass yet able to step
+     * back": `std::bidirectional_iterator` implies `forward_iterator`, and so demands the
+     * multi-pass guarantee and true reference semantics. Neither holds for
+     * `stamp_input_iterator<istreambuf_iterator<...>>`, whose stream position lives in the
+     * shared streambuf (incrementing a copy changes what the original observes) and whose
+     * `operator*` yields a prvalue -- yet it does provide `operator--`, putting characters
+     * back from an internal log.
+     *
+     * An algorithm that needs to back up therefore cannot use `std::bidirectional_iterator`
+     * as a proxy: doing so excludes such iterators, while tagging them bidirectional would
+     * be a false claim. This concept names the capability itself, so a constraint asks only
+     * for what is actually used.
+     *
+     * @note Bidirectional iterators are subsumed and need no separate disjunct:
+     *       `std::bidirectional_iterator` already requires `{ --i } -> std::same_as<I&>`
+     *       and implies `input_iterator`.
+     * @warning Satisfying this concept does **not** mean the iterator may be moved backwards
+     *          with `std::advance` / `std::ranges::advance`. The former dispatches on the
+     *          C++17 `iterator_category`, the latter requires the `bidirectional_iterator`
+     *          concept; a negative argument violates the precondition of both (and aborts
+     *          outright once libstdc++ assertions are on). Call `--` directly.
+     *
+     * @tparam I The iterator type under inspection
+     * @endif
+     */
+    template <typename I>
+    concept steppable_back = std::input_iterator<I>
+                          && requires (I i) { { --i } -> std::same_as<I&>; };
 }
