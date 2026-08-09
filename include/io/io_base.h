@@ -101,6 +101,8 @@ namespace ios_defs
     constexpr static iostate cvtfailbit     = 1L << 2;  ///< @lang{ZH} 字符编码转换失败。 @endif @lang{EN} A character-encoding conversion failed. @endif
     constexpr static iostate strfailbit     = 1L << 3;  ///< @lang{ZH} 流层面的格式化/解析失败。 @endif @lang{EN} A stream-level formatting/parsing failure. @endif
     constexpr static iostate otherfailbit   = 1L << 4;  ///< @lang{ZH} 其他（未归类）失败。 @endif @lang{EN} Some other (uncategorized) failure. @endif
+
+    constexpr static size_t max_pad_count   = size_t{1} << 16;  ///< @lang{ZH} 单次插入允许写出的填充字符数上限；`width()` 本身仍不设上限。 @endif @lang{EN} Upper bound on the number of fill characters one insertion may emit; `width()` itself stays unbounded. @endif
 };
 
 template <typename TChar> class locale;
