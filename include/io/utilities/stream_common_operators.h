@@ -360,9 +360,14 @@ struct stream_common_operators
      *
      * @warning 本操作全程持有 `io_mutex()`，因此不会与本流的读写、`attach()`/`detach()` 或
      *          赋值相互撕裂。但它仍是一个类似构造/析构的生命周期操作——分离底层设备本就意味着
-     *          流不再处于可用于读写的稳定状态：并发的读写不会是未定义行为，却会看到一个没有设备
-     *          的流并按常规失败路径报错。锁覆盖不到的只有析构，正如不应在对象析构过程中使用该
-     *          对象一样。
+     *          流不再处于可用于读写的稳定状态：并发的读写不会是未定义行为，却会看到一个设备已被
+     *          移走的流。锁覆盖不到的只有析构，正如不应在对象析构过程中使用该对象一样。
+     * @note 本函数留下的是一个**移后的设备对象**，而不是"没有设备"，因此后续读写的结果取决于
+     *       `device_type` 移后还剩什么：`file_device` 这类移后不可用的设备会按常规失败路径报错
+     *       （缓冲写入本身仍成功，错误在数据真正落到设备时——`flush()` 或缓冲写满——以
+     *       `devfailbit` 报出）；`mem_device` 这类移后仍是一个合法空设备的类型则会照常读写，
+     *       读立即遇到 `eofbit`，写则进入那个空设备、可由下一次 `detach()` 取回。两种都不是
+     *       未定义行为，但只有前者会报错。
      * @note 本函数是 `noexcept`，加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
      *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
      * @warning 与 `device()` 相同，**流处于移后（moved-from）状态时不得调用本函数**：此时转换器
@@ -384,9 +389,17 @@ struct stream_common_operators
      *          still a lifecycle operation akin to construction/destruction -- detaching the
      *          underlying device inherently means the stream is no longer in a stable state
      *          usable for I/O: a concurrent read or write is not undefined behavior, but it will
-     *          find a stream with no device and fail through the ordinary path. What the lock
-     *          cannot cover is destruction, just as one must not use an object while it is being
-     *          destroyed.
+     *          find a stream whose device has been moved out. What the lock cannot cover is
+     *          destruction, just as one must not use an object while it is being destroyed.
+     * @note What this function leaves behind is a **moved-from device object**, not the absence
+     *       of a device, so what later I/O does depends on what `device_type` still is after a
+     *       move. A device that is unusable once moved from, such as `file_device`, fails
+     *       through the ordinary path -- the buffered write itself still succeeds and the error
+     *       surfaces as `devfailbit` when the data actually reaches the device, at `flush()` or
+     *       when the buffer fills. A type whose moved-from state is still a valid empty device,
+     *       such as `mem_device`, simply keeps working: reads hit `eofbit` at once and writes go
+     *       into that empty device, to be retrieved by the next `detach()`. Neither is undefined
+     *       behavior, but only the former reports an error.
      * @note This function is `noexcept`. Taking the lock can formally throw, but for an
      *       already-constructed recursive mutex the only remaining cause is an exhausted
      *       recursion count, which this library treats as unrecoverable -- that is, it
