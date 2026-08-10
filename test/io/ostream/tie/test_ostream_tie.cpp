@@ -120,7 +120,8 @@ void test_ostream_tie_2()
 }
 
 // tie() still rejects a request that would form a cycle, and leaves the existing tie untouched
-// when it does. A self-tie is the length-1 case.
+// when it does. A self-tie is the length-1 case. The rejection is reported the way every other
+// failure in this library is: strfailbit, and a throw only when that bit is in the mask.
 void test_ostream_tie_3()
 {
     dump_info("Test ostream tie case 3 (cycle requests are rejected)...");
@@ -131,28 +132,39 @@ void test_ostream_tie_3()
         auto b = make<T>();
         auto c = make<T>();
 
-        // self-tie: a cycle of length 1
-        bool threw = false;
-        try { a.tie(as_flusher(a)); }
-        catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
+        // self-tie: a cycle of length 1. The default mask is empty, so nothing is thrown.
+        a.tie(as_flusher(a));
+        VERIFY(a.rdstate() & IOv2::ios_defs::strfailbit);
+        VERIFY(!a);
         VERIFY(a.tie() == nullptr);
+        a.clear();
 
         // a -> b -> c, then c -> a would close the loop
         a.tie(as_flusher(b));
         b.tie(as_flusher(c));
 
-        threw = false;
-        try { c.tie(as_flusher(a)); }
-        catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
+        c.tie(as_flusher(a));
+        VERIFY(c.rdstate() & IOv2::ios_defs::strfailbit);
         VERIFY(c.tie() == nullptr);      // the existing tie is left unchanged
+        c.clear();
 
         // the legal chain is untouched
         VERIFY(a.tie() == as_flusher(b));
         VERIFY(b.tie() == as_flusher(c));
 
-        a.tie(nullptr);
+        // with strfailbit in the mask the rejection throws, and still commits nothing
+        c.exceptions(IOv2::ios_defs::strfailbit);
+        bool threw = false;
+        try { c.tie(as_flusher(a)); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(c.tie() == nullptr);
+        c.exceptions(IOv2::ios_defs::goodbit);
+        c.clear();
+
+        // a legal tie still works and returns the pointer stored before the call
+        VERIFY(a.tie(nullptr) == as_flusher(b));
+        VERIFY(a.tie() == nullptr);
         b.tie(nullptr);
     };
 
@@ -162,9 +174,43 @@ void test_ostream_tie_3()
     dump_info("Done\n");
 }
 
+// Self-assignment is short-circuited by the concrete stream classes, so it never reaches the
+// mix-in's operator= and the tie edge survives -- unlike every other copy or move. Dropping one
+// of those short-circuits would silently start untying on self-assignment, so pin the behavior.
+void test_ostream_tie_4()
+{
+    dump_info("Test ostream tie case 4 (self-assignment keeps the tie edge)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        auto target = make<IOv2::ostream>();
+
+        auto a = make<T>();
+        a.tie(as_flusher(target));
+
+        // Aliased through a reference to keep -Wself-move / -Wself-assign-overloaded quiet.
+        auto& alias = a;
+
+        a = std::move(alias);
+        VERIFY(a.tie() == as_flusher(target));
+
+        a = alias;
+        VERIFY(a.tie() == as_flusher(target));
+
+        a.tie(nullptr);
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream>();
+
+    dump_info("Done\n");
+}
+
 void test_ostream_tie()
 {
     test_ostream_tie_1();
     test_ostream_tie_2();
     test_ostream_tie_3();
+    test_ostream_tie_4();
 }

@@ -136,8 +136,9 @@ void test_concur_tie_1()
     using namespace IOv2;
 
     // Concurrent A.tie(B) / B.tie(A): tie_graph_mutex() fuses cycle detection and
-    // commit, so a cycle can never form. A rejected request throws and must leave the
-    // previous tie untouched.
+    // commit, so a cycle can never form. A rejected request sets strfailbit and must
+    // leave the previous tie untouched; with the default empty mask it does not throw,
+    // so the streams are cleared each round to keep the I/O case exercising real output.
     ostream a(mem_device<char>{});
     ostream b(mem_device<char>{});
     ostream c(mem_device<char>{});
@@ -149,18 +150,13 @@ void test_concur_tie_1()
     {
         for (int i = 0; i < kIters; ++i)
         {
-            try
+            switch (id % 4)
             {
-                switch (id % 4)
-                {
-                    case 0: a.tie(pb);             break;
-                    case 1: b.tie(pa);             break;
-                    case 2: c.tie(pa); a.tie(pc);  break;
-                    case 3: a << "tied" << i;      break;   // drives tie()->flush()
-                }
-            }
-            catch (const stream_error&)
-            {
+                case 0: a.tie(pb); a.clear();             break;
+                case 1: b.tie(pa); b.clear();             break;
+                case 2: c.tie(pa); a.tie(pc);
+                        c.clear(); a.clear();             break;
+                case 3: a << "tied" << i;                 break;   // drives tie()->flush()
             }
         }
     });

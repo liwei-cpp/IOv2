@@ -48,22 +48,20 @@ void test_ostream_flush_wchar_t_2()
         T a(IOv2::mem_device{L""});
         T b(IOv2::mem_device{L""});
 
-        // A self-tie is the length-1 cycle and is rejected.
-        bool threw = false;
-        try { a.tie(&a); }
-        catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
+        // A self-tie is the length-1 cycle and is rejected: strfailbit, no throw by default.
+        a.tie(&a);
+        VERIFY(a.rdstate() & IOv2::ios_defs::strfailbit);
         VERIFY(a.tie() == nullptr);
+        a.clear();
 
         a.tie(&b);
 
         // Closing the cycle a -> b -> a is rejected at set time; b stays untied.
-        threw = false;
-        try { b.tie(&a); }
-        catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
+        b.tie(&a);
+        VERIFY(b.rdstate() & IOv2::ios_defs::strfailbit);
         VERIFY(b.tie() == nullptr);
         VERIFY(a.tie() == &b);
+        b.clear();
 
         a.tie(nullptr);
     };
