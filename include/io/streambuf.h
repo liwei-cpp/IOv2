@@ -41,7 +41,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <deque>
 #include <exception>
 #include <optional>
 #include <string>
@@ -56,8 +55,8 @@ namespace IOv2
  * @brief 流缓冲区的通用实现基类。
  *
  * `base_streambuf` 在一条转换器管线（`runtime_cvt<TDevice, TChar>`）之上封装出面向字符
- * 的缓冲接口。它按需持有一个读缓冲区 `m_read_buf`（`std::deque`，仅在 `IsIn` 为真时存在），
- * 用于保存被 `sgetc()` 预读（peek）以及被 `sputbackc()` 压回的字符。
+ * 的缓冲接口。它按需持有一个读缓冲区 `m_read_buf`（仅在 `IsIn` 为真时存在），用于保存被
+ * `sgetc()` 预读（peek）以及被 `sputbackc()` 压回的字符。
  *
  * 是否具备输入/输出能力由模板参数 `IsIn`/`IsOut` 在编译期决定，相应的成员函数通过
  * `requires` 约束仅在对应能力开启时可用。当二者同时为真时，对象是双向的，输入与输出
@@ -77,8 +76,8 @@ namespace IOv2
  *
  * `base_streambuf` wraps a converter pipeline (`runtime_cvt<TDevice, TChar>`) into a
  * character-oriented buffered interface. It optionally holds a read buffer `m_read_buf`
- * (a `std::deque`, present only when `IsIn` is true) that stores characters peeked by
- * `sgetc()` and pushed back by `sputbackc()`.
+ * (present only when `IsIn` is true) that stores characters peeked by `sgetc()` and
+ * pushed back by `sputbackc()`.
  *
  * Whether input/output is available is decided at compile time by the template
  * parameters `IsIn`/`IsOut`; the corresponding member functions are constrained via
@@ -221,7 +220,7 @@ public:
      * @lang{ZH}
      * @brief 预读（peek）当前字符但不消费它。
      *
-     * 若读缓冲区非空，返回其队首字符；否则从底层转换器读取一个字符，压入读缓冲区队首后
+     * 若读缓冲区非空，返回其栈顶字符；否则从底层转换器读取一个字符，压入读缓冲区栈顶后
      * 返回。因此该字符**下一次**仍会被 sgetc()/sbumpc() 读到。
      * @return 当前字符；若已到达末尾则为空的 optional。
      * @note 在双向模式下会先切换到输入方向。
@@ -230,10 +229,9 @@ public:
      * @lang{EN}
      * @brief Peeks the current character without consuming it.
      *
-     * If the read buffer is non-empty, returns its front character; otherwise reads one
-     * character from the underlying converter, pushes it to the front of the read buffer,
-     * and returns it. The character therefore remains available to the **next**
-     * sgetc()/sbumpc().
+     * If the read buffer is non-empty, returns its top character; otherwise reads one
+     * character from the underlying converter, pushes it onto the read buffer, and returns
+     * it. The character therefore remains available to the **next** sgetc()/sbumpc().
      * @return The current character; an empty optional if the end has been reached.
      * @note In bidirectional mode it first switches to the input direction.
      * @endif
@@ -243,11 +241,11 @@ public:
         if constexpr (IsOut)
             switch_to_get();
 
-        if (!m_read_buf.empty()) return m_read_buf.front();
+        if (!m_read_buf.empty()) return m_read_buf.back();
 
         char_type c;
         if (m_cvt.get(&c, 1) == 0) return std::optional<char_type>{};
-        m_read_buf.push_front(c);
+        m_read_buf.push_back(c);
         return c;
     }
 
@@ -255,7 +253,7 @@ public:
      * @lang{ZH}
      * @brief 读取并消费当前字符。
      *
-     * 若读缓冲区非空，弹出并返回其队首字符；否则直接从底层转换器读取一个字符返回。
+     * 若读缓冲区非空，弹出并返回其栈顶字符；否则直接从底层转换器读取一个字符返回。
      * @return 被读取的字符；若已到达末尾则为空的 optional。
      * @note 在双向模式下会先切换到输入方向。
      * @endif
@@ -263,7 +261,7 @@ public:
      * @lang{EN}
      * @brief Reads and consumes the current character.
      *
-     * If the read buffer is non-empty, pops and returns its front character; otherwise
+     * If the read buffer is non-empty, pops and returns its top character; otherwise
      * reads one character directly from the underlying converter and returns it.
      * @return The character read; an empty optional if the end has been reached.
      * @note In bidirectional mode it first switches to the input direction.
@@ -276,8 +274,8 @@ public:
 
         if (!m_read_buf.empty())
         {
-            char_type c = m_read_buf.front();
-            m_read_buf.pop_front();
+            char_type c = m_read_buf.back();
+            m_read_buf.pop_back();
             return c;
         }
 
@@ -350,8 +348,8 @@ public:
         size_t res = 0;
         while (!m_read_buf.empty())
         {
-            *s++ = m_read_buf.front();
-            m_read_buf.pop_front();
+            *s++ = m_read_buf.back();
+            m_read_buf.pop_back();
             if (++res == n) break;
         }
         if (got) *got = res;
@@ -425,7 +423,7 @@ public:
     {
         if constexpr (IsOut)
             switch_to_get();
-        m_read_buf.push_front(ch);
+        m_read_buf.push_back(ch);
     }
     /**
      * @lang{ZH} @} @endif
@@ -890,20 +888,22 @@ private:
      * @lang{ZH}
      * @brief 读缓冲区，保存已 peek/put-back 的字符（仅 IsIn 时存在）。
      *
-     * 队首即为下一次读取将返回的字符。非输入模式下退化为 `std::monostate`，并借助
-     * `[[no_unique_address]]` 不占用对象空间。
+     * 本缓冲区只在一端进出，是个后进先出栈，栈顶放在**末尾**：末尾即为下一次读取将返回的
+     * 字符，压入与弹出都是 `push_back` / `pop_back`。非输入模式下退化为 `std::monostate`，
+     * 并借助 `[[no_unique_address]]` 不占用对象空间。
      * @endif
      *
      * @lang{EN}
      * @brief Read buffer holding peeked/put-back characters (present only when IsIn).
      *
-     * The front element is the character the next read will return. In non-input mode it
-     * degenerates to `std::monostate` and, thanks to `[[no_unique_address]]`, takes no
-     * object space.
+     * This buffer is pushed and popped at one end only, making it a LIFO stack whose top is
+     * kept at the **back**: the back element is the character the next read will return, and
+     * both operations are `push_back` / `pop_back`. In non-input mode it degenerates to
+     * `std::monostate` and, thanks to `[[no_unique_address]]`, takes no object space.
      * @endif
      */
     [[no_unique_address]]
-    std::conditional_t<IsIn, std::deque<char_type>, std::monostate> m_read_buf;
+    std::conditional_t<IsIn, std::basic_string<char_type>, std::monostate> m_read_buf;
 };
 
 /**

@@ -245,7 +245,7 @@ public:
      * @endif
      */
     iostream(const iostream& other) : iostream(std::lock_guard{other.io_mutex()}, other) {}
-    iostream(iostream&&) = default;
+    iostream(iostream&&) noexcept = default;
 
     iostream& operator=(iostream&& other) noexcept
     {
@@ -270,14 +270,14 @@ public:
      *        再以全程 noexcept 的移动赋值提交。move-only 内核（如 `file_device`）上的拷贝必然
      *        抛出，故自赋值也要先挡掉。
      *
-     * @warning 赋值整体替换 `m_streambuf`（内含转换器管线——方向状态即在其中——与一个
-     *          `std::deque` 读缓冲区）与 `m_locale`（内含两张哈希表），与 `detach()`/`attach()`
-     *          同属生命周期操作，区别在于它涉及**两个**操作数。两个操作数都受 `io_mutex()`
-     *          保护：拷贝构造持有源流的锁读出副本，随后的移动赋值持有目标流的锁完成替换。两把
-     *          锁**先后获取、互不重叠**，因此任一线程在任一时刻至多持有一把流锁。仍由调用方
-     *          负责的是：不得在其它线程仍可能使用某流时销毁它、或把它作为移动的源。另需注意，
-     *          赋值由此参与调用方自身的锁定序——`sync(P); X = Q;` 与 `sync(Q); Y = P;` 反向
-     *          配对仍会死锁，这与 `sync` 一贯的表述一致。
+     * @warning 赋值整体替换 `m_streambuf`（内含转换器管线——方向状态即在其中——与一个读缓冲区）
+     *          与 `m_locale`（内含两张哈希表），与 `detach()`/`attach()` 同属生命周期操作，区
+     *          别在于它涉及**两个**操作数。两个操作数都受 `io_mutex()` 保护：拷贝构造持有源流
+     *          的锁读出副本，随后的移动赋值持有目标流的锁完成替换。两把锁**先后获取、互不重
+     *          叠**，因此任一线程在任一时刻至多持有一把流锁。仍由调用方负责的是：不得在其它线
+     *          程仍可能使用某流时销毁它、或把它作为移动的源。另需注意，赋值由此参与调用方自身
+     *          的锁定序——`sync(P); X = Q;` 与 `sync(Q); Y = P;` 反向配对仍会死锁，这与 `sync`
+     *          一贯的表述一致。
      * @endif
      *
      * @lang{EN}
@@ -287,17 +287,16 @@ public:
      *        move-only kernel (`file_device`), which is why self-assignment is short-circuited.
      *
      * @warning Assignment replaces `m_streambuf` (which holds the converter pipeline, the
-     *          direction state included, and a `std::deque` read buffer) and `m_locale` (which
-     *          holds two hash tables) wholesale, and is a lifecycle operation just like
-     *          `detach()`/`attach()`, except that it involves **two** operands. Both are
-     *          covered by `io_mutex()`: the copy construction holds the source's lock while
-     *          reading it out, and the move assignment that follows holds the destination's
-     *          lock while replacing it. The two locks are taken **in sequence and never
-     *          overlap**, so a thread holds at most one stream lock at any instant. What
-     *          remains the caller's responsibility: never destroy, or move from, a stream
-     *          another thread may still be using. Note also that assignment thereby joins the
-     *          caller's own lock order -- `sync(P); X = Q;` paired with `sync(Q); Y = P;` still
-     *          deadlocks, exactly as documented for `sync`.
+     *          direction state included, and a read buffer) and `m_locale` (which holds two hash
+     *          tables) wholesale, and is a lifecycle operation just like `detach()`/`attach()`,
+     *          except that it involves **two** operands. Both are covered by `io_mutex()`: the
+     *          copy construction holds the source's lock while reading it out, and the move
+     *          assignment that follows holds the destination's lock while replacing it. The two
+     *          locks are taken **in sequence and never overlap**, so a thread holds at most one
+     *          stream lock at any instant. What remains the caller's responsibility: never
+     *          destroy, or move from, a stream another thread may still be using. Note also that
+     *          assignment thereby joins the caller's own lock order -- `sync(P); X = Q;` paired
+     *          with `sync(Q); Y = P;` still deadlocks, exactly as documented for `sync`.
      * @endif
      */
     iostream& operator=(const iostream& other)
@@ -318,11 +317,11 @@ public:
      * @lang{ZH}
      * @brief 将底层缓冲区切换到写入方向。
      *
-     * 与本流的其它操作一样，本函数持有 `io_mutex()`。这不是可有可无的：切换方向会重定位
-     * 转换器、清空读缓冲区（一个 `std::deque`）并翻转转换器的方向标志，而 `in_sentry` /
-     * `out_sentry` 在**持有同一把锁**的前提下调用的正是同一批底层函数。若此处不加锁，同一
-     * 份状态就存在一条加锁、一条不加锁的访问路径，两者并发即为数据竞争——不只是标志撕裂，
-     * 而是那个 `deque` 会被一边 `clear()`、一边 `sgetc()` 读取。
+     * 与本流的其它操作一样，本函数持有 `io_mutex()`。这不是可有可无的：切换方向会重定位转换
+     * 器、清空读缓冲区并翻转转换器的方向标志，而 `in_sentry` / `out_sentry` 在**持有同一把
+     * 锁**的前提下调用的正是同一批底层函数。若此处不加锁，同一份状态就存在一条加锁、一条不加
+     * 锁的访问路径，两者并发即为数据竞争——不只是标志撕裂，而是那个缓冲区会被一边
+     * `clear()`、一边 `sgetc()` 读取。
      * @note 流处于失败状态时直接返回、不触碰缓冲区，与 `tell()` / `flush()` 的做法一致。
      * @return 流自身的引用。
      * @endif
@@ -330,13 +329,13 @@ public:
      * @lang{EN}
      * @brief Switches the underlying buffer to the put direction.
      *
-     * Like every other operation on this stream, this holds `io_mutex()`. That is not
-     * optional: switching direction repositions the converter, clears the read buffer (a
-     * `std::deque`) and flips the converter's direction flag -- and `in_sentry` / `out_sentry`
-     * call those very same underlying functions **while holding that same lock**. Without it
-     * here, one piece of state would have both a locked and an unlocked access path, and
-     * running them concurrently is a data race -- not merely a torn flag, but that `deque`
-     * being `clear()`ed on one side while `sgetc()` reads it on the other.
+     * Like every other operation on this stream, this holds `io_mutex()`. That is not optional:
+     * switching direction repositions the converter, clears the read buffer and flips the
+     * converter's direction flag -- and `in_sentry` / `out_sentry` call those very same
+     * underlying functions **while holding that same lock**. Without it here, one piece of
+     * state would have both a locked and an unlocked access path, and running them concurrently
+     * is a data race -- not merely a torn flag, but that buffer being `clear()`ed on one side
+     * while `sgetc()` reads it on the other.
      * @note Returns without touching the buffer when the stream is in a failed state, matching
      *       what `tell()` and `flush()` do.
      * @return A reference to the stream itself.
