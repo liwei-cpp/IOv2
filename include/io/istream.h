@@ -234,7 +234,7 @@ public:
      * @endif
      */
     istream(const istream& other) : istream(std::lock_guard{other.io_mutex()}, other) {}
-    istream(istream&&) = default;
+    istream(istream&&) noexcept = default;
 
     istream& operator=(istream&& other) noexcept
     {
@@ -257,14 +257,13 @@ public:
      *        再以全程 noexcept 的移动赋值提交。move-only 内核（如 `file_device`）上的拷贝必然
      *        抛出，故自赋值也要先挡掉。
      *
-     * @warning 赋值整体替换 `m_streambuf`（内含转换器管线与一个 `std::deque` 读缓冲区）与
-     *          `m_locale`（内含两张哈希表），与 `detach()`/`attach()` 同属生命周期操作，区别
-     *          在于它涉及**两个**操作数。两个操作数都受 `io_mutex()` 保护：拷贝构造持有源流的
-     *          锁读出副本，随后的移动赋值持有目标流的锁完成替换。两把锁**先后获取、互不重叠**，
-     *          因此任一线程在任一时刻至多持有一把流锁。仍由调用方负责的是：不得在其它线程仍
-     *          可能使用某流时销毁它、或把它作为移动的源。另需注意，赋值由此参与调用方自身的
-     *          锁定序——`sync(P); X = Q;` 与 `sync(Q); Y = P;` 反向配对仍会死锁，这与 `sync`
-     *          一贯的表述一致。
+     * @warning 赋值整体替换 `m_streambuf`（内含转换器管线与一个读缓冲区）与 `m_locale`（内含两
+     *          张哈希表），与 `detach()`/`attach()` 同属生命周期操作，区别在于它涉及**两个**操
+     *          作数。两个操作数都受 `io_mutex()` 保护：拷贝构造持有源流的锁读出副本，随后的移动
+     *          赋值持有目标流的锁完成替换。两把锁**先后获取、互不重叠**，因此任一线程在任一时刻
+     *          至多持有一把流锁。仍由调用方负责的是：不得在其它线程仍可能使用某流时销毁它、或把
+     *          它作为移动的源。另需注意，赋值由此参与调用方自身的锁定序——`sync(P); X = Q;` 与
+     *          `sync(Q); Y = P;` 反向配对仍会死锁，这与 `sync` 一贯的表述一致。
      * @endif
      *
      * @lang{EN}
@@ -273,17 +272,17 @@ public:
      *        commit is a move assignment, noexcept throughout. A copy always throws on a
      *        move-only kernel (`file_device`), which is why self-assignment is short-circuited.
      *
-     * @warning Assignment replaces `m_streambuf` (which holds the converter pipeline and a
-     *          `std::deque` read buffer) and `m_locale` (which holds two hash tables)
-     *          wholesale, and is a lifecycle operation just like `detach()`/`attach()`, except
-     *          that it involves **two** operands. Both are covered by `io_mutex()`: the copy
-     *          construction holds the source's lock while reading it out, and the move
-     *          assignment that follows holds the destination's lock while replacing it. The two
-     *          locks are taken **in sequence and never overlap**, so a thread holds at most one
-     *          stream lock at any instant. What remains the caller's responsibility: never
-     *          destroy, or move from, a stream another thread may still be using. Note also
-     *          that assignment thereby joins the caller's own lock order -- `sync(P); X = Q;`
-     *          paired with `sync(Q); Y = P;` still deadlocks, exactly as documented for `sync`.
+     * @warning Assignment replaces `m_streambuf` (which holds the converter pipeline and a read
+     *          buffer) and `m_locale` (which holds two hash tables) wholesale, and is a
+     *          lifecycle operation just like `detach()`/`attach()`, except that it involves
+     *          **two** operands. Both are covered by `io_mutex()`: the copy construction holds
+     *          the source's lock while reading it out, and the move assignment that follows
+     *          holds the destination's lock while replacing it. The two locks are taken **in
+     *          sequence and never overlap**, so a thread holds at most one stream lock at any
+     *          instant. What remains the caller's responsibility: never destroy, or move from, a
+     *          stream another thread may still be using. Note also that assignment thereby joins
+     *          the caller's own lock order -- `sync(P); X = Q;` paired with `sync(Q); Y = P;`
+     *          still deadlocks, exactly as documented for `sync`.
      * @endif
      */
     istream& operator=(const istream& other)

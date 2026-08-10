@@ -228,7 +228,7 @@ private:
  *
  * 此特化专为 IOv2::istreambuf_iterator 设计，不兼容 std::istreambuf_iterator。
  * 主要区别：
- *   1. IOv2 的 sputbackc() 返回 void 且永不失败（使用无限 deque）
+ *   1. IOv2 的 sputbackc() 返回 void 且永不失败（回退区域不设上限）
  *   2. std::streambuf 的 sputbackc() 返回 int_type 且可能失败（有限的回退区域）
  *
  * istreambuf_iterator 概念约束确保此特化仅匹配 IOv2::istreambuf_iterator 类型。
@@ -241,7 +241,7 @@ private:
  *
  * This specialization is designed specifically for IOv2::istreambuf_iterator
  * and is NOT compatible with std::istreambuf_iterator. Key differences:
- *   1. IOv2's sputbackc() returns void and never fails (uses unlimited deque)
+ *   1. IOv2's sputbackc() returns void and never fails (unbounded putback area)
  *   2. std::streambuf's sputbackc() returns int_type and may fail (limited putback area)
  *
  * The istreambuf_iterator concept constraint ensures this specialization

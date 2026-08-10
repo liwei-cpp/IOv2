@@ -239,7 +239,7 @@ public:
      * @endif
      */
     ostream(const ostream& other) : ostream(std::lock_guard{other.io_mutex()}, other) {}
-    ostream(ostream&&) = default;
+    ostream(ostream&&) noexcept = default;
 
     ostream& operator=(ostream&& other) noexcept
     {
