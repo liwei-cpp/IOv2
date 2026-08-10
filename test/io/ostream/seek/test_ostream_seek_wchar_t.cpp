@@ -17,10 +17,13 @@ void test_ostream_seek_wchar_t_1()
 {
     dump_info("Test ostream<wchar_t>::seek case 1...");
 
-    auto helper = []<template <typename, typename> class T>()
+    // trunc is spelled out so that both devices create the file: ofile_device opens "w" either
+    // way, but file_device without it opens "r+" and would fail on a file that does not exist.
+    auto helper = []<template <typename, typename> class T,
+                                typename TDevice>()
     {
         file_guard g1("istream_seeks-3.txt");
-        T ofstrm{IOv2::ofile_device<char>{"istream_seeks-3.txt"},
+        T ofstrm{TDevice{"istream_seeks-3.txt", IOv2::file_open_flag::trunc},
                  IOv2::code_cvt_creator<char, wchar_t>("C")};
         VERIFY((bool)ofstrm);
         
@@ -68,8 +71,8 @@ void test_ostream_seek_wchar_t_1()
         idev.close();
     };
 
-    helper.template operator()<IOv2::ostream>();
-    helper.template operator()<IOv2::iostream>();
+    helper.template operator()<IOv2::ostream, IOv2::ofile_device<char>>();
+    helper.template operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }

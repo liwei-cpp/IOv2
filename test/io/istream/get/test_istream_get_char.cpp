@@ -85,7 +85,8 @@ void test_istream_get_char_2()
 {
     dump_info("Test istream<char>::get case 2...");
 
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template<typename, typename> class T,
+                               typename TDevice>()
     {
         std::string data = []()
         {
@@ -96,7 +97,7 @@ void test_istream_get_char_2()
         }();
 
         file_guard g("istream_unformatted-1.txt", data);
-        T infile(IOv2::ifile_device<char>{"istream_unformatted-1.txt"});
+        T infile(TDevice{"istream_unformatted-1.txt"});
         VERIFY((bool)infile);
         while (infile)
         {
@@ -109,8 +110,8 @@ void test_istream_get_char_2()
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
+    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }

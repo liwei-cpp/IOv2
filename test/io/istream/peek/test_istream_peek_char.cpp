@@ -88,9 +88,10 @@ void test_istream_peek_char_3()
 {
     dump_info("Test istream<char>::peek case 3...");
 
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template<typename, typename> class T,
+                               typename TDevice>()
     {
-        std::string data = 
+        std::string data =
             "bd2\n"
             "456x\n"
             "9mzuv>?@ABCDEFGHIJKLMNOPQRSTUVWXYZracadabras, i wannaz\n"
@@ -101,7 +102,7 @@ void test_istream_peek_char_3()
 
         file_guard g("istream_seeks-1.txt", data);
 
-        T if01(IOv2::ifile_device<char>{"istream_seeks-1.txt"});
+        T if01(TDevice{"istream_seeks-1.txt"});
         if01.seek(0);
         auto pos01 = if01.tell();
         if01.peek();
@@ -109,8 +110,8 @@ void test_istream_peek_char_3()
         VERIFY( pos02 == pos01 );
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
+    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }
