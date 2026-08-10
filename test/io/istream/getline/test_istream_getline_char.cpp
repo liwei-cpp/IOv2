@@ -293,7 +293,8 @@ void test_istream_getline_char_5()
         VERIFY( n == nchunks );
     };
     
-    auto helper = [&prepare, &check]<template<typename, typename> class T>()
+    auto helper = [&prepare, &check]<template<typename, typename> class T,
+                                               typename TDevice>()
     {
         const char filename[] = "istream_getline.txt";
         const char delim = '|';
@@ -301,14 +302,14 @@ void test_istream_getline_char_5()
         const std::string data = prepare(777, nchunks, delim);
         file_guard g(filename, data);
 
-        T ifstrm(IOv2::ifile_device<char>{filename});
+        T ifstrm(TDevice{filename});
         check(ifstrm, data, nchunks, delim);
         auto [dev, err] = ifstrm.detach();
         dev.close();
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
+    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }

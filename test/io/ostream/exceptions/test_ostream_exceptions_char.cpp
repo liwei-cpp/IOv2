@@ -294,9 +294,12 @@ void test_ostream_exceptions_char_5()
     {
         file_guard g1(f1);
 
-        auto helper = [&]<template<typename, typename> class T>()
+        // trunc is spelled out so that both devices create the file: ofile_device opens "w"
+        // either way, but file_device without it opens "r+" and would fail on a missing file.
+        auto helper = [&]<template<typename, typename> class T,
+                                    typename TDevice>()
         {
-            T<IOv2::ofile_device<char>, char> src(IOv2::ofile_device<char>{f1});
+            T<TDevice, char> src(TDevice{f1, IOv2::file_open_flag::trunc});
             VERIFY(unlocked(src));
 
             bool threw = false;
@@ -307,8 +310,8 @@ void test_ostream_exceptions_char_5()
             VERIFY(unlocked(src));
         };
 
-        helper.operator()<IOv2::ostream>();
-        helper.operator()<IOv2::iostream>();
+        helper.operator()<IOv2::ostream, IOv2::ofile_device<char>>();
+        helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
     }
 
     {

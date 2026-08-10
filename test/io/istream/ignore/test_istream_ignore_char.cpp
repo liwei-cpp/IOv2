@@ -89,7 +89,8 @@ void test_istream_ignore_char_2()
         VERIFY( n == nchunks + 1 );
     };
 
-    auto helper = [&prepare, &check]<template<typename, typename> class T>()
+    auto helper = [&prepare, &check]<template<typename, typename> class T,
+                                               typename TDevice>()
     {
         const char filename[] = "istream_ignore.txt";
         const char delim = '|';
@@ -97,14 +98,14 @@ void test_istream_ignore_char_2()
         const std::string data = prepare(555, nchunks, delim);
         file_guard g(filename, data);
     
-        T ifstrm(IOv2::ifile_device<char>{filename});
+        T ifstrm(TDevice{filename});
         check(ifstrm, data, nchunks, delim);
         auto [dev, err] = ifstrm.detach();
         dev.close();
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
+    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }
@@ -112,7 +113,8 @@ void test_istream_ignore_char_2()
 void test_istream_ignore_char_3()
 {
     dump_info("Test istream<char>::ignore case 3...");
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template<typename, typename> class T,
+                               typename TDevice>()
     {
         std::string data = []()
         {
@@ -123,7 +125,7 @@ void test_istream_ignore_char_3()
         }();
     
         file_guard g("istream_unformatted-1.txt", data);
-        T ifstrm(IOv2::ifile_device<char>{"istream_unformatted-1.txt"});
+        T ifstrm(TDevice{"istream_unformatted-1.txt"});
         IOv2::ios_defs::iostate state1, state2;
 
         state1 = ifstrm.rdstate();
@@ -169,8 +171,8 @@ void test_istream_ignore_char_3()
         VERIFY( state2 == IOv2::ios_defs::eofbit );
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
+    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }

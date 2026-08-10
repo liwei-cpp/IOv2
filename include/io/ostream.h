@@ -19,6 +19,7 @@
 namespace IOv2
 {
 template <io_device TDevice, typename TChar>
+    requires dev_cpt::support_put<TDevice>
 class ostream : public ios_state<TChar>
               , public out_flusher<ostream<TDevice, TChar>>
               , public ostream_operators<TChar>

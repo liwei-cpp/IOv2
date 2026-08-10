@@ -258,7 +258,8 @@ void test_istream_extractors_character_char_4()
         VERIFY(n == nchunks);
     };
 
-    auto helper = [&prepare, &check]<template<typename, typename> class T>()
+    auto helper = [&prepare, &check]<template<typename, typename> class T,
+                                               typename TDevice>()
     {
         std::string filename = "inserters_extractors-4.txt";
         file_guard g(filename);
@@ -270,14 +271,14 @@ void test_istream_extractors_character_char_4()
         auto [odev, oerr] = ofstream.detach();
         odev.close();
 
-        T ifstrm(IOv2::ifile_device<char>{filename});
+        T ifstrm(TDevice{filename});
         check(ifstrm, data, nchunks);
         auto [idev, ierr] = ifstrm.detach();
         idev.close();
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
+    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }

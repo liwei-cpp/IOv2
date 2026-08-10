@@ -17,6 +17,7 @@
 namespace IOv2
 {
 template <io_device TDevice, typename TChar>
+    requires dev_cpt::support_get<TDevice>
 class istream : public ios_state<TChar>
               , public istream_operators<TChar>
               , public stream_common_operators

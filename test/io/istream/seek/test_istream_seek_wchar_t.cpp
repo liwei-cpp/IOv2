@@ -92,7 +92,8 @@ void test_istream_seek_wchar_t_3()
 {
     dump_info("Test istream<wchar_t>::seek case 3...");
 
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template<typename, typename> class T,
+                               typename TDevice>()
     {
         IOv2::ios_defs::iostate state01, state02;
 
@@ -109,7 +110,7 @@ void test_istream_seek_wchar_t_3()
         std::string str_lit02_data = "";
         file_guard g1(str_lit01, str_lit01_data);
 
-        T if01{IOv2::ifile_device<char>{str_lit01},
+        T if01{TDevice{str_lit01},
                IOv2::code_cvt_creator<char, wchar_t>("C")};
         VERIFY( if01.good() );
 
@@ -140,11 +141,11 @@ void test_istream_seek_wchar_t_3()
         VERIFY( pos01 == pos02.value() + 10 ); 
         VERIFY( state01 == state02 );
         pos02 = if01.tell();
-        VERIFY( pos02 == pos01 ); 
+        VERIFY( pos02 == pos01 );
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
+    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
 
     dump_info("Done\n");
 }
