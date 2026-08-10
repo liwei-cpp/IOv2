@@ -16,6 +16,18 @@ namespace
 {
     struct foobar: std::exception { };
     struct dummy_type {};
+
+    // Runs fn(os) from a destructor, so that the I/O happens while an exception is unwinding.
+    // Deliberately at namespace scope rather than local to the lambda that uses it: some clang
+    // versions give the destructor of a class defined inside a (generic) lambda internal linkage
+    // and then never emit it, which fails the build under -Werror=undefined-internal.
+    template <typename TStream, typename TFn>
+    struct unwind_probe
+    {
+        TStream& os;
+        TFn&     fn;
+        ~unwind_probe() { fn(os); }
+    };
 }
 
 namespace IOv2
@@ -417,17 +429,10 @@ void test_ostream_exceptions_char_7()
             T out(failing_device<char>{std::string(""), true});
             out.exceptions(mask);
 
-            struct probe
-            {
-                decltype(out)& os;
-                decltype(op)&  fn;
-                ~probe() { fn(os); }
-            };
-
             bool caught_original = false;
             try
             {
-                probe p{out, op};
+                unwind_probe<decltype(out), decltype(op)> p{out, op};
                 throw foobar();
             }
             catch (const foobar&) { caught_original = true; }
