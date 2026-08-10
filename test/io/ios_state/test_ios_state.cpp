@@ -246,10 +246,84 @@ void test_ios_state_clear_exceptions_1()
     dump_info("Done\n");
 }
 
+// handle_exception must only set bits -- never throw -- while an exception is unwinding, even
+// when the mask says the bit should throw. Otherwise a destructor that reports a failure through
+// it would call std::terminate and lose the original exception.
+void test_ios_state_unwinding_1()
+{
+    dump_info("Test ios_state::handle_exception during unwinding case 1...");
+
+    // A destructor reporting a failure while another exception is in flight: bit set, no throw.
+    {
+        IOv2::ios_state<char> s;
+        s.exceptions(IOv2::ios_defs::strfailbit);
+
+        struct probe
+        {
+            IOv2::ios_state<char>& st;
+            ~probe()
+            {
+                st.handle_exception(std::make_exception_ptr(IOv2::stream_error("unwind")));
+            }
+        };
+
+        bool caught_original = false;
+        try
+        {
+            probe p{s};
+            throw 42;
+        }
+        catch (int)
+        {
+            caught_original = true;   // the original exception survives
+        }
+        VERIFY(caught_original);
+        VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+    }
+
+    // The check is exact inside a catch handler: the exception being handled no longer counts,
+    // so a mask-driven throw still happens there.
+    {
+        IOv2::ios_state<char> s;
+        s.exceptions(IOv2::ios_defs::strfailbit);
+
+        bool threw = false;
+        try
+        {
+            try { throw 42; }
+            catch (int)
+            {
+                s.handle_exception(std::make_exception_ptr(IOv2::stream_error("in handler")));
+            }
+        }
+        catch (const IOv2::stream_error&)
+        {
+            threw = true;
+        }
+        VERIFY(threw);
+        VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+    }
+
+    // Control: outside any unwinding the mask is honored as before.
+    {
+        IOv2::ios_state<char> s;
+        s.exceptions(IOv2::ios_defs::strfailbit);
+
+        bool threw = false;
+        try { s.handle_exception(std::make_exception_ptr(IOv2::stream_error("plain"))); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+    }
+
+    dump_info("Done\n");
+}
+
 void test_ios_state()
 {
     test_ios_state_1();
     test_ios_state_2();
     test_ios_state_handle_exception_eof_1();
     test_ios_state_clear_exceptions_1();
+    test_ios_state_unwinding_1();
 }
