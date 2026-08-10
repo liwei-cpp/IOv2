@@ -397,3 +397,77 @@ void test_ostream_exceptions_char_6()
 
     dump_info("Done\n");
 }
+
+// Whether a masked failure survives stack unwinding must not depend on *where* it lands.
+// out_sentry's destructor was the only place that checked; every other handler --
+// ostream::flush()'s own try, operator<<'s, io_traits<endl_t>::swrite's -- would rethrow per
+// the mask, so a user destructor doing I/O while unwinding hit std::terminate and lost the
+// original exception. The check now lives in handle_exception, which covers all of them.
+void test_ostream_exceptions_char_7()
+{
+    dump_info("Test ostream<char> exceptions case 7 (masked failures never throw while unwinding)...");
+
+    // Each op below fails on a stream whose failure bit IS masked, and is run from a
+    // destructor during unwinding. Reaching the catch proves there was no terminate; the
+    // state check proves the failure was still recorded.
+    auto unwind_with = [](auto op, IOv2::ios_defs::iostate mask, IOv2::ios_defs::iostate expected)
+    {
+        auto helper = [&]<template<typename, typename> class T>()
+        {
+            T out(failing_device<char>{std::string(""), true});
+            out.exceptions(mask);
+
+            struct probe
+            {
+                decltype(out)& os;
+                decltype(op)&  fn;
+                ~probe() { fn(os); }
+            };
+
+            bool caught_original = false;
+            try
+            {
+                probe p{out, op};
+                throw foobar();
+            }
+            catch (const foobar&) { caught_original = true; }
+            catch (...)           { VERIFY(false); }
+
+            VERIFY(caught_original);                 // the original exception survives
+            VERIFY(out.rdstate() & expected);        // the I/O failure was still recorded
+        };
+        helper.template operator()<IOv2::ostream>();
+        helper.template operator()<IOv2::iostream>();
+    };
+
+    // ostream::flush() -- handled by its own try, no sentry involved.
+    unwind_with([](auto& s) { s.put('x'); s.flush(); },
+                IOv2::ios_defs::devfailbit, IOv2::ios_defs::devfailbit);
+
+    // the endl manipulator -- handled by io_traits<endl_t>::swrite's try.
+    unwind_with([](auto& s) { s << IOv2::endl; },
+                IOv2::ios_defs::devfailbit, IOv2::ios_defs::devfailbit);
+
+    // generic operator<< -- handled by the inserter's own try.
+    unwind_with([](auto& s) { s << dummy_type{}; },
+                IOv2::ios_defs::otherfailbit, IOv2::ios_defs::otherfailbit);
+
+    // out_sentry's destructor -- the path that always worked; it must keep working.
+    unwind_with([](auto& s) { s.setf(IOv2::ios_defs::unitbuf); s.put('x'); },
+                IOv2::ios_defs::devfailbit, IOv2::ios_defs::devfailbit);
+
+    // Control: outside any unwinding the mask is honored exactly as before.
+    {
+        IOv2::ostream<failing_device<char>, char> os(failing_device<char>{std::string(""), true});
+        os.exceptions(IOv2::ios_defs::devfailbit);
+        os.put('x');
+
+        bool threw = false;
+        try { os.flush(); }
+        catch (const IOv2::device_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(os.rdstate() & IOv2::ios_defs::devfailbit);
+    }
+
+    dump_info("Done\n");
+}

@@ -1006,12 +1006,21 @@ struct ios_state : public ios_base<TChar>
      * setstate() 重新抛出原始异常。随后通过 `setstate<ignore_exception_mask>()` 置位相应状态
      * 位。是否再抛由模板参数决定：`ignore_exception_mask == false`（默认）时，若该位在异常掩码
      * 中则**（重）抛出异常**；`ignore_exception_mask == true` 时**只置位、不因掩码抛出**，且不
-     * 消费已保存的 `exception_ptr`（适用于需避免掩码驱动抛出的上下文，如 `noexcept` 析构器）。
+     * 消费已保存的 `exception_ptr`（适用于需绕过展开判定的上下文，如 `noexcept` 析构器）。
      * 注意：无论取值如何，加锁失败等底层抛出仍可能发生，故本函数并非 `noexcept`。
      *
      * @param ex 要处理的异常指针；若为空指针则不做任何事。
      * @tparam ignore_exception_mask `false`（默认）遵循异常掩码、可能（重）抛出；`true` 只登记
-     *         失败位、不因掩码抛出（供需避免掩码驱动抛出的上下文使用，如析构器）。
+     *         失败位、不因掩码抛出，并绕过下述栈展开判定（供已确知不得抛出的上下文使用，如析构器）。
+     * @note **栈展开期间本函数一律只置位、绝不抛出。** `ignore_exception_mask == false` 时先查
+     *       `std::uncaught_exceptions() != 0`；若成立就转为 `ignore_exception_mask == true` 的行为
+     *       并吞掉一切抛出。此判定在 `catch` 处理器内是精确的：被处理的那个异常已不计入，外层仍
+     *       在飞行的异常才计入。于是"析构器里的 I/O 失败 + 掩码命中 = `std::terminate`"这条路被
+     *       切断，且不依赖各调用点自觉加判断。判定位于取 `io_mutex()` 之前，故展开期连加锁失败
+     *       也一并吞掉。
+     * @warning 本判定**不覆盖** `clear(bits)` / `setstate()` / `unset_state()` / `exceptions()`：
+     *          它们是公开接口，抛出正是调用方索要的效果（与 `std::basic_ios` 一致），在展开期
+     *          调用仍可能 `std::terminate`。析构器中请只经由本函数报错。
      * @note EOF 类别不保存异常指针（EOF 无需携带原始异常信息）。
      * @note 本函数对同一异常是**幂等**的：以同一个 `ex` 重复调用，与只调用一次的可观测效果
      *       相同。重复调用出现在嵌套的处理点上——例如 `put()` 自己处理完异常后因掩码重抛，
@@ -1040,15 +1049,28 @@ struct ios_state : public ios_base<TChar>
      * throws is governed by the template parameter: when `ignore_exception_mask == false`
      * (default) it **(re)throws** if that bit is in the exception mask; when
      * `ignore_exception_mask == true` it **only sets the bit and does not throw on account of
-     * the mask**, leaving the stored `exception_ptr` unconsumed (for a context that must avoid
-     * a mask-driven throw, such as a `noexcept` destructor). Note that, regardless of the
+     * the mask**, leaving the stored `exception_ptr` unconsumed (for a context that must bypass
+     * the unwinding check below, such as a `noexcept` destructor). Note that, regardless of the
      * value, a lower-level throw such as a lock failure may still occur, so this function is
      * not `noexcept`.
      *
      * @param ex The exception pointer to handle; does nothing if it is null.
      * @tparam ignore_exception_mask `false` (default) honors the exception mask and may
-     *         (re)throw; `true` only records the failure bit and does not throw on account of
-     *         the mask (for a context that must avoid a mask-driven throw, such as a destructor).
+     *         (re)throw; `true` only records the failure bit, does not throw on account of the
+     *         mask, and bypasses the unwinding check below (for a context already known to be
+     *         forbidden from throwing, such as a destructor).
+     * @note **During stack unwinding this function only sets bits; it never throws.** When
+     * `ignore_exception_mask == false` it first tests `std::uncaught_exceptions() != 0`; if that
+     * holds it switches to the `ignore_exception_mask == true` behavior and swallows every throw.
+     * The test is exact inside a `catch` handler: the exception being handled no longer counts,
+     * while an outer in-flight exception still does. That closes off "I/O failure in a destructor
+     * + a mask hit = `std::terminate`" without relying on each call site to remember the check.
+     * The test sits before `io_mutex()` is taken, so a lock failure during unwinding is
+     * swallowed too.
+     * @warning The check does **not** cover `clear(bits)` / `setstate()` / `unset_state()` /
+     *          `exceptions()`: those are public entry points where throwing is the effect the
+     *          caller asked for (matching `std::basic_ios`), so calling them while unwinding can
+     *          still `std::terminate`. Report errors from a destructor through this function only.
      * @note The EOF category stores no exception pointer (EOF carries no original
      * exception information).
      * @note This function is **idempotent** for a given exception: calling it repeatedly with
@@ -1076,6 +1098,15 @@ struct ios_state : public ios_base<TChar>
     void handle_exception(const std::exception_ptr& ex, bool at_eof = false)
     {
         if (!ex) return;
+        if constexpr (!ignore_exception_mask)
+        {
+            if (std::uncaught_exceptions() != 0)
+            {
+                try { handle_exception<true>(ex, at_eof); }
+                catch (...) {}   // NOLINT(bugprone-empty-catch)
+                return;
+            }
+        }
         std::lock_guard guard(this->io_mutex());
         const ios_defs::iostate eof = at_eof ? ios_defs::eofbit : ios_defs::goodbit;
         try

@@ -169,17 +169,16 @@ struct out_sentry
      * @brief 析构时对 unitbuf / 与 stdio 同步的流执行自动刷新，并按异常掩码决定是否上报失败。
      *
      * 对设置了 unitbuf 或与 stdio 同步的流，析构会把缓冲区 `flush()` 出去（unitbuf 时再对设备
-     * `dflush()`）。若析构时当前线程没有任何异常正在展开（以 `std::uncaught_exceptions() == 0`
-     * 判定）——则刷新失败会经 `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/
+     * `dflush()`）。刷新失败经 `handle_exception` 上报：按类别置 `devfailbit`/`cvtfailbit`/
      * `strfailbit`，并在该位处于异常掩码时抛出；该异常会被发起本次输出的操作自身的 try/catch
      * 接住，并按掩码传播给调用者。无失败位入掩码时（默认）只置位不抛，因此正常输出路径不产生
      * 异常开销。
      *
-     * 反之，只要析构时已有任何异常正在展开（无论其是否早于本哨兵构造即已在飞），则仍尝试刷新但
-     * **吞掉任何异常、绝不抛出**，以免在栈展开期间抛异常导致 `std::terminate`；此分支保持与旧
-     * 实现一致的“尽力刷新并吞掉”行为。
+     * 若析构发生在栈展开期间（无论该异常是否早于本哨兵构造即已在飞），则仍尝试刷新但**只置位、
+     * 绝不抛出**，以免触发 `std::terminate`。该判定由 `handle_exception` 自身完成，见其文档，
+     * 故本析构无须、也不应重复判断。
      *
-     * 为使正常退出分支的通知得以传播，本析构声明为 `noexcept(false)`。
+     * 为使正常退出路径的通知得以传播，本析构声明为 `noexcept(false)`。
      * @endif
      *
      * @lang{EN}
@@ -187,48 +186,25 @@ struct out_sentry
      * to report a flush failure according to the exception mask.
      *
      * For a stream with unitbuf set or synced with stdio, destruction flushes the buffer via
-     * `flush()` (and, for unitbuf, `dflush()`es the device). If no exception is currently
-     * propagating on this thread when the sentry is destroyed — determined by
-     * `std::uncaught_exceptions() == 0` — a flush failure is reported through
-     * `handle_exception`: it sets `devfailbit`/`cvtfailbit`/`strfailbit` by category and
-     * throws when that bit is in the exception mask; the thrown exception is caught by the
-     * originating output operation's own try/catch and propagated to the caller per the mask.
-     * When no such fail bit is in the mask (the default) the bit is only set and nothing is
-     * thrown, so the normal output path incurs no exception overhead.
+     * `flush()` (and, for unitbuf, `dflush()`es the device). A flush failure is reported through
+     * `handle_exception`: it sets `devfailbit`/`cvtfailbit`/`strfailbit` by category and throws
+     * when that bit is in the exception mask; the thrown exception is caught by the originating
+     * output operation's own try/catch and propagated to the caller per the mask. When no such
+     * fail bit is in the mask (the default) the bit is only set and nothing is thrown, so the
+     * normal output path incurs no exception overhead.
      *
-     * If instead any exception is already unwinding when the sentry is destroyed — including
-     * one that was already in flight before this sentry was constructed — it still attempts
-     * the flush but **swallows any exception and never throws**, so as not to throw during
-     * stack unwinding and trigger `std::terminate`; this branch preserves the prior
-     * "best-effort flush and swallow" behavior.
+     * If destruction happens during stack unwinding — including from an exception that was
+     * already in flight before this sentry was constructed — it still attempts the flush but
+     * **only sets bits and never throws**, so as not to trigger `std::terminate`. That test
+     * lives in `handle_exception` itself (see its documentation), so this destructor neither
+     * needs nor should repeat it.
      *
-     * To let the normal-exit notification propagate, this destructor is declared
+     * To let the normal-path notification propagate, this destructor is declared
      * `noexcept(false)`.
      * @endif
      */
     ~out_sentry() noexcept(false)
     {
-        if (std::uncaught_exceptions() != 0)
-        {
-            try
-            {
-                if (m_os)
-                {
-                    if (m_is_unit_buf || m_sync_with_stdio)
-                        m_os.m_streambuf.flush();
-
-                    if (m_is_unit_buf)
-                        m_os.m_streambuf.device().dflush();
-                }
-            }
-            catch (...)
-            {
-                try { m_os.template handle_exception<true>(std::current_exception()); }
-                catch (...) {} // NOLINT(bugprone-empty-catch)
-            }
-            return;
-        }
-
         try
         {
             if (m_os)
