@@ -10,7 +10,7 @@ var classIOv2_1_1istream =
     [ "istream", "classIOv2_1_1istream.html#a0dc1c2ae1d2970481258f1cc70b20c1c", null ],
     [ "istream", "classIOv2_1_1istream.html#aa24ae4a8ae781888702f7b80f088542d", null ],
     [ "istream", "classIOv2_1_1istream.html#a8d85ff641348fb1ec5c8eb71706a945c", null ],
-    [ "istream", "classIOv2_1_1istream.html#a0fb8023153230daf1ebd682c1168ff8a", null ],
+    [ "istream", "classIOv2_1_1istream.html#afe4ded1a8a07f73052474ebcc0ee767e", null ],
     [ "~istream", "classIOv2_1_1istream.html#acadb417ee4c01df9ca9393e959ec12c5", null ],
     [ "operator=", "classIOv2_1_1istream.html#ad7a96f514a205b19f19ddadea76a277e", null ],
     [ "operator=", "classIOv2_1_1istream.html#a633bdeacaa7c76c90b41a1cddca0c017", null ],

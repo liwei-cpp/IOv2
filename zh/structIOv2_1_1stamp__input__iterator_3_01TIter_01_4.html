@@ -231,7 +231,7 @@ struct IOv2::stamp_input_iterator&lt; TIter &gt;</div><p>双向迭代器的 <a c
 </div><!-- fragment --> </dd></dl>
 <p><a class="el" href="namespaceIOv2.html">IOv2</a> <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">istreambuf_iterator</a> 的 <a class="el" href="structIOv2_1_1stamp__input__iterator.html">stamp_input_iterator</a> 特化。</p>
 <p>此特化专为 <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">IOv2::istreambuf_iterator</a> 设计，不兼容 std::istreambuf_iterator。 主要区别：</p><ol type="1">
-<li><a class="el" href="namespaceIOv2.html">IOv2</a> 的 sputbackc() 返回 void 且永不失败（使用无限 deque）</li>
+<li><a class="el" href="namespaceIOv2.html">IOv2</a> 的 sputbackc() 返回 void 且永不失败（回退区域不设上限）</li>
 <li>std::streambuf 的 sputbackc() 返回 int_type 且可能失败（有限的回退区域）</li>
 </ol>
 <p><a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">istreambuf_iterator</a> 概念约束确保此特化仅匹配 <a class="el" href="classIOv2_1_1istreambuf__iterator.html" title="输入流缓冲区迭代器（单遍输入迭代器）。">IOv2::istreambuf_iterator</a> 类型。</p>
