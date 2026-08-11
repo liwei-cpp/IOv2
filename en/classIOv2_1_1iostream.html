@@ -98,13 +98,16 @@ $(document).ready(function(){initNavTree('classIOv2_1_1iostream.html',''); initR
 </div><!--header-->
 <div class="contents">
 
+<p>Bidirectional character stream: combines a <code>streambuf</code> and a locale into a formatted input/output interface.  
+ <a href="classIOv2_1_1iostream.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="iostream_8h_source.html">iostream.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for IOv2::iostream&lt; TDevice, TChar &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1iostream__inherit__graph.png" border="0" usemap="#aIOv2_1_1iostream_3_01TDevice_00_01TChar_01_4_inherit__map" alt="Inheritance graph"/></div>
 <map name="aIOv2_1_1iostream_3_01TDevice_00_01TChar_01_4_inherit__map" id="aIOv2_1_1iostream_3_01TDevice_00_01TChar_01_4_inherit__map">
-<area shape="rect" title=" " alt="" coords="472,127,663,167"/>
+<area shape="rect" title="Bidirectional character stream: combines a streambuf and a locale into a formatted input/output inter..." alt="" coords="472,127,663,167"/>
 <area shape="rect" href="structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="237,5,424,31"/>
 <area shape="poly" title=" " alt="" coords="404,32,425,41,493,83,546,125,542,129,490,87,423,46,402,37"/>
 <area shape="rect" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="5,5,189,31"/>
@@ -126,7 +129,7 @@ Collaboration diagram for IOv2::iostream&lt; TDevice, TChar &gt;:</div>
 <div class="dyncontent">
 <div class="center"><img src="classIOv2_1_1iostream__coll__graph.png" border="0" usemap="#aIOv2_1_1iostream_3_01TDevice_00_01TChar_01_4_coll__map" alt="Collaboration graph"/></div>
 <map name="aIOv2_1_1iostream_3_01TDevice_00_01TChar_01_4_coll__map" id="aIOv2_1_1iostream_3_01TDevice_00_01TChar_01_4_coll__map">
-<area shape="rect" title=" " alt="" coords="797,263,988,303"/>
+<area shape="rect" title="Bidirectional character stream: combines a streambuf and a locale into a formatted input/output inter..." alt="" coords="797,263,988,303"/>
 <area shape="rect" href="structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="561,141,748,166"/>
 <area shape="poly" title=" " alt="" coords="728,168,749,176,818,218,871,261,867,265,815,223,747,181,726,173"/>
 <area shape="rect" href="classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="328,141,512,166"/>
@@ -493,7 +496,11 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memdesc:a2a7f2df7df55299255aee6af1fde9746 inherit pro_attribs_classIOv2_1_1ios__base"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by <code>m_io_mutex</code>.   <br /></td></tr>
 <tr class="separator:a2a7f2df7df55299255aee6af1fde9746 inherit pro_attribs_classIOv2_1_1ios__base"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Typedef Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><div class="compoundTemplParams">template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;<br />
+requires (dev_cpt::support_get&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt; &amp;&amp; dev_cpt::support_put&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>&gt;)<br />
+class IOv2::iostream&lt; TDevice, TChar &gt;</div><p>Bidirectional character stream: combines a <code>streambuf</code> and a locale into a formatted input/output interface. </p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
 <a id="ae1b892f26d6bd6895a02f67dab7bbd7f" name="ae1b892f26d6bd6895a02f67dab7bbd7f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae1b892f26d6bd6895a02f67dab7bbd7f">&#9670;&#160;</a></span>char_type</h2>
 

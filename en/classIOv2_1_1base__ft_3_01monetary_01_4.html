@@ -180,6 +180,9 @@ Static Protected Member Functions</h2></td></tr>
 <tr class="memitem:ac89ee40da86eb716ae72fd11255b2b9d" id="r_ac89ee40da86eb716ae72fd11255b2b9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int8_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#ac89ee40da86eb716ae72fd11255b2b9d">s_norm_flag</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">v</a>)</td></tr>
 <tr class="memdesc:ac89ee40da86eb716ae72fd11255b2b9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Normalizes a POSIX <code>lconv</code> boolean-flag field by eliminating the <code>CHAR_MAX</code> sentinel.  <br /></td></tr>
 <tr class="separator:ac89ee40da86eb716ae72fd11255b2b9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed1b6fe5be6bafc3a5231bf0bd395a4c" id="r_aed1b6fe5be6bafc3a5231bf0bd395a4c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__ft_3_01monetary_01_4.html#aed1b6fe5be6bafc3a5231bf0bd395a4c">s_monetary_unavailable</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">lconv</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">lc</a>)</td></tr>
+<tr class="memdesc:aed1b6fe5be6bafc3a5231bf0bd395a4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests whether <code>lconv</code> provides no monetary data at all.  <br /></td></tr>
+<tr class="separator:aed1b6fe5be6bafc3a5231bf0bd395a4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-static-attribs" name="pro-static-attribs"></a>
 Static Protected Attributes</h2></td></tr>
@@ -354,6 +357,34 @@ Static Protected Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Builds a monetary format pattern from POSIX <code>lconv</code> flags. </p>
+
+</div>
+</div>
+<a id="aed1b6fe5be6bafc3a5231bf0bd395a4c" name="aed1b6fe5be6bafc3a5231bf0bd395a4c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed1b6fe5be6bafc3a5231bf0bd395a4c">&#9670;&#160;</a></span>s_monetary_unavailable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1base__ft.html">IOv2::base_ft</a>&lt; <a class="el" href="classIOv2_1_1monetary.html">monetary</a> &gt;::s_monetary_unavailable </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">lconv</a> *&#160;</td>
+          <td class="paramname"><em>lc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Tests whether <code>lconv</code> provides no monetary data at all. </p>
 
 </div>
 </div>

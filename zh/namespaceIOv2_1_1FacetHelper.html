@@ -97,6 +97,8 @@ $(document).ready(function(){initNavTree('namespaceIOv2_1_1FacetHelper.html','')
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 函数</h2></td></tr>
+<tr class="memitem:aeeaf823306d47434b547c57d4971393b" id="r_aeeaf823306d47434b547c57d4971393b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1FacetHelper.html#aeeaf823306d47434b547c57d4971393b">is_c_locale_name</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;name)</td></tr>
+<tr class="separator:aeeaf823306d47434b547c57d4971393b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c324fccb213a5e200d18d6273a367f2" id="r_a2c324fccb213a5e200d18d6273a367f2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2_1_1FacetHelper.html#a2c324fccb213a5e200d18d6273a367f2">string_to_char_convert</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;narrow, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;locale_name)</td></tr>
 <tr class="separator:a2c324fccb213a5e200d18d6273a367f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3beb6fb0dd31f962ad1dea45adbe5063" id="r_a3beb6fb0dd31f962ad1dea45adbe5063"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <br />
@@ -231,6 +233,49 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <dl class="params"><dt>参数</dt><dd>
   <table class="params">
     <tr><td class="paramname">grouping</td><td>待原地规范化的原始 POSIX 分组向量。   </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="aeeaf823306d47434b547c57d4971393b" name="aeeaf823306d47434b547c57d4971393b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeeaf823306d47434b547c57d4971393b">&#9670;&#160;</a></span>is_c_locale_name()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> IOv2::FacetHelper::is_c_locale_name </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>判断区域设置名称 <code>name</code> 是否指代 C/POSIX 区域设置。</p>
+<p>POSIX 区域设置名称的形式为 <code>language[_territory][.codeset][@modifier]</code>。 <code>"C.UTF-8"</code>、<code>"C.utf8"</code>、<code>"C.UTF-8@euro"</code> 等拼写与 <code>"C"</code> 指代同一个区域设置， 但精确比较无法识别它们：codeset 段在查表前会被规范化（去除非字母数字字符后转为 小写），因此可接受的拼写不构成有限集合。本函数改为截取 <code>.</code> 与 <code>@</code> 之前的语言段 再比较。语言段本身区分大小写（<code>"c"</code>、<code>"posix"</code> 均非合法名称），故不作大小写折叠。</p>
+<p>光比较语言段还不够：<code>"C.BOGUS"</code>、<code>"C@euro"</code>、<code>"POSIX.utf8"</code> 的语言段都是 <code>C</code>/<code>POSIX</code>， 而 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">newlocale()</a></code> 并不接受它们。语言段匹配之后因此还要用 <code><a class="el" href="structIOv2_1_1clocale__wrapper.html">clocale_wrapper</a></code> 探测一次， 名称无法实例化就抛。校验放在这里而不是留给调用方的常规路径，是为了不依赖"每条常规
+路径都会自行构造 `clocale_wrapper`"这一隐含前提。<code>"C"</code> 与 <code>"POSIX"</code> 由标准保证存在， 直接短路，无须探测；语言段不匹配的名称（如 <code>"en_US.BOGUS"</code>）不归本函数认领，一律 返回 <code>false</code> 而不探测。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>待检查的区域设置名称。  </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>若 <code>name</code> 的语言段为 <code>"C"</code> 或 <code>"POSIX"</code> 则返回 <code>true</code>，否则返回 <code>false</code>。  </dd></dl>
+<dl class="exception"><dt>异常</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="structIOv2_1_1cvt__error.html">cvt_error</a></td><td>语言段为 <code>"C"</code> 或 <code>"POSIX"</code>，但 <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">newlocale()</a></code> 无法实例化该名称。   </td></tr>
   </table>
   </dd>
 </dl>

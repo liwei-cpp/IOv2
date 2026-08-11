@@ -18,9 +18,9 @@
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="86,306,102,340,124,379,154,420,190,454,212,467,209,471,186,458,150,423,120,382,97,342,81,308"/>
 <area shape="rect" id="Node000012" href="$structIOv2_1_1out__flusher.html" title="CRTP base carrying the polymorphic try_flush(): the down&#45;cast to the concrete stream type T is locali..." alt="" coords="214,741,385,766"/>
 <area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="88,305,294,739,290,742,84,308"/>
-<area shape="rect" id="Node000009" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="481,397,671,437"/>
+<area shape="rect" id="Node000009" href="$classIOv2_1_1iostream.html" title="Bidirectional character stream: combines a streambuf and a locale into a formatted input/output inter..." alt="" coords="481,397,671,437"/>
 <area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="391,415,480,415,480,420,391,420"/>
-<area shape="rect" id="Node000011" href="$classIOv2_1_1ostream.html" title=" " alt="" coords="483,465,669,505"/>
+<area shape="rect" id="Node000011" href="$classIOv2_1_1ostream.html" title="Character output stream: combines an ostreambuf and a locale into a formatted output interface." alt="" coords="483,465,669,505"/>
 <area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="424,485,483,484,483,489,424,490"/>
 <area shape="rect" id="Node000013" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="477,530,675,585"/>
 <area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="317,728,375,662,414,625,457,594,479,582,481,587,460,598,417,630,378,666,321,731"/>

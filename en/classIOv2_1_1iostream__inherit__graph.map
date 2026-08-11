@@ -1,5 +1,5 @@
 <map id="IOv2::iostream&lt; TDevice, TChar &gt;" name="IOv2::iostream&lt; TDevice, TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="472,127,663,167"/>
+<area shape="rect" id="Node000001" title="Bidirectional character stream: combines a streambuf and a locale into a formatted input/output inter..." alt="" coords="472,127,663,167"/>
 <area shape="rect" id="Node000002" href="$structIOv2_1_1ios__state.html" title="Component that adds the stream state bits and their associated exceptions on top of the formatting st..." alt="" coords="237,5,424,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="404,32,425,41,493,83,546,125,542,129,490,87,423,46,402,37"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="Base class holding the formatting state of every stream." alt="" coords="5,5,189,31"/>

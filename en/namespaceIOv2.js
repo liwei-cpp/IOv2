@@ -8,6 +8,7 @@ var namespaceIOv2 =
     [ "FacetHelper", "namespaceIOv2_1_1FacetHelper.html", [
       [ "add_grouping", "namespaceIOv2_1_1FacetHelper.html#a0faaf30b3a28b21f89f129297b1ad11f", null ],
       [ "adjust_grouping", "namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28", null ],
+      [ "is_c_locale_name", "namespaceIOv2_1_1FacetHelper.html#aeeaf823306d47434b547c57d4971393b", null ],
       [ "string_to_char_convert", "namespaceIOv2_1_1FacetHelper.html#a2c324fccb213a5e200d18d6273a367f2", null ],
       [ "string_to_widechar_convert", "namespaceIOv2_1_1FacetHelper.html#a3beb6fb0dd31f962ad1dea45adbe5063", null ],
       [ "verify_grouping", "namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b", null ]

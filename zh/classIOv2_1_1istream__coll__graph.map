@@ -1,5 +1,5 @@
 <map id="IOv2::istream&lt; TDevice, TChar &gt;" name="IOv2::istream&lt; TDevice, TChar &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="797,191,980,231"/>
+<area shape="rect" id="Node000001" title="字符输入流：把一条 istreambuf 与一个 locale 组合成带格式化的输入接口。" alt="" coords="797,191,980,231"/>
 <area shape="rect" id="Node000002" href="$structIOv2_1_1ios__state.html" title="在格式化状态之上，管理流状态位及其关联异常的组件。" alt="" coords="561,141,748,166"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="721,167,807,188,806,193,720,172"/>
 <area shape="rect" id="Node000003" href="$classIOv2_1_1ios__base.html" title="所有流的格式化状态基类。" alt="" coords="328,141,512,166"/>

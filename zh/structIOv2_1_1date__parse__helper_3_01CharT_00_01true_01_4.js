@@ -9,6 +9,7 @@ var structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4 =
     [ "m_century", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#af2d4f29c5b4f9f7af18b5eeb5cc121ca", null ],
     [ "m_era_items", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#ad2f8afb7ce5f597369a105da52a787f4", null ],
     [ "m_have_century", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#a9fc9820798863c6d2b3262e11a6296b4", null ],
+    [ "m_have_era", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#add3b4e776dcf9b5dea79f3564f151613", null ],
     [ "m_have_iso_8601_week", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#af29c1ba5cfad3161352fde6fda4af875", null ],
     [ "m_have_iso_8601_year", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#af21c9359533083238b9a43d4f509dd06", null ],
     [ "m_have_mday", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html#adb3410ab1711a3d143f4ea4ed5c5fc7a", null ],

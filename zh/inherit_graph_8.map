@@ -18,9 +18,9 @@
 <area shape="poly" id="edge19_Node000000_Node000039" title=" " alt="" coords="105,585,117,647,141,728,158,772,180,814,207,854,239,888,258,901,255,906,236,892,203,857,176,817,153,774,136,730,111,648,99,586"/>
 <area shape="rect" id="Node000021" href="$structIOv2_1_1out__flusher.html" title="承载多态 try_flush() 的 CRTP 基类：对具体流类型 T 的向下转型集中于此。" alt="" coords="263,547,434,572"/>
 <area shape="poly" id="edge21_Node000000_Node000021" title=" " alt="" coords="179,557,263,557,263,562,179,562"/>
-<area shape="rect" id="Node000008" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="530,997,721,1037"/>
+<area shape="rect" id="Node000008" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 streambuf 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="530,997,721,1037"/>
 <area shape="poly" id="edge18_Node000007_Node000008" title=" " alt="" coords="440,1007,530,1010,530,1016,440,1012"/>
-<area shape="rect" id="Node000038" href="$classIOv2_1_1ostream.html" title=" " alt="" coords="532,869,719,909"/>
+<area shape="rect" id="Node000038" href="$classIOv2_1_1ostream.html" title="字符输出流：把一条 ostreambuf 与一个 locale 组合成带格式化的输出接口。" alt="" coords="532,869,719,909"/>
 <area shape="poly" id="edge20_Node000039_Node000038" title=" " alt="" coords="473,905,532,898,532,903,474,910"/>
 <area shape="rect" id="Node000018" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="526,437,725,492"/>
 <area shape="poly" id="edge22_Node000021_Node000018" title=" " alt="" coords="433,540,459,532,483,518,507,502,537,490,539,495,509,507,486,522,461,536,435,546"/>
@@ -68,7 +68,7 @@
 <area shape="poly" id="edge38_Node000009_Node000010" title=" " alt="" coords="455,884,462,889,478,909,486,929,488,969,489,1008,496,1028,510,1047,536,1066,533,1070,506,1051,491,1030,484,1009,482,969,480,930,473,912,458,893,452,888"/>
 <area shape="rect" id="Node000014" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="529,1205,721,1260"/>
 <area shape="poly" id="edge40_Node000009_Node000014" title=" " alt="" coords="456,884,462,890,487,927,497,965,496,1003,489,1041,482,1078,479,1116,487,1153,510,1191,531,1208,527,1212,506,1194,482,1155,474,1116,476,1077,483,1040,490,1003,492,966,483,930,458,893,452,888"/>
-<area shape="rect" id="Node000041" href="$classIOv2_1_1istream.html" title=" " alt="" coords="534,1349,717,1389"/>
+<area shape="rect" id="Node000041" href="$classIOv2_1_1istream.html" title="字符输入流：把一条 istreambuf 与一个 locale 组合成带格式化的输入接口。" alt="" coords="534,1349,717,1389"/>
 <area shape="poly" id="edge49_Node000009_Node000041" title=" " alt="" coords="455,883,462,890,483,918,497,946,505,974,508,1002,502,1058,488,1114,474,1169,467,1224,470,1252,477,1279,490,1307,510,1335,535,1354,532,1358,506,1339,485,1310,472,1281,464,1252,462,1224,468,1168,483,1112,497,1057,502,1002,500,975,492,948,479,921,458,893,451,887"/>
 <area shape="rect" id="Node000042" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="552,1285,699,1325"/>
 <area shape="poly" id="edge51_Node000009_Node000042" title=" " alt="" coords="455,883,462,890,480,914,493,938,500,962,503,986,499,1034,488,1082,477,1129,472,1176,474,1200,481,1223,493,1247,510,1271,529,1286,553,1296,551,1301,526,1291,506,1275,488,1250,476,1225,469,1201,467,1176,471,1128,482,1080,493,1033,497,986,495,963,488,940,476,917,458,893,451,887"/>

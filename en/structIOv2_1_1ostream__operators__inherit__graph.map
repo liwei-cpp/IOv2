@@ -12,9 +12,9 @@
 <area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="202,345,237,345,237,350,202,350"/>
 <area shape="rect" id="Node000012" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="236,399,471,453"/>
 <area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="176,369,264,396,263,401,175,374"/>
-<area shape="rect" id="Node000014" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="258,478,449,518"/>
+<area shape="rect" id="Node000014" href="$classIOv2_1_1iostream.html" title="Bidirectional character stream: combines a streambuf and a locale into a formatted input/output inter..." alt="" coords="258,478,449,518"/>
 <area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="127,375,176,421,206,444,237,464,264,475,262,480,235,468,203,448,172,425,123,379"/>
-<area shape="rect" id="Node000015" href="$classIOv2_1_1ostream.html" title=" " alt="" coords="260,542,447,582"/>
+<area shape="rect" id="Node000015" href="$classIOv2_1_1ostream.html" title="Character output stream: combines an ostreambuf and a locale into a formatted output interface." alt="" coords="260,542,447,582"/>
 <area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="116,379,137,414,164,454,198,494,238,528,261,540,258,545,234,532,194,498,160,458,132,417,112,381"/>
 <area shape="rect" id="Node000016" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="276,606,431,646"/>
 <area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="110,380,127,427,153,485,190,543,213,569,238,592,256,603,277,612,274,617,254,608,234,596,209,573,186,546,149,487,122,429,105,381"/>

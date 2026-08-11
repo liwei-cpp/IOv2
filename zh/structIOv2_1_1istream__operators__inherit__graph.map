@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,152,173,111,231,70,254,58,257,63,233,75,176,115,129,156"/>
 <area shape="rect" id="Node000004" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="232,84,424,139"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,157,238,136,240,141,174,162"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="233,163,423,203"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 streambuf 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="233,163,423,203"/>
 <area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="198,181,233,181,233,186,198,186"/>
-<area shape="rect" id="Node000007" href="$classIOv2_1_1istream.html" title=" " alt="" coords="237,227,419,267"/>
+<area shape="rect" id="Node000007" href="$classIOv2_1_1istream.html" title="字符输入流：把一条 istreambuf 与一个 locale 组合成带格式化的输入接口。" alt="" coords="237,227,419,267"/>
 <area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="182,204,255,225,254,230,181,210"/>
 <area shape="rect" id="Node000008" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="255,291,401,331"/>
 <area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="132,210,179,244,233,277,261,289,258,294,231,282,176,249,129,214"/>

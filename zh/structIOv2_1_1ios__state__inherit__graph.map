@@ -16,11 +16,11 @@
 <area shape="poly" id="edge14_Node000001_Node000015" title=" " alt="" coords="438,502,473,502,473,507,438,507"/>
 <area shape="rect" id="Node000017" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="472,556,707,611"/>
 <area shape="poly" id="edge16_Node000001_Node000017" title=" " alt="" coords="387,519,499,553,498,558,386,524"/>
-<area shape="rect" id="Node000019" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="494,635,685,675"/>
+<area shape="rect" id="Node000019" href="$classIOv2_1_1iostream.html" title="双向字符流：把一条 streambuf 与一个 locale 组合成带格式化的输入输出接口。" alt="" coords="494,635,685,675"/>
 <area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="355,526,406,574,438,599,473,621,500,633,498,638,471,626,435,604,402,578,351,529"/>
-<area shape="rect" id="Node000020" href="$classIOv2_1_1istream.html" title=" " alt="" coords="498,699,681,739"/>
+<area shape="rect" id="Node000020" href="$classIOv2_1_1istream.html" title="字符输入流：把一条 istreambuf 与一个 locale 组合成带格式化的输入接口。" alt="" coords="498,699,681,739"/>
 <area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="347,529,367,564,395,606,431,649,473,685,499,699,497,703,471,690,427,653,391,610,362,567,342,531"/>
-<area shape="rect" id="Node000021" href="$classIOv2_1_1ostream.html" title=" " alt="" coords="496,763,683,803"/>
+<area shape="rect" id="Node000021" href="$classIOv2_1_1ostream.html" title="字符输出流：把一条 ostreambuf 与一个 locale 组合成带格式化的输出接口。" alt="" coords="496,763,683,803"/>
 <area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="342,530,359,577,386,637,424,698,447,725,474,749,497,763,494,767,470,753,443,729,420,701,381,639,354,579,337,532"/>
 <area shape="rect" id="Node000022" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="516,827,663,867"/>
 <area shape="poly" id="edge21_Node000001_Node000022" title=" " alt="" coords="339,530,352,589,377,666,395,706,416,745,443,782,474,813,494,826,517,835,515,840,491,831,470,817,439,785,412,748,390,708,372,667,347,590,334,531"/>

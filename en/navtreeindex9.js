@@ -1,5 +1,8 @@
 var NAVTREEINDEX9 =
 {
+"group__ios__manipulators.html#ga5f8ee2313b90a96b380258357f5573ec":[0,0,17],
+"group__ios__manipulators.html#ga63c0f3e7ad723b0e370107a85abae811":[0,0,9],
+"group__ios__manipulators.html#ga6b290176f6af940b273b44362c620cf8":[0,0,23],
 "group__ios__manipulators.html#ga7ed460951db2dc78322b31b9eb096dd4":[0,0,2],
 "group__ios__manipulators.html#ga85cb6d28c6f0309564096897a39f838f":[0,0,18],
 "group__ios__manipulators.html#ga89543d56256b0a3bb3b95bbeccd84c4e":[0,0,13],
@@ -227,10 +230,11 @@ var NAVTREEINDEX9 =
 "namespaceIOv2_1_1Crypt_1_1chacha20__cvt__helpers.html#a3e8c2109050cfdaf933207451a5366eb":[1,0,0,1,0,0],
 "namespaceIOv2_1_1FacetHelper.html":[1,0,0,5],
 "namespaceIOv2_1_1FacetHelper.html#a0faaf30b3a28b21f89f129297b1ad11f":[1,0,0,5,0],
-"namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b":[1,0,0,5,4],
-"namespaceIOv2_1_1FacetHelper.html#a2c324fccb213a5e200d18d6273a367f2":[1,0,0,5,2],
-"namespaceIOv2_1_1FacetHelper.html#a3beb6fb0dd31f962ad1dea45adbe5063":[1,0,0,5,3],
+"namespaceIOv2_1_1FacetHelper.html#a2022722cef469d24506a2c3f690cf32b":[1,0,0,5,5],
+"namespaceIOv2_1_1FacetHelper.html#a2c324fccb213a5e200d18d6273a367f2":[1,0,0,5,3],
+"namespaceIOv2_1_1FacetHelper.html#a3beb6fb0dd31f962ad1dea45adbe5063":[1,0,0,5,4],
 "namespaceIOv2_1_1FacetHelper.html#a75720f297a2b8ae2ab2ec32196cb2f28":[1,0,0,5,1],
+"namespaceIOv2_1_1FacetHelper.html#aeeaf823306d47434b547c57d4971393b":[1,0,0,5,2],
 "namespaceIOv2_1_1TimeioHelper.html":[1,0,0,7],
 "namespaceIOv2_1_1TimeioHelper.html#a5e3e1278d545348466f4b059dc06a381":[1,0,0,7,0],
 "namespaceIOv2_1_1TimeioHelper.html#af7d9621c4084306932a1c951cbeeed44":[1,0,0,7,1],
@@ -245,9 +249,5 @@ var NAVTREEINDEX9 =
 "namespaceIOv2_1_1detail.html#a9bad2cd50da6e91830cc4bc0b52d1385":[1,0,0,3,14],
 "namespaceIOv2_1_1detail.html#aa1babea415d6ad8be83c25bf553ba2c1":[1,0,0,3,15],
 "namespaceIOv2_1_1dev__cpt.html":[1,0,0,4],
-"namespaceIOv2_1_1ios__defs.html":[1,0,0,6],
-"namespaceIOv2_1_1ios__defs.html#a2a50ff13a01626c630e22a47f599aa0d":[1,0,0,6,26],
-"namespaceIOv2_1_1ios__defs.html#a3ad1a1b362d26b0b9da6ae5c45b51916":[1,0,0,6,18],
-"namespaceIOv2_1_1ios__defs.html#a3f10a0388f55664b3dded151e7acb423":[1,0,0,6,1],
-"namespaceIOv2_1_1ios__defs.html#a4f3b3dcdabc72ec6609808fbce8f4fed":[1,0,0,6,11]
+"namespaceIOv2_1_1ios__defs.html":[1,0,0,6]
 };

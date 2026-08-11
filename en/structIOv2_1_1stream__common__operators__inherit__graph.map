@@ -16,11 +16,11 @@
 <area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="190,502,225,502,225,507,190,507"/>
 <area shape="rect" id="Node000016" href="$classIOv2_1_1stdout__api.html" title=" " alt="" coords="224,556,459,611"/>
 <area shape="poly" id="edge15_Node000001_Node000016" title=" " alt="" coords="169,526,254,553,253,558,167,531"/>
-<area shape="rect" id="Node000018" href="$classIOv2_1_1iostream.html" title=" " alt="" coords="246,635,437,675"/>
+<area shape="rect" id="Node000018" href="$classIOv2_1_1iostream.html" title="Bidirectional character stream: combines a streambuf and a locale into a formatted input/output inter..." alt="" coords="246,635,437,675"/>
 <area shape="poly" id="edge17_Node000001_Node000018" title=" " alt="" coords="120,533,166,579,195,602,225,621,251,633,249,638,223,626,192,606,163,583,116,537"/>
-<area shape="rect" id="Node000019" href="$classIOv2_1_1istream.html" title=" " alt="" coords="250,699,433,739"/>
+<area shape="rect" id="Node000019" href="$classIOv2_1_1istream.html" title="Character input stream: combines an istreambuf and a locale into a formatted input interface." alt="" coords="250,699,433,739"/>
 <area shape="poly" id="edge18_Node000001_Node000019" title=" " alt="" coords="109,536,128,571,154,612,187,652,226,685,251,699,249,703,222,690,183,655,150,615,124,574,105,539"/>
-<area shape="rect" id="Node000020" href="$classIOv2_1_1ostream.html" title=" " alt="" coords="248,763,435,803"/>
+<area shape="rect" id="Node000020" href="$classIOv2_1_1ostream.html" title="Character output stream: combines an ostreambuf and a locale into a formatted output interface." alt="" coords="248,763,435,803"/>
 <area shape="poly" id="edge19_Node000001_Node000020" title=" " alt="" coords="103,537,119,585,144,642,179,700,201,726,226,749,249,763,247,768,222,753,197,730,175,703,139,645,114,587,98,539"/>
 <area shape="rect" id="Node000021" href="$classIOv2_1_1stdin__api.html" title=" " alt="" coords="268,827,415,867"/>
 <area shape="poly" id="edge20_Node000001_Node000021" title=" " alt="" coords="99,538,112,597,135,672,151,711,172,748,197,783,226,813,246,827,269,836,267,840,243,831,222,817,192,786,167,751,147,713,130,674,106,599,94,539"/>
