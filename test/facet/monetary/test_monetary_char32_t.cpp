@@ -1316,10 +1316,8 @@ void test_monetary_char32_t_common_3()
 {
     dump_info("Test monetary<char32_t> common 3 (empty mon_decimal_point locale)...");
 
-    // C.utf8 has an empty mon_decimal_point string.  The wide-char constructor
-    // converts it to char32_t '\0', falls back to U'.', and — because the raw
-    // string was empty — sets both frac_digits fields to 0.
-    // This exercises the mon_dp_raw.empty() branch in monetary_conf<CharT>.
+    // C.utf8 names the C locale, so it takes the hard-coded defaults rather
+    // than the mon_dp_raw.empty() branch; the resulting values are the same.
     IOv2::monetary obj_cu(std::make_shared<IOv2::monetary_conf<char32_t>>("C.utf8"));
     VERIFY(obj_cu.decimal_point() == U'.');
     VERIFY(obj_cu.frac_digits_nat() == 0);

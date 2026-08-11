@@ -2236,17 +2236,23 @@ void test_numeric_wchar_t_conf_bool_fallback()
 {
     dump_info("Test numeric_conf<wchar_t> bool-name fallback...");
 
-    // "C.UTF-8" is NOT the literal "C"/"POSIX" fast path, so the constructor
-    // runs the full locale-snapshot branch. glibc's C.UTF-8 exposes empty
-    // YESSTR/NOSTR, which the constructor treats as missing keys and replaces
-    // with the wide ASCII defaults L"true"/L"false".
-    IOv2::numeric_conf<wchar_t> conf("C.UTF-8");
+    // gv_GB.utf8 is not a C/POSIX name, so the constructor runs the full
+    // locale-snapshot branch. It exposes empty YESSTR/NOSTR, which the
+    // constructor treats as missing keys and replaces with the wide ASCII
+    // defaults L"true"/L"false".
+    IOv2::numeric_conf<wchar_t> conf("gv_GB.utf8");
 
     VERIFY(conf.truename() == L"true");
     VERIFY(conf.falsename() == L"false");
     VERIFY(conf.decimal_point() == L'.');
-    VERIFY(conf.thousands_sep() == L'\0');
-    VERIFY(conf.grouping().empty());
+    VERIFY(conf.thousands_sep() == L',');
+
+    // gl_ES.utf8 has no thousands separator, so thousands_sep keeps the L'\0'
+    // failure sentinel of the converter and grouping stays empty.
+    IOv2::numeric_conf<wchar_t> conf_no_ts("gl_ES.utf8");
+    VERIFY(conf_no_ts.decimal_point() == L',');
+    VERIFY(conf_no_ts.thousands_sep() == L'\0');
+    VERIFY(conf_no_ts.grouping().empty());
 
     dump_info("Done\n");
 }

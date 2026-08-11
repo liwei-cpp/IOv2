@@ -81,7 +81,7 @@ public:
     numeric_conf(const std::string& name)
         : ft_basic<numeric<char>>()
     {
-        if ((name == "C") || (name == "POSIX"))
+        if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
             m_decimal_point = '.';
             m_thousands_sep = ',';
@@ -306,7 +306,7 @@ public:
     numeric_conf(const std::string& name)
         : ft_basic<numeric<CharT>>()
     {
-        if ((name == "C") || (name == "POSIX"))
+        if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
             if constexpr (std::is_same_v<CharT, wchar_t>)
             {
@@ -581,7 +581,7 @@ public:
     numeric_conf(const std::string& name)
         : ft_basic<numeric<char8_t>>()
     {
-        if ((name == "C") || (name == "POSIX"))
+        if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
             m_decimal_point = u8'.';
             m_thousands_sep = u8',';

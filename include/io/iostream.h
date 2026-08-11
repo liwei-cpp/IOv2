@@ -18,6 +18,57 @@
 
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief 双向字符流：把一条 `streambuf` 与一个 locale 组合成带格式化的输入输出接口。
+ *
+ * 对外接口大多来自基类——`ios_state` 提供状态位与异常掩码，`istream_operators` 与
+ * `ostream_operators` 分别提供输入与输出操作，`out_flusher` 携带 tie 刷新用的多态 `try_flush()`，
+ * `stream_common_operators` 提供 `tell()`/`attach()`/`detach()`/`locale()` 等。本类自身只持有两个
+ * 成员，且按**分层顺序**声明：`m_streambuf` 在前、`m_locale` 在后。
+ *
+ * IOv2 的读写路径是设备 ↔ 转换器管线 ↔ 流缓冲区 ↔ 流；locale 位于最上层，只参与格式化与解析，
+ * 不参与字符搬运。声明顺序与这条分层一致，于是构造自下而上、析构自上而下：`m_locale` 先销毁、
+ * `m_streambuf` 后销毁，`~root_cvt` 把残留缓冲冲刷进设备这一步因此始终作用在一个仍然完整的下层
+ * 上。基类 `ios_state` 比两个成员更早构造、更晚析构，状态位在成员的整个生命期内都可用。
+ *
+ * @note 这条顺序同时规定了依赖方向：**下层不得访问上层**。流缓冲区及其以下（转换器、设备）不得
+ *       引用 locale——析构期的那次冲刷跑在 `m_locale` 之后，那时 locale 已经不存在。字符处理归流
+ *       缓冲区，格式化与解析归 locale，两者不重叠；反向依赖（流读取 locale）则始终成立。
+ *
+ * @tparam TDevice 底层设备类型，须满足 `io_device` 且同时支持读取与写入。
+ * @tparam TChar 字符类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Bidirectional character stream: combines a `streambuf` and a locale into a formatted
+ *        input/output interface.
+ *
+ * Most of the interface comes from the bases -- `ios_state` supplies the state bits and the
+ * exception mask, `istream_operators` and `ostream_operators` the input and output operations,
+ * `out_flusher` the polymorphic `try_flush()` used by tie, and `stream_common_operators`
+ * `tell()`/`attach()`/`detach()`/`locale()` and friends. This class itself holds only two members,
+ * declared in **layer order**: `m_streambuf` first, `m_locale` second.
+ *
+ * The IOv2 read/write path is device <-> converter pipeline <-> stream buffer <-> stream; the
+ * locale sits at the top and takes part only in formatting and parsing, never in moving
+ * characters. The declaration order follows that layering, so construction runs bottom-up and
+ * destruction top-down: `m_locale` is destroyed first and `m_streambuf` second, so the step where
+ * `~root_cvt` flushes what is left in the buffer to the device always runs against a lower stack
+ * that is still intact. The `ios_state` base is constructed before both members and destroyed
+ * after them, so the state bits stay available for the members' whole lifetime.
+ *
+ * @note The same order fixes the direction of dependency: **a lower layer must not reach up**. The
+ *       stream buffer and everything below it (converters, device) must not refer to the locale --
+ *       that destructor-time flush runs after `m_locale`, by which point it no longer exists.
+ *       Character handling belongs to the stream buffer, formatting and parsing to the locale; the
+ *       two do not overlap. The reverse dependency -- the stream reading the locale -- always holds.
+ *
+ * @tparam TDevice The underlying device type; must satisfy `io_device` and support both reading
+ *         and writing.
+ * @tparam TChar The character type.
+ * @endif
+ */
 template <io_device TDevice, typename TChar>
     requires (dev_cpt::support_get<TDevice> && dev_cpt::support_put<TDevice>)
 class iostream : public ios_state<TChar>
@@ -207,8 +258,8 @@ public:
         , m_locale(std::move(loc)) {}
 
 private:
-    template <typename TLock>
-    iostream(TLock&&, const iostream& other)
+    iostream(const std::lock_guard<copyable_mutex<std::recursive_mutex>>&,
+             const iostream& other)
         : ios_state<TChar>(other)
         , istream_operators<TChar>(other)
         , out_flusher<iostream<TDevice, TChar>>(other)

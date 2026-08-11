@@ -6088,6 +6088,139 @@ void test_timeio_char_get_18()
         VERIFY(ymd == year_month_day{year{1990}, month{5}, day{1}});
     }
 
+    // Era name with no era year (%EC on its own). The era name match sets no m_have_*
+    // year flag, so this is the one deduction path that reads the era items outside the
+    // %Ey branch above (line 332). 平成 rather than 令和 is what proves the era items
+    // narrowed by the name are what pick the year: the unnarrowed table starts at 令和.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "令和", "%EC", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{2020});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成", "%EC", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1990});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "昭和", "%EC", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1927});
+    }
+
+    // The month and day the format string does leave open still come from the parse,
+    // and from the fallback, respectively.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "令和 05 01", "%EC %m %d",
+                                            IOv2::ios_defs::eofbit);
+        VERIFY(ymd == year_month_day{year{2020}, month{5}, day{1}});
+    }
+
+    // The era name beats the date hint for the year, while the hint still supplies the
+    // month and day.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{2023}, month{9}, day{17}});
+        const std::string in = "平成";
+        VERIFY(obj_ja.get(in.begin(), in.end(), ctx, "%EC") == in.end());
+        VERIFY(ctx_to<year_month_day>(ctx)
+               == year_month_day{year{1990}, month{9}, day{17}});
+    }
+
+    // A format string that names no era must leave the whole fallback date alone. An era
+    // locale used to rewrite the year to the first era's from_year even though neither
+    // the input nor the format said anything about the year.
+    {
+        IOv2::time_parse_context<char> ctx;
+        ctx.set_hint(year_month_day{year{2023}, month{9}, day{17}});
+        const std::string in = "01:02";
+        VERIFY(obj_ja.get(in.begin(), in.end(), ctx, "%H:%M") == in.end());
+        VERIFY(ctx_to<year_month_day>(ctx)
+               == year_month_day{year{2023}, month{9}, day{17}});
+        // No %E specifier was seen, so the locale's era table was never copied in.
+        VERIFY(ctx.m_era_items.empty());
+    }
+
+    // A 元年 (first year of an era) form matches an era entry of its own, one whose
+    // format carries no %Ey. The year therefore has to come from the era items, and only
+    // the entry belonging to the format that actually matched holds the right from_year.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "令和元年", "%EY", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{2019});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成元年", "%EY", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1989});
+    }
+
+    // The ordinary era-year form goes through %Ey and must be unaffected.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "令和2年", "%EY", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{2020});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成3年", "%EY", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1991});
+    }
+
+    // %Ex expands to the locale's era date format, which reaches %EY the same way.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "令和元年06月15日", "%Ex",
+                                            IOv2::ios_defs::eofbit);
+        VERIFY(ymd == year_month_day{year{2019}, month{6}, day{15}});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成元年06月15日", "%Ex",
+                                            IOv2::ios_defs::eofbit);
+        VERIFY(ymd == year_month_day{year{1989}, month{6}, day{15}});
+    }
+
+    // A modifier belongs to one conversion specification and does not carry over to the
+    // rest of the format string. POSIX attaches era semantics to %EC/%Ey/%EY only, so an
+    // unmodified %y/%C/%Y after an %E specifier is still the plain Gregorian form -- even
+    // though the era table has been filled in by then. Reading the table alone (rather
+    // than the modifier) turns each of these into an era parse, and the ones below fail
+    // outright: %y would take 4 digits as an era year and then find no era whose range
+    // holds it.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成 88", "%EC %y", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1988});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成 19", "%EC %C", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1900});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成 1988", "%EC %Y", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1988});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成31 19 88", "%EC%Ey %C %y",
+                                            IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1988});
+    }
+
+    // %Oy is the year within century in the locale's alternative numeric symbols; the O
+    // modifier has nothing to do with eras. ja_JP defines no alternative digits, so per
+    // POSIX ("if the alternative ... does not exist in the current locale, the unmodified
+    // field descriptor is used") it reads ordinary digits.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "平成 88", "%EC %Oy", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1988});
+    }
+
+    // The other half of that POSIX sentence: with no era data at all, the E-modified
+    // specifiers degrade to their unmodified meanings instead of failing.
+    {
+        auto ymd = CheckGet<year_month_day>(obj, "19", "%EC", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1900});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj, "88", "%Ey", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1988});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj, "1988", "%EY", IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1988});
+    }
+
     // Negative yday via U-week+wday (lines 304-305)
     // 2024 Jan1=Monday(1), U=0, w=0(Sunday): yday=-1 -> Dec 31, 2023
     {

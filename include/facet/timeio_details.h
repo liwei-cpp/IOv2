@@ -26,6 +26,7 @@
 #include <common/prefix_tree.h>
 #include <cvt/cvt_facilities.h>
 #include <facet/facet_common.h>
+#include <facet/facet_helper.h>
 
 #include <array>
 #include <chrono>
@@ -481,7 +482,7 @@ public:
     timeio_conf(const std::string& name)
         : ft_basic<timeio<char>>()
     {
-        if ((name == "C") || (name == "POSIX"))
+        if (FacetHelper::is_c_locale_name(name))
         {
             m_date_format = "%m/%d/%y";     m_era_date_format = m_date_format;
             m_time_format = "%H:%M:%S";     m_era_time_format = m_time_format;
