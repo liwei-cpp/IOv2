@@ -2258,17 +2258,23 @@ void test_numeric_char32_t_conf_bool_fallback()
 {
     dump_info("Test numeric_conf<char32_t> bool-name fallback...");
 
-    // "C.UTF-8" is NOT the literal "C"/"POSIX" fast path, so the constructor
-    // runs the full locale-snapshot branch. glibc's C.UTF-8 exposes empty
-    // YESSTR/NOSTR, which the constructor treats as missing keys and replaces
-    // with the UTF-32 ASCII defaults U"true"/U"false".
-    IOv2::numeric_conf<char32_t> conf("C.UTF-8");
+    // gv_GB.utf8 is not a C/POSIX name, so the constructor runs the full
+    // locale-snapshot branch. It exposes empty YESSTR/NOSTR, which the
+    // constructor treats as missing keys and replaces with the UTF-32 ASCII
+    // defaults U"true"/U"false".
+    IOv2::numeric_conf<char32_t> conf("gv_GB.utf8");
 
     VERIFY(conf.truename() == U"true");
     VERIFY(conf.falsename() == U"false");
     VERIFY(conf.decimal_point() == U'.');
-    VERIFY(conf.thousands_sep() == U'\0');
-    VERIFY(conf.grouping().empty());
+    VERIFY(conf.thousands_sep() == U',');
+
+    // gl_ES.utf8 has no thousands separator, so thousands_sep keeps the U'\0'
+    // failure sentinel of the converter and grouping stays empty.
+    IOv2::numeric_conf<char32_t> conf_no_ts("gl_ES.utf8");
+    VERIFY(conf_no_ts.decimal_point() == U',');
+    VERIFY(conf_no_ts.thousands_sep() == U'\0');
+    VERIFY(conf_no_ts.grouping().empty());
 
     dump_info("Done\n");
 }

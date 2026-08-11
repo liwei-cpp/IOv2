@@ -381,6 +381,50 @@ protected:
      * @endif
      */
     static int8_t s_norm_flag(char v) { return (v == CHAR_MAX) ? int8_t{0} : static_cast<int8_t>(v); }
+
+    /**
+     * @lang{ZH}
+     * @brief 判断 `lconv` 是否完全没有提供货币数据。
+     *
+     * ISO C 规定 `char` 类型成员为 `CHAR_MAX`、`char*` 类型成员为 `""` 表示该值
+     * "在当前区域设置中不可用"，并规定 `"C"` 区域设置下所有货币成员均取这些哨兵值
+     * （§7.11 `struct lconv` 声明处的注释为规范性内容）。POSIX 对 POSIX 区域设置
+     * 的 LC_MONETARY 同样规定 "All values shall be unavailable"。
+     *
+     * 标准只定义逐字段的"不可用"，并未定义区域设置级的"无货币数据"谓词，且允许部分
+     * 字段可用而其余不可用。因此本函数对本类实际替换的每个字段逐一取合取，而非仅凭
+     * 单个字段推断整体。
+     *
+     * @param lc `localeconv()` 返回的指针。
+     * @return 若符号、货币符号与小数位数均不可用则返回 `true`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Tests whether `lconv` provides no monetary data at all.
+     *
+     * ISO C specifies `CHAR_MAX` for `char` members and `""` for `char*` members
+     * to mean the value is "not available in the current locale", and mandates
+     * these sentinels for every monetary member in the `"C"` locale (the comments
+     * on the §7.11 `struct lconv` declaration are normative). POSIX likewise
+     * states "All values shall be unavailable" for LC_MONETARY in the POSIX locale.
+     *
+     * The standard defines availability only per member — there is no locale-level
+     * "no monetary data" predicate, and partial availability is permitted. So this
+     * function conjoins every field this class would substitute rather than
+     * inferring the whole from any single one.
+     *
+     * @param lc The pointer returned by `localeconv()`.
+     * @return `true` if the signs, currency symbols and fractional digits are all unavailable.
+     * @endif
+     */
+    static bool s_monetary_unavailable(const lconv* lc)
+    {
+        const auto empty = [](const char* s) { return (s == nullptr) || (s[0] == '\0'); };
+        return (lc->frac_digits == CHAR_MAX) && (lc->int_frac_digits == CHAR_MAX)
+            && (lc->n_sign_posn == CHAR_MAX) && (lc->int_n_sign_posn == CHAR_MAX)
+            && empty(lc->negative_sign) && empty(lc->currency_symbol)
+            && empty(lc->int_curr_symbol);
+    }
 };
 
 template <typename CharT> class monetary_conf;
@@ -430,24 +474,21 @@ public:
     monetary_conf(const std::string& name)
         : ft_basic<monetary<char>>()
     {
-        if ((name == "C") || (name == "POSIX"))
+        if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
-            m_decimal_point = '.';
-            m_thousands_sep = ',';
-            m_frac_digits_int = 0;
-            m_frac_digits_nat = 0;
-            m_negative_sign_int = "-";
-            m_negative_sign_nat = "-";
-            m_pos_format_nat = s_default_pattern;
-            m_neg_format_nat = s_default_pattern;
-            m_pos_format_int = s_default_pattern;
-            m_neg_format_int = s_default_pattern;
+            init_c_defaults();
         }
         else
         {
             clocale_wrapper inter_locale(name.c_str());
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
+
+            if (s_monetary_unavailable(lc))
+            {
+                init_c_defaults();
+                return;
+            }
 
             // Read every lconv-derived field up front, BEFORE the
             // string_to_char_convert calls further down. That converter
@@ -739,6 +780,30 @@ public:
     [[nodiscard]] virtual char thousands_sep() const { return m_thousands_sep; }
 
 private:
+    /**
+     * @lang{ZH}
+     * @brief 填充 C/POSIX 区域设置下的硬编码货币格式化数据。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Populates the hard-coded monetary formatting data for the C/POSIX locale.
+     * @endif
+     */
+    void init_c_defaults()
+    {
+        m_decimal_point = '.';
+        m_thousands_sep = ',';
+        m_frac_digits_int = 0;
+        m_frac_digits_nat = 0;
+        m_negative_sign_int = "-";
+        m_negative_sign_nat = "-";
+        m_pos_format_nat = s_default_pattern;
+        m_neg_format_nat = s_default_pattern;
+        m_pos_format_int = s_default_pattern;
+        m_neg_format_int = s_default_pattern;
+    }
+
+private:
     std::vector<uint8_t>    m_grouping;
     std::string             m_curr_symbol_int;
     std::string             m_curr_symbol_nat;
@@ -810,34 +875,21 @@ public:
     monetary_conf(const std::string& name)
         : ft_basic<monetary<CharT>>()
     {
-        if ((name == "C") || (name == "POSIX"))
+        if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
-            if constexpr (std::is_same_v<CharT, wchar_t>)
-            {
-                m_decimal_point = L'.';
-                m_thousands_sep = L',';
-                m_negative_sign_int = L"-";
-                m_negative_sign_nat = L"-";
-            }
-            else
-            {
-                m_decimal_point = U'.';
-                m_thousands_sep = U',';
-                m_negative_sign_int = U"-";
-                m_negative_sign_nat = U"-";
-            }
-            m_frac_digits_int = 0;
-            m_frac_digits_nat = 0;
-            m_pos_format_nat = base_ft<monetary>::s_default_pattern;
-            m_neg_format_nat = base_ft<monetary>::s_default_pattern;
-            m_pos_format_int = base_ft<monetary>::s_default_pattern;
-            m_neg_format_int = base_ft<monetary>::s_default_pattern;
+            init_c_defaults();
         }
         else
         {
             clocale_wrapper inter_locale(name.c_str());
             clocale_user guard(inter_locale);
             const lconv* lc = localeconv();
+
+            if (base_ft<monetary>::s_monetary_unavailable(lc))
+            {
+                init_c_defaults();
+                return;
+            }
 
             // Snapshot every lconv-derived field up front, BEFORE any
             // converter runs. string_to_widechar_convert and
@@ -1170,6 +1222,40 @@ public:
     [[nodiscard]] virtual CharT thousands_sep() const { return m_thousands_sep; }
 
 private:
+    /**
+     * @lang{ZH}
+     * @brief 填充 C/POSIX 区域设置下的硬编码货币格式化数据。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Populates the hard-coded monetary formatting data for the C/POSIX locale.
+     * @endif
+     */
+    void init_c_defaults()
+    {
+        if constexpr (std::is_same_v<CharT, wchar_t>)
+        {
+            m_decimal_point = L'.';
+            m_thousands_sep = L',';
+            m_negative_sign_int = L"-";
+            m_negative_sign_nat = L"-";
+        }
+        else
+        {
+            m_decimal_point = U'.';
+            m_thousands_sep = U',';
+            m_negative_sign_int = U"-";
+            m_negative_sign_nat = U"-";
+        }
+        m_frac_digits_int = 0;
+        m_frac_digits_nat = 0;
+        m_pos_format_nat = base_ft<monetary>::s_default_pattern;
+        m_neg_format_nat = base_ft<monetary>::s_default_pattern;
+        m_pos_format_int = base_ft<monetary>::s_default_pattern;
+        m_neg_format_int = base_ft<monetary>::s_default_pattern;
+    }
+
+private:
     std::vector<uint8_t>        m_grouping;
     std::basic_string<CharT>    m_curr_symbol_int;
     std::basic_string<CharT>    m_curr_symbol_nat;
@@ -1265,7 +1351,7 @@ public:
     monetary_conf(const std::string& name)
         : ft_basic<monetary<char8_t>>()
     {
-        if ((name == "C") || (name == "POSIX"))
+        if (FacetHelper::is_c_locale_name(name))
         { // "C" locale
             m_decimal_point = u8'.';
             m_thousands_sep = u8',';

@@ -1,6 +1,7 @@
 void test_monetary_char_common_1();
 void test_monetary_char_common_2();
 void test_monetary_char_common_3();
+void test_monetary_char_common_4();
 void test_monetary_char_put_1();
 void test_monetary_char_put_2();
 void test_monetary_char_put_3();
@@ -161,6 +162,7 @@ void test_monetary()
     test_monetary_char_common_1();
     test_monetary_char_common_2();
     test_monetary_char_common_3();
+    test_monetary_char_common_4();
     test_monetary_char_put_1();
     test_monetary_char_put_2();
     test_monetary_char_put_3();

@@ -2426,14 +2426,72 @@ void test_monetary_char_common_3()
         {part::symbol, part::sign, part::value, part::none};
     VERIFY(obj_bo.neg_format_nat() == expected_bo);
 
-    // C.utf8: sign_posn=CHAR_MAX(127) -> default case -> {symbol, sign, none, value}
-    // Also: mon_decimal_point is empty -> empty mdp_raw branch -> frac_digits forced to 0
+    // C.utf8 names the C locale, so it takes the hard-coded defaults and never
+    // reaches s_construct_pattern; s_default_pattern is the same pattern the
+    // sign_posn=CHAR_MAX default case used to produce here.
     IOv2::monetary obj_cu(std::make_shared<IOv2::monetary_conf<char>>("C.utf8"));
     const IOv2::base_ft<IOv2::monetary>::pattern expected_cu =
         {part::symbol, part::sign, part::none, part::value};
     VERIFY(obj_cu.neg_format_nat() == expected_cu);
     VERIFY(obj_cu.frac_digits_nat() == 0);
     VERIFY(obj_cu.frac_digits_int() == 0);
+
+    dump_info("Done\n");
+}
+
+void test_monetary_char_common_4()
+{
+    dump_info("Test monetary<char> common 4 (C locale name spellings)...");
+
+    // Every spelling whose language segment is C or POSIX names the same locale.
+    // glibc normalises the codeset segment before lookup, so an exact-name test
+    // used to fall through to localeconv() and pick up the all-unavailable
+    // monetary data verbatim -- losing the negative sign in particular.
+    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<char>>("C"));
+    VERIFY(!obj_c.negative_sign_nat().empty());
+    VERIFY(!obj_c.negative_sign_int().empty());
+
+    for (const char* name : {"POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.UTF-8@euro"})
+    {
+        IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>(name));
+        VERIFY(obj.decimal_point()     == obj_c.decimal_point());
+        VERIFY(obj.thousands_sep()     == obj_c.thousands_sep());
+        VERIFY(obj.grouping()          == obj_c.grouping());
+        VERIFY(obj.curr_symbol_nat()   == obj_c.curr_symbol_nat());
+        VERIFY(obj.curr_symbol_int()   == obj_c.curr_symbol_int());
+        VERIFY(obj.positive_sign_nat() == obj_c.positive_sign_nat());
+        VERIFY(obj.positive_sign_int() == obj_c.positive_sign_int());
+        VERIFY(obj.negative_sign_nat() == obj_c.negative_sign_nat());
+        VERIFY(obj.negative_sign_int() == obj_c.negative_sign_int());
+        VERIFY(obj.frac_digits_nat()   == obj_c.frac_digits_nat());
+        VERIFY(obj.frac_digits_int()   == obj_c.frac_digits_int());
+        VERIFY(obj.pos_format_nat()    == obj_c.pos_format_nat());
+        VERIFY(obj.neg_format_nat()    == obj_c.neg_format_nat());
+        VERIFY(obj.pos_format_int()    == obj_c.pos_format_int());
+        VERIFY(obj.neg_format_int()    == obj_c.neg_format_int());
+    }
+
+    // A C/POSIX language segment does not make the whole name legal. newlocale
+    // rejects each of these, so the constructor must still throw instead of
+    // silently handing back the C defaults.
+    for (const char* name : {"C.BOGUS", "C@euro", "C.", "C@", "POSIX.utf8", "POSIX@x"})
+    {
+        bool threw = false;
+        try
+        {
+            IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>(name));
+        }
+        catch (const IOv2::cvt_error&)
+        {
+            threw = true;
+        }
+        VERIFY(threw);
+    }
+
+    // A locale that does carry monetary data must still be read from lconv.
+    IOv2::monetary obj_us(std::make_shared<IOv2::monetary_conf<char>>("en_US.UTF-8"));
+    VERIFY(obj_us.frac_digits_nat() != obj_c.frac_digits_nat());
+    VERIFY(obj_us.curr_symbol_nat() != obj_c.curr_symbol_nat());
 
     dump_info("Done\n");
 }

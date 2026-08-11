@@ -329,7 +329,7 @@ struct date_parse_helper<CharT, true>
                 // for a default-constructed context, the caller's old value for a hinted
                 // one -- for a format string that says nothing about it.
                 deduced_year = m_century * 100;
-            else if (!m_era_items.empty())
+            else if (m_have_era && !m_era_items.empty())
                 deduced_year = m_era_items.begin()->from_year;
         }
 
@@ -494,6 +494,7 @@ struct date_parse_helper<CharT, true>
     bool m_have_iso_8601_year : 1 = false;
     bool m_have_iso_8601_week : 1 = false;
     bool m_have_year_of_era : 1 = false;
+    bool m_have_era : 1 = false;
 
     bool m_have_mon : 1 = false;
     bool m_have_uweek : 1 = false;
@@ -1812,6 +1813,83 @@ public:
 private:
     /**
      * @lang{ZH}
+     * @brief 判断当前说明符是否应按纪元解析，并在首次遇到 `E` 修饰符时按需填充纪元条目表。
+     *
+     * 纪元条目表仅被带 `E` 修饰符的 `%C`、`%y`、`%Y` 三个分支读取，因此改为在首次
+     * 遇到这三者时才从 `m_era_master` 拷入 `ctx`，而不是每次解析前无条件填充：不含
+     * `%E` 说明符的格式串必须让 `ctx.m_era_items` 保持为空，也不应为此付出拷贝
+     * locale 纪元表的代价。
+     *
+     * 判据是 `mod == 'E'` **且**表非空，两个条件都不能省：
+     * - 修饰符属于**单个**转换说明，不会沿格式串向后粘连。POSIX 把 `E`/`O` 定义为
+     *   "修饰 field descriptor"，纪元语义只挂在 `%EC`/`%Ey`/`%EY` 上；`%EC %y` 里的
+     *   `%y` 是不带修饰符的 `%y`，必须按"年内世纪"解析。若只看表非空，前面出现过任何
+     *   `%E…` 就会把后面普通的 `%C`/`%y`/`%Y` 一并拖进纪元分支。`%Oy` 更是范畴错误：
+     *   `O` 表示"使用 locale 的替代数字符号"，与纪元无关，必须落到下面的
+     *   `extract_num_with_alt_digits` 一支。
+     * - 表非空这一半对应 POSIX 的"替代格式在当前 locale 不存在时，使用未修饰的说明符"：
+     *   `C` locale 下 `%EC` 退化为普通两位世纪、`%Ey` 退化为 `%y`。
+     *
+     * @tparam HaveDate     上下文是否包含日期字段。
+     * @tparam HaveTime     上下文是否包含时间字段。
+     * @tparam HaveTimeZone 上下文是否包含时区字段。
+     * @param ctx 累积解析结果的上下文（in/out）。
+     * @param mod 当前说明符的修饰符字符，`E` 以外的值不触发填充且一律返回 `false`。
+     * @return `mod` 为 `E` 且纪元条目表非空时返回 `true`；`HaveDate` 为 `false` 时恒为 `false`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Reports whether the current specifier is to be parsed as an era, filling the
+     *        era item table on demand the first time an `E` modifier is seen.
+     *
+     * The era table is only ever read by the E-modified `%C`, `%y` and `%Y` branches,
+     * so it is copied from `m_era_master` into `ctx` on first sight of one of them
+     * rather than unconditionally before every parse: a format string with no `%E`
+     * specifier must leave `ctx.m_era_items` empty, and must not pay for copying the
+     * locale's era list.
+     *
+     * The test is `mod == 'E'` **and** a non-empty table; neither half may be dropped:
+     * - A modifier belongs to a **single** conversion specification and does not carry
+     *   over to the rest of the format string. POSIX defines `E`/`O` as modifying a field
+     *   descriptor, and era semantics attach only to `%EC`/`%Ey`/`%EY`; the `%y` in
+     *   `%EC %y` is an unmodified `%y` and must be read as a year within century. Testing
+     *   only for a non-empty table would let any earlier `%E…` drag every later plain
+     *   `%C`/`%y`/`%Y` into the era branch. `%Oy` would be an outright category error:
+     *   `O` selects the locale's alternative numeric symbols, nothing to do with eras, and
+     *   has to reach the `extract_num_with_alt_digits` arm below.
+     * - The non-empty half implements POSIX's "if the alternative format or specification
+     *   does not exist in the current locale, the unmodified field descriptor is used":
+     *   in the `C` locale `%EC` degrades to a plain two-digit century and `%Ey` to `%y`.
+     *
+     * @tparam HaveDate     Whether the context carries date fields.
+     * @tparam HaveTime     Whether the context carries time fields.
+     * @tparam HaveTimeZone Whether the context carries timezone fields.
+     * @param ctx Parse context accumulating results (in/out).
+     * @param mod Modifier character of the current specifier; anything other than `E`
+     *            neither triggers the fill nor ever yields `true`.
+     * @return `true` when `mod` is `E` and the era item table is non-empty; always
+     *         `false` when `HaveDate` is `false`.
+     * @endif
+     */
+    template <bool HaveDate, bool HaveTime, bool HaveTimeZone>
+    bool era_items_active(time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
+                          CharT mod) const
+    {
+        if constexpr (!HaveDate) { (void)ctx; (void)mod; return false; }
+        else
+        {
+            if (mod != static_cast<CharT>('E')) return false;
+            if (ctx.is_init == false)
+            {
+                std::copy(m_era_master.begin(), m_era_master.end(), std::back_inserter(ctx.m_era_items));
+                ctx.is_init = true;
+            }
+            return !ctx.m_era_items.empty();
+        }
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 解析核心函数，按格式串逐字符处理输入，将结果写入 `ctx`。
      *
      * @note **递归与受信任 locale 假设**
@@ -1879,15 +1957,6 @@ private:
     TIter do_get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, HaveTimeZone>& ctx,
                  bool& succ, std::basic_string_view<CharT> _fmt) const
     {
-        if constexpr (HaveDate)
-        {
-            if (ctx.is_init == false)
-            {
-                std::copy(m_era_master.begin(), m_era_master.end(), std::back_inserter(ctx.m_era_items));
-                ctx.is_init = true;
-            }
-        }
-
         auto fmt = _fmt.cbegin();
         while ((fmt != _fmt.cend()) && (rp != rp_end))
         {
@@ -2010,7 +2079,7 @@ private:
                 else
                 {
                     if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                    if ((modifier == static_cast<CharT>('\0')) || (ctx.m_era_items.empty()))
+                    if (!era_items_active(ctx, modifier))
                     {
                         // 0..99 only, no sign (see the %Y parse case for why this
                         // format/parse asymmetry is intentional and standard-aligned).
@@ -2039,6 +2108,7 @@ private:
                             succ = false;
                             return rp;
                         }
+                        ctx.m_have_era = true;
                     }
                 }
                 break;
@@ -2414,7 +2484,7 @@ private:
 
             case static_cast<CharT>('y'):
                 if constexpr (!HaveDate) goto bad_parse_format;
-                else if ((modifier == static_cast<CharT>('E')) && (!ctx.m_era_items.empty()))
+                else if (era_items_active(ctx, modifier))
                 {
                     int val = 0;
                     rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
@@ -2484,7 +2554,7 @@ private:
                 else
                 {
                     if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                    if ((modifier == static_cast<CharT>('E')) && (!ctx.m_era_items.empty()))
+                    if (era_items_active(ctx, modifier))
                     {
                         if constexpr (is_stamp_input_iterator_v<TIter>)
                         {
@@ -2508,6 +2578,19 @@ private:
                                 {
                                     rp = rp_wrapper.internal();
                                     ctx = tmp_ctx;
+                                    bool any_match = false;
+                                    for (const auto& cur_era : ctx.m_era_items)
+                                    {
+                                        if (cur_era.format == *format_it) { any_match = true; break; }
+                                    }
+                                    if (any_match)
+                                    {
+                                        for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
+                                        {
+                                            if (it->format == *format_it) ++it;
+                                            else it = ctx.m_era_items.erase(it);
+                                        }
+                                    }
                                     break;
                                 }
                             }

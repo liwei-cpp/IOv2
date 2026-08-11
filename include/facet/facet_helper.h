@@ -4,6 +4,7 @@
  * facet 实现层共用的内部辅助工具集。
  *
  * 本文件提供以下辅助函数，供各 facet 具体实现（如 `numpunct`、`moneypunct` 等）内部使用：
+ * - `is_c_locale_name`：判断区域设置名称是否指代 C/POSIX 区域设置。
  * - `string_to_char_convert`：将窄字符串的首字符转换为 `char`，用于读取 `lconv` /
  *   `nl_langinfo()` 中表示单个用户可见字符的字段。
  * - `string_to_widechar_convert`：将窄字符串的首字符转换为宽字符 `CharT`，适用场景同上。
@@ -17,6 +18,7 @@
  *
  * This file provides the following helper functions for use by concrete facet
  * implementations (e.g. `numpunct`, `moneypunct`):
+ * - `is_c_locale_name`: Tests whether a locale name designates the C/POSIX locale.
  * - `string_to_char_convert`: Converts the first character of a narrow string to
  *   `char`, for reading `lconv` / `nl_langinfo()` fields that represent a single
  *   user-visible character.
@@ -45,11 +47,81 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 
 namespace IOv2::FacetHelper
 {
+    /**
+     * @lang{ZH}
+     * 判断区域设置名称 `name` 是否指代 C/POSIX 区域设置。
+     *
+     * POSIX 区域设置名称的形式为 `language[_territory][.codeset][@modifier]`。
+     * `"C.UTF-8"`、`"C.utf8"`、`"C.UTF-8@euro"` 等拼写与 `"C"` 指代同一个区域设置，
+     * 但精确比较无法识别它们：codeset 段在查表前会被规范化（去除非字母数字字符后转为
+     * 小写），因此可接受的拼写不构成有限集合。本函数改为截取 `.` 与 `@` 之前的语言段
+     * 再比较。语言段本身区分大小写（`"c"`、`"posix"` 均非合法名称），故不作大小写折叠。
+     *
+     * 光比较语言段还不够：`"C.BOGUS"`、`"C@euro"`、`"POSIX.utf8"` 的语言段都是 `C`/`POSIX`，
+     * 而 `newlocale()` 并不接受它们。语言段匹配之后因此还要用 `clocale_wrapper` 探测一次，
+     * 名称无法实例化就抛。校验放在这里而不是留给调用方的常规路径，是为了不依赖"每条常规
+     * 路径都会自行构造 `clocale_wrapper`"这一隐含前提。`"C"` 与 `"POSIX"` 由标准保证存在，
+     * 直接短路，无须探测；语言段不匹配的名称（如 `"en_US.BOGUS"`）不归本函数认领，一律
+     * 返回 `false` 而不探测。
+     * @endif
+     *
+     * @lang{EN}
+     * Determine whether the locale name `name` designates the C/POSIX locale.
+     *
+     * POSIX locale names have the form `language[_territory][.codeset][@modifier]`.
+     * Spellings such as `"C.UTF-8"`, `"C.utf8"` and `"C.UTF-8@euro"` designate the
+     * same locale as `"C"`, but an exact comparison cannot recognize them: the
+     * codeset segment is normalized before lookup (non-alphanumeric characters
+     * stripped, then lowercased), so the set of accepted spellings is not finite.
+     * This function compares the language segment — the part preceding `.` and `@`
+     * — instead. That segment is itself case-sensitive (neither `"c"` nor
+     * `"posix"` is a valid name), so no case folding is applied.
+     *
+     * Comparing the language segment alone is not enough: `"C.BOGUS"`, `"C@euro"` and
+     * `"POSIX.utf8"` all have a `C`/`POSIX` language segment, yet `newlocale()` rejects
+     * them. A matching segment is therefore followed by a `clocale_wrapper` probe, which
+     * throws if the name cannot be instantiated. Validating here rather than leaving it to
+     * the caller's regular path avoids depending on the implicit premise that every such
+     * path constructs a `clocale_wrapper` of its own. `"C"` and `"POSIX"` are guaranteed to
+     * exist by the standard and short-circuit without a probe; names whose language segment
+     * does not match (say `"en_US.BOGUS"`) are not this function's to claim and return
+     * `false` without being probed.
+     * @endif
+     *
+     * @param name
+     * @lang{ZH} 待检查的区域设置名称。 @endif
+     * @lang{EN} The locale name to test. @endif
+     *
+     * @return
+     * @lang{ZH} 若 `name` 的语言段为 `"C"` 或 `"POSIX"` 则返回 `true`，否则返回 `false`。 @endif
+     * @lang{EN} `true` if the language segment of `name` is `"C"` or `"POSIX"`, `false`
+     *           otherwise. @endif
+     *
+     * @throw cvt_error
+     * @lang{ZH} 语言段为 `"C"` 或 `"POSIX"`，但 `newlocale()` 无法实例化该名称。 @endif
+     * @lang{EN} The language segment is `"C"` or `"POSIX"` but `newlocale()` cannot
+     *           instantiate the name. @endif
+     */
+    inline bool is_c_locale_name(const std::string& name)
+    {
+        if ((name == "C") || (name == "POSIX"))
+            return true;
+
+        const std::string_view head =
+            std::string_view(name).substr(0, name.find_first_of(".@"));
+        if ((head != "C") && (head != "POSIX"))
+            return false;
+
+        clocale_wrapper probe(name.c_str());
+        return true;
+    }
+
     /**
      * @lang{ZH}
      * 将（可能是多字节的）窄字符串 `narrow` 的第一个字符转换为给定 locale 下的 `char`，
