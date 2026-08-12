@@ -429,6 +429,7 @@ template <typename TChar>
 struct io_traits<TChar, ws_t>
 {
     template <istream_type T>
+        requires (std::is_same_v<typename T::char_type, TChar>)
     static void sread(T& is, const ws_t&)
     {
         std::lock_guard guard(is.io_mutex());

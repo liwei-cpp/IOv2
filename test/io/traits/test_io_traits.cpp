@@ -106,9 +106,25 @@ static_assert( !extracts_literal_zero<is_c> );     // ambiguous: two equal-rank 
 static_assert( !extracts_literal_nullptr<is_c> );  // exact match on the deleted overload
 
 // The manipulator overload itself is untouched: a function pointer, and a function lvalue that
-// decays to one, both still reach it.
+// decays to one, both still reach it, in either direction.
 static_assert(  extractable_lvalue<is_c, void (*)(IOv2::ios_base<char>&)> );
 static_assert(  extractable_lvalue<is_c, void (IOv2::ios_base<char>&)> );
+static_assert(  insertable<os_c, void (*)(IOv2::ios_base<char>&)> );
+static_assert(  insertable<os_c, void (IOv2::ios_base<char>&)> );
+
+// A function pointer with any other signature has nowhere to go: io_traits' pointer specialization
+// excludes pointees that are functions, so a manipulator written with its argument list left off is
+// a compile error rather than the `1` a boolean conversion would have printed. Spelled as an
+// expression as well as a type, for the same reason as the null-pointer literals above.
+template <typename S> concept inserts_bare_setw = requires (S& s) { s << IOv2::setw; };
+static_assert( !inserts_bare_setw<os_c> );
+static_assert( !insertable<os_c, decltype(IOv2::setw)>  );
+static_assert( !insertable<os_c, decltype(&IOv2::setw)> );
+static_assert( !insertable<os_c, int (*)(double)> );
+
+// Only pointees that are functions were taken out; object pointers keep the address path.
+static_assert(  insertable<os_c, const void*> );
+static_assert(  insertable<os_c, int*> );
 
 // The two-way manipulators work in both directions.
 static_assert(  insertable<os_c, IOv2::setw_t> && extractable_rvalue<is_c, IOv2::setw_t> );
@@ -174,6 +190,41 @@ static_assert( IOv2::is_ostreambuf_iterator<typename ios_c::out_iter_type> );
 static_assert( IOv2::is_istreambuf_iterator<typename ios_c::in_iter_type>  );
 static_assert( std::is_same_v<typename os_c::out_iter_type::value_type, char> );
 static_assert( std::is_same_v<typename is_c::in_iter_type::value_type, char>  );
+
+// ---------------------------------------------------------------------------------------------
+// 8. The stream form ties TChar to the stream's char_type.
+//
+// The iterator form has always tied TChar to the iterator's value_type (arithmetic.h). The stream
+// form left the two unrelated, so an explicitly qualified call could pair a wide key with a narrow
+// stream -- unreachable through the operators, which always instantiate with T::char_type, but
+// reachable by hand and answered at run time (strfailbit) rather than at compile time.
+// ---------------------------------------------------------------------------------------------
+template <typename TChar, typename S, typename V>
+concept swrites_as = requires (S& s, const V& v) { IOv2::io_traits<TChar, V>::swrite(s, v); };
+
+template <typename TChar, typename S, typename V>
+concept sreads_as = requires (S& s, const V& v) { IOv2::io_traits<TChar, V>::sread(s, v); };
+
+// The two that read TChar: endl widens through ctype<TChar>, ends writes a TChar().
+static_assert(  swrites_as<char,    os_c, IOv2::endl_t>  );
+static_assert( !swrites_as<wchar_t, os_c, IOv2::endl_t>  );
+static_assert(  swrites_as<wchar_t, os_w, IOv2::endl_t>  );
+static_assert(  swrites_as<char,    os_c, IOv2::ends_t>  );
+static_assert( !swrites_as<wchar_t, os_c, IOv2::ends_t>  );
+
+// The rest never name TChar, so the mismatch was inert; they are constrained for symmetry.
+static_assert(  swrites_as<char,    os_c, IOv2::flush_t> );
+static_assert( !swrites_as<wchar_t, os_c, IOv2::flush_t> );
+static_assert(  sreads_as <char,    is_c, IOv2::ws_t>    );
+static_assert( !sreads_as <wchar_t, is_c, IOv2::ws_t>    );
+static_assert(  swrites_as<char,    os_c, IOv2::setw_t>  );
+static_assert( !swrites_as<wchar_t, os_c, IOv2::setw_t>  );
+static_assert(  sreads_as <char,    is_c, IOv2::setw_t>  );
+static_assert( !sreads_as <wchar_t, is_c, IOv2::setw_t>  );
+
+// setfill already tied T::char_type to TFill; TChar is now tied too, so all three must agree.
+static_assert(  swrites_as<char,    os_c, IOv2::setfill_t<char>> );
+static_assert( !swrites_as<wchar_t, os_c, IOv2::setfill_t<char>> );
 }
 
 void test_io_traits()

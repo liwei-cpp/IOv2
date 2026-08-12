@@ -66,7 +66,7 @@ void test_ostream_inserters_character_wchar_t_2()
         T oss02{IOv2::mem_device{L""}};
         oss02.width(5);
         oss02.fill(L'0');
-        oss02.flags(std::ios_base::left);
+        oss02.flags(IOv2::ios_defs::left);
         oss02 << str02;
         auto [dev02, err02] = oss02.detach();
         VERIFY(dev02.str() == L"10000");
@@ -75,7 +75,7 @@ void test_ostream_inserters_character_wchar_t_2()
         T oss03{IOv2::mem_device{L""}};
         oss03.width(5);
         oss03.fill(L'0');
-        oss03.flags(std::ios_base::left);
+        oss03.flags(IOv2::ios_defs::left);
         oss03 << str03;
         auto [dev03, err03] = oss03.detach();
         VERIFY(dev03.str() == L"909909");
@@ -106,7 +106,7 @@ void test_ostream_inserters_character_wchar_t_3()
         T oss02{IOv2::mem_device{L""}};
         oss02.width(5);
         oss02.fill(L'0');
-        oss02.flags(std::ios_base::right);
+        oss02.flags(IOv2::ios_defs::right);
         oss02 << str02;
         auto [dev05, err05] = oss02.detach();
         VERIFY(dev05.str() == L"00001");
@@ -115,7 +115,7 @@ void test_ostream_inserters_character_wchar_t_3()
         T oss03{IOv2::mem_device{L""}};
         oss03.width(5);
         oss03.fill(L'0');
-        oss03.flags(std::ios_base::right);
+        oss03.flags(IOv2::ios_defs::right);
         oss03 << str03;
         auto [dev06, err06] = oss03.detach();
         VERIFY(dev06.str() == L"909909");

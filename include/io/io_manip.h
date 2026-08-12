@@ -169,9 +169,11 @@ template <typename TChar>
 struct io_traits<TChar, resetiosflags_t>
 {
     template <ostream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void swrite(T& s, const resetiosflags_t& f) { s.setf(ios_defs::fmtflags(0), f.m_mask); }
 
     template <istream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void sread(T& s, const resetiosflags_t& f) { s.setf(ios_defs::fmtflags(0), f.m_mask); }
 };
 
@@ -215,9 +217,11 @@ template <typename TChar>
 struct io_traits<TChar, setiosflags_t>
 {
     template <ostream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void swrite(T& s, const setiosflags_t& f) { s.setf(f.m_mask); }
 
     template <istream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void sread(T& s, const setiosflags_t& f) { s.setf(f.m_mask); }
 };
 
@@ -274,9 +278,11 @@ template <typename TChar>
 struct io_traits<TChar, setbase_t>
 {
     template <ostream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void swrite(T& s, const setbase_t& f) { apply(s, f); }
 
     template <istream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void sread(T& s, const setbase_t& f) { apply(s, f); }
 
 private:
@@ -353,11 +359,13 @@ template <typename TChar, typename TFill>
 struct io_traits<TChar, setfill_t<TFill>>
 {
     template <ostream_type T>
-        requires std::same_as<typename T::char_type, TFill>
+        requires (std::same_as<typename T::char_type, TFill> &&
+                  std::same_as<typename T::char_type, TChar>)
     static void swrite(T& s, const setfill_t<TFill>& f) { s.fill(f.m_c); }
 
     template <istream_type T>
-        requires std::same_as<typename T::char_type, TFill>
+        requires (std::same_as<typename T::char_type, TFill> &&
+                  std::same_as<typename T::char_type, TChar>)
     static void sread(T& s, const setfill_t<TFill>& f) { s.fill(f.m_c); }
 };
 
@@ -429,9 +437,11 @@ template <typename TChar>
 struct io_traits<TChar, setprecision_t>
 {
     template <ostream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void swrite(T& s, const setprecision_t& f) { apply(s, f); }
 
     template <istream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void sread(T& s, const setprecision_t& f) { apply(s, f); }
 
 private:
@@ -529,9 +539,11 @@ template <typename TChar>
 struct io_traits<TChar, setw_t>
 {
     template <ostream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void swrite(T& s, const setw_t& f) { apply(s, f); }
 
     template <istream_type T>
+        requires std::same_as<typename T::char_type, TChar>
     static void sread(T& s, const setw_t& f) { apply(s, f); }
 
 private:
