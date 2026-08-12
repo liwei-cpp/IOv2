@@ -9,6 +9,7 @@ void test_ostream_inserters_arithmetic_char_8();
 void test_ostream_inserters_arithmetic_char_9();
 void test_ostream_inserters_arithmetic_char_10();
 void test_ostream_inserters_arithmetic_char_11();
+void test_ostream_inserters_arithmetic_char_12();
 
 void test_ostream_inserters_arithmetic_wchar_t_1();
 void test_ostream_inserters_arithmetic_wchar_t_2();
@@ -21,6 +22,7 @@ void test_ostream_inserters_arithmetic_wchar_t_8();
 void test_ostream_inserters_arithmetic_wchar_t_9();
 void test_ostream_inserters_arithmetic_wchar_t_10();
 void test_ostream_inserters_arithmetic_wchar_t_11();
+void test_ostream_inserters_arithmetic_wchar_t_12();
 
 void test_ostream_inserters_arithmetic()
 {
@@ -35,6 +37,7 @@ void test_ostream_inserters_arithmetic()
     test_ostream_inserters_arithmetic_char_9();
     test_ostream_inserters_arithmetic_char_10();
     test_ostream_inserters_arithmetic_char_11();
+    test_ostream_inserters_arithmetic_char_12();
 
     test_ostream_inserters_arithmetic_wchar_t_1();
     test_ostream_inserters_arithmetic_wchar_t_2();
@@ -47,4 +50,5 @@ void test_ostream_inserters_arithmetic()
     test_ostream_inserters_arithmetic_wchar_t_9();
     test_ostream_inserters_arithmetic_wchar_t_10();
     test_ostream_inserters_arithmetic_wchar_t_11();
+    test_ostream_inserters_arithmetic_wchar_t_12();
 }

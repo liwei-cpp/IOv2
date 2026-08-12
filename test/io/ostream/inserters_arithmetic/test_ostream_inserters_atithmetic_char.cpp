@@ -496,3 +496,42 @@ void test_ostream_inserters_arithmetic_char_11()
 
     dump_info("Done\n");
 }
+void test_ostream_inserters_arithmetic_char_12()
+{
+    dump_info("Test ostream<char> operator<< (arithmetic) case 12...");
+
+    auto helper = []<template <typename, typename> class T>
+    {
+        int    ia[3] = {1, 2, 3};
+        double da[2] = {1.0, 2.0};
+        char   ca[4] = "abc";
+
+        T os(IOv2::mem_device{""});
+        os << ia;
+        auto [dev19, err19] = os.detach();
+
+        T os2(IOv2::mem_device{""});
+        os2 << static_cast<const void*>(ia);
+        auto [dev20, err20] = os2.detach();
+        VERIFY(dev19.str() == dev20.str());
+
+        T os3(IOv2::mem_device{""});
+        os3 << da;
+        auto [dev21, err21] = os3.detach();
+
+        T os4(IOv2::mem_device{""});
+        os4 << static_cast<const void*>(da);
+        auto [dev22, err22] = os4.detach();
+        VERIFY(dev21.str() == dev22.str());
+
+        T os5(IOv2::mem_device{""});
+        os5 << ca;
+        auto [dev23, err23] = os5.detach();
+        VERIFY(dev23.str() == "abc");
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

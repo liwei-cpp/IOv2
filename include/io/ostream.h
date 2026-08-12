@@ -463,6 +463,7 @@ template <typename TChar>
 struct io_traits<TChar, endl_t>
 {
     template <ostream_type T>
+        requires (std::is_same_v<typename T::char_type, TChar>)
     static void swrite(T& os, const endl_t&)
     {
         std::lock_guard guard(os.io_mutex());
@@ -517,6 +518,7 @@ template <typename TChar>
 struct io_traits<TChar, ends_t>
 {
     template <ostream_type T>
+        requires (std::is_same_v<typename T::char_type, TChar>)
     static void swrite(T& os, const ends_t&) { os.put(TChar()); }
 };
 
@@ -555,6 +557,7 @@ template <typename TChar>
 struct io_traits<TChar, flush_t>
 {
     template <ostream_type T>
+        requires (std::is_same_v<typename T::char_type, TChar>)
     static void swrite(T& os, const flush_t&) { os.flush(); }
 };
 

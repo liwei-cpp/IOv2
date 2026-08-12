@@ -494,3 +494,42 @@ void test_ostream_inserters_arithmetic_wchar_t_11()
 
     dump_info("Done\n");
 }
+void test_ostream_inserters_arithmetic_wchar_t_12()
+{
+    dump_info("Test ostream<wchar_t> operator<< (arithmetic) case 12...");
+
+    auto helper = []<template <typename, typename> class T>
+    {
+        int     ia[3] = {1, 2, 3};
+        double  da[2] = {1.0, 2.0};
+        wchar_t wa[4] = L"abc";
+
+        T os(IOv2::mem_device{L""});
+        os << ia;
+        auto [dev19, err19] = os.detach();
+
+        T os2(IOv2::mem_device{L""});
+        os2 << static_cast<const void*>(ia);
+        auto [dev20, err20] = os2.detach();
+        VERIFY(dev19.str() == dev20.str());
+
+        T os3(IOv2::mem_device{L""});
+        os3 << da;
+        auto [dev21, err21] = os3.detach();
+
+        T os4(IOv2::mem_device{L""});
+        os4 << static_cast<const void*>(da);
+        auto [dev22, err22] = os4.detach();
+        VERIFY(dev21.str() == dev22.str());
+
+        T os5(IOv2::mem_device{L""});
+        os5 << wa;
+        auto [dev23, err23] = os5.detach();
+        VERIFY(dev23.str() == L"abc");
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}

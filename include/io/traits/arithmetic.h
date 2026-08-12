@@ -128,6 +128,10 @@ struct io_traits<TChar, TValue>
  *       `os << L"hi"` 打出 `0x...` 是个静默的错误答案，而流还是 `good()`。排除之后没有任何
  *       `io_traits` 匹配，`operator<<` 的约束不被满足、没有可行重载，于是编译不过——这是类模板
  *       能表达 `= delete` 的唯一方式。
+ * @note 指向函数的指针同样被排除，理由是同一条。它进不了 `numeric::put(const void*)`——对象指针
+ *       与函数指针之间没有隐式转换——只剩 `put(bool)` 可行，`os << setw`（漏写实参列表）于是打出
+ *       `1`,流仍是 `good()`。排除之后编译不过。用户自写的操纵符走
+ *       `operator<<(T&, void (*)(ios_base<TChar>&))` 那个专用重载，本来就不经过本特化。
  * @note 指向类型与流的 `char_type` 一致时（`wos << L"hi"`），`io_traits<TChar, const TChar*>`
  *       更特化，本特化本来就轮不到；这里的排除项只影响不一致的那些组合。
  * @note 名单里**没有** `char` / `signed char` / `unsigned char`，这不是遗漏。这三者的字符串
@@ -147,6 +151,13 @@ struct io_traits<TChar, TValue>
  *       stays `good()`. With them excluded no `io_traits` matches at all, `operator<<`'s
  *       constraint is not satisfied and no overload is viable, so it does not compile -- which is
  *       the only way a class template can express `= delete`.
+ * @note Pointers to functions are excluded for the same reason. One cannot reach
+ *       `numeric::put(const void*)` -- there is no implicit conversion between object pointers and
+ *       function pointers -- leaving `put(bool)` as the only viable candidate, so `os << setw`
+ *       with the argument list left off prints `1` while the stream stays `good()`. With them
+ *       excluded it does not compile. A user-written manipulator goes through the dedicated
+ *       `operator<<(T&, void (*)(ios_base<TChar>&))` overload and never reaches this
+ *       specialization.
  * @note When the pointee matches the stream's `char_type` (`wos << L"hi"`),
  *       `io_traits<TChar, const TChar*>` is more specialized and this specialization was never
  *       in the running; the exclusions only affect the mismatched combinations.
@@ -162,6 +173,7 @@ struct io_traits<TChar, TValue>
  */
 template <typename TChar, typename TValue>
     requires (std::is_pointer_v<TValue>
+              && !std::is_function_v<std::remove_pointer_t<TValue>>
               && !std::is_same_v<std::remove_cv_t<std::remove_pointer_t<TValue>>, wchar_t>
               && !std::is_same_v<std::remove_cv_t<std::remove_pointer_t<TValue>>, char8_t>
               && !std::is_same_v<std::remove_cv_t<std::remove_pointer_t<TValue>>, char16_t>

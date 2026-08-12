@@ -479,9 +479,9 @@ namespace detail
  *        `io_traits`, `swrite(stream, value)`.
  * @endif
  */
-template <typename T, typename TValue>
+template <typename T, typename TKey, typename TArg = TKey>
 concept insertable_with_stream = ostream_type<T> &&
-    requires(T& obj, const TValue& value) { io_traits<typename T::char_type, TValue>::swrite(obj, value); };
+    requires(T& obj, const TArg& value) { io_traits<typename T::char_type, TKey>::swrite(obj, value); };
 
 /**
  * @lang{ZH}
@@ -498,10 +498,10 @@ concept insertable_with_stream = ostream_type<T> &&
  *       call have to be the same expression, or the two can disagree.
  * @endif
  */
-template <typename T, typename TValue>
+template <typename T, typename TKey, typename TArg = TKey>
 concept insertable_with_iter = ostream_type<T> &&
-    requires(T& obj, typename T::out_iter_type& iter, const TValue& value)
-    { io_traits<typename T::char_type, TValue>::swrite(iter, obj, obj.locale(), value); };
+    requires(T& obj, typename T::out_iter_type& iter, const TArg& value)
+    { io_traits<typename T::char_type, TKey>::swrite(iter, obj, obj.locale(), value); };
 
 /**
  * @lang{ZH}
@@ -526,9 +526,9 @@ template <typename T, typename TValue>
 concept insertable =
     ostream_type<T> &&
     (insertable_with_stream<T, TValue> ||
-     insertable_with_stream<T, std::decay_t<TValue>> ||
+     insertable_with_stream<T, std::decay_t<const TValue&>, TValue> ||
      insertable_with_iter<T, TValue> ||
-     insertable_with_iter<T, std::decay_t<TValue>>);
+     insertable_with_iter<T, std::decay_t<const TValue&>, TValue>);
 }
 
 /**
@@ -765,12 +765,12 @@ private:
  *
  * 本运算符是插入侧**唯一**的入口。它在 `if constexpr` 里挑出可用的通道：流形式
  * `swrite(stream, value)`（操纵符）与迭代器形式 `swrite(iter, io, loc, value)`（格式化输出）；
- * 每种形式内先试 `TValue`，不成再试 `std::decay_t<TValue>`（数组实参经此退化成指针，函数名退化
+ * 每种形式内先试 `TValue`，不成再试 `std::decay_t<const TValue&>`（数组实参经此退化成指针，函数名退化
  * 成函数指针）。
  *
  * @note 同一个 `io_traits` 特化**只能提供其中一种形式**的 `swrite`：两种都提供会撞上本函数体
  *       开头的 `static_assert`。形式内部则保证不衰退的 `TValue` 优先于
- *       `std::decay_t<TValue>`。
+ *       `std::decay_t<const TValue&>`。
  * @note 本运算符由 `detail::insertable` 约束，而**函数体内的分派复用同一组概念**，因此
  *       `requires { os << x; }` 与运算符实际选中的通道永远一致——泛型代码（日志、序列化、
  *       调试打印）可以直接探测可流式性，不必知道底下是哪一种形式。链末尾那个 `else` 因此
@@ -803,12 +803,12 @@ private:
  * This is the **only** entry point on the insertion side. An `if constexpr` chain picks whichever
  * channel is usable: the stream form `swrite(stream, value)` (manipulators) or the iterator form
  * `swrite(iter, io, loc, value)` (formatted output). Within each form `TValue` is tried first and
- * `std::decay_t<TValue>` second -- that is where array arguments decay to pointers and function
+ * `std::decay_t<const TValue&>` second -- that is where array arguments decay to pointers and function
  * names to function pointers.
  *
  * @note One `io_traits` specialization may provide **only one of the two forms** of `swrite`:
  *       providing both hits the `static_assert` at the top of this function body. Within a form,
- *       the undecayed `TValue` is guaranteed to win over `std::decay_t<TValue>`.
+ *       the undecayed `TValue` is guaranteed to win over `std::decay_t<const TValue&>`.
  * @note This operator is constrained by `detail::insertable`, and the dispatch **inside the body
  *       reuses the same concepts**, so `requires { os << x; }` and the channel the operator
  *       actually picks can never disagree -- generic code (logging, serialization, debug
@@ -849,12 +849,12 @@ template <ostream_type T, typename TValue>
 T& operator<<(T& obj, const TValue& value)
 {
     using TChar  = typename T::char_type;
-    using TDecay = std::decay_t<TValue>;
+    using TDecay = std::decay_t<const TValue&>;
 
     constexpr bool stream_v = detail::insertable_with_stream<T, TValue>;
     constexpr bool iter_v   = detail::insertable_with_iter<T, TValue>;
-    constexpr bool stream_d = detail::insertable_with_stream<T, TDecay>;
-    constexpr bool iter_d   = detail::insertable_with_iter<T, TDecay>;
+    constexpr bool stream_d = detail::insertable_with_stream<T, TDecay, TValue>;
+    constexpr bool iter_d   = detail::insertable_with_iter<T, TDecay, TValue>;
 
     static_assert(!(stream_v && iter_v) && !(stream_d && iter_d),
         "IOv2: this io_traits specialization provides both forms of swrite() -- the stream form "

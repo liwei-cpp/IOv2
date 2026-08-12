@@ -1,7 +1,53 @@
+#include <cstdint>
 #include <string>
+#include <type_traits>
 #include <io/io_base.h>
+#include <io/io_manip.h>
 #include <support/dump_info.h>
 #include <support/verify.h>
+
+namespace
+{
+// ---------------------------------------------------------------------------------------------
+// fmtflags and iostate are two bitmask types, not two spellings of one integer.
+//
+// As typedefs for uint16_t/uint8_t they converted freely into each other and accepted any integer,
+// so setiosflags(strfailbit) -- a state bit handed to a formatting interface -- compiled and set
+// boolalpha, the two constants sharing bit 0. They are unscoped enums now, closed under the bitwise
+// operators; being unscoped, the conversion out to bool that `if (state & eofbit)` relies on is
+// unchanged.
+// ---------------------------------------------------------------------------------------------
+using fmt = IOv2::ios_defs::fmtflags;
+using ist = IOv2::ios_defs::iostate;
+
+template <typename T> concept setf_takes        = requires (IOv2::ios_state<char>& s, T v) { s.setf(v); };
+template <typename T> concept clear_takes       = requires (IOv2::ios_state<char>& s, T v) { s.clear(v); };
+template <typename T> concept setiosflags_takes = requires (T v) { IOv2::setiosflags(v); };
+
+static_assert(std::is_enum_v<fmt> && std::is_same_v<std::underlying_type_t<fmt>, std::uint16_t>);
+static_assert(std::is_enum_v<ist> && std::is_same_v<std::underlying_type_t<ist>, std::uint8_t>);
+
+// Unscoped, so the outward conversions the old typedefs allowed still hold.
+static_assert(std::is_convertible_v<fmt, bool>);
+static_assert(std::is_convertible_v<ist, unsigned>);
+
+// Nothing converts inward, and neither converts to the other.
+static_assert(!std::is_convertible_v<int, fmt> && !std::is_convertible_v<int, ist>);
+static_assert(!std::is_convertible_v<ist, fmt> && !std::is_convertible_v<fmt, ist>);
+
+static_assert( setf_takes<fmt>         && !setf_takes<ist>         && !setf_takes<int>);
+static_assert( clear_takes<ist>        && !clear_takes<fmt>        && !clear_takes<int>);
+static_assert( setiosflags_takes<fmt>  && !setiosflags_takes<ist>  && !setiosflags_takes<int>);
+
+// The operators keep a result in its own type, with the values the masks always had.
+static_assert(std::is_same_v<decltype(IOv2::ios_defs::left | IOv2::ios_defs::right), fmt>);
+static_assert(std::is_same_v<decltype(~IOv2::ios_defs::eofbit), ist>);
+static_assert((IOv2::ios_defs::left | IOv2::ios_defs::right | IOv2::ios_defs::internal)
+              == IOv2::ios_defs::adjustfield);
+static_assert((IOv2::ios_defs::adjustfield & ~IOv2::ios_defs::left)
+              == (IOv2::ios_defs::right | IOv2::ios_defs::internal));
+static_assert((IOv2::ios_defs::skipws | IOv2::ios_defs::dec) == fmt{0x1002});
+}
 
 void test_ios_state_1()
 {
@@ -319,6 +365,35 @@ void test_ios_state_unwinding_1()
     dump_info("Done\n");
 }
 
+void test_ios_state_bitmask_types_1()
+{
+    dump_info("Test ios_state bitmask types case 1...");
+
+    IOv2::ios_state<char> s;
+    VERIFY(s.flags() == (IOv2::ios_defs::skipws | IOv2::ios_defs::dec));
+    VERIFY(s.setf(IOv2::ios_defs::boolalpha) == (IOv2::ios_defs::skipws | IOv2::ios_defs::dec));
+    VERIFY(s.flags() == (IOv2::ios_defs::skipws | IOv2::ios_defs::dec | IOv2::ios_defs::boolalpha));
+
+    s.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
+    VERIFY((s.flags() & IOv2::ios_defs::basefield) == IOv2::ios_defs::hex);
+    s.unsetf(IOv2::ios_defs::boolalpha);
+    VERIFY(!(s.flags() & IOv2::ios_defs::boolalpha));
+    VERIFY(s.flags(IOv2::ios_defs::skipws) == (IOv2::ios_defs::skipws | IOv2::ios_defs::hex));
+    VERIFY(s.flags() == IOv2::ios_defs::skipws);
+
+    VERIFY(s.good());
+    s.setstate(IOv2::ios_defs::strfailbit | IOv2::ios_defs::eofbit);
+    VERIFY(s.rdstate() == (IOv2::ios_defs::strfailbit | IOv2::ios_defs::eofbit));
+    VERIFY(s.str_fail() && s.eof() && !s.good() && !static_cast<bool>(s));
+    s.unset_state(IOv2::ios_defs::strfailbit);
+    VERIFY(s.rdstate() == IOv2::ios_defs::eofbit);
+    VERIFY(static_cast<bool>(s));
+    s.clear();
+    VERIFY(s.good() && s.rdstate() == IOv2::ios_defs::goodbit);
+
+    dump_info("Done\n");
+}
+
 void test_ios_state()
 {
     test_ios_state_1();
@@ -326,4 +401,5 @@ void test_ios_state()
     test_ios_state_handle_exception_eof_1();
     test_ios_state_clear_exceptions_1();
     test_ios_state_unwinding_1();
+    test_ios_state_bitmask_types_1();
 }

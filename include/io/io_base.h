@@ -68,39 +68,84 @@ namespace ios_defs
      * @lang{ZH} 格式化标志的位掩码类型（16 位）。 @endif
      * @lang{EN} Bitmask type for the formatting flags (16 bits). @endif
      */
-    using fmtflags = std::uint16_t;
+    enum fmtflags : std::uint16_t
+    {
+        boolalpha   = 1L << 0,    ///< @lang{ZH} 以文本形式（`true`/`false`）而非数字形式表示布尔值。 @endif @lang{EN} Represent bool values as text (`true`/`false`) instead of numbers. @endif
+        dec         = 1L << 1,    ///< @lang{ZH} 整数以十进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in decimal (one of `basefield`). @endif
+        fixed       = 1L << 2,    ///< @lang{ZH} 浮点数以定点记法表示（`floatfield` 之一）。 @endif @lang{EN} Floating-point in fixed notation (one of `floatfield`). @endif
+        hex         = 1L << 3,    ///< @lang{ZH} 整数以十六进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in hexadecimal (one of `basefield`). @endif
+        internal    = 1L << 4,    ///< @lang{ZH} 在符号/进制前缀与数值之间填充（`adjustfield` 之一）。 @endif @lang{EN} Pad between the sign/base prefix and the value (one of `adjustfield`). @endif
+        left        = 1L << 5,    ///< @lang{ZH} 左对齐，在右侧填充（`adjustfield` 之一）。 @endif @lang{EN} Left-justify, padding on the right (one of `adjustfield`). @endif
+        oct         = 1L << 6,    ///< @lang{ZH} 整数以八进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in octal (one of `basefield`). @endif
+        right       = 1L << 7,    ///< @lang{ZH} 右对齐，在左侧填充（`adjustfield` 之一）。 @endif @lang{EN} Right-justify, padding on the left (one of `adjustfield`). @endif
+        scientific  = 1L << 8,    ///< @lang{ZH} 浮点数以科学记法表示（`floatfield` 之一）。 @endif @lang{EN} Floating-point in scientific notation (one of `floatfield`). @endif
+        showbase    = 1L << 9,    ///< @lang{ZH} 输出整数时显示进制前缀（如 `0x`、`0`）。 @endif @lang{EN} Show the numeric base prefix (e.g. `0x`, `0`) on integer output. @endif
+        showpoint   = 1L << 10,   ///< @lang{ZH} 浮点数输出总是显示小数点。 @endif @lang{EN} Always show the decimal point on floating-point output. @endif
+        showpos     = 1L << 11,   ///< @lang{ZH} 对非负数显示正号 `+`。 @endif @lang{EN} Show a leading `+` on non-negative numbers. @endif
+        skipws      = 1L << 12,   ///< @lang{ZH} 输入时跳过前导空白。 @endif @lang{EN} Skip leading whitespace on input. @endif
+        unitbuf     = 1L << 13,   ///< @lang{ZH} 每次输出操作后刷新缓冲区。 @endif @lang{EN} Flush the buffer after each output operation. @endif
+        uppercase   = 1L << 14,   ///< @lang{ZH} 在数值输出中使用大写字母（如 `0X`、`1E5`）。 @endif @lang{EN} Use uppercase letters in numeric output (e.g. `0X`, `1E5`). @endif
+        appmode     = 1L << 15,   ///< @lang{ZH} 追加模式标志（本库扩展）。 @endif @lang{EN} Append-mode flag (a library extension). @endif
+        adjustfield = left | right | internal,    ///< @lang{ZH} 对齐字段掩码：`left`、`right`、`internal`。 @endif @lang{EN} Adjustment field mask: `left`, `right`, `internal`. @endif
+        basefield   = dec | oct | hex,            ///< @lang{ZH} 整数进制字段掩码：`dec`、`oct`、`hex`。 @endif @lang{EN} Integer base field mask: `dec`, `oct`, `hex`. @endif
+        floatfield  = scientific | fixed,         ///< @lang{ZH} 浮点记法字段掩码：`scientific`、`fixed`。 @endif @lang{EN} Floating-point notation field mask: `scientific`, `fixed`. @endif
+    };
+
     /**
      * @lang{ZH} 流状态位的位掩码类型（8 位）。 @endif
      * @lang{EN} Bitmask type for the stream state bits (8 bits). @endif
      */
-    using iostate  = std::uint8_t;
+    enum iostate : std::uint8_t
+    {
+        goodbit       = 0,        ///< @lang{ZH} 无错误状态（所有状态位清零）。 @endif @lang{EN} No-error state (all state bits clear). @endif
+        eofbit        = 1L << 0,  ///< @lang{ZH} 已到达输入序列末尾。 @endif @lang{EN} End of the input sequence has been reached. @endif
+        devfailbit    = 1L << 1,  ///< @lang{ZH} 底层设备操作失败。 @endif @lang{EN} An underlying device operation failed. @endif
+        cvtfailbit    = 1L << 2,  ///< @lang{ZH} 字符编码转换失败。 @endif @lang{EN} A character-encoding conversion failed. @endif
+        strfailbit    = 1L << 3,  ///< @lang{ZH} 流层面的格式化/解析失败。 @endif @lang{EN} A stream-level formatting/parsing failure. @endif
+        otherfailbit  = 1L << 4,  ///< @lang{ZH} 其他（未归类）失败。 @endif @lang{EN} Some other (uncategorized) failure. @endif
+    };
 
-    constexpr static fmtflags boolalpha   = 1L << 0;    ///< @lang{ZH} 以文本形式（`true`/`false`）而非数字形式表示布尔值。 @endif @lang{EN} Represent bool values as text (`true`/`false`) instead of numbers. @endif
-    constexpr static fmtflags dec         = 1L << 1;    ///< @lang{ZH} 整数以十进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in decimal (one of `basefield`). @endif
-    constexpr static fmtflags fixed       = 1L << 2;    ///< @lang{ZH} 浮点数以定点记法表示（`floatfield` 之一）。 @endif @lang{EN} Floating-point in fixed notation (one of `floatfield`). @endif
-    constexpr static fmtflags hex         = 1L << 3;    ///< @lang{ZH} 整数以十六进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in hexadecimal (one of `basefield`). @endif
-    constexpr static fmtflags internal    = 1L << 4;    ///< @lang{ZH} 在符号/进制前缀与数值之间填充（`adjustfield` 之一）。 @endif @lang{EN} Pad between the sign/base prefix and the value (one of `adjustfield`). @endif
-    constexpr static fmtflags left        = 1L << 5;    ///< @lang{ZH} 左对齐，在右侧填充（`adjustfield` 之一）。 @endif @lang{EN} Left-justify, padding on the right (one of `adjustfield`). @endif
-    constexpr static fmtflags oct         = 1L << 6;    ///< @lang{ZH} 整数以八进制表示（`basefield` 之一）。 @endif @lang{EN} Integers in octal (one of `basefield`). @endif
-    constexpr static fmtflags right       = 1L << 7;    ///< @lang{ZH} 右对齐，在左侧填充（`adjustfield` 之一）。 @endif @lang{EN} Right-justify, padding on the left (one of `adjustfield`). @endif
-    constexpr static fmtflags scientific  = 1L << 8;    ///< @lang{ZH} 浮点数以科学记法表示（`floatfield` 之一）。 @endif @lang{EN} Floating-point in scientific notation (one of `floatfield`). @endif
-    constexpr static fmtflags showbase    = 1L << 9;    ///< @lang{ZH} 输出整数时显示进制前缀（如 `0x`、`0`）。 @endif @lang{EN} Show the numeric base prefix (e.g. `0x`, `0`) on integer output. @endif
-    constexpr static fmtflags showpoint   = 1L << 10;   ///< @lang{ZH} 浮点数输出总是显示小数点。 @endif @lang{EN} Always show the decimal point on floating-point output. @endif
-    constexpr static fmtflags showpos     = 1L << 11;   ///< @lang{ZH} 对非负数显示正号 `+`。 @endif @lang{EN} Show a leading `+` on non-negative numbers. @endif
-    constexpr static fmtflags skipws      = 1L << 12;   ///< @lang{ZH} 输入时跳过前导空白。 @endif @lang{EN} Skip leading whitespace on input. @endif
-    constexpr static fmtflags unitbuf     = 1L << 13;   ///< @lang{ZH} 每次输出操作后刷新缓冲区。 @endif @lang{EN} Flush the buffer after each output operation. @endif
-    constexpr static fmtflags uppercase   = 1L << 14;   ///< @lang{ZH} 在数值输出中使用大写字母（如 `0X`、`1E5`）。 @endif @lang{EN} Use uppercase letters in numeric output (e.g. `0X`, `1E5`). @endif
-    constexpr static fmtflags appmode     = 1L << 15;   ///< @lang{ZH} 追加模式标志（本库扩展）。 @endif @lang{EN} Append-mode flag (a library extension). @endif
-    constexpr static fmtflags adjustfield = left | right | internal;    ///< @lang{ZH} 对齐字段掩码：`left`、`right`、`internal`。 @endif @lang{EN} Adjustment field mask: `left`, `right`, `internal`. @endif
-    constexpr static fmtflags basefield   = dec | oct | hex;            ///< @lang{ZH} 整数进制字段掩码：`dec`、`oct`、`hex`。 @endif @lang{EN} Integer base field mask: `dec`, `oct`, `hex`. @endif
-    constexpr static fmtflags floatfield  = scientific | fixed;         ///< @lang{ZH} 浮点记法字段掩码：`scientific`、`fixed`。 @endif @lang{EN} Floating-point notation field mask: `scientific`, `fixed`. @endif
+    /**
+     * @lang{ZH}
+     * @brief `fmtflags` 与 `iostate` 的按位运算符，使二者成为闭合的位掩码类型。
+     *
+     * 两个枚举各自封闭：运算结果仍是同一枚举类型，故 `iostate` 的值无法流入接受
+     * `fmtflags` 的接口，反之亦然。二者均为不限定作用域枚举，因此 `if (state & eofbit)`
+     * 这类到 `bool` 的隐式转换与原先的整数 typedef 一致。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Bitwise operators for `fmtflags` and `iostate`, making each a closed bitmask type.
+     *
+     * The two enumerations are closed under these operators: a result keeps its own type, so
+     * an `iostate` value cannot reach an interface taking `fmtflags`, nor the other way round.
+     * Both are unscoped, so implicit conversion to `bool` -- as in `if (state & eofbit)` --
+     * still works exactly as it did with the integer typedefs.
+     * @endif
+     */
+    constexpr fmtflags operator|(fmtflags a, fmtflags b) noexcept
+    { return static_cast<fmtflags>(static_cast<std::uint16_t>(a) | static_cast<std::uint16_t>(b)); }
+    constexpr fmtflags operator&(fmtflags a, fmtflags b) noexcept
+    { return static_cast<fmtflags>(static_cast<std::uint16_t>(a) & static_cast<std::uint16_t>(b)); }
+    constexpr fmtflags operator^(fmtflags a, fmtflags b) noexcept
+    { return static_cast<fmtflags>(static_cast<std::uint16_t>(a) ^ static_cast<std::uint16_t>(b)); }
+    constexpr fmtflags operator~(fmtflags a) noexcept
+    { return static_cast<fmtflags>(~static_cast<std::uint16_t>(a)); }
+    constexpr fmtflags& operator|=(fmtflags& a, fmtflags b) noexcept { return a = a | b; }
+    constexpr fmtflags& operator&=(fmtflags& a, fmtflags b) noexcept { return a = a & b; }
+    constexpr fmtflags& operator^=(fmtflags& a, fmtflags b) noexcept { return a = a ^ b; }
 
-    constexpr static iostate goodbit        = 0;        ///< @lang{ZH} 无错误状态（所有状态位清零）。 @endif @lang{EN} No-error state (all state bits clear). @endif
-    constexpr static iostate eofbit         = 1L << 0;  ///< @lang{ZH} 已到达输入序列末尾。 @endif @lang{EN} End of the input sequence has been reached. @endif
-    constexpr static iostate devfailbit     = 1L << 1;  ///< @lang{ZH} 底层设备操作失败。 @endif @lang{EN} An underlying device operation failed. @endif
-    constexpr static iostate cvtfailbit     = 1L << 2;  ///< @lang{ZH} 字符编码转换失败。 @endif @lang{EN} A character-encoding conversion failed. @endif
-    constexpr static iostate strfailbit     = 1L << 3;  ///< @lang{ZH} 流层面的格式化/解析失败。 @endif @lang{EN} A stream-level formatting/parsing failure. @endif
-    constexpr static iostate otherfailbit   = 1L << 4;  ///< @lang{ZH} 其他（未归类）失败。 @endif @lang{EN} Some other (uncategorized) failure. @endif
+    constexpr iostate operator|(iostate a, iostate b) noexcept
+    { return static_cast<iostate>(static_cast<std::uint8_t>(a) | static_cast<std::uint8_t>(b)); }
+    constexpr iostate operator&(iostate a, iostate b) noexcept
+    { return static_cast<iostate>(static_cast<std::uint8_t>(a) & static_cast<std::uint8_t>(b)); }
+    constexpr iostate operator^(iostate a, iostate b) noexcept
+    { return static_cast<iostate>(static_cast<std::uint8_t>(a) ^ static_cast<std::uint8_t>(b)); }
+    constexpr iostate operator~(iostate a) noexcept
+    { return static_cast<iostate>(~static_cast<std::uint8_t>(a)); }
+    constexpr iostate& operator|=(iostate& a, iostate b) noexcept { return a = a | b; }
+    constexpr iostate& operator&=(iostate& a, iostate b) noexcept { return a = a & b; }
+    constexpr iostate& operator^=(iostate& a, iostate b) noexcept { return a = a ^ b; }
 
     constexpr static size_t max_pad_count   = size_t{1} << 16;  ///< @lang{ZH} 单次插入允许写出的填充字符数上限；`width()` 本身仍不设上限。 @endif @lang{EN} Upper bound on the number of fill characters one insertion may emit; `width()` itself stays unbounded. @endif
 };
@@ -247,7 +292,7 @@ public:
      * @lang{ZH} @brief 返回当前的格式化标志。 @endif
      * @lang{EN} @brief Returns the current formatting flags. @endif
      */
-    ios_defs::fmtflags flags() const { return m_flags.load(); }
+    ios_defs::fmtflags flags() const { return static_cast<ios_defs::fmtflags>(m_flags.load()); }
     /**
      * @lang{ZH}
      * @brief 将格式化标志整体替换为 `fmtfl`。
@@ -263,7 +308,7 @@ public:
      */
     ios_defs::fmtflags flags(ios_defs::fmtflags fmtfl)
     {
-      return m_flags.exchange(fmtfl);
+      return static_cast<ios_defs::fmtflags>(m_flags.exchange(fmtfl));
     }
 
     /**
@@ -281,7 +326,7 @@ public:
      */
     ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl)
     {
-      return m_flags.fetch_or(fmtfl);
+      return static_cast<ios_defs::fmtflags>(m_flags.fetch_or(fmtfl));
     }
 
     /**
@@ -307,11 +352,11 @@ public:
      */
     ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl, ios_defs::fmtflags msk)
     {
-      ios_defs::fmtflags old = m_flags.load();
+      std::uint16_t old = m_flags.load();
       while (!m_flags.compare_exchange_weak(
-                 old, static_cast<ios_defs::fmtflags>((old & ~msk) | (fmtfl & msk))))
+                 old, static_cast<std::uint16_t>((old & ~msk) | (fmtfl & msk))))
           ;
-      return old;
+      return static_cast<ios_defs::fmtflags>(old);
     }
 
     /**
@@ -326,7 +371,7 @@ public:
      * @endif
      */
     void unsetf(ios_defs::fmtflags msk)
-    { m_flags.fetch_and(static_cast<ios_defs::fmtflags>(~msk)); }
+    { m_flags.fetch_and(static_cast<std::uint16_t>(~msk)); }
 
     /**
      * @lang{ZH}
@@ -663,7 +708,7 @@ protected:
     }
 
 protected:
-    copyable_atomic<ios_defs::fmtflags> m_flags{ios_defs::skipws | ios_defs::dec};   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
+    copyable_atomic<std::uint16_t> m_flags{ios_defs::skipws | ios_defs::dec};   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
     copyable_atomic<std::uint8_t>       m_precision{6};     ///< @lang{ZH} 浮点精度，默认 6。 @endif @lang{EN} Floating-point precision, default 6. @endif
     copyable_atomic<size_t>             m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
     /**
@@ -775,7 +820,8 @@ struct ios_state : public ios_base<TChar>
      * @return The bitwise-or of the current `iostate` bits.
      * @endif
      */
-    [[nodiscard]] ios_defs::iostate rdstate() const { return m_stream_state.load(); }
+    [[nodiscard]] ios_defs::iostate rdstate() const
+    { return static_cast<ios_defs::iostate>(m_stream_state.load()); }
 
     /**
      * @lang{ZH}
@@ -993,7 +1039,7 @@ struct ios_state : public ios_base<TChar>
     {
         std::lock_guard guard(this->io_mutex());
         m_exception = e;
-        clear(m_stream_state.load());
+        clear(static_cast<ios_defs::iostate>(m_stream_state.load()));
     }
 
     /**
@@ -1145,7 +1191,7 @@ struct ios_state : public ios_base<TChar>
 
 private:
     ios_defs::iostate  m_exception = ios_defs::goodbit;      ///< @lang{ZH} 异常掩码：哪些状态位应触发异常。由 `ios_base::m_io_mutex` 保护。 @endif @lang{EN} Exception mask: which state bits should throw. Guarded by `ios_base::m_io_mutex`. @endif
-    copyable_atomic<ios_defs::iostate> m_stream_state{ios_defs::goodbit};   ///< @lang{ZH} 当前流状态位。原子量，使 `rdstate()` 及 `good()`/`eof()`/`operator bool` 等热路径无锁读取；其**写**仍与其余成员一同在 `io_mutex()` 下完成，故不变式不受影响。 @endif @lang{EN} Current stream state bits. Atomic so that `rdstate()` -- and the hot `good()`/`eof()`/`operator bool` built on it -- reads lock-free; **writes** still happen under `io_mutex()` together with the other members, so the invariant is unaffected. @endif
+    copyable_atomic<std::uint8_t> m_stream_state{ios_defs::goodbit};   ///< @lang{ZH} 当前流状态位。原子量，使 `rdstate()` 及 `good()`/`eof()`/`operator bool` 等热路径无锁读取；其**写**仍与其余成员一同在 `io_mutex()` 下完成，故不变式不受影响。 @endif @lang{EN} Current stream state bits. Atomic so that `rdstate()` -- and the hot `good()`/`eof()`/`operator bool` built on it -- reads lock-free; **writes** still happen under `io_mutex()` together with the other members, so the invariant is unaffected. @endif
     std::exception_ptr m_exp_dev_fail = std::exception_ptr{};    ///< @lang{ZH} 设备失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the device-failure category. @endif
     std::exception_ptr m_exp_cvt_fail = std::exception_ptr{};    ///< @lang{ZH} 转换失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the conversion-failure category. @endif
     std::exception_ptr m_exp_str_fail = std::exception_ptr{};    ///< @lang{ZH} 流失败类别保存的原始异常。 @endif @lang{EN} Original exception saved for the stream-failure category. @endif
