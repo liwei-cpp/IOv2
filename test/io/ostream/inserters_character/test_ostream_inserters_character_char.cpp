@@ -360,6 +360,21 @@ void test_ostream_inserters_character_char_9()
             auto [dev, err] = oss.detach();
             VERIFY(dev.str() == "    hi|");
         }
+        {
+            // A volatile key must land in the same specialization as the unqualified one. It used
+            // to reach the arithmetic io_traits instead -- is_arithmetic_v ignores cv while the
+            // exclusions on char / wchar_t / charN_t do not -- and every one of these came out as
+            // a number, with the stream still good().
+            volatile char          vc  = 'x';
+            volatile signed char   vsc = 'A';
+            volatile unsigned char vuc = 'B';
+
+            T oss{IOv2::mem_device{""}};
+            oss << vc << vsc << vuc;
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == "xAB");
+        }
     };
 
     helper.operator()<IOv2::ostream>();

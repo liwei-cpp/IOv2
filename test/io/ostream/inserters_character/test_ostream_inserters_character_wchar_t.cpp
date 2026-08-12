@@ -362,6 +362,21 @@ void test_ostream_inserters_character_wchar_t_9()
             auto [dev, err] = oss.detach();
             VERIFY(dev.str() == L"   hi|");
         }
+        {
+            // A volatile key must land in the same specialization as the unqualified one, which
+            // on a wide stream means the character types widen and signed / unsigned char stay
+            // numeric -- exactly the split pinned by the first two blocks above.
+            volatile char          vc  = 'A';
+            volatile wchar_t       vwc = L'B';
+            volatile signed char   vsc = 65;
+            volatile unsigned char vuc = 66;
+
+            T oss{IOv2::mem_device{std::wstring(L"")}};
+            oss << vc << vwc << vsc << L'-' << vuc;
+            VERIFY(oss.good());
+            auto [dev, err] = oss.detach();
+            VERIFY(dev.str() == L"AB65-66");
+        }
     };
 
     helper.operator()<IOv2::ostream>();

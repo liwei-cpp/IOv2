@@ -526,6 +526,53 @@ void test_ostream_inserters_arithmetic_wchar_t_12()
         os5 << wa;
         auto [dev23, err23] = os5.detach();
         VERIFY(dev23.str() == L"abc");
+
+        // A volatile pointee reaches the same address path. A qualification conversion can only
+        // add cv, so without the cast in swrite this would find only put(bool) and print "1" while
+        // the stream stayed good(). C++23 P1147R1 made std::ostream print the address here.
+        volatile int* via = ia;
+
+        T os6(IOv2::mem_device{L""});
+        os6 << via;
+        auto [dev24, err24] = os6.detach();
+        VERIFY(dev24.str() == dev20.str());
+
+        // ...and so does a volatile wchar_t*, even though the unqualified spelling right above is
+        // written as a string. Two passes over memory that can change between them cannot produce
+        // a string, and setw would need the length before the first character went out.
+        volatile wchar_t* vwa = wa;
+
+        T os7(IOv2::mem_device{L""});
+        os7 << wa;
+        auto [dev25, err25] = os7.detach();
+        VERIFY(dev25.str() == L"abc");
+
+        T os8(IOv2::mem_device{L""});
+        os8 << vwa;
+        auto [dev26, err26] = os8.detach();
+
+        T os9(IOv2::mem_device{L""});
+        os9 << static_cast<const void*>(wa);
+        auto [dev27, err27] = os9.detach();
+        VERIFY(dev26.str() == dev27.str());
+
+        // Top-level volatile is the other axis and must change nothing: it is dropped when the
+        // pointer is passed by value, so the standard still writes the characters. The pointer
+        // io_traits used to answer instead -- is_pointer_v ignores top-level cv while the string
+        // specializations do not -- and printed an address with the stream good().
+        wchar_t* volatile wpv = wa;
+        int* volatile     ipv = ia;
+
+        T os10(IOv2::mem_device{L""});
+        os10 << wpv;
+        VERIFY(os10.good());
+        auto [dev28, err28] = os10.detach();
+        VERIFY(dev28.str() == L"abc");
+
+        T os11(IOv2::mem_device{L""});
+        os11 << ipv;
+        auto [dev29, err29] = os11.detach();
+        VERIFY(dev29.str() == dev20.str());
     };
 
     helper.operator()<IOv2::ostream>();

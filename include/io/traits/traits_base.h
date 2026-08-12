@@ -35,9 +35,18 @@
  * **流形式**（操纵符用这一档；成员直接拿到流本身，**不加锁、不建哨兵**，需要就自己来——
  * `io_traits<TChar, ws_t>::sread` 就是自己加锁、自己构造哨兵、并自己 `catch` 的）：
  * ```cpp
- * template <ostream_type T> static void swrite(T& s, const MyType& v);
- * template <istream_type T> static void sread (T& s, const MyType& v);
+ * template <ostream_type T>
+ *     requires std::same_as<typename T::char_type, TChar>
+ * static void swrite(T& s, const MyType& v);
+ *
+ * template <istream_type T>
+ *     requires std::same_as<typename T::char_type, TChar>
+ * static void sread (T& s, const MyType& v);
  * ```
+ *
+ * 那条 `requires` 不能省：流类型是模板形参，不写它就与键的 `TChar` 无关，显式限定调用便能把宽键
+ * 配窄流。运算符走不到那里（它总是用 `T::char_type` 实例化），但手写调用够得着，于是本该编译期
+ * 报错的事落到运行期（`strfailbit`）。迭代器形式靠 `TIter::value_type` 那条约束达到同一效果。
  *
  * 两种形式靠**参数个数**区分，一个特化**只能提供其中一种**：两种都提供是编译错误，运算符会就地
  * `static_assert`。插入端还会把 `TValue` 衰退一次再试一遍（这样数组名能衰退成指针、函数名能衰退
@@ -132,9 +141,21 @@
  * lock and no sentry** -- do it yourself if you need one, as `io_traits<TChar, ws_t>::sread` does,
  * which takes the lock, builds the sentry and catches, all itself):
  * ```cpp
- * template <ostream_type T> static void swrite(T& s, const MyType& v);
- * template <istream_type T> static void sread (T& s, const MyType& v);
+ * template <ostream_type T>
+ *     requires std::same_as<typename T::char_type, TChar>
+ * static void swrite(T& s, const MyType& v);
+ *
+ * template <istream_type T>
+ *     requires std::same_as<typename T::char_type, TChar>
+ * static void sread (T& s, const MyType& v);
  * ```
+ *
+ * That `requires` is not optional: the stream is a template parameter, so without it nothing ties
+ * it to the key's `TChar` and an explicitly qualified call can pair a wide key with a narrow
+ * stream. The operators never get there -- they always instantiate with `T::char_type` -- but a
+ * hand-written call does, turning what should be a compile error into a run-time one
+ * (`strfailbit`). The iterator form achieves the same through its constraint on
+ * `TIter::value_type`.
  *
  * The two forms are told apart by **arity**, and a specialization may provide **only one of
  * them**: providing both is a compile error, diagnosed by a `static_assert` in the operator. The
