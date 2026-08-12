@@ -225,6 +225,91 @@ static_assert( !sreads_as <wchar_t, is_c, IOv2::setw_t>  );
 // setfill already tied T::char_type to TFill; TChar is now tied too, so all three must agree.
 static_assert(  swrites_as<char,    os_c, IOv2::setfill_t<char>> );
 static_assert( !swrites_as<wchar_t, os_c, IOv2::setfill_t<char>> );
+
+// ---------------------------------------------------------------------------------------------
+// 9. A key carrying top-level cv routes exactly like its unqualified spelling.
+//
+// operator<< deduces TValue from `const TValue&`, so top-level const can never reach io_traits --
+// only volatile can. The arithmetic specialization used to take it: is_arithmetic_v is
+// cv-insensitive while its !is_same_v<TValue, char> exclusions are not, so a volatile character
+// type slipped past every exclusion and came out as a number, and `volatile wchar_t` reached a
+// narrow stream at all. That specialization now declines any key with top-level cv and lets the
+// operator's decayed rung re-run the whole partial ordering, which is the only thing that can
+// reproduce the answer given for the unqualified key -- an exclusion list cannot, because the
+// explicit specializations in char_and_str.h win by partial ordering and are deliberately not on
+// it (see the note at the top of arithmetic.h).
+// ---------------------------------------------------------------------------------------------
+// Class types are rejected outright, by a different mechanism than the scalars below and matching
+// what std::ostream does: the decayed rung finds the right specialization, but binding a volatile
+// class lvalue to the member's `const MyType&` would drop the volatile and is ill-formed. A scalar
+// escapes that because lvalue-to-rvalue conversion reads it once into a temporary; a class object
+// would have to be read member by member, which is the same multi-pass problem the pointer rows
+// below describe. The `const volatile` spellings are not a separate path -- `operator<<` deduces
+// from `const TValue&`, so they arrive as plain `volatile`.
+static_assert( !insertable<os_c, volatile IOv2::setw_t> );
+static_assert( !insertable<os_c, volatile IOv2::setfill_t<char>> );
+static_assert( !insertable<os_c, const volatile IOv2::endl_t> );
+static_assert( !insertable<os_c, volatile std::string> );
+static_assert( !insertable<os_c, const volatile std::string> );
+static_assert(  insertable<os_c, std::tm> );
+static_assert( !insertable<os_c, volatile std::tm> );
+static_assert( !insertable<os_c, const volatile std::tm> );
+
+// The char-type isolation of section 3 holds under volatile too. It did not before: the wide
+// character types were reaching the arithmetic specialization and being written as numbers.
+static_assert( !insertable<os_c, volatile wchar_t>  );
+static_assert( !insertable<os_c, volatile char16_t> );
+static_assert(  insertable<os_w, volatile char>     );
+
+// Scalars do go through, because lvalue-to-rvalue conversion strips the volatile and materializes
+// a temporary for the member's `const TValue&`. Which specialization they land in has to be the
+// one the unqualified key lands in -- char_and_str.h for the character types, arithmetic.h for the
+// rest -- so `volatile char` writes a character and `volatile signed char` writes a number.
+static_assert(  insertable<os_c, volatile char>          );
+static_assert(  insertable<os_c, volatile signed char>   );
+static_assert(  insertable<os_c, volatile unsigned char> );
+static_assert(  insertable<os_c, volatile int>           );
+static_assert(  insertable<os_c, volatile bool>          );
+static_assert(  insertable<os_c, int* volatile>          );
+
+// A volatile pointee is the one place cv on the *pointee* changes the answer, and it changes it
+// the other way: the pointer specialization's exclusion list keys on remove_const_t, so a volatile
+// character pointer is not treated as a string pointer and takes the address path. Printing the
+// string would need two passes -- find the terminator, then copy -- over memory that may change
+// between them, and setw needs the length before the first character is written, so the two cannot
+// be folded into one. The pointer value is not itself volatile, so printing it reads nothing.
+// Only these four rows moved; the unqualified and const-qualified spellings are untouched.
+static_assert(  insertable<os_w, wchar_t*>                );  // string path, as before
+static_assert(  insertable<os_w, const wchar_t*>          );  // string path, as before
+static_assert( !insertable<os_c, const wchar_t*>          );  // still the deleted overload
+static_assert( !insertable<os_w, char16_t*>               );  // still the deleted overload
+static_assert(  insertable<os_w, volatile wchar_t*>       );  // address path -- was uninsertable
+static_assert(  insertable<os_w, const volatile wchar_t*> );
+static_assert(  insertable<os_c, volatile wchar_t*>       );
+static_assert(  insertable<os_w, volatile char16_t*>      );
+
+// Top-level cv on a pointer key is the other axis, and the pointer specialization declines it for
+// the same reason the arithmetic one does: is_pointer_v ignores top-level cv while the string
+// specializations in char_and_str.h do not, so `char* volatile` was answered with an address where
+// the unqualified `char*` gives the contents. What that costs is invisible to `insertable` -- both
+// spellings were and remain insertable, only the specialization answering them changes -- so the
+// character rows are pinned at run time in test_ostream_inserters_arithmetic_char case 12. What is
+// checkable here is that nothing lost its answer on the way, and that the deleted overloads still
+// survive the decayed rung.
+static_assert(  insertable<os_c, char* volatile>           );
+static_assert(  insertable<os_c, const char* volatile>     );
+static_assert(  insertable<os_c, signed char* volatile>    );
+static_assert(  insertable<os_c, unsigned char* volatile>  );
+static_assert(  insertable<os_c, void* volatile>           );
+static_assert(  insertable<os_w, wchar_t* volatile>        );
+static_assert( !insertable<os_c, wchar_t* volatile>        );
+static_assert( !insertable<os_c, const wchar_t* volatile>  );
+static_assert( !insertable<os_w, char16_t* volatile>       );
+
+// The extraction side has never taken a volatile target, matching the standard, which provides no
+// `operator>>` for one either.
+static_assert( !extractable_lvalue<is_c, volatile int>   );
+static_assert( !extractable_lvalue<is_c, volatile void*> );
 }
 
 void test_io_traits()

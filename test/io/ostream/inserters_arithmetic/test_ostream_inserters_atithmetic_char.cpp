@@ -528,6 +528,45 @@ void test_ostream_inserters_arithmetic_char_12()
         os5 << ca;
         auto [dev23, err23] = os5.detach();
         VERIFY(dev23.str() == "abc");
+
+        // A volatile pointee reaches the same address path. A qualification conversion can only
+        // add cv, so without the cast in swrite these would find only put(bool) and print "1"
+        // while the stream stayed good(). C++23 P1147R1 made std::ostream print the address here.
+        volatile int*  via = ia;
+        volatile char* vca = ca;
+
+        T os6(IOv2::mem_device{""});
+        os6 << via;
+        auto [dev24, err24] = os6.detach();
+        VERIFY(dev24.str() == dev20.str());
+
+        T os7(IOv2::mem_device{""});
+        os7 << vca;
+        auto [dev25, err25] = os7.detach();
+
+        T os8(IOv2::mem_device{""});
+        os8 << static_cast<const void*>(ca);
+        auto [dev26, err26] = os8.detach();
+        VERIFY(dev25.str() == dev26.str());
+
+        // Top-level volatile is the other axis and must change nothing: it is dropped when the
+        // pointer is passed by value, so the standard still writes the characters. The pointer
+        // io_traits used to answer instead -- is_pointer_v ignores top-level cv while the string
+        // specializations do not -- and printed an address with the stream good().
+        char* volatile       cpv = ca;
+        const char* volatile ccpv = ca;
+        int* volatile        ipv = ia;
+
+        T os9(IOv2::mem_device{""});
+        os9 << cpv << '/' << ccpv;
+        VERIFY(os9.good());
+        auto [dev27, err27] = os9.detach();
+        VERIFY(dev27.str() == "abc/abc");
+
+        T os10(IOv2::mem_device{""});
+        os10 << ipv;
+        auto [dev28, err28] = os10.detach();
+        VERIFY(dev28.str() == dev20.str());
     };
 
     helper.operator()<IOv2::ostream>();
