@@ -25,7 +25,7 @@ var classIOv2_1_1ios__base =
     [ "xalloc", "classIOv2_1_1ios__base.html#a587b07bd36583ba90a2bf063f5b59028", null ],
     [ "m_callbacks", "classIOv2_1_1ios__base.html#a2a7f2df7df55299255aee6af1fde9746", null ],
     [ "m_fill", "classIOv2_1_1ios__base.html#addcbee9bd77937bc86be006dc3ba6207", null ],
-    [ "m_flags", "classIOv2_1_1ios__base.html#a09110e3b35bdac1a3035831a0079fcfb", null ],
+    [ "m_flags", "classIOv2_1_1ios__base.html#a6e84f85d85b0ec531c21404ad795fd9b", null ],
     [ "m_io_mutex", "classIOv2_1_1ios__base.html#ad85e04e2b06caf7847eb22fbf6ea8a91", null ],
     [ "m_precision", "classIOv2_1_1ios__base.html#acde5e32929a1700b0969e1da4a7ef0a9", null ],
     [ "m_pwords", "classIOv2_1_1ios__base.html#a699d0fd9502ae5772970e7f6b4803c97", null ],

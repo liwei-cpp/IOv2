@@ -1,4 +1,9 @@
 var searchData=
 [
-  ['value_0',['value',['../structIOv2_1_1cpt__cvt__pipe__creator__helper.html#a0366041ef4c8912f9f695d9547cce26a',1,'IOv2::cpt_cvt_pipe_creator_helper::value'],['../structIOv2_1_1cpt__cvt__pipe__creator__helper_3_01cvt__pipe__creator_3_01T_8_8_8_01_4_01_4.html#a60f54934b0cf471fdd01f7674d235e77',1,'IOv2::cpt_cvt_pipe_creator_helper&lt; cvt_pipe_creator&lt; T... &gt; &gt;::value'],['../structIOv2_1_1is__mem__device__impl.html#aeac38ca388c28691cd8be8791b52174e',1,'IOv2::is_mem_device_impl::value'],['../structIOv2_1_1is__mem__device__impl_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_01_4.html#a3314aa2558d224dd8d4183b3b3082985',1,'IOv2::is_mem_device_impl&lt; mem_device&lt; CharT, Traits, Allocator &gt; &gt;::value'],['../structIOv2_1_1is__in__sentry__impl.html#a1a7301a607fe9e36e36ec8f5121a24be',1,'IOv2::is_in_sentry_impl::value'],['../structIOv2_1_1is__in__sentry__impl_3_01in__sentry_3_01TStream_00_01involve__output_01_4_01_4.html#a669da5ff9e4ab3ed57f8ef7fa14bbf86',1,'IOv2::is_in_sentry_impl&lt; in_sentry&lt; TStream, involve_output &gt; &gt;::value'],['../structIOv2_1_1is__out__sentry__impl.html#a16a0dba8c97b72938986f5c32be895a1',1,'IOv2::is_out_sentry_impl::value'],['../structIOv2_1_1is__out__sentry__impl_3_01out__sentry_3_01TStream_00_01involve__input_00_01is__std_01_4_01_4.html#a76a1f9db80e3963388a9546741ba2832',1,'IOv2::is_out_sentry_impl&lt; out_sentry&lt; TStream, involve_input, is_std &gt; &gt;::value']]]
+  ['wcerr_0',['wcerr',['../namespaceIOv2.html#abe4d0cd9111233940065a427bac23413',1,'IOv2']]],
+  ['wchar_5ft_5fis_5futf32_1',['wchar_t_is_utf32',['../namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523',1,'IOv2']]],
+  ['wcin_2',['wcin',['../namespaceIOv2.html#ac616b0d4e435e3ec086c9298b778e858',1,'IOv2']]],
+  ['wclog_3',['wclog',['../namespaceIOv2.html#a4dd1077c4e549888709cb89332ba18ff',1,'IOv2']]],
+  ['wcout_4',['wcout',['../namespaceIOv2.html#a821cdca20e6c3e84855cecb0d3f2cbce',1,'IOv2']]],
+  ['ws_5',['ws',['../namespaceIOv2.html#acf808d12ab0d83facf8beade807de602',1,'IOv2']]]
 ];

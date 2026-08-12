@@ -103,23 +103,25 @@ $(document).ready(function(){initNavTree('structIOv2_1_1io__traits_3_01TChar_00_
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a6aed1e49ee1ccdfd8b5aff3bcaf14d54" id="r_a6aed1e49ee1ccdfd8b5aff3bcaf14d54"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; </td></tr>
-<tr class="memitem:a6aed1e49ee1ccdfd8b5aff3bcaf14d54"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01ends__t_01_4.html#a6aed1e49ee1ccdfd8b5aff3bcaf14d54">swrite</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1ends__t.html">ends_t</a> &amp;)</td></tr>
-<tr class="separator:a6aed1e49ee1ccdfd8b5aff3bcaf14d54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35568ac4de15c6728af907893c9623f5" id="r_a35568ac4de15c6728af907893c9623f5"><td class="memTemplParams" colspan="2">template&lt;ostream_type T&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
+<tr class="memitem:a35568ac4de15c6728af907893c9623f5"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01ends__t_01_4.html#a35568ac4de15c6728af907893c9623f5">swrite</a> (T &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">os</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1ends__t.html">ends_t</a> &amp;)</td></tr>
+<tr class="separator:a35568ac4de15c6728af907893c9623f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;<br />
 struct IOv2::io_traits&lt; TChar, ends_t &gt;</div><p>Extension-point specialization for <code>ends</code>: provides only <code>swrite</code>, which writes a null character (<code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar()</a></code>) without forcing a flush. See <code><a class="el" href="structIOv2_1_1io__traits.html" title="The extension point that attaches read/write logic for a TChar stream to a type T....">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1endl__t.html" title="The manipulator object that writes a newline and flushes the stream, used as os &lt;&lt; IOv2::endl; its ty...">endl_t</a>&gt;</code> for why the direction is expressed this way. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="a6aed1e49ee1ccdfd8b5aff3bcaf14d54" name="a6aed1e49ee1ccdfd8b5aff3bcaf14d54"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6aed1e49ee1ccdfd8b5aff3bcaf14d54">&#9670;&#160;</a></span>swrite()</h2>
+<a id="a35568ac4de15c6728af907893c9623f5" name="a35568ac4de15c6728af907893c9623f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35568ac4de15c6728af907893c9623f5">&#9670;&#160;</a></span>swrite()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
 template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
 <div class="memtemplate">
-template&lt;ostream_type T&gt; </div>
+template&lt;ostream_type T&gt; <br />
+requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> T::char_type, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">

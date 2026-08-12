@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['trunc_0',['trunc',['../namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1ade5010661a527a7f3565e98f672eb896',1,'IOv2']]]
+  ['hex_0',['hex',['../namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4caec98fc5c20113fb4c7cf1f118e4331b1',1,'IOv2::ios_defs']]]
 ];

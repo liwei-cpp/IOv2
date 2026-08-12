@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['md5_0',['MD5',['../namespaceIOv2_1_1Crypt.html#ac448d23bf350eb1b1ca37a4b6e162d83a7f138a09169b250e9dcb378140907378',1,'IOv2::Crypt']]]
+  ['dec_0',['dec',['../namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4cad08d4ff3b5596f98796af5ebc3e3df6f',1,'IOv2::ios_defs']]],
+  ['devfailbit_1',['devfailbit',['../namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0a095f9b166ca56980269fd1e17e0acb4d',1,'IOv2::ios_defs']]]
 ];

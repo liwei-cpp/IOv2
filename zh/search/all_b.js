@@ -1,7 +1,7 @@
 var searchData=
 [
   ['lang_0',['lang',['../structIOv2_1_1detail_1_1msg__key.html#af1439d706fa399086ac2144e6a09b163',1,'IOv2::detail::msg_key']]],
-  ['left_1',['left',['../group__ios__manipulators.html#ga583e939dc20bb613178fe3fe2c1eb85b',1,'IOv2::left()'],['../namespaceIOv2_1_1ios__defs.html#abe097e64e1d3068bbfe63436c39e4f99',1,'IOv2::ios_defs::left']]],
+  ['left_1',['left',['../group__ios__manipulators.html#ga583e939dc20bb613178fe3fe2c1eb85b',1,'IOv2::left()'],['../namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4ca4326661631232da10f68559a6f7bc34d',1,'IOv2::ios_defs::left']]],
   ['load_2',['load',['../classIOv2_1_1copyable__atomic.html#ad211b134f83805be3761cd9f2693ad4d',1,'IOv2::copyable_atomic']]],
   ['locale_3',['locale',['../classIOv2_1_1locale.html',1,'IOv2::locale&lt; TChar &gt;'],['../structIOv2_1_1stream__common__operators.html#a67a28c951c0e1b520f7b144c301a6378',1,'IOv2::stream_common_operators::locale(this const TSelf &amp;self)'],['../structIOv2_1_1stream__common__operators.html#a474b6849f87d21e5745c2770f814b9d5',1,'IOv2::stream_common_operators::locale(this TSelf &amp;self, IOv2::locale&lt; TChar &gt; loc)'],['../classIOv2_1_1locale.html#aaf34ba217f75cb35f0f669f774fdd1c2',1,'IOv2::locale::locale(const std::string &amp;name=&quot;&quot;)'],['../classIOv2_1_1locale.html#a7b711197706932a597adebb9e83b49ce',1,'IOv2::locale::locale(const locale &amp;val)'],['../classIOv2_1_1locale.html#aee822e700ac27152fc989de281271d15',1,'IOv2::locale::locale(locale &amp;&amp;val) noexcept']]],
   ['locale_2eh_4',['locale.h',['../locale_8h.html',1,'']]],

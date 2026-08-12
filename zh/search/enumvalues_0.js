@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['binary_0',['binary',['../namespaceIOv2_1_1Crypt.html#ab610e7b924b9ef49d590172e82226a81a9d7183f16acce70658f686ae7f1a4d20',1,'IOv2::Crypt::binary'],['../namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1a9d7183f16acce70658f686ae7f1a4d20',1,'IOv2::binary']]]
+  ['adjustfield_0',['adjustfield',['../namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4cabbf53ec02285015eccc252b82ea82444',1,'IOv2::ios_defs']]],
+  ['appmode_1',['appmode',['../namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4ca60b5e59cba23f13e469d2ca1c39c5e5c',1,'IOv2::ios_defs']]]
 ];
