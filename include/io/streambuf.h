@@ -337,7 +337,7 @@ public:
      * @note In bidirectional mode it first switches to the input direction.
      * @endif
      */
-    size_t sgetn(char_type* s, size_t n, size_t* got = nullptr) requires (IsIn)
+    std::size_t sgetn(char_type* s, std::size_t n, std::size_t* got = nullptr) requires (IsIn)
     {
         if (got) *got = 0;
         if ((s == nullptr) || (n == 0)) return 0;
@@ -345,7 +345,7 @@ public:
         if constexpr (IsOut)
             switch_to_get();
 
-        size_t res = 0;
+        std::size_t res = 0;
         while (!m_read_buf.empty())
         {
             *s++ = m_read_buf.back();
@@ -356,7 +356,7 @@ public:
 
         while (res < n)
         {
-            size_t c = m_cvt.get(s, n - res);
+            std::size_t c = m_cvt.get(s, n - res);
             assert(c <= n - res);
             if (c == 0) break;
             res += c;
@@ -477,7 +477,7 @@ public:
      * switches to the output direction.
      * @endif
      */
-    void sputn(const char_type* s, size_t n) requires (IsOut)
+    void sputn(const char_type* s, std::size_t n) requires (IsOut)
     {
         if ((s == nullptr) || (n == 0)) return;
 
@@ -539,12 +539,12 @@ public:
      * size_t value.
      * @endif
      */
-    [[nodiscard]] size_t tell() const
+    [[nodiscard]] std::size_t tell() const
     {
         if constexpr (IsIn)
         {
-            const size_t res1 = m_cvt.tell();
-            const size_t res2 = m_read_buf.size();
+            const std::size_t res1 = m_cvt.tell();
+            const std::size_t res2 = m_read_buf.size();
             if (res1 < res2) return 0;
             return res1 - res2;
         }
@@ -566,7 +566,7 @@ public:
      * peeked/put-back characters).
      * @endif
      */
-    void seek(size_t pos)
+    void seek(std::size_t pos)
     {
         m_cvt.seek(pos);
         if constexpr (IsIn)
@@ -587,7 +587,7 @@ public:
      * peeked/put-back characters).
      * @endif
      */
-    void rseek(size_t pos)
+    void rseek(std::size_t pos)
     {
         m_cvt.rseek(pos);
         if constexpr (IsIn)
@@ -680,7 +680,7 @@ public:
         {
             try
             {
-                const size_t pos = tell();
+                const std::size_t pos = tell();
                 m_cvt.seek(pos);
             }
             catch (const cvt_error& e)
@@ -767,7 +767,7 @@ public:
                     // saturates at 0, so the device is handed back positioned at the
                     // stream origin. That is consistent with the logical read cursor
                     // being at 0; see tell()/sputbackc() and switch_to_put().
-                    const size_t pos = tell();
+                    const std::size_t pos = tell();
                     m_cvt.seek(pos);
                 }
                 catch (...) // NOLINT(bugprone-empty-catch)

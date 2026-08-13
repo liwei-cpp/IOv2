@@ -234,7 +234,7 @@ struct stream_common_operators
      * @endif
      */
     template <typename TSelf>
-    std::optional<size_t> tell(this TSelf& self)
+    std::optional<std::size_t> tell(this TSelf& self)
     {
         std::lock_guard guard(self.io_mutex());
         if (!static_cast<bool>(self))
@@ -271,7 +271,7 @@ struct stream_common_operators
      * @endif
      */
     template <typename TSelf>
-    TSelf& seek(this TSelf& self, size_t pos)
+    TSelf& seek(this TSelf& self, std::size_t pos)
     {
         std::lock_guard guard(self.io_mutex());
         try
@@ -307,7 +307,7 @@ struct stream_common_operators
      * @endif
      */
     template <typename TSelf>
-    TSelf& rseek(this TSelf& self, size_t pos)
+    TSelf& rseek(this TSelf& self, std::size_t pos)
     {
         std::lock_guard guard(self.io_mutex());
         try

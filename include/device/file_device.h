@@ -171,13 +171,13 @@ public:
         int64_t len = ftell_64(m_file.get());
         if (len < 0)
             throw device_error("cannot get file length for \"" + file_name + "\"");
-        else if (!std::in_range<size_t>(len))
+        else if (!std::in_range<std::size_t>(len))
             throw device_error("file too large for this platform");
 
         if (fseek_64(m_file.get(), 0, SEEK_SET) != 0)
             throw device_error("cannot reset the file for \"" + file_name + "\"");
 
-        m_file_len = static_cast<size_t>(len);
+        m_file_len = static_cast<std::size_t>(len);
     }
 
     /**
@@ -327,7 +327,7 @@ public:
      * @throw device_error If the file is not open, the buffer is null, or a read error occurs.
      * @endif
      */
-    size_t dget(CharType* s, size_t n)
+    std::size_t dget(CharType* s, std::size_t n)
         requires (IsIn)
     {
         if (n == 0) return 0;
@@ -336,7 +336,7 @@ public:
         if (!is_open())
             throw device_error("file_device::dget fail: file is closed");
 
-        size_t count = std::fread(s, sizeof(CharType), n, m_file.get());
+        std::size_t count = std::fread(s, sizeof(CharType), n, m_file.get());
         if (count < n && std::ferror(m_file.get()))
         {
             std::clearerr(m_file.get());
@@ -358,15 +358,15 @@ public:
      * @throw device_error If the file is not open or getting the position fails.
      * @endif
      */
-    [[nodiscard]] size_t dtell() const
+    [[nodiscard]] std::size_t dtell() const
     {
         if (!is_open())
             throw device_error("file_device::dtell fail: file is closed");
 
         auto res = ftell_64(m_file.get());
-        if (!std::in_range<size_t>(res))
+        if (!std::in_range<std::size_t>(res))
             throw device_error("file_device::dtell fail: got invalid position");
-        return static_cast<size_t>(res);
+        return static_cast<std::size_t>(res);
     }
 
     /**
@@ -382,7 +382,7 @@ public:
      * @throw device_error If the file is not open.
      * @endif
      */
-    [[nodiscard]] size_t dsize() const
+    [[nodiscard]] std::size_t dsize() const
     {
         if (!is_open())
             throw device_error("file_device::dsize fail: file is closed");
@@ -402,7 +402,7 @@ public:
      * @throw device_error If the file is not open or seeking fails.
      * @endif
      */
-    void dseek(size_t v)
+    void dseek(std::size_t v)
     {
         if (!is_open())
             throw device_error("file_device::dseek fail: file is closed");
@@ -436,12 +436,12 @@ public:
      * @throw device_error If the file is not open or seeking fails.
      * @endif
      */
-    void drseek(size_t offset)
+    void drseek(std::size_t offset)
     {
         if (!is_open())
             throw device_error("file_device::drseek fail: file is closed");
 
-        if ((offset > m_file_len) || (offset > static_cast<size_t>(std::numeric_limits<int64_t>::max())))
+        if ((offset > m_file_len) || (offset > static_cast<std::size_t>(std::numeric_limits<int64_t>::max())))
             throw device_error("file_device::drseek fail: invalid parameter");
 
         const int64_t l_off = -static_cast<int64_t>(offset);
@@ -465,7 +465,7 @@ public:
      * @throw device_error If the file is not open or writing fails.
      * @endif
      */
-    void dput(const CharType* ch, size_t n)
+    void dput(const CharType* ch, std::size_t n)
         requires (IsOut)
     {
         if (n == 0) return;
@@ -473,15 +473,15 @@ public:
             throw device_error("file_device::dput fail: null buffer");
         if (!is_open())
             throw device_error("file_device::dput fail: file is closed");
-        size_t written = std::fwrite(ch, sizeof(CharType), n, m_file.get());
+        std::size_t written = std::fwrite(ch, sizeof(CharType), n, m_file.get());
 
         auto res = ftell_64(m_file.get());
         if (res >= 0)
         {
-            if (!std::in_range<size_t>(res))
+            if (!std::in_range<std::size_t>(res))
                 throw device_error("file_device::dput fail: file size overflow");
-            if (static_cast<size_t>(res) > m_file_len)
-                m_file_len = static_cast<size_t>(res);
+            if (static_cast<std::size_t>(res) > m_file_len)
+                m_file_len = static_cast<std::size_t>(res);
         }
         else
             throw device_error("file_device::dput fail: cannot determine file position");
@@ -606,7 +606,7 @@ private:
     // `drseek()` safe: any `offset <= m_file_len` fits in `int64_t`'s
     // positive range, so the negation cannot overflow. Do not introduce
     // setters or alternate sources that bypass the `int64_t`-derived path.
-    size_t m_file_len = 0;
+    std::size_t m_file_len = 0;
 };
 
 /**

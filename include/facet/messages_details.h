@@ -27,6 +27,7 @@
 
 #include <array>
 #include <bit>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -533,7 +534,7 @@ protected:
         std::uint64_t total_str_bytes = 0;
         std::vector<char8_t> str_buf;
         std::vector<std::u8string> oris;
-        for (size_t i = 0; i < str_num; ++i)
+        for (std::size_t i = 0; i < str_num; ++i)
         {
             auto length = read_num(buff.data(), need_swap);
             auto offset = read_num(buff.data(), need_swap);
@@ -545,8 +546,8 @@ protected:
             total_str_bytes += length;
             if (total_str_bytes > static_cast<std::uint64_t>(file_size))
                 throw stream_error("get_translate_dictionary fail: total string bytes exceed file size");
-            if (str_buf.size() < static_cast<size_t>(length) + 1)
-                str_buf.resize(static_cast<size_t>(length) + 1);
+            if (str_buf.size() < static_cast<std::size_t>(length) + 1)
+                str_buf.resize(static_cast<std::size_t>(length) + 1);
 
             if (std::fseek(fp, offset, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");
@@ -565,7 +566,7 @@ protected:
             throw stream_error("get_translate_dictionary fail: invalid format");
         std::unordered_map<std::u8string, std::u8string> res;
 
-        for (size_t i = 0; i < str_num; ++i)
+        for (std::size_t i = 0; i < str_num; ++i)
         {
             auto length = read_num(buff.data(), need_swap);
             auto offset = read_num(buff.data(), need_swap);
@@ -577,8 +578,8 @@ protected:
             total_str_bytes += length;
             if (total_str_bytes > static_cast<std::uint64_t>(file_size))
                 throw stream_error("get_translate_dictionary fail: total string bytes exceed file size");
-            if (str_buf.size() < static_cast<size_t>(length) + 1)
-                str_buf.resize(static_cast<size_t>(length) + 1);
+            if (str_buf.size() < static_cast<std::size_t>(length) + 1)
+                str_buf.resize(static_cast<std::size_t>(length) + 1);
 
             if (std::fseek(fp, offset, SEEK_SET) != 0)
                 throw stream_error("get_translate_dictionary fail: invalid format");

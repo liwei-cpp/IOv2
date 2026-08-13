@@ -258,11 +258,11 @@ struct codecvt_kernel<char, TInt>
         if (std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::out_helper fail: invalid pointer range");
         clocale_user guard(m_inter_locale);
-        if (static_cast<size_t>(to_end - to) < m_epc) // NOLINT(modernize-use-integer-sign-comparison)
+        if (static_cast<std::size_t>(to_end - to) < m_epc) // NOLINT(modernize-use-integer-sign-comparison)
             return false;
 
-        const size_t conv = std::wcrtomb(to, ch, &m_state);
-        if (conv == static_cast<size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
+        const std::size_t conv = std::wcrtomb(to, ch, &m_state);
+        if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
         {
             init_state();  // Reset to known state per C standard
             return false;
@@ -310,23 +310,23 @@ struct codecvt_kernel<char, TInt>
      *       subtractions below require same-object provenance per [expr.add]/5.
      * @endif
      */
-    std::pair<bool, size_t> in_helper(const char*& from, const char* from_end,
+    std::pair<bool, std::size_t> in_helper(const char*& from, const char* from_end,
                                       TInt*& to, TInt* to_end)
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
             throw cvt_error("codecvt_kernel::in_helper fail: invalid pointer range");
         clocale_user guard(m_inter_locale);
         wchar_t wch = 0;
-        size_t i_count = 0;
+        std::size_t i_count = 0;
 
-        const size_t to_max = to_end - to;
+        const std::size_t to_max = to_end - to;
         while (from < from_end && (i_count < to_max))
         {
             auto tmp_state = m_state;
-            size_t conv = mbrtowc(&wch, from, from_end - from, &tmp_state);
-            if (conv == static_cast<size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
+            std::size_t conv = mbrtowc(&wch, from, from_end - from, &tmp_state);
+            if (conv == static_cast<std::size_t>(-1)) // NOLINT(modernize-use-integer-sign-comparison)
                 return std::pair{false, i_count};
-            else if (conv == static_cast<size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
+            else if (conv == static_cast<std::size_t>(-2)) // NOLINT(modernize-use-integer-sign-comparison)
             {
                 from = from_end;
                 m_state = tmp_state;
@@ -336,8 +336,8 @@ struct codecvt_kernel<char, TInt>
             {
                 // Find the actual byte length of the null character encoding
                 // before writing to output buffer to ensure consistency
-                size_t n = 1;
-                const auto max_n = static_cast<size_t>(from_end - from);
+                std::size_t n = 1;
+                const auto max_n = static_cast<std::size_t>(from_end - from);
                 for (; n <= max_n; ++n)
                 {
                     auto tmp_state2(m_state);
@@ -588,7 +588,7 @@ struct codecvt_kernel<char8_t, TInt>
      *       subtractions below require same-object provenance per [expr.add]/5.
      * @endif
      */
-    std::pair<bool, size_t> in_helper(const char8_t*& from, const char8_t* from_end,
+    std::pair<bool, std::size_t> in_helper(const char8_t*& from, const char8_t* from_end,
                                       TInt*& to, TInt* to_end)
     {
         if (std::greater<>{}(from, from_end) || std::greater<>{}(to, to_end)) [[unlikely]]
@@ -606,13 +606,13 @@ struct codecvt_kernel<char8_t, TInt>
             else if (c1 < 0xE0U)
             {
                 if (c1 < 0xC0U) [[unlikely]]
-                    return std::pair{false, static_cast<size_t>(to - ori_to)};
+                    return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 if (from_end - from < 2) break;
                 auto c2 = static_cast<uint32_t>(from[1]);
                 if ((c2 & 0xC0U) != 0x80U) [[unlikely]]
-                    return std::pair{false, static_cast<size_t>(to - ori_to)};
+                    return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 auto c = (c1 << 6) + c2 - 0x3080U;
-                if (c < 0x80U) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                if (c < 0x80U) return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 *to++ = c;
                 from += 2;
             }
@@ -622,11 +622,11 @@ struct codecvt_kernel<char8_t, TInt>
                 auto c2 = static_cast<uint32_t>(from[1]);
                 auto c3 = static_cast<uint32_t>(from[2]);
                 if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U)) [[unlikely]]
-                    return std::pair{false, static_cast<size_t>(to - ori_to)};
+                    return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 auto c = (c1 << 12) + (c2 << 6) + c3 - 0xE2080U;
-                if (c < 0x800U) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                if (c < 0x800U) return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 if (c >= 0xD800U && c <= 0xDFFFU) [[unlikely]]
-                    return std::pair{false, static_cast<size_t>(to - ori_to)};
+                    return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 *to++ = c;
                 from += 3;
             }
@@ -637,17 +637,17 @@ struct codecvt_kernel<char8_t, TInt>
                 auto c3 = static_cast<uint32_t>(from[2]);
                 auto c4 = static_cast<uint32_t>(from[3]);
                 if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U) || ((c4 & 0xC0U) != 0x80U)) [[unlikely]]
-                    return std::pair{false, static_cast<size_t>(to - ori_to)};
+                    return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 auto c = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4 - 0x3C82080U;
-                if (c < 0x10000U || c > 0x10FFFFU) return std::pair{false, static_cast<size_t>(to - ori_to)};
+                if (c < 0x10000U || c > 0x10FFFFU) return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 *to++ = c;
                 from += 4;
             }
             else
-                return std::pair{false, static_cast<size_t>(to - ori_to)};
+                return std::pair{false, static_cast<std::size_t>(to - ori_to)};
         }
 
-        return std::pair{true, static_cast<size_t>(to - ori_to)};
+        return std::pair{true, static_cast<std::size_t>(to - ori_to)};
     }
 };
 
@@ -694,9 +694,9 @@ public:
 
 private:
     /// 内部字符与外部字节的大小比（用于缓冲区计算）/ Size ratio of internal to external type (for buffer sizing).
-    constexpr static size_t s_ie_ratio = sizeof(internal_type) / sizeof(external_type);
+    constexpr static std::size_t s_ie_ratio = sizeof(internal_type) / sizeof(external_type);
     /// 内部缓冲区最大大小 / Maximum size of the internal buffer.
-    constexpr static size_t s_max_buf_size = std::max<size_t>(MB_LEN_MAX * 16, s_ie_ratio);
+    constexpr static std::size_t s_max_buf_size = std::max<std::size_t>(MB_LEN_MAX * 16, s_ie_ratio);
 
     static_assert(sizeof(internal_type) >= sizeof(external_type));
     static_assert((sizeof(internal_type) % sizeof(external_type)) == 0);
@@ -872,12 +872,12 @@ private:
      * in sequence, updating the accumulated character count on success.
      * @endif
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
         writer.reset(s_max_buf_size);
-        const size_t buf_len = m_cvt_kernel.epc();
-        for (size_t i = 0; i < to_size; ++i)
+        const std::size_t buf_len = m_cvt_kernel.epc();
+        for (std::size_t i = 0; i < to_size; ++i)
         {
             external_type* out_beg = writer.put_buf(buf_len);
             external_type* out_next = out_beg;
@@ -911,17 +911,17 @@ private:
      * @return Number of internal characters actually read and decoded.
      * @endif
      */
-    size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
+    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
         if (to_max == 0) return 0;
         reader.reset(s_max_buf_size);
-        size_t total_size = 0;
+        std::size_t total_size = 0;
 
-        size_t prev_rollback = 0;
+        std::size_t prev_rollback = 0;
         while (total_size < to_max)
         {
-            size_t dest_size = std::min<size_t>(to_max - total_size, s_max_buf_size);
+            std::size_t dest_size = std::min<std::size_t>(to_max - total_size, s_max_buf_size);
             dest_size = std::max(dest_size, prev_rollback + 1);
 
             if (dest_size > s_max_buf_size) [[unlikely]]
@@ -1032,7 +1032,7 @@ private:
      * @return Number of internal characters processed.
      * @endif
      */
-    [[nodiscard]] size_t tell_impl() const
+    [[nodiscard]] std::size_t tell_impl() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         return m_accu_len;
@@ -1061,7 +1061,7 @@ private:
      *                   a byte-offset overflow in the underlying device.
      * @endif
      */
-    void seek_impl(size_t pos)
+    void seek_impl(std::size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         const bool needs_state_reset =
@@ -1071,7 +1071,7 @@ private:
             throw cvt_error("code_cvt::seek fail: cannot seek with dependent converter");
 
         const unsigned epc = m_cvt_kernel.epc();
-        if (pos > std::numeric_limits<size_t>::max() / epc)
+        if (pos > std::numeric_limits<std::size_t>::max() / epc)
             throw cvt_error("code_cvt::seek fail: position overflow");
 
         // Commit lower layer first. If it throws, this object is unchanged
@@ -1109,19 +1109,19 @@ private:
      *                   position overflows, or if the resulting device position is misaligned.
      * @endif
      */
-    void rseek_impl(size_t pos)
+    void rseek_impl(std::size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         if (m_cvt_kernel.is_var_length() || m_cvt_kernel.is_state_dep())
             throw cvt_error("code_cvt::rseek fail: cannot seek with dependent converter");
 
         const unsigned epc = m_cvt_kernel.epc();
-        if (pos > std::numeric_limits<size_t>::max() / epc)
+        if (pos > std::numeric_limits<std::size_t>::max() / epc)
             throw cvt_error("code_cvt::rseek fail: position overflow");
 
-        const size_t saved_dev_pos = BT::m_kernel.tell();
+        const std::size_t saved_dev_pos = BT::m_kernel.tell();
         BT::m_kernel.rseek(pos * epc);
-        const size_t new_dev_pos = BT::m_kernel.tell();
+        const std::size_t new_dev_pos = BT::m_kernel.tell();
 
         if (new_dev_pos % epc != 0)
         {
@@ -1166,7 +1166,7 @@ protected:
     codecvt_kernel<external_type, internal_type> m_cvt_kernel; ///< 编码转换内核实例 / Encoding conversion kernel instance.
 
 private:
-    size_t m_accu_len = 0; ///< 已处理的内部字符总数（逻辑位置）/ Total internal characters processed (logical position).
+    std::size_t m_accu_len = 0; ///< 已处理的内部字符总数（逻辑位置）/ Total internal characters processed (logical position).
 };
 
 /**

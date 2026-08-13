@@ -135,18 +135,18 @@ public:
     virtual void main_cont_beg() = 0;
 
     /// @lang{ZH} 从转换器读取至多 `to_max` 个元素，返回实际读取数量。 @endif @lang{EN} Read up to `to_max` elements from the converter; return the number actually read. @endif
-    virtual size_t get(internal_type* to, size_t to_max) = 0;
+    virtual std::size_t get(internal_type* to, std::size_t to_max) = 0;
     /// @lang{ZH} 向转换器写入 `to_size` 个元素。 @endif @lang{EN} Write `to_size` elements into the converter. @endif
-    virtual void put(const internal_type* to, size_t to_size) = 0;
+    virtual void put(const internal_type* to, std::size_t to_size) = 0;
     /// @lang{ZH} 将所有缓冲数据刷出转换器。 @endif @lang{EN} Flush all buffered data out of the converter. @endif
     virtual void flush() = 0;
 
     /// @lang{ZH} 返回当前流位置。 @endif @lang{EN} Return the current stream position. @endif
-    [[nodiscard]] virtual size_t tell() const = 0;
+    [[nodiscard]] virtual std::size_t tell() const = 0;
     /// @lang{ZH} 将流定位到指定绝对位置。 @endif @lang{EN} Seek the stream to the specified absolute position. @endif
-    virtual void seek(size_t pos) = 0;
+    virtual void seek(std::size_t pos) = 0;
     /// @lang{ZH} 将流定位到指定相对位置。 @endif @lang{EN} Seek the stream to the specified relative position. @endif
-    virtual void rseek(size_t pos) = 0;
+    virtual void rseek(std::size_t pos) = 0;
     /// @lang{ZH} 切换至输入（读取）模式。 @endif @lang{EN} Switch to input (reading) mode. @endif
     virtual void switch_to_get() = 0;
     /// @lang{ZH} 切换至输出（写入）模式。 @endif @lang{EN} Switch to output (writing) mode. @endif
@@ -304,7 +304,7 @@ public:
      * Throws `cvt_error` if the kernel does not support read operations; otherwise delegates to the kernel.
      * @endif
      */
-    size_t get(internal_type* to, size_t to_max) override
+    std::size_t get(internal_type* to, std::size_t to_max) override
     {
         if constexpr(!cvt_cpt::support_get<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support get");
@@ -321,7 +321,7 @@ public:
      * Throws `cvt_error` if the kernel does not support write operations; otherwise delegates to the kernel.
      * @endif
      */
-    void put(const internal_type* to, size_t to_size) override
+    void put(const internal_type* to, std::size_t to_size) override
     {
         if constexpr(!cvt_cpt::support_put<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support put");
@@ -355,7 +355,7 @@ public:
      * Throws `cvt_error` if the kernel does not support positioning; otherwise delegates to the kernel.
      * @endif
      */
-    [[nodiscard]] size_t tell() const override
+    [[nodiscard]] std::size_t tell() const override
     {
         if constexpr (!cvt_cpt::support_positioning<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support positioning");
@@ -372,7 +372,7 @@ public:
      * Throws `cvt_error` if the kernel does not support positioning; otherwise delegates to the kernel.
      * @endif
      */
-    void seek(size_t pos) override
+    void seek(std::size_t pos) override
     {
         if constexpr (!cvt_cpt::support_positioning<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support positioning");
@@ -389,7 +389,7 @@ public:
      * Throws `cvt_error` if the kernel does not support positioning; otherwise delegates to the kernel.
      * @endif
      */
-    void rseek(size_t pos) override
+    void rseek(std::size_t pos) override
     {
         if constexpr (!cvt_cpt::support_positioning<KernelType>)
             throw cvt_error("runtime_cvt fail: kernel does not support positioning");
@@ -650,7 +650,7 @@ public:
 
     /// @lang{ZH} 从转换器读取至多 `to_max` 个元素；若内部指针为空则抛出异常。 @endif
     /// @lang{EN} Read up to `to_max` elements from the converter; throws if the internal pointer is null. @endif
-    size_t get(internal_type* to, size_t to_max)
+    std::size_t get(internal_type* to, std::size_t to_max)
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->get(to, to_max);
@@ -658,7 +658,7 @@ public:
 
     /// @lang{ZH} 向转换器写入 `to_size` 个元素；若内部指针为空则抛出异常。 @endif
     /// @lang{EN} Write `to_size` elements into the converter; throws if the internal pointer is null. @endif
-    void put(const internal_type* to, size_t to_size)
+    void put(const internal_type* to, std::size_t to_size)
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->put(to, to_size);
@@ -674,7 +674,7 @@ public:
 
     /// @lang{ZH} 返回当前流位置；若内部指针为空则抛出异常。 @endif
     /// @lang{EN} Return the current stream position; throws if the internal pointer is null. @endif
-    [[nodiscard]] size_t tell() const
+    [[nodiscard]] std::size_t tell() const
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         return m_ptr->tell();
@@ -682,7 +682,7 @@ public:
 
     /// @lang{ZH} 将流定位到指定绝对位置；若内部指针为空则抛出异常。 @endif
     /// @lang{EN} Seek the stream to the specified absolute position; throws if the internal pointer is null. @endif
-    void seek(size_t pos)
+    void seek(std::size_t pos)
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         m_ptr->seek(pos);
@@ -690,7 +690,7 @@ public:
 
     /// @lang{ZH} 将流定位到指定相对位置；若内部指针为空则抛出异常。 @endif
     /// @lang{EN} Seek the stream to the specified relative position; throws if the internal pointer is null. @endif
-    void rseek(size_t pos)
+    void rseek(std::size_t pos)
     {
         if (!m_ptr) std::rethrow_exception(detail::runtime_cvt_null_err);
         m_ptr->rseek(pos);

@@ -164,7 +164,7 @@ public:
     static_assert(sizeof(external_type) == 1,
         "chacha20_cvt requires external_type (kernel's internal_type) to be 1 byte");
 
-    static constexpr size_t block_size = 64;
+    static constexpr std::size_t block_size = 64;
 
     static_assert(sizeof(TInt) <= block_size,
         "internal_type must fit within a single chacha20 block");
@@ -401,7 +401,7 @@ private:
         m_leftover.fill(0);
         m_leftover_len = 0;
 
-        const size_t iv_len = m_cipher->default_iv_length();
+        const std::size_t iv_len = m_cipher->default_iv_length();
         if (iv_len == 0)
             throw cvt_error("chacha20_cvt::bos fail: cipher reports zero IV length");
         std::vector<external_type> iv_buf(iv_len);
@@ -414,7 +414,7 @@ private:
                 // requested byte count, or throw an exception if insufficient data is
                 // available. The check below is purely defensive, verifying this
                 // invariant at runtime.
-                const size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
+                const std::size_t n = BT::m_kernel.get(iv_buf.data(), iv_len);
                 if (n != iv_len)
                     throw cvt_error("chacha20_cvt::bos fail: incomplete IV read");
 
@@ -507,20 +507,20 @@ private:
      * @return The number of elements actually decrypted into the user buffer.
      * @endif
      */
-    size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, size_t to_max)
+    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* _to, std::size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
         if (to_max == 0) return 0;
         if (!m_cipher)
             throw cvt_error("chacha20_cvt::get_main fail: cipher not initialized (moved-from object?)");
 
-        constexpr size_t isize = sizeof(internal_type);
-        constexpr size_t bulk_chunk = (block_size / isize) * isize;
+        constexpr std::size_t isize = sizeof(internal_type);
+        constexpr std::size_t bulk_chunk = (block_size / isize) * isize;
         static_assert(bulk_chunk >= isize,
             "block_size must accommodate at least one internal_type");
 
         auto* to = reinterpret_cast<uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-        size_t elements_delivered = 0;
+        std::size_t elements_delivered = 0;
 
         reader.reset(block_size);
 
@@ -530,7 +530,7 @@ private:
             {
                 // Splice path: finish the partial element carried over from a
                 // previous short read before consuming any new bulk data.
-                const size_t want = isize - m_leftover_len;
+                const std::size_t want = isize - m_leftover_len;
                 auto [ptr, cur_len] = reader.get_buf(want);
                 if (cur_len == 0) break;
                 std::memcpy(m_leftover.data() + m_leftover_len, ptr, cur_len);
@@ -548,15 +548,15 @@ private:
             {
                 // Bulk path: cipher only the aligned prefix into the user buffer;
                 // stash any trailing sub-element ciphertext for the next call.
-                const size_t elements_remaining = to_max - elements_delivered;
-                const size_t want = (elements_remaining > bulk_chunk / isize)
+                const std::size_t elements_remaining = to_max - elements_delivered;
+                const std::size_t want = (elements_remaining > bulk_chunk / isize)
                                   ? bulk_chunk
                                   : elements_remaining * isize;
                 auto [ptr, cur_len] = reader.get_buf(want);
                 if (cur_len == 0) break;
 
-                const size_t complete_bytes = (cur_len / isize) * isize;
-                const size_t tail           = cur_len - complete_bytes;
+                const std::size_t complete_bytes = (cur_len / isize) * isize;
+                const std::size_t tail           = cur_len - complete_bytes;
 
                 if (complete_bytes > 0)
                 {
@@ -628,28 +628,28 @@ private:
      * @lang{ZH} 若 `m_cipher` 为空（已移动走的对象）。 @endif
      * @lang{EN} If `m_cipher` is null (moved-from object). @endif
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
         if (to_size == 0) return;
         if (!m_cipher)
             throw cvt_error("chacha20_cvt::put_main fail: cipher not initialized (moved-from object?)");
 
-        constexpr size_t max_type_limit = std::numeric_limits<size_t>::max();
-        constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
+        constexpr std::size_t max_type_limit = std::numeric_limits<std::size_t>::max();
+        constexpr std::size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
         const auto* to = reinterpret_cast<const uint8_t*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
         writer.reset(block_size);
         while (to_size > 0)
         {
-            size_t aim_output = (max_chunk / sizeof(internal_type) > to_size)
+            std::size_t aim_output = (max_chunk / sizeof(internal_type) > to_size)
                               ? (to_size * sizeof(internal_type))
                               : max_chunk;
-            size_t to_i = 0;
+            std::size_t to_i = 0;
             while (to_i != aim_output)
             {
-                size_t dest_size = std::min<size_t>(block_size, aim_output - to_i);
+                std::size_t dest_size = std::min<std::size_t>(block_size, aim_output - to_i);
                 auto ptr = writer.put_buf(dest_size);
                 // No local try/catch here: abs_cvt::put already wraps put_main in
                 // a catch-all that sets the taint flag on any exception. If cipher
@@ -671,7 +671,7 @@ private:
     // get_main call splices them with fresh bytes before feeding cipher() so the
     // keystream stays aligned with the byte stream.
     std::array<uint8_t, sizeof(internal_type)>  m_leftover{};
-    size_t                                      m_leftover_len{0};
+    std::size_t                                 m_leftover_len{0};
 };
 
 /**

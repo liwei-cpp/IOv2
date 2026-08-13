@@ -175,14 +175,14 @@ public:
      * @return The number of characters actually read.
      * @endif
      */
-    size_t dget(char_type* s, size_t n)
+    std::size_t dget(char_type* s, std::size_t n)
     {
         if (n == 0) return 0;
         if (s == nullptr)
             throw device_error("mem_device::dget fail: null buffer");
         assert(m_next_pos <= m_str.size());
 
-        size_t res = std::min(m_str.size() - m_next_pos, n);
+        std::size_t res = std::min(m_str.size() - m_next_pos, n);
         std::memmove(s, m_str.data() + m_next_pos, res * sizeof(char_type));
         m_next_pos += res;
         return res;
@@ -199,7 +199,7 @@ public:
      * @return The current position within the buffer.
      * @endif
      */
-    [[nodiscard]] size_t dtell() const
+    [[nodiscard]] std::size_t dtell() const
     {
         return m_next_pos;
     }
@@ -215,7 +215,7 @@ public:
      * @return The size of the string.
      * @endif
      */
-    [[nodiscard]] size_t dsize() const
+    [[nodiscard]] std::size_t dsize() const
     {
         return m_str.size();
     }
@@ -233,7 +233,7 @@ public:
      * @throw device_error If the position is out of bounds.
      * @endif
      */
-    void dseek(size_t v)
+    void dseek(std::size_t v)
     {
         if (v > m_str.size())
             throw device_error("mem_device::dseek fail: out of bounds");
@@ -253,7 +253,7 @@ public:
      * @throw device_error If the position is out of bounds.
      * @endif
      */
-    void drseek(size_t offset)
+    void drseek(std::size_t offset)
     {
         if (offset > m_str.size())
             throw device_error("mem_device::drseek fail: out of bounds");
@@ -281,7 +281,7 @@ public:
      * @throw device_error When `ch` is `nullptr` and `n > 0`, or when the size overflows.
      * @endif
      */
-    void dput(const char_type* ch, size_t n)
+    void dput(const char_type* ch, std::size_t n)
     {
         if (n == 0) return;
         if (ch == nullptr)
@@ -323,10 +323,10 @@ public:
      * @endif
      */
     template <bool Saturate = false>
-    auto get_buf(size_t to_max)
+    auto get_buf(std::size_t to_max)
     {
         assert(m_str.size() >= m_next_pos);
-        const size_t remain = m_str.size() - m_next_pos;
+        const std::size_t remain = m_str.size() - m_next_pos;
         if constexpr (Saturate)
         {
             if (to_max > remain)
@@ -337,8 +337,8 @@ public:
         }
         else
         {
-            const size_t res_len = std::min(to_max, remain);
-            auto res = std::pair<const CharT*, size_t>{m_str.c_str() + m_next_pos, res_len};
+            const std::size_t res_len = std::min(to_max, remain);
+            auto res = std::pair<const CharT*, std::size_t>{m_str.c_str() + m_next_pos, res_len};
             m_next_pos += res_len;
             return res;
         }
@@ -357,7 +357,7 @@ public:
      * @throw device_error If the rollback length is zero or exceeds the current read position.
      * @endif
      */
-    void get_rollback(size_t len)
+    void get_rollback(std::size_t len)
     {
         if (len == 0)
             throw device_error("mem_device::get_rollback fail, length cannot be zero");
@@ -396,18 +396,18 @@ public:
      * @see put_rollback
      * @endif
      */
-    CharT* put_buf(size_t len)
+    CharT* put_buf(std::size_t len)
     {
         if (len > m_str.max_size() - m_next_pos)
             throw device_error("mem_device::put_buf fail: size overflow");
 
         m_put_buf_checkpoint = m_str.size();
-        const size_t needed = m_next_pos + len;
+        const std::size_t needed = m_next_pos + len;
         if (needed > m_str.size())
         {
             if (needed > m_str.capacity())
             {
-                const size_t cap = m_str.capacity();
+                const std::size_t cap = m_str.capacity();
                 m_str.reserve(std::max(needed, cap + cap / 2));
             }
             m_str.resize(needed);
@@ -440,7 +440,7 @@ public:
      * @see put_buf
      * @endif
      */
-    void put_rollback(size_t len)
+    void put_rollback(std::size_t len)
     {
         if (!m_put_buf_checkpoint.has_value())
             throw device_error("mem_device::put_rollback fail: no active put_buf");
@@ -449,7 +449,7 @@ public:
         if (m_next_pos < len)
             throw device_error("mem_device::put_rollback fail: rollback length too large");
 
-        const size_t saved_size = m_put_buf_checkpoint.value();
+        const std::size_t saved_size = m_put_buf_checkpoint.value();
         m_put_buf_checkpoint.reset();
 
         m_next_pos -= len;
@@ -458,13 +458,13 @@ public:
 
 private:
     std::basic_string<CharT, Traits, Allocator> m_str;
-    size_t m_next_pos = 0;
+    std::size_t m_next_pos = 0;
 
     // Checkpoint for put_buf/put_rollback pairing.
     // Set by put_buf to record the string size before expansion;
     // consumed and cleared by put_rollback to restore proper size.
     // If empty (nullopt), put_rollback will throw.
-    std::optional<size_t> m_put_buf_checkpoint;
+    std::optional<std::size_t> m_put_buf_checkpoint;
 };
 
 /// @cond

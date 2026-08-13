@@ -409,7 +409,7 @@ private:
      * @return 经过索引 N 起的所有工厂包装后的转换器。
      *         / The converter after applying all creators from index N onward.
      */
-    template <size_t N, typename TKernel>
+    template <std::size_t N, typename TKernel>
     auto create_helper(TKernel&& kernel) const
     {
         if constexpr (sizeof...(T) == N)

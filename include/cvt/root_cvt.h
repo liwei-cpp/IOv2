@@ -18,6 +18,7 @@
 #include <device/mem_device.h>
 
 #include <cassert>
+#include <cstddef>
 #include <exception>
 #include <limits>
 #include <type_traits>
@@ -113,7 +114,7 @@ public:
      * a buffer of this size.
      * @endif
      */
-    constexpr static size_t s_buffer_length = 2048;
+    constexpr static std::size_t s_buffer_length = 2048;
 
     /**
      * @lang{ZH}
@@ -198,10 +199,10 @@ public:
         }
         else
         {
-            size_t cp = val.m_buf_cur - val.m_buffer.data();
+            std::size_t cp = val.m_buf_cur - val.m_buffer.data();
             m_buf_cur = m_buffer.data() + cp;
 
-            size_t ep = val.m_buf_end - val.m_buffer.data();
+            std::size_t ep = val.m_buf_end - val.m_buffer.data();
             m_buf_end = m_buffer.data() + ep;
         }
     }
@@ -228,8 +229,8 @@ public:
         , m_bos_len(val.m_bos_len)
         , m_io_status(val.m_io_status)
     {
-        size_t cp = 0;
-        size_t ep = 0;
+        std::size_t cp = 0;
+        std::size_t ep = 0;
 
         if (val.m_buf_cur)
         {
@@ -307,8 +308,8 @@ public:
         m_device = std::move(val.m_device);
         m_bos_len = val.m_bos_len;
 
-        size_t cp = 0;
-        size_t ep = 0;
+        std::size_t cp = 0;
+        std::size_t ep = 0;
 
         if (val.m_buf_cur)
         {
@@ -538,7 +539,7 @@ public:
             // which advances the device position by the amount read. Consuming data
             // from the buffer only moves m_buf_cur forward, never increasing the
             // buffered amount beyond what was read from the device.
-            const auto buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
+            const auto buffered = static_cast<std::size_t>(m_buf_end - m_buf_cur);
             assert(m_device.dtell() >= buffered);
             m_bos_len = m_device.dtell() - buffered;
         }
@@ -683,7 +684,7 @@ public:
      * @lang{ZH} io_status 不为 input 且无法切换时抛出。 @endif
      * @lang{EN} Thrown when io_status is not input and cannot be switched. @endif
      */
-    size_t get(internal_type* to, size_t to_max)
+    std::size_t get(internal_type* to, std::size_t to_max)
         requires (dev_cpt::support_get<device_type>)
     {
         if constexpr (dev_cpt::support_put<device_type>)
@@ -700,12 +701,12 @@ public:
         {
             if (m_buf_cur == m_buf_end)
             {
-                const size_t act_len = m_device.dget(m_buffer.data(), s_buffer_length);
+                const std::size_t act_len = m_device.dget(m_buffer.data(), s_buffer_length);
                 m_buf_cur = m_buffer.data();
                 m_buf_end = m_buf_cur + act_len;
             }
 
-            const size_t res_len = std::min<size_t>(m_buf_end - m_buf_cur, to_max);
+            const std::size_t res_len = std::min<std::size_t>(m_buf_end - m_buf_cur, to_max);
             std::copy(m_buf_cur, m_buf_cur + res_len, to);
             m_buf_cur += res_len;
             return res_len;
@@ -743,7 +744,7 @@ public:
      * @lang{ZH} io_status 不为 output 且无法切换时抛出。 @endif
      * @lang{EN} Thrown when io_status is not output and cannot be switched. @endif
      */
-    void put(const internal_type* to, size_t to_size)
+    void put(const internal_type* to, std::size_t to_size)
         requires (dev_cpt::support_put<device_type>)
     {
         if constexpr (dev_cpt::support_get<device_type>)
@@ -754,8 +755,8 @@ public:
         if (m_io_status != io_status::output)
             throw cvt_error("root_cvt::put fails: invalid io status");
 
-        const size_t buf_used = m_buf_cur - m_buffer.data();
-        const size_t remain = s_buffer_length - buf_used;
+        const std::size_t buf_used = m_buf_cur - m_buffer.data();
+        const std::size_t remain = s_buffer_length - buf_used;
         if (to_size < remain)
         {
             m_buf_cur = std::copy(to, to + to_size, m_buf_cur);
@@ -827,10 +828,10 @@ public:
      * @lang{ZH} io_status 为 neutral 时抛出。 @endif
      * @lang{EN} Thrown when io_status is neutral. @endif
      */
-    [[nodiscard]] size_t tell() const
+    [[nodiscard]] std::size_t tell() const
         requires (dev_cpt::support_positioning<device_type>)
     {
-        const size_t device_tell = m_device.dtell();
+        const std::size_t device_tell = m_device.dtell();
 
         switch(m_io_status)
         {
@@ -839,7 +840,7 @@ public:
             // Invariant: device_tell >= m_bos_len. The device position only advances
             // via flush operations, never moving backward from the stream start.
             assert(device_tell >= m_bos_len);
-            const auto buf_used = static_cast<size_t>(m_buf_cur - m_buffer.data());
+            const auto buf_used = static_cast<std::size_t>(m_buf_cur - m_buffer.data());
             return device_tell - m_bos_len + buf_used;
         }
         case io_status::input:
@@ -847,7 +848,7 @@ public:
             // Invariant: device_tell - m_bos_len >= buffered. Same invariant as
             // main_cont_beg(): buffer data comes from dget(), which advances device
             // position by the amount read.
-            const auto buffered = static_cast<size_t>(m_buf_end - m_buf_cur);
+            const auto buffered = static_cast<std::size_t>(m_buf_end - m_buf_cur);
             assert(device_tell >= m_bos_len);
             assert(device_tell - m_bos_len >= buffered);
             return device_tell - m_bos_len - buffered;
@@ -875,7 +876,7 @@ public:
      * @lang{ZH} 目标位置，相对于流起点（m_bos_len）的字符偏移量。 @endif
      * @lang{EN} Target position as a character offset from the stream origin (m_bos_len). @endif
      */
-    void seek(size_t pos)
+    void seek(std::size_t pos)
         requires (dev_cpt::support_positioning<device_type>)
     {
         if constexpr (dev_cpt::support_put<device_type>)
@@ -884,7 +885,7 @@ public:
                 flush();
         }
 
-        if (pos > std::numeric_limits<size_t>::max() - m_bos_len)
+        if (pos > std::numeric_limits<std::size_t>::max() - m_bos_len)
             throw cvt_error("root_cvt::seek fails: position overflow");
 
         m_device.dseek(pos + m_bos_len);
@@ -912,7 +913,7 @@ public:
      * @lang{ZH} pos 超出流边界，或 m_bos_len 大于设备总大小时抛出。 @endif
      * @lang{EN} Thrown when pos exceeds stream bounds or m_bos_len exceeds device size. @endif
      */
-    void rseek(size_t pos)
+    void rseek(std::size_t pos)
         requires (dev_cpt::support_positioning<device_type>)
     {
         if constexpr (dev_cpt::support_put<device_type>)
@@ -921,7 +922,7 @@ public:
                 flush();
         }
 
-        const size_t size_from_device = m_device.dsize();
+        const std::size_t size_from_device = m_device.dsize();
         if (m_bos_len > size_from_device)
             throw cvt_error("root_cvt::rseek fails: bos_len exceeds device size");
         if (size_from_device - m_bos_len < pos)
@@ -1011,7 +1012,7 @@ private:
     device_type                 m_device;
     /** @lang{ZH} 流起点的设备偏移量，由 main_cont_beg() 记录。tell()/seek() 用此值将逻辑偏移转换为设备偏移。 @endif
      *  @lang{EN} Device offset of the stream origin, recorded by main_cont_beg(). Used by tell()/seek() to translate between logical and device offsets. @endif */
-    size_t                      m_bos_len = 0;
+    std::size_t                 m_bos_len = 0;
     // std::vector is intentionally used over std::array: move operations are O(1)
     // (pointer swap), whereas std::array move degrades to a full element-wise copy.
     /** @lang{ZH} 读写公用的内部缓冲区。使用 std::vector 而非 std::array，以确保移动操作为 O(1)（指针交换）；std::array 的移动会退化为逐元素拷贝。 @endif
@@ -1422,7 +1423,7 @@ public:
      * @lang{ZH} 实际读取的字符数。 @endif
      * @lang{EN} The actual number of characters read. @endif
      */
-    size_t get(internal_type* to, size_t to_max)
+    std::size_t get(internal_type* to, std::size_t to_max)
     {
         switch_to_get();
         return m_device.dget(to, to_max);
@@ -1446,7 +1447,7 @@ public:
      * @lang{ZH} 要写入的字符数。 @endif
      * @lang{EN} Number of characters to write. @endif
      */
-    void put(const internal_type* to, size_t to_size)
+    void put(const internal_type* to, std::size_t to_size)
     {
         switch_to_put();
         m_device.dput(to, to_size);
@@ -1479,9 +1480,9 @@ public:
      * @lang{ZH} 相对于流起点的当前位置偏移（字符数）。 @endif
      * @lang{EN} Current position offset from the stream origin in characters. @endif
      */
-    [[nodiscard]] size_t tell() const
+    [[nodiscard]] std::size_t tell() const
     {
-        const size_t device_tell = m_device.dtell();
+        const std::size_t device_tell = m_device.dtell();
         // Invariant: device_tell >= m_bos_len. The device position should never
         // move before the stream origin established by main_cont_beg().
         assert(device_tell >= m_bos_len);
@@ -1504,9 +1505,9 @@ public:
      * @lang{ZH} 目标位置，相对于流起点的字符偏移量。 @endif
      * @lang{EN} Target position as a character offset from the stream origin. @endif
      */
-    void seek(size_t pos)
+    void seek(std::size_t pos)
     {
-        if (pos > std::numeric_limits<size_t>::max() - m_bos_len)
+        if (pos > std::numeric_limits<std::size_t>::max() - m_bos_len)
             throw cvt_error("root_cvt::seek fails: position overflow");
 
         m_device.dseek(pos + m_bos_len);
@@ -1530,9 +1531,9 @@ public:
      * @lang{ZH} pos 超出流边界，或 m_bos_len 大于设备总大小时抛出。 @endif
      * @lang{EN} Thrown when pos exceeds stream bounds or m_bos_len exceeds device size. @endif
      */
-    void rseek(size_t pos)
+    void rseek(std::size_t pos)
     {
-        const size_t size_from_device = m_device.dsize();
+        const std::size_t size_from_device = m_device.dsize();
         if (m_bos_len > size_from_device)
             throw cvt_error("root_cvt::rseek fails: bos_len exceeds device size");
         if (size_from_device - m_bos_len < pos)
@@ -1578,7 +1579,7 @@ private:
     device_type                 m_device;
     /** @lang{ZH} 流起点的设备偏移量，由 main_cont_beg() 记录。 @endif
      *  @lang{EN} Device offset of the stream origin, recorded by main_cont_beg(). @endif */
-    size_t                      m_bos_len = 0;
+    std::size_t                 m_bos_len = 0;
     /** @lang{ZH} 当前 I/O 方向（neutral / input / output）。 @endif
      *  @lang{EN} Current I/O direction (neutral / input / output). @endif */
     io_status                   m_io_status = io_status::neutral;
@@ -1691,7 +1692,7 @@ public:
      * @lang{ZH} 忽略的缓冲区大小参数。 @endif
      * @lang{EN} Ignored buffer size parameter. @endif
      */
-    void reset(size_t) {}
+    void reset(std::size_t) {}
 
     /**
      * @lang{ZH}
@@ -1738,7 +1739,7 @@ public:
      * @endif
      */
     template <bool Saturate = false>
-    auto get_buf(size_t to_max)
+    auto get_buf(std::size_t to_max)
     {
         if (to_max == 0)
             throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero");
@@ -1753,7 +1754,7 @@ public:
         if (m_kernel.m_io_status != io_status::input)
             throw cvt_error("cvt_reader::get_buf fail, invalid io status");
 
-        const size_t remain = m_kernel.m_buf_end - m_kernel.m_buf_cur;
+        const std::size_t remain = m_kernel.m_buf_end - m_kernel.m_buf_cur;
         // need to read, then read at most as it can
         if (remain < to_max)
         {
@@ -1780,8 +1781,8 @@ public:
 
         if constexpr (!Saturate)
         {
-            auto res_len = std::min<size_t>(m_kernel.m_buf_end - m_kernel.m_buf_cur, to_max);
-            std::pair<const char_type*, size_t> res{m_kernel.m_buf_cur, res_len};
+            auto res_len = std::min<std::size_t>(m_kernel.m_buf_end - m_kernel.m_buf_cur, to_max);
+            std::pair<const char_type*, std::size_t> res{m_kernel.m_buf_cur, res_len};
             m_kernel.m_buf_cur += res_len;
             return res;
         }
@@ -1813,11 +1814,11 @@ public:
      * @lang{EN} Thrown when len is 0, len exceeds the rollback range, or the buffer
      *           pointer is nullptr. @endif
      */
-    void rollback(size_t len)
+    void rollback(std::size_t len)
     {
         if (len == 0)
             throw cvt_error("cvt_reader::rollback fail, length cannot be zero");
-        if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
+        if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<std::size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
             throw cvt_error("cvt_reader::rollback fail, rollback length too large");
         m_kernel.m_buf_cur -= len;
     }
@@ -1894,7 +1895,7 @@ public:
      * @lang{ZH} buf_size 超过 s_buffer_length 时抛出。 @endif
      * @lang{EN} Thrown when buf_size exceeds s_buffer_length. @endif
      */
-    void reset(size_t buf_size)
+    void reset(std::size_t buf_size)
     {
         m_buf_size = buf_size;
         if (m_buf_size > KernelType::s_buffer_length)
@@ -1927,7 +1928,7 @@ public:
      * @lang{EN} Thrown when len is 0, len exceeds buf_size, or io_status is not output
      *           and cannot be switched. @endif
      */
-    char_type* put_buf(size_t len)
+    char_type* put_buf(std::size_t len)
     {
         if (len == 0)
             throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero");
@@ -1942,8 +1943,8 @@ public:
         if (m_kernel.m_io_status != io_status::output)
             throw cvt_error("cvt_writer::put_buf fail, invalid io status");
 
-        const size_t buf_used = m_kernel.m_buf_cur - m_kernel.m_buffer.data();
-        const size_t remain = KernelType::s_buffer_length - buf_used;
+        const std::size_t buf_used = m_kernel.m_buf_cur - m_kernel.m_buffer.data();
+        const std::size_t remain = KernelType::s_buffer_length - buf_used;
         if (len < remain)
         {
             auto res = m_kernel.m_buf_cur;
@@ -1976,11 +1977,11 @@ public:
      * @lang{EN} Thrown when len is 0, len exceeds the rollback range, or the buffer
      *           pointer is nullptr. @endif
      */
-    void rollback(size_t len)
+    void rollback(std::size_t len)
     {
         if (len == 0)
             throw cvt_error("cvt_writer::rollback fail, length cannot be zero");
-        if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
+        if ((m_kernel.m_buf_cur == nullptr) || (len > static_cast<std::size_t>(m_kernel.m_buf_cur - m_kernel.m_buffer.data())))
             throw cvt_error("cvt_writer::rollback fail, rollback length too large");
         m_kernel.m_buf_cur -= len;
     }
@@ -2003,7 +2004,7 @@ private:
     KernelType& m_kernel;
     /** @lang{ZH} reset() 设置的每次 put_buf() 最大写入字符数。 @endif
      *  @lang{EN} Maximum characters per put_buf() call, set by reset(). @endif */
-    size_t m_buf_size = 0;
+    std::size_t m_buf_size = 0;
 };
 
 /**
@@ -2064,7 +2065,7 @@ public:
      * @lang{ZH} 忽略的缓冲区大小参数。 @endif
      * @lang{EN} Ignored buffer size parameter. @endif
      */
-    void reset(size_t) {}
+    void reset(std::size_t) {}
 
     /**
      * @lang{ZH}
@@ -2090,7 +2091,7 @@ public:
      * @lang{EN} See mem_device::get_buf() for return value details. @endif
      */
     template <bool Saturate = false>
-    auto get_buf(size_t to_max)
+    auto get_buf(std::size_t to_max)
     {
         return m_kernel.device().template get_buf<Saturate>(to_max);
     }
@@ -2109,7 +2110,7 @@ public:
      * @lang{ZH} 要回退的字符数。 @endif
      * @lang{EN} Number of characters to roll back. @endif
      */
-    void rollback(size_t len)
+    void rollback(std::size_t len)
     {
         m_kernel.device().get_rollback(len);
     }
@@ -2176,7 +2177,7 @@ public:
      * @lang{ZH} 忽略的缓冲区大小参数。 @endif
      * @lang{EN} Ignored buffer size parameter. @endif
      */
-    void reset(size_t) {}
+    void reset(std::size_t) {}
 
     /**
      * @lang{ZH}
@@ -2196,7 +2197,7 @@ public:
      * @lang{ZH} 可写入 len 个字符的设备缓冲区指针。 @endif
      * @lang{EN} Pointer into the device buffer where len characters may be written. @endif
      */
-    char_type* put_buf(size_t len)
+    char_type* put_buf(std::size_t len)
     {
         return m_kernel.device().put_buf(len);
     }
@@ -2215,7 +2216,7 @@ public:
      * @lang{ZH} 要回退的字符数。 @endif
      * @lang{EN} Number of characters to roll back. @endif
      */
-    void rollback(size_t len)
+    void rollback(std::size_t len)
     {
         m_kernel.device().put_rollback(len);
     }

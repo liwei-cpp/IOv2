@@ -164,7 +164,7 @@ public:
 
         if (m_c.has_value()) return false;
         char_type ch = 0;
-        const size_t ret = do_get(&ch, 1);
+        const std::size_t ret = do_get(&ch, 1);
         if (ret != 0)
         {
             m_c = ch;
@@ -204,7 +204,7 @@ public:
      *       EOF is sticky, so subsequent calls also continue to return 0.
      * @endif
      */
-    size_t dget(char* s, size_t n)
+    std::size_t dget(char* s, std::size_t n)
         requires (ID == STDIN_FILENO)
     {
         if (n == 0 || m_eof_hit) return 0;
@@ -221,7 +221,7 @@ public:
             }
             // Read the remainder first; if do_get throws, m_c must still hold
             // the look-ahead byte so the next dget() redelivers it (no loss).
-            const size_t got = do_get(s + 1, n - 1);
+            const std::size_t got = do_get(s + 1, n - 1);
             m_c.reset();
             return 1 + got;
         }
@@ -243,7 +243,7 @@ public:
      * @throw device_error If the write fails.
      * @endif
      */
-    void dput(const char* ch, size_t n)
+    void dput(const char* ch, std::size_t n)
         requires ((ID == STDOUT_FILENO) || (ID == STDERR_FILENO))
     {
         if (n == 0) return;
@@ -291,11 +291,11 @@ public:
     }
 
 private:
-    size_t do_get(char* s, size_t n)
+    std::size_t do_get(char* s, std::size_t n)
     {
         assert((s != nullptr) && (n != 0));
 
-        constexpr auto max_read = static_cast<size_t>(std::numeric_limits<ssize_t>::max());
+        constexpr auto max_read = static_cast<std::size_t>(std::numeric_limits<ssize_t>::max());
         ssize_t ret = 0;
         while (true)
         {
@@ -328,7 +328,7 @@ private:
 
         if (ret == 0)
             m_eof_hit = true;
-        return static_cast<size_t>(ret);
+        return static_cast<std::size_t>(ret);
     }
 private:
     [[no_unique_address]] std::conditional_t<ID == STDIN_FILENO, bool, std::monostate> m_eof_hit{};

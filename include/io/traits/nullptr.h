@@ -56,7 +56,7 @@ struct io_traits<TChar, std::nullptr_t>
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, std::nullptr_t)
     {
         const char* c_buf = "nullptr";
-        constexpr size_t n = 7;
+        constexpr std::size_t n = 7;
 
         auto mp = loc.template get<ctype<TChar>>();
         if (!mp)

@@ -22,6 +22,7 @@
 #include <facet/facet_helper.h>
 
 #include <clocale>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <type_traits>
@@ -129,7 +130,7 @@ public:
             // Downstream (numeric, user-derived numeric_conf) sees
             // only the internal form.
             m_grouping.resize(grp_raw.size());
-            for (size_t i = 0; i < grp_raw.size(); ++i)
+            for (std::size_t i = 0; i < grp_raw.size(); ++i)
                 m_grouping[i] = static_cast<uint8_t>(grp_raw[i]);
             FacetHelper::adjust_grouping(m_grouping);
         }
@@ -366,7 +367,7 @@ public:
             // Copy raw POSIX grouping bytes, then normalise into the
             // internal convention here at the POSIX boundary.
             m_grouping.resize(grp_raw.size());
-            for (size_t i = 0; i < grp_raw.size(); ++i)
+            for (std::size_t i = 0; i < grp_raw.size(); ++i)
                 m_grouping[i] = static_cast<uint8_t>(grp_raw[i]);
             FacetHelper::adjust_grouping(m_grouping);
         }

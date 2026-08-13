@@ -92,7 +92,7 @@ class vigenere_cvt : public abs_cvt<vigenere_cvt<KernelType>, KernelType, typena
 {
     using BT = abs_cvt<vigenere_cvt<KernelType>, KernelType, typename KernelType::internal_type, true, true>;
     friend BT;  // for put_main, get_main, and private CRTP hooks
-    constexpr static size_t s_buf_len = 16;
+    constexpr static std::size_t s_buf_len = 16;
 public:
     using device_type = typename KernelType::device_type;
     using internal_type = typename KernelType::internal_type;
@@ -276,25 +276,25 @@ private:
      * @lang{ZH} 若密钥为空（已移动走的对象）。 @endif
      * @lang{EN} If the key is empty (moved-from object). @endif
      */
-    size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
+    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
         if (to_max == 0) return 0;
         if (m_key.empty())
             throw cvt_error("vigenere_cvt: key not initialized (moved-from object?)");
 
-        size_t total_count = 0;
+        std::size_t total_count = 0;
         reader.reset(s_buf_len);
         while (total_count != to_max)
         {
-            const size_t dest_size = std::min(s_buf_len, to_max - total_count);
+            const std::size_t dest_size = std::min(s_buf_len, to_max - total_count);
             auto [ptr, cur_size] = reader.get_buf(dest_size);
             if (cur_size == 0)
                 return total_count;
 
-            for (size_t i = 0; i < cur_size; ++i)
+            for (std::size_t i = 0; i < cur_size; ++i)
             {
-                size_t pos = (m_pos++) % m_key.size();
+                std::size_t pos = (m_pos++) % m_key.size();
                 const internal_type src = *ptr++;
                 *to++ = sub_wrap(src, m_key[pos]);
             }
@@ -327,7 +327,7 @@ private:
      * @lang{ZH} 若密钥为空（已移动走的对象）。 @endif
      * @lang{EN} If the key is empty (moved-from object). @endif
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& writer, const internal_type* to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
         if (to_size == 0) return;
@@ -336,15 +336,15 @@ private:
 
         writer.reset(s_buf_len);
 
-        size_t total_count = 0;
+        std::size_t total_count = 0;
         while (total_count != to_size)
         {
-            const size_t dest_size = std::min(s_buf_len, to_size - total_count);
+            const std::size_t dest_size = std::min(s_buf_len, to_size - total_count);
             auto ptr = writer.put_buf(dest_size);
 
-            for (size_t i = 0; i < dest_size; ++i)
+            for (std::size_t i = 0; i < dest_size; ++i)
             {
-                size_t pos = (m_pos++) % m_key.size();
+                std::size_t pos = (m_pos++) % m_key.size();
                 const internal_type src = *to++;
                 *ptr++ = add_wrap(src, m_key[pos]);
             }
@@ -366,7 +366,7 @@ private:
      * @lang{ZH} 当前密钥偏移量 `m_pos`。 @endif
      * @lang{EN} The current key-offset `m_pos`. @endif
      */
-    [[nodiscard]] size_t tell_impl() const
+    [[nodiscard]] std::size_t tell_impl() const
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         return m_pos;
@@ -411,7 +411,7 @@ private:
      * failure means the position is indeterminate).
      * @endif
      */
-    void seek_impl(size_t pos)
+    void seek_impl(std::size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         std::exception_ptr seek_err;
@@ -449,7 +449,7 @@ private:
      * @lang{ZH} 相对于当前位置的字节偏移量。 @endif
      * @lang{EN} Byte offset relative to the current position. @endif
      */
-    void rseek_impl(size_t pos)
+    void rseek_impl(std::size_t pos)
         requires (cvt_cpt::support_positioning<KernelType>)
     {
         // See seek_impl() above for the same resync-via-tell rationale.
@@ -468,7 +468,7 @@ private:
         if (rseek_err) std::rethrow_exception(rseek_err);
     }
 private:
-    size_t                     m_pos{0};
+    std::size_t                m_pos{0};
     std::vector<internal_type> m_key;
 };
 

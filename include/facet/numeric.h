@@ -279,7 +279,7 @@ public:
         }
 
         const auto& name = v ? m_true_name : m_false_name;
-        size_t len = name.size();
+        std::size_t len = name.size();
 
         const auto w = io.width();
         io.width(0);
@@ -478,7 +478,7 @@ public:
             bool testt = true;
             bool donef = (m_false_name.empty());
             bool donet = (m_true_name.empty());
-            size_t n = 0;
+            std::size_t n = 0;
             while (!donef || !donet)
             {
                 if (beg == end)
@@ -745,11 +745,11 @@ private:
         // Consume the field width up front, before any allocation or conversion
         // that can throw: width() is one-shot and a stale value must not survive
         // onto the stream if we leave by an exception. Used for padding below.
-        const size_t w = io.width();
+        const std::size_t w = io.width();
         io.width(0);
 
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
-        size_t len = 0;
+        std::size_t len = 0;
         std::array<char, 16> fbuf{};
         format_float_(io.flags(), fbuf.data(), mod);
 
@@ -757,9 +757,9 @@ private:
 
         // Initial buffer size estimate (GCC style).
         // For non-fixed fields, max_digits * 3 is a safe heuristic.
-        size_t cs_size = static_cast<size_t>(max_digits) * 3 + 32;
+        std::size_t cs_size = static_cast<std::size_t>(max_digits) * 3 + 32;
         if (fltfield == ios_defs::fixed)
-            cs_size = static_cast<size_t>(std::numeric_limits<TValue>::max_exponent10) + static_cast<size_t>(prec) + 32;
+            cs_size = static_cast<std::size_t>(std::numeric_limits<TValue>::max_exponent10) + static_cast<std::size_t>(prec) + 32;
 
         // Cap initial allocation to a reasonable size (e.g., 2048) to avoid huge initial pressure.
         if (cs_size > 2048) cs_size = 2048;
@@ -770,7 +770,7 @@ private:
             clocale_wrapper inter_locale("C");
             clocale_user guard(inter_locale);
 
-            auto do_snprintf = [&](char* buf, size_t size) {
+            auto do_snprintf = [&](char* buf, std::size_t size) {
                 if (fltfield == (ios_defs::fixed | ios_defs::scientific))
                     return snprintf(buf, size, fbuf.data(), v);
                 else
@@ -783,7 +783,7 @@ private:
             int n = do_snprintf(vec_cs.data(), cs_size);
             if (n < 0)
                 throw stream_error("numeric::put fail: floating-point conversion failed");
-            len = static_cast<size_t>(n);
+            len = static_cast<std::size_t>(n);
 
             // If buffer was too small, snprintf returns required length.
             if (len >= cs_size)
@@ -793,7 +793,7 @@ private:
                 n = do_snprintf(vec_cs.data(), cs_size);
                 if (n < 0)
                     throw stream_error("numeric::put fail: floating-point conversion failed");
-                len = static_cast<size_t>(n);
+                len = static_cast<std::size_t>(n);
             }
         }
 
@@ -830,7 +830,7 @@ private:
             std::vector<CharT> vec_ws2(len * 2);
             CharT* ws2 = vec_ws2.data();
 
-            size_t off = 0;
+            std::size_t off = 0;
             if (cs[0] == '-' || cs[0] == '+')
             {
                 off = 1;
@@ -909,7 +909,7 @@ private:
         // Consume the field width up front, before any allocation that can throw:
         // width() is one-shot and a stale value must not survive onto the stream
         // if we leave by an exception. Used for padding below.
-        const size_t w = io.width();
+        const std::size_t w = io.width();
         io.width(0);
 
         // Long enough to hold hex, dec, and octal representations.
@@ -923,7 +923,7 @@ private:
         const bool dec = (basefield != ios_defs::oct && basefield != ios_defs::hex);
         const unsigned_type u = ((v > 0 || !dec) ? unsigned_type(v)
                                                  : -unsigned_type(v));
-        auto len = static_cast<size_t>(int_to_char(cs + ilen, u, flags, dec));
+        auto len = static_cast<std::size_t>(int_to_char(cs + ilen, u, flags, dec));
         cs += ilen - len;
 
         // Add grouping, if necessary.
@@ -933,7 +933,7 @@ private:
             // of digits + space is reserved for numeric base or sign.
             std::vector<char_type> cs_vec2((ilen + 1) * 2);
             char_type* cs2 = cs_vec2.data() + 2;
-            len = static_cast<size_t>(FacetHelper::add_grouping(cs2, m_thousands_sep, m_grouping, cs, cs + len) - cs2);
+            len = static_cast<std::size_t>(FacetHelper::add_grouping(cs2, m_thousands_sep, m_grouping, cs, cs + len) - cs2);
             std::swap(cs_vec, cs_vec2);
             cs = cs_vec.data() + 2;
         }
@@ -1073,8 +1073,8 @@ private:
      * @param start0x Whether the original content begins with `0x`/`0X`.
      * @endif
      */
-    void pad(char_type fill, size_t w, ios_defs::fmtflags adjust,
-             char_type* new_buf, const char_type* cs, size_t& len,
+    void pad(char_type fill, std::size_t w, ios_defs::fmtflags adjust,
+             char_type* new_buf, const char_type* cs, std::size_t& len,
              bool startSign, bool start0x) const
     {
       // [22.2.2.2.2] Stage 3.
@@ -1123,11 +1123,11 @@ private:
      */
     void pad_impl_(ios_defs::fmtflags adjust, char_type fill,
                    char_type* news, const char_type* olds,
-                   size_t newlen, size_t oldlen,
+                   std::size_t newlen, std::size_t oldlen,
                    bool startSign, bool start0x) const
     {
 
-        const size_t plen = newlen - oldlen;
+        const std::size_t plen = newlen - oldlen;
 
         // Padding last.
         if (adjust == ios_defs::left)
@@ -1137,7 +1137,7 @@ private:
             return;
         }
 
-        size_t mod = 0;
+        std::size_t mod = 0;
         if (adjust == ios_defs::internal)
         {
             // Pad after the sign, if there is one.
@@ -1245,16 +1245,16 @@ private:
      * @param len Input character count; updated to the output character count on return.
      * @endif
      */
-    void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, size_t& len) const
+    void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, std::size_t& len) const
     {
         // _GLIBCXX_RESOLVE_LIB_DEFECTS
         // 282. What types does numpunct grouping refer to?
         // Add grouping, if necessary.
-        const size_t declen = p ? static_cast<size_t>(p - cs) : len;
+        const std::size_t declen = p ? static_cast<std::size_t>(p - cs) : len;
         char_type* p2 = FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + declen);
 
         // Tack on decimal part.
-        auto newlen = static_cast<size_t>(p2 - new_buf);
+        auto newlen = static_cast<std::size_t>(p2 - new_buf);
         if (p)
         {
             std::copy(p, p + len - declen, p2);
@@ -1378,7 +1378,7 @@ private:
 
         // At this point, base is determined. If not hex, only allow
         // base digits as valid input.
-        const size_t len = (base == 16 ? s_iend - s_izero : base);
+        const std::size_t len = (base == 16 ? s_iend - s_izero : base);
 
         // Extract.
         std::vector<uint8_t> found_grouping;
@@ -1823,10 +1823,10 @@ private:
      * @return `true` if all elements are pairwise distinct; `false` otherwise.
      * @endif
      */
-    static bool atoms_pairwise_distinct(const CharT* p, size_t n)
+    static bool atoms_pairwise_distinct(const CharT* p, std::size_t n)
     {
-        for (size_t i = 0; i < n; ++i)
-            for (size_t j = i + 1; j < n; ++j)
+        for (std::size_t i = 0; i < n; ++i)
+            for (std::size_t j = i + 1; j < n; ++j)
                 if (p[i] == p[j]) return false;
         return true;
     }

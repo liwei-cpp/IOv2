@@ -98,7 +98,6 @@
 #include <cstdint>
 #include <ctime>
 #include <iterator>
-#include <limits>
 #include <string>
 #include <type_traits>
 
@@ -382,9 +381,9 @@ struct io_traits<TChar, setfill_t<TFill>>
  */
 struct setprecision_t
 {
-    explicit setprecision_t(size_t n) : m_n(n) {}
+    explicit setprecision_t(std::ptrdiff_t n) : m_n(n) {}
 
-    size_t m_n;
+    std::ptrdiff_t m_n;
 };
 
 /**
@@ -392,13 +391,13 @@ struct setprecision_t
  * @brief 构造设置浮点精度的操纵符。
  *
  * 精度以 `std::uint8_t` 存储（见 `ios_base::precision`），有效范围 0..255。参数取
- * `size_t` 而非 `std::uint8_t`，是为了让越界值被**显式拒绝**而不是被静默回绕：
+ * `std::ptrdiff_t` 而非 `std::uint8_t`，是为了让越界值被**显式拒绝**而不是被静默窄化：
  * 若形参本身就是 `std::uint8_t`，`setprecision(300)` 会经隐式转换悄悄变成 44，
  * 而运行期变量连编译警告都不会有。
- * @note 越界的检查在操纵符**作用于流时**才做，本函数只保存原值。届时抛出的 `stream_error` 由
- *       `operator<<` / `operator>>` 交给 `handle_exception`，转成 `strfailbit` 并遵守流的异常
- *       掩码，与本库其余的失败一致；若改在构造时抛，异常会从 `os << ...` 表达式里直接逃逸到
- *       调用方，流却仍报告 `good()`。
+ * @note 范围检查是 `ios_base::precision` 自己的，在操纵符**作用于流时**才做，本函数只保存
+ *       原值。届时抛出的 `stream_error` 由 `operator<<` / `operator>>` 交给 `handle_exception`，
+ *       转成 `strfailbit` 并遵守流的异常掩码，与本库其余的失败一致；若改在构造时抛，异常会从
+ *       `os << ...` 表达式里直接逃逸到调用方，流却仍报告 `good()`。
  * @param n 目标精度，必须落在 0..255。
  * @return 可用于 `os << setprecision(n)` / `is >> setprecision(n)` 的操纵符。
  * @endif
@@ -407,21 +406,21 @@ struct setprecision_t
  * @brief Builds the manipulator that sets the floating-point precision.
  *
  * The precision is stored as a `std::uint8_t` (see `ios_base::precision`), so the valid
- * range is 0..255. The parameter is a `size_t` rather than a `std::uint8_t` so that an
+ * range is 0..255. The parameter is a `std::ptrdiff_t` rather than a `std::uint8_t` so that an
  * out-of-range value is **rejected explicitly** instead of silently wrapping: with a
  * `std::uint8_t` parameter, `setprecision(300)` would quietly become 44 via the implicit
  * conversion, and a run-time argument would not even produce a compiler warning.
- * @note The range check runs when the manipulator is **applied to a stream**; this function only
- *       stores the value. The `stream_error` thrown there is handed to `handle_exception` by
- *       `operator<<` / `operator>>`, where it becomes a `strfailbit` and honors the stream's
- *       exception mask, like every other failure in this library. Thrown at construction it would
- *       instead escape an `os << ...` expression straight to the caller while the stream still
- *       reported `good()`.
+ * @note The range check is `ios_base::precision`'s own and runs when the manipulator is **applied
+ *       to a stream**; this function only stores the value. The `stream_error` thrown there is
+ *       handed to `handle_exception` by `operator<<` / `operator>>`, where it becomes a
+ *       `strfailbit` and honors the stream's exception mask, like every other failure in this
+ *       library. Thrown at construction it would instead escape an `os << ...` expression
+ *       straight to the caller while the stream still reported `good()`.
  * @param n The target precision; must lie in 0..255.
  * @return A manipulator usable as `os << setprecision(n)` / `is >> setprecision(n)`.
  * @endif
  */
-inline setprecision_t setprecision(size_t n) { return setprecision_t{n}; }
+inline setprecision_t setprecision(std::ptrdiff_t n) { return setprecision_t{n}; }
 
 /**
  * @lang{ZH}
@@ -448,10 +447,7 @@ private:
     template <typename T>
     static void apply(T& s, const setprecision_t& f)
     {
-        if (f.m_n > std::numeric_limits<std::uint8_t>::max())
-            throw stream_error("setprecision fail: precision out of range (0..255)");
-
-        s.precision(static_cast<std::uint8_t>(f.m_n));
+        s.precision(f.m_n);
     }
 };
 

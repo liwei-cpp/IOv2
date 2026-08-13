@@ -616,11 +616,11 @@ struct istream_operators
     template <typename DelimPolicy, typename CStrPolicy, typename TOut, typename TSelf>
         requires ((std::is_same_v<DelimPolicy, cons_sep> || std::is_same_v<DelimPolicy, keep_sep>) &&
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
-    TOut get(this TSelf& self, TOut s, size_t n, TChar delim)
+    TOut get(this TSelf& self, TOut s, std::size_t n, TChar delim)
     {
         constexpr bool is_cstr = std::is_same_v<CStrPolicy, app_zt>;
 
-        size_t gcount = 0;
+        std::size_t gcount = 0;
         bool at_eof = false;
         std::lock_guard guard(self.io_mutex());
         try
@@ -725,7 +725,7 @@ struct istream_operators
     template <typename DelimPolicy, typename CStrPolicy, typename TOut, typename TSelf>
         requires ((std::is_same_v<DelimPolicy, cons_sep> || std::is_same_v<DelimPolicy, keep_sep>) &&
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
-    TOut get(this TSelf& self, TOut s, size_t n)
+    TOut get(this TSelf& self, TOut s, std::size_t n)
     {
         TChar delim;
         {
@@ -820,9 +820,9 @@ struct istream_operators
      * @endif
      */
     template <typename TSelf>
-    TChar* read(this TSelf& self, TChar* s, size_t n)
+    TChar* read(this TSelf& self, TChar* s, std::size_t n)
     {
-        size_t gcount = 0;
+        std::size_t gcount = 0;
         bool at_eof = false;
         std::lock_guard guard(self.io_mutex());
         try
@@ -863,7 +863,7 @@ struct istream_operators
      * @endif
      */
     template <typename TSelf>
-    TSelf& ignore(this TSelf& self, size_t n = 1)
+    TSelf& ignore(this TSelf& self, std::size_t n = 1)
     {
         bool at_eof = false;
         std::lock_guard guard(self.io_mutex());
@@ -872,7 +872,7 @@ struct istream_operators
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
 
-            for (size_t gcount = 0; gcount < n; ++gcount)
+            for (std::size_t gcount = 0; gcount < n; ++gcount)
             {
                 if (self.m_streambuf.is_eof())
                 {
@@ -919,9 +919,9 @@ struct istream_operators
      * @endif
      */
     template <typename TSelf>
-    TSelf& ignore(this TSelf& self, size_t n, TChar delim)
+    TSelf& ignore(this TSelf& self, std::size_t n, TChar delim)
     {
-        size_t gcount = 0;
+        std::size_t gcount = 0;
         bool at_eof = false;
         std::lock_guard guard(self.io_mutex());
         try

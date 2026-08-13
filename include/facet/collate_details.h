@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <array>
 #include <compare>
+#include <cstddef>
 #include <cstring>
 #include <cuchar>
 #include <cwchar>
@@ -82,7 +83,7 @@ class collate_conf : public ft_basic<collate<CharT>>
      * zero-sized buffer that subsequent writes overflow.
      * @endif
      */
-    static constexpr size_t xfrm_failed = static_cast<size_t>(-1);
+    static constexpr std::size_t xfrm_failed = static_cast<std::size_t>(-1);
 
 public:
     /**
@@ -123,7 +124,7 @@ public:
     {
         if constexpr (std::is_same_v<CharT, char8_t>)
         {
-            struct Probe { const char* mb; size_t len; char32_t cp; };
+            struct Probe { const char* mb; std::size_t len; char32_t cp; };
             static constexpr std::array<Probe, 3> probes = {{
                 {"\xC3\xA9",         2, U'é'},      // U+00E9  e-acute
                 {"\xE2\x82\xAC",     3, U'€'},      // U+20AC  euro sign
@@ -134,7 +135,7 @@ public:
             {
                 char32_t c32 = 0;
                 std::mbstate_t st{};
-                size_t n = std::mbrtoc32(&c32, p.mb, p.len, &st);
+                std::size_t n = std::mbrtoc32(&c32, p.mb, p.len, &st);
                 if ((n != p.len) || (c32 != p.cp))
                     throw cvt_error("collate_conf<char8_t>: inter locale is not UTF-8");
             }
@@ -268,9 +269,9 @@ public:
      * @throw cvt_error If `strxfrm`/`wcsxfrm` reports failure.
      * @endif
      */
-    virtual size_t transform_length(const CharT* low, const CharT* high) const
+    virtual std::size_t transform_length(const CharT* low, const CharT* high) const
     {
-        size_t res = 0;
+        std::size_t res = 0;
         std::vector<CharT> buf;
 
         clocale_user guard(m_inter_locale);
@@ -292,7 +293,7 @@ public:
                 ++res;  // for the terminal character
             }
 
-            size_t seg_len = 0;
+            std::size_t seg_len = 0;
             if constexpr (std::is_same_v<CharT, char>)
                 seg_len = strxfrm(nullptr, cur, 0);
             else if constexpr (std::is_same_v<CharT, wchar_t>)
@@ -353,9 +354,9 @@ public:
      * @throw cvt_error If `strxfrm`/`wcsxfrm` reports failure.
      * @endif
      */
-    virtual size_t transform(const CharT* low, const CharT* high, CharT* dest, size_t mx_len = 0) const
+    virtual std::size_t transform(const CharT* low, const CharT* high, CharT* dest, std::size_t mx_len = 0) const
     {
-        size_t trans_count = 0;
+        std::size_t trans_count = 0;
         // All buffers are hoisted out of the loop so resize() reuses their
         // capacity instead of reallocating per segment.
         // buf  : input staging — null-terminated copy of a segment that has
@@ -390,7 +391,7 @@ public:
                 // would overflow the caller's buffer by one on the trailing
                 // segment, for which transform_length only accounts for
                 // cur_trans (no terminator).
-                size_t trans_len = 0;
+                std::size_t trans_len = 0;
                 if constexpr (std::is_same_v<CharT, char>)
                     trans_len = strxfrm(nullptr, cur, 0);
                 else if constexpr (std::is_same_v<CharT, wchar_t>)
@@ -407,7 +408,7 @@ public:
                     throw cvt_error("collate_conf::transform: strxfrm/wcsxfrm failed");
                 buf2.resize(trans_len + 1);
 
-                size_t cur_trans = 0;
+                std::size_t cur_trans = 0;
                 if constexpr (std::is_same_v<CharT, char>)
                     cur_trans = strxfrm(buf2.data(), cur, buf2.size());
                 else if constexpr (std::is_same_v<CharT, wchar_t>)

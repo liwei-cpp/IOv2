@@ -456,7 +456,7 @@ public:
     {
         {
             clocale_user guard(m_inter_locale);
-            for (size_t j = 0; j < std::size(m_widen); ++j)
+            for (std::size_t j = 0; j < std::size(m_widen); ++j)
                 m_widen[j] = btowc(static_cast<int>(j));
         }
 

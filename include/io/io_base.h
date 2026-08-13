@@ -147,7 +147,7 @@ namespace ios_defs
     constexpr iostate& operator&=(iostate& a, iostate b) noexcept { return a = a & b; }
     constexpr iostate& operator^=(iostate& a, iostate b) noexcept { return a = a ^ b; }
 
-    constexpr static size_t max_pad_count   = size_t{1} << 16;  ///< @lang{ZH} 单次插入允许写出的填充字符数上限；`width()` 本身仍不设上限。 @endif @lang{EN} Upper bound on the number of fill characters one insertion may emit; `width()` itself stays unbounded. @endif
+    constexpr static std::size_t max_pad_count   = std::size_t{1} << 16;  ///< @lang{ZH} 单次插入允许写出的填充字符数上限；`width()` 本身仍不设上限。 @endif @lang{EN} Upper bound on the number of fill characters one insertion may emit; `width()` itself stays unbounded. @endif
 };
 
 template <typename TChar> class locale;
@@ -179,7 +179,7 @@ class ios_base<void>
     template <typename>
     friend class ios_base;
 
-    inline static std::atomic<size_t> s_top = 0;
+    inline static std::atomic<std::size_t> s_top = 0;
 };
 
 /**
@@ -292,7 +292,7 @@ public:
      * @lang{ZH} @brief 返回当前的格式化标志。 @endif
      * @lang{EN} @brief Returns the current formatting flags. @endif
      */
-    ios_defs::fmtflags flags() const { return static_cast<ios_defs::fmtflags>(m_flags.load()); }
+    ios_defs::fmtflags flags() const noexcept { return static_cast<ios_defs::fmtflags>(m_flags.load()); }
     /**
      * @lang{ZH}
      * @brief 将格式化标志整体替换为 `fmtfl`。
@@ -306,7 +306,7 @@ public:
      * @return The old flags before replacement.
      * @endif
      */
-    ios_defs::fmtflags flags(ios_defs::fmtflags fmtfl)
+    ios_defs::fmtflags flags(ios_defs::fmtflags fmtfl) noexcept
     {
       return static_cast<ios_defs::fmtflags>(m_flags.exchange(fmtfl));
     }
@@ -324,7 +324,7 @@ public:
      * @return The old flags before modification.
      * @endif
      */
-    ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl)
+    ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl) noexcept
     {
       return static_cast<ios_defs::fmtflags>(m_flags.fetch_or(fmtfl));
     }
@@ -350,7 +350,7 @@ public:
      * @return The old flags before modification.
      * @endif
      */
-    ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl, ios_defs::fmtflags msk)
+    ios_defs::fmtflags setf(ios_defs::fmtflags fmtfl, ios_defs::fmtflags msk) noexcept
     {
       std::uint16_t old = m_flags.load();
       while (!m_flags.compare_exchange_weak(
@@ -370,73 +370,112 @@ public:
      * @param msk The mask of flags to clear.
      * @endif
      */
-    void unsetf(ios_defs::fmtflags msk)
+    void unsetf(ios_defs::fmtflags msk) noexcept
     { m_flags.fetch_and(static_cast<std::uint16_t>(~msk)); }
 
     /**
      * @lang{ZH}
-     * @brief 获取/设置浮点精度。
-     *
-     * 无参重载返回当前精度；带参重载将精度设置为 @p prec 并返回旧值。
+     * @brief 返回当前的浮点精度。
      * @note 精度以 std::uint8_t 存储，取值范围被有意限制在 0..255。这与标准
-     * std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的精度，
-     * 更大的值无法通过本接口表达（参数类型即为 std::uint8_t）。此为有意设计。
+     * std::ios_base 使用 std::streamsize 不同：本库不支持大于 255 的精度。
+     * @return 当前精度。
      * @endif
      *
      * @lang{EN}
-     * @brief Get/set the floating-point precision.
-     *
-     * The argument-less overload returns the current precision; the overload taking an
-     * argument sets the precision to @p prec and returns the old value.
+     * @brief Returns the current floating-point precision.
      * @note The precision is stored as a std::uint8_t and is intentionally limited
      * to the range 0..255. Unlike the standard std::ios_base, which uses
-     * std::streamsize, this library does not support precision values greater than
-     * 255; larger values cannot be expressed through this interface (the parameter
-     * type is std::uint8_t itself). This is by design.
+     * std::streamsize, this library does not support precision values greater than 255.
+     * @return The current precision.
      * @endif
      */
-    std::uint8_t precision() const { return m_precision.load(); }
-    std::uint8_t precision(std::uint8_t prec)
+    std::uint8_t precision() const noexcept { return m_precision.load(); }
+    /**
+     * @lang{ZH}
+     * @brief 将浮点精度设置为 @p prec 并返回旧值。
+     * @note setter 取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），getter 与存储仍用
+     * std::uint8_t：形参若就是 std::uint8_t，越界值会在调用点被隐式转换静默窄化（300 变成
+     * 44），运行期变量连警告都没有；加宽后负值与过大值都能活到此处被拒。
+     * @note 这笔交换有代价：形参为 std::uint8_t 时，常量实参 `precision(300)` 由 -Woverflow
+     * 报“changes value from '300' to '44'”，配上 -Werror 就是编译失败；加宽后 300 落在
+     * ptrdiff_t 内，编译期无话可说，改由此处在运行期抛出。即以常量那一路的编译期诊断，
+     * 换运行期变量那一路不再被静默窄化 —— 后者才是真正会漏进产品的那种。
+     * @param prec 目标精度，必须落在 0..255。
+     * @return 设置前的旧精度。
+     * @throw stream_error 若 @p prec 不在 0..255 内。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Sets the floating-point precision to @p prec and returns the old value.
+     * @note The setter takes a signed ptrdiff_t (as the standard's std::streamsize is), while
+     * the getter and the storage stay std::uint8_t: with a std::uint8_t parameter an
+     * out-of-range value would be narrowed silently by the implicit conversion at the call
+     * (300 becomes 44), with not even a warning for a run-time argument; widening lets both
+     * negative and too-large values reach this check and be rejected.
+     * @note That trade has a price: with a std::uint8_t parameter a constant argument such as
+     * `precision(300)` is reported by -Woverflow as "changes value from '300' to '44'", which
+     * with -Werror is a compile error; once widened, 300 fits in a ptrdiff_t and the compiler
+     * has nothing to say, so the rejection happens here at run time instead. The compile-time
+     * diagnosis of the constant case buys the run-time-argument case not being narrowed
+     * silently -- and the latter is the one that actually ships.
+     * @param prec The target precision; must lie in 0..255.
+     * @return The precision in effect before the call.
+     * @throw stream_error If @p prec is not in 0..255.
+     * @endif
+     */
+    std::uint8_t precision(std::ptrdiff_t prec)
     {
-        return m_precision.exchange(prec);
+        if (prec < 0 || prec > std::numeric_limits<std::uint8_t>::max())
+            throw stream_error("precision fail: precision out of range (0..255)");
+        return m_precision.exchange(static_cast<std::uint8_t>(prec));
     }
 
     /**
      * @lang{ZH}
-     * @brief 获取/设置字段宽度。
-     *
-     * 无参重载返回当前宽度；带参重载将宽度设置为 @p wide 并返回旧值。
+     * @brief 返回当前的字段宽度。
      * @note 宽度以 size_t 存储，不设上限：它既是输出端的填充目标列数，也是提取端的
      * 读取长度上界。
+     * @return 当前宽度。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the current field width.
+     * @note The width is stored as a size_t, with no upper bound: it serves both as the
+     * target column count for padding on output and as the bound on how much extraction
+     * reads.
+     * @return The current width.
+     * @endif
+     */
+    std::size_t width() const noexcept { return m_width.load(); }
+    /**
+     * @lang{ZH}
+     * @brief 将字段宽度设置为 @p wide 并返回旧值。
      * @note setter 取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），getter 与存储仍用
      * size_t。宽度常由含 size_t 的算式得出，越界时会回绕成接近 2^64 的巨值；有符号形参可让
      * 传参时的窄化把回绕抵消回来、还原成负数并在此拒掉。判负后转 size_t 不会溢出。
+     * @param wide 目标宽度，必须非负。
+     * @return 设置前的旧宽度。
      * @throw stream_error 若 @p wide 为负。
      * @endif
      *
      * @lang{EN}
-     * @brief Get/set the field width.
-     *
-     * The argument-less overload returns the current width; the overload taking an
-     * argument sets the width to @p wide and returns the old value.
-     * @note The width is stored as a size_t, with no upper bound: it serves both as the
-     * target column count for padding on output and as the bound on how much extraction
-     * reads.
+     * @brief Sets the field width to @p wide and returns the old value.
      * @note The setter takes a signed ptrdiff_t (as the standard's std::streamsize is),
      * while the getter and the storage stay size_t. A width is often computed by an
      * expression involving a size_t, which wraps to a value near 2^64 when it goes below
      * zero; a signed parameter lets the narrowing at the call undo that wrap, restoring the
      * negative value to be rejected here. The conversion to size_t after the check cannot
      * overflow.
+     * @param wide The target width; must be non-negative.
+     * @return The width in effect before the call.
      * @throw stream_error If @p wide is negative.
      * @endif
      */
-    size_t width() const { return m_width.load(); }
-    size_t width(std::ptrdiff_t wide)
+    std::size_t width(std::ptrdiff_t wide)
     {
         if (wide < 0)
             throw stream_error("width fail: negative width");
-        return m_width.exchange(static_cast<size_t>(wide));
+        return m_width.exchange(static_cast<std::size_t>(wide));
     }
 
     /**
@@ -456,7 +495,7 @@ public:
      * @endif
      */
     TChar fill() const noexcept { return m_fill.load(); }
-    TChar fill(TChar ch)
+    TChar fill(TChar ch) noexcept
     {
         return m_fill.exchange(ch);
     }
@@ -490,12 +529,12 @@ public:
      * @lang{ZH} 索引空间耗尽时抛出。 @endif
      * @lang{EN} Thrown when the index space is exhausted. @endif
      */
-    static size_t xalloc()
+    static std::size_t xalloc()
     {
-        size_t cur = ios_base<void>::s_top.load(std::memory_order_relaxed);
+        std::size_t cur = ios_base<void>::s_top.load(std::memory_order_relaxed);
         do
         {
-            if (cur == std::numeric_limits<size_t>::max())
+            if (cur == std::numeric_limits<std::size_t>::max())
                 throw stream_error("ios_base::xalloc fails: storage index space exhausted");
         } while (!ios_base<void>::s_top.compare_exchange_weak(
                      cur, cur + 1, std::memory_order_relaxed));
@@ -572,7 +611,7 @@ public:
      * existed.
      * @endif
      */
-    std::shared_ptr<void> set_pword(size_t id, std::shared_ptr<void> pword)
+    std::shared_ptr<void> set_pword(std::size_t id, std::shared_ptr<void> pword)
     {
         std::lock_guard guard(m_io_mutex);
         if (auto it = m_pwords.find(id); it == m_pwords.end())
@@ -602,7 +641,7 @@ public:
      * @return The data stored at that id; nullptr if none exists.
      * @endif
      */
-    std::shared_ptr<void> get_pword(size_t id) const
+    std::shared_ptr<void> get_pword(std::size_t id) const
     {
         std::lock_guard guard(m_io_mutex);
         auto it = m_pwords.find(id);
@@ -630,7 +669,7 @@ public:
      * @param id The storage index associated with this callback.
      * @endif
      */
-    void register_callback(event_callback fn, size_t id)
+    void register_callback(event_callback fn, std::size_t id)
     {
         std::lock_guard guard(m_io_mutex);
         m_callbacks.push_front({std::move(fn), id});
@@ -710,7 +749,7 @@ protected:
 protected:
     copyable_atomic<std::uint16_t> m_flags{ios_defs::skipws | ios_defs::dec};   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
     copyable_atomic<std::uint8_t>       m_precision{6};     ///< @lang{ZH} 浮点精度，默认 6。 @endif @lang{EN} Floating-point precision, default 6. @endif
-    copyable_atomic<size_t>             m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
+    copyable_atomic<std::size_t>        m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
     /**
      * @lang{ZH}
      * @brief 默认填充字符。
@@ -738,8 +777,8 @@ protected:
 
     mutable copyable_mutex<std::recursive_mutex> m_io_mutex;                 ///< @lang{ZH} 本流的对象锁；串行化本流的全部操作，包括下面两个容器的访问。`mutable` 是因为 `get_pword()` 等只读接口也要加锁。详见 `io_mutex()`。 @endif @lang{EN} This stream's object lock; serializes all of the stream's operations, including access to the two containers below. `mutable` because read-only entry points such as `get_pword()` must lock too. See `io_mutex()`. @endif
 
-    std::unordered_map<size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `m_io_mutex` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `m_io_mutex`. @endif
-    std::forward_list<std::pair<event_callback, size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `m_io_mutex` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `m_io_mutex`. @endif
+    std::unordered_map<std::size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `m_io_mutex` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `m_io_mutex`. @endif
+    std::forward_list<std::pair<event_callback, std::size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `m_io_mutex` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `m_io_mutex`. @endif
 };
 
 /**
@@ -820,7 +859,7 @@ struct ios_state : public ios_base<TChar>
      * @return The bitwise-or of the current `iostate` bits.
      * @endif
      */
-    [[nodiscard]] ios_defs::iostate rdstate() const
+    [[nodiscard]] ios_defs::iostate rdstate() const noexcept
     { return static_cast<ios_defs::iostate>(m_stream_state.load()); }
 
     /**
@@ -959,32 +998,32 @@ struct ios_state : public ios_base<TChar>
      * @lang{ZH} @brief 是否无任何错误（状态位全为 0）。 @endif
      * @lang{EN} @brief Whether there is no error at all (state bits all zero). @endif
      */
-    [[nodiscard]] bool good() const { return rdstate() == 0; }
+    [[nodiscard]] bool good() const noexcept { return rdstate() == 0; }
     /**
      * @lang{ZH} @brief 是否置位了设备失败位。 @endif
      * @lang{EN} @brief Whether the device-failure bit is set. @endif
      */
-    [[nodiscard]] bool dev_fail() const { return rdstate() & ios_defs::devfailbit; }
+    [[nodiscard]] bool dev_fail() const noexcept { return rdstate() & ios_defs::devfailbit; }
     /**
      * @lang{ZH} @brief 是否置位了转换失败位。 @endif
      * @lang{EN} @brief Whether the conversion-failure bit is set. @endif
      */
-    [[nodiscard]] bool cvt_fail() const { return rdstate() & ios_defs::cvtfailbit; }
+    [[nodiscard]] bool cvt_fail() const noexcept { return rdstate() & ios_defs::cvtfailbit; }
     /**
      * @lang{ZH} @brief 是否置位了流失败位。 @endif
      * @lang{EN} @brief Whether the stream-failure bit is set. @endif
      */
-    [[nodiscard]] bool str_fail() const { return rdstate() & ios_defs::strfailbit; }
+    [[nodiscard]] bool str_fail() const noexcept { return rdstate() & ios_defs::strfailbit; }
     /**
      * @lang{ZH} @brief 是否置位了其他失败位。 @endif
      * @lang{EN} @brief Whether the other-failure bit is set. @endif
      */
-    [[nodiscard]] bool other_fail() const { return rdstate() & ios_defs::otherfailbit; }
+    [[nodiscard]] bool other_fail() const noexcept { return rdstate() & ios_defs::otherfailbit; }
     /**
      * @lang{ZH} @brief 是否已到达文件/输入末尾（`eofbit` 置位）。 @endif
      * @lang{EN} @brief Whether end-of-file/input has been reached (`eofbit` set). @endif
      */
-    [[nodiscard]] bool eof() const { return rdstate() & ios_defs::eofbit; }
+    [[nodiscard]] bool eof() const noexcept { return rdstate() & ios_defs::eofbit; }
 
     /**
      * @lang{ZH}
@@ -1002,7 +1041,7 @@ struct ios_state : public ios_base<TChar>
      * plain EOF alone is not treated as unusable.
      * @endif
      */
-    explicit operator bool() const
+    explicit operator bool() const noexcept
     {
         const ios_defs::iostate s = rdstate();
         return (s == 0) || (s == ios_defs::eofbit);
