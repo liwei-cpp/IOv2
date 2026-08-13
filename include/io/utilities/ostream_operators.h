@@ -634,7 +634,7 @@ struct ostream_operators
      * @endif
      */
     template<typename TSelf>
-    TSelf& write(this TSelf& self, const TChar* s, size_t n)
+    TSelf& write(this TSelf& self, const TChar* s, std::size_t n)
     {
         std::lock_guard guard(self.io_mutex());
         try

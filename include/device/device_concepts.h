@@ -49,10 +49,10 @@ namespace IOv2
         template <typename T>
         concept support_positioning = requires(T a, const T& c)
             {
-                { c.dtell() } -> std::same_as<size_t>;
-                { c.dsize() } -> std::same_as<size_t>;
-                { a.dseek(std::declval<size_t>()) } -> std::same_as<void>;
-                { a.drseek(std::declval<size_t>()) } -> std::same_as<void>;
+                { c.dtell() } -> std::same_as<std::size_t>;
+                { c.dsize() } -> std::same_as<std::size_t>;
+                { a.dseek(std::declval<std::size_t>()) } -> std::same_as<void>;
+                { a.drseek(std::declval<std::size_t>()) } -> std::same_as<void>;
             };
 
         /**
@@ -74,7 +74,7 @@ namespace IOv2
         template <typename T>
         concept support_put = requires(T a)
             {
-                { a.dput(std::declval<const typename T::char_type*>(), std::declval<size_t>()) } -> std::same_as<void>;
+                { a.dput(std::declval<const typename T::char_type*>(), std::declval<std::size_t>()) } -> std::same_as<void>;
                 { a.dflush() } -> std::same_as<void>;
             };
 
@@ -97,7 +97,7 @@ namespace IOv2
         template <typename T>
         concept support_get = requires(T a)
             {
-                { a.dget(std::declval<typename T::char_type*>(), std::declval<size_t>()) } -> std::same_as<size_t>;
+                { a.dget(std::declval<typename T::char_type*>(), std::declval<std::size_t>()) } -> std::same_as<std::size_t>;
                 { a.deof() } -> std::same_as<bool>;
             };
     }

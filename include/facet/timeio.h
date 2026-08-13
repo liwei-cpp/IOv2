@@ -2792,13 +2792,13 @@ private:
      * @throw std::runtime_error If any name is empty or two different indices share a spelling.
      * @endif
      */
-    template <size_t N>
+    template <std::size_t N>
     static void check_unique_nonempty(const std::array<std::basic_string<CharT>, N>& full,
                                       const std::array<std::basic_string<CharT>, N>& abbr,
                                       const char* what)
     {
         std::array<const std::basic_string<CharT>*, 2 * N> names{};
-        for (size_t i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
         {
             if (full[i].empty() || abbr[i].empty())
                 throw std::runtime_error(std::string("timeio: empty ") + what + " name in locale data");
@@ -2806,8 +2806,8 @@ private:
             names[2 * i + 1] = &abbr[i];
         }
         // names[p] belongs to index p / 2.
-        for (size_t a = 0; a < names.size(); ++a)
-            for (size_t b = a + 1; b < names.size(); ++b)
+        for (std::size_t a = 0; a < names.size(); ++a)
+            for (std::size_t b = a + 1; b < names.size(); ++b)
                 if ((a / 2) != (b / 2) && *names[a] == *names[b])
                     throw std::runtime_error(std::string("timeio: duplicate ") + what + " name in locale data");
     }
@@ -2853,7 +2853,7 @@ private:
      */
     void create_era_name_tree()
     {
-        for (size_t i = 0; i < m_era_master.size(); ++i)
+        for (std::size_t i = 0; i < m_era_master.size(); ++i)
         {
             const std::basic_string<CharT>& name = m_era_master[i].name;
             if (!name.empty())
@@ -2875,7 +2875,7 @@ private:
      */
     void create_alt_digits_tree()
     {
-        for (size_t i = 0; i < 100; ++i)
+        for (std::size_t i = 0; i < 100; ++i)
         {
             if (!m_alt_digits[i].empty())
                 m_alt_digits_tree.add(m_alt_digits[i], i);
@@ -3428,7 +3428,7 @@ private:
         uint8_t day   = static_cast<unsigned>(ymd.day());
 
         using namespace TimeioHelper;
-        for (size_t i = 0; i < m_era_master.size(); ++i)
+        for (std::size_t i = 0; i < m_era_master.size(); ++i)
         {
             const auto& _cmp = m_era_master[i];
             if (era_small_or_equal(_cmp.from_year, _cmp.from_month, _cmp.from_day,
@@ -3473,7 +3473,7 @@ private:
      * @return The output iterator after writing.
      * @endif
      */
-    template <size_t n, CharT def = static_cast<CharT>('0'), typename OutIt>
+    template <std::size_t n, CharT def = static_cast<CharT>('0'), typename OutIt>
     OutIt put_dec(OutIt out, int val, bool alt) const
     {
         assert((val >= 0) && (val < 100));
@@ -3515,7 +3515,7 @@ private:
      * @return The output iterator after writing.
      * @endif
      */
-    template <size_t n, CharT def = static_cast<CharT>('0'), typename OutIt>
+    template <std::size_t n, CharT def = static_cast<CharT>('0'), typename OutIt>
     OutIt put_dec(OutIt out, int val) const
     {
         if (val < 0) val = 0;
@@ -3534,13 +3534,13 @@ private:
         else
         {
             int buf[n];
-            for (size_t i = 0; i < n; ++i)
+            for (std::size_t i = 0; i < n; ++i)
             {
                 buf[n - i -1] = val % 10;
                 val /= 10;
             }
             bool leading = true;
-            for (size_t i = 0; i < n; ++i)
+            for (std::size_t i = 0; i < n; ++i)
             {
                 if (buf[i] != 0) leading = false;
                 if (leading && (i < n - 1)) *out++ = def;
@@ -3587,9 +3587,9 @@ private:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    static TIter extract_num(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ) // NOLINT(bugprone-easily-swappable-parameters)
+    static TIter extract_num(TIter beg, TSent end, int& member, int min_val, int max_val, std::size_t len, bool& succ) // NOLINT(bugprone-easily-swappable-parameters)
     {
-        size_t i = 0;
+        std::size_t i = 0;
         int value = 0;
         for (; beg != end && i < len; ++beg, (void)++i)
         {
@@ -3643,7 +3643,7 @@ private:
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    TIter extract_num_with_alt_digits(TIter beg, TSent end, int& member, int min_val, int max_val, size_t len, bool& succ) const
+    TIter extract_num_with_alt_digits(TIter beg, TSent end, int& member, int min_val, int max_val, std::size_t len, bool& succ) const
     {
         typename decltype(m_alt_digits_tree)::match_out_type match_res;
         beg = m_alt_digits_tree.max_match(beg, end, match_res);

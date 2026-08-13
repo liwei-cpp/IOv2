@@ -292,7 +292,7 @@ private:
 
     /// @lang{ZH} zlib 流头的字节长度（固定为 2 字节）。 @endif
     /// @lang{EN} Byte length of the zlib stream header (fixed at 2 bytes). @endif
-    constexpr static size_t zlib_header_size = 2;
+    constexpr static std::size_t zlib_header_size = 2;
 
 public:
     /**
@@ -635,7 +635,7 @@ private:
                 // invariant during development. It is intentionally compiled out in
                 // release builds.
                 std::array<external_type, zlib_header_size> header_buf{};
-                [[maybe_unused]] const size_t n = BT::m_kernel.get(header_buf.data(), zlib_header_size);
+                [[maybe_unused]] const std::size_t n = BT::m_kernel.get(header_buf.data(), zlib_header_size);
                 assert(n == zlib_header_size);
 
                 m_strm->avail_in = zlib_header_size;
@@ -787,7 +787,7 @@ private:
      *                   / If the compressed stream is truncated, zlib reports a fatal error,
      *                   or the output byte count is not a multiple of sizeof(internal_type).
      */
-    size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, size_t to_max)
+    std::size_t get_main(cvt_reader<KernelType>& reader, internal_type* to, std::size_t to_max)
         requires (cvt_cpt::support_get<KernelType>)
     {
         // Once inflate() has reported Z_STREAM_END on this stream, further
@@ -809,8 +809,8 @@ private:
         // after the reader is destroyed.
         io_buf_guard buf_guard{*m_strm};
 
-        constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm->avail_out)>::max();
-        constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
+        constexpr std::size_t max_type_limit = std::numeric_limits<decltype(m_strm->avail_out)>::max();
+        constexpr std::size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
         auto aim_output = (max_chunk / sizeof(internal_type) > to_max)
                         ? static_cast<decltype(m_strm->avail_out)>(to_max * sizeof(internal_type))
@@ -894,11 +894,11 @@ private:
      * @throws cvt_error 若 zlib 报告致命错误或 zlib 未取得进展。
      *                   / If zlib reports a fatal error or zlib makes no progress.
      */
-    void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& writer, const internal_type* _to, std::size_t to_size)
         requires (cvt_cpt::support_put<KernelType>)
     {
-        constexpr size_t max_type_limit = std::numeric_limits<decltype(m_strm->avail_out)>::max();
-        constexpr size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
+        constexpr std::size_t max_type_limit = std::numeric_limits<decltype(m_strm->avail_out)>::max();
+        constexpr std::size_t max_chunk = max_type_limit - (max_type_limit % sizeof(internal_type));
 
         auto to = reinterpret_cast<const unsigned char*>(_to); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
@@ -915,11 +915,11 @@ private:
                             ? static_cast<decltype(m_strm->avail_out)>(to_size * sizeof(internal_type))
                             : static_cast<decltype(m_strm->avail_out)>(max_chunk);
 
-            size_t write_size = 0;
+            std::size_t write_size = 0;
             while (aim_output != write_size)
             {
                 m_strm->next_in = const_cast<unsigned char*>(to + write_size); // NOLINT(cppcoreguidelines-pro-type-const-cast)
-                auto cur_put_size = static_cast<size_t>(aim_output - write_size);
+                auto cur_put_size = static_cast<std::size_t>(aim_output - write_size);
                 m_strm->avail_in = static_cast<decltype(m_strm->avail_in)>(cur_put_size);
                 m_strm->next_out = reinterpret_cast<unsigned char*>(writer.put_buf(CHUNK)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 m_strm->avail_out = CHUNK;
@@ -1007,7 +1007,7 @@ private:
                 m_strm->next_out = reinterpret_cast<unsigned char*>(local_buf.data()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
                 m_strm->avail_out = CHUNK;
                 zerr("zlib_cvt::flush_impl fail", deflate(m_strm.get(), Z_SYNC_FLUSH));
-                const size_t written = CHUNK - m_strm->avail_out;
+                const std::size_t written = CHUNK - m_strm->avail_out;
                 if (written > 0)
                     BT::m_kernel.put(local_buf.data(), written);
                 if (m_strm->avail_out)
@@ -1177,7 +1177,7 @@ private:
                     m_strm->avail_out = CHUNK;
                     auto ret = deflate(m_strm.get(), Z_FINISH);
                     zerr("zlib_cvt::close_stream fail", ret);
-                    const size_t written = CHUNK - m_strm->avail_out;
+                    const std::size_t written = CHUNK - m_strm->avail_out;
                     if (written > 0)
                         BT::m_kernel.put(local_buf.data(), written);
                     if (ret == Z_STREAM_END)

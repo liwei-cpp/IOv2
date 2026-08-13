@@ -398,10 +398,10 @@ constexpr static bool is_nonempty_facet_create_pack<facet_create_pack<T...>> = (
  * @lang{EN} The type to inspect. @endif
  */
 template <typename T>
-constexpr static size_t facet_create_pack_size = 0;
+constexpr static std::size_t facet_create_pack_size = 0;
 
 template <typename... T>
-constexpr static size_t facet_create_pack_size<facet_create_pack<T...>> = sizeof...(T);
+constexpr static std::size_t facet_create_pack_size<facet_create_pack<T...>> = sizeof...(T);
 
 /**
  * @lang{ZH}

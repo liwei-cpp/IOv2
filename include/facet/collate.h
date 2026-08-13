@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <compare>
+#include <cstddef>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -302,7 +303,7 @@ public:
      * @return The number of characters required to store the complete collation key.
      * @endif
      */
-    size_t transform_length(const CharT* low, const CharT* high) const
+    std::size_t transform_length(const CharT* low, const CharT* high) const
     {
         return m_obj->transform_length(low, high);
     }
@@ -333,9 +334,9 @@ public:
      */
     template <typename TIter>
         requires (!std::is_convertible_v<TIter, const CharT*>)
-    size_t transform_length(TIter low, TIter high) const
+    std::size_t transform_length(TIter low, TIter high) const
     {
-        size_t res = 0;
+        std::size_t res = 0;
         std::vector<CharT> buf; buf.reserve(64);
 
         while (low != high)
@@ -371,7 +372,7 @@ public:
      * @return A pair of the past-the-end destination pointer and the number of characters written.
      * @endif
      */
-    std::pair<CharT*, size_t> transform(const CharT* low, const CharT* high, CharT* dest, size_t mx_len = 0) const
+    std::pair<CharT*, std::size_t> transform(const CharT* low, const CharT* high, CharT* dest, std::size_t mx_len = 0) const
     {
         auto s = m_obj->transform(low, high, dest, mx_len);
         return std::pair{dest + s, s};
@@ -407,15 +408,15 @@ public:
      */
     template <typename TIter>
         requires (!std::is_convertible_v<TIter, const CharT*>)
-    std::pair<CharT*, size_t> transform(TIter low, TIter high, CharT* dest, size_t mx_len = 0) const
+    std::pair<CharT*, std::size_t> transform(TIter low, TIter high, CharT* dest, std::size_t mx_len = 0) const
     {
-        size_t trans_count = 0;
+        std::size_t trans_count = 0;
         std::vector<CharT> buf; buf.reserve(64);
 
         while ((low != high) && ((mx_len == 0) || (trans_count < mx_len)))
         {
             low = data_to_vec(low, high, buf);
-            size_t cur_trans = 0;
+            std::size_t cur_trans = 0;
 
             if (mx_len == 0)
                 cur_trans = m_obj->transform(buf.data(), buf.data() + buf.size(), dest);
@@ -459,9 +460,9 @@ public:
      */
     template <typename TIter>
         requires (!std::is_convertible_v<TIter, CharT*>)
-    std::pair<TIter, size_t> transform(const CharT* low, const CharT* high, TIter dest, size_t mx_len = 0) const
+    std::pair<TIter, std::size_t> transform(const CharT* low, const CharT* high, TIter dest, std::size_t mx_len = 0) const
     {
-        size_t trans_count = 0;
+        std::size_t trans_count = 0;
         std::vector<CharT> buf;
         std::vector<CharT> buf2;
 
@@ -472,7 +473,7 @@ public:
             {
                 buf.resize(high - low);
                 std::copy(low, high, buf.data());
-                size_t cur_trans = transform_length(buf.data(), buf.data() + buf.size());
+                std::size_t cur_trans = transform_length(buf.data(), buf.data() + buf.size());
                 buf2.resize(cur_trans);
                 buf2.resize(m_obj->transform(buf.data(), buf.data() + buf.size(), buf2.data(), buf2.size()));
                 low = high;
@@ -480,7 +481,7 @@ public:
             else
             {
                 low = next + 1;
-                size_t cur_trans = transform_length(cur, low);
+                std::size_t cur_trans = transform_length(cur, low);
                 buf2.resize(cur_trans);
                 buf2.resize(m_obj->transform(cur, low, buf2.data(), buf2.size()));
             }
@@ -532,9 +533,9 @@ public:
      */
     template <typename TIterIn, typename TIterOut>
         requires (!(std::is_convertible_v<TIterIn, const CharT*> || std::is_convertible_v<TIterOut, CharT*>))
-    std::pair<TIterOut, size_t> transform(TIterIn low, TIterIn high, TIterOut dest, size_t mx_len = 0) const
+    std::pair<TIterOut, std::size_t> transform(TIterIn low, TIterIn high, TIterOut dest, std::size_t mx_len = 0) const
     {
-        size_t trans_count = 0;
+        std::size_t trans_count = 0;
         std::vector<CharT> buf; buf.reserve(64);
         std::vector<CharT> buf2;
 
@@ -542,7 +543,7 @@ public:
         {
             low = data_to_vec(low, high, buf);
 
-            size_t cur_trans = m_obj->transform_length(buf.data(), buf.data() + buf.size());
+            std::size_t cur_trans = m_obj->transform_length(buf.data(), buf.data() + buf.size());
             buf2.resize(cur_trans);
             buf2.resize(m_obj->transform(buf.data(), buf.data() + buf.size(), buf2.data(), buf2.size()));
 

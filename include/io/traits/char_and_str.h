@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <cstddef>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -12,14 +13,14 @@ namespace IOv2
 {
 template <typename TIter, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
-TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, size_t n)
+TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::size_t n)
 {
-    const size_t w = io.width();
+    const std::size_t w = io.width();
     // Consumed up front, so it cannot leak into the next insertion if a step below throws.
     io.width(0);
     if (w > n)
     {
-        const size_t pad = w - n;
+        const std::size_t pad = w - n;
         if (pad > ios_defs::max_pad_count)
             throw stream_error("ostream insert fail: fill count exceeds max_pad_count");
 
@@ -38,9 +39,9 @@ TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, size_t n)
 
 template <typename TIter, std::sentinel_for<TIter> TSent, typename TChar>
     requires (std::is_same_v<TChar, typename TIter::value_type>)
-TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, size_t num)
+TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, TChar* s, std::size_t num)
 {
-    const size_t width = io.width();
+    const std::size_t width = io.width();
     // Consumed up front, so it cannot leak into the next extraction if a step below throws.
     io.width(0);
     if (0 < width && width < num)
@@ -58,7 +59,7 @@ TIter istream_extract(TIter iter, TSent iter_end, ios_base<TChar>& io, const loc
 
     if (iter == iter_end) throw stream_error("cannot extract character from empty stream");
 
-    size_t extracted = 0;
+    std::size_t extracted = 0;
 
     while (extracted < num - 1
            && (iter != iter_end)
@@ -194,7 +195,7 @@ struct io_traits<TChar, TChar*>
     {
         if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
 
-        size_t n = 0;
+        std::size_t n = 0;
         for (const TChar* ptr = c; *ptr != 0; ++ptr, ++n);
 
         return ostream_insert(iter, io, c, n);
@@ -267,7 +268,7 @@ struct io_traits<TChar, char*>
         if (!mp)
             throw stream_error("cannot get ctype facet");
 
-        size_t n = 0;
+        std::size_t n = 0;
         for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
 
         std::vector<TChar> buf(n);
@@ -297,7 +298,7 @@ struct io_traits<char, char*>
     {
         if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
 
-        size_t n = 0;
+        std::size_t n = 0;
         for (const char* ptr = c; *ptr != 0; ++ptr, ++n);
 
         return ostream_insert(iter, io, c, n);
@@ -438,7 +439,7 @@ struct io_traits<char, const signed char*>
  *        extracted.
  * @endif
  */
-template <typename TChar, size_t N>
+template <typename TChar, std::size_t N>
 struct io_traits<TChar, TChar[N]>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -448,12 +449,12 @@ struct io_traits<TChar, TChar[N]>
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
 
-        constexpr size_t n = N;
+        constexpr std::size_t n = N;
         return istream_extract(iter, iter_end, io, loc, c, n);
     }
 };
 
-template <size_t N>
+template <std::size_t N>
 struct io_traits<char, unsigned char[N]>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -462,12 +463,12 @@ struct io_traits<char, unsigned char[N]>
     {
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
-        constexpr size_t n = N;
+        constexpr std::size_t n = N;
         return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }
 };
 
-template <size_t N>
+template <std::size_t N>
 struct io_traits<char, signed char[N]>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
@@ -476,7 +477,7 @@ struct io_traits<char, signed char[N]>
     {
         if constexpr (N <= 1)
             throw IOv2::stream_error("Character buffer not enough");
-        constexpr size_t n = N;
+        constexpr std::size_t n = N;
         return istream_extract(iter, iter_end, io, loc, reinterpret_cast<char*>(c), n);
     }
 };
@@ -497,10 +498,10 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
     {
         str.erase();
         TChar buf[128];
-        size_t len = 0;
-        const size_t w = io.width();
-        const size_t n = w > 0 ? w : str.max_size();
-        size_t extracted = 0;
+        std::size_t len = 0;
+        const std::size_t w = io.width();
+        const std::size_t n = w > 0 ? w : str.max_size();
+        std::size_t extracted = 0;
 
         auto ct = loc.template get<ctype<TChar>>();
         if (!ct)

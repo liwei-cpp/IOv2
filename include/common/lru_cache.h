@@ -68,7 +68,7 @@ namespace IOv2
  * @endcode
  * @endif
  */
-template <typename TK, typename TV, size_t Capacity>
+template <typename TK, typename TV, std::size_t Capacity>
     requires std::is_copy_constructible_v<TK>  // Key must be copyable for storage
           && std::is_copy_constructible_v<TV>  // Value must be copyable for storage
           && std::equality_comparable<TK>      // Key needs operator== for hash map

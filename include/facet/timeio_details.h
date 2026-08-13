@@ -614,7 +614,7 @@ public:
                 // the null guard below protects against non-conforming platforms.
                 if (char* ptr = nl_langinfo(ALT_DIGITS); ptr)
                 {
-                    for (size_t i = 0; i < 100; ++i)
+                    for (std::size_t i = 0; i < 100; ++i)
                     {
                         if (*ptr == '\0') break;
                         m_alt_digits[i] = ptr;
@@ -1141,19 +1141,19 @@ public:
         m_pm = convert(tmp_obj.pm_name());
         m_am_pm_format = convert(tmp_obj.am_pm_format());
 
-        for (size_t i = 0; i < 7; ++i)
+        for (std::size_t i = 0; i < 7; ++i)
         {
             m_day[i] = convert(tmp_obj.day_names()[i]);
             m_abbr_day[i] = convert(tmp_obj.abbr_day_names()[i]);
         }
 
-        for (size_t i = 0; i < 12; ++i)
+        for (std::size_t i = 0; i < 12; ++i)
         {
             m_month[i] = convert(tmp_obj.month_names()[i]);
             m_abbr_month[i] = convert(tmp_obj.abbr_month_names()[i]);
         }
 
-        for (size_t i = 0; i < 100; ++i)
+        for (std::size_t i = 0; i < 100; ++i)
         {
             m_alt_digits[i] = convert(tmp_obj.alt_digit_names()[i]);
         }
@@ -1536,19 +1536,19 @@ private:
         m_pm = detail::to_u8string(tmp_obj.pm_name());
         m_am_pm_format = detail::to_u8string(tmp_obj.am_pm_format());
 
-        for (size_t i = 0; i < 7; ++i)
+        for (std::size_t i = 0; i < 7; ++i)
         {
             m_day[i] = detail::to_u8string(tmp_obj.day_names()[i]);
             m_abbr_day[i] = detail::to_u8string(tmp_obj.abbr_day_names()[i]);
         }
 
-        for (size_t i = 0; i < 12; ++i)
+        for (std::size_t i = 0; i < 12; ++i)
         {
             m_month[i] = detail::to_u8string(tmp_obj.month_names()[i]);
             m_abbr_month[i] = detail::to_u8string(tmp_obj.abbr_month_names()[i]);
         }
 
-        for (size_t i = 0; i < 100; ++i)
+        for (std::size_t i = 0; i < 100; ++i)
         {
             m_alt_digits[i] = detail::to_u8string(tmp_obj.alt_digit_names()[i]);
         }
@@ -1557,7 +1557,7 @@ private:
         if (!tmp_era.empty())
         {
             m_era_items.reserve(tmp_era.size());
-            for (size_t i = 0; i < tmp_era.size(); ++i)
+            for (std::size_t i = 0; i < tmp_era.size(); ++i)
             {
                 const auto& src = tmp_era[i];
                 era_entry aim;

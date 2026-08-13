@@ -136,7 +136,8 @@ public:
      * @endif
      */
     iostream()
-        requires (std::is_same_v<typename TDevice::char_type, TChar>)
+        requires (std::is_same_v<typename TDevice::char_type, TChar>
+                  && std::is_default_constructible_v<TDevice>)
         : m_streambuf(TDevice()) {}
 
     /**
@@ -373,7 +374,7 @@ public:
      * 锁**的前提下调用的正是同一批底层函数。若此处不加锁，同一份状态就存在一条加锁、一条不加
      * 锁的访问路径，两者并发即为数据竞争——不只是标志撕裂，而是那个缓冲区会被一边
      * `clear()`、一边 `sgetc()` 读取。
-     * @note 流处于失败状态时直接返回、不触碰缓冲区，与 `tell()` / `flush()` 的做法一致。
+     * @note 流处于失败状态时直接返回、不触碰缓冲区，与 `tell()` 的做法一致。
      * @return 流自身的引用。
      * @endif
      *
@@ -388,7 +389,7 @@ public:
      * is a data race -- not merely a torn flag, but that buffer being `clear()`ed on one side
      * while `sgetc()` reads it on the other.
      * @note Returns without touching the buffer when the stream is in a failed state, matching
-     *       what `tell()` and `flush()` do.
+     *       what `tell()` does.
      * @return A reference to the stream itself.
      * @endif
      */

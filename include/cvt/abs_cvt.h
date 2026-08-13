@@ -25,6 +25,7 @@
 #pragma once
 #include <cvt/cvt_concepts.h>
 
+#include <cstddef>
 #include <cstring>
 #include <exception>
 #include <utility>
@@ -121,7 +122,7 @@ namespace IOv2
          * @lang{ZH} 新的缓冲区元素个数。 @endif
          * @lang{EN} New buffer capacity in number of elements. @endif
          */
-        void reset(size_t buf_size)
+        void reset(std::size_t buf_size)
         {
             m_buffer.resize(buf_size);
             m_cur_pos = 0;
@@ -198,7 +199,7 @@ namespace IOv2
          * @endif
          */
         template <bool Saturate = false>
-        auto get_buf(size_t to_max)
+        auto get_buf(std::size_t to_max)
         {
             if (to_max == 0)
                 throw cvt_error("cvt_reader::get_buf fail, read size cannot be zero");
@@ -208,7 +209,7 @@ namespace IOv2
             const auto rollback_size = m_end_pos - m_cur_pos;
             if (to_max <= rollback_size)
             {
-                std::pair<const char_type*, size_t> res{m_buffer.data() + m_cur_pos, to_max};
+                std::pair<const char_type*, std::size_t> res{m_buffer.data() + m_cur_pos, to_max};
                 m_cur_pos += to_max;
                 if constexpr (!Saturate)
                     return res;
@@ -222,7 +223,7 @@ namespace IOv2
                 m_cur_pos = 0;
                 m_end_pos = rollback_size;
             }
-            const size_t aim_size = to_max - rollback_size;
+            const std::size_t aim_size = to_max - rollback_size;
             auto read_size = m_kernel.get(m_buffer.data() + m_end_pos, aim_size);
             m_end_pos += read_size;
 
@@ -230,7 +231,7 @@ namespace IOv2
             {
                 while (read_size < aim_size)
                 {
-                    const size_t new_aim_size = aim_size - read_size;
+                    const std::size_t new_aim_size = aim_size - read_size;
                     const auto new_read_size = m_kernel.get(m_buffer.data() + m_end_pos, new_aim_size);
                     if (new_read_size == 0)
                         throw cvt_error("get_buf<Saturate> fail: meet eos");
@@ -241,7 +242,7 @@ namespace IOv2
 
             if constexpr (!Saturate)
             {
-                std::pair<const char_type*, size_t> res{m_buffer.data() + m_cur_pos, rollback_size + read_size};
+                std::pair<const char_type*, std::size_t> res{m_buffer.data() + m_cur_pos, rollback_size + read_size};
                 m_cur_pos = m_end_pos;
                 return res;
             }
@@ -279,7 +280,7 @@ namespace IOv2
          * @lang{ZH} 若 `len` 为零，或 `len` 超过已消耗的元素数量。 @endif
          * @lang{EN} If `len` is zero, or if `len` exceeds the number of consumed elements. @endif
          */
-        void rollback(size_t len)
+        void rollback(std::size_t len)
         {
             if (len == 0)
                 throw cvt_error("cvt_reader::rollback fail, length cannot be zero");
@@ -299,11 +300,11 @@ namespace IOv2
 
         /** @lang{ZH} 下一次消费数据的起始位置（当前读取游标）。 @endif
          *  @lang{EN} Start position of the next data to be consumed (current read cursor). @endif */
-        size_t m_cur_pos = 0;
+        std::size_t m_cur_pos = 0;
 
         /** @lang{ZH} 缓冲区中有效数据的末尾位置（独占上界）。 @endif
          *  @lang{EN} End position of valid data in the buffer (exclusive upper bound). @endif */
-        size_t m_end_pos = 0;
+        std::size_t m_end_pos = 0;
     };
 
     /**
@@ -400,7 +401,7 @@ namespace IOv2
          * @lang{ZH} 新的缓冲区元素个数。 @endif
          * @lang{EN} New buffer capacity in number of elements. @endif
          */
-        void reset(size_t buf_size)
+        void reset(std::size_t buf_size)
         {
             m_buffer.resize(buf_size);
             m_prev_len = 0;
@@ -440,14 +441,14 @@ namespace IOv2
          * @lang{ZH} 若 `len` 为零，或 `len` 超过缓冲区容量。 @endif
          * @lang{EN} If `len` is zero, or if `len` exceeds the buffer capacity. @endif
          */
-        char_type* put_buf(size_t len)
+        char_type* put_buf(std::size_t len)
         {
             if (len == 0)
                 throw cvt_error("cvt_writer::put_buf fail, write size cannot be zero");
             if (len > m_buffer.size())
                 throw cvt_error("cvt_writer::put_buf fail, write size too large");
 
-            size_t remain = m_buffer.size() - m_prev_len;
+            std::size_t remain = m_buffer.size() - m_prev_len;
             if (remain < len)
             {
                 m_kernel.put(m_buffer.data(), m_prev_len);
@@ -485,7 +486,7 @@ namespace IOv2
          * @lang{ZH} 若 `len` 为零，或 `len` 超过 `m_prev_len`。 @endif
          * @lang{EN} If `len` is zero, or if `len` exceeds `m_prev_len`. @endif
          */
-        void rollback(size_t len)
+        void rollback(std::size_t len)
         {
             if (len == 0)
                 throw cvt_error("cvt_writer::rollback fail, length cannot be zero");
@@ -528,7 +529,7 @@ namespace IOv2
 
         /** @lang{ZH} 缓冲区中已填充但尚未刷出到 kernel 的元素数量。 @endif
          *  @lang{EN} Number of elements that have been placed in the buffer but not yet flushed to the kernel. @endif */
-        size_t m_prev_len = 0;
+        std::size_t m_prev_len = 0;
     };
 
     /**
@@ -885,7 +886,7 @@ namespace IOv2
          *  Chunked processing avoids allocating a large memory block for large stream-leading data,
          *  improving memory efficiency.
          *  @endif */
-        constexpr static size_t s_bos_chunk = 16;
+        constexpr static std::size_t s_bos_chunk = 16;
 
     public:
         /**
@@ -1384,9 +1385,9 @@ namespace IOv2
          * the main phase cannot switch to input direction.
          * @endif
          */
-        size_t get(internal_type* to, size_t to_max)
-            requires requires(CurrentType& t, cvt_reader<KernelType>& r, internal_type* data, size_t len) {
-                { t.get_main(r, data, len) } -> std::same_as<size_t>;
+        std::size_t get(internal_type* to, std::size_t to_max)
+            requires requires(CurrentType& t, cvt_reader<KernelType>& r, internal_type* data, std::size_t len) {
+                { t.get_main(r, data, len) } -> std::same_as<std::size_t>;
             }
         {
             // Read failures do not taint: they only advance the kernel cursor
@@ -1402,7 +1403,7 @@ namespace IOv2
             {
                 if (to_max == 0) return 0;
 
-                constexpr size_t ext_size = sizeof(external_type);
+                constexpr std::size_t ext_size = sizeof(external_type);
 
                 reader.reset(s_bos_chunk);
                 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -1417,7 +1418,7 @@ namespace IOv2
                 // Read full external_type chunks
                 while (dest_bytes + ext_size <= dest_bytes_end)
                 {
-                    const size_t units_to_read_now = std::min((size_t)((dest_bytes_end - dest_bytes) / ext_size), s_bos_chunk);
+                    const std::size_t units_to_read_now = std::min((std::size_t)((dest_bytes_end - dest_bytes) / ext_size), s_bos_chunk);
 
                     const auto* src_buf = reader.template get_buf<true>(units_to_read_now);
                     std::memcpy(dest_bytes, src_buf, units_to_read_now * ext_size);
@@ -1425,7 +1426,7 @@ namespace IOv2
                 }
 
                 // Read the final partial internal_type if needed
-                const size_t final_remainder_bytes = dest_bytes_end - dest_bytes;
+                const std::size_t final_remainder_bytes = dest_bytes_end - dest_bytes;
                 if (final_remainder_bytes > 0)
                 {
                     const auto* src_buf = reader.template get_buf<true>(1);
@@ -1493,8 +1494,8 @@ namespace IOv2
          * @lang{ZH} 若主阶段无法切换到 output 方向。 @endif
          * @lang{EN} If the main phase cannot switch to output direction. @endif
          */
-        void put(const internal_type* to, size_t to_size)
-            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, size_t len) {
+        void put(const internal_type* to, std::size_t to_size)
+            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
                 { t.put_main(w, data, len) } -> std::same_as<void>;
             }
         {
@@ -1520,7 +1521,7 @@ namespace IOv2
                 {
                     if (to_size == 0) return;
 
-                    constexpr size_t ext_size = sizeof(external_type);
+                    constexpr std::size_t ext_size = sizeof(external_type);
 
                     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                     auto to_bytes = reinterpret_cast<const char*>(to);
@@ -1533,7 +1534,7 @@ namespace IOv2
                     writer.reset(s_bos_chunk);
                     while (to_bytes + ext_size <= to_bytes_end)
                     {
-                        auto dest_count = std::min<size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
+                        auto dest_count = std::min<std::size_t>((to_bytes_end - to_bytes) / ext_size, s_bos_chunk);
                         auto ptr = writer.put_buf(dest_count);
                         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                         std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, dest_count * ext_size);
@@ -1545,7 +1546,7 @@ namespace IOv2
                         // The while loop above guarantees remaining < ext_size.
                         // The modulo is logically redundant but helps the compiler's
                         // static analyzer prove the bound for memset size calculation.
-                        size_t remaining = static_cast<size_t>(to_bytes_end - to_bytes) % ext_size;
+                        std::size_t remaining = static_cast<std::size_t>(to_bytes_end - to_bytes) % ext_size;
                         auto ptr = writer.put_buf(1);
                         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                         std::memcpy(reinterpret_cast<char*>(ptr), to_bytes, remaining);
@@ -1604,7 +1605,7 @@ namespace IOv2
          * @endif
          */
         void flush()
-            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, size_t len) {
+            requires requires(CurrentType& t, cvt_writer<KernelType>& w, const internal_type* data, std::size_t len) {
                 { t.put_main(w, data, len) } -> std::same_as<void>;
             }
         {
@@ -1646,10 +1647,10 @@ namespace IOv2
          * @lang{ZH} 当前流位置（从流起始处的 `external_type` 元素偏移量）。 @endif
          * @lang{EN} The current stream position as an offset in `external_type` elements from the start of the stream. @endif
          */
-        [[nodiscard]] size_t tell() const
+        [[nodiscard]] std::size_t tell() const
             requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
-            if constexpr (requires(const CurrentType& t) { { t.tell_impl() } -> std::same_as<size_t>; })
+            if constexpr (requires(const CurrentType& t) { { t.tell_impl() } -> std::same_as<std::size_t>; })
                 return static_cast<const CurrentType*>(this)->tell_impl();
             else
                 return m_kernel.tell();
@@ -1679,7 +1680,7 @@ namespace IOv2
          * @lang{ZH} 目标绝对位置（从流起始处的 `external_type` 元素偏移量）。 @endif
          * @lang{EN} Target absolute position as an offset in `external_type` elements from the start of the stream. @endif
          */
-        void seek(size_t pos)
+        void seek(std::size_t pos)
             requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
             // Fast path for no-op self-seek: skip validation and kernel work when
@@ -1691,7 +1692,7 @@ namespace IOv2
 
             assert_not_tainted();
 
-            if constexpr (requires(CurrentType& t, size_t p) { t.seek_impl(p); })
+            if constexpr (requires(CurrentType& t, std::size_t p) { t.seek_impl(p); })
                 static_cast<CurrentType*>(this)->seek_impl(pos);
             else m_kernel.seek(pos);
         }
@@ -1719,12 +1720,12 @@ namespace IOv2
          * @lang{ZH} 目标反向位置（从流末尾向前的 `external_type` 元素偏移量）。 @endif
          * @lang{EN} Target reverse position as an offset in `external_type` elements measured backwards from the end of the stream. @endif
          */
-        void rseek(size_t pos)
+        void rseek(std::size_t pos)
             requires (enable_positioning && cvt_cpt::support_positioning<KernelType>)
         {
             assert_not_tainted();
 
-            if constexpr (requires(CurrentType& t, size_t p) { t.rseek_impl(p); })
+            if constexpr (requires(CurrentType& t, std::size_t p) { t.rseek_impl(p); })
                 static_cast<CurrentType*>(this)->rseek_impl(pos);
             else m_kernel.rseek(pos);
         }

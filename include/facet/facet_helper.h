@@ -375,9 +375,9 @@ namespace IOv2::FacetHelper
         assert(!grouping.empty());
         assert(first <= last);
 
-        size_t idx = 0;
-        size_t ctr = 0;
-        const size_t max_idx = grouping.size() - 1;
+        std::size_t idx = 0;
+        std::size_t ctr = 0;
+        const std::size_t max_idx = grouping.size() - 1;
 
         while (last - first > grouping[idx]
                 && (grouping[idx] > 0))
@@ -537,14 +537,14 @@ namespace IOv2::FacetHelper
         assert(!grouping.empty());
         assert(!grouping_tmp.empty());
 
-        size_t i = grouping_tmp.size() - 1;
-        const size_t min_val = std::min(i, grouping.size() - 1);
+        std::size_t i = grouping_tmp.size() - 1;
+        const std::size_t min_val = std::min(i, grouping.size() - 1);
         bool test = true;
 
         // Parsed number groupings have to match the
         // numpunct::grouping string exactly, starting at the
         // right-most point of the parsed sequence of elements ...
-        for (size_t j = 0; j < min_val && test; --i, ++j)
+        for (std::size_t j = 0; j < min_val && test; --i, ++j)
             test = grouping_tmp[i] == grouping[j];
         for (; i && test; --i)
             test = grouping_tmp[i] == grouping[min_val];

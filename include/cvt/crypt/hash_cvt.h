@@ -448,14 +448,14 @@ private:
      * @lang{ZH} 若 `m_hash` 为空；或 `to_size * sizeof(internal_type)` 发生溢出。 @endif
      * @lang{EN} If `m_hash` is null, or if `to_size * sizeof(internal_type)` overflows. @endif
      */
-    void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, size_t to_size)
+    void put_main(cvt_writer<KernelType>& /*writer*/, const internal_type* to, std::size_t to_size)
     {
         if (to_size == 0) return;
         if (!m_hash)
             throw cvt_error("hash_cvt::put_main fail: hash not initialized (moved-from object?)");
 
         // Overflow check: ensure to_size * sizeof(internal_type) won't wrap
-        constexpr size_t max_safe = std::numeric_limits<size_t>::max() / sizeof(internal_type);
+        constexpr std::size_t max_safe = std::numeric_limits<std::size_t>::max() / sizeof(internal_type);
         if (to_size > max_safe)
             throw cvt_error("hash_cvt::put_main fail: size overflow");
 

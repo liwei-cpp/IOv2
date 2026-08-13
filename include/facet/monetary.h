@@ -391,7 +391,7 @@ public:
         requires (!std::same_as<TVal, bool>)
     TIter put(TIter s, bool intl, ios_base<char_type>& io, TVal v) const
     {
-        constexpr size_t buf_size = std::numeric_limits<TVal>::digits10 + 3;
+        constexpr std::size_t buf_size = std::numeric_limits<TVal>::digits10 + 3;
         std::array<char_type, buf_size> vec;
 
         char_type* p = vec.data() + buf_size;
@@ -650,7 +650,7 @@ private:
         // leaks into the next output operation on whichever path we leave by,
         // including an exception thrown while formatting. The captured value is
         // used for padding below.
-        const size_t width = io.width();
+        const std::size_t width = io.width();
         io.width(0);
 
         // Determine if negative or positive formats are to be used, and
@@ -673,7 +673,7 @@ private:
         }
 
         // Look for valid numbers in input digits.
-        size_t len = 0;
+        std::size_t len = 0;
         for (auto i = beg; i != digits.data() + digits.size(); ++i)
         {
             char_type ch = *i;
@@ -1094,7 +1094,7 @@ private:
     {
         if (s.empty()) return false;
 
-        size_t i = 0;
+        std::size_t i = 0;
         value = 0;
         constexpr TVal max_value = std::numeric_limits<TVal>::max();
 
@@ -1153,8 +1153,8 @@ private:
     }
 
 private:
-    static constexpr size_t s_minus = 0; // index into s_atoms for the '-' character
-    static constexpr size_t s_zero  = 1; // index into s_atoms for the '0' character
+    static constexpr std::size_t s_minus = 0; // index into s_atoms for the '-' character
+    static constexpr std::size_t s_zero  = 1; // index into s_atoms for the '0' character
 
 private:
     std::vector<uint8_t>      m_grouping;

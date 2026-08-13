@@ -26,6 +26,7 @@
 #include <array>
 #include <climits>
 #include <clocale>
+#include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -503,9 +504,9 @@ public:
             std::vector<uint8_t> grouping_raw;
             if (lc->mon_grouping)
             {
-                const size_t len = strlen(lc->mon_grouping);
+                const std::size_t len = strlen(lc->mon_grouping);
                 grouping_raw.resize(len);
-                for (size_t i = 0; i < len; ++i)
+                for (std::size_t i = 0; i < len; ++i)
                     grouping_raw[i] = static_cast<uint8_t>(lc->mon_grouping[i]);
             }
 
@@ -922,9 +923,9 @@ public:
             std::vector<uint8_t> grouping_raw;
             if (lc->mon_grouping)
             {
-                const size_t len = strlen(lc->mon_grouping);
+                const std::size_t len = strlen(lc->mon_grouping);
                 grouping_raw.resize(len);
-                for (size_t i = 0; i < len; ++i)
+                for (std::size_t i = 0; i < len; ++i)
                     grouping_raw[i] = static_cast<uint8_t>(lc->mon_grouping[i]);
             }
 

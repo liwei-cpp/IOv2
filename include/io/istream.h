@@ -124,7 +124,8 @@ public:
      * @endif
      */
     istream()
-        requires (std::is_same_v<typename TDevice::char_type, TChar>)
+        requires (std::is_same_v<typename TDevice::char_type, TChar>
+                  && std::is_default_constructible_v<TDevice>)
         : m_streambuf(TDevice()) {}
 
     /**

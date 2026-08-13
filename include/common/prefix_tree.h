@@ -95,9 +95,9 @@ class prefix_tree
     {
         std::unordered_map<CharT, std::unique_ptr<node>> children;
         std::optional<TValue> val;
-        size_t depth;
+        std::size_t depth;
 
-        node(std::optional<TValue> v, size_t d)
+        node(std::optional<TValue> v, std::size_t d)
             : val(std::move(v))
             , depth(d) {}
     };
@@ -158,10 +158,10 @@ public:
         : prefix_tree()
     {
         if (strs.size() > 0 &&
-            strs.size() - 1 > static_cast<size_t>(std::numeric_limits<TValue>::max()))
+            strs.size() - 1 > static_cast<std::size_t>(std::numeric_limits<TValue>::max()))
             throw std::runtime_error("prefix_tree: too many strings for TValue type");
 
-        for (size_t i = 0; i < strs.size(); ++i)
+        for (std::size_t i = 0; i < strs.size(); ++i)
         {
             if (strs[i] == nullptr)
                 throw std::runtime_error("prefix_tree: null pointer in input vector");
@@ -291,7 +291,7 @@ public:
                 out = &(*m_root.val);
         }
 
-        size_t found_depth = 0;
+        std::size_t found_depth = 0;
 
         const node* node_ptr = &m_root;
         for (; b != e; ++b)
@@ -312,7 +312,7 @@ public:
 
         if (node_ptr->depth != found_depth)
         {
-            const size_t steps_back = node_ptr->depth - found_depth;
+            const std::size_t steps_back = node_ptr->depth - found_depth;
             // Not std::advance / std::ranges::advance: the former dispatches on the C++17
             // iterator_category, the latter requires the bidirectional_iterator concept, and a
             // negative distance violates the precondition of both for a single-pass iterator
@@ -321,7 +321,7 @@ public:
             if constexpr (std::random_access_iterator<TIter>)
                 b -= static_cast<std::iter_difference_t<TIter>>(steps_back);
             else
-                for (size_t k = 0; k < steps_back; ++k) --b;
+                for (std::size_t k = 0; k < steps_back; ++k) --b;
         }
         return b;
     }
@@ -371,7 +371,7 @@ public:
                 out = &(*m_root.val);
         }
 
-        size_t found_depth = 0;
+        std::size_t found_depth = 0;
 
         const node* node_ptr = &m_root;
         for (; b != e;)
@@ -394,8 +394,8 @@ public:
 
         if (node_ptr->depth != found_depth)
         {
-            size_t count = node_ptr->depth - found_depth;
-            for (size_t i = 0; i < count; ++i)
+            std::size_t count = node_ptr->depth - found_depth;
+            for (std::size_t i = 0; i < count; ++i)
             {
                 b.sputbackc(checking_chars.front());
                 checking_chars.pop_front();
