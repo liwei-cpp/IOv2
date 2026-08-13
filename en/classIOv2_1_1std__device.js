@@ -7,8 +7,8 @@ var classIOv2_1_1std__device =
     [ "~std_device", "classIOv2_1_1std__device.html#a0cc53231f91e408343bebd4a01f7f72f", null ],
     [ "deof", "classIOv2_1_1std__device.html#aadd0d1898ab983d6e4c13cdf79c2fcac", null ],
     [ "dflush", "classIOv2_1_1std__device.html#a9bbe7aeeef021bf8b68e1a96368b45d2", null ],
-    [ "dget", "classIOv2_1_1std__device.html#aafa356f0924e3267a0e6aa834caac8cc", null ],
-    [ "dput", "classIOv2_1_1std__device.html#a6ee8984169104a16908d459b46a5bc24", null ],
+    [ "dget", "classIOv2_1_1std__device.html#ad0757ff598c86246f7222cf64a7d6e7c", null ],
+    [ "dput", "classIOv2_1_1std__device.html#ac6e79a585e4117b7602b1c19d4fbd8a8", null ],
     [ "operator=", "classIOv2_1_1std__device.html#a3c86c0ffaa97945b66e083cf1a56cc27", null ],
     [ "operator=", "classIOv2_1_1std__device.html#a8040ef1f2ce6fe813c609e3457fded98", null ]
 ];

@@ -4,7 +4,7 @@ var searchData=
   ['endl_5ft_1',['endl_t',['../structIOv2_1_1endl__t.html',1,'IOv2']]],
   ['ends_2',['ends',['../namespaceIOv2.html#acc71fe01b93ec967067999d552452bab',1,'IOv2']]],
   ['ends_5ft_3',['ends_t',['../structIOv2_1_1ends__t.html',1,'IOv2']]],
-  ['eof_4',['eof',['../structIOv2_1_1ios__state.html#a435419d34312b65641a047a6b84469e2',1,'IOv2::ios_state']]],
+  ['eof_4',['eof',['../structIOv2_1_1ios__state.html#a5b6ce75dd2a485a2d9ec9312472ae16d',1,'IOv2::ios_state']]],
   ['eof_5ferror_5',['eof_error',['../structIOv2_1_1eof__error.html#a4df82dfbef25e2281d22f5fb49a12a3d',1,'IOv2::eof_error::eof_error()'],['../structIOv2_1_1eof__error.html',1,'IOv2::eof_error']]],
   ['eofbit_6',['eofbit',['../namespaceIOv2_1_1ios__defs.html#a5b7f3020b857174b3b649d1553388cd0a3d1a4ef0680bb2b9fe82a565f8483635',1,'IOv2::ios_defs']]],
   ['epc_7',['epc',['../structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#a26f7843fda30b30f2767a0e47d9e8ded',1,'IOv2::codecvt_kernel&lt; char, TInt &gt;::epc()'],['../structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#adbae88e6b5d7408e5f45d21086bb8dbf',1,'IOv2::codecvt_kernel&lt; char8_t, TInt &gt;::epc()']]],

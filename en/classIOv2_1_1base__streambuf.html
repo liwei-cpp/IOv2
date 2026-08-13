@@ -158,9 +158,9 @@ requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d
 <tr class="memitem:ab51d36672e716de55c432c9bf2d8edeb" id="r_ab51d36672e716de55c432c9bf2d8edeb"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ab51d36672e716de55c432c9bf2d8edeb">snextc</a> ()</td></tr>
 <tr class="memdesc:ab51d36672e716de55c432c9bf2d8edeb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Consumes the current character, then peeks the next one.  <br /></td></tr>
 <tr class="separator:ab51d36672e716de55c432c9bf2d8edeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9c068814d77ae3d8fa187785a664c17a" id="r_a9c068814d77ae3d8fa187785a664c17a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a9c068814d77ae3d8fa187785a664c17a">sgetn</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">got</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a>)</td></tr>
-<tr class="memdesc:a9c068814d77ae3d8fa187785a664c17a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads up to <code>n</code> characters in bulk into the buffer <code>s</code>.  <br /></td></tr>
-<tr class="separator:a9c068814d77ae3d8fa187785a664c17a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d0a56378c5c0b7b1694015146b4025f" id="r_a5d0a56378c5c0b7b1694015146b4025f"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a5d0a56378c5c0b7b1694015146b4025f">sgetn</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>, std::size_t *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">got</a>=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a>)</td></tr>
+<tr class="memdesc:a5d0a56378c5c0b7b1694015146b4025f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads up to <code>n</code> characters in bulk into the buffer <code>s</code>.  <br /></td></tr>
+<tr class="separator:a5d0a56378c5c0b7b1694015146b4025f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05b98428e8ead8376365c621e9488c56" id="r_a05b98428e8ead8376365c621e9488c56"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a05b98428e8ead8376365c621e9488c56">is_eof</a> ()</td></tr>
 <tr class="memdesc:a05b98428e8ead8376365c621e9488c56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries whether the end of input has been reached.  <br /></td></tr>
 <tr class="separator:a05b98428e8ead8376365c621e9488c56"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -172,23 +172,23 @@ requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d
 <tr class="memitem:a7d679aaad7532ca75fac0eb939fe3b9b" id="r_a7d679aaad7532ca75fac0eb939fe3b9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a7d679aaad7532ca75fac0eb939fe3b9b">sputc</a> (<a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ch</a>)</td></tr>
 <tr class="memdesc:a7d679aaad7532ca75fac0eb939fe3b9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a single character.  <br /></td></tr>
 <tr class="separator:a7d679aaad7532ca75fac0eb939fe3b9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3eafc4b8231f88fe1cb1fe4c3d4a0073" id="r_a3eafc4b8231f88fe1cb1fe4c3d4a0073"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a3eafc4b8231f88fe1cb1fe4c3d4a0073">sputn</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
-<tr class="memdesc:a3eafc4b8231f88fe1cb1fe4c3d4a0073"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes <code>n</code> characters in bulk.  <br /></td></tr>
-<tr class="separator:a3eafc4b8231f88fe1cb1fe4c3d4a0073"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abdf7391b85de577f8f35b967d3275c39" id="r_abdf7391b85de577f8f35b967d3275c39"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#abdf7391b85de577f8f35b967d3275c39">sputn</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">n</a>)</td></tr>
+<tr class="memdesc:abdf7391b85de577f8f35b967d3275c39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes <code>n</code> characters in bulk.  <br /></td></tr>
+<tr class="separator:abdf7391b85de577f8f35b967d3275c39"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a865696de011370078090792e6a08e3dc" id="r_a865696de011370078090792e6a08e3dc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a865696de011370078090792e6a08e3dc">flush</a> ()</td></tr>
 <tr class="memdesc:a865696de011370078090792e6a08e3dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flushes output, pushing buffered data to the underlying device.  <br /></td></tr>
 <tr class="separator:a865696de011370078090792e6a08e3dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Positioning operations</div></td></tr>
 <tr><td colspan="2"><div class="groupText"></div></td></tr>
-<tr class="memitem:a6d09c16149e43eb7ba4b4937d702580f" id="r_a6d09c16149e43eb7ba4b4937d702580f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a6d09c16149e43eb7ba4b4937d702580f">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
-<tr class="memdesc:a6d09c16149e43eb7ba4b4937d702580f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current logical read position.  <br /></td></tr>
-<tr class="separator:a6d09c16149e43eb7ba4b4937d702580f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad89cbad13c7b26285e24a1dab5f9593e" id="r_ad89cbad13c7b26285e24a1dab5f9593e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ad89cbad13c7b26285e24a1dab5f9593e">seek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
-<tr class="memdesc:ad89cbad13c7b26285e24a1dab5f9593e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Seeks to the absolute position <code>pos</code>.  <br /></td></tr>
-<tr class="separator:ad89cbad13c7b26285e24a1dab5f9593e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a245a1080809464952994b5f07abae4de" id="r_a245a1080809464952994b5f07abae4de"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a245a1080809464952994b5f07abae4de">rseek</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
-<tr class="memdesc:a245a1080809464952994b5f07abae4de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative seek (offset <code>pos</code> from the current position).  <br /></td></tr>
-<tr class="separator:a245a1080809464952994b5f07abae4de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad218e9307ac99cd0f2fb2f69241c1505" id="r_ad218e9307ac99cd0f2fb2f69241c1505"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ad218e9307ac99cd0f2fb2f69241c1505">tell</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad218e9307ac99cd0f2fb2f69241c1505"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the current logical read position.  <br /></td></tr>
+<tr class="separator:ad218e9307ac99cd0f2fb2f69241c1505"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad250929be4c115aeb725114b32ee6553" id="r_ad250929be4c115aeb725114b32ee6553"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#ad250929be4c115aeb725114b32ee6553">seek</a> (std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="memdesc:ad250929be4c115aeb725114b32ee6553"><td class="mdescLeft">&#160;</td><td class="mdescRight">Seeks to the absolute position <code>pos</code>.  <br /></td></tr>
+<tr class="separator:ad250929be4c115aeb725114b32ee6553"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0faeacdb9bc6f74f0cdc37d89205d84a" id="r_a0faeacdb9bc6f74f0cdc37d89205d84a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a0faeacdb9bc6f74f0cdc37d89205d84a">rseek</a> (std::size_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">pos</a>)</td></tr>
+<tr class="memdesc:a0faeacdb9bc6f74f0cdc37d89205d84a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative seek (offset <code>pos</code> from the current position).  <br /></td></tr>
+<tr class="separator:a0faeacdb9bc6f74f0cdc37d89205d84a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Read/write direction switching (IsIn &amp;&amp; IsOut only)</div></td></tr>
 <tr><td colspan="2"><div class="groupText"></div></td></tr>
 <tr class="memitem:a95cd9190e765da4b88d92dcd3bc90beb" id="r_a95cd9190e765da4b88d92dcd3bc90beb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1base__streambuf.html#a95cd9190e765da4b88d92dcd3bc90beb">switch_to_get</a> ()</td></tr>
@@ -734,8 +734,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="a245a1080809464952994b5f07abae4de" name="a245a1080809464952994b5f07abae4de"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a245a1080809464952994b5f07abae4de">&#9670;&#160;</a></span>rseek()</h2>
+<a id="a0faeacdb9bc6f74f0cdc37d89205d84a" name="a0faeacdb9bc6f74f0cdc37d89205d84a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0faeacdb9bc6f74f0cdc37d89205d84a">&#9670;&#160;</a></span>rseek()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -748,7 +748,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::rseek </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>pos</em></td><td>)</td>
           <td></td>
         </tr>
@@ -793,8 +793,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="ad89cbad13c7b26285e24a1dab5f9593e" name="ad89cbad13c7b26285e24a1dab5f9593e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad89cbad13c7b26285e24a1dab5f9593e">&#9670;&#160;</a></span>seek()</h2>
+<a id="ad250929be4c115aeb725114b32ee6553" name="ad250929be4c115aeb725114b32ee6553"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad250929be4c115aeb725114b32ee6553">&#9670;&#160;</a></span>seek()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -807,7 +807,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
         <tr>
           <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a> <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::seek </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>pos</em></td><td>)</td>
           <td></td>
         </tr>
@@ -852,8 +852,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="a9c068814d77ae3d8fa187785a664c17a" name="a9c068814d77ae3d8fa187785a664c17a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c068814d77ae3d8fa187785a664c17a">&#9670;&#160;</a></span>sgetn()</h2>
+<a id="a5d0a56378c5c0b7b1694015146b4025f" name="a5d0a56378c5c0b7b1694015146b4025f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d0a56378c5c0b7b1694015146b4025f">&#9670;&#160;</a></span>sgetn()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -864,7 +864,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::sgetn </td>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::sgetn </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classIOv2_1_1base__streambuf.html#a483291cc43d07ba22917034ba96241f5">char_type</a> *&#160;</td>
           <td class="paramname"><em>s</em>, </td>
@@ -872,13 +872,13 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>n</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> *&#160;</td>
+          <td class="paramtype">std::size_t *&#160;</td>
           <td class="paramname"><em>got</em> = <code><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">nullptr</a></code>&#160;</td>
         </tr>
         <tr>
@@ -987,8 +987,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="a3eafc4b8231f88fe1cb1fe4c3d4a0073" name="a3eafc4b8231f88fe1cb1fe4c3d4a0073"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3eafc4b8231f88fe1cb1fe4c3d4a0073">&#9670;&#160;</a></span>sputn()</h2>
+<a id="abdf7391b85de577f8f35b967d3275c39" name="abdf7391b85de577f8f35b967d3275c39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abdf7391b85de577f8f35b967d3275c39">&#9670;&#160;</a></span>sputn()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1007,7 +1007,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a>&#160;</td>
+          <td class="paramtype">std::size_t&#160;</td>
           <td class="paramname"><em>n</em>&#160;</td>
         </tr>
         <tr>
@@ -1085,8 +1085,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
 
 </div>
 </div>
-<a id="a6d09c16149e43eb7ba4b4937d702580f" name="a6d09c16149e43eb7ba4b4937d702580f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d09c16149e43eb7ba4b4937d702580f">&#9670;&#160;</a></span>tell()</h2>
+<a id="ad218e9307ac99cd0f2fb2f69241c1505" name="ad218e9307ac99cd0f2fb2f69241c1505"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad218e9307ac99cd0f2fb2f69241c1505">&#9670;&#160;</a></span>tell()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1097,7 +1097,7 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::tell </td>
+          <td class="memname">std::size_t <a class="el" href="classIOv2_1_1base__streambuf.html">IOv2::base_streambuf</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TDevice</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a> &gt;::tell </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>

@@ -4,7 +4,7 @@ var classIOv2_1_1ostream =
     [ "device_type", "classIOv2_1_1ostream.html#af55b093158db6dbf89d43bc5fb3f4ae3", null ],
     [ "out_iter_type", "classIOv2_1_1ostream.html#a746067147788a73e89bf690fa701863c", null ],
     [ "out_sentry_type", "classIOv2_1_1ostream.html#a1ea6b3f5e0e2999822c06b625088ac61", null ],
-    [ "ostream", "classIOv2_1_1ostream.html#a19ca498736bf70b14b599f762fa77085", null ],
+    [ "ostream", "classIOv2_1_1ostream.html#ae8d60232d536b11b58b6db7550088e2f", null ],
     [ "ostream", "classIOv2_1_1ostream.html#a25b072c7076c7b07c006ee1e627cb469", null ],
     [ "ostream", "classIOv2_1_1ostream.html#a38c2afb25db3336e9074ead7faa3d0b2", null ],
     [ "ostream", "classIOv2_1_1ostream.html#a895ac02c791c9b74624139f4d478f485", null ],

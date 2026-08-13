@@ -111,7 +111,7 @@ $(document).ready(function(){initNavTree('lru__cache_8h_source.html',''); initRe
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>{</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TK, <span class="keyword">typename</span> TV, <span class="keywordtype">size_t</span> Capacity&gt;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TK, <span class="keyword">typename</span> TV, std::<span class="keywordtype">size_t</span> Capacity&gt;</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keyword">requires</span> std::is_copy_constructible_v&lt;TK&gt;  <span class="comment">// Key must be copyable for storage</span></div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>          &amp;&amp; std::is_copy_constructible_v&lt;TV&gt;  <span class="comment">// Value must be copyable for storage</span></div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>          &amp;&amp; std::equality_comparable&lt;TK&gt;      <span class="comment">// Key needs operator== for hash map</span></div>

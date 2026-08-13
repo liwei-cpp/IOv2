@@ -13,16 +13,16 @@ var classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_
     [ "detach", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ae0d9013004e1fb9c22f3eac0e76e164f", null ],
     [ "device", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a5b8d62a8c8d4938ab9a60c0dc47eae9a", null ],
     [ "flush", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#aec92cd46046310f4af8159d9b5c3fa93", null ],
-    [ "get", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#adc6028a10abb64fae41e20f4983e8c3e", null ],
+    [ "get", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a71fac398cd442a0bd6a3e754ee8f5a29", null ],
     [ "is_eof", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a9595201b178d1a466b8e2a906aefcb97", null ],
     [ "main_cont_beg", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#ad4a4b6c156d4cb3497cc7e79ad4f5938", null ],
     [ "operator=", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a2663be3cb5f9108c94d94a9a4066ec81", null ],
     [ "operator=", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a06bfaec129a175d4e8380fa03c161001", null ],
-    [ "put", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#afdb4a95e471cfada7d4a681215429ff4", null ],
+    [ "put", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a97376bada2ec680241372297b4561c04", null ],
     [ "retrieve", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a989f571d8ee052d3209de15c9378b397", null ],
-    [ "rseek", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a1daf6334c3660ba115f93b8353de2959", null ],
-    [ "seek", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a5d08d663eea32a6ca9b3b2195ed05c7d", null ],
+    [ "rseek", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a515184cd609e996fdff2e2919f490368", null ],
+    [ "seek", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#aa411dbdc837583c3d8fc4bfff475352f", null ],
     [ "switch_to_get", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a1ad64caee179efc7d4272d90c777583a", null ],
     [ "switch_to_put", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a99d0d96cf9d2060d6f6c16556f6eecbc", null ],
-    [ "tell", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#adeaa87a8fc7d28bc4033bb412ad656a6", null ]
+    [ "tell", "classIOv2_1_1root__cvt_3_01mem__device_3_01CharT_00_01Traits_00_01Allocator_01_4_00_01HasInBuffer_01_4.html#a92bbaac6e1aa96d7ed774708a97c4520", null ]
 ];

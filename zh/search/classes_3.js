@@ -24,7 +24,7 @@ var searchData=
   ['copyable_5fatomic_3c_20char_20_3e_21',['copyable_atomic&lt; char &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
   ['copyable_5fatomic_3c_20char_5ftype_20_3e_22',['copyable_atomic&lt; char_type &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
   ['copyable_5fatomic_3c_20iov2_3a_3aabs_5fflusher_20_2a_20_3e_23',['copyable_atomic&lt; IOv2::abs_flusher * &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
-  ['copyable_5fatomic_3c_20size_5ft_20_3e_24',['copyable_atomic&lt; size_t &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
+  ['copyable_5fatomic_3c_20std_3a_3asize_5ft_20_3e_24',['copyable_atomic&lt; std::size_t &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
   ['copyable_5fatomic_3c_20std_3a_3auint16_5ft_20_3e_25',['copyable_atomic&lt; std::uint16_t &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
   ['copyable_5fatomic_3c_20std_3a_3auint8_5ft_20_3e_26',['copyable_atomic&lt; std::uint8_t &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],
   ['copyable_5fatomic_3c_20tchar_20_3e_27',['copyable_atomic&lt; TChar &gt;',['../classIOv2_1_1copyable__atomic.html',1,'IOv2']]],

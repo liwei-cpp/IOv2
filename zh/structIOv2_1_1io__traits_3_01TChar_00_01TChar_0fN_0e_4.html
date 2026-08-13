@@ -109,7 +109,7 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 <tr class="separator:a5f362e7cb9df5e7800e6705c88882223"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
-<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> N&gt;<br />
+<div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, std::size_t N&gt;<br />
 struct IOv2::io_traits&lt; TChar, TChar[N]&gt;</div><p>将一个以空白分隔的 token 提取到定长字符数组。 </p>
 </div><h2 class="groupheader">成员函数说明</h2>
 <a id="a5f362e7cb9df5e7800e6705c88882223" name="a5f362e7cb9df5e7800e6705c88882223"></a>
@@ -118,7 +118,7 @@ struct IOv2::io_traits&lt; TChar, TChar[N]&gt;</div><p>将一个以空白分隔�
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">size_t</a> N&gt; </div>
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> , std::size_t N&gt; </div>
 <div class="memtemplate">
 template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
 requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</div>

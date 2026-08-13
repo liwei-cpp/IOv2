@@ -105,7 +105,7 @@ var hierarchy =
     [ "IOv2::copyable_atomic< char >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< char_type >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< IOv2::abs_flusher * >", "classIOv2_1_1copyable__atomic.html", null ],
-    [ "IOv2::copyable_atomic< size_t >", "classIOv2_1_1copyable__atomic.html", null ],
+    [ "IOv2::copyable_atomic< std::size_t >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< std::uint16_t >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< std::uint8_t >", "classIOv2_1_1copyable__atomic.html", null ],
     [ "IOv2::copyable_atomic< TChar >", "classIOv2_1_1copyable__atomic.html", null ],

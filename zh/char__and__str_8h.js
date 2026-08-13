@@ -18,6 +18,6 @@ var char__and__str_8h =
     [ "IOv2::io_traits< char, unsigned char[N]>", "structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_0fN_0e_4.html", "structIOv2_1_1io__traits_3_01char_00_01unsigned_01char_0fN_0e_4" ],
     [ "IOv2::io_traits< char, signed char[N]>", "structIOv2_1_1io__traits_3_01char_00_01signed_01char_0fN_0e_4.html", "structIOv2_1_1io__traits_3_01char_00_01signed_01char_0fN_0e_4" ],
     [ "IOv2::io_traits< TChar, std::basic_string< TChar, TTraits, TAlloc > >", "structIOv2_1_1io__traits_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01std_1_1basic__string_3_01TChar_00_01TTraits_00_01TAlloc_01_4_01_4" ],
-    [ "istream_extract", "char__and__str_8h.html#a6d5bc11646484d80f27df54a9f476dfe", null ],
-    [ "ostream_insert", "char__and__str_8h.html#a3a5f1ed9f2a1dbf8aa1ed719d2920fa8", null ]
+    [ "istream_extract", "char__and__str_8h.html#a029604d0757616cabc08f51da3c55c15", null ],
+    [ "ostream_insert", "char__and__str_8h.html#a38127722c7a68940b0ba7cf978babd37", null ]
 ];

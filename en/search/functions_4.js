@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['eof_0',['eof',['../structIOv2_1_1ios__state.html#a435419d34312b65641a047a6b84469e2',1,'IOv2::ios_state']]],
+  ['eof_0',['eof',['../structIOv2_1_1ios__state.html#a5b6ce75dd2a485a2d9ec9312472ae16d',1,'IOv2::ios_state']]],
   ['eof_5ferror_1',['eof_error',['../structIOv2_1_1eof__error.html#a4df82dfbef25e2281d22f5fb49a12a3d',1,'IOv2::eof_error']]],
   ['epc_2',['epc',['../structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#a26f7843fda30b30f2767a0e47d9e8ded',1,'IOv2::codecvt_kernel&lt; char, TInt &gt;::epc()'],['../structIOv2_1_1codecvt__kernel_3_01char8__t_00_01TInt_01_4.html#adbae88e6b5d7408e5f45d21086bb8dbf',1,'IOv2::codecvt_kernel&lt; char8_t, TInt &gt;::epc()']]],
   ['era_5fdate_5fformat_3',['era_date_format',['../classIOv2_1_1timeio.html#aec17daff53f65b7521a7555e30d2e3c8',1,'IOv2::timeio::era_date_format()'],['../classIOv2_1_1timeio__conf_3_01char_01_4.html#a0c4d2d278298160a7e49838ce54061b6',1,'IOv2::timeio_conf&lt; char &gt;::era_date_format()'],['../classIOv2_1_1timeio__conf_3_01CharT_01_4.html#a4e5d7d8034f89f9ac8663639a35faaf9',1,'IOv2::timeio_conf&lt; CharT &gt;::era_date_format() const'],['../classIOv2_1_1timeio__conf_3_01CharT_01_4.html#a3d7e0316690c7b45683431feefa6df56',1,'IOv2::timeio_conf&lt; CharT &gt;::era_date_format() const']]],

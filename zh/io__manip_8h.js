@@ -28,7 +28,7 @@ var io__manip_8h =
     [ "setbase", "io__manip_8h.html#a12ac3d16b95cd13dbb0ff6134c29beb9", null ],
     [ "setfill", "io__manip_8h.html#ae5345dc5ab6f852ab3f472e0407d42ec", null ],
     [ "setiosflags", "io__manip_8h.html#a12359c2e23bf073039289d583c8de3c4", null ],
-    [ "setprecision", "io__manip_8h.html#abf25c3f70d2d0b5092c5ffe2a9678f89", null ],
+    [ "setprecision", "io__manip_8h.html#aa7959a7eb2a57d40bbc3609cc918b1cf", null ],
     [ "setw", "io__manip_8h.html#aedf6b0c58c8061128becb490433aecf3", null ],
     [ "get_money", "io__manip_8h.html#a5daa554d89e541dc2a33c3ece4c02535", null ],
     [ "put_money", "io__manip_8h.html#a98dfc906f2d5da328ea9bb28ef3a96ef", null ]
