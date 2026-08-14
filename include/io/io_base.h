@@ -1113,6 +1113,14 @@ struct ios_state : public ios_base<TChar>
      *       时已被消费置空，于是同一异常被重新存入；`setstate` 对已置位的位是按位或空操作；
      *       `clear()` 再次重抛同一个原始异常。调用方因此**不需要**为了躲开重复调用而在嵌套
      *       处省略 try。
+     * @note **传播出去的异常未必就是传入的 `ex`。** 重抛由 `clear()` 按 设备 → 转换 → 流 →
+     *       其他 → EOF 的固定优先级挑选，且某类别只在其状态位**既已置位、又落在异常掩码中**
+     *       时才轮得到（见 clear()）。于是当更高优先级的失败位先已满足这两个条件时，本函数
+     *       传播出去的是那个类别保存的异常，而不是本次传入的 `ex`——例如流上已有 `devfailbit`
+     *       且它在掩码中，此时把哨兵的 `stream_error` 交进来，抛出的是先前那条 `device_error`。
+     *       这是刻意的：先报因果链上游那个更根本的故障。幂等性不受影响（以同一 `ex` 重复调用
+     *       效果仍相同），被让位的 `exception_ptr` 也不会丢失——它继续留在自己的类别里，待高
+     *       优先级位被清除后由后续的 clear()/setstate() 抛出。
      * @warning **不支持对阻塞在本库 I/O 中的线程调用 `pthread_cancel`。** glibc 以抛出特殊异常
      *          （`__cxxabiv1::__forced_unwind`）的方式实现线程取消，该异常会落入本函数最后的
      *          `catch(...)` 并被归类为 `otherfailbit`；若 `otherfailbit` 不在异常掩码中就不会被
@@ -1167,6 +1175,18 @@ struct ios_state : public ios_base<TChar>
      * bitwise-or no-op on an already-set bit; and `clear()` rethrows the same original
      * exception. Callers therefore do **not** need to omit a try at a nested site merely to
      * avoid a repeat call.
+     * @note **The exception that propagates out is not necessarily the `ex` handed in.** The
+     * rethrow is picked by `clear()` in the fixed device → conversion → stream → other → EOF
+     * priority order, and a category is only eligible when its state bit is **both set and in
+     * the exception mask** (see clear()). So when a higher-priority failure bit already meets
+     * both conditions, what propagates out is the exception stored for *that* category rather
+     * than this call's `ex` -- hand in a sentry's `stream_error` while the stream already has
+     * `devfailbit` set and in the mask, for one, and the earlier `device_error` is what is
+     * thrown. This is deliberate: the more fundamental failure, further up the causal chain,
+     * is reported first. Idempotence is unaffected (repeated calls with the same `ex` still
+     * have the same effect), and the exception that yielded is not lost -- it stays in its own
+     * category and is thrown by a later clear()/setstate() once the higher-priority bit is
+     * cleared.
      * @warning **Calling `pthread_cancel` on a thread blocked inside this library is not
      *          supported.** glibc implements thread cancellation by throwing a special
      *          exception (`__cxxabiv1::__forced_unwind`), which lands in this function's
