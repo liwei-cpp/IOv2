@@ -63,7 +63,7 @@ template <typename TChar, typename TValue>
 struct io_traits<TChar, TValue>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, TValue value)
     {
         auto mp = loc.template get<numeric<TChar>>();
@@ -234,7 +234,7 @@ template <typename TChar, typename TValue>
 struct io_traits<TChar, TValue>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, TValue value)
     {
         auto mp = loc.template get<numeric<TChar>>();

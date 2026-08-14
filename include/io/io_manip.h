@@ -613,7 +613,7 @@ template <typename TChar, typename TMoney>
 struct io_traits<TChar, put_money_t<TMoney>>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, put_money_t<TMoney> f)
     {
         auto mp = loc.template get<monetary<TChar>>();
@@ -827,7 +827,7 @@ struct io_traits<TChar, put_time_t<TChar>>
      * @endif
      */
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, put_time_t<TChar> f)
     {
         if (f.tmb == nullptr || f.fmt == nullptr)

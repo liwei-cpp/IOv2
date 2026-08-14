@@ -12,7 +12,7 @@
 namespace IOv2
 {
 template <typename TIter, typename TChar>
-    requires (std::is_same_v<TChar, typename TIter::value_type>)
+    requires (char_sink_for<TIter, TChar>)
 TIter ostream_insert(TIter iter, ios_base<TChar>& io, const TChar* s, std::size_t n)
 {
     const std::size_t w = io.width();
@@ -94,7 +94,7 @@ struct io_traits<TChar, TChar>
      * @endif
      */
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, TChar c)
     {
         if constexpr (std::is_same_v<TChar, char>)
@@ -129,7 +129,7 @@ template <typename TChar>
 struct io_traits<TChar, char>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, char c)
     {
         auto mp = loc.template get<ctype<TChar>>();
@@ -148,7 +148,7 @@ template <>
 struct io_traits<char, unsigned char>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, unsigned char c)
     {
         return io_traits<char, char>::swrite(iter, io, loc, static_cast<char>(c));
@@ -169,7 +169,7 @@ template <>
 struct io_traits<char, signed char>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, signed char c)
     {
         return io_traits<char, char>::swrite(iter, io, loc, static_cast<char>(c));
@@ -190,7 +190,7 @@ template <typename TChar>
 struct io_traits<TChar, TChar*>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>&, const TChar* c)
     {
         if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
@@ -206,7 +206,7 @@ template <typename TChar>
 struct io_traits<TChar, const TChar*>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const TChar* c)
     {
         return io_traits<TChar, TChar*>::swrite(iter, io, loc, c);
@@ -259,7 +259,7 @@ template <typename TChar>
 struct io_traits<TChar, char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const char* c)
     {
         if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
@@ -282,7 +282,7 @@ template <typename TChar>
 struct io_traits<TChar, const char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>& loc, const char* c)
     {
         return io_traits<TChar, char*>::swrite(iter, io, loc, c);
@@ -293,7 +293,7 @@ template <>
 struct io_traits<char, char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>&, const char* c)
     {
         if (c == nullptr) throw IOv2::stream_error("Cannot write NULL character sequence");
@@ -309,7 +309,7 @@ template <>
 struct io_traits<char, const char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const char* c)
     {
         return io_traits<char, char*>::swrite(iter, io, loc, c);
@@ -349,7 +349,7 @@ template <>
 struct io_traits<char, unsigned char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const unsigned char* c)
     {
         return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
@@ -360,7 +360,7 @@ template <>
 struct io_traits<char, const unsigned char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const unsigned char* c)
     {
         return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
@@ -371,7 +371,7 @@ template <>
 struct io_traits<char, signed char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const signed char* c)
     {
         return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
@@ -382,7 +382,7 @@ template <>
 struct io_traits<char, const signed char*>
 {
     template <typename TIter>
-        requires (std::is_same_v<char, typename TIter::value_type>)
+        requires (char_sink_for<TIter, char>)
     static TIter swrite(TIter iter, ios_base<char>& io, const locale<char>& loc, const signed char* c)
     {
         return io_traits<char, char*>::swrite(iter, io, loc, reinterpret_cast<const char*>(c));
@@ -486,7 +486,7 @@ template <typename TChar, typename TTraits, typename TAlloc>
 struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter iter, ios_base<TChar>& io, const locale<TChar>&, const std::basic_string<TChar, TTraits, TAlloc>& str)
     {
         return ostream_insert(iter, io, str.data(), str.size());
