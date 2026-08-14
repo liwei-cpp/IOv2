@@ -52,7 +52,7 @@ template <typename TChar>
 struct io_traits<TChar, std::nullptr_t>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, std::nullptr_t)
     {
         const char* c_buf = "nullptr";

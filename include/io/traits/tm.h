@@ -120,7 +120,7 @@ template <typename TChar>
 struct io_traits<TChar, std::tm>
 {
     template <typename TIter>
-        requires (std::is_same_v<TChar, typename TIter::value_type>)
+        requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, const std::tm& value)
     {
         auto mp = loc.template get<timeio<TChar>>();

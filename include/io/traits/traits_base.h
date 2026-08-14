@@ -21,7 +21,7 @@
  * struct IOv2::io_traits<TChar, MyType>
  * {
  *     template <typename TIter>
- *         requires (std::is_same_v<TChar, typename TIter::value_type>)
+ *         requires (char_sink_for<TIter, TChar>)
  *     static TIter swrite(TIter it, ios_base<TChar>& io, const locale<TChar>& loc,
  *                         const MyType& v);
  *
@@ -46,7 +46,10 @@
  *
  * 那条 `requires` 不能省：流类型是模板形参，不写它就与键的 `TChar` 无关，显式限定调用便能把宽键
  * 配窄流。运算符走不到那里（它总是用 `T::char_type` 实例化），但手写调用够得着，于是本该编译期
- * 报错的事落到运行期（`strfailbit`）。迭代器形式靠 `TIter::value_type` 那条约束达到同一效果。
+ * 报错的事落到运行期（`strfailbit`）。迭代器形式靠那条迭代器约束达到同一效果：插入侧是本文件
+ * 里的 `char_sink_for<TIter, TChar>`，提取侧是 `std::is_same_v<TChar, typename TIter::value_type>`。
+ * 两侧不对称是有意的——输入迭代器按标准必须有 `value_type`，输出迭代器则不必（C++20 起标准的
+ * 输出适配器一律是 `void`），所以插入侧只能查可写性，能查到的 `value_type` 仍照查。
  *
  * 两种形式靠**参数个数**区分，一个特化**只能提供其中一种**：两种都提供是编译错误，运算符会就地
  * `static_assert`。插入端还会把 `TValue` 衰退一次再试一遍（这样数组名能衰退成指针、函数名能衰退
@@ -126,7 +129,7 @@
  * struct IOv2::io_traits<TChar, MyType>
  * {
  *     template <typename TIter>
- *         requires (std::is_same_v<TChar, typename TIter::value_type>)
+ *         requires (char_sink_for<TIter, TChar>)
  *     static TIter swrite(TIter it, ios_base<TChar>& io, const locale<TChar>& loc,
  *                         const MyType& v);
  *
@@ -154,8 +157,12 @@
  * it to the key's `TChar` and an explicitly qualified call can pair a wide key with a narrow
  * stream. The operators never get there -- they always instantiate with `T::char_type` -- but a
  * hand-written call does, turning what should be a compile error into a run-time one
- * (`strfailbit`). The iterator form achieves the same through its constraint on
- * `TIter::value_type`.
+ * (`strfailbit`). The iterator form achieves the same through its constraint on the iterator:
+ * `char_sink_for<TIter, TChar>` from this file on the insertion side, and
+ * `std::is_same_v<TChar, typename TIter::value_type>` on the extraction side. The asymmetry is
+ * deliberate -- the standard requires an input iterator to have a `value_type` but an output
+ * iterator not to (since C++20 the standard output adaptors uniformly use `void`), so the
+ * insertion side can only test writability, while still checking any `value_type` it does find.
  *
  * The two forms are told apart by **arity**, and a specialization may provide **only one of
  * them**: providing both is a compile error, diagnosed by a `static_assert` in the operator. The
@@ -231,8 +238,106 @@
  */
 #pragma once
 
+#include <iterator>
+#include <type_traits>
+
 namespace IOv2
 {
+/**
+ * @lang{ZH}
+ * @brief `TIter` 能否作为字符类型为 `TChar` 的**输出**迭代器使用——插入侧扩展点的迭代器约束。
+ *
+ * 本文件头部说明了这条约束为何不能省：迭代器是函数模板形参而不是类型的一部分，显式限定的
+ * 手写调用能把宽键配窄汇，本概念把 `TIter` 拴回键的 `TChar`。提取侧的对应约束直接写作
+ * `std::is_same_v<TChar, typename TIter::value_type>`；两侧不对称是有意的，理由见下。
+ *
+ * 第一个合取项照搬 `<format>`：标准的 `format_to` 一族用的正是
+ * `std::output_iterator<Out, const charT&>`，查的是"能不能把一个 `TChar` 左值写进去"这一
+ * 真正需要的性质。C++20 起 `std::back_insert_iterator`、`front_insert_iterator`、
+ * `insert_iterator`、`ostream_iterator`、`std::ostreambuf_iterator` 的 `value_type` 一律是
+ * `void`，`std::output_iterator` 概念也不要求该 typedef 存在，因此**不能**用它去查写入侧——
+ * 那是可读侧的 trait。输入迭代器按标准必须有 `value_type`，所以提取侧照查无妨。
+ *
+ * 第二个合取项是本库在标准之上多加的一道守卫：迭代器**若**报得出字符类型，就必须与 `TChar`
+ * 一致。它查的是 `std::iter_value_t<TIter>` 而不是成员 `TIter::value_type`，两者对本库自己的
+ * 迭代器结果相同，但对**裸指针**不同——裸指针没有成员 `value_type`，其字符类型来自
+ * `iterator_traits`。用 `iter_value_t` 才能拦住 `wchar_t buf[64]` 配 `TChar == char` 这种手写汇，
+ * 而这正是本守卫存在的意义；`std::format_to` 在同一位置是放行的，此处比标准严。
+ *
+ * @note 三种情形实测（`-std=c++23`，libstdc++ 15）：`iter_value_t<wchar_t*>` 为 `wchar_t`
+ *       （配窄 `TChar` 被拒）、`iter_value_t<ostreambuf_iterator<...>>` 为 `char_type`
+ *       （守卫照常生效）、而对 `std::back_insert_iterator` 是 **ill-formed**（不是 `void`），
+ *       由第一个析取项的 `!requires` 兜住而放行。`is_void_v` 那一项覆盖的是
+ *       `iterator_traits` well-formed 且把 `value_type` 定成 `void` 的输出适配器。
+ *
+ * @warning 对**报不出**字符类型的汇（`iter_value_t` ill-formed 或为 `void`），无从可查，
+ *          只剩可写性这一关。于是宽窄错配会经隐式转换静默通过：窄 facet 写进 `std::wstring`
+ *          得到的是"把字节当字符"的伪宽串，宽 facet 写进 `std::string` 则逐码元截断。两者都
+ *          不是 UB、不越界、不崩溃，只是字符损坏，且 ASCII 部分看着正常。这与标准的行为一致
+ *          （`std::format_to`、`std::copy` 到 `back_inserter` 皆然），也与本库 facet 层一致
+ *          （`facet/` 下的 `put`/`get` 完全无迭代器约束）。
+ *
+ * @tparam TIter 待检测的输出迭代器类型
+ * @tparam TChar 流的字符类型
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Whether `TIter` is usable as an **output** iterator over character type `TChar` -- the
+ *        iterator constraint used by insertion-side extension points.
+ *
+ * The top of this file explains why the constraint cannot be dropped: the iterator is a
+ * function-template parameter rather than part of a type, so an explicitly qualified
+ * hand-written call could pair a wide key with a narrow sink, and this concept ties `TIter` back
+ * to the key's `TChar`. The extraction-side counterpart is spelled directly as
+ * `std::is_same_v<TChar, typename TIter::value_type>`; the asymmetry is deliberate, for the
+ * reason below.
+ *
+ * The first conjunct is taken straight from `<format>`: the standard `format_to` family uses
+ * exactly `std::output_iterator<Out, const charT&>`, testing the property actually needed --
+ * that a `TChar` lvalue can be written through the iterator. Since C++20 the `value_type` of
+ * `std::back_insert_iterator`, `front_insert_iterator`, `insert_iterator`, `ostream_iterator`
+ * and `std::ostreambuf_iterator` is uniformly `void`, and `std::output_iterator` does not
+ * require that typedef to exist at all, so it must **not** be used to check the write side -- it
+ * is a readable-side trait. An input iterator is required by the standard to have a
+ * `value_type`, so the extraction side may keep checking it.
+ *
+ * The second conjunct is one guard this library adds on top of the standard: **if** the iterator
+ * can name a character type at all, it has to agree with `TChar`. It tests
+ * `std::iter_value_t<TIter>` rather than the member `TIter::value_type`; the two agree for this
+ * library's own iterators but differ for **raw pointers**, which have no member `value_type` and
+ * get their character type from `iterator_traits`. Only `iter_value_t` catches a hand-written
+ * sink such as `wchar_t buf[64]` paired with `TChar == char`, which is precisely what this guard
+ * exists for; `std::format_to` accepts that pairing, so here the library is stricter than the
+ * standard.
+ *
+ * @note All three cases measured (`-std=c++23`, libstdc++ 15): `iter_value_t<wchar_t*>` is
+ *       `wchar_t` (rejected against a narrow `TChar`), `iter_value_t<ostreambuf_iterator<...>>`
+ *       is `char_type` (guard applies as usual), and for `std::back_insert_iterator` it is
+ *       **ill-formed** (not `void`), which the leading `!requires` disjunct absorbs so the
+ *       iterator is accepted. The `is_void_v` disjunct covers output adaptors whose
+ *       `iterator_traits` is well-formed and names `value_type` as `void`.
+ *
+ * @warning For a sink that **cannot** name a character type (`iter_value_t` ill-formed or
+ *          `void`) there is nothing to check, and only writability remains. A width mismatch
+ *          then passes silently through an implicit conversion: a narrow facet writing into a
+ *          `std::wstring` yields a pseudo-wide string of bytes-as-characters, while a wide facet
+ *          writing into a `std::string` truncates code unit by code unit. Neither is UB, out of
+ *          bounds, or a crash -- just character corruption, and the ASCII part still looks
+ *          correct. This matches the standard (`std::format_to` and `std::copy` into a
+ *          `back_inserter` behave the same) and matches this library's own facet layer, where
+ *          the `put`/`get` templates under `facet/` are wholly unconstrained.
+ *
+ * @tparam TIter The output iterator type under inspection
+ * @tparam TChar The stream's character type
+ * @endif
+ */
+template <typename TIter, typename TChar>
+concept char_sink_for =
+    std::output_iterator<TIter, const TChar&>
+    && (!requires { typename std::iter_value_t<TIter>; }
+        || std::is_void_v<std::iter_value_t<TIter>>
+        || std::is_same_v<TChar, std::iter_value_t<TIter>>);
+
 /**
  * @lang{ZH}
  * @brief 把 `TChar` 流的读写逻辑接到类型 `T` 上的扩展点。主模板故意不定义；见本文件头部。
