@@ -100,15 +100,15 @@ $(document).ready(function(){initNavTree('structIOv2_1_1io__traits_3_01TChar_00_
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 静态 Public 成员函数</h2></td></tr>
-<tr class="memitem:a65ea9e256113a1846f5e9b4a96270c1c" id="r_a65ea9e256113a1846f5e9b4a96270c1c"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
-<tr class="memitem:a65ea9e256113a1846f5e9b4a96270c1c"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01put__time__t_3_01TChar_01_4_01_4.html#a65ea9e256113a1846f5e9b4a96270c1c">swrite</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="structIOv2_1_1put__time__t.html">put_time_t</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
-<tr class="memdesc:a65ea9e256113a1846f5e9b4a96270c1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">按 <code>fmt</code> 的格式将 <code>*tmb</code> 写出。  <br /></td></tr>
-<tr class="separator:a65ea9e256113a1846f5e9b4a96270c1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab987af2f449aa25a2af4d2d132be4ce" id="r_aab987af2f449aa25a2af4d2d132be4ce"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
+requires (char_sink_for&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</td></tr>
+<tr class="memitem:aab987af2f449aa25a2af4d2d132be4ce"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01put__time__t_3_01TChar_01_4_01_4.html#aab987af2f449aa25a2af4d2d132be4ce">swrite</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="structIOv2_1_1put__time__t.html">put_time_t</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memdesc:aab987af2f449aa25a2af4d2d132be4ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">按 <code>fmt</code> 的格式将 <code>*tmb</code> 写出。  <br /></td></tr>
+<tr class="separator:aab987af2f449aa25a2af4d2d132be4ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">成员函数说明</h2>
-<a id="a65ea9e256113a1846f5e9b4a96270c1c" name="a65ea9e256113a1846f5e9b4a96270c1c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a65ea9e256113a1846f5e9b4a96270c1c">&#9670;&#160;</a></span>swrite()</h2>
+<a id="aab987af2f449aa25a2af4d2d132be4ce" name="aab987af2f449aa25a2af4d2d132be4ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab987af2f449aa25a2af4d2d132be4ce">&#9670;&#160;</a></span>swrite()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -116,7 +116,7 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; </div>
 <div class="memtemplate">
 template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter &gt; <br />
-requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</div>
+requires (char_sink_for&lt;TIter, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>&gt;)</div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">

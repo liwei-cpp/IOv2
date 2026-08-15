@@ -1,5 +1,7 @@
 var NAVTREEINDEX13 =
 {
+"structIOv2_1_1istreambuf.html":[1,0,0,136],
+"structIOv2_1_1istreambuf.html":[3,0,0,131],
 "structIOv2_1_1istreambuf__iterator_1_1proxy.html":[3,0,0,132,0],
 "structIOv2_1_1istreambuf__iterator_1_1proxy.html":[1,0,0,137,0],
 "structIOv2_1_1istreambuf__iterator_1_1proxy.html#a1c17b1010545a8c08cbeaa8451e5105c":[3,0,0,132,0,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX13 =
 "structIOv2_1_1stream__common__operators.html#ab8bea46980870975c9bfa71963f3b3a7":[3,0,0,181,13],
 "structIOv2_1_1stream__common__operators.html#ab8bea46980870975c9bfa71963f3b3a7":[1,0,0,186,13],
 "structIOv2_1_1stream__common__operators.html#aba7b275a80c00cce68ebc195beb4e155":[3,0,0,181,9],
-"structIOv2_1_1stream__common__operators.html#aba7b275a80c00cce68ebc195beb4e155":[1,0,0,186,9],
-"structIOv2_1_1stream__common__operators.html#aca2459bb92eabdafa5b7cbf54a6c2d26":[1,0,0,186,10],
-"structIOv2_1_1stream__common__operators.html#aca2459bb92eabdafa5b7cbf54a6c2d26":[3,0,0,181,10]
+"structIOv2_1_1stream__common__operators.html#aba7b275a80c00cce68ebc195beb4e155":[1,0,0,186,9]
 };
