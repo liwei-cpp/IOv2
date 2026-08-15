@@ -1,4 +1,5 @@
 #pragma once
+#include <common/copyable_mutex.h>
 #include <cvt/cvt_concepts.h>
 #include <device/device_concepts.h>
 #include <io/io_base.h>
@@ -36,6 +37,12 @@ namespace IOv2
  *       引用 locale——析构期的那次冲刷跑在 `m_locale` 之后，那时 locale 已经不存在。字符处理归流
  *       缓冲区，格式化与解析归 locale，两者不重叠；反向依赖（流读取 locale）则始终成立。
  *
+ * @warning `out_flusher` 这个基类同时意味着**本类可以充当 tie 目标**，而这对双向流有一个
+ *          读侧后果：刷新目标必须先把它切到输出方向，切向会清空读缓冲区，于是 `putback()`
+ *          替换进去的字符与过量压回的字符被丢弃（未经替换的 `peek()` 不受影响）。发起者是
+ *          绑定方，因此一次与本流无关的输出就会丢掉本流已压回的内容，且不置任何状态位。
+ *          详见 `switch_to_put()` 与 `stream_common_operators::tie()` 的说明。
+ *
  * @tparam TDevice 底层设备类型，须满足 `io_device` 且同时支持读取与写入。
  * @tparam TChar 字符类型。
  * @endif
@@ -63,6 +70,14 @@ namespace IOv2
  *       that destructor-time flush runs after `m_locale`, by which point it no longer exists.
  *       Character handling belongs to the stream buffer, formatting and parsing to the locale; the
  *       two do not overlap. The reverse dependency -- the stream reading the locale -- always holds.
+ *
+ * @warning The `out_flusher` base also means **instances of this class can serve as tie targets**,
+ *          and for a bidirectional stream that has a read-side consequence: flushing the target
+ *          must first switch it to the put direction, switching clears the read buffer, and so
+ *          characters substituted in by `putback()` and any over-pushback are discarded (an
+ *          unsubstituted `peek()` is unaffected). The tied stream is what initiates this, so an
+ *          output that has nothing to do with this stream drops its pushed-back content, without
+ *          setting any state bit. See `switch_to_put()` and `stream_common_operators::tie()`.
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device` and support both reading
  *         and writing.
@@ -375,6 +390,13 @@ public:
      * 锁的访问路径，两者并发即为数据竞争——不只是标志撕裂，而是那个缓冲区会被一边
      * `clear()`、一边 `sgetc()` 读取。
      * @note 流处于失败状态时直接返回、不触碰缓冲区，与 `tell()` 的做法一致。
+     * @warning 清空读缓冲区会**丢弃 `putback()` 替换进去的字符与过量压回的字符**：
+     *          回退恢复的是位置而不是内容，之后从读方向读到的是底层原始数据（未经替换的
+     *          `peek()` 不受影响）。而且这件事**不一定由本流发起**——本类可作 tie 目标
+     *          （见类文档），tie 目标在绑定方每次 I/O 前都会被刷新，刷新对双向流意味着
+     *          先切到输出方向。因此一次与本流无关的 `writer << x` 就会丢掉本流的压回内容，
+     *          且不置任何状态位。要读的内容请在把本流设为 tie 目标之前消费掉，或者不要把
+     *          正在用 `putback()` 的流设为 tie 目标。
      * @return 流自身的引用。
      * @endif
      *
@@ -390,6 +412,16 @@ public:
      * while `sgetc()` reads it on the other.
      * @note Returns without touching the buffer when the stream is in a failed state, matching
      *       what `tell()` does.
+     * @warning Clearing the read buffer **discards characters substituted in by `putback()`
+     *          and any over-pushback**: the rewind restores the position, not the contents, so
+     *          reading afterwards yields the underlying data (an unsubstituted `peek()` is
+     *          unaffected). And this need not be initiated by this stream: instances of this
+     *          class are valid tie targets (see the class documentation), a tie target is
+     *          flushed before every I/O on the stream tied to it, and flushing a bidirectional
+     *          stream means switching it to the put direction first. So an unrelated
+     *          `writer << x` drops this stream's pushed-back content, without setting any state
+     *          bit. Consume what you need before making this stream a tie target, or do not tie
+     *          to a stream that is using `putback()`.
      * @return A reference to the stream itself.
      * @endif
      */

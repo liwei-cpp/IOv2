@@ -56,6 +56,8 @@ void test_monetary_char_get_44();
 void test_monetary_char_get_45();
 void test_monetary_char_get_46();
 void test_monetary_char_get_47();
+void test_monetary_char_put_20();
+void test_monetary_char_get_48();
 
 void test_monetary_wchar_t_common_1();
 void test_monetary_wchar_t_common_2();
@@ -217,6 +219,8 @@ void test_monetary()
     test_monetary_char_get_45();
     test_monetary_char_get_46();
     test_monetary_char_get_47();
+    test_monetary_char_put_20();
+    test_monetary_char_get_48();
 
     test_monetary_wchar_t_common_1();
     test_monetary_wchar_t_common_2();

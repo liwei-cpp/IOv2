@@ -17,6 +17,7 @@ void test_numeric_char_put_15();
 void test_numeric_char_put_16();
 void test_numeric_char_put_17();
 void test_numeric_char_put_18();
+void test_numeric_char_put_19();
 void test_numeric_char_get_1();
 void test_numeric_char_get_2();
 void test_numeric_char_get_3();
@@ -213,6 +214,7 @@ void test_numeric()
     test_numeric_char_put_16();
     test_numeric_char_put_17();
     test_numeric_char_put_18();
+    test_numeric_char_put_19();
     test_numeric_char_get_1();
     test_numeric_char_get_2();
     test_numeric_char_get_3();

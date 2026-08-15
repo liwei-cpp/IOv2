@@ -54,8 +54,8 @@ void test_io_base_manipulators_basefield_char_1()
                      ":       0173:\n"
                      "0x12 345 678\n"
                      "|0x000012 345 678|\n"
-                     "|0x12 345 6780000|\n"
-                     "|00000x12 345 678|\n"
+                     "|0x12 345 678    |\n"
+                     "|    0x12 345 678|\n"
                      "|0x000012 345 678|\n";
 
     IOv2::ostream oss{IOv2::mem_device{""}};
@@ -96,15 +96,19 @@ void test_io_base_manipulators_basefield_char_1()
     oss << "|" << IOv2::setw(16);
     oss << 0x12345678l << "|" << IOv2::endl;
     
-    oss << "|" << IOv2::setw(16) << IOv2::left;
+    // '0' only pads a hex value where it lands between the "0x" and the digits, i.e.
+    // under `internal`. Padding `left` would append "0000" to the value and padding
+    // `right` would put it in front of the "0x", and both are rejected outright, so
+    // these two use the ordinary space fill.
+    oss << "|" << IOv2::setw(16) << IOv2::left << IOv2::setfill(' ');
     oss << 0x12345678l << "|" << IOv2::endl;
-    
+
     oss << "|" << IOv2::setw(16) << IOv2::right;
     oss << 0x12345678l << "|" << IOv2::endl;
-    
-    oss << "|" << IOv2::setw(16) << IOv2::internal;
+
+    oss << "|" << IOv2::setw(16) << IOv2::internal << IOv2::setfill('0');
     oss << 0x12345678l << "|" << IOv2::endl;
-    
+
     VERIFY(oss.good());
     auto [dev, err] = oss.detach();
     VERIFY(dev.str() == lit);
@@ -125,8 +129,8 @@ void test_io_base_manipulators_basefield_wchar_t_1()
                           L":       0173:\n"
                           L"0x12 345 678\n"
                           L"|0x000012 345 678|\n"
-                          L"|0x12 345 6780000|\n"
-                          L"|00000x12 345 678|\n"
+                          L"|0x12 345 678    |\n"
+                          L"|    0x12 345 678|\n"
                           L"|0x000012 345 678|\n";
 
     IOv2::ostream oss{IOv2::mem_device{L""}};
@@ -167,15 +171,16 @@ void test_io_base_manipulators_basefield_wchar_t_1()
     oss << L"|" << IOv2::setw(16);
     oss << 0x12345678l << L"|" << IOv2::endl;
     
-    oss << L"|" << IOv2::setw(16) << IOv2::left;
+    // See the narrow-character case above: '0' pads a hex value only under `internal`.
+    oss << L"|" << IOv2::setw(16) << IOv2::left << IOv2::setfill(L' ');
     oss << 0x12345678l << L"|" << IOv2::endl;
-    
+
     oss << L"|" << IOv2::setw(16) << IOv2::right;
     oss << 0x12345678l << L"|" << IOv2::endl;
-    
-    oss << L"|" << IOv2::setw(16) << IOv2::internal;
+
+    oss << L"|" << IOv2::setw(16) << IOv2::internal << IOv2::setfill(L'0');
     oss << 0x12345678l << L"|" << IOv2::endl;
-    
+
     VERIFY(oss.good());
     auto [dev, err] = oss.detach();
     VERIFY(dev.str() == lit);
