@@ -711,6 +711,14 @@ struct stream_common_operators
      *          流析构。无竞争时刷新必定成功，短暂竞争由 `try_flush()` 内部的有限次重试覆盖，
      *          因此绝大多数场景的行为与"保证刷新"没有区别。
      *
+     * @warning **目标是双向流时，刷新会丢掉它的读侧压回内容。** 刷新一个 `iostream` 必须先
+     *          把它切到输出方向，而切向会清空读缓冲区：`putback()` 替换进去的字符与过量压回
+     *          的字符就此丢失，之后从该流读到的是底层原始数据（未经替换的 `peek()` 不受影响，
+     *          回退后重读得到同一字符）。这是输出语义的必然结果——输出要求设备停在写位置，
+     *          而读缓冲区里放的是尚未生效的读侧推测状态。要注意的是**发起者是绑定方**：一次
+     *          与目标无关的 `writer << x` 就会丢掉目标已压回的字符，且不置任何状态位。
+     *          因此不要把一个正在用 `putback()`/`peek()` 读的 `iostream` 设为 tie 目标，
+     *          或至少在设为目标之前把要用的字符消费掉。
      * @warning 生命周期由调用方负责：`str` 仅以裸指针保存，本类不做任何生命周期管理，
      *          也不会在析构时自动解绑。最简单且始终安全的规则是：让 `str` 所指的流存活于
      *          所有绑定到它的流之后（这也是标准用法，如全局 `cout` 活得比 `cin` 久）。否则
@@ -783,6 +791,18 @@ struct stream_common_operators
      *          is covered by the bounded retry inside `try_flush()`, so in the vast majority of
      *          cases the behavior is indistinguishable from a guaranteed flush.
      *
+     * @warning **When the target is bidirectional, flushing drops its pushed-back input.**
+     *          Flushing an `iostream` must first switch it to the put direction, and switching
+     *          clears the read buffer: characters substituted in by `putback()`, and any
+     *          over-pushback, are lost, so reading from that stream afterwards yields the
+     *          underlying data (an unsubstituted `peek()` is unaffected — re-reading after the
+     *          rewind gives the same character). This follows from what output means: output
+     *          requires the device to sit at the write position, while the read buffer holds
+     *          speculative read-side state that has not taken effect. Note who initiates it:
+     *          a `writer << x` that has nothing to do with the target drops the target's
+     *          pushed-back characters, and sets no state bit. So do not tie to an `iostream`
+     *          that is being read with `putback()`/`peek()`, or at least consume what you need
+     *          before making it a tie target.
      * @warning Lifetime is the caller's responsibility: `str` is stored as a raw pointer;
      *          this class performs no lifetime management and does not auto-untie on
      *          destruction. The simplest always-safe rule is to let `str` outlive every

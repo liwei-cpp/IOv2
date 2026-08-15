@@ -1,4 +1,5 @@
 void test_io_base_char_fill_1();
+void test_io_base_char_fill_2();
 void test_io_base_wchar_t_fill_1();
 
 void test_io_base_width_1();
@@ -19,6 +20,7 @@ void test_io_base_manipulators();
 void test_io_base()
 {
     test_io_base_char_fill_1();
+    test_io_base_char_fill_2();
     test_io_base_wchar_t_fill_1();
 
     test_io_base_width_1();

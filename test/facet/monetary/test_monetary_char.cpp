@@ -2533,3 +2533,125 @@ void test_monetary_char_get_47()
 
     dump_info("Done\n");
 }
+
+void test_monetary_char_put_20()
+{
+    dump_info("Test monetary<char>::put 20 (fill that would change the amount read)...");
+
+    // The C pattern is {sign, none, value, symbol}, so `internal` padding lands in the
+    // `none` slot, i.e. directly in front of the digits and behind the sign.
+    IOv2::monetary<char> obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
+
+    // Formats `digits` at width 14 with the given fill; an empty string means the facet
+    // rejected the fill.
+    auto put = [&obj](char fill, IOv2::ios_defs::fmtflags adjust, const std::string& digits)
+    {
+        IOv2::ios_base<char> ios;
+        ios.fill(fill);
+        ios.width(14);
+        ios.setf(adjust, IOv2::ios_defs::adjustfield);
+
+        std::string oss;
+        try
+        {
+            obj.put(std::back_inserter(oss), false, ios, digits);
+        }
+        catch (IOv2::stream_error&)
+        {
+            return std::string();
+        }
+        return oss;
+    };
+
+    // '0' in front of the digits is a leading zero and reads as the same amount.
+    VERIFY(put('0', IOv2::ios_defs::internal, "12345") == "00000000012345");
+    VERIFY(put('0', IOv2::ios_defs::internal, "-12345") == "-0000000012345");
+    // Behind the amount it would read as 12345000000000.
+    VERIFY(put('0', IOv2::ios_defs::left, "12345").empty());
+    // Any other digit is dangerous wherever it lands.
+    VERIFY(put('1', IOv2::ios_defs::internal, "12345").empty());
+    VERIFY(put('9', IOv2::ios_defs::right, "12345").empty());
+
+    // The C locale's negative sign is "-" and its positive sign is empty, so '-' in
+    // front of a positive amount turns it negative to reader and parser alike, while
+    // padding an amount that is already negative changes nothing.
+    VERIFY(put('-', IOv2::ios_defs::internal, "12345").empty());
+    // (one written sign plus eight fill characters)
+    VERIFY(put('-', IOv2::ios_defs::internal, "-12345") == "---------12345");
+    // '+' is not a sign in this locale, so it cannot be read as one.
+    VERIFY(put('+', IOv2::ios_defs::internal, "12345") == "+++++++++12345");
+
+    // The decimal point binds to the digits after it.
+    VERIFY(put('.', IOv2::ios_defs::internal, "12345").empty());
+    VERIFY(put('.', IOv2::ios_defs::left, "12345") == "12345.........");
+
+    // Characters that cannot be read into an amount stay allowed, including the
+    // thousands separator.
+    VERIFY(put('*', IOv2::ios_defs::internal, "12345") == "*********12345");
+    VERIFY(put(',', IOv2::ios_defs::internal, "12345") == ",,,,,,,,,12345");
+    VERIFY(put(' ', IOv2::ios_defs::right, "12345") == "         12345");
+
+    // `fill` is sticky stream state: with nothing to pad there is no run to vet.
+    {
+        IOv2::ios_base<char> ios;
+        ios.fill('1');
+        std::string oss;
+        obj.put(std::back_inserter(oss), false, ios, std::string("12345"));
+        VERIFY(oss == "12345");
+    }
+
+    dump_info("Done\n");
+}
+
+void test_monetary_char_get_48()
+{
+    dump_info("Test monetary<char>::get 48 (fill that would change the amount read)...");
+
+    IOv2::monetary<char> obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
+
+    // Parses `input` with the given fill; returns false if the facet rejected the fill.
+    auto get = [&obj](char fill, const std::string& input, std::string& digits)
+    {
+        IOv2::ios_base<char> ios;
+        ios.fill(fill);
+        digits.clear();
+        try
+        {
+            obj.get(input.begin(), input.end(), false, ios, digits);
+        }
+        catch (IOv2::stream_error&)
+        {
+            return false;
+        }
+        return true;
+    };
+
+    std::string digits;
+
+    // The run of fill in the `none` slot decides how much of the input is the amount,
+    // so a fill that a reader would have counted as a digit must not be swallowed:
+    // "112345" reads as 112345, never as 12345.
+    VERIFY(!get('1', "112345", digits));
+    VERIFY(!get('9', "912345", digits));
+
+    // A leading zero is the one digit that reads the same either way.
+    VERIFY(get('0', "0000012345", digits));
+    VERIFY(digits == "12345");
+
+    // With a sign consumed first, a '-' run behind it cannot be read as another sign.
+    VERIFY(get('-', "-------12345", digits));
+    VERIFY(digits == "-12345");
+
+    // Fill that cannot be read into an amount is consumed as before.
+    VERIFY(get('*', "*****12345", digits));
+    VERIFY(digits == "12345");
+    VERIFY(get(' ', "     12345", digits));
+    VERIFY(digits == "12345");
+
+    // No fill consumed means nothing to vet, whatever the stream's fill happens to be:
+    // the input here does not start with a '9', so the run stops immediately.
+    VERIFY(get('9', "12345", digits));
+    VERIFY(digits == "12345");
+
+    dump_info("Done\n");
+}

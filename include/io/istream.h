@@ -1,4 +1,5 @@
 #pragma once
+#include <common/copyable_mutex.h>
 #include <cvt/cvt_concepts.h>
 #include <device/device_concepts.h>
 #include <io/io_base.h>
@@ -398,7 +399,12 @@ inline constexpr struct ws_t {} ws{};
  * @lang{ZH}
  * @brief `ws` 的扩展点特化：只提供 `sread`，跳过流中接下来的空白字符。
  *
- * 空白的跳过由输入哨兵完成：以 `noskipws == false` 构造 `in_sentry` 即为跳过空白。
+ * 空白的跳过由输入哨兵完成：`in_sentry` 的形参名为 `noskip`，以 `noskip == false` 构造即为
+ * 跳过空白。
+ * @note 这与流上的 `skipws` 标志（及清除它的 `noskipws` 操纵符）**没有关系**：`in_sentry`
+ *       不读该标志，只看构造实参；读标志的是提取运算符，由它把 `!skip` 传给哨兵。而 `ws`
+ *       这条路径传的是字面量 `false`，因此 **`is >> noskipws >> ws` 照样跳空白**——这正是
+ *       `ws` 应有的语义。
  *
  * 操纵符的方向由**成员的有无**表达：这里只有 `sread`，于是 `os << ws` 不满足插入运算符的约束、
  * 没有可行重载。改用约束是不够的——`iostream` 同时满足两个流概念，若两侧都提供成员，
@@ -412,8 +418,13 @@ inline constexpr struct ws_t {} ws{};
  * @brief Extension-point specialization for `ws`: provides only `sread`, which skips the
  *        whitespace characters that follow in the stream.
  *
- * The skipping is done by the input sentry: constructing `in_sentry` with `noskipws == false` is
- * what skips whitespace.
+ * The skipping is done by the input sentry: its parameter is named `noskip`, and constructing
+ * `in_sentry` with `noskip == false` is what skips whitespace.
+ * @note This has **nothing to do with** the stream's `skipws` flag (or the `noskipws`
+ *       manipulator that clears it): `in_sentry` never reads that flag, only its constructor
+ *       argument; it is the extraction operator that reads the flag and passes `!skip` to the
+ *       sentry. This path passes a literal `false`, so **`is >> noskipws >> ws` still skips
+ *       whitespace** — which is exactly what `ws` is supposed to do.
  *
  * A manipulator's direction is expressed by **which member exists**: only `sread` is here, so
  * `os << ws` leaves the insertion operator unsatisfied and there is no viable overload. A

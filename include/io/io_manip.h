@@ -22,7 +22,7 @@
  *          这里也是。需要整体原子时，用 `IOv2::sync` 把它们圈进同一个临界区。
  * @warning **往流形式的 `swrite` / `sread` 里放读-改-写逻辑，必须自己取 `io_mutex()`。**
  *          本文件这几个操纵符不取锁，只因为它们各自都是对 `ios_base` 上某个原子成员的单次
- *          读-改-写（`exchange` / `fetch_or` / `fetch_and` / CAS 循环）。像"先读 `flags()`
+ *          读-改-写（`exchange` / `fetch_or` / CAS 循环之一）。像"先读 `flags()`
  *          再按结果 `setf()`"这样跨两次调用的逻辑不在此列，写在流形式里就是竞态；范例见
  *          `endl` 与 `ws`，两者都自己取锁并自己 `catch`（理由见 `traits/traits_base.h`）。
  * @warning **工厂函数返回的是临时对象，只应作为同一个完整表达式的一部分立即使用。**
@@ -63,7 +63,7 @@
  * @warning **Read-modify-write logic in a stream-form `swrite` / `sread` must take
  *          `io_mutex()` itself.** The manipulators in this file get away without a lock only
  *          because each is a single read-modify-write on one atomic member of `ios_base`
- *          (`exchange`, `fetch_or`, `fetch_and`, a CAS loop). Logic spanning two calls -- say
+ *          (one of `exchange`, `fetch_or`, a CAS loop). Logic spanning two calls -- say
  *          reading `flags()` and then calling `setf()` on the result -- is not, and is a race
  *          if written in the stream form; `endl` and `ws` are the examples to follow, taking
  *          the lock and catching for themselves (see `traits/traits_base.h` for why).
@@ -317,6 +317,19 @@ struct setfill_t
 /**
  * @lang{ZH}
  * @brief 构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。
+ * @warning **填充不得改变这段文本读起来是几。** 格式化数值与货币时，若这次补齐要写出的
+ *          字符会让读者读出另一个数，插入侧直接拒绝，置 `strfailbit`（仅当该位在异常掩码
+ *          中时才抛 `stream_error`）。判据同时看字符与落点：
+ *          - `'1'`–`'9'` 处处不可用；`'0'` 仅当补在数字正前方时可用，故
+ *            `setfill('0') << setw(8) << internal << -42` 得到 `"-0000042"`，而同样的
+ *            `right`（`"00000-42"`）与 `left`（`"42000000"`）都会失败；十六进制补零同理，
+ *            只有 `internal` 把零放进 `0x` 与数字之间。
+ *          - 小数点仅当补在数值之后时可用（`"42......"` 可以，`"......42"` 不行）。
+ *          - 正负号仅当与该数值自身的符号一致时可用（`"++++42"` 可以，`"----42"` 不行），
+ *            补在数值之后一律可用。
+ *          - 其余字符（`'*'`、`' '`、千位分隔符、字母等）不受影响。
+ *          `fill` 是粘性流状态，只在**真的要补齐**的那一次判断：宽度不大于内容时不补齐，
+ *          也就不会失败。提取 `get_money` 时用同一判据把关，见 `get_money`。
  * @note `TFill` 由实参推导，且必须与目标流的 `char_type` **完全一致**——
  *       `io_traits<TChar, setfill_t<TFill>>` 的两个成员都要求二者 `same_as`，不存在隐式转换。
  *       因此对 `wchar_t` 流须写 `setfill(L'*')`，写成 `setfill('*')` 会编译失败而非静默转换。
@@ -325,6 +338,24 @@ struct setfill_t
  * @lang{EN}
  * @brief Builds the manipulator that sets the fill character, used to pad when the field width
  *        exceeds the content.
+ * @warning **Padding must not change what number the text says.** When formatting a numeric or
+ *          monetary value, a fill character that would make a reader read a different number is
+ *          rejected outright: the stream sets `strfailbit` (and throws `stream_error` only when
+ *          that bit is in the exception mask). The test looks at both the character and where it
+ *          lands:
+ *          - `'1'`–`'9'` are never usable; `'0'` is usable only directly in front of the digits,
+ *            so `setfill('0') << setw(8) << internal << -42` gives `"-0000042"` while the same
+ *            with `right` (`"00000-42"`) or `left` (`"42000000"`) fails. Zero-padded hex behaves
+ *            the same way: only `internal` puts the zeros between the `0x` and the digits.
+ *          - The decimal point is usable only after the value (`"42......"` yes,
+ *            `"......42"` no).
+ *          - A sign is usable only where it agrees with the value's own sign (`"++++42"` yes,
+ *            `"----42"` no), and always usable after the value.
+ *          - Every other character (`'*'`, `' '`, the thousands separator, letters, …) is
+ *            unaffected.
+ *          `fill` is sticky stream state and is only tested where padding is actually written:
+ *          a width that does not exceed the content pads nothing and so cannot fail. `get_money`
+ *          applies the same test on extraction; see `get_money`.
  * @note `TFill` is deduced from the argument and must match the target stream's `char_type`
  *       **exactly**: both members of `io_traits<TChar, setfill_t<TFill>>` require the two to be
  *       `same_as`, so no implicit conversion applies. A `wchar_t` stream therefore needs
@@ -554,9 +585,14 @@ template<typename TMoney> struct put_money_t { const TMoney& m_mon; bool m_intl;
 /**
  * @lang{ZH}
  * @brief 构造按 locale 的货币格式写出 @p mon 的操纵符。
- * @param mon 货币值。可为整型（以最小货币单位计，如"分"），或已是 `char_type` 数字串的
- *            `std::basic_string`。**注意本库不接受浮点**，这一点与接受 `long double` 的
+ * @param mon 货币值。可为**除 `bool` 外**的整型（以最小货币单位计，如"分"），或已是
+ *            `char_type` 数字串的 `std::basic_string<char_type>`（**须为默认的 `char_traits`
+ *            与默认分配器**）。**注意本库不接受浮点**，这一点与接受 `long double` 的
  *            `std::put_money` 不同（约束来自 `monetary::put`）。
+ *            排除 `bool` 与 `monetary::put` 的约束一致；要求默认 traits/分配器则比本库的
+ *            字符串插入运算符更严——`os << str` 能写的串，`os << put_money(str)` 未必能写。
+ *            以上三类实参都会让重载不可行，诊断是通用的"没有匹配的 `operator<<`"，看不出
+ *            具体原因，故在此列全。
  * @param intl `true` 用国际格式（如 `USD`），`false` 用本地格式（如 `$`）。
  * @warning 返回的对象**持有对 @p mon 的引用**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
@@ -564,10 +600,16 @@ template<typename TMoney> struct put_money_t { const TMoney& m_mon; bool m_intl;
  *
  * @lang{EN}
  * @brief Builds the manipulator that writes @p mon in the locale's monetary format.
- * @param mon The monetary value: either an integral type counted in the smallest currency unit
- *            (cents, say), or a `std::basic_string` of `char_type` digits. **Floating-point is
+ * @param mon The monetary value: either an integral type **other than `bool`**, counted in the
+ *            smallest currency unit (cents, say), or a `std::basic_string<char_type>` of digits
+ *            (**with the default `char_traits` and the default allocator**). **Floating-point is
  *            not accepted here**, unlike `std::put_money` which takes a `long double`; the
  *            constraint comes from `monetary::put`.
+ *            Excluding `bool` matches `monetary::put`; requiring the default traits and
+ *            allocator is stricter than this library's own string insertion — a string
+ *            `os << str` accepts is not necessarily one `os << put_money(str)` accepts.
+ *            All three make the overload non-viable, and the diagnostic is the generic "no
+ *            matching `operator<<`", which does not say why, hence the full list here.
  * @param intl `true` selects the international format (e.g. `USD`), `false` the national one
  *             (e.g. `$`).
  * @warning The returned object **holds a reference to @p mon** and should only be used as part
@@ -628,20 +670,45 @@ template<typename TMoney> struct get_money_t { TMoney& m_mon; bool m_intl; };
 /**
  * @lang{ZH}
  * @brief 构造按 locale 的货币格式解析并写入 @p mon 的操纵符。
- * @param mon 接收解析结果的对象；可为整型（以最小货币单位计）或 `std::basic_string`。
+ * @param mon 接收解析结果的对象；可为**除 `bool` 外**的整型（以最小货币单位计），或
+ *            `std::basic_string<char_type>`（**须为默认的 `char_traits` 与默认分配器**）。
+ *            不接受浮点。取值域与 `put_money` 完全相同，理由与诊断说明见 `put_money`。
  * @param intl `true` 按国际格式解析，`false` 按本地格式解析。
  * @warning 返回的对象**持有对 @p mon 的引用**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
+ * @note **解析用流的 `fill()` 认填充**：货币 pattern 里的 `space` / `none` 段消耗的是
+ *       `fill()`，而不是标准规定的空白。这样本库写出的带填充货币文本能被原样读回来
+ *       （标准的做法只要 `fill` 不是空格就读不回自己刚写出的内容），代价是 `fill` 为默认
+ *       空格时，`'\t'` 在 `space` 位置不被接受。
+ * @warning 因此 `fill()` 同样受 `setfill` 那条判据约束：一旦真的吃掉了填充，而该填充字符
+ *          是读者会当成金额一部分的（读 `"112345"` 时 `setfill('1')` 会把首位吃掉，只剩
+ *          12345），本函数**响亮失败**（`strfailbit`），而不是静默给出被削掉的数。判据与
+ *          写侧完全一致，见 `setfill`。没吃到填充就不判定——流上挂着任何 `fill` 都不影响
+ *          正常解析。
  * @endif
  *
  * @lang{EN}
  * @brief Builds the manipulator that parses a monetary value in the locale's format into
  *        @p mon.
- * @param mon Receives the parsed result; either an integral type counted in the smallest
- *            currency unit, or a `std::basic_string`.
+ * @param mon Receives the parsed result; either an integral type **other than `bool`**, counted
+ *            in the smallest currency unit, or a `std::basic_string<char_type>` (**with the
+ *            default `char_traits` and the default allocator**). Floating-point is not accepted.
+ *            The accepted set is exactly that of `put_money`; see it for the reasons and for
+ *            what the diagnostic looks like.
  * @param intl `true` parses the international format, `false` the national one.
  * @warning The returned object **holds a reference to @p mon** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
+ * @note **Parsing consumes the stream's `fill()`**: the `space` / `none` parts of the monetary
+ *       pattern eat `fill()` rather than the whitespace the standard specifies. That is what
+ *       lets padded monetary text written by this library be read straight back (the standard
+ *       behavior cannot read back its own output once `fill` is anything but a space); the price
+ *       is that with the default space fill a `'\t'` is not accepted at a `space` part.
+ * @warning `fill()` is therefore subject to the same test as on the writing side: once a fill
+ *          character is actually consumed and it is one a reader would have counted as part of
+ *          the amount (reading `"112345"` with `setfill('1')` eats the leading digit and leaves
+ *          12345), this function **fails loudly** (`strfailbit`) instead of silently handing back
+ *          the truncated number. The test is identical to the writing side; see `setfill`. No
+ *          fill consumed means no test — any `fill` on the stream leaves ordinary parsing alone.
  * @endif
  *
  * @lang{ZH}
@@ -971,7 +1038,11 @@ struct io_traits<TChar, get_time_t<TChar>>
      *          `*(f.tmb)`，抛出的 `stream_error` 由流转为 `strfailbit`。校验在提取运算符
      *          构造哨兵**之后**才做，故 `skipws` 已跳过的前导空白不会退回。
      * @return 指向最后一个被消费字符之后的输入迭代器。
-     * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或缺少 timeio facet。
+     * @throw stream_error 若 `f.tmb` 或 `f.fmt` 为空指针，或缺少 timeio facet，
+     *        **或解析失败**——格式不匹配、字段越界、中途 EOF 都由 `timeio::get` 以
+     *        `stream_error("timeio parse error")` 抛出，这是本函数最常见的失败方式；
+     *        另有还原结果不是有效日历日时来自 `convert_to` 的同类抛出。三者一样由流转为
+     *        `strfailbit`，仅当该位在异常掩码中时才传播到调用方。
      * @endif
      *
      * @lang{EN}
@@ -990,8 +1061,13 @@ struct io_traits<TChar, get_time_t<TChar>>
      *          built its sentry, so leading whitespace already skipped by `skipws` is not put
      *          back.
      * @return An input iterator past the last consumed character.
-     * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, or the timeio facet is
-     *        missing.
+     * @throw stream_error If `f.tmb` or `f.fmt` is a null pointer, if the timeio facet is
+     *        missing, **or if parsing fails** — a format mismatch, an out-of-range field or an
+     *        EOF part-way through are all thrown by `timeio::get` as
+     *        `stream_error("timeio parse error")`, which is this function's most common failure;
+     *        `convert_to` throws the same way when the recovered result is not a calendar day
+     *        that exists. All three are turned into `strfailbit` by the stream and reach the
+     *        caller only when that bit is in the exception mask.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>

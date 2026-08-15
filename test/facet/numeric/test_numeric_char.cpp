@@ -784,6 +784,112 @@ void test_numeric_char_put_18()
     dump_info("Done\n");
 }
 
+void test_numeric_char_put_19()
+{
+    dump_info("Test numeric<char>::put 19...");
+
+    // A fill character must not change the number the padded field reads as. What is
+    // safe depends on where the run lands, so each case pins one adjustment.
+    IOv2::numeric<char> obj(std::make_shared<IOv2::numeric_conf<char>>("C"),
+                            s_ctype_c);
+
+    // Formats `v` at width 12 with the given fill and adjustment, and returns the
+    // field; an empty string means the facet rejected the fill.
+    auto put = [&obj](char fill, IOv2::ios_defs::fmtflags adjust, auto v,
+                      bool as_hex = false)
+    {
+        IOv2::ios_base<char> ios;
+        ios.fill(fill);
+        ios.width(12);
+        ios.setf(adjust, IOv2::ios_defs::adjustfield);
+        if (as_hex)
+        {
+            ios.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
+            ios.setf(IOv2::ios_defs::showbase);
+        }
+
+        std::string oss;
+        try
+        {
+            obj.put(std::back_inserter(oss), ios, v);
+        }
+        catch (IOv2::stream_error&)
+        {
+            return std::string();
+        }
+        return oss;
+    };
+
+    // '0' reads as a leading zero only where it lands directly in front of the digits.
+    VERIFY(put('0', IOv2::ios_defs::right, 42L) == "000000000042");
+    VERIFY(put('0', IOv2::ios_defs::internal, 42L) == "000000000042");
+    VERIFY(put('0', IOv2::ios_defs::internal, -42L) == "-00000000042");
+    // ... but not in front of a sign, where "00000000-42" reads as nothing at all,
+    VERIFY(put('0', IOv2::ios_defs::right, -42L).empty());
+    // ... nor behind the value, where it would read as 42000000000.
+    VERIFY(put('0', IOv2::ios_defs::left, 42L).empty());
+    // Same for the "0x" prefix: only `internal` keeps the zeros inside the number.
+    VERIFY(put('0', IOv2::ios_defs::internal, 0x2aL, true) == "0x000000002a");
+    VERIFY(put('0', IOv2::ios_defs::right, 0x2aL, true).empty());
+
+    // Any other digit is dangerous wherever it lands: "999999999942" reads as that.
+    VERIFY(put('9', IOv2::ios_defs::right, 42L).empty());
+    VERIFY(put('9', IOv2::ios_defs::internal, 42L).empty());
+    VERIFY(put('9', IOv2::ios_defs::left, 42L).empty());
+
+    // A sign in front of the value is read as that value's sign, so it is allowed only
+    // when it agrees with the sign the value has.
+    VERIFY(put('+', IOv2::ios_defs::right, 42L) == "++++++++++42");
+    VERIFY(put('-', IOv2::ios_defs::right, -42L) == "----------42");
+    VERIFY(put('-', IOv2::ios_defs::right, 42L).empty());   // would read as -42
+    VERIFY(put('+', IOv2::ios_defs::right, -42L).empty());  // would read as positive
+    // Behind the value no sign can be taken for the value's own.
+    VERIFY(put('-', IOv2::ios_defs::left, 42L) == "42----------");
+    VERIFY(put('+', IOv2::ios_defs::left, -42L) == "-42+++++++++");
+
+    // The decimal point binds to the digits after it: "..........42" reads as 0.42.
+    VERIFY(put('.', IOv2::ios_defs::right, 42L).empty());
+    VERIFY(put('.', IOv2::ios_defs::internal, 42L).empty());
+    // Behind the value it is the ordinary dot-leader spelling and stays allowed.
+    VERIFY(put('.', IOv2::ios_defs::left, 42L) == "42..........");
+
+    // Characters that cannot be read into a number are unaffected, including the
+    // thousands separator: it needs digits on both sides, and a fill run never has any
+    // on its far side.
+    VERIFY(put('*', IOv2::ios_defs::right, 42L) == "**********42");
+    VERIFY(put(' ', IOv2::ios_defs::right, 42L) == "          42");
+    VERIFY(put(',', IOv2::ios_defs::right, 42L) == ",,,,,,,,,,42");
+    VERIFY(put('X', IOv2::ios_defs::left, -42L) == "-42XXXXXXXXX");
+
+    // `fill` is sticky stream state, so a dangerous fill only matters where padding is
+    // actually written: with nothing to pad, the same stream state must still work.
+    {
+        IOv2::ios_base<char> ios;
+        ios.fill('9');
+        std::string oss;
+        obj.put(std::back_inserter(oss), ios, 42L);
+        VERIFY(oss == "42");
+
+        oss.clear();
+        ios.width(2);
+        obj.put(std::back_inserter(oss), ios, 42L);
+        VERIFY(oss == "42");
+    }
+
+    // boolalpha names are not numbers, so no fill can make them read as another value.
+    {
+        IOv2::ios_base<char> ios;
+        ios.fill('0');
+        ios.setf(IOv2::ios_defs::boolalpha);
+        ios.width(8);
+        std::string oss;
+        obj.put(std::back_inserter(oss), ios, true);
+        VERIFY(oss == "0000true");
+    }
+
+    dump_info("Done\n");
+}
+
 void test_numeric_char_get_1()
 {
     dump_info("Test numeric<char>::get 1...");

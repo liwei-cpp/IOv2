@@ -1,4 +1,5 @@
 #pragma once
+#include <common/copyable_mutex.h>
 #include <common/defs.h>
 #include <cvt/cvt_concepts.h>
 #include <device/device_concepts.h>

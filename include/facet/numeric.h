@@ -289,6 +289,10 @@ public:
             if (plen > ios_defs::max_pad_count)
                 throw stream_error("numeric put fail: fill count exceeds max_pad_count");
 
+            // No fill_alters_reading_ check here: the padded content is truename() /
+            // falsename(), not a number, so no fill character can make the field read
+            // as a different value. Rejecting digits here would only break the ordinary
+            // setfill('0') << setw(n) << boolalpha spelling.
             if ((flags & ios_defs::adjustfield) == ios_defs::left)
             {
                 s = std::copy(name.begin(), name.end(), s);
@@ -1048,6 +1052,116 @@ private:
 
     /**
      * @lang{ZH}
+     * @brief 判断一段填充字符是否会改变人从该字段读到的数值。
+     *
+     * @par 为什么需要这个判断
+     * 格式化的产物是给人看的。`fill` 只应起补齐字段宽度的作用，不应改变这段文本读起来
+     * 是几。`setfill('9') << setw(6) << 42` 写出 `"999942"`，读者读到的是 999942 而不是
+     * 42——这段文本本身就已经错了，与它能否被原样解析回来无关。因此判据是"人读到的数
+     * 是否还是原来那个数"，命中即由调用方抛出 `stream_error`。
+     *
+     * @par 判据
+     * 危险与否既取决于是哪个字符，也取决于它落在哪里：
+     * - **digit**：仅当它是 `'0'` 且紧贴数字之前时安全（前导零按约定不改变读数）。
+     *   `'1'`–`'9'` 在任何位置都危险；`'0'` 落在数值之后（`"42000000"` 读作 42000000）
+     *   或落在符号 / 进制前缀之前（`"00000-42"` 读不成任何数）同样危险。
+     * - **小数点**：向右与数字结合，故仅当位于数值之后时安全（`"42......"` 仍读作 42）；
+     *   落在前面会被读进数值里（`"......42"` 读作 0.42）。
+     * - **`'+'` / `'-'`**：落在数值之前时会被读成该数值的符号，故仅当它与数值本身的
+     *   符号一致时才安全：`"++++42"` 读作 +42（正确），`"----42"` 读作 −42（而值是
+     *   +42，错误）；对负值则正好相反。位于数值之后一律安全（`"42----"` 仍读作 42）。
+     * - **其余字符**一律安全：
+     *   - 千位分隔符必须左右都有数字才成立，而填充段靠数字的那一侧之外只可能是符号、
+     *     进制前缀或字段边界，故它永远无法与数值结合（`"    12345"` 在以空格为千位
+     *     分隔符的 locale 下仍读作 12345——把它算作危险会让这些 locale 的默认填充全部失败）。
+     *   - `'x'`/`'X'`/`'e'`/`'E'` 需要其后跟数字才有意义，而"填充段后面跟数字"这一位置
+     *     上任何digit填充都已被拒绝。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Decides whether a run of fill characters changes the number a human reads
+     * out of the field.
+     *
+     * @par Why this test exists
+     * Formatted output is meant to be read by people. `fill` is only supposed to pad a
+     * field to its width, never to change what number the text says.
+     * `setfill('9') << setw(6) << 42` writes `"999942"`, which a reader reads as 999942
+     * rather than 42 — that text is already wrong, independently of whether it can be
+     * parsed back. The criterion is therefore "does a human still read the same number",
+     * and the caller throws `stream_error` on a hit.
+     *
+     * @par The criterion
+     * Danger depends both on which character it is and on where it lands:
+     * - **A digit**: safe only when it is `'0'` sitting immediately before the digits
+     *   (leading zeros conventionally do not change the reading). `'1'`–`'9'` are
+     *   dangerous everywhere; `'0'` is equally dangerous after the value
+     *   (`"42000000"` reads as 42000000) or before a sign or base prefix
+     *   (`"00000-42"` reads as no number at all).
+     * - **The decimal point**: it binds rightwards to digits, so it is safe only after
+     *   the value (`"42......"` still reads as 42); in front it is read into the value
+     *   (`"......42"` reads as 0.42).
+     * - **`'+'` / `'-'`**: in front of the value they are read as that value's sign, so
+     *   they are safe only when they agree with the sign the value actually has:
+     *   `"++++42"` reads as +42 (right), while `"----42"` reads as −42 although the
+     *   value is +42 (wrong); for a negative value it is the other way round. After the
+     *   value they are always safe (`"42----"` still reads as 42).
+     * - **Everything else** is safe:
+     *   - The thousands separator needs digits on both sides, and on the far side of a
+     *     fill run there can only be a sign, a base prefix or the field edge, so it can
+     *     never bind to the value (`"    12345"` still reads as 12345 in a locale whose
+     *     separator is a space — treating it as dangerous would fail every default-fill
+     *     output in such locales).
+     *   - `'x'`/`'X'`/`'e'`/`'E'` are only meaningful with digits after them, and in the
+     *     one position where digits do follow the run, any digit fill is already rejected.
+     * @endif
+     *
+     * @param fill
+     * @lang{ZH} 待判断的填充字符。 @endif
+     * @lang{EN} The fill character to test. @endif
+     *
+     * @param leads_digits
+     * @lang{ZH} 该段填充是否紧贴数字之前，中间不隔符号或进制前缀。 @endif
+     * @lang{EN} Whether the run sits immediately before the digits, with no sign or
+     * base prefix in between. @endif
+     *
+     * @param trails_value
+     * @lang{ZH} 该段填充是否位于数值之后。与 `leads_digits` 互斥；两者皆为 `false`
+     * 表示填充位于整个字段之前、与数字之间还隔着符号或进制前缀。 @endif
+     * @lang{EN} Whether the run sits after the value. Mutually exclusive with
+     * `leads_digits`; both `false` means the run is before the whole field, with a sign
+     * or base prefix between it and the digits. @endif
+     *
+     * @param negative
+     * @lang{ZH} 被格式化的数值本身是否为负。仅用于判断符号填充是否与它一致。 @endif
+     * @lang{EN} Whether the value being formatted is itself negative. Used only to tell
+     * whether a sign-shaped fill agrees with it. @endif
+     *
+     * @return
+     * @lang{ZH} 若这段填充会改变人读到的数值则返回 `true`。 @endif
+     * @lang{EN} `true` if the run changes the number a human reads. @endif
+     */
+    [[nodiscard]] bool fill_alters_reading_(char_type fill, bool leads_digits,
+                                            bool trails_value, bool negative) const
+    {
+        const char_type* const digits = m_out_atoms.data() + s_odigits;
+        if (std::find(digits, digits + 10, fill) != digits + 10)
+            return !(fill == digits[0] && leads_digits);
+
+        // Past the value nothing but a digit can still be read into it.
+        if (trails_value)
+            return false;
+
+        if (fill == m_decimal_point)
+            return true;
+        if (fill == m_out_atoms[s_ominus])
+            return !negative;
+        if (fill == m_out_atoms[s_oplus])
+            return negative;
+        return false;
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 对格式化缓冲区应用宽度填充，委托给 `pad_impl_`。同时将 `len` 更新为填充后的总宽度。
      *
      * @param fill 填充字符。
@@ -1071,12 +1185,31 @@ private:
      * @param len Number of characters in the original content; updated to `w` on return.
      * @param startSign Whether the original content begins with a sign character (`+`/`-`).
      * @param start0x Whether the original content begins with `0x`/`0X`.
+     *
+     * @throw stream_error If `fill` would change the number the padded field reads as;
+     * see `fill_alters_reading_`.
      * @endif
      */
     void pad(char_type fill, std::size_t w, ios_defs::fmtflags adjust,
              char_type* new_buf, const char_type* cs, std::size_t& len,
              bool startSign, bool start0x) const
     {
+      // Fill is about to be written, so this is where it gets vetted: a fill character
+      // that would change the number this field reads as is rejected outright. Where
+      // the run lands decides what is safe, and `pad_impl_` below fixes that: `left`
+      // appends it after the value; `internal`, and `right` on content that starts with
+      // a digit, put it directly in front of the digits; `right` on content that starts
+      // with a sign or `0x` leaves that prefix between the fill and the digits.
+      // The check belongs here rather than at the top of the insert functions because
+      // `fill` is sticky stream state: a stream carrying setfill('1') must keep working
+      // for every output whose width leaves nothing to pad.
+      const bool trails_value = (adjust == ios_defs::left);
+      const bool leads_digits = !trails_value
+          && (adjust == ios_defs::internal || !(startSign || start0x));
+      if (fill_alters_reading_(fill, leads_digits, trails_value,
+                               cs[0] == m_out_atoms[s_ominus]))
+          throw stream_error("numeric put fail: fill would change the value the field reads as");
+
       // [22.2.2.2.2] Stage 3.
       // If necessary, pad.
       pad_impl_(adjust, fill, new_buf, cs, w, len, startSign, start0x);

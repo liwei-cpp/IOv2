@@ -631,8 +631,14 @@ public:
      * 切换到输出模式。
      * 若读缓冲区（m_read_buf）中还留有已经被 sgetc()/sputbackc() 取出但尚未被
      * sbumpc()/sgetn() 消费的字符，则必须先把底层转换器的物理位置回退到这些字符对应
-     * 的逻辑位置，才能保证之后再切回输入模式时仍能读到它们——这一步依赖底层转换器
-     * 支持定位（cvt_cpt::support_positioning）。
+     * 的逻辑位置，才能保证之后再切回输入模式时仍从**同一逻辑位置**继续读——这一步
+     * 依赖底层转换器支持定位（cvt_cpt::support_positioning）。
+     * 回退恢复的是**位置**而不是**内容**：读缓冲区本身随即被清空，因此凡是
+     * sputbackc() 压回的字符与底层数据不同的（标准与本库都允许压回**替换**字符），
+     * 以及超出实际已读字符数的**过量**压回，都会在这里静默丢失，切回输入后读到的
+     * 是底层的原始数据。未经替换的 sgetc()/peek() 不受影响——回退后重读得到同一字符。
+     * 输出必然要求设备停在写位置，读缓冲区代表的是尚未生效的读侧推测状态，因此这是
+     * 既定语义；需要保留压回内容的调用方应在切向输出之前把它消费掉。
      * 换言之：一个仅满足 cvt_cpt::support_io_switch（支持读、写、切换方向）而不支持
      * 定位的转换器，只要读缓冲区非空就无法调用本函数；若读缓冲区为空（即从未调用过
      * sgetc()/sputbackc()，只用过 sbumpc()/sgetn()），则切换方向不需要定位支持。
@@ -650,9 +656,20 @@ public:
      * If the read buffer (m_read_buf) still holds characters that were fetched by
      * sgetc()/sputbackc() but not yet consumed by sbumpc()/sgetn(), the underlying
      * converter's physical position must first be rewound to the logical position
-     * those characters represent, so that a later switch back to input mode can
-     * still read them — this step requires the underlying converter to support
-     * positioning (cvt_cpt::support_positioning).
+     * those characters represent, so that a later switch back to input mode resumes
+     * from that same logical position — this step requires the underlying converter
+     * to support positioning (cvt_cpt::support_positioning).
+     * The rewind restores the position, not the contents: the read buffer itself is
+     * then cleared, so any character that sputbackc() pushed back with a value
+     * differing from the underlying data (both the standard and this library allow
+     * put-back to substitute), as well as any over-pushback beyond the number of
+     * characters actually read, is silently lost here, and switching back to input
+     * reads the underlying data instead. An unsubstituted sgetc()/peek() is
+     * unaffected — re-reading after the rewind yields the same character.
+     * Output necessarily requires the device to sit at the write position, and the
+     * read buffer holds speculative read-side state that has not taken effect, so
+     * this is by design; a caller that needs the pushed-back content preserved
+     * should consume it before switching to output.
      * In other words: a converter that only satisfies cvt_cpt::support_io_switch
      * (get + put + direction switching) but not positioning cannot call this
      * function while the read buffer is non-empty; if the read buffer is empty

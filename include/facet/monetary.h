@@ -586,6 +586,119 @@ public:
 private:
     /**
      * @lang{ZH}
+     * @brief 判断一段填充字符是否会改变人从该字段读到的金额。
+     *
+     * @par 为什么需要这个判断
+     * 格式化的产物是给人看的。`fill` 只应起补齐字段宽度的作用，不应改变这段文本读起来
+     * 是多少钱。`setfill('1')` 把 123.45 补成 `"USD 1123.45"`，读者读到的是 1123.45，
+     * 解析器读到的却是 23.45（那个 `'1'` 被当成填充吃掉了）——两边读数不一致，而且写出
+     * 的文本本身已经错了。因此插入与提取两侧用同一判据把关：人读到的金额是否还是原来
+     * 那个金额；命中即由调用方抛出 `stream_error`。解析逻辑本身不变。
+     *
+     * @par 判据
+     * 危险与否既取决于是哪个字符，也取决于它落在哪里：
+     * - **digit**：仅当它是 `'0'` 且紧贴金额之前时安全（前导零按约定不改变读数）。
+     *   `'1'`–`'9'` 在任何位置都危险；`'0'` 落在金额之后（`"$123.450000000"`）或落在
+     *   符号 / 货币符号之前（`"00000-42"` 一类）同样危险。
+     * - **小数点**：向右与数字结合，故仅当位于金额之后时安全；落在前面会被读进金额里。
+     * - **正/负号首字符**：落在金额之前时会被读成该金额的符号，故仅当它与金额本身的
+     *   符号一致时才安全。C locale 下 `setfill('-')` 把 +123.45 补成 `"-------12345"`，
+     *   读者与解析器一致地读成负数——这是要拒的；而同一个 `'-'` 用来补齐一个本来就是
+     *   负数的金额则无害。
+     * - **其余字符**一律安全。千位分隔符必须左右都有数字才成立，而填充段靠数字的那一
+     *   侧之外只可能是符号、货币符号或字段边界，故它永远无法与金额结合——把它算作危险
+     *   会让以空格为千位分隔符的 locale 连默认填充都用不了。货币符号同理：它不是金额
+     *   的一部分，多写几个不改变读数。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Decides whether a run of fill characters changes the amount a human reads
+     * out of the field.
+     *
+     * @par Why this test exists
+     * Formatted output is meant to be read by people. `fill` is only supposed to pad a
+     * field to its width, never to change what amount the text says. `setfill('1')` pads
+     * 123.45 to `"USD 1123.45"`, which a reader reads as 1123.45 while the parser reads
+     * 23.45 (that `'1'` is eaten as fill) — the two disagree, and the text that was
+     * written is already wrong. Insertion and extraction therefore apply the same test:
+     * does a human still read the same amount; the caller throws `stream_error` on a
+     * hit. The parsing logic itself is unchanged.
+     *
+     * @par The criterion
+     * Danger depends both on which character it is and on where it lands:
+     * - **A digit**: safe only when it is `'0'` sitting immediately before the amount
+     *   (leading zeros conventionally do not change the reading). `'1'`–`'9'` are
+     *   dangerous everywhere; `'0'` is equally dangerous after the amount
+     *   (`"$123.450000000"`) or before a sign or currency symbol.
+     * - **The decimal point**: it binds rightwards to digits, so it is safe only after
+     *   the amount; in front it is read into it.
+     * - **The first character of the positive/negative sign**: in front of the amount it
+     *   is read as that amount's sign, so it is safe only when it agrees with the sign
+     *   the amount actually has. In the C locale `setfill('-')` pads +123.45 to
+     *   `"-------12345"`, which reader and parser alike take for a negative amount —
+     *   that one is rejected; the same `'-'` padding an amount that is already negative
+     *   is harmless.
+     * - **Everything else** is safe. The thousands separator needs digits on both sides,
+     *   and on the far side of a fill run there can only be a sign, a currency symbol or
+     *   the field edge, so it can never bind to the amount — treating it as dangerous
+     *   would rule out even the default fill in locales whose separator is a space. The
+     *   same goes for the currency symbol: it is not part of the amount, so repeating it
+     *   does not change the reading.
+     * @endif
+     *
+     * @param fill
+     * @lang{ZH} 待判断的填充字符。 @endif
+     * @lang{EN} The fill character to test. @endif
+     *
+     * @param info
+     * @lang{ZH} 本次使用的格式数据（国际或本地），提供正/负号字符串。 @endif
+     * @lang{EN} The format data in use (international or national), supplying the
+     * positive/negative sign strings. @endif
+     *
+     * @param leads_digits
+     * @lang{ZH} 该段填充是否紧贴金额之前，中间不隔符号或货币符号。 @endif
+     * @lang{EN} Whether the run sits immediately before the amount, with no sign or
+     * currency symbol in between. @endif
+     *
+     * @param trails_value
+     * @lang{ZH} 该段填充是否位于金额之后。与 `leads_digits` 互斥；两者皆为 `false`
+     * 表示填充与金额之间还隔着别的字符。 @endif
+     * @lang{EN} Whether the run sits after the amount. Mutually exclusive with
+     * `leads_digits`; both `false` means other characters stand between the run and the
+     * amount. @endif
+     *
+     * @param negative
+     * @lang{ZH} 该金额本身是否为负。仅用于判断符号填充是否与它一致。 @endif
+     * @lang{EN} Whether the amount is itself negative. Used only to tell whether a
+     * sign-shaped fill agrees with it. @endif
+     *
+     * @return
+     * @lang{ZH} 若这段填充会改变人读到的金额则返回 `true`。 @endif
+     * @lang{EN} `true` if the run changes the amount a human reads. @endif
+     */
+    [[nodiscard]] bool fill_alters_reading_(char_type fill, const split_info& info,
+                                            bool leads_digits, bool trails_value,
+                                            bool negative) const
+    {
+        const char_type* const digits = s_atoms.data() + s_zero;
+        if (std::find(digits, digits + 10, fill) != digits + 10)
+            return !(fill == digits[0] && leads_digits);
+
+        // Past the amount nothing but a digit can still be read into it.
+        if (trails_value)
+            return false;
+
+        if (fill == m_decimal_point)
+            return true;
+        if (!info.m_negative_sign.empty() && fill == info.m_negative_sign[0])
+            return !negative;
+        if (!info.m_positive_sign.empty() && fill == info.m_positive_sign[0])
+            return negative;
+        return false;
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 将数字字符串按货币格式组装为结果字符串并写入输出迭代器。
      *
      * 模板参数 `isIntl` 静态选择国际（`m_int`）或本地（`m_nat`）格式数据。
@@ -739,6 +852,17 @@ private:
             res.reserve(2 * len);
 
             const bool testipad = (f == ios_defs::internal && len < width);
+
+            // Where each run of fill lands is recorded as it is written, so that the
+            // readability check below can be made against the finished field instead of
+            // against the pattern: whether a run abuts the amount depends on which
+            // parts between them turn out to be empty, which the pattern alone does not
+            // say. A pattern writes at most one run per part, plus one final pad.
+            struct fill_run { std::size_t pos; std::size_t len; };
+            std::array<fill_run, 5> runs{};
+            std::size_t run_count = 0;
+            std::size_t value_pos = std::basic_string<char_type>::npos;
+
             // Fit formatted digits into the required pattern.
             for (int i = 0; i < 4; ++i)
             {
@@ -757,12 +881,14 @@ private:
                         res += (*sign_ptr)[0];
                     break;
                 case part::value:
+                    value_pos = res.size();
                     res += value;
                     break;
                 case part::space:
                     // At least one space is required, but if internal
                     // formatting is required, an arbitrary number of
                     // fill spaces will be necessary.
+                    runs[run_count++] = {res.size(), testipad ? width - len : 1};
                     if (testipad)
                         res.append(width - len, io.fill());
                     else
@@ -770,7 +896,10 @@ private:
                     break;
                 case part::none:
                     if (testipad)
+                    {
+                        runs[run_count++] = {res.size(), width - len};
                         res.append(width - len, io.fill());
+                    }
                     break;
                 }
             }
@@ -783,11 +912,39 @@ private:
             len = res.size();
             if (width > len)
             {
+                const std::size_t plen = width - len;
                 if (f == ios_defs::left) // After.
-                    res.append(width - len, io.fill());
+                {
+                    runs[run_count++] = {res.size(), plen};
+                    res.append(plen, io.fill());
+                }
                 else // Before.
-                    res.insert(0, width - len, io.fill());
+                {
+                    res.insert(0, plen, io.fill());
+                    // Everything recorded so far just moved right by plen.
+                    for (std::size_t r = 0; r < run_count; ++r)
+                        runs[r].pos += plen;
+                    if (value_pos != std::basic_string<char_type>::npos)
+                        value_pos += plen;
+                    runs[run_count++] = {0, plen};
+                }
                 len = width;
+            }
+
+            // Fill has now been written, so this is where it gets vetted: reject a fill
+            // character that would change the amount this field reads as. The check sits
+            // here rather than at the top of the function because `fill` is sticky stream
+            // state — a stream carrying setfill('1') must keep working for every output
+            // whose width leaves nothing to pad, and those take no run at all.
+            for (std::size_t r = 0; r < run_count; ++r)
+            {
+                const bool leads_digits = (value_pos != std::basic_string<char_type>::npos)
+                                       && (runs[r].pos + runs[r].len == value_pos);
+                const bool trails_value = (value_pos != std::basic_string<char_type>::npos)
+                                       && (runs[r].pos >= value_pos + value.size());
+                if (fill_alters_reading_(io.fill(), info, leads_digits, trails_value,
+                                         sign_ptr == &info.m_negative_sign))
+                    throw stream_error("monetary put fail: fill would change the value the field reads as");
             }
 
             // Write resulting, fully-formatted string to output iterator.
@@ -895,9 +1052,23 @@ private:
         const char_type* lit_zero = s_atoms.data() + s_zero;
         const base_ft<monetary>::pattern p = info.m_neg_format;
 
+        // Which part carries the amount: a run of fill consumed before that index sits
+        // in front of the amount, one consumed after it sits behind.
+        int value_idx = 3;
+        for (int i = 0; i < 4; ++i)
+            if (static_cast<part>(p[i]) == part::value)
+            {
+                value_idx = i;
+                break;
+            }
+
         for (int i = 0; i < 4 && testvalid; ++i)
         {
             const part which = static_cast<part>(p[i]);
+            // Set when this part consumes at least one fill character, which is the
+            // only case in which fill decides how much of the input counts as the
+            // amount — and so the only case worth vetting.
+            bool ate_fill = false;
             switch (which)
             {
             case part::symbol:
@@ -990,14 +1161,30 @@ private:
             case part::space:
                 // At least one space is required.
                 if (beg != end && (*beg == io.fill()))
+                {
                     ++beg;
+                    ate_fill = true;
+                }
                 else
                     testvalid = false;
                 [[fallthrough]];
             case part::none:
                 // Only if not at the end of the pattern.
                 if (i != 3)
-                for (; beg != end && (*beg == io.fill()); ++beg);
+                for (; beg != end && (*beg == io.fill()); ++beg) ate_fill = true;
+                // Reject fill that a reader would have taken for part of the amount:
+                // `is >> setfill('1') >> get_money(v)` on "112" must fail loudly rather
+                // than silently hand back 2. Whether the run leads the digits is read
+                // off the input itself — the character it stopped on — because the
+                // pattern does not say which parts in between came out empty.
+                if (ate_fill
+                    && fill_alters_reading_(io.fill(), info,
+                                            i < value_idx && beg != end
+                                                && (*beg == m_decimal_point
+                                                    || std::find(lit_zero, lit_zero + 10, *beg)
+                                                           != lit_zero + 10),
+                                            i > value_idx, negative))
+                    throw stream_error("monetary get fail: fill would change the value the field reads as");
                 break;
             }
         }
