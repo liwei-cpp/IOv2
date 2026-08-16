@@ -162,16 +162,23 @@ void test_istream_ws_no_ctype_wchar_t_1()
 
 namespace
 {
-// wchar_t counterpart: a bare abs_flusher tie target whose flush() throws.
+// wchar_t counterpart: a bare abs_flusher tie target whose flush fails. try_flush() is
+// noexcept by contract, so the failure is absorbed here and recorded on the target itself.
 struct ThrowingTieW : public IOv2::abs_flusher
 {
-    int flushed = 0;
-    void try_flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
+    int  flushed = 0;
+    bool failed  = false;
+    void try_flush() noexcept override
+    {
+        ++flushed;
+        try { throw IOv2::stream_error("tied flush boom"); }
+        catch (...) { failed = true; }
+    }
 };
 }
 
 // wchar_t counterpart of test_istream_tied_flush_char_1: the input sentry flushes the tied
-// stream before locking; a throwing flush is swallowed and extraction still succeeds.
+// stream before locking; a failing flush stays on the target and extraction still succeeds.
 void test_istream_tied_flush_wchar_t_1()
 {
     dump_info("Test istream<wchar_t> tied-stream flush throw case 1...");
@@ -185,8 +192,9 @@ void test_istream_tied_flush_wchar_t_1()
         int v = 0;
         iss >> v;
         VERIFY( tt.flushed >= 1 );
+        VERIFY( tt.failed );          // the failure was recorded on the target
         VERIFY( v == 42 );
-        VERIFY( iss.good() );
+        VERIFY( iss.good() );         // and not on the initiator
 
         iss.tie(nullptr);
     };

@@ -1,6 +1,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <cvt/code_cvt.h>
 #include <cvt/cvt_pipe_creator.h>
 #include <cvt/comp/zlib_cvt.h>
@@ -62,10 +63,21 @@ void test_iostream_switch_to_put_wchar_t_2()
     VERIFY(!compress_res.empty());
     VERIFY(compress_res.size() < s_e_lit.size() / 3 * 7);
 
-    IOv2::iostream istr(IOv2::mem_device{compress_res},
-                        IOv2::Comp::zlib_cvt_creator<char>{6});
-    istr.switch_to_put();
-    VERIFY(!istr);
+    // A zlib pipeline cannot change direction (support_io_switch is false), so an iostream over
+    // one is rejected at the declaration level by base_streambuf's creator constructor
+    // (io_concepts.h: cvt_fits_direction). What this case used to do -- build such an iostream
+    // and drive switch_to_put() into a run-time cvtfailbit -- is no longer expressible, so the
+    // rejection itself is what gets pinned down here.
+    static_assert(!std::is_constructible_v<IOv2::iostream<IOv2::mem_device<char>, char>,
+                                           IOv2::mem_device<char>,
+                                           IOv2::Comp::zlib_cvt_creator<char>>);
+    // The single-direction halves stay legal: zlib supports get and put, just not switching.
+    static_assert(std::is_constructible_v<IOv2::ostream<IOv2::mem_device<char>, char>,
+                                          IOv2::mem_device<char>,
+                                          IOv2::Comp::zlib_cvt_creator<char>>);
+    static_assert(std::is_constructible_v<IOv2::istream<IOv2::mem_device<char>, char>,
+                                          IOv2::mem_device<char>,
+                                          IOv2::Comp::zlib_cvt_creator<char>>);
 
     dump_info("Done\n");
 }

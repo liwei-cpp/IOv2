@@ -38,9 +38,16 @@ namespace IOv2
  *       缓冲区，格式化与解析归 locale，两者不重叠；反向依赖（流读取 locale）则始终成立。
  *
  * @warning `out_flusher` 这个基类同时意味着**本类可以充当 tie 目标**，而这对双向流有一个
- *          读侧后果：刷新目标必须先把它切到输出方向，切向会清空读缓冲区，于是 `putback()`
- *          替换进去的字符与过量压回的字符被丢弃（未经替换的 `peek()` 不受影响）。发起者是
- *          绑定方，因此一次与本流无关的输出就会丢掉本流已压回的内容，且不置任何状态位。
+ *          读侧后果：刷新目标必须先把它切到输出方向。发起者是绑定方，因此一次与本流无关的
+ *          输出就会作用到本流上，而后果取决于底层转换器**是否支持定位**：
+ *          - **支持定位**（本库自带的设备都是这一档）：切向成功，读缓冲区被清空，于是
+ *            `putback()` 替换进去的字符与过量压回的字符被丢弃（未经替换的 `peek()` 不受影响），
+ *            **不置任何状态位**。
+ *          - **不支持定位**（双向但不可定位的管线，如套接字一类设备）：切向在读缓冲区非空时
+ *            抛 `cvt_error`，经 tie 刷新落到**本流**上，置本流的 `cvtfailbit`、原始异常存进本流的
+ *            `m_exp_cvt_fail`；此时压回内容**反而不丢**。发起方一位不动、也拿不到异常。
+ *            门槛比看上去低：任何一次成功的提取都会在定界符处留一个字符在读缓冲区里，
+ *            不必显式 `peek()`/`putback()`。
  *          详见 `switch_to_put()` 与 `stream_common_operators::tie()` 的说明。
  *
  * @tparam TDevice 底层设备类型，须满足 `io_device` 且同时支持读取与写入。
@@ -73,11 +80,21 @@ namespace IOv2
  *
  * @warning The `out_flusher` base also means **instances of this class can serve as tie targets**,
  *          and for a bidirectional stream that has a read-side consequence: flushing the target
- *          must first switch it to the put direction, switching clears the read buffer, and so
- *          characters substituted in by `putback()` and any over-pushback are discarded (an
- *          unsubstituted `peek()` is unaffected). The tied stream is what initiates this, so an
- *          output that has nothing to do with this stream drops its pushed-back content, without
- *          setting any state bit. See `switch_to_put()` and `stream_common_operators::tie()`.
+ *          must first switch it to the put direction. The tied stream is what initiates this, so
+ *          an output that has nothing to do with this stream still acts on it, and what follows
+ *          depends on whether the underlying converter **supports positioning**:
+ *          - **Positionable** (every device shipped with this library): the switch succeeds, the
+ *            read buffer is cleared, and so characters substituted in by `putback()` and any
+ *            over-pushback are discarded (an unsubstituted `peek()` is unaffected). **No state
+ *            bit is set.**
+ *          - **Not positionable** (a bidirectional but non-seekable pipeline, e.g. a socket-like
+ *            device): with a non-empty read buffer the switch throws `cvt_error`, which the tie
+ *            flush lands on **this** stream: `cvtfailbit` is set here and the original exception
+ *            is stored in this stream's `m_exp_cvt_fail`; the pushed-back content is **kept**
+ *            instead. The initiator is untouched and receives no exception. The bar is lower than
+ *            it looks: any successful extraction leaves a character in the read buffer from
+ *            peeking at the delimiter, so no explicit `peek()`/`putback()` is needed.
+ *          See `switch_to_put()` and `stream_common_operators::tie()`.
  *
  * @tparam TDevice The underlying device type; must satisfy `io_device` and support both reading
  *         and writing.
@@ -394,9 +411,20 @@ public:
      *          回退恢复的是位置而不是内容，之后从读方向读到的是底层原始数据（未经替换的
      *          `peek()` 不受影响）。而且这件事**不一定由本流发起**——本类可作 tie 目标
      *          （见类文档），tie 目标在绑定方每次 I/O 前都会被刷新，刷新对双向流意味着
-     *          先切到输出方向。因此一次与本流无关的 `writer << x` 就会丢掉本流的压回内容，
-     *          且不置任何状态位。要读的内容请在把本流设为 tie 目标之前消费掉，或者不要把
-     *          正在用 `putback()` 的流设为 tie 目标。
+     *          先切到输出方向。因此一次与本流无关的 `writer << x` 就会作用到本流上。
+     *          要读的内容请在把本流设为 tie 目标之前消费掉，或者不要把正在用 `putback()`
+     *          的流设为 tie 目标。
+     * @warning **上一条的后果取决于底层转换器是否支持定位，两种情形正好相反。**
+     *          读缓冲区非空时本函数先 `tell()` 再 `seek()`，而这一步只有可定位的管线做得到：
+     *          - **支持定位**（本库自带的设备都是这一档）：切向成功、读缓冲区被清空，压回内容
+     *            丢失，**不置任何状态位**。
+     *          - **不支持定位**（双向但不可定位的管线，如套接字一类设备）：`seek()` 抛
+     *            `cvt_error`，抛出发生在 `clear()` **之前**，所以压回内容**反而完整保留**。
+     *            直接调用本函数时该异常由本流的 `handle_exception` 转成 `cvtfailbit`；
+     *            经 tie 刷新走到这里时同样只置**本流**的 `cvtfailbit`、把原始异常存进本流的
+     *            `m_exp_cvt_fail`，发起方一位不动、也拿不到异常（见
+     *            `abs_flusher::try_flush()`）。由于抛出在 `clear()` 之前，读缓冲区仍非空，
+     *            `clear()` 之后绑定方再写一次就会再次置位。
      * @return 流自身的引用。
      * @endif
      *
@@ -419,9 +447,25 @@ public:
      *          class are valid tie targets (see the class documentation), a tie target is
      *          flushed before every I/O on the stream tied to it, and flushing a bidirectional
      *          stream means switching it to the put direction first. So an unrelated
-     *          `writer << x` drops this stream's pushed-back content, without setting any state
-     *          bit. Consume what you need before making this stream a tie target, or do not tie
-     *          to a stream that is using `putback()`.
+     *          `writer << x` acts on this stream. Consume what you need before making this
+     *          stream a tie target, or do not tie to a stream that is using `putback()`.
+     * @warning **What the above leads to depends on whether the underlying converter supports
+     *          positioning, and the two cases are exact opposites.** With a non-empty read buffer
+     *          this function first `tell()`s and then `seek()`s, and only a positionable pipeline
+     *          can do that:
+     *          - **Positionable** (every device shipped with this library): the switch succeeds,
+     *            the read buffer is cleared, the pushed-back content is lost, and **no state bit
+     *            is set**.
+     *          - **Not positionable** (a bidirectional but non-seekable pipeline, e.g. a
+     *            socket-like device): `seek()` throws `cvt_error`, and it throws *before* the
+     *            `clear()`, so the pushed-back content is **kept intact** instead. Called
+     *            directly, that exception becomes `cvtfailbit` through this stream's
+     *            `handle_exception`; reached through a tie flush it likewise sets `cvtfailbit`
+     *            on **this** stream only and stores the original exception in this stream's
+     *            `m_exp_cvt_fail`, leaving the initiator untouched and without an exception (see
+     *            `abs_flusher::try_flush()`). Because the throw precedes the `clear()`, the read
+     *            buffer is still non-empty, so after a `clear()` the next write by the tied
+     *            stream sets the bit again.
      * @return A reference to the stream itself.
      * @endif
      */

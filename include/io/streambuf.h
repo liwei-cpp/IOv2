@@ -142,7 +142,8 @@ public:
      * @endif
      */
     template <cvt_creator TCreator>
-    base_streambuf(TDevice dev, const TCreator& creator) requires (IsOut)
+    base_streambuf(TDevice dev, const TCreator& creator)
+        requires (IsOut && cvt_fits_direction<no_rb_root_cvt<TDevice>, TCreator, IsIn, IsOut>)
         : m_cvt(creator.create(no_rb_root_cvt{std::move(dev)}))
     {
         init_cvt();
@@ -192,7 +193,10 @@ public:
      * @endif
      */
     template <cvt_creator TCreator>
-    base_streambuf(TDevice dev, const TCreator& creator, bool has_in_buf = true) requires (IsIn && !IsOut)
+    base_streambuf(TDevice dev, const TCreator& creator, bool has_in_buf = true)
+        requires (IsIn && !IsOut
+                  && cvt_fits_direction<rb_root_cvt<TDevice>,    TCreator, IsIn, IsOut>
+                  && cvt_fits_direction<no_rb_root_cvt<TDevice>, TCreator, IsIn, IsOut>)
         : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(creator.create(rb_root_cvt{std::move(dev)}))
                            : runtime_cvt<TDevice, TChar>(creator.create(no_rb_root_cvt{std::move(dev)})))
     {
@@ -707,6 +711,8 @@ public:
                                  + " buffered/put-back character(s) before switching to output mode: "
                                  + e.what());
             }
+            // Must stay after the seek: tell() subtracts m_read_buf.size(), and a failed seek
+            // leaves the buffer intact -- which is what iostream's @warning promises.
             m_read_buf.clear();
         }
         m_cvt.switch_to_put();

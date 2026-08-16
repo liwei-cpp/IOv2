@@ -1997,8 +1997,13 @@ private:
 
             if (++fmt == _fmt.cend())
             {
-                succ = false;
-                return rp;
+                if (static_cast<CharT>('%') != *rp)
+                {
+                    succ = false;
+                    return rp;
+                }
+                ++rp;
+                break;
             }
 
             CharT modifier = 0;
@@ -2007,8 +2012,19 @@ private:
                 modifier = *fmt;
                 if (++fmt == _fmt.cend())
                 {
-                    succ = false;
-                    return rp;
+                    if ((static_cast<CharT>('%') != *rp))
+                    {
+                        succ = false;
+                        return rp;
+                    }
+                    ++rp;
+                    if ((rp == rp_end) || (modifier != *rp))
+                    {
+                        succ = false;
+                        return rp;
+                    }
+                    ++rp;
+                    break;
                 }
             }
 
@@ -2915,6 +2931,10 @@ private:
      * @param hms    时间指针（若不含时间分量则为 `nullptr`）。
      * @param tz     时区指针（若不含时区分量则为 `nullptr`）。
      * @return 写入后的输出迭代器。
+     * @note @p format 以落单的 `%` 结尾（或以落单的 `%E` / `%O` 修饰符结尾）时，按「无法解释的
+     *       格式内容原样透传」处理：写出 `%`（及修饰符）本身，不视为错误。这与未知说明符
+     *       （如 `%Q`）走的是同一条策略，也与 `strftime` 一致。`do_get` 对称地把它当作字面
+     *       `%`（及修饰符）来匹配，故往返不变量成立。
      * @endif
      *
      * @lang{EN}
@@ -2934,6 +2954,12 @@ private:
      * @param hms    Time pointer (`nullptr` if no time components are needed).
      * @param tz     Timezone pointer (`nullptr` if no timezone component is needed).
      * @return The output iterator after writing.
+     * @note When @p format ends with a lone `%` (or with a lone `%E` / `%O` modifier), it is
+     *       handled by the "pass unrecognized format content through unchanged" policy: the `%`
+     *       (and the modifier) is written out and it is not an error. This is the same policy
+     *       unknown specifiers such as `%Q` follow, and it matches `strftime`. `do_get`
+     *       symmetrically matches it as a literal `%` (and modifier), so the round-trip
+     *       invariant holds.
      * @endif
      */
     template <typename OutIt>
@@ -2952,13 +2978,22 @@ private:
                 continue;
             }
 
-            if (++f == format.cend()) break;
+            if (++f == format.cend())
+            {
+                *out++ = static_cast<CharT>('%');
+                break;
+            }
 
             CharT modifier = 0;
             if (*f == static_cast<CharT>('E') || *f == static_cast<CharT>('O'))
             {
                 modifier = *f++;
-                if (f == format.cend()) break;
+                if (f == format.cend())
+                {
+                    *out++ = static_cast<CharT>('%');
+                    *out++ = modifier;
+                    break;
+                }
             }
 
             CharT format_char = *f;

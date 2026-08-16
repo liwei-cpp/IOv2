@@ -1,8 +1,14 @@
 #include <cvt/root_cvt.h>
 #include <cvt/comp/zlib_cvt.h>
+#include <cvt/crypt/hash_cvt.h>
+#include <cvt/crypt/vigenere_cvt.h>
 #include <device/mem_device.h>
 #include <io/streambuf.h>
+#include <io/istream.h>
+#include <io/ostream.h>
+#include <io/iostream.h>
 #include <string>
+#include <type_traits>
 #include <support/dump_info.h>
 #include <support/verify.h>
 
@@ -677,6 +683,67 @@ void test_streambuf_char_io_switch_3()
     obj.flush();
 
     VERIFY(obj.device().str() == "aBcde");
+
+    dump_info("Done\n");
+}
+
+// A converter pipeline must be capable enough for the direction the stream buffer has:
+// bidirectional needs support_io_switch, input-only needs support_get, output-only needs
+// support_put (io_concepts.h: cvt_fits_direction, enforced on base_streambuf's two
+// creator-taking constructors). zlib can read and write but cannot switch direction; a hash
+// can only write. Before the constraint existed all of these compiled, and the failure
+// arrived far from the mistake: the bidirectional case set cvtfailbit on the first direction
+// change, while the input-only hash case threw "only output mode is supported" from the
+// constructor -- and a stream constructor runs outside any try block.
+//
+// The predicate must be applied to the type the creator produces, never to the runtime_cvt
+// the buffer stores: runtime_cvt is a type-erasing wrapper that implements every interface
+// and reports every capability as present, deferring the failure to a run-time throw.
+void test_streambuf_char_io_switch_4()
+{
+    dump_info("Test streambuf<char> converter direction constraint 4...");
+    using namespace IOv2;
+
+    using Dev  = mem_device<char>;
+    using Zlib = Comp::zlib_cvt_creator<char>;                  // get + put, no io_switch
+    using Hash = Crypt::hash_cvt_creator<char>;                 // put only
+    using Vig  = Crypt::Classic::vigenere_cvt_creator<char>;    // get + put + io_switch
+
+    // Bidirectional: only a pipeline that can change direction is accepted.
+    static_assert(!std::is_constructible_v<streambuf<Dev, char>, Dev, Zlib>);
+    static_assert(!std::is_constructible_v<streambuf<Dev, char>, Dev, Hash>);
+    static_assert( std::is_constructible_v<streambuf<Dev, char>, Dev, Vig>);
+
+    // Input-only: needs support_get, which a hash pipeline does not have.
+    static_assert(!std::is_constructible_v<istreambuf<Dev, char>, Dev, Hash>);
+    static_assert( std::is_constructible_v<istreambuf<Dev, char>, Dev, Zlib>);
+    static_assert( std::is_constructible_v<istreambuf<Dev, char>, Dev, Vig>);
+
+    // Output-only: needs support_put, which all three have.
+    static_assert( std::is_constructible_v<ostreambuf<Dev, char>, Dev, Zlib>);
+    static_assert( std::is_constructible_v<ostreambuf<Dev, char>, Dev, Hash>);
+    static_assert( std::is_constructible_v<ostreambuf<Dev, char>, Dev, Vig>);
+
+    // The constraint sits on the stream buffer, and the stream layer inherits it: the stream
+    // constructors mention decltype(streambuf{...}) in their own constraints, so a rejected
+    // buffer removes the corresponding stream constructor instead of producing a hard error.
+    static_assert(!std::is_constructible_v<iostream<Dev, char>, Dev, Zlib>);
+    static_assert(!std::is_constructible_v<iostream<Dev, char>, Dev, Hash>);
+    static_assert(!std::is_constructible_v<istream<Dev, char>,  Dev, Hash>);
+    static_assert( std::is_constructible_v<ostream<Dev, char>,  Dev, Hash>);
+    static_assert( std::is_constructible_v<istream<Dev, char>,  Dev, Zlib>);
+
+    // An accepted bidirectional pipeline really does switch direction at run time.
+    {
+        streambuf<Dev, char> obj{Dev{""}, Vig{std::string("key")}};
+        obj.sputc('a');
+        obj.sputc('b');
+        obj.flush();
+        obj.switch_to_get();
+        obj.seek(0);
+        VERIFY(obj.sbumpc() == 'a');
+        VERIFY(obj.sbumpc() == 'b');
+    }
 
     dump_info("Done\n");
 }

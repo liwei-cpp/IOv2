@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include <cvt/code_cvt.h>
 #include <cvt/comp/zlib_cvt.h>
@@ -77,26 +78,36 @@ namespace
 {
 // A tie target that is a bare abs_flusher, not a stream_common_operators. Used to drive two
 // otherwise-hard-to-reach branches:
-//   * ThrowingFlusher::flush() throws, so the sentry's pre-lock "flush the tied stream" step
-//     hits its catch(...) swallow (out_sentry / in_sentry).
+//   * ThrowingFlusher's flush fails. try_flush() is noexcept by contract, so the failure is
+//     absorbed by the target itself -- mirroring what out_flusher<T> does with
+//     handle_exception<true>() -- and must never reach the initiating stream.
 //   * a bare abs_flusher makes tie()'s cycle-detection walk dynamic_cast to
 //     stream_common_operators* -> null -> break (the non-stream node case).
 struct ThrowingFlusher : public IOv2::abs_flusher
 {
-    int flushed = 0;
-    void try_flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
+    int  flushed = 0;
+    bool failed  = false;
+    void try_flush() noexcept override
+    {
+        ++flushed;
+        try { throw IOv2::stream_error("tied flush boom"); }
+        catch (...) { failed = true; }
+    }
 };
 
 struct QuietFlusher : public IOv2::abs_flusher
 {
     int flushed = 0;
-    void try_flush() override { ++flushed; }
+    void try_flush() noexcept override { ++flushed; }
 };
+
+// The contract itself: a tie flush can never throw into the sentry.
+static_assert(noexcept(std::declval<IOv2::abs_flusher&>().try_flush()));
 }
 
 // Tie an ostream to a bare abs_flusher and drive output. Two effects are checked:
-//   * the sentry flushes the tied target before locking; when that flush throws, the
-//     swallowing catch(...) keeps the insertion succeeding (ThrowingFlusher case).
+//   * the sentry flushes the tied target before locking; when that flush fails, the failure
+//     stays on the target and the insertion still succeeds (ThrowingFlusher case).
 //   * tie() accepts a non-stream flusher node: its cycle-detection walk dynamic_casts the
 //     target to stream_common_operators*, gets null, and breaks (both cases reach it).
 void test_ostream_derive_3()
@@ -109,9 +120,10 @@ void test_ostream_derive_3()
             ThrowingFlusher tf;
             T oss{IOv2::mem_device{std::string("")}};
             oss.tie(&tf);                 // non-stream node -> cycle walk breaks
-            oss << "x";                   // sentry flushes tf -> throws -> swallowed
+            oss << "x";                   // sentry flushes tf -> fails -> absorbed by the target
             VERIFY( tf.flushed >= 1 );
-            VERIFY( oss.good() );         // swallowed flush must not fail the stream
+            VERIFY( tf.failed );          // the failure was recorded on the target
+            VERIFY( oss.good() );         // and must not fail the initiating stream
             oss.tie(nullptr);
             auto [dev, err] = oss.detach();
             VERIFY( dev.str() == "x" );

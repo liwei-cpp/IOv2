@@ -5152,3 +5152,44 @@ void test_timeio_wchar_t_get_12()
 
     dump_info("Done\n");
 }
+// wchar_t counterpart of test_timeio_char_put_19: a format string ending in a lone '%'
+// (or in a lone '%E' / '%O' modifier) is emitted verbatim by put and matched back as a
+// literal by get, so the round-trip invariant holds on the wide side too.
+void test_timeio_wchar_t_put_18()
+{
+    dump_info("Test timeio<wchar_t> put 18...");
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<wchar_t>>("C"));
+    const std::tm t = test_tm(3, 2, 1, 15, 0, 124, 1, 14, 0);
+
+    struct { const wchar_t* fmt; const wchar_t* want; } cases[] = {
+        {L"%Y%", L"2024%"},
+        {L"%",   L"%"},
+        {L"a%",  L"a%"},
+        {L"%E",  L"%E"},
+        {L"%O",  L"%O"},
+        {L"%%",  L"%"},
+        {L"%Q",  L"%Q"},
+    };
+
+    for (const auto& c : cases)
+    {
+        std::wstring res;
+        obj.put(std::back_inserter(res), t, std::wstring_view(c.fmt));
+        VERIFY(res == c.want);
+
+        IOv2::time_parse_context<wchar_t> ctx;
+        VERIFY(obj.get(res.begin(), res.end(), ctx, std::wstring_view(c.fmt)) == res.end());
+    }
+
+    {
+        const std::wstring in = L"2024";
+        IOv2::time_parse_context<wchar_t> ctx;
+        bool threw = false;
+        try { obj.get(in.begin(), in.end(), ctx, std::wstring_view(L"%Y%")); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}

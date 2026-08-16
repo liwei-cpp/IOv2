@@ -6488,3 +6488,52 @@ void test_timeio_char_get_19()
 
     dump_info("Done\n");
 }
+
+// A format string ending in a lone '%' -- or in a lone '%E' / '%O' modifier -- introduces no
+// specifier, so there is nothing to convert. It follows the same rule this facet already uses
+// for a specifier it does not recognize (see the "unknown format" path, which emits '%' plus
+// the rest verbatim): put writes the '%' out and get matches it back as a literal. Handling
+// the two sides alike is what keeps the round-trip invariant -- whatever put writes, get reads
+// back with the same format string. put previously dropped the '%' silently while get rejected
+// it, so put succeeded on output get could never read.
+void test_timeio_char_put_19()
+{
+    dump_info("Test timeio<char> put 19...");
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+    const std::tm t = test_tm(3, 2, 1, 15, 0, 124, 1, 14, 0);
+
+    struct { const char* fmt; const char* want; } cases[] = {
+        {"%Y%", "2024%"},   // a lone '%' after a real specifier
+        {"%",   "%"},       // nothing but the lone '%'
+        {"a%",  "a%"},      // a lone '%' after literal text
+        {"%E",  "%E"},      // a lone 'E' modifier with no specifier to modify
+        {"%O",  "%O"},      // ditto for 'O'
+        {"%%",  "%"},       // control: an escaped '%' still collapses to one
+        {"%Q",  "%Q"},      // control: an unrecognized specifier is already emitted verbatim
+    };
+
+    for (const auto& c : cases)
+    {
+        std::string res;
+        obj.put(std::back_inserter(res), t, std::string_view(c.fmt));
+        VERIFY(res == c.want);
+
+        // The round trip: get consumes exactly what put produced, using the same format.
+        IOv2::time_parse_context<char> ctx;
+        VERIFY(obj.get(res.begin(), res.end(), ctx, std::string_view(c.fmt)) == res.end());
+    }
+
+    // get still rejects input that lacks the literal '%' the format asks for, so the
+    // agreement above is a real match rather than the trailing '%' being ignored.
+    {
+        const std::string in = "2024";
+        IOv2::time_parse_context<char> ctx;
+        bool threw = false;
+        try { obj.get(in.begin(), in.end(), ctx, std::string_view("%Y%")); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    dump_info("Done\n");
+}
