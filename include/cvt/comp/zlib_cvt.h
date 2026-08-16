@@ -930,39 +930,23 @@ private:
                 // below throws, the trailing avail_out bytes are uninitialized
                 // memory still inside the kernel's cursor range and would be
                 // flushed to the device on the next put / close_stream / dtor.
-                // Roll the tail back on the failure path so the kernel buffer
-                // ends exactly at the last valid deflate output byte.
-                try
-                {
-                    // Snapshot before the call so we can prove zlib made progress on
-                    // at least one axis (input consumed or output produced). The
-                    // Z_OK contract guarantees this, but enforcing it here turns a
-                    // hypothetical infinite loop into an explicit failure if the
-                    // library ever diverges from its contract.
-                    const auto prev_avail_in = m_strm->avail_in;
-                    const auto prev_avail_out = m_strm->avail_out;
-                    auto ret = deflate(m_strm.get(), Z_NO_FLUSH);
-                    zerr("zlib_cvt::put fail", ret);
-                    if (m_strm->avail_in == prev_avail_in && m_strm->avail_out == prev_avail_out)
-                        throw cvt_error("zlib_cvt::put fail: zlib made no progress");
-                    write_size += cur_put_size - m_strm->avail_in;
-                }
-                catch (...)
-                {
-                    // rollback's throw conditions (len==0, len>reserved) are
-                    // unreachable here: we just reserved CHUNK and avail_out<=CHUNK.
-                    // The catch is defensive cleanup-path policy - swallow any
-                    // future regression in rollback rather than mask the original
-                    // exception.
-                    if (m_strm->avail_out > 0)
-                    {
-                        try { writer.rollback(m_strm->avail_out); } catch (...) {} // NOLINT(bugprone-empty-catch)
-                    }
-                    throw;
-                }
+                // The guard rolls that tail back on every exit path so the kernel
+                // buffer ends exactly at the last valid deflate output byte.
+                put_buf_guard guard{writer, static_cast<std::size_t>(CHUNK)};
 
-                if (m_strm->avail_out)
-                    writer.rollback(m_strm->avail_out);
+                // Snapshot before the call so we can prove zlib made progress on
+                // at least one axis (input consumed or output produced). The
+                // Z_OK contract guarantees this, but enforcing it here turns a
+                // hypothetical infinite loop into an explicit failure if the
+                // library ever diverges from its contract.
+                const auto prev_avail_in = m_strm->avail_in;
+                const auto prev_avail_out = m_strm->avail_out;
+                auto ret = deflate(m_strm.get(), Z_NO_FLUSH);
+                guard.used(static_cast<std::size_t>(CHUNK - m_strm->avail_out));
+                zerr("zlib_cvt::put fail", ret);
+                if (m_strm->avail_in == prev_avail_in && m_strm->avail_out == prev_avail_out)
+                    throw cvt_error("zlib_cvt::put fail: zlib made no progress");
+                write_size += cur_put_size - m_strm->avail_in;
             }
             to += aim_output;
             to_size -= aim_output / sizeof(internal_type);

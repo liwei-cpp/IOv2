@@ -532,6 +532,36 @@ namespace IOv2
         std::size_t m_prev_len = 0;
     };
 
+    template <typename TWriter>
+    class put_buf_guard
+    {
+    public:
+        put_buf_guard(TWriter& writer, std::size_t len)
+            : m_writer(writer)
+            , m_len(len) {}
+
+        put_buf_guard(const put_buf_guard&) = delete;
+        put_buf_guard& operator=(const put_buf_guard&) = delete;
+        put_buf_guard(put_buf_guard&&) = delete;
+        put_buf_guard& operator=(put_buf_guard&&) = delete;
+
+        ~put_buf_guard()
+        {
+            if (m_len == 0) return;
+            try
+            {
+                m_writer.rollback(m_len);
+            }
+            catch (...) {} // NOLINT(bugprone-empty-catch)
+        }
+
+        void used(std::size_t len) { m_len -= len; }
+
+    private:
+        TWriter& m_writer;
+        std::size_t m_len;
+    };
+
     /**
      * @lang{ZH}
      * 基于 CRTP 的抽象转换器基类。

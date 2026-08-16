@@ -48,8 +48,14 @@
  * 配窄流。运算符走不到那里（它总是用 `T::char_type` 实例化），但手写调用够得着，于是本该编译期
  * 报错的事落到运行期（`strfailbit`）。迭代器形式靠那条迭代器约束达到同一效果：插入侧是本文件
  * 里的 `char_sink_for<TIter, TChar>`，提取侧是 `std::is_same_v<TChar, typename TIter::value_type>`。
- * 两侧不对称是有意的——输入迭代器按标准必须有 `value_type`，输出迭代器则不必（C++20 起标准的
- * 输出适配器一律是 `void`），所以插入侧只能查可写性，能查到的 `value_type` 仍照查。
+ * 两侧不对称是有意的——输出迭代器连 `value_type` 这个 typedef 都不要求存在（C++20 起标准的
+ * 输出适配器一律是 `void`），所以插入侧只能查可写性，能查到的字符类型仍照查；而提取侧实际
+ * 传进来的只有 `istreambuf_iterator` 一族，成员 `value_type` 查得到，直接查它最省事。注意
+ * 「查得到」不是标准给的保证：`std::input_iterator` 要求的是 `iter_value_t` 可求值，而不是
+ * 有嵌套的 `value_type`，**裸指针**就没有（`char*` 满足 `std::input_iterator`，
+ * `iter_value_t<char*>` 是 `char`，却没有 `char*::value_type`）。于是提取侧这条约束顺带把
+ * 裸指针排除在外，插入侧的 `char_sink_for` 则收；这个差别落不到实处，因为 `operator>>` 永远
+ * 只传 `istreambuf_iterator`。
  *
  * 两种形式靠**参数个数**区分，一个特化**只能提供其中一种**：两种都提供是编译错误，运算符会就地
  * `static_assert`。插入端还会把 `TValue` 衰退一次再试一遍（这样数组名能衰退成指针、函数名能衰退
@@ -160,9 +166,16 @@
  * (`strfailbit`). The iterator form achieves the same through its constraint on the iterator:
  * `char_sink_for<TIter, TChar>` from this file on the insertion side, and
  * `std::is_same_v<TChar, typename TIter::value_type>` on the extraction side. The asymmetry is
- * deliberate -- the standard requires an input iterator to have a `value_type` but an output
- * iterator not to (since C++20 the standard output adaptors uniformly use `void`), so the
- * insertion side can only test writability, while still checking any `value_type` it does find.
+ * deliberate -- an output iterator is not required to have a `value_type` typedef at all (since
+ * C++20 the standard output adaptors uniformly use `void`), so the insertion side can only test
+ * writability, while still checking any character type it does find; the extraction side, whose
+ * only real argument is an `istreambuf_iterator`, does have the member and simply tests it. That
+ * the member is there is not something the standard guarantees, though: `std::input_iterator`
+ * requires `iter_value_t` to be well-formed, not a nested `value_type`, and a **raw pointer** has
+ * none (`char*` satisfies `std::input_iterator` and `iter_value_t<char*>` is `char`, yet there is
+ * no `char*::value_type`). The extraction-side constraint therefore also excludes raw pointers
+ * where `char_sink_for` accepts them -- a difference with no practical reach, since `operator>>`
+ * only ever passes an `istreambuf_iterator`.
  *
  * The two forms are told apart by **arity**, and a specialization may provide **only one of
  * them**: providing both is a compile error, diagnosed by a `static_assert` in the operator. The
@@ -256,7 +269,11 @@ namespace IOv2
  * 真正需要的性质。C++20 起 `std::back_insert_iterator`、`front_insert_iterator`、
  * `insert_iterator`、`ostream_iterator`、`std::ostreambuf_iterator` 的 `value_type` 一律是
  * `void`，`std::output_iterator` 概念也不要求该 typedef 存在，因此**不能**用它去查写入侧——
- * 那是可读侧的 trait。输入迭代器按标准必须有 `value_type`，所以提取侧照查无妨。
+ * 那是可读侧的 trait。提取侧照查成员 `value_type` 则无妨，因为实际传进去的只有
+ * `istreambuf_iterator` 一族。这不等于标准替输入迭代器保证了这个成员：`std::input_iterator`
+ * 要求的是 `iter_value_t` 可求值，裸指针满足它却没有嵌套 `value_type`，因而会被提取侧那条
+ * 约束一并挡掉（本概念反倒收裸指针）。这个差别落不到实处——`operator>>` 永远只传
+ * `istreambuf_iterator`。
  *
  * 第二个合取项是本库在标准之上多加的一道守卫：迭代器**若**报得出字符类型，就必须与 `TChar`
  * 一致。它查的是 `std::iter_value_t<TIter>` 而不是成员 `TIter::value_type`，两者对本库自己的
@@ -298,8 +315,13 @@ namespace IOv2
  * `std::back_insert_iterator`, `front_insert_iterator`, `insert_iterator`, `ostream_iterator`
  * and `std::ostreambuf_iterator` is uniformly `void`, and `std::output_iterator` does not
  * require that typedef to exist at all, so it must **not** be used to check the write side -- it
- * is a readable-side trait. An input iterator is required by the standard to have a
- * `value_type`, so the extraction side may keep checking it.
+ * is a readable-side trait. The extraction side may keep testing the member `value_type` because
+ * the only thing ever passed there is an `istreambuf_iterator`. That is not the same as the
+ * standard guaranteeing the member for input iterators: `std::input_iterator` requires
+ * `iter_value_t` to be well-formed, and a raw pointer satisfies it while having no nested
+ * `value_type`, so the extraction-side constraint rejects raw pointers (which this concept, in
+ * contrast, accepts). The difference has no practical reach -- `operator>>` only ever passes an
+ * `istreambuf_iterator`.
  *
  * The second conjunct is one guard this library adds on top of the standard: **if** the iterator
  * can name a character type at all, it has to agree with `TChar`. It tests

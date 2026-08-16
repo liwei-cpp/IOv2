@@ -579,6 +579,122 @@ void test_root_cvt_file_writer_errors_1()
     dump_info("Done\n");
 }
 
+// put_buf_guard: on the exception path the whole reserved slot goes back, on the
+// normal path only what used() did not account for, and a throwing rollback in the
+// destructor must not escape. Exercised against both cvt_writer specializations
+// that reserve outside their own staging buffer, since those are the ones where a
+// missing rollback leaks bytes; each implements rollback differently.
+void test_put_buf_guard_1()
+{
+    using namespace IOv2;
+    dump_info("Test put_buf_guard rollback paths...");
+
+    // mem_device specialization: put_buf reserves inside the device itself and
+    // commit() is a no-op, so an un-rolled-back slot is visible as filler bytes.
+    {
+        auto obj = no_rb_root_cvt{mem_device{""}};
+        obj.bos(); obj.main_cont_beg();
+        {
+            std::vector<char> buf;
+            cvt_writer<decltype(obj)> writer(obj, buf);
+            writer.reset(1024);
+
+            auto ptr = writer.put_buf(3);
+            std::copy_n("abc", 3, ptr);
+
+            // Nothing used: the exception path gives the whole slot back.
+            bool threw = false;
+            try
+            {
+                auto p = writer.put_buf(6);
+                put_buf_guard guard{writer, static_cast<std::size_t>(6)};
+                std::copy_n("XXXXXX", 6, p);
+                throw cvt_error("test_put_buf_guard_1: forced throw");
+            }
+            catch (const cvt_error&) { threw = true; }
+            VERIFY(threw);
+
+            // Partially used: only the unused tail goes back.
+            {
+                auto p = writer.put_buf(6);
+                put_buf_guard guard{writer, static_cast<std::size_t>(6)};
+                std::copy_n("de", 2, p);
+                guard.used(2);
+            }
+
+            // Fully used: nothing goes back.
+            {
+                auto p = writer.put_buf(2);
+                put_buf_guard guard{writer, static_cast<std::size_t>(2)};
+                std::copy_n("fg", 2, p);
+                guard.used(2);
+            }
+            writer.commit();
+        }
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.str() == "abcdefg");
+    }
+
+    // non-mem-device specialization: rollback moves root_cvt's internal buffer
+    // cursor, so an un-rolled-back slot would reach the device on the next flush.
+    {
+        using ObjT = rb_root_cvt<str_write_device>;
+        ObjT obj{str_write_device{}};
+        obj.bos(); obj.main_cont_beg();
+        {
+            std::vector<char> buf;
+            cvt_writer<ObjT> writer(obj, buf);
+            writer.reset(64);
+
+            auto ptr = writer.put_buf(3);
+            std::copy_n("abc", 3, ptr);
+
+            bool threw = false;
+            try
+            {
+                auto p = writer.put_buf(6);
+                put_buf_guard guard{writer, static_cast<std::size_t>(6)};
+                std::copy_n("XXXXXX", 6, p);
+                throw cvt_error("test_put_buf_guard_1: forced throw");
+            }
+            catch (const cvt_error&) { threw = true; }
+            VERIFY(threw);
+
+            {
+                auto p = writer.put_buf(6);
+                put_buf_guard guard{writer, static_cast<std::size_t>(6)};
+                std::copy_n("de", 2, p);
+                guard.used(2);
+            }
+            writer.commit();
+        }
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.result == "abcde");
+    }
+
+    // A rollback that throws inside the destructor is swallowed: the guard is
+    // handed a length larger than what was reserved.
+    {
+        auto obj = no_rb_root_cvt{mem_device{""}};
+        obj.bos(); obj.main_cont_beg();
+        {
+            std::vector<char> buf;
+            cvt_writer<decltype(obj)> writer(obj, buf);
+            writer.reset(1024);
+            auto ptr = writer.put_buf(2);
+            std::copy_n("hi", 2, ptr);
+            {
+                put_buf_guard guard{writer, static_cast<std::size_t>(1000)};
+            }
+            writer.commit();
+        }
+        auto [dev, err] = obj.detach();
+        VERIFY(dev.str() == "hi");
+    }
+
+    dump_info("Done\n");
+}
+
 // Tests the base cvt_reader<> template (not the root_cvt specializations).
 // Uses vigenere_cvt as kernel, which is an io_converter but not a root_cvt,
 // so cvt_reader<vigenere_cvt<...>> instantiates the abs_cvt.h base template.

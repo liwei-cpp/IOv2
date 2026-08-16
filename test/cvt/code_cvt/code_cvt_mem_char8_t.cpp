@@ -1185,6 +1185,51 @@ void test_code_cvt_mem_char8_t_put_err_1()
     dump_info("Done\n");
 }
 
+// Counterpart of test_code_cvt_mem_char_put_err_2 for the library's own UTF-8
+// kernel: a rejected code point must not leave the 4 bytes reserved by put_buf
+// behind in the device.
+void test_code_cvt_mem_char8_t_put_err_2()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt<memory<char8_t>>::put encoding error case 2...");
+
+    using RbType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    using NoRbType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
+
+    auto try_put = [](auto& obj, char32_t ch) {
+        try {
+            obj.put(&ch, 1);
+            throw std::runtime_error("test_code_cvt_mem_char8_t_put_err_2: expected throw");
+        } catch (const cvt_error&) {}
+    };
+
+    auto check_empty = [&](auto& obj, char32_t bad) {
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        try_put(obj, bad);
+        VERIFY(obj.device().str().empty());
+    };
+
+    { RbType o{rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0xD800U)); }
+    { NoRbType o{no_rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0xD800U)); }
+    { RbType o{rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0x110000U)); }
+    { NoRbType o{no_rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0x110000U)); }
+
+    // A multi-byte code point in front: the device must end exactly at its last byte,
+    // with no trailing remnant of the rejected one.
+    {
+        NoRbType obj{no_rb_root_cvt{mem_device(std::u8string{})}};
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        const char32_t ok[] = { U'a', U'李' };
+        obj.put(ok, 2);
+        try_put(obj, static_cast<char32_t>(0xD800U));
+        VERIFY(obj.device().str() == std::u8string{u8"a李"});
+    }
+
+    dump_info("Done\n");
+}
+
 // Covers lines 610-611 (invalid start byte), 614-615 (bad 2-byte continuation),
 // 617 (overlong 2-byte), 626-627 (bad 3-byte continuation), 631 (surrogate in 3-byte),
 // 641-642 (bad 4-byte continuation), 644 (4-byte out of range), 649 (byte >= 0xF8),
