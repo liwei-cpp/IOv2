@@ -121,7 +121,8 @@ Public 成员函数</h2></td></tr>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
 requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; || (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a>)<br />
 struct IOv2::codecvt_kernel&lt; char, TInt &gt;</div><p>基于区域设置（locale）的字符编码转换内核（char &lt;-&gt; wchar_t/char32_t）。 使用 C 标准库的 mbrtowc / wcrtomb 在多字节字符与宽字符之间进行转换， 编码方式由构造时指定的区域设置名称决定，通过 <a class="el" href="structIOv2_1_1clocale__wrapper.html">clocale_wrapper</a> 在运行时切换。</p>
-<dl class="section note"><dt>注解</dt><dd>线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。 此外，由于构造阶段调用了 <code>mbtowc</code>（其内部维护静态状态），并发构造多个实例同样不是 线程安全的。构造完成后，单实例的读写操作使用显式的 <code>mbstate_t</code>（<code>m_state</code>）， 在单线程场景下是安全的。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。 此外，由于构造阶段调用了 <code>mbtowc</code>（其内部维护静态状态），并发构造多个实例同样不是 线程安全的。构造完成后，单实例的读写操作使用显式的 <code>mbstate_t</code>（<code>m_state</code>）， 在单线程场景下是安全的。</dd></dl>
+<dl class="section warning"><dt>警告</dt><dd><b>何为"可编码的码点"完全由 C 库的编码集决定，本内核不做任何校验。</b> <code>out_helper</code> 唯一的动作就是一次 <code>wcrtomb</code>，<code>TInt</code> 为 <code>char32_t</code> 时也不例外——它**不**检查 Unicode 标量值的两条规矩（拒绝代理区 [0xD800, 0xDFFF]、上限 0x10FFFF）。 具体到 glibc 的 UTF-8：其转换器按旧的 RFC 2279 实现（最长 6 字节、上限 0x7FFFFFFF），于是孤立代理确实被拒（<code>wcrtomb</code> 返回 -1），但 <b>0x110000 到 0x7FFFFFFF 的码点一律"成功"**，静默写出按现行 UTF-8（RFC 3629） 非法的字节序列：<code>0x110000</code> → <code>f4 90 80 80</code>、<code>0x200000</code> → 5 字节 <code>f8 88 80 80 80</code>、<code>0x7FFFFFFF</code> → 6 字节 <code>fd bf bf bf bf bf</code>；要到 <code>0xFFFFFFFF</code> 才失败。即码点合法性的上界**不是</b> 0x10FFFF。 这不是缺陷，而是"跟随 locale 编码集"的直接后果，且两侧一致——反向的 <code>mbrtowc</code> 同样读得回这些序列，往返不丢信息。若需要严格的 USV 判据，请改用 <code><a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>&lt;char8_t, TInt&gt;</code>（即 <code><a class="el" href="classIOv2_1_1code__cvt__creator.html">code_cvt_creator</a>&lt;char8_t, char32_t&gt;</code>）， 它自己实现 UTF-8 并显式拒绝代理与超范围码点。 缓冲区安全不受影响：<code>out_helper</code> 先保证有 <code><a class="el" href="structIOv2_1_1codecvt__kernel_3_01char_00_01TInt_01_4.html#a26f7843fda30b30f2767a0e47d9e8ded">epc()</a> == MB_CUR_MAX</code> 字节可写， glibc 的 UTF-8 下 <code>MB_CUR_MAX</code> 为 6，正好覆盖它可能写出的最长序列。 </dd></dl>
 </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="ada583b1ad6e97bb73d0ce465422a7902" name="ada583b1ad6e97bb73d0ce465422a7902"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ada583b1ad6e97bb73d0ce465422a7902">&#9670;&#160;</a></span>codecvt_kernel()</h2>
@@ -426,7 +427,9 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
   </dd>
 </dl>
 <dl class="section return"><dt>返回</dt><dd>若成功编码并写入，返回 <code>true</code>；若缓冲区空间不足或字符无法编码，返回 <code>false</code>。</dd></dl>
-<dl class="section note"><dt>注解</dt><dd>前置条件：<code>to</code> 和 <code>to_end</code> 必须指向同一个数组，否则行为未定义。 <code>std::greater</code> 可在任意指针间建立全序，但后续的指针减法要求两者同源（[expr.add]/5）。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>"字符无法编码"的判据**只有 <code>wcrtomb</code> 返回 -1 这一条**，本函数不另加码点校验； <code>TInt</code> 为 <code>char32_t</code> 时，超出 Unicode 范围的码点未必会被拒。详见类文档的 <code>@warning</code>。 </dd>
+<dd>
+前置条件：<code>to</code> 和 <code>to_end</code> 必须指向同一个数组，否则行为未定义。 <code>std::greater</code> 可在任意指针间建立全序，但后续的指针减法要求两者同源（[expr.add]/5）。 </dd></dl>
 
 </div>
 </div>

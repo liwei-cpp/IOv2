@@ -327,6 +327,7 @@ var hierarchy =
     [ "IOv2::prefix_tree< CharT, std::basic_string< CharT > >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, std::string >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::istreambuf_iterator< TStreamBuf >::proxy", "structIOv2_1_1istreambuf__iterator_1_1proxy.html", null ],
+    [ "IOv2::put_buf_guard< TWriter >", "classIOv2_1_1put__buf__guard.html", null ],
     [ "IOv2::put_money_fn", "structIOv2_1_1put__money__fn.html", null ],
     [ "IOv2::put_money_t< TMoney >", "structIOv2_1_1put__money__t.html", null ],
     [ "IOv2::put_time_t< TChar >", "structIOv2_1_1put__time__t.html", null ],

@@ -8,7 +8,8 @@ var searchData=
   ['prefix_5ftree_3c_20chart_2c_20std_3a_3abasic_5fstring_3c_20chart_20_3e_20_3e_5',['prefix_tree&lt; CharT, std::basic_string&lt; CharT &gt; &gt;',['../classIOv2_1_1prefix__tree.html',1,'IOv2']]],
   ['prefix_5ftree_3c_20chart_2c_20std_3a_3astring_20_3e_6',['prefix_tree&lt; CharT, std::string &gt;',['../classIOv2_1_1prefix__tree.html',1,'IOv2']]],
   ['proxy_7',['proxy',['../structIOv2_1_1istreambuf__iterator_1_1proxy.html',1,'IOv2::istreambuf_iterator']]],
-  ['put_5fmoney_5ffn_8',['put_money_fn',['../structIOv2_1_1put__money__fn.html',1,'IOv2']]],
-  ['put_5fmoney_5ft_9',['put_money_t',['../structIOv2_1_1put__money__t.html',1,'IOv2']]],
-  ['put_5ftime_5ft_10',['put_time_t',['../structIOv2_1_1put__time__t.html',1,'IOv2']]]
+  ['put_5fbuf_5fguard_8',['put_buf_guard',['../classIOv2_1_1put__buf__guard.html',1,'IOv2']]],
+  ['put_5fmoney_5ffn_9',['put_money_fn',['../structIOv2_1_1put__money__fn.html',1,'IOv2']]],
+  ['put_5fmoney_5ft_10',['put_money_t',['../structIOv2_1_1put__money__t.html',1,'IOv2']]],
+  ['put_5ftime_5ft_11',['put_time_t',['../structIOv2_1_1put__time__t.html',1,'IOv2']]]
 ];

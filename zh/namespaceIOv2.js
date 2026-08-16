@@ -220,6 +220,7 @@ var namespaceIOv2 =
     [ "parse_context_type", "structIOv2_1_1parse__context__type.html", "structIOv2_1_1parse__context__type" ],
     [ "parse_context_type< TChar, std::tm >", "structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html", "structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4" ],
     [ "prefix_tree", "classIOv2_1_1prefix__tree.html", "classIOv2_1_1prefix__tree" ],
+    [ "put_buf_guard", "classIOv2_1_1put__buf__guard.html", "classIOv2_1_1put__buf__guard" ],
     [ "put_money_fn", "structIOv2_1_1put__money__fn.html", "structIOv2_1_1put__money__fn" ],
     [ "put_money_t", "structIOv2_1_1put__money__t.html", "structIOv2_1_1put__money__t" ],
     [ "put_time_t", "structIOv2_1_1put__time__t.html", "structIOv2_1_1put__time__t" ],

@@ -121,7 +121,9 @@ Public 成员函数</h2></td></tr>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>&gt;<br />
 requires std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char32_t</a>&gt; || (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TInt</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">wchar_t</a>&gt; &amp;&amp; <a class="el" href="namespaceIOv2.html#aa906165b0856579dd626eb3c84a2a523">wchar_t_is_utf32</a>)<br />
 struct IOv2::codecvt_kernel&lt; char8_t, TInt &gt;</div><p>无状态 UTF-8 编码转换内核（char8_t &lt;-&gt; char32_t/wchar_t）。 直接按照 UTF-8 规范对码点进行编解码，无需区域设置，无转换状态。</p>
-<dl class="section note"><dt>注解</dt><dd>线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。 不同于 <code><a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>&lt;char, TInt&gt;</code>，多实例的并发构造是安全的（无共享静态状态）。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd>线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。 不同于 <code><a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>&lt;char, TInt&gt;</code>，多实例的并发构造是安全的（无共享静态状态）。 </dd>
+<dd>
+码点合法性由本内核**自己**判定，且按现行 UTF-8（RFC 3629）从严：代理区 [0xD800, 0xDFFF] 与 0x10FFFF 以上一律拒绝，两个方向都是。这一点与 <code><a class="el" href="structIOv2_1_1codecvt__kernel.html">codecvt_kernel</a>&lt;char, TInt&gt;</code> 不同——那一侧把判定权交给 locale 的编码集，glibc 会 放行 0x10FFFF 以上的码点。要严格的 USV 语义就用本内核。 </dd></dl>
 </div><h2 class="groupheader">构造及析构函数说明</h2>
 <a id="a2bf2a4895e2a2310dc652f7f64368920" name="a2bf2a4895e2a2310dc652f7f64368920"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2bf2a4895e2a2310dc652f7f64368920">&#9670;&#160;</a></span>codecvt_kernel()</h2>

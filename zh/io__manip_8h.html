@@ -529,6 +529,7 @@ io_manip.h 的引用(Include)关系图:</div>
          再按结果 `setf()`"这样跨两次调用的逻辑不在此列，写在流形式里就是竞态；范例见 <code>endl</code> 与 <code>ws</code>，两者都自己取锁并自己 <code>catch</code>（理由见 <code><a class="el" href="traits__base_8h.html">traits/traits_base.h</a></code>）。 </dd>
 <dd>
 <b>工厂函数返回的是临时对象，只应作为同一个完整表达式的一部分立即使用。</b> <code>put_money_t</code> / <code>get_money_t</code> 持有对实参的引用，<code>put_time_t</code> / <code>get_time_t</code> 持有 裸指针。写成 <code>os &lt;&lt; put_money(x)</code> 是安全的——临时量活到完整表达式结束；但 <code>auto m = put_money(compute()); os &lt;&lt; m;</code> 会悬垂，因为 <code>compute()</code> 的临时结果 在第一条语句结束时就已销毁。此契约与 <code>std::put_money</code> 等同。 </dd></dl>
+<dl class="section note"><dt>注解</dt><dd><b>本头文件只带来操纵符本身，不带来"往流里写一个数或一个字符串"的能力。</b> 它不包含 <code><a class="el" href="arithmetic_8h.html">io/traits/arithmetic.h</a></code> 与 <code><a class="el" href="char__and__str_8h.html">io/traits/char_and_str.h</a></code>，因此只 <code>#include &lt;<a class="el" href="io__manip_8h.html">io/io_manip.h</a>&gt;</code> 时 <code>os &lt;&lt; 42</code>、<code>os &lt;&lt; "abc"</code> 都编译不过，而 <code>os &lt;&lt; setw(8)</code> 可以。 这是按值类型选配的一贯做法（见 <code><a class="el" href="traits__base_8h.html">io/traits/traits_base.h</a></code>）：要写哪类值就包哪个 traits 头，本文件不替你决定。库内的测试文件全都显式补上这两个头。 </dd></dl>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

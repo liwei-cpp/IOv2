@@ -103,6 +103,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:aadc1cb85fc947d411df31f0306b9eb7f" id="r_aadc1cb85fc947d411df31f0306b9eb7f"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter , std::sentinel_for&lt; TIter &gt; TSent&gt; <br />
 requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> TIter::value_type&gt;)</td></tr>
 <tr class="memitem:aadc1cb85fc947d411df31f0306b9eb7f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01get__money__t_3_01TMoney_01_4_01_4.html#aadc1cb85fc947d411df31f0306b9eb7f">sread</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">s_end</a>, <a class="el" href="classIOv2_1_1ios__base.html">ios_base</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">io</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1locale.html">locale</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TChar</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">loc</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="structIOv2_1_1get__money__t.html">get_money_t</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TMoney</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">f</a>)</td></tr>
+<tr class="memdesc:aadc1cb85fc947d411df31f0306b9eb7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses a monetary value in the locale's format into <code>f.m_mon</code>.  <br /></td></tr>
 <tr class="separator:aadc1cb85fc947d411df31f0306b9eb7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
@@ -162,6 +163,8 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Parses a monetary value in the locale's format into <code>f.m_mon</code>. </p>
 
 </div>
 </div>
