@@ -25,7 +25,7 @@ var io__manip_8h =
     [ "get_time", "io__manip_8h.html#af07ff1562a8d2f2453ffc25c02316ef7", null ],
     [ "put_time", "io__manip_8h.html#a39901a0e6ed0be1a369fbf9a1ad40855", null ],
     [ "resetiosflags", "io__manip_8h.html#a61a606925c0ce4b1d34da87049f3e97a", null ],
-    [ "setbase", "io__manip_8h.html#a12ac3d16b95cd13dbb0ff6134c29beb9", null ],
+    [ "setbase", "io__manip_8h.html#a1c1e08a956ef5537e1d56919c570f07e", null ],
     [ "setfill", "io__manip_8h.html#ae5345dc5ab6f852ab3f472e0407d42ec", null ],
     [ "setiosflags", "io__manip_8h.html#a12359c2e23bf073039289d583c8de3c4", null ],
     [ "setprecision", "io__manip_8h.html#aa7959a7eb2a57d40bbc3609cc918b1cf", null ],

@@ -828,9 +828,9 @@ requires (std::is_same_v&lt;<a class="el" href="namespaceIOv2.html#a09b31017574c
 <tr class="memitem:a12359c2e23bf073039289d583c8de3c4" id="r_a12359c2e23bf073039289d583c8de3c4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setiosflags__t.html">setiosflags_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a12359c2e23bf073039289d583c8de3c4">setiosflags</a> (<a class="el" href="namespaceIOv2_1_1ios__defs.html#ab481a81684565d362fa248a573b6fc4c">ios_defs::fmtflags</a> mask)</td></tr>
 <tr class="memdesc:a12359c2e23bf073039289d583c8de3c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造置位 <code>mask</code> 中各标志的操纵符（按位或，其余标志不受影响）。    <br /></td></tr>
 <tr class="separator:a12359c2e23bf073039289d583c8de3c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12ac3d16b95cd13dbb0ff6134c29beb9" id="r_a12ac3d16b95cd13dbb0ff6134c29beb9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setbase__t.html">setbase_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a12ac3d16b95cd13dbb0ff6134c29beb9">setbase</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">base</a>)</td></tr>
-<tr class="memdesc:a12ac3d16b95cd13dbb0ff6134c29beb9"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造设置整数进制的操纵符。  <br /></td></tr>
-<tr class="separator:a12ac3d16b95cd13dbb0ff6134c29beb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c1e08a956ef5537e1d56919c570f07e" id="r_a1c1e08a956ef5537e1d56919c570f07e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setbase__t.html">setbase_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#a1c1e08a956ef5537e1d56919c570f07e">setbase</a> (std::ptrdiff_t <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">base</a>)</td></tr>
+<tr class="memdesc:a1c1e08a956ef5537e1d56919c570f07e"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造设置整数进制的操纵符。  <br /></td></tr>
+<tr class="separator:a1c1e08a956ef5537e1d56919c570f07e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae5345dc5ab6f852ab3f472e0407d42ec" id="r_ae5345dc5ab6f852ab3f472e0407d42ec"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFill</a> &gt; </td></tr>
 <tr class="memitem:ae5345dc5ab6f852ab3f472e0407d42ec"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structIOv2_1_1setfill__t.html">setfill_t</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFill</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae5345dc5ab6f852ab3f472e0407d42ec">setfill</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TFill</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">c</a>)</td></tr>
 <tr class="memdesc:ae5345dc5ab6f852ab3f472e0407d42ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">构造设置填充字符的操纵符；填充字符用于字段宽度大于内容时补齐。  <br /></td></tr>
@@ -2188,8 +2188,8 @@ template&lt;io_converter KernelType&gt; </div>
 
 </div>
 </div>
-<a id="a12ac3d16b95cd13dbb0ff6134c29beb9" name="a12ac3d16b95cd13dbb0ff6134c29beb9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a12ac3d16b95cd13dbb0ff6134c29beb9">&#9670;&#160;</a></span>setbase()</h2>
+<a id="a1c1e08a956ef5537e1d56919c570f07e" name="a1c1e08a956ef5537e1d56919c570f07e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c1e08a956ef5537e1d56919c570f07e">&#9670;&#160;</a></span>setbase()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2200,7 +2200,7 @@ template&lt;io_converter KernelType&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="structIOv2_1_1setbase__t.html">setbase_t</a> IOv2::setbase </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">int</a>&#160;</td>
+          <td class="paramtype">std::ptrdiff_t&#160;</td>
           <td class="paramname"><em>base</em></td><td>)</td>
           <td></td>
         </tr>

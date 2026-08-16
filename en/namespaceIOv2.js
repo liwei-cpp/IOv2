@@ -339,7 +339,7 @@ var namespaceIOv2 =
     [ "right", "group__ios__manipulators.html#ga85cb6d28c6f0309564096897a39f838f", null ],
     [ "runtime_cvt", "namespaceIOv2.html#adb26bde61c727117aca84bdc3927eee5", null ],
     [ "scientific", "group__ios__manipulators.html#ga2e3e02ce6fe024fa90f355f18f9d33f9", null ],
-    [ "setbase", "namespaceIOv2.html#a12ac3d16b95cd13dbb0ff6134c29beb9", null ],
+    [ "setbase", "namespaceIOv2.html#a1c1e08a956ef5537e1d56919c570f07e", null ],
     [ "setfill", "namespaceIOv2.html#ae5345dc5ab6f852ab3f472e0407d42ec", null ],
     [ "setiosflags", "namespaceIOv2.html#a12359c2e23bf073039289d583c8de3c4", null ],
     [ "setprecision", "namespaceIOv2.html#aa7959a7eb2a57d40bbc3609cc918b1cf", null ],
