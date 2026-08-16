@@ -1,6 +1,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <device/mem_device.h>
 #include <device/file_device.h>
 #include <facet/ctype.h>
@@ -179,18 +180,31 @@ void test_istream_ws_no_ctype_char_1()
 
 namespace
 {
-// A bare abs_flusher tie target whose flush() throws, to exercise the input sentry's
-// pre-lock "flush the tied stream" step and its swallowing catch(...).
+// A bare abs_flusher tie target whose flush fails, to exercise the input sentry's pre-lock
+// "flush the tied stream" step. try_flush() is noexcept by contract, so the failure is
+// absorbed here and recorded on the target itself -- mirroring what out_flusher<T> does with
+// handle_exception<true>(). It must never reach the initiating stream, which would otherwise
+// have the target's failure misattributed to it.
 struct ThrowingTie : public IOv2::abs_flusher
 {
-    int flushed = 0;
-    void try_flush() override { ++flushed; throw IOv2::stream_error("tied flush boom"); }
+    int  flushed = 0;
+    bool failed  = false;
+    void try_flush() noexcept override
+    {
+        ++flushed;
+        try { throw IOv2::stream_error("tied flush boom"); }
+        catch (...) { failed = true; }
+    }
 };
+
+// The contract itself: a tie flush can never throw into the sentry.
+static_assert(noexcept(std::declval<IOv2::abs_flusher&>().try_flush()));
 }
 
 // An istream can have a tied stream; the input sentry flushes it before acquiring the lock.
-// When that flush throws, the sentry swallows it (catch(...)) and extraction proceeds
-// normally. Verifies the tied stream was flushed and the value still reads back.
+// When that flush fails, the failure stays on the target and extraction proceeds normally.
+// Verifies the tied stream was flushed, that it recorded its own failure, and that the value
+// still reads back with the reader untouched.
 void test_istream_tied_flush_char_1()
 {
     dump_info("Test istream<char> tied-stream flush throw case 1...");
@@ -202,10 +216,11 @@ void test_istream_tied_flush_char_1()
         iss.tie(&tt);
 
         int v = 0;
-        iss >> v;                     // sentry flushes tt -> throws -> swallowed
+        iss >> v;                     // sentry flushes tt -> fails -> absorbed by the target
         VERIFY( tt.flushed >= 1 );
+        VERIFY( tt.failed );          // the failure was recorded on the target
         VERIFY( v == 42 );
-        VERIFY( iss.good() );
+        VERIFY( iss.good() );         // and not on the initiator
 
         iss.tie(nullptr);
     };

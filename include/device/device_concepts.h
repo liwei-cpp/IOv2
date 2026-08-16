@@ -60,6 +60,11 @@ namespace IOv2
          * @brief 设备支持写入操作的概念。
          *
          * 要求设备提供写入数据（dput）和刷新缓冲区（dflush）的接口。
+         * @note **自带内部缓冲的设备必须在自己的析构函数里 `dflush()`。** 销毁一个流只会把
+         *       转换器的缓冲经 `dput()` 推给设备（`root_cvt::~root_cvt` 调的是 `flush()`），
+         *       **不会**调用设备的 `dflush()`；后者只在 unitbuf 哨兵析构与 `flush(true)`
+         *       两处显式发生。`file_device` 与 `std_device` 都是这么做的，`mem_device`
+         *       无内部缓冲故不需要。不遵守则设备缓冲里的数据在流销毁时丢失。
          * @tparam T 要检查的设备类型。
          * @endif
          *
@@ -68,6 +73,13 @@ namespace IOv2
          *
          * Requires the device to provide interfaces for writing data (dput) and
          * flushing the buffer (dflush).
+         * @note **A device that buffers internally must `dflush()` in its own destructor.**
+         *       Destroying a stream only pushes the converter's buffer down to the device via
+         *       `dput()` (`root_cvt::~root_cvt` calls `flush()`); it does **not** call the
+         *       device's `dflush()`, which happens explicitly only in the unitbuf sentry's
+         *       destructor and in `flush(true)`. `file_device` and `std_device` both do this;
+         *       `mem_device` has no internal buffer and so needs nothing. A device that skips
+         *       it loses whatever sits in its own buffer when the stream is destroyed.
          * @tparam T The device type to check.
          * @endif
          */

@@ -120,10 +120,7 @@ struct in_sentry
             throw stream_error("istream_sentry create fail: Invalid istream");
 
         if (auto* tied = is.tie())
-        {
-            try { tied->try_flush(); }
-            catch (...) {} // NOLINT(bugprone-empty-catch)
-        }
+            tied->try_flush();
 
         if constexpr (involve_output)
             is.m_streambuf.switch_to_get();

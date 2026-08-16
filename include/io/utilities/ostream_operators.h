@@ -131,10 +131,7 @@ struct out_sentry
             throw stream_error("ostream_sentry create fail: Invalid ostream");
 
         if (auto* tied = m_os.tie())
-        {
-            try { tied->try_flush(); }
-            catch (...) {} // NOLINT(bugprone-empty-catch)
-        }
+            tied->try_flush();
 
         if constexpr (is_std)
             m_sync_with_stdio = os.m_sync_with_stdio.load();
@@ -314,6 +311,13 @@ public:
      * @warning **实现必须非阻塞。** 哨兵在持有自己流的锁时调用本函数，而这条加锁边对用户不可见，
      *          他无从把它纳入自己的锁序；实现若改用阻塞的 `lock()`，AB-BA 死锁立即回归。取锁
      *          失败时必须直接返回，不得等待，也不留任何补偿——tie 因此是尽力而为，不是保证。
+     * @warning **实现必须自行吞掉刷新过程中的一切异常，故声明为 `noexcept`。** 本函数的调用点
+     *          位于哨兵构造函数中，而哨兵构造在**发起方**流的 `try` 块内（见
+     *          `ostream_operators.h` 的插入运算符）；异常一旦逸出，就会被那里的 `catch` 交给
+     *          **发起方**的 `handle_exception`，于是本流（tie 目标）的失败被记成发起方的失败：
+     *          发起方会拿到一个描述**别人的** streambuf 的 `cvt_error`，并按异常类型置上自己
+     *          从未发生过的 `cvtfailbit`。`noexcept` 把"失败只记在 tie 目标身上"这条归属规则
+     *          变成编译期约束，而不再依赖每个调用点自觉包一层 `catch (...)`。
      * @endif
      *
      * @lang{EN}
@@ -325,9 +329,19 @@ public:
      *          blocking `lock()` brings the AB-BA deadlock straight back. On failure to acquire
      *          the lock it must return at once, without waiting and without leaving anything
      *          pending -- which is why a tie is best-effort rather than a guarantee.
+     * @warning **An implementation must swallow every exception raised by the flush, hence the
+     *          `noexcept`.** This is called from a sentry constructor, and the sentry is itself
+     *          constructed inside the *initiating* stream's `try` block (see the insertion
+     *          operators in `ostream_operators.h`). An escaping exception would be caught there
+     *          and handed to the *initiator's* `handle_exception`, recording this stream's (the
+     *          tie target's) failure against the initiator: it would receive a `cvt_error`
+     *          describing *someone else's* streambuf and, dispatched on exception type, have a
+     *          `cvtfailbit` set that its own pipeline never earned. The `noexcept` turns
+     *          "a failure is recorded only on the tie target" into a compile-time constraint
+     *          instead of a convention every call site must remember to honor.
      * @endif
      */
-    virtual void try_flush() = 0;
+    virtual void try_flush() noexcept = 0;
 };
 
 /**
@@ -362,6 +376,23 @@ struct out_flusher : public abs_flusher
      * 锁一律以 `std::try_to_lock` 获取，至多尝试三次、其间让出时间片。放弃时不做任何补偿，
      * 该次 tie 刷新就此跳过。调大尝试次数不会更安全：真正的 AB-BA 场景下对方线程正阻塞在本
      * 线程持有的锁上，所有尝试注定失败，只是让每次 I/O 更慢。
+     *
+     * 刷新失败时，异常在**本流**（tie 目标）上经 `handle_exception<true>()` 落地：置对应的失败
+     * 位、把原始异常存进对应的 `m_exp_*_fail` 槽位，然后返回。发起方一位不动——理由见
+     * `abs_flusher::try_flush()` 的第二条 `@warning`。
+     *
+     * @note **这里用的是 `handle_exception<true>()`（忽略异常掩码），不是默认的
+     *       `handle_exception()`，两者的差别不止"抛不抛"。** 掩码版最终会走到
+     *       `clear()` 的重抛分支，而那里是
+     *       `std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr))`——**重抛会顺手把
+     *       刚存进去的原始异常清空**。若在这条路径上用掩码版，重抛出来的异常无处可去（只能被
+     *       调用点吞掉，否则就是上面说的误归属），暂存槽却已经被 `exchange` 清空，结果是
+     *       **恰恰对那些显式把该位放进 `exceptions()` 的使用者，连异常对象都不留**。
+     *       忽略掩码的版本跳过整个重抛块，暂存槽因此得以保留，诊断可事后从 tie 目标取回。
+     * @note 因此 **tie 目标的异常掩码在这条路径上不生效**，这是有意的：唯一在场的调用栈属于
+     *       一个与本流无关的流，异常送不出去。失败通过本流的状态位与 `m_exp_*_fail` 上报。
+     *       这一点与标准库不同——libstdc++ 与 libc++ 都会让 tie 目标的掩码打断**发起方**的操作
+     *       （两者一个在插入侧、一个在提取侧，方向正好相反）。
      * @endif
      *
      * @lang{EN}
@@ -373,9 +404,32 @@ struct out_flusher : public abs_flusher
      * the attempt count does not buy safety: in a genuine AB-BA the other thread is blocked on a
      * lock this thread holds, so every attempt is doomed and a larger budget only makes each I/O
      * slower.
+     *
+     * When the flush fails, the exception lands on *this* stream (the tie target) through
+     * `handle_exception<true>()`: the matching failure bit is set, the original exception is
+     * stored in the matching `m_exp_*_fail` slot, and the function returns. The initiator is left
+     * untouched -- see the second `@warning` on `abs_flusher::try_flush()` for why.
+     *
+     * @note **This uses `handle_exception<true>()` (ignoring the exception mask) rather than the
+     *       default `handle_exception()`, and the difference is more than just whether it
+     *       throws.** The mask-honoring version ends up in `clear()`'s rethrow branch, which
+     *       reads `std::rethrow_exception(std::exchange(m_exp_cvt_fail, nullptr))` -- **the
+     *       rethrow also clears the original exception that was just stored**. On this path the
+     *       rethrown exception has nowhere to go (a call site could only swallow it, else the
+     *       misattribution above), yet the slot has already been emptied by the `exchange`, so
+     *       the net effect would be to leave **no exception object at all precisely for those
+     *       users who explicitly put the bit in `exceptions()`**. The mask-ignoring version skips
+     *       the whole rethrow block, so the slot survives and the diagnostic can be recovered
+     *       from the tie target afterwards.
+     * @note Consequently **the tie target's exception mask does not apply on this path**, by
+     *       design: the only stack available belongs to an unrelated stream, so an exception has
+     *       nowhere to be delivered. The failure is reported through this stream's state bits and
+     *       `m_exp_*_fail`. This differs from the standard library, where the tie target's mask
+     *       aborts the *initiator's* operation -- libstdc++ and libc++ both do this, on opposite
+     *       sides (insertion and extraction respectively).
      * @endif
      */
-    void try_flush() override
+    void try_flush() noexcept override
     {
         constexpr int attempts = 3;
 
@@ -385,7 +439,16 @@ struct out_flusher : public abs_flusher
             std::unique_lock lk(obj.io_mutex(), std::try_to_lock);
             if (lk)
             {
-                obj.flush();
+                try
+                {
+                    obj.flush();
+                }
+                catch (...)
+                {
+                    // Record on the tie target, never on the initiator, and never rethrow.
+                    // <true> keeps the stored exception alive; see the note above.
+                    obj.template handle_exception<true>(std::current_exception());
+                }
                 return;
             }
             if (i + 1 < attempts)
