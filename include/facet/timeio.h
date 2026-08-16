@@ -1110,7 +1110,8 @@ struct time_parse_context
  * 只有日期，`hh_mm_ss` 只有时间，`std::tm` 有日期和时间但**没有时区**，只有
  * `zoned_time` 三者齐全。当格式串里出现该值无法提供的说明符时，它不构成错误，而是被
  * 当作字面量处理——`put` 原样写出 `%` + 修饰符 + 说明符字符，`get` 则要求输入中出现
- * 同样的字面量。两侧对称，因此 `put` 的输出总能被同一格式串的 `get` 读回：
+ * 同样的字面量。退化这一步两侧对称，因此**因退化而写出的字面量**总能被同一格式串的
+ * `get` 读回：
  *
  * | 值类型 | 格式串 | `put` 输出 | `get` 接受的输入 |
  * |---|---|---|---|
@@ -1118,6 +1119,13 @@ struct time_parse_context
  * | `year_month_day` | `%H:%M`    | `%H:%M`      | 字面量 `%H:%M` |
  * | `hh_mm_ss`       | `%Y-%m-%d` | `%Y-%m-%d`   | 字面量 `%Y-%m-%d` |
  * | `std::tm`        | `%Z`、`%z` | `%Z`、`%z`   | 字面量 `%Z`、`%z` |
+ *
+ * @warning 上面那句"读得回来"只管**退化**这条规则，不是说两侧取值域处处相同。已知的例外是
+ *   **年份**：`put` 为与 `std::format` 一致，负年份带 `-`、大于 9999 的年份写四位以上；而
+ *   `%Y` / `%G` / `%C` 的解析侧**只收 0..9999 且不带符号**（与
+ *   `std::chrono::from_stream("%Y")` 和 POSIX `strptime` 一致）。于是年 10000、32767、
+ *   −32767 都是 `put` 成功、同格式串 `get` 得 `strfailbit`（`*tmb` 一字节不改），年 0..9999
+ *   才真的往返。这是有意的取舍，理由见 `do_get` 里 `%Y` 分支上的整段注释。
  *
  * @warning 这一点与 `std::get_time` / `std::put_time` **不同**：libstdc++ 的 `%Z` 会解析出
  *   一个时区名再丢弃，`std::put_time` 则按当前时区输出真实名称。因此
@@ -1156,8 +1164,8 @@ struct time_parse_context
  * but **no time zone**, and only `zoned_time` has all three. A specifier the value cannot
  * supply is not an error; it is treated as a literal -- `put` writes out the `%`, the modifier
  * and the specifier character unchanged, and `get` requires that same literal in the input.
- * The two sides are symmetric, so what `put` writes always reads back through `get` with the
- * same format string:
+ * The degradation itself is symmetric, so a **literal produced by degradation** always reads back
+ * through `get` with the same format string:
  *
  * | Value type | Format | `put` writes | `get` accepts |
  * |---|---|---|---|
@@ -1165,6 +1173,15 @@ struct time_parse_context
  * | `year_month_day` | `%H:%M`    | `%H:%M`      | the literal `%H:%M` |
  * | `hh_mm_ss`       | `%Y-%m-%d` | `%Y-%m-%d`   | the literal `%Y-%m-%d` |
  * | `std::tm`        | `%Z`, `%z` | `%Z`, `%z`   | the literals `%Z`, `%z` |
+ *
+ * @warning That "reads back" covers the **degradation** rule only; it does not claim that the two
+ *   sides accept the same values everywhere. The known exception is the **year**: to stay
+ *   consistent with `std::format`, `put` emits a leading `-` for negative years and more than
+ *   four digits for years past 9999, while the parse side of `%Y` / `%G` / `%C` accepts **only
+ *   0..9999, unsigned** (matching `std::chrono::from_stream("%Y")` and POSIX `strptime`). Years
+ *   10000, 32767 and -32767 therefore `put` successfully and then fail `get` on the same format
+ *   string with `strfailbit`, leaving `*tmb` untouched; only years 0..9999 really round-trip.
+ *   The trade-off is deliberate; see the block comment on the `%Y` case in `do_get`.
  *
  * @warning This **differs** from `std::get_time` / `std::put_time`: libstdc++'s `%Z` parses a
  *   time zone name and then discards it, and `std::put_time` writes the real name for the

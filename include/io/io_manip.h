@@ -30,6 +30,11 @@
  *          裸指针。写成 `os << put_money(x)` 是安全的——临时量活到完整表达式结束；但
  *          `auto m = put_money(compute()); os << m;` 会悬垂，因为 `compute()` 的临时结果
  *          在第一条语句结束时就已销毁。此契约与 `std::put_money` 等同。
+ * @note **本头文件只带来操纵符本身，不带来"往流里写一个数或一个字符串"的能力。** 它不包含
+ *       `io/traits/arithmetic.h` 与 `io/traits/char_and_str.h`，因此只 `#include
+ *       <io/io_manip.h>` 时 `os << 42`、`os << "abc"` 都编译不过，而 `os << setw(8)` 可以。
+ *       这是按值类型选配的一贯做法（见 `io/traits/traits_base.h`）：要写哪类值就包哪个
+ *       traits 头，本文件不替你决定。库内的测试文件全都显式补上这两个头。
  * @endif
  *
  * @lang{EN}
@@ -74,6 +79,13 @@
  *          `auto m = put_money(compute()); os << m;` dangles, because `compute()`'s temporary
  *          result is already destroyed at the end of the first statement. This contract is the
  *          same as `std::put_money`'s.
+ * @note **This header brings in the manipulators, not the ability to write a number or a string
+ *       to a stream.** It does not include `io/traits/arithmetic.h` or
+ *       `io/traits/char_and_str.h`, so with `#include <io/io_manip.h>` alone `os << 42` and
+ *       `os << "abc"` do not compile while `os << setw(8)` does. That is the library's usual
+ *       opt-in-per-value-type arrangement (see `io/traits/traits_base.h`): include the traits
+ *       header for the kind of value you mean to write; this file does not choose for you. Every
+ *       test file in the library adds those two headers explicitly.
  * @endif
  */
 #pragma once
@@ -654,6 +666,42 @@ template <typename TChar, typename TMoney>
               || std::same_as<TMoney, std::basic_string<TChar>>)
 struct io_traits<TChar, put_money_t<TMoney>>
 {
+    /**
+     * @lang{ZH}
+     * @brief 按 locale 的货币格式将 `f.m_mon` 写出。
+     *
+     * @note **缺少 `monetary` facet 不是编译期错误，而是运行期失败。** 这个特化只按 `TMoney`
+     *       约束（整型且非 `bool`，或 `std::basic_string<TChar>`），流的 locale 里有没有
+     *       `monetary<TChar>` 要到这里才知道。取不到就抛 `stream_error`，由 `operator<<` 接住、
+     *       经 `handle_exception` 归为 `strfailbit`：什么都不写出，此后该流上的插入一律被哨兵
+     *       挡下，直到显式 `clear()`。默认构造的 `locale<TChar>` 是带 `monetary` 的，这条主要
+     *       出现在自行拼装 facet 的 locale 上。
+     * @param f 待写出的货币值与 `intl` 标志；取值域见 `put_money`。
+     * @return 指向最后一个写入位置之后的输出迭代器。
+     * @throw stream_error 若 locale 中缺少 `monetary<TChar>` facet，或 `monetary::put` 自身失败
+     *        （填充字符会改变这段文本读起来是几，见 `setfill`；或填充数超过
+     *        `ios_defs::max_pad_count`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes `f.m_mon` in the locale's monetary format.
+     *
+     * @note **A missing `monetary` facet is a run-time failure, not a compile-time one.** This
+     *       specialization is constrained on `TMoney` only (an integral other than `bool`, or a
+     *       `std::basic_string<TChar>`); whether the stream's locale holds a `monetary<TChar>` is
+     *       only known here. If it does not, a `stream_error` is thrown, caught by `operator<<`
+     *       and categorized as `strfailbit` by `handle_exception`: nothing is written, and every
+     *       later insertion on that stream is refused by the sentry until an explicit `clear()`.
+     *       A default-constructed `locale<TChar>` does carry `monetary`, so this mainly concerns
+     *       locales assembled facet by facet.
+     * @param f The monetary value to write and the `intl` flag; for the accepted set see
+     *          `put_money`.
+     * @return An output iterator past the last written position.
+     * @throw stream_error If the locale has no `monetary<TChar>` facet, or `monetary::put` itself
+     *        fails (the fill character would change what number the text says, see `setfill`; or
+     *        the fill count exceeds `ios_defs::max_pad_count`).
+     * @endif
+     */
     template <typename TIter>
         requires (char_sink_for<TIter, TChar>)
     static TIter swrite(TIter s, ios_base<TChar>& io, const locale<TChar>& loc, put_money_t<TMoney> f)
@@ -734,6 +782,35 @@ template <typename TChar, typename TMoney>
                   || std::same_as<TMoney, std::basic_string<TChar>>))
 struct io_traits<TChar, get_money_t<TMoney>>
 {
+    /**
+     * @lang{ZH}
+     * @brief 按 locale 的货币格式解析并写入 `f.m_mon`。
+     *
+     * @note 与 `put_money` 一侧同理，**缺少 `monetary` facet 到这里才发现**：抛 `stream_error`，
+     *       由 `operator>>` 接住并归为 `strfailbit`，`f.m_mon` 不被改写。
+     * @note 解析消耗的是流的 `fill()` 而不是空白，判据与写侧一致；详见 `get_money`。
+     * @param f 接收解析结果的对象与 `intl` 标志；取值域见 `put_money`。
+     * @return 指向最后一个已消耗字符之后的输入迭代器。
+     * @throw stream_error 若 locale 中缺少 `monetary<TChar>` facet，或 `monetary::get` 解析失败
+     *        （格式与 pattern 不符、中途 EOF、或吃掉的填充字符会改变读出来是几，见 `get_money`）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Parses a monetary value in the locale's format into `f.m_mon`.
+     *
+     * @note As on the `put_money` side, **a missing `monetary` facet is only discovered here**: a
+     *       `stream_error` is thrown, caught by `operator>>` and categorized as `strfailbit`, and
+     *       `f.m_mon` is left unmodified.
+     * @note Parsing consumes the stream's `fill()` rather than whitespace, under the same test as
+     *       the writing side; see `get_money`.
+     * @param f The object receiving the result and the `intl` flag; for the accepted set see
+     *          `put_money`.
+     * @return An input iterator past the last consumed character.
+     * @throw stream_error If the locale has no `monetary<TChar>` facet, or `monetary::get` fails
+     *        to parse (input not matching the pattern, EOF part-way through, or a consumed fill
+     *        character that would change the number read out; see `get_money`).
+     * @endif
+     */
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
     static TIter sread(TIter s, TSent s_end, ios_base<TChar>& io, const locale<TChar>& loc,
@@ -784,6 +861,12 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *       与日期不符的值，标准库按该值输出，本库按真实日期输出，双方都不报错。
  * @note 提取侧的契约**更宽松**：`get_time` 接受 `std::tm t{}`（`tm_mday == 0` 会被归一化成上月
  *       最后一天），`put_time` 不接受。两者刻意不对称，详见 `get_time`。
+ * @warning **年份是唯一反过来的一处：这里比 `get_time` 宽。** `%Y` 按 `std::format` 的规矩写：
+ *          负年份带 `-`，大于 9999 的年份写四位以上；而 `get_time` 的 `%Y` / `%G` / `%C`
+ *          只收 0..9999 且不带符号（与 `std::chrono::from_stream("%Y")`、POSIX `strptime`
+ *          一致）。于是 `put_time` 写出的年 10000 或 −44 用同一个格式串读不回来：`get_time`
+ *          置 `strfailbit` 且 `*tmb` 完全不变。**只有年 0..9999 才保证往返。** 这是有意的
+ *          取舍，见 `timeio`。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
@@ -837,6 +920,14 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  * @note The extraction side is **more permissive**: `get_time` accepts a `std::tm t{}` (a
  *       `tm_mday` of 0 is normalized to the last day of the previous month) whereas `put_time`
  *       does not. The asymmetry is deliberate; see `get_time`.
+ * @warning **The year is the one place where it runs the other way: this side is the permissive
+ *          one.** `%Y` follows `std::format` here -- a leading `-` for a negative year, more than
+ *          four digits past 9999 -- while `get_time`'s `%Y` / `%G` / `%C` accept only 0..9999,
+ *          unsigned (matching `std::chrono::from_stream("%Y")` and POSIX `strptime`). A year of
+ *          10000 or -44 written by `put_time` therefore does not read back through the same
+ *          format string: `get_time` sets `strfailbit` and leaves `*tmb` completely unchanged.
+ *          **Only years 0..9999 are guaranteed to round-trip.** The trade-off is deliberate; see
+ *          `timeio`.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif
@@ -947,6 +1038,12 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  * @note 插入侧不对称：`put_time` 要求 `*tmb` 的所有字段都在范围内、且日期组合真实存在，
  *       `std::tm t{}` 在那边会被拒绝并置 `strfailbit`。本函数接受它（见上一条）。详见
  *       `put_time`。
+ * @warning **年份上不对称的方向是反的：这里比 `put_time` 严。** `%Y`（以及 `%G`、`%C`）
+ *          **只接受 0..9999 且不带符号**，与 `std::chrono::from_stream("%Y")`、POSIX
+ *          `strptime` 一致；而 `put_time` 会按 `std::format` 的规矩写出负年份和五位以上的
+ *          年份。所以 `put_time` 写出的年 10000 或 −44，本函数读不回来：整次提取失败、置
+ *          `strfailbit`，`*tmb` 一字节不改。**只有年 0..9999 才保证往返。** 这是本文档中
+ *          "提取侧更宽松"的唯一例外，理由见 `timeio`。
  * @warning **`%Z` 与 `%z` 不受支持。** `std::tm` 没有可移植的时区字段，本函数使用的解析
  *          上下文（`time_parse_context<TChar, true, true, false>`，见 `io/traits/tm.h`）
  *          因此未激活时区字段组。按 `timeio` 的既定规则，上下文接不住的说明符不算错误，
@@ -1007,6 +1104,15 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  * @note The insertion side is not symmetric: `put_time` requires every field of `*tmb` to be in
  *       range and the date fields to form a day that exists, and rejects a `std::tm t{}` with
  *       `strfailbit`. This function accepts it (see the previous note). See `put_time`.
+ * @warning **On the year the asymmetry points the other way: this side is the strict one.** `%Y`
+ *          (and `%G`, `%C`) accept **only 0..9999, unsigned**, matching
+ *          `std::chrono::from_stream("%Y")` and POSIX `strptime`, while `put_time` follows
+ *          `std::format` and writes negative years and years of five or more digits. A year of
+ *          10000 or -44 written by `put_time` therefore cannot be read back here: the whole
+ *          extraction fails with `strfailbit` and `*tmb` is left completely unchanged. **Only
+ *          years 0..9999 are guaranteed to round-trip.** This is the one exception to the "the
+ *          extraction side is more permissive" rule stated throughout this documentation; see
+ *          `timeio` for why.
  * @warning **`%Z` and `%z` are not supported.** `std::tm` has no portable time-zone field, so
  *          the parse context this function uses (`time_parse_context<TChar, true, true, false>`,
  *          see `io/traits/tm.h`) does not activate the time-zone field group. By `timeio`'s

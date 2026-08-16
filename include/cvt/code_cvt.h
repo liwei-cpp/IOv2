@@ -75,6 +75,22 @@ struct codecvt_kernel;
  *       此外，由于构造阶段调用了 `mbtowc`（其内部维护静态状态），并发构造多个实例同样不是
  *       线程安全的。构造完成后，单实例的读写操作使用显式的 `mbstate_t`（`m_state`），
  *       在单线程场景下是安全的。
+ *
+ * @warning **何为"可编码的码点"完全由 C 库的编码集决定，本内核不做任何校验。** `out_helper`
+ *          唯一的动作就是一次 `wcrtomb`，`TInt` 为 `char32_t` 时也不例外——它**不**检查
+ *          Unicode 标量值的两条规矩（拒绝代理区 [0xD800, 0xDFFF]、上限 0x10FFFF）。
+ *          具体到 glibc 的 UTF-8：其转换器按旧的 RFC 2279 实现（最长 6 字节、上限
+ *          0x7FFFFFFF），于是孤立代理确实被拒（`wcrtomb` 返回 -1），但
+ *          **0x110000 到 0x7FFFFFFF 的码点一律"成功"**，静默写出按现行 UTF-8（RFC 3629）
+ *          非法的字节序列：`0x110000` → `f4 90 80 80`、`0x200000` → 5 字节
+ *          `f8 88 80 80 80`、`0x7FFFFFFF` → 6 字节 `fd bf bf bf bf bf`；要到
+ *          `0xFFFFFFFF` 才失败。即码点合法性的上界**不是** 0x10FFFF。
+ *          这不是缺陷，而是"跟随 locale 编码集"的直接后果，且两侧一致——反向的 `mbrtowc`
+ *          同样读得回这些序列，往返不丢信息。若需要严格的 USV 判据，请改用
+ *          `codecvt_kernel<char8_t, TInt>`（即 `code_cvt_creator<char8_t, char32_t>`），
+ *          它自己实现 UTF-8 并显式拒绝代理与超范围码点。
+ *          缓冲区安全不受影响：`out_helper` 先保证有 `epc() == MB_CUR_MAX` 字节可写，
+ *          glibc 的 UTF-8 下 `MB_CUR_MAX` 为 6，正好覆盖它可能写出的最长序列。
  * @endif
  *
  * @lang{EN}
@@ -89,6 +105,26 @@ struct codecvt_kernel;
  *       concurrent construction of multiple instances is not thread-safe due to the
  *       use of mbtowc's internal static state. Once constructed, single-instance
  *       operations use explicit mbstate_t (m_state) and are safe for single-threaded use.
+ *
+ * @warning **What counts as an encodable code point is entirely the C library's charset
+ *          to decide; this kernel validates nothing.** All `out_helper` does is one
+ *          `wcrtomb` call, `TInt == char32_t` included -- it does **not** enforce either
+ *          Unicode Scalar Value rule (no surrogates in [0xD800, 0xDFFF], nothing above
+ *          0x10FFFF). With glibc's UTF-8 specifically, the converter implements the older
+ *          RFC 2279 (up to 6 bytes, up to 0x7FFFFFFF): lone surrogates are indeed rejected
+ *          (`wcrtomb` returns -1), but **every code point from 0x110000 through 0x7FFFFFFF
+ *          "succeeds"**, silently emitting a byte sequence that is invalid under current
+ *          UTF-8 (RFC 3629): `0x110000` gives `f4 90 80 80`, `0x200000` gives the 5-byte
+ *          `f8 88 80 80 80`, `0x7FFFFFFF` the 6-byte `fd bf bf bf bf bf`; only `0xFFFFFFFF`
+ *          fails. The upper bound on code point validity is therefore **not** 0x10FFFF.
+ *          This is not a defect but the direct consequence of deferring to the locale's
+ *          charset, and the two directions agree -- `mbrtowc` reads those same sequences
+ *          back, so nothing is lost on a round trip. For strict USV semantics use
+ *          `codecvt_kernel<char8_t, TInt>` (i.e. `code_cvt_creator<char8_t, char32_t>`),
+ *          which implements UTF-8 itself and rejects surrogates and out-of-range values
+ *          explicitly. Buffer safety is unaffected: `out_helper` first ensures
+ *          `epc() == MB_CUR_MAX` bytes are writable, and glibc's UTF-8 reports a
+ *          `MB_CUR_MAX` of 6, exactly covering the longest sequence it can emit.
  * @endif
  */
 template <typename TInt>
@@ -231,6 +267,9 @@ struct codecvt_kernel<char, TInt>
      *
      * @return 若成功编码并写入，返回 `true`；若缓冲区空间不足或字符无法编码，返回 `false`。
      *
+     * @note "字符无法编码"的判据**只有 `wcrtomb` 返回 -1 这一条**，本函数不另加码点校验；
+     *       `TInt` 为 `char32_t` 时，超出 Unicode 范围的码点未必会被拒。详见类文档的
+     *       `@warning`。
      * @note 前置条件：`to` 和 `to_end` 必须指向同一个数组，否则行为未定义。
      *       `std::greater` 可在任意指针间建立全序，但后续的指针减法要求两者同源（[expr.add]/5）。
      * @endif
@@ -247,6 +286,10 @@ struct codecvt_kernel<char, TInt>
      * @return `true` if the character was successfully encoded and written;
      *         `false` if the buffer is too small or the character cannot be encoded.
      *
+     * @note "Cannot be encoded" means **exactly one thing: `wcrtomb` returned -1**. No
+     *       further code point validation happens here, so with `TInt == char32_t` a value
+     *       outside the Unicode range is not necessarily rejected. See the `@warning` on
+     *       the class.
      * @note Precondition: `to` and `to_end` must point into the same array;
      *       behavior is undefined otherwise. `std::greater` enforces a total order
      *       across pointers regardless of provenance, but the pointer subtraction
@@ -383,6 +426,10 @@ private:
  *
  * @note 线程安全性：本类**不是**线程安全的。多线程并发访问同一实例须通过外部同步机制保护。
  *       不同于 `codecvt_kernel<char, TInt>`，多实例的并发构造是安全的（无共享静态状态）。
+ * @note 码点合法性由本内核**自己**判定，且按现行 UTF-8（RFC 3629）从严：代理区
+ *       [0xD800, 0xDFFF] 与 0x10FFFF 以上一律拒绝，两个方向都是。这一点与
+ *       `codecvt_kernel<char, TInt>` 不同——那一侧把判定权交给 locale 的编码集，glibc 会
+ *       放行 0x10FFFF 以上的码点。要严格的 USV 语义就用本内核。
  * @endif
  *
  * @lang{EN}
@@ -394,6 +441,11 @@ private:
  *       instance from multiple threads requires external synchronization.
  *       Unlike `codecvt_kernel<char, TInt>`, concurrent construction of multiple
  *       instances is safe (no shared static state).
+ * @note Code point validity is decided **here**, strictly per current UTF-8 (RFC 3629):
+ *       surrogates in [0xD800, 0xDFFF] and anything above 0x10FFFF are rejected, in both
+ *       directions. This differs from `codecvt_kernel<char, TInt>`, which leaves the
+ *       decision to the locale's charset and where glibc lets code points above 0x10FFFF
+ *       through. Use this kernel when strict USV semantics are wanted.
  * @endif
  */
 template <typename TInt>
@@ -881,14 +933,14 @@ private:
         {
             external_type* out_beg = writer.put_buf(buf_len);
             external_type* out_next = out_beg;
+            put_buf_guard guard{writer, buf_len};
 
             internal_type ch = *to++;
 
             if (!m_cvt_kernel.out_helper(ch, out_next, out_beg + buf_len))
                 throw cvt_error("code_cvt::put fail: input character cannot be encoded");
 
-            if (out_next < out_beg + buf_len)
-                writer.rollback(out_beg + buf_len - out_next);
+            guard.used(static_cast<std::size_t>(out_next - out_beg));
         }
         // commit() is the responsibility of abs_cvt::put; m_accu_len is
         // updated only on success so that a thrown encoding error leaves
@@ -1193,12 +1245,23 @@ class code_cvt_creator;
  * 基于区域设置（locale）的 `code_cvt` 工厂类（char <-> wchar_t/char32_t）。
  * 持有一个区域设置名称，并通过 `create()` 方法为给定底层内核生成 `code_cvt` 实例。
  * 满足 `cvt_creator` 概念。
+ *
+ * @warning 由本工厂建出的转换器**不做 Unicode 标量值校验**，能不能编码全看 locale 的编码集；
+ *          glibc 的 UTF-8 会静默接受 0x10FFFF 以上的码点。判据与后果见
+ *          `codecvt_kernel<char, TInt>` 的 `@warning`；需要严格判据请改用
+ *          `code_cvt_creator<char8_t, TInt>`。
  * @endif
  *
  * @lang{EN}
  * Factory class for locale-based `code_cvt` instances (char <-> wchar_t/char32_t).
  * Holds a locale name and creates `code_cvt` instances for a given underlying
  * kernel via the `create()` method. Satisfies the `cvt_creator` concept.
+ *
+ * @warning Converters built by this factory perform **no Unicode Scalar Value
+ *          validation**; what can be encoded is up to the locale's charset, and glibc's
+ *          UTF-8 silently accepts code points above 0x10FFFF. See the `@warning` on
+ *          `codecvt_kernel<char, TInt>` for the rule and its consequences; for strict
+ *          semantics use `code_cvt_creator<char8_t, TInt>` instead.
  * @endif
  */
 template <typename TInt>

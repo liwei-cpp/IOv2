@@ -1517,6 +1517,56 @@ void test_code_cvt_mem_char_put_err_1()
     dump_info("Done\n");
 }
 
+// A failed encode must leave the device byte-for-byte as it was. put_buf reserves
+// epc() bytes straight inside mem_device (the cvt_writer specialization for
+// mem_device has no staging buffer and commit() is a no-op), so without the
+// put_buf_guard in put_main those reserved-but-never-written bytes stay in the
+// device as filler.
+void test_code_cvt_mem_char_put_err_2()
+{
+    using namespace IOv2;
+    dump_info("Test code_cvt<memory<char>, char32_t>::put encoding error case 2...");
+
+    auto try_put = [](auto& obj, char32_t ch) {
+        try {
+            obj.put(&ch, 1);
+            throw std::runtime_error("test_code_cvt_mem_char_put_err_2: expected throw");
+        } catch (const cvt_error&) {}
+    };
+
+    auto check_empty = [&](auto& obj, char32_t bad) {
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        try_put(obj, bad);
+        VERIFY(obj.device().str().empty());
+    };
+
+    using RbType = code_cvt<rb_root_cvt<mem_device<char>>, char32_t>;
+    using NoRbType = code_cvt<no_rb_root_cvt<mem_device<char>>, char32_t>;
+
+    // "C" locale: epc() == 1, a non-ASCII code point is rejected by wcrtomb.
+    { RbType o{rb_root_cvt{mem_device("")}, "C"}; check_empty(o, U'李'); }
+    { NoRbType o{no_rb_root_cvt{mem_device("")}, "C"}; check_empty(o, U'李'); }
+
+    // "zh_CN.UTF-8": epc() == MB_CUR_MAX, and a lone surrogate is rejected by
+    // wcrtomb, so the reserved slot is the widest one this kernel ever takes.
+    { RbType o{rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}; check_empty(o, static_cast<char32_t>(0xD800U)); }
+    { NoRbType o{no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"}; check_empty(o, static_cast<char32_t>(0xD800U)); }
+
+    // With valid output in front, the device must end exactly at the last valid byte.
+    {
+        NoRbType obj{no_rb_root_cvt{mem_device("")}, "zh_CN.UTF-8"};
+        VERIFY(obj.bos() == io_status::output);
+        obj.main_cont_beg();
+        const char32_t ok[] = { U'a', U'b' };
+        obj.put(ok, 2);
+        try_put(obj, static_cast<char32_t>(0xD800U));
+        VERIFY(obj.device().str() == "ab");
+    }
+
+    dump_info("Done\n");
+}
+
 // Covers lines 339-340, 341, 343-344, 346-347, 350, 354-356 in in_helper:
 // null character ('\0') decoded via the special mbrtowc conv==0 path.
 void test_code_cvt_mem_char_get_null_1()

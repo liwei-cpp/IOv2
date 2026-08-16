@@ -7,6 +7,7 @@ void test_root_cvt_mem_output_2();
 void test_root_cvt_mem_output_3();
 void test_root_cvt_file_reader_errors_1();
 void test_root_cvt_file_writer_errors_1();
+void test_put_buf_guard_1();
 void test_abs_cvt_base_reader_errors_1();
 void test_abs_cvt_base_writer_errors_1();
 void test_abs_cvt_optional_methods_1();
@@ -25,6 +26,7 @@ void test_cvt_io()
     test_root_cvt_mem_output_3();
     test_root_cvt_file_reader_errors_1();
     test_root_cvt_file_writer_errors_1();
+    test_put_buf_guard_1();
     test_abs_cvt_base_reader_errors_1();
     test_abs_cvt_base_writer_errors_1();
     test_abs_cvt_optional_methods_1();

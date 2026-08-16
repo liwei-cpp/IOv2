@@ -651,11 +651,13 @@ private:
             {
                 std::size_t dest_size = std::min<std::size_t>(block_size, aim_output - to_i);
                 auto ptr = writer.put_buf(dest_size);
+                put_buf_guard guard{writer, dest_size};
                 // No local try/catch here: abs_cvt::put already wraps put_main in
                 // a catch-all that sets the taint flag on any exception. If cipher
                 // ever throws, that outer guard correctly marks the cvt unusable.
                 // See the get_main doxygen for the full design rationale.
                 m_cipher->cipher(to + to_i, reinterpret_cast<uint8_t*>(ptr), dest_size); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+                guard.used(dest_size);
                 to_i += dest_size;
             }
             to += aim_output;
