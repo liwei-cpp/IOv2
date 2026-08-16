@@ -249,29 +249,54 @@ struct io_traits<TChar, setiosflags_t>
  */
 struct setbase_t
 {
-    explicit setbase_t(int base) : m_base(base) {}
+    explicit setbase_t(std::ptrdiff_t base) : m_base(base) {}
 
-    int m_base;
+    std::ptrdiff_t m_base;
 };
 
 /**
  * @lang{ZH}
  * @brief 构造设置整数进制的操纵符。
- * @param base 目标进制：8、10、16 分别对应 `oct` / `dec` / `hex`。
- * @note 其它取值会把 `basefield` 整个清零，这不是错误：输出时按十进制处理，输入时按内容
- *       自动判定进制（`0x` 前缀为十六进制、前导 `0` 为八进制，否则十进制）。行为与
- *       `std::setbase` 一致。
+ *
+ * 参数取 `std::ptrdiff_t` 而非 `int`（`std::setbase` 用的是后者），理由与 `setw` /
+ * `setprecision` 相同：本函数把实参逐一与 8、10、16 比较，形参一旦窄于实参，越界值就会
+ * 先被静默截断、再撞上其中某个常量，于是**看起来**设置成功。例如形参为 `int` 时
+ * `setbase(8LL + (1LL << 32))` 会被截成 8，把进制设成八进制；形参为 `std::ptrdiff_t` 时
+ * 这个值原样保留，落进下面说的"其它取值"一档。
+ * @note 8、10、16 以外的取值会把 `basefield` 整个清零，这不是错误，也不会置失败位：输出时
+ *       按十进制处理，输入时按内容自动判定进制（`0x` 前缀为十六进制、前导 `0` 为八进制，
+ *       否则十进制）。这一点与 `std::setbase` 一致——标准对 `std::setbase` 的规定逐字就是
+ *       下面 `io_traits<TChar, setbase_t>::apply` 里那个条件表达式。`basefield == 0` 并非
+ *       非法状态，`resetiosflags(ios_defs::basefield)` 同样能到达。故这里与
+ *       `setw` / `setprecision` 不同，**没有**范围检查、也没有 `stream_error`：那两个操纵符
+ *       抛异常是因为目标存储放不下实参，而进制没有这种存不下的情形。
+ * @param base 目标进制：8、10、16 分别对应 `oct` / `dec` / `hex`；其它取值见上。
+ * @return 可用于 `os << setbase(base)` / `is >> setbase(base)` 的操纵符。
  * @endif
  *
  * @lang{EN}
  * @brief Builds the manipulator that selects the integer base.
- * @param base The target base: 8, 10 and 16 map to `oct` / `dec` / `hex`.
- * @note Any other value clears `basefield` entirely, which is not an error: output is then
- *       decimal, and input determines the base from its content (a `0x` prefix means
- *       hexadecimal, a leading `0` octal, otherwise decimal). This matches `std::setbase`.
+ *
+ * The parameter is a `std::ptrdiff_t` rather than the `int` `std::setbase` takes, for the same
+ * reason as `setw` / `setprecision`: the argument is compared against 8, 10 and 16, so a
+ * parameter narrower than the argument lets an out-of-range value be silently truncated onto
+ * one of those constants and thereby **appear** to succeed. With an `int` parameter,
+ * `setbase(8LL + (1LL << 32))` truncates to 8 and selects octal; with `std::ptrdiff_t` the
+ * value survives intact and lands in the "any other value" case below.
+ * @note A value other than 8, 10 or 16 clears `basefield` entirely. That is not an error and
+ *       sets no failure bit: output is then decimal, and input determines the base from its
+ *       content (a `0x` prefix means hexadecimal, a leading `0` octal, otherwise decimal). This
+ *       matches `std::setbase` — the standard specifies it as literally the conditional
+ *       expression in `io_traits<TChar, setbase_t>::apply` below. `basefield == 0` is not an
+ *       illegal state either; `resetiosflags(ios_defs::basefield)` reaches it too. Hence,
+ *       unlike `setw` / `setprecision`, there is **no** range check and no `stream_error` here:
+ *       those two throw because the argument does not fit the target storage, and a base has no
+ *       such does-not-fit case.
+ * @param base The target base: 8, 10 and 16 map to `oct` / `dec` / `hex`; see above for the rest.
+ * @return A manipulator usable as `os << setbase(base)` / `is >> setbase(base)`.
  * @endif
  */
-inline setbase_t setbase(int base) { return setbase_t{base}; }
+inline setbase_t setbase(std::ptrdiff_t base) { return setbase_t{base}; }
 
 /**
  * @lang{ZH}
