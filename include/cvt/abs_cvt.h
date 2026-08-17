@@ -686,6 +686,11 @@ namespace IOv2
      *   **必须声明为 `noexcept`**（由 `abs_cvt` 内的 `static_assert` 强制）。
      *   捕获到的异常须以 `std::exception_ptr` 形式返回；调用方按 first-failure-wins
      *   与 kernel 层异常合并后统一透传。无异常时返回 `nullptr`。
+     *   **本钩子还会在 `bos()` 与 `main_cont_beg()` 的失败路径上被调用**，且在
+     *   `m_io_status` 被复位为 `neutral` **之前**——`bos_impl()` 里按方向分配的资源，
+     *   释放时同样要知道方向，复位之后就分不出来了。那两处的返回值被丢弃（调用点正在传播
+     *   一个更靠近病因的异常）。因此本钩子**必须幂等**：正常生命周期里它本来就会被调两次
+     *   （`detach()` 一次、析构再一次），启动失败时再多一次。
      *
      * - **`attach_impl()`**
      *   由 `abs_cvt::attach` 在新设备安装并重置状态字段之后调用，执行派生层的
@@ -696,13 +701,17 @@ namespace IOv2
      * - **`bos_impl()`**
      *   由 `abs_cvt::bos` 在 kernel `bos()` 返回后调用。此时 `m_io_status` 已被更新为
      *   kernel 确定的初始方向，派生类可直接读取。可用于依赖初始 IO 方向的派生层初始化
-     *   （如按输入/输出方向选择不同的处理路径）。允许抛出异常；调用方会将 `m_io_status`
-     *   重置为 `neutral` 并设置污染标志后透传。
+     *   （如按输入/输出方向选择不同的处理路径）。允许抛出异常；调用方会**先调用
+     *   `detach_impl()`**、再将 `m_io_status` 重置为 `neutral` 并设置污染标志后透传。
+     *   因此在这里按方向分配的资源不必自己保证异常安全到底——只要 `detach_impl()`
+     *   释放得了它。
      *
      * - **`main_cont_beg_impl()`**
      *   由 `abs_cvt::main_cont_beg` 在 kernel `main_cont_beg()` 返回后调用，执行派生层
      *   从 BOS 阶段切换到主内容阶段时所需的初始化（如重置编码状态机、清零计数器）。
-     *   允许抛出异常；调用方会将 `m_io_status` 重置为 `neutral` 并设置污染标志后透传。
+     *   允许抛出异常；调用方会**先调用 `detach_impl()`**、再将 `m_io_status` 重置为
+     *   `neutral` 并设置污染标志后透传。**注意这一步失败时 `bos_impl()` 分配的资源仍然活着**
+     *   ——那正是它必须在复位之前被释放的原因。
      *
      * - **`adjust_impl(const cvt_behavior&)`**
      *   由 `abs_cvt::adjust` 在调用 `m_kernel.adjust()` 之前调用，执行派生层特有的
@@ -764,6 +773,13 @@ namespace IOv2
      *   `std::exception_ptr`; the caller merges it with the kernel-layer exception
      *   under first-failure-wins and forwards the combined result. Return `nullptr`
      *   if none.
+     *   **This hook is also called on the failure paths of `bos()` and `main_cont_beg()`**,
+     *   and there it runs **before** `m_io_status` is reset to `neutral`: a resource
+     *   `bos_impl()` allocated per direction needs that direction to be released, and after the
+     *   reset it can no longer be told. The return value is discarded at those two sites (the
+     *   caller is already propagating an exception closer to the cause). The hook must therefore
+     *   be **idempotent** -- normal life already calls it twice (once from `detach()`, once from
+     *   the destructor), and a failed start-up adds one more.
      *
      * - **`attach_impl()`**
      *   Called by `abs_cvt::attach` after the new device has been installed and
@@ -778,15 +794,19 @@ namespace IOv2
      *   of invocation `m_io_status` has already been updated to the initial direction
      *   determined by the kernel, so the hook can read it directly. Use it for
      *   derived-layer initialization that depends on the initial IO direction (e.g.,
-     *   selecting a decoder vs. encoder path). May throw; the caller resets
-     *   `m_io_status` to `neutral` and sets the taint flag before rethrowing.
+     *   selecting a decoder vs. encoder path). May throw; the caller **calls
+     *   `detach_impl()` first**, then resets `m_io_status` to `neutral` and sets the taint flag
+     *   before rethrowing. A resource allocated here per direction therefore does not have to be
+     *   exception-safe on its own, as long as `detach_impl()` can release it.
      *
      * - **`main_cont_beg_impl()`**
      *   Called by `abs_cvt::main_cont_beg` after the kernel's `main_cont_beg()`
      *   returns, to perform derived-layer initialization needed when transitioning
      *   from the BOS phase into the main-content phase (e.g., resetting a codec
-     *   state machine, clearing counters). May throw; the caller resets `m_io_status`
-     *   to `neutral` and sets the taint flag before rethrowing.
+     *   state machine, clearing counters). May throw; the caller **calls `detach_impl()`
+     *   first**, then resets `m_io_status` to `neutral` and sets the taint flag before
+     *   rethrowing. **Note that whatever `bos_impl()` allocated is still alive when this step
+     *   fails** -- which is exactly why it has to be released before the reset.
      *
      * - **`adjust_impl(const cvt_behavior&)`**
      *   Called by `abs_cvt::adjust` before `m_kernel.adjust()`, to perform any
@@ -1289,6 +1309,7 @@ namespace IOv2
             }
             catch (...)
             {
+                release_derived_state();
                 m_io_status = io_status::neutral;
                 m_is_tainted = true;
                 throw;
@@ -1324,6 +1345,7 @@ namespace IOv2
             }
             catch (...)
             {
+                release_derived_state();
                 m_io_status = io_status::neutral;
                 m_is_tainted = true;
                 throw;
@@ -1933,6 +1955,55 @@ namespace IOv2
         }
 
     private:
+        /**
+         * @lang{ZH}
+         * 在 `m_io_status` 被复位为 `neutral` **之前**，让派生层释放依赖方向的资源。
+         * 仅由 `bos()` 与 `main_cont_beg()` 的失败路径调用。
+         *
+         * `bos_impl()` 可以按 `m_io_status` 分配只属于某一方向的资源（`zlib_cvt` 就按方向
+         * 二选一调 `deflateInit` / `inflateInit`），而释放它同样要知道方向。启动失败时若先把
+         * `m_io_status` 抹成 `neutral`，那份信息就没了，派生层的清理再也分不出该走哪条路，
+         * 资源于是永不释放。本函数把「先释放、后复位」这个顺序固定在基类里，派生层不必各自记住。
+         *
+         * 复用已有的 `detach_impl()` 钩子而不另设一个：它已被文档规定为派生层清理、已被
+         * `static_assert` 强制 `noexcept`、且本来就要求幂等（正常生命周期里 `detach()` 与析构
+         * 会各调一次）。新设钩子等于要求每个未来的转换器都记得实现它。
+         *
+         * @note 它返回的 `exception_ptr` **被丢弃**：调用点正在传播一个更靠近病因的异常。
+         * @endif
+         *
+         * @lang{EN}
+         * Lets the derived layer release direction-dependent resources **before** `m_io_status`
+         * is reset to `neutral`. Called only from the failure paths of `bos()` and
+         * `main_cont_beg()`.
+         *
+         * `bos_impl()` may allocate resources belonging to one direction only -- `zlib_cvt` picks
+         * between `deflateInit` and `inflateInit` by `m_io_status` -- and releasing them needs
+         * that same direction. If start-up fails and `m_io_status` is wiped to `neutral` first,
+         * that information is gone, the derived layer's cleanup can no longer tell which path to
+         * take, and the resource is never released. This function fixes the "release, then reset"
+         * order in the base class so each derived layer does not have to remember it.
+         *
+         * It reuses the existing `detach_impl()` hook rather than adding another: that hook is
+         * already documented as the derived layer's cleanup, already forced `noexcept` by a
+         * `static_assert`, and already has to be idempotent (normal life calls it once from
+         * `detach()` and once from the destructor). A new hook would instead oblige every future
+         * converter to remember to implement it.
+         *
+         * @note The `exception_ptr` it returns is **discarded**: the caller is already propagating
+         *       an exception closer to the cause.
+         * @endif
+         */
+        void release_derived_state() noexcept
+        {
+            if constexpr (requires(CurrentType& t) { t.detach_impl(); })
+            {
+                static_assert(noexcept(std::declval<CurrentType&>().detach_impl()),
+                              "detach_impl() must be noexcept");
+                (void)static_cast<CurrentType*>(this)->detach_impl();
+            }
+        }
+
         /** @lang{ZH}
          *  临时 IO 缓冲区，供 `cvt_reader` 和 `cvt_writer` 在每次 `get`/`put` 调用时共用。
          *  缓冲区大小在首次使用时由 `reset()` 按需设置。
