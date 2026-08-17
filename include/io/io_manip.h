@@ -19,7 +19,13 @@
  *          `<< value` 走迭代器形式，在自己的临界区里读取 `width` 并在用完后清零。两者之间
  *          没有任何互斥，另一个线程的 `setw` 可以落在中间，双方互相吃掉对方的宽度。这与
  *          标准库的行为一致，但本库在其余地方对"单次操作原子"的保证更强，容易让人误以为
- *          这里也是。需要整体原子时，用 `IOv2::sync` 把它们圈进同一个临界区。
+ *          这里也是。需要整体原子时，**访问同一条流的每个线程**都要用 `IOv2::sync` 把自己的
+ *          操纵符与随后的 I/O 圈进临界区——**只有一侧加 `sync` 是不够的**。这与本库其余操作
+ *          不同：插入、提取、`flush` / `endl` / `ws`、`seek`、`locale(loc)` 等都会去取
+ *          `io_mutex()`，所以单侧 `sync` 就足以把它们挡在外面；而这几个操纵符的流形式（连同
+ *          `io_base.h` 里 `hex` / `left` / `boolalpha` 那类函数指针操纵符）不取这把锁，
+ *          因此也不受别人的 `sync` 约束，会径直插进对方的临界区中间。注意这不是数据竞争
+ *          （改的都是原子成员），TSan 不会报，只能靠约定。
  * @warning **往流形式的 `swrite` / `sread` 里放读-改-写逻辑，必须自己取 `io_mutex()`。**
  *          本文件这几个操纵符不取锁，只因为它们各自都是对 `ios_base` 上某个原子成员的单次
  *          读-改-写（`exchange` / `fetch_or` / CAS 循环之一）。像"先读 `flags()`
@@ -64,7 +70,16 @@
  *          another thread's `setw` can land in between and the two steal each other's width.
  *          This matches the standard library, but this library's stronger "a single operation
  *          is atomic" guarantee elsewhere makes it easy to assume otherwise. To make a group
- *          atomic, wrap it in one critical section with `IOv2::sync`.
+ *          atomic, **every thread touching that stream** has to wrap its own manipulators and
+ *          the I/O that follows them in an `IOv2::sync` critical section -- **wrapping one side
+ *          only is not enough**. This differs from everything else in the library: insertion,
+ *          extraction, `flush` / `endl` / `ws`, `seek`, `locale(loc)` and so on all take
+ *          `io_mutex()`, so a one-sided `sync` does keep them out; the stream form of these
+ *          manipulators (along with the function-pointer manipulators `hex` / `left` /
+ *          `boolalpha` in `io_base.h`) does not take that lock, is therefore not held back by
+ *          anyone else's `sync`, and lands right in the middle of their critical section. Note
+ *          that this is not a data race -- every member involved is atomic -- so TSan will not
+ *          report it; the convention is the only thing enforcing it.
  * @warning **Read-modify-write logic in a stream-form `swrite` / `sread` must take
  *          `io_mutex()` itself.** The manipulators in this file get away without a lock only
  *          because each is a single read-modify-write on one atomic member of `ios_base`
@@ -857,6 +872,11 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  * @param fmt `strftime` 风格的格式串，但不支持 `%Z` / `%z`（见下）；允许为空，见下。
  * @note 两个指针都会在写出前校验，为空时置流的失败位而非解引用；详见
  *       `io_traits<TChar, put_time_t<TChar>>::swrite`。
+ * @note **@p fmt 非空时必须以 `TChar('\0')` 结尾**，即一个 NTBS。长度不由调用方传入，
+ *       而是写出时由 `char_traits<TChar>::length` 现算的（`fmt` 在那里隐式转换成
+ *       `std::basic_string_view<TChar>`），未终止的数组因此会被**读越界**——这是本函数
+ *       无法检出的调用方错误，与 `std::put_time` / `strftime` 的契约相同。
+ *       只有空指针这一种情形被挡下并置失败位，"非空但未终止"不在其列。
  * @note `put_time` 既不应用也不消耗 `io.width()`：填充与随后的 `width(0)` 由各自的 facet
  *       负责，而 `timeio` 的写出路径完全不涉及 width。因此 `os << setw(20) << put_time(...)`
  *       不会补齐到 20 列，且这个 width 会原样留给下一次插入。这与 `std::put_time` 的行为
@@ -904,6 +924,13 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  * @note Both pointers are validated before the write, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see
  *       `io_traits<TChar, put_time_t<TChar>>::swrite`.
+ * @note **A non-null @p fmt must be terminated by `TChar('\0')`**, i.e. it must be an NTBS. The
+ *       length is not passed in; it is computed at write time by `char_traits<TChar>::length`
+ *       (that is where `fmt` implicitly converts to `std::basic_string_view<TChar>`), so an
+ *       unterminated array is **read out of bounds**. That is a caller error this function
+ *       cannot detect, and the contract is the same as `std::put_time`'s and `strftime`'s.
+ *       Only the null case is caught and turned into a failure bit; "non-null but
+ *       unterminated" is not.
  * @note `put_time` neither applies nor consumes `io.width()`. Padding and the subsequent
  *       `width(0)` are the responsibility of the individual facets, and the `timeio` write path
  *       never looks at the width. So `os << setw(20) << put_time(...)` does not pad to 20
@@ -1032,6 +1059,11 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  * @param fmt `strptime` 风格的格式串，但不支持 `%Z` / `%z`（见下）；允许为空，见下。
  * @note 两个指针都会在解析前校验，为空时置流的失败位而非解引用；详见
  *       `io_traits<TChar, get_time_t<TChar>>::sread`。
+ * @note **@p fmt 非空时必须以 `TChar('\0')` 结尾**，即一个 NTBS。长度不由调用方传入，
+ *       而是解析时由 `char_traits<TChar>::length` 现算的（`fmt` 在那里隐式转换成
+ *       `std::basic_string_view<TChar>`），未终止的数组因此会被**读越界**——这是本函数
+ *       无法检出的调用方错误，与 `std::get_time` / `strptime` 的契约相同。
+ *       只有空指针这一种情形被挡下并置失败位，"非空但未终止"不在其列。
  * @note 格式串中未出现的字段保留 `*tmb` 原有的取值：解析上下文由 `*tmb` 铺好回退值，故
  *       `%H:%M` 这样只解析时间的格式串不会动到日期。`tm_wday` / `tm_yday` 总是由最终日期
  *       重新推算，`tm_isdst` 总是置为 -1——没有格式符携带夏令时信息，而沿用调用方的旧值会
@@ -1087,6 +1119,13 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *            below); may be null, see below.
  * @note Both pointers are validated before parsing, and a null one sets a failure bit on the
  *       stream rather than being dereferenced; see `io_traits<TChar, get_time_t<TChar>>::sread`.
+ * @note **A non-null @p fmt must be terminated by `TChar('\0')`**, i.e. it must be an NTBS. The
+ *       length is not passed in; it is computed at parse time by `char_traits<TChar>::length`
+ *       (that is where `fmt` implicitly converts to `std::basic_string_view<TChar>`), so an
+ *       unterminated array is **read out of bounds**. That is a caller error this function
+ *       cannot detect, and the contract is the same as `std::get_time`'s and `strptime`'s.
+ *       Only the null case is caught and turned into a failure bit; "non-null but
+ *       unterminated" is not.
  * @note Fields absent from the format string keep the value they had in `*tmb`: the parse
  *       context is seeded with fallbacks from `*tmb`, so a time-only format string such as
  *       `%H:%M` does not disturb the date. `tm_wday` / `tm_yday` are always recomputed from the

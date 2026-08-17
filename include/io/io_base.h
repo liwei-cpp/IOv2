@@ -1554,6 +1554,13 @@ inline void defaultfloat(ios_base<TChar>& base)
  *          这么做即为经典的 AB-BA 死锁，与直接用两把 `std::mutex` 写错顺序无异。库这边保证
  *          自己不制造**用户看不见的**加锁边——tie 的刷新一律用非阻塞的 `try_flush()`
  *          （见 `stream_common_operators::tie`）——但用户自己写下的锁序，库无从代劳。
+ * @warning **本类挡不住不取锁的操纵符流形式。** `io_manip.h` 的六个格式状态操纵符
+ *          （`setw` / `setfill` / `setbase` / `setprecision` / `setiosflags` /
+ *          `resetiosflags`）与本文件里 `hex` / `left` / `boolalpha` 那类函数指针操纵符，
+ *          其运算符重载都**不取 `io_mutex()`**，因此不受本类约束：持有 `sync(A)` 的线程
+ *          仍会被另一个线程的 `A << setw(5)` 插进临界区中间。要把这类操纵符也纳入互斥，
+ *          **每个访问该流的线程都得自己用 `sync`**。其余操作（插入、提取、`flush` /
+ *          `endl` / `ws`、`seek`、`locale(loc)` 等）都会取这把锁，单侧 `sync` 即可挡住。
  *
  * @tparam TStream 流类型，需提供 `io_mutex()` 接口（返回可 lock()/unlock() 的互斥量）。
  * @endif
@@ -1573,6 +1580,16 @@ inline void defaultfloat(ios_base<TChar>& base)
  *          library guarantees only that it creates no lock edge the user **cannot see** -- a tie
  *          flush always goes through the non-blocking `try_flush()`, see
  *          `stream_common_operators::tie` -- but it cannot order the locks the user writes.
+ * @warning **This class does not hold back the lock-free stream form of the manipulators.** The
+ *          six formatting-state manipulators in `io_manip.h` (`setw`, `setfill`, `setbase`,
+ *          `setprecision`, `setiosflags`, `resetiosflags`) and the function-pointer manipulators
+ *          in this file (`hex`, `left`, `boolalpha` and friends) have operator overloads that
+ *          **do not take `io_mutex()`**, and so are not constrained by this class: a thread
+ *          holding `sync(A)` still gets another thread's `A << setw(5)` landing in the middle of
+ *          its critical section. To cover those manipulators too, **every thread touching the
+ *          stream has to use `sync` itself**. Everything else (insertion, extraction, `flush` /
+ *          `endl` / `ws`, `seek`, `locale(loc)` and so on) does take the lock, so a one-sided
+ *          `sync` keeps those out.
  *
  * @tparam TStream The stream type, which must provide an `io_mutex()` interface
  * (returning a mutex that can be lock()/unlock()'d).

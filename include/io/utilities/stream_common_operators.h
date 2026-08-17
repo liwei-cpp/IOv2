@@ -386,6 +386,10 @@ struct stream_common_operators
      *       未定义行为，但只有前者会报错。
      * @note 本函数是 `noexcept`，加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
      *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
+     * @note **本函数的冲刷不看状态位。** 与流的析构、赋值一样，分离前的那次冲刷发生在
+     *       `root_cvt::detach()` 里，那一层拿不到 `ios_state`，所以即便流已置失败位、
+     *       即便 `flush()` 刚刚因此被拒，待刷字节仍会写给设备。详见 `ostream_operators::flush`
+     *       上的对应 `@warning`。
      * @warning 与 `device()` 相同，**流处于移后（moved-from）状态时不得调用本函数**：此时转换器
      *          已被掏空，没有可分离的设备，调用即为未定义行为。本函数是 `noexcept`，底层
      *          （`runtime_cvt::detach()`）当前在这种情形下直接 `std::terminate()`；这同样只是
@@ -420,6 +424,12 @@ struct stream_common_operators
      *       already-constructed recursive mutex the only remaining cause is an exhausted
      *       recursion count, which this library treats as unrecoverable -- that is, it
      *       terminates.
+     * @note **The flush this function performs ignores the state bits.** As with the stream's
+     *       destructor and assignment, that flush happens inside `root_cvt::detach()`, a layer
+     *       with no access to `ios_state`, so the pending bytes are written to the device even
+     *       when the stream has a failure bit set -- even when `flush()` was refused for that
+     *       very reason a moment earlier. See the corresponding `@warning` on
+     *       `ostream_operators::flush`.
      * @warning As with `device()`, **this function must not be called on a moved-from stream**:
      *          its converter has been emptied, so there is no device to detach, and calling it
      *          then is undefined behavior. This function is `noexcept`, and the underlying
