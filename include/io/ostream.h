@@ -274,6 +274,11 @@ public:
      * @note 移动赋值的 `noexcept` 是有意为之：拷贝赋值的强异常保证依赖它（见其中的
      *       `static_assert`）。加锁在形式上可抛，但对一把已构造的递归互斥量而言只剩"递归计数
      *       耗尽"这一种可能，本库将其视为不可恢复，即 `terminate`。
+     * @note **赋值会先冲刷目标自己的待刷字节，且不看状态位。** `m_streambuf` 的赋值最终落到
+     *       `root_cvt::operator=`，它在覆盖前先 `flush()` 目标的缓冲（异常被吞），把那批字节
+     *       写进目标**原来**的设备。好处是"整体替换设备"不伴随目标待刷数据的静默丢弃；代价是
+     *       与析构、`detach()` 一样绕开了 `flush()` 的失败态守卫。详见
+     *       `ostream_operators::flush` 上的 `@warning`。
      * @endif
      *
      * @lang{EN}
@@ -288,6 +293,13 @@ public:
      *       but for an already-constructed recursive mutex the only remaining cause is an
      *       exhausted recursion count, which this library treats as unrecoverable -- that is,
      *       it terminates.
+     * @note **Assignment first flushes the destination's own pending bytes, ignoring the state
+     *       bits.** Assigning `m_streambuf` ends up in `root_cvt::operator=`, which `flush()`es
+     *       the destination's buffer before overwriting it (exceptions swallowed), sending those
+     *       bytes to the destination's **old** device. The upside is that replacing the device
+     *       wholesale does not silently drop the destination's pending data; the cost is that,
+     *       like the destructor and `detach()`, it bypasses `flush()`'s failed-state guard. See
+     *       the `@warning` on `ostream_operators::flush`.
      * @endif
      */
     ostream(const ostream& other) : ostream(std::lock_guard{other.io_mutex()}, other) {}
@@ -307,6 +319,28 @@ public:
         return *this;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 析构函数。
+     * @note 本身无事可做，但销毁 `m_streambuf` 会经 `~root_cvt` 把转换器缓冲里的待刷字节
+     *       `dput` 给设备（**不**调设备的 `dflush()`）。这次冲刷**不看状态位**：即便流已置
+     *       失败位、即便 `flush()` 刚刚因此被拒，字节仍会写出去。冲刷失败时异常被 `~root_cvt`
+     *       的 catch-all 吞掉——不 `terminate`、不抛、不置位，数据静默丢失。
+     *       完整说明见 `ostream_operators::flush` 上的 `@warning`（含与 `std::ofstream` 的对照）。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Destructor.
+     * @note It has nothing to do itself, but destroying `m_streambuf` runs `~root_cvt`, which
+     *       `dput`s whatever is pending in the converter buffer to the device (it does **not**
+     *       call the device's `dflush()`). That flush **ignores the state bits**: the bytes go
+     *       out even when the stream has a failure bit set, even when `flush()` was refused for
+     *       that very reason a moment earlier. If the flush fails, the exception is swallowed by
+     *       `~root_cvt`'s catch-all -- no `terminate`, no throw, no state bit, the data is
+     *       silently lost. See the `@warning` on `ostream_operators::flush` for the full story,
+     *       including how this compares with `std::ofstream`.
+     * @endif
+     */
     ~ostream() = default;
 
     /**

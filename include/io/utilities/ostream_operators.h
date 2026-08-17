@@ -732,6 +732,21 @@ struct ostream_operators
      *
      * 输出前的读写模式切换由 `streambuf::flush()` 自行完成（其内部会 `switch_to_put()`），
      * 故此处无需哨兵代劳。
+     * @warning **本函数在失败态下拒绝写出，但生命周期收尾的冲刷不受状态位约束。**
+     *          流的 `operator bool` 为假时（任一失败位；单独的 `eofbit` 不算），本函数在触碰
+     *          缓冲区之前就抛 `stream_error`，经 `handle_exception` 转成 `strfailbit`，
+     *          那批待刷字节一个也没写出去。但流的**析构**、`detach()` 与**赋值**都不看状态位：
+     *          它们的冲刷发生在下一层（`~root_cvt` / `root_cvt::detach()` /
+     *          `root_cvt::operator=`），而 `root_cvt` 拿不到 `ios_state`，于是同一批字节照样
+     *          `dput` 给设备。因此「`flush()` 被拒」**不意味着**这批字节不会到达设备；
+     *          真要丢弃，只能 `detach()` 之后弃用取回的设备，或者先 `clear()` 再 `flush()`。
+     * @note 上一条与标准库同构，不是本库的特例：`std::ofstream` 在失败态下 `flush()` 同样
+     *       什么都不写（哨兵以 `good()` 为准），而 `~basic_ofstream()` 经 `~basic_filebuf()`
+     *       → `close()` 照样冲刷 put 区——`iostate` 挂在 `basic_ios` 上，`basic_filebuf`
+     *       根本看不到它，与此处的分层同因。两点小差异：标准还多一条更宽的路径（显式
+     *       `basic_ofstream::close()` 也不看状态位），本库没有 `close()`，最接近的
+     *       `detach()` 会把清理阶段的首个异常以 `exception_ptr` 交还调用方；另外标准的判据是
+     *       `good()`，故单独的 `eofbit` 也会让 `flush()` 什么都不做，本库这里更宽松。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @endif
      *
@@ -755,6 +770,29 @@ struct ostream_operators
      *
      * Switching the buffer from get to put mode is done by `streambuf::flush()` itself (it
      * calls `switch_to_put()` internally), so no sentry is needed for that either.
+     * @warning **This function refuses to write on a failed stream, but the flushes that wind
+     *          the stream down are not bound by the state bits.** When the stream's
+     *          `operator bool` is false (any failure bit; `eofbit` alone does not count), this
+     *          function throws `stream_error` before it touches the buffer, `handle_exception`
+     *          turns that into `strfailbit`, and not one of the pending bytes is written. But
+     *          the stream's **destructor**, `detach()` and **assignment** do not look at the
+     *          state bits: their flush happens one layer down (`~root_cvt`,
+     *          `root_cvt::detach()`, `root_cvt::operator=`), and `root_cvt` has no access to
+     *          `ios_state`, so those same bytes are still `dput` to the device. A refused
+     *          `flush()` therefore **does not** mean the bytes will never reach the device. To
+     *          really discard them, `detach()` and drop the device handed back, or `clear()`
+     *          first and then `flush()`.
+     * @note The above mirrors the standard library rather than being peculiar to this library:
+     *       `std::ofstream::flush()` on a failed stream writes nothing either (its sentry tests
+     *       `good()`), while `~basic_ofstream()` still flushes the put area through
+     *       `~basic_filebuf()` -> `close()` -- `iostate` lives on `basic_ios` and
+     *       `basic_filebuf` cannot see it, which is the same layering as here. Two small
+     *       differences: the standard has one further unguarded path (an explicit
+     *       `basic_ofstream::close()` ignores the state bits too), and this library has no
+     *       `close()` -- the nearest thing, `detach()`, hands the first exception raised during
+     *       cleanup back to the caller as an `exception_ptr`; and the standard tests `good()`,
+     *       so `eofbit` alone also makes `flush()` do nothing, where this library is the more
+     *       permissive of the two.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @endif
      */

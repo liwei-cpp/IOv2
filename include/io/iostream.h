@@ -346,6 +346,22 @@ public:
         return *this;
     }
 
+    /**
+     * @lang{ZH}
+     * @brief 析构函数。
+     * @note 与 `ostream` 相同：本身无事可做，但销毁 `m_streambuf` 会经 `~root_cvt` 把转换器
+     *       缓冲里的待刷字节 `dput` 给设备，且**不看状态位**、失败时静默。详见 `~ostream()`
+     *       与 `ostream_operators::flush` 上的 `@warning`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Destructor.
+     * @note Same as `ostream`'s: nothing to do itself, but destroying `m_streambuf` runs
+     *       `~root_cvt`, which `dput`s whatever is pending in the converter buffer to the
+     *       device, **ignoring the state bits** and failing silently. See `~ostream()` and the
+     *       `@warning` on `ostream_operators::flush`.
+     * @endif
+     */
     ~iostream() = default;
 
     /**
@@ -418,8 +434,10 @@ public:
      *          读缓冲区非空时本函数先 `tell()` 再 `seek()`，而这一步只有可定位的管线做得到：
      *          - **支持定位**（本库自带的设备都是这一档）：切向成功、读缓冲区被清空，压回内容
      *            丢失，**不置任何状态位**。
-     *          - **不支持定位**（双向但不可定位的管线，如套接字一类设备）：`seek()` 抛
-     *            `cvt_error`，抛出发生在 `clear()` **之前**，所以压回内容**反而完整保留**。
+     *          - **不支持定位**（双向但不可定位的管线，如套接字一类设备）：抛 `cvt_error`，
+     *            抛出发生在 `clear()` **之前**，所以压回内容**反而完整保留**。
+     *            （实际先抛的是 `tell()` 而非 `seek()`：`runtime_cvt::tell()` 在内核不可定位时
+     *            就已经抛出，根本走不到 `seek()`。两者同在一个 `try` 块里，可观察后果一致。）
      *            直接调用本函数时该异常由本流的 `handle_exception` 转成 `cvtfailbit`；
      *            经 tie 刷新走到这里时同样只置**本流**的 `cvtfailbit`、把原始异常存进本流的
      *            `m_exp_cvt_fail`，发起方一位不动、也拿不到异常（见
@@ -457,8 +475,11 @@ public:
      *            the read buffer is cleared, the pushed-back content is lost, and **no state bit
      *            is set**.
      *          - **Not positionable** (a bidirectional but non-seekable pipeline, e.g. a
-     *            socket-like device): `seek()` throws `cvt_error`, and it throws *before* the
-     *            `clear()`, so the pushed-back content is **kept intact** instead. Called
+     *            socket-like device): a `cvt_error` is thrown, and it is thrown *before* the
+     *            `clear()`, so the pushed-back content is **kept intact** instead. (The throw
+     *            actually comes from `tell()`, not from `seek()`: `runtime_cvt::tell()` already
+     *            throws when the kernel cannot position, so `seek()` is never reached. Both sit
+     *            in the same `try` block and the observable outcome is the same.) Called
      *            directly, that exception becomes `cvtfailbit` through this stream's
      *            `handle_exception`; reached through a tie flush it likewise sets `cvtfailbit`
      *            on **this** stream only and stores the original exception in this stream's

@@ -546,6 +546,17 @@ public:
             // single char. A locale separator that does not fit in one char
             // (multibyte) cannot be represented: the convert yields '\0' and
             // the fallbacks below regress to '.' / ','.
+            //
+            // The two fallbacks are not symmetric, and the ',' one is easy to
+            // misread. A '\0' decimal point really is replaced by '.', which
+            // *changes* the character the output carries (e.g. a locale whose
+            // mon_decimal_point is multibyte). A '\0' thousands separator takes
+            // the `if` below, which means the `else if` that fills m_grouping is
+            // skipped, so m_grouping stays empty and grouping is disabled
+            // outright -- the ',' is stored but never emitted, because nothing
+            // ever asks for a group boundary. In other words the multibyte case
+            // *omits* the separator rather than substituting a wrong one; it
+            // never writes a ',' the locale did not ask for.
             m_decimal_point = FacetHelper::string_to_char_convert(mdp_raw, name);
             m_thousands_sep = FacetHelper::string_to_char_convert(mts_raw, name);
 
@@ -940,6 +951,14 @@ public:
             // CharT. A locale separator that does not fit in one code unit
             // (e.g. multiple code points) cannot be represented: the convert
             // yields '\0' and the fallbacks below regress to '.' / ','.
+            //
+            // Same asymmetry as in the char specialization: the '.' fallback
+            // really does replace the character, whereas the ',' one takes the
+            // `if` below and so skips the `else if` that fills m_grouping --
+            // grouping ends up disabled and the ',' is never emitted. Note this
+            // branch is much harder to reach here than on the char side: a
+            // separator such as U+202F fits in one wchar_t / char32_t, so it is
+            // stored as-is and grouping keeps working.
             m_decimal_point = FacetHelper::string_to_widechar_convert<CharT>(
                 mon_dp_raw, name, static_cast<CharT>('\0'));
             m_thousands_sep = FacetHelper::string_to_widechar_convert<CharT>(
