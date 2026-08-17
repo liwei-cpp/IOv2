@@ -5,6 +5,7 @@
 #include <cvt/code_cvt.h>
 #include <cvt/comp/zlib_cvt.h>
 #include <device/mem_device.h>
+#include <io/traits/char_and_str.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
 #include <io/io_manip.h>
@@ -12,6 +13,8 @@
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>
+#include <support/injectable_device.h>
+#include <support/no_seek_device.h>
 #include <support/verify.h>
 
 namespace
@@ -99,6 +102,186 @@ void test_iostream_switch_to_put_char_3()
 
     str.switch_to_put();
     VERIFY(static_cast<bool>(str));
+
+    dump_info("Done\n");
+}
+
+namespace
+{
+    // Reads one word out of "ab cdef", which stops at the space and leaves that space in the
+    // read buffer. A non-empty read buffer is the precondition for switch_to_put() having to
+    // reposition at all, and one ordinary extraction is enough to create it -- no explicit
+    // peek() or putback() is needed.
+    template <class TStream>
+    void read_one_word(TStream& str)
+    {
+        std::string w;
+        str >> w;
+        VERIFY(static_cast<bool>(str));
+        VERIFY(w == "ab");
+    }
+}
+
+// switch_to_put() when the DEVICE fails underneath it. Two things a state-bit check alone cannot
+// reach: that the repositioning really happens before the read buffer is cleared -- injecting a
+// dseek failure cannot be told apart from failing before dseek was reached, hence the call counts
+// -- and that the bit is devfailbit, not cvtfailbit, because switch_to_put() catches cvt_error,
+// which a device_error does not match, so it travels out unwrapped and the contextual "cannot
+// reposition N buffered/put-back character(s)" message is not generated here.
+void test_iostream_switch_to_put_char_4()
+{
+    dump_info("Test iostream<char>::switch_to_put case 4...");
+
+    // a dseek failure: the seek was reached, exactly one bit is set, and nothing is lost
+    {
+        injectable_device<char> dev{"ab cdef"};
+        auto st = dev.shared_state();
+        IOv2::iostream str(std::move(dev));
+        read_one_word(str);
+
+        const auto pos_before  = str.tell();
+        const auto seek_before = st->dseek;
+        const auto tell_before = st->dtell;
+
+        st->fail_dseek = true;
+        str.switch_to_put();
+        st->fail_dseek = false;
+
+        VERIFY(st->dseek == seek_before + 1);      // dseek was actually reached
+        VERIFY(st->dtell == tell_before + 1);
+        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);   // exactly one bit
+
+        str.clear();
+        VERIFY(str.tell() == pos_before);          // position survives the failed switch
+        VERIFY(str.peek() == ' ');                 // and so does the buffered delimiter
+    }
+
+    // a dtell failure: the seek must NOT have been reached, which fixes the order
+    {
+        injectable_device<char> dev{"ab cdef"};
+        auto st = dev.shared_state();
+        IOv2::iostream str(std::move(dev));
+        read_one_word(str);
+
+        const auto seek_before = st->dseek;
+        const auto tell_before = st->dtell;
+
+        st->fail_dtell = true;
+        str.switch_to_put();
+        st->fail_dtell = false;
+
+        VERIFY(st->dtell == tell_before + 1);
+        VERIFY(st->dseek == seek_before);          // tell comes first, and it never got past it
+        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);
+    }
+
+    // a character substituted by putback() is preserved just the same
+    {
+        injectable_device<char> dev{"ab cdef"};
+        auto st = dev.shared_state();
+        IOv2::iostream str(std::move(dev));
+        read_one_word(str);
+        str.putback('Z');
+
+        const auto seek_before = st->dseek;
+        st->fail_dseek = true;
+        str.switch_to_put();
+        st->fail_dseek = false;
+
+        VERIFY(st->dseek == seek_before + 1);
+        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);
+
+        str.clear();
+        VERIFY(str.peek() == 'Z');
+    }
+
+    // on an already-failed stream the call returns early: it touches neither primitive
+    {
+        injectable_device<char> dev{"ab cdef"};
+        auto st = dev.shared_state();
+        IOv2::iostream str(std::move(dev));
+        read_one_word(str);
+
+        st->fail_dseek = true;
+        str.switch_to_put();                       // fails, leaving the stream in a bad state
+        st->fail_dseek = false;
+        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);
+
+        const auto state_before = str.rdstate();
+        const auto seek_before  = st->dseek;
+        const auto tell_before  = st->dtell;
+
+        str.switch_to_put();                       // second call, stream still failed
+
+        VERIFY(str.rdstate() == state_before);
+        VERIFY(st->dseek == seek_before);
+        VERIFY(st->dtell == tell_before);
+    }
+
+    dump_info("Done\n");
+}
+
+// switch_to_put() when the CONVERTER cannot reposition -- the other half of the same
+// @warning in iostream.h. no_seek_device gets there without any fake converter kernel; see
+// the comment on that device for why. Here the bit is cvtfailbit, and because the throw comes
+// before the read buffer is cleared, the buffered content is kept rather than discarded.
+void test_iostream_switch_to_put_char_5()
+{
+    dump_info("Test iostream<char>::switch_to_put case 5...");
+
+    // a non-empty read buffer forces a reposition the pipeline cannot do
+    {
+        IOv2::iostream str(no_seek_device<char>{"ab cdef"});
+        read_one_word(str);
+
+        str.switch_to_put();
+        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);   // exactly one bit
+
+        str.clear();
+        VERIFY(str.peek() == ' ');   // thrown before the clear, so the delimiter is still there
+    }
+
+    // an empty read buffer needs no reposition at all, so the switch succeeds
+    {
+        IOv2::iostream str(no_seek_device<char>{"abcdef"});
+        str.switch_to_put();
+        VERIFY(static_cast<bool>(str));
+        VERIFY(str.rdstate() == IOv2::ios_defs::goodbit);
+    }
+
+    // clear() really clears it: the next switch sets the bit again rather than sticking
+    {
+        IOv2::iostream str(no_seek_device<char>{"ab cdef"});
+        read_one_word(str);
+
+        str.switch_to_put();
+        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);
+        str.clear();
+        VERIFY(str.rdstate() == IOv2::ios_defs::goodbit);
+        str.switch_to_put();
+        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);
+    }
+
+    // the original exception is stored, so what comes back out carries the context of the
+    // failure rather than clear()'s generic fallback message
+    {
+        IOv2::iostream str(no_seek_device<char>{"ab cdef"});
+        read_one_word(str);
+        str.switch_to_put();
+        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);
+
+        bool threw = false;
+        try
+        {
+            str.exceptions(IOv2::ios_defs::cvtfailbit);
+        }
+        catch (const IOv2::cvt_error& e)
+        {
+            threw = true;
+            VERIFY(std::string(e.what()).find("cannot reposition") != std::string::npos);
+        }
+        VERIFY(threw);
+    }
 
     dump_info("Done\n");
 }

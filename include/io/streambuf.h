@@ -65,7 +65,13 @@ namespace IOv2
  * @note 关于读缓冲区与逻辑位置的语义细节（尤其是过度回退时位置在起点处饱和为 0），
  *       见 sputbackc()、tell() 与 switch_to_put() 的说明。
  *
- * @tparam TDevice 底层设备类型，须满足 `io_device`。
+ * @note 方向约束落在四个构造函数上。不带工厂的**输出**那个同时服务 `ostreambuf` 与双向的
+ *       `streambuf`（两者都满足 `IsOut`），故它除 `support_put` 外还要在 `IsIn` 为真时
+ *       要求 `support_get`——否则双向实例会在此收下只写设备，而 `iostream` 在类级拒绝它。
+ *       带工厂的两个改查整条管线（`cvt_fits_direction`），因为管线可以比设备更弱。
+ *
+ * @tparam TDevice 底层设备类型，须满足 `io_device`；构造时 `IsIn` 还要求
+ *         `dev_cpt::support_get`、`IsOut` 还要求 `dev_cpt::support_put`。
  * @tparam TChar 字符类型（转换器管线暴露的内部数据类型）。
  * @tparam IsIn 是否支持输入操作。
  * @tparam IsOut 是否支持输出操作。
@@ -90,7 +96,15 @@ namespace IOv2
  *       particular, the position saturating at 0 on over-pushback), see sputbackc(),
  *       tell(), and switch_to_put().
  *
- * @tparam TDevice The underlying device type; must satisfy `io_device`.
+ * @note The direction constraint sits on the four constructors. The creator-less *output* one
+ *       serves both `ostreambuf` and the bidirectional `streambuf` (both satisfy `IsOut`), so
+ *       besides `support_put` it also requires `support_get` when `IsIn` is true -- otherwise a
+ *       bidirectional instantiation would accept a write-only device here while `iostream`
+ *       rejects it at class level. The creator-taking two check the whole pipeline
+ *       (`cvt_fits_direction`), since a pipeline may be weaker than its device.
+ *
+ * @tparam TDevice The underlying device type; must satisfy `io_device`. To construct one, `IsIn`
+ *         additionally requires `dev_cpt::support_get` and `IsOut` `dev_cpt::support_put`.
  * @tparam TChar The character type (the internal data type exposed by the converter
  *         pipeline).
  * @tparam IsIn Whether input operations are supported.
@@ -118,7 +132,9 @@ public:
      * @param dev The underlying device (ownership taken by value).
      * @endif
      */
-    explicit base_streambuf(TDevice dev) requires (IsOut)
+    explicit base_streambuf(TDevice dev)
+        requires (IsOut && dev_cpt::support_put<TDevice>
+                  && (!IsIn || dev_cpt::support_get<TDevice>))
         : m_cvt(no_rb_root_cvt{std::move(dev)})
     {
         init_cvt();
@@ -165,7 +181,8 @@ public:
      *        (`no_rb_root_cvt`) is used. Defaults to true.
      * @endif
      */
-    explicit base_streambuf(TDevice dev, bool has_in_buf = true) requires (IsIn && !IsOut)
+    explicit base_streambuf(TDevice dev, bool has_in_buf = true)
+        requires (IsIn && !IsOut && dev_cpt::support_get<TDevice>)
         : m_cvt(has_in_buf ? runtime_cvt<TDevice, TChar>(rb_root_cvt{std::move(dev)})
                            : runtime_cvt<TDevice, TChar>(no_rb_root_cvt{std::move(dev)}))
     {
@@ -934,7 +951,7 @@ private:
  * @brief 双向流缓冲区：同时支持输入与输出。
  *
  * `base_streambuf<TDevice, TChar, true, true>` 的便捷别名，并继承其全部构造函数。
- * @tparam TDevice 底层设备类型。
+ * @tparam TDevice 底层设备类型；构造时须同时支持读取与写入。
  * @tparam TChar 字符类型。
  * @endif
  *
@@ -943,7 +960,8 @@ private:
  *
  * A convenience alias for `base_streambuf<TDevice, TChar, true, true>` that inherits all
  * of its constructors.
- * @tparam TDevice The underlying device type.
+ * @tparam TDevice The underlying device type; to construct one it must support both reading
+ *         and writing.
  * @tparam TChar The character type.
  * @endif
  */
@@ -958,7 +976,7 @@ struct streambuf : public base_streambuf<TDevice, TChar, true, true>
  * @brief 只读流缓冲区：仅支持输入。
  *
  * `base_streambuf<TDevice, TChar, true, false>` 的便捷别名，并继承其全部构造函数。
- * @tparam TDevice 底层设备类型。
+ * @tparam TDevice 底层设备类型；构造时须支持读取。
  * @tparam TChar 字符类型。
  * @endif
  *
@@ -967,7 +985,7 @@ struct streambuf : public base_streambuf<TDevice, TChar, true, true>
  *
  * A convenience alias for `base_streambuf<TDevice, TChar, true, false>` that inherits all
  * of its constructors.
- * @tparam TDevice The underlying device type.
+ * @tparam TDevice The underlying device type; to construct one it must support reading.
  * @tparam TChar The character type.
  * @endif
  */
@@ -982,7 +1000,7 @@ struct istreambuf : public base_streambuf<TDevice, TChar, true, false>
  * @brief 只写流缓冲区：仅支持输出。
  *
  * `base_streambuf<TDevice, TChar, false, true>` 的便捷别名，并继承其全部构造函数。
- * @tparam TDevice 底层设备类型。
+ * @tparam TDevice 底层设备类型；构造时须支持写入。
  * @tparam TChar 字符类型。
  * @endif
  *
@@ -991,7 +1009,7 @@ struct istreambuf : public base_streambuf<TDevice, TChar, true, false>
  *
  * A convenience alias for `base_streambuf<TDevice, TChar, false, true>` that inherits all
  * of its constructors.
- * @tparam TDevice The underlying device type.
+ * @tparam TDevice The underlying device type; to construct one it must support writing.
  * @tparam TChar The character type.
  * @endif
  */
