@@ -122,7 +122,6 @@
 
 #include <concepts>
 #include <cstddef>
-#include <cstdint>
 #include <ctime>
 #include <iterator>
 #include <string>
