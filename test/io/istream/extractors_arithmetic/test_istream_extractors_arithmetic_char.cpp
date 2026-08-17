@@ -86,7 +86,7 @@ void test_istream_extractors_arithmetic_char_1()
 //        int* po = &i;
 //        int* pi = &j;
 //
-//        IOv2::ostream ss_01{IOv2::mem_device{""}};
+//        IOv2::ostream ss_01{IOv2::mem_device{""}, IOv2::locale<char>("C")};
 //        ss_01 << po;
 //        auto dev = ss_01.detach();
 //        dev.dseek(0);
@@ -108,7 +108,7 @@ void test_istream_extractors_arithmetic_char_2()
     auto helper = []<template<typename, typename> class T>()
     {
         const std::string str_01("20000AB");
-        T is(IOv2::mem_device{str_01});
+        T is(IOv2::mem_device{str_01}, IOv2::locale<char>("C"));
 
         int n = 15;
         is >> n;
@@ -129,7 +129,7 @@ void test_istream_extractors_arithmetic_char_3()
 
     auto helper = []<template<typename, typename> class T>()
     {
-        IOv2::ostream ostr(IOv2::mem_device{""});
+        IOv2::ostream ostr(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         ostr << "12220101";
         auto [dev, err] = ostr.detach();
         dev.dseek(0);
@@ -208,7 +208,7 @@ void test_istream_extractors_arithmetic_char_5()
         unsigned int h4 = 0, h3 = 0, h2 = 0;
         float f1 = 0.0;
         const std::string s1("205,199 23,445.25 1,024,365 123,22,24");
-        T is(IOv2::mem_device{s1});
+        T is(IOv2::mem_device{s1}, IOv2::locale<char>("C"));
         is.locale(IOv2::locale<char>("C").involve(std::make_shared<test_numpunct1>()));
 
         // Basic operation.
@@ -335,7 +335,7 @@ void test_istream_extractors_arithmetic_char_6()
         unsigned int h4 = 0, h3 = 0, h2 = 0;
         const std::string s1("1,22 205,19 22,123,22");
     
-        T is(IOv2::mem_device{s1});
+        T is(IOv2::mem_device{s1}, IOv2::locale<char>("C"));
         is.locale(IOv2::locale<char>("C").involve(std::make_shared<test_numpunct2>()));
 
         // Basic operation.
@@ -366,7 +366,7 @@ void test_istream_extractors_arithmetic_char_7()
     auto helper = []<template<typename, typename> class T>()
     {
         std::string st("2.456e3-+0.567e-2");
-        T is(IOv2::mem_device{st});
+        T is(IOv2::mem_device{st}, IOv2::locale<char>("C"));
 
         double f1 = 0, f2 = 0;
         char c;
@@ -393,7 +393,7 @@ void test_istream_extractors_arithmetic_char_8()
     auto helper = []<template<typename, typename> class T>()
     {
         std::string str_01("0 00 000 +0 +0 -0");
-        T is_01{IOv2::mem_device{str_01}};
+        T is_01{IOv2::mem_device{str_01}, IOv2::locale<char>("C")};
         int n = 365;
         is_01 >> n;
         VERIFY(n == 0);
@@ -415,7 +415,7 @@ void test_istream_extractors_arithmetic_char_8()
         VERIFY(is_01.rdstate() == IOv2::ios_defs::eofbit);
 
         std::string str_02("0x32 0X33 033 33");
-        T is_02{IOv2::mem_device{str_02}};
+        T is_02{IOv2::mem_device{str_02}, IOv2::locale<char>("C")};
         is_02.unsetf(IOv2::ios_defs::basefield);
         is_02 >> n;
         VERIFY(n == 50);
@@ -427,7 +427,7 @@ void test_istream_extractors_arithmetic_char_8()
         VERIFY(n == 33);
         VERIFY(is_02.rdstate() == IOv2::ios_defs::eofbit);
 
-        T is_03{IOv2::mem_device{str_02}};
+        T is_03{IOv2::mem_device{str_02}, IOv2::locale<char>("C")};
         char c;
         int m;
 
@@ -447,7 +447,7 @@ void test_istream_extractors_arithmetic_char_8()
         VERIFY(is_03.rdstate() == IOv2::ios_defs::eofbit);
 
         std::string str_04("3. 4.5E+2a5E-3 .6E1");
-        T is_04{IOv2::mem_device{str_04}};
+        T is_04{IOv2::mem_device{str_04}, IOv2::locale<char>("C")};
         double f;
         is_04 >> f;
         VERIFY(f == 3.0);
@@ -461,7 +461,7 @@ void test_istream_extractors_arithmetic_char_8()
         VERIFY(is_04.rdstate() == IOv2::ios_defs::eofbit);
 
         std::string str_05("0E20 5Ea E16");
-        T is_05{IOv2::mem_device{str_05}};
+        T is_05{IOv2::mem_device{str_05}, IOv2::locale<char>("C")};
         is_05 >> f;
         VERIFY(f == 0);
         f = 1;
@@ -497,7 +497,7 @@ void test_istream_extractors_arithmetic_char_9()
         char* err;
         long l = std::strtol(cstrlit, &err, 0);
 
-        T iss(IOv2::mem_device{cstrlit});
+        T iss(IOv2::mem_device{cstrlit}, IOv2::locale<char>("C"));
         iss.setf(IOv2::ios_defs::fmtflags(0), IOv2::ios_defs::basefield);
         int i;
         iss >> i;
@@ -528,7 +528,7 @@ void test_istream_extractors_arithmetic_char_10()
         std::string part = "1234567890123456789012345678901234567890";
         for (std::size_t i = 0; i < digits_overflow / part.size() + 1; ++i)
             st += part;
-        T is(IOv2::mem_device{st});
+        T is(IOv2::mem_device{st}, IOv2::locale<char>("C"));
         TV t;
         is >> t;
         VERIFY(is.str_fail());
@@ -564,7 +564,7 @@ void test_istream_extractors_arithmetic_char_11()
         // 1 
         // used to core.
         double d;
-        T iss1(IOv2::mem_device{l2});
+        T iss1(IOv2::mem_device{l2}, IOv2::locale<char>("C"));
         iss1 >> d;
         iss1 >> d;
         VERIFY(d > 1246 && d < 1247);
@@ -576,7 +576,7 @@ void test_istream_extractors_arithmetic_char_11()
         std::string digits;
         for (int j = 0; j < max_digits; ++j)
             digits += '1';
-        T iss2(IOv2::mem_device{digits});
+        T iss2(IOv2::mem_device{digits}, IOv2::locale<char>("C"));
         iss2 >> i;
         VERIFY((bool)iss2);
 
@@ -618,7 +618,7 @@ void test_istream_extractors_arithmetic_char_12()
     dump_info("Test istream<char> operator>> (arithmetic) case 12...");
     auto helper = []<template<typename, typename> class T>()
     {
-        T is{IOv2::mem_device{"hello"}};
+        T is{IOv2::mem_device{"hello"}, IOv2::locale<char>("C")};
         is.exceptions(IOv2::ios_defs::otherfailbit);
 
         try
@@ -651,7 +651,7 @@ void test_istream_extractors_arithmetic_char_13()
     auto helper = []<template<typename, typename> class T>()
     {
         short s1 = 0;
-        IOv2::ostream oss1{IOv2::mem_device{""}};
+        IOv2::ostream oss1{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss1 << std::numeric_limits<short>::max();
         auto [dev, err] = oss1.detach(); dev.dseek(0);
         T iss1{std::move(dev)};
@@ -661,7 +661,7 @@ void test_istream_extractors_arithmetic_char_13()
         VERIFY(iss1.eof());
 
         short s2 = 0;
-        IOv2::ostream oss2{IOv2::mem_device{""}};
+        IOv2::ostream oss2{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss2 << static_cast<long long>(std::numeric_limits<short>::max()) + 1;
         auto [dev2, err2] = oss2.detach(); dev2.dseek(0);
         T iss2{std::move(dev2)};
@@ -671,7 +671,7 @@ void test_istream_extractors_arithmetic_char_13()
         VERIFY(iss2.eof());
 
         short s3 = 0;
-        IOv2::ostream oss3{IOv2::mem_device{""}};
+        IOv2::ostream oss3{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss3 << std::numeric_limits<short>::min();
         auto [dev3, err3] = oss3.detach(); dev3.dseek(0);
         T iss3{std::move(dev3)};
@@ -681,7 +681,7 @@ void test_istream_extractors_arithmetic_char_13()
         VERIFY(iss3.eof());
 
         short s4 = 0;
-        IOv2::ostream oss4{IOv2::mem_device{""}};
+        IOv2::ostream oss4{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss4 << static_cast<long long>(std::numeric_limits<short>::min()) - 1;
         auto [dev4, err4] = oss4.detach(); dev4.dseek(0);
         T iss4{std::move(dev4)};
@@ -691,7 +691,7 @@ void test_istream_extractors_arithmetic_char_13()
         VERIFY(iss4.eof());
 
         int i1 = 0;
-        IOv2::ostream oss5{IOv2::mem_device{""}};
+        IOv2::ostream oss5{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss5 << std::numeric_limits<int>::max();
         auto [dev5, err5] = oss5.detach(); dev5.dseek(0);
         T iss5{std::move(dev5)};
@@ -701,7 +701,7 @@ void test_istream_extractors_arithmetic_char_13()
         VERIFY(iss5.eof());
 
         int i2 = 0;
-        IOv2::ostream oss6{IOv2::mem_device{""}};
+        IOv2::ostream oss6{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss6 << static_cast<long long>(std::numeric_limits<int>::max()) + 1;
         auto [dev6, err6] = oss6.detach(); dev6.dseek(0);
         T iss6{std::move(dev6)};
@@ -711,7 +711,7 @@ void test_istream_extractors_arithmetic_char_13()
         VERIFY(iss6.eof());
 
         int i3 = 0;
-        IOv2::ostream oss7{IOv2::mem_device{""}};
+        IOv2::ostream oss7{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss7 << std::numeric_limits<int>::min();
         auto [dev7, err7] = oss7.detach(); dev7.dseek(0);
         T iss7{std::move(dev7)};
@@ -721,7 +721,7 @@ void test_istream_extractors_arithmetic_char_13()
         VERIFY(iss7.eof());
 
         int i4 = 0;
-        IOv2::ostream oss8{IOv2::mem_device{""}};
+        IOv2::ostream oss8{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         oss8 << static_cast<long long>(std::numeric_limits<int>::min()) - 1;
         auto [dev8, err8] = oss8.detach(); dev8.dseek(0);
         T iss8{std::move(dev8)};
@@ -744,7 +744,7 @@ void test_istream_extractors_arithmetic_char_14()
     auto helper = []<template<typename, typename> class T>()
     {
         int i = 0;
-        T iss{IOv2::mem_device{" 43"}};
+        T iss{IOv2::mem_device{" 43"}, IOv2::locale<char>("C")};
         iss >> IOv2::noskipws >> i;
         VERIFY(!iss);
     };

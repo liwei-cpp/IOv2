@@ -22,9 +22,9 @@
 #include <common/defs.h>
 #include <common/metafunctions.h>
 #include <device/device_concepts.h>
-#include <io/traits/traits_base.h>
 #include <io/io_base.h>
 #include <io/streambuf_iterator.h>
+#include <io/traits/traits_base.h>
 #include <locale/locale.h>
 
 #include <concepts>
@@ -34,7 +34,6 @@
 #include <string>
 #include <thread>
 #include <type_traits>
-#include <utility>
 
 namespace IOv2
 {
