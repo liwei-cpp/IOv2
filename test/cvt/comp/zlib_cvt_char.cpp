@@ -3,6 +3,7 @@
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 #include <support/dump_info.h>
+#include <support/injectable_device.h>
 #include <support/verify.h>
 
 namespace
@@ -801,6 +802,79 @@ void test_zlib_cvt_eof_1()
         // calling get() again should hit the 'm_stream_ended' early-return and produce 0
         auto n2 = decomp.get(buf, 64);
         VERIFY(n2 == 0);
+    }
+
+    dump_info("Done\n");
+}
+
+void test_zlib_cvt_bos_4()
+{
+    using namespace IOv2;
+    dump_info("Test zlib_cvt teardown when main_cont_beg fails...");
+
+    // bos() hands zlib the direction and bos_impl() allocates the matching state --
+    // deflateInit for output, inflateInit for input -- while main_cont_beg() resets
+    // m_io_status to neutral when it fails. Releasing that state needs the direction too, so
+    // abs_cvt must call detach_impl() BEFORE the reset; otherwise close_stream() matches
+    // neither branch and zlib's internal state (350 KB compressing, 41 KB decompressing) is
+    // never freed. bos_impl()'s own guards do not cover this: they are released by the time
+    // bos_impl returns.
+    //
+    // Like test_zlib_cvt_bos_3, a plain run cannot see the leak -- MODE=sanitizer is what
+    // judges this test. What a plain run does check is that bos() really succeeded and
+    // main_cont_beg() really failed, i.e. that the case still reaches the window at all.
+    auto expect = [](auto& obj, io_status dir)
+    {
+        VERIFY(obj.bos() == dir);
+        bool got_exception = false;
+        try { obj.main_cont_beg(); }
+        catch (...) { got_exception = true; }
+        VERIFY(got_exception);
+    };
+
+    // Output: bos_impl() writes the 2-byte header into the root converter's buffer and
+    // main_cont_beg() flushes it out. Failing dput makes that flush throw on the write itself;
+    // failing dtell makes it throw on the reposition query that follows a successful write.
+    for (int which = 0; which < 2; ++which)
+    {
+        injectable_device<char> dev{std::string("")};
+        auto st = dev.shared_state();
+        if (which == 0) st->fail_dput = true;
+        else            st->fail_dtell = true;
+
+        Comp::zlib_cvt obj{no_rb_root_cvt{std::move(dev)}, 6};
+        expect(obj, io_status::output);
+    }   // dtor runs here; deflateEnd must already have happened.
+
+    std::string compressed;
+    {
+        Comp::zlib_cvt comp{rb_root_cvt{mem_device("")}, 6};
+        VERIFY(comp.bos() == io_status::output);
+        comp.main_cont_beg();
+        comp.put("hello", 5);
+        auto [dev, err] = comp.detach();
+        compressed = dev.str();
+    }
+
+    // Input: the header reads fine, so inflateInit's state is live when the query fails.
+    {
+        injectable_device<char> dev{compressed};
+        dev.shared_state()->fail_dtell = true;
+        Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
+        expect(obj, io_status::input);
+    }
+
+    // Negative control: on the same input payload, failing dget instead makes bos() itself
+    // throw. That is the path bos_impl()'s inflate_guard already covered and which never
+    // leaked. If it ever stops throwing, the three cases above have lost their window.
+    {
+        injectable_device<char> dev{compressed};
+        dev.shared_state()->fail_dget = true;
+        Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
+        bool got_exception = false;
+        try { (void)obj.bos(); }
+        catch (...) { got_exception = true; }
+        VERIFY(got_exception);
     }
 
     dump_info("Done\n");

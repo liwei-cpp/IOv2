@@ -566,3 +566,62 @@ void test_concur_attach_detach_1()
 
     dump_info("Done\n");
 }
+
+void test_concur_iostream_crossed_1()
+{
+    dump_info("Test crossed concurrency on one iostream case 1...");
+    using namespace IOv2;
+
+    // The three mutators that each already have a case of their own, now aimed at ONE iostream
+    // at the same time: assignment (replaces m_streambuf wholesale), direction switching
+    // (repositions the converter and clears the read buffer), and a library-initiated tie flush
+    // (walks that same converter from a sentry on another stream). Each pair is already covered
+    // -- assign x tie flush by test_concur_assign_tie_target_1, direction thrash alone by
+    // test_concur_switch_1 -- but a window that only opens when all three interleave shows up in
+    // neither, and only a bidirectional stream can host all three.
+    //
+    // The device carries a long run of one character with a delimiter at the end, so extraction
+    // leaves the read buffer non-empty: switch_to_put() only does its interesting work
+    // (tell -> seek -> clear the deque) from that state.
+    iostream target(mem_device<char>{std::string(4096, 'q') + " tail"});
+    ostream writer(mem_device<char>{});
+    writer.tie(&target);
+
+    const iostream src(mem_device<char>{std::string(4096, 'r') + " tail"});
+    std::atomic<bool> done{false};
+    spawn([&](int id)
+    {
+        if (id != 0)
+        {
+            while (!done.load(std::memory_order_relaxed))
+            {
+                switch (id)
+                {
+                    case 1: target.switch_to_get(); target.switch_to_put(); break;
+                    case 2: writer.put('x');                                break;   // tie flush
+                    default:
+                    {
+                        std::string s;
+                        target >> s;            // in_sentry  -> switch_to_get
+                        target.seek(0);
+                        target << 'z';          // out_sentry -> switch_to_put
+                        break;
+                    }
+                }
+            }
+            return;
+        }
+
+        for (int i = 0; i < kIters; ++i)
+        {
+            if (i % 2) target = src;                                              // copy
+            else       target = iostream(mem_device<char>{std::string(64, 'w')}); // move
+        }
+        done.store(true, std::memory_order_relaxed);
+    });
+
+    VERIFY(static_cast<bool>(writer));
+    writer.tie(nullptr);
+
+    dump_info("Done\n");
+}

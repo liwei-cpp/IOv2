@@ -7,6 +7,7 @@ void test_zlib_cvt_gen_6();
 void test_zlib_cvt_bos_1();
 void test_zlib_cvt_bos_2();
 void test_zlib_cvt_bos_3();
+void test_zlib_cvt_bos_4();
 void test_zlib_cvt_io_1();
 void test_zlib_cvt_io_2();
 void test_zlib_cvt_io_3();
@@ -44,6 +45,7 @@ void test_comp_cvt()
     test_zlib_cvt_bos_1();
     test_zlib_cvt_bos_2();
     test_zlib_cvt_bos_3();
+    test_zlib_cvt_bos_4();
     test_zlib_cvt_io_1();
     test_zlib_cvt_io_2();
     test_zlib_cvt_io_3();
