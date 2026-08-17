@@ -7,8 +7,10 @@
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
+#include <cstddef>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <support/dump_info.h>
 #include <support/verify.h>
 
@@ -744,6 +746,74 @@ void test_streambuf_char_io_switch_4()
         VERIFY(obj.sbumpc() == 'a');
         VERIFY(obj.sbumpc() == 'b');
     }
+
+    dump_info("Done\n");
+}
+
+
+// The device-direction counterpart of the case above: what a device can do, with no converter in
+// between, checked at both layers so the two must agree cell for cell. The stream-buffer half is
+// the one worth having -- a stream buffer is public API, so a caller using it directly never
+// passes a stream's class constraint, and without it the mismatch reaches run time as the
+// cvt_error runtime_cvt throws when init_cvt() asks a one-directional pipeline to switch.
+namespace
+{
+// Neither device has any members, so both are nothrow-movable and satisfy io_device.
+struct put_only_device
+{
+    using char_type = char;
+    void dput(const char*, std::size_t) {}
+    void dflush() {}
+};
+
+struct get_only_device
+{
+    using char_type = char;
+    std::size_t dget(char*, std::size_t) { return 0; }
+    bool deof() { return true; }
+};
+
+// std::is_constructible_v, which the case above uses, is not enough here: the streams carry
+// their constraint on the *class*, so istream<put_only_device, char> is not a type at all and
+// naming it inside is_constructible_v is a hard error rather than a false. The device has to
+// stay a template parameter so the check happens under substitution.
+template <template <typename, typename> class TStream, typename TDevice>
+concept buildable_over = requires(TDevice dev) { TStream<TDevice, char>{std::move(dev)}; };
+}
+
+void test_streambuf_char_direction_1()
+{
+    dump_info("Test streambuf<char> device direction constraint 1...");
+
+    using Get  = get_only_device;
+    using Put  = put_only_device;
+    using Both = IOv2::mem_device<char>;
+
+    // input wants a readable device, at both layers
+    static_assert( buildable_over<IOv2::istreambuf, Get>);
+    static_assert(!buildable_over<IOv2::istreambuf, Put>);
+    static_assert( buildable_over<IOv2::istream,    Get>);
+    static_assert(!buildable_over<IOv2::istream,    Put>);
+
+    // output wants a writable device
+    static_assert( buildable_over<IOv2::ostreambuf, Put>);
+    static_assert(!buildable_over<IOv2::ostreambuf, Get>);
+    static_assert( buildable_over<IOv2::ostream,    Put>);
+    static_assert(!buildable_over<IOv2::ostream,    Get>);
+
+    // bidirectional wants both; one direction alone is not enough
+    static_assert(!buildable_over<IOv2::streambuf,  Get>);
+    static_assert(!buildable_over<IOv2::streambuf,  Put>);
+    static_assert(!buildable_over<IOv2::iostream,   Get>);
+    static_assert(!buildable_over<IOv2::iostream,   Put>);
+
+    // positive control: a device that does both is accepted everywhere
+    static_assert( buildable_over<IOv2::istreambuf, Both>);
+    static_assert( buildable_over<IOv2::ostreambuf, Both>);
+    static_assert( buildable_over<IOv2::streambuf,  Both>);
+    static_assert( buildable_over<IOv2::istream,    Both>);
+    static_assert( buildable_over<IOv2::ostream,    Both>);
+    static_assert( buildable_over<IOv2::iostream,   Both>);
 
     dump_info("Done\n");
 }
