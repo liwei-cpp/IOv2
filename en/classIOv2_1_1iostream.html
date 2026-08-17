@@ -205,6 +205,7 @@ requires (std::is_same_v&lt; <a class="el" href="namespaceIOv2.html#a09b31017574
 <tr class="memitem:ab51021dd99a79828fac211feff60f8f5" id="r_ab51021dd99a79828fac211feff60f8f5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#ab51021dd99a79828fac211feff60f8f5">operator=</a> (<a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;&amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="separator:ab51021dd99a79828fac211feff60f8f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00077052d7f7c10acbd6b0570d395e7f" id="r_a00077052d7f7c10acbd6b0570d395e7f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#a00077052d7f7c10acbd6b0570d395e7f">~iostream</a> ()=<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">default</a></td></tr>
+<tr class="memdesc:a00077052d7f7c10acbd6b0570d395e7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor.  <br /></td></tr>
 <tr class="separator:a00077052d7f7c10acbd6b0570d395e7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c6f824506da37ce2ee2065126a4f5ba" id="r_a9c6f824506da37ce2ee2065126a4f5ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1iostream.html#a9c6f824506da37ce2ee2065126a4f5ba">operator=</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="classIOv2_1_1iostream.html">iostream</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">other</a>)</td></tr>
 <tr class="memdesc:a9c6f824506da37ce2ee2065126a4f5ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment with the strong exception guarantee: the copy is made into a temporary first (which may throw, with the destination still untouched), and the commit is a move assignment, noexcept throughout. A copy always throws on a move-only kernel (<code>file_device</code>), which is why self-assignment is short-circuited.  <br /></td></tr>
@@ -873,6 +874,8 @@ template&lt;io_device TDevice, <a class="el" href="namespaceIOv2.html#a09b310175
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Destructor. </p>
 
 </div>
 </div>
