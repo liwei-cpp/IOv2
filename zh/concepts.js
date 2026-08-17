@@ -31,6 +31,8 @@ var concepts =
       [ "cpt_cvt_pipe_creator", "conceptIOv2_1_1cpt__cvt__pipe__creator.html", null ],
       [ "io_device", "conceptIOv2_1_1io__device.html", null ],
       [ "is_mem_device", "conceptIOv2_1_1is__mem__device.html", null ],
+      [ "cvt_direction_capable", "conceptIOv2_1_1cvt__direction__capable.html", null ],
+      [ "cvt_fits_direction", "conceptIOv2_1_1cvt__fits__direction.html", null ],
       [ "char_sink_for", "conceptIOv2_1_1char__sink__for.html", null ],
       [ "is_in_sentry", "conceptIOv2_1_1is__in__sentry.html", null ],
       [ "istream_type", "conceptIOv2_1_1istream__type.html", null ],

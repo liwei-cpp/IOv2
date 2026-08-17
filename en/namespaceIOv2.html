@@ -151,7 +151,7 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html">abs_flusher</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Abstract base carrying the polymorphic <code><a class="el" href="classIOv2_1_1abs__flusher.html#a1473480bce1f8a5bfae6cbdfa81309fd" title="Pure virtual interface that flushes this stream on a best-effort basis; implemented by out_flusher&lt;T&gt;...">try_flush()</a></code> interface.  <a href="classIOv2_1_1abs__flusher.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Abstract base carrying the polymorphic <code><a class="el" href="classIOv2_1_1abs__flusher.html#a802ea48cf50e1e72ad5f263161bf5d09" title="Pure virtual interface that flushes this stream on a best-effort basis; implemented by out_flusher&lt;T&gt;...">try_flush()</a></code> interface.  <a href="classIOv2_1_1abs__flusher.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -498,7 +498,7 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output stream-buffer iterator (output iterator).  <a href="classIOv2_1_1ostreambuf__iterator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__flusher.html">out_flusher</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">CRTP base carrying the polymorphic <code><a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8" title="Flushes this stream on a best-effort basis: flush()es if the lock can be taken, gives up otherwise.">try_flush()</a></code>: the down-cast to the concrete stream type <code>T</code> is localized here.  <a href="structIOv2_1_1out__flusher.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">CRTP base carrying the polymorphic <code><a class="el" href="structIOv2_1_1out__flusher.html#a7c72bdbf79eeb3a93c719d5c0514066a" title="Flushes this stream on a best-effort basis: flush()es if the lock can be taken, gives up otherwise.">try_flush()</a></code>: the down-cast to the concrete stream type <code>T</code> is localized here.  <a href="structIOv2_1_1out__flusher.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII sentry for output operations: performs the shared setup at the entry of every insertion operation and an automatic flush at its end.  <a href="structIOv2_1_1out__sentry.html#details">More...</a><br /></td></tr>
@@ -620,6 +620,12 @@ Concepts</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1is__mem__device.html">is_mem_device</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Concept to determine if a type is <code>mem_device</code>. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__direction__capable.html">cvt_direction_capable</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether converter <code>TCvt</code> is capable enough for a stream buffer whose direction is (<code>IsIn</code>, <code>IsOut</code>). <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__fits__direction.html">cvt_fits_direction</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the pipeline that <code>TCreator</code> builds on top of root converter <code>TRootCvt</code> is capable enough for a stream buffer whose direction is (<code>IsIn</code>, <code>IsOut</code>). <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1char__sink__for.html">char_sink_for</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether <code>TIter</code> is usable as an <b>output</b> iterator over character type <code>TChar</code> &ndash; the iterator constraint used by insertion-side extension points. <br /></td></tr>

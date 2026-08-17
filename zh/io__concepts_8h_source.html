@@ -98,20 +98,35 @@ $(document).ready(function(){initNavTree('io__concepts_8h_source.html',''); init
 </div><!--header-->
 <div class="contents">
 <a href="io__concepts_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#pragma once</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>&gt;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>{</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="keyword">template</span> &lt;io_converter TRootCvt, cvt_creator TCreator&gt;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">   65</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">ext_to_int</a> =</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keyword">typename</span> <span class="keyword">decltype</span>(std::declval&lt;TCreator&gt;().create(std::declval&lt;TRootCvt&gt;()))::internal_type;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>}</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#include &lt;<a class="code" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>&gt;</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceIOv2.html">IOv2</a></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>{</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="keyword">template</span> &lt;io_converter TRootCvt, cvt_creator TCreator&gt;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">   78</a></span><span class="keyword">using </span><a class="code hl_typedef" href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">ext_to_int</a> =</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keyword">typename</span> <span class="keyword">decltype</span>(std::declval&lt;TCreator&gt;().create(std::declval&lt;TRootCvt&gt;()))::internal_type;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TCvt, <span class="keywordtype">bool</span> IsIn, <span class="keywordtype">bool</span> IsOut&gt;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1cvt__direction__capable.html">  130</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1cvt__direction__capable.html">cvt_direction_capable</a> =</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    ((<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a> &amp;&amp; <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a>) ? <a class="code hl_concept" href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">cvt_cpt::support_io_switch&lt;TCvt&gt;</a></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>   :  <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>           ? cvt_cpt::support_get&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCvt</a>&gt;</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>                     : cvt_cpt::support_put&lt;<a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TCvt</a>&gt;);</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> TRootCvt, <span class="keyword">typename</span> TCreator, <span class="keywordtype">bool</span> IsIn, <span class="keywordtype">bool</span> IsOut&gt;</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno"><a class="line" href="conceptIOv2_1_1cvt__fits__direction.html">  184</a></span><span class="keyword">concept </span><a class="code hl_concept" href="conceptIOv2_1_1cvt__fits__direction.html">cvt_fits_direction</a> =</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    <a class="code hl_concept" href="conceptIOv2_1_1cvt__direction__capable.html">cvt_direction_capable</a>&lt;</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        <span class="keyword">decltype</span>(std::declval&lt;const TCreator&amp;&gt;().create(std::declval&lt;TRootCvt&gt;())), <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsIn</a>, <a class="code hl_variable" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IsOut</a>&gt;;</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>}</div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__cpt_1_1support__io__switch_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__cpt_1_1support__io__switch.html">IOv2::cvt_cpt::support_io_switch</a></div><div class="ttdef"><b>Definition</b> cvt_concepts.h:198</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__direction__capable_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__direction__capable.html">IOv2::cvt_direction_capable</a></div><div class="ttdoc">转换器 TCvt 的读写能力是否够得上方向为 (IsIn, IsOut) 的流缓冲区。</div><div class="ttdef"><b>Definition</b> io_concepts.h:130</div></div>
+<div class="ttc" id="aconceptIOv2_1_1cvt__fits__direction_html"><div class="ttname"><a href="conceptIOv2_1_1cvt__fits__direction.html">IOv2::cvt_fits_direction</a></div><div class="ttdoc">工厂 TCreator 在根转换器 TRootCvt 之上建出的管线，能力是否够得上方向为 (IsIn, IsOut) 的流缓冲区。</div><div class="ttdef"><b>Definition</b> io_concepts.h:184</div></div>
 <div class="ttc" id="acvt__concepts_8h_html"><div class="ttname"><a href="cvt__concepts_8h.html">cvt_concepts.h</a></div></div>
 <div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:19</div></div>
-<div class="ttc" id="anamespaceIOv2_html_af5d914ec6e018ee23ee26db2b9877aac"><div class="ttname"><a href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">IOv2::ext_to_int</a></div><div class="ttdeci">typename decltype(std::declval&lt; TCreator &gt;().create(std::declval&lt; TRootCvt &gt;()))::internal_type ext_to_int</div><div class="ttdoc">推导转换器管线暴露的内部数据类型（internal_type）。</div><div class="ttdef"><b>Definition</b> io_concepts.h:66</div></div>
+<div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:80</div></div>
+<div class="ttc" id="anamespaceIOv2_html_af5d914ec6e018ee23ee26db2b9877aac"><div class="ttname"><a href="namespaceIOv2.html#af5d914ec6e018ee23ee26db2b9877aac">IOv2::ext_to_int</a></div><div class="ttdeci">typename decltype(std::declval&lt; TCreator &gt;().create(std::declval&lt; TRootCvt &gt;()))::internal_type ext_to_int</div><div class="ttdoc">推导转换器管线暴露的内部数据类型（internal_type）。</div><div class="ttdef"><b>Definition</b> io_concepts.h:79</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

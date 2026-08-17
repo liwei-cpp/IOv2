@@ -151,7 +151,7 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__cvt.html">abs_cvt</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1abs__flusher.html">abs_flusher</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="classIOv2_1_1abs__flusher.html#a1473480bce1f8a5bfae6cbdfa81309fd" title="尽力刷新本流的纯虚接口；由 out_flusher&lt;T&gt; 实现。">try_flush()</a></code> 接口的抽象基类。  <a href="classIOv2_1_1abs__flusher.html#details">更多...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="classIOv2_1_1abs__flusher.html#a802ea48cf50e1e72ad5f263161bf5d09" title="尽力刷新本流的纯虚接口；由 out_flusher&lt;T&gt; 实现。">try_flush()</a></code> 接口的抽象基类。  <a href="classIOv2_1_1abs__flusher.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1abs__ft.html">abs_ft</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -498,7 +498,7 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出流缓冲区迭代器（输出迭代器）。  <a href="classIOv2_1_1ostreambuf__iterator.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__flusher.html">out_flusher</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="structIOv2_1_1out__flusher.html#a238dfc31ade21ba4c92318705d2d6df8" title="尽力刷新本流：取到锁就 flush()，取不到就放弃。">try_flush()</a></code> 的 CRTP 基类：对具体流类型 <code>T</code> 的向下转型集中于此。  <a href="structIOv2_1_1out__flusher.html#details">更多...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">承载多态 <code><a class="el" href="structIOv2_1_1out__flusher.html#a7c72bdbf79eeb3a93c719d5c0514066a" title="尽力刷新本流：取到锁就 flush()，取不到就放弃。">try_flush()</a></code> 的 CRTP 基类：对具体流类型 <code>T</code> 的向下转型集中于此。  <a href="structIOv2_1_1out__flusher.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1out__sentry.html">out_sentry</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">输出操作的 RAII 哨兵：在每次插入操作的入口统一完成前置准备与末尾自动刷新。  <a href="structIOv2_1_1out__sentry.html#details">更多...</a><br /></td></tr>
@@ -620,6 +620,12 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1is__mem__device.html">is_mem_device</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">判断一个类型是否为 <code>mem_device</code> 的概念（Concept）。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__direction__capable.html">cvt_direction_capable</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">转换器 <code>TCvt</code> 的读写能力是否够得上方向为 (<code>IsIn</code>, <code>IsOut</code>) 的流缓冲区。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__fits__direction.html">cvt_fits_direction</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">工厂 <code>TCreator</code> 在根转换器 <code>TRootCvt</code> 之上建出的管线，能力是否够得上方向为 (<code>IsIn</code>, <code>IsOut</code>) 的流缓冲区。 <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1char__sink__for.html">char_sink_for</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>TIter</code> 能否作为字符类型为 <code>TChar</code> 的**输出**迭代器使用——插入侧扩展点的迭代器约束。 <br /></td></tr>

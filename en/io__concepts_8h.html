@@ -91,6 +91,7 @@ $(document).ready(function(){initNavTree('io__concepts_8h.html',''); initResizab
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#concepts">Concepts</a> &#124;
 <a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle"><div class="title">io_concepts.h File Reference</div></div>
 </div><!--header-->
@@ -187,6 +188,15 @@ Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+Concepts</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__direction__capable.html">IOv2::cvt_direction_capable</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether converter <code>TCvt</code> is capable enough for a stream buffer whose direction is (<code>IsIn</code>, <code>IsOut</code>). <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__fits__direction.html">IOv2::cvt_fits_direction</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the pipeline that <code>TCreator</code> builds on top of root converter <code>TRootCvt</code> is capable enough for a stream buffer whose direction is (<code>IsIn</code>, <code>IsOut</code>). <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:af5d914ec6e018ee23ee26db2b9877aac" id="r_af5d914ec6e018ee23ee26db2b9877aac"><td class="memTemplParams" colspan="2">template&lt;io_converter TRootCvt, cvt_creator TCreator&gt; </td></tr>
@@ -195,7 +205,10 @@ Typedefs</h2></td></tr>
 <tr class="separator:af5d914ec6e018ee23ee26db2b9877aac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Concept and type-utility file for the I/O layer. Building on the converter system (see <a class="el" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>), this file provides the compile-time type utilities used by the I/O layer. It currently contains <code>ext_to_int</code>, which derives the internal character type ultimately exposed by a converter pipeline from a "root converter + converter creator" pair. This alias mainly serves the class-template argument deduction (CTAD) of the streambuf family.  </p>
+<div class="textblock"><p>Concept and type-utility file for the I/O layer. Building on the converter system (see <a class="el" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>), this file provides the compile-time type utilities used by the I/O layer:</p><ul>
+<li><code>ext_to_int</code>, which derives the internal character type ultimately exposed by a converter pipeline from a "root converter + converter creator" pair. This alias mainly serves the class-template argument deduction (CTAD) of the streambuf family.</li>
+<li><code>cvt_direction_capable</code> / <code>cvt_fits_direction</code>, which decide whether a converter pipeline is capable enough for a stream buffer of a given direction. This belongs to the I/O layer rather than the converter layer: a direction (<code>IsIn</code>/<code>IsOut</code>) is a <em>stream</em> notion, while the converter layer only supplies the capability primitives <code>cvt_cpt::support_get</code> / <code>support_put</code> / <code>support_io_switch</code> for this layer to compose. The split mirrors the device side, where <code>dev_cpt</code>'s primitives live in <code><a class="el" href="device__concepts_8h.html">device/device_concepts.h</a></code> and <code><a class="el" href="iostream_8h.html">io/iostream.h</a></code> composes them into a direction constraint.  </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

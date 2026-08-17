@@ -91,6 +91,7 @@ $(document).ready(function(){initNavTree('io__concepts_8h.html',''); initResizab
 <div class="header">
   <div class="summary">
 <a href="#namespaces">命名空间</a> &#124;
+<a href="#concepts">概念</a> &#124;
 <a href="#typedef-members">类型定义</a>  </div>
   <div class="headertitle"><div class="title">io_concepts.h 文件参考</div></div>
 </div><!--header-->
@@ -187,6 +188,15 @@ io_concepts.h 的引用(Include)关系图:</div>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
+概念</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__direction__capable.html">IOv2::cvt_direction_capable</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">转换器 <code>TCvt</code> 的读写能力是否够得上方向为 (<code>IsIn</code>, <code>IsOut</code>) 的流缓冲区。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">concept &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="conceptIOv2_1_1cvt__fits__direction.html">IOv2::cvt_fits_direction</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">工厂 <code>TCreator</code> 在根转换器 <code>TRootCvt</code> 之上建出的管线，能力是否够得上方向为 (<code>IsIn</code>, <code>IsOut</code>) 的流缓冲区。 <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 类型定义</h2></td></tr>
 <tr class="memitem:af5d914ec6e018ee23ee26db2b9877aac" id="r_af5d914ec6e018ee23ee26db2b9877aac"><td class="memTemplParams" colspan="2">template&lt;io_converter TRootCvt, cvt_creator TCreator&gt; </td></tr>
@@ -195,7 +205,10 @@ io_concepts.h 的引用(Include)关系图:</div>
 <tr class="separator:af5d914ec6e018ee23ee26db2b9877aac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
-<div class="textblock"><p>I/O 层的概念与类型工具文件。 本文件在转换器体系（见 <a class="el" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>）之上提供 I/O 层使用的编译期类型工具， 目前包含 <code>ext_to_int</code>——用于从「根转换器 + 转换器工厂」推导出转换器管线最终暴露的 内部字符类型。该别名主要服务于 streambuf 系列类型的类模板实参推导（CTAD）。 </p>
+<div class="textblock"><p>I/O 层的概念与类型工具文件。 本文件在转换器体系（见 <a class="el" href="cvt__concepts_8h.html">cvt/cvt_concepts.h</a>）之上提供 I/O 层使用的编译期类型工具：</p><ul>
+<li><code>ext_to_int</code>——用于从「根转换器 + 转换器工厂」推导出转换器管线最终暴露的内部字符类型。 该别名主要服务于 streambuf 系列类型的类模板实参推导（CTAD）。</li>
+<li><code>cvt_direction_capable</code> / <code>cvt_fits_direction</code>——判断一条转换管线的读写能力是否够得上 某个方向的流缓冲区。这是 I/O 层的判据而非转换器层的：方向（<code>IsIn</code>/<code>IsOut</code>）是**流**的 概念，转换器层只提供 <code>cvt_cpt::support_get</code> / <code>support_put</code> / <code>support_io_switch</code> 这些能力原语，由本层组合。与设备一侧的分工一致——<code>dev_cpt</code> 的能力原语定义在 <code><a class="el" href="device__concepts_8h.html">device/device_concepts.h</a></code>，把它们组合成方向约束的是 <code><a class="el" href="iostream_8h.html">io/iostream.h</a></code>。 </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
