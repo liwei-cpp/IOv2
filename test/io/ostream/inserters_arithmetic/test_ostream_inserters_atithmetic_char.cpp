@@ -161,7 +161,7 @@ void test_ostream_inserters_arithmetic_char_2()
     auto helper = []<template<typename, typename> class T>()
     {
         double val2 = 3.5e230;
-        T os2{IOv2::mem_device{""}};
+        T os2{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         os2.precision(3);
         os2.setf(IOv2::ios_defs::fixed);
 
@@ -219,8 +219,8 @@ void test_ostream_inserters_arithmetic_char_4()
 
     auto helper = []<template <typename, typename> class T>()
     {
-        T o1(IOv2::mem_device{""});
-        T o2(IOv2::mem_device{""});
+        T o1(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+        T o2(IOv2::mem_device{""}, IOv2::locale<char>("C"));
 
         o1 << IOv2::hex << IOv2::showbase << IOv2::setw(6) << IOv2::internal << 0xff;
         auto [dev4, err4] = o1.detach();
@@ -244,12 +244,12 @@ void test_ostream_inserters_arithmetic_char_5()
     auto helper = []<template <typename, typename> class T>()
     {
         double pi = 3.14159265358979323846;
-        T ostr(IOv2::mem_device{""});
+        T ostr(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         ostr.precision(20);
         ostr << pi;
         auto [dev6, err6] = ostr.detach();
         std::string sval = dev6.str();
-        IOv2::istream istr(IOv2::mem_device{sval});
+        IOv2::istream istr(IOv2::mem_device{sval}, IOv2::locale<char>("C"));
         double d;
         istr >> d;
         VERIFY( std::abs(pi-d)/pi < DBL_EPSILON );
@@ -270,12 +270,12 @@ void test_ostream_inserters_arithmetic_char_6()
         int prec = std::numeric_limits<double>::digits10 + 2;
         double oval = std::numeric_limits<double>::min();
 
-        T ostr(IOv2::mem_device{""});
+        T ostr(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         ostr.precision(prec);
         ostr << oval;
         auto [dev7, err7] = ostr.detach();
         auto sval = dev7.str();
-        IOv2::istream istr{IOv2::mem_device{sval}};
+        IOv2::istream istr{IOv2::mem_device{sval}, IOv2::locale<char>("C")};
         double ival;
         istr >> ival;
         VERIFY( std::abs(oval-ival)/oval < DBL_EPSILON );
@@ -293,10 +293,10 @@ void test_ostream_inserters_arithmetic_char_7()
 
     auto helper = []<template <typename, typename> class T>()
     {
-        T ostr1(IOv2::mem_device{""});
-        T ostr2(IOv2::mem_device{""});
-        T ostr3(IOv2::mem_device{""});
-        T ostr4(IOv2::mem_device{""});
+        T ostr1(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+        T ostr2(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+        T ostr3(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+        T ostr4(IOv2::mem_device{""}, IOv2::locale<char>("C"));
 
         ostr1.setf(IOv2::ios_defs::oct);
         ostr1.setf(IOv2::ios_defs::hex);
@@ -359,7 +359,7 @@ void test_ostream_inserters_arithmetic_char_8()
     {
         int k =3;
         MyClass X(3.1);
-        T oss(IOv2::mem_device{""});
+        T oss(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         oss << (k && X);
     };
 
@@ -417,7 +417,7 @@ void test_ostream_inserters_arithmetic_char_10()
 
     auto helper = []<template<typename, typename> class TO, typename T>()
     {
-        TO os{IOv2::mem_device{""}};
+        TO os{IOv2::mem_device{""}, IOv2::locale<char>("C")};
         
         T d = 272.; // 0x1.1p+8;
         os << IOv2::hexfloat << IOv2::setprecision(1);
@@ -485,7 +485,7 @@ void test_ostream_inserters_arithmetic_char_11()
     auto helper = []<template<typename, typename> class T>()
     {
         float nan = std::numeric_limits<float>::quiet_NaN();
-        T os(IOv2::mem_device{""});
+        T os(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os << -nan;
         auto [dev18, err18] = os.detach();
         VERIFY(dev18.str()[0] == '-');
@@ -506,25 +506,25 @@ void test_ostream_inserters_arithmetic_char_12()
         double da[2] = {1.0, 2.0};
         char   ca[4] = "abc";
 
-        T os(IOv2::mem_device{""});
+        T os(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os << ia;
         auto [dev19, err19] = os.detach();
 
-        T os2(IOv2::mem_device{""});
+        T os2(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os2 << static_cast<const void*>(ia);
         auto [dev20, err20] = os2.detach();
         VERIFY(dev19.str() == dev20.str());
 
-        T os3(IOv2::mem_device{""});
+        T os3(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os3 << da;
         auto [dev21, err21] = os3.detach();
 
-        T os4(IOv2::mem_device{""});
+        T os4(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os4 << static_cast<const void*>(da);
         auto [dev22, err22] = os4.detach();
         VERIFY(dev21.str() == dev22.str());
 
-        T os5(IOv2::mem_device{""});
+        T os5(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os5 << ca;
         auto [dev23, err23] = os5.detach();
         VERIFY(dev23.str() == "abc");
@@ -535,16 +535,16 @@ void test_ostream_inserters_arithmetic_char_12()
         volatile int*  via = ia;
         volatile char* vca = ca;
 
-        T os6(IOv2::mem_device{""});
+        T os6(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os6 << via;
         auto [dev24, err24] = os6.detach();
         VERIFY(dev24.str() == dev20.str());
 
-        T os7(IOv2::mem_device{""});
+        T os7(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os7 << vca;
         auto [dev25, err25] = os7.detach();
 
-        T os8(IOv2::mem_device{""});
+        T os8(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os8 << static_cast<const void*>(ca);
         auto [dev26, err26] = os8.detach();
         VERIFY(dev25.str() == dev26.str());
@@ -557,13 +557,13 @@ void test_ostream_inserters_arithmetic_char_12()
         const char* volatile ccpv = ca;
         int* volatile        ipv = ia;
 
-        T os9(IOv2::mem_device{""});
+        T os9(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os9 << cpv << '/' << ccpv;
         VERIFY(os9.good());
         auto [dev27, err27] = os9.detach();
         VERIFY(dev27.str() == "abc/abc");
 
-        T os10(IOv2::mem_device{""});
+        T os10(IOv2::mem_device{""}, IOv2::locale<char>("C"));
         os10 << ipv;
         auto [dev28, err28] = os10.detach();
         VERIFY(dev28.str() == dev20.str());

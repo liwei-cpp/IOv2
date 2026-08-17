@@ -5,6 +5,11 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  # Manual trigger. Without it the only ways to get a run are pushing to a
+  # default branch or opening a PR at one, so work on a feature branch is
+  # unverified until it is already up for review -- exactly when a red result
+  # is most expensive to act on.
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -21,6 +26,52 @@ jobs:
     container:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
 
+    env:
+      # One representative per axis the library actually branches on, not a
+      # sample of the ~300 locales the image ships: a second locale of the same
+      # shape re-runs the same code path, costing time and reporting nothing.
+      # Each entry below differs from every other in at least one field that
+      # the facets read.
+      #
+      #   C.UTF-8           UTF-8 charmap with C conventions: no thousands
+      #                     separator at all, sign position unspecified
+      #   en_US.UTF-8       '.' decimal, ',' thousands, sign before the value
+      #   zh_CN.UTF-8       same shape, different sign position, non-Latin --
+      #                     and the maintainer's own default, the locale where
+      #                     a difference was once misdiagnosed as a defect
+      #   de_DE.UTF-8       ',' decimal and '.' thousands, i.e. the two
+      #                     swapped: catches anything that hard-codes '.'
+      #   de_CH.UTF-8       '.' decimal but a U+2019 thousands separator, i.e.
+      #                     multibyte -- this is what drives the "separator
+      #                     does not fit in one char" fallback that drops
+      #                     grouping entirely
+      #   fr_CA.UTF-8       the same fallback with U+202F, and reached through
+      #                     the monetary facet rather than the numeric one
+      #   ps_AF.UTF-8       multibyte *decimal point*: the one case where the
+      #                     fallback substitutes a character instead of
+      #                     dropping one, and it differs narrow vs wide
+      #   tr_TR.UTF-8       dotless i, so toupper('i') != 'I' -- breaks any
+      #                     assumption that ctype is ASCII underneath
+      #   en_HK.UTF-8       n_sign_posn=0, so negative money is parenthesised
+      #   zh_CN.GBK         non-UTF-8, multibyte charmap
+      #   cs_CZ.ISO-8859-2  non-UTF-8 single-byte charmap whose separator is
+      #                     one high byte (0xA0), which is negative once
+      #                     stored in a signed char
+      #   ru_RU.KOI8-R      the same, with a different high byte (0x9A)
+      #
+      # Plain C is absent because the container sets no LANG, so every other
+      # job in this workflow already runs there.
+      IOV2_LOCALES: >-
+        C.UTF-8 en_US.UTF-8 zh_CN.UTF-8 de_DE.UTF-8
+        de_CH.UTF-8 fr_CA.UTF-8 ps_AF.UTF-8 tr_TR.UTF-8
+        en_HK.UTF-8 zh_CN.GBK cs_CZ.ISO-8859-2 ru_RU.KOI8-R
+      # A sanitizer run costs several times a plain one, so this is the three
+      # locales where a sanitizer has something specific to say: a separator
+      # that is a single high byte in a signed char, a non-UTF-8 multibyte
+      # charmap, and the multibyte-decimal-point fallback.
+      IOV2_LOCALES_SAN: >-
+        cs_CZ.ISO-8859-2 zh_CN.GBK ps_AF.UTF-8
+
     steps:
     - uses: actions/checkout@v6
 
@@ -29,10 +80,57 @@ jobs:
         cd test
         make -j$(nproc) test CXX=${{ matrix.compiler }} MODE=release
 
+    - name: Run tests (Release) across locales
+      run: |
+        cd test
+        # No rebuild: this re-runs the binaries the previous step just built,
+        # because the only variable here is the process locale. Compiling once
+        # and re-running is what makes several locales affordable at all.
+        #
+        # Why this exists: nothing else in the workflow leaves the C locale --
+        # the container sets no LANG, and the install-paths job pins LC_ALL=C.
+        # So a green pipeline used to say nothing about any other locale, while
+        # the library's facets are precisely the code that reads them.
+        for loc in $IOV2_LOCALES; do
+          # glibc does not fail on an unknown locale: it warns on stderr and
+          # silently falls back to C. Without this check, losing locales-all
+          # from the image would turn the whole matrix into N more C runs --
+          # green, and testing nothing.
+          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
+            echo "[!] locale $loc is not available in this image"; exit 1
+          fi
+          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
+          for t in bin_release/test_*; do
+            LC_ALL="$loc" "$t" > /dev/null \
+              || { echo "[!] $t failed under LC_ALL=$loc"; exit 1; }
+          done
+        done
+
     - name: Run tests (Sanitizers)
       run: |
         cd test
         make -j$(nproc) test CXX=${{ matrix.compiler }} MODE=sanitizer
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+
+    - name: Run tests (Sanitizers) across locales
+      run: |
+        cd test
+        # Again no rebuild -- the sanitizer binaries from the previous step are
+        # reused. This pairing is the point: the locale-dependent paths are
+        # where a stray byte becomes an out-of-range index, and only a
+        # sanitizer run reports that rather than quietly producing wrong text.
+        for loc in $IOV2_LOCALES_SAN; do
+          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
+            echo "[!] locale $loc is not available in this image"; exit 1
+          fi
+          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
+          for t in bin_sanitizer/test_*; do
+            LC_ALL="$loc" "$t" > /dev/null \
+              || { echo "[!] $t failed under LC_ALL=$loc"; exit 1; }
+          done
+        done
       env:
         ASAN_OPTIONS: halt_on_error=1
         UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1

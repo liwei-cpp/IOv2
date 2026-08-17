@@ -159,7 +159,7 @@ void test_ostream_inserters_arithmetic_wchar_t_2()
     auto helper = []<template<typename, typename> class T>()
     {
         double val2 = 3.5e230;
-        T os2{IOv2::mem_device{L""}};
+        T os2{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C")};
         os2.precision(3);
         os2.setf(IOv2::ios_defs::fixed);
 
@@ -217,8 +217,8 @@ void test_ostream_inserters_arithmetic_wchar_t_4()
 
     auto helper = []<template <typename, typename> class T>()
     {
-        T o1(IOv2::mem_device{L""});
-        T o2(IOv2::mem_device{L""});
+        T o1(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
+        T o2(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
 
         o1 << IOv2::hex << IOv2::showbase << IOv2::setw(6) << IOv2::internal << 0xff;
         auto [dev4, err4] = o1.detach();
@@ -242,12 +242,12 @@ void test_ostream_inserters_arithmetic_wchar_t_5()
     auto helper = []<template <typename, typename> class T>()
     {
         double pi = 3.14159265358979323846;
-        T ostr(IOv2::mem_device{L""});
+        T ostr(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         ostr.precision(20);
         ostr << pi;
         auto [dev6, err6] = ostr.detach();
         std::wstring sval = dev6.str();
-        IOv2::istream istr(IOv2::mem_device{sval});
+        IOv2::istream istr(IOv2::mem_device{sval}, IOv2::locale<wchar_t>("C"));
         double d;
         istr >> d;
         VERIFY( std::abs(pi-d)/pi < DBL_EPSILON );
@@ -268,12 +268,12 @@ void test_ostream_inserters_arithmetic_wchar_t_6()
         int prec = std::numeric_limits<double>::digits10 + 2;
         double oval = std::numeric_limits<double>::min();
 
-        T ostr(IOv2::mem_device{L""});
+        T ostr(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         ostr.precision(prec);
         ostr << oval;
         auto [dev7, err7] = ostr.detach();
         auto sval = dev7.str();
-        IOv2::istream istr{IOv2::mem_device{sval}};
+        IOv2::istream istr{IOv2::mem_device{sval}, IOv2::locale<wchar_t>("C")};
         double ival;
         istr >> ival;
         VERIFY( std::abs(oval-ival)/oval < DBL_EPSILON );
@@ -291,10 +291,10 @@ void test_ostream_inserters_arithmetic_wchar_t_7()
 
     auto helper = []<template <typename, typename> class T>()
     {
-        T ostr1(IOv2::mem_device{L""});
-        T ostr2(IOv2::mem_device{L""});
-        T ostr3(IOv2::mem_device{L""});
-        T ostr4(IOv2::mem_device{L""});
+        T ostr1(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
+        T ostr2(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
+        T ostr3(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
+        T ostr4(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
 
         ostr1.setf(IOv2::ios_defs::oct);
         ostr1.setf(IOv2::ios_defs::hex);
@@ -357,7 +357,7 @@ void test_ostream_inserters_arithmetic_wchar_t_8()
     {
         int k =3;
         MyClass X(3.1);
-        T oss(IOv2::mem_device{L""});
+        T oss(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         oss << (k && X);
     };
 
@@ -415,7 +415,7 @@ void test_ostream_inserters_arithmetic_wchar_t_10()
 
     auto helper = []<template<typename, typename> class TO, typename T>()
     {
-        TO os{IOv2::mem_device{L""}};
+        TO os{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C")};
         
         T d = 272.; // 0x1.1p+8;
         os << IOv2::hexfloat << IOv2::setprecision(1);
@@ -483,7 +483,7 @@ void test_ostream_inserters_arithmetic_wchar_t_11()
     auto helper = []<template<typename, typename> class T>()
     {
         float nan = std::numeric_limits<float>::quiet_NaN();
-        T os(IOv2::mem_device{L""});
+        T os(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os << -nan;
         auto [dev18, err18] = os.detach();
         VERIFY(dev18.str()[0] == L'-');
@@ -504,25 +504,25 @@ void test_ostream_inserters_arithmetic_wchar_t_12()
         double  da[2] = {1.0, 2.0};
         wchar_t wa[4] = L"abc";
 
-        T os(IOv2::mem_device{L""});
+        T os(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os << ia;
         auto [dev19, err19] = os.detach();
 
-        T os2(IOv2::mem_device{L""});
+        T os2(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os2 << static_cast<const void*>(ia);
         auto [dev20, err20] = os2.detach();
         VERIFY(dev19.str() == dev20.str());
 
-        T os3(IOv2::mem_device{L""});
+        T os3(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os3 << da;
         auto [dev21, err21] = os3.detach();
 
-        T os4(IOv2::mem_device{L""});
+        T os4(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os4 << static_cast<const void*>(da);
         auto [dev22, err22] = os4.detach();
         VERIFY(dev21.str() == dev22.str());
 
-        T os5(IOv2::mem_device{L""});
+        T os5(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os5 << wa;
         auto [dev23, err23] = os5.detach();
         VERIFY(dev23.str() == L"abc");
@@ -532,7 +532,7 @@ void test_ostream_inserters_arithmetic_wchar_t_12()
         // the stream stayed good(). C++23 P1147R1 made std::ostream print the address here.
         volatile int* via = ia;
 
-        T os6(IOv2::mem_device{L""});
+        T os6(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os6 << via;
         auto [dev24, err24] = os6.detach();
         VERIFY(dev24.str() == dev20.str());
@@ -542,16 +542,16 @@ void test_ostream_inserters_arithmetic_wchar_t_12()
         // a string, and setw would need the length before the first character went out.
         volatile wchar_t* vwa = wa;
 
-        T os7(IOv2::mem_device{L""});
+        T os7(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os7 << wa;
         auto [dev25, err25] = os7.detach();
         VERIFY(dev25.str() == L"abc");
 
-        T os8(IOv2::mem_device{L""});
+        T os8(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os8 << vwa;
         auto [dev26, err26] = os8.detach();
 
-        T os9(IOv2::mem_device{L""});
+        T os9(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os9 << static_cast<const void*>(wa);
         auto [dev27, err27] = os9.detach();
         VERIFY(dev26.str() == dev27.str());
@@ -563,13 +563,13 @@ void test_ostream_inserters_arithmetic_wchar_t_12()
         wchar_t* volatile wpv = wa;
         int* volatile     ipv = ia;
 
-        T os10(IOv2::mem_device{L""});
+        T os10(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os10 << wpv;
         VERIFY(os10.good());
         auto [dev28, err28] = os10.detach();
         VERIFY(dev28.str() == L"abc");
 
-        T os11(IOv2::mem_device{L""});
+        T os11(IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C"));
         os11 << ipv;
         auto [dev29, err29] = os11.detach();
         VERIFY(dev29.str() == dev20.str());
