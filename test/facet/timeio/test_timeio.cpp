@@ -36,6 +36,7 @@ void test_timeio_char_put_18();
 void test_timeio_char_get_18();
 void test_timeio_char_get_19();
 void test_timeio_char_put_19();
+void test_timeio_char_put_20();
 
 void test_timeio_wchar_t_put_1();
 void test_timeio_wchar_t_put_2();
@@ -168,6 +169,7 @@ void test_timeio()
     test_timeio_char_get_18();
     test_timeio_char_get_19();
     test_timeio_char_put_19();
+    test_timeio_char_put_20();
 
     test_timeio_wchar_t_put_1();
     test_timeio_wchar_t_put_2();

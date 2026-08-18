@@ -40,7 +40,7 @@ void test_ostream_inserters_time_char_1()
         VERIFY((bool)f);
         auto [dev, err] = f.detach();
         const std::string res = dev.str();
-        VERIFY(res == "09/04/24 13:33:18");
+        VERIFY(res == "Wed Sep  4 13:33:18 2024");
     };
 
     helper.template operator()<IOv2::ostream>();

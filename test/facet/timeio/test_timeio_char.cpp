@@ -114,9 +114,9 @@ void test_timeio_char_put_1()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        VERIFY(res == "09/04/24 13:33:18 America/Los_Angeles");
+        VERIFY(res == "Wed Sep  4 13:33:18 2024 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        VERIFY(res == "09/04/24 13:33:18 America/Los_Angeles");
+        VERIFY(res == "Wed Sep  4 13:33:18 2024 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
         VERIFY(res == "%Oc");
     }
@@ -2564,8 +2564,8 @@ void test_timeio_char_get_1()
     CheckGet(obj, "h",   'h', 'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, "09/04/24 13:33:18 America/Los_Angeles", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, "09/04/24 13:33:18 America/Los_Angeles", 'c', 'E', IOv2::ios_defs::eofbit, 17) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "Wed Sep  4 13:33:18 2024 America/Los_Angeles", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "Wed Sep  4 13:33:18 2024 America/Los_Angeles", 'c', 'E', IOv2::ios_defs::eofbit, 17) == check_date1);
     CheckGet(obj, "c",   'c', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "%Oc", 'c', 'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, "c",   'c', 'O', IOv2::ios_defs::strfailbit, 0);
@@ -6534,6 +6534,104 @@ void test_timeio_char_put_19()
         catch (IOv2::stream_error&) { threw = true; }
         VERIFY(threw);
     }
+
+    dump_info("Done\n");
+}
+
+// A format string that came from the locale rather than from the caller is normalized on the way
+// in (timeio_conf<char>::normalize_time_format), because the verbatim-echo rule exercised by
+// put_19 is wrong for it: the caller wrote only "%c" or "%x", so echoing a specifier this facet
+// does not implement turns a gap here into corrupt user-visible output -- and get reads that
+// echo back as a literal, so the round trip silently loses the field. glibc's locale data uses
+// extensions this facet does not implement ("%-d" no-pad, "%l", "%k", "%P").
+//
+// Part A pins the set of specifiers the facet implements, which is what the normalizer keeps.
+// It derives the set from the facet's own behaviour rather than restating it: an unimplemented
+// specifier is echoed verbatim (put_19), so "output == format" means "unsupported". If a
+// specifier is ever added to or removed from put/get without the normalizer's table following,
+// this half fails.
+//
+// Part B then asserts no locale's composite formats can reach put holding anything outside that
+// set. It can only check locales this machine has installed, so it reports how many it saw --
+// a run where only "C" is present proves little, and says so.
+void test_timeio_char_put_20()
+{
+    dump_info("Test timeio<char> put 20...");
+
+    // %Z and %z need a value that carries a zone; with a std::tm they degrade to a literal by
+    // design, which part A would misread as "unsupported".
+    const auto zt = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
+
+    const std::string supported = "%ABCDFGHIMRSTUVWXYZabcdeghjmnprtuwxyz";
+
+    auto emits = [&](char spec) {
+        IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+        const std::string fmt = std::string("%") + spec;
+        std::string res;
+        obj.put(std::back_inserter(res), zt, std::string_view(fmt));
+        return res != fmt;
+    };
+
+    // Part A.
+    for (char spec : supported)
+        VERIFY(emits(spec));
+
+    // Controls: characters outside the set must still be echoed, or "echoed == unsupported"
+    // would be vacuous and part A would pass for any set at all.
+    for (char spec : std::string("QLfikloqsv"))
+        VERIFY(!emits(spec));
+
+    // Part B.
+    const char* const names[] = {
+        "C", "C.UTF-8", "en_US.UTF-8", "zh_CN.UTF-8", "de_DE.UTF-8", "de_CH.UTF-8",
+        "fr_CA.UTF-8", "ps_AF.UTF-8", "tr_TR.UTF-8", "en_HK.UTF-8", "zh_CN.GBK",
+        "cs_CZ.ISO-8859-2", "ru_RU.KOI8-R",
+    };
+
+    // Rejects a format string holding any sequence outside '%' [E|O]? <supported>.
+    auto all_supported = [&](const std::string& fmt) {
+        for (std::size_t i = 0; i < fmt.size(); ++i)
+        {
+            if (fmt[i] != '%') continue;
+            std::size_t j = i + 1;
+            if (j < fmt.size() && (fmt[j] == 'E' || fmt[j] == 'O')) ++j;
+            if (j >= fmt.size()) return false;
+            if (supported.find(fmt[j]) == std::string::npos) return false;
+            i = j;
+        }
+        return true;
+    };
+
+    int checked = 0;
+    for (const char* name : names)
+    {
+        std::shared_ptr<IOv2::timeio_conf<char>> conf;
+        try { conf = std::make_shared<IOv2::timeio_conf<char>>(name); }
+        catch (...) { continue; }   // not installed here, or its data is self-contradictory
+        ++checked;
+
+        VERIFY(all_supported(conf->date_format()));
+        VERIFY(all_supported(conf->era_date_format()));
+        VERIFY(all_supported(conf->time_format()));
+        VERIFY(all_supported(conf->era_time_format()));
+        VERIFY(all_supported(conf->date_time_format()));
+        VERIFY(all_supported(conf->era_date_time_format()));
+        VERIFY(all_supported(conf->am_pm_format()));
+        VERIFY(all_supported(conf->time_zone_format()));
+        VERIFY(all_supported(conf->era_time_zone_format()));
+        VERIFY(all_supported(conf->date_time_zone_format()));
+        VERIFY(all_supported(conf->era_date_time_zone_format()));
+    }
+    dump_info("  (part B saw " + std::to_string(checked) + " of "
+              + std::to_string(sizeof(names) / sizeof(*names)) + " candidate locales)\n");
+    VERIFY(checked >= 2);   // C and C.UTF-8 are always there; more is better
+
+    // The control for part B: the checker must reject what the locales are being cleared of.
+    VERIFY(!all_supported("%-d.%-m.%Y"));
+    VERIFY(!all_supported("%l:%M %P"));
+    VERIFY(!all_supported("%k:%M"));
+    VERIFY(all_supported("%d.%m.%Y"));
+    VERIFY(all_supported("%EY %Oe"));
 
     dump_info("Done\n");
 }

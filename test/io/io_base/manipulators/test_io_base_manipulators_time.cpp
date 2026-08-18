@@ -360,10 +360,10 @@ void test_io_base_manipulators_get_time_char_6()
     dump_info("Test ios_base<char> get_time case 6...");
 
     // `is >> tm` goes through parse_context_type<char, std::tm> and gets the same
-    // treatment. The C locale's %c is %m/%d/%y %H:%M:%S.
+    // treatment. The C locale's %c is %a %b %e %H:%M:%S %Y.
     {
         std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);
-        IOv2::istream iss{IOv2::mem_device{std::string("02/06/18 07:08:09")},
+        IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018")},
                           IOv2::locale<char>("C")};
         iss >> parsed;
         VERIFY(!iss.str_fail());
