@@ -35,6 +35,7 @@
 #include <cstring>
 #include <cwchar>
 #include <limits>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
@@ -629,15 +630,15 @@ public:
             // contract for the trusted glibc layout it assumes.
             m_era_items = parse_glibc_era_entries();
 
-            m_date_format = normalize_time_format(m_date_format, "%m/%d/%y");
-            m_era_date_format = normalize_time_format(m_era_date_format, m_date_format);
-            m_time_format = normalize_time_format(m_time_format, "%H:%M:%S");
-            m_era_time_format = normalize_time_format(m_era_time_format, m_time_format);
-            m_date_time_format = normalize_time_format(m_date_time_format,
-                                                       "%a %b %e %H:%M:%S %Y");
-            m_era_date_time_format = normalize_time_format(m_era_date_time_format,
-                                                           m_date_time_format);
-            m_am_pm_format = normalize_time_format(m_am_pm_format, "%I:%M:%S %p");
+            m_date_format = normalize_time_format(m_date_format).value_or("%m/%d/%y");
+            m_era_date_format = normalize_time_format(m_era_date_format).value_or(m_date_format);
+            m_time_format = normalize_time_format(m_time_format).value_or("%H:%M:%S");
+            m_era_time_format = normalize_time_format(m_era_time_format).value_or(m_time_format);
+            m_date_time_format = normalize_time_format(m_date_time_format)
+                                     .value_or("%a %b %e %H:%M:%S %Y");
+            m_era_date_time_format = normalize_time_format(m_era_date_time_format)
+                                         .value_or(m_date_time_format);
+            m_am_pm_format = normalize_time_format(m_am_pm_format).value_or("%I:%M:%S %p");
         }
 
         m_date_time_zone_format = m_date_time_format +" %Z";
@@ -920,9 +921,9 @@ private:
      * @note 本函数只作用于 locale 提供的格式串；用户自己传给 `put_time` / `get_time`
      *       的格式串不经过这里，其未知说明符仍按原契约回显。
      *
-     * @param fmt      locale 提供的格式串。
-     * @param fallback 归一化失败时使用的整串替代值（应为对应的 C locale 取值）。
-     * @return 归一化后的格式串；若含无等价物的说明符，则为 `fallback`。
+     * @param fmt locale 提供的格式串。
+     * @return 归一化后的格式串；若含无等价物的说明符，则为 `std::nullopt`，
+     *         由调用方代入整串兜底值。
      * @endif
      *
      * @lang{EN}
@@ -953,14 +954,12 @@ private:
      *       passes to `put_time` / `get_time` does not go through here, and its unknown
      *       specifiers are still echoed per the existing contract.
      *
-     * @param fmt      The locale-supplied format string.
-     * @param fallback Whole-string replacement used when normalization fails (should be
-     *                 the corresponding C locale value).
-     * @return The normalized format string, or `fallback` if it holds a specifier with
-     *         no equivalent.
+     * @param fmt The locale-supplied format string.
+     * @return The normalized format string, or `std::nullopt` if it holds a specifier with
+     *         no equivalent, in which case the caller substitutes a whole-string fallback.
      * @endif
      */
-    static std::string normalize_time_format(const std::string& fmt, const std::string& fallback)
+    static std::optional<std::string> normalize_time_format(const std::string& fmt)
     {
         constexpr std::string_view supported = "%ABCDFGHIMRSTUVWXYZabcdeghjmnprtuwxyz";
 
@@ -987,7 +986,7 @@ private:
             else if (spec == 'k') spec = 'H';
             else if (spec == 'P') spec = 'p';
 
-            if (supported.find(spec) == std::string_view::npos) return fallback;
+            if (supported.find(spec) == std::string_view::npos) return std::nullopt;
 
             out += '%';
             if (modifier != '\0') out += modifier;
