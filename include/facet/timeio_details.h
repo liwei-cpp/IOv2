@@ -37,6 +37,7 @@
 #include <limits>
 #include <set>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -487,7 +488,7 @@ public:
             m_date_format = "%m/%d/%y";     m_era_date_format = m_date_format;
             m_time_format = "%H:%M:%S";     m_era_time_format = m_time_format;
 
-            m_date_time_format = m_date_format + ' ' + m_time_format;
+            m_date_time_format = "%a %b %e %H:%M:%S %Y";
             m_era_date_time_format = m_date_time_format;
 
             m_am = "AM";
@@ -555,6 +556,7 @@ public:
             m_am = nl_langinfo(AM_STR);
             m_pm = nl_langinfo(PM_STR);
             m_am_pm_format = nl_langinfo(T_FMT_AMPM);
+            if (m_am_pm_format.empty()) m_am_pm_format = "%I:%M:%S %p";
 
             m_day[0] = nl_langinfo(DAY_1);
             m_day[1] = nl_langinfo(DAY_2);
@@ -626,6 +628,16 @@ public:
             // clocale_user guard above ensures that); see the function's
             // contract for the trusted glibc layout it assumes.
             m_era_items = parse_glibc_era_entries();
+
+            m_date_format = normalize_time_format(m_date_format, "%m/%d/%y");
+            m_era_date_format = normalize_time_format(m_era_date_format, m_date_format);
+            m_time_format = normalize_time_format(m_time_format, "%H:%M:%S");
+            m_era_time_format = normalize_time_format(m_era_time_format, m_time_format);
+            m_date_time_format = normalize_time_format(m_date_time_format,
+                                                       "%a %b %e %H:%M:%S %Y");
+            m_era_date_time_format = normalize_time_format(m_era_date_time_format,
+                                                           m_date_time_format);
+            m_am_pm_format = normalize_time_format(m_am_pm_format, "%I:%M:%S %p");
         }
 
         m_date_time_zone_format = m_date_time_format +" %Z";
@@ -886,6 +898,106 @@ public:
     virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
 
 private:
+    /**
+     * @lang{ZH}
+     * @brief 把 locale 提供的时间格式串归一化为本库 `timeio` 能识别的形式。
+     *
+     * `nl_langinfo()` 返回的格式串是 locale 数据，不是用户写的；其中可能出现 glibc 的
+     * 扩展语法，而本库的 `timeio` 只实现 `'%' [E|O]? <说明符>` 这一标准文法。若原样保留，
+     * `timeio` 的 put 侧会把不认识的序列连同 `%` 一起字面回显（与 `strftime` 对真正未知
+     * 说明符的行为一致），使用户仅写了 `%c` / `%x` 却得到含 `%` 的输出，并可能被 get 侧
+     * 静默读回错值。本函数在 locale 数据进入本库时做一次转换：
+     *
+     * - 丢弃补位标志（`-` `_` `0` `^` `#`）与字段宽度：它们只影响填充与大小写，
+     *   丢弃后字段顺序、分隔符、语言全部保留；
+     * - 把有等价标准说明符的 glibc 扩展改写过去：`%l` → `%I`、`%k` → `%H`、`%P` → `%p`；
+     * - 保留 `E` / `O` 修饰符；
+     * - 末尾落单的 `%`（其后没有说明符）原样保留，以维持第 329 条已钉住的行为。
+     *
+     * 若经上述处理后说明符仍不在支持集内，则整串回退到 `fallback`，宁可丢失 locale
+     * 的字段顺序，也不输出本库读不回来的文本。
+     *
+     * @note 本函数只作用于 locale 提供的格式串；用户自己传给 `put_time` / `get_time`
+     *       的格式串不经过这里，其未知说明符仍按原契约回显。
+     *
+     * @param fmt      locale 提供的格式串。
+     * @param fallback 归一化失败时使用的整串替代值（应为对应的 C locale 取值）。
+     * @return 归一化后的格式串；若含无等价物的说明符，则为 `fallback`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Normalizes a locale-supplied time format string into the form this
+     *        library's `timeio` understands.
+     *
+     * A format string from `nl_langinfo()` is locale data, not something the user wrote,
+     * and it may use glibc's extended syntax, whereas `timeio` implements only the
+     * standard grammar `'%' [E|O]? <specifier>`. Left as-is, `timeio`'s put side echoes
+     * an unrecognized sequence literally together with its `%` (matching `strftime` for
+     * genuinely unknown specifiers), so a user who wrote just `%c` or `%x` gets output
+     * containing a `%`, which the get side may then read back as silently wrong values.
+     * This function converts once, where locale data enters the library:
+     *
+     * - Padding flags (`-` `_` `0` `^` `#`) and field widths are dropped: they affect
+     *   only padding and case, so field order, separators and language all survive;
+     * - glibc extensions that have an equivalent standard specifier are rewritten:
+     *   `%l` to `%I`, `%k` to `%H`, `%P` to `%p`;
+     * - `E` / `O` modifiers are preserved;
+     * - A trailing lone `%` with no specifier after it is kept verbatim, preserving the
+     *   behaviour pinned by entry 329.
+     *
+     * If the specifier is still outside the supported set after that, the whole string
+     * falls back to `fallback`: losing the locale's field order is preferable to emitting
+     * text this library cannot read back.
+     *
+     * @note This applies only to locale-supplied format strings. A format string the user
+     *       passes to `put_time` / `get_time` does not go through here, and its unknown
+     *       specifiers are still echoed per the existing contract.
+     *
+     * @param fmt      The locale-supplied format string.
+     * @param fallback Whole-string replacement used when normalization fails (should be
+     *                 the corresponding C locale value).
+     * @return The normalized format string, or `fallback` if it holds a specifier with
+     *         no equivalent.
+     * @endif
+     */
+    static std::string normalize_time_format(const std::string& fmt, const std::string& fallback)
+    {
+        constexpr std::string_view supported = "%ABCDFGHIMRSTUVWXYZabcdeghjmnprtuwxyz";
+
+        std::string out;
+        out.reserve(fmt.size());
+
+        for (std::size_t i = 0; i < fmt.size(); ++i)
+        {
+            if (fmt[i] != '%') { out += fmt[i]; continue; }
+
+            std::size_t j = i + 1;
+            while (j < fmt.size() && (fmt[j] == '-' || fmt[j] == '_' || fmt[j] == '0'
+                                      || fmt[j] == '^' || fmt[j] == '#'))
+                ++j;
+            while (j < fmt.size() && fmt[j] >= '0' && fmt[j] <= '9') ++j;
+
+            char modifier = '\0';
+            if (j < fmt.size() && (fmt[j] == 'E' || fmt[j] == 'O')) modifier = fmt[j++];
+
+            if (j >= fmt.size()) { out.append(fmt, i, std::string::npos); break; }
+
+            char spec = fmt[j];
+            if (spec == 'l') spec = 'I';
+            else if (spec == 'k') spec = 'H';
+            else if (spec == 'P') spec = 'p';
+
+            if (supported.find(spec) == std::string_view::npos) return fallback;
+
+            out += '%';
+            if (modifier != '\0') out += modifier;
+            out += spec;
+            i = j;
+        }
+
+        return out;
+    }
+
     /**
      * @lang{ZH}
      * @brief 解析当前活动线程 locale 的 glibc 纪元二进制表，返回解码后的纪元条目列表。

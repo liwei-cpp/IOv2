@@ -113,9 +113,9 @@ void test_timeio_char8_t_put_1()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, u8'c');
-        VERIFY(res == u8"09/04/24 13:33:18 America/Los_Angeles");
+        VERIFY(res == u8"Wed Sep  4 13:33:18 2024 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, u8'c', u8'E');
-        VERIFY(res == u8"09/04/24 13:33:18 America/Los_Angeles");
+        VERIFY(res == u8"Wed Sep  4 13:33:18 2024 America/Los_Angeles");
         res.clear(); obj.put(std::back_inserter(res), tp, u8'c', u8'O');
         VERIFY(res == u8"%Oc");
     }
@@ -2563,8 +2563,8 @@ void test_timeio_char8_t_get_1()
     CheckGet(obj, u8"h",   u8'h', u8'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, u8"09/04/24 13:33:18 America/Los_Angeles", u8'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, u8"09/04/24 13:33:18 America/Los_Angeles", u8'c', u8'E', IOv2::ios_defs::eofbit, 17) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, u8"Wed Sep  4 13:33:18 2024 America/Los_Angeles", u8'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, u8"Wed Sep  4 13:33:18 2024 America/Los_Angeles", u8'c', u8'E', IOv2::ios_defs::eofbit, 17) == check_date1);
     CheckGet(obj, u8"c",   u8'c', u8'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, u8"%Oc", u8'c', u8'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, u8"c",   u8'c', u8'O', IOv2::ios_defs::strfailbit, 0);
