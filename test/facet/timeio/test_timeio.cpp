@@ -37,6 +37,11 @@ void test_timeio_char_get_18();
 void test_timeio_char_get_19();
 void test_timeio_char_put_19();
 void test_timeio_char_put_20();
+void test_timeio_char_put_21();
+void test_timeio_char_get_20();
+void test_timeio_char_get_21();
+void test_timeio_char_get_22();
+void test_timeio_char_get_23();
 
 void test_timeio_wchar_t_put_1();
 void test_timeio_wchar_t_put_2();
@@ -67,6 +72,7 @@ void test_timeio_wchar_t_get_9();
 void test_timeio_wchar_t_get_10();
 void test_timeio_wchar_t_get_11();
 void test_timeio_wchar_t_get_12();
+void test_timeio_wchar_t_get_13();
 void test_timeio_wchar_t_put_18();
 
 void test_timeio_char32_t_put_1();
@@ -98,6 +104,7 @@ void test_timeio_char32_t_get_9();
 void test_timeio_char32_t_get_10();
 void test_timeio_char32_t_get_11();
 void test_timeio_char32_t_get_12();
+void test_timeio_char32_t_get_13();
 
 void test_timeio_char8_t_put_1();
 void test_timeio_char8_t_put_2();
@@ -128,6 +135,7 @@ void test_timeio_char8_t_get_9();
 void test_timeio_char8_t_get_10();
 void test_timeio_char8_t_get_11();
 void test_timeio_char8_t_get_12();
+void test_timeio_char8_t_get_13();
 
 void test_timeio()
 {
@@ -170,6 +178,11 @@ void test_timeio()
     test_timeio_char_get_19();
     test_timeio_char_put_19();
     test_timeio_char_put_20();
+    test_timeio_char_put_21();
+    test_timeio_char_get_20();
+    test_timeio_char_get_21();
+    test_timeio_char_get_22();
+    test_timeio_char_get_23();
 
     test_timeio_wchar_t_put_1();
     test_timeio_wchar_t_put_2();
@@ -200,6 +213,7 @@ void test_timeio()
     test_timeio_wchar_t_get_10();
     test_timeio_wchar_t_get_11();
     test_timeio_wchar_t_get_12();
+    test_timeio_wchar_t_get_13();
     test_timeio_wchar_t_put_18();
 
     test_timeio_char32_t_put_1();
@@ -231,6 +245,7 @@ void test_timeio()
     test_timeio_char32_t_get_10();
     test_timeio_char32_t_get_11();
     test_timeio_char32_t_get_12();
+    test_timeio_char32_t_get_13();
 
     test_timeio_char8_t_put_1();
     test_timeio_char8_t_put_2();
@@ -261,4 +276,5 @@ void test_timeio()
     test_timeio_char8_t_get_10();
     test_timeio_char8_t_get_11();
     test_timeio_char8_t_get_12();
+    test_timeio_char8_t_get_13();
 }

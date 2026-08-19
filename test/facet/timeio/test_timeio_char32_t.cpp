@@ -2356,7 +2356,7 @@ void test_timeio_char32_t_put_17()
     }
 
     {
-        res.clear(); obj.put(std::back_inserter(res), tp, U'z'); VERIFY(res == U"%z");
+        res.clear(); obj.put(std::back_inserter(res), tp, U'z'); VERIFY(res == U"+0000");
         res.clear(); obj.put(std::back_inserter(res), tp, U'z', U'E');
         VERIFY(res == U"%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, U'z', U'O');
@@ -2369,13 +2369,13 @@ namespace
 {
     constexpr static IOv2::ios_defs::iostate febit = IOv2::ios_defs::eofbit | IOv2::ios_defs::strfailbit;
 
-    template <typename T = IOv2::time_parse_context<char32_t>, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
+    template <typename T = IOv2::time_parse_context<char32_t>, bool HaveDate = true, bool HaveTime = true, IOv2::tz_level TzLevel = IOv2::tz_level::zone>
     T CheckGet(const IOv2::timeio<char32_t>& obj, const std::u32string& input,
                char32_t fmt, char32_t modif,
                IOv2::ios_defs::iostate err_exp, size_t consume_exp = (size_t)-1)
     {
         if (consume_exp == (size_t)-1) consume_exp = input.size();
-        IOv2::time_parse_context<char32_t, HaveDate, HaveTime, HaveTimeZone> ctx1, ctx2, ctx3;
+        IOv2::time_parse_context<char32_t, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         if (err_exp == IOv2::ios_defs::goodbit)
         {
             VERIFY(obj.get(input.begin(), input.end(), ctx1, fmt, modif) != input.end());
@@ -2443,13 +2443,13 @@ namespace
         return ctx_to<T>(ctx1);
     }
 
-    template <typename T = IOv2::time_parse_context<char32_t>, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
+    template <typename T = IOv2::time_parse_context<char32_t>, bool HaveDate = true, bool HaveTime = true, IOv2::tz_level TzLevel = IOv2::tz_level::zone>
     T CheckGet(const IOv2::timeio<char32_t>& obj, const std::u32string& input,
                const std::u32string& fmt,
                IOv2::ios_defs::iostate err_exp, size_t consume_exp = (size_t)-1)
     {
         if (consume_exp == (size_t)-1) consume_exp = input.size();
-        IOv2::time_parse_context<char32_t, HaveDate, HaveTime, HaveTimeZone> ctx1, ctx2, ctx3;
+        IOv2::time_parse_context<char32_t, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         if (err_exp == IOv2::ios_defs::goodbit)
         {
             VERIFY(obj.get(input.begin(), input.end(), ctx1, fmt) != input.end());
@@ -4078,12 +4078,12 @@ void test_timeio_char32_t_get_9()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char32_t, true, true, false>, true, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char32_t, true, true, IOv2::tz_level::none>, true, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FYmd = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::year_month_day, true, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::year_month_day, true, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(U"%",  U'%',  0,  IOv2::ios_defs::eofbit);
@@ -4368,12 +4368,12 @@ void test_timeio_char32_t_get_10()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char32_t, true, false, false>, true, false, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char32_t, true, false, IOv2::tz_level::none>, true, false, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FYmd = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::year_month_day, true, false, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::year_month_day, true, false, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(U"%",  U'%',  0,  IOv2::ios_defs::eofbit);
@@ -4644,12 +4644,12 @@ void test_timeio_char32_t_get_11()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char32_t, false, true, true>, false, true, true>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char32_t, false, true, IOv2::tz_level::zone>, false, true, IOv2::tz_level::zone>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FHms = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, true>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, IOv2::tz_level::zone>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(U"%",  U'%',  0,  IOv2::ios_defs::eofbit);
@@ -4887,7 +4887,8 @@ void test_timeio_char32_t_get_11()
     FOri(U"%OZ", U'Z', U'O', IOv2::ios_defs::eofbit);
     FOri(U"Z",   U'Z', U'O', IOv2::ios_defs::strfailbit, 0);
 
-    FOri(U"%z", U'z', 0, IOv2::ios_defs::eofbit);
+    { auto r = FOri(U"+0800", U'z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_have_offset && r.m_offset == minutes{480}); }
+    FOri(U"%z", U'z', 0, IOv2::ios_defs::strfailbit);
     FOri(U"%Ez", U'z', U'E', IOv2::ios_defs::eofbit);
     FOri(U"z",  U'z', U'E', IOv2::ios_defs::strfailbit, 0);
     FOri(U"%Oz", U'z', U'O', IOv2::ios_defs::eofbit);
@@ -4903,12 +4904,12 @@ void test_timeio_char32_t_get_12()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char32_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char32_t, false, true, false>, false, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char32_t, false, true, IOv2::tz_level::none>, false, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FHms = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(U"%",  U'%',  0,  IOv2::ios_defs::eofbit);
@@ -5149,6 +5150,46 @@ void test_timeio_char32_t_get_12()
     FOri(U"z",  U'z', U'E', IOv2::ios_defs::strfailbit, 0);
     FOri(U"%Oz", U'z', U'O', IOv2::ios_defs::eofbit);
     FOri(U"z",  U'z', U'O', IOv2::ios_defs::strfailbit, 0);
+
+    dump_info("Done\n");
+}
+
+void test_timeio_char32_t_get_13()
+{
+    dump_info("Test timeio<char32_t> get 13...");
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char32_t>>("C"));
+
+    auto off_ok = [&obj](const std::u32string& in, const char32_t* fmt)
+    {
+        IOv2::time_parse_context<char32_t, true, true, IOv2::tz_level::offset> ctx;
+        try { return obj.get(in.begin(), in.end(), ctx, std::u32string_view(fmt)) == in.end(); }
+        catch (IOv2::stream_error&) { return false; }
+    };
+    auto zone_ok = [&obj](const std::u32string& in, const char32_t* fmt)
+    {
+        IOv2::time_parse_context<char32_t, true, true, IOv2::tz_level::zone> ctx;
+        try { return obj.get(in.begin(), in.end(), ctx, std::u32string_view(fmt)) == in.end(); }
+        catch (IOv2::stream_error&) { return false; }
+    };
+
+    // The %Z trie is built once per character type, so the abbreviations the char tests pin
+    // have to be reachable through this one as well.
+    VERIFY(zone_ok(U"UTC", U"%Z"));
+    VERIFY(zone_ok(U"PDT", U"%Z"));
+    VERIFY(zone_ok(U"CEST", U"%Z"));
+    VERIFY(zone_ok(U"EWT", U"%Z"));
+    VERIFY(zone_ok(U"America/Los_Angeles", U"%Z"));
+    VERIFY(!zone_ok(U"XYZ", U"%Z"));
+
+    VERIFY(off_ok(U"PDT", U"%Z"));
+    VERIFY(off_ok(U"America/Los_Angeles", U"%Z"));
+    VERIFY(!off_ok(U"XYZ", U"%Z"));
+
+    // The literal %Z, which is what put writes when the value has no zone to offer.
+    VERIFY(off_ok(U"%Z", U"%Z"));
+    VERIFY(!zone_ok(U"%Z", U"%Z"));
+    VERIFY(!off_ok(U"%z", U"%Z"));
 
     dump_info("Done\n");
 }

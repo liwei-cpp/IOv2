@@ -2356,7 +2356,7 @@ void test_timeio_wchar_t_put_17()
     }
 
     {
-        res.clear(); obj.put(std::back_inserter(res), tp, L'z'); VERIFY(res == L"%z");
+        res.clear(); obj.put(std::back_inserter(res), tp, L'z'); VERIFY(res == L"+0000");
         res.clear(); obj.put(std::back_inserter(res), tp, L'z', L'E');
         VERIFY(res == L"%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, L'z', L'O');
@@ -2369,13 +2369,13 @@ namespace
 {
     constexpr static IOv2::ios_defs::iostate febit = IOv2::ios_defs::eofbit | IOv2::ios_defs::strfailbit;
 
-    template <typename T = IOv2::time_parse_context<wchar_t>, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
+    template <typename T = IOv2::time_parse_context<wchar_t>, bool HaveDate = true, bool HaveTime = true, IOv2::tz_level TzLevel = IOv2::tz_level::zone>
     T CheckGet(const IOv2::timeio<wchar_t>& obj, const std::wstring& input,
                wchar_t fmt, wchar_t modif,
                IOv2::ios_defs::iostate err_exp, size_t consume_exp = (size_t)-1)
     {
         if (consume_exp == (size_t)-1) consume_exp = input.size();
-        IOv2::time_parse_context<wchar_t, HaveDate, HaveTime, HaveTimeZone> ctx1, ctx2, ctx3;
+        IOv2::time_parse_context<wchar_t, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         if (err_exp == IOv2::ios_defs::goodbit)
         {
             VERIFY(obj.get(input.begin(), input.end(), ctx1, fmt, modif) != input.end());
@@ -2443,13 +2443,13 @@ namespace
         return ctx_to<T>(ctx1);
     }
 
-    template <typename T = IOv2::time_parse_context<wchar_t>, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
+    template <typename T = IOv2::time_parse_context<wchar_t>, bool HaveDate = true, bool HaveTime = true, IOv2::tz_level TzLevel = IOv2::tz_level::zone>
     T CheckGet(const IOv2::timeio<wchar_t>& obj, const std::wstring& input,
                const std::wstring& fmt,
                IOv2::ios_defs::iostate err_exp, size_t consume_exp = (size_t)-1)
     {
         if (consume_exp == (size_t)-1) consume_exp = input.size();
-        IOv2::time_parse_context<wchar_t, HaveDate, HaveTime, HaveTimeZone> ctx1, ctx2, ctx3;
+        IOv2::time_parse_context<wchar_t, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         if (err_exp == IOv2::ios_defs::goodbit)
         {
             VERIFY(obj.get(input.begin(), input.end(), ctx1, fmt) != input.end());
@@ -4078,12 +4078,12 @@ void test_timeio_wchar_t_get_9()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<wchar_t, true, true, false>, true, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<wchar_t, true, true, IOv2::tz_level::none>, true, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FYmd = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::year_month_day, true, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::year_month_day, true, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(L"%",  L'%',  0,  IOv2::ios_defs::eofbit);
@@ -4368,12 +4368,12 @@ void test_timeio_wchar_t_get_10()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<wchar_t, true, false, false>, true, false, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<wchar_t, true, false, IOv2::tz_level::none>, true, false, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FYmd = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::year_month_day, true, false, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::year_month_day, true, false, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(L"%",  L'%',  0,  IOv2::ios_defs::eofbit);
@@ -4644,12 +4644,12 @@ void test_timeio_wchar_t_get_11()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<wchar_t, false, true, true>, false, true, true>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<wchar_t, false, true, IOv2::tz_level::zone>, false, true, IOv2::tz_level::zone>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FHms = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, true>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, IOv2::tz_level::zone>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(L"%",  L'%',  0,  IOv2::ios_defs::eofbit);
@@ -4887,7 +4887,8 @@ void test_timeio_wchar_t_get_11()
     FOri(L"%OZ", L'Z', L'O', IOv2::ios_defs::eofbit);
     FOri(L"Z",   L'Z', L'O', IOv2::ios_defs::strfailbit, 0);
 
-    FOri(L"%z", L'z', 0, IOv2::ios_defs::eofbit);
+    { auto r = FOri(L"+0800", L'z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_have_offset && r.m_offset == minutes{480}); }
+    FOri(L"%z", L'z', 0, IOv2::ios_defs::strfailbit);
     FOri(L"%Ez", L'z', L'E', IOv2::ios_defs::eofbit);
     FOri(L"z",  L'z', L'E', IOv2::ios_defs::strfailbit, 0);
     FOri(L"%Oz", L'z', L'O', IOv2::ios_defs::eofbit);
@@ -4903,12 +4904,12 @@ void test_timeio_wchar_t_get_12()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<wchar_t>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<wchar_t, false, true, false>, false, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<wchar_t, false, true, IOv2::tz_level::none>, false, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FHms = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri(L"%",  L'%',  0,  IOv2::ios_defs::eofbit);
@@ -5190,6 +5191,46 @@ void test_timeio_wchar_t_put_18()
         catch (IOv2::stream_error&) { threw = true; }
         VERIFY(threw);
     }
+
+    dump_info("Done\n");
+}
+
+void test_timeio_wchar_t_get_13()
+{
+    dump_info("Test timeio<wchar_t> get 13...");
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<wchar_t>>("C"));
+
+    auto off_ok = [&obj](const std::wstring& in, const wchar_t* fmt)
+    {
+        IOv2::time_parse_context<wchar_t, true, true, IOv2::tz_level::offset> ctx;
+        try { return obj.get(in.begin(), in.end(), ctx, std::wstring_view(fmt)) == in.end(); }
+        catch (IOv2::stream_error&) { return false; }
+    };
+    auto zone_ok = [&obj](const std::wstring& in, const wchar_t* fmt)
+    {
+        IOv2::time_parse_context<wchar_t, true, true, IOv2::tz_level::zone> ctx;
+        try { return obj.get(in.begin(), in.end(), ctx, std::wstring_view(fmt)) == in.end(); }
+        catch (IOv2::stream_error&) { return false; }
+    };
+
+    // The %Z trie is built once per character type, so the abbreviations the char tests pin
+    // have to be reachable through this one as well.
+    VERIFY(zone_ok(L"UTC", L"%Z"));
+    VERIFY(zone_ok(L"PDT", L"%Z"));
+    VERIFY(zone_ok(L"CEST", L"%Z"));
+    VERIFY(zone_ok(L"EWT", L"%Z"));
+    VERIFY(zone_ok(L"America/Los_Angeles", L"%Z"));
+    VERIFY(!zone_ok(L"XYZ", L"%Z"));
+
+    VERIFY(off_ok(L"PDT", L"%Z"));
+    VERIFY(off_ok(L"America/Los_Angeles", L"%Z"));
+    VERIFY(!off_ok(L"XYZ", L"%Z"));
+
+    // The literal %Z, which is what put writes when the value has no zone to offer.
+    VERIFY(off_ok(L"%Z", L"%Z"));
+    VERIFY(!zone_ok(L"%Z", L"%Z"));
+    VERIFY(!off_ok(L"%z", L"%Z"));
 
     dump_info("Done\n");
 }

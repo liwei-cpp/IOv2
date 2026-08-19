@@ -265,6 +265,20 @@ namespace IOv2
          *   或映射到带 `"*"` 前缀的原始缩写（若无法定位对应的 IANA 时区）；
          * - 与缩写不同的完整 IANA 时区名称映射到自身。
          *
+         * 缩写取自每个时区**全部**转换的 `abbrev`：从 tzdb 数据的起点一直走到「当前时刻
+         * + 10 年」（系统时钟异常偏早时以 2038-01-01 兜底）。只在某一个时刻上取一次是不够
+         * 的——那样只会拿到该时刻生效的那一个，夏令时缩写与南北半球各漏掉一半。不设下界是
+         * 因为 put 侧的 `%Z` 原样写出 `std::tm::tm_zone`，而 `localtime()` 能表示任意时刻：
+         * 树里缺哪个缩写，哪个就是本库写得出却读不回的。上界随系统时钟推移，不会因为写死
+         * 一个年份而过期。
+         *
+         * 树里的条目互为前缀是常态（`WIT` 与 `WITA`、`Etc/GMT+1` 与 `Etc/GMT+10`、
+         * `America/Bahia` 与 `America/Bahia_Banderas`），历史缩写里还有 `AT`、`CT` 这类两字母
+         * 条目。这些都由最长匹配处理：`max_match` 取能匹配的最长条目，失配时完整回退，
+         * 因此任何合法输入都按整体解析。不合法的输入若以某个合法缩写开头（如 `ATLANTIC`
+         * 之于 `AT`），`%Z` 会读掉那个缩写就此停下，剩下的留在流里——与 `%d` 读 `12abc`
+         * 只取 `12` 是同一回事，字段边界由说明符自己决定。
+         *
          * 供 `%Z` 格式说明符的解析使用。若时区数据库在静态初始化期间不可用或格式
          * 有误，树将为空或不完整，`%Z` 解析会在运行时产生可捕获的 `stream_error`
          * 而非调用 `std::terminate`。
@@ -280,12 +294,36 @@ namespace IOv2
          *   no corresponding IANA zone is found);
          * - full IANA timezone names (when different from their abbreviation) to themselves.
          *
+         * The abbreviations come from the `abbrev` of **every** transition each zone goes
+         * through, walked from the start of the tzdb data up to the current time plus ten
+         * years (falling back to 2038-01-01 should the system clock read implausibly early).
+         * Sampling a single instant is not enough: it yields only the one abbreviation in
+         * effect then, missing every daylight-saving abbreviation and half of each hemisphere.
+         * There is no lower bound because the put side of `%Z` writes `std::tm::tm_zone`
+         * verbatim and `localtime()` can represent any instant: an abbreviation missing from
+         * the trie is one this library can write but cannot read back. The upper bound moves
+         * with the clock, so it does not go stale the way a hard-coded year would.
+         *
+         * Entries that are prefixes of one another are the norm here (`WIT` and `WITA`,
+         * `Etc/GMT+1` and `Etc/GMT+10`, `America/Bahia` and `America/Bahia_Banderas`), and the
+         * historical abbreviations add two-letter entries such as `AT` and `CT`. Longest match
+         * covers all of them: `max_match` takes the longest entry that matches and backtracks
+         * fully when it fails, so every valid input parses as a whole. Input that is not valid
+         * but begins with a valid abbreviation (`ATLANTIC` against `AT`, say) has that
+         * abbreviation consumed and the rest left in the stream -- the same thing `%d` does
+         * with `12abc`, each specifier deciding where its own field ends.
+         *
          * Used by the `%Z` format specifier during parsing. If the timezone database is
          * unavailable or malformed at static-initialization time, the trie is left empty
          * or partial, and `%Z` parsing produces a catchable `stream_error` at runtime
          * rather than calling `std::terminate`.
          * @endif
          */
+        // TODO: this is one trie per character type, so the tzdb walk below is repeated for
+        // every CharT the program instantiates. The walk and the locate_zone resolution are
+        // both CharT-independent; hoisting them into a single shared collection and leaving
+        // only the trie insertion per CharT roughly halves the cost for a program that uses
+        // several character types (measured at -O2: 33.8 ms -> 17 ms for all four).
         inline static const prefix_tree<CharT, std::string> s_timezone_tree =
         []()
         {
@@ -297,11 +335,24 @@ namespace IOv2
 
                 // Collect all abbreviations (deduplicated across zones).
                 std::set<std::string> abbrevs;
-                for (const auto& zone : tzdb.zones)
                 {
-                    std::string abbr = zone.get_info(std::chrono::sys_time<std::chrono::seconds>{}).abbrev;
-                    if (!abbr.empty())
-                        abbrevs.insert(std::move(abbr));
+                    using namespace std::chrono;
+                    const sys_seconds projected =
+                        time_point_cast<seconds>(system_clock::now()) + years{10};
+                    const sys_seconds floor{sys_days{2038y / January / 1}};
+                    const sys_seconds horizon = (projected > floor) ? projected : floor;
+
+                    for (const auto& zone : tzdb.zones)
+                    {
+                        sys_seconds t = sys_seconds::min();
+                        while (t < horizon)
+                        {
+                            const sys_info info = zone.get_info(t);
+                            if (!info.abbrev.empty()) abbrevs.insert(info.abbrev);
+                            if (info.end <= t) break;
+                            t = time_point_cast<seconds>(info.end);
+                        }
+                    }
                 }
 
                 // Resolve each abbreviation: if locate_zone succeeds (e.g. "EST"
