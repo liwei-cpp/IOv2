@@ -894,12 +894,17 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *       `std::chrono` 类型再格式化，要求它整体自洽，上述用法在这里都会失败。从 `std::ostream`
  *       迁移"只格式化部分字段"的代码（如 `os << put_time(&t, "%H:%M")` 而 `t` 的日期未填）时
  *       需要注意这一点。
- * @warning **`%Z` 与 `%z` 不受支持，且不会失败。** `std::tm` 没有可移植的时区字段，按
- *          `timeio` 的既定规则，值提供不了的说明符退化为字面量：这两个说明符被**原样写出**
- *          为 `%Z`、`%z`，流仍保持 `good()`。于是 `os << put_time(&t, "%H:%M %Z")` 得到
- *          `01:02 %Z`，而 `std::put_time` 会写出当前时区的真实名称。这是 `put_time` 唯一一处
- *          不置失败位的分歧，只能靠检查输出发现。退化本身与 `get_time` 对称——这样写出的内容
- *          仍能被同一格式串读回，详见 `timeio` 与 `get_time`。
+ * @warning **`%Z` 与 `%z` 取自 `tm_gmtoff` / `tm_zone` 这两个非标准扩展。** 标准 `std::tm`
+ *          没有时区字段，本库用编译期探测判断：
+ *          - 有 `tm_gmtoff`（glibc、BSD、POSIX.1-2024）时，`%z` 总是写出由它算得的偏移，
+ *            所以 `std::tm t{}` 得到 `+0000` 而不是字面量；
+ *          - `%Z` 写出 `tm_zone`，但它为空指针或空串时（`std::tm t{}` 即如此）退化为
+ *            **原样写出** `%Z`，流仍保持 `good()`；
+ *          - 平台两个扩展都没有时，`%z` 与 `%Z` 一律退化为字面量。
+ *          退化不置失败位，只能靠检查输出发现。`%z` 与 `get_time` 往返一致（读回 `tm_gmtoff`）；
+ *          `%Z` 只保证能被读回、不置失败位，值本身会被丢弃，因为回写 `tm_zone` 会留下悬垂指针。
+ *          若 `tm_zone` 是时区数据库里查不到的串（如 `+08`），`get_time` 会置 `strfailbit`。
+ *          详见 `timeio` 与 `get_time`。
  * @note **`tm_wday` 与 `tm_yday` 不被读取。** 星期由 y/m/d 重新推算，与调用方填的值无关。
  *       这与 `strftime` 的 `%a`/`%A`（读 `tm_wday`）、`%j`（读 `tm_yday`）不同：若调用方填入
  *       与日期不符的值，标准库按该值输出，本库按真实日期输出，双方都不报错。
@@ -955,14 +960,20 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *       consistent; every one of those uses fails here. Keep this in mind when migrating code
  *       from `std::ostream` that formats only some fields, such as
  *       `os << put_time(&t, "%H:%M")` with the date left unset.
- * @warning **`%Z` and `%z` are unsupported, and do not fail.** `std::tm` has no portable
- *          time-zone field, and by `timeio`'s standing rule a specifier the value cannot supply
- *          degrades to a literal: these two are **written out verbatim** as `%Z` and `%z`, with
- *          the stream left `good()`. So `os << put_time(&t, "%H:%M %Z")` yields `01:02 %Z`,
- *          where `std::put_time` writes the real name of the current zone. This is the one
- *          `put_time` divergence that sets no failure bit, so it shows up only on inspecting
- *          the output. The degradation itself is symmetric with `get_time`: what is written
- *          still reads back through the same format string. See `timeio` and `get_time`.
+ * @warning **`%Z` and `%z` come from the `tm_gmtoff` / `tm_zone` extensions.** A standard
+ *          `std::tm` has no time-zone field, so the library detects those two members at
+ *          compile time:
+ *          - where `tm_gmtoff` exists (glibc, the BSDs, POSIX.1-2024) `%z` always writes the
+ *            offset computed from it, so a `std::tm t{}` yields `+0000`, not a literal;
+ *          - `%Z` writes `tm_zone`, but degrades to **writing `%Z` verbatim** when that member
+ *            is null or empty (as it is in a `std::tm t{}`), leaving the stream `good()`;
+ *          - on a platform with neither extension both `%z` and `%Z` degrade to literals.
+ *          A degradation sets no failure bit, so it shows up only on inspecting the output.
+ *          `%z` round-trips through `get_time` (which reads it back into `tm_gmtoff`); `%Z` is
+ *          only guaranteed to read back without failing -- the value itself is dropped, because
+ *          writing `tm_zone` back would leave a dangling pointer. And if `tm_zone` holds a
+ *          string the time-zone database does not know (`+08`, say), `get_time` sets
+ *          `strfailbit`. See `timeio` and `get_time`.
  * @note **`tm_wday` and `tm_yday` are not read.** The weekday is recomputed from y/m/d,
  *       independently of whatever the caller stored. This differs from `strftime`, whose
  *       `%a`/`%A` read `tm_wday` and whose `%j` reads `tm_yday`: given a value inconsistent with
@@ -1100,13 +1111,15 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *          年份。所以 `put_time` 写出的年 10000 或 −44，本函数读不回来：整次提取失败、置
  *          `strfailbit`，`*tmb` 一字节不改。**只有年 0..9999 才保证往返。** 这是本文档中
  *          "提取侧更宽松"的唯一例外，理由见 `timeio`。
- * @warning **`%Z` 与 `%z` 不受支持。** `std::tm` 没有可移植的时区字段，本函数使用的解析
- *          上下文（`time_parse_context<TChar, true, true, false>`，见 `io/traits/tm.h`）
- *          因此未激活时区字段组。按 `timeio` 的既定规则，上下文接不住的说明符不算错误，
- *          而是退化为字面量：`%Z` 要求输入里真的出现 `%Z` 这两个字符。于是
- *          `get_time(&t, "%H:%M %Z")` 读 `01:02 UTC` 会**整次提取失败**并置 `strfailbit`，
- *          `*tmb` 保持不变；而 `std::get_time` 会解析出一个时区名再丢弃，看上去是成功的。
- *          从 `std::istream` 迁移时，这类失败很容易被误判成输入数据有问题。详见 `timeio`。
+ * @warning **`%Z` 与 `%z` 会解析，但只有偏移写得回去。** 本函数使用的解析上下文
+ *          （`time_parse_context<TChar, true, true, tz_level::offset>`，见 `io/traits/tm.h`）
+ *          处在只带偏移与缩写的那一档：`%z` 解析出的 UTC 偏移写入 `tm_gmtoff`（仅在平台
+ *          有这个扩展成员时），`%Z` 解析出的名字**被丢弃**——回写 `tm_zone` 会留下悬垂指针。
+ *          于是 `get_time(&t, "%H:%M %Z")` 读 `01:02 UTC` 成功，但 `*tmb` 里看不出时区，
+ *          这一点与 `std::get_time` 一致。区别在于取值域：`%Z` 接受时区数据库认识的任何
+ *          名字或缩写，`01:02 XYZ` 会**整次提取失败**并置 `strfailbit`、`*tmb` 保持不变；
+ *          而 `std::get_time` 比对的是一张硬编码 14 条的表，只认标准时缩写——`01:02 UTC`
+ *          与 `01:02 PDT` 在它那里都失败。详见 `timeio`。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
@@ -1176,15 +1189,18 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *          years 0..9999 are guaranteed to round-trip.** This is the one exception to the "the
  *          extraction side is more permissive" rule stated throughout this documentation; see
  *          `timeio` for why.
- * @warning **`%Z` and `%z` are not supported.** `std::tm` has no portable time-zone field, so
- *          the parse context this function uses (`time_parse_context<TChar, true, true, false>`,
- *          see `io/traits/tm.h`) does not activate the time-zone field group. By `timeio`'s
- *          standing rule a specifier the context cannot hold is not an error but degrades to a
- *          literal: `%Z` requires the two characters `%Z` to actually appear in the input. So
- *          `get_time(&t, "%H:%M %Z")` reading `01:02 UTC` fails the **whole extraction** with
- *          `strfailbit` and leaves `*tmb` unchanged, where `std::get_time` parses a zone name,
- *          discards it, and appears to have succeeded. Migrating from `std::istream`, such a
- *          failure is easily misread as a problem with the input data. See `timeio`.
+ * @warning **`%Z` and `%z` do parse, but only the offset is written back.** The parse context
+ *          this function uses (`time_parse_context<TChar, true, true, tz_level::offset>`, see
+ *          `io/traits/tm.h`) sits at the tier that carries an offset and an abbreviation only:
+ *          the UTC offset `%z` parses goes into `tm_gmtoff` (where the platform has that
+ *          extension member), and the name `%Z` parses is **discarded** -- writing `tm_zone`
+ *          back would leave a dangling pointer. So `get_time(&t, "%H:%M %Z")` reading
+ *          `01:02 UTC` succeeds while leaving no trace of the zone in `*tmb`, just as
+ *          `std::get_time` does. What differs is the accepted set: `%Z` takes any name or
+ *          abbreviation the time-zone database knows, so `01:02 XYZ` fails the **whole
+ *          extraction** with `strfailbit` and leaves `*tmb` unchanged; `std::get_time` matches
+ *          against a hard-coded table of 14 entries and so knows standard-time abbreviations
+ *          only -- `01:02 UTC` and `01:02 PDT` both fail there. See `timeio`.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif
@@ -1252,7 +1268,7 @@ struct io_traits<TChar, get_time_t<TChar>>
         if (!mp)
             throw stream_error("cannot get timeio facet");
 
-        // The context is date+time without a time zone, matching
+        // The context is date+time at the offset tier, matching
         // parse_context_type<TChar, std::tm>; that is also the combination whose
         // convert_to(std::tm&) is available.
         auto tmp = parse_context_type<TChar, std::tm>::make_parse_context(*(f.tmb));

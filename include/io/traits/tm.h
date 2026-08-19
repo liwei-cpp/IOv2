@@ -15,15 +15,16 @@ namespace IOv2
 template <typename TChar>
 struct parse_context_type<TChar, std::tm>
 {
-    using type = time_parse_context<TChar, true, true, false>;
+    using type = time_parse_context<TChar, true, true, tz_level::offset>;
 
     /**
      * @lang{ZH}
      * @brief 由一个 `std::tm` 构造出以其字段为回退值的解析上下文。
      *
      * 返回的上下文的日期与时间字段被预置为 @p tmb 中的对应值，因此随后 `get()` 未解析到的
-     * 字段会保留 @p tmb 的取值，而不是退回默认构造所采用的挂钟时间。`std::tm` 不含时区，
-     * `type` 相应地也不激活时区字段组。
+     * 字段会保留 @p tmb 的取值，而不是退回默认构造所采用的挂钟时间。`std::tm` 只带得动部分
+     * 时区信息（`tm_gmtoff` / `tm_zone`，还是实现定义的扩展），带不动区域身份，所以 `type`
+     * 取 tz_level::offset 这一档：`%z` / `%Z` 能解析，但只有偏移会被写回 `tm_gmtoff`。
      *
      * 归一化只用 `std::chrono` 完成，**不经 `mktime()`**：后者依赖 `TZ` 环境变量、会因夏令时
      * 而平移小时数、写入 `tzset()` 的全局状态，且在部分实现上对 1970 年之前的时间直接失败——
@@ -46,8 +47,10 @@ struct parse_context_type<TChar, std::tm>
      *
      * The returned context has its date and time fields pre-seeded from @p tmb, so any field a
      * subsequent `get()` does not parse keeps the value it had in @p tmb rather than falling
-     * back to the wall-clock time a default-constructed context uses. A `std::tm` carries no
-     * time zone, and `type` correspondingly leaves that field group inactive.
+     * back to the wall-clock time a default-constructed context uses. A `std::tm` can carry
+     * only part of a time zone (`tm_gmtoff` / `tm_zone`, and those are implementation-defined
+     * extensions) and no zone identity at all, so `type` sits at the `tz_level::offset` tier:
+     * `%z` / `%Z` parse, but only the offset is written back, into `tm_gmtoff`.
      *
      * Normalization is done purely with `std::chrono`, **not through `mktime()`**: that
      * function depends on the `TZ` environment variable, shifts the hour across a DST boundary,
@@ -132,11 +135,11 @@ struct io_traits<TChar, std::tm>
 };
 
 template <typename TChar>
-struct io_traits<TChar, time_parse_context<TChar, true, true, false>>
+struct io_traits<TChar, time_parse_context<TChar, true, true, tz_level::offset>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, time_parse_context<TChar, true, true, false>& value)
+    static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, time_parse_context<TChar, true, true, tz_level::offset>& value)
     {
         auto mp = loc.template get<timeio<TChar>>();
         if (!mp)

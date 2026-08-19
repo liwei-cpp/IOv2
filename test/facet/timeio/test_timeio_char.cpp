@@ -2357,7 +2357,7 @@ void test_timeio_char_put_17()
     }
 
     {
-        res.clear(); obj.put(std::back_inserter(res), tp, 'z'); VERIFY(res == "%z");
+        res.clear(); obj.put(std::back_inserter(res), tp, 'z'); VERIFY(res == "+0000");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'E');
         VERIFY(res == "%Ez");
         res.clear(); obj.put(std::back_inserter(res), tp, 'z', 'O');
@@ -2370,13 +2370,13 @@ namespace
 {
     constexpr static IOv2::ios_defs::iostate febit = IOv2::ios_defs::eofbit | IOv2::ios_defs::strfailbit;
 
-    template <typename T = IOv2::time_parse_context<char>, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
+    template <typename T = IOv2::time_parse_context<char>, bool HaveDate = true, bool HaveTime = true, IOv2::tz_level TzLevel = IOv2::tz_level::zone>
     T CheckGet(const IOv2::timeio<char>& obj, const std::string& input,
                char fmt, char modif,
                IOv2::ios_defs::iostate err_exp, size_t consume_exp = (size_t)-1)
     {
         if (consume_exp == (size_t)-1) consume_exp = input.size();
-        IOv2::time_parse_context<char, HaveDate, HaveTime, HaveTimeZone> ctx1, ctx2, ctx3;
+        IOv2::time_parse_context<char, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         if (err_exp == IOv2::ios_defs::goodbit)
         {
             VERIFY(obj.get(input.begin(), input.end(), ctx1, fmt, modif) != input.end());
@@ -2444,13 +2444,13 @@ namespace
         return ctx_to<T>(ctx1);
     }
 
-    template <typename T = IOv2::time_parse_context<char>, bool HaveDate = true, bool HaveTime = true, bool HaveTimeZone = true>
+    template <typename T = IOv2::time_parse_context<char>, bool HaveDate = true, bool HaveTime = true, IOv2::tz_level TzLevel = IOv2::tz_level::zone>
     T CheckGet(const IOv2::timeio<char>& obj, const std::string& input,
                const std::string& fmt,
                IOv2::ios_defs::iostate err_exp, size_t consume_exp = (size_t)-1)
     {
         if (consume_exp == (size_t)-1) consume_exp = input.size();
-        IOv2::time_parse_context<char, HaveDate, HaveTime, HaveTimeZone> ctx1, ctx2, ctx3;
+        IOv2::time_parse_context<char, HaveDate, HaveTime, TzLevel> ctx1, ctx2, ctx3;
         if (err_exp == IOv2::ios_defs::goodbit)
         {
             VERIFY(obj.get(input.begin(), input.end(), ctx1, fmt) != input.end());
@@ -4861,12 +4861,12 @@ void test_timeio_char_get_14()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char, true, true, false>, true, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char, true, true, IOv2::tz_level::none>, true, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FYmd = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::year_month_day, true, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::year_month_day, true, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri("%",  '%',  0,  IOv2::ios_defs::eofbit);
@@ -5151,12 +5151,12 @@ void test_timeio_char_get_15()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char, true, false, false>, true, false, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char, true, false, IOv2::tz_level::none>, true, false, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FYmd = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::year_month_day, true, false, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::year_month_day, true, false, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri("%",  '%',  0,  IOv2::ios_defs::eofbit);
@@ -5427,12 +5427,12 @@ void test_timeio_char_get_16()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char, false, true, true>, false, true, true>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char, false, true, IOv2::tz_level::zone>, false, true, IOv2::tz_level::zone>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FHms = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, true>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, IOv2::tz_level::zone>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri("%",  '%',  0,  IOv2::ios_defs::eofbit);
@@ -5670,7 +5670,8 @@ void test_timeio_char_get_16()
     FOri("%OZ", 'Z', 'O', IOv2::ios_defs::eofbit);
     FOri("Z",   'Z', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    FOri("%z", 'z', 0, IOv2::ios_defs::eofbit);
+    { auto r = FOri("+0800", 'z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_have_offset && r.m_offset == minutes{480}); }
+    FOri("%z", 'z', 0, IOv2::ios_defs::strfailbit);
     FOri("%Ez", 'z', 'E', IOv2::ios_defs::eofbit);
     FOri("z",  'z', 'E', IOv2::ios_defs::strfailbit, 0);
     FOri("%Oz", 'z', 'O', IOv2::ios_defs::eofbit);
@@ -5686,12 +5687,12 @@ void test_timeio_char_get_17()
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("ja_JP.UTF-8"));
     auto FOri = [&obj](auto&&... args)
     {
-        return CheckGet<IOv2::time_parse_context<char, false, true, false>, false, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<IOv2::time_parse_context<char, false, true, IOv2::tz_level::none>, false, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     auto FHms = [&obj](auto&&... args)
     {
-        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, false>(obj, std::forward<decltype(args)>(args)...);
+        return CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>, false, true, IOv2::tz_level::none>(obj, std::forward<decltype(args)>(args)...);
     };
 
     FOri("%",  '%',  0,  IOv2::ios_defs::eofbit);
@@ -6478,12 +6479,12 @@ void test_timeio_char_get_19()
     // The checks go through concepts rather than `static_assert(!requires ...)`, which GCC
     // reports as a hard error in a non-template context instead of a failed constraint.
     {
-        static_assert(can_hint_date<IOv2::time_parse_context<char, true, true, true>>);
-        static_assert(can_hint_time<IOv2::time_parse_context<char, true, true, true>>);
-        static_assert(can_hint_zone<IOv2::time_parse_context<char, true, true, true>>);
-        static_assert(!can_hint_date<IOv2::time_parse_context<char, false, true, true>>);
-        static_assert(!can_hint_time<IOv2::time_parse_context<char, true, false, true>>);
-        static_assert(!can_hint_zone<IOv2::time_parse_context<char, true, true, false>>);
+        static_assert(can_hint_date<IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone>>);
+        static_assert(can_hint_time<IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone>>);
+        static_assert(can_hint_zone<IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone>>);
+        static_assert(!can_hint_date<IOv2::time_parse_context<char, false, true, IOv2::tz_level::zone>>);
+        static_assert(!can_hint_time<IOv2::time_parse_context<char, true, false, IOv2::tz_level::zone>>);
+        static_assert(!can_hint_zone<IOv2::time_parse_context<char, true, true, IOv2::tz_level::none>>);
     }
 
     dump_info("Done\n");
@@ -6632,6 +6633,494 @@ void test_timeio_char_put_20()
     VERIFY(!all_supported("%k:%M"));
     VERIFY(all_supported("%d.%m.%Y"));
     VERIFY(all_supported("%EY %Oe"));
+
+    dump_info("Done\n");
+}
+
+// put(sys_time) and put(local_time, offset): the two values that sit at tz_level::offset on the
+// write side. Both carry an offset but no zone identity, so %z always emits while %Z has only
+// what the value can name -- "UTC" for a sys_time, nothing at all for a local_time.
+void test_timeio_char_put_21()
+{
+    dump_info("Test timeio<char> put 21...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+    std::string res;
+
+    const sys_time<seconds> st{
+        sys_days{year{2024}/month{9}/day{4}} + hours{13} + minutes{33} + seconds{18}};
+    const local_time<seconds> lt{
+        local_days{year{2024}/month{9}/day{4}} + hours{13} + minutes{33} + seconds{18}};
+
+    {
+        res.clear(); obj.put(std::back_inserter(res), st, std::string_view("%F %T %z %Z"));
+        VERIFY(res == "2024-09-04 13:33:18 +0000 UTC");
+    }
+
+    // %Z is the abbreviation the value supplies, not an IANA name: only a zoned_time has one.
+    {
+        auto zt = create_zoned_time(2024, 9, 4, 13, 33, 18, "Etc/UTC");
+        res.clear(); obj.put(std::back_inserter(res), zt, std::string_view("%Z"));
+        VERIFY(res == "Etc/UTC");
+    }
+
+    {
+        res.clear(); obj.put(std::back_inserter(res), lt, hours{9}, std::string_view("%F %T %z %Z"));
+        VERIFY(res == "2024-09-04 13:33:18 +0900 %Z");   // %Z degrades: no abbreviation to write
+
+        res.clear();
+        obj.put(std::back_inserter(res), lt, -(hours{5} + minutes{30}), std::string_view("%z"));
+        VERIFY(res == "-0530");
+
+        // %z has no room for seconds, so a sub-minute offset truncates towards zero. The sign
+        // is written before the truncation, which is why a small negative offset reads "-0000".
+        res.clear(); obj.put(std::back_inserter(res), lt, seconds{59}, std::string_view("%z"));
+        VERIFY(res == "+0000");
+        res.clear(); obj.put(std::back_inserter(res), lt, seconds{-59}, std::string_view("%z"));
+        VERIFY(res == "-0000");
+    }
+
+    // A date outside year's range is rejected rather than clamped, as it is for the other values.
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            bool threw = false;
+            try
+            {
+                if (i == 0)
+                    obj.put(std::back_inserter(res),
+                            sys_time<seconds>{sys_days{year::max()/month{12}/day{31}} + days{1}},
+                            std::string_view("%F"));
+                else
+                    obj.put(std::back_inserter(res),
+                            local_time<seconds>{local_days{year::max()/month{12}/day{31}} + days{1}},
+                            seconds{0}, std::string_view("%F"));
+            }
+            catch (IOv2::stream_error&) { threw = true; }
+            VERIFY(threw);
+        }
+    }
+
+    // Round trips through the offset tier: what put writes, get reads back to the same instant.
+    {
+        res.clear(); obj.put(std::back_inserter(res), st, std::string_view("%F %T %z"));
+        VERIFY(res == "2024-09-04 13:33:18 +0000");
+
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        VERIFY(obj.get(res.begin(), res.end(), ctx, std::string_view("%F %T %z")) == res.end());
+        sys_time<seconds> back{};
+        ctx.convert_to(back);
+        VERIFY(back == st);
+    }
+    {
+        res.clear(); obj.put(std::back_inserter(res), lt, hours{8}, std::string_view("%F %T %z"));
+        VERIFY(res == "2024-09-04 13:33:18 +0800");
+
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        VERIFY(obj.get(res.begin(), res.end(), ctx, std::string_view("%F %T %z")) == res.end());
+        sys_time<seconds>   back_sys{};
+        local_time<seconds> back_local{};
+        ctx.convert_to(back_sys);
+        ctx.convert_to(back_local);
+        VERIFY(back_local == lt);         // the wall time, offset dropped
+        VERIFY(back_sys == st - hours{8}); // the instant, offset applied
+    }
+
+    dump_info("Done\n");
+}
+
+// The tz_level::offset tier, which no other test reaches: %z and %Z both parse, the offset is
+// kept and the zone text is kept verbatim, and nothing is ever resolved against the tz database.
+void test_timeio_char_get_20()
+{
+    dump_info("Test timeio<char> get 20...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    using ctx_offset = IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset>;
+    auto parse = [&obj](const std::string& in, const char* fmt)
+    {
+        ctx_offset ctx;
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view(fmt)) == in.end());
+        return ctx;
+    };
+    auto rejects = [&obj](const std::string& in, const char* fmt)
+    {
+        ctx_offset ctx;
+        try { obj.get(in.begin(), in.end(), ctx, std::string_view(fmt)); }
+        catch (IOv2::stream_error&) { return true; }
+        return false;
+    };
+
+    // All four spellings %z accepts.
+    VERIFY(parse("+0800", "%z").m_offset == minutes{480});
+    VERIFY(parse("-0530", "%z").m_offset == -minutes{330});
+    VERIFY(parse("+08", "%z").m_offset == minutes{480});
+    VERIFY(parse("+08:30", "%z").m_offset == minutes{510});
+    VERIFY(parse("Z", "%z").m_offset == minutes{0});
+    VERIFY(parse("Z", "%z").m_have_offset);
+    VERIFY(parse("-0000", "%z").m_offset == minutes{0});
+
+    // A ':' not followed by a digit is put back rather than swallowed, so the two-digit form
+    // still matches and the ':' is left for the format string to consume as a literal.
+    VERIFY(parse("+08:", "%z:").m_offset == minutes{480});
+
+    VERIFY(rejects("0800", "%z"));      // no sign
+    VERIFY(rejects("+8", "%z"));        // one digit
+    VERIFY(rejects("+080", "%z"));      // three digits
+    VERIFY(rejects("+2400", "%z"));     // hour out of range
+    VERIFY(rejects("+0060", "%z"));     // minute out of range
+    VERIFY(rejects("+", "%z"));         // sign then nothing
+
+    // %Z keeps the text and resolves nothing, whether it named a zone or an abbreviation.
+    VERIFY(parse("America/Los_Angeles", "%Z").m_zone_abbrev == "America/Los_Angeles");
+    VERIFY(parse("PST", "%Z").m_zone_abbrev == "PST");
+    VERIFY(rejects("America/Los_Angexes", "%Z"));
+
+    // convert_to(minutes): the parsed offset first, then the hint, and an error with neither.
+    {
+        minutes off{};
+        parse("+0800", "%z").convert_to(off);
+        VERIFY(off == minutes{480});
+
+        ctx_offset ctx;
+        bool threw = false;
+        try { ctx.convert_to(off); } catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+
+        ctx.set_hint(minutes{-60});
+        ctx.convert_to(off);
+        VERIFY(off == minutes{-60});
+    }
+
+    // The offset reaches a std::tm through tm_gmtoff, where the platform has that member. A
+    // zone never does: convert_to would have to leave tm_zone pointing at freed storage.
+    if constexpr (requires (std::tm t) { t.tm_gmtoff; })
+    {
+        std::tm out{};
+        parse("2024-09-04 13:33:18 +0800 PST", "%F %T %z %Z").convert_to(out);
+        VERIFY(out.tm_gmtoff == 8 * 3600);
+        if constexpr (requires (std::tm t) { t.tm_zone; })
+            VERIFY(out.tm_zone == nullptr);
+
+        // Only a *parsed* %z is written back. With none, the field keeps whatever the caller
+        // had there -- an offset hint does not reach it either.
+        std::tm keep{};
+        keep.tm_gmtoff = 12345;
+        ctx_offset ctx;
+        ctx.set_hint(minutes{60});
+        const std::string in = "2024-09-04 13:33:18";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T")) == in.end());
+        ctx.convert_to(keep);
+        VERIFY(keep.tm_gmtoff == 12345);
+
+        // The round trip io_manip.h documents for a std::tm.
+        std::tm src{};
+        src.tm_year = 124; src.tm_mon = 8; src.tm_mday = 4;
+        src.tm_hour = 13; src.tm_min = 33; src.tm_sec = 18;
+        src.tm_gmtoff = -7 * 3600;
+        std::string res;
+        obj.put(std::back_inserter(res), src, std::string_view("%F %T %z"));
+        VERIFY(res == "2024-09-04 13:33:18 -0700");
+
+        std::tm back{};
+        ctx_offset ctx2;
+        VERIFY(obj.get(res.begin(), res.end(), ctx2, std::string_view("%F %T %z")) == res.end());
+        ctx2.convert_to(back);
+        VERIFY(back.tm_gmtoff == -7 * 3600);
+    }
+
+    dump_info("Done\n");
+}
+
+// convert_to(sys_time&) resolves the instant in a fixed order, and convert_to(local_time&)
+// resolves nothing at all.
+void test_timeio_char_get_21()
+{
+    dump_info("Test timeio<char> get 21...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    const sys_time<seconds>   noon_utc{sys_days{year{2024}/month{9}/day{4}} + hours{12}};
+    const local_time<seconds> noon_local{local_days{year{2024}/month{9}/day{4}} + hours{12}};
+
+    using ctx_zone = IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone>;
+    auto parse_zone = [&obj](const std::string& in, const char* fmt)
+    {
+        ctx_zone ctx;
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view(fmt)) == in.end());
+        return ctx;
+    };
+
+    sys_time<seconds> st{};
+
+    // 1. A parsed offset pins the instant.
+    parse_zone("2024-09-04 12:00:00 +0800", "%F %T %z").convert_to(st);
+    VERIFY(st == noon_utc - hours{8});
+
+    // 2. With no offset, a parsed IANA name converts the wall time.
+    parse_zone("2024-09-04 12:00:00 Asia/Tokyo", "%F %T %Z").convert_to(st);
+    VERIFY(st == noon_utc - hours{9});
+
+    // ...and it beats an offset hint, because parsed data outranks a fallback.
+    {
+        ctx_zone ctx;
+        ctx.set_hint(minutes{120});
+        const std::string in = "2024-09-04 12:00:00 Asia/Tokyo";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T %Z")) == in.end());
+        ctx.convert_to(st);
+        VERIFY(st == noon_utc - hours{9});
+    }
+
+    // 3. Nothing parsed: the offset hint, which in turn beats the zone hint and the UTC default.
+    {
+        ctx_zone ctx;
+        ctx.set_hint(minutes{120});
+        ctx.set_hint(locate_zone("Asia/Tokyo"));
+        const std::string in = "2024-09-04 12:00:00";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T")) == in.end());
+        ctx.convert_to(st);
+        VERIFY(st == noon_utc - hours{2});
+    }
+
+    // 4. No offset hint either: the zone hint, and failing that UTC.
+    {
+        ctx_zone ctx;
+        ctx.set_hint(locate_zone("Asia/Tokyo"));
+        const std::string in = "2024-09-04 12:00:00";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T")) == in.end());
+        ctx.convert_to(st);
+        VERIFY(st == noon_utc - hours{9});
+    }
+    {
+        ctx_zone ctx;
+        const std::string in = "2024-09-04 12:00:00";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T")) == in.end());
+        ctx.convert_to(st);
+        VERIFY(st == noon_utc);
+    }
+
+    // At tz_level::offset there is no zone to fall back on, so a missing offset is an error
+    // rather than an implicit UTC.
+    {
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        const std::string in = "2024-09-04 12:00:00";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T")) == in.end());
+        bool threw = false;
+        try { ctx.convert_to(st); } catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+
+        ctx.set_hint(minutes{-240});
+        ctx.convert_to(st);
+        VERIFY(st == noon_utc + hours{4});
+    }
+
+    // The offset pins the instant and the zone must agree about it (D5). Disagreement is an
+    // error, not a silent preference for one of the two.
+    {
+        zoned_time<seconds> zt{};
+        parse_zone("2024-09-04 12:00:00 +0900 Asia/Tokyo", "%F %T %z %Z").convert_to(zt);
+        VERIFY(zt.get_sys_time() == noon_utc - hours{9});
+
+        bool threw = false;
+        try { parse_zone("2024-09-04 12:00:00 +0800 Asia/Tokyo", "%F %T %z %Z").convert_to(zt); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+
+        // An abbreviation that names no single zone is an error even with an offset present:
+        // the offset does not excuse the ambiguity, it only would have pinned the instant.
+        threw = false;
+        try { parse_zone("2024-09-04 12:00:00 -0700 PST", "%F %T %z %Z").convert_to(zt); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // convert_to(local_time&) takes the wall time as parsed and drops the zone, at every tier.
+    {
+        local_time<seconds> lt{};
+        parse_zone("2024-09-04 12:00:00 +0800", "%F %T %z").convert_to(lt);
+        VERIFY(lt == noon_local);
+
+        lt = {};
+        parse_zone("2024-09-04 12:00:00 Asia/Tokyo", "%F %T %Z").convert_to(lt);
+        VERIFY(lt == noon_local);
+
+        lt = {};
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::none> ctx;
+        const std::string in = "2024-09-04 12:00:00";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T")) == in.end());
+        ctx.convert_to(lt);
+        VERIFY(lt == noon_local);
+    }
+
+    dump_info("Done\n");
+}
+
+// The set of abbreviations %Z accepts. put copies std::tm::tm_zone out verbatim and
+// localtime() can produce the abbreviation of any instant, so whatever put can write, get
+// has to take back; the trie is built by walking every transition of every zone for exactly
+// that reason. Sampling the database at one instant instead yields only the abbreviation in
+// effect then, which is what these cases pin down.
+void test_timeio_char_get_22()
+{
+    dump_info("Test timeio<char> get 22...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    auto parses = [&obj](const std::string& in)
+    {
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        try { return obj.get(in.begin(), in.end(), ctx, std::string_view("%Z")) == in.end(); }
+        catch (IOv2::stream_error&) { return false; }
+    };
+
+    // Daylight-saving abbreviations, both hemispheres.
+    VERIFY(parses("PDT"));
+    VERIFY(parses("EDT"));
+    VERIFY(parses("CEST"));
+    VERIFY(parses("ACDT"));
+    VERIFY(parses("NZST"));
+
+    // Retired decades ago, and still what localtime() reports for a 1943 instant.
+    VERIFY(parses("EWT"));
+
+    // Standard-time abbreviations and full zone names.
+    VERIFY(parses("PST"));
+    VERIFY(parses("UTC"));
+    VERIFY(parses("America/Los_Angeles"));
+
+    // The same invariant over the whole database rather than a hand-picked list.
+    {
+        const sys_seconds jan{sys_days{2024y / January / 15}};
+        const sys_seconds jul{sys_days{2024y / July / 15}};
+        int checked = 0;
+        for (const auto& zone : get_tzdb().zones)
+            for (auto instant : {jan, jul})
+            {
+                const std::string abbrev = zone.get_info(instant).abbrev;
+                if (abbrev.empty()) continue;
+                VERIFY(parses(abbrev));
+                ++checked;
+            }
+        VERIFY(checked > 500);
+    }
+
+    // What must keep failing. Walking the whole history also admits two-letter entries from
+    // the pre-war era, so a longest match can stop short of the input's end; whatever follows
+    // %Z in the format still catches that, and this pins the cost down to %Z-at-the-end.
+    VERIFY(!parses("XYZ"));
+    {
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        const std::string in = "ATL 11:22";
+        bool threw = false;
+        try { obj.get(in.begin(), in.end(), ctx, std::string_view("%Z %H:%M")); }
+        catch (IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+    }
+
+    // Matching longest-first against known names is also what delimits %Z, which is why a
+    // specifier may follow it with no separator. Scanning a character class could not: the
+    // class has to hold '+' and '-' for abbreviations like "+08", and would swallow the %z.
+    {
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
+        const std::string in = "UTC+0800";
+        VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%Z%z")) == in.end());
+        VERIFY(ctx.m_offset == minutes{480});
+    }
+
+    // The round trip the abbreviation set exists for.
+    if constexpr (requires (std::tm t) { t.tm_zone; t.tm_gmtoff; })
+    {
+        std::tm t{};
+        t.tm_year = 43; t.tm_mon = 6; t.tm_mday = 1;
+        t.tm_hour = 12; t.tm_min = 0; t.tm_sec = 0;
+        t.tm_gmtoff = -4 * 3600;
+        t.tm_zone = "EWT";
+
+        std::string res;
+        obj.put(std::back_inserter(res), t, std::string_view("%F %T %z %Z"));
+        VERIFY(res == "1943-07-01 12:00:00 -0400 EWT");
+
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        VERIFY(obj.get(res.begin(), res.end(), ctx, std::string_view("%F %T %z %Z")) == res.end());
+        VERIFY(ctx.m_offset == -minutes{240});
+    }
+
+    dump_info("Done\n");
+}
+
+// %Z is the one specifier whose supply is a run-time property of the value -- a std::tm has an
+// abbreviation only if tm_zone is set -- so the compile-time tier cannot decide it and put may
+// degrade where get would parse. These cases pin the two tiers apart: tz_level::offset takes the
+// literal back so the degradation stays symmetric, tz_level::zone stays strict because there %Z
+// picks the zone and put never degrades it.
+void test_timeio_char_get_23()
+{
+    dump_info("Test timeio<char> get 23...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    auto off_ok = [&obj](const std::string& in, const char* fmt)
+    {
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        try { return obj.get(in.begin(), in.end(), ctx, std::string_view(fmt)) == in.end(); }
+        catch (IOv2::stream_error&) { return false; }
+    };
+    auto zone_ok = [&obj](const std::string& in, const char* fmt)
+    {
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
+        try { return obj.get(in.begin(), in.end(), ctx, std::string_view(fmt)) == in.end(); }
+        catch (IOv2::stream_error&) { return false; }
+    };
+
+    // The literal %Z, which is what put writes when the value has no zone to offer.
+    VERIFY(off_ok("%Z", "%Z"));
+    VERIFY(!zone_ok("%Z", "%Z"));
+
+    // Everything else is unchanged at both tiers: real zones still parse, and a run of letters
+    // the database does not know is still rejected rather than swallowed as a literal.
+    VERIFY(off_ok("UTC", "%Z"));
+    VERIFY(zone_ok("UTC", "%Z"));
+    VERIFY(off_ok("PDT", "%Z"));
+    VERIFY(zone_ok("PDT", "%Z"));
+    VERIFY(!off_ok("XYZ", "%Z"));
+    VERIFY(!zone_ok("XYZ", "%Z"));
+
+    // The fallback is the literal for *this* specifier, not for any percent sequence.
+    VERIFY(!off_ok("%z", "%Z"));
+    VERIFY(!off_ok("%Q", "%Z"));
+
+    // The round trip it exists for: a std::tm with no zone, through a format carrying %Z.
+    {
+        std::tm t{};
+        t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
+        t.tm_hour = 13; t.tm_min = 33; t.tm_sec = 18;
+
+        std::string res;
+        obj.put(std::back_inserter(res), t, std::string_view("%F %T %Z"));
+        VERIFY(res == "2024-09-04 13:33:18 %Z");
+        VERIFY(off_ok(res, "%F %T %Z"));
+    }
+
+    // The same round trip through a locale whose own %c carries %Z, which is how this reaches
+    // a caller who never wrote %Z: put_time(&t, "%c") on a tm that get_time filled in.
+    {
+        IOv2::timeio us(std::make_shared<IOv2::timeio_conf<char>>("en_US.UTF-8"));
+        std::tm t{};
+        t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
+        t.tm_hour = 13; t.tm_min = 33; t.tm_sec = 18;
+
+        std::string res;
+        us.put(std::back_inserter(res), t, std::string_view("%c"));
+
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        VERIFY(us.get(res.begin(), res.end(), ctx, std::string_view("%c")) == res.end());
+    }
 
     dump_info("Done\n");
 }
