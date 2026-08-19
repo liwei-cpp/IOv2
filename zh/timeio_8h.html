@@ -91,7 +91,8 @@ $(document).ready(function(){initNavTree('timeio_8h.html',''); initResizable(); 
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">类</a> &#124;
-<a href="#namespaces">命名空间</a>  </div>
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#enum-members">枚举</a>  </div>
   <div class="headertitle"><div class="title">timeio.h 文件参考</div></div>
 </div><!--header-->
 <div class="contents">
@@ -430,11 +431,14 @@ timeio.h 的引用(Include)关系图:</div>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__helper_3_01true_01_4.html">IOv2::time_parse_helper&lt; true &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时间字段的辅助结构（<code>HaveTime = true</code> 特化）。  <a href="structIOv2_1_1time__parse__helper_3_01true_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html">IOv2::time_zone_parse_helper&lt; true &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时区字段的辅助结构（<code>HaveTimeZone = true</code> 特化）。  <a href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html">IOv2::time_zone_parse_helper&lt; tz_level::offset &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时区字段的辅助结构（<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="UTC 偏移，外加 Z 读到的缩写原文。">tz_level::offset</a></code> 特化）。  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html">IOv2::time_parse_context&lt; CharT, HaveDate, HaveTime, HaveTimeZone &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1timeio.html#a201e7613d021d5ce1bd39c97cb0f7f35" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">timeio::get()</a></code> 的聚合解析上下文。  <a href="structIOv2_1_1time__parse__context.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html">IOv2::time_zone_parse_helper&lt; tz_level::zone &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时区字段的辅助结构（<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="在 offset 之上再加区域身份（IANA 名）。">tz_level::zone</a></code> 特化）。  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html">IOv2::time_parse_context&lt; CharT, HaveDate, HaveTime, TzLevel &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1timeio.html#a1dcc63b9a87fb033a957de285d9f4cbd" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">timeio::get()</a></code> 的聚合解析上下文。  <a href="structIOv2_1_1time__parse__context.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio&lt; CharT &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。  <a href="classIOv2_1_1timeio.html#details">更多...</a><br /></td></tr>
@@ -444,6 +448,15 @@ timeio.h 的引用(Include)关系图:</div>
 命名空间</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+枚举</h2></td></tr>
+<tr class="memitem:ae5c45ed29b875d3d35e686974d847b1e" id="r_ae5c45ed29b875d3d35e686974d847b1e"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">IOv2::tz_level</a> : unsigned char { <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::none</a> = 0
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::offset</a> = 1
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">IOv2::zone</a> = 2
+ }</td></tr>
+<tr class="memdesc:ae5c45ed29b875d3d35e686974d847b1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析上下文所携带的时区信息档位。  <a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">更多...</a><br /></td></tr>
+<tr class="separator:ae5c45ed29b875d3d35e686974d847b1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
 <div class="textblock"><p>定义 <code>timeio</code> facet，提供对日期/时间值的格式化输出（<code>put</code>）与解析输入（<code>get</code>）功能， 支持 <code>strftime</code>/<code>strptime</code> 风格的格式说明符（包括 <code>E</code>/<code>O</code> 修饰符与纪元扩展）。</p>

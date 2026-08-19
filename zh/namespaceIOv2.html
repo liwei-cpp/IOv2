@@ -386,7 +386,7 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html">io_traits&lt; TChar, TChar[N]&gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">将一个以空白分隔的 token 提取到定长字符数组。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01false_01_4_01_4.html">io_traits&lt; TChar, time_parse_context&lt; TChar, true, true, false &gt; &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4.html">io_traits&lt; TChar, time_parse_context&lt; TChar, true, true, tz_level::offset &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html">io_traits&lt; TChar, TValue &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">算术值的数值格式读写。  <a href="structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html#details">更多...</a><br /></td></tr>
@@ -574,13 +574,16 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">对流的 I/O 互斥量进行 RAII 加锁的辅助类。  <a href="structIOv2_1_1sync.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1timeio.html#a201e7613d021d5ce1bd39c97cb0f7f35" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">timeio::get()</a></code> 的聚合解析上下文。  <a href="structIOv2_1_1time__parse__context.html#details">更多...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code><a class="el" href="classIOv2_1_1timeio.html#a1dcc63b9a87fb033a957de285d9f4cbd" title="按单个格式字符（可带修饰符）从输入范围中解析时间字段。">timeio::get()</a></code> 的聚合解析上下文。  <a href="structIOv2_1_1time__parse__context.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__helper_3_01true_01_4.html">time_parse_helper&lt; true &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时间字段的辅助结构（<code>HaveTime = true</code> 特化）。  <a href="structIOv2_1_1time__parse__helper_3_01true_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html">time_zone_parse_helper&lt; true &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时区字段的辅助结构（<code>HaveTimeZone = true</code> 特化）。  <a href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html">time_zone_parse_helper&lt; tz_level::offset &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时区字段的辅助结构（<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="UTC 偏移，外加 Z 读到的缩写原文。">tz_level::offset</a></code> 特化）。  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html">time_zone_parse_helper&lt; tz_level::zone &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析时区字段的辅助结构（<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="在 offset 之上再加区域身份（IANA 名）。">tz_level::zone</a></code> 特化）。  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html#details">更多...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html">timeio</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。  <a href="classIOv2_1_1timeio.html#details">更多...</a><br /></td></tr>
@@ -687,6 +690,12 @@ $(document).ready(function(){initNavTree('namespaceIOv2.html',''); initResizable
  }</td></tr>
 <tr class="memdesc:a2fe85baee416b44f8aaf4487943c2bc1"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>fopen</code> 的文件打开模式标志。  <a href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1">更多...</a><br /></td></tr>
 <tr class="separator:a2fe85baee416b44f8aaf4487943c2bc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5c45ed29b875d3d35e686974d847b1e" id="r_ae5c45ed29b875d3d35e686974d847b1e"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> : unsigned char { <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">none</a> = 0
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a> = 1
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">zone</a> = 2
+ }</td></tr>
+<tr class="memdesc:ae5c45ed29b875d3d35e686974d847b1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">解析上下文所携带的时区信息档位。  <a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">更多...</a><br /></td></tr>
+<tr class="separator:ae5c45ed29b875d3d35e686974d847b1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 函数</h2></td></tr>
@@ -1231,6 +1240,38 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <tr><td class="fieldname"><a id="a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967" name="a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967"></a>input&#160;</td><td class="fielddoc"><p>输入（读取）模式 / Input (reading) mode. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d" name="a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d"></a>output&#160;</td><td class="fielddoc"><p>输出（写入）模式 / Output (writing) mode. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="ae5c45ed29b875d3d35e686974d847b1e" name="ae5c45ed29b875d3d35e686974d847b1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5c45ed29b875d3d35e686974d847b1e">&#9670;&#160;</a></span>tz_level</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">enum</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">IOv2::tz_level</a> : <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">unsigned</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>解析上下文所携带的时区信息档位。 </p>
+<table class="fieldtable">
+<tr><th colspan="2">枚举值</th></tr><tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8" name="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"></a>none&#160;</td><td class="fielddoc"><p>不携带时区字段。   </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" name="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"></a>offset&#160;</td><td class="fielddoc"><p>UTC 偏移，外加 <code>Z</code> 读到的缩写原文。   </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" name="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa"></a>zone&#160;</td><td class="fielddoc"><p>在 <code>offset</code> 之上再加区域身份（IANA 名）。   </p>
 </td></tr>
 </table>
 

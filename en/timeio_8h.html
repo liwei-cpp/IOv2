@@ -91,7 +91,8 @@ $(document).ready(function(){initNavTree('timeio_8h.html',''); initResizable(); 
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle"><div class="title">timeio.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -430,11 +431,14 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__helper_3_01true_01_4.html">IOv2::time_parse_helper&lt; true &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-field accumulator helper struct (<code>HaveTime = true</code> specialization).  <a href="structIOv2_1_1time__parse__helper_3_01true_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html">IOv2::time_zone_parse_helper&lt; true &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code>HaveTimeZone = true</code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html">IOv2::time_zone_parse_helper&lt; tz_level::offset &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="A UTC offset, plus the raw abbreviation read by Z.">tz_level::offset</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html">IOv2::time_parse_context&lt; CharT, HaveDate, HaveTime, HaveTimeZone &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aggregate parse context for <code><a class="el" href="classIOv2_1_1timeio.html#a201e7613d021d5ce1bd39c97cb0f7f35" title="Parses time fields from an input range using a single format character (with optional modifier).">timeio::get()</a></code>.  <a href="structIOv2_1_1time__parse__context.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html">IOv2::time_zone_parse_helper&lt; tz_level::zone &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus the zone identity (IANA name).">tz_level::zone</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html">IOv2::time_parse_context&lt; CharT, HaveDate, HaveTime, TzLevel &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aggregate parse context for <code><a class="el" href="classIOv2_1_1timeio.html#a1dcc63b9a87fb033a957de285d9f4cbd" title="Parses time fields from an input range using a single format character (with optional modifier).">timeio::get()</a></code>.  <a href="structIOv2_1_1time__parse__context.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio&lt; CharT &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time I/O facet providing locale-aware date/time formatting and parsing.  <a href="classIOv2_1_1timeio.html#details">More...</a><br /></td></tr>
@@ -444,6 +448,15 @@ Classes</h2></td></tr>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespaceIOv2" id="r_namespaceIOv2"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html">IOv2</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:ae5c45ed29b875d3d35e686974d847b1e" id="r_ae5c45ed29b875d3d35e686974d847b1e"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">IOv2::tz_level</a> : unsigned char { <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::none</a> = 0
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::offset</a> = 1
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">IOv2::zone</a> = 2
+ }</td></tr>
+<tr class="memdesc:ae5c45ed29b875d3d35e686974d847b1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The tier of time-zone information a parse context carries.  <a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">More...</a><br /></td></tr>
+<tr class="separator:ae5c45ed29b875d3d35e686974d847b1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Defines the <code>timeio</code> facet, which provides locale-aware formatting (<code>put</code>) and parsing (<code>get</code>) of date/time values using <code>strftime</code>/<code>strptime</code>-style format specifiers, including <code>E</code>/<code>O</code> modifiers and era extensions.</p>

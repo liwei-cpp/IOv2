@@ -386,7 +386,7 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html">io_traits&lt; TChar, TChar[N]&gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts one whitespace-delimited token into a fixed-size character array.  <a href="structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01false_01_4_01_4.html">io_traits&lt; TChar, time_parse_context&lt; TChar, true, true, false &gt; &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4.html">io_traits&lt; TChar, time_parse_context&lt; TChar, true, true, tz_level::offset &gt; &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html">io_traits&lt; TChar, TValue &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Numeric-format reading and writing of arithmetic values.  <a href="structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html#details">More...</a><br /></td></tr>
@@ -574,13 +574,16 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII helper that locks a stream's I/O mutex.  <a href="structIOv2_1_1sync.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aggregate parse context for <code><a class="el" href="classIOv2_1_1timeio.html#a201e7613d021d5ce1bd39c97cb0f7f35" title="Parses time fields from an input range using a single format character (with optional modifier).">timeio::get()</a></code>.  <a href="structIOv2_1_1time__parse__context.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aggregate parse context for <code><a class="el" href="classIOv2_1_1timeio.html#a1dcc63b9a87fb033a957de285d9f4cbd" title="Parses time fields from an input range using a single format character (with optional modifier).">timeio::get()</a></code>.  <a href="structIOv2_1_1time__parse__context.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__helper_3_01true_01_4.html">time_parse_helper&lt; true &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-field accumulator helper struct (<code>HaveTime = true</code> specialization).  <a href="structIOv2_1_1time__parse__helper_3_01true_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html">time_zone_parse_helper&lt; true &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code>HaveTimeZone = true</code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html">time_zone_parse_helper&lt; tz_level::offset &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="A UTC offset, plus the raw abbreviation read by Z.">tz_level::offset</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html">time_zone_parse_helper&lt; tz_level::zone &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus the zone identity (IANA name).">tz_level::zone</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html">timeio</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time I/O facet providing locale-aware date/time formatting and parsing.  <a href="classIOv2_1_1timeio.html#details">More...</a><br /></td></tr>
@@ -687,6 +690,12 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:a2fe85baee416b44f8aaf4487943c2bc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">File opening mode flags for <code>fopen</code>.  <a href="namespaceIOv2.html#a2fe85baee416b44f8aaf4487943c2bc1">More...</a><br /></td></tr>
 <tr class="separator:a2fe85baee416b44f8aaf4487943c2bc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5c45ed29b875d3d35e686974d847b1e" id="r_ae5c45ed29b875d3d35e686974d847b1e"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a> : unsigned char { <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">none</a> = 0
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a> = 1
+, <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">zone</a> = 2
+ }</td></tr>
+<tr class="memdesc:ae5c45ed29b875d3d35e686974d847b1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">The tier of time-zone information a parse context carries.  <a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">More...</a><br /></td></tr>
+<tr class="separator:ae5c45ed29b875d3d35e686974d847b1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
@@ -1231,6 +1240,38 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 <tr><td class="fieldname"><a id="a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967" name="a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967"></a>input&#160;</td><td class="fielddoc"><p>输入（读取）模式 / Input (reading) mode. </p>
 </td></tr>
 <tr><td class="fieldname"><a id="a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d" name="a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d"></a>output&#160;</td><td class="fielddoc"><p>输出（写入）模式 / Output (writing) mode. </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a id="ae5c45ed29b875d3d35e686974d847b1e" name="ae5c45ed29b875d3d35e686974d847b1e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5c45ed29b875d3d35e686974d847b1e">&#9670;&#160;</a></span>tz_level</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">enum</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">class</a> <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">IOv2::tz_level</a> : <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">unsigned</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The tier of time-zone information a parse context carries. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8" name="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"></a>none&#160;</td><td class="fielddoc"><p>Carries no time-zone field.  </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" name="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"></a>offset&#160;</td><td class="fielddoc"><p>A UTC offset, plus the raw abbreviation read by <code>Z</code>.  </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" name="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa"></a>zone&#160;</td><td class="fielddoc"><p>Everything in <code>offset</code>, plus the zone identity (IANA name).  </p>
 </td></tr>
 </table>
 

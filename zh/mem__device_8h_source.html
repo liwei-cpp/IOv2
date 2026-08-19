@@ -218,11 +218,11 @@ $(document).ready(function(){initNavTree('mem__device_8h_source.html',''); initR
 </div>
 <div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
 <div class="foldopen" id="foldopen00256" data-start="{" data-end="}">
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a9449a2f00a192ad536680e320e5125a9">  256</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a9449a2f00a192ad536680e320e5125a9">drseek</a>(std::size_t offset)</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno"><a class="line" href="classIOv2_1_1mem__device.html#a9449a2f00a192ad536680e320e5125a9">  256</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classIOv2_1_1mem__device.html#a9449a2f00a192ad536680e320e5125a9">drseek</a>(std::size_t <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a>)</div>
 <div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    {</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        <span class="keywordflow">if</span> (offset &gt; m_str.size())</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        <span class="keywordflow">if</span> (<a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a> &gt; m_str.size())</div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>            <span class="keywordflow">throw</span> <a class="code hl_struct" href="structIOv2_1_1device__error.html">device_error</a>(<span class="stringliteral">&quot;mem_device::drseek fail: out of bounds&quot;</span>);</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>        m_next_pos = m_str.size() - offset;</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>        m_next_pos = m_str.size() - <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">offset</a>;</div>
 <div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    }</div>
 </div>
 <div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
@@ -380,6 +380,7 @@ $(document).ready(function(){initNavTree('mem__device_8h_source.html',''); initR
 <div class="ttc" id="adevice__concepts_8h_html"><div class="ttname"><a href="device__concepts_8h.html">device_concepts.h</a></div></div>
 <div class="ttc" id="anamespaceIOv2_html"><div class="ttname"><a href="namespaceIOv2.html">IOv2</a></div><div class="ttdef"><b>Definition</b> clocale_wrapper.h:19</div></div>
 <div class="ttc" id="anamespaceIOv2_html_a09b31017574cb5471d2558481d0f4d7a"><div class="ttname"><a href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">IOv2::is_small_type_v</a></div><div class="ttdeci">constexpr bool is_small_type_v</div><div class="ttdef"><b>Definition</b> metafunctions.h:80</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">UTC 偏移，外加 Z 读到的缩写原文。</div></div>
 <div class="ttc" id="anamespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div><div class="ttdef"><b>Definition</b> ori_facet_buf.h:79</div></div>
 <div class="ttc" id="astructIOv2_1_1device__error_html"><div class="ttname"><a href="structIOv2_1_1device__error.html">IOv2::device_error</a></div><div class="ttdef"><b>Definition</b> defs.h:59</div></div>
 <div class="ttc" id="astructIOv2_1_1is__mem__device__impl_html"><div class="ttname"><a href="structIOv2_1_1is__mem__device__impl.html">IOv2::is_mem_device_impl</a></div><div class="ttdoc">判断一个类型是否为 mem_device 的辅助模板。</div><div class="ttdef"><b>Definition</b> mem_device.h:488</div></div>

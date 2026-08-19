@@ -143,7 +143,7 @@ var hierarchy =
     [ "IOv2::cvt_writer< KernelType >", "classIOv2_1_1cvt__writer.html", null ],
     [ "IOv2::cvt_writer< KernelType >", "classIOv2_1_1cvt__writer_3_01KernelType_01_4.html", null ],
     [ "date_parse_helper", null, [
-      [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
+      [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, TzLevel >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
     [ "IOv2::date_parse_helper< CharT, true >", "structIOv2_1_1date__parse__helper_3_01CharT_00_01true_01_4.html", null ],
     [ "IOv2::endl_t", "structIOv2_1_1endl__t.html", null ],
@@ -246,7 +246,7 @@ var hierarchy =
     [ "IOv2::io_traits< TChar, TChar * >", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_5_01_4.html", null ],
     [ "IOv2::io_traits< TChar, TChar >", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_4.html", null ],
     [ "IOv2::io_traits< TChar, TChar[N]>", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html", null ],
-    [ "IOv2::io_traits< TChar, time_parse_context< TChar, true, true, false > >", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01false_01_4_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, time_parse_context< TChar, true, true, tz_level::offset > >", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4.html", null ],
     [ "IOv2::io_traits< TChar, TValue >", "structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html", null ],
     [ "IOv2::io_traits< TChar, ws_t >", "structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4.html", null ],
     [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", [
@@ -405,13 +405,15 @@ var hierarchy =
     [ "IOv2::sync< TStream >", "structIOv2_1_1sync.html", null ],
     [ "IOv2::base_ft< messages >::text_domain", "structIOv2_1_1base__ft_3_01messages_01_4_1_1text__domain.html", null ],
     [ "time_parse_helper", null, [
-      [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
+      [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, TzLevel >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
     [ "IOv2::time_parse_helper< true >", "structIOv2_1_1time__parse__helper_3_01true_01_4.html", null ],
     [ "time_zone_parse_helper", null, [
-      [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, HaveTimeZone >", "structIOv2_1_1time__parse__context.html", null ]
+      [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, TzLevel >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
-    [ "IOv2::time_zone_parse_helper< true >", "structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html", null ],
+    [ "IOv2::time_zone_parse_helper< tz_level::offset >", "structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html", [
+      [ "IOv2::time_zone_parse_helper< tz_level::zone >", "structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html", null ]
+    ] ],
     [ "IOv2::timeio< CharT >", "classIOv2_1_1timeio.html", null ],
     [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf.html", null ],
     [ "IOv2::type_id< T >", "structIOv2_1_1type__id.html", null ],

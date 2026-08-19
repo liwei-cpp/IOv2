@@ -37,7 +37,7 @@ var searchData=
   ['io_5ftraits_3c_20tchar_2c_20tchar_20_2a_20_3e_34',['io_traits&lt; TChar, TChar * &gt;',['../structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_5_01_4.html',1,'IOv2']]],
   ['io_5ftraits_3c_20tchar_2c_20tchar_20_3e_35',['io_traits&lt; TChar, TChar &gt;',['../structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_4.html',1,'IOv2']]],
   ['io_5ftraits_3c_20tchar_2c_20tchar_5bn_5d_3e_36',['io_traits&lt; TChar, TChar[N]&gt;',['../structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html',1,'IOv2']]],
-  ['io_5ftraits_3c_20tchar_2c_20time_5fparse_5fcontext_3c_20tchar_2c_20true_2c_20true_2c_20false_20_3e_20_3e_37',['io_traits&lt; TChar, time_parse_context&lt; TChar, true, true, false &gt; &gt;',['../structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01false_01_4_01_4.html',1,'IOv2']]],
+  ['io_5ftraits_3c_20tchar_2c_20time_5fparse_5fcontext_3c_20tchar_2c_20true_2c_20true_2c_20tz_5flevel_3a_3aoffset_20_3e_20_3e_37',['io_traits&lt; TChar, time_parse_context&lt; TChar, true, true, tz_level::offset &gt; &gt;',['../structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4.html',1,'IOv2']]],
   ['io_5ftraits_3c_20tchar_2c_20tvalue_20_3e_38',['io_traits&lt; TChar, TValue &gt;',['../structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html',1,'IOv2']]],
   ['io_5ftraits_3c_20tchar_2c_20ws_5ft_20_3e_39',['io_traits&lt; TChar, ws_t &gt;',['../structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4.html',1,'IOv2']]],
   ['ios_5fbase_40',['ios_base',['../classIOv2_1_1ios__base.html',1,'IOv2']]],

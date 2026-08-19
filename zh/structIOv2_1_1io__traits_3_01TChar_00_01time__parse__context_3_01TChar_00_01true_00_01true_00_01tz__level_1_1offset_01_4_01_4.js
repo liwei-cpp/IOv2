@@ -1,0 +1,4 @@
+var structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4 =
+[
+    [ "sread", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4.html#a18f5a4ce4818d3a4546b1f5a30cda9a8", null ]
+];

@@ -176,7 +176,7 @@ var namespaceIOv2 =
     [ "io_traits< TChar, TChar * >", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_5_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_5_01_4" ],
     [ "io_traits< TChar, TChar >", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_4" ],
     [ "io_traits< TChar, TChar[N]>", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4" ],
-    [ "io_traits< TChar, time_parse_context< TChar, true, true, false > >", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01false_01_4_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01false_01_4_01_4" ],
+    [ "io_traits< TChar, time_parse_context< TChar, true, true, tz_level::offset > >", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4" ],
     [ "io_traits< TChar, TValue >", "structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4" ],
     [ "io_traits< TChar, ws_t >", "structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4.html", "structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4" ],
     [ "ios_base", "classIOv2_1_1ios__base.html", "classIOv2_1_1ios__base" ],
@@ -248,7 +248,8 @@ var namespaceIOv2 =
     [ "sync", "structIOv2_1_1sync.html", "structIOv2_1_1sync" ],
     [ "time_parse_context", "structIOv2_1_1time__parse__context.html", "structIOv2_1_1time__parse__context" ],
     [ "time_parse_helper< true >", "structIOv2_1_1time__parse__helper_3_01true_01_4.html", "structIOv2_1_1time__parse__helper_3_01true_01_4" ],
-    [ "time_zone_parse_helper< true >", "structIOv2_1_1time__zone__parse__helper_3_01true_01_4.html", "structIOv2_1_1time__zone__parse__helper_3_01true_01_4" ],
+    [ "time_zone_parse_helper< tz_level::offset >", "structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html", "structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4" ],
+    [ "time_zone_parse_helper< tz_level::zone >", "structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html", "structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4" ],
     [ "timeio", "classIOv2_1_1timeio.html", "classIOv2_1_1timeio" ],
     [ "timeio_conf", "classIOv2_1_1timeio__conf.html", null ],
     [ "timeio_conf< char >", "classIOv2_1_1timeio__conf_3_01char_01_4.html", "classIOv2_1_1timeio__conf_3_01char_01_4" ],
@@ -289,6 +290,11 @@ var namespaceIOv2 =
       [ "neutral", "namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a5da248ea6840aca1ae2b417b17982a89", null ],
       [ "input", "namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9aa43c1b0aa53a0c908810c06ab1ff3967", null ],
       [ "output", "namespaceIOv2.html#a36673c0e1d93ef095d232f0f726134d9a78e6221f6393d1356681db398f14ce6d", null ]
+    ] ],
+    [ "tz_level", "namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e", [
+      [ "none", "namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8", null ],
+      [ "offset", "namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a", null ],
+      [ "zone", "namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa", null ]
     ] ],
     [ "apply_ios_manip", "namespaceIOv2.html#aefb534dca50250eb611ca01673488ec6", null ],
     [ "appmode", "group__ios__manipulators.html#ga47aec311fb370f53d54216e00ae2ef35", null ],
