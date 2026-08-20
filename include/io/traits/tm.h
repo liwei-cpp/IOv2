@@ -9,13 +9,47 @@
 #include <chrono>
 #include <cstdint>
 #include <ctime>
+#include <string>
+#include <string_view>
 
 namespace IOv2
 {
 template <typename TChar>
 struct parse_context_type<TChar, std::tm>
 {
-    using type = time_parse_context<TChar, true, true, tz_level::offset>;
+    /**
+     * @lang{ZH}
+     * @brief 本上下文所处的时区档：平台的 `std::tm` 带 `tm_gmtoff` 才是 `offset`，否则是 `none`。
+     *
+     * 判据与 @ref time_value_fields<std::tm>::has_offset 同源，因此 put 与 get 不会脱节。带
+     * `tm_gmtoff` 时 `%z` 两个方向都真的工作：put 由该成员算出 `+0800`，get 解析到的偏移经
+     * `convert_to(std::tm&)` 写回该成员。不带时两侧都退化为字面量——`do_put` 收到的 `zi` 是
+     * 空指针，`%z` / `%Z` 原样写出；本档为 `none`，`do_get` 的 `%z` / `%Z` 同样只匹配字面量。
+     *
+     * 若此处写死 `offset`，在没有 `tm_gmtoff` 的平台上 put 会写出字面的 `%z`，get 却要求读到
+     * `+0800`，往返就断了；而且解析出的偏移没有成员可以写回，纯属白做。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The tier this context sits at: `offset` when the platform's `std::tm` carries
+     *        `tm_gmtoff`, `none` otherwise.
+     *
+     * The test is the one @ref time_value_fields<std::tm>::has_offset uses, so put and get
+     * cannot drift apart. With `tm_gmtoff`, `%z` really works both ways: put computes `+0800`
+     * from that member, and the offset get parses is written back to it by
+     * `convert_to(std::tm&)`. Without it both sides degrade to literals -- `do_put` receives a
+     * null `zi` and writes `%z` / `%Z` verbatim, and at this `none` tier `do_get` likewise
+     * matches only the literals.
+     *
+     * Hard-coding `offset` here would break the round trip on a platform lacking `tm_gmtoff`:
+     * put would write a literal `%z` while get demanded a real `+0800`, and any offset parsed
+     * would have no member to be written back to.
+     * @endif
+     */
+    static constexpr tz_level tm_parse_tz_level =
+        time_value_fields<std::tm>::has_offset ? tz_level::offset : tz_level::none;
+
+    using type = time_parse_context<TChar, true, true, tm_parse_tz_level>;
 
     /**
      * @lang{ZH}
@@ -24,7 +58,9 @@ struct parse_context_type<TChar, std::tm>
      * 返回的上下文的日期与时间字段被预置为 @p tmb 中的对应值，因此随后 `get()` 未解析到的
      * 字段会保留 @p tmb 的取值，而不是退回默认构造所采用的挂钟时间。`std::tm` 只带得动部分
      * 时区信息（`tm_gmtoff` / `tm_zone`，还是实现定义的扩展），带不动区域身份，所以 `type`
-     * 取 tz_level::offset 这一档：`%z` / `%Z` 能解析，但只有偏移会被写回 `tm_gmtoff`。
+     * 最高只到 tz_level::offset 这一档：`%z` / `%Z` 能解析，但只有偏移会被写回 `tm_gmtoff`。
+     * 平台连 `tm_gmtoff` 都没有时则退到 tz_level::none，两个说明符一律按字面量处理，
+     * 见 @ref tm_parse_tz_level。
      *
      * 归一化只用 `std::chrono` 完成，**不经 `mktime()`**：后者依赖 `TZ` 环境变量、会因夏令时
      * 而平移小时数、写入 `tzset()` 的全局状态，且在部分实现上对 1970 年之前的时间直接失败——
@@ -49,8 +85,10 @@ struct parse_context_type<TChar, std::tm>
      * subsequent `get()` does not parse keeps the value it had in @p tmb rather than falling
      * back to the wall-clock time a default-constructed context uses. A `std::tm` can carry
      * only part of a time zone (`tm_gmtoff` / `tm_zone`, and those are implementation-defined
-     * extensions) and no zone identity at all, so `type` sits at the `tz_level::offset` tier:
-     * `%z` / `%Z` parse, but only the offset is written back, into `tm_gmtoff`.
+     * extensions) and no zone identity at all, so `type` reaches at most the `tz_level::offset`
+     * tier: `%z` / `%Z` parse, but only the offset is written back, into `tm_gmtoff`. On a
+     * platform without even `tm_gmtoff` it drops to `tz_level::none`, where both specifiers are
+     * treated as literals; see @ref tm_parse_tz_level.
      *
      * Normalization is done purely with `std::chrono`, **not through `mktime()`**: that
      * function depends on the `TZ` environment variable, shifts the hour across a DST boundary,
@@ -119,6 +157,86 @@ struct parse_context_type<TChar, std::tm>
 };
 
 
+namespace detail
+{
+/**
+ * @lang{ZH}
+ * @brief `os << tm` 与 `is >> tm` 共用的格式串：展开后的 `%c`，必要时补一个 `%z`。
+ *
+ * 先把 locale 的 `%c` 用 @ref timeio::expand_format 展开——不为了过滤（`std::tm` 什么都
+ * 供得出，没有说明符会被摘掉），而是为了**看得见**：`%z` 可能藏在 `%r` / `%X` 这类复合
+ * 说明符里面，不展开就查不出来。随后 @ref timeio::contains_specifier 判断展开结果里有没有
+ * `%z`，没有才补。
+ *
+ * **只补 `%z`，不补 `%Z`。** 因为 `%Z` 对重建出的 `tm` 毫无贡献：`do_get` 的 `%Z` 只写
+ * `m_zone_abbrev`，从不置 `m_have_offset`，而 `convert_to(std::tm&)` 仅在 `m_have_offset`
+ * 为真时才写 `tm_gmtoff`。于是 `"%F %T %Z"` 写出 `... CST`、读回来 `tm_gmtoff` 仍是 `0`，
+ * 只有 `%z` 真的往返。这也意味着「已经有 `%Z` 就不必补」是错的：en_US 的 `%c` 自带 `%Z`，
+ * 偏移照样会丢，所以判据只看 `%z`。
+ *
+ * **无条件补，不看这一个 `tm` 的取值。** 值级判断在这里做不到：`sread` 手上只有
+ * `time_parse_context`，没有 `std::tm`，无从判断。若 put 值门控而 get 不门控，带时区的值写出
+ * 的偏移会残留在流里污染下一次提取；若两边都门控，无时区的值写出的文本又喂不进要求偏移的
+ * 格式串。两侧共用这一个与取值无关的格式串，才能保证写得出的一定读得回。
+ *
+ * 平台的 `std::tm` 没有 `tm_gmtoff` 时不补：那种平台上 `do_put` 收到的 `zi` 是空指针，`%z`
+ * 会退化成字面量，而 @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level 也已降到
+ * `tz_level::none`，补了只会在输出里留下 `%z` 两个字符。
+ *
+ * @param tio 提供 locale 数据的 facet。
+ * @return 供 `put` 与 `get` 共用的格式串。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief The format `os << tm` and `is >> tm` share: an expanded `%c`, plus a `%z` if needed.
+ *
+ * The locale's `%c` is first run through @ref timeio::expand_format -- not to filter anything
+ * (a `std::tm` supplies every field, so no specifier is dropped) but to make the format
+ * **visible**: a `%z` can sit inside a compound such as `%r` or `%X`, where no search would
+ * find it. @ref timeio::contains_specifier then decides whether the expansion already has a
+ * `%z`, and only if it does not is one appended.
+ *
+ * **Only `%z` is appended, never `%Z`,** because `%Z` contributes nothing to the reconstructed
+ * `tm`: `do_get`'s `%Z` only fills `m_zone_abbrev` and never sets `m_have_offset`, while
+ * `convert_to(std::tm&)` writes `tm_gmtoff` only when `m_have_offset` is set. So `"%F %T %Z"`
+ * writes `... CST` and reads back with `tm_gmtoff` still `0`; `%z` alone round-trips. That also
+ * makes "skip it when a `%Z` is already there" wrong: en_US's `%c` carries a `%Z` and still
+ * loses the offset, so the test looks for `%z` and nothing else.
+ *
+ * **It is appended unconditionally, not based on this particular `tm`.** A value-level test is
+ * impossible here: `sread` holds a `time_parse_context` and no `std::tm` to inspect. Were put
+ * to gate on the value while get did not, the offset written for a zoned value would be left in
+ * the stream to corrupt the next extraction; were both to gate, text written for a zone-less
+ * value would not satisfy a format demanding an offset. Only one value-independent format,
+ * shared by both sides, keeps whatever can be written readable.
+ *
+ * Nothing is appended when the platform's `std::tm` has no `tm_gmtoff`: there `do_put` receives
+ * a null `zi` and degrades `%z` to a literal, and
+ * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level has already dropped to
+ * `tz_level::none`, so appending would only put the two characters `%z` in the output.
+ *
+ * @param tio The facet supplying the locale data.
+ * @return The format string shared by `put` and `get`.
+ * @endif
+ */
+template <typename TChar>
+std::basic_string<TChar> tm_stream_format(const timeio<TChar>& tio)
+{
+    std::basic_string<TChar> fmt = tio.template expand_format<std::tm>('c');
+
+    if constexpr (time_value_fields<std::tm>::has_offset)
+    {
+        if (!timeio<TChar>::contains_specifier(fmt, 'z'))
+        {
+            const TChar tail[] = { static_cast<TChar>(' '), static_cast<TChar>('%'),
+                                   static_cast<TChar>('z'), TChar() };
+            fmt += tail;
+        }
+    }
+    return fmt;
+}
+} // namespace detail
+
 template <typename TChar>
 struct io_traits<TChar, std::tm>
 {
@@ -130,22 +248,53 @@ struct io_traits<TChar, std::tm>
         if (!mp)
             throw stream_error("cannot get timeio facet");
 
-        return mp->put(s, value, 'c');
+        const auto fmt = detail::tm_stream_format(*mp);
+        return mp->put(s, value, std::basic_string_view<TChar>(fmt));
     }
 };
 
-template <typename TChar>
-struct io_traits<TChar, time_parse_context<TChar, true, true, tz_level::offset>>
+/**
+ * @lang{ZH}
+ * @brief 日期＋时间解析上下文的抽取实现，对全部三个时区档通用。
+ *
+ * 之所以对 `TzLevel` 做偏特化而不是钉死某一档：`parse_context_type<TChar, std::tm>::type`
+ * 的档位取决于平台的 `std::tm` 有没有 `tm_gmtoff`（见
+ * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level），只特化 `tz_level::offset`
+ * 会让不带该成员的平台找不到 `io_traits`。三个档在这里的行为一致——都用
+ * @ref detail::tm_stream_format 抽取——档位只影响 `do_get` 内部 `%z` / `%Z` 是真解析还是
+ * 退化为字面量。
+ *
+ * 格式串与 `io_traits<TChar, std::tm>::swrite` 取自同一个函数，因此写出来的一定读得回。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Extraction for a date-and-time parse context, common to all three time-zone tiers.
+ *
+ * Why this is partially specialized on `TzLevel` rather than pinned to one tier:
+ * `parse_context_type<TChar, std::tm>::type` picks its tier from whether the platform's
+ * `std::tm` has `tm_gmtoff` (see @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level),
+ * so specializing only `tz_level::offset` would leave a platform without that member with no
+ * `io_traits` at all. All three tiers behave alike here -- extraction goes through
+ * @ref detail::tm_stream_format -- the tier only decides whether `%z` / `%Z` really parse or
+ * degrade to literals inside `do_get`.
+ *
+ * The format comes from the same function `io_traits<TChar, std::tm>::swrite` uses, so whatever
+ * is written can be read back.
+ * @endif
+ */
+template <typename TChar, tz_level TzLevel>
+struct io_traits<TChar, time_parse_context<TChar, true, true, TzLevel>>
 {
     template <typename TIter, std::sentinel_for<TIter> TSent>
         requires (std::is_same_v<TChar, typename TIter::value_type>)
-    static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, time_parse_context<TChar, true, true, tz_level::offset>& value)
+    static TIter sread(TIter iter, TSent iter_end, ios_base<TChar>& io, const locale<TChar>& loc, time_parse_context<TChar, true, true, TzLevel>& value)
     {
         auto mp = loc.template get<timeio<TChar>>();
         if (!mp)
             throw stream_error("cannot get timeio facet");
 
-        return mp->get(iter, iter_end, value, 'c');
+        const auto fmt = detail::tm_stream_format(*mp);
+        return mp->get(iter, iter_end, value, std::basic_string_view<TChar>(fmt));
     }
 };
 }

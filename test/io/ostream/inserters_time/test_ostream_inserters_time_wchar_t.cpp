@@ -40,7 +40,13 @@ void test_ostream_inserters_time_wchar_t_1()
         VERIFY((bool)f);
         auto [dev, err] = f.detach();
         const std::wstring res = dev.str();
+        // The stream format appends %z where the platform's tm carries tm_gmtoff, so that
+        // the offset survives a round trip; %Z is not appended, as it parses back to nothing.
+#ifdef __USE_MISC
+        VERIFY(res == L"Wed Sep  4 13:33:18 2024 +0000");
+#else
         VERIFY(res == L"Wed Sep  4 13:33:18 2024");
+#endif
     };
 
     helper.template operator()<IOv2::ostream>();

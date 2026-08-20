@@ -360,16 +360,26 @@ void test_io_base_manipulators_get_time_char_6()
     dump_info("Test ios_base<char> get_time case 6...");
 
     // `is >> tm` goes through parse_context_type<char, std::tm> and gets the same
-    // treatment. The C locale's %c is %a %b %e %H:%M:%S %Y.
+    // treatment. The C locale's %c is %a %b %e %H:%M:%S %Y, and the stream format appends
+    // %z where the platform's tm carries tm_gmtoff, so the input carries an offset too.
     {
         std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);
+#ifdef __USE_MISC
+        IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018 +0530")},
+                          IOv2::locale<char>("C")};
+#else
         IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018")},
                           IOv2::locale<char>("C")};
+#endif
         iss >> parsed;
         VERIFY(!iss.str_fail());
         VERIFY(parsed.tm_year == 118 && parsed.tm_mon == 1 && parsed.tm_mday == 6);
         VERIFY(parsed.tm_hour == 7 && parsed.tm_min == 8 && parsed.tm_sec == 9);
         VERIFY(parsed.tm_wday == 2 && parsed.tm_yday == 36);
+        // The point of appending %z: the offset reaches the tm rather than being dropped.
+#ifdef __USE_MISC
+        VERIFY(parsed.tm_gmtoff == 5 * 3600 + 30 * 60);
+#endif
     }
 
     // Types without a parse context of their own keep extracting as before.

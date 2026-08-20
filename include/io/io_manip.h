@@ -1111,10 +1111,14 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *          年份。所以 `put_time` 写出的年 10000 或 −44，本函数读不回来：整次提取失败、置
  *          `strfailbit`，`*tmb` 一字节不改。**只有年 0..9999 才保证往返。** 这是本文档中
  *          "提取侧更宽松"的唯一例外，理由见 `timeio`。
- * @warning **`%Z` 与 `%z` 会解析，但只有偏移写得回去。** 本函数使用的解析上下文
- *          （`time_parse_context<TChar, true, true, tz_level::offset>`，见 `io/traits/tm.h`）
- *          处在只带偏移与缩写的那一档：`%z` 解析出的 UTC 偏移写入 `tm_gmtoff`（仅在平台
- *          有这个扩展成员时），`%Z` 解析出的名字**被丢弃**——回写 `tm_zone` 会留下悬垂指针。
+ * @warning **`%Z` 与 `%z` 会解析，但只有偏移写得回去。** 本函数使用的解析上下文见
+ *          `io/traits/tm.h` 的 @ref parse_context_type<TChar, std::tm>：平台的 `std::tm` 带
+ *          `tm_gmtoff` 时它处在只带偏移与缩写的那一档，`%z` 解析出的 UTC 偏移写入
+ *          `tm_gmtoff`；不带该成员的平台上它退到 `tz_level::none`，`%z` / `%Z` 两侧一律按
+ *          字面量处理，与 put 对称。`%Z` 解析出的名字在任何一档都**被丢弃**——理由见
+ *          `time_parse_context::convert_to(std::tm&)`：`std::tm` 没有释放接口，所有权无处
+ *          安放；缩写本身也有歧义（`CST` 同时属于五个时区）。`strptime` 与 `std::get_time`
+ *          同样不写。
  *          于是 `get_time(&t, "%H:%M %Z")` 读 `01:02 UTC` 成功，但 `*tmb` 里看不出时区，
  *          这一点与 `std::get_time` 一致。区别在于取值域：`%Z` 接受时区数据库认识的任何
  *          名字或缩写，`01:02 XYZ` 会**整次提取失败**并置 `strfailbit`、`*tmb` 保持不变；
@@ -1189,12 +1193,17 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *          years 0..9999 are guaranteed to round-trip.** This is the one exception to the "the
  *          extraction side is more permissive" rule stated throughout this documentation; see
  *          `timeio` for why.
- * @warning **`%Z` and `%z` do parse, but only the offset is written back.** The parse context
- *          this function uses (`time_parse_context<TChar, true, true, tz_level::offset>`, see
- *          `io/traits/tm.h`) sits at the tier that carries an offset and an abbreviation only:
- *          the UTC offset `%z` parses goes into `tm_gmtoff` (where the platform has that
- *          extension member), and the name `%Z` parses is **discarded** -- writing `tm_zone`
- *          back would leave a dangling pointer. So `get_time(&t, "%H:%M %Z")` reading
+ * @warning **`%Z` and `%z` do parse, but only the offset is written back.** For the parse
+ *          context this function uses see @ref parse_context_type<TChar, std::tm> in
+ *          `io/traits/tm.h`: where the platform's `std::tm` carries `tm_gmtoff` it sits at the
+ *          tier holding an offset and an abbreviation, and the UTC offset `%z` parses goes into
+ *          `tm_gmtoff`; on a platform without that member it drops to `tz_level::none`, where
+ *          `%z` and `%Z` are literals on both sides, symmetrically with put. At either tier the
+ *          name `%Z` parses is **discarded** -- see
+ *          `time_parse_context::convert_to(std::tm&)` for why: `std::tm` has no release call so
+ *          ownership has nowhere to live, and abbreviations are ambiguous anyway (`CST` belongs
+ *          to five zones). `strptime` and `std::get_time` do not write it either. So
+ *          `get_time(&t, "%H:%M %Z")` reading
  *          `01:02 UTC` succeeds while leaving no trace of the zone in `*tmb`, just as
  *          `std::get_time` does. What differs is the accepted set: `%Z` takes any name or
  *          abbreviation the time-zone database knows, so `01:02 XYZ` fails the **whole
