@@ -1306,10 +1306,20 @@ struct time_parse_context
      * `tm_min` / `tm_sec` / `tm_wday` / `tm_yday` / `tm_isdst` 这九项总是写；`tm_gmtoff`
      * 只在三个条件同时成立时写——`TzLevel` 至少为 `tz_level::offset`、确实解析到了 `%z`、
      * 且当前平台的 `std::tm` 带这个成员（用 `requires` 表达式探测，不看平台宏）。@p out 的
-     * 其余成员保持原值。这一点很重要：`tm_zone` 是 `const char*`，任何我们能填进去的字符串
-     * 都活不过本函数，因此**永远不写**；整体覆盖则会把 `tm_gmtoff`、`tm_zone` 清成 `0` 与
-     * `nullptr`，等于把调用方结构体里一个有效指针改成空指针。逐字段写入也与
-     * `std::time_get::get` 的行为一致（后者同样只写它解析到的字段）。
+     * 其余成员保持原值。整体覆盖会把 `tm_gmtoff`、`tm_zone` 清成 `0` 与 `nullptr`，等于把调用
+     * 方结构体里一个有效指针改成空指针。逐字段写入也与 `std::time_get::get` 的行为一致
+     * （后者同样只写它解析到的字段）。
+     *
+     * `tm_zone` **永远不写**，`%Z` 解析出真实区名、缩写还是 `UNKNOWN` 都一样。三条理由：
+     * - **所有权无处安放。** `tm_zone` 是 `const char*`，而 `std::tm` 没有对应的释放接口，
+     *   所以填进去的内存只能由库自己长期持有——`localtime()` 指向 libc 的静态存储正是如此。
+     *   解析侧没有这样一处归属明确的存储：上下文里的 `m_zone_abbrev` 随上下文一起析构。
+     * - **缩写本身有歧义。** `CST` 同时属于 America/Chicago（−06:00）、America/Havana
+     *   （−05:00）、Asia/Harbin（+08:00）、Australia/Darwin（+09:30）与 Australia/Adelaide
+     *   （+10:30）。写进 `tm_zone` 会让调用方以为拿到了确定的区域。本类的
+     *   `convert_to(const time_zone*&)` 在只有缩写时直接抛"ambiguous"，此处不写正是同一立场。
+     * - **与既有实现一致。** glibc 的 `strptime` 与 libstdc++ 的 `std::get_time` 解析 `%Z` 时
+     *   同样不动 `tm_zone`（也不动 `tm_gmtoff`）。要确定的时区信息请用 `%z`。
      *
      * @param out 接收还原出的日期与时间；抛出时不被写入。
      * @throw stream_error 若日期无效。
@@ -1325,12 +1335,25 @@ struct time_parse_context
      * `tm_yday` and `tm_isdst`. `tm_gmtoff` is written only when all three of the following
      * hold -- `TzLevel` is at least `tz_level::offset`, a `%z` was in fact parsed, and this
      * platform's `std::tm` carries that member (detected with a `requires` expression rather
-     * than a platform macro). Every other member of @p out keeps its value. That matters:
-     * `tm_zone` is a `const char*` and no string we could store there outlives this function,
-     * so it is **never** written; overwriting the struct as a whole would clear `tm_gmtoff`
-     * and `tm_zone` to `0` and `nullptr`, turning a valid pointer in the caller's struct into
-     * a null one. Assigning field by field also matches `std::time_get::get`, which likewise
-     * writes only the fields it parsed.
+     * than a platform macro). Every other member of @p out keeps its value. Overwriting the
+     * struct as a whole would clear `tm_gmtoff` and `tm_zone` to `0` and `nullptr`, turning a
+     * valid pointer in the caller's struct into a null one. Assigning field by field also
+     * matches `std::time_get::get`, which likewise writes only the fields it parsed.
+     *
+     * `tm_zone` is **never** written, whether `%Z` parsed a real zone name, an abbreviation, or
+     * `UNKNOWN`. Three reasons:
+     * - **Ownership has nowhere to live.** `tm_zone` is a `const char*` and `std::tm` has no
+     *   matching release call, so whatever is stored there must be owned long-term by the
+     *   library -- which is what `localtime()` does by pointing into libc's static storage. The
+     *   parse side has no such storage: the context's `m_zone_abbrev` dies with the context.
+     * - **Abbreviations are ambiguous.** `CST` belongs to America/Chicago (-06:00),
+     *   America/Havana (-05:00), Asia/Harbin (+08:00), Australia/Darwin (+09:30) and
+     *   Australia/Adelaide (+10:30) alike. Writing one into `tm_zone` would suggest the caller
+     *   received a definite zone. This class's `convert_to(const time_zone*&)` throws
+     *   "ambiguous" when given only an abbreviation; declining to write here is that same stance.
+     * - **It matches the existing implementations.** glibc's `strptime` and libstdc++'s
+     *   `std::get_time` both leave `tm_zone` (and `tm_gmtoff`) alone when parsing `%Z`. Use
+     *   `%z` when a definite zone offset is needed.
      *
      * @param out Receives the reconstructed date and time; left untouched if this throws.
      * @throw stream_error If the date is invalid.
@@ -1377,6 +1400,101 @@ struct time_parse_context
 
 /**
  * @lang{ZH}
+ * @brief 某个时间值类型能供出哪几类字段——`timeio::expand_format` 据此裁剪格式串。
+ *
+ * 每种类型一个特化，四个标志位对应 `timeio::put` 传给 `do_put` 的那几个指针：日期
+ * （`ymd` 与随之而来的 `wd`）、时分秒（`hms`）、UTC 偏移（`zi`）、区域身份（`tz` 或非空的
+ * `zi->abbrev`）。`put` 对供不出的说明符原样退化，本表把同一件事提前到编译期，好让
+ * `expand_format` 不必真去格式化一遍就知道该摘掉谁。
+ *
+ * 主模板**不定义**：不在 `put` 支持范围内的类型在此报错，而不是悄悄按「什么都供不出」处理。
+ *
+ * @note 星期不单独占一位：`put` 只要给得出 `ymd` 就一并给得出 `wd`，两者从不分家。
+ * @note `has_zone` 说的是 `%Z` 有没有内容可写，不是 `tz_level`。`sys_time` 在 get 侧是
+ *       `tz_level::offset` 档，但 put 侧它的 `%Z` 写 `UTC`，所以这里 `has_zone` 为 `true`。
+ * @tparam TVal 时间值类型。
+ * @endif
+ *
+ * @lang{EN}
+ * @brief Which groups of fields a time value type can supply -- what `timeio::expand_format`
+ *        trims a format string against.
+ *
+ * One specialization per type, its four flags matching the pointers `timeio::put` hands to
+ * `do_put`: date (`ymd`, and the `wd` that comes with it), time of day (`hms`), UTC offset
+ * (`zi`), zone identity (`tz`, or a non-empty `zi->abbrev`). `put` degrades a specifier it
+ * cannot supply; this table moves that same decision to compile time, so `expand_format` knows
+ * what to remove without formatting anything.
+ *
+ * The primary template is **left undefined**: a type outside what `put` accepts is an error
+ * here rather than being quietly treated as supplying nothing.
+ *
+ * @note The weekday gets no flag of its own: whenever `put` can supply `ymd` it supplies `wd`
+ *       as well, and the two never come apart.
+ * @note `has_zone` says whether `%Z` has anything to write, and is not a `tz_level`. A
+ *       `sys_time` sits at the `tz_level::offset` tier on the get side, yet its `%Z` writes
+ *       `UTC` on the put side, so `has_zone` is `true` here.
+ * @tparam TVal The time value type.
+ * @endif
+ */
+template <typename TVal>
+struct time_value_fields;
+
+template <typename Duration, typename TimeZonePtr>
+struct time_value_fields<std::chrono::zoned_time<Duration, TimeZonePtr>>
+{
+    static constexpr bool has_date = true;
+    static constexpr bool has_time = true;
+    static constexpr bool has_offset = true;
+    static constexpr bool has_zone = true;
+};
+
+template <typename Duration>
+struct time_value_fields<std::chrono::sys_time<Duration>>
+{
+    static constexpr bool has_date = true;
+    static constexpr bool has_time = true;
+    static constexpr bool has_offset = true;
+    static constexpr bool has_zone = true;
+};
+
+template <typename Duration>
+struct time_value_fields<std::chrono::local_time<Duration>>
+{
+    static constexpr bool has_date = true;
+    static constexpr bool has_time = true;
+    static constexpr bool has_offset = true;
+    static constexpr bool has_zone = false;
+};
+
+template <>
+struct time_value_fields<std::chrono::year_month_day>
+{
+    static constexpr bool has_date = true;
+    static constexpr bool has_time = false;
+    static constexpr bool has_offset = false;
+    static constexpr bool has_zone = false;
+};
+
+template <typename TDuration>
+struct time_value_fields<std::chrono::hh_mm_ss<TDuration>>
+{
+    static constexpr bool has_date = false;
+    static constexpr bool has_time = true;
+    static constexpr bool has_offset = false;
+    static constexpr bool has_zone = false;
+};
+
+template <>
+struct time_value_fields<std::tm>
+{
+    static constexpr bool has_date = true;
+    static constexpr bool has_time = true;
+    static constexpr bool has_offset = requires(const std::tm& t) { t.tm_gmtoff; };
+    static constexpr bool has_zone = has_offset && requires(const std::tm& t) { t.tm_zone; };
+};
+
+/**
+ * @lang{ZH}
  * @brief 时间 I/O facet，提供日期/时间的格式化输出与 locale 感知解析。
  *
  * `timeio` 实现了 `strftime`/`strptime` 风格的日期时间格式化与解析，
@@ -1409,7 +1527,7 @@ struct time_parse_context
  * | `hh_mm_ss`       | 无 | `%Y-%m-%d` | `%Y-%m-%d`   | 字面量 `%Y-%m-%d` |
  * | `year_month_day`、`hh_mm_ss` | 无 | `%z`、`%Z` | `%z`、`%Z` | 字面量 `%z`、`%Z` |
  * | `std::tm`        | 偏移 | `%z` | 由 `tm_gmtoff` 算得，如 `+0800` | `+0800` |
- * | `std::tm`        | 偏移 | `%Z` | `tm_zone`；为空则退化为 `%Z` | 时区名或缩写，或字面量 `%Z` |
+ * | `std::tm`        | 偏移 | `%Z` | `tm_zone`；为空则写 `UNKNOWN` | 时区名或缩写、`UNKNOWN`，或字面量 `%Z` |
  * | `sys_time`       | 偏移 | `%z`、`%Z` | `+0000`、`UTC` | 同上 |
  * | `local_time` + 偏移 | 偏移 | `%z`、`%Z` | `±hhmm`、退化为 `%Z` | 同上 |
  * | `zoned_time`     | 区域 | `%z`、`%Z` | `+0800`、`Asia/Shanghai` | 时区名，不收字面量 |
@@ -1417,14 +1535,19 @@ struct time_parse_context
  * `get` 侧的档位由 `time_parse_context` 的 `TzLevel` 模板参数给出，对应上表"时区档"一列：
  * 低于该档的说明符退化为字面量，达到该档的说明符真的解析。
  *
- * `%Z` 是唯一一处 put 能否供出取决于**运行期**取值（`tm_zone` 是否为空）而非值类型的说明符，
- * 编译期的档位跟不住它。为使退化仍然对称，`tz_level::offset` 档的 `%Z` 在时区数据库里匹配
- * 不到时会退回"要求输入中出现字面量 `%Z`"，于是 put 退化写出的内容照样读得回；该档的
- * `%Z` 本来也不向任何 `convert_to` 供数，放宽这一步不改变任何转换结果。`tz_level::zone`
- * 档不这样做：那一档的 `%Z` 决定用哪个时区，且 put 在该档从不退化，故匹配不到即失败。
+ * 能否供出 `%Z` 只看值类型，不看运行期取值：带 `tm_zone` 成员的平台上，`std::tm` 的 `%Z`
+ * 对**任何**取值都写得出内容——有名字写名字，`tm_zone` 为空指针或空串则写
+ * @ref ft_basic<timeio<CharT>>::s_unknown_zone（`UNKNOWN`）。该记号也在时区前缀树里注册，
+ * 映射到空串，因此写得出就读得回。真正没有时区概念的类型（`local_time`、`year_month_day`、
+ * `hh_mm_ss`）的 `%Z` 才退化为字面量。
  *
- * @note 解析到的时区名与缩写不会写回 `std::tm`：`convert_to(std::tm&)` 只写 `tm_gmtoff`，
- *   回写 `tm_zone` 会留下悬垂指针。
+ * 为使退化仍然对称，`tz_level::offset` 档的 `%Z` 在时区数据库里匹配不到时会退回"要求输入中
+ * 出现字面量 `%Z`"，于是 put 退化写出的内容照样读得回；该档的 `%Z` 本来也不向任何
+ * `convert_to` 供数，放宽这一步不改变任何转换结果。`tz_level::zone` 档不这样做：那一档的
+ * `%Z` 决定用哪个时区，且 put 在该档从不退化，故匹配不到即失败。
+ *
+ * @note 解析到的时区名、缩写与 `UNKNOWN` 都不会写回 `std::tm`：`convert_to(std::tm&)` 只写
+ *   `tm_gmtoff`。理由见该函数的说明——与 `strptime`、`std::get_time` 的做法一致。
  *
  * @warning 上面那句"读得回来"只管**退化**这条规则，不是说两侧取值域处处相同。已知的例外是
  *   **年份**：`put` 为与 `std::format` 一致，负年份带 `-`、大于 9999 的年份写四位以上；而
@@ -1484,7 +1607,7 @@ struct time_parse_context
  * | `hh_mm_ss`       | none | `%Y-%m-%d` | `%Y-%m-%d`   | the literal `%Y-%m-%d` |
  * | `year_month_day`, `hh_mm_ss` | none | `%z`, `%Z` | `%z`, `%Z` | the literals `%z`, `%Z` |
  * | `std::tm`        | offset | `%z` | computed from `tm_gmtoff`, e.g. `+0800` | `+0800` |
- * | `std::tm`        | offset | `%Z` | `tm_zone`; degrades to `%Z` when empty | a zone name or abbreviation, or the literal `%Z` |
+ * | `std::tm`        | offset | `%Z` | `tm_zone`, or `UNKNOWN` when empty | a zone name or abbreviation, `UNKNOWN`, or the literal `%Z` |
  * | `sys_time`       | offset | `%z`, `%Z` | `+0000`, `UTC` | as above |
  * | `local_time` + offset | offset | `%z`, `%Z` | `±hhmm`, degrades to `%Z` | as above |
  * | `zoned_time`     | zone | `%z`, `%Z` | `+0800`, `Asia/Shanghai` | a zone name; no literal |
@@ -1493,17 +1616,22 @@ struct time_parse_context
  * the "Tier" column above: a specifier needing more than that tier degrades to a literal, and one
  * the tier can hold really parses.
  *
- * `%Z` is the one specifier whose supply depends on a **run-time** value (whether `tm_zone` is
- * empty) rather than on the value's type, so the compile-time tier cannot track it. To keep the
- * degradation symmetric anyway, a `%Z` at `tz_level::offset` that matches nothing in the time-zone
- * database falls back to requiring the literal `%Z` in the input, so whatever `put` degraded to
- * still reads back; `%Z` supplies nothing to any `convert_to` at that tier, so widening it changes
- * no conversion result. `tz_level::zone` does not do this: there `%Z` chooses the zone, and `put`
- * never degrades it, so failing to match is an error.
+ * Whether `%Z` can be supplied depends on the value's type, not on its run-time value: on a
+ * platform whose `std::tm` carries `tm_zone`, `%Z` produces content for **every** `std::tm` -- the
+ * name when there is one, and @ref ft_basic<timeio<CharT>>::s_unknown_zone (`UNKNOWN`) when
+ * `tm_zone` is null or empty. That token is registered in the time-zone trie as well, mapped to the
+ * empty string, so whatever can be written can be read back. Only the types with no notion of a
+ * zone at all (`local_time`, `year_month_day`, `hh_mm_ss`) degrade `%Z` to a literal.
  *
- * @note A parsed zone name or abbreviation is never written back into a `std::tm`:
- *   `convert_to(std::tm&)` writes only `tm_gmtoff`, as writing `tm_zone` would leave a dangling
- *   pointer.
+ * To keep that degradation symmetric, a `%Z` at `tz_level::offset` that matches nothing in the
+ * time-zone database falls back to requiring the literal `%Z` in the input, so whatever `put`
+ * degraded to still reads back; `%Z` supplies nothing to any `convert_to` at that tier, so widening
+ * it changes no conversion result. `tz_level::zone` does not do this: there `%Z` chooses the zone,
+ * and `put` never degrades it, so failing to match is an error.
+ *
+ * @note Neither a parsed zone name, nor an abbreviation, nor `UNKNOWN` is ever written back into a
+ *   `std::tm`: `convert_to(std::tm&)` writes only `tm_gmtoff`. See that function for why -- it is
+ *   what `strptime` and `std::get_time` do too.
  *
  * @warning That "reads back" covers the **degradation** rule only; it does not claim that the two
  *   sides accept the same values everywhere. The known exception is the **year**: to stay
@@ -1619,12 +1747,8 @@ public:
         m_era_date_format = p_obj->era_date_format();
         m_time_format = p_obj->time_format();
         m_era_time_format = p_obj->era_time_format();
-        m_time_zone_format = p_obj->time_zone_format();
-        m_era_time_zone_format = p_obj->era_time_zone_format();
         m_date_time_format = p_obj->date_time_format();
         m_era_date_time_format = p_obj->era_date_time_format();
-        m_date_time_zone_format = p_obj->date_time_zone_format();
-        m_era_date_time_zone_format = p_obj->era_date_time_zone_format();
         m_am_pm_format = p_obj->am_pm_format();
         m_era_master = p_obj->era_items();
 
@@ -1785,6 +1909,228 @@ public:
 
     /**
      * @lang{ZH}
+     * @brief 返回某个类型的值在某个格式串下**实际会写出**的那个格式串：复合说明符逐层展开，
+     *        该类型供不出的说明符连同一侧分隔符摘掉。
+     *
+     * 两件事一起做，因为它们回答的是同一个问题——「我写下这个格式串，到底会得到什么」。
+     *
+     * **展开**：`%c` / `%x` / `%X` / `%r`（含 `%Ec` / `%Ex` / `%EX`）代表的是 locale 数据里的
+     * 一串格式，写下它们的人不知道自己实际会得到哪些字段；固定复合 `%D` / `%F` / `%T` / `%R`
+     * 同理。本函数把它们替换为各自的内容并继续展开，直到只剩基本说明符。
+     *
+     * **过滤**：本库对值供不出的说明符采取**退化**策略——原样写出 `%` 和说明符字符，put 与
+     * get 两侧对称（见类说明）。退化不置失败位，所以给 `year_month_day` 写 `%c` 会得到一串
+     * `%H:%M:%S`，给 `local_time` 写 `%c` 会在 en_US 得到一个字面 `%Z`，而这些都要等看见输出
+     * 才发现。本函数只看 `TVal` 这个**类型**：它决定了能供出哪几类字段——日期、星期、时分秒、
+     * UTC 偏移、区域身份，见 @ref time_value_fields——正如它决定了 `put` / `get` 走哪一条路。
+     * 逐个说明符按 put 的同一张表判断，供不出的摘掉；不在本库支持集内的说明符（如 `%Q`）
+     * 以及非法的修饰符组合（如 `%Oc`）落在同一条规则里。既然只用得上类型，本函数就不收值参数，
+     * 手上没有现成对象时也能调。
+     *
+     * 摘的时候连一侧分隔符一起摘，否则留下孤立标点：`"%T %Z"` 摘成 `"%T"` 而不是 `"%T "`，
+     * `"%T (%Z)"` 摘成 `"%T"` 而不是 `"%T ()"`。规则是：说明符前面有分隔符就摘前面的，
+     * 只有它位于串首时才摘后面的；分隔符指**空白，加至多一个 ASCII 标点**；摘掉的标点是
+     * 左括号（`(` `[` `{`）时，紧跟说明符的那个右括号一并摘掉。非 ASCII 字符一律不当分隔符
+     * ——`"%S秒 %Z"` 只摘那个空格，不会把「秒」当分隔符吃掉，代价是 `"%r፡%Z"` 这类用多字节
+     * 标点分隔的会留下一个 `፡`。
+     *
+     * ```cpp
+     * // en_US 的 %c 是 "%a %d %b %Y %r %Z"，%r 又是 "%I:%M:%S %p"
+     * using T = std::chrono::local_time<std::chrono::seconds>;
+     * auto fmt = obj.expand_format<T>("%c");  // "%a %d %b %Y %I:%M:%S %p"，%Z 已摘掉
+     * obj.put(out, t, offset, fmt);
+     * ```
+     *
+     * @note 判据是类型，不是值，而 put 侧与之严丝合缝：`std::tm` 只要平台上带 `tm_zone` 字段
+     *       就算供得出 `%Z`，而 put 对这样的 `tm` 也确实总写得出内容——`tm_zone` 为空时写
+     *       @ref ft_basic<timeio<CharT>>::s_unknown_zone。因此保留下来的说明符 put 一定供得出，
+     *       没有"表说供得出、运行期却退化"的缝隙。
+     * @note `%EY` **不展开**：纪元格式取决于年份落在哪个纪元，是值相关的，静态展不开。它照样
+     *       参与过滤，供不出就摘掉。
+     * @note 供不出的复合说明符整个摘掉，不展开：给 `hh_mm_ss` 写 `%c`，得到的是空串，而不是
+     *       一串摘剩下的标点。
+     * @note 落单的 `%`（其后没有说明符）原样保留，与 put 的处理一致。
+     * @warning locale 数据当作可信输入，与 `put` / `get` 的假定一致：自引用的复合格式串
+     *          （如 `D_T_FMT` 里含 `%c`）会让展开无限递归，行为未定义。
+     *
+     * @tparam TVal 时间值类型（`year_month_day`、`hh_mm_ss`、`sys_time`、`local_time`、
+     *              `zoned_time` 或 `std::tm`），与 `put` 接受的相同。
+     * @param fmt 格式串。
+     * @return 展开并过滤后的格式串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Returns the format string a value of a given type will **actually** produce for a
+     *        given format: compound specifiers expanded, and specifiers the type cannot supply
+     *        removed together with one adjacent separator.
+     *
+     * Both halves answer the same question -- what do I really get if I write this format?
+     *
+     * **Expansion**: `%c` / `%x` / `%X` / `%r` (and `%Ec` / `%Ex` / `%EX`) stand for a format
+     * string held in locale data, and whoever writes one does not know which fields they will
+     * get; the fixed compounds `%D` / `%F` / `%T` / `%R` are no different. Each is substituted
+     * with its content and expanded again until only basic specifiers are left.
+     *
+     * **Filtering**: a specifier the value cannot supply **degrades** -- the `%` and the
+     * specifier character are written out unchanged, symmetrically in put and get (see the
+     * class documentation). Degradation sets no failure bit, so `%c` on a `year_month_day`
+     * yields a literal `%H:%M:%S`, and `%c` on a `local_time` yields a literal `%Z` under
+     * en_US, and neither shows up until you look at the output. Only the **type** `TVal` is
+     * consulted: it fixes which groups of fields can be supplied -- date, weekday, time of day,
+     * UTC offset, zone identity, see @ref time_value_fields -- exactly as it fixes which path
+     * `put` / `get` take. Every specifier is judged against the same table put uses and the
+     * unsuppliable ones removed; specifiers outside this library's supported set (`%Q`, say) and
+     * illegal modifier combinations (`%Oc`, say) fall under the same rule. Since only the type
+     * matters, this takes no value argument and can be called with no object at hand.
+     *
+     * A removal takes one adjacent separator with it, or an orphaned piece of punctuation is
+     * left behind: `"%T %Z"` becomes `"%T"`, not `"%T "`, and `"%T (%Z)"` becomes `"%T"`, not
+     * `"%T ()"`. The rule: take the separator before the specifier, and the one after it only
+     * when the specifier starts the string; a separator is **whitespace plus at most one ASCII
+     * punctuation character**; and when the punctuation removed is an opening bracket
+     * (`(` `[` `{`), the closing one right after the specifier goes too. Non-ASCII characters
+     * are never separators -- `"%S秒 %Z"` loses only the space, not the 秒, at the price of
+     * leaving one `፡` behind in something like `"%r፡%Z"`.
+     *
+     * ```cpp
+     * // en_US's %c is "%a %d %b %Y %r %Z", and its %r is "%I:%M:%S %p"
+     * using T = std::chrono::local_time<std::chrono::seconds>;
+     * auto fmt = obj.expand_format<T>("%c");  // "%a %d %b %Y %I:%M:%S %p" -- the %Z is gone
+     * obj.put(out, t, offset, fmt);
+     * ```
+     *
+     * @note The test is the type, not the value, and the put side matches it exactly. A
+     *       `std::tm` counts as able to supply `%Z` as long as the platform's `tm` carries a
+     *       `tm_zone` field, and put really does write content for every such `tm` -- when
+     *       `tm_zone` is empty it writes @ref ft_basic<timeio<CharT>>::s_unknown_zone. So a
+     *       specifier that survives the filter is one put can supply, with no gap between what
+     *       the table claims and what happens at run time.
+     * @note `%EY` is **not** expanded: which era format applies depends on the year, so it is a
+     *       property of the value, not of the locale alone. It is still filtered like the rest.
+     * @note An unsuppliable compound is removed whole rather than expanded: `%c` on an
+     *       `hh_mm_ss` gives an empty string, not the punctuation its expansion would leave.
+     * @note A lone trailing `%` is kept as-is, matching put.
+     * @warning Locale data is treated as trusted input, the same assumption `put` / `get` make:
+     *          a self-referential compound format (a `D_T_FMT` holding a `%c`, say) makes the
+     *          expansion recurse without bound, and the behavior is undefined.
+     *
+     * @tparam TVal The time value type (`year_month_day`, `hh_mm_ss`, `sys_time`, `local_time`,
+     *              `zoned_time` or `std::tm`) -- the same ones `put` accepts.
+     * @param fmt The format string.
+     * @return The expanded, filtered format string.
+     * @endif
+     */
+    template <typename TVal>
+    std::basic_string<CharT> expand_format(std::basic_string_view<CharT> fmt) const
+    {
+        using fields = time_value_fields<std::remove_cvref_t<TVal>>;
+        std::basic_string<CharT> result;
+        expand_and_filter<fields::has_date, fields::has_time,
+                          fields::has_offset, fields::has_zone>(result, fmt);
+        return result;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief @ref expand_format 的单字符形式：给出一个说明符，返回它展开、过滤后的样子。
+     *
+     * 把 `format`（以及可选的 `modifier`）组合为 `%[modifier]format` 后委托给
+     * `expand_format<TVal>(fmt)`，与单字符形式的 `put` 一一对应。供不出时返回空串。
+     * @tparam TVal 时间值类型，见 @ref time_value_fields。
+     * @param format   说明符字符。
+     * @param modifier `E` / `O` 修饰符，`0` 表示没有。
+     * @return 展开并过滤后的格式串。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The single-character form of @ref expand_format: what one specifier expands and
+     *        filters down to.
+     *
+     * Composes `format` (and the optional `modifier`) into `%[modifier]format` and delegates to
+     * `expand_format<TVal>(fmt)`, matching the single-character form of `put`. An unsuppliable
+     * specifier yields an empty string.
+     * @tparam TVal The time value type; see @ref time_value_fields.
+     * @param format   The specifier character.
+     * @param modifier The `E` / `O` modifier, or `0` for none.
+     * @return The expanded, filtered format string.
+     * @endif
+     */
+    template <typename TVal>
+    std::basic_string<CharT> expand_format(char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
+    {
+        CharT fmt[4];
+        std::size_t n = 0;
+        fmt[n++] = static_cast<CharT>('%');
+        if (modifier) fmt[n++] = static_cast<CharT>(modifier);
+        fmt[n++] = static_cast<CharT>(format);
+        return expand_format<TVal>(std::basic_string_view<CharT>(fmt, n));
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 判断格式串里有没有某个说明符。
+     *
+     * @ref expand_format 交回来的串通常还要再问一句「里面到底有没有 `%Z`」，好决定要不要
+     * 自己在末尾补一个。这一问不能用 `fmt.find("%Z")` 回答：`"%%Z"` 是一个字面 `%` 加一个
+     * 字面 `Z`，`find` 却会报告找到了。判据是那个 `%` 前面连着几个 `%`——连自己算上是奇数才
+     * 真的起了一个说明符。本函数按 put 解析格式串的同一套走法扫一遍，把这件事做对。
+     *
+     * ```cpp
+     * auto fmt = obj.expand_format<T>("%c");
+     * if (!timeio<char>::contains_specifier(fmt, 'Z'))
+     *     fmt += " %Z";
+     * ```
+     *
+     * @param fmt      要检查的格式串。
+     * @param format   说明符字符。
+     * @param modifier `E` / `O` 修饰符，`0` 表示要找不带修饰符的那个。
+     * @return 若 @p fmt 里确实有这个说明符则返回 `true`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Whether a format string holds a given specifier.
+     *
+     * What @ref expand_format hands back usually raises one more question -- is there a `%Z` in
+     * here? -- to decide whether to append one. `fmt.find("%Z")` does not answer it: `"%%Z"` is
+     * a literal `%` followed by a literal `Z`, and `find` reports a hit anyway. The test is how
+     * many `%` run together before that one: counting itself, an odd number means it really does
+     * start a specifier. This walks the string the way put parses it and gets that right.
+     *
+     * ```cpp
+     * auto fmt = obj.expand_format<T>("%c");
+     * if (!timeio<char>::contains_specifier(fmt, 'Z'))
+     *     fmt += " %Z";
+     * ```
+     *
+     * @param fmt      The format string to examine.
+     * @param format   The specifier character.
+     * @param modifier The `E` / `O` modifier, or `0` to look for the unmodified one.
+     * @return `true` if @p fmt really holds that specifier.
+     * @endif
+     */
+    static bool contains_specifier(std::basic_string_view<CharT> fmt, char format, char modifier = 0) // NOLINT(bugprone-easily-swappable-parameters)
+    {
+        auto f = fmt.cbegin();
+        while (f != fmt.cend())
+        {
+            if (*f != static_cast<CharT>('%')) { ++f; continue; }
+            if (++f == fmt.cend()) break;
+
+            CharT mod = 0;
+            if (*f == static_cast<CharT>('E') || *f == static_cast<CharT>('O'))
+            {
+                mod = *f++;
+                if (f == fmt.cend()) break;
+            }
+            if (*f == static_cast<CharT>(format) && mod == static_cast<CharT>(modifier))
+                return true;
+            ++f;
+        }
+        return false;
+    }
+
+    /**
+     * @lang{ZH}
      * @brief 按单个格式字符（可带修饰符）格式化时间值。
      *
      * 将 `format`（以及可选的 `modifier`）组合为 `%[modifier]format` 格式串后
@@ -1891,8 +2237,7 @@ public:
      * @brief 将 `std::chrono::sys_time` 按格式串格式化到输出迭代器。
      *
      * 一个 `sys_time` 就是 UTC 下的一个瞬间，没有区域身份，所以按 UTC 展示：`%z` 写
-     * `+0000`，`%Z` 写 `UTC`，`%c` / `%X` 用不带时区的那套 locale 格式。要按某个区域展示，
-     * 先构造 `zoned_time`。
+     * `+0000`，`%Z` 写 `UTC`。要按某个区域展示，先构造 `zoned_time`。
      * @tparam OutIt    输出迭代器类型。
      * @tparam Duration 时间点的精度类型。
      * @param out 输出迭代器。
@@ -1906,8 +2251,8 @@ public:
      * @brief Formats a `std::chrono::sys_time` to an output iterator using a format string.
      *
      * A `sys_time` is an instant in UTC with no zone identity, so it is rendered as UTC:
-     * `%z` writes `+0000`, `%Z` writes `UTC`, and `%c` / `%X` use the locale formats that
-     * carry no zone. To render it in some zone, build a `zoned_time` first.
+     * `%z` writes `+0000` and `%Z` writes `UTC`. To render it in some zone, build a
+     * `zoned_time` first.
      * @tparam OutIt    Output iterator type.
      * @tparam Duration Duration type of the time point.
      * @param out The output iterator.
@@ -1940,8 +2285,9 @@ public:
      * @brief 将 `std::chrono::local_time` 连同一个已知的 UTC 偏移格式化到输出迭代器。
      *
      * 这是 tz_level::offset 那一档在 put 侧的对应物：墙上时间加偏移，没有区域身份。
-     * `%z` 写 @p offset；`%Z` 无内容可写，按未知说明符原样透传；`%c` / `%X` 用不带时区的
-     * 那套 locale 格式。
+     * `%z` 写 @p offset；`%Z` 无内容可写，按未知说明符原样透传。`%c` / `%X` / `%r` 用
+     * locale 自己那一份格式串，本机 890 个 locale 里有 185 个的 `%c` 自带 `%Z`，此时那个
+     * `%Z` 同样退化为字面量。要一份不含时区字段的格式串，把它交给 @ref expand_format。
      *
      * 因为多了 @p offset 这个参数，单字符形式的 `put(out, t, 'z')` 到不了这个重载。
      * @tparam OutIt    输出迭代器类型。
@@ -1959,8 +2305,10 @@ public:
      *
      * This is the put-side counterpart of the `tz_level::offset` tier: a wall-clock time plus
      * an offset, with no zone identity. `%z` writes @p offset; `%Z` has nothing to write and
-     * is passed through like an unknown specifier; `%c` / `%X` use the locale formats that
-     * carry no zone.
+     * is passed through like an unknown specifier. `%c` / `%X` / `%r` use the locale's own
+     * format string, and 185 of the 890 locales on this machine carry a `%Z` inside `%c`,
+     * where it degrades to a literal just the same. For a format string with no zone field
+     * in it, run it through @ref expand_format.
      *
      * The extra @p offset parameter puts this overload out of reach of the single-character
      * form `put(out, t, 'z')`.
@@ -2091,9 +2439,13 @@ public:
      * @note 值无法提供的说明符不构成错误，会原样写出 `%` + 修饰符 + 说明符字符；
      *       详见 `timeio` 的类说明。
      * @note **时区取自扩展成员。** 当前平台的 `std::tm` 带 `tm_gmtoff` 时（POSIX.1-2024 起
-     *       是标准成员，glibc / BSD / macOS 一直都有），`%z` 写它的值；带 `tm_zone` 且非空时
-     *       `%Z` 写它。成员的有无用 `requires` 表达式探测，不看平台宏。`std::tm` 没有区域身份，
-     *       因此 `%c` / `%X` 始终用不带时区的那套 locale 格式。
+     *       是标准成员，glibc / BSD / macOS 一直都有），`%z` 写它的值；带 `tm_zone` 时
+     *       `%Z` 写它，`tm_zone` 为空指针或空串则写
+     *       @ref ft_basic<timeio<CharT>>::s_unknown_zone。成员的有无用 `requires` 表达式
+     *       探测，不看平台宏。平台的 `std::tm` **不带** `tm_gmtoff` 时 `%z` 与 `%Z` 才退化为
+     *       字面量，`%c` / `%X` / `%r` 里 locale 自带的那个 `%Z` 也一样。
+     * @note 因此在带 `tm_zone` 的平台上，`%Z` 对任何 `std::tm` 都写得出内容——这正是
+     *       @ref time_value_fields<std::tm>::has_zone 恒为 `true` 所声明的，两者不会脱节。
      * @endif
      *
      * @lang{EN}
@@ -2114,10 +2466,15 @@ public:
      *       class documentation.
      * @note **The time zone comes from the extension members.** When this platform's
      *       `std::tm` carries `tm_gmtoff` (a standard member since POSIX.1-2024, and present
-     *       on glibc / BSD / macOS all along), `%z` writes its value; when it carries a
-     *       non-null `tm_zone`, `%Z` writes that. Their presence is detected with a `requires`
-     *       expression rather than a platform macro. A `std::tm` has no zone identity, so
-     *       `%c` / `%X` always use the locale formats that carry no zone.
+     *       on glibc / BSD / macOS all along), `%z` writes its value; when it carries
+     *       `tm_zone`, `%Z` writes that, or
+     *       @ref ft_basic<timeio<CharT>>::s_unknown_zone if `tm_zone` is null or empty. Their
+     *       presence is detected with a `requires` expression rather than a platform macro.
+     *       Only on a platform whose `std::tm` lacks `tm_gmtoff` do `%z` and `%Z` degrade to
+     *       literals, and with them a locale's own `%Z` inside `%c` / `%X` / `%r`.
+     * @note So on a platform with `tm_zone`, `%Z` produces content for every `std::tm` -- which
+     *       is exactly what @ref time_value_fields<std::tm>::has_zone being unconditionally
+     *       `true` claims, leaving no gap between the two.
      * @endif
      */
     template <typename OutIt>
@@ -2159,7 +2516,9 @@ public:
             std::string_view abbrev;
             if constexpr (requires { t.tm_zone; })
             {
-                if (t.tm_zone) abbrev = t.tm_zone;
+                abbrev = (t.tm_zone && *t.tm_zone)
+                       ? std::string_view{t.tm_zone}
+                       : ft_basic<timeio<CharT>>::s_unknown_zone;
             }
             const zone_info zi{seconds{t.tm_gmtoff}, abbrev};
             return do_put(out, fmt, &ymd, &wd, &hms, &zi, nullptr);
@@ -2376,9 +2735,9 @@ private:
      *
      * @note **递归与受信任 locale 假设**
      *   以下复合说明符会将 locale 提供的格式串展开后递归调用此函数：
-     *   - `%c` → `m_[era_]date_time[_zone]_format`
+     *   - `%c` → `m_[era_]date_time_format`
      *   - `%x` → `m_[era_]date_format`
-     *   - `%X` → `m_[era_]time[_zone]_format`
+     *   - `%X` → `m_[era_]time_format`
      *   - `%r` → `m_am_pm_format`
      *   - `%EY` → 纪元的 `format` 字符串
      *
@@ -2407,9 +2766,9 @@ private:
      * @note **Recursion and trusted-locale assumption**
      *   The following compound specifiers expand a locale-provided format string
      *   and re-enter this function recursively:
-     *   - `%c` → `m_[era_]date_time[_zone]_format`
+     *   - `%c` → `m_[era_]date_time_format`
      *   - `%x` → `m_[era_]date_format`
-     *   - `%X` → `m_[era_]time[_zone]_format`
+     *   - `%X` → `m_[era_]time_format`
      *   - `%r` → `m_am_pm_format`
      *   - `%EY` → era `format` string
      *
@@ -2553,22 +2912,11 @@ private:
                 else
                 {
                     if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                    if constexpr (TzLevel == tz_level::zone)
-                    {
-                        if (modifier == static_cast<CharT>('E'))
-                            rp = do_get(rp, rp_end, ctx, succ, m_era_date_time_zone_format);
-                        else
-                            rp = do_get(rp, rp_end, ctx, succ, m_date_time_zone_format);
-                        if (!succ) return rp;
-                    }
+                    if (modifier == static_cast<CharT>('E'))
+                        rp = do_get(rp, rp_end, ctx, succ, m_era_date_time_format);
                     else
-                    {
-                        if (modifier == static_cast<CharT>('E'))
-                            rp = do_get(rp, rp_end, ctx, succ, m_era_date_time_format);
-                        else
-                            rp = do_get(rp, rp_end, ctx, succ, m_date_time_format);
-                        if (!succ) return rp;
-                    }
+                        rp = do_get(rp, rp_end, ctx, succ, m_date_time_format);
+                    if (!succ) return rp;
                 }
                 break;
 
@@ -2961,22 +3309,11 @@ private:
                 else
                 {
                     if (modifier == static_cast<CharT>('O')) goto bad_parse_format;
-                    if constexpr (TzLevel == tz_level::zone)
-                    {
-                        if (modifier == static_cast<CharT>('E'))
-                            rp = do_get(rp, rp_end, ctx, succ, m_era_time_zone_format);
-                        else
-                            rp = do_get(rp, rp_end, ctx, succ, m_time_zone_format);
-                        if (!succ) return rp;
-                    }
+                    if (modifier == static_cast<CharT>('E'))
+                        rp = do_get(rp, rp_end, ctx, succ, m_era_time_format);
                     else
-                    {
-                        if (modifier == static_cast<CharT>('E'))
-                            rp = do_get(rp, rp_end, ctx, succ, m_era_time_format);
-                        else
-                            rp = do_get(rp, rp_end, ctx, succ, m_time_format);
-                        if (!succ) return rp;
-                    }
+                        rp = do_get(rp, rp_end, ctx, succ, m_time_format);
+                    if (!succ) return rp;
                 }
                 break;
 
@@ -3195,6 +3532,11 @@ private:
                         if constexpr (TzLevel == tz_level::zone) { succ = false; return rp; }
                         else goto bad_parse_format;
                     }
+                    else if (zone_res->empty())
+                    {
+                        // The unknown-zone token: consumed like any other match, but it names
+                        // no zone, so nothing is recorded and the context keeps its fallbacks.
+                    }
                     else if ((*zone_res)[0] != '*')
                     {
                         if constexpr (TzLevel == tz_level::zone) ctx.m_zone_name = *zone_res;
@@ -3281,6 +3623,86 @@ private:
         return c == static_cast<CharT>(' ')  || c == static_cast<CharT>('\t') ||
                c == static_cast<CharT>('\n') || c == static_cast<CharT>('\v') ||
                c == static_cast<CharT>('\f') || c == static_cast<CharT>('\r');
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 判断一个字符是否为标点。`%` 不算。
+     *
+     * 与 @ref is_space 同样的做法：设了 `ctype` facet 就用它的 `punct` 分类，否则退回基础的
+     * ASCII 标点表。`expand_and_filter` 摘说明符时靠它认分隔符——所以「秒」这类文字不会被当成
+     * 分隔符吃掉，而字符类型放得下的真标点（如 `፡`）会。`%` 排除在外，否则紧跟其后的那个
+     * 说明符会被误当作分隔符。
+     * @param c 要检查的字符。
+     * @return 若 `c` 为 `%` 以外的标点则返回 `true`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Checks whether a character is punctuation. `%` is not.
+     *
+     * Same approach as @ref is_space: the `ctype` facet's `punct` classification if one is set,
+     * otherwise a basic ASCII punctuation table. This is how `expand_and_filter` recognizes a
+     * separator when it drops a specifier -- so a letter like 秒 is never eaten as one, while a
+     * genuine punctuation mark the character type can hold (`፡`, say) is. `%` is excluded, or
+     * the specifier right after it would be mistaken for a separator.
+     * @param c The character to check.
+     * @return `true` if `c` is punctuation other than `%`.
+     * @endif
+     */
+    bool is_punct(CharT c) const
+    {
+        if (c == static_cast<CharT>('%')) return false;
+        if (m_ctype)
+            return m_ctype->is_any(base_ft<ctype>::punct, c);
+        for (char p : std::string_view("!\"#$&'()*+,-./:;<=>?@[\\]^_`{|}~"))
+            if (c == static_cast<CharT>(p)) return true;
+        return false;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 在格式串中找出与某个左括号配对的右括号。
+     *
+     * 供 `expand_and_filter` 划出括号组的范围。计数嵌套，并跳过 `%` 引导的说明符，免得
+     * `"%("` 这种把说明符字符当成括号数进去。
+     * @param fmt   格式串。
+     * @param open  指向左括号的迭代器。
+     * @param close 配对的右括号字符。
+     * @return 指向配对右括号的迭代器；找不到则返回 `fmt.cend()`。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Finds the closing bracket matching an opening one in a format string.
+     *
+     * This is how `expand_and_filter` delimits a bracket group. Nesting is counted, and
+     * `%`-introduced specifiers are skipped so that a `"%("` does not have its specifier
+     * character counted as a bracket.
+     * @param fmt   The format string.
+     * @param open  Iterator at the opening bracket.
+     * @param close The matching closing bracket character.
+     * @return An iterator at the matching closing bracket, or `fmt.cend()` if there is none.
+     * @endif
+     */
+    static typename std::basic_string_view<CharT>::const_iterator
+    match_bracket(std::basic_string_view<CharT> fmt,
+                  typename std::basic_string_view<CharT>::const_iterator open, CharT close)
+    {
+        int depth = 0;
+        for (auto p = open; p != fmt.cend(); )
+        {
+            if (*p == static_cast<CharT>('%'))
+            {
+                if (++p == fmt.cend()) break;
+                if (*p == static_cast<CharT>('E') || *p == static_cast<CharT>('O'))
+                    if (++p == fmt.cend()) break;
+                ++p;
+                continue;
+            }
+            if (*p == *open) ++depth;
+            else if (*p == close && --depth == 0) return p;
+            ++p;
+        }
+        return fmt.cend();
     }
 
     /**
@@ -3441,8 +3863,7 @@ private:
      * @param wd     星期指针（若不含星期分量则为 `nullptr`）。
      * @param hms    时间指针（若不含时间分量则为 `nullptr`）。
      * @param zi     偏移 + 缩写指针，喂 `%z`（若值不带偏移则为 `nullptr`）。
-     * @param tz     时区身份指针，喂 `%Z` 和 `%c` / `%X` 的带时区变体
-     *               （若值不带区域身份则为 `nullptr`）。
+     * @param tz     时区身份指针，喂 `%Z`（若值不带区域身份则为 `nullptr`）。
      * @return 写入后的输出迭代器。
      * @note @p format 以落单的 `%` 结尾（或以落单的 `%E` / `%O` 修饰符结尾）时，按「无法解释的
      *       格式内容原样透传」处理：写出 `%`（及修饰符）本身，不视为错误。这与未知说明符
@@ -3467,8 +3888,8 @@ private:
      * @param hms    Time pointer (`nullptr` if no time components are needed).
      * @param zi     Offset + abbreviation pointer feeding `%z` (`nullptr` if the value
      *               carries no offset).
-     * @param tz     Zone-identity pointer feeding `%Z` and the zone-carrying variants of
-     *               `%c` / `%X` (`nullptr` if the value carries no zone identity).
+     * @param tz     Zone-identity pointer feeding `%Z` (`nullptr` if the value carries no
+     *               zone identity).
      * @return The output iterator after writing.
      * @note When @p format ends with a lone `%` (or with a lone `%E` / `%O` modifier), it is
      *       handled by the "pass unrecognized format content through unchanged" policy: the `%`
@@ -3579,18 +4000,9 @@ private:
             case static_cast<CharT>('c'):
                 if (!ymd || !hms || modifier == static_cast<CharT>('O')) goto bad_format;
                 {
-                    const std::basic_string<CharT>* ptr = nullptr;
-                    if (tz)
-                    {
-                        ptr = &m_date_time_zone_format;
-                        if (modifier == static_cast<CharT>('E')) ptr = &m_era_date_time_zone_format;
-                    }
-                    else
-                    {
-                        ptr = &m_date_time_format;
-                        if (modifier == static_cast<CharT>('E')) ptr = &m_era_date_time_format;
-                    }
-                    out = do_put(out, *ptr, ymd, wd, hms, zi, tz);
+                    const std::basic_string<CharT>& subFmt = (modifier == static_cast<CharT>('E')) ?
+                                                              m_era_date_time_format : m_date_time_format;
+                    out = do_put(out, subFmt, ymd, wd, hms, zi, tz);
                 }
                 break;
 
@@ -3865,12 +4277,9 @@ private:
             case static_cast<CharT>('X'):
                 if (!hms || modifier == static_cast<CharT>('O')) goto bad_format;
                 {
-                    const std::basic_string<CharT>* ptr = nullptr;
-                    if (tz)
-                        ptr = (modifier == static_cast<CharT>('E')) ? &m_era_time_zone_format : &m_time_zone_format;
-                    else
-                        ptr = (modifier == static_cast<CharT>('E')) ? &m_era_time_format : &m_time_format;
-                    out = do_put(out, *ptr, ymd, wd, hms, zi, tz);
+                    const std::basic_string<CharT>& subFmt = (modifier == static_cast<CharT>('E')) ?
+                                                             m_era_time_format : m_time_format;
+                    out = do_put(out, subFmt, ymd, wd, hms, zi, tz);
                 }
                 break;
 
@@ -3976,6 +4385,318 @@ private:
             ++f;
         }
         return out;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief @ref expand_format 的实现：把复合说明符换成它们的内容，把供不出的说明符
+     *        连同一侧分隔符摘掉，结果追加到 @p result。
+     *
+     * 这个 switch 是 `do_put` 那个 switch 的镜像：那里问 `ymd` / `wd` / `hms` / `zi` / `tz`
+     * 五个指针空不空，这里问对应的模板标志，那里 `goto bad_format` 的地方这里
+     * `goto filter_format`。两边必须一一对应，摘掉的才正好是 put 会退化的那些。
+     *
+     * 复合说明符只在**供得出**时才展开，否则整个摘掉：展开一个供不出的 `%c` 只会把它的内容
+     * 拆成一堆各自被摘掉的说明符，留下一串孤零零的标点。`%EY` 也不展开——纪元格式取决于年份
+     * 落在哪个纪元，是值相关的。
+     *
+     * @tparam has_date   值是否带日期，见 @ref time_value_fields。
+     * @tparam has_time   值是否带时分秒。
+     * @tparam has_offset 值是否带 UTC 偏移。
+     * @tparam has_zone   值是否带区域身份。
+     * @param result 追加目标，尾部可能因摘分隔符被截短。
+     * @param fmt    格式串。
+     * @warning 与 `do_put` / `do_get` 一样把 locale 数据当作可信输入：自引用的复合格式串
+     *          会让这里无限递归，行为未定义。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The implementation of @ref expand_format: compounds replaced by their content,
+     *        unsuppliable specifiers removed along with one adjacent separator, the result
+     *        appended to @p result.
+     *
+     * This switch mirrors the one in `do_put`: there the question is whether the `ymd` / `wd` /
+     * `hms` / `zi` / `tz` pointers are null, here it is the matching template flags, and where
+     * that one says `goto bad_format` this one says `goto filter_format`. The two have to
+     * correspond case for case, or this would not be removing exactly what put degrades.
+     *
+     * A compound is expanded only when it can be **supplied**, and otherwise removed whole:
+     * expanding an unsuppliable `%c` would break it into a crowd of individually removed
+     * specifiers and leave a trail of orphaned punctuation. `%EY` is not expanded either --
+     * which era format applies depends on the year, so it is a property of the value.
+     *
+     * @tparam has_date   Whether the value carries a date; see @ref time_value_fields.
+     * @tparam has_time   Whether it carries a time of day.
+     * @tparam has_offset Whether it carries a UTC offset.
+     * @tparam has_zone   Whether it carries a zone identity.
+     * @param result Where output is appended; its tail may be truncated to drop a separator.
+     * @param fmt    The format string.
+     * @warning Locale data is trusted input here just as in `do_put` / `do_get`: a
+     *          self-referential compound format recurses without bound, and the behavior is
+     *          undefined.
+     * @endif
+     */
+    template <bool has_date, bool has_time, bool has_offset, bool has_zone>
+    void expand_and_filter(std::basic_string<CharT>& result, std::basic_string_view<CharT> fmt) const
+    {
+        auto closer_for = [](CharT c)
+        {
+            if (c == static_cast<CharT>('(')) return static_cast<CharT>(')');
+            if (c == static_cast<CharT>('[')) return static_cast<CharT>(']');
+            if (c == static_cast<CharT>('{')) return static_cast<CharT>('}');
+            return CharT();
+        };
+
+        auto f = fmt.cbegin();
+
+        /* Drop one separator adjacent to whatever was just removed, or an orphaned piece of
+        punctuation is left behind: "%T %Z" has to become "%T" rather than "%T ", and
+        "%m/%d/%Y %T" on a time-only value "%T" rather than "// %T". Trim backwards when
+        anything precedes, forwards only at the very start. A closing bracket is never a
+        separator -- its opener still stands, and eating it would orphan that one -- and
+        symmetrically an opening bracket is never one going forwards. */
+        auto trim_separator = [&]
+        {
+            if (!result.empty())
+            {
+                auto n = result.size();
+                while (n > 0 && is_space(result[n - 1])) --n;
+
+                if (n > 0 && is_punct(result[n - 1]) &&
+                    result[n - 1] != static_cast<CharT>(')') &&
+                    result[n - 1] != static_cast<CharT>(']') &&
+                    result[n - 1] != static_cast<CharT>('}'))
+                {
+                    --n;
+                    while (n > 0 && is_space(result[n - 1])) --n;
+                }
+                result.resize(n);
+            }
+
+            if (result.empty())
+            {
+                while (f != fmt.cend() && is_space(*f)) ++f;
+                if (f != fmt.cend() && is_punct(*f) && closer_for(*f) == CharT())
+                {
+                    ++f;
+                    while (f != fmt.cend() && is_space(*f)) ++f;
+                }
+            }
+        };
+
+        while (f != fmt.cend())
+        {
+            if (*f != static_cast<CharT>('%'))
+            {
+                /* A bracket group is all-or-nothing: filter its content on its own, and if a
+                group that held something comes back empty, the brackets go with it. That is
+                what turns "%T (%Z)" into "%T" and "%T (%Z, %z)" into "%T", while leaving both
+                halves of a group that keeps something ("%T (%Z, x)" -> "%T (x)") and every
+                bracket the format itself left unpaired ("%T :-)"). */
+                const CharT closer = closer_for(*f);
+                if (closer != CharT())
+                {
+                    const auto close_it = match_bracket(fmt, f, closer);
+                    if (close_it != fmt.cend())
+                    {
+                        const auto content = fmt.substr(f + 1 - fmt.cbegin(), close_it - f - 1);
+                        std::basic_string<CharT> inner;
+                        expand_and_filter<has_date, has_time, has_offset, has_zone>(inner, content);
+
+                        auto blank = [this](std::basic_string_view<CharT> s)
+                        { return std::ranges::all_of(s, [this](CharT c) { return is_space(c); }); };
+
+                        if (blank(inner) && !blank(content))
+                        {
+                            f = close_it + 1;
+                            trim_separator();
+                            continue;
+                        }
+
+                        result.push_back(*f);
+                        result.append(inner);
+                        result.push_back(closer);
+                        f = close_it + 1;
+                        continue;
+                    }
+                }
+                result.push_back(*f++);
+                continue;
+            }
+
+            const auto head = f;
+            if (++f == fmt.cend())
+            {
+                result.push_back(static_cast<CharT>('%'));
+                break;
+            }
+
+            CharT modifier = 0;
+            if (*f == static_cast<CharT>('E') || *f == static_cast<CharT>('O'))
+            {
+                modifier = *f++;
+                if (f == fmt.cend())
+                {
+                    result.append(head, f);
+                    break;
+                }
+            }
+
+            CharT format_char = *f;
+            switch (format_char)
+            {
+            case static_cast<CharT>('%'):
+            case static_cast<CharT>('n'):
+            case static_cast<CharT>('t'):
+                if (modifier) goto filter_format;
+                break;
+
+            case static_cast<CharT>('a'):
+            case static_cast<CharT>('A'):
+            case static_cast<CharT>('b'):
+            case static_cast<CharT>('h'):
+            case static_cast<CharT>('B'):
+            case static_cast<CharT>('g'):
+            case static_cast<CharT>('G'):
+            case static_cast<CharT>('j'):
+                if constexpr (!has_date) goto filter_format;
+                if (modifier) goto filter_format;
+                break;
+
+            case static_cast<CharT>('C'):
+            case static_cast<CharT>('Y'):
+                if constexpr (!has_date) goto filter_format;
+                if (modifier == static_cast<CharT>('O')) goto filter_format;
+                break;
+
+            case static_cast<CharT>('d'):
+            case static_cast<CharT>('e'):
+            case static_cast<CharT>('m'):
+            case static_cast<CharT>('u'):
+            case static_cast<CharT>('w'):
+            case static_cast<CharT>('U'):
+            case static_cast<CharT>('V'):
+            case static_cast<CharT>('W'):
+                if constexpr (!has_date) goto filter_format;
+                if (modifier == static_cast<CharT>('E')) goto filter_format;
+                break;
+
+            case static_cast<CharT>('y'):
+                if constexpr (!has_date) goto filter_format;
+                break;
+
+            case static_cast<CharT>('p'):
+                if constexpr (!has_time) goto filter_format;
+                if (modifier) goto filter_format;
+                break;
+
+            case static_cast<CharT>('H'):
+            case static_cast<CharT>('I'):
+            case static_cast<CharT>('M'):
+            case static_cast<CharT>('S'):
+                if constexpr (!has_time) goto filter_format;
+                if (modifier == static_cast<CharT>('E')) goto filter_format;
+                break;
+
+            case static_cast<CharT>('z'):
+                if constexpr (!has_offset) goto filter_format;
+                if (modifier) goto filter_format;
+                break;
+
+            case static_cast<CharT>('Z'):
+                if constexpr (!has_zone) goto filter_format;
+                if (modifier) goto filter_format;
+                break;
+
+            case static_cast<CharT>('c'):
+                if constexpr (!has_date || !has_time) goto filter_format;
+                if (modifier == static_cast<CharT>('O')) goto filter_format;
+                expand_and_filter<has_date, has_time, has_offset, has_zone>(
+                    result, (modifier == static_cast<CharT>('E')) ? m_era_date_time_format
+                                                                  : m_date_time_format);
+                ++f;
+                continue;
+
+            case static_cast<CharT>('x'):
+                if constexpr (!has_date) goto filter_format;
+                if (modifier == static_cast<CharT>('O')) goto filter_format;
+                expand_and_filter<has_date, has_time, has_offset, has_zone>(
+                    result, (modifier == static_cast<CharT>('E')) ? m_era_date_format
+                                                                  : m_date_format);
+                ++f;
+                continue;
+
+            case static_cast<CharT>('X'):
+                if constexpr (!has_time) goto filter_format;
+                if (modifier == static_cast<CharT>('O')) goto filter_format;
+                expand_and_filter<has_date, has_time, has_offset, has_zone>(
+                    result, (modifier == static_cast<CharT>('E')) ? m_era_time_format
+                                                                  : m_time_format);
+                ++f;
+                continue;
+
+            case static_cast<CharT>('r'):
+                if constexpr (!has_time) goto filter_format;
+                if (modifier) goto filter_format;
+                expand_and_filter<has_date, has_time, has_offset, has_zone>(result, m_am_pm_format);
+                ++f;
+                continue;
+
+            case static_cast<CharT>('D'):
+                if constexpr (!has_date) goto filter_format;
+                if (modifier) goto filter_format;
+                {
+                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
+                                      static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
+                                      static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                }
+                ++f;
+                continue;
+
+            case static_cast<CharT>('F'):
+                if constexpr (!has_date) goto filter_format;
+                if (modifier) goto filter_format;
+                {
+                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
+                                      static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
+                                      static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                }
+                ++f;
+                continue;
+
+            case static_cast<CharT>('R'):
+                if constexpr (!has_time) goto filter_format;
+                if (modifier) goto filter_format;
+                {
+                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                      static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                }
+                ++f;
+                continue;
+
+            case static_cast<CharT>('T'):
+                if constexpr (!has_time) goto filter_format;
+                if (modifier) goto filter_format;
+                {
+                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                      static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
+                                      static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                }
+                ++f;
+                continue;
+
+            default:
+            filter_format:
+                ++f;
+                trim_separator();
+                continue;
+            }
+            result.append(head, ++f);
+        }
     }
 
 private:
@@ -4247,12 +4968,8 @@ private:
     std::basic_string<CharT>                  m_era_date_format;
     std::basic_string<CharT>                  m_time_format;
     std::basic_string<CharT>                  m_era_time_format;
-    std::basic_string<CharT>                  m_time_zone_format;
-    std::basic_string<CharT>                  m_era_time_zone_format;
     std::basic_string<CharT>                  m_date_time_format;
     std::basic_string<CharT>                  m_era_date_time_format;
-    std::basic_string<CharT>                  m_date_time_zone_format;
-    std::basic_string<CharT>                  m_era_date_time_zone_format;
     std::basic_string<CharT>                  m_am_pm_format;
     std::vector<era_entry>                    m_era_master;
 

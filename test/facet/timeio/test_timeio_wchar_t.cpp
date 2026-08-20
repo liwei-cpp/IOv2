@@ -113,9 +113,9 @@ void test_timeio_wchar_t_put_1()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, L'c');
-        VERIFY(res == L"Wed Sep  4 13:33:18 2024 America/Los_Angeles");
+        VERIFY(res == L"Wed Sep  4 13:33:18 2024");
         res.clear(); obj.put(std::back_inserter(res), tp, L'c', L'E');
-        VERIFY(res == L"Wed Sep  4 13:33:18 2024 America/Los_Angeles");
+        VERIFY(res == L"Wed Sep  4 13:33:18 2024");
         res.clear(); obj.put(std::back_inserter(res), tp, L'c', L'O');
         VERIFY(res == L"%Oc");
     }
@@ -266,9 +266,9 @@ void test_timeio_wchar_t_put_1()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, L'X');
-        VERIFY(res == L"13:33:18 America/Los_Angeles");
+        VERIFY(res == L"13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, L'X', L'E');
-        VERIFY(res == L"13:33:18 America/Los_Angeles");
+        VERIFY(res == L"13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, L'X', L'O');
         VERIFY(res == L"%OX");
     }
@@ -455,9 +455,9 @@ void test_timeio_wchar_t_put_2()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, L'c');
-        VERIFY(res == L"2024年09月04日 星期三 13时33分18秒 America/Los_Angeles");
+        VERIFY(res == L"2024年09月04日 星期三 13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'c', L'E');
-        VERIFY(res == L"2024年09月04日 星期三 13时33分18秒 America/Los_Angeles");
+        VERIFY(res == L"2024年09月04日 星期三 13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'c', L'O');
         VERIFY(res == L"%Oc");
     }
@@ -608,9 +608,9 @@ void test_timeio_wchar_t_put_2()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, L'X');
-        VERIFY(res == L"13时33分18秒 America/Los_Angeles");
+        VERIFY(res == L"13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'X', L'E');
-        VERIFY(res == L"13时33分18秒 America/Los_Angeles");
+        VERIFY(res == L"13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'X', L'O');
         VERIFY(res == L"%OX");
     }
@@ -796,9 +796,9 @@ void test_timeio_wchar_t_put_3()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, L'c');
-        VERIFY(res == L"2024年09月04日 13時33分18秒 America/Los_Angeles");
+        VERIFY(res == L"2024年09月04日 13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'c', L'E');
-        VERIFY(res == L"令和6年09月04日 13時33分18秒 America/Los_Angeles");
+        VERIFY(res == L"令和6年09月04日 13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'c', L'O');
         VERIFY(res == L"%Oc");
     }
@@ -949,9 +949,9 @@ void test_timeio_wchar_t_put_3()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, L'X');
-        VERIFY(res == L"13時33分18秒 America/Los_Angeles");
+        VERIFY(res == L"13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'X', L'E');
-        VERIFY(res == L"13時33分18秒 America/Los_Angeles");
+        VERIFY(res == L"13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, L'X', L'O');
         VERIFY(res == L"%OX");
     }
@@ -1098,7 +1098,7 @@ void test_timeio_wchar_t_put_4()
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, L'X');
-        VERIFY(oss == L"12:00:00 America/Los_Angeles");
+        VERIFY(oss == L"12:00:00");
     }
 
     {
@@ -1110,7 +1110,7 @@ void test_timeio_wchar_t_put_4()
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, L'X', L'E');
-        VERIFY(oss == L"12:00:00 America/Los_Angeles");
+        VERIFY(oss == L"12:00:00");
     }
 
     dump_info("Done\n");
@@ -1134,7 +1134,7 @@ void test_timeio_wchar_t_put_5()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, L'X');
-        VERIFY(oss == L"12:00:00 America/Los_Angeles");
+        VERIFY(oss == L"12:00:00");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, L'x', L'E');
@@ -1142,7 +1142,7 @@ void test_timeio_wchar_t_put_5()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, L'X', L'E');
-        VERIFY(oss == L"12:00:00 America/Los_Angeles");
+        VERIFY(oss == L"12:00:00");
     }
 
     dump_info("Done\n");
@@ -1198,7 +1198,7 @@ void test_timeio_wchar_t_put_7()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, L'X');
-        VERIFY(oss == L"12:00:00 America/Los_Angeles");
+        VERIFY(oss == L"12:00:00");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, L'x', L'E');
@@ -1206,7 +1206,7 @@ void test_timeio_wchar_t_put_7()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, L'X', L'E');
-        VERIFY(oss == L"12:00:00 America/Los_Angeles");
+        VERIFY(oss == L"12:00:00");
     }
 
     dump_info("Done\n");
@@ -1351,7 +1351,7 @@ void test_timeio_wchar_t_put_14()
     std::strftime(time_buffer, 128, "%c", &time1);
     setlocale(LC_ALL, "C");
 
-    VERIFY(IOv2::detail::to_wstring(time_buffer, "ta_IN.UTF-8") + std::wstring(L" America/Los_Angeles") == res);
+    VERIFY(IOv2::detail::to_wstring(time_buffer, "ta_IN.UTF-8") == res);
 
     dump_info("Done\n");
 }
@@ -2348,11 +2348,22 @@ void test_timeio_wchar_t_put_17()
     }
 
     {
-        res.clear(); obj.put(std::back_inserter(res), tp, L'Z'); VERIFY(res == L"%Z");
+        // test_tm leaves tm_zone null: %Z has a field to fill but no name to fill it with.
+        res.clear(); obj.put(std::back_inserter(res), tp, L'Z'); VERIFY(res == L"UNKNOWN");
         res.clear(); obj.put(std::back_inserter(res), tp, L'Z', L'E');
         VERIFY(res == L"%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, L'Z', L'O');
         VERIFY(res == L"%OZ");
+
+#ifdef __USE_MISC
+        std::tm named = tp;
+        named.tm_zone = "PST";
+        res.clear(); obj.put(std::back_inserter(res), named, L'Z'); VERIFY(res == L"PST");
+
+        // An empty string is as nameless as a null pointer.
+        named.tm_zone = "";
+        res.clear(); obj.put(std::back_inserter(res), named, L'Z'); VERIFY(res == L"UNKNOWN");
+#endif
     }
 
     {
@@ -2563,8 +2574,8 @@ void test_timeio_wchar_t_get_1()
     CheckGet(obj, L"h",   L'h', L'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, L"Wed Sep  4 13:33:18 2024 America/Los_Angeles", L'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, L"Wed Sep  4 13:33:18 2024 America/Los_Angeles", L'c', L'E', IOv2::ios_defs::eofbit, 17) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, L"Wed Sep  4 13:33:18 2024", L'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, L"Wed Sep  4 13:33:18 2024", L'c', L'E', IOv2::ios_defs::eofbit, 17) == check_date1);
     CheckGet(obj, L"c",   L'c', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"%Oc", L'c', L'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, L"c",   L'c', L'O', IOv2::ios_defs::strfailbit, 0);
@@ -2680,9 +2691,9 @@ void test_timeio_wchar_t_get_1()
     CheckGet(obj, L"S",   L'S', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"S",   L'S', L'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13:33:18 America/Los_Angeles", L"%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13:33:18", L"%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13:33:18 America/Los_Angeles", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13:33:18", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     CheckGet(obj, L"X",   L'X', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"%OX", L'X', L'O', IOv2::ios_defs::eofbit);
@@ -2838,8 +2849,8 @@ void test_timeio_wchar_t_get_2()
     CheckGet(obj, L"h",   L'h', L'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, L"2024年09月04日 星期三 13时33分18秒 America/Los_Angeles", L'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, L"2024年09月04日 星期三 13时33分18秒 America/Los_Angeles", L'c', L'E', IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, L"2024年09月04日 星期三 13时33分18秒", L'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, L"2024年09月04日 星期三 13时33分18秒", L'c', L'E', IOv2::ios_defs::eofbit) == check_date1);
     CheckGet(obj, L"c",   L'c', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"%Oc", L'c', L'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, L"c",   L'c', L'O', IOv2::ios_defs::strfailbit, 0);
@@ -2954,9 +2965,9 @@ void test_timeio_wchar_t_get_2()
     CheckGet(obj, L"S",   L'S', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"S",   L'S', L'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13时33分18秒 America/Los_Angeles", L"%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13时33分18秒", L"%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13时33分18秒 America/Los_Angeles", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13时33分18秒", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     CheckGet(obj, L"X",   L'X', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"%OX", L'X', L'O', IOv2::ios_defs::eofbit);
@@ -3112,9 +3123,9 @@ void test_timeio_wchar_t_get_3()
     CheckGet(obj, L"h",   L'h', L'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, L"2024年09月04日 13時33分18秒 America/Los_Angeles", L'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, L"令和6年09月04日 13時33分18秒 America/Los_Angeles", L'c', L'E', IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, L"202409月04日 13時33分18秒 America/Los_Angeles", L'c', L'E', IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, L"2024年09月04日 13時33分18秒", L'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, L"令和6年09月04日 13時33分18秒", L'c', L'E', IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, L"202409月04日 13時33分18秒", L'c', L'E', IOv2::ios_defs::eofbit) == check_date1);
     CheckGet(obj, L"c",   L'c', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"%Oc", L'c', L'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, L"c",   L'c', L'O', IOv2::ios_defs::strfailbit, 0);
@@ -3237,9 +3248,9 @@ void test_timeio_wchar_t_get_3()
     CheckGet(obj, L"S",   L'S', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"S",   L'S', L'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒 America/Los_Angeles", L"%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒", L"%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒 America/Los_Angeles", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     CheckGet(obj, L"X",   L'X', L'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, L"%OX", L'X', L'O', IOv2::ios_defs::eofbit);
@@ -4249,9 +4260,9 @@ void test_timeio_wchar_t_get_9()
     FOri(L"S",   L'S', L'E', IOv2::ios_defs::strfailbit, 0);
     FOri(L"S",   L'S', L'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒 America/Los_Angeles", L"%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒", L"%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒 America/Los_Angeles", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, L"13時33分18秒", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     FOri(L"X",   L'X', L'E', IOv2::ios_defs::strfailbit, 0);
     FOri(L"%OX", L'X', L'O', IOv2::ios_defs::eofbit);
@@ -4809,9 +4820,9 @@ void test_timeio_wchar_t_get_11()
     FOri(L"S",   L'S', L'E', IOv2::ios_defs::strfailbit, 0);
     FOri(L"S",   L'S', L'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(FHms(L"13時33分18秒 America/Los_Angeles", L"%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(FHms(L"13時33分18秒", L"%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(FHms(L"13時33分18秒 America/Los_Angeles", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(FHms(L"13時33分18秒", L"%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     FOri(L"X",   L'X', L'E', IOv2::ios_defs::strfailbit, 0);
     FOri(L"%OX", L'X', L'O', IOv2::ios_defs::eofbit);
