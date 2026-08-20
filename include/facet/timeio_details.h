@@ -39,6 +39,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -258,6 +259,51 @@ namespace IOv2
     public:
         /**
          * @lang{ZH}
+         * @brief `%Z` 在「字段在、但没有内容」时写出的记号。
+         *
+         * 只有 `std::tm` 用得上：当前平台的 `std::tm` 带 `tm_zone` 成员时，这个类型在
+         * 类型层面就宣称装得下区名，于是 `%Z` 必须给出一个答案；而具体这一个 `tm` 的
+         * `tm_zone` 可能是空指针或空串，此时写出本记号，表示「区名未知」。
+         *
+         * 之所以不退化为字面 `%Z`：那两个字符出现在给人看的输出里太难看，而 `%c` 之类的
+         * locale 复合格式里是否含 `%Z` 并不由调用方决定。之所以不回退到进程本地时区
+         * （glibc 的 `strftime` 会查 `tzname[tm_isdst != 0]`）：那会把一个与该时间毫无关系
+         * 的区名安上去，`tm_gmtoff` 为 `+0800` 的值在美国西岸的机器上会写出 `PST`。
+         *
+         * 本记号也在 @ref s_timezone_tree 中注册，映射到空字符串，因此写得出就读得回；
+         * 解析到它时不记录任何时区字段，与解析真实缩写一样不回写 `tm_zone`。
+         *
+         * @note 不会与真实时区记号冲突：对 tzdb 的全部区名、缩写与 link（本机 769 条）
+         *       逐一比对过，无相等项，也无任一方向的前缀关系。
+         * @endif
+         *
+         * @lang{EN}
+         * @brief The token `%Z` writes when the field is there but holds nothing.
+         *
+         * Only `std::tm` ever needs it: when this platform's `std::tm` carries a `tm_zone`
+         * member, the type declares at the type level that it can hold a zone name, so `%Z`
+         * owes an answer; yet this particular `tm` may have a null or empty `tm_zone`, and
+         * then this token is written to say the name is unknown.
+         *
+         * Why not degrade to a literal `%Z`: those two characters are ugly in output meant for
+         * a human, and whether a locale composite such as `%c` contains a `%Z` is not the
+         * caller's choice. Why not fall back to the process's local zone (glibc's `strftime`
+         * consults `tzname[tm_isdst != 0]`): that attaches a zone name unrelated to the value,
+         * so a `tm` whose `tm_gmtoff` is `+0800` would print `PST` on a machine in California.
+         *
+         * The token is also registered in @ref s_timezone_tree, mapped to the empty string, so
+         * whatever is written can be read back; parsing it records no time-zone field, and like
+         * a parsed real abbreviation it never writes back to `tm_zone`.
+         *
+         * @note It cannot collide with a real zone token: checked against every zone name,
+         *       abbreviation and link in the tzdb (769 of them here) for equality and for a
+         *       prefix relation in either direction; there is none.
+         * @endif
+         */
+        static constexpr std::string_view s_unknown_zone = "UNKNOWN";
+
+        /**
+         * @lang{ZH}
          * @brief 时区缩写与 IANA 全名到规范时区名的静态前缀树。
          *
          * 在程序启动时通过 `std::chrono::get_tzdb()` 构建，将：
@@ -328,6 +374,11 @@ namespace IOv2
         []()
         {
             prefix_tree<CharT, std::string> res;
+
+            // Registered ahead of the tzdb walk so that it is present even when the walk
+            // throws and leaves the rest of the trie empty: the token the put side writes
+            // for a nameless zone has to parse back regardless of the database.
+            res.add(s_unknown_zone.begin(), s_unknown_zone.end(), std::string{});
 
             try
             {
@@ -691,11 +742,6 @@ public:
                                          .value_or(m_date_time_format);
             m_am_pm_format = normalize_time_format(m_am_pm_format).value_or("%I:%M:%S %p");
         }
-
-        m_date_time_zone_format = m_date_time_format +" %Z";
-        m_era_date_time_zone_format = m_era_date_time_format +" %Z";
-        m_time_zone_format = m_time_format + " %Z";
-        m_era_time_zone_format = m_era_time_format + " %Z";
     }
 
     /**
@@ -848,30 +894,6 @@ public:
     virtual const std::string& era_time_format() const { return m_era_time_format; }
     /**
      * @lang{ZH}
-     * @brief 返回时间加时区格式串（时间格式串后附加 `%Z`）。
-     * @return 时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the time-plus-timezone format string (time format string with `%Z` appended).
-     * @return A constant reference to the time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::string& time_zone_format() const { return m_time_zone_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回纪元修饰时间加时区格式串。
-     * @return 纪元修饰时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the era-modified time-plus-timezone format string.
-     * @return A constant reference to the era-modified time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::string& era_time_zone_format() const { return m_era_time_zone_format; }
-    /**
-     * @lang{ZH}
      * @brief 返回 locale 日期时间格式串（对应 `%c`）。
      * @return 日期时间格式串的常量引用。
      * @endif
@@ -899,30 +921,6 @@ public:
      * @endif
      */
     virtual const std::string& era_date_time_format() const { return m_era_date_time_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回日期时间加时区格式串（日期时间格式串后附加 `%Z`）。
-     * @return 日期时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the date-time-plus-timezone format string (date-time format with `%Z` appended).
-     * @return A constant reference to the date-time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::string& date_time_zone_format() const { return m_date_time_zone_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回纪元修饰日期时间加时区格式串。
-     * @return 纪元修饰日期时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the era-modified date-time-plus-timezone format string.
-     * @return A constant reference to the era-modified date-time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::string& era_date_time_zone_format() const { return m_era_date_time_zone_format; }
     /**
      * @lang{ZH}
      * @brief 返回 AM/PM 时间格式串（对应 `%r`）。
@@ -1225,12 +1223,8 @@ private:
     std::string                  m_era_date_format;
     std::string                  m_time_format;
     std::string                  m_era_time_format;
-    std::string                  m_time_zone_format;
-    std::string                  m_era_time_zone_format;
     std::string                  m_date_time_format;
     std::string                  m_era_date_time_format;
-    std::string                  m_date_time_zone_format;
-    std::string                  m_era_date_time_zone_format;
     std::string                  m_am_pm_format;
     std::vector<era_entry>       m_era_items;
 };
@@ -1341,10 +1335,6 @@ public:
             }
         }
 
-        m_time_zone_format = convert(tmp_obj.time_zone_format());
-        m_era_time_zone_format = convert(tmp_obj.era_time_zone_format());
-        m_date_time_zone_format = convert(tmp_obj.date_time_zone_format());
-        m_era_date_time_zone_format = convert(tmp_obj.era_date_time_zone_format());
     }
 
     /**
@@ -1481,30 +1471,6 @@ public:
     virtual const std::basic_string<CharT>& era_time_format() const { return m_era_time_format; }
     /**
      * @lang{ZH}
-     * @brief 返回时间加时区格式串。
-     * @return 时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the time-plus-timezone format string.
-     * @return A constant reference to the time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<CharT>& time_zone_format() const { return m_time_zone_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回纪元修饰时间加时区格式串。
-     * @return 纪元修饰时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the era-modified time-plus-timezone format string.
-     * @return A constant reference to the era-modified time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<CharT>& era_time_zone_format() const { return m_era_time_zone_format; }
-    /**
-     * @lang{ZH}
      * @brief 返回 locale 日期时间格式串（对应 `%c`）。
      * @return 日期时间格式串的常量引用。
      * @endif
@@ -1527,30 +1493,6 @@ public:
      * @endif
      */
     virtual const std::basic_string<CharT>& era_date_time_format() const { return m_era_date_time_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回日期时间加时区格式串。
-     * @return 日期时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the date-time-plus-timezone format string.
-     * @return A constant reference to the date-time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<CharT>& date_time_zone_format() const { return m_date_time_zone_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回纪元修饰日期时间加时区格式串。
-     * @return 纪元修饰日期时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the era-modified date-time-plus-timezone format string.
-     * @return A constant reference to the era-modified date-time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<CharT>& era_date_time_zone_format() const { return m_era_date_time_zone_format; }
     /**
      * @lang{ZH}
      * @brief 返回 AM/PM 时间格式串（对应 `%r`）。
@@ -1589,12 +1531,8 @@ private:
     std::basic_string<CharT>                  m_era_date_format;
     std::basic_string<CharT>                  m_time_format;
     std::basic_string<CharT>                  m_era_time_format;
-    std::basic_string<CharT>                  m_time_zone_format;
-    std::basic_string<CharT>                  m_era_time_zone_format;
     std::basic_string<CharT>                  m_date_time_format;
     std::basic_string<CharT>                  m_era_date_time_format;
-    std::basic_string<CharT>                  m_date_time_zone_format;
-    std::basic_string<CharT>                  m_era_date_time_zone_format;
     std::basic_string<CharT>                  m_am_pm_format;
     std::vector<era_entry>                    m_era_items;
 };
@@ -1736,10 +1674,6 @@ private:
                 m_era_items.push_back(aim);
             }
         }
-        m_time_zone_format = m_time_format + u8" %Z";
-        m_era_time_zone_format = m_era_time_format + u8" %Z";
-        m_date_time_zone_format = m_date_time_format + u8" %Z";
-        m_era_date_time_zone_format = m_era_date_time_format + u8" %Z";
     }
 
 public:
@@ -1877,30 +1811,6 @@ public:
     virtual const std::basic_string<char8_t>& era_time_format() const { return m_era_time_format; }
     /**
      * @lang{ZH}
-     * @brief 返回时间加时区格式串。
-     * @return 时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the time-plus-timezone format string.
-     * @return A constant reference to the time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<char8_t>& time_zone_format() const { return m_time_zone_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回纪元修饰时间加时区格式串。
-     * @return 纪元修饰时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the era-modified time-plus-timezone format string.
-     * @return A constant reference to the era-modified time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<char8_t>& era_time_zone_format() const { return m_era_time_zone_format; }
-    /**
-     * @lang{ZH}
      * @brief 返回 locale 日期时间格式串（对应 `%c`）。
      * @return 日期时间格式串的常量引用。
      * @endif
@@ -1923,30 +1833,6 @@ public:
      * @endif
      */
     virtual const std::basic_string<char8_t>& era_date_time_format() const { return m_era_date_time_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回日期时间加时区格式串。
-     * @return 日期时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the date-time-plus-timezone format string.
-     * @return A constant reference to the date-time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<char8_t>& date_time_zone_format() const { return m_date_time_zone_format; }
-    /**
-     * @lang{ZH}
-     * @brief 返回纪元修饰日期时间加时区格式串。
-     * @return 纪元修饰日期时间加时区格式串的常量引用。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Returns the era-modified date-time-plus-timezone format string.
-     * @return A constant reference to the era-modified date-time-plus-timezone format string.
-     * @endif
-     */
-    virtual const std::basic_string<char8_t>& era_date_time_zone_format() const { return m_era_date_time_zone_format; }
     /**
      * @lang{ZH}
      * @brief 返回 AM/PM 时间格式串（对应 `%r`）。
@@ -1985,12 +1871,8 @@ private:
     std::basic_string<char8_t>                  m_era_date_format;
     std::basic_string<char8_t>                  m_time_format;
     std::basic_string<char8_t>                  m_era_time_format;
-    std::basic_string<char8_t>                  m_time_zone_format;
-    std::basic_string<char8_t>                  m_era_time_zone_format;
     std::basic_string<char8_t>                  m_date_time_format;
     std::basic_string<char8_t>                  m_era_date_time_format;
-    std::basic_string<char8_t>                  m_date_time_zone_format;
-    std::basic_string<char8_t>                  m_era_date_time_zone_format;
     std::basic_string<char8_t>                  m_am_pm_format;
     std::vector<era_entry>                      m_era_items;
 };

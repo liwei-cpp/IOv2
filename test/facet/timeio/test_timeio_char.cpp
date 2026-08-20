@@ -114,9 +114,9 @@ void test_timeio_char_put_1()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        VERIFY(res == "Wed Sep  4 13:33:18 2024 America/Los_Angeles");
+        VERIFY(res == "Wed Sep  4 13:33:18 2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        VERIFY(res == "Wed Sep  4 13:33:18 2024 America/Los_Angeles");
+        VERIFY(res == "Wed Sep  4 13:33:18 2024");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
         VERIFY(res == "%Oc");
     }
@@ -267,9 +267,9 @@ void test_timeio_char_put_1()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        VERIFY(res == "13:33:18 America/Los_Angeles");
+        VERIFY(res == "13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        VERIFY(res == "13:33:18 America/Los_Angeles");
+        VERIFY(res == "13:33:18");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
         VERIFY(res == "%OX");
     }
@@ -456,9 +456,9 @@ void test_timeio_char_put_2()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        VERIFY(res == "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles");
+        VERIFY(res == "2024年09月04日 星期三 13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        VERIFY(res == "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles");
+        VERIFY(res == "2024年09月04日 星期三 13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
         VERIFY(res == "%Oc");
     }
@@ -609,9 +609,9 @@ void test_timeio_char_put_2()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        VERIFY(res == "13时33分18秒 America/Los_Angeles");
+        VERIFY(res == "13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        VERIFY(res == "13时33分18秒 America/Los_Angeles");
+        VERIFY(res == "13时33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
         VERIFY(res == "%OX");
     }
@@ -797,9 +797,9 @@ void test_timeio_char_put_3()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'c');
-        VERIFY(res == "2024年09月04日 13時33分18秒 America/Los_Angeles");
+        VERIFY(res == "2024年09月04日 13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'E');
-        VERIFY(res == "令和6年09月04日 13時33分18秒 America/Los_Angeles");
+        VERIFY(res == "令和6年09月04日 13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'c', 'O');
         VERIFY(res == "%Oc");
     }
@@ -950,9 +950,9 @@ void test_timeio_char_put_3()
 
     {
         res.clear(); obj.put(std::back_inserter(res), tp, 'X');
-        VERIFY(res == "13時33分18秒 America/Los_Angeles");
+        VERIFY(res == "13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'E');
-        VERIFY(res == "13時33分18秒 America/Los_Angeles");
+        VERIFY(res == "13時33分18秒");
         res.clear(); obj.put(std::back_inserter(res), tp, 'X', 'O');
         VERIFY(res == "%OX");
     }
@@ -1099,7 +1099,7 @@ void test_timeio_char_put_4()
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, 'X');
-        VERIFY(oss == "12:00:00 America/Los_Angeles");
+        VERIFY(oss == "12:00:00");
     }
 
     {
@@ -1111,7 +1111,7 @@ void test_timeio_char_put_4()
     {
         oss.clear();
         obj.put(std::back_inserter(oss), time1, 'X', 'E');
-        VERIFY(oss == "12:00:00 America/Los_Angeles");
+        VERIFY(oss == "12:00:00");
     }
 
     dump_info("Done\n");
@@ -1135,7 +1135,7 @@ void test_timeio_char_put_5()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X');
-        VERIFY(oss == "12:00:00 America/Los_Angeles");
+        VERIFY(oss == "12:00:00");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x', 'E');
@@ -1143,7 +1143,7 @@ void test_timeio_char_put_5()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X', 'E');
-        VERIFY(oss == "12:00:00 America/Los_Angeles");
+        VERIFY(oss == "12:00:00");
     }
 
     dump_info("Done\n");
@@ -1199,7 +1199,7 @@ void test_timeio_char_put_7()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X');
-        VERIFY(oss == "12:00:00 America/Los_Angeles");
+        VERIFY(oss == "12:00:00");
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'x', 'E');
@@ -1207,7 +1207,7 @@ void test_timeio_char_put_7()
     }
     {
         oss.clear(); obj.put(std::back_inserter(oss), time1, 'X', 'E');
-        VERIFY(oss == "12:00:00 America/Los_Angeles");
+        VERIFY(oss == "12:00:00");
     }
 
     dump_info("Done\n");
@@ -1352,7 +1352,7 @@ void test_timeio_char_put_14()
     std::strftime(time_buffer, 128, "%c", &time1);
     setlocale(LC_ALL, "C");
 
-    VERIFY(time_buffer + std::string(" America/Los_Angeles") == res);
+    VERIFY(time_buffer == res);
 
     dump_info("Done\n");
 }
@@ -2349,11 +2349,22 @@ void test_timeio_char_put_17()
     }
 
     {
-        res.clear(); obj.put(std::back_inserter(res), tp, 'Z'); VERIFY(res == "%Z");
+        // test_tm leaves tm_zone null: %Z has a field to fill but no name to fill it with.
+        res.clear(); obj.put(std::back_inserter(res), tp, 'Z'); VERIFY(res == "UNKNOWN");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'E');
         VERIFY(res == "%EZ");
         res.clear(); obj.put(std::back_inserter(res), tp, 'Z', 'O');
         VERIFY(res == "%OZ");
+
+#ifdef __USE_MISC
+        std::tm named = tp;
+        named.tm_zone = "PST";
+        res.clear(); obj.put(std::back_inserter(res), named, 'Z'); VERIFY(res == "PST");
+
+        // An empty string is as nameless as a null pointer.
+        named.tm_zone = "";
+        res.clear(); obj.put(std::back_inserter(res), named, 'Z'); VERIFY(res == "UNKNOWN");
+#endif
     }
 
     {
@@ -2564,8 +2575,8 @@ void test_timeio_char_get_1()
     CheckGet(obj, "h",   'h', 'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, "Wed Sep  4 13:33:18 2024 America/Los_Angeles", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, "Wed Sep  4 13:33:18 2024 America/Los_Angeles", 'c', 'E', IOv2::ios_defs::eofbit, 17) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "Wed Sep  4 13:33:18 2024", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "Wed Sep  4 13:33:18 2024", 'c', 'E', IOv2::ios_defs::eofbit, 17) == check_date1);
     CheckGet(obj, "c",   'c', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "%Oc", 'c', 'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, "c",   'c', 'O', IOv2::ios_defs::strfailbit, 0);
@@ -2681,9 +2692,9 @@ void test_timeio_char_get_1()
     CheckGet(obj, "S",   'S', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "S",   'S', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13:33:18 America/Los_Angeles", "%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13:33:18", "%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13:33:18 America/Los_Angeles", "%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13:33:18", "%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     CheckGet(obj, "X",   'X', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "%OX", 'X', 'O', IOv2::ios_defs::eofbit);
@@ -2839,8 +2850,8 @@ void test_timeio_char_get_2()
     CheckGet(obj, "h",   'h', 'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, "2024年09月04日 星期三 13时33分18秒 America/Los_Angeles", 'c', 'E', IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "2024年09月04日 星期三 13时33分18秒", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "2024年09月04日 星期三 13时33分18秒", 'c', 'E', IOv2::ios_defs::eofbit) == check_date1);
     CheckGet(obj, "c",   'c', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "%Oc", 'c', 'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, "c",   'c', 'O', IOv2::ios_defs::strfailbit, 0);
@@ -2955,9 +2966,9 @@ void test_timeio_char_get_2()
     CheckGet(obj, "S",   'S', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "S",   'S', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13时33分18秒 America/Los_Angeles", "%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13时33分18秒", "%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13时33分18秒 America/Los_Angeles", "%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13时33分18秒", "%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     CheckGet(obj, "X",   'X', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "%OX", 'X', 'O', IOv2::ios_defs::eofbit);
@@ -3113,9 +3124,9 @@ void test_timeio_char_get_3()
     CheckGet(obj, "h",   'h', 'O', IOv2::ios_defs::strfailbit, 0);
 
     using namespace std::chrono;
-    VERIFY(CheckGet<year_month_day>(obj, "2024年09月04日 13時33分18秒 America/Los_Angeles", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, "令和6年09月04日 13時33分18秒 America/Los_Angeles", 'c', 'E', IOv2::ios_defs::eofbit) == check_date1);
-    VERIFY(CheckGet<year_month_day>(obj, "202409月04日 13時33分18秒 America/Los_Angeles", 'c', 'E', IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "2024年09月04日 13時33分18秒", 'c', 0, IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "令和6年09月04日 13時33分18秒", 'c', 'E', IOv2::ios_defs::eofbit) == check_date1);
+    VERIFY(CheckGet<year_month_day>(obj, "202409月04日 13時33分18秒", 'c', 'E', IOv2::ios_defs::eofbit) == check_date1);
     CheckGet(obj, "c",   'c', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "%Oc", 'c', 'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, "c",   'c', 'O', IOv2::ios_defs::strfailbit, 0);
@@ -3238,9 +3249,9 @@ void test_timeio_char_get_3()
     CheckGet(obj, "S",   'S', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "S",   'S', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒 America/Los_Angeles", "%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒", "%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒 America/Los_Angeles", "%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒", "%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     CheckGet(obj, "X",   'X', 'E', IOv2::ios_defs::strfailbit, 0);
     CheckGet(obj, "%OX", 'X', 'O', IOv2::ios_defs::eofbit);
@@ -5032,9 +5043,9 @@ void test_timeio_char_get_14()
     FOri("S",   'S', 'E', IOv2::ios_defs::strfailbit, 0);
     FOri("S",   'S', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒 America/Los_Angeles", "%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒", "%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒 America/Los_Angeles", "%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(CheckGet<std::chrono::hh_mm_ss<std::chrono::seconds>>(obj, "13時33分18秒", "%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     FOri("X",   'X', 'E', IOv2::ios_defs::strfailbit, 0);
     FOri("%OX", 'X', 'O', IOv2::ios_defs::eofbit);
@@ -5592,9 +5603,9 @@ void test_timeio_char_get_16()
     FOri("S",   'S', 'E', IOv2::ios_defs::strfailbit, 0);
     FOri("S",   'S', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(FHms("13時33分18秒 America/Los_Angeles", "%X",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(FHms("13時33分18秒", "%X",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
-    VERIFY(FHms("13時33分18秒 America/Los_Angeles", "%EX",  IOv2::ios_defs::eofbit).to_duration()
+    VERIFY(FHms("13時33分18秒", "%EX",  IOv2::ios_defs::eofbit).to_duration()
            == std::chrono::hh_mm_ss<std::chrono::seconds>{std::chrono::hours{13} + std::chrono::minutes{33} + std::chrono::seconds{18}}.to_duration());
     FOri("X",   'X', 'E', IOv2::ios_defs::strfailbit, 0);
     FOri("%OX", 'X', 'O', IOv2::ios_defs::eofbit);
@@ -6618,10 +6629,6 @@ void test_timeio_char_put_20()
         VERIFY(all_supported(conf->date_time_format()));
         VERIFY(all_supported(conf->era_date_time_format()));
         VERIFY(all_supported(conf->am_pm_format()));
-        VERIFY(all_supported(conf->time_zone_format()));
-        VERIFY(all_supported(conf->era_time_zone_format()));
-        VERIFY(all_supported(conf->date_time_zone_format()));
-        VERIFY(all_supported(conf->era_date_time_zone_format()));
     }
     dump_info("  (part B saw " + std::to_string(checked) + " of "
               + std::to_string(sizeof(names) / sizeof(*names)) + " candidate locales)\n");
@@ -7095,7 +7102,10 @@ void test_timeio_char_get_23()
     VERIFY(!off_ok("%z", "%Z"));
     VERIFY(!off_ok("%Q", "%Z"));
 
-    // The round trip it exists for: a std::tm with no zone, through a format carrying %Z.
+    // The round trip it exists for: a std::tm with no zone, through a format carrying %Z. On a
+    // platform with tm_zone the field exists but names nothing, so put writes the unknown-zone
+    // token and the trie reads it back; without tm_gmtoff the type has no zone at all and %Z
+    // degrades to a literal, which the fallback above reads back instead. Either way it closes.
     {
         std::tm t{};
         t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
@@ -7103,7 +7113,11 @@ void test_timeio_char_get_23()
 
         std::string res;
         obj.put(std::back_inserter(res), t, std::string_view("%F %T %Z"));
+#ifdef __USE_MISC
+        VERIFY(res == "2024-09-04 13:33:18 UNKNOWN");
+#else
         VERIFY(res == "2024-09-04 13:33:18 %Z");
+#endif
         VERIFY(off_ok(res, "%F %T %Z"));
     }
 
@@ -7120,6 +7134,385 @@ void test_timeio_char_get_23()
 
         IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
         VERIFY(us.get(res.begin(), res.end(), ctx, std::string_view("%c")) == res.end());
+    }
+
+    dump_info("Done\n");
+}
+
+// expand_format vs put: the same table, read twice. expand_and_filter's switch is a compile-time
+// mirror of do_put's, and this is what holds the two together -- for every value type, every
+// specifier and every modifier, expand_format drops exactly what put degrades to a literal.
+// Without this the two could drift apart silently, since neither one calls the other.
+void test_timeio_char_expand_1()
+{
+    dump_info("Test timeio<char> expand 1...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    std::string specs = "%";
+    for (char c = 'a'; c <= 'z'; ++c) specs += c;
+    for (char c = 'A'; c <= 'Z'; ++c) specs += c;
+    const std::string modifiers("\0EO", 3);
+
+    // "%E" and "%O" are not a modifier plus a specifier but a format string cut short after the
+    // modifier, which both sides pass through unchanged by design; they are asserted separately
+    // below rather than swept here.
+    auto truncated = [](char spec, char mod)
+    { return mod == 0 && (spec == 'E' || spec == 'O'); };
+
+    // put echoes '%', the modifier and the specifier character unchanged when the value cannot
+    // supply it; expand_format is expected to return an empty string for exactly those.
+    auto agree = [&](auto&& emit, char spec, char mod, const std::string& expanded) {
+        std::string literal = "%";
+        if (mod) literal += mod;
+        literal += spec;
+
+        std::string res;
+        emit(res, literal);
+        return expanded.empty() == (res == literal);
+    };
+
+    int checked = 0;
+
+    // zoned_time: everything a value can carry, zone identity included.
+    {
+        const auto zt = create_zoned_time(2024, 9, 4, 13, 33, 18, "America/Los_Angeles");
+        for (char spec : specs)
+            for (char mod : modifiers)
+            {
+                if (truncated(spec, mod)) continue;
+                auto emit = [&](std::string& out, const std::string& fmt)
+                { obj.put(std::back_inserter(out), zt, std::string_view(fmt)); };
+                VERIFY(agree(emit, spec, mod, obj.expand_format<decltype(zt)>(spec, mod)));
+                ++checked;
+            }
+    }
+
+    // sys_time: an instant in UTC. %z writes +0000 and %Z writes UTC, so neither is dropped.
+    {
+        const sys_time<seconds> st{
+            sys_days{year{2024}/month{9}/day{4}} + hours{13} + minutes{33} + seconds{18}};
+        for (char spec : specs)
+            for (char mod : modifiers)
+            {
+                if (truncated(spec, mod)) continue;
+                auto emit = [&](std::string& out, const std::string& fmt)
+                { obj.put(std::back_inserter(out), st, std::string_view(fmt)); };
+                VERIFY(agree(emit, spec, mod, obj.expand_format<decltype(st)>(spec, mod)));
+                ++checked;
+            }
+    }
+
+    // local_time: an offset but no zone identity, so %z stays and %Z goes. The single-character
+    // put cannot reach this overload (the offset is an extra argument), hence the string form.
+    {
+        const local_time<seconds> lt{
+            local_days{year{2024}/month{9}/day{4}} + hours{13} + minutes{33} + seconds{18}};
+        for (char spec : specs)
+            for (char mod : modifiers)
+            {
+                if (truncated(spec, mod)) continue;
+                auto emit = [&](std::string& out, const std::string& fmt)
+                { obj.put(std::back_inserter(out), lt, hours{-8}, std::string_view(fmt)); };
+                VERIFY(agree(emit, spec, mod, obj.expand_format<decltype(lt)>(spec, mod)));
+                ++checked;
+            }
+    }
+
+    // year_month_day: date and weekday only.
+    {
+        const year_month_day ymd{year{2024}/month{9}/day{4}};
+        for (char spec : specs)
+            for (char mod : modifiers)
+            {
+                if (truncated(spec, mod)) continue;
+                auto emit = [&](std::string& out, const std::string& fmt)
+                { obj.put(std::back_inserter(out), ymd, std::string_view(fmt)); };
+                VERIFY(agree(emit, spec, mod, obj.expand_format<year_month_day>(spec, mod)));
+                ++checked;
+            }
+    }
+
+    // hh_mm_ss: time of day only.
+    {
+        const hh_mm_ss<seconds> hms{hours{13} + minutes{33} + seconds{18}};
+        for (char spec : specs)
+            for (char mod : modifiers)
+            {
+                if (truncated(spec, mod)) continue;
+                auto emit = [&](std::string& out, const std::string& fmt)
+                { obj.put(std::back_inserter(out), hms, std::string_view(fmt)); };
+                VERIFY(agree(emit, spec, mod, obj.expand_format<decltype(hms)>(spec, mod)));
+                ++checked;
+            }
+    }
+
+    // std::tm: the zone fields exist only if the platform's tm carries them. tm_zone is filled
+    // in here because expand_format judges the type -- for a tm whose tm_zone is empty put
+    // degrades %Z while expand_format keeps it, which is the documented difference.
+    {
+        std::tm t{};
+        t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
+        t.tm_hour = 13; t.tm_min = 33; t.tm_sec = 18;
+#ifdef __USE_MISC
+        t.tm_gmtoff = -28800;
+        t.tm_zone = "PST";
+#endif
+        for (char spec : specs)
+            for (char mod : modifiers)
+            {
+                if (truncated(spec, mod)) continue;
+                auto emit = [&](std::string& out, const std::string& fmt)
+                { obj.put(std::back_inserter(out), t, std::string_view(fmt)); };
+                VERIFY(agree(emit, spec, mod, obj.expand_format<std::tm>(spec, mod)));
+                ++checked;
+            }
+    }
+
+    dump_info("  (cross-checked " + std::to_string(checked) + " specifier/modifier pairs)\n");
+    VERIFY(checked == 6 * (53 * 3 - 2));
+
+    // The pair held out of the sweep: a format cut short after its modifier is passed through
+    // unchanged on both sides, so expand_format keeps it rather than reading past the end.
+    VERIFY(obj.expand_format<year_month_day>("%E") == "%E");
+    VERIFY(obj.expand_format<year_month_day>("%O") == "%O");
+    VERIFY(obj.expand_format<year_month_day>("%Y %E") == "%Y %E");
+    {
+        std::string res;
+        obj.put(std::back_inserter(res), year_month_day{year{2024}/month{9}/day{4}},
+                std::string_view("%E"));
+        VERIFY(res == "%E");
+    }
+
+    // The control: the cross-check would pass vacuously if expand_format simply kept everything,
+    // so pin down that it really does drop, and really does keep.
+    VERIFY(obj.expand_format<hh_mm_ss<seconds>>('Y').empty());
+    VERIFY(obj.expand_format<year_month_day>('H').empty());
+    VERIFY(obj.expand_format<local_time<seconds>>('Z').empty());
+    VERIFY(!obj.expand_format<local_time<seconds>>('z').empty());
+    VERIFY(!obj.expand_format<year_month_day>('Y').empty());
+    VERIFY(!obj.expand_format<hh_mm_ss<seconds>>('H').empty());
+
+    dump_info("Done\n");
+}
+
+// The two halves of expand_format that the specifier-by-specifier cross-check cannot see:
+// compound specifiers being replaced by their contents, and a dropped specifier taking one
+// adjacent separator with it.
+void test_timeio_char_expand_2()
+{
+    dump_info("Test timeio<char> expand 2...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    using LT = local_time<seconds>;
+    using ST = sys_time<seconds>;
+    using HMS = hh_mm_ss<seconds>;
+
+    // Fixed compounds expand whole, and vanish whole when the value cannot supply them.
+    VERIFY(obj.expand_format<year_month_day>("%F") == "%Y-%m-%d");
+    VERIFY(obj.expand_format<year_month_day>("%D") == "%m/%d/%y");
+    VERIFY(obj.expand_format<HMS>("%T") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%R") == "%H:%M");
+    VERIFY(obj.expand_format<HMS>("%F %T") == "%H:%M:%S");
+    VERIFY(obj.expand_format<year_month_day>("%F %T") == "%Y-%m-%d");
+
+    // An unsuppliable compound is dropped whole rather than expanded, or its contents would
+    // come back as a trail of orphaned punctuation.
+    VERIFY(obj.expand_format<HMS>("%c").empty());
+    VERIFY(obj.expand_format<HMS>("%x").empty());
+    VERIFY(obj.expand_format<year_month_day>("%c").empty());
+    VERIFY(obj.expand_format<year_month_day>("%X").empty());
+
+    // Locale compounds expand to what the locale actually holds, expanded in turn.
+    VERIFY(obj.expand_format<ST>("%X") == obj.expand_format<ST>(obj.time_format()));
+    VERIFY(obj.expand_format<ST>("%x") == obj.expand_format<ST>(obj.date_format()));
+
+    // Separators: a dropped specifier must not leave its punctuation behind.
+    VERIFY(obj.expand_format<HMS>("%T %Z") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%m/%d/%Y %T") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%Y-%m-%d") == "");
+    VERIFY(obj.expand_format<LT>("%T %Z") == "%H:%M:%S");
+    VERIFY(obj.expand_format<LT>("%T %z") == "%H:%M:%S %z");
+
+    // Only ASCII-ish punctuation and whitespace count as separators; a letter never does, so a
+    // CJK unit character is not eaten along with the field it follows.
+    VERIFY(obj.expand_format<LT>("%S\xe7\xa7\x92 %Z") == "%S\xe7\xa7\x92");
+
+    // Bracket groups are all-or-nothing: a group emptied by filtering takes its brackets with
+    // it, a group that keeps something keeps them, and brackets the format left unpaired or
+    // empty on its own are never touched.
+    VERIFY(obj.expand_format<HMS>("%T (%Z)") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%T [%Z]") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%T {%Z}") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%T (%Z, %z)") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%T ((%Z))") == "%H:%M:%S");
+    VERIFY(obj.expand_format<HMS>("%T (%Z, x)") == "%H:%M:%S (x)");
+    VERIFY(obj.expand_format<HMS>("%T (a (%Z) b)") == "%H:%M:%S (a b)");
+    VERIFY(obj.expand_format<HMS>("%T ()") == "%H:%M:%S ()");
+    VERIFY(obj.expand_format<HMS>("%T :-)") == "%H:%M:%S :-)");
+    VERIFY(obj.expand_format<HMS>("(x) %Z") == "(x)");
+
+    // A lone trailing % is kept, matching put; %% is a literal and never a specifier.
+    VERIFY(obj.expand_format<year_month_day>("a%") == "a%");
+    VERIFY(obj.expand_format<year_month_day>("%%Z") == "%%Z");
+    VERIFY(obj.expand_format<year_month_day>("%%") == "%%");
+
+    // What the whole thing was built for: a locale whose %c carries a %Z, run against a value
+    // that has no zone identity to put in it.
+    {
+        IOv2::timeio us(std::make_shared<IOv2::timeio_conf<char>>("en_US.UTF-8"));
+
+        const std::string zoned = us.expand_format<ST>("%c");
+        const std::string bare  = us.expand_format<LT>("%c");
+
+        // The premise of the test: this locale's %c really does reach a %Z.
+        VERIFY(IOv2::timeio<char>::contains_specifier(us.date_time_format(), 'Z') ||
+               IOv2::timeio<char>::contains_specifier(us.am_pm_format(), 'Z'));
+
+        VERIFY(IOv2::timeio<char>::contains_specifier(zoned, 'Z'));
+        VERIFY(!IOv2::timeio<char>::contains_specifier(bare, 'Z'));
+
+        // Nothing but the zone field and its separator differ between the two.
+        VERIFY(bare.size() < zoned.size());
+        VERIFY(zoned.compare(0, bare.size(), bare) == 0);
+
+        // And the expansion is a format string that really works: putting through it must not
+        // leave a literal %Z in the output.
+        const local_time<seconds> lt{
+            local_days{year{2024}/month{9}/day{4}} + hours{13} + minutes{33} + seconds{18}};
+        std::string res;
+        us.put(std::back_inserter(res), lt, hours{-8}, std::string_view(bare));
+        VERIFY(res.find('%') == std::string::npos);
+    }
+
+    dump_info("Done\n");
+}
+
+// contains_specifier: the question a caller asks of an expansion before deciding to append a
+// field of their own. A plain find() answers it wrongly, which is why this exists.
+void test_timeio_char_expand_3()
+{
+    dump_info("Test timeio<char> expand 3...");
+    using namespace std::chrono;
+
+    using tio = IOv2::timeio<char>;
+
+    VERIFY(tio::contains_specifier("%Z", 'Z'));
+    VERIFY(tio::contains_specifier("a %T %Z b", 'Z'));
+    VERIFY(!tio::contains_specifier("xZ", 'Z'));
+    VERIFY(!tio::contains_specifier("", 'Z'));
+
+    // The trap: "%%Z" is a literal % followed by a literal Z, and every further % flips it back.
+    VERIFY(!tio::contains_specifier("%%Z", 'Z'));
+    VERIFY(tio::contains_specifier("%%%Z", 'Z'));
+    VERIFY(!tio::contains_specifier("%%%%Z", 'Z'));
+    VERIFY(tio::contains_specifier("%%%%%Z", 'Z'));
+
+    // The control: a find() would report a hit on all four of those.
+    VERIFY(std::string_view("%%Z").find("%Z") != std::string_view::npos);
+
+    // Modifiers are part of the identity, not decoration.
+    VERIFY(tio::contains_specifier("%EY", 'Y', 'E'));
+    VERIFY(!tio::contains_specifier("%EY", 'Y'));
+    VERIFY(!tio::contains_specifier("%Y", 'Y', 'E'));
+    VERIFY(!tio::contains_specifier("%OY", 'Y', 'E'));
+    VERIFY(tio::contains_specifier("%OY %EY", 'Y', 'E'));
+
+    // A truncated tail is not a match, and does not read past the end.
+    VERIFY(!tio::contains_specifier("%", 'Z'));
+    VERIFY(!tio::contains_specifier("%E", 'Y', 'E'));
+    VERIFY(!tio::contains_specifier("abc%", 'Z'));
+
+    // The flow it exists for: expand, ask, append.
+    {
+        IOv2::timeio us(std::make_shared<IOv2::timeio_conf<char>>("en_US.UTF-8"));
+        using LT = local_time<seconds>;
+
+        std::string fmt = us.expand_format<LT>("%c");
+        VERIFY(!tio::contains_specifier(fmt, 'Z'));
+        fmt += " %Z";
+        VERIFY(tio::contains_specifier(fmt, 'Z'));
+    }
+
+    dump_info("Done\n");
+}
+
+void test_timeio_char_unknown_zone_1()
+{
+    dump_info("Test timeio<char> unknown zone 1...");
+    using namespace std::chrono;
+    using tio = IOv2::timeio<char>;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    // The token the put side writes when the field exists but names nothing.
+    VERIFY(IOv2::ft_basic<tio>::s_unknown_zone == "UNKNOWN");
+
+    std::tm tp = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 3, 247, 0);
+
+    // Whatever put writes for %Z must parse back through the trie: that is the whole
+    // reason the token is registered there rather than being print-only.
+    {
+        std::string res;
+        obj.put(std::back_inserter(res), tp, "%Y-%m-%d %H:%M:%S %Z");
+        VERIFY(res == "2024-09-04 13:33:18 UNKNOWN");
+
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        auto it = obj.get(res.cbegin(), res.cend(), ctx, "%Y-%m-%d %H:%M:%S %Z");
+        VERIFY(it == res.cend());
+
+        std::tm out{};
+        out.tm_zone = "PRESET";
+        ctx.convert_to(out);
+        VERIFY(out.tm_year == 2024 - 1900);
+        VERIFY(out.tm_hour == 13 && out.tm_min == 33 && out.tm_sec == 18);
+
+        // Parsing UNKNOWN records no zone, and like a parsed real abbreviation it leaves
+        // tm_zone alone -- the same thing strptime and std::get_time do.
+#ifdef __USE_MISC
+        VERIFY(std::string_view(out.tm_zone) == "PRESET");
+#endif
+    }
+
+    // A real abbreviation still round-trips, and is not swallowed by the new branch.
+#ifdef __USE_MISC
+    {
+        std::tm named = tp;
+        named.tm_zone = "PST";
+
+        std::string res;
+        obj.put(std::back_inserter(res), named, "%H:%M:%S %Z");
+        VERIFY(res == "13:33:18 PST");
+
+        IOv2::time_parse_context<char, false, true, IOv2::tz_level::offset> ctx;
+        auto it = obj.get(res.cbegin(), res.cend(), ctx, "%H:%M:%S %Z");
+        VERIFY(it == res.cend());
+    }
+#endif
+
+    // expand_format keeps %Z for std::tm and drops it for the zone-less types, and that
+    // claim now matches put exactly: every specifier it keeps, put can fill.
+    {
+        IOv2::timeio us(std::make_shared<IOv2::timeio_conf<char>>("en_US.UTF-8"));
+
+        const std::string tm_fmt = us.expand_format<std::tm>("%c");
+        const std::string lt_fmt = us.expand_format<local_time<seconds>>("%c");
+
+#ifdef __USE_MISC
+        VERIFY(tio::contains_specifier(tm_fmt, 'Z'));
+#endif
+        VERIFY(!tio::contains_specifier(lt_fmt, 'Z'));
+
+        // Nothing survives the filter that put would degrade: no literal % in the output.
+        std::string res;
+        us.put(std::back_inserter(res), tp, std::string_view(tm_fmt));
+        VERIFY(res.find('%') == std::string::npos);
+#ifdef __USE_MISC
+        VERIFY(res.find("UNKNOWN") != std::string::npos);
+#endif
     }
 
     dump_info("Done\n");

@@ -42,6 +42,10 @@ void test_timeio_char_get_20();
 void test_timeio_char_get_21();
 void test_timeio_char_get_22();
 void test_timeio_char_get_23();
+void test_timeio_char_expand_1();
+void test_timeio_char_expand_2();
+void test_timeio_char_expand_3();
+void test_timeio_char_unknown_zone_1();
 
 void test_timeio_wchar_t_put_1();
 void test_timeio_wchar_t_put_2();
@@ -183,6 +187,10 @@ void test_timeio()
     test_timeio_char_get_21();
     test_timeio_char_get_22();
     test_timeio_char_get_23();
+    test_timeio_char_expand_1();
+    test_timeio_char_expand_2();
+    test_timeio_char_expand_3();
+    test_timeio_char_unknown_zone_1();
 
     test_timeio_wchar_t_put_1();
     test_timeio_wchar_t_put_2();
