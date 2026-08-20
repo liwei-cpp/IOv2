@@ -46,6 +46,7 @@ void test_timeio_char_expand_1();
 void test_timeio_char_expand_2();
 void test_timeio_char_expand_3();
 void test_timeio_char_unknown_zone_1();
+void test_timeio_char_recursion_1();
 
 void test_timeio_wchar_t_put_1();
 void test_timeio_wchar_t_put_2();
@@ -191,6 +192,7 @@ void test_timeio()
     test_timeio_char_expand_2();
     test_timeio_char_expand_3();
     test_timeio_char_unknown_zone_1();
+    test_timeio_char_recursion_1();
 
     test_timeio_wchar_t_put_1();
     test_timeio_wchar_t_put_2();
