@@ -16,7 +16,13 @@ void test_istream_extractors_time_wchar_t_1()
     auto helper = []<template <typename, typename> class T>()
     {
         std::tm tp{};
+        // The stream format appends %z where the platform's tm carries tm_gmtoff, so the
+        // input carries an offset and it reaches the tm instead of being dropped.
+#ifdef __USE_MISC
+        T f(IOv2::mem_device{L"Wed Sep  4 13:33:18 2024 +0800"}, IOv2::locale<wchar_t>("C"));
+#else
         T f(IOv2::mem_device{L"Wed Sep  4 13:33:18 2024"}, IOv2::locale<wchar_t>("C"));
+#endif
 
         f >> tp;
         VERIFY((bool)f);
@@ -26,6 +32,9 @@ void test_istream_extractors_time_wchar_t_1()
         VERIFY(tp.tm_hour == 13);
         VERIFY(tp.tm_min == 33);
         VERIFY(tp.tm_sec == 18);
+#ifdef __USE_MISC
+        VERIFY(tp.tm_gmtoff == 8 * 3600);
+#endif
     };
 
     helper.template operator()<IOv2::istream>();
