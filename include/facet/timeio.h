@@ -53,6 +53,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace IOv2
@@ -1563,9 +1564,10 @@ struct time_value_fields<std::tm>
  *   读 `2020-05-17 XYZ` 两边都失败。作为交换，本库的失败是原子的：整次提取失败时目标对象
  *   完全不被改写，而 `std` 会留下已写入一半的 `std::tm`。
  *
- * @note 格式串来自 locale 数据库（`nl_langinfo`），视为受信任输入；
- *   含自引用格式串（如 `D_T_FMT == "%c"`）将导致无限递归。参见
- *   `do_get` 中关于受信任 locale 假设的说明。
+ * @note 格式串来自 locale 数据库（`nl_langinfo`），其中的自引用（如 `D_T_FMT == "%c"`）
+ *   在构造时即被拒绝：构造函数检查这些复合格式串构成的图是否有环，有环则抛
+ *   `std::runtime_error`。因此 `put` / `get` / `expand_format` 的递归展开总是有界的。
+ *   参见 `validate_format_recursion`。
  *
  * @tparam CharT 字符类型（`char`、`wchar_t`、`char8_t`、`char32_t`）。
  * @endif
@@ -1651,10 +1653,11 @@ struct time_value_fields<std::tm>
  *   exchange the failure here is atomic: a failed extraction leaves the target completely
  *   unmodified, whereas `std` leaves a half-written `std::tm` behind.
  *
- * @note Format strings sourced from the locale database (`nl_langinfo`) are
- *   treated as trusted input; a self-referential format string (e.g.
- *   `D_T_FMT == "%c"`) would cause unbounded recursion. See the note in
- *   `do_get` regarding the trusted-locale assumption.
+ * @note Format strings sourced from the locale database (`nl_langinfo`) are checked for
+ *   self-reference at construction (e.g. `D_T_FMT == "%c"`): the constructor rejects a
+ *   cycle among the compound format strings with `std::runtime_error`. The recursive
+ *   expansion in `put` / `get` / `expand_format` is therefore always bounded. See
+ *   `validate_format_recursion`.
  *
  * @tparam CharT The character type (`char`, `wchar_t`, `char8_t`, `char32_t`).
  * @endif
@@ -1711,25 +1714,28 @@ public:
      * @brief 构造函数，从 locale 配置初始化。
      *
      * 从 `timeio_conf<CharT>` 复制所有 locale 数据（名称、格式串、纪元条目等），
-     * 验证名称表的唯一性，并构建用于高效解析的前缀树（星期、月份、AM/PM、
-     * 纪元名称、替代数字）。若未提供 ctype，空白字符识别使用基础 ASCII 判断。
+     * 验证名称表的唯一性与复合格式串的非自引用性，并构建用于高效解析的前缀树
+     * （星期、月份、AM/PM、纪元名称、替代数字）。若未提供 ctype，空白字符识别
+     * 使用基础 ASCII 判断。
      * @tparam TConfPtr 指向 `timeio_conf<CharT>` 的 `shared_ptr` 类型。
      * @param p_obj locale 配置对象（不得为空）。
-     * @throw std::runtime_error 若指针为空或 locale 名称表存在重复/空条目。
+     * @throw std::runtime_error 若指针为空、locale 名称表存在重复/空条目，或复合
+     *        格式串自引用（见 `validate_format_recursion`）。
      * @endif
      *
      * @lang{EN}
      * @brief Constructor that initializes from a locale configuration.
      *
      * Copies all locale data from `timeio_conf<CharT>` (names, format strings,
-     * era entries, etc.), validates the name tables for uniqueness, and builds
-     * prefix tries for efficient parsing (weekday, month, AM/PM, era names,
-     * alternative digits). If no ctype is provided, whitespace recognition uses
-     * basic ASCII comparison.
+     * era entries, etc.), validates the name tables for uniqueness and the compound
+     * format strings for self-reference, and builds prefix tries for efficient
+     * parsing (weekday, month, AM/PM, era names, alternative digits). If no ctype is
+     * provided, whitespace recognition uses basic ASCII comparison.
      * @tparam TConfPtr A `shared_ptr` type pointing to `timeio_conf<CharT>`.
      * @param p_obj The locale configuration object (must not be null).
-     * @throw std::runtime_error If the pointer is null or the locale name tables
-     *        contain duplicates or empty entries.
+     * @throw std::runtime_error If the pointer is null, the locale name tables
+     *        contain duplicates or empty entries, or a compound format string is
+     *        self-referential (see `validate_format_recursion`).
      * @endif
      */
     template <shared_ptr_to<timeio_conf<CharT>> TConfPtr>
@@ -1752,13 +1758,14 @@ public:
         m_am_pm_format = p_obj->am_pm_format();
         m_era_master = p_obj->era_items();
 
-        // Validate the locale name tables up front, so malformed locale data
-        // fails here with one clear error instead of a cryptic prefix_tree
-        // "duplicate items" throw deep inside add(), or a silent zero-length
-        // mis-match at parse time. Day/month names must be non-empty and must
-        // not map one spelling to two different indices; AM/PM may legitimately
-        // be empty (e.g. de_DE / fr_FR / ru_RU) and is tolerated.
-        validate_locale_names();
+        // Reject malformed locale data here, with one clear error, rather than as a
+        // prefix_tree "duplicate items" throw or a silent parse mis-match later.
+        // An empty AM/PM is legal (de_DE, fr_FR, ru_RU) and just leaves %p unmatched.
+        check_unique_nonempty<7>(m_day, m_abbr_day, "day");
+        check_unique_nonempty<12>(m_month, m_abbr_month, "month");
+        if (!m_am.empty() && m_am == m_pm)
+            throw std::runtime_error("timeio: AM and PM designators are identical in locale data");
+        validate_format_recursion();
 
         for (int i = 0; i < 7; ++i)
         {
@@ -1950,8 +1957,8 @@ public:
      * @note 供不出的复合说明符整个摘掉，不展开：给 `hh_mm_ss` 写 `%c`，得到的是空串，而不是
      *       一串摘剩下的标点。
      * @note 落单的 `%`（其后没有说明符）原样保留，与 put 的处理一致。
-     * @warning locale 数据当作可信输入，与 `put` / `get` 的假定一致：自引用的复合格式串
-     *          （如 `D_T_FMT` 里含 `%c`）会让展开无限递归，行为未定义。
+     * @note 自引用的复合格式串（如 `D_T_FMT` 里含 `%c`）在构造时就被拒绝，所以这里的展开
+     *       不会无限递归。
      *
      * @tparam TVal 时间值类型（`year_month_day`、`hh_mm_ss`、`sys_time`、`local_time`、
      *              `zoned_time` 或 `std::tm`），与 `put` 接受的相同。
@@ -2010,9 +2017,8 @@ public:
      * @note An unsuppliable compound is removed whole rather than expanded: `%c` on an
      *       `hh_mm_ss` gives an empty string, not the punctuation its expansion would leave.
      * @note A lone trailing `%` is kept as-is, matching put.
-     * @warning Locale data is treated as trusted input, the same assumption `put` / `get` make:
-     *          a self-referential compound format (a `D_T_FMT` holding a `%c`, say) makes the
-     *          expansion recurse without bound, and the behavior is undefined.
+     * @note A self-referential compound format (a `D_T_FMT` holding a `%c`, say) is rejected at
+     *       construction, so the expansion here cannot recurse without bound.
      *
      * @tparam TVal The time value type (`year_month_day`, `hh_mm_ss`, `sys_time`, `local_time`,
      *              `zoned_time` or `std::tm`) -- the same ones `put` accepts.
@@ -2599,7 +2605,7 @@ public:
      *
      * 各格式说明符与 POSIX `strptime` / `std::chrono::from_stream` 的语义一致。
      * 复合说明符（`%c`、`%x`、`%X`、`%r`、`%EY`）会将 locale 提供的格式串
-     * 展开后递归处理，详见 `do_get` 中关于受信任 locale 假设的说明。
+     * 展开后递归处理，详见 `do_get` 中关于递归的说明。
      * @tparam TIter      双向迭代器或 `istreambuf_iterator` 类型。
      * @tparam TSent      哨兵类型。
      * @tparam HaveDate   是否解析日期字段。
@@ -2622,7 +2628,7 @@ public:
      * Format specifiers follow the semantics of POSIX `strptime` /
      * `std::chrono::from_stream`. Compound specifiers (`%c`, `%x`, `%X`, `%r`,
      * `%EY`) expand locale-provided format strings and re-enter recursively;
-     * see the trusted-locale note in `do_get`.
+     * see the recursion note in `do_get`.
      * @tparam TIter      Bidirectional iterator or `istreambuf_iterator` type.
      * @tparam TSent      Sentinel type.
      * @tparam HaveDate   Whether date fields are parsed.
@@ -2733,7 +2739,7 @@ private:
      * @lang{ZH}
      * @brief 解析核心函数，按格式串逐字符处理输入，将结果写入 `ctx`。
      *
-     * @note **递归与受信任 locale 假设**
+     * @note **递归**
      *   以下复合说明符会将 locale 提供的格式串展开后递归调用此函数：
      *   - `%c` → `m_[era_]date_time_format`
      *   - `%x` → `m_[era_]date_format`
@@ -2741,13 +2747,11 @@ private:
      *   - `%r` → `m_am_pm_format`
      *   - `%EY` → 纪元的 `format` 字符串
      *
-     *   这些字符串来自 locale 数据库，视为受信任输入，假定不包含自引用
-     *   （如 `D_T_FMT` 不含 `%c`，纪元格式不含 `%EY`）。现实中不存在违反此
-     *   约定的 locale。**此处刻意不设置递归深度上限**：递归仅由受信任假设约束，
-     *   而非由输入约束——若 locale 存在自引用格式串，任意非空输入均会导致栈溢出。
-     *   手工构造或被篡改的 locale 是触发无限递归的唯一途径，其安全性与
-     *   `timeio_details.h` 中 `parse_glibc_era_entries` 的输入边界共用相同的
-     *   信任模型。若需加固，则需在所有递归调用点传递深度预算。
+     *   **此处刻意不设置递归深度上限**，因为不需要：这些字符串全部来自 locale 数据，
+     *   而构造函数已经用 `validate_format_recursion` 证明了它们构成的图无环
+     *   （如 `D_T_FMT` 不含 `%c`，纪元格式不含 `%EY`）。用户传进来的格式串只是入口，
+     *   只能通过这些表进入递归，因此深度上界就是节点数，与输入长度无关。手工构造或被
+     *   篡改的 locale 在构造 facet 时即被拒绝，而不是在这里溢出栈。
      *
      * @tparam TIter      双向迭代器或 `istreambuf_iterator` 类型。
      * @tparam TSent      哨兵类型。
@@ -2763,7 +2767,7 @@ private:
      * @brief Core parsing function that processes the input character by character
      *        according to the format string, writing results to `ctx`.
      *
-     * @note **Recursion and trusted-locale assumption**
+     * @note **Recursion**
      *   The following compound specifiers expand a locale-provided format string
      *   and re-enter this function recursively:
      *   - `%c` → `m_[era_]date_time_format`
@@ -2772,16 +2776,15 @@ private:
      *   - `%r` → `m_am_pm_format`
      *   - `%EY` → era `format` string
      *
-     *   These strings come verbatim from the locale database and are TRUSTED to
-     *   be non-self-referential (e.g. `D_T_FMT` must not contain `%c`, an era
-     *   format must not contain `%EY`). No real locale violates this.
-     *   There is deliberately **NO recursion-depth guard**: the recursion is bounded
-     *   ONLY by that trust, not by the input — a self-referential format string
-     *   would recurse until the stack overflows on any non-empty input. A hand-crafted
-     *   or corrupted locale is the only way to trigger unbounded recursion, and this
-     *   is consciously left to the same trust boundary as `parse_glibc_era_entries`
-     *   in `timeio_details.h`. Hardening it would require threading a depth budget
-     *   through every recursive call site.
+     *   There is deliberately **NO recursion-depth guard**, because none is needed:
+     *   every one of those strings comes from locale data, and the constructor has
+     *   already proven via `validate_format_recursion` that the graph they form is
+     *   acyclic (e.g. `D_T_FMT` does not contain `%c`, an era format does not contain
+     *   `%EY`). A user-supplied format string is only an entry point and can reach the
+     *   recursion solely through those tables, so the depth is bounded by the node
+     *   count and is independent of the input length. A hand-crafted or corrupted
+     *   locale is rejected when the facet is constructed, not by overflowing the
+     *   stack here.
      *
      * @tparam TIter      Bidirectional iterator or `istreambuf_iterator` type.
      * @tparam TSent      Sentinel type.
@@ -3751,32 +3754,135 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 验证 locale 名称表的完整性。
+     * @brief 验证 locale 的复合格式串不自引用——把递归有界这件事在构造时一次证明。
      *
-     * 检查星期和月份名称的非空性与唯一性；允许 AM/PM 为空（如 de_DE、fr_FR），
-     * 但若两者均非空且相同，则抛出异常。
-     * @throw std::runtime_error 若名称表存在无效条目。
+     * `%c` / `%x` / `%X` / `%r` / `%EY` 会把另一个格式串重新送进 `do_put` / `do_get` /
+     * `expand_and_filter` 的 switch，所以这些串构成一张有向图：节点是七个 locale 复合格式加上
+     * 每条纪元格式，边是「这个串里出现了那个说明符」。图无环，展开链长度就有上界。
+     *
+     * 用户自己传的格式串不是节点——它只是一次入口，只能通过这些表进入递归。所以这一次检查把三
+     * 条递归路径**整体**变成有界的，而不只是挡住 `D_T_FMT == "%c"` 这一种写法。
+     *
+     * @throw std::runtime_error 若存在环。
      * @endif
      *
      * @lang{EN}
-     * @brief Validates the integrity of the locale name tables.
+     * @brief Verifies that the locale's compound format strings are not self-referential --
+     *        proving once, at construction, that the recursion is bounded.
      *
-     * Checks weekday and month names for non-emptiness and uniqueness. AM/PM may
-     * legitimately be empty (e.g. de_DE, fr_FR); only a non-empty AM == PM
-     * collision is considered invalid.
-     * @throw std::runtime_error If the name tables contain invalid entries.
+     * `%c` / `%x` / `%X` / `%r` / `%EY` hand another format string back to the switch in
+     * `do_put` / `do_get` / `expand_and_filter`, so those strings form a directed graph: a node
+     * per locale compound (seven of them) plus one per era format, an edge wherever one string
+     * names another. An acyclic graph bounds the length of every expansion chain.
+     *
+     * A user-supplied format string is not a node -- it is one entry point, and it can only
+     * reach the recursion through these tables. So this single check bounds all three recursive
+     * paths **as a whole**, rather than merely rejecting the `D_T_FMT == "%c"` spelling.
+     *
+     * @throw std::runtime_error If there is a cycle.
      * @endif
      */
-    void validate_locale_names() const
+    void validate_format_recursion() const
     {
-        check_unique_nonempty<7>(m_day, m_abbr_day, "day");
-        check_unique_nonempty<12>(m_month, m_abbr_month, "month");
+        // The node numbering. era_first is both the count of fixed nodes and the number of the
+        // first era format: how many era formats a locale has varies, so they can only be
+        // numbered from there on.
+        enum class fmt_node : std::size_t
+        {
+            date_time, era_date_time,
+            date,      era_date,
+            time,      era_time,
+            am_pm,
+            era_first
+        };
 
-        // AM/PM is empty in locales that do not use 12-hour designators
-        // (de_DE / fr_FR / ru_RU); that is tolerated and simply leaves %p
-        // unmatched. Only a non-empty AM == PM collision is genuinely invalid.
-        if (!m_am.empty() && m_am == m_pm)
-            throw std::runtime_error("timeio: AM and PM designators are identical in locale data");
+        // The order here IS fmt_node; era formats take the numbers from era_first on.
+        std::vector<const std::basic_string<CharT>*> nodes{
+            &m_date_time_format, &m_era_date_time_format,
+            &m_date_format,      &m_era_date_format,
+            &m_time_format,      &m_era_time_format,
+            &m_am_pm_format};
+        assert(nodes.size() == std::to_underlying(fmt_node::era_first));
+        for (const era_entry& entry : m_era_master) nodes.push_back(&entry.format);
+
+        // Modifier gating mirrors the three switches: %Oc / %Ox / %OX / %Er / %Or degrade to
+        // literals there, so no edge here. %% needs no case -- the second % is consumed as the
+        // specifier character. Brackets need none either: a %c inside a group still recurses.
+        //
+        // The graph deliberately over-approximates, since a shade too many edges costs nothing
+        // while a missing one costs the guarantee: %EY edges to every era node (do_get does try
+        // them all, do_put expands only the era the year lands in, and expand_and_filter leaves
+        // %EY unexpanded), and an edge stands even where the value type could not supply the
+        // specifier and the switch would drop it. A %EY inside an era format re-resolves to that
+        // same era, so that self-loop is real rather than an approximation.
+        auto scan_edges = [n_total = nodes.size()]
+                          (std::basic_string_view<CharT> fmt, auto on_edge)
+        {
+            for (auto p = fmt.cbegin(); p != fmt.cend(); )
+            {
+                if (*p != static_cast<CharT>('%')) { ++p; continue; }
+                if (++p == fmt.cend()) break;
+
+                CharT modifier = 0;
+                if (*p == static_cast<CharT>('E') || *p == static_cast<CharT>('O'))
+                {
+                    modifier = *p;
+                    if (++p == fmt.cend()) break;
+                }
+
+                const bool era = (modifier == static_cast<CharT>('E'));
+                switch (*p)
+                {
+                case static_cast<CharT>('c'):
+                    if (modifier != static_cast<CharT>('O'))
+                        on_edge(era ? fmt_node::era_date_time : fmt_node::date_time);
+                    break;
+
+                case static_cast<CharT>('x'):
+                    if (modifier != static_cast<CharT>('O'))
+                        on_edge(era ? fmt_node::era_date : fmt_node::date);
+                    break;
+
+                case static_cast<CharT>('X'):
+                    if (modifier != static_cast<CharT>('O'))
+                        on_edge(era ? fmt_node::era_time : fmt_node::time);
+                    break;
+
+                case static_cast<CharT>('r'):
+                    if (!modifier) on_edge(fmt_node::am_pm);
+                    break;
+
+                case static_cast<CharT>('Y'):
+                    if (era)
+                        for (std::size_t i = std::to_underlying(fmt_node::era_first); i < n_total; ++i)
+                            on_edge(static_cast<fmt_node>(i));
+                    break;
+
+                default:
+                    break;
+                }
+                ++p;
+            }
+        };
+
+        // Three-colour DFS: 0 unvisited, 1 on the stack, 2 finished. A grey target is a back
+        // edge, i.e. a cycle; a directly self-referential %c lands here with u == v.
+        std::vector<char> color(nodes.size(), 0);
+        auto visit = [&](auto&& self, std::size_t v) -> void
+        {
+            color[v] = 1;
+            scan_edges(*nodes[v], [&](fmt_node node)
+            {
+                const std::size_t u = std::to_underlying(node);
+                if (color[u] == 1)
+                    throw std::runtime_error("timeio: self-referential compound format in locale data");
+                if (color[u] == 0) self(self, u);
+            });
+            color[v] = 2;
+        };
+
+        for (std::size_t v = 0; v < nodes.size(); ++v)
+            if (color[v] == 0) visit(visit, v);
     }
 
     /**
@@ -3853,8 +3959,8 @@ private:
      * @brief 格式化核心函数，按格式串将日期/时间各分量写入输出迭代器。
      *
      * @note 复合说明符 `%c`、`%x`、`%X`、`%r`、`%EY` 会将 locale 提供的格式串
-     *   展开后递归调用此函数，与 `do_get` 共用相同的受信任 locale 假设：
-     *   自引用格式串（如 `D_T_FMT == "%c"`）将导致无限递归。
+     *   展开后递归调用此函数。递归有界，理由与 `do_get` 相同：自引用格式串
+     *   （如 `D_T_FMT == "%c"`）在构造 facet 时就被拒绝。
      *
      * @tparam OutIt 输出迭代器类型。
      * @param out    输出迭代器。
@@ -3876,9 +3982,9 @@ private:
      *        iterator according to the format string.
      *
      * @note The compound specifiers `%c`, `%x`, `%X`, `%r`, `%EY` expand a
-     *   locale-provided format string and re-enter this function recursively,
-     *   sharing the same trusted-locale assumption as `do_get`: a self-referential
-     *   format string (e.g. `D_T_FMT == "%c"`) would recurse without bound.
+     *   locale-provided format string and re-enter this function recursively. The
+     *   recursion is bounded for the same reason as in `do_get`: a self-referential
+     *   format string (e.g. `D_T_FMT == "%c"`) is rejected when the facet is built.
      *
      * @tparam OutIt Output iterator type.
      * @param out    The output iterator.
@@ -4406,8 +4512,9 @@ private:
      * @tparam has_zone   值是否带区域身份。
      * @param result 追加目标，尾部可能因摘分隔符被截短。
      * @param fmt    格式串。
-     * @warning 与 `do_put` / `do_get` 一样把 locale 数据当作可信输入：自引用的复合格式串
-     *          会让这里无限递归，行为未定义。
+     * @note 复合说明符的递归有界，与 `do_put` / `do_get` 同理：自引用的复合格式串在构造 facet
+     *       时就被拒绝，见 `validate_format_recursion`。括号组的递归另算：它按嵌套层数递归，
+     *       深度来自调用方传进来的格式串，不在上面那条保证的范围内。
      * @endif
      *
      * @lang{EN}
@@ -4431,9 +4538,11 @@ private:
      * @tparam has_zone   Whether it carries a zone identity.
      * @param result Where output is appended; its tail may be truncated to drop a separator.
      * @param fmt    The format string.
-     * @warning Locale data is trusted input here just as in `do_put` / `do_get`: a
-     *          self-referential compound format recurses without bound, and the behavior is
-     *          undefined.
+     * @note The recursion through compound specifiers is bounded just as in `do_put` / `do_get`:
+     *       a self-referential compound format is rejected when the facet is built, see
+     *       `validate_format_recursion`. Bracket groups are a separate matter -- they recurse
+     *       once per nesting level, so that depth comes from the caller's format string and is
+     *       not covered by the guarantee above.
      * @endif
      */
     template <bool has_date, bool has_time, bool has_offset, bool has_zone>

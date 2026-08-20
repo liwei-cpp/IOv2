@@ -7517,3 +7517,158 @@ void test_timeio_char_unknown_zone_1()
 
     dump_info("Done\n");
 }
+
+namespace
+{
+    // Locale data no real locale would produce: each compound format string is a plain
+    // assignable member, so the constructor's cycle check can be driven directly.
+    struct rigged_conf : IOv2::timeio_conf<char>
+    {
+        using base = IOv2::timeio_conf<char>;
+        using era_entry = IOv2::ft_basic<IOv2::timeio<char>>::era_entry;
+
+        rigged_conf()
+            : base("C")
+            , m_dt(base::date_time_format())
+            , m_era_dt(base::era_date_time_format())
+            , m_d(base::date_format())
+            , m_era_d(base::era_date_format())
+            , m_t(base::time_format())
+            , m_era_t(base::era_time_format())
+            , m_r(base::am_pm_format())
+            , m_eras(base::era_items())
+        {}
+
+        const std::string& date_time_format()     const override { return m_dt; }
+        const std::string& era_date_time_format() const override { return m_era_dt; }
+        const std::string& date_format()          const override { return m_d; }
+        const std::string& era_date_format()      const override { return m_era_d; }
+        const std::string& time_format()          const override { return m_t; }
+        const std::string& era_time_format()      const override { return m_era_t; }
+        const std::string& am_pm_format()         const override { return m_r; }
+        const std::vector<era_entry>& era_items() const override { return m_eras; }
+
+        std::string m_dt, m_era_dt, m_d, m_era_d, m_t, m_era_t, m_r;
+        std::vector<era_entry> m_eras;
+    };
+
+    // One era spanning every year, so %EY always resolves to it.
+    rigged_conf::era_entry one_era(const std::string& fmt)
+    {
+        rigged_conf::era_entry e{};
+        e.name       = "TE";
+        e.format     = fmt;
+        e.from_year  = -32767;
+        e.from_month = 1;
+        e.from_day   = 1;
+        e.to_year    = 32767;
+        e.to_month   = 12;
+        e.to_day     = 31;
+        e.offset     = 1;
+        e.direction  = 1;
+        return e;
+    }
+
+    // Builds a rigged conf, lets `rig` change its format strings, and reports whether the
+    // timeio constructor rejected it. Only the construction sits inside the try, so a
+    // VERIFY failure -- which also throws runtime_error -- cannot pass for a rejection.
+    template <typename TRig>
+    bool rejects(TRig rig)
+    {
+        auto conf = std::make_shared<rigged_conf>();
+        rig(*conf);
+        try
+        {
+            IOv2::timeio<char> obj(conf);
+            (void)obj;
+            return false;
+        }
+        catch (const std::runtime_error&) { return true; }
+    }
+}
+
+void test_timeio_char_recursion_1()
+{
+    dump_info("Test timeio<char> format recursion check 1...");
+
+    using namespace std::chrono;
+
+    // The unrigged conf is accepted -- as is every real locale the other tests build, which
+    // is the standing proof that this check does not reject actual locale data.
+    VERIFY(!rejects([](rigged_conf&) {}));
+
+    // Direct self-reference, one per compound. Each of these is the D_T_FMT == "%c" bug.
+    VERIFY(rejects([](rigged_conf& c) { c.m_dt     = "%c";  }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_era_dt = "%Ec"; }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_d      = "%x";  }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_era_d  = "%Ex"; }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_t      = "%X";  }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_era_t  = "%EX"; }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_r      = "%r";  }));
+
+    // The specifier need not sit alone, and brackets do not shield it -- a group's content
+    // is expanded like anything else.
+    VERIFY(rejects([](rigged_conf& c) { c.m_dt = "%Y-%m-%d %c"; }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_dt = "[%c]"; }));
+
+    // Indirect cycles: two hops, three hops, and one routed through %r.
+    VERIFY(rejects([](rigged_conf& c) { c.m_d = "%X"; c.m_t = "%x"; }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_dt = "%x"; c.m_d = "%X"; c.m_t = "%c"; }));
+    VERIFY(rejects([](rigged_conf& c) { c.m_t = "%r"; c.m_r = "%X"; }));
+
+    // The era and non-era tables are separate nodes, so a cycle can run through both.
+    VERIFY(rejects([](rigged_conf& c) { c.m_dt = "%Ex"; c.m_era_d = "%c"; }));
+
+    // %EY expands the matching era's format, so an era format naming itself is a cycle...
+    VERIFY(rejects([](rigged_conf& c) { c.m_eras = {one_era("%EY")}; }));
+    // ...and so is one that gets back to %EY through a locale compound.
+    VERIFY(rejects([](rigged_conf& c) { c.m_dt = "%EY"; c.m_eras = {one_era("%c")}; }));
+    // An era format that terminates is fine, even though %EY reaches it.
+    VERIFY(!rejects([](rigged_conf& c) { c.m_dt = "%EY"; c.m_eras = {one_era("%Y")}; }));
+
+    // Non-cycles a sloppier scan would flag. %%c is an escaped percent plus a literal c;
+    // %Oc / %Ox / %OX / %Er / %Or degrade to literals in put and get and never recurse; a
+    // trailing % or bare modifier has no specifier at all.
+    VERIFY(!rejects([](rigged_conf& c) { c.m_dt = "%%c"; }));
+    VERIFY(!rejects([](rigged_conf& c) { c.m_dt = "%Oc"; }));
+    VERIFY(!rejects([](rigged_conf& c) { c.m_d  = "%Ox"; }));
+    VERIFY(!rejects([](rigged_conf& c) { c.m_t  = "%OX"; }));
+    VERIFY(!rejects([](rigged_conf& c) { c.m_r  = "%Er"; }));
+    VERIFY(!rejects([](rigged_conf& c) { c.m_r  = "%Or"; }));
+    VERIFY(!rejects([](rigged_conf& c) { c.m_dt = "%";   }));
+    VERIFY(!rejects([](rigged_conf& c) { c.m_dt = "%E";  }));
+
+    // A DAG with a shared node: %c reaches %r through both %x and %X. A two-colour DFS
+    // would call the second arrival at %r a cycle; the grey/black split is what keeps a
+    // diamond legal.
+    VERIFY(!rejects([](rigged_conf& c)
+    {
+        c.m_dt = "%x %X";
+        c.m_d  = "%r";
+        c.m_t  = "%r";
+        c.m_r  = "%H:%M";
+    }));
+
+    // A rigged but acyclic conf still works end to end, and expand_format shows the chain
+    // was really followed rather than merely tolerated.
+    {
+        auto conf = std::make_shared<rigged_conf>();
+        conf->m_dt = "%x @ %X";
+        conf->m_d  = "%Y-%m-%d";
+        conf->m_t  = "%r";
+        conf->m_r  = "%H:%M";
+
+        IOv2::timeio<char> obj(conf);
+
+        const sys_time<seconds> st{
+            sys_days{year{2024}/month{9}/day{4}} + hours{13} + minutes{33} + seconds{18}};
+
+        VERIFY(obj.expand_format<sys_time<seconds>>("%c") == "%Y-%m-%d @ %H:%M");
+
+        std::string res;
+        obj.put(std::back_inserter(res), st, std::string_view("%c"));
+        VERIFY(res == "2024-09-04 @ 13:33");
+    }
+
+    dump_info("Done\n");
+}
