@@ -93,6 +93,7 @@ $(document).ready(function(){initNavTree('classIOv2_1_1timeio.html',''); initRes
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classIOv2_1_1timeio-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">IOv2::timeio&lt; CharT &gt; Class Template Reference</div></div>
 </div><!--header-->
@@ -162,6 +163,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a767b4d4c884ef1ddcf49d723c61b6092" id="r_a767b4d4c884ef1ddcf49d723c61b6092"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#a767b4d4c884ef1ddcf49d723c61b6092">am_pm_format</a> () <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">noexcept</a></td></tr>
 <tr class="memdesc:a767b4d4c884ef1ddcf49d723c61b6092"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the AM/PM time format string (corresponding to <code>r</code>). .  <br /></td></tr>
 <tr class="separator:a767b4d4c884ef1ddcf49d723c61b6092"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3e1a51a4214ef95df90d9a79134bdd7" id="r_ad3e1a51a4214ef95df90d9a79134bdd7"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &gt; </td></tr>
+<tr class="memitem:ad3e1a51a4214ef95df90d9a79134bdd7"><td class="memTemplItemLeft" align="right" valign="top">std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#ad3e1a51a4214ef95df90d9a79134bdd7">expand_format</a> (std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; fmt) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:ad3e1a51a4214ef95df90d9a79134bdd7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the format string a value of a given type will <b>actually</b> produce for a given format: compound specifiers expanded, and specifiers the type cannot supply removed together with one adjacent separator.  <br /></td></tr>
+<tr class="separator:ad3e1a51a4214ef95df90d9a79134bdd7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accf3ec4f215e0ccdb32bb8824c011feb" id="r_accf3ec4f215e0ccdb32bb8824c011feb"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &gt; </td></tr>
+<tr class="memitem:accf3ec4f215e0ccdb32bb8824c011feb"><td class="memTemplItemLeft" align="right" valign="top">std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#accf3ec4f215e0ccdb32bb8824c011feb">expand_format</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> format, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">modifier</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
+<tr class="memdesc:accf3ec4f215e0ccdb32bb8824c011feb"><td class="mdescLeft">&#160;</td><td class="mdescRight">The single-character form of <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">expand_format:</a> what one specifier expands and filters down to.  <br /></td></tr>
+<tr class="separator:accf3ec4f215e0ccdb32bb8824c011feb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad618c365696d2db2d4206cd82e231e81" id="r_ad618c365696d2db2d4206cd82e231e81"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> , <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &gt; </td></tr>
 <tr class="memitem:ad618c365696d2db2d4206cd82e231e81"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#ad618c365696d2db2d4206cd82e231e81">put</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">OutIt</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">t</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> format, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">modifier</a>=0) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:ad618c365696d2db2d4206cd82e231e81"><td class="mdescLeft">&#160;</td><td class="mdescRight">Formats a time value using a single format character (with optional modifier).  <br /></td></tr>
@@ -200,6 +209,12 @@ requires (steppable_back&lt;TIter&gt; || is_istreambuf_iterator&lt;TIter&gt;)</t
 <tr class="memitem:af9e1f141842007656a205dd6e5f4fa14"><td class="memTemplItemLeft" align="right" valign="top">TIter&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#af9e1f141842007656a205dd6e5f4fa14">get</a> (TIter <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">rp</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TSent</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">rp_end</a>, <a class="el" href="structIOv2_1_1time__parse__context.html">time_parse_context</a>&lt; <a class="el" href="classIOv2_1_1timeio.html#ae958d44166dec8f3447e4e91921ab679">char_type</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveDate</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">HaveTime</a>, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TzLevel</a> &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">ctx</a>, std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">_fmt</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:af9e1f141842007656a205dd6e5f4fa14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses time fields from an input range according to a format string, accumulating results into <code>ctx</code>.  <br /></td></tr>
 <tr class="separator:af9e1f141842007656a205dd6e5f4fa14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:acf4fe26afec0b0881cf296a25f10ad25" id="r_acf4fe26afec0b0881cf296a25f10ad25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html#acf4fe26afec0b0881cf296a25f10ad25">contains_specifier</a> (std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; fmt, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> format, <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">modifier</a>=0)</td></tr>
+<tr class="memdesc:acf4fe26afec0b0881cf296a25f10ad25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether a format string holds a given specifier.  <br /></td></tr>
+<tr class="separator:acf4fe26afec0b0881cf296a25f10ad25"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><div class="compoundTemplParams">template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a>&gt;<br />
@@ -458,6 +473,52 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 </div>
 </div>
+<a id="acf4fe26afec0b0881cf296a25f10ad25" name="acf4fe26afec0b0881cf296a25f10ad25"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf4fe26afec0b0881cf296a25f10ad25">&#9670;&#160;</a></span>contains_specifier()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">bool</a> <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;::contains_specifier </td>
+          <td>(</td>
+          <td class="paramtype">std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;&#160;</td>
+          <td class="paramname"><em>fmt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&#160;</td>
+          <td class="paramname"><em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&#160;</td>
+          <td class="paramname"><em>modifier</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whether a format string holds a given specifier. </p>
+
+</div>
+</div>
 <a id="a163a7b4a7a35472989ff02552582f3fe" name="a163a7b4a7a35472989ff02552582f3fe"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a163a7b4a7a35472989ff02552582f3fe">&#9670;&#160;</a></span>date_format()</h2>
 
@@ -629,6 +690,80 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </div><div class="memdoc">
 
 <p>Returns the locale era-modified time format string (corresponding to <code>EX</code>). . </p>
+
+</div>
+</div>
+<a id="accf3ec4f215e0ccdb32bb8824c011feb" name="accf3ec4f215e0ccdb32bb8824c011feb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#accf3ec4f215e0ccdb32bb8824c011feb">&#9670;&#160;</a></span>expand_format() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;::expand_format </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&#160;</td>
+          <td class="paramname"><em>format</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">char</a>&#160;</td>
+          <td class="paramname"><em>modifier</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The single-character form of <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">expand_format:</a> what one specifier expands and filters down to. </p>
+
+</div>
+</div>
+<a id="ad3e1a51a4214ef95df90d9a79134bdd7" name="ad3e1a51a4214ef95df90d9a79134bdd7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3e1a51a4214ef95df90d9a79134bdd7">&#9670;&#160;</a></span>expand_format() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; </div>
+<div class="memtemplate">
+template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">typename</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">TVal</a> &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::basic_string&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt; <a class="el" href="classIOv2_1_1timeio.html">IOv2::timeio</a>&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;::expand_format </td>
+          <td>(</td>
+          <td class="paramtype">std::basic_string_view&lt; <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">CharT</a> &gt;&#160;</td>
+          <td class="paramname"><em>fmt</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Returns the format string a value of a given type will <b>actually</b> produce for a given format: compound specifiers expanded, and specifiers the type cannot supply removed together with one adjacent separator. </p>
 
 </div>
 </div>

@@ -11,6 +11,7 @@ var namespaceIOv2_1_1detail =
     [ "insertable", "conceptIOv2_1_1detail_1_1insertable.html", null ],
     [ "in_ctx_t", "namespaceIOv2_1_1detail.html#a4d20df608cdaa0a8c12354e549745b69", null ],
     [ "in_target_t", "namespaceIOv2_1_1detail.html#a5403f275c56b27b3041fed5945eb5f7d", null ],
+    [ "tm_stream_format", "namespaceIOv2_1_1detail.html#a0166d16765c0b9177a3adaac5d361a69", null ],
     [ "to_u32string", "namespaceIOv2_1_1detail.html#a801881577b5c1cb239a485b6fab5034b", null ],
     [ "to_u32string", "namespaceIOv2_1_1detail.html#a4c8d5418a7c7dbf2bef67e91162ee5cb", null ],
     [ "to_u8string", "namespaceIOv2_1_1detail.html#a5fcc1d87473297523fb387243e5b0950", null ],

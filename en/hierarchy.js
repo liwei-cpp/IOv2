@@ -246,7 +246,7 @@ var hierarchy =
     [ "IOv2::io_traits< TChar, TChar * >", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_5_01_4.html", null ],
     [ "IOv2::io_traits< TChar, TChar >", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_01_4.html", null ],
     [ "IOv2::io_traits< TChar, TChar[N]>", "structIOv2_1_1io__traits_3_01TChar_00_01TChar_0fN_0e_4.html", null ],
-    [ "IOv2::io_traits< TChar, time_parse_context< TChar, true, true, tz_level::offset > >", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01tz__level_1_1offset_01_4_01_4.html", null ],
+    [ "IOv2::io_traits< TChar, time_parse_context< TChar, true, true, TzLevel > >", "structIOv2_1_1io__traits_3_01TChar_00_01time__parse__context_3_01TChar_00_01true_00_01true_00_01TzLevel_01_4_01_4.html", null ],
     [ "IOv2::io_traits< TChar, TValue >", "structIOv2_1_1io__traits_3_01TChar_00_01TValue_01_4.html", null ],
     [ "IOv2::io_traits< TChar, ws_t >", "structIOv2_1_1io__traits_3_01TChar_00_01ws__t_01_4.html", null ],
     [ "IOv2::ios_base< TChar >", "classIOv2_1_1ios__base.html", [
@@ -408,6 +408,13 @@ var hierarchy =
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, TzLevel >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
     [ "IOv2::time_parse_helper< true >", "structIOv2_1_1time__parse__helper_3_01true_01_4.html", null ],
+    [ "IOv2::time_value_fields< TVal >", "structIOv2_1_1time__value__fields.html", null ],
+    [ "IOv2::time_value_fields< std::chrono::hh_mm_ss< TDuration > >", "structIOv2_1_1time__value__fields_3_01std_1_1chrono_1_1hh__mm__ss_3_01TDuration_01_4_01_4.html", null ],
+    [ "IOv2::time_value_fields< std::chrono::local_time< Duration > >", "structIOv2_1_1time__value__fields_3_01std_1_1chrono_1_1local__time_3_01Duration_01_4_01_4.html", null ],
+    [ "IOv2::time_value_fields< std::chrono::sys_time< Duration > >", "structIOv2_1_1time__value__fields_3_01std_1_1chrono_1_1sys__time_3_01Duration_01_4_01_4.html", null ],
+    [ "IOv2::time_value_fields< std::chrono::year_month_day >", "structIOv2_1_1time__value__fields_3_01std_1_1chrono_1_1year__month__day_01_4.html", null ],
+    [ "IOv2::time_value_fields< std::chrono::zoned_time< Duration, TimeZonePtr > >", "structIOv2_1_1time__value__fields_3_01std_1_1chrono_1_1zoned__time_3_01Duration_00_01TimeZonePtr_01_4_01_4.html", null ],
+    [ "IOv2::time_value_fields< std::tm >", "structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html", null ],
     [ "time_zone_parse_helper", null, [
       [ "IOv2::time_parse_context< CharT, HaveDate, HaveTime, TzLevel >", "structIOv2_1_1time__parse__context.html", null ]
     ] ],
