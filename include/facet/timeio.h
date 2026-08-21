@@ -1538,7 +1538,7 @@ struct time_value_fields<std::tm>
  *
  * 能否供出 `%Z` 只看值类型，不看运行期取值：带 `tm_zone` 成员的平台上，`std::tm` 的 `%Z`
  * 对**任何**取值都写得出内容——有名字写名字，`tm_zone` 为空指针或空串则写
- * @ref ft_basic<timeio<CharT>>::s_unknown_zone（`UNKNOWN`）。该记号也在时区前缀树里注册，
+ * @ref base_ft<timeio>::s_unknown_zone（`UNKNOWN`）。该记号也在时区前缀树里注册，
  * 映射到空串，因此写得出就读得回。真正没有时区概念的类型（`local_time`、`year_month_day`、
  * `hh_mm_ss`）的 `%Z` 才退化为字面量。
  *
@@ -1620,7 +1620,7 @@ struct time_value_fields<std::tm>
  *
  * Whether `%Z` can be supplied depends on the value's type, not on its run-time value: on a
  * platform whose `std::tm` carries `tm_zone`, `%Z` produces content for **every** `std::tm` -- the
- * name when there is one, and @ref ft_basic<timeio<CharT>>::s_unknown_zone (`UNKNOWN`) when
+ * name when there is one, and @ref base_ft<timeio>::s_unknown_zone (`UNKNOWN`) when
  * `tm_zone` is null or empty. That token is registered in the time-zone trie as well, mapped to the
  * empty string, so whatever can be written can be read back. Only the types with no notion of a
  * zone at all (`local_time`, `year_month_day`, `hh_mm_ss`) degrade `%Z` to a literal.
@@ -1950,7 +1950,7 @@ public:
      *
      * @note 判据是类型，不是值，而 put 侧与之严丝合缝：`std::tm` 只要平台上带 `tm_zone` 字段
      *       就算供得出 `%Z`，而 put 对这样的 `tm` 也确实总写得出内容——`tm_zone` 为空时写
-     *       @ref ft_basic<timeio<CharT>>::s_unknown_zone。因此保留下来的说明符 put 一定供得出，
+     *       @ref base_ft<timeio>::s_unknown_zone。因此保留下来的说明符 put 一定供得出，
      *       没有"表说供得出、运行期却退化"的缝隙。
      * @note `%EY` **不展开**：纪元格式取决于年份落在哪个纪元，是值相关的，静态展不开。它照样
      *       参与过滤，供不出就摘掉。
@@ -2009,7 +2009,7 @@ public:
      * @note The test is the type, not the value, and the put side matches it exactly. A
      *       `std::tm` counts as able to supply `%Z` as long as the platform's `tm` carries a
      *       `tm_zone` field, and put really does write content for every such `tm` -- when
-     *       `tm_zone` is empty it writes @ref ft_basic<timeio<CharT>>::s_unknown_zone. So a
+     *       `tm_zone` is empty it writes @ref base_ft<timeio>::s_unknown_zone. So a
      *       specifier that survives the filter is one put can supply, with no gap between what
      *       the table claims and what happens at run time.
      * @note `%EY` is **not** expanded: which era format applies depends on the year, so it is a
@@ -2447,7 +2447,7 @@ public:
      * @note **时区取自扩展成员。** 当前平台的 `std::tm` 带 `tm_gmtoff` 时（POSIX.1-2024 起
      *       是标准成员，glibc / BSD / macOS 一直都有），`%z` 写它的值；带 `tm_zone` 时
      *       `%Z` 写它，`tm_zone` 为空指针或空串则写
-     *       @ref ft_basic<timeio<CharT>>::s_unknown_zone。成员的有无用 `requires` 表达式
+     *       @ref base_ft<timeio>::s_unknown_zone。成员的有无用 `requires` 表达式
      *       探测，不看平台宏。平台的 `std::tm` **不带** `tm_gmtoff` 时 `%z` 与 `%Z` 才退化为
      *       字面量，`%c` / `%X` / `%r` 里 locale 自带的那个 `%Z` 也一样。
      * @note 因此在带 `tm_zone` 的平台上，`%Z` 对任何 `std::tm` 都写得出内容——这正是
@@ -2474,7 +2474,7 @@ public:
      *       `std::tm` carries `tm_gmtoff` (a standard member since POSIX.1-2024, and present
      *       on glibc / BSD / macOS all along), `%z` writes its value; when it carries
      *       `tm_zone`, `%Z` writes that, or
-     *       @ref ft_basic<timeio<CharT>>::s_unknown_zone if `tm_zone` is null or empty. Their
+     *       @ref base_ft<timeio>::s_unknown_zone if `tm_zone` is null or empty. Their
      *       presence is detected with a `requires` expression rather than a platform macro.
      *       Only on a platform whose `std::tm` lacks `tm_gmtoff` do `%z` and `%Z` degrade to
      *       literals, and with them a locale's own `%Z` inside `%c` / `%X` / `%r`.
@@ -2524,7 +2524,7 @@ public:
             {
                 abbrev = (t.tm_zone && *t.tm_zone)
                        ? std::string_view{t.tm_zone}
-                       : ft_basic<timeio<CharT>>::s_unknown_zone;
+                       : base_ft<timeio>::s_unknown_zone;
             }
             const zone_info zi{seconds{t.tm_gmtoff}, abbrev};
             return do_put(out, fmt, &ymd, &wd, &hms, &zi, nullptr);
@@ -3528,8 +3528,8 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    typename decltype(ft_basic<timeio<CharT>>::s_timezone_tree)::match_out_type zone_res;
-                    rp = ft_basic<timeio<CharT>>::s_timezone_tree.max_match(rp, rp_end, zone_res);
+                    typename decltype(base_ft<timeio>::s_timezone_tree)::match_out_type zone_res;
+                    rp = base_ft<timeio>::s_timezone_tree.max_match(rp, rp_end, zone_res);
                     if (!zone_res)
                     {
                         if constexpr (TzLevel == tz_level::zone) { succ = false; return rp; }
