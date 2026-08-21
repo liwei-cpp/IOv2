@@ -5238,8 +5238,10 @@ void test_timeio_wchar_t_get_13()
     VERIFY(zone_ok(L"America/Los_Angeles", L"%Z"));
     VERIFY(!zone_ok(L"XYZ", L"%Z"));
 
-    VERIFY(off_ok(L"PDT", L"%Z"));
-    VERIFY(off_ok(L"America/Los_Angeles", L"%Z"));
+    // A zone token parses at tz_level::zone and only there: below it the format is
+    // asking for the two characters %Z, which no real token matches.
+    VERIFY(!off_ok(L"PDT", L"%Z"));
+    VERIFY(!off_ok(L"America/Los_Angeles", L"%Z"));
     VERIFY(!off_ok(L"XYZ", L"%Z"));
 
     // The literal %Z, which is what put writes when the value has no zone to offer.
