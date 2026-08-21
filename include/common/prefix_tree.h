@@ -16,12 +16,14 @@
 #include <concepts>
 #include <cstddef>
 #include <forward_list>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -39,6 +41,11 @@ namespace IOv2
  *
  * @note 此类供内部使用，不提供完整的公共接口（如 remove、clear、size）。
  * @note 此类不是线程安全的。
+ * @note 查找用的迭代器不必以 `CharT` 为值类型：`max_match` 允许输入范围是更宽的字符
+ *       类型，逐字符转换为 `CharT` 后比对，转换后转不回原值的字符不可能是树中的键，
+ *       匹配就此结束。这让一棵以字节为键的树可以直接用于宽字符输入——但只有 ASCII
+ *       范围内的条目能这样命中：非 ASCII 条目在树里是 UTF-8 的各个字节，与宽字符流里
+ *       的单个码点对不上。`add` 不做这项检查，插入时的窄化是静默的。
  *
  * @par 示例
  * @code
@@ -67,6 +74,14 @@ namespace IOv2
  * @note This class is intended for internal use and does not provide a comprehensive
  *       set of public interfaces (e.g., remove, clear, size).
  * @note This class is NOT thread-safe.
+ * @note The iterators used for lookup need not have `CharT` as their value type:
+ *       `max_match` accepts an input range of a wider character type, converting each
+ *       character to `CharT` before comparing; a character that does not convert back to
+ *       its own value cannot be one of the tree's keys, and the match ends there. This lets
+ *       one byte-keyed tree serve wide input -- but only entries within ASCII can match that
+ *       way: a non-ASCII entry sits in the tree as the individual bytes of its UTF-8 form,
+ *       which no single code point of a wide stream will line up with. `add` performs no
+ *       such check; narrowing on insertion is silent.
  *
  * @par Example
  * @code
@@ -195,7 +210,8 @@ public:
      * @lang{ZH}
      * 向前缀树添加由迭代器范围指定的字符串及其关联值。
      *
-     * @tparam TIter 迭代器类型
+     * @tparam TIter 迭代器类型。值类型不是 `CharT` 时按 `static_cast` 窄化，且**不做**
+     *               `max_match` 那样的往返检查：把宽字符串插进以字节为键的树里会静默截断。
      * @param b 范围起始迭代器
      * @param e 范围结束迭代器
      * @param v 与字符串关联的值
@@ -206,7 +222,10 @@ public:
      * @lang{EN}
      * Adds a string specified by an iterator range and its associated value.
      *
-     * @tparam TIter Iterator type
+     * @tparam TIter Iterator type. A value type other than `CharT` is narrowed by
+     *               `static_cast` with **no** round-trip check of the kind `max_match`
+     *               performs: inserting a wide string into a byte-keyed tree truncates
+     *               silently.
      * @param b Begin iterator of the range
      * @param e End iterator of the range
      * @param v The value associated with the string
@@ -247,7 +266,8 @@ public:
      * `stamp_input_iterator` 这类单趟但提供 `operator--` 的迭代器。约束直接写成
      * `steppable_back` 而不是 `std::bidirectional_iterator`，理由见该概念的说明。
      *
-     * @tparam TIter 能后退的迭代器类型（见 `steppable_back`）
+     * @tparam TIter 能后退的迭代器类型（见 `steppable_back`）；值类型可以不是 `CharT`，
+     *               见类说明中关于字符类型转换的注记
      * @tparam TSent 哨兵类型
      * @param b 范围起始迭代器
      * @param e 范围结束迭代器/哨兵
@@ -263,7 +283,9 @@ public:
      * `stamp_input_iterator`. The constraint is spelled `steppable_back` rather than
      * `std::bidirectional_iterator`; see that concept for why.
      *
-     * @tparam TIter An iterator that can step back (see `steppable_back`)
+     * @tparam TIter An iterator that can step back (see `steppable_back`); its value type
+     *               need not be `CharT`, see the note on character conversion in the class
+     *               documentation
      * @tparam TSent Sentinel type
      * @param b Begin iterator of the range
      * @param e End iterator/sentinel of the range
@@ -296,7 +318,17 @@ public:
         const node* node_ptr = &m_root;
         for (; b != e; ++b)
         {
-            CharT ch = *b;
+            auto ch_real = *b;
+            CharT ch = static_cast<CharT>(ch_real);
+            // The input range may be spelled in a wider character type than the one the tree
+            // is keyed on (see the note on TIter): a character that does not survive the round
+            // trip is not one of the tree's keys, so it can only end the match. Note the
+            // comparison is written as a round trip rather than as `ch_real == ch`, which
+            // would promote both to int and so declare char(-1) and its own byte unequal.
+            if constexpr (!std::same_as<CharT, std::iter_value_t<TIter>>)
+            {
+                if (static_cast<std::iter_value_t<TIter>>(ch) != ch_real) break;
+            }
             auto it = node_ptr->children.find(ch);
             if (it == node_ptr->children.end()) break;
             node_ptr = it->second.get();
@@ -332,7 +364,8 @@ public:
      *
      * 此重载适用于 IOv2::istreambuf_iterator，使用 sputbackc 进行回退。
      *
-     * @tparam TIter istreambuf_iterator 类型
+     * @tparam TIter istreambuf_iterator 类型；值类型可以不是 `CharT`，见类说明中关于
+     *               字符类型转换的注记
      * @tparam TSent 哨兵类型
      * @param b 范围起始迭代器
      * @param e 范围结束迭代器/哨兵
@@ -345,7 +378,8 @@ public:
      *
      * This overload is for IOv2::istreambuf_iterator, using sputbackc for backtracking.
      *
-     * @tparam TIter istreambuf_iterator type
+     * @tparam TIter istreambuf_iterator type; its value type need not be `CharT`, see the
+     *               note on character conversion in the class documentation
      * @tparam TSent Sentinel type
      * @param b Begin iterator of the range
      * @param e End iterator/sentinel of the range
@@ -376,7 +410,14 @@ public:
         const node* node_ptr = &m_root;
         for (; b != e;)
         {
-            CharT ch = *b;
+            auto ch_real = *b;
+            CharT ch = static_cast<CharT>(ch_real);
+            // Same round-trip guard as the steppable_back overload; see the note there.
+            // Breaking here leaves the offending character unread, since `++b` is below.
+            if constexpr (!std::same_as<CharT, std::iter_value_t<TIter>>)
+            {
+                if (static_cast<std::iter_value_t<TIter>>(ch) != ch_real) break;
+            }
             auto it = node_ptr->children.find(ch);
             if (it == node_ptr->children.end()) break;
             node_ptr = it->second.get();
