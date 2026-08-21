@@ -38,8 +38,9 @@
 #include <cstring>
 #include <cwchar>
 #include <limits>
+#include <map>
 #include <optional>
-#include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <string_view>
@@ -52,6 +53,69 @@
 namespace IOv2
 {
     template <typename CharT> class timeio;
+
+    /**
+     * @lang{ZH}
+     * @brief 时区前缀树的值：`%Z` 匹配到的那串文本，加上它在 tzdb 里的身份。
+     *
+     * `is_name` 与 `is_abbrev` 是两个**互相独立**的谓词，不是三选一：
+     * - `is_name`：`std::chrono::locate_zone()` 认这个标识符，即它在 `tzdb.zones` 或
+     *   `tzdb.links` 里；
+     * - `is_abbrev`：它是某个时区在某一时刻的 `std::chrono::sys_info::abbrev`。
+     *
+     * 两者同时成立的条目确实存在——本机 8 条（`CET`、`EET`、`EST`、`GMT`、`HST`、`MST`、
+     * `UTC`、`WET`），它们既是 link 名又是缩写——所以这里必须是两个标志位，一个三值枚举
+     * 表达不了。两者都不成立的那一格留给 @ref base_ft<timeio>::s_unknown_zone：那个记号
+     * 解析得出来，但它什么区也不指。
+     *
+     * @ref text 是键的原文，**逐字节等于输入**，且随树活到程序结束，因此 `text.c_str()`
+     * 可以直接交给 `std::tm::tm_zone` 这类只收 `const char*`、又没有配套释放接口的字段。
+     * 它**不做规范化**：解析 `US/Pacific` 得到的就是 `US/Pacific`，解析 `EST` 得到的就是
+     * `EST`。要规范名请走 `std::chrono::locate_zone(text)->name()`——`locate_zone` 自己
+     * 会归一化，没有理由在树里再存一份。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief A time-zone trie value: the text `%Z` matched, plus what the tzdb says it is.
+     *
+     * `is_name` and `is_abbrev` are two **independent** predicates, not a three-way choice:
+     * - `is_name`: `std::chrono::locate_zone()` accepts this identifier, i.e. it appears in
+     *   `tzdb.zones` or in `tzdb.links`;
+     * - `is_abbrev`: it is the `std::chrono::sys_info::abbrev` of some zone at some instant.
+     *
+     * Entries where both hold do exist -- eight of them here (`CET`, `EET`, `EST`, `GMT`,
+     * `HST`, `MST`, `UTC`, `WET`), each both a link name and an abbreviation -- so two flags
+     * are required and a three-valued enumeration cannot express this. The combination where
+     * neither holds is reserved for @ref base_ft<timeio>::s_unknown_zone: that token parses,
+     * but it names no zone at all.
+     *
+     * @ref text is the key verbatim, **byte for byte what was parsed**, and it lives as long
+     * as the trie does, i.e. for the whole program. `text.c_str()` may therefore be handed
+     * straight to a field such as `std::tm::tm_zone`, which takes a `const char*` and offers
+     * no matching release call. It is **not canonicalized**: parsing `US/Pacific` yields
+     * `US/Pacific` and parsing `EST` yields `EST`. For the canonical name call
+     * `std::chrono::locate_zone(text)->name()` -- `locate_zone` normalizes on its own, so
+     * there is no reason to keep a second copy in the trie.
+     * @endif
+     */
+    struct zone_ref
+    {
+        /// @lang{ZH} 键的原文；`UNKNOWN` 记号为空串。 @endif
+        /// @lang{EN} The key verbatim; empty for the unknown-zone token. @endif
+        std::string text;
+
+        /// @lang{ZH} tzdb 认得这个标识符（`zones` 或 `links` 中）。 @endif
+        /// @lang{EN} The tzdb knows this identifier (in `zones` or in `links`). @endif
+        bool is_name = false;
+
+        /// @lang{ZH} 它是某个时区在某一时刻的缩写。 @endif
+        /// @lang{EN} It is some zone's abbreviation at some instant. @endif
+        bool is_abbrev = false;
+
+        /// @cond
+        bool operator==(const zone_ref&) const = default;
+        /// @endcond
+    };
 
     /**
      * @lang{ZH}
@@ -112,11 +176,16 @@ namespace IOv2
          * （glibc 的 `strftime` 会查 `tzname[tm_isdst != 0]`）：那会把一个与该时间毫无关系
          * 的区名安上去，`tm_gmtoff` 为 `+0800` 的值在美国西岸的机器上会写出 `PST`。
          *
-         * 本记号也在 @ref s_timezone_tree 中注册，映射到空字符串，因此写得出就读得回；
-         * 解析到它时不记录任何时区字段，与解析真实缩写一样不回写 `tm_zone`。
+         * 本记号也在 @ref s_timezone_tree 中注册，映射到一个 @ref zone_ref{"", false, true}，
+         * 因此写得出就读得回。解析到它时 `m_zone_abbrev` 指向**空串**而不是留 `nullptr`：
+         * 这两者含义不同——`nullptr` 是「`%Z` 压根没解析到」，空串是「解析到了，而且它明说
+         * 没有时区」。后者会把 `tm_zone` 写成空串，从而与 put 侧闭合；若什么都不写，调用方
+         * `tm` 里上一次留下的 `tm_zone` 会残留，下一次 put 就写出那个陈旧的区名，往返断裂。
          *
          * @note 不会与真实时区记号冲突：对 tzdb 的全部区名、缩写与 link（本机 769 条）
-         *       逐一比对过，无相等项，也无任一方向的前缀关系。
+         *       逐一比对过，无相等项，也无任一方向的前缀关系。这一条不只是观察结论——
+         *       建树时会实际检查，一旦哪天的 tzdata 破坏了它，@ref s_timezone_tree 宁可
+         *       整棵留空（`%Z` 全部报可捕获的 `stream_error`），也不悄悄错一条。
          * @endif
          *
          * @lang{EN}
@@ -133,25 +202,39 @@ namespace IOv2
          * consults `tzname[tm_isdst != 0]`): that attaches a zone name unrelated to the value,
          * so a `tm` whose `tm_gmtoff` is `+0800` would print `PST` on a machine in California.
          *
-         * The token is also registered in @ref s_timezone_tree, mapped to the empty string, so
-         * whatever is written can be read back; parsing it records no time-zone field, and like
-         * a parsed real abbreviation it never writes back to `tm_zone`.
+         * The token is also registered in @ref s_timezone_tree, mapped to a
+         * @ref zone_ref{"", false, true}, so whatever is written can be read back. Parsing it
+         * points `m_zone_abbrev` at an **empty string** rather than leaving it null, because
+         * the two mean different things: null is "no `%Z` was parsed at all", empty is "one was
+         * parsed, and it says outright that there is no zone". The latter writes an empty
+         * `tm_zone`, closing the round trip with the put side; writing nothing would leave
+         * whatever `tm_zone` the caller's `tm` already held, and the next put would emit that
+         * stale zone name instead.
          *
          * @note It cannot collide with a real zone token: checked against every zone name,
          *       abbreviation and link in the tzdb (769 of them here) for equality and for a
-         *       prefix relation in either direction; there is none.
+         *       prefix relation in either direction; there is none. This is not merely an
+         *       observation -- the trie builder checks it, and should some future tzdata break
+         *       it, @ref s_timezone_tree is left empty (every `%Z` then reports a catchable
+         *       `stream_error`) rather than quietly getting one entry wrong.
          * @endif
          */
         static constexpr std::string_view s_unknown_zone = "UNKNOWN";
 
         /**
          * @lang{ZH}
-         * @brief 时区缩写与 IANA 全名到规范时区名的静态前缀树。
+         * @brief 时区标识符与缩写的静态前缀树，值为 @ref zone_ref。
          *
-         * 在程序启动时通过 `std::chrono::get_tzdb()` 构建，将：
-         * - 时区缩写（如 `"EST"`）映射到其规范 IANA 名称（若 `locate_zone` 成功），
-         *   或映射到带 `"*"` 前缀的原始缩写（若无法定位对应的 IANA 时区）；
-         * - 与缩写不同的完整 IANA 时区名称映射到自身。
+         * 在程序启动时通过 `std::chrono::get_tzdb()` 构建，收三类键（三者可以重合，
+         * 身份由 @ref zone_ref 的两个标志位表达，不是三选一）：
+         * - `tzdb.zones` 里的区名；
+         * - `tzdb.links` 里的别名——`US/Pacific`、`Asia/Calcutta`、`Japan` 这些
+         *   `locate_zone()` 一样认的名字，本机 257 条；
+         * - 每个时区走过的全部缩写。
+         *
+         * 值里的 @ref zone_ref::text 是键的原文，**不做规范化**：解析 `EST` 得到的就是
+         * `EST`，不是 `America/Panama`。规范化的活交给 `locate_zone`，它自己会做；而原文
+         * 是 `tm_zone` 往返所必需的——put 侧原样写出 `tm_zone`，get 侧要能原样还回去。
          *
          * 缩写取自每个时区**全部**转换的 `abbrev`：从 tzdb 数据的起点一直走到「当前时刻
          * + 10 年」（系统时钟异常偏早时以 2038-01-01 兜底）。只在某一个时刻上取一次是不够
@@ -174,23 +257,34 @@ namespace IOv2
          * 匹配不上——真需要时应改为按 `CharT` 转换后再查，而不是直接加。
          *
          * 它是非模板类的 `inline static` 成员，因此包含本头文件的每个程序都会在启动时
-         * 构建它，无论是否用到 `%Z`（本机实测约 10 ms、约 2 MB 常驻）。这是有意的取舍：
-         * 换来的是全程序一棵树，而不是每个字符类型一棵。
+         * 构建它，无论是否用到 `%Z`（本机实测约 16 ms、约 3.2 MB 常驻，770 个键、4095 个
+         * 节点）。这是有意的取舍：换来的是全程序一棵树，而不是每个字符类型一棵。
          *
          * 供 `%Z` 格式说明符的解析使用。若时区数据库在静态初始化期间不可用或格式
-         * 有误，树将为空或不完整，`%Z` 解析会在运行时产生可捕获的 `stream_error`
-         * 而非调用 `std::terminate`。
+         * 有误，树里将只剩 @ref s_unknown_zone 一条，`%Z` 解析会在运行时产生可捕获的
+         * `stream_error` 而非调用 `std::terminate`。
+         *
+         * @note 分类先在一个 `std::map` 里做完，再一趟灌进树，因此同一个键不可能 `add`
+         *       两次——`prefix_tree::add` 的重复冲突在这里结构上不可能发生，不必依赖
+         *       「像缩写的名字碰巧都在 `links` 里」这类巧合。
          * @endif
          *
          * @lang{EN}
-         * @brief Static prefix trie mapping timezone abbreviations and IANA full names
-         *        to canonical timezone names.
+         * @brief Static prefix trie of time-zone identifiers and abbreviations, valued with
+         *        @ref zone_ref.
          *
-         * Built at program startup via `std::chrono::get_tzdb()`, mapping:
-         * - timezone abbreviations (e.g. `"EST"`) to their canonical IANA name (if
-         *   `locate_zone` succeeds), or to the abbreviation prefixed with `"*"` (if
-         *   no corresponding IANA zone is found);
-         * - full IANA timezone names (when different from their abbreviation) to themselves.
+         * Built at program startup via `std::chrono::get_tzdb()` from three sources of keys
+         * (which may overlap -- identity is carried by @ref zone_ref's two flags rather than by
+         * a three-way choice):
+         * - the zone names in `tzdb.zones`;
+         * - the aliases in `tzdb.links` -- `US/Pacific`, `Asia/Calcutta`, `Japan` and the rest,
+         *   names `locate_zone()` accepts just as readily, 257 of them here;
+         * - every abbreviation each zone passes through.
+         *
+         * The @ref zone_ref::text in each value is the key verbatim and is **not canonicalized**:
+         * parsing `EST` yields `EST`, not `America/Panama`. Canonicalization is `locate_zone`'s
+         * job and it does it on its own, whereas the verbatim text is what a `tm_zone` round trip
+         * needs -- the put side writes `tm_zone` out unchanged, so get must be able to put it back.
          *
          * The abbreviations come from the `abbrev` of **every** transition each zone goes
          * through, walked from the start of the tzdb data up to the current time plus ten
@@ -222,31 +316,45 @@ namespace IOv2
          *
          * Being an `inline static` member of a non-template class, it is built at startup by
          * every program that includes this header, whether or not it ever uses `%Z` (measured
-         * here at roughly 10 ms and 2 MB resident). That is the deliberate trade: one trie per
-         * program instead of one per character type.
+         * here at roughly 16 ms and 3.2 MB resident, for 770 keys across 4095 nodes). That is
+         * the deliberate trade: one trie per program instead of one per character type.
          *
          * Used by the `%Z` format specifier during parsing. If the timezone database is
-         * unavailable or malformed at static-initialization time, the trie is left empty
-         * or partial, and `%Z` parsing produces a catchable `stream_error` at runtime
-         * rather than calling `std::terminate`.
+         * unavailable or malformed at static-initialization time, the trie is left holding
+         * nothing but @ref s_unknown_zone, and `%Z` parsing produces a catchable `stream_error`
+         * at runtime rather than calling `std::terminate`.
+         *
+         * @note The classification is worked out in a `std::map` first and fed to the trie in a
+         *       single pass, so no key can ever be `add`ed twice: a duplicate conflict in
+         *       `prefix_tree::add` is structurally impossible here, with no reliance on
+         *       coincidences such as "the abbreviation-shaped names all happen to live in
+         *       `links`".
          * @endif
          */
-        inline static const prefix_tree<char, std::string> s_timezone_tree =
+        inline static const prefix_tree<char, zone_ref> s_timezone_tree =
         []()
         {
-            prefix_tree<char, std::string> res;
+            prefix_tree<char, zone_ref> res;
 
             // Registered ahead of the tzdb walk so that it is present even when the walk
             // throws and leaves the rest of the trie empty: the token the put side writes
-            // for a nameless zone has to parse back regardless of the database.
-            res.add(s_unknown_zone.begin(), s_unknown_zone.end(), std::string{});
+            // for a nameless zone has to parse back regardless of the database. Its text is
+            // empty on purpose -- see s_unknown_zone for why that is not the same as absent.
+            res.add(s_unknown_zone.begin(), s_unknown_zone.end(),
+                    zone_ref{std::string{}, false, true});
 
             try
             {
                 const auto& tzdb = std::chrono::get_tzdb();
 
-                // Collect all abbreviations (deduplicated across zones).
-                std::set<std::string> abbrevs;
+                // Classify every key before touching the trie. Two keys can name the same
+                // string from different sources -- CET, EET, EST, GMT, HST, MST, UTC and WET
+                // are each both a link name and an abbreviation -- and going through a map
+                // merges those into one entry with both flags set, instead of calling add()
+                // twice on one key and having it throw on the mismatched values.
+                std::map<std::string, zone_ref> entries;
+
+                // Every abbreviation each zone passes through.
                 {
                     using namespace std::chrono;
                     const sys_seconds projected =
@@ -260,44 +368,45 @@ namespace IOv2
                         while (t < horizon)
                         {
                             const sys_info info = zone.get_info(t);
-                            if (!info.abbrev.empty()) abbrevs.insert(info.abbrev);
+                            if (!info.abbrev.empty()) entries[info.abbrev].is_abbrev = true;
                             if (info.end <= t) break;
                             t = time_point_cast<seconds>(info.end);
                         }
                     }
                 }
 
-                // Resolve each abbreviation: if locate_zone succeeds (e.g. "EST"
-                // is an IANA link), store the canonical name; otherwise mark "*".
-                for (const auto& abbr : abbrevs)
-                {
-                    try
-                    {
-                        std::string canonical{std::chrono::locate_zone(abbr)->name()};
-                        res.add(abbr.begin(), abbr.end(), canonical);
-                    }
-                    catch (...)
-                    {
-                        res.add(abbr.begin(), abbr.end(), "*" + abbr);
-                    }
-                }
-
-                // Add full zone names that differ from their own abbreviation.
+                // Every identifier locate_zone() accepts. Links belong here just as much as
+                // zones do: a link is a full name, merely not the canonical one, and nothing
+                // downstream needs the canonical form -- locate_zone normalizes on its own.
                 for (const auto& zone : tzdb.zones)
-                {
-                    std::string full_name{zone.name()};
-                    std::string abbr_name = zone.get_info(std::chrono::sys_time<std::chrono::seconds>{}).abbrev;
-                    if (full_name != abbr_name)
-                        res.add(full_name.begin(), full_name.end(), full_name);
-                }
+                    entries[std::string{zone.name()}].is_name = true;
+                for (const auto& link : tzdb.links)
+                    entries[std::string{link.name()}].is_name = true;
+
+                // The unknown-zone token has to parse back to "no zone at all", so it cannot
+                // share a key with a real one. That it does not is a documented invariant of
+                // s_unknown_zone; if some future tzdata breaks it, refuse to answer rather
+                // than quietly get that one entry wrong. Thrown here -- before a single tzdb
+                // entry reaches the trie, and inside the catch below -- so the trie ends up
+                // holding only the token and every real %Z reports a catchable stream_error.
+                // Letting it escape the static initializer instead would call std::terminate
+                // in every program that includes this header, %Z user or not.
+                if (entries.contains(std::string{s_unknown_zone}))
+                    throw std::runtime_error(
+                        "timeio: the tz database has a zone or abbreviation named '"
+                        + std::string{s_unknown_zone} + "', colliding with the unknown-zone token");
+
+                for (const auto& [key, ident] : entries)
+                    res.add(key.begin(), key.end(),
+                            zone_ref{key, ident.is_name, ident.is_abbrev});
             }
             catch (...) // NOLINT(bugprone-empty-catch)
             {
-                // tz database unavailable or malformed at static-init time:
-                // degrade to an empty/partial tree instead of letting the
-                // exception escape this static initializer (which would call
-                // std::terminate). %Z then simply fails to match and reports a
-                // catchable stream_error at parse time, matching the defensive
+                // tz database unavailable, malformed, or colliding with the unknown-zone
+                // token at static-init time: degrade to a trie holding nothing but that
+                // token, instead of letting the exception escape this static initializer
+                // (which would call std::terminate). %Z then simply fails to match and
+                // reports a catchable stream_error at parse time, matching the defensive
                 // behaviour of time_zone_parse_helper.
             }
             return res;

@@ -10,6 +10,10 @@
 #include <support/verify.h>
 namespace
 {
+    // m_zone_name / m_zone_abbrev point into the time-zone trie rather than owning a string,
+    // so a null pointer -- not an empty one -- is what "the field was not parsed" looks like.
+    bool zone_is(const char* p, std::string_view s) { return p != nullptr && std::string_view{p} == s; }
+
     // Retrieves one conversion target from a parse context as a value.
     // time_parse_context fills into an out-parameter (convert_to) so that a std::tm keeps
     // whatever it held in fields the context does not reconstruct; these tests only ever
@@ -2767,8 +2771,8 @@ void test_timeio_char_get_1()
     CheckGet(obj, "%OY", 'Y', 'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
+    VERIFY(zone_is(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
     CheckGet(obj, "America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, "%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);
@@ -3041,8 +3045,8 @@ void test_timeio_char_get_2()
     CheckGet(obj, "%OY", 'Y', 'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
+    VERIFY(zone_is(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
     CheckGet(obj, "America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, "%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);
@@ -3330,8 +3334,8 @@ void test_timeio_char_get_3()
     CheckGet(obj, "%OY", 'Y', 'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
+    VERIFY(zone_is(CheckGet(obj, "America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    { auto r = CheckGet(obj, "PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
     CheckGet(obj, "America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, "%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, "Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);
@@ -5673,8 +5677,8 @@ void test_timeio_char_get_16()
     FOri("%OY", 'Y', 'O', IOv2::ios_defs::eofbit);
     FOri("Y",   'Y', 'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(FOri("America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    { auto r = FOri("PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == "" && r.m_zone_abbrev == "PST"); }
+    VERIFY(zone_is(FOri("America/Los_Angeles", 'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    { auto r = FOri("PST", 'Z', 0, IOv2::ios_defs::eofbit); VERIFY(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
     FOri("America/Los_Angexes", 'Z', 0, IOv2::ios_defs::strfailbit);
     FOri("%EZ", 'Z', 'E', IOv2::ios_defs::eofbit);
     FOri("Z",   'Z', 'E', IOv2::ios_defs::strfailbit, 0);
@@ -6781,9 +6785,25 @@ void test_timeio_char_get_20()
     VERIFY(rejects("+0060", "%z"));     // minute out of range
     VERIFY(rejects("+", "%z"));         // sign then nothing
 
-    // %Z keeps the text and resolves nothing, whether it named a zone or an abbreviation.
-    VERIFY(parse("America/Los_Angeles", "%Z").m_zone_abbrev == "America/Los_Angeles");
-    VERIFY(parse("PST", "%Z").m_zone_abbrev == "PST");
+    // %Z keeps the text and resolves nothing at this tier, but it does file it by what the
+    // tzdb says it is: a name the database knows lands in m_zone_name, a bare abbreviation in
+    // m_zone_abbrev, and the eight tokens that are both land in both.
+    { auto r = parse("America/Los_Angeles", "%Z");
+      VERIFY(zone_is(r.m_zone_name, "America/Los_Angeles") && r.m_zone_abbrev == nullptr); }
+    { auto r = parse("PST", "%Z");
+      VERIFY(r.m_zone_name == nullptr && zone_is(r.m_zone_abbrev, "PST")); }
+    { auto r = parse("EST", "%Z");
+      VERIFY(zone_is(r.m_zone_name, "EST") && zone_is(r.m_zone_abbrev, "EST")); }
+
+    // Link names parse too -- locate_zone accepts them, so the trie carries them.
+    VERIFY(zone_is(parse("US/Pacific", "%Z").m_zone_name, "US/Pacific"));
+    VERIFY(zone_is(parse("Asia/Calcutta", "%Z").m_zone_name, "Asia/Calcutta"));
+    VERIFY(zone_is(parse("Japan", "%Z").m_zone_name, "Japan"));
+
+    // The unknown-zone token is a fourth case: it parses, but it names nothing. The text is
+    // empty rather than absent, which is what lets convert_to(std::tm&) blank tm_zone.
+    { auto r = parse("UNKNOWN", "%Z");
+      VERIFY(r.m_zone_name == nullptr && r.m_zone_abbrev != nullptr && *r.m_zone_abbrev == '\0'); }
     VERIFY(rejects("America/Los_Angexes", "%Z"));
 
     // convert_to(minutes): the parsed offset first, then the hint, and an error with neither.
@@ -6802,15 +6822,59 @@ void test_timeio_char_get_20()
         VERIFY(off == minutes{-60});
     }
 
-    // The offset reaches a std::tm through tm_gmtoff, where the platform has that member. A
-    // zone never does: convert_to would have to leave tm_zone pointing at freed storage.
+    // The offset reaches a std::tm through tm_gmtoff and the zone through tm_zone, where the
+    // platform has those members. tm_zone can be written because the text it points at lives
+    // in the time-zone trie, which outlives every parse -- the field has no release call, so
+    // nothing shorter-lived may go in it.
     if constexpr (requires (std::tm t) { t.tm_gmtoff; })
     {
         std::tm out{};
         parse("2024-09-04 13:33:18 +0800 PST", "%F %T %z %Z").convert_to(out);
         VERIFY(out.tm_gmtoff == 8 * 3600);
         if constexpr (requires (std::tm t) { t.tm_zone; })
-            VERIFY(out.tm_zone == nullptr);
+        {
+            VERIFY(zone_is(out.tm_zone, "PST"));
+
+            // A zone name goes in as readily as an abbreviation: put wrote tm_zone out
+            // verbatim, so get has to put it back the same way.
+            std::tm named{};
+            parse("2024-09-04 13:33:18 +0800 America/Los_Angeles", "%F %T %z %Z").convert_to(named);
+            VERIFY(zone_is(named.tm_zone, "America/Los_Angeles"));
+
+            // The unknown-zone token blanks the field rather than leaving it alone. Leaving it
+            // would keep a stale name the text just said was not there, and the next put would
+            // write that name back out.
+            std::tm blanked{};
+            blanked.tm_zone = "STALE";
+            parse("2024-09-04 13:33:18 +0800 UNKNOWN", "%F %T %z %Z").convert_to(blanked);
+            VERIFY(zone_is(blanked.tm_zone, ""));
+
+            // No %Z at all is the third state, and the only one that leaves the field be.
+            std::tm untouched{};
+            untouched.tm_zone = "KEPT";
+            parse("2024-09-04 13:33:18 +0800", "%F %T %z").convert_to(untouched);
+            VERIFY(zone_is(untouched.tm_zone, "KEPT"));
+
+            // put -> get -> put closes for all three.
+            for (const char* z : {"PST", "America/Los_Angeles", ""})
+            {
+                std::tm t{};
+                t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
+                t.tm_hour = 13;  t.tm_min = 33; t.tm_sec = 18;
+                t.tm_gmtoff = 8 * 3600;
+                t.tm_zone = z;
+
+                std::string once;
+                obj.put(std::back_inserter(once), t, std::string_view("%F %T %z %Z"));
+
+                std::tm back{};
+                parse(once, "%F %T %z %Z").convert_to(back);
+
+                std::string twice;
+                obj.put(std::back_inserter(twice), back, std::string_view("%F %T %z %Z"));
+                VERIFY(once == twice);
+            }
+        }
 
         // Only a *parsed* %z is written back. With none, the field keeps whatever the caller
         // had there -- an offset hint does not reach it either.
@@ -7470,10 +7534,17 @@ void test_timeio_char_unknown_zone_1()
         VERIFY(out.tm_year == 2024 - 1900);
         VERIFY(out.tm_hour == 13 && out.tm_min == 33 && out.tm_sec == 18);
 
-        // Parsing UNKNOWN records no zone, and like a parsed real abbreviation it leaves
-        // tm_zone alone -- the same thing strptime and std::get_time do.
+        // Parsing UNKNOWN records no zone, but it does not leave tm_zone alone either: the
+        // text said outright that there is no zone, so the preset name is cleared rather
+        // than surviving to be written back out by the next put.
 #ifdef __USE_MISC
-        VERIFY(std::string_view(out.tm_zone) == "PRESET");
+        VERIFY(out.tm_zone != nullptr && *out.tm_zone == '\0');
+
+        // And that is what closes the loop -- putting the parsed tm back reproduces the
+        // token, where keeping "PRESET" would have written that name instead.
+        std::string again;
+        obj.put(std::back_inserter(again), out, "%Y-%m-%d %H:%M:%S %Z");
+        VERIFY(again == res);
 #endif
     }
 

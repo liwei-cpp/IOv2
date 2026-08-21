@@ -9,6 +9,10 @@
 #include <support/verify.h>
 namespace
 {
+    // m_zone_name / m_zone_abbrev point into the time-zone trie rather than owning a string,
+    // so a null pointer -- not an empty one -- is what "the field was not parsed" looks like.
+    bool zone_is(const char* p, std::string_view s) { return p != nullptr && std::string_view{p} == s; }
+
     // Retrieves one conversion target from a parse context as a value.
     // time_parse_context fills into an out-parameter (convert_to) so that a std::tm keeps
     // whatever it held in fields the context does not reconstruct; these tests only ever
@@ -2766,8 +2770,8 @@ void test_timeio_char32_t_get_1()
     CheckGet(obj, U"%OY", U'Y', U'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, U"Y",   U'Y', U'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(CheckGet(obj, U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    VERIFY(zone_is(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    VERIFY(CheckGet(obj, U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == nullptr);
     CheckGet(obj, U"America/Los_Angexes", U'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, U"%EZ", U'Z', U'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, U"Z",   U'Z', U'E', IOv2::ios_defs::strfailbit, 0);
@@ -3040,8 +3044,8 @@ void test_timeio_char32_t_get_2()
     CheckGet(obj, U"%OY", U'Y', U'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, U"Y",   U'Y', U'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(CheckGet(obj, U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    VERIFY(zone_is(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    VERIFY(CheckGet(obj, U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == nullptr);
     CheckGet(obj, U"America/Los_Angexes", U'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, U"%EZ", U'Z', U'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, U"Z",   U'Z', U'E', IOv2::ios_defs::strfailbit, 0);
@@ -3329,8 +3333,8 @@ void test_timeio_char32_t_get_3()
     CheckGet(obj, U"%OY", U'Y', U'O', IOv2::ios_defs::eofbit);
     CheckGet(obj, U"Y",   U'Y', U'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(CheckGet(obj, U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    VERIFY(zone_is(CheckGet(obj, U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    VERIFY(CheckGet(obj, U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == nullptr);
     CheckGet(obj, U"America/Los_Angexes", U'Z', 0, IOv2::ios_defs::strfailbit);
     CheckGet(obj, U"%EZ", U'Z', U'E', IOv2::ios_defs::eofbit);
     CheckGet(obj, U"Z",   U'Z', U'E', IOv2::ios_defs::strfailbit, 0);
@@ -4890,8 +4894,8 @@ void test_timeio_char32_t_get_11()
     FOri(U"%OY", U'Y', U'O', IOv2::ios_defs::eofbit);
     FOri(U"Y",   U'Y', U'O', IOv2::ios_defs::strfailbit, 0);
 
-    VERIFY(FOri(U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "America/Los_Angeles");
-    VERIFY(FOri(U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == "");
+    VERIFY(zone_is(FOri(U"America/Los_Angeles", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name, "America/Los_Angeles"));
+    VERIFY(FOri(U"PST", U'Z', 0, IOv2::ios_defs::eofbit).m_zone_name == nullptr);
     FOri(U"America/Los_Angexes", U'Z', 0, IOv2::ios_defs::strfailbit);
     FOri(U"%EZ", U'Z', U'E', IOv2::ios_defs::eofbit);
     FOri(U"Z",   U'Z', U'E', IOv2::ios_defs::strfailbit, 0);
