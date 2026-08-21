@@ -54,18 +54,18 @@ var hierarchy =
       ] ]
     ] ],
     [ "IOv2::abs_ft", "structIOv2_1_1abs__ft.html", [
-      [ "IOv2::base_ft< timeio >", "classIOv2_1_1base__ft.html", [
-        [ "IOv2::ft_basic< timeio< CharT > >", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html", [
-          [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", null ]
-        ] ]
-      ] ],
       [ "IOv2::base_ft< IOv2::monetary >", "classIOv2_1_1base__ft.html", null ],
       [ "IOv2::base_ft< TFacet >", "classIOv2_1_1base__ft.html", [
         [ "IOv2::ft_basic< TFacet< CharT > >", "classIOv2_1_1ft__basic_3_01TFacet_3_01CharT_01_4_01_4.html", null ]
       ] ],
       [ "IOv2::base_ft< ctype >", "classIOv2_1_1base__ft_3_01ctype_01_4.html", null ],
       [ "IOv2::base_ft< messages >", "classIOv2_1_1base__ft_3_01messages_01_4.html", null ],
-      [ "IOv2::base_ft< monetary >", "classIOv2_1_1base__ft_3_01monetary_01_4.html", null ]
+      [ "IOv2::base_ft< monetary >", "classIOv2_1_1base__ft_3_01monetary_01_4.html", null ],
+      [ "IOv2::base_ft< timeio >", "classIOv2_1_1base__ft_3_01timeio_01_4.html", [
+        [ "IOv2::ft_basic< timeio< CharT > >", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html", [
+          [ "IOv2::timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", null ]
+        ] ]
+      ] ]
     ] ],
     [ "IOv2::abs_runtime_cvt_imp< TDevice, TInt >", "classIOv2_1_1abs__runtime__cvt__imp.html", null ],
     [ "IOv2::abs_runtime_cvt_imp< KernelType::device_type, KernelType::internal_type >", "classIOv2_1_1abs__runtime__cvt__imp.html", [
@@ -323,9 +323,9 @@ var hierarchy =
     [ "IOv2::parse_context_type< TChar, std::tm >", "structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html", null ],
     [ "IOv2::base_ft< monetary >::pattern_spec", "structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html", null ],
     [ "IOv2::prefix_tree< CharT, TValue >", "classIOv2_1_1prefix__tree.html", null ],
+    [ "IOv2::prefix_tree< char, std::string >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, int >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, std::basic_string< CharT > >", "classIOv2_1_1prefix__tree.html", null ],
-    [ "IOv2::prefix_tree< CharT, std::string >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::istreambuf_iterator< TStreamBuf >::proxy", "structIOv2_1_1istreambuf__iterator_1_1proxy.html", null ],
     [ "IOv2::put_buf_guard< TWriter >", "classIOv2_1_1put__buf__guard.html", null ],
     [ "IOv2::put_money_fn", "structIOv2_1_1put__money__fn.html", null ],

@@ -1,5 +1,6 @@
 var timeio__details_8h =
 [
+    [ "IOv2::base_ft< timeio >", "classIOv2_1_1base__ft_3_01timeio_01_4.html", "classIOv2_1_1base__ft_3_01timeio_01_4" ],
     [ "IOv2::ft_basic< timeio< CharT > >", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html", "classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4" ],
     [ "IOv2::ft_basic< timeio< CharT > >::era_entry", "structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry.html", "structIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4_1_1era__entry" ],
     [ "IOv2::timeio_conf< char >", "classIOv2_1_1timeio__conf_3_01char_01_4.html", "classIOv2_1_1timeio__conf_3_01char_01_4" ],

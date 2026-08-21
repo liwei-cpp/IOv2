@@ -79,6 +79,7 @@ var namespaceIOv2 =
     [ "base_ft< ctype >", "classIOv2_1_1base__ft_3_01ctype_01_4.html", "classIOv2_1_1base__ft_3_01ctype_01_4" ],
     [ "base_ft< messages >", "classIOv2_1_1base__ft_3_01messages_01_4.html", "classIOv2_1_1base__ft_3_01messages_01_4" ],
     [ "base_ft< monetary >", "classIOv2_1_1base__ft_3_01monetary_01_4.html", "classIOv2_1_1base__ft_3_01monetary_01_4" ],
+    [ "base_ft< timeio >", "classIOv2_1_1base__ft_3_01timeio_01_4.html", "classIOv2_1_1base__ft_3_01timeio_01_4" ],
     [ "base_streambuf", "classIOv2_1_1base__streambuf.html", "classIOv2_1_1base__streambuf" ],
     [ "basic_file_device", "classIOv2_1_1basic__file__device.html", null ],
     [ "basic_file_device< IsIn, IsOut, CharType >", "classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4.html", "classIOv2_1_1basic__file__device_3_01IsIn_00_01IsOut_00_01CharType_01_4" ],
