@@ -19,35 +19,48 @@ struct parse_context_type<TChar, std::tm>
 {
     /**
      * @lang{ZH}
-     * @brief 本上下文所处的时区档：平台的 `std::tm` 带 `tm_gmtoff` 才是 `offset`，否则是 `none`。
+     * @brief 本上下文所处的时区档：由 @ref time_value_fields<std::tm> 的两个标志位直接决定。
      *
-     * 判据与 @ref time_value_fields<std::tm>::has_offset 同源，因此 put 与 get 不会脱节。带
-     * `tm_gmtoff` 时 `%z` 两个方向都真的工作：put 由该成员算出 `+0800`，get 解析到的偏移经
-     * `convert_to(std::tm&)` 写回该成员。不带时两侧都退化为字面量——`do_put` 收到的 `zi` 是
-     * 空指针，`%z` / `%Z` 原样写出；本档为 `none`，`do_get` 的 `%z` / `%Z` 同样只匹配字面量。
+     * 判据与 put 侧同源，因此两个方向不会脱节。`std::tm` 的 `tm_gmtoff` 与 `tm_zone` 是一对
+     * 实现定义的扩展，要么都在、要么都不在（glibc 与 musl 把它们放在同一个特性宏下，BSD /
+     * macOS 无条件都有，POSIX.1-2024 是把两个一起加进标准的），所以本判据实际只在 `zone`
+     * 与 `none` 之间取值，`offset` 那一支留给将来可能出现的、只有其中一个的平台。
      *
-     * 若此处写死 `offset`，在没有 `tm_gmtoff` 的平台上 put 会写出字面的 `%z`，get 却要求读到
-     * `+0800`，往返就断了；而且解析出的偏移没有成员可以写回，纯属白做。
+     * 两个成员都在时，`%z` 与 `%Z` 两个方向都真的工作：put 由 `tm_gmtoff` 算出 `+0800`、把
+     * `tm_zone` 原样写出，get 解析到的偏移与区名经 `convert_to(std::tm&)` 写回这两个成员。
+     * 都不在时两侧一同退化为字面量——`do_put` 收到的 `zi` 是空指针，`%z` / `%Z` 原样写出；
+     * 本档为 `none`，`do_get` 的两个说明符同样只匹配字面量。
+     *
+     * 若此处写死某一档，在成员缺失的平台上 put 会写出字面的 `%z`，get 却要求读到 `+0800`，
+     * 往返就断了；而且解析出的值没有成员可以写回，纯属白做。
      * @endif
      *
      * @lang{EN}
-     * @brief The tier this context sits at: `offset` when the platform's `std::tm` carries
-     *        `tm_gmtoff`, `none` otherwise.
+     * @brief The tier this context sits at, decided directly by the two flags in
+     *        @ref time_value_fields<std::tm>.
      *
-     * The test is the one @ref time_value_fields<std::tm>::has_offset uses, so put and get
-     * cannot drift apart. With `tm_gmtoff`, `%z` really works both ways: put computes `+0800`
-     * from that member, and the offset get parses is written back to it by
-     * `convert_to(std::tm&)`. Without it both sides degrade to literals -- `do_put` receives a
-     * null `zi` and writes `%z` / `%Z` verbatim, and at this `none` tier `do_get` likewise
-     * matches only the literals.
+     * The test is the one put uses, so the two directions cannot drift apart. A `std::tm`'s
+     * `tm_gmtoff` and `tm_zone` are a pair of implementation-defined extensions that are either
+     * both present or both absent (glibc and musl put them behind one feature macro, BSD and
+     * macOS have both unconditionally, and POSIX.1-2024 added the two together), so in practice
+     * this picks between `zone` and `none`; the `offset` arm is there for a platform that might
+     * one day carry only one of them.
      *
-     * Hard-coding `offset` here would break the round trip on a platform lacking `tm_gmtoff`:
-     * put would write a literal `%z` while get demanded a real `+0800`, and any offset parsed
-     * would have no member to be written back to.
+     * With both members, `%z` and `%Z` really work both ways: put computes `+0800` from
+     * `tm_gmtoff` and writes `tm_zone` out verbatim, and the offset and zone get parses are
+     * written back to those members by `convert_to(std::tm&)`. With neither, both sides degrade
+     * to literals together -- `do_put` receives a null `zi` and writes `%z` / `%Z` verbatim, and
+     * at this `none` tier `do_get` likewise matches only the literals.
+     *
+     * Hard-coding a tier here would break the round trip on a platform lacking the members: put
+     * would write a literal `%z` while get demanded a real `+0800`, and any value parsed would
+     * have no member to be written back to.
      * @endif
      */
     static constexpr tz_level tm_parse_tz_level =
-        time_value_fields<std::tm>::has_offset ? tz_level::offset : tz_level::none;
+        time_value_fields<std::tm>::has_zone   ? tz_level::zone
+      : time_value_fields<std::tm>::has_offset ? tz_level::offset
+                                               : tz_level::none;
 
     using type = time_parse_context<TChar, true, true, tm_parse_tz_level>;
 
@@ -57,10 +70,9 @@ struct parse_context_type<TChar, std::tm>
      *
      * 返回的上下文的日期与时间字段被预置为 @p tmb 中的对应值，因此随后 `get()` 未解析到的
      * 字段会保留 @p tmb 的取值，而不是退回默认构造所采用的挂钟时间。`std::tm` 只带得动部分
-     * 时区信息（`tm_gmtoff` / `tm_zone`，还是实现定义的扩展），带不动区域身份，所以 `type`
-     * 最高只到 tz_level::offset 这一档：`%z` / `%Z` 能解析，但只有偏移会被写回 `tm_gmtoff`。
-     * 平台连 `tm_gmtoff` 都没有时则退到 tz_level::none，两个说明符一律按字面量处理，
-     * 见 @ref tm_parse_tz_level。
+     * 时区信息（`tm_gmtoff` / `tm_zone`，还是实现定义的扩展），所以 `type` 的档位随这两个
+     * 成员而定：都在时是 tz_level::zone，`%z` / `%Z` 都解析、也都写得回去；都不在时退到
+     * tz_level::none，两个说明符一律按字面量处理。见 @ref tm_parse_tz_level。
      *
      * 归一化只用 `std::chrono` 完成，**不经 `mktime()`**：后者依赖 `TZ` 环境变量、会因夏令时
      * 而平移小时数、写入 `tzset()` 的全局状态，且在部分实现上对 1970 年之前的时间直接失败——
@@ -85,10 +97,10 @@ struct parse_context_type<TChar, std::tm>
      * subsequent `get()` does not parse keeps the value it had in @p tmb rather than falling
      * back to the wall-clock time a default-constructed context uses. A `std::tm` can carry
      * only part of a time zone (`tm_gmtoff` / `tm_zone`, and those are implementation-defined
-     * extensions) and no zone identity at all, so `type` reaches at most the `tz_level::offset`
-     * tier: `%z` / `%Z` parse, but only the offset is written back, into `tm_gmtoff`. On a
-     * platform without even `tm_gmtoff` it drops to `tz_level::none`, where both specifiers are
-     * treated as literals; see @ref tm_parse_tz_level.
+     * extensions), so `type`'s tier follows those two members: with both it is
+     * `tz_level::zone`, where `%z` and `%Z` both parse and both are written back; with neither
+     * it drops to `tz_level::none`, where both specifiers are treated as literals. See
+     * @ref tm_parse_tz_level.
      *
      * Normalization is done purely with `std::chrono`, **not through `mktime()`**: that
      * function depends on the `TZ` environment variable, shifts the hour across a DST boundary,
@@ -258,9 +270,9 @@ struct io_traits<TChar, std::tm>
  * @brief 日期＋时间解析上下文的抽取实现，对全部三个时区档通用。
  *
  * 之所以对 `TzLevel` 做偏特化而不是钉死某一档：`parse_context_type<TChar, std::tm>::type`
- * 的档位取决于平台的 `std::tm` 有没有 `tm_gmtoff`（见
- * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level），只特化 `tz_level::offset`
- * 会让不带该成员的平台找不到 `io_traits`。三个档在这里的行为一致——都用
+ * 的档位取决于平台的 `std::tm` 有没有 `tm_gmtoff` / `tm_zone`（见
+ * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level），只特化其中一档
+ * 会让别的平台找不到 `io_traits`。三个档在这里的行为一致——都用
  * @ref detail::tm_stream_format 抽取——档位只影响 `do_get` 内部 `%z` / `%Z` 是真解析还是
  * 退化为字面量。
  *
@@ -272,9 +284,9 @@ struct io_traits<TChar, std::tm>
  *
  * Why this is partially specialized on `TzLevel` rather than pinned to one tier:
  * `parse_context_type<TChar, std::tm>::type` picks its tier from whether the platform's
- * `std::tm` has `tm_gmtoff` (see @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level),
- * so specializing only `tz_level::offset` would leave a platform without that member with no
- * `io_traits` at all. All three tiers behave alike here -- extraction goes through
+ * `std::tm` has `tm_gmtoff` / `tm_zone` (see
+ * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level), so specializing just one tier
+ * would leave some other platform with no `io_traits` at all. All three tiers behave alike here -- extraction goes through
  * @ref detail::tm_stream_format -- the tier only decides whether `%z` / `%Z` really parse or
  * degrade to literals inside `do_get`.
  *

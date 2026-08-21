@@ -673,23 +673,53 @@ struct time_parse_helper<true>
  * @lang{ZH}
  * @brief 解析上下文所携带的时区信息档位。
  *
- * 三档是累积的：`zone` 的存储包含 `offset`，`offset` 的存储包含 `none`。档位决定调用方
- * 能取出什么、以及要不要引入 tz 数据库依赖；它不决定解析器允许记录什么。
+ * 每一档回答两个问题——`%z` 解不解析、`%Z` 解不解析——两个说明符在不解析的那一档按
+ * 字面量处理，与 put 对同一类值的退化正好对上：
+ *
+ * | 档 | `%z` | `%Z` | `time_value_fields` | 对应的值类型 |
+ * |---|---|---|---|---|
+ * | `none`   | 字面量 | 字面量 | `has_offset` 假、`has_zone` 假 | `year_month_day`、`hh_mm_ss` |
+ * | `offset` | 解析   | 字面量 | `has_offset` 真、`has_zone` 假 | `local_time` |
+ * | `zone`   | 解析   | 解析   | 两者皆真                       | `std::tm`、`sys_time`、`zoned_time` |
+ *
+ * 第四种组合（`%z` 字面量、`%Z` 解析）不存在，也不需要：能说出区名的值必然说得出偏移。
+ * 于是三档仍然是累积的，`zone` 的存储包含 `offset`，`offset` 的包含 `none`。
+ *
+ * 偏移与区名之所以叠在一档而不是像 `HaveDate` / `HaveTime` 那样各占一个独立开关：它们是
+ * 同一件事的两种说法，转换的工作恰恰是把两者对上——`convert_to(sys_time&)` 的取值阶梯
+ * 一条链上同时读两边，`convert_to(zoned_time&)` 还要拿解析到的偏移去校验解析到的区。日期
+ * 与时间没有这种纠缠，所以那两个才是独立的。
  * @endif
  *
  * @lang{EN}
  * @brief The tier of time-zone information a parse context carries.
  *
- * The three tiers are cumulative: `zone` storage contains `offset`, which contains `none`.
- * The tier decides what the caller can extract and whether the tz database becomes a
- * dependency; it does not decide what the parser is allowed to record.
+ * Each tier answers two questions -- is `%z` parsed, is `%Z` parsed -- and a specifier the
+ * tier does not parse is matched literally, which is exactly what put degrades it to for the
+ * corresponding values:
+ *
+ * | Tier | `%z` | `%Z` | `time_value_fields` | Value types |
+ * |---|---|---|---|---|
+ * | `none`   | literal | literal | `has_offset` and `has_zone` false | `year_month_day`, `hh_mm_ss` |
+ * | `offset` | parsed  | literal | `has_offset` true, `has_zone` false | `local_time` |
+ * | `zone`   | parsed  | parsed  | both true | `std::tm`, `sys_time`, `zoned_time` |
+ *
+ * The fourth combination -- `%z` literal, `%Z` parsed -- does not arise and is not needed: a
+ * value able to name a zone can always produce an offset. The three tiers therefore remain
+ * cumulative, `zone` storage containing `offset`, which contains `none`.
+ *
+ * Offset and zone share one tier rather than getting independent switches the way `HaveDate`
+ * and `HaveTime` do because they are two descriptions of one thing, and reconciling them is
+ * precisely what conversion does: the ladder in `convert_to(sys_time&)` reads both along one
+ * chain, and `convert_to(zoned_time&)` checks the parsed offset against the parsed zone. Date
+ * and time have no such entanglement, which is why those two are separate.
  * @endif
  */
 enum class tz_level : unsigned char
 {
-    none   = 0, ///< @lang{ZH} 不携带时区字段。 @endif @lang{EN} Carries no time-zone field. @endif
-    offset = 1, ///< @lang{ZH} UTC 偏移，外加 `%Z` 读到的缩写原文。 @endif @lang{EN} A UTC offset, plus the raw abbreviation read by `%Z`. @endif
-    zone   = 2, ///< @lang{ZH} 在 `offset` 之上再加区域身份（IANA 名）。 @endif @lang{EN} Everything in `offset`, plus the zone identity (IANA name). @endif
+    none   = 0, ///< @lang{ZH} 不携带时区字段，`%z` 与 `%Z` 都按字面量处理。 @endif @lang{EN} Carries no time-zone field; `%z` and `%Z` are both matched literally. @endif
+    offset = 1, ///< @lang{ZH} 解析 `%z` 的 UTC 偏移；`%Z` 仍按字面量处理。 @endif @lang{EN} Parses the UTC offset from `%z`; `%Z` is still matched literally. @endif
+    zone   = 2, ///< @lang{ZH} 在 `offset` 之上再解析 `%Z`，得到区域身份与缩写。 @endif @lang{EN} Everything in `offset`, plus `%Z` parsed into a zone identity and abbreviation. @endif
 };
 
 /// @cond
@@ -780,92 +810,6 @@ struct time_zone_parse_helper<tz_level::offset>
         m_have_offset_hint = true;
     }
 
-    /**
-     * @lang{ZH}
-     * @brief `%Z` 读到的、tzdb 认得的那个标识符，指向时区前缀树内的存储。
-     *
-     * 只在 `%Z` 匹配到的文本是 `tzdb.zones` 或 `tzdb.links` 里的名字时才非空，因此
-     * 「非空」与「`std::chrono::locate_zone()` 定得到」是同一件事，判它就够了，不必先去
-     * 定位一次。反过来，纯缩写（本机 179 条里的 171 条）在这里永远是 `nullptr`——那是
-     * @ref m_zone_abbrev 的事。两者同时非空的条目有 8 个（`CET`、`EET`、`EST`、`GMT`、
-     * `HST`、`MST`、`UTC`、`WET`），它们既是 link 名又是缩写。
-     *
-     * 存的是**原文，不做规范化**：解析 `US/Pacific` 得到的就是 `US/Pacific`，解析 `EST`
-     * 得到的就是 `EST`。要规范名请用 `tz_level::zone` 档的
-     * `convert_to(const std::chrono::time_zone*&)` 拿到时区再取 `name()`——`locate_zone`
-     * 自己会归一化，没有理由在这里再存一份；而原文是 `std::tm::tm_zone` 往返所必需的。
-     *
-     * 本字段两档都有，因为 `tz_level::offset` 档的 `std::tm` 同样要靠它还原 `tm_zone`；
-     * 档位管的是解析之后**能不能拿去定位**，不是能不能记下来。
-     *
-     * 指向的存储在时区前缀树里，随程序始终有效。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief The tzdb-known identifier read by `%Z`, pointing into the time-zone trie's storage.
-     *
-     * Non-null only when the text `%Z` matched is a name in `tzdb.zones` or `tzdb.links`, so
-     * "non-null" and "`std::chrono::locate_zone()` resolves it" are one and the same: testing
-     * the pointer is enough, with no need to locate first. Conversely a bare abbreviation (171
-     * of the 179 here) always leaves this `nullptr` -- that is @ref m_zone_abbrev's business.
-     * Eight entries set both (`CET`, `EET`, `EST`, `GMT`, `HST`, `MST`, `UTC`, `WET`), each
-     * being a link name and an abbreviation at once.
-     *
-     * What is stored is the text **verbatim, not canonicalized**: parsing `US/Pacific` yields
-     * `US/Pacific` and parsing `EST` yields `EST`. For the canonical name, take the zone from
-     * the `tz_level::zone` tier's `convert_to(const std::chrono::time_zone*&)` and read its
-     * `name()` -- `locate_zone` normalizes on its own and there is no reason to keep a second
-     * copy here, whereas the verbatim text is what a `std::tm::tm_zone` round trip needs.
-     *
-     * Both tiers carry this field, because a `std::tm` at `tz_level::offset` needs it just as
-     * much to restore `tm_zone`: the tier governs whether the parsed text can be **resolved**,
-     * not whether it can be recorded.
-     *
-     * The pointee lives in the time-zone trie and stays valid for the whole program.
-     * @endif
-     */
-    const char* m_zone_name = nullptr;
-
-    /**
-     * @lang{ZH}
-     * @brief `%Z` 读到的原文，指向时区前缀树内的存储。
-     *
-     * 三个状态，别把后两个混为一谈：
-     * - `nullptr`：`%Z` 压根没解析到（格式串里没有，或者有但没匹配上）；
-     * - 指向空串：解析到了 @ref base_ft<timeio>::s_unknown_zone，即文本明说「没有时区」；
-     * - 指向非空串：解析到了真实的缩写或区名，原文逐字节保留，不做规范化。
-     *
-     * 于是有两个不同的判据，别互相顶替：问「有没有时区」用 `p && *p`（与 put 侧
-     * `t.tm_zone && *t.tm_zone` 对称）；问「`%Z` 有没有解析到东西」只看 `p`——回写
-     * `std::tm::tm_zone` 用的是后者，空串正是要写进去的值。
-     *
-     * 指向的存储在时区前缀树里，随程序始终有效，因此可以直接交给 `tm_zone` 这类只收
-     * `const char*` 又没有释放接口的字段。本档不解析它：能不能定位到时区是
-     * `tz_level::zone` 才关心的事。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief The raw text read by `%Z`, pointing into the time-zone trie's storage.
-     *
-     * Three states, and the latter two are not the same thing:
-     * - `nullptr`: no `%Z` was parsed at all (none in the format, or one that did not match);
-     * - pointing at an empty string: @ref base_ft<timeio>::s_unknown_zone was parsed, i.e. the
-     *   text says outright that there is no zone;
-     * - pointing at a non-empty string: a real abbreviation or zone name was parsed, kept byte
-     *   for byte and not canonicalized.
-     *
-     * Two distinct tests follow, and neither substitutes for the other: ask "is there a zone"
-     * with `p && *p` (symmetric with the put side's `t.tm_zone && *t.tm_zone`); ask "did `%Z`
-     * parse anything" with just `p` -- writing back to `std::tm::tm_zone` uses the latter,
-     * because the empty string is precisely the value to write there.
-     *
-     * The pointee lives in the time-zone trie and stays valid for the whole program, so it may
-     * be handed straight to a field such as `tm_zone`, which takes a `const char*` and offers
-     * no matching release call. This tier does not resolve it: whether it locates a zone is
-     * `tz_level::zone`'s concern.
-     * @endif
-     */
-    const char*          m_zone_abbrev = nullptr;
     std::chrono::minutes m_offset{0};        // %z
     std::chrono::minutes m_offset_hint{0};
     bool m_have_offset = false;
@@ -989,6 +933,93 @@ struct time_zone_parse_helper<tz_level::zone>
     {
         m_zone_hint = hint;
     }
+
+    /**
+     * @lang{ZH}
+     * @brief `%Z` 读到的、tzdb 认得的那个标识符，指向时区前缀树内的存储。
+     *
+     * 只在 `%Z` 匹配到的文本是 `tzdb.zones` 或 `tzdb.links` 里的名字时才非空，因此
+     * 「非空」与「`std::chrono::locate_zone()` 定得到」是同一件事，判它就够了，不必先去
+     * 定位一次。反过来，纯缩写（本机 179 条里的 171 条）在这里永远是 `nullptr`——那是
+     * @ref m_zone_abbrev 的事。两者同时非空的条目有 8 个（`CET`、`EET`、`EST`、`GMT`、
+     * `HST`、`MST`、`UTC`、`WET`），它们既是 link 名又是缩写。
+     *
+     * 存的是**原文，不做规范化**：解析 `US/Pacific` 得到的就是 `US/Pacific`，解析 `EST`
+     * 得到的就是 `EST`。要规范名请用 `tz_level::zone` 档的
+     * `convert_to(const std::chrono::time_zone*&)` 拿到时区再取 `name()`——`locate_zone`
+     * 自己会归一化，没有理由在这里再存一份；而原文是 `std::tm::tm_zone` 往返所必需的。
+     *
+     * 本字段两档都有，因为 `tz_level::offset` 档的 `std::tm` 同样要靠它还原 `tm_zone`；
+     * 档位管的是解析之后**能不能拿去定位**，不是能不能记下来。
+     *
+     * 指向的存储在时区前缀树里，随程序始终有效。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The tzdb-known identifier read by `%Z`, pointing into the time-zone trie's storage.
+     *
+     * Non-null only when the text `%Z` matched is a name in `tzdb.zones` or `tzdb.links`, so
+     * "non-null" and "`std::chrono::locate_zone()` resolves it" are one and the same: testing
+     * the pointer is enough, with no need to locate first. Conversely a bare abbreviation (171
+     * of the 179 here) always leaves this `nullptr` -- that is @ref m_zone_abbrev's business.
+     * Eight entries set both (`CET`, `EET`, `EST`, `GMT`, `HST`, `MST`, `UTC`, `WET`), each
+     * being a link name and an abbreviation at once.
+     *
+     * What is stored is the text **verbatim, not canonicalized**: parsing `US/Pacific` yields
+     * `US/Pacific` and parsing `EST` yields `EST`. For the canonical name, take the zone from
+     * the `tz_level::zone` tier's `convert_to(const std::chrono::time_zone*&)` and read its
+     * `name()` -- `locate_zone` normalizes on its own and there is no reason to keep a second
+     * copy here, whereas the verbatim text is what a `std::tm::tm_zone` round trip needs.
+     *
+     * Both tiers carry this field, because a `std::tm` at `tz_level::offset` needs it just as
+     * much to restore `tm_zone`: the tier governs whether the parsed text can be **resolved**,
+     * not whether it can be recorded.
+     *
+     * The pointee lives in the time-zone trie and stays valid for the whole program.
+     * @endif
+     */
+    const char* m_zone_name = nullptr;
+
+    /**
+     * @lang{ZH}
+     * @brief `%Z` 读到的原文，指向时区前缀树内的存储。
+     *
+     * 三个状态，别把后两个混为一谈：
+     * - `nullptr`：`%Z` 压根没解析到（格式串里没有，或者有但没匹配上）；
+     * - 指向空串：解析到了 @ref base_ft<timeio>::s_unknown_zone，即文本明说「没有时区」；
+     * - 指向非空串：解析到了真实的缩写或区名，原文逐字节保留，不做规范化。
+     *
+     * 于是有两个不同的判据，别互相顶替：问「有没有时区」用 `p && *p`（与 put 侧
+     * `t.tm_zone && *t.tm_zone` 对称）；问「`%Z` 有没有解析到东西」只看 `p`——回写
+     * `std::tm::tm_zone` 用的是后者，空串正是要写进去的值。
+     *
+     * 指向的存储在时区前缀树里，随程序始终有效，因此可以直接交给 `tm_zone` 这类只收
+     * `const char*` 又没有释放接口的字段。本档不解析它：能不能定位到时区是
+     * `tz_level::zone` 才关心的事。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief The raw text read by `%Z`, pointing into the time-zone trie's storage.
+     *
+     * Three states, and the latter two are not the same thing:
+     * - `nullptr`: no `%Z` was parsed at all (none in the format, or one that did not match);
+     * - pointing at an empty string: @ref base_ft<timeio>::s_unknown_zone was parsed, i.e. the
+     *   text says outright that there is no zone;
+     * - pointing at a non-empty string: a real abbreviation or zone name was parsed, kept byte
+     *   for byte and not canonicalized.
+     *
+     * Two distinct tests follow, and neither substitutes for the other: ask "is there a zone"
+     * with `p && *p` (symmetric with the put side's `t.tm_zone && *t.tm_zone`); ask "did `%Z`
+     * parse anything" with just `p` -- writing back to `std::tm::tm_zone` uses the latter,
+     * because the empty string is precisely the value to write there.
+     *
+     * The pointee lives in the time-zone trie and stays valid for the whole program, so it may
+     * be handed straight to a field such as `tm_zone`, which takes a `const char*` and offers
+     * no matching release call. This tier does not resolve it: whether it locates a zone is
+     * `tz_level::zone`'s concern.
+     * @endif
+     */
+    const char*          m_zone_abbrev = nullptr;
 
     const std::chrono::time_zone* m_zone_hint = nullptr;
 };
@@ -1521,7 +1552,7 @@ struct time_parse_context
                     seconds{this->m_offset}.count());
         }
 
-        if constexpr ((TzLevel >= tz_level::offset) && (requires { out.tm_zone; }))
+        if constexpr ((TzLevel == tz_level::zone) && (requires { out.tm_zone; }))
         {
             const char* zone = this->m_zone_abbrev ? this->m_zone_abbrev : this->m_zone_name;
             if (zone) out.tm_zone = const_cast<decltype(out.tm_zone)>(zone);
@@ -1541,8 +1572,9 @@ struct time_parse_context
  * 主模板**不定义**：不在 `put` 支持范围内的类型在此报错，而不是悄悄按「什么都供不出」处理。
  *
  * @note 星期不单独占一位：`put` 只要给得出 `ymd` 就一并给得出 `wd`，两者从不分家。
- * @note `has_zone` 说的是 `%Z` 有没有内容可写，不是 `tz_level`。`sys_time` 在 get 侧是
- *       `tz_level::offset` 档，但 put 侧它的 `%Z` 写 `UTC`，所以这里 `has_zone` 为 `true`。
+ * @note 本表的 `has_offset` / `has_zone` 与 get 侧的 @ref tz_level 是同一个判据的两侧：
+ *       两者皆假 → `tz_level::none`，只有 `has_offset` → `tz_level::offset`，两者皆真 →
+ *       `tz_level::zone`。put 摘掉的说明符，get 恰好按字面量匹配，往返因此闭合。
  * @tparam TVal 时间值类型。
  * @endif
  *
@@ -1561,9 +1593,10 @@ struct time_parse_context
  *
  * @note The weekday gets no flag of its own: whenever `put` can supply `ymd` it supplies `wd`
  *       as well, and the two never come apart.
- * @note `has_zone` says whether `%Z` has anything to write, and is not a `tz_level`. A
- *       `sys_time` sits at the `tz_level::offset` tier on the get side, yet its `%Z` writes
- *       `UTC` on the put side, so `has_zone` is `true` here.
+ * @note This table's `has_offset` / `has_zone` and the get side's @ref tz_level are two views
+ *       of one test: neither flag means `tz_level::none`, `has_offset` alone means
+ *       `tz_level::offset`, and both mean `tz_level::zone`. A specifier put trims is exactly
+ *       one get matches literally, which is what closes the round trip.
  * @tparam TVal The time value type.
  * @endif
  */
@@ -3655,22 +3688,17 @@ private:
                 break;
 
             case static_cast<CharT>('Z'):
-                if constexpr (TzLevel == tz_level::none) goto bad_parse_format;
+                // Below tz_level::zone this specifier is matched literally, which is what put
+                // degrades it to for a value with no zone to name.
+                if constexpr (TzLevel != tz_level::zone) goto bad_parse_format;
                 else
                 {
                     if (modifier) goto bad_parse_format;
                     typename decltype(base_ft<timeio>::s_timezone_tree)::match_out_type zone_res;
                     rp = base_ft<timeio>::s_timezone_tree.max_match(rp, rp_end, zone_res);
-                    if (!zone_res)
-                    {
-                        if constexpr (TzLevel == tz_level::zone) { succ = false; return rp; }
-                        else goto bad_parse_format;
-                    }
-                    else
-                    {
-                        if (zone_res->is_name)   ctx.m_zone_name   = zone_res->text.c_str();
-                        if (zone_res->is_abbrev) ctx.m_zone_abbrev = zone_res->text.c_str();
-                    }
+                    if (!zone_res) { succ = false; return rp; }
+                    if (zone_res->is_name)   ctx.m_zone_name   = zone_res->text.c_str();
+                    if (zone_res->is_abbrev) ctx.m_zone_abbrev = zone_res->text.c_str();
                 }
                 break;
 

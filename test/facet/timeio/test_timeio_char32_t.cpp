@@ -5197,8 +5197,10 @@ void test_timeio_char32_t_get_13()
     VERIFY(zone_ok(U"America/Los_Angeles", U"%Z"));
     VERIFY(!zone_ok(U"XYZ", U"%Z"));
 
-    VERIFY(off_ok(U"PDT", U"%Z"));
-    VERIFY(off_ok(U"America/Los_Angeles", U"%Z"));
+    // A zone token parses at tz_level::zone and only there: below it the format is
+    // asking for the two characters %Z, which no real token matches.
+    VERIFY(!off_ok(U"PDT", U"%Z"));
+    VERIFY(!off_ok(U"America/Los_Angeles", U"%Z"));
     VERIFY(!off_ok(U"XYZ", U"%Z"));
 
     // The literal %Z, which is what put writes when the value has no zone to offer.

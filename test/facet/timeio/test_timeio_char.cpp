@@ -6648,9 +6648,10 @@ void test_timeio_char_put_20()
     dump_info("Done\n");
 }
 
-// put(sys_time) and put(local_time, offset): the two values that sit at tz_level::offset on the
-// write side. Both carry an offset but no zone identity, so %z always emits while %Z has only
-// what the value can name -- "UTC" for a sys_time, nothing at all for a local_time.
+// put(sys_time) and put(local_time, offset): both carry an offset, and they part company on the
+// zone. %z always emits for either; %Z has "UTC" for a sys_time, which is why that type reads
+// back at tz_level::zone, and nothing at all for a local_time, which is what tz_level::offset
+// exists for -- there %Z degrades to a literal on both sides.
 void test_timeio_char_put_21()
 {
     dump_info("Test timeio<char> put 21...");
@@ -6741,8 +6742,8 @@ void test_timeio_char_put_21()
     dump_info("Done\n");
 }
 
-// The tz_level::offset tier, which no other test reaches: %z and %Z both parse, the offset is
-// kept and the zone text is kept verbatim, and nothing is ever resolved against the tz database.
+// The tz_level::zone tier as a std::tm reaches it: %z and %Z both parse, the offset and the
+// zone text are kept verbatim, and convert_to(std::tm&) writes both back.
 void test_timeio_char_get_20()
 {
     dump_info("Test timeio<char> get 20...");
@@ -6750,16 +6751,16 @@ void test_timeio_char_get_20()
 
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
 
-    using ctx_offset = IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset>;
+    using ctx_zone = IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone>;
     auto parse = [&obj](const std::string& in, const char* fmt)
     {
-        ctx_offset ctx;
+        ctx_zone ctx;
         VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view(fmt)) == in.end());
         return ctx;
     };
     auto rejects = [&obj](const std::string& in, const char* fmt)
     {
-        ctx_offset ctx;
+        ctx_zone ctx;
         try { obj.get(in.begin(), in.end(), ctx, std::string_view(fmt)); }
         catch (IOv2::stream_error&) { return true; }
         return false;
@@ -6812,7 +6813,7 @@ void test_timeio_char_get_20()
         parse("+0800", "%z").convert_to(off);
         VERIFY(off == minutes{480});
 
-        ctx_offset ctx;
+        ctx_zone ctx;
         bool threw = false;
         try { ctx.convert_to(off); } catch (IOv2::stream_error&) { threw = true; }
         VERIFY(threw);
@@ -6880,7 +6881,7 @@ void test_timeio_char_get_20()
         // had there -- an offset hint does not reach it either.
         std::tm keep{};
         keep.tm_gmtoff = 12345;
-        ctx_offset ctx;
+        ctx_zone ctx;
         ctx.set_hint(minutes{60});
         const std::string in = "2024-09-04 13:33:18";
         VERIFY(obj.get(in.begin(), in.end(), ctx, std::string_view("%F %T")) == in.end());
@@ -6897,7 +6898,7 @@ void test_timeio_char_get_20()
         VERIFY(res == "2024-09-04 13:33:18 -0700");
 
         std::tm back{};
-        ctx_offset ctx2;
+        ctx_zone ctx2;
         VERIFY(obj.get(res.begin(), res.end(), ctx2, std::string_view("%F %T %z")) == res.end());
         ctx2.convert_to(back);
         VERIFY(back.tm_gmtoff == -7 * 3600);
@@ -7044,7 +7045,7 @@ void test_timeio_char_get_22()
 
     auto parses = [&obj](const std::string& in)
     {
-        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
         try { return obj.get(in.begin(), in.end(), ctx, std::string_view("%Z")) == in.end(); }
         catch (IOv2::stream_error&) { return false; }
     };
@@ -7085,7 +7086,7 @@ void test_timeio_char_get_22()
     // %Z in the format still catches that, and this pins the cost down to %Z-at-the-end.
     VERIFY(!parses("XYZ"));
     {
-        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
         const std::string in = "ATL 11:22";
         bool threw = false;
         try { obj.get(in.begin(), in.end(), ctx, std::string_view("%Z %H:%M")); }
@@ -7116,7 +7117,7 @@ void test_timeio_char_get_22()
         obj.put(std::back_inserter(res), t, std::string_view("%F %T %z %Z"));
         VERIFY(res == "1943-07-01 12:00:00 -0400 EWT");
 
-        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
         VERIFY(obj.get(res.begin(), res.end(), ctx, std::string_view("%F %T %z %Z")) == res.end());
         VERIFY(ctx.m_offset == -minutes{240});
     }
@@ -7124,11 +7125,10 @@ void test_timeio_char_get_22()
     dump_info("Done\n");
 }
 
-// %Z is the one specifier whose supply is a run-time property of the value -- a std::tm has an
-// abbreviation only if tm_zone is set -- so the compile-time tier cannot decide it and put may
-// degrade where get would parse. These cases pin the two tiers apart: tz_level::offset takes the
-// literal back so the degradation stays symmetric, tz_level::zone stays strict because there %Z
-// picks the zone and put never degrades it.
+// The two tiers pinned apart. Whether %Z parses is the tier's decision and nothing else's:
+// tz_level::offset matches it literally, which is exactly what put degrades it to for a value
+// with no zone to name, and tz_level::zone parses it against the trie. Neither tier looks at
+// what the trie happens to contain to decide which of the two it is doing.
 void test_timeio_char_get_23()
 {
     dump_info("Test timeio<char> get 23...");
@@ -7153,23 +7153,28 @@ void test_timeio_char_get_23()
     VERIFY(off_ok("%Z", "%Z"));
     VERIFY(!zone_ok("%Z", "%Z"));
 
-    // Everything else is unchanged at both tiers: real zones still parse, and a run of letters
-    // the database does not know is still rejected rather than swallowed as a literal.
-    VERIFY(off_ok("UTC", "%Z"));
+    // A real zone token parses at tz_level::zone and only there. At tz_level::offset the format
+    // is asking for the two characters %Z, which "UTC" is not -- put never writes a zone token
+    // for a value that parses at that tier, so there is nothing to read back.
     VERIFY(zone_ok("UTC", "%Z"));
-    VERIFY(off_ok("PDT", "%Z"));
+    VERIFY(!off_ok("UTC", "%Z"));
     VERIFY(zone_ok("PDT", "%Z"));
-    VERIFY(!off_ok("XYZ", "%Z"));
-    VERIFY(!zone_ok("XYZ", "%Z"));
+    VERIFY(!off_ok("PDT", "%Z"));
 
-    // The fallback is the literal for *this* specifier, not for any percent sequence.
+    // A run of letters the database does not know is rejected at both, for different reasons:
+    // no trie entry at one tier, no literal match at the other.
+    VERIFY(!zone_ok("XYZ", "%Z"));
+    VERIFY(!off_ok("XYZ", "%Z"));
+
+    // The literal is for *this* specifier, not for any percent sequence.
     VERIFY(!off_ok("%z", "%Z"));
     VERIFY(!off_ok("%Q", "%Z"));
 
-    // The round trip it exists for: a std::tm with no zone, through a format carrying %Z. On a
-    // platform with tm_zone the field exists but names nothing, so put writes the unknown-zone
-    // token and the trie reads it back; without tm_gmtoff the type has no zone at all and %Z
-    // degrades to a literal, which the fallback above reads back instead. Either way it closes.
+    // The round trip it exists for: a std::tm with no zone, through a format carrying %Z. Each
+    // platform reads it back at the tier its own std::tm sits at. With tm_zone the field exists
+    // but names nothing, so put writes the unknown-zone token and the zone tier reads it back;
+    // without the extension members the type has no zone at all, put degrades %Z to a literal,
+    // and the tiers below zone match that literal. Either way it closes.
     {
         std::tm t{};
         t.tm_year = 124; t.tm_mon = 8; t.tm_mday = 4;
@@ -7179,10 +7184,11 @@ void test_timeio_char_get_23()
         obj.put(std::back_inserter(res), t, std::string_view("%F %T %Z"));
 #ifdef __USE_MISC
         VERIFY(res == "2024-09-04 13:33:18 UNKNOWN");
+        VERIFY(zone_ok(res, "%F %T %Z"));
 #else
         VERIFY(res == "2024-09-04 13:33:18 %Z");
-#endif
         VERIFY(off_ok(res, "%F %T %Z"));
+#endif
     }
 
     // The same round trip through a locale whose own %c carries %Z, which is how this reaches
@@ -7196,7 +7202,7 @@ void test_timeio_char_get_23()
         std::string res;
         us.put(std::back_inserter(res), t, std::string_view("%c"));
 
-        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
         VERIFY(us.get(res.begin(), res.end(), ctx, std::string_view("%c")) == res.end());
     }
 
@@ -7524,7 +7530,7 @@ void test_timeio_char_unknown_zone_1()
         obj.put(std::back_inserter(res), tp, "%Y-%m-%d %H:%M:%S %Z");
         VERIFY(res == "2024-09-04 13:33:18 UNKNOWN");
 
-        IOv2::time_parse_context<char, true, true, IOv2::tz_level::offset> ctx;
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
         auto it = obj.get(res.cbegin(), res.cend(), ctx, "%Y-%m-%d %H:%M:%S %Z");
         VERIFY(it == res.cend());
 
@@ -7558,7 +7564,7 @@ void test_timeio_char_unknown_zone_1()
         obj.put(std::back_inserter(res), named, "%H:%M:%S %Z");
         VERIFY(res == "13:33:18 PST");
 
-        IOv2::time_parse_context<char, false, true, IOv2::tz_level::offset> ctx;
+        IOv2::time_parse_context<char, false, true, IOv2::tz_level::zone> ctx;
         auto it = obj.get(res.cbegin(), res.cend(), ctx, "%H:%M:%S %Z");
         VERIFY(it == res.cend());
     }
