@@ -13,6 +13,7 @@
 #include <io/iostream.h>
 #include <support/dump_info.h>
 #include <support/file_guard.h>
+#include <support/injectable_device.h>
 #include <support/io_traits_probe.h>
 #include <support/verify.h>
 
@@ -453,6 +454,66 @@ void test_istream_extractors_character_char_9()
 
     helper.operator()<IOv2::istream>();
     helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_extractors_character_char_10()
+{
+    dump_info("Test istream<char> character extractors case 10 (setw is consumed even when the extraction throws)...");
+
+    // width() is one-shot state visible across operations, so a string extraction that
+    // leaves by an exception must still have consumed it -- otherwise the stale width
+    // silently truncates the *next* extraction, which reports good(). The failure has to
+    // land inside the read loop (a device error on a buffer refill), because a throw
+    // after the loop was never the leaking path.
+    constexpr std::size_t payload = 20000;   // well past the 2048-char buffer
+    constexpr std::size_t leak_w  = 3000;
+
+    {
+        injectable_device<char> dev{std::string(payload, 'A')};
+        auto st = dev.shared_state();
+        IOv2::istream in(std::move(dev));
+
+        // Prime the buffer and leave most of it unread.
+        std::string s1;
+        in >> IOv2::setw(10) >> s1;
+        VERIFY(in.good());
+        VERIFY(s1.size() == 10);
+
+        // The next refill fails, so this extraction throws part-way through the loop.
+        st->fail_dget = true;
+        std::string s2;
+        in >> IOv2::setw(leak_w) >> s2;
+        VERIFY(!in.good());
+        VERIFY(in.width() == 0);
+
+        // With the width consumed, an extraction that asks for no width is not capped.
+        st->fail_dget = false;
+        in.clear();
+        std::string s3;
+        in >> s3;
+        VERIFY(s3.size() > leak_w);
+        VERIFY(s3.find_first_not_of('A') == std::string::npos);
+    }
+
+    // The character-array path consumes the width up front and always has; keeping the
+    // two side by side is what stops them drifting apart again.
+    {
+        injectable_device<char> dev{std::string(payload, 'A')};
+        auto st = dev.shared_state();
+        IOv2::istream in(std::move(dev));
+
+        char buf[16];
+        in >> IOv2::setw(sizeof(buf)) >> buf;
+        VERIFY(in.good());
+
+        st->fail_dget = true;
+        std::string s2;
+        in >> IOv2::setw(leak_w) >> s2;
+        VERIFY(!in.good());
+        VERIFY(in.width() == 0);
+    }
 
     dump_info("Done\n");
 }

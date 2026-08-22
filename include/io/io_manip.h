@@ -371,14 +371,17 @@ struct setfill_t
  * @warning **填充不得改变这段文本读起来是几。** 格式化数值与货币时，若这次补齐要写出的
  *          字符会让读者读出另一个数，插入侧直接拒绝，置 `strfailbit`（仅当该位在异常掩码
  *          中时才抛 `stream_error`）。判据同时看字符与落点：
- *          - `'1'`–`'9'` 处处不可用；`'0'` 仅当补在数字正前方时可用，故
+ *          - 数字处处不可用，`'0'` 例外——它仅当补在数字正前方时可用，故
  *            `setfill('0') << setw(8) << internal << -42` 得到 `"-0000042"`，而同样的
  *            `right`（`"00000-42"`）与 `left`（`"42000000"`）都会失败；十六进制补零同理，
  *            只有 `internal` 把零放进 `0x` 与数字之间。
+ *            **`hex` 下多算六个**：`'a'`–`'f'` 与 `'A'`–`'F'` 也是数字（两种大小写都算，
+ *            与 `uppercase` 无关）。其余进制仍是 `'0'`–`'9'`：判据看的是人读起来像不像
+ *            数字，不是该进制收不收，所以 `oct` 下 `'8'`/`'9'` 照样不可用。
  *          - 小数点仅当补在数值之后时可用（`"42......"` 可以，`"......42"` 不行）。
  *          - 正负号仅当与该数值自身的符号一致时可用（`"++++42"` 可以，`"----42"` 不行），
  *            补在数值之后一律可用。
- *          - 其余字符（`'*'`、`' '`、千位分隔符、字母等）不受影响。
+ *          - 其余字符（`'*'`、`' '`、千位分隔符、当前进制用不到的字母等）不受影响。
  *          `fill` 是粘性流状态，只在**真的要补齐**的那一次判断：宽度不大于内容时不补齐，
  *          也就不会失败。提取 `get_money` 时用同一判据把关，见 `get_money`。
  * @note `TFill` 由实参推导，且必须与目标流的 `char_type` **完全一致**——
@@ -394,16 +397,20 @@ struct setfill_t
  *          rejected outright: the stream sets `strfailbit` (and throws `stream_error` only when
  *          that bit is in the exception mask). The test looks at both the character and where it
  *          lands:
- *          - `'1'`–`'9'` are never usable; `'0'` is usable only directly in front of the digits,
- *            so `setfill('0') << setw(8) << internal << -42` gives `"-0000042"` while the same
+ *          - A digit is never usable, except `'0'` directly in front of the digits, so
+ *            `setfill('0') << setw(8) << internal << -42` gives `"-0000042"` while the same
  *            with `right` (`"00000-42"`) or `left` (`"42000000"`) fails. Zero-padded hex behaves
  *            the same way: only `internal` puts the zeros between the `0x` and the digits.
+ *            **`hex` adds six more**: `'a'`–`'f'` and `'A'`–`'F'` are digits too (both cases,
+ *            whatever `uppercase` is set to). Every other base keeps `'0'`–`'9'`, because the
+ *            test is whether a character looks like a digit to a reader rather than whether the
+ *            base accepts it, so `'8'` and `'9'` stay unusable under `oct`.
  *          - The decimal point is usable only after the value (`"42......"` yes,
  *            `"......42"` no).
  *          - A sign is usable only where it agrees with the value's own sign (`"++++42"` yes,
  *            `"----42"` no), and always usable after the value.
- *          - Every other character (`'*'`, `' '`, the thousands separator, letters, …) is
- *            unaffected.
+ *          - Every other character (`'*'`, `' '`, the thousands separator, a letter the current
+ *            base does not use, …) is unaffected.
  *          `fill` is sticky stream state and is only tested where padding is actually written:
  *          a width that does not exceed the content pads nothing and so cannot fail. `get_money`
  *          applies the same test on extraction; see `get_money`.
@@ -882,11 +889,12 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *       一致（`time_put` 同样不处理 width），但与 `put_money`、算术类型的插入不同——后两者
  *       经由 `monetary` / `numeric` facet，会消费掉 width。
  * @warning **`*tmb` 必须描述一个完整且真实存在的时刻，而不只是 @p fmt 用到的那几个字段。**
- *          写出前 `timeio::put` 会校验全部字段：`tm_mon` 属于 [0,11]、`tm_mday` 属于 [1,31]、
+ *          写出前 `timeio::put` 会校验日期与时刻各字段：`tm_mon` 属于 [0,11]、`tm_mday` 属于 [1,31]、
  *          `tm_hour` 属于 [0,23]、`tm_min` 与 `tm_sec` 属于 [0,59]（**不接受闰秒 `tm_sec == 60`**）、
  *          年份在 `std::chrono::year` 的范围内，且三者组合必须是真实存在的日历日（2 月 30 日
  *          会被拒）。任一项不满足都会抛出，经 `handle_exception` 置 `strfailbit`：本次插入什么
  *          都不输出，且在 `clear()` 之前该流上后续的插入都会被 sentry 拒掉。
+ *          **`tm_gmtoff` 不在校验之列**：它超范围时被钳位而不是拒绝，见下面讲 `%z` 的那条。
  * @note **与 `std::put_time` 的分歧。** 标准是 `strftime` 语义，逐说明符取字段（C11 7.27.3.5：
  *       每个说明符只读其描述中方括号列出的成员，且"若任一被用到的值超出正常范围，存入的字符
  *       未指定"——是 unspecified，不是错误）。因此 `std::put_time(&t, "%Y")` 配 `std::tm t{}`
@@ -898,13 +906,19 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *          没有时区字段，本库用编译期探测判断：
  *          - 有 `tm_gmtoff`（glibc、BSD、POSIX.1-2024）时，`%z` 总是写出由它算得的偏移，
  *            所以 `std::tm t{}` 得到 `+0000` 而不是字面量；
- *          - `%Z` 写出 `tm_zone`，但它为空指针或空串时（`std::tm t{}` 即如此）退化为
- *            **原样写出** `%Z`，流仍保持 `good()`；
+ *          - `%Z` 写出 `tm_zone`，它为空指针或空串时（`std::tm t{}` 即如此）改写
+ *            @ref base_ft<timeio>::s_unknown_zone（即 `UNKNOWN`），流仍保持 `good()`；
  *          - 平台两个扩展都没有时，`%z` 与 `%Z` 一律退化为字面量。
- *          退化不置失败位，只能靠检查输出发现。`%z` 与 `get_time` 往返一致（读回 `tm_gmtoff`）；
- *          `%Z` 只保证能被读回、不置失败位，值本身会被丢弃，因为回写 `tm_zone` 会留下悬垂指针。
- *          若 `tm_zone` 是时区数据库里查不到的串（如 `+08`），`get_time` 会置 `strfailbit`。
- *          详见 `timeio` 与 `get_time`。
+ *          退化不置失败位，只能靠检查输出发现。若 `tm_zone` 是时区数据库里查不到的串
+ *          （如 `+08`），`get_time` 会置 `strfailbit`。详见 `timeio` 与 `get_time`。
+ * @warning **`%z` 的取值域是 `(-24h, +24h)`，超出的 `tm_gmtoff` 被静默钳位。** 这个说明符只能
+ *          写 `±hhmm` 四位，而钳位的边界取的是 `get_time` 的 `%z` 能接受的最宽偏移，即
+ *          `±23:59:59`；超出者被钳到该边界，**不置失败位**。因此 `tm_gmtoff` 为 400 小时会写出
+ *          `+2359`，而不是报错、也不是截断成 `+0000`。同一说明符还只有分钟分辨率：秒被向零截掉，
+ *          `+00:19:32` 这样的历史 LMT 偏移写出 `+0019`。于是**往返闭合只在 `tm_gmtoff` 落在
+ *          `(-24h, +24h)` 内、且是整分钟时成立**——`get_time` 读回的是钳位并截断到分钟之后的值。
+ *          `%Z` 也往返：`get_time` 会把解析到的名字写回 `tm_zone`（指向时区前缀树里静态存储期的
+ *          文本，不悬垂），`UNKNOWN` 读回空串。
  * @note **`tm_wday` 与 `tm_yday` 不被读取。** 星期由 y/m/d 重新推算，与调用方填的值无关。
  *       这与 `strftime` 的 `%a`/`%A`（读 `tm_wday`）、`%j`（读 `tm_yday`）不同：若调用方填入
  *       与日期不符的值，标准库按该值输出，本库按真实日期输出，双方都不报错。
@@ -943,13 +957,15 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *       and from arithmetic insertion, both of which go through the `monetary` / `numeric`
  *       facets and do consume it.
  * @warning **`*tmb` must describe a complete instant that really exists, not merely the fields
- *          @p fmt happens to use.** Before writing, `timeio::put` validates every field:
- *          `tm_mon` in [0,11], `tm_mday` in [1,31], `tm_hour` in [0,23], `tm_min` and `tm_sec`
- *          in [0,59] (**a leap second, `tm_sec == 60`, is rejected**), the year within the range
- *          of `std::chrono::year`, and the three date fields together must form a calendar day
- *          that exists (February 30 is rejected). Anything else throws, and `handle_exception`
- *          turns that into `strfailbit`: the insertion writes nothing, and every later insertion
- *          on that stream is refused by the sentry until an explicit `clear()`.
+ *          @p fmt happens to use.** Before writing, `timeio::put` validates the date and
+ *          time-of-day fields: `tm_mon` in [0,11], `tm_mday` in [1,31], `tm_hour` in [0,23],
+ *          `tm_min` and `tm_sec` in [0,59] (**a leap second, `tm_sec == 60`, is rejected**), the
+ *          year within the range of `std::chrono::year`, and the three date fields together must
+ *          form a calendar day that exists (February 30 is rejected). Anything else throws, and
+ *          `handle_exception` turns that into `strfailbit`: the insertion writes nothing, and
+ *          every later insertion on that stream is refused by the sentry until an explicit
+ *          `clear()`. **`tm_gmtoff` is not among the validated fields**: an out-of-range offset
+ *          is clamped rather than rejected, see the `%z` warning below.
  * @note **Divergence from `std::put_time`.** The standard has `strftime` semantics, taking
  *       fields per specifier (C11 7.27.3.5: a specifier reads only the members listed in
  *       brackets in its description, and "if any of the specified values is outside the normal
@@ -965,15 +981,25 @@ template<typename TChar> struct put_time_t { const std::tm* tmb; const TChar* fm
  *          compile time:
  *          - where `tm_gmtoff` exists (glibc, the BSDs, POSIX.1-2024) `%z` always writes the
  *            offset computed from it, so a `std::tm t{}` yields `+0000`, not a literal;
- *          - `%Z` writes `tm_zone`, but degrades to **writing `%Z` verbatim** when that member
- *            is null or empty (as it is in a `std::tm t{}`), leaving the stream `good()`;
+ *          - `%Z` writes `tm_zone`, substituting @ref base_ft<timeio>::s_unknown_zone (that is,
+ *            `UNKNOWN`) when that member is null or empty (as it is in a `std::tm t{}`), leaving
+ *            the stream `good()`;
  *          - on a platform with neither extension both `%z` and `%Z` degrade to literals.
- *          A degradation sets no failure bit, so it shows up only on inspecting the output.
- *          `%z` round-trips through `get_time` (which reads it back into `tm_gmtoff`); `%Z` is
- *          only guaranteed to read back without failing -- the value itself is dropped, because
- *          writing `tm_zone` back would leave a dangling pointer. And if `tm_zone` holds a
- *          string the time-zone database does not know (`+08`, say), `get_time` sets
- *          `strfailbit`. See `timeio` and `get_time`.
+ *          A degradation sets no failure bit, so it shows up only on inspecting the output. And
+ *          if `tm_zone` holds a string the time-zone database does not know (`+08`, say),
+ *          `get_time` sets `strfailbit`. See `timeio` and `get_time`.
+ * @warning **`%z` spans `(-24h, +24h)`; a `tm_gmtoff` outside it is clamped silently.** The
+ *          specifier can only spell four digits of `±hhmm`, and the clamp bound is the widest
+ *          offset `get_time`'s `%z` accepts, `±23:59:59`; anything beyond is pinned to that
+ *          bound and **no failure bit is set**. A `tm_gmtoff` of 400 hours therefore writes
+ *          `+2359` -- neither an error nor a truncation to `+0000`. The specifier also has only
+ *          minute resolution: seconds are truncated toward zero, so a historical LMT offset of
+ *          `+00:19:32` writes `+0019`. **The round trip is therefore closed only for a
+ *          `tm_gmtoff` inside `(-24h, +24h)` that is a whole number of minutes** -- `get_time`
+ *          reads back the clamped, minute-truncated value. `%Z` round-trips too: `get_time`
+ *          writes the parsed name back into `tm_zone` (pointing at static-storage text inside
+ *          the time-zone prefix tree, so it does not dangle), and `UNKNOWN` reads back as an
+ *          empty string.
  * @note **`tm_wday` and `tm_yday` are not read.** The weekday is recomputed from y/m/d,
  *       independently of whatever the caller stored. This differs from `strftime`, whose
  *       `%a`/`%A` read `tm_wday` and whose `%j` reads `tm_yday`: given a value inconsistent with
@@ -1111,19 +1137,22 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *          年份。所以 `put_time` 写出的年 10000 或 −44，本函数读不回来：整次提取失败、置
  *          `strfailbit`，`*tmb` 一字节不改。**只有年 0..9999 才保证往返。** 这是本文档中
  *          "提取侧更宽松"的唯一例外，理由见 `timeio`。
- * @warning **`%Z` 与 `%z` 会解析，但只有偏移写得回去。** 本函数使用的解析上下文见
- *          `io/traits/tm.h` 的 @ref parse_context_type<TChar, std::tm>：平台的 `std::tm` 带
- *          `tm_gmtoff` 时它处在只带偏移与缩写的那一档，`%z` 解析出的 UTC 偏移写入
- *          `tm_gmtoff`；不带该成员的平台上它退到 `tz_level::none`，`%z` / `%Z` 两侧一律按
- *          字面量处理，与 put 对称。`%Z` 解析出的名字在任何一档都**被丢弃**——理由见
- *          `time_parse_context::convert_to(std::tm&)`：`std::tm` 没有释放接口，所有权无处
- *          安放；缩写本身也有歧义（`CST` 同时属于五个时区）。`strptime` 与 `std::get_time`
- *          同样不写。
- *          于是 `get_time(&t, "%H:%M %Z")` 读 `01:02 UTC` 成功，但 `*tmb` 里看不出时区，
- *          这一点与 `std::get_time` 一致。区别在于取值域：`%Z` 接受时区数据库认识的任何
- *          名字或缩写，`01:02 XYZ` 会**整次提取失败**并置 `strfailbit`、`*tmb` 保持不变；
- *          而 `std::get_time` 比对的是一张硬编码 14 条的表，只认标准时缩写——`01:02 UTC`
- *          与 `01:02 PDT` 在它那里都失败。详见 `timeio`。
+ * @warning **`%Z` 与 `%z` 会解析，两者都写得回去。** 本函数使用的解析上下文见
+ *          `io/traits/tm.h` 的 @ref parse_context_type<TChar, std::tm>：平台的 `std::tm` 同时带
+ *          `tm_zone` 与 `tm_gmtoff` 时它处在 `tz_level::zone` 档，`%z` 解析出的 UTC 偏移写入
+ *          `tm_gmtoff`、`%Z` 解析出的名字写入 `tm_zone`；只带 `tm_gmtoff` 时退到
+ *          `tz_level::offset`，`%Z` 按字面量处理；两个成员都不带的平台上退到 `tz_level::none`，
+ *          `%z` / `%Z` 两侧一律按字面量处理，与 put 对称。
+ *          写回 `tm_zone` 的是指向时区前缀树内静态存储期文本的指针，因此**不悬垂**，也不需要
+ *          `std::tm` 提供释放接口。这一点与 `strptime`、`std::get_time` 不同——那两者都不写
+ *          时区。`UNKNOWN`（@ref base_ft<timeio>::s_unknown_zone）读回的是**空串**而不是跳过，
+ *          这样 put 侧那个「没有时区」的值也能闭合。
+ *          两个说明符互相替代不了：`%Z` 供不出偏移（缩写有歧义，`CST` 同时属于五个时区），
+ *          `%z` 供不出区名。所以 `get_time(&t, "%H:%M %Z")` 读 `01:02 UTC` 后 `tm_zone` 有值
+ *          而 `tm_gmtoff` 仍是 `0`。取值域上 `%Z` 接受时区数据库认识的任何名字或缩写，
+ *          `01:02 XYZ` 会**整次提取失败**并置 `strfailbit`、`*tmb` 保持不变；而 `std::get_time`
+ *          比对的是一张硬编码 14 条的表，只认标准时缩写——`01:02 UTC` 与 `01:02 PDT` 在它那里
+ *          都失败。详见 `timeio`。
  * @warning 返回的对象**持有这两个裸指针**，只应作为同一完整表达式的一部分立即使用；
  *          详见本文件顶部的说明。
  * @endif
@@ -1195,21 +1224,26 @@ template<typename TChar> struct get_time_t { std::tm* tmb; const TChar* fmt; };
  *          `timeio` for why.
  * @warning **`%Z` and `%z` do parse, but only the offset is written back.** For the parse
  *          context this function uses see @ref parse_context_type<TChar, std::tm> in
- *          `io/traits/tm.h`: where the platform's `std::tm` carries `tm_gmtoff` it sits at the
- *          tier holding an offset and an abbreviation, and the UTC offset `%z` parses goes into
- *          `tm_gmtoff`; on a platform without that member it drops to `tz_level::none`, where
- *          `%z` and `%Z` are literals on both sides, symmetrically with put. At either tier the
- *          name `%Z` parses is **discarded** -- see
- *          `time_parse_context::convert_to(std::tm&)` for why: `std::tm` has no release call so
- *          ownership has nowhere to live, and abbreviations are ambiguous anyway (`CST` belongs
- *          to five zones). `strptime` and `std::get_time` do not write it either. So
- *          `get_time(&t, "%H:%M %Z")` reading
- *          `01:02 UTC` succeeds while leaving no trace of the zone in `*tmb`, just as
- *          `std::get_time` does. What differs is the accepted set: `%Z` takes any name or
- *          abbreviation the time-zone database knows, so `01:02 XYZ` fails the **whole
- *          extraction** with `strfailbit` and leaves `*tmb` unchanged; `std::get_time` matches
- *          against a hard-coded table of 14 entries and so knows standard-time abbreviations
- *          only -- `01:02 UTC` and `01:02 PDT` both fail there. See `timeio`.
+ *          `io/traits/tm.h`: where the platform's `std::tm` carries both `tm_zone` and
+ *          `tm_gmtoff` it sits at `tz_level::zone`, and the UTC offset `%z` parses goes into
+ *          `tm_gmtoff` while the name `%Z` parses goes into `tm_zone`; with `tm_gmtoff` alone it
+ *          drops to `tz_level::offset`, where `%Z` is a literal; on a platform with neither
+ *          member it drops to `tz_level::none`, where `%z` and `%Z` are literals on both sides,
+ *          symmetrically with put.
+ *          What goes into `tm_zone` is a pointer to static-storage text inside the time-zone
+ *          prefix tree, so it **does not dangle** and needs no release call from `std::tm`. That
+ *          is a departure from `strptime` and `std::get_time`, neither of which writes the zone
+ *          at all. `UNKNOWN` (@ref base_ft<timeio>::s_unknown_zone) reads back as an **empty
+ *          string** rather than being skipped, which closes the round trip for a put-side value
+ *          that had no zone to name.
+ *          Neither specifier substitutes for the other: `%Z` cannot supply an offset
+ *          (abbreviations are ambiguous -- `CST` belongs to five zones) and `%z` cannot supply a
+ *          name, so `get_time(&t, "%H:%M %Z")` reading `01:02 UTC` leaves `tm_zone` set and
+ *          `tm_gmtoff` still `0`. As for the accepted set, `%Z` takes any name or abbreviation
+ *          the time-zone database knows, so `01:02 XYZ` fails the **whole extraction** with
+ *          `strfailbit` and leaves `*tmb` unchanged; `std::get_time` matches against a
+ *          hard-coded table of 14 entries and so knows standard-time abbreviations only --
+ *          `01:02 UTC` and `01:02 PDT` both fail there. See `timeio`.
  * @warning The returned object **holds those two raw pointers** and should only be used as part
  *          of the same full expression; see the note at the top of this file.
  * @endif

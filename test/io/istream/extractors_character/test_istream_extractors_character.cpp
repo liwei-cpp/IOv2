@@ -7,6 +7,7 @@ void test_istream_extractors_character_char_6();
 void test_istream_extractors_character_char_7();
 void test_istream_extractors_character_char_8();
 void test_istream_extractors_character_char_9();
+void test_istream_extractors_character_char_10();
 
 void test_istream_extractors_character_wchar_t_1();
 void test_istream_extractors_character_wchar_t_2();
@@ -28,6 +29,7 @@ void test_istream_extractors_character()
     test_istream_extractors_character_char_7();
     test_istream_extractors_character_char_8();
     test_istream_extractors_character_char_9();
+    test_istream_extractors_character_char_10();
 
     test_istream_extractors_character_wchar_t_1();
     test_istream_extractors_character_wchar_t_2();

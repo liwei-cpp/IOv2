@@ -1690,14 +1690,15 @@ struct time_value_fields<std::tm>
  * | `year_month_day` | 无 | `%H:%M`    | `%H:%M`      | 字面量 `%H:%M` |
  * | `hh_mm_ss`       | 无 | `%Y-%m-%d` | `%Y-%m-%d`   | 字面量 `%Y-%m-%d` |
  * | `year_month_day`、`hh_mm_ss` | 无 | `%z`、`%Z` | `%z`、`%Z` | 字面量 `%z`、`%Z` |
- * | `std::tm`        | 偏移 | `%z` | 由 `tm_gmtoff` 算得，如 `+0800` | `+0800` |
- * | `std::tm`        | 偏移 | `%Z` | `tm_zone`；为空则写 `UNKNOWN` | 时区名或缩写、`UNKNOWN`，或字面量 `%Z` |
+ * | `std::tm`        | 区域 | `%z` | 由 `tm_gmtoff` 算得，如 `+0800`；钳到 `±23:59:59` | `+0800` |
+ * | `std::tm`        | 区域 | `%Z` | `tm_zone`；为空则写 `UNKNOWN` | 时区名或缩写、`UNKNOWN` |
  * | `sys_time`       | 偏移 | `%z`、`%Z` | `+0000`、`UTC` | 同上 |
  * | `local_time` + 偏移 | 偏移 | `%z`、`%Z` | `±hhmm`、退化为 `%Z` | 同上 |
  * | `zoned_time`     | 区域 | `%z`、`%Z` | `+0800`、`Asia/Shanghai` | 时区名，不收字面量 |
  *
  * `get` 侧的档位由 `time_parse_context` 的 `TzLevel` 模板参数给出，对应上表"时区档"一列：
- * 低于该档的说明符退化为字面量，达到该档的说明符真的解析。
+ * 低于该档的说明符退化为字面量，达到该档的说明符真的解析。`std::tm` 那两行填的是本平台的档：
+ * 它随两个扩展成员的有无而定，两个都有是"区域"，只有 `tm_gmtoff` 是"偏移"，都没有是"无"。
  *
  * 能否供出 `%Z` 只看值类型，不看运行期取值：带 `tm_zone` 成员的平台上，`std::tm` 的 `%Z`
  * 对**任何**取值都写得出内容——有名字写名字，`tm_zone` 为空指针或空串则写
@@ -1772,15 +1773,16 @@ struct time_value_fields<std::tm>
  * | `year_month_day` | none | `%H:%M`    | `%H:%M`      | the literal `%H:%M` |
  * | `hh_mm_ss`       | none | `%Y-%m-%d` | `%Y-%m-%d`   | the literal `%Y-%m-%d` |
  * | `year_month_day`, `hh_mm_ss` | none | `%z`, `%Z` | `%z`, `%Z` | the literals `%z`, `%Z` |
- * | `std::tm`        | offset | `%z` | computed from `tm_gmtoff`, e.g. `+0800` | `+0800` |
- * | `std::tm`        | offset | `%Z` | `tm_zone`, or `UNKNOWN` when empty | a zone name or abbreviation, `UNKNOWN`, or the literal `%Z` |
+ * | `std::tm`        | zone | `%z` | computed from `tm_gmtoff`, e.g. `+0800`; clamped to `±23:59:59` | `+0800` |
+ * | `std::tm`        | zone | `%Z` | `tm_zone`, or `UNKNOWN` when empty | a zone name or abbreviation, `UNKNOWN` |
  * | `sys_time`       | offset | `%z`, `%Z` | `+0000`, `UTC` | as above |
  * | `local_time` + offset | offset | `%z`, `%Z` | `±hhmm`, degrades to `%Z` | as above |
  * | `zoned_time`     | zone | `%z`, `%Z` | `+0800`, `Asia/Shanghai` | a zone name; no literal |
  *
  * On the `get` side the tier is the `TzLevel` template argument of `time_parse_context`, matching
  * the "Tier" column above: a specifier needing more than that tier degrades to a literal, and one
- * the tier can hold really parses.
+ * the tier can hold really parses. The two `std::tm` rows carry this platform's tier; it follows
+ * the two extension members -- zone with both, offset with `tm_gmtoff` alone, none with neither.
  *
  * Whether `%Z` can be supplied depends on the value's type, not on its run-time value: on a
  * platform whose `std::tm` carries `tm_zone`, `%Z` produces content for **every** `std::tm` -- the
@@ -2464,7 +2466,8 @@ public:
      * @tparam Duration 时间点的精度类型。
      * @param out    输出迭代器。
      * @param t      要格式化的墙上时间。
-     * @param offset @p t 相对 UTC 的偏移。
+     * @param offset @p t 相对 UTC 的偏移。`%z` 只能写 `±hhmm`，因此超出 `(-24h, +24h)` 的值
+     *               会被静默钳到 `±23:59:59`，且秒被截到分钟；两者都不置失败位。
      * @param fmt    格式串（`strftime` 风格）。
      * @return 写入后的输出迭代器。
      * @throw stream_error 若 @p t 的日期超出范围。
@@ -2486,7 +2489,9 @@ public:
      * @tparam Duration Duration type of the time point.
      * @param out    The output iterator.
      * @param t      The wall-clock time to format.
-     * @param offset The offset of @p t from UTC.
+     * @param offset The offset of @p t from UTC. `%z` can only spell `±hhmm`, so a value outside
+     *               `(-24h, +24h)` is clamped silently to `±23:59:59` and the seconds are
+     *               truncated to a whole minute; neither sets a failure bit.
      * @param fmt    The format string (`strftime`-style).
      * @return The output iterator after writing.
      * @throw stream_error If the date of @p t is out of range.
@@ -2597,9 +2602,10 @@ public:
      * @lang{ZH}
      * @brief 将 `std::tm` 按格式串格式化到输出迭代器。
      *
-     * 在格式化前对 `std::tm` 的各字段进行范围验证，并拒绝闰秒（`tm_sec == 60`）。
+     * 在格式化前对 `std::tm` 的日期与时刻字段进行范围验证，并拒绝闰秒（`tm_sec == 60`）。
      * 具体检查项：月份 [0,11]、日期 [1,31]、时 [0,23]、分/秒 [0,59]，
      * 以及年份需在 `std::chrono::year` 的有效范围内，且日期组合需构成有效日历日期。
+     * `tm_gmtoff` **不在检查之列**：它只在 `%z` 处按该说明符的取值域钳位，不会让本函数抛出。
      * @tparam OutIt 输出迭代器类型。
      * @param out 输出迭代器。
      * @param t   要格式化的 `std::tm` 结构体。
@@ -2621,10 +2627,11 @@ public:
      * @lang{EN}
      * @brief Formats a `std::tm` to an output iterator using a format string.
      *
-     * Validates all `std::tm` fields before formatting and rejects leap seconds
-     * (`tm_sec == 60`). Checks include: month [0,11], day [1,31], hour [0,23],
+     * Validates the date and time-of-day fields of the `std::tm` before formatting and rejects
+     * leap seconds (`tm_sec == 60`). Checks include: month [0,11], day [1,31], hour [0,23],
      * minute/second [0,59], year within the valid range of `std::chrono::year`,
-     * and that the date combination forms a valid calendar date.
+     * and that the date combination forms a valid calendar date. `tm_gmtoff` is **not** among
+     * them: it is clamped to the `%z` range at that specifier instead of making this call throw.
      * @tparam OutIt Output iterator type.
      * @param out The output iterator.
      * @param t   The `std::tm` struct to format.
@@ -4603,7 +4610,14 @@ private:
             case static_cast<CharT>('z'):
                 if (!zi || modifier) goto bad_format;
                 {
-                    int val = static_cast<int>(zi->offset.count());
+                    // Clamped before the narrowing, or a caller-supplied count too big for
+                    // an int would wrap and print the wrong sign. The bound is the widest
+                    // offset the %z parse branch accepts, so what we write reads back.
+                    constexpr auto max_off = 23 * 3600 + 59 * 60 + 59;
+                    const auto raw = zi->offset.count();
+                    int val = raw >  max_off ?  max_off
+                            : raw < -max_off ? -max_off
+                            : static_cast<int>(raw);
                     if (val < 0)
                     {
                         *out++ = static_cast<CharT>('-');
@@ -5046,9 +5060,10 @@ private:
      * @lang{ZH}
      * @brief 将整数以最小宽度 `n` 的十进制格式写入输出迭代器。
      *
-     * 若 `n == 0`，按实际位数输出（不限宽度）；否则最小输出 `n` 位，
-     * 前导位以 `def` 填充。永不截断（位数超过 `n` 时输出全部位数）。
-     * @tparam n   最小宽度（`0` 表示不限宽度）。
+     * 若 `n == 0`，按实际位数输出（不限宽度），永不截断；否则输出**恰好** `n` 位，
+     * 前导位以 `def` 填充，而 `val` 高于 `n` 位的那部分被**丢弃**。因此 `n > 0` 时
+     * 调用方必须自己保证 `val` 装得下 `n` 位——本库的调用点都在上游做了范围检查或钳位。
+     * @tparam n   宽度（`0` 表示按实际位数、不限宽度）。
      * @tparam def 前导填充字符，默认为 `'0'`。
      * @param out 输出迭代器。
      * @param val 要输出的整数。
@@ -5056,12 +5071,14 @@ private:
      * @endif
      *
      * @lang{EN}
-     * @brief Writes an integer in decimal with a minimum width of `n` to the output iterator.
+     * @brief Writes an integer in decimal with a width of `n` to the output iterator.
      *
-     * When `n == 0`, outputs the exact number of digits (no minimum). Otherwise,
-     * outputs at least `n` digits, padding leading positions with `def`. Never
-     * truncates (outputs all digits if the value exceeds `n` digits).
-     * @tparam n   Minimum width (`0` means no minimum).
+     * When `n == 0`, outputs the exact number of digits (no minimum) and never truncates.
+     * Otherwise it outputs **exactly** `n` digits, padding leading positions with `def` and
+     * **discarding** whatever of `val` sits above the `n`th digit. With `n > 0` the caller must
+     * therefore keep `val` within `n` digits; every call site in this library range-checks or
+     * clamps upstream.
+     * @tparam n   Width (`0` means the exact number of digits, no minimum).
      * @tparam def Leading padding character, default `'0'`.
      * @param out The output iterator.
      * @param val The integer to output.
