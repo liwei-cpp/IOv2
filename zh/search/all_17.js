@@ -4,5 +4,6 @@ var searchData=
   ['zlib_5fcvt_2eh_1',['zlib_cvt.h',['../zlib__cvt_8h.html',1,'']]],
   ['zlib_5fcvt_5fcreator_2',['zlib_cvt_creator',['../classIOv2_1_1Comp_1_1zlib__cvt__creator.html',1,'IOv2::Comp::zlib_cvt_creator&lt; TInt &gt;'],['../classIOv2_1_1Comp_1_1zlib__cvt__creator.html#ade10e46d3be7dd7d96717d97802f18fd',1,'IOv2::Comp::zlib_cvt_creator::zlib_cvt_creator()']]],
   ['zlib_5fsync_5fflush_3',['zlib_sync_flush',['../structIOv2_1_1Comp_1_1zlib__sync__flush.html',1,'IOv2::Comp::zlib_sync_flush'],['../structIOv2_1_1Comp_1_1zlib__sync__flush.html#ae72ccf647fe57462c6da7c58ddc74090',1,'IOv2::Comp::zlib_sync_flush::zlib_sync_flush()']]],
-  ['zone_4',['zone',['../namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa',1,'IOv2']]]
+  ['zone_4',['zone',['../namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa',1,'IOv2']]],
+  ['zone_5fref_5',['zone_ref',['../structIOv2_1_1zone__ref.html',1,'IOv2']]]
 ];

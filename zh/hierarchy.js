@@ -323,7 +323,7 @@ var hierarchy =
     [ "IOv2::parse_context_type< TChar, std::tm >", "structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html", null ],
     [ "IOv2::base_ft< monetary >::pattern_spec", "structIOv2_1_1base__ft_3_01monetary_01_4_1_1pattern__spec.html", null ],
     [ "IOv2::prefix_tree< CharT, TValue >", "classIOv2_1_1prefix__tree.html", null ],
-    [ "IOv2::prefix_tree< char, std::string >", "classIOv2_1_1prefix__tree.html", null ],
+    [ "IOv2::prefix_tree< char, IOv2::zone_ref >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, int >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::prefix_tree< CharT, std::basic_string< CharT > >", "classIOv2_1_1prefix__tree.html", null ],
     [ "IOv2::istreambuf_iterator< TStreamBuf >::proxy", "structIOv2_1_1istreambuf__iterator_1_1proxy.html", null ],
@@ -426,5 +426,6 @@ var hierarchy =
     [ "IOv2::type_id< T >", "structIOv2_1_1type__id.html", null ],
     [ "IOv2::Crypt::Classic::vigenere_cvt_creator< TChar >", "classIOv2_1_1Crypt_1_1Classic_1_1vigenere__cvt__creator.html", null ],
     [ "IOv2::ws_t", "structIOv2_1_1ws__t.html", null ],
-    [ "IOv2::Comp::zlib_cvt_creator< TInt >", "classIOv2_1_1Comp_1_1zlib__cvt__creator.html", null ]
+    [ "IOv2::Comp::zlib_cvt_creator< TInt >", "classIOv2_1_1Comp_1_1zlib__cvt__creator.html", null ],
+    [ "IOv2::zone_ref", "structIOv2_1_1zone__ref.html", null ]
 ];

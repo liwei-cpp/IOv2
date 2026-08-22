@@ -146,10 +146,10 @@ requires (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d
 <tr class="memdesc:a89cf0e528a61e75198901b3c5167d0cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fallback for the time fields. Available only when <code>HaveTime</code> is <code>true</code>.  <br /></td></tr>
 <tr class="separator:a89cf0e528a61e75198901b3c5167d0cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a61d80505432219c244ae09d1538fc433" id="r_a61d80505432219c244ae09d1538fc433"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html#a61d80505432219c244ae09d1538fc433">set_hint</a> (std::chrono::minutes <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">hint</a>)</td></tr>
-<tr class="memdesc:a61d80505432219c244ae09d1538fc433"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fallback for the UTC offset. Available when <code>TzLevel</code> is at least <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="A UTC offset, plus the raw abbreviation read by Z.">tz_level::offset</a></code>.  <br /></td></tr>
+<tr class="memdesc:a61d80505432219c244ae09d1538fc433"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fallback for the UTC offset. Available when <code>TzLevel</code> is at least <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="Parses the UTC offset from z; Z is still matched literally.">tz_level::offset</a></code>.  <br /></td></tr>
 <tr class="separator:a61d80505432219c244ae09d1538fc433"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acebc5f87a928f66cddbf3826289f460f" id="r_acebc5f87a928f66cddbf3826289f460f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html#acebc5f87a928f66cddbf3826289f460f">set_hint</a> (<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a> std::chrono::time_zone *<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">hint</a>)</td></tr>
-<tr class="memdesc:acebc5f87a928f66cddbf3826289f460f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fallback for the time zone. Available only when <code>TzLevel</code> is <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus the zone identity (IANA name).">tz_level::zone</a></code>.  <br /></td></tr>
+<tr class="memdesc:acebc5f87a928f66cddbf3826289f460f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fallback for the time zone. Available only when <code>TzLevel</code> is <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus Z parsed into a zone identity and abbreviation.">tz_level::zone</a></code>.  <br /></td></tr>
 <tr class="separator:acebc5f87a928f66cddbf3826289f460f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a60cbe7f07d8d33687fa7babe75cd13b3" id="r_a60cbe7f07d8d33687fa7babe75cd13b3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__parse__context.html#a60cbe7f07d8d33687fa7babe75cd13b3">convert_to</a> (std::chrono::zoned_time&lt; std::chrono::seconds &gt; &amp;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">out</a>) <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">const</a></td></tr>
 <tr class="memdesc:a60cbe7f07d8d33687fa7babe75cd13b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts the accumulated date, time, and timezone fields to a <code>std::chrono::zoned_time&lt;seconds&gt;</code> in <code>out</code>.  <br /></td></tr>
@@ -406,7 +406,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
-<p>Sets the fallback for the time zone. Available only when <code>TzLevel</code> is <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus the zone identity (IANA name).">tz_level::zone</a></code>. </p>
+<p>Sets the fallback for the time zone. Available only when <code>TzLevel</code> is <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus Z parsed into a zone identity and abbreviation.">tz_level::zone</a></code>. </p>
 
 </div>
 </div>
@@ -466,7 +466,7 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 
-<p>Sets the fallback for the UTC offset. Available when <code>TzLevel</code> is at least <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="A UTC offset, plus the raw abbreviation read by Z.">tz_level::offset</a></code>. </p>
+<p>Sets the fallback for the UTC offset. Available when <code>TzLevel</code> is at least <code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="Parses the UTC offset from z; Z is still matched literally.">tz_level::offset</a></code>. </p>
 
 </div>
 </div>

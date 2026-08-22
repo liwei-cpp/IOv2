@@ -264,6 +264,7 @@ var namespaceIOv2 =
     [ "timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", "classIOv2_1_1timeio__conf_3_01CharT_01_4" ],
     [ "type_id", "structIOv2_1_1type__id.html", "structIOv2_1_1type__id" ],
     [ "ws_t", "structIOv2_1_1ws__t.html", null ],
+    [ "zone_ref", "structIOv2_1_1zone__ref.html", "structIOv2_1_1zone__ref" ],
     [ "shared_ptr_to", "conceptIOv2_1_1shared__ptr__to.html", null ],
     [ "steppable_back", "conceptIOv2_1_1steppable__back.html", null ],
     [ "is_istreambuf_iterator", "conceptIOv2_1_1is__istreambuf__iterator.html", null ],

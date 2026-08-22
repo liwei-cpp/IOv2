@@ -16,7 +16,7 @@ var searchData=
   ['precision_13',['precision',['../classIOv2_1_1ios__base.html#ad24d30e38c2e9f4368c41a479c4a5d4f',1,'IOv2::ios_base::precision(std::ptrdiff_t prec)'],['../classIOv2_1_1ios__base.html#afb5aa7d4133c75f1f6b07b741ec183b6',1,'IOv2::ios_base::precision() const noexcept']]],
   ['prefix_5ftree_14',['prefix_tree',['../classIOv2_1_1prefix__tree.html#a712e064f624c8e45c4390d6bedd1ef1b',1,'IOv2::prefix_tree::prefix_tree(const std::vector&lt; const CharT * &gt; &amp;strs)'],['../classIOv2_1_1prefix__tree.html#a748ee6598438ab2f934e4d03036d67c8',1,'IOv2::prefix_tree::prefix_tree()'],['../classIOv2_1_1prefix__tree.html',1,'IOv2::prefix_tree&lt; CharT, TValue &gt;']]],
   ['prefix_5ftree_2eh_15',['prefix_tree.h',['../prefix__tree_8h.html',1,'']]],
-  ['prefix_5ftree_3c_20char_2c_20std_3a_3astring_20_3e_16',['prefix_tree&lt; char, std::string &gt;',['../classIOv2_1_1prefix__tree.html',1,'IOv2']]],
+  ['prefix_5ftree_3c_20char_2c_20iov2_3a_3azone_5fref_20_3e_16',['prefix_tree&lt; char, IOv2::zone_ref &gt;',['../classIOv2_1_1prefix__tree.html',1,'IOv2']]],
   ['prefix_5ftree_3c_20chart_2c_20int_20_3e_17',['prefix_tree&lt; CharT, int &gt;',['../classIOv2_1_1prefix__tree.html',1,'IOv2']]],
   ['prefix_5ftree_3c_20chart_2c_20std_3a_3abasic_5fstring_3c_20chart_20_3e_20_3e_18',['prefix_tree&lt; CharT, std::basic_string&lt; CharT &gt; &gt;',['../classIOv2_1_1prefix__tree.html',1,'IOv2']]],
   ['print_19',['print',['../classIOv2_1_1base__ft_3_01ctype_01_4.html#a1fd835faa8eeb998389a088a9c6cb859',1,'IOv2::base_ft&lt; ctype &gt;']]],

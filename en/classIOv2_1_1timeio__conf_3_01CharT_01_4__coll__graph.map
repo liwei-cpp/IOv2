@@ -1,13 +1,13 @@
 <map id="IOv2::timeio_conf&lt; CharT &gt;" name="IOv2::timeio_conf&lt; CharT &gt;">
-<area shape="rect" id="Node000001" title="Locale configuration class for the timeio facet specialised for wide characters (wchar_t / char32_t U..." alt="" coords="147,272,295,312"/>
-<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title="Base class template specialization for the timeio facet." alt="" coords="43,183,210,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,230,203,270,199,274,155,234"/>
-<area shape="rect" id="Node000003" href="$classIOv2_1_1base__ft_3_01timeio_01_4.html" title="The intermediate base specialization for timeio, holding its character&#45;type&#45;independent time&#45;zone dat..." alt="" coords="37,108,216,133"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="129,147,129,183,124,183,124,147"/>
+<area shape="rect" id="Node000001" title="Locale configuration class for the timeio facet specialised for wide characters (wchar_t / char32_t U..." alt="" coords="202,272,350,312"/>
+<area shape="rect" id="Node000002" href="$classIOv2_1_1ft__basic_3_01timeio_3_01CharT_01_4_01_4.html" title="Base class template specialization for the timeio facet." alt="" coords="50,183,217,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,228,246,270,244,274,175,232"/>
+<area shape="rect" id="Node000003" href="$classIOv2_1_1base__ft_3_01timeio_01_4.html" title="The intermediate base specialization for timeio, holding its character&#45;type&#45;independent time&#45;zone dat..." alt="" coords="44,108,223,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="136,147,136,183,131,183,131,147"/>
 <area shape="rect" id="Node000004" href="$structIOv2_1_1abs__ft.html" title=" " alt="" coords="5,13,104,38"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="74,47,120,106,116,110,70,51"/>
-<area shape="rect" id="Node000005" href="$classIOv2_1_1prefix__tree.html" title=" " alt="" coords="129,5,271,45"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="179,58,138,109,134,106,175,55"/>
-<area shape="rect" id="Node000006" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="234,183,401,223"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="288,234,244,274,240,270,285,230"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="75,47,126,106,122,110,71,50"/>
+<area shape="rect" id="Node000005" href="$classIOv2_1_1prefix__tree.html" title=" " alt="" coords="128,5,299,45"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="190,57,145,109,141,106,186,54"/>
+<area shape="rect" id="Node000006" href="$classIOv2_1_1ft__basic.html" title=" " alt="" coords="241,183,407,223"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="309,236,289,273,284,271,305,233"/>
 </map>

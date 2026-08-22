@@ -114,7 +114,7 @@ Public 类型</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 静态 Public 属性</h2></td></tr>
 <tr class="memitem:a454b0601944ff72558fd861a3067c575" id="r_a454b0601944ff72558fd861a3067c575"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a></td></tr>
-<tr class="memdesc:a454b0601944ff72558fd861a3067c575"><td class="mdescLeft">&#160;</td><td class="mdescRight">本上下文所处的时区档：平台的 <code>std::tm</code> 带 <code>tm_gmtoff</code> 才是 <code>offset</code>，否则是 <code>none</code>。  <br /></td></tr>
+<tr class="memdesc:a454b0601944ff72558fd861a3067c575"><td class="mdescLeft">&#160;</td><td class="mdescRight">本上下文所处的时区档：由 <a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html">time_value_fields&lt;std::tm&gt;</a> 的两个标志位直接决定。  <br /></td></tr>
 <tr class="separator:a454b0601944ff72558fd861a3067c575"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">成员类型定义说明</h2>
@@ -188,11 +188,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <b>初始值:</b><div class="fragment"><div class="line">=</div>
-<div class="line">        time_value_fields&lt;std::tm&gt;::has_offset ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">tz_level::offset</a> : <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">tz_level::none</a></div>
-<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::tz_level::none</a></div><div class="ttdeci">@ none</div><div class="ttdoc">不携带时区字段。</div></div>
-<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">UTC 偏移，外加 Z 读到的缩写原文。</div></div>
+<div class="line">        time_value_fields&lt;std::tm&gt;::has_zone   ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">tz_level::zone</a></div>
+<div class="line">      : time_value_fields&lt;std::tm&gt;::has_offset ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">tz_level::offset</a></div>
+<div class="line">                                               : <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">tz_level::none</a></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::tz_level::none</a></div><div class="ttdeci">@ none</div><div class="ttdoc">不携带时区字段，z 与 Z 都按字面量处理。</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">解析 z 的 UTC 偏移；Z 仍按字面量处理。</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">IOv2::tz_level::zone</a></div><div class="ttdeci">@ zone</div><div class="ttdoc">在 offset 之上再解析 Z，得到区域身份与缩写。</div></div>
 </div><!-- fragment -->
-<p>本上下文所处的时区档：平台的 <code>std::tm</code> 带 <code>tm_gmtoff</code> 才是 <code>offset</code>，否则是 <code>none</code>。 </p>
+<p>本上下文所处的时区档：由 <a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html">time_value_fields&lt;std::tm&gt;</a> 的两个标志位直接决定。 </p>
 
 </div>
 </div>

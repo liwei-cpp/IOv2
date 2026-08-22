@@ -599,10 +599,10 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html">time_value_fields&lt; std::tm &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html">time_zone_parse_helper&lt; tz_level::offset &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="A UTC offset, plus the raw abbreviation read by Z.">tz_level::offset</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="Parses the UTC offset from z; Z is still matched literally.">tz_level::offset</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html">time_zone_parse_helper&lt; tz_level::zone &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus the zone identity (IANA name).">tz_level::zone</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" title="Everything in offset, plus Z parsed into a zone identity and abbreviation.">tz_level::zone</a></code> specialization).  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1zone_01_4.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIOv2_1_1timeio.html">timeio</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time I/O facet providing locale-aware date/time formatting and parsing.  <a href="classIOv2_1_1timeio.html#details">More...</a><br /></td></tr>
@@ -619,6 +619,9 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1ws__t.html">ws_t</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The whitespace-skipping manipulator object, used as <code>is &gt;&gt; <a class="el" href="namespaceIOv2.html#acf808d12ab0d83facf8beade807de602">IOv2::ws</a></code>; its type is an empty tag, with all the logic in <code><a class="el" href="structIOv2_1_1io__traits.html" title="The extension point that attaches read/write logic for a TChar stream to a type T....">io_traits</a>&lt;TChar, <a class="el" href="structIOv2_1_1ws__t.html" title="The whitespace-skipping manipulator object, used as is &gt;&gt; IOv2::ws; its type is an empty tag,...">ws_t</a>&gt;::sread</code>.  <a href="structIOv2_1_1ws__t.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1zone__ref.html">zone_ref</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A time-zone trie value: the text <code>Z</code> matched, plus what the tzdb says it is.  <a href="structIOv2_1_1zone__ref.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
@@ -1286,11 +1289,11 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 
 <p>The tier of time-zone information a parse context carries. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8" name="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"></a>none&#160;</td><td class="fielddoc"><p>Carries no time-zone field.  </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8" name="ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"></a>none&#160;</td><td class="fielddoc"><p>Carries no time-zone field; <code>z</code> and <code>Z</code> are both matched literally.  </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" name="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"></a>offset&#160;</td><td class="fielddoc"><p>A UTC offset, plus the raw abbreviation read by <code>Z</code>.  </p>
+<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" name="ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"></a>offset&#160;</td><td class="fielddoc"><p>Parses the UTC offset from <code>z</code>; <code>Z</code> is still matched literally.  </p>
 </td></tr>
-<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" name="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa"></a>zone&#160;</td><td class="fielddoc"><p>Everything in <code>offset</code>, plus the zone identity (IANA name).  </p>
+<tr><td class="fieldname"><a id="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa" name="ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa"></a>zone&#160;</td><td class="fielddoc"><p>Everything in <code>offset</code>, plus <code>Z</code> parsed into a zone identity and abbreviation.  </p>
 </td></tr>
 </table>
 

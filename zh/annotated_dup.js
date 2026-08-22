@@ -222,7 +222,8 @@ var annotated_dup =
       [ "timeio_conf< char >", "classIOv2_1_1timeio__conf_3_01char_01_4.html", "classIOv2_1_1timeio__conf_3_01char_01_4" ],
       [ "timeio_conf< CharT >", "classIOv2_1_1timeio__conf_3_01CharT_01_4.html", "classIOv2_1_1timeio__conf_3_01CharT_01_4" ],
       [ "type_id", "structIOv2_1_1type__id.html", "structIOv2_1_1type__id" ],
-      [ "ws_t", "structIOv2_1_1ws__t.html", null ]
+      [ "ws_t", "structIOv2_1_1ws__t.html", null ],
+      [ "zone_ref", "structIOv2_1_1zone__ref.html", "structIOv2_1_1zone__ref" ]
     ] ],
     [ "std", "namespacestd.html", [
       [ "hash< IOv2::detail::msg_key >", "structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4.html", "structstd_1_1hash_3_01IOv2_1_1detail_1_1msg__key_01_4" ]

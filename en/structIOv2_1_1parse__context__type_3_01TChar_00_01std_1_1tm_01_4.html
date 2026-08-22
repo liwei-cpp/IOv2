@@ -114,7 +114,7 @@ Static Public Member Functions</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a454b0601944ff72558fd861a3067c575" id="r_a454b0601944ff72558fd861a3067c575"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">static</a> <a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f4d7a">constexpr</a> <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1e">tz_level</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1parse__context__type_3_01TChar_00_01std_1_1tm_01_4.html#a454b0601944ff72558fd861a3067c575">tm_parse_tz_level</a></td></tr>
-<tr class="memdesc:a454b0601944ff72558fd861a3067c575"><td class="mdescLeft">&#160;</td><td class="mdescRight">The tier this context sits at: <code>offset</code> when the platform's <code>std::tm</code> carries <code>tm_gmtoff</code>, <code>none</code> otherwise.  <br /></td></tr>
+<tr class="memdesc:a454b0601944ff72558fd861a3067c575"><td class="mdescLeft">&#160;</td><td class="mdescRight">The tier this context sits at, decided directly by the two flags in <a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html">time_value_fields&lt;std::tm&gt;</a>.  <br /></td></tr>
 <tr class="separator:a454b0601944ff72558fd861a3067c575"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Typedef Documentation</h2>
@@ -188,11 +188,14 @@ template&lt;<a class="el" href="namespaceIOv2.html#a09b31017574cb5471d2558481d0f
 </table>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">        time_value_fields&lt;std::tm&gt;::has_offset ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">tz_level::offset</a> : <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">tz_level::none</a></div>
-<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::tz_level::none</a></div><div class="ttdeci">@ none</div><div class="ttdoc">Carries no time-zone field.</div></div>
-<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">A UTC offset, plus the raw abbreviation read by Z.</div></div>
+<div class="line">        time_value_fields&lt;std::tm&gt;::has_zone   ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">tz_level::zone</a></div>
+<div class="line">      : time_value_fields&lt;std::tm&gt;::has_offset ? <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">tz_level::offset</a></div>
+<div class="line">                                               : <a class="code hl_enumvalue" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">tz_level::none</a></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea334c4a4c42fdb79d7ebc3e73b517e6f8">IOv2::tz_level::none</a></div><div class="ttdeci">@ none</div><div class="ttdoc">Carries no time-zone field; z and Z are both matched literally.</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">IOv2::tz_level::offset</a></div><div class="ttdeci">@ offset</div><div class="ttdoc">Parses the UTC offset from z; Z is still matched literally.</div></div>
+<div class="ttc" id="anamespaceIOv2_html_ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa"><div class="ttname"><a href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1eaa84e5f25e7f6d5de9b82ce3f64d1b8fa">IOv2::tz_level::zone</a></div><div class="ttdeci">@ zone</div><div class="ttdoc">Everything in offset, plus Z parsed into a zone identity and abbreviation.</div></div>
 </div><!-- fragment -->
-<p>The tier this context sits at: <code>offset</code> when the platform's <code>std::tm</code> carries <code>tm_gmtoff</code>, <code>none</code> otherwise. </p>
+<p>The tier this context sits at, decided directly by the two flags in <a class="el" href="structIOv2_1_1time__value__fields_3_01std_1_1tm_01_4.html">time_value_fields&lt;std::tm&gt;</a>. </p>
 
 </div>
 </div>

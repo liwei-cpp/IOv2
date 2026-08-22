@@ -97,7 +97,7 @@ $(document).ready(function(){initNavTree('structIOv2_1_1time__zone__parse__helpe
 </div><!--header-->
 <div class="contents">
 
-<p>Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="A UTC offset, plus the raw abbreviation read by Z.">tz_level::offset</a></code> specialization).  
+<p>Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="Parses the UTC offset from z; Z is still matched literally.">tz_level::offset</a></code> specialization).  
  <a href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="timeio_8h_source.html">timeio.h</a>&gt;</code></p>
@@ -123,8 +123,6 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:a4859e16e2072daeccd97845b5a84b39c" id="r_a4859e16e2072daeccd97845b5a84b39c"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#a4859e16e2072daeccd97845b5a84b39c">m_zone_abbrev</a></td></tr>
-<tr class="separator:a4859e16e2072daeccd97845b5a84b39c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ed099b27b1fb45e92b9436a9a2bdbbe" id="r_a0ed099b27b1fb45e92b9436a9a2bdbbe"><td class="memItemLeft" align="right" valign="top">std::chrono::minutes&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#a0ed099b27b1fb45e92b9436a9a2bdbbe">m_offset</a> {0}</td></tr>
 <tr class="separator:a0ed099b27b1fb45e92b9436a9a2bdbbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fe082a30dcdedd70b8249784537bd80" id="r_a2fe082a30dcdedd70b8249784537bd80"><td class="memItemLeft" align="right" valign="top">std::chrono::minutes&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structIOv2_1_1time__zone__parse__helper_3_01tz__level_1_1offset_01_4.html#a2fe082a30dcdedd70b8249784537bd80">m_offset_hint</a> {0}</td></tr>
@@ -135,7 +133,7 @@ Public Attributes</h2></td></tr>
 <tr class="separator:afbd55dd5aa7a1b328d633c4d1f85879a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="A UTC offset, plus the raw abbreviation read by Z.">tz_level::offset</a></code> specialization). </p>
+<div class="textblock"><p>Time-zone-field accumulator helper struct (<code><a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a" title="Parses the UTC offset from z; Z is still matched literally.">tz_level::offset</a></code> specialization). </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a3bbd9fdeea89d87a57203bb5d991b36e" name="a3bbd9fdeea89d87a57203bb5d991b36e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3bbd9fdeea89d87a57203bb5d991b36e">&#9670;&#160;</a></span>convert_to()</h2>
@@ -244,20 +242,6 @@ Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::chrono::minutes IOv2::time_zone_parse_helper&lt; <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">tz_level::offset</a> &gt;::m_offset_hint {0}</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a4859e16e2072daeccd97845b5a84b39c" name="a4859e16e2072daeccd97845b5a84b39c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4859e16e2072daeccd97845b5a84b39c">&#9670;&#160;</a></span>m_zone_abbrev</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::string IOv2::time_zone_parse_helper&lt; <a class="el" href="namespaceIOv2.html#ae5c45ed29b875d3d35e686974d847b1ea7a86c157ee9713c34fbd7a1ee40f0c5a">tz_level::offset</a> &gt;::m_zone_abbrev</td>
         </tr>
       </table>
 </div><div class="memdoc">
