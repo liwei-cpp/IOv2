@@ -676,7 +676,7 @@ private:
      * @lang{ZH} 若这段填充会改变人读到的金额则返回 `true`。 @endif
      * @lang{EN} `true` if the run changes the amount a human reads. @endif
      */
-    [[nodiscard]] bool fill_alters_reading_(char_type fill, const split_info& info,
+    [[nodiscard]] bool fill_alters_reading(char_type fill, const split_info& info,
                                             bool leads_digits, bool trails_value,
                                             bool negative) const
     {
@@ -942,7 +942,7 @@ private:
                                        && (runs[r].pos + runs[r].len == value_pos);
                 const bool trails_value = (value_pos != std::basic_string<char_type>::npos)
                                        && (runs[r].pos >= value_pos + value.size());
-                if (fill_alters_reading_(io.fill(), info, leads_digits, trails_value,
+                if (fill_alters_reading(io.fill(), info, leads_digits, trails_value,
                                          sign_ptr == &info.m_negative_sign))
                     throw stream_error("monetary put fail: fill would change the value the field reads as");
             }
@@ -1178,7 +1178,7 @@ private:
                 // off the input itself — the character it stopped on — because the
                 // pattern does not say which parts in between came out empty.
                 if (ate_fill
-                    && fill_alters_reading_(io.fill(), info,
+                    && fill_alters_reading(io.fill(), info,
                                             i < value_idx && beg != end
                                                 && (*beg == m_decimal_point
                                                     || std::find(lit_zero, lit_zero + 10, *beg)

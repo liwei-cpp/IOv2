@@ -289,7 +289,7 @@ public:
             if (plen > ios_defs::max_pad_count)
                 throw stream_error("numeric put fail: fill count exceeds max_pad_count");
 
-            // No fill_alters_reading_ check here: the padded content is truename() /
+            // No fill_alters_reading check here: the padded content is truename() /
             // falsename(), not a number, so no fill character can make the field read
             // as a different value. Rejecting digits here would only break the ordinary
             // setfill('0') << setw(n) << boolalpha spelling.
@@ -755,7 +755,7 @@ private:
         // [22.2.2.2.2] Stage 1, numeric conversion to character.
         std::size_t len = 0;
         std::array<char, 16> fbuf{};
-        format_float_(io.flags(), fbuf.data(), mod);
+        format_float(io.flags(), fbuf.data(), mod);
 
         const ios_defs::fmtflags fltfield = io.flags() & ios_defs::floatfield;
 
@@ -861,7 +861,8 @@ private:
             bool start0x = (ws[0] == m_out_atoms[s_odigits]) && (len > 1u) &&
                            ((ws[1] == m_out_atoms[s_ox]) || (ws[1] == m_out_atoms[s_oX]));
             const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
-            pad(io.fill(), w, adjust, ws3, ws, len, startSign, start0x);
+            pad(io.fill(), w, adjust, io.flags() & ios_defs::basefield,
+                ws3, ws, len, startSign, start0x);
 
             std::swap(vec_ws, vec_ws3);
             ws = vec_ws.data();
@@ -980,7 +981,8 @@ private:
             bool start0x = (cs[0] == m_out_atoms[s_odigits]) && (len > 1u) &&
                            ((cs[1] == m_out_atoms[s_ox]) || (cs[1] == m_out_atoms[s_oX]));
             const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
-            pad(io.fill(), w, adjust, cs3, cs, len, startSign, start0x);
+            pad(io.fill(), w, adjust, io.flags() & ios_defs::basefield,
+                cs3, cs, len, startSign, start0x);
             std::swap(cs_vec, cs_vec3);
             cs = cs_vec.data();
         }
@@ -1063,8 +1065,13 @@ private:
      * @par 判据
      * 危险与否既取决于是哪个字符，也取决于它落在哪里：
      * - **digit**：仅当它是 `'0'` 且紧贴数字之前时安全（前导零按约定不改变读数）。
-     *   `'1'`–`'9'` 在任何位置都危险；`'0'` 落在数值之后（`"42000000"` 读作 42000000）
+     *   其余数字在任何位置都危险；`'0'` 落在数值之后（`"42000000"` 读作 42000000）
      *   或落在符号 / 进制前缀之前（`"00000-42"` 读不成任何数）同样危险。
+     *   **"是不是 digit"随 `basefield` 变**：十六进制下 `'a'`–`'f'` 与 `'A'`–`'F'` 也是数字，
+     *   `setfill('f') << hex << setw(8) << 0xab` 写出的 `"ffffffab"` 读作 4294967211。
+     *   两种大小写都要查，因为提取侧接受混合大小写，`uppercase` 是哪个值都挡不住另一半。
+     *   其余进制仍是 `'0'`–`'9'`：八进制下 `'8'`/`'9'` 虽然不是合法八进制数字，人读起来
+     *   仍是数字（`"88888842"` 读作八千多万），故照样算。
      * - **小数点**：向右与数字结合，故仅当位于数值之后时安全（`"42......"` 仍读作 42）；
      *   落在前面会被读进数值里（`"......42"` 读作 0.42）。
      * - **`'+'` / `'-'`**：落在数值之前时会被读成该数值的符号，故仅当它与数值本身的
@@ -1093,10 +1100,17 @@ private:
      * @par The criterion
      * Danger depends both on which character it is and on where it lands:
      * - **A digit**: safe only when it is `'0'` sitting immediately before the digits
-     *   (leading zeros conventionally do not change the reading). `'1'`–`'9'` are
+     *   (leading zeros conventionally do not change the reading). Every other digit is
      *   dangerous everywhere; `'0'` is equally dangerous after the value
      *   (`"42000000"` reads as 42000000) or before a sign or base prefix
      *   (`"00000-42"` reads as no number at all).
+     *   **What counts as a digit follows `basefield`**: in hex `'a'`–`'f'` and `'A'`–`'F'`
+     *   are digits too, so `setfill('f') << hex << setw(8) << 0xab` would write
+     *   `"ffffffab"`, which reads as 4294967211. Both cases are checked, because the
+     *   extractor accepts mixed-case hex and so neither setting of `uppercase` rules the
+     *   other half out. Every other base keeps `'0'`–`'9'`: `'8'` and `'9'` are not valid
+     *   octal digits but still read as digits to a person (`"88888842"` reads as a number in
+     *   the tens of millions), so they count under `oct` too.
      * - **The decimal point**: it binds rightwards to digits, so it is safe only after
      *   the value (`"42......"` still reads as 42); in front it is read into the value
      *   (`"......42"` reads as 0.42).
@@ -1119,6 +1133,16 @@ private:
      * @lang{ZH} 待判断的填充字符。 @endif
      * @lang{EN} The fill character to test. @endif
      *
+     * @param basefield
+     * @lang{ZH} 该数值写出时所用的进制，即 `flags() & basefield`。决定哪些字形算数字：
+     * `hex` 为 16 个，其余一律 10 个。判据问的是"人读起来像不像数字"，不是"该进制收不收
+     * 这个字符"，所以八进制下 `'8'`/`'9'` 照样算——`"88888842"` 会被读成八千多万。 @endif
+     * @lang{EN} The base the value was written in, i.e. `flags() & basefield`. It decides
+     * which glyphs count as digits: 16 under `hex`, 10 otherwise. The test asks whether a
+     * character *looks* like a digit to a reader, not whether the base would accept it, so
+     * `'8'` and `'9'` still count under `oct` -- `"88888842"` reads as a number in the
+     * tens of millions. @endif
+     *
      * @param leads_digits
      * @lang{ZH} 该段填充是否紧贴数字之前，中间不隔符号或进制前缀。 @endif
      * @lang{EN} Whether the run sits immediately before the digits, with no sign or
@@ -1140,11 +1164,15 @@ private:
      * @lang{ZH} 若这段填充会改变人读到的数值则返回 `true`。 @endif
      * @lang{EN} `true` if the run changes the number a human reads. @endif
      */
-    [[nodiscard]] bool fill_alters_reading_(char_type fill, bool leads_digits,
-                                            bool trails_value, bool negative) const
+    [[nodiscard]] bool fill_alters_reading(char_type fill, ios_defs::fmtflags basefield,
+                                           bool leads_digits, bool trails_value,
+                                           bool negative) const
     {
-        const char_type* const digits = m_out_atoms.data() + s_odigits;
-        if (std::find(digits, digits + 10, fill) != digits + 10)
+        const int radix = basefield == ios_defs::hex ? 16 : 10;
+        const char_type* const digits  = m_out_atoms.data() + s_odigits;
+        const char_type* const udigits = m_out_atoms.data() + s_oudigits;
+        if (std::find(digits,  digits  + radix, fill) != digits  + radix
+         || std::find(udigits, udigits + radix, fill) != udigits + radix)
             return !(fill == digits[0] && leads_digits);
 
         // Past the value nothing but a digit can still be read into it.
@@ -1162,11 +1190,13 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 对格式化缓冲区应用宽度填充，委托给 `pad_impl_`。同时将 `len` 更新为填充后的总宽度。
+     * @brief 对格式化缓冲区应用宽度填充，委托给 `pad_impl`。同时将 `len` 更新为填充后的总宽度。
      *
      * @param fill 填充字符。
      * @param w 目标字段宽度。
      * @param adjust 对齐标志（left/right/internal）。
+     * @param basefield 数值写出时所用的进制（`flags() & basefield`），转交
+     *        `fill_alters_reading` 用于判断哪些字形算数字。
      * @param new_buf 输出缓冲区，容量不小于 `w`。
      * @param cs 原始格式化内容的起始指针。
      * @param len 原始内容的字符数；函数返回后更新为 `w`。
@@ -1175,11 +1205,13 @@ private:
      * @endif
      *
      * @lang{EN}
-     * @brief Applies width padding to the formatted buffer; delegates to `pad_impl_`. Updates `len` to the padded total width.
+     * @brief Applies width padding to the formatted buffer; delegates to `pad_impl`. Updates `len` to the padded total width.
      *
      * @param fill The fill character.
      * @param w The target field width.
      * @param adjust The alignment flag (left/right/internal).
+     * @param basefield The base the value was written in (`flags() & basefield`), handed to
+     *        `fill_alters_reading` to decide which glyphs count as digits.
      * @param new_buf Output buffer with capacity of at least `w`.
      * @param cs Pointer to the start of the original formatted content.
      * @param len Number of characters in the original content; updated to `w` on return.
@@ -1187,16 +1219,17 @@ private:
      * @param start0x Whether the original content begins with `0x`/`0X`.
      *
      * @throw stream_error If `fill` would change the number the padded field reads as;
-     * see `fill_alters_reading_`.
+     * see `fill_alters_reading`.
      * @endif
      */
     void pad(char_type fill, std::size_t w, ios_defs::fmtflags adjust,
+             ios_defs::fmtflags basefield,
              char_type* new_buf, const char_type* cs, std::size_t& len,
              bool startSign, bool start0x) const
     {
       // Fill is about to be written, so this is where it gets vetted: a fill character
       // that would change the number this field reads as is rejected outright. Where
-      // the run lands decides what is safe, and `pad_impl_` below fixes that: `left`
+      // the run lands decides what is safe, and `pad_impl` below fixes that: `left`
       // appends it after the value; `internal`, and `right` on content that starts with
       // a digit, put it directly in front of the digits; `right` on content that starts
       // with a sign or `0x` leaves that prefix between the fill and the digits.
@@ -1206,13 +1239,13 @@ private:
       const bool trails_value = (adjust == ios_defs::left);
       const bool leads_digits = !trails_value
           && (adjust == ios_defs::internal || !(startSign || start0x));
-      if (fill_alters_reading_(fill, leads_digits, trails_value,
-                               cs[0] == m_out_atoms[s_ominus]))
+      if (fill_alters_reading(fill, basefield, leads_digits, trails_value,
+                              cs[0] == m_out_atoms[s_ominus]))
           throw stream_error("numeric put fail: fill would change the value the field reads as");
 
       // [22.2.2.2.2] Stage 3.
       // If necessary, pad.
-      pad_impl_(adjust, fill, new_buf, cs, w, len, startSign, start0x);
+      pad_impl(adjust, fill, new_buf, cs, w, len, startSign, start0x);
       len = w;
     }
 
@@ -1254,7 +1287,7 @@ private:
      * @param start0x Whether the original content begins with `0x`/`0X`.
      * @endif
      */
-    void pad_impl_(ios_defs::fmtflags adjust, char_type fill,
+    void pad_impl(ios_defs::fmtflags adjust, char_type fill,
                    char_type* news, const char_type* olds,
                    std::size_t newlen, std::size_t oldlen,
                    bool startSign, bool start0x) const
@@ -1318,7 +1351,7 @@ private:
      * @param mod The length modifier (`'L'` or `'\0'`).
      * @endif
      */
-    void format_float_(ios_defs::fmtflags flags, char* fptr, char mod) const noexcept
+    void format_float(ios_defs::fmtflags flags, char* fptr, char mod) const noexcept
     {
         *fptr++ = '%';
         // [22.2.2.2.2] Table 60

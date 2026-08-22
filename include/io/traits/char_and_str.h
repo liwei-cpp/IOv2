@@ -500,6 +500,7 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
         TChar buf[128];
         std::size_t len = 0;
         const std::size_t w = io.width();
+        io.width(0);
         const std::size_t n = w > 0 ? w : str.max_size();
         std::size_t extracted = 0;
 
@@ -520,8 +521,6 @@ struct io_traits<TChar, std::basic_string<TChar, TTraits, TAlloc>>
             ++iter;
         }
         str.append(buf, len);
-
-        io.width(0);
 
         if (extracted == 0)
             throw stream_error("istream extraction fail: no characters extracted");

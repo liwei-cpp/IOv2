@@ -7749,3 +7749,87 @@ void test_timeio_char_recursion_1()
 
     dump_info("Done\n");
 }
+
+void test_timeio_char_offset_clamp_1()
+{
+    dump_info("Test timeio<char> %z offset clamp 1...");
+    using namespace std::chrono;
+
+    IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
+
+    // %z can only spell four digits of +/-hhmm, so an offset it cannot express is pinned
+    // to the widest one the parse side accepts rather than being rejected or truncated.
+    constexpr long max_off = 23L * 3600 + 59 * 60 + 59;   // 23:59:59
+
+    auto put_z = [&](long gmtoff)
+    {
+        std::tm tp = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 3, 247, 0);
+        tp.tm_gmtoff = gmtoff;
+        tp.tm_zone = "CST";
+        std::string res;
+        obj.put(std::back_inserter(res), tp, "%z");
+        return res;
+    };
+
+    // In range, %z is exact to the minute.
+    VERIFY(put_z(0)        == "+0000");
+    VERIFY(put_z(3600)     == "+0100");
+    VERIFY(put_z(-19800)   == "-0530");
+    VERIFY(put_z(max_off)  == "+2359");
+    VERIFY(put_z(-max_off) == "-2359");
+
+    // One second past the bound, and far past it, both clamp. 400 hours used to come out
+    // as "+0000" because only the low four digits of hhmm survived.
+    VERIFY(put_z(86400)          == "+2359");
+    VERIFY(put_z(-86400)         == "-2359");
+    VERIFY(put_z(86400L * 400)   == "+2359");
+    VERIFY(put_z(-86400L * 400)  == "-2359");
+
+    // The extremes are what made the old code negate INT_MIN.
+    VERIFY(put_z(std::numeric_limits<int>::max())  == "+2359");
+    VERIFY(put_z(std::numeric_limits<int>::min())  == "-2359");
+    VERIFY(put_z(std::numeric_limits<long>::max()) == "+2359");
+    VERIFY(put_z(std::numeric_limits<long>::min()) == "-2359");
+
+    // 2^31 narrows to INT_MIN, so clamping after the cast instead of before would print a
+    // positive offset with a minus sign. This is the case that pins the order.
+    VERIFY(put_z(2147483648L)  == "+2359");
+    VERIFY(put_z(-2147483648L) == "-2359");
+
+    // The specifier has minute resolution: seconds are dropped, not rejected. Historical
+    // LMT offsets really do carry them (Europe/Amsterdam was +00:19:32).
+    VERIFY(put_z(1172)  == "+0019");
+    VERIFY(put_z(-1172) == "-0019");
+
+    // Whatever put writes has to parse back, which is what fixes the bound at 23:59:59.
+    for (long off : {0L, 3600L, -19800L, max_off, -max_off, 86400L, 2147483648L})
+    {
+        const std::string text = put_z(off);
+        IOv2::time_parse_context<char, true, true, IOv2::tz_level::zone> ctx;
+        auto it = obj.get(text.cbegin(), text.cend(), ctx, "%z");
+        VERIFY(it == text.cend());
+
+        std::tm out{};
+        ctx.convert_to(out);
+        const long clamped = off > max_off ? max_off : off < -max_off ? -max_off : off;
+        VERIFY(out.tm_gmtoff == (clamped / 60) * 60);
+    }
+
+    // The local_time overload takes its offset straight from the caller, so it needs the
+    // same guard; seconds is 64-bit there, which is how a value wraps to the wrong sign.
+    auto put_z_local = [&](seconds off)
+    {
+        std::string res;
+        obj.put(std::back_inserter(res),
+                local_time<seconds>{seconds{1725456798}}, off,
+                std::basic_string_view<char>{"%z"});
+        return res;
+    };
+    VERIFY(put_z_local(seconds{0})           == "+0000");
+    VERIFY(put_z_local(seconds{3600})        == "+0100");
+    VERIFY(put_z_local(seconds{2147483648LL})  == "+2359");
+    VERIFY(put_z_local(seconds{-2147483648LL}) == "-2359");
+    VERIFY(put_z_local(seconds{4294967296LL})  == "+2359");
+
+    dump_info("Done\n");
+}
