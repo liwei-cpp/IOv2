@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <system_error>
 #include <string>
+#include <string_view>
 #include <device/mem_device.h>
 #include <io/traits/char_and_str.h>
 #include <io/traits/arithmetic.h>
@@ -361,11 +362,12 @@ void test_io_base_manipulators_get_time_char_6()
 
     // `is >> tm` goes through parse_context_type<char, std::tm> and gets the same
     // treatment. The C locale's %c is %a %b %e %H:%M:%S %Y, and the stream format appends
-    // %z where the platform's tm carries tm_gmtoff, so the input carries an offset too.
+    // %z and (%Z) where the platform's tm carries tm_gmtoff and tm_zone, so the input
+    // carries an offset and a zone token too.
     {
         std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);
 #ifdef __USE_MISC
-        IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018 +0530")},
+        IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018 +0530 (IST)")},
                           IOv2::locale<char>("C")};
 #else
         IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018")},
@@ -376,9 +378,11 @@ void test_io_base_manipulators_get_time_char_6()
         VERIFY(parsed.tm_year == 118 && parsed.tm_mon == 1 && parsed.tm_mday == 6);
         VERIFY(parsed.tm_hour == 7 && parsed.tm_min == 8 && parsed.tm_sec == 9);
         VERIFY(parsed.tm_wday == 2 && parsed.tm_yday == 36);
-        // The point of appending %z: the offset reaches the tm rather than being dropped.
+        // The point of appending them: the offset and the zone reach the tm rather than
+        // being dropped. Each restores its own member; neither substitutes for the other.
 #ifdef __USE_MISC
         VERIFY(parsed.tm_gmtoff == 5 * 3600 + 30 * 60);
+        VERIFY(parsed.tm_zone != nullptr && std::string_view(parsed.tm_zone) == "IST");
 #endif
     }
 

@@ -40,10 +40,11 @@ void test_ostream_inserters_time_wchar_t_1()
         VERIFY((bool)f);
         auto [dev, err] = f.detach();
         const std::wstring res = dev.str();
-        // The stream format appends %z where the platform's tm carries tm_gmtoff, so that
-        // the offset survives a round trip; %Z is not appended, as it parses back to nothing.
+        // The stream format appends %z and (%Z) where the platform's tm carries tm_gmtoff and
+        // tm_zone, so that both survive a round trip. A tm with no zone writes the unknown-zone
+        // token, which parses back to an empty tm_zone rather than to nothing.
 #ifdef __USE_MISC
-        VERIFY(res == L"Wed Sep  4 13:33:18 2024 +0000");
+        VERIFY(res == L"Wed Sep  4 13:33:18 2024 +0000 (UNKNOWN)");
 #else
         VERIFY(res == L"Wed Sep  4 13:33:18 2024");
 #endif

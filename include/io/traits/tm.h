@@ -173,34 +173,42 @@ namespace detail
 {
 /**
  * @lang{ZH}
- * @brief `os << tm` 与 `is >> tm` 共用的格式串：展开后的 `%c`，必要时补一个 `%z`。
+ * @brief `os << tm` 与 `is >> tm` 共用的格式串：展开后的 `%c`，必要时补 `%z` 与 `(%Z)`。
  *
  * 先把 locale 的 `%c` 用 @ref timeio::expand_format 展开——不为了过滤（`std::tm` 什么都
  * 供得出，没有说明符会被摘掉），而是为了**看得见**：`%z` 可能藏在 `%r` / `%X` 这类复合
  * 说明符里面，不展开就查不出来。随后 @ref timeio::contains_specifier 判断展开结果里有没有
  * `%z`，没有才补。
  *
- * **只补 `%z`，不补 `%Z`。** 因为 `%Z` 对重建出的 `tm` 毫无贡献：`do_get` 的 `%Z` 只写
- * `m_zone_abbrev`，从不置 `m_have_offset`，而 `convert_to(std::tm&)` 仅在 `m_have_offset`
- * 为真时才写 `tm_gmtoff`。于是 `"%F %T %Z"` 写出 `... CST`、读回来 `tm_gmtoff` 仍是 `0`，
- * 只有 `%z` 真的往返。这也意味着「已经有 `%Z` 就不必补」是错的：en_US 的 `%c` 自带 `%Z`，
- * 偏移照样会丢，所以判据只看 `%z`。
+ * **两个说明符各补各的，判据互相独立。** `std::tm` 的时区是两个成员，一个说明符还原一个：
+ * `%z` 还原 `tm_gmtoff`，`%Z` 还原 `tm_zone`，谁都替不了谁。`%Z` 供不出偏移——`do_get` 的
+ * `case 'Z'` 从不置 `m_have_offset`，而 `convert_to(std::tm&)` 仅在该标志为真时写
+ * `tm_gmtoff`；缩写本身也定不出偏移（`CST` 同时是美中 −6、中国 +8、古巴 −5）。反过来 `%z`
+ * 供不出区名。实测 `tm_gmtoff = 28800, tm_zone = "CST"` 的值：只走 `%Z` 读回来偏移是 `0`，
+ * 只走 `%z` 读回来 `tm_zone` 是空指针。所以 en_US 的 `%c` 自带 `%Z` 也照样要补 `%z`。
+ *
+ * **补出来的 `%Z` 带括号，`%z` 不带。** 形如 `... +0800 (CST)`，与 RFC 5322 的日期一致，
+ * 也与本机两个 locale 自带的 `%a %Y %b %d %H:%M:%S (%Z)` 一致。已经带 `%Z` 的 locale
+ * （本机 165 个，其中 163 个裸写在末尾）不再补，于是它们仍是 `... %Z %z`——各 locale 的
+ * 形状本就不同，这里只要求写得出的读得回来、且看着像样，不要求跨 locale 统一。
  *
  * **无条件补，不看这一个 `tm` 的取值。** 值级判断在这里做不到：`sread` 手上只有
  * `time_parse_context`，没有 `std::tm`，无从判断。若 put 值门控而 get 不门控，带时区的值写出
  * 的偏移会残留在流里污染下一次提取；若两边都门控，无时区的值写出的文本又喂不进要求偏移的
  * 格式串。两侧共用这一个与取值无关的格式串，才能保证写得出的一定读得回。
  *
- * 平台的 `std::tm` 没有 `tm_gmtoff` 时不补：那种平台上 `do_put` 收到的 `zi` 是空指针，`%z`
- * 会退化成字面量，而 @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level 也已降到
- * `tz_level::none`，补了只会在输出里留下 `%z` 两个字符。
+ * 平台的 `std::tm` 没有 `tm_gmtoff` / `tm_zone` 时两个都不补：那种平台上 `do_put` 收到的
+ * `zi` 是空指针，两个说明符都会退化成字面量，而
+ * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level 也已降到 `tz_level::none`，
+ * 补了只会在输出里留下 `%z` / `%Z` 这几个字符。
  *
  * @param tio 提供 locale 数据的 facet。
  * @return 供 `put` 与 `get` 共用的格式串。
  * @endif
  *
  * @lang{EN}
- * @brief The format `os << tm` and `is >> tm` share: an expanded `%c`, plus a `%z` if needed.
+ * @brief The format `os << tm` and `is >> tm` share: an expanded `%c`, plus `%z` and `(%Z)`
+ *        where those are needed.
  *
  * The locale's `%c` is first run through @ref timeio::expand_format -- not to filter anything
  * (a `std::tm` supplies every field, so no specifier is dropped) but to make the format
@@ -222,10 +230,10 @@ namespace detail
  * value would not satisfy a format demanding an offset. Only one value-independent format,
  * shared by both sides, keeps whatever can be written readable.
  *
- * Nothing is appended when the platform's `std::tm` has no `tm_gmtoff`: there `do_put` receives
- * a null `zi` and degrades `%z` to a literal, and
+ * Nothing is appended when the platform's `std::tm` has neither `tm_gmtoff` nor `tm_zone`:
+ * there `do_put` receives a null `zi` and degrades both specifiers to literals, and
  * @ref parse_context_type<TChar, std::tm>::tm_parse_tz_level has already dropped to
- * `tz_level::none`, so appending would only put the two characters `%z` in the output.
+ * `tz_level::none`, so appending would only put those characters in the output.
  *
  * @param tio The facet supplying the locale data.
  * @return The format string shared by `put` and `get`.
@@ -242,6 +250,17 @@ std::basic_string<TChar> tm_stream_format(const timeio<TChar>& tio)
         {
             const TChar tail[] = { static_cast<TChar>(' '), static_cast<TChar>('%'),
                                    static_cast<TChar>('z'), TChar() };
+            fmt += tail;
+        }
+    }
+
+    if constexpr (time_value_fields<std::tm>::has_zone)
+    {
+        if (!timeio<TChar>::contains_specifier(fmt, 'Z'))
+        {
+            const TChar tail[] = { static_cast<TChar>(' '), static_cast<TChar>('('),
+                                   static_cast<TChar>('%'), static_cast<TChar>('Z'),
+                                   static_cast<TChar>(')'), TChar() };
             fmt += tail;
         }
     }
