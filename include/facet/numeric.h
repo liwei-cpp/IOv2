@@ -1222,7 +1222,7 @@ private:
      * see `fill_alters_reading`.
      * @endif
      */
-    void pad(char_type fill, std::size_t w, ios_defs::fmtflags adjust,
+    void pad(char_type fill, std::size_t w, ios_defs::fmtflags adjust, // NOLINT(bugprone-easily-swappable-parameters)
              ios_defs::fmtflags basefield,
              char_type* new_buf, const char_type* cs, std::size_t& len,
              bool startSign, bool start0x) const
