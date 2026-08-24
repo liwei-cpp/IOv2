@@ -224,6 +224,7 @@ public:
     base_streambuf(base_streambuf&&) = default;
     base_streambuf& operator=(const base_streambuf&) = default;
     base_streambuf& operator=(base_streambuf&&) = default;
+    ~base_streambuf() = default;
 
 public:
     /**
