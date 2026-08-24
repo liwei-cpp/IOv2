@@ -138,6 +138,7 @@ public:
             // A single inline init object exists program-wide, so this runs exactly
             // once -- no reference count is needed to guard against re-entry.
             try {
+                // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
                 sing_temp::instance() = ::new (sing_temp::storage()) T();
             } catch (...) {
                 // sing_temp is designed for static initialization before main().
