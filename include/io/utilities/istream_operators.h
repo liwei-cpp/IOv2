@@ -576,12 +576,16 @@ struct istream_operators
      * @tparam TOut 输出目标类型：可为指针或输出迭代器。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param s 输出目标（指针或输出迭代器）。
-     * @param n 缓冲区容量；当 `CStrPolicy` 为 `app_zt` 时，最多写入 `n-1` 个字符。
+     * @param n 缓冲区容量，必须为正；当 `CStrPolicy` 为 `app_zt` 时，最多写入 `n-1` 个字符。
      * @param delim 分隔符。
      * @return 指向最后一个写入位置之后的输出迭代器/指针。
-     * @throw stream_error 若 `s` 为空指针、`n` 为 0、未提取到任何字符，或
+     * @throw stream_error 若 `s` 为空指针、@p n 为负或为 0、未提取到任何字符，或
      *        （`cons_sep` 下）在缓冲区容量内未找到分隔符。
-     * @note 到达 EOF 时置位 `eofbit`。在异常路径上，若为 `app_zt`，仍会尽力写入空字符结尾。
+     * @note 到达 EOF 时置位 `eofbit`——指本次提取还需要一个字符而没有；缓冲区填满后循环末尾
+     *       的那次预取不算。在异常路径上，若为 `app_zt`，仍会尽力写入空字符结尾。
+     * @note 形参取有符号的 ptrdiff_t 而不是 size_t，理由见 `read()` 的同名说明——
+     * 本函数同样写的是调用方的缓冲区，无符号形参下负的容量会变成 `SIZE_MAX`，
+     * 一路填到遇分隔符或 EOF 为止。
      * @endif
      *
      * @lang{EN}
@@ -600,20 +604,26 @@ struct istream_operators
      * @tparam TOut The output target type: either a pointer or an output iterator.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param s The output target (pointer or output iterator).
-     * @param n The buffer capacity; when `CStrPolicy` is `app_zt`, at most `n-1` characters
-     *          are written.
+     * @param n The buffer capacity; must be positive. When `CStrPolicy` is `app_zt`, at most
+     *          `n-1` characters are written.
      * @param delim The delimiter.
      * @return An output iterator/pointer past the last written position.
-     * @throw stream_error If `s` is a null pointer, `n` is 0, no character was extracted, or
-     *        (under `cons_sep`) the delimiter was not found within the buffer capacity.
-     * @note Sets `eofbit` on reaching EOF. On the exception path, a null terminator is still
-     *       best-effort written when `app_zt` is in effect.
+     * @throw stream_error If `s` is a null pointer, if @p n is negative or 0, if no character
+     *        was extracted, or (under `cons_sep`) the delimiter was not found within the
+     *        buffer capacity.
+     * @note Sets `eofbit` on reaching EOF -- meaning this extraction needed one more character
+     *       and there was none; the prefetch at the end of the loop once the buffer is full does
+     *       not count. On the exception path, a null terminator is still best-effort written when
+     *       `app_zt` is in effect.
+     * @note The parameter is a signed ptrdiff_t rather than a size_t for the reason given on
+     * `read()`: this function likewise writes into the caller's buffer, and with an unsigned
+     * parameter a negative capacity becomes `SIZE_MAX` and it fills until the delimiter or EOF.
      * @endif
      */
     template <typename DelimPolicy, typename CStrPolicy, typename TOut, typename TSelf>
         requires ((std::is_same_v<DelimPolicy, cons_sep> || std::is_same_v<DelimPolicy, keep_sep>) &&
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
-    TOut get(this TSelf& self, TOut s, std::size_t n, TChar delim)
+    TOut get(this TSelf& self, TOut s, std::ptrdiff_t n, TChar delim)
     {
         constexpr bool is_cstr = std::is_same_v<CStrPolicy, app_zt>;
 
@@ -629,10 +639,13 @@ struct istream_operators
                 if (s == nullptr)
                     throw stream_error("istream get fail: null character sequence");
             }
+            if (n < 0)
+                throw stream_error("istream get fail: negative buffer size");
             if (n == 0)
                 throw stream_error("istream get fail: zero buffer size");
+            const auto cap = static_cast<std::size_t>(n);
             auto c = self.m_streambuf.sgetc();
-            while ((gcount + is_cstr < n) &&
+            while ((gcount + is_cstr < cap) &&
                    (c.has_value()) &&
                    (c.value() != delim))
             {
@@ -641,7 +654,7 @@ struct istream_operators
                 c = self.m_streambuf.snextc();
             }
 
-            at_eof = (gcount + is_cstr < n) && (!c.has_value());
+            at_eof = (gcount + is_cstr < cap) && (!c.has_value());
 
             if constexpr (std::is_same_v<DelimPolicy, cons_sep>)
             {
@@ -669,10 +682,10 @@ struct istream_operators
             {
                 if constexpr (std::is_pointer_v<TOut>)
                 {
-                    if (s != nullptr && n != 0)
+                    if (s != nullptr && n > 0)
                         *s++ = TChar{};
                 }
-                else if (n != 0)
+                else if (n > 0)
                     *s++ = TChar{};
             }
             self.handle_exception(std::current_exception(), at_eof);
@@ -695,7 +708,7 @@ struct istream_operators
      * @tparam TOut 输出目标类型：可为指针或输出迭代器。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param s 输出目标（指针或输出迭代器）。
-     * @param n 缓冲区容量；当 `CStrPolicy` 为 `app_zt` 时，最多写入 `n-1` 个字符。
+     * @param n 缓冲区容量，必须为正；当 `CStrPolicy` 为 `app_zt` 时，最多写入 `n-1` 个字符。
      * @return 指向最后一个写入位置之后的输出迭代器/指针。
      * @throw stream_error 若缺少 ctype facet（用于宽化 `'\n'`）；其余异常与三参数版本一致。
      * @endif
@@ -712,8 +725,8 @@ struct istream_operators
      * @tparam TOut The output target type: either a pointer or an output iterator.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param s The output target (pointer or output iterator).
-     * @param n The buffer capacity; when `CStrPolicy` is `app_zt`, at most `n-1` characters
-     *          are written.
+     * @param n The buffer capacity; must be positive. When `CStrPolicy` is `app_zt`, at most
+     *          `n-1` characters are written.
      * @return An output iterator/pointer past the last written position.
      * @throw stream_error If the ctype facet (used to widen `'\n'`) is missing; other
      *        exceptions match the three-argument overload.
@@ -722,7 +735,7 @@ struct istream_operators
     template <typename DelimPolicy, typename CStrPolicy, typename TOut, typename TSelf>
         requires ((std::is_same_v<DelimPolicy, cons_sep> || std::is_same_v<DelimPolicy, keep_sep>) &&
                   (std::is_same_v<CStrPolicy, app_zt> || std::is_same_v<CStrPolicy, no_zt>))
-    TOut get(this TSelf& self, TOut s, std::size_t n)
+    TOut get(this TSelf& self, TOut s, std::ptrdiff_t n)
     {
         TChar delim;
         {
@@ -740,10 +753,10 @@ struct istream_operators
                 {
                     if constexpr (std::is_pointer_v<TOut>)
                     {
-                        if (s != nullptr && n != 0)
+                        if (s != nullptr && n > 0)
                             *s++ = TChar{};
                     }
-                    else if (n != 0)
+                    else if (n > 0)
                         *s++ = TChar{};
                 }
                 self.handle_exception(std::current_exception());
@@ -796,10 +809,17 @@ struct istream_operators
      * 这是非格式化提取。若在读满 `n` 个字符前到达 EOF，则视为失败。
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param s 目标缓冲区。当 `n != 0` 时不得为空指针。
-     * @param n 要读取的字符数。
+     * @param n 要读取的字符数，必须非负。
      * @return 指向最后一个写入位置之后的指针（即 `s + 实际读取数`）。
-     * @throw stream_error 若 `s` 为空指针而 `n != 0`，或无法读满 `n` 个字符。
+     * @throw stream_error 若 @p n 为负、`s` 为空指针而 `n != 0`，或无法读满 `n` 个字符。
      * @note 未能读满时置位 `eofbit`。
+     * @note 形参取有符号的 ptrdiff_t（与标准的 std::streamsize 一致），而不是 size_t，
+     * 理由与 `ios_base::width()` / `ios_base::precision()` 相同：读取长度常由含 size_t 的算式
+     * 得出（`end - cur`、`cap - used`），越界时会回绕成接近 2^64 的巨值；有符号形参可让传参时
+     * 的窄化把回绕抵消回来、还原成负数并在此拒掉。这一点在本函数上比在 width 上更要紧——
+     * width 传负数只是填充列数不对，而本函数写的是**调用方的缓冲区**，无符号形参下
+     * `read(s, -1)` 会一路读到输入耗尽，写入量与缓冲区大小完全无关，是实打实的堆破坏。
+     * 判负后转 size_t 不会溢出。
      * @endif
      *
      * @lang{EN}
@@ -809,15 +829,25 @@ struct istream_operators
      * treated as a failure.
      * @tparam TSelf The concrete derived stream type (deduced via deducing-this).
      * @param s The destination buffer. Must not be a null pointer when `n != 0`.
-     * @param n The number of characters to read.
+     * @param n The number of characters to read; must be non-negative.
      * @return A pointer past the last written position (i.e. `s + characters actually read`).
-     * @throw stream_error If `s` is a null pointer while `n != 0`, or if `n` characters could
-     *        not be read.
+     * @throw stream_error If @p n is negative, if `s` is a null pointer while `n != 0`, or if
+     *        `n` characters could not be read.
      * @note Sets `eofbit` when fewer than `n` characters could be read.
+     * @note The parameter is a signed ptrdiff_t (as the standard's std::streamsize is) rather
+     * than a size_t, for the same reason as `ios_base::width()` / `ios_base::precision()`: a
+     * read length is often computed by an expression involving a size_t (`end - cur`,
+     * `cap - used`), which wraps to a value near 2^64 when it goes below zero; a signed
+     * parameter lets the narrowing at the call undo that wrap, restoring the negative value to
+     * be rejected here. That matters more here than it does for width: a negative width only
+     * gets the padding column count wrong, whereas this function writes into the **caller's
+     * buffer**, so with a size_t parameter `read(s, -1)` would read until the input is
+     * exhausted, with the amount written bearing no relation to the buffer size -- outright
+     * heap corruption. The conversion to size_t after the check cannot overflow.
      * @endif
      */
     template <typename TSelf>
-    TChar* read(this TSelf& self, TChar* s, std::size_t n)
+    TChar* read(this TSelf& self, TChar* s, std::ptrdiff_t n)
     {
         std::size_t gcount = 0;
         bool at_eof = false;
@@ -826,10 +856,13 @@ struct istream_operators
         {
             using sentry_type = typename TSelf::in_sentry_type;
             sentry_type cerb(self, true);
+            if (n < 0)
+                throw stream_error{"istream read fail: negative character count"};
             if (s == nullptr && n != 0)
                 throw stream_error{"istream read fail: null character sequence"};
-            self.m_streambuf.sgetn(s, n, &gcount);
-            if (gcount != n)
+            const auto count = static_cast<std::size_t>(n);
+            self.m_streambuf.sgetn(s, count, &gcount);
+            if (gcount != count)
             {
                 at_eof = true;
                 throw stream_error{"istream read fail: cannot read enough characters"};

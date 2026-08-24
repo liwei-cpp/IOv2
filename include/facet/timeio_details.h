@@ -936,7 +936,7 @@ public:
      * @return A constant reference to the array of 7 full weekday name strings.
      * @endif
      */
-    virtual const std::array<std::string, 7>& day_names() const { return m_day; }
+    [[nodiscard]] virtual const std::array<std::string, 7>& day_names() const { return m_day; }
     /**
      * @lang{ZH}
      * @brief 返回星期缩写数组（索引 0 为星期日，索引 6 为星期六）。
@@ -948,7 +948,7 @@ public:
      * @return A constant reference to the array of 7 abbreviated weekday name strings.
      * @endif
      */
-    virtual const std::array<std::string, 7>& abbr_day_names() const { return m_abbr_day; }
+    [[nodiscard]] virtual const std::array<std::string, 7>& abbr_day_names() const { return m_abbr_day; }
     /**
      * @lang{ZH}
      * @brief 返回月份全称数组（索引 0 为一月，索引 11 为十二月）。
@@ -960,7 +960,7 @@ public:
      * @return A constant reference to the array of 12 full month name strings.
      * @endif
      */
-    virtual const std::array<std::string, 12>& month_names() const { return m_month; }
+    [[nodiscard]] virtual const std::array<std::string, 12>& month_names() const { return m_month; }
     /**
      * @lang{ZH}
      * @brief 返回月份缩写数组（索引 0 为一月，索引 11 为十二月）。
@@ -972,7 +972,7 @@ public:
      * @return A constant reference to the array of 12 abbreviated month name strings.
      * @endif
      */
-    virtual const std::array<std::string, 12>& abbr_month_names() const { return m_abbr_month; }
+    [[nodiscard]] virtual const std::array<std::string, 12>& abbr_month_names() const { return m_abbr_month; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 定义的替代数字字符串数组（最多 100 项）。
@@ -990,7 +990,7 @@ public:
      * @return A constant reference to the array of 100 alternative digit strings.
      * @endif
      */
-    virtual const std::array<std::string, 100>& alt_digit_names() const { return m_alt_digits; }
+    [[nodiscard]] virtual const std::array<std::string, 100>& alt_digit_names() const { return m_alt_digits; }
     /**
      * @lang{ZH}
      * @brief 返回 AM 时段字符串（如 `"AM"`）。
@@ -1002,7 +1002,7 @@ public:
      * @return A constant reference to the AM string.
      * @endif
      */
-    virtual const std::string& am_name() const { return m_am; }
+    [[nodiscard]] virtual const std::string& am_name() const { return m_am; }
     /**
      * @lang{ZH}
      * @brief 返回 PM 时段字符串（如 `"PM"`）。
@@ -1014,7 +1014,7 @@ public:
      * @return A constant reference to the PM string.
      * @endif
      */
-    virtual const std::string& pm_name() const { return m_pm; }
+    [[nodiscard]] virtual const std::string& pm_name() const { return m_pm; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 日期格式串（对应 `%x`）。
@@ -1026,7 +1026,7 @@ public:
      * @return A constant reference to the date format string.
      * @endif
      */
-    virtual const std::string& date_format() const { return m_date_format; }
+    [[nodiscard]] virtual const std::string& date_format() const { return m_date_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰日期格式串（对应 `%Ex`）。
@@ -1043,7 +1043,7 @@ public:
      * @return A constant reference to the era-modified date format string.
      * @endif
      */
-    virtual const std::string& era_date_format() const { return m_era_date_format; }
+    [[nodiscard]] virtual const std::string& era_date_format() const { return m_era_date_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 时间格式串（对应 `%X`）。
@@ -1055,7 +1055,7 @@ public:
      * @return A constant reference to the time format string.
      * @endif
      */
-    virtual const std::string& time_format() const { return m_time_format; }
+    [[nodiscard]] virtual const std::string& time_format() const { return m_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰时间格式串（对应 `%EX`）。
@@ -1072,7 +1072,7 @@ public:
      * @return A constant reference to the era-modified time format string.
      * @endif
      */
-    virtual const std::string& era_time_format() const { return m_era_time_format; }
+    [[nodiscard]] virtual const std::string& era_time_format() const { return m_era_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 日期时间格式串（对应 `%c`）。
@@ -1084,7 +1084,7 @@ public:
      * @return A constant reference to the date-time format string.
      * @endif
      */
-    virtual const std::string& date_time_format() const { return m_date_time_format; }
+    [[nodiscard]] virtual const std::string& date_time_format() const { return m_date_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰日期时间格式串（对应 `%Ec`）。
@@ -1101,7 +1101,7 @@ public:
      * @return A constant reference to the era-modified date-time format string.
      * @endif
      */
-    virtual const std::string& era_date_time_format() const { return m_era_date_time_format; }
+    [[nodiscard]] virtual const std::string& era_date_time_format() const { return m_era_date_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 AM/PM 时间格式串（对应 `%r`）。
@@ -1113,7 +1113,7 @@ public:
      * @return A constant reference to the AM/PM time format string.
      * @endif
      */
-    virtual const std::string& am_pm_format() const { return m_am_pm_format; }
+    [[nodiscard]] virtual const std::string& am_pm_format() const { return m_am_pm_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 定义的纪元条目列表。
@@ -1126,7 +1126,7 @@ public:
      *         defines no eras.
      * @endif
      */
-    virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
+    [[nodiscard]] virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
 
 private:
     /**
@@ -1529,7 +1529,7 @@ public:
      * @return A constant reference to the array of 7 full weekday name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<CharT>, 7>& day_names() const { return m_day; }
+    [[nodiscard]] virtual const std::array<std::basic_string<CharT>, 7>& day_names() const { return m_day; }
     /**
      * @lang{ZH}
      * @brief 返回星期缩写数组（索引 0 为星期日，索引 6 为星期六）。
@@ -1541,7 +1541,7 @@ public:
      * @return A constant reference to the array of 7 abbreviated weekday name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<CharT>, 7>& abbr_day_names() const { return m_abbr_day; }
+    [[nodiscard]] virtual const std::array<std::basic_string<CharT>, 7>& abbr_day_names() const { return m_abbr_day; }
     /**
      * @lang{ZH}
      * @brief 返回月份全称数组（索引 0 为一月，索引 11 为十二月）。
@@ -1553,7 +1553,7 @@ public:
      * @return A constant reference to the array of 12 full month name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<CharT>, 12>& month_names() const { return m_month; }
+    [[nodiscard]] virtual const std::array<std::basic_string<CharT>, 12>& month_names() const { return m_month; }
     /**
      * @lang{ZH}
      * @brief 返回月份缩写数组（索引 0 为一月，索引 11 为十二月）。
@@ -1565,7 +1565,7 @@ public:
      * @return A constant reference to the array of 12 abbreviated month name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<CharT>, 12>& abbr_month_names() const { return m_abbr_month; }
+    [[nodiscard]] virtual const std::array<std::basic_string<CharT>, 12>& abbr_month_names() const { return m_abbr_month; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 定义的替代数字字符串数组（最多 100 项）。
@@ -1577,7 +1577,7 @@ public:
      * @return A constant reference to the array of 100 alternative digit strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<CharT>, 100>& alt_digit_names() const { return m_alt_digits; }
+    [[nodiscard]] virtual const std::array<std::basic_string<CharT>, 100>& alt_digit_names() const { return m_alt_digits; }
     /**
      * @lang{ZH}
      * @brief 返回 AM 时段字符串。
@@ -1589,7 +1589,7 @@ public:
      * @return A constant reference to the AM string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& am_name() const { return m_am; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& am_name() const { return m_am; }
     /**
      * @lang{ZH}
      * @brief 返回 PM 时段字符串。
@@ -1601,7 +1601,7 @@ public:
      * @return A constant reference to the PM string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& pm_name() const { return m_pm; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& pm_name() const { return m_pm; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 日期格式串（对应 `%x`）。
@@ -1613,7 +1613,7 @@ public:
      * @return A constant reference to the date format string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& date_format() const { return m_date_format; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& date_format() const { return m_date_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰日期格式串（对应 `%Ex`）。
@@ -1625,7 +1625,7 @@ public:
      * @return A constant reference to the era-modified date format string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& era_date_format() const { return m_era_date_format; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& era_date_format() const { return m_era_date_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 时间格式串（对应 `%X`）。
@@ -1637,7 +1637,7 @@ public:
      * @return A constant reference to the time format string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& time_format() const { return m_time_format; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& time_format() const { return m_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰时间格式串（对应 `%EX`）。
@@ -1649,7 +1649,7 @@ public:
      * @return A constant reference to the era-modified time format string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& era_time_format() const { return m_era_time_format; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& era_time_format() const { return m_era_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 日期时间格式串（对应 `%c`）。
@@ -1661,7 +1661,7 @@ public:
      * @return A constant reference to the date-time format string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& date_time_format() const { return m_date_time_format; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& date_time_format() const { return m_date_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰日期时间格式串（对应 `%Ec`）。
@@ -1673,7 +1673,7 @@ public:
      * @return A constant reference to the era-modified date-time format string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& era_date_time_format() const { return m_era_date_time_format; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& era_date_time_format() const { return m_era_date_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 AM/PM 时间格式串（对应 `%r`）。
@@ -1685,7 +1685,7 @@ public:
      * @return A constant reference to the AM/PM time format string.
      * @endif
      */
-    virtual const std::basic_string<CharT>& am_pm_format() const { return m_am_pm_format; }
+    [[nodiscard]] virtual const std::basic_string<CharT>& am_pm_format() const { return m_am_pm_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 定义的纪元条目列表。
@@ -1698,7 +1698,7 @@ public:
      *         defines no eras.
      * @endif
      */
-    virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
+    [[nodiscard]] virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
 
 private:
     std::array<std::basic_string<CharT>, 7>   m_day;
@@ -1869,7 +1869,7 @@ public:
      * @return A constant reference to the array of 7 full weekday name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<char8_t>, 7>& day_names() const { return m_day; }
+    [[nodiscard]] virtual const std::array<std::basic_string<char8_t>, 7>& day_names() const { return m_day; }
     /**
      * @lang{ZH}
      * @brief 返回星期缩写数组（索引 0 为星期日，索引 6 为星期六）。
@@ -1881,7 +1881,7 @@ public:
      * @return A constant reference to the array of 7 abbreviated weekday name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<char8_t>, 7>& abbr_day_names() const { return m_abbr_day; }
+    [[nodiscard]] virtual const std::array<std::basic_string<char8_t>, 7>& abbr_day_names() const { return m_abbr_day; }
     /**
      * @lang{ZH}
      * @brief 返回月份全称数组（索引 0 为一月，索引 11 为十二月）。
@@ -1893,7 +1893,7 @@ public:
      * @return A constant reference to the array of 12 full month name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<char8_t>, 12>& month_names() const { return m_month; }
+    [[nodiscard]] virtual const std::array<std::basic_string<char8_t>, 12>& month_names() const { return m_month; }
     /**
      * @lang{ZH}
      * @brief 返回月份缩写数组（索引 0 为一月，索引 11 为十二月）。
@@ -1905,7 +1905,7 @@ public:
      * @return A constant reference to the array of 12 abbreviated month name strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<char8_t>, 12>& abbr_month_names() const { return m_abbr_month; }
+    [[nodiscard]] virtual const std::array<std::basic_string<char8_t>, 12>& abbr_month_names() const { return m_abbr_month; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 定义的替代数字字符串数组（最多 100 项）。
@@ -1917,7 +1917,7 @@ public:
      * @return A constant reference to the array of 100 alternative digit strings.
      * @endif
      */
-    virtual const std::array<std::basic_string<char8_t>, 100>& alt_digit_names() const { return m_alt_digits; }
+    [[nodiscard]] virtual const std::array<std::basic_string<char8_t>, 100>& alt_digit_names() const { return m_alt_digits; }
     /**
      * @lang{ZH}
      * @brief 返回 AM 时段字符串。
@@ -1929,7 +1929,7 @@ public:
      * @return A constant reference to the AM string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& am_name() const { return m_am; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& am_name() const { return m_am; }
     /**
      * @lang{ZH}
      * @brief 返回 PM 时段字符串。
@@ -1941,7 +1941,7 @@ public:
      * @return A constant reference to the PM string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& pm_name() const { return m_pm; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& pm_name() const { return m_pm; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 日期格式串（对应 `%x`）。
@@ -1953,7 +1953,7 @@ public:
      * @return A constant reference to the date format string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& date_format() const { return m_date_format; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& date_format() const { return m_date_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰日期格式串（对应 `%Ex`）。
@@ -1965,7 +1965,7 @@ public:
      * @return A constant reference to the era-modified date format string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& era_date_format() const { return m_era_date_format; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& era_date_format() const { return m_era_date_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 时间格式串（对应 `%X`）。
@@ -1977,7 +1977,7 @@ public:
      * @return A constant reference to the time format string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& time_format() const { return m_time_format; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& time_format() const { return m_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰时间格式串（对应 `%EX`）。
@@ -1989,7 +1989,7 @@ public:
      * @return A constant reference to the era-modified time format string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& era_time_format() const { return m_era_time_format; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& era_time_format() const { return m_era_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 日期时间格式串（对应 `%c`）。
@@ -2001,7 +2001,7 @@ public:
      * @return A constant reference to the date-time format string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& date_time_format() const { return m_date_time_format; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& date_time_format() const { return m_date_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 纪元修饰日期时间格式串（对应 `%Ec`）。
@@ -2013,7 +2013,7 @@ public:
      * @return A constant reference to the era-modified date-time format string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& era_date_time_format() const { return m_era_date_time_format; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& era_date_time_format() const { return m_era_date_time_format; }
     /**
      * @lang{ZH}
      * @brief 返回 AM/PM 时间格式串（对应 `%r`）。
@@ -2025,7 +2025,7 @@ public:
      * @return A constant reference to the AM/PM time format string.
      * @endif
      */
-    virtual const std::basic_string<char8_t>& am_pm_format() const { return m_am_pm_format; }
+    [[nodiscard]] virtual const std::basic_string<char8_t>& am_pm_format() const { return m_am_pm_format; }
     /**
      * @lang{ZH}
      * @brief 返回 locale 定义的纪元条目列表。
@@ -2038,7 +2038,7 @@ public:
      *         defines no eras.
      * @endif
      */
-    virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
+    [[nodiscard]] virtual const std::vector<era_entry>& era_items() const { return m_era_items; }
 
 private:
     std::array<std::basic_string<char8_t>, 7>   m_day;

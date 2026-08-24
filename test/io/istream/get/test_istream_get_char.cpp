@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -154,6 +155,71 @@ void test_istream_get_char_3()
             s.get(c);
             VERIFY(c == 'Z');
             VERIFY(s.eof());
+        }
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_get_char_4()
+{
+    dump_info("Test istream<char>::get case 4 (negative buffer size)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // Same contract as read(): the capacity is a signed ptrdiff_t so that a negative
+        // value is rejected here rather than arriving as SIZE_MAX and filling the caller's
+        // buffer until the delimiter or EOF.
+        for (const std::ptrdiff_t n : {std::ptrdiff_t{-1},
+                                       std::numeric_limits<std::ptrdiff_t>::min()})
+        {
+            T s{IOv2::mem_device{std::string(4096, 'x')}, IOv2::locale<char>("C")};
+            char buf[8];
+            for (char& ch : buf) ch = '#';
+            bool threw = false;
+            char* ret = nullptr;
+            try { ret = s.template get<IOv2::keep_sep, IOv2::app_zt>(buf, n, '\n'); }
+            catch (...) { threw = true; }
+            VERIFY( !threw );
+            VERIFY( ret == buf );
+            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            // app_zt must not treat a negative capacity as room for the terminator.
+            for (const char c : buf)
+                VERIFY( c == '#' );
+            s.clear();
+            VERIFY( s.peek() == 'x' );
+        }
+
+        // The two-argument overload widens '\n' first, then forwards; it must reject the
+        // negative capacity just the same, and leave the buffer alone on the way through.
+        {
+            T s{IOv2::mem_device{std::string(4096, 'x')}, IOv2::locale<char>("C")};
+            char buf[8];
+            for (char& ch : buf) ch = '#';
+            bool threw = false;
+            char* ret = nullptr;
+            try { ret = s.template get<IOv2::cons_sep, IOv2::app_zt>(buf, -1); }
+            catch (...) { threw = true; }
+            VERIFY( !threw );
+            VERIFY( ret == buf );
+            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            for (const char c : buf)
+                VERIFY( c == '#' );
+        }
+
+        // Zero stays a separate, already-documented rejection: it must keep behaving as
+        // before rather than being folded into the negative case.
+        {
+            T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
+            char buf[8];
+            for (char& ch : buf) ch = '#';
+            s.template get<IOv2::keep_sep, IOv2::app_zt>(buf, 0, '\n');
+            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            for (const char c : buf)
+                VERIFY( c == '#' );
         }
     };
 
