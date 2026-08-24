@@ -1830,6 +1830,10 @@ namespace IOv2
          * 并更新 `m_io_status`。
          *
          * 仅在 `enable_io_switch` 为 `true` 且 kernel 支持 IO 方向切换时可用。
+         *
+         * @note 换向**可以被拒绝**：派生类的 `switch_to_put_impl()` 抛出即表示当前状态下
+         *       不允许换向，什么条件下拒绝由派生类自行规定。钩子在动 kernel 与 `m_io_status`
+         *       之前调用，因此被拒时本对象不变。
          * @endif
          *
          * @lang{EN}
@@ -1842,6 +1846,11 @@ namespace IOv2
          *
          * Only available when `enable_io_switch` is `true` and the kernel supports
          * IO-direction switching.
+         *
+         * @note A switch **may be refused**: a throw from the derived class's
+         *       `switch_to_put_impl()` means the current state does not permit it, and what
+         *       warrants a refusal is up to that class. The hook runs before the kernel and
+         *       `m_io_status` are touched, so a refusal leaves this object unchanged.
          * @endif
          */
         void switch_to_put()

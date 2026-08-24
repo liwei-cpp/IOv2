@@ -817,7 +817,7 @@ struct stream_common_operators
      * @warning **When the target is bidirectional, flushing drops its pushed-back input.**
      *          Flushing an `iostream` must first switch it to the put direction, and switching
      *          clears the read buffer: characters substituted in by `putback()`, and any
-     *          over-pushback, are lost, so reading from that stream afterwards yields the
+     *          over-putback, are lost, so reading from that stream afterwards yields the
      *          underlying data (an unsubstituted `peek()` is unaffected — re-reading after the
      *          rewind gives the same character). This follows from what output means: output
      *          requires the device to sit at the write position, while the read buffer holds

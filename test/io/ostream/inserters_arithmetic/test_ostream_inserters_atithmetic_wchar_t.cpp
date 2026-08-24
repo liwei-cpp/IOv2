@@ -5,6 +5,7 @@
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
 #include <io/io_manip.h>
+#include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
 #include <support/dump_info.h>

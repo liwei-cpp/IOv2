@@ -93,7 +93,7 @@ namespace IOv2
  * needed.
  *
  * @note For the detailed semantics of the read buffer and the logical position (in
- *       particular, the position saturating at 0 on over-pushback), see sputbackc(),
+ *       particular, the position saturating at 0 on over-putback), see sputbackc(),
  *       tell(), and switch_to_put().
  *
  * @note The direction constraint sits on the four constructors. The creator-less *output* one
@@ -683,7 +683,7 @@ public:
      * The rewind restores the position, not the contents: the read buffer itself is
      * then cleared, so any character that sputbackc() pushed back with a value
      * differing from the underlying data (both the standard and this library allow
-     * put-back to substitute), as well as any over-pushback beyond the number of
+     * put-back to substitute), as well as any over-putback beyond the number of
      * characters actually read, is silently lost here, and switching back to input
      * reads the underlying data instead. An unsubstituted sgetc()/peek() is
      * unaffected — re-reading after the rewind yields the same character.
@@ -696,7 +696,7 @@ public:
      * function while the read buffer is non-empty; if the read buffer is empty
      * (i.e. only sbumpc()/sgetn() have been used, never sgetc()/sputbackc()),
      * switching direction does not require positioning support.
-     * On over-pushback: if sputbackc() has pushed back more characters than were
+     * On over-putback: if sputbackc() has pushed back more characters than were
      * actually read, the rewind target (i.e. tell()) saturates at the stream origin
      * 0 (see tell()/sputbackc()), so writing after the switch begins at position 0.
      * This is consistent with the logical read cursor being at 0 at that moment;
@@ -706,11 +706,13 @@ public:
      * @endif
      *
      * @throws cvt_error
-     * @lang{ZH} 读缓冲区非空，且回退这些字符所需的底层定位操作失败（例如底层转换器
-     * 不支持定位）时抛出。 @endif
-     * @lang{EN} Thrown when the read buffer is non-empty and the underlying
-     * positioning operation needed to rewind those characters fails (e.g. the
-     * underlying converter does not support positioning). @endif
+     * @lang{ZH} 有两个抛出源：(1) 读缓冲区非空，而回退这些字符所需的定位被转换器拒绝；
+     * (2) 转换器拒绝离开读方向——这一源与读缓冲区是否为空无关，读缓冲区为空时同样可能抛。
+     * 前者抛在清空之前，后者抛在清空之后。 @endif
+     * @lang{EN} Two sources: (1) the read buffer is non-empty and the converter refuses the
+     * reposition needed to rewind those characters; (2) the converter refuses to leave the get
+     * direction -- this one is independent of the read buffer and can throw with it empty.
+     * The first throws before the clear, the second after it. @endif
      */
     void switch_to_put() requires (IsIn && IsOut)
     {
@@ -728,8 +730,10 @@ public:
                                  + " buffered/put-back character(s) before switching to output mode: "
                                  + e.what());
             }
-            // Must stay after the seek: tell() subtracts m_read_buf.size(), and a failed seek
-            // leaves the buffer intact -- which is what iostream's @warning promises.
+            // Must immediately follow a *successful* seek: the seek consumed the buffer, and
+            // tell() subtracts m_read_buf.size(), so keeping it would subtract twice. A failed
+            // seek skips this and leaves the buffer intact; a throw from the switch below
+            // therefore finds it already cleared. Both are by design -- see iostream's @warning.
             m_read_buf.clear();
         }
         m_cvt.switch_to_put();
@@ -803,7 +807,7 @@ public:
             {
                 try
                 {
-                    // On over-pushback (more put-back than actually read), tell()
+                    // On over-putback (more put-back than actually read), tell()
                     // saturates at 0, so the device is handed back positioned at the
                     // stream origin. That is consistent with the logical read cursor
                     // being at 0; see tell()/sputbackc() and switch_to_put().

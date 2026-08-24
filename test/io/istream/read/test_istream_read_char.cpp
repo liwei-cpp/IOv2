@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -192,6 +193,58 @@ void test_istream_read_char_6()
         VERIFY( !threw );
         VERIFY( ret == nullptr );
         VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+    };
+
+    helper.operator()<IOv2::istream>();
+    helper.operator()<IOv2::iostream>();
+
+    dump_info("Done\n");
+}
+
+void test_istream_read_char_7()
+{
+    dump_info("Test istream<char>::read case 7 (negative character count)...");
+
+    auto helper = []<template<typename, typename> class T>()
+    {
+        // The count is a signed ptrdiff_t precisely so that a negative value survives the
+        // call instead of arriving as SIZE_MAX. read() rejects it with stream_error ->
+        // strfailbit, and -- the point of the test -- writes nothing into the caller's
+        // buffer, which a SIZE_MAX count would have overrun.
+        for (const std::ptrdiff_t n : {std::ptrdiff_t{-1},
+                                       std::numeric_limits<std::ptrdiff_t>::min()})
+        {
+            T s{IOv2::mem_device{std::string(4096, 'x')}, IOv2::locale<char>("C")};
+            char buf[8];
+            for (char& ch : buf) ch = '#';
+            bool threw = false;
+            char* ret = nullptr;
+            try { ret = s.read(buf, n); }
+            catch (...) { threw = true; }
+            VERIFY( !threw );
+            VERIFY( ret == buf );
+            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            for (const char c : buf)
+                VERIFY( c == '#' );
+            // The rejection happens before anything is extracted.
+            s.clear();
+            VERIFY( s.peek() == 'x' );
+        }
+
+        // A masked strfailbit turns the same rejection into an exception.
+        {
+            T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
+            s.exceptions(IOv2::ios_defs::strfailbit);
+            char buf[8];
+            for (char& ch : buf) ch = '#';
+            bool threw = false;
+            try { s.read(buf, -1); }
+            catch (...) { threw = true; }
+            VERIFY( threw );
+            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            for (const char c : buf)
+                VERIFY( c == '#' );
+        }
     };
 
     helper.operator()<IOv2::istream>();
