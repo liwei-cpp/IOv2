@@ -1,0 +1,127 @@
+IOv2 -- NOTICE
+==============
+
+Copyright (C) 2026 liwei <liweifriends@gmail.com>
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version.  See the LICENSE file for the full text.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+
+THIRD-PARTY MATERIAL
+--------------------
+
+Portions of this release are derived from the GNU ISO C++ Library
+(libstdc++), part of the GNU Compiler Collection:
+
+    Copyright (C) 1997-2026 Free Software Foundation, Inc.
+    SPDX-License-Identifier: GPL-3.0-or-later WITH GCC-exception-3.1
+
+The files listed below contain code, comments, algorithms and/or
+identifier naming taken or adapted from libstdc++ -- principally
+<bits/locale_facets.tcc> and <bits/locale_facets_nonio.tcc>:
+
+  IOv2/facet/numeric.h
+      The num_get / num_put implementation: the two-stage formatting
+      structure ("Stage 1 / Stage 2"), the boolalpha longest-match
+      extraction loop, integer and floating-point field extraction,
+      decimal-part grouping, and the accompanying
+      "_GLIBCXX_RESOLVE_LIB_DEFECTS" / LWG defect-resolution comments.
+
+  IOv2/facet/facet_helper.h
+      add_grouping()    -- adapted from libstdc++ __add_grouping()
+      verify_grouping() -- adapted from libstdc++ __verify_grouping(),
+                           including its explanatory comments.
+
+  IOv2/facet/monetary.h
+      The money_get / money_put implementation and its internal parse
+      state (testvalid, testdecfound, sign_size, last_pos).
+
+Because this material is present, this release as a whole is distributed
+under the GNU General Public License version 3 or later.
+
+The GCC Runtime Library Exception that the Free Software Foundation
+attaches to libstdc++ covers Target Code produced by an Eligible
+Compilation Process.  It does not grant permission to redistribute
+libstdc++ *source* under more permissive terms, and no such permission
+is claimed here.
+
+
+SCOPE OF THIS RELEASE
+---------------------
+
+This release is frozen.  It is the source code accompanying the book and
+is byte-for-byte identical to book-v1.0.0, apart from the addition of the
+LICENSE and NOTICE files.
+
+Development continues in the same repository on the 'main' branch, which
+is a separate line of work; refer to that branch for its own licensing
+terms.
+
+
+================================================================================
+中文摘要
+================================================================================
+
+（本节为便利翻译，仅供参考；一切条款以上文英文正文及 LICENSE 文件为准。
+  GNU 通用公共许可证的官方文本为英文，自由软件基金会声明各语言译本不具
+  法律效力。）
+
+版权所有 (C) 2026 liwei <liweifriends@gmail.com>
+
+本程序是自由软件：你可以依据自由软件基金会发布的 GNU 通用公共许可证第 3 版，
+或（由你选择）任何更新版本的条款，重新分发和/或修改本程序。许可证全文见
+LICENSE 文件。
+
+本程序的分发是希望它能有用，但不附带任何担保；甚至不包含对适销性或特定用途
+适用性的默示担保。详见 GNU 通用公共许可证。
+
+
+第三方材料
+----------
+
+本 release 中的部分内容衍生自 GNU ISO C++ Library (libstdc++)，属 GNU 编译器
+套件的一部分：
+
+    版权所有 (C) 1997-2026 Free Software Foundation, Inc.
+    SPDX-License-Identifier: GPL-3.0-or-later WITH GCC-exception-3.1
+
+下列文件含有取自或改写自 libstdc++（主要是 <bits/locale_facets.tcc> 与
+<bits/locale_facets_nonio.tcc>）的代码、注释、算法和/或标识符命名：
+
+  IOv2/facet/numeric.h
+      num_get / num_put 的实现：两阶段格式化结构（"Stage 1 / Stage 2"）、
+      boolalpha 最长匹配提取循环、整数与浮点字段提取、小数部分分组，以及
+      相应的 "_GLIBCXX_RESOLVE_LIB_DEFECTS" / LWG 缺陷决议注释。
+
+  IOv2/facet/facet_helper.h
+      add_grouping()    —— 改写自 libstdc++ 的 __add_grouping()
+      verify_grouping() —— 改写自 libstdc++ 的 __verify_grouping()，
+                           包括其解释性注释。
+
+  IOv2/facet/monetary.h
+      money_get / money_put 的实现及其内部解析状态
+      （testvalid、testdecfound、sign_size、last_pos）。
+
+由于含有上述材料，本 release 整体依据 GNU 通用公共许可证第 3 版或任何更新
+版本分发。
+
+自由软件基金会附加于 libstdc++ 的 GCC Runtime Library Exception，覆盖的是由
+符合条件的编译过程（Eligible Compilation Process）所产生的 Target Code。它并
+不授予以更宽松的条款再分发 libstdc++ *源码* 的权利，此处亦不主张该项权利。
+
+
+本 release 的范围
+-----------------
+
+本 release 已冻结。它是本书的配套源码，除新增 LICENSE 与 NOTICE 两个文件外，
+与 book-v1.0.0 逐字节一致。
+
+开发工作在同一仓库的 'main' 分支上继续进行，那是一条独立的工作线；其许可
+条款请参见该分支。
