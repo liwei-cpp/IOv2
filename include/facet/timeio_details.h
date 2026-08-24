@@ -341,7 +341,7 @@ namespace IOv2
             // for a nameless zone has to parse back regardless of the database. Its text is
             // empty on purpose -- see s_unknown_zone for why that is not the same as absent.
             res.add(s_unknown_zone.begin(), s_unknown_zone.end(),
-                    zone_ref{std::string{}, false, true});
+                    zone_ref{.text = std::string{}, .is_name = false, .is_abbrev = true});
 
             try
             {
@@ -398,7 +398,7 @@ namespace IOv2
 
                 for (const auto& [key, ident] : entries)
                     res.add(key.begin(), key.end(),
-                            zone_ref{key, ident.is_name, ident.is_abbrev});
+                            zone_ref{.text = key, .is_name = ident.is_name, .is_abbrev = ident.is_abbrev});
             }
             catch (...) // NOLINT(bugprone-empty-catch)
             {
@@ -504,7 +504,7 @@ namespace IOv2
              * @brief Era start year (Gregorian calendar).
              * @endif
              */
-            int32_t from_year;
+            int32_t from_year = 0;
             /**
              * @lang{ZH}
              * @brief 纪元起始月份（1–12）。
@@ -514,7 +514,7 @@ namespace IOv2
              * @brief Era start month (1–12).
              * @endif
              */
-            uint8_t from_month;
+            uint8_t from_month = 0;
             /**
              * @lang{ZH}
              * @brief 纪元起始日（1–31）。
@@ -524,7 +524,7 @@ namespace IOv2
              * @brief Era start day (1–31).
              * @endif
              */
-            uint8_t from_day;
+            uint8_t from_day = 0;
             /**
              * @lang{ZH}
              * @brief 纪元结束年份（公历）。开放结尾的纪元规范化为 `INT32_MAX`。
@@ -534,7 +534,7 @@ namespace IOv2
              * @brief Era end year (Gregorian calendar). Open-ended eras are normalised to `INT32_MAX`.
              * @endif
              */
-            int32_t to_year;
+            int32_t to_year = 0;
             /**
              * @lang{ZH}
              * @brief 纪元结束月份（1–12）。
@@ -544,7 +544,7 @@ namespace IOv2
              * @brief Era end month (1–12).
              * @endif
              */
-            uint8_t to_month;
+            uint8_t to_month = 0;
             /**
              * @lang{ZH}
              * @brief 纪元结束日（1–31）。
@@ -554,7 +554,7 @@ namespace IOv2
              * @brief Era end day (1–31).
              * @endif
              */
-            uint8_t to_day;
+            uint8_t to_day = 0;
             /**
              * @lang{ZH}
              * @brief 纪元纪年偏移量，即纪元起始年（`from_year`）所对应的纪元年号。
@@ -564,7 +564,7 @@ namespace IOv2
              * @brief Year offset for the era: the era year number assigned to `from_year`.
              * @endif
              */
-            int32_t offset;
+            int32_t offset = 0;
             /**
              * @lang{ZH}
              * @brief 纪元年份增长方向。
@@ -580,7 +580,7 @@ namespace IOv2
              * `-1` indicates that the year number increases toward the past (e.g. B.C.).
              * @endif
              */
-            int8_t direction;
+            int8_t direction = 0;
 
             /// @cond
             bool operator==(const era_entry&) const = default; // for test.
@@ -1323,11 +1323,12 @@ private:
      * @return A list of decoded `era_entry` objects; an empty vector if no era data exists.
      * @endif
      */
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
     static std::vector<era_entry> parse_glibc_era_entries()
     {
         std::vector<era_entry> items;
 
-        const int32_t era_item_num = static_cast<int32_t>(
+        const auto era_item_num = static_cast<int32_t>(
             reinterpret_cast<uintptr_t>(nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES)));
         if (era_item_num <= 0)
             return items;
@@ -1339,8 +1340,8 @@ private:
             const char *base_ptr = ptr;
             era_entry cur_entry;
 
-            int32_t buf[8];
-            std::memcpy(static_cast<void*>(buf), static_cast<const void*>(ptr), sizeof(int32_t) * 8);
+            std::array<int32_t, 8> buf{};
+            std::memcpy(static_cast<void*>(buf.data()), static_cast<const void*>(ptr), sizeof(int32_t) * 8);
             ptr += sizeof(uint32_t) * 8;
 
             if (buf[2] > std::numeric_limits<int32_t>::max() - 1900)
@@ -1392,6 +1393,7 @@ private:
         }
         return items;
     }
+    // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
 
     std::array<std::string, 7>   m_day;
     std::array<std::string, 7>   m_abbr_day;
