@@ -17,3 +17,10 @@ ALIASES               += "lang{1}=\if \1"
 
 # 开启 ZH 部分
 ENABLED_SECTIONS       = ZH
+
+# 依赖图输出为矢量格式。显式写死 HAVE_DOT，避免不同 doxygen 版本默认值不一致：
+# 1.9.x 默认 YES、1.14 默认 NO，不写的话 CI 和本地产物会不一样。
+# PNG 下仅 include 图就有 34 MiB，SVG 下降到 4.6 MiB，且节点依然可点击跳转。
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = NO
