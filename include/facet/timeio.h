@@ -504,13 +504,13 @@ struct date_parse_helper<CharT, true>
     bool m_have_wday : 1 = false;
 
 private:
-    constexpr static const unsigned short int s_mon_yday[2][13] =
-    {
+    constexpr static const std::array<std::array<unsigned short int, 13>, 2> s_mon_yday =
+    {{
         /* Normal years.  */
-        { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
+        {{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 }},
         /* Leap years.  */
-        { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
-    };
+        {{ 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }}
+    }};
 
     static bool isleap(int year)
     {
@@ -1540,7 +1540,7 @@ struct time_parse_context
         out.tm_wday = static_cast<int>(weekday{sys_days{ymd}}.c_encoding());
         bool isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
 
-        const std::array<int, 12> days = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
+        static constexpr std::array<int, 12> days = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
         out.tm_yday = days[out.tm_mon] + out.tm_mday + (isLeap && out.tm_mon >= 2 ? 1 : 0);
 
         if constexpr ((TzLevel >= tz_level::offset) && (requires { out.tm_gmtoff; }))
@@ -2969,6 +2969,7 @@ private:
      * @return Iterator pointing to the first unconsumed character.
      * @endif
      */
+    // NOLINTBEGIN(cppcoreguidelines-avoid-goto)
     template <typename TIter, std::sentinel_for<TIter> TSent, bool HaveDate, bool HaveTime, tz_level TzLevel>
         requires (steppable_back<TIter> || is_istreambuf_iterator<TIter>)
     TIter do_get(TIter rp, TSent rp_end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
@@ -3174,10 +3175,10 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
-                    rp = do_get(rp, rp_end, ctx, succ, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
+                    rp = do_get(rp, rp_end, ctx, succ, subfmt.data());
                     if (!succ) return rp;
                 }
                 break;
@@ -3187,10 +3188,10 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
-                    rp = do_get(rp, rp_end, ctx, succ, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
+                    rp = do_get(rp, rp_end, ctx, succ, subfmt.data());
                     if (!succ) return rp;
                 }
                 break;
@@ -3347,9 +3348,9 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
-                    rp = do_get(rp, rp_end, ctx, succ, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
+                    rp = do_get(rp, rp_end, ctx, succ, subfmt.data());
                     if (!succ) return rp;
                 }
                 break;
@@ -3376,10 +3377,10 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
-                    rp = do_get(rp, rp_end, ctx, succ, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
+                    rp = do_get(rp, rp_end, ctx, succ, subfmt.data());
                     if (!succ) return rp;
                 }
                 break;
@@ -3761,6 +3762,7 @@ private:
             succ = false;
         return rp;
     }
+    // NOLINTEND(cppcoreguidelines-avoid-goto)
 
     /**
      * @lang{ZH}
@@ -4166,6 +4168,7 @@ private:
      *       invariant holds.
      * @endif
      */
+    // NOLINTBEGIN(cppcoreguidelines-avoid-goto)
     template <typename OutIt>
     OutIt do_put(OutIt out, std::basic_string_view<CharT> format,
                  const std::chrono::year_month_day* ymd,
@@ -4309,10 +4312,10 @@ private:
             case static_cast<CharT>('D'):
                 if (!ymd || modifier) goto bad_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
-                    out = do_put(out, subfmt, ymd, wd, hms, zi, tz);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
                 }
                 break;
 
@@ -4330,10 +4333,10 @@ private:
             case static_cast<CharT>('F'):
                 if (!ymd || modifier) goto bad_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
-                    out = do_put(out, subfmt, ymd, wd, hms, zi, tz);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
                 }
                 break;
 
@@ -4437,9 +4440,9 @@ private:
             case static_cast<CharT>('R'):
                 if (!hms || modifier) goto bad_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
-                    out = do_put(out, subfmt, ymd, wd, hms, zi, tz);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
                 }
                 break;
 
@@ -4461,10 +4464,10 @@ private:
             case static_cast<CharT>('T'):
                 if (!hms || modifier) goto bad_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
-                    out = do_put(out, subfmt, ymd, wd, hms, zi, tz);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
+                    out = do_put(out, subfmt.data(), ymd, wd, hms, zi, tz);
                 }
                 break;
 
@@ -4660,6 +4663,7 @@ private:
         }
         return out;
     }
+    // NOLINTEND(cppcoreguidelines-avoid-goto)
 
     /**
      * @lang{ZH}
@@ -4713,6 +4717,7 @@ private:
      *       not covered by the guarantee above.
      * @endif
      */
+    // NOLINTBEGIN(cppcoreguidelines-avoid-goto)
     template <bool has_date, bool has_time, bool has_offset, bool has_zone>
     void expand_and_filter(std::basic_string<CharT>& result, std::basic_string_view<CharT> fmt) const
     {
@@ -4923,10 +4928,10 @@ private:
                 if constexpr (!has_date) goto filter_format;
                 if (modifier) goto filter_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
-                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('/'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('d'), static_cast<CharT>('/'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('y'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
                 }
                 ++f;
                 continue;
@@ -4935,10 +4940,10 @@ private:
                 if constexpr (!has_date) goto filter_format;
                 if (modifier) goto filter_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
-                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('Y'), static_cast<CharT>('-'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('m'), static_cast<CharT>('-'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('d'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
                 }
                 ++f;
                 continue;
@@ -4947,9 +4952,9 @@ private:
                 if constexpr (!has_time) goto filter_format;
                 if (modifier) goto filter_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
-                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('M'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
                 }
                 ++f;
                 continue;
@@ -4958,10 +4963,10 @@ private:
                 if constexpr (!has_time) goto filter_format;
                 if (modifier) goto filter_format;
                 {
-                    CharT subfmt[] = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
-                                      static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
-                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt);
+                    static constexpr std::array subfmt = {static_cast<CharT>('%'), static_cast<CharT>('H'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('M'), static_cast<CharT>(':'),
+                                                          static_cast<CharT>('%'), static_cast<CharT>('S'), CharT()};
+                    expand_and_filter<has_date, has_time, has_offset, has_zone>(result, subfmt.data());
                 }
                 ++f;
                 continue;
@@ -4975,6 +4980,7 @@ private:
             result.append(head, ++f);
         }
     }
+    // NOLINTEND(cppcoreguidelines-avoid-goto)
 
 private:
     /**
@@ -5094,7 +5100,7 @@ private:
 
         if constexpr (n == 0)
         {
-            char digits[std::numeric_limits<int>::digits10 + 1];
+            std::array<char, std::numeric_limits<int>::digits10 + 1> digits;
             int i = 0;
             do {
                 digits[i++] = static_cast<char>('0' + val % 10);
@@ -5105,7 +5111,7 @@ private:
         }
         else
         {
-            int buf[n];
+            std::array<int, n> buf;
             for (std::size_t i = 0; i < n; ++i)
             {
                 buf[n - i -1] = val % 10;
