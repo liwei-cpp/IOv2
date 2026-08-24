@@ -291,11 +291,16 @@ public:
         if (this == &other) return *this;
 
         std::lock_guard guard(this->io_mutex());
+        // NOLINTBEGIN(bugprone-use-after-move): each `std::move(other)` below binds to a
+        // *different* base subobject, and every one of those base assignments touches only its
+        // own members; `m_streambuf` and `m_locale` belong to no base at all. Nothing is read
+        // after being moved from -- clang-tidy just cannot see that the operands are disjoint.
         ios_state<TChar>::operator=(std::move(other));
         istream_operators<TChar>::operator=(std::move(other));
         stream_common_operators::operator=(std::move(other));
         m_streambuf = std::move(other.m_streambuf);
         m_locale    = std::move(other.m_locale);
+        // NOLINTEND(bugprone-use-after-move)
         return *this;
     }
 

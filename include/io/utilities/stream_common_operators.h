@@ -1031,8 +1031,8 @@ private:
         auto next = [](stream_common_operators* p)
         { return dynamic_cast<stream_common_operators*>(p->tie()); };
 
-        stream_common_operators* slow = dynamic_cast<stream_common_operators*>(str);
-        stream_common_operators* fast = slow;
+        auto slow = dynamic_cast<stream_common_operators*>(str);
+        auto fast = slow;
 
         while (slow != nullptr)
         {

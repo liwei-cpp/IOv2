@@ -1094,6 +1094,11 @@ private:
  *       探测**并以同一形式传给** `sread`——`get_money(x)` 的 `sread` 不修改操纵符对象本身、
  *       收 const 引用，因而通过；而 `int` 的 `sread` 收 `int&`，`is >> 5` 于是连重载都选不中，
  *       不会静默地解析进一个临时量。常量左值目标同理被挡下。
+ * @note 承上：`value` **有意不做 `std::forward`**，因此 `cppcoreguidelines-missing-std-forward`
+ *       在这里是误报，已就地 `NOLINT`。转发引用在本函数里只承担两件事——绑得下左值与右值，
+ *       以及把值类别带进 `TValue` 供 `detail::in_target_t` 判定 const-ness；值本身始终以
+ *       `static_cast<TTarget&>(value)` 这个**左值**形式交给 `sread`。真去 `forward` 反而是错的：
+ *       `sread` 的形参是 `TTarget&`，右值实参转发出来的右值根本绑不上去。
  * @note 本运算符由 `detail::extractable` 约束，而**函数体内的分派复用同一组概念**，因此
  *       `requires { is >> x; }` 与运算符实际选中的通道永远一致。链末尾那个 `else` 因此不可达，
  *       只留一句写给维护者的内部不变式断言。代价与插入侧相同：类型不支持时的诊断退化为通用的
@@ -1130,6 +1135,13 @@ private:
  *       a const reference, so it passes, while the one for `int` takes `int&`, so `is >> 5` does
  *       not select the overload at all instead of silently parsing into a temporary. A const
  *       lvalue target is rejected the same way.
+ * @note It follows that `value` is **deliberately never `std::forward`ed**, so
+ *       `cppcoreguidelines-missing-std-forward` is a false positive here and is `NOLINT`ed at the
+ *       signature. The forwarding reference does only two jobs in this function: bind both lvalues
+ *       and rvalues, and carry the value category into `TValue` so `detail::in_target_t` can
+ *       decide const-ness. The value itself always reaches `sread` as the **lvalue**
+ *       `static_cast<TTarget&>(value)`. Actually forwarding would be wrong: `sread` takes a
+ *       `TTarget&`, which the rvalue produced for an rvalue argument could not bind to.
  * @note This operator is constrained by `detail::extractable`, and the dispatch **inside the body
  *       reuses the same concepts**, so `requires { is >> x; }` and the channel the operator
  *       actually picks can never disagree. That also makes the `else` at the end of the chain
@@ -1149,6 +1161,9 @@ private:
  */
 template <istream_type T, typename TValue>
     requires detail::extractable<T, TValue>
+// The forwarding reference below is a binder plus a value-category carrier, never a forwarder;
+// see the @note above for why `std::forward` here would be wrong rather than merely redundant.
+// NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
 T& operator>>(T& obj, TValue&& value)
 {
     using TChar   = typename T::char_type;
