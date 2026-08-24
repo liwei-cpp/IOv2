@@ -286,6 +286,7 @@ public:
     ios_base(ios_base&&) = default;
     ios_base& operator=(const ios_base&) = default;
     ios_base& operator=(ios_base&&) = default;
+    ~ios_base() = default;
 
 public:
     /**
@@ -532,6 +533,7 @@ public:
     static std::size_t xalloc()
     {
         std::size_t cur = ios_base<void>::s_top.load(std::memory_order_relaxed);
+        // NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while)
         do
         {
             if (cur == std::numeric_limits<std::size_t>::max())
@@ -747,6 +749,7 @@ protected:
     }
 
 protected:
+    // NOLINTBEGIN(cppcoreguidelines-non-private-member-variables-in-classes)
     copyable_atomic<std::uint16_t> m_flags{ios_defs::skipws | ios_defs::dec};   ///< @lang{ZH} 格式化标志；默认置位 `skipws | dec`。 @endif @lang{EN} Formatting flags; defaults to `skipws | dec`. @endif
     copyable_atomic<std::uint8_t>       m_precision{6};     ///< @lang{ZH} 浮点精度，默认 6。 @endif @lang{EN} Floating-point precision, default 6. @endif
     copyable_atomic<std::size_t>        m_width{0};     ///< @lang{ZH} 字段宽度，默认 0（不填充）。 @endif @lang{EN} Field width, default 0 (no padding). @endif
@@ -779,6 +782,7 @@ protected:
 
     std::unordered_map<std::size_t, std::shared_ptr<void>> m_pwords;              ///< @lang{ZH} 按 id 索引的 per-stream 用户数据存储。由 `m_io_mutex` 保护。 @endif @lang{EN} Per-stream user-data storage indexed by id. Guarded by `m_io_mutex`. @endif
     std::forward_list<std::pair<event_callback, std::size_t>> m_callbacks;        ///< @lang{ZH} 已注册的本地化变更回调及其关联 id（前插，后注册者先调用）。由 `m_io_mutex` 保护。 @endif @lang{EN} Registered locale-change callbacks with their associated ids (prepended; last registered runs first). Guarded by `m_io_mutex`. @endif
+    // NOLINTEND(cppcoreguidelines-non-private-member-variables-in-classes)
 };
 
 /**
@@ -1626,6 +1630,8 @@ struct sync
 
     sync(const sync&) = delete;
     sync& operator=(const sync&) = delete;
+    sync(sync&&) = delete;
+    sync& operator=(sync&&) = delete;
 
     TStream& stream;   ///< @lang{ZH} 被加锁的流的引用。 @endif @lang{EN} Reference to the locked stream. @endif
 };

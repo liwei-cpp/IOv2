@@ -3704,7 +3704,7 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    typename decltype(base_ft<timeio>::s_timezone_tree)::match_out_type zone_res;
+                    typename decltype(base_ft<timeio>::s_timezone_tree)::match_out_type zone_res{};
                     rp = base_ft<timeio>::s_timezone_tree.max_match(rp, rp_end, zone_res);
                     if (!zone_res) { succ = false; return rp; }
                     if (zone_res->is_name)   ctx.m_zone_name   = zone_res->text.c_str();
@@ -3950,6 +3950,7 @@ private:
         // The node numbering. era_first is both the count of fixed nodes and the number of the
         // first era format: how many era formats a locale has varies, so they can only be
         // numbered from there on.
+        // NOLINTNEXTLINE(performance-enum-size)
         enum class fmt_node : std::size_t
         {
             date_time, era_date_time,
@@ -4113,8 +4114,8 @@ private:
      */
     struct zone_info
     {
-        std::chrono::seconds offset;   ///< @lang{ZH} UTC 偏移。 @endif @lang{EN} The UTC offset. @endif
-        std::string_view     abbrev;   ///< @lang{ZH} 时区缩写，可为空。 @endif @lang{EN} The zone abbreviation; may be empty. @endif
+        std::chrono::seconds offset{};   ///< @lang{ZH} UTC 偏移。 @endif @lang{EN} The UTC offset. @endif
+        std::string_view     abbrev{};   ///< @lang{ZH} 时区缩写，可为空。 @endif @lang{EN} The zone abbreviation; may be empty. @endif
     };
 
     /**
@@ -5100,8 +5101,9 @@ private:
 
         if constexpr (n == 0)
         {
-            std::array<char, std::numeric_limits<int>::digits10 + 1> digits;
+            std::array<char, std::numeric_limits<int>::digits10 + 1> digits{};
             int i = 0;
+            // NOLINTNEXTLINE(cppcoreguidelines-avoid-do-while)
             do {
                 digits[i++] = static_cast<char>('0' + val % 10);
                 val /= 10;
