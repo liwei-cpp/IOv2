@@ -107,8 +107,6 @@ struct date_parse_helper<CharT, true>
         // that supplies the month but not the day can never form an invalid calendar
         // date -- e.g. parsing "Feb" must not inherit today's 29/30/31.
         m_year = int(year_month_day{floor<days>(system_clock::now())}.year());
-        m_month = 1;
-        m_mday = 1;
     }
 
     /**
@@ -227,7 +225,7 @@ struct date_parse_helper<CharT, true>
      * @return The deduced calendar date (may be invalid; caller must check `ok()`).
      * @endif
      */
-    std::chrono::year_month_day compute_ymd() const
+    [[nodiscard]] std::chrono::year_month_day compute_ymd() const
     {
         using namespace std::chrono;
         if (m_have_year && m_have_mon && m_have_mday)
@@ -1542,7 +1540,7 @@ struct time_parse_context
         out.tm_wday = static_cast<int>(weekday{sys_days{ymd}}.c_encoding());
         bool isLeap = (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
 
-        const int days[12] = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
+        const std::array<int, 12> days = {-1, 30, 58, 89, 119, 150, 180, 211, 242, 272, 303, 333};
         out.tm_yday = days[out.tm_mon] + out.tm_mday + (isLeap && out.tm_mon >= 2 ? 1 : 0);
 
         if constexpr ((TzLevel >= tz_level::offset) && (requires { out.tm_gmtoff; }))
@@ -2230,12 +2228,12 @@ public:
     template <typename TVal>
     std::basic_string<CharT> expand_format(char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
-        CharT fmt[4];
+        std::array<CharT, 4> fmt;
         std::size_t n = 0;
         fmt[n++] = static_cast<CharT>('%');
         if (modifier) fmt[n++] = static_cast<CharT>(modifier);
         fmt[n++] = static_cast<CharT>(format);
-        return expand_format<TVal>(std::basic_string_view<CharT>(fmt, n));
+        return expand_format<TVal>(std::basic_string_view<CharT>(fmt.data(), n));
     }
 
     /**
@@ -2338,7 +2336,7 @@ public:
     template <typename OutIt, typename TVal>
     OutIt put(OutIt out, const TVal& t, char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
-        CharT fmt[4]; fmt[0] = static_cast<CharT>('%');
+        std::array<CharT, 4> fmt; fmt[0] = static_cast<CharT>('%');
         if (modifier)
         {
             fmt[1] = modifier;
@@ -2351,7 +2349,10 @@ public:
             fmt[2] = static_cast<CharT>('\0');
         }
 
-        return put(out, t, fmt);
+        // `fmt.data()`, not `fmt`: the target takes a `basic_string_view<CharT>`, and building one
+        // from the array as a range would take all 4 elements, NUL included, instead of stopping
+        // at the terminator this function just wrote.
+        return put(out, t, fmt.data());
     }
 
     /**
@@ -2754,19 +2755,20 @@ public:
     TIter get(TIter beg, TSent end, time_parse_context<char_type, HaveDate, HaveTime, TzLevel>& ctx,
               char format, char modifier = 0) const // NOLINT(bugprone-easily-swappable-parameters)
     {
-        CharT fmt[4]; fmt[0] = static_cast<CharT>('%');
+        std::array<CharT, 4> fmt; fmt[0] = static_cast<CharT>('%');
+        // `fmt.data()`, not `fmt`: see the note in the `put` overload above.
         if (modifier)
         {
             fmt[1] = modifier;
             fmt[2] = format;
             fmt[3] = static_cast<CharT>('\0');
-            return get(beg, end, ctx, fmt);
+            return get(beg, end, ctx, fmt.data());
         }
         else
         {
             fmt[1] = format;
             fmt[2] = static_cast<CharT>('\0');
-            return get(beg, end, ctx, fmt);
+            return get(beg, end, ctx, fmt.data());
         }
     }
 

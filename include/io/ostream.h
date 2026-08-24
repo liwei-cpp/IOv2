@@ -310,12 +310,17 @@ public:
         if (this == &other) return *this;
 
         std::lock_guard guard(this->io_mutex());
+        // NOLINTBEGIN(bugprone-use-after-move): each `std::move(other)` below binds to a
+        // *different* base subobject, and every one of those base assignments touches only its
+        // own members; `m_streambuf` and `m_locale` belong to no base at all. Nothing is read
+        // after being moved from -- clang-tidy just cannot see that the operands are disjoint.
         ios_state<TChar>::operator=(std::move(other));
         out_flusher<ostream<TDevice, TChar>>::operator=(std::move(other));
         ostream_operators<TChar>::operator=(std::move(other));
         stream_common_operators::operator=(std::move(other));
         m_streambuf = std::move(other.m_streambuf);
         m_locale    = std::move(other.m_locale);
+        // NOLINTEND(bugprone-use-after-move)
         return *this;
     }
 
@@ -341,7 +346,9 @@ public:
      *       including how this compares with `std::ofstream`.
      * @endif
      */
-    ~ostream() = default;
+    // `override` because the `abs_flusher` base (reached through `out_flusher`) has a virtual
+    // destructor, so this one is virtual whether or not it says so.
+    ~ostream() override = default;
 
     /**
      * @lang{ZH}

@@ -319,7 +319,7 @@ public:
         for (; b != e; ++b)
         {
             auto ch_real = *b;
-            CharT ch = static_cast<CharT>(ch_real);
+            auto ch = static_cast<CharT>(ch_real);
             // The input range may be spelled in a wider character type than the one the tree
             // is keyed on (see the note on TIter): a character that does not survive the round
             // trip is not one of the tree's keys, so it can only end the match. Note the
@@ -411,7 +411,7 @@ public:
         for (; b != e;)
         {
             auto ch_real = *b;
-            CharT ch = static_cast<CharT>(ch_real);
+            auto ch = static_cast<CharT>(ch_real);
             // Same round-trip guard as the steppable_back overload; see the note there.
             // Breaking here leaves the offending character unread, since `++b` is below.
             if constexpr (!std::same_as<CharT, std::iter_value_t<TIter>>)

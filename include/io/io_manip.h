@@ -639,6 +639,10 @@ private:
     }
 };
 
+// The reference member is the design, not an oversight: like `std::put_money`, the factory
+// returns a short-lived proxy meant to be consumed inside the same full-expression. See the
+// `@warning` on `put_money()` and the note at the top of this file.
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 template<typename TMoney> struct put_money_t { const TMoney& m_mon; bool m_intl; };
 /**
  * @lang{ZH}
@@ -760,6 +764,10 @@ struct io_traits<TChar, put_money_t<TMoney>>
     }
 };
 
+// The reference member is the design, not an oversight: like `std::get_money`, the factory
+// returns a short-lived proxy that writes back through this reference. See the `@warning` on
+// `get_money()` and the note at the top of this file.
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
 template<typename TMoney> struct get_money_t { TMoney& m_mon; bool m_intl; };
 /**
  * @lang{ZH}
