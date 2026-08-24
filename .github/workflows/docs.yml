@@ -7,6 +7,11 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+# single-commit 是强制推送，并发 run 会互相覆盖；排队执行，不取消进行中的部署
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -17,8 +22,6 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
       - name: Install Doxygen
         run: |
@@ -40,3 +43,4 @@ jobs:
           folder: docs
           branch: gh-pages
           clean: true
+          single-commit: true
