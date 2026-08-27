@@ -306,27 +306,27 @@ namespace IOv2::FacetHelper
     /**
      * @lang{ZH}
      * 在字符序列 `[first, last)` 中按 `grouping` 规则插入分组分隔符 `sep`，将结果写入
-     * 以 `s` 为起点的输出缓冲区，并返回写入结束位置的指针。
+     * 以 `out` 为起点的输出缓冲区，并返回写入结束位置的指针。
      *
      * @par 前置条件
      * - `grouping` 非空（Debug 模式下通过 `assert` 验证）。
      * - `[first, last)` 为合法区间，即 `first <= last`（Debug 模式下通过 `assert` 验证；
-     *   若 `first > last`，内部复制循环将永不终止并越界写入输出缓冲区）。
-     * - `s` 指向的输出缓冲区容量足以容纳 `(last - first)` 个字符加上每个非前导分组对应
+     *   若 `first > last`，`last - first` 会被转换为一个巨大的无符号宽度，导致越界写入）。
+     * - `out` 指向的输出缓冲区容量足以容纳 `(last - first)` 个字符加上每个非前导分组对应
      *   的一个分隔符；缓冲区大小由调用方负责保证（不做运行时验证）。
      * @endif
      *
      * @lang{EN}
      * Insert grouping separators `sep` into the character sequence `[first, last)`
      * according to `grouping`, write the result into the output buffer starting at
-     * `s`, and return a pointer one past the last element written.
+     * `out`, and return a pointer one past the last element written.
      *
      * @par Preconditions
      * - `grouping` is non-empty. [asserted in debug builds]
      * - `[first, last)` is a valid range, i.e. `first <= last`. Passing
-     *   `first > last` causes the inner copy loop to never terminate and
-     *   write past the output buffer. [asserted in debug builds]
-     * - `s` points to an output buffer with sufficient capacity to hold
+     *   `first > last` converts `last - first` into an enormous unsigned width
+     *   and writes far past the output buffer. [asserted in debug builds]
+     * - `out` points to an output buffer with sufficient capacity to hold
      *   `(last - first)` characters plus one separator per non-leading
      *   group; callers are responsible for sizing the buffer.
      *   [not validated]
@@ -336,7 +336,7 @@ namespace IOv2::FacetHelper
      * @lang{ZH} 序列元素及分隔符的字符类型。 @endif
      * @lang{EN} The character type of the sequence elements and separator. @endif
      *
-     * @param s
+     * @param out
      * @lang{ZH} 指向输出缓冲区起始位置的指针。 @endif
      * @lang{EN} Pointer to the start of the output buffer. @endif
      *
@@ -366,45 +366,58 @@ namespace IOv2::FacetHelper
      *
      * @return
      * @lang{ZH} 指向写入输出缓冲区最后一个元素之后位置的指针。 @endif
-     * @lang{EN} Pointer to one past the last element written into `s`. @endif
+     * @lang{EN} Pointer to one past the last element written into `out`. @endif
      */
     template <typename CharT>
-    inline CharT* add_grouping(CharT* s, CharT sep, const std::vector<uint8_t>& grouping,
+    inline CharT* add_grouping(CharT* out, CharT sep, const std::vector<uint8_t>& grouping,
                                const CharT* first, const CharT* last)
     {
         assert(!grouping.empty());
         assert(first <= last);
 
-        std::size_t idx = 0;
-        std::size_t ctr = 0;
-        const std::size_t max_idx = grouping.size() - 1;
+        const std::size_t last_rule = grouping.size() - 1;
 
-        while (last - first > grouping[idx]
-                && (grouping[idx] > 0))
+        // Pass 1 -- measure. Peel whole groups off the low-order end for as long
+        // as what is left over can still fill one more. `rule` records how far
+        // the walk got into `grouping`; once it reaches the final entry that
+        // entry keeps applying, and `extra` counts how many further times it did.
+        // `head` is left holding the width of the leading, possibly short, group.
+        std::size_t rule  = 0;
+        std::size_t extra = 0;
+        std::size_t head  = static_cast<std::size_t>(last - first);
+        while (true)
         {
-            last -= grouping[idx];
-            idx < max_idx ? ++idx : ++ctr;
+            const std::size_t size = grouping[rule];
+            if (size == 0 || head <= size)
+                break;
+            head -= size;
+            if (rule < last_rule)
+                ++rule;
+            else
+                ++extra;
         }
 
-        s = std::copy(first, last, s);
-        first = last;
+        // One separator per peeled group, so the finished width is known up front.
+        const std::size_t groups = rule + extra;
+        const std::size_t width  = static_cast<std::size_t>(last - first) + groups;
 
-        const uint8_t n = grouping[idx];
-        while (ctr--)
+        // Pass 2 -- emit. Fill the buffer from its high-order end, which lets the
+        // groups be replayed in the very order pass 1 peeled them off; rule k
+        // governs the k-th group up from the bottom, saturating at `last_rule`.
+        // `head >= 1` whenever `groups > 0`, so the leading separator write can
+        // never run off the front of the buffer.
+        CharT*       dst = out + width;
+        const CharT* src = last;
+        for (std::size_t k = 0; k < groups; ++k)
         {
-            *s++ = sep;
-            s = std::copy_n(first, n, s);
-            first += n;
+            const std::size_t size = grouping[std::min(k, last_rule)];
+            src -= size;
+            dst -= size;
+            std::copy_n(src, size, dst);
+            *--dst = sep;
         }
-
-        while (idx--)
-        {
-            *s++ = sep;
-            const uint8_t m = grouping[idx];
-            s = std::copy_n(first, m, s);
-            first += m;
-        }
-        return s;
+        std::copy_n(first, head, out);
+        return out + width;
     }
 
     /**
@@ -537,22 +550,24 @@ namespace IOv2::FacetHelper
         assert(!grouping.empty());
         assert(!grouping_tmp.empty());
 
-        std::size_t i = grouping_tmp.size() - 1;
-        const std::size_t min_val = std::min(i, grouping.size() - 1);
-        bool test = true;
+        const std::size_t last_rule = grouping.size() - 1;
 
-        // Parsed number groupings have to match the
-        // numpunct::grouping string exactly, starting at the
-        // right-most point of the parsed sequence of elements ...
-        for (std::size_t j = 0; j < min_val && test; --i, ++j)
-            test = grouping_tmp[i] == grouping[j];
-        for (; i && test; --i)
-            test = grouping_tmp[i] == grouping[min_val];
-        // ... but the first parsed grouping can be <= numpunct grouping.
-        // Skip this check when grouping[min_val] is 0 (stop sentinel,
-        // no upper bound on the first parsed group).
-        if (grouping[min_val] > 0)
-            test &= grouping_tmp[0] <= grouping[min_val];
-        return test;
+        // Walk the observed groups from the low-order end upwards, advancing a
+        // cursor through the rules alongside. The cursor stalls on the final
+        // rule, which is what makes that rule govern every group beyond the
+        // explicit ones. Every group but the leading one has to be exactly as
+        // wide as the rule facing it.
+        std::size_t rule = 0;
+        for (std::size_t k = grouping_tmp.size() - 1; k > 0; --k)
+        {
+            if (grouping_tmp[k] != grouping[rule])
+                return false;
+            if (rule < last_rule)
+                ++rule;
+        }
+
+        // The cursor now faces the leading group, which is allowed to fall short
+        // of its rule, and is unbounded above when that rule is the stop sentinel.
+        return grouping[rule] == 0 || grouping_tmp[0] <= grouping[rule];
     }
 }

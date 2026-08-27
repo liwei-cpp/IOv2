@@ -408,11 +408,7 @@ public:
         io.flags((io.flags() & ~(ios_defs::basefield | ios_defs::uppercase))
                  | (ios_defs::hex | ios_defs::showbase));
 
-        using uintptr_carrier_t = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
-                                                     unsigned long,
-                                                     unsigned long long>;
-
-        return insert_int(s, io, reinterpret_cast<uintptr_carrier_t>(v)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        return insert_int(s, io, reinterpret_cast<std::uintptr_t>(v)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
     }
 
     /**
@@ -462,66 +458,73 @@ public:
 
         if (!(io.flags() & ios_defs::boolalpha))
         {
-            // Parse bool values as long.
+            // Numeric form: read the field as a `long` and accept only 0/1.
             long l = -1;
             std::tie(success, beg) = extract_int(beg, end, io, l);
 
             if (l == 0 || l == 1) v = bool(l);
             else
             {
-                // _GLIBCXX_RESOLVE_LIB_DEFECTS
-                // 23. Num_get overflow result.
+                // LWG 23 resolved that a field which does not fit the target
+                // still stores a value rather than leaving it untouched: the
+                // most positive representable one, which for bool is `true`.
                 v = true;
                 success = false;
             }
         }
         else
         {
-            // Parse bool values as alphanumeric.
-            bool testf = true;
-            bool testt = true;
-            bool donef = (m_false_name.empty());
-            bool donet = (m_true_name.empty());
+            // `boolalpha` form: match the input against the two locale names.
+            //
+            // Both names race for the input. A name stays in the running only
+            // while every character read so far is a prefix of it, and only
+            // while it still has a character left to offer; extraction stops
+            // the moment no name can take the next character, which is what
+            // keeps the facet from consuming more than it needs.
+            const std::basic_string<CharT>& fname = m_false_name;
+            const std::basic_string<CharT>& tname = m_true_name;
+
+            bool f_live = true;
+            bool t_live = true;
             std::size_t n = 0;
-            while (!donef || !donet)
+
+            while (beg != end)
             {
-                if (beg == end)
+                const bool f_open = f_live && n < fname.size();
+                const bool t_open = t_live && n < tname.size();
+                if (!f_open && !t_open)
                     break;
 
                 const CharT c = *beg;
+                const bool f_takes = f_open && fname[n] == c;
+                const bool t_takes = t_open && tname[n] == c;
+                if (!f_takes && !t_takes)
+                    break;
 
-                if (!donef)
-                    testf = c == m_false_name[n];
-
-                if (!testf && donet) break;
-
-                if (!donet)
-                    testt = c == m_true_name[n];
-
-                if (!testt && donef) break;
-
-                if (!testt && !testf) break;
-
+                f_live = f_takes;
+                t_live = t_takes;
                 ++n;
                 ++beg;
+            }
 
-                donef = !testf || n >= m_false_name.size();
-                donet = !testt || n >= m_true_name.size();
-            }
-            if (testf && n == m_false_name.size() && n)
+            // A name won only if it is still live and came out exactly
+            // exhausted; `n != 0` keeps an empty name from matching nothing.
+            const bool got_false = f_live && n == fname.size() && n != 0;
+            const bool got_true  = t_live && n == tname.size() && n != 0;
+
+            if (got_false && got_true)
             {
+                // Both names read the same -- the match is not unique, so this
+                // is a parse failure and the standard asks for `false`.
                 v = false;
-                if (testt && n == m_true_name.size())
-                    success = false;
+                success = false;
             }
-            else if (testt && n == m_true_name.size() && n)
-            {
+            else if (got_false)
+                v = false;
+            else if (got_true)
                 v = true;
-            }
             else
             {
-                // _GLIBCXX_RESOLVE_LIB_DEFECTS
-                // 23. Num_get overflow result.
                 v = false;
                 success = false;
             }
@@ -613,10 +616,7 @@ public:
         fmtflags_guard guard(io);
         io.flags((io.flags() & ~ios_defs::basefield) | ios_defs::hex);
 
-        using uintptr_carrier_t = std::conditional_t<(sizeof(const void*) <= sizeof(unsigned long)),
-                                                     unsigned long,
-                                                     unsigned long long>;
-        uintptr_carrier_t ul = 0;
+        std::uintptr_t ul = 0;
         auto [succ, res] = extract_int(beg, end, io, ul);
 
         v = reinterpret_cast<void*>(ul); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast,performance-no-int-to-ptr)
@@ -752,15 +752,17 @@ private:
         const std::size_t w = io.width();
         io.width(0);
 
-        // [22.2.2.2.2] Stage 1, numeric conversion to character.
+        // Build the printf conversion spec, then let the C library render the
+        // value into a narrow buffer; everything after this is localisation.
         std::size_t len = 0;
         std::array<char, 16> fbuf{};
         format_float(io.flags(), fbuf.data(), mod);
 
         const ios_defs::fmtflags fltfield = io.flags() & ios_defs::floatfield;
 
-        // Initial buffer size estimate (GCC style).
-        // For non-fixed fields, max_digits * 3 is a safe heuristic.
+        // First guess at the buffer. Outside `fixed`, three times the decimal
+        // digit count leaves room for sign, point, exponent and slack; `fixed`
+        // is the notation that can run long, so it gets the full integer part.
         std::size_t cs_size = static_cast<std::size_t>(max_digits) * 3 + 32;
         if (fltfield == ios_defs::fixed)
             cs_size = static_cast<std::size_t>(std::numeric_limits<TValue>::max_exponent10) + static_cast<std::size_t>(prec) + 32;
@@ -810,13 +812,12 @@ private:
 
         const char* cs = vec_cs.data();
 
-        // [22.2.2.2.2] Stage 2, convert to char_type, using correct
-        // numeric_conf.decimal_point() values for '.' and adding grouping.
+        // Widen into char_type, then apply the two things the C locale could
+        // not know about: this facet's decimal point, and its grouping.
         std::vector<CharT> vec_ws(len);
         CharT* ws = vec_ws.data();
         m_ctype->widen_seq(cs, cs + len, ws);
 
-        // Replace decimal point.
         const char* p = std::find(cs, cs + len, '.');
         CharT* wp = nullptr;
         if (p != cs + len)
@@ -825,26 +826,30 @@ private:
             *wp = m_decimal_point;
         }
 
-        // Add grouping, if necessary.
-        if ((!m_grouping.empty())
-            && (wp || len < 3u || (cs[1] <= '9' && cs[2] <= '9' && cs[1] >= '0' && cs[2] >= '0')))
+        // Only a real number gets grouped -- "inf" and "nan" must come through
+        // untouched. A decimal point settles it outright; failing that, text too
+        // short to be one of those words is a number, and so is text whose
+        // second and third characters are both digits.
+        const bool numeric_text =
+            wp || len < 3u || (cs[1] <= '9' && cs[2] <= '9' && cs[1] >= '0' && cs[2] >= '0');
+
+        if (!m_grouping.empty() && numeric_text)
         {
-            // Grouping can add (almost) as many separators as the
-            // number of digits, but no more.
+            // Worst case one separator per digit, so twice the length is ample.
             std::vector<CharT> vec_ws2(len * 2);
             CharT* ws2 = vec_ws2.data();
 
-            std::size_t off = 0;
-            if (cs[0] == '-' || cs[0] == '+')
-            {
-                off = 1;
+            // A leading sign is not part of the number being grouped. Copy it
+            // across on its own and hand the grouper only what follows, so the
+            // digit count it works from never has to be unwound afterwards.
+            const std::size_t sign_len = (cs[0] == '-' || cs[0] == '+') ? 1u : 0u;
+            if (sign_len != 0)
                 ws2[0] = ws[0];
-                len -= 1;
-            }
 
+            std::size_t digit_len = len - sign_len;
             group_float(m_grouping, m_thousands_sep, wp,
-                        ws2 + off, ws + off, len);
-            len += off;
+                        ws2 + sign_len, ws + sign_len, digit_len);
+            len = digit_len + sign_len;
             std::swap(vec_ws, vec_ws2);
             ws = vec_ws.data();
         }
@@ -868,8 +873,7 @@ private:
             ws = vec_ws.data();
         }
 
-        // [22.2.2.2.2] Stage 4.
-        // Write resulting, fully-formatted string to output iterator.
+        // Nothing is left to decide; hand the finished field to the caller.
         return std::copy(ws, ws + len, s);
     }
 
@@ -917,25 +921,36 @@ private:
         const std::size_t w = io.width();
         io.width(0);
 
-        // Long enough to hold hex, dec, and octal representations.
+        // Five characters per byte covers the widest of the three bases (octal
+        // needs ceil(8/3) = 3, so this is comfortable) for any integer width.
         const auto ilen = 5 * sizeof(TValue);
         std::vector<char_type> cs_vec(ilen);
         char_type* cs = cs_vec.data();
 
-        // [22.2.2.2.2] Stage 1, numeric conversion to character.
-        // Result is returned right-justified in the buffer.
+        // Digits first, laid down back to front so they finish flush against
+        // the end of the buffer; `cs` is then walked forward to meet them.
         const ios_defs::fmtflags basefield = flags & ios_defs::basefield;
         const bool dec = (basefield != ios_defs::oct && basefield != ios_defs::hex);
-        const unsigned_type u = ((v > 0 || !dec) ? unsigned_type(v)
-                                                 : -unsigned_type(v));
+
+        // Octal and hex print the two's-complement bit pattern, which is just what
+        // the conversion to the unsigned type yields. Base ten writes the sign
+        // separately below, so its digits come from the magnitude instead; negating
+        // in the unsigned type reaches |v| without ever forming -v in `TValue`,
+        // where the most negative value has no positive counterpart.
+        unsigned_type u = static_cast<unsigned_type>(v);
+        if constexpr (std::is_signed_v<TValue>)
+        {
+            if (dec && v < 0)
+                u = -u;
+        }
+
         auto len = static_cast<std::size_t>(int_to_char(cs + ilen, u, flags, dec));
         cs += ilen - len;
 
-        // Add grouping, if necessary.
         if (!m_grouping.empty())
         {
-            // Grouping can add (almost) as many separators as the number
-            // of digits + space is reserved for numeric base or sign.
+            // Worst case one separator per digit, and the two slots left free
+            // at the front are what the sign or base marker is prepended into.
             std::vector<char_type> cs_vec2((ilen + 1) * 2);
             char_type* cs2 = cs_vec2.data() + 2;
             len = static_cast<std::size_t>(FacetHelper::add_grouping(cs2, m_thousands_sep, m_grouping, cs, cs + len) - cs2);
@@ -943,30 +958,37 @@ private:
             cs = cs_vec.data() + 2;
         }
 
-        // Complete Stage 1, prepend numeric base or sign.
+        // Whatever announces the number goes on the front -- a sign in base ten,
+        // a base marker otherwise -- written straight into the room the digit
+        // conversion left ahead of `cs`, and therefore in reverse.
         if (dec)
-        { // Decimal.
-            if (v >= 0)
+        {
+            // An unsigned value has no sign to write and cannot be negative, so
+            // the whole question folds away at compile time.
+            if constexpr (std::is_signed_v<TValue>)
             {
-                if (bool(flags & ios_defs::showpos) && std::is_signed_v<TValue>)
-                    *--cs = m_out_atoms[s_oplus], ++len;
+                if (v < 0)
+                {
+                    *--cs = m_out_atoms[s_ominus];
+                    ++len;
+                }
+                else if (flags & ios_defs::showpos)
+                {
+                    *--cs = m_out_atoms[s_oplus];
+                    ++len;
+                }
             }
-            else
-                *--cs = m_out_atoms[s_ominus], ++len;
         }
         else if (bool(flags & ios_defs::showbase) && v)
         {
-            if (basefield == ios_defs::oct)
-                *--cs = m_out_atoms[s_odigits], ++len;
-            else
+            // `0x` / `0X` for hexadecimal, a lone `0` for octal.
+            if (basefield != ios_defs::oct)
             {
-                // 'x' or 'X'
-                const bool uppercase = flags & ios_defs::uppercase;
-                *--cs = m_out_atoms[s_ox + uppercase];
-                // '0'
-                *--cs = m_out_atoms[s_odigits];
-                len += 2;
+                *--cs = m_out_atoms[s_ox + bool(flags & ios_defs::uppercase)];
+                ++len;
             }
+            *--cs = m_out_atoms[s_odigits];
+            ++len;
         }
 
         // Pad.
@@ -987,8 +1009,7 @@ private:
             cs = cs_vec.data();
         }
 
-        // [22.2.2.2.2] Stage 4.
-        // Write resulting, fully-formatted string to output iterator.
+        // Nothing is left to decide; hand the finished field to the caller.
         return std::copy(cs, cs + len, s);
     }
 
@@ -1022,34 +1043,73 @@ private:
     template <typename TValue>
     int int_to_char(CharT* bufend, TValue v, ios_defs::fmtflags flags, bool dec) const
     {
-        auto buf = bufend;
+        char_type* cursor = bufend;
+
         if (dec)
-        {   // Decimal.
+        {
+            // Base ten is the odd one out: it needs a real division, and its
+            // glyphs have no upper-case spelling to choose between.
             do // NOLINT(cppcoreguidelines-avoid-do-while)
             {
-                *--buf = m_out_atoms[(v % 10) + s_odigits];
+                *--cursor = m_out_atoms[s_odigits + (v % 10)];
                 v /= 10;
             } while (v != 0);
+            return static_cast<int>(bufend - cursor);
         }
-        else if ((flags & ios_defs::basefield) == ios_defs::oct)
-        { // Octal.
-            do // NOLINT(cppcoreguidelines-avoid-do-while)
-            {
-                *--buf = m_out_atoms[(v & 0x7) + s_odigits];
-                v >>= 3;
-            } while (v != 0);
-        }
+
+        // Octal and hexadecimal are both powers of two, so `emit_pow2` does the
+        // work for either; they part ways only on digit width and alphabet, and
+        // octal has no upper-case form of its own.
+        if ((flags & ios_defs::basefield) == ios_defs::oct)
+            cursor = emit_pow2<3>(cursor, v, s_odigits);
         else
-        {   // Hex.
-            const bool uppercase = flags & ios_defs::uppercase;
-            const int case_offset = uppercase ? s_oudigits : s_odigits;
-            do // NOLINT(cppcoreguidelines-avoid-do-while)
-            {
-                *--buf = m_out_atoms[(v & 0xf) + case_offset];
-                v >>= 4;
-            } while (v != 0);
-        }
-        return bufend - buf;
+            cursor = emit_pow2<4>(cursor, v,
+                                  (flags & ios_defs::uppercase) ? s_oudigits : s_odigits);
+
+        return static_cast<int>(bufend - cursor);
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 将无符号整数按 2^Bits 进制逐位写入缓冲区末端，返回写入起点。
+     *
+     * 供 `int_to_char` 的八进制（`Bits == 3`）与十六进制（`Bits == 4`）分支共用；
+     * `Bits` 为模板参数，故掩码与移位量在编译期即为常量。
+     *
+     * @tparam Bits 每位数字占用的比特数。
+     * @tparam TValue 无符号整数类型。
+     * @param cursor 写入位置（向低地址方向填充）。
+     * @param v 要转换的值。
+     * @param alpha 字母表在 `m_out_atoms` 中的起始索引。
+     * @return 指向已写入的最高位字符的指针。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Writes an unsigned integer in base 2^Bits backwards from `cursor`,
+     * returning where it stopped.
+     *
+     * Shared by the octal (`Bits == 3`) and hexadecimal (`Bits == 4`) arms of
+     * `int_to_char`. `Bits` is a template parameter, so the mask and the shift
+     * amount stay compile-time constants in both instantiations.
+     *
+     * @tparam Bits Bits consumed per emitted digit.
+     * @tparam TValue The unsigned integer type.
+     * @param cursor Write position; filling goes toward lower addresses.
+     * @param v The value to convert.
+     * @param alpha Start index of the alphabet within `m_out_atoms`.
+     * @return A pointer to the most significant character written.
+     * @endif
+     */
+    template <int Bits, typename TValue>
+    char_type* emit_pow2(char_type* cursor, TValue v, int alpha) const
+    {
+        constexpr auto mask = static_cast<TValue>((TValue{1} << Bits) - 1);
+        do // NOLINT(cppcoreguidelines-avoid-do-while)
+        {
+            *--cursor = m_out_atoms[alpha + (v & mask)];
+            v >>= Bits;
+        } while (v != 0);
+        return cursor;
     }
 
     /**
@@ -1243,8 +1303,7 @@ private:
                               cs[0] == m_out_atoms[s_ominus]))
           throw stream_error("numeric put fail: fill would change the value the field reads as");
 
-      // [22.2.2.2.2] Stage 3.
-      // If necessary, pad.
+      // The field is short of `w`, so the fill run gets placed.
       pad_impl(adjust, fill, new_buf, cs, w, len, startSign, start0x);
       len = w;
     }
@@ -1295,37 +1354,41 @@ private:
 
         const std::size_t plen = newlen - oldlen;
 
-        // Padding last.
         if (adjust == ios_defs::left)
         {
-            std::copy(olds, olds + oldlen, news);
+            // Fill trails the value.
+            std::copy_n(olds, oldlen, news);
             std::fill_n(news + oldlen, plen, fill);
             return;
         }
 
-        std::size_t mod = 0;
+        // Every other adjustment puts the fill ahead of the digits, and the two
+        // that remain differ only in what gets held back at the left edge:
+        // `internal` pins whatever announces the number -- a sign, or a `0x` /
+        // `0X` base marker -- and lets the fill slot in behind it, while `right`
+        // pins nothing at all. A pinned run of length zero makes that one case,
+        // so both are served by a single three-step write.
+        std::size_t pinned = 0;
         if (adjust == ios_defs::internal)
         {
-            // Pad after the sign, if there is one.
-            // Pad after 0[xX], if there is one.
-            // Who came up with these rules, anyway? Jeeze.
+            // At most two characters, so they go across by hand: handing a
+            // length of 0-2 to a range algorithm costs a memmove call that
+            // dwarfs the copy itself, and `right` would pay it for nothing.
             if (startSign)
             {
                 news[0] = olds[0];
-                mod = 1;
-                ++news;
+                pinned = 1;
             }
             else if (start0x)
             {
                 news[0] = olds[0];
                 news[1] = olds[1];
-                mod = 2;
-                news += 2;
+                pinned = 2;
             }
-            // else Padding first.
         }
-        std::fill_n(news, plen, fill);
-        std::copy(olds + mod, olds + oldlen, news + plen);
+
+        std::fill_n(news + pinned, plen, fill);
+        std::copy_n(olds + pinned, oldlen - pinned, news + pinned + plen);
     }
 
     /**
@@ -1353,33 +1416,35 @@ private:
      */
     void format_float(ios_defs::fmtflags flags, char* fptr, char mod) const noexcept
     {
+        // The notation picks the conversion letter, and with it the one thing
+        // that is not a free choice: hexfloat carries no explicit precision,
+        // because `%a` already prints exactly as many hex digits as the value
+        // needs and pinning a precision on it would round the result away.
+        // Every other notation takes its precision as a `*` argument, which is
+        // what LWG 231 asked for -- unconditionally, rather than only under
+        // `fixed` or a non-zero precision as an earlier reading had it.
+        const ios_defs::fmtflags notation = flags & ios_defs::floatfield;
+        const bool hexfloat = (notation == (ios_defs::fixed | ios_defs::scientific));
+
+        char conv = 'g';
+        if (notation == ios_defs::fixed)           conv = 'f';
+        else if (notation == ios_defs::scientific) conv = 'e';
+        else if (hexfloat)                         conv = 'a';
+
+        // `f` has no upper-case spelling; the other three do, and they sit a
+        // fixed case-distance apart in ASCII.
+        if (conv != 'f' && (flags & ios_defs::uppercase))
+            conv = static_cast<char>(conv - ('a' - 'A'));
+
+        // Assemble in the order printf's own grammar fixes: introducer, flags,
+        // precision, length modifier, conversion.
         *fptr++ = '%';
-        // [22.2.2.2.2] Table 60
-        if (flags & ios_defs::showpos)
-            *fptr++ = '+';
-        if (flags & ios_defs::showpoint)
-            *fptr++ = '#';
-
-        ios_defs::fmtflags fltfield = flags & ios_defs::floatfield;
-        if (fltfield != (ios_defs::fixed | ios_defs::scientific))
-        {
-            // As per DR 231: not only when flags & ios_base::fixed || prec > 0
-            *fptr++ = '.';
-            *fptr++ = '*';
-        }
-
-        if (mod)
-            *fptr++ = mod;
-        // [22.2.2.2.2] Table 58
-        if (fltfield == ios_defs::fixed)
-            *fptr++ = 'f';
-        else if (fltfield == ios_defs::scientific)
-            *fptr++ = (flags & ios_defs::uppercase) ? 'E' : 'e';
-        else if (fltfield == (ios_defs::fixed | ios_defs::scientific))
-            *fptr++ = (flags & ios_defs::uppercase) ? 'A' : 'a';
-        else
-            *fptr++ = (flags & ios_defs::uppercase) ? 'G' : 'g';
-        *fptr = '\0';
+        if (flags & ios_defs::showpos)   *fptr++ = '+';
+        if (flags & ios_defs::showpoint) *fptr++ = '#';
+        if (!hexfloat)                 { *fptr++ = '.'; *fptr++ = '*'; }
+        if (mod)                         *fptr++ = mod;
+        *fptr++ = conv;
+        *fptr   = '\0';
     }
 
     /**
@@ -1413,20 +1478,58 @@ private:
      */
     void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, std::size_t& len) const
     {
-        // _GLIBCXX_RESOLVE_LIB_DEFECTS
-        // 282. What types does numpunct grouping refer to?
-        // Add grouping, if necessary.
-        const std::size_t declen = p ? static_cast<std::size_t>(p - cs) : len;
-        char_type* p2 = FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + declen);
+        // LWG 282 settled that numpunct grouping applies to the integer part
+        // only, so the fraction is split off here and copied through untouched.
+        const std::size_t int_len = p ? static_cast<std::size_t>(p - cs) : len;
+        char_type* const grouped_end =
+            FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + int_len);
 
-        // Tack on decimal part.
-        auto newlen = static_cast<std::size_t>(p2 - new_buf);
+        std::size_t written = static_cast<std::size_t>(grouped_end - new_buf);
         if (p)
         {
-            std::copy(p, p + len - declen, p2);
-            newlen += len - declen;
+            const std::size_t frac_len = len - int_len;
+            std::copy(p, p + frac_len, grouped_end);
+            written += frac_len;
         }
-        len = newlen;
+        len = written;
+    }
+
+    /**
+     * @lang{ZH}
+     * @brief 判断某个字符在本 locale 中是否担任标点角色（千位分隔符或小数点）。
+     *
+     * 两个提取器都要在多处问同一个问题：符号位、前导零扫描、数字累加循环、指数符号。
+     * locale 完全可以指派一个同时也是符号或数字字形的字符来当分隔符或小数点；一旦如此，
+     * **标点身份优先**。把判断收在一处，四个调用点就不会各自跑偏。
+     *
+     * `m_grouping` 为空时不启用分组，此时 `m_thousands_sep` 无意义，故只检查小数点。
+     * @endif
+     *
+     * @lang{EN}
+     * @brief Tests whether a character serves a punctuation role in this locale --
+     * thousands separator or decimal point.
+     *
+     * Both extractors ask this in several places: at the sign, during the
+     * leading-zero scan, inside the digit loop, and at the exponent sign. A locale
+     * is free to nominate a character that also spells a sign or a digit, and where
+     * it does, **the punctuation role is the one that counts**. Keeping the test in
+     * one place stops the four call sites from drifting apart.
+     *
+     * An empty `m_grouping` means grouping is off, which makes `m_thousands_sep`
+     * meaningless, so only the decimal point is considered.
+     * @endif
+     *
+     * @param ch
+     * @lang{ZH} 待判断的字符。 @endif
+     * @lang{EN} The character to test. @endif
+     *
+     * @return
+     * @lang{ZH} 若 `ch` 是生效的千位分隔符或小数点则为 `true`。 @endif
+     * @lang{EN} `true` if `ch` is the active thousands separator or the decimal point. @endif
+     */
+    [[nodiscard]] bool is_punct(char_type ch) const noexcept
+    {
+        return (!m_grouping.empty() && ch == m_thousands_sep) || ch == m_decimal_point;
     }
 
     /**
@@ -1478,170 +1581,164 @@ private:
 
         CharT c{};
 
-        // NB: Iff basefield == 0, base can change based on contents.
+        // With no base set in the flags the text itself decides, so `base` is
+        // provisional until the prefix scan below has run.
         const ios_defs::fmtflags basefield = io.flags() & ios_defs::basefield;
-        const bool oct = basefield == ios_defs::oct;
-        int base = oct ? 8 : (basefield == ios_defs::hex ? 16 : 10);
+        int base = basefield == ios_defs::oct ? 8
+                 : basefield == ios_defs::hex ? 16
+                 : 10;
 
-        // True if beg becomes equal to end.
-        bool testeof = beg == end;
+        bool at_end = beg == end;
 
-        // First check for sign.
+        // -- sign ----------------------------------------------------------
         bool negative = false;
-        if (!testeof)
+        if (!at_end)
         {
             c = *beg;
             negative = c == m_in_atoms[s_iminus];
-            if ((negative || c == m_in_atoms[s_iplus])
-                && (m_grouping.empty() || c != m_thousands_sep)
-                && (c != m_decimal_point))
+            if ((negative || c == m_in_atoms[s_iplus]) && !is_punct(c))
             {
                 if (++beg != end)
                     c = *beg;
                 else
-                    testeof = true;
+                    at_end = true;
             }
         }
 
-        // Next, look for leading zeros and check required digits
-        // for base formats.
-        bool found_zero = false;
-        int sep_pos = 0;
-        while (!testeof)
+        // -- leading zeros and base prefix ---------------------------------
+        // Base ten is the only base that lets a run of zeros stand in front of
+        // the number. Everywhere else a second zero is an ordinary digit and
+        // belongs to the accumulation loop, so at most one is taken here.
+        bool saw_zero  = false;
+        int  group_len = 0;
+        while (!at_end && !is_punct(c) && c == m_in_atoms[s_izero]
+               && (!saw_zero || base == 10))
         {
-            if ((!m_grouping.empty() && c == m_thousands_sep)
-                || c == m_decimal_point)
-                break; // NOLINT(bugprone-branch-clone)
-            else if (c == m_in_atoms[s_izero] && (!found_zero || base == 10))
-            {
-                found_zero = true;
-                ++sep_pos;
-                if (basefield == 0) base = 8;
-                if (base == 8) sep_pos = 0;
-            }
-            else if (found_zero && (c == m_in_atoms[s_ix] || c == m_in_atoms[s_iX]))
-            {
-                if (basefield == 0) base = 16;
-                if (base == 16)
-                {
-                    found_zero = false;
-                    sep_pos = 0;
-                }
-                else
-                    break;
-            }
-            else
-                break;
-
-            if (++beg != end)
-            {
-                c = *beg;
-                if (!found_zero) break;
-            }
-            else
-                testeof = true;
+            saw_zero = true;
+            ++group_len;
+            if (basefield == 0) base = 8;   // a bare leading `0` means octal
+            if (base == 8) group_len = 0;   // that prefix zero starts no group
+            if (++beg != end) c = *beg;
+            else at_end = true;
         }
 
-        // At this point, base is determined. If not hex, only allow
-        // base digits as valid input.
-        const std::size_t len = (base == 16 ? s_iend - s_izero : base);
+        // `0x` / `0X` behind that zero makes it a hexadecimal prefix -- either
+        // confirming a base the flags already fixed, or choosing one when they
+        // left it open. Under any other base the `x` is simply not ours, and is
+        // left for the caller to trip over.
+        if (saw_zero && !at_end && !is_punct(c)
+            && (c == m_in_atoms[s_ix] || c == m_in_atoms[s_iX]))
+        {
+            if (basefield == 0) base = 16;
+            if (base == 16)
+            {
+                saw_zero  = false;          // the `0` was prefix, not a digit
+                group_len = 0;
+                if (++beg != end) c = *beg;
+                else at_end = true;
+            }
+        }
 
-        // Extract.
-        std::vector<uint8_t> found_grouping;
-        if (!m_grouping.empty()) found_grouping.reserve(32);
-        bool testfail = false;
-        bool testoverflow = false;
-        const unsigned_type max_val = (negative && std::is_signed_v<TValue>)
+        // The base is settled now, and with it how much of the atom table is
+        // in play: hexadecimal reaches across both letter alphabets, every
+        // other base stops at its own digit count.
+        const std::size_t span = (base == 16 ? s_iend - s_izero : base);
+
+        // -- digits --------------------------------------------------------
+        std::vector<uint8_t> groups_seen;
+        if (!m_grouping.empty()) groups_seen.reserve(32);
+        bool malformed = false;
+        bool overflowed = false;
+        const unsigned_type value_limit = (negative && std::is_signed_v<TValue>)
                                         ? -static_cast<unsigned_type>(std::numeric_limits<TValue>::min()) : std::numeric_limits<TValue>::max();
-        const unsigned_type smax = max_val / base;
+        const unsigned_type accum_limit = value_limit / static_cast<unsigned_type>(base);
         unsigned_type result = 0;
-        int digit = 0;
-        const char_type* lit_zero = m_in_atoms.data() + s_izero;
+        const char_type* const digit_table = m_in_atoms.data() + s_izero;
 
-        while (!testeof)
+        while (!at_end)
         {
-            // According to 22.2.2.1.2, p8-9, first look for thousands_sep
-            // and decimal_point.
+            // Punctuation is tested before the digit table, because a locale
+            // may well have nominated a character that appears in both.
             if (!m_grouping.empty() && c == m_thousands_sep)
             {
-                // NB: Thousands separator at the beginning of a string
-                // is a no-no, as is two consecutive thousands separators.
-                if (sep_pos)
+                // A separator has to close a group that actually holds digits,
+                // which rules out a leading separator and two in a row alike.
+                // Group widths are kept as bytes, so one too wide to record is
+                // rejected rather than silently wrapped.
+                if (group_len == 0
+                    || std::cmp_greater(group_len, std::numeric_limits<uint8_t>::max()))
                 {
-                    // found_grouping stores each group's digit count in a
-                    // uint8_t. A single group whose size cannot fit in that
-                    // byte is rejected rather than silently truncated.
-                    if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
-                    {
-                        testfail = true;
-                        break;
-                    }
-                    found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-                    sep_pos = 0;
-                }
-                else
-                {
-                    testfail = true;
+                    malformed = true;
                     break;
                 }
+                groups_seen.push_back(static_cast<uint8_t>(group_len));
+                group_len = 0;
             }
-            else if (c == m_decimal_point) break;
+            else if (c == m_decimal_point)
+                break;
             else
             {
-                const char_type* q = std::find(lit_zero, lit_zero + len, c);
-                if (q == lit_zero + len) break;
+                const char_type* q = std::find(digit_table, digit_table + span, c);
+                if (q == digit_table + span)
+                    break;
 
-                digit = q - lit_zero;
+                // The table runs '0'-'9', then 'a'-'f', then 'A'-'F', so an
+                // upper-case letter sits six slots past the value it denotes.
+                int digit = static_cast<int>(q - digit_table);
                 if (digit > 15) digit -= 6;
-                if (result > smax) testoverflow = true;
+
+                // Once the running value has passed the point where another
+                // digit could fit, accumulation stops but consumption does not:
+                // the caller still has to be left past the whole field.
+                if (result > accum_limit)
+                    overflowed = true;
                 else
                 {
-                    result *= base;
-                    testoverflow |= result > max_val - digit;
-                    result += digit;
-                    ++sep_pos;
+                    result *= static_cast<unsigned_type>(base);
+                    overflowed |= result > value_limit - static_cast<unsigned_type>(digit);
+                    result += static_cast<unsigned_type>(digit);
+                    ++group_len;
                 }
             }
 
             if (++beg != end) c = *beg;
-            else testeof = true;
+            else at_end = true;
         }
 
         bool success = true;
-        // Digit grouping is checked. If grouping and found_grouping don't
-        // match, then get very very upset, and set failbit.
-        if (!found_grouping.empty())
+        // Grouping was only ever recorded if the input actually used it; when
+        // it did, the trailing group is closed off and the whole shape held up
+        // against what the locale demands.
+        if (!groups_seen.empty())
         {
-            // Add the ending grouping. Reject inputs whose final group
-            // exceeds the uint8_t storage in found_grouping.
-            if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
+            if (std::cmp_greater(group_len, std::numeric_limits<uint8_t>::max()))
             {
-                testfail = true;
+                malformed = true;
             }
             else
             {
-                found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-                success = FacetHelper::verify_grouping(m_grouping, found_grouping);
+                groups_seen.push_back(static_cast<uint8_t>(group_len));
+                success = FacetHelper::verify_grouping(m_grouping, groups_seen);
             }
         }
 
         // LWG 23 (Num_get overflow result): when the field overflows,
         // v must be set to numeric_limits::max() / min() with failbit.
         //
-        // testoverflow is checked BEFORE testfail by design. Once the
-        // digit-accumulation loop sets testoverflow, ++sep_pos is skipped
-        // for every subsequent digit, so sep_pos freezes. A later, otherwise
+        // `overflowed` is checked BEFORE `malformed` by design. Once the
+        // digit-accumulation loop sets `overflowed`, ++group_len is skipped
+        // for every subsequent digit, so group_len freezes. A later, otherwise
         // well-formed thousands_sep then fails the grouping check and sets
-        // testfail — but that testfail is a side effect of the overflow
+        // `malformed` — but that is a side effect of the overflow
         // short-circuit, not an independent structural error in the input.
         //
-        // Letting testfail win in that overlap would map a structurally
+        // Letting `malformed` win in that overlap would map a structurally
         // valid, numerically out-of-range input (e.g. "12,345,678,901,234,567"
         // into uint32_t under grouping "\3") to v = 0 instead of v = max,
         // contradicting LWG 23. We diverge from libstdc++'s ordering here
         // (which has the same latent issue) to keep the overflow signal
         // dominant whenever it fires.
-        if (testoverflow)
+        if (overflowed)
         {
             if (negative && std::is_signed_v<TValue>)
                 v = std::numeric_limits<TValue>::min();
@@ -1649,7 +1746,7 @@ private:
                 v = std::numeric_limits<TValue>::max();
             success = false;
         }
-        else if ((!sep_pos && !found_zero && !found_grouping.size()) || testfail)
+        else if ((group_len == 0 && !saw_zero && groups_seen.empty()) || malformed)
         {
             v = 0;
             success = false;
@@ -1700,191 +1797,159 @@ private:
     std::pair<bool, TIter> extract_float(TIter beg, TSent end, ios_base<char_type>& io, std::string& xtrc) const
     {
         char_type c = char_type();
+        bool at_end = beg == end;
 
-        // True if beg becomes equal to end.
-        bool testeof = beg == end;
+        std::vector<uint8_t> groups_seen;
+        if (!m_grouping.empty())
+            groups_seen.reserve(32);
 
-        // First check for sign.
-        if (!testeof)
+        // A sign is recognised in two places -- in front of the mantissa and in
+        // front of the exponent -- and behaves identically in both, so the test
+        // and the transcription live here rather than being spelled twice.
+        const auto take_sign = [&](char_type ch) -> bool
         {
-            c = *beg;
-            const bool plus = c == m_in_atoms[s_iplus];
-            if ((plus || c == m_in_atoms[s_iminus])
-                && (m_grouping.empty() || c != m_thousands_sep)
-                && (c != m_decimal_point))
+            const bool plus = ch == m_in_atoms[s_iplus];
+            if ((plus || ch == m_in_atoms[s_iminus]) && !is_punct(ch))
             {
                 xtrc += plus ? '+' : '-';
-                if (++beg != end) c = *beg;
-                else
-                    testeof = true;
+                return true;
             }
+            return false;
+        };
+
+        // Closing a group records how many digits it held. Widths are stored as
+        // bytes, so one too wide to record abandons the field rather than
+        // wrapping silently; the caller breaks out on a false return.
+        int group_len = 0;
+        const auto close_group = [&]() -> bool
+        {
+            if (std::cmp_greater(group_len, std::numeric_limits<uint8_t>::max()))
+                return false;
+            groups_seen.push_back(static_cast<uint8_t>(group_len));
+            return true;
+        };
+
+        const auto advance = [&]()
+        {
+            if (++beg != end) c = *beg;
+            else at_end = true;
+        };
+
+        // -- mantissa sign -------------------------------------------------
+        if (!at_end)
+        {
+            c = *beg;
+            if (take_sign(c))
+                advance();
         }
 
-        // Next, look for leading zeros.
-        bool found_mantissa = false;
-        int sep_pos = 0;
-        while (!testeof)
+        // -- leading zeros -------------------------------------------------
+        // They all count towards the first group, but only one reaches `xtrc`:
+        // strtod does not care how many were written, and keeping them would
+        // just make the buffer longer.
+        bool saw_digit = false;
+        while (!at_end && !is_punct(c) && c == m_in_atoms[s_izero])
         {
-            if ((!m_grouping.empty() && c == m_thousands_sep) || c == m_decimal_point)
-                break; // NOLINT(bugprone-branch-clone)
-            else if (c == m_in_atoms[s_izero])
+            if (!saw_digit)
             {
-                if (!found_mantissa)
-                {
-                    xtrc += '0';
-                    found_mantissa = true;
-                }
-                ++sep_pos;
-
-                if (++beg != end)
-                    c = *beg;
-                else
-                    testeof = true;
+                xtrc += '0';
+                saw_digit = true;
             }
-            else
-                break;
+            ++group_len;
+            advance();
         }
 
-        // Only need acceptable digits for floating point numbers.
-        bool found_dec = false;
-        bool found_sci = false;
-        std::vector<uint8_t> found_grouping;
-        if (!m_grouping.empty())
-            found_grouping.reserve(32);
-        const char_type* lit_zero = m_in_atoms.data() + s_izero;
+        // -- mantissa, decimal point and exponent --------------------------
+        bool saw_point = false;
+        bool saw_exp   = false;
+        const char_type* const digit_table = m_in_atoms.data() + s_izero;
 
-        while (!testeof)
+        while (!at_end)
         {
-            // According to 22.2.2.1.2, p8-9, first look for thousands_sep
-            // and decimal_point.
+            // Punctuation is tested before the digit table, because a locale
+            // may well have nominated a character that appears in both.
             if (!m_grouping.empty() && c == m_thousands_sep)
             {
-                if (!found_dec && !found_sci)
-                {
-                    // NB: Thousands separator at the beginning of a string
-                    // is a no-no, as is two consecutive thousands separators.
-                    if (sep_pos)
-                    {
-                        // found_grouping stores each group's digit count in a
-                        // uint8_t. Reject inputs whose group size cannot fit.
-                        if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
-                        {
-                            xtrc.clear();
-                            break;
-                        }
-                        found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-                        sep_pos = 0;
-                    }
-                    else
-                    {
-                        // NB: convert_to_v will not assign v and will
-                        // set the failbit.
-                        xtrc.clear();
-                        break;
-                    }
-                }
-                else
+                // Separators belong to the integer part alone; past a point or
+                // an exponent one simply ends the field. A separator also has
+                // to close a group that holds digits, which rules out a leading
+                // separator and two in a row alike.
+                if (saw_point || saw_exp)
                     break;
+                if (group_len == 0 || !close_group())
+                {
+                    // Leaving `xtrc` empty is what tells convert_to_v to fail.
+                    xtrc.clear();
+                    break;
+                }
+                group_len = 0;
             }
             else if (c == m_decimal_point)
             {
-                if (!found_dec && !found_sci)
-                {
-                    // If no grouping chars are seen, no grouping check
-                    // is applied. Therefore found_grouping is adjusted
-                    // only if decimal_point comes after some thousands_sep.
-                    if (found_grouping.size())
-                    {
-                        if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
-                        {
-                            xtrc.clear();
-                            break;
-                        }
-                        found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-                    }
-                    xtrc += '.';
-                    found_dec = true;
-                }
-                else
+                if (saw_point || saw_exp)
                     break;
+                // A grouping check only happens if the input used grouping at
+                // all, so the run of digits before the point is worth recording
+                // only when some separator already opened the tally.
+                if (!groups_seen.empty() && !close_group())
+                {
+                    xtrc.clear();
+                    break;
+                }
+                xtrc += '.';
+                saw_point = true;
             }
             else
             {
-                const char_type* q = std::find(lit_zero, lit_zero + 10, c);
-                if (q != lit_zero + 10)
+                const char_type* q = std::find(digit_table, digit_table + 10, c);
+                if (q != digit_table + 10)
                 {
-                    xtrc += '0' + (q - lit_zero);
-                    found_mantissa = true;
-                    ++sep_pos;
+                    xtrc += static_cast<char>('0' + (q - digit_table));
+                    saw_digit = true;
+                    ++group_len;
                 }
                 else if ((c == m_in_atoms[s_ie] || c == m_in_atoms[s_iE])
-                        && !found_sci && found_mantissa)
+                        && !saw_exp && saw_digit)
                 {
-                    // Scientific notation.
-                    if (found_grouping.size() && !found_dec)
+                    // The exponent ends the integer part too, so an open tally
+                    // is closed here for the same reason as at a decimal point
+                    // -- unless a point already did it.
+                    if (!groups_seen.empty() && !saw_point && !close_group())
                     {
-                        if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
-                        {
-                            xtrc.clear();
-                            break;
-                        }
-                        found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-                    }
-                    xtrc += 'e';
-                    found_sci = true;
-
-                    // Remove optional plus or minus sign, if they exist.
-                    if (++beg != end)
-                    {
-                        c = *beg;
-                        const bool plus = c == m_in_atoms[s_iplus];
-                        if ((plus || c == m_in_atoms[s_iminus])
-                            && (m_grouping.empty() || c != m_thousands_sep)
-                            && (c != m_decimal_point))
-                            xtrc += plus ? '+' : '-';
-                        else
-                            continue;
-                    }
-                    else
-                    {
-                        testeof = true;
+                        xtrc.clear();
                         break;
                     }
+                    xtrc += 'e';
+                    saw_exp = true;
+
+                    if (++beg == end)
+                    {
+                        at_end = true;
+                        break;
+                    }
+                    c = *beg;
+                    if (!take_sign(c))
+                        // No exponent sign after all, so `c` is already the next
+                        // character to judge: go round again without advancing.
+                        continue;
                 }
                 else
                     break;
             }
 
-            if (++beg != end)
-                c = *beg;
-            else
-                testeof = true;
+            advance();
         }
 
         bool success = true;
-        // Digit grouping is checked. If grouping and found_grouping don't
-        // match, then get very very upset, and set failbit.
-        if (!found_grouping.empty())
+        // A grouping check only applies to input that actually used grouping.
+        // When it did, the final group still has to be closed -- unless a point
+        // or an exponent closed it already.
+        if (!groups_seen.empty())
         {
-            // Add the ending grouping if a decimal or 'e'/'E' wasn't found.
-            if (!found_dec && !found_sci)
-            {
-                if (std::cmp_greater(sep_pos, std::numeric_limits<uint8_t>::max()))
-                {
-                    // Final group exceeds the uint8_t storage in
-                    // found_grouping. Fail cleanly rather than truncate.
-                    success = false;
-                }
-                else
-                {
-                    found_grouping.push_back(static_cast<uint8_t>(sep_pos));
-                    success = FacetHelper::verify_grouping(m_grouping, found_grouping);
-                }
-            }
+            if (!saw_point && !saw_exp && !close_group())
+                success = false;
             else
-            {
-                success = FacetHelper::verify_grouping(m_grouping, found_grouping);
-            }
+                success = FacetHelper::verify_grouping(m_grouping, groups_seen);
         }
 
         return std::pair(success, beg);
@@ -1934,8 +1999,10 @@ private:
         else
             v = strtold(s, &sanity);
 
-        // _GLIBCXX_RESOLVE_LIB_DEFECTS
-        // 23. Num_get overflow result.
+        // Two distinct failures land here, and LWG 23 asks each to leave a
+        // definite value behind rather than the target untouched: a field that
+        // was not a number at all yields zero, while one that overflowed yields
+        // the largest magnitude of the matching sign.
         if (sanity == s || *sanity != '\0')
         {
             v = TValue(0);
