@@ -16,10 +16,17 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Recommends are deliberately left on, matching what the workflow's apt-get
 # installed before, so the image reproduces the environment the tests already
 # pass in rather than a minimized guess at it.
+#
+# cmake arrives ahead of its first user. The test suite is moving from
+# test/Makefile to CMake/CTest, and that migration runs both build systems side
+# by side for a release so their results can be compared; those shadow jobs
+# cannot start until an image carrying cmake has been published. No job consumes
+# it yet, so this addition changes nothing for the existing six.
 RUN apt-get update \
  && apt-get install -y \
       clang \
       clang-tidy \
+      cmake \
       lcov \
       libbotan-2-dev \
       locales-all \
