@@ -5199,8 +5199,8 @@ private:
     template <typename TIter, std::sentinel_for<TIter> TSent>
     static TIter scan_int_field(TIter beg, TSent end, int& out, int min_val, int max_val, std::size_t width, bool& succ) // NOLINT(bugprone-easily-swappable-parameters)
     {
-        constexpr CharT zero = static_cast<CharT>('0');
-        constexpr CharT nine = static_cast<CharT>('9');
+        constexpr auto zero = static_cast<CharT>('0');
+        constexpr auto nine = static_cast<CharT>('9');
 
         int         value  = 0;
         std::size_t digits = 0;

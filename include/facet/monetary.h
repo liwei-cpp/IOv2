@@ -806,9 +806,12 @@ private:
         // shortfall as leading zeros — two fractional places turn 7 into .07, not 7.0.
         // A negative frac_digits asks for no fraction at all and keeps the whole run.
         const int         frac = info.m_frac_digits;
-        const std::size_t head = (frac < 0)                             ? len
-                               : (len > static_cast<std::size_t>(frac)) ? len - static_cast<std::size_t>(frac)
-                                                                       : 0;
+        // Widened once, and only from a value the `frac < 0` arm has already ruled
+        // out as negative, so every length comparison below stays unsigned-to-unsigned.
+        const std::size_t fracw = (frac > 0) ? static_cast<std::size_t>(frac) : 0;
+        const std::size_t head  = (frac < 0)      ? len
+                                : (len > fracw)   ? len - fracw
+                                                  : 0;
 
         std::basic_string<char_type> value;
         value.reserve(2 * len);
@@ -831,8 +834,8 @@ private:
         if (frac > 0)
         {
             value += m_decimal_point;
-            if (static_cast<std::size_t>(frac) > len)
-                value.append(static_cast<std::size_t>(frac) - len, s_atoms[s_zero]);
+            if (fracw > len)
+                value.append(fracw - len, s_atoms[s_zero]);
             value.append(first + head, len - head);
         }
 
