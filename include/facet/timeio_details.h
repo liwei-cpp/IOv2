@@ -1401,7 +1401,7 @@ private:
             // over rather than read: the narrow pair above already carries everything
             // this facet needs, and skipping them is what lands the cursor on the
             // following record.
-            const std::size_t narrow_end = static_cast<std::size_t>(ptr - base_ptr);
+            const auto narrow_end = static_cast<std::size_t>(ptr - base_ptr);
             ptr += (4 - (narrow_end & 3)) & 3;
             for (int wide = 0; wide < 2; ++wide)
                 ptr += (std::wcslen(reinterpret_cast<const wchar_t*>(ptr)) + 1) * sizeof(wchar_t);

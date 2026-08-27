@@ -512,22 +512,12 @@ public:
             const bool got_false = f_live && n == fname.size() && n != 0;
             const bool got_true  = t_live && n == tname.size() && n != 0;
 
-            if (got_false && got_true)
-            {
-                // Both names read the same -- the match is not unique, so this
-                // is a parse failure and the standard asks for `false`.
-                v = false;
+            // Exactly one name may win. Both winning means the two are
+            // indistinguishable on this input; neither winning means nothing
+            // matched. The standard asks for `false` plus a failure either way.
+            v = got_true && !got_false;
+            if (got_false == got_true)
                 success = false;
-            }
-            else if (got_false)
-                v = false;
-            else if (got_true)
-                v = true;
-            else
-            {
-                v = false;
-                success = false;
-            }
         }
 
         if (!success) throw stream_error("numeric::get fail: parse boolean fail");
@@ -937,7 +927,7 @@ private:
         // separately below, so its digits come from the magnitude instead; negating
         // in the unsigned type reaches |v| without ever forming -v in `TValue`,
         // where the most negative value has no positive counterpart.
-        unsigned_type u = static_cast<unsigned_type>(v);
+        auto u = static_cast<unsigned_type>(v);
         if constexpr (std::is_signed_v<TValue>)
         {
             if (dec && v < 0)
@@ -1484,7 +1474,7 @@ private:
         char_type* const grouped_end =
             FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + int_len);
 
-        std::size_t written = static_cast<std::size_t>(grouped_end - new_buf);
+        auto written = static_cast<std::size_t>(grouped_end - new_buf);
         if (p)
         {
             const std::size_t frac_len = len - int_len;

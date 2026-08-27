@@ -384,7 +384,7 @@ namespace IOv2::FacetHelper
         // `head` is left holding the width of the leading, possibly short, group.
         std::size_t rule  = 0;
         std::size_t extra = 0;
-        std::size_t head  = static_cast<std::size_t>(last - first);
+        auto        head  = static_cast<std::size_t>(last - first);
         while (true)
         {
             const std::size_t size = grouping[rule];
