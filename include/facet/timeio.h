@@ -3523,25 +3523,19 @@ private:
                     ctx.m_year_of_era = val;
                     ctx.m_have_year_of_era = 1;
 
-                    // Mirrors the glibc strptime_l.c validation formula:
-                    //   delta = (era_year − offset) × absolute_direction
-                    //   valid  iff  0 ≤ delta ≤ (to_year − from_year) × direction
-                    // direction here is glibc's absolute_direction (see timeio_details.h
-                    // OUTPUT INVARIANTS for how it is normalised).  For all real-world
-                    // locales every era has from < to and direction = +1, so range is
-                    // always positive and the check is straightforward.  The inclusive
-                    // upper bound (≤ vs glibc's strict <) is intentional: it retains
-                    // eras whose epoch year coincides with the last calendar year of the
-                    // era, which matters for locales where two eras share a boundary year
-                    // (e.g. Showa/Heisei 1989); the full-date check in get_era_entry()
-                    // then selects the correct one.
+                    // Keep an era only if the year just read lands inside it. Both
+                    // quantities are counted in era years from the era's own epoch, so
+                    // `direction` scales the calendar span and must not also be applied
+                    // to `elapsed` -- doing so is what used to reject every year but the
+                    // first of an era running into the past (ja_JP 紀元前, zh_TW 民前).
+                    // Both ends inclusive: get_era_entry() separates eras sharing a year.
                     for (auto it = ctx.m_era_items.begin(); it != ctx.m_era_items.end();)
                     {
                         const auto& cur_era = *it;
-                        int64_t delta = (static_cast<int64_t>(ctx.m_year_of_era) - cur_era.offset) * cur_era.direction;
-                        int64_t range = (static_cast<int64_t>(cur_era.to_year) - cur_era.from_year) * cur_era.direction;
-                        bool match = (delta >= 0 && delta <= range);
-                        if (match) ++it;
+                        const int64_t elapsed = static_cast<int64_t>(ctx.m_year_of_era) - cur_era.offset;
+                        const int64_t range =
+                            (static_cast<int64_t>(cur_era.to_year) - cur_era.from_year) * cur_era.direction;
+                        if (elapsed >= 0 && elapsed <= range) ++it;
                         else it = ctx.m_era_items.erase(it);
                     }
 
