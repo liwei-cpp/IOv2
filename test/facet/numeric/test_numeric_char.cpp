@@ -1,3 +1,5 @@
+#include <array>
+#include <charconv>
 #include <deque>
 #include <list>
 #include <sstream>
@@ -4167,6 +4169,39 @@ void test_numeric_char_put_edge()
         VERIFY(out.substr(out.size() - 2) == "42");
     }
 
+    // The signed minimum must be converted through its unsigned magnitude; forming
+    // its positive counterpart in the signed type would overflow.
+    {
+        IOv2::ios_base<char> ios;
+        std::string out;
+        const auto value = std::numeric_limits<long long>::min();
+        obj.put(std::back_inserter(out), ios, value);
+
+        std::array<char, std::numeric_limits<unsigned long long>::digits + 2> buffer{};
+        const auto converted = std::to_chars(buffer.data(), buffer.data() + buffer.size(), value);
+        VERIFY(converted.ec == std::errc{});
+        VERIFY(out == std::string(buffer.data(), converted.ptr));
+    }
+
+    // Non-decimal negative output is the unsigned bit pattern, with the requested
+    // uppercase base prefix and alphabet.
+    {
+        IOv2::ios_base<char> ios;
+        ios.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
+        ios.setf(IOv2::ios_defs::showbase | IOv2::ios_defs::uppercase);
+        std::string out;
+        obj.put(std::back_inserter(out), ios, -1LL);
+
+        std::array<char, std::numeric_limits<unsigned long long>::digits + 1> buffer{};
+        const auto bits = static_cast<unsigned long long>(-1LL);
+        const auto converted = std::to_chars(buffer.data(), buffer.data() + buffer.size(), bits, 16);
+        VERIFY(converted.ec == std::errc{});
+        std::string expected = "0X";
+        for (const char* p = buffer.data(); p != converted.ptr; ++p)
+            expected += (*p >= 'a' && *p <= 'f') ? static_cast<char>(*p - ('a' - 'A')) : *p;
+        VERIFY(out == expected);
+    }
+
     dump_info("Done\n");
 }
 
@@ -4255,6 +4290,29 @@ void test_numeric_char_get_float_edge()
     // per LWG 23.
     VERIFY(throws("1e400"));
     VERIFY(throws("-1e400"));
+
+    // Failed overflow conversions still commit the finite extreme required by
+    // LWG 23 before get() reports the failure.
+    {
+        IOv2::ios_base<char> ios;
+        double v = 0.0;
+        const std::string in = "1e400";
+        bool threw = false;
+        try { obj.get(in.begin(), in.end(), ios, v); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(v == std::numeric_limits<double>::max());
+    }
+    {
+        IOv2::ios_base<char> ios;
+        double v = 0.0;
+        const std::string in = "-1e400";
+        bool threw = false;
+        try { obj.get(in.begin(), in.end(), ios, v); }
+        catch (const IOv2::stream_error&) { threw = true; }
+        VERIFY(threw);
+        VERIFY(v == -std::numeric_limits<double>::max());
+    }
 
     // A bare "0" parses successfully to 0.0 (exercises the leading-zero / EOF path).
     {

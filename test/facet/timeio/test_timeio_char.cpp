@@ -6069,6 +6069,7 @@ void test_timeio_char_get_18()
 
     IOv2::timeio obj(std::make_shared<IOv2::timeio_conf<char>>("C"));
     IOv2::timeio obj_ja(std::make_shared<IOv2::timeio_conf<char>>("ja_JP.UTF-8"));
+    IOv2::timeio obj_zh_tw(std::make_shared<IOv2::timeio_conf<char>>("zh_TW.UTF-8"));
 
     // operator year_month_day() throws for invalid reconstructed date (line 126)
     // Feb 30 parses successfully but is not a valid calendar date
@@ -6102,6 +6103,25 @@ void test_timeio_char_get_18()
         auto ctx = CheckGet(obj_ja, "平成31 05 01", "%EC%Ey %m %d", IOv2::ios_defs::eofbit);
         auto ymd = ctx_to<year_month_day>(ctx);
         VERIFY(ymd == year_month_day{year{1990}, month{5}, day{1}});
+    }
+
+    // Backward eras use the same era-year syntax but move toward the past. The
+    // year-only cases exercise the range check that cannot assume from_year <=
+    // to_year; the complete date also checks direction during reconstruction.
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "紀元前100", "%EC%Ey",
+                                            IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{-99});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_ja, "紀元前100 02 03", "%EC%Ey %m %d",
+                                            IOv2::ios_defs::eofbit);
+        VERIFY(ymd == year_month_day{year{-99}, month{2}, day{3}});
+    }
+    {
+        auto ymd = CheckGet<year_month_day>(obj_zh_tw, "民前100", "%EC%Ey",
+                                            IOv2::ios_defs::eofbit);
+        VERIFY(ymd.year() == year{1812});
     }
 
     // Era name with no era year (%EC on its own). The era name match sets no m_have_*
