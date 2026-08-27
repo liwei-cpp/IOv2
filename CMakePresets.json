@@ -1,0 +1,125 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 25, "patch": 0 },
+
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "IOV2_TEST_MODE": "release",
+        "IOV2_TEST_CONSUMER": "source"
+      }
+    },
+    {
+      "name": "gcc",
+      "hidden": true,
+      "inherits": "base",
+      "environment": { "CXX": "g++" }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "inherits": "base",
+      "environment": { "CXX": "clang++" }
+    },
+
+    {
+      "name": "gcc-release",
+      "inherits": "gcc",
+      "displayName": "g++, release (-O3 -g -DNDEBUG)"
+    },
+    {
+      "name": "clang-release",
+      "inherits": "clang",
+      "displayName": "clang++, release (-O3 -g -DNDEBUG)"
+    },
+
+    {
+      "name": "gcc-sanitizer",
+      "inherits": "gcc",
+      "displayName": "g++, ASan+UBSan (-O1 -g, no NDEBUG)",
+      "cacheVariables": { "IOV2_TEST_MODE": "sanitizer" }
+    },
+    {
+      "name": "clang-sanitizer",
+      "inherits": "clang",
+      "displayName": "clang++, ASan+UBSan (-O1 -g, no NDEBUG)",
+      "cacheVariables": { "IOV2_TEST_MODE": "sanitizer" }
+    },
+
+    {
+      "name": "gcc-tsan",
+      "inherits": "gcc",
+      "displayName": "g++, ThreadSanitizer (concur only)",
+      "cacheVariables": { "IOV2_TEST_MODE": "tsan" }
+    },
+    {
+      "name": "gcc-coverage",
+      "inherits": "gcc",
+      "displayName": "g++, coverage (-O0 -g --coverage)",
+      "cacheVariables": { "IOV2_TEST_MODE": "coverage" }
+    },
+
+    {
+      "name": "gcc-installed-shared",
+      "inherits": "gcc",
+      "displayName": "g++, release, against an installed libiov2.so",
+      "cacheVariables": { "IOV2_TEST_CONSUMER": "installed-shared" }
+    },
+    {
+      "name": "gcc-installed-header-only",
+      "inherits": "gcc",
+      "displayName": "g++, release, against installed headers only",
+      "cacheVariables": { "IOV2_TEST_CONSUMER": "installed-header-only" }
+    }
+  ],
+
+  "buildPresets": [
+    { "name": "gcc-release", "configurePreset": "gcc-release" },
+    { "name": "clang-release", "configurePreset": "clang-release" },
+    { "name": "gcc-sanitizer", "configurePreset": "gcc-sanitizer" },
+    { "name": "clang-sanitizer", "configurePreset": "clang-sanitizer" },
+    { "name": "gcc-coverage", "configurePreset": "gcc-coverage" },
+    { "name": "gcc-installed-shared", "configurePreset": "gcc-installed-shared" },
+    { "name": "gcc-installed-header-only", "configurePreset": "gcc-installed-header-only" },
+    {
+      "name": "gcc-tsan",
+      "configurePreset": "gcc-tsan",
+      "description": "Only the concur module runs threads; TSan has nothing to observe elsewhere, and building the rest would cost minutes to inspect executions that cannot race.",
+      "targets": [ "test_concur" ]
+    }
+  ],
+
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "all" } }
+    },
+    { "name": "gcc-release", "inherits": "base", "configurePreset": "gcc-release" },
+    { "name": "clang-release", "inherits": "base", "configurePreset": "clang-release" },
+    { "name": "gcc-sanitizer", "inherits": "base", "configurePreset": "gcc-sanitizer" },
+    { "name": "clang-sanitizer", "inherits": "base", "configurePreset": "clang-sanitizer" },
+    { "name": "gcc-coverage", "inherits": "base", "configurePreset": "gcc-coverage" },
+    { "name": "gcc-installed-shared", "inherits": "base", "configurePreset": "gcc-installed-shared" },
+    { "name": "gcc-installed-header-only", "inherits": "base", "configurePreset": "gcc-installed-header-only" },
+    {
+      "name": "gcc-tsan",
+      "configurePreset": "gcc-tsan",
+      "description": "Repeated because a race is only reported when the schedule actually exercises it; one clean run is weaker evidence than several.",
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "concur" } },
+      "execution": { "repeat": { "mode": "until-fail", "count": 10 } }
+    },
+    {
+      "name": "gcc-valgrind",
+      "configurePreset": "gcc-release",
+      "description": "Valgrind options come from MEMORYCHECK_COMMAND_OPTIONS in the top-level CMakeLists; run this preset with -T memcheck.",
+      "output": { "outputOnFailure": true },
+      "filter": { "include": { "label": "all" } }
+    }
+  ]
+}

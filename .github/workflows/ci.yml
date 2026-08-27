@@ -278,3 +278,184 @@ jobs:
           --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
           --warnings-as-errors='bugprone-*' \
           -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
+
+  # ---------------------------------------------------------------------------
+  # CMake/CTest shadow jobs.
+  #
+  # The suite is moving from test/Makefile to CMake/CTest. These jobs run the new
+  # build system over the same 189 sources and the same seven binaries, alongside
+  # the Makefile jobs above rather than instead of them, so the two can be
+  # compared on results, coverage and time before the Makefile is retired. They
+  # add nothing to what is tested; a difference between a shadow job and its
+  # counterpart above is a defect in the migration, not in the library.
+  #
+  # Deleting these four jobs is the whole rollback.
+  # ---------------------------------------------------------------------------
+
+  cmake-shadow-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [ gcc, clang ]
+
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+
+    env:
+      # Same twelve as the Makefile job; see the rationale on IOV2_LOCALES above.
+      IOV2_LOCALES: >-
+        C.UTF-8 en_US.UTF-8 zh_CN.UTF-8 de_DE.UTF-8
+        de_CH.UTF-8 fr_CA.UTF-8 ps_AF.UTF-8 tr_TR.UTF-8
+        en_HK.UTF-8 zh_CN.GBK cs_CZ.ISO-8859-2 ru_RU.KOI8-R
+      IOV2_LOCALES_SAN: >-
+        cs_CZ.ISO-8859-2 zh_CN.GBK ps_AF.UTF-8
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Configure and build (Release)
+      run: |
+        cmake --preset ${{ matrix.compiler }}-release
+        cmake --build --preset ${{ matrix.compiler }}-release --parallel $(nproc)
+
+    - name: Run tests (Release)
+      run: ctest --preset ${{ matrix.compiler }}-release
+
+    - name: Run tests (Release) across locales
+      run: |
+        # No reconfigure and no rebuild: the only variable is the process locale.
+        for loc in $IOV2_LOCALES; do
+          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
+            echo "[!] locale $loc is not available in this image"; exit 1
+          fi
+          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
+          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-release \
+            || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
+        done
+
+    - name: Configure and build (Sanitizers)
+      run: |
+        cmake --preset ${{ matrix.compiler }}-sanitizer
+        cmake --build --preset ${{ matrix.compiler }}-sanitizer --parallel $(nproc)
+
+    - name: Run tests (Sanitizers)
+      run: ctest --preset ${{ matrix.compiler }}-sanitizer
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+
+    - name: Run tests (Sanitizers) across locales
+      run: |
+        for loc in $IOV2_LOCALES_SAN; do
+          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
+            echo "[!] locale $loc is not available in this image"; exit 1
+          fi
+          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
+          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-sanitizer \
+            || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
+        done
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+
+    - name: Run memory check (Valgrind)
+      if: matrix.compiler == 'gcc'
+      run: |
+        # -T memcheck alone records defects without failing; --error-exitcode=1,
+        # set in MEMORYCHECK_COMMAND_OPTIONS, is what turns a finding into a
+        # failed test. Assert that here rather than trusting a green log.
+        ctest --preset gcc-valgrind -T memcheck
+        if grep -rqE 'Defects: *[1-9]' build/gcc-release/Testing/Temporary/ 2>/dev/null; then
+          echo "[!] valgrind reported defects but the run was green"; exit 1
+        fi
+
+  cmake-shadow-tsan:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Run concurrency tests under ThreadSanitizer
+      run: |
+        # The build preset limits this to test_concur, and the test preset repeats
+        # it ten times -- matching the Makefile job above on both counts.
+        cmake --preset gcc-tsan
+        cmake --build --preset gcc-tsan --parallel $(nproc)
+        ctest --preset gcc-tsan
+      env:
+        TSAN_OPTIONS: halt_on_error=1:exitcode=66:history_size=7
+
+  cmake-shadow-coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Generate Coverage Report
+      run: |
+        cmake --preset gcc-coverage
+        cmake --build --preset gcc-coverage --parallel $(nproc)
+        ctest --preset gcc-coverage
+        lcov --capture --directory build/gcc-coverage --output-file coverage.info \
+             --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
+        # Anchored at the repo, unlike the Makefile job's '*/include/*': that
+        # pattern also matches /usr/local/include/c++/..., so its output carries
+        # ~110 libstdc++ headers. Codecov drops them because they are not repo
+        # files, so the published number is unaffected -- but the equivalence
+        # comparison is over the line set, and it has to compare like with like.
+        lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
+             --ignore-errors unused
+        lcov --list coverage.info
+
+    - name: Upload coverage.info
+      # The Makefile coverage job sends this to Codecov and keeps no artifact, so
+      # per-line data cannot be recovered from a run. Comparing line sets across
+      # the migration needs the file itself.
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-cmake
+        path: coverage.info
+
+  cmake-shadow-install:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Run the full test suite against the installed shared library
+      run: |
+        make shared
+        make install-shared PREFIX=/opt/iov2
+        export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
+        export LD_LIBRARY_PATH=/opt/iov2/lib
+        export LC_ALL=C
+        cmake --preset gcc-installed-shared
+        cmake --build --preset gcc-installed-shared --parallel $(nproc)
+        ctest --preset gcc-installed-shared
+
+    - name: Run the full test suite against the installed header-only library
+      run: |
+        make install PREFIX=/opt/iov2-ho
+        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        export LC_ALL=C
+        cmake --preset gcc-installed-header-only
+        cmake --build --preset gcc-installed-header-only --parallel $(nproc)
+        ctest --preset gcc-installed-header-only
+
+    - name: Verify the installed modes used no source-tree headers
+      run: |
+        # The point of both modes is that include/ in the repo is not consulted.
+        # CMakeLists.txt refuses a pkg-config prefix inside the source tree; this
+        # checks the commands that were actually issued.
+        for d in gcc-installed-shared gcc-installed-header-only; do
+          if grep -q -- "-I${PWD}/include" build/$d/compile_commands.json; then
+            echo "[!] $d compiled against the source tree"; exit 1
+          fi
+          echo "OK: $d used no source-tree headers"
+        done
+        if grep -q -- '-liov2' build/gcc-installed-header-only/compile_commands.json; then
+          echo "[!] header-only mode linked libiov2"; exit 1
+        fi

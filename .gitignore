@@ -2,6 +2,11 @@
 test/bin_*/
 test/obj_*/
 
+# CMake build trees, one per compiler/mode/consumer combination and named after
+# the preset that created it. Out-of-source by design: the point of moving off
+# test/Makefile is to stop generating obj_*/bin_* inside the source tree.
+/build/
+
 # Coverage data
 *.gcda
 *.gcno
