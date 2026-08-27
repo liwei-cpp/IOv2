@@ -359,15 +359,23 @@ jobs:
         UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
 
     - name: Run memory check (Valgrind)
-      if: matrix.compiler == 'gcc'
       run: |
-        # -T memcheck alone records defects without failing; --error-exitcode=1,
-        # set in MEMORYCHECK_COMMAND_OPTIONS, is what turns a finding into a
-        # failed test. Assert that here rather than trusting a green log.
-        ctest --preset gcc-valgrind -T memcheck
-        if grep -rqE 'Defects: *[1-9]' build/gcc-release/Testing/Temporary/ 2>/dev/null; then
-          echo "[!] valgrind reported defects but the run was green"; exit 1
-        fi
+        # Both compilers, because the Makefile job above checks both and they
+        # produce different code for Valgrind to walk.
+        #
+        # --test-dir, not --preset: -T memcheck puts ctest in dashboard mode,
+        # which resolves the project directory from the working directory and
+        # ignores a test preset's binaryDir. Given --preset it looks for
+        # DartConfiguration.tcl beside the sources, does not find it, and fails
+        # with "Memory checker (MemoryCheckCommand) not set".
+        #
+        # A memcheck run that only writes logs and stays green would be worse
+        # than no check at all, so this exact command was verified against a
+        # program that leaks 64 bytes and writes past a 4-byte buffer: ctest
+        # reported "Defects: 3" and exited 16. The exit code is the guard; no
+        # file under Testing/Temporary carries the defect count to grep for.
+        ctest --test-dir build/${{ matrix.compiler }}-release -T memcheck \
+              --output-on-failure -L all
 
   cmake-shadow-tsan:
     runs-on: ubuntu-latest
