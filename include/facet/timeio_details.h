@@ -1243,13 +1243,13 @@ private:
      *   系统 locale 数据视为受信任数据；若纪元数据可能来自不可信来源，
      *   应在此函数边界处增加防御性边界检查。
      *
-     *   每条记录相对于其起始地址（base_ptr）的内存布局如下：
+     *   每条记录相对于其起始地址（record）的内存布局如下：
      *   - 8 × int32 头部（通过 memcpy 读取）：
      *       [0] 方向标记（'+' / '-'）  [1] 偏移量
      *       [2] from_year - 1900       [3] from_month - 1   [4] from_day
      *       [5] to_year   - 1900       [6] to_month   - 1   [7] to_day
      *   - NUL 结尾的窄字符名称，随后是 NUL 结尾的窄字符格式串
-     *   - 填充至相对于 base_ptr 的 4 字节对齐边界
+     *   - 填充至相对于 record 的 4 字节对齐边界
      *   - NUL 结尾的宽字符名称，随后是 NUL 结尾的宽字符格式串
      *
      * @note **输出不变量**
@@ -1292,13 +1292,13 @@ private:
      *   as trusted; if era data could ever originate from an untrusted source, this
      *   function is the boundary to harden.
      *
-     *   Each record, relative to its start (base_ptr), is laid out as:
+     *   Each record, relative to its start (record), is laid out as:
      *   - 8 × int32 header (read via memcpy):
      *       [0] direction marker ('+' / '-')   [1] offset
      *       [2] from_year - 1900   [3] from_month - 1   [4] from_day
      *       [5] to_year   - 1900   [6] to_month   - 1   [7] to_day
      *   - NUL-terminated narrow name, then NUL-terminated narrow format string
-     *   - padding to the next 4-byte boundary (relative to base_ptr)
+     *   - padding to the next 4-byte boundary (relative to record)
      *   - NUL-terminated wide name, then NUL-terminated wide format string
      *
      * @note **Output invariants**
@@ -1316,10 +1316,9 @@ private:
      *     for backward eras (from > to), the marker is intentionally inverted.
      *     The reason: in a backward era, from_year is the epoch and to_year is a
      *     sentinel for "negative infinity". As the calendar year moves away from the
-     *     epoch toward the past, (calendar - from_year) grows increasingly negative.
-     *     Flipping the stored direction to +1 preserves the sign convention so that
-     *     the same formula produces consistent era_year values regardless of which
-     *     direction the era flows.
+     *     epoch toward the past, (calendar - from_year) grows increasingly negative;
+     *     the normalised negative direction turns that distance into a positive era
+     *     year, so the same formula works in either chronological direction.
      *
      *     The backward branch **is reached by real locales**, not just in theory:
      *     `ja_JP`'s 紀元前 and the 民前 of `zh_TW` / `cmn_TW` / `hak_TW` / `lzh_TW` /
@@ -1333,80 +1332,77 @@ private:
     // NOLINTBEGIN(cppcoreguidelines-pro-type-reinterpret-cast)
     static std::vector<era_entry> parse_glibc_era_entries()
     {
+        struct era_wire_header
+        {
+            int32_t direction_marker;
+            int32_t offset;
+            int32_t from_year;
+            int32_t from_month;
+            int32_t from_day;
+            int32_t to_year;
+            int32_t to_month;
+            int32_t to_day;
+        };
+        static_assert(sizeof(era_wire_header) == 8 * sizeof(int32_t));
+
         std::vector<era_entry> items;
 
-        const auto era_item_num = static_cast<int32_t>(
+        const auto record_count = static_cast<int32_t>(
             reinterpret_cast<uintptr_t>(nl_langinfo(_NL_TIME_ERA_NUM_ENTRIES)));
-        if (era_item_num <= 0)
+        if (record_count <= 0)
             return items;
 
-        items.reserve(era_item_num);
-        const char *ptr = reinterpret_cast<const char*>(nl_langinfo(_NL_TIME_ERA_ENTRIES));
-        for (int32_t cnt = 0; cnt < era_item_num; ++cnt)
+        items.reserve(static_cast<std::size_t>(record_count));
+        const char* cursor = reinterpret_cast<const char*>(nl_langinfo(_NL_TIME_ERA_ENTRIES));
+        for (int32_t index = 0; index < record_count; ++index)
         {
-            const char *base_ptr = ptr;
-            era_entry cur_entry;
+            const char* const record = cursor;
+            era_wire_header header{};
+            std::memcpy(&header, cursor, sizeof header);
+            cursor += sizeof header;
 
-            std::array<int32_t, 8> buf{};
-            std::memcpy(static_cast<void*>(buf.data()), static_cast<const void*>(ptr), sizeof buf);
-            ptr += sizeof buf;
+            era_entry value{};
+            constexpr int32_t epoch = 1900;
+            constexpr int32_t last_relative_year = std::numeric_limits<int32_t>::max() - epoch;
+            value.from_year = header.from_year > last_relative_year
+                ? std::numeric_limits<int32_t>::max()
+                : header.from_year + epoch;
+            value.from_month = static_cast<uint8_t>(header.from_month + 1);
+            value.from_day = static_cast<uint8_t>(header.from_day);
 
-            if (buf[2] > std::numeric_limits<int32_t>::max() - 1900)
-                cur_entry.from_year = std::numeric_limits<int32_t>::max();
-            else
-                cur_entry.from_year = buf[2] + 1900;
-            cur_entry.from_month = buf[3] + 1;
-            cur_entry.from_day = buf[4];
-            if (buf[5] > std::numeric_limits<int32_t>::max() - 1900)
-            {
-                cur_entry.to_year = std::numeric_limits<int32_t>::max();
-                cur_entry.to_month = 12;
-                cur_entry.to_day = 31;
-            }
-            else
-            {
-                cur_entry.to_year = buf[5] + 1900;
-                cur_entry.to_month = buf[6] + 1;
-                cur_entry.to_day = buf[7];
-            }
+            const bool open_ended = header.to_year > last_relative_year;
+            value.to_year = open_ended
+                ? std::numeric_limits<int32_t>::max()
+                : header.to_year + epoch;
+            value.to_month = open_ended ? uint8_t{12}
+                                        : static_cast<uint8_t>(header.to_month + 1);
+            value.to_day = open_ended ? uint8_t{31}
+                                      : static_cast<uint8_t>(header.to_day);
+            value.offset = header.offset;
 
-            // The stored marker says which way the era counts, but it says it relative
-            // to the era's own flow. An era that runs forwards takes the marker as it
-            // stands; one that runs backwards takes it inverted, so that
-            //   era_year = offset + (calendar - from_year) * direction
-            // reads the same way for both. The full argument is in the OUTPUT
-            // INVARIANTS note above, which also cites where this rule comes from.
-            if (TimeioHelper::era_small_or_equal(cur_entry.from_year, cur_entry.from_month, cur_entry.from_day,
-                                                cur_entry.to_year, cur_entry.to_month, cur_entry.to_day))
-            {
-                if (buf[0] == (uint32_t) '+') cur_entry.direction = 1;
-                else cur_entry.direction = -1;
-            }
-            else
-            {
-                if (buf[0] == (uint32_t) '+') cur_entry.direction = -1;
-                else cur_entry.direction = 1;
-            }
-            cur_entry.offset = buf[1];
+            const int8_t marked_direction = header.direction_marker == static_cast<int32_t>('+')
+                ? int8_t{1} : int8_t{-1};
+            const bool runs_forward = TimeioHelper::era_small_or_equal(
+                value.from_year, value.from_month, value.from_day,
+                value.to_year, value.to_month, value.to_day);
+            value.direction = runs_forward
+                ? marked_direction : static_cast<int8_t>(-marked_direction);
 
-            // The name and the format string follow the header back to back, each
-            // closed by its own NUL.
-            cur_entry.name = ptr;
-            ptr += std::strlen(ptr) + 1;
-            cur_entry.format = ptr;
-            ptr += std::strlen(ptr) + 1;
+            value.name = cursor;
+            cursor += std::strlen(cursor) + 1;
+            value.format = cursor;
+            cursor += std::strlen(cursor) + 1;
 
-            // Wide copies of those same two strings come next, starting at the first
-            // 4-byte boundary measured from this record's own start. They are stepped
-            // over rather than read: the narrow pair above already carries everything
-            // this facet needs, and skipping them is what lands the cursor on the
-            // following record.
-            const auto narrow_end = static_cast<std::size_t>(ptr - base_ptr);
-            ptr += (4 - (narrow_end & 3)) & 3;
-            for (int wide = 0; wide < 2; ++wide)
-                ptr += (std::wcslen(reinterpret_cast<const wchar_t*>(ptr)) + 1) * sizeof(wchar_t);
+            constexpr std::size_t wire_alignment = sizeof(int32_t);
+            const auto narrow_size = static_cast<std::size_t>(cursor - record);
+            cursor += (wire_alignment - (narrow_size % wire_alignment)) % wire_alignment;
 
-            items.push_back(std::move(cur_entry));
+            const auto* wide_name = reinterpret_cast<const wchar_t*>(cursor);
+            cursor += (std::wcslen(wide_name) + 1) * sizeof(wchar_t);
+            const auto* wide_format = reinterpret_cast<const wchar_t*>(cursor);
+            cursor += (std::wcslen(wide_format) + 1) * sizeof(wchar_t);
+
+            items.push_back(std::move(value));
         }
         return items;
     }

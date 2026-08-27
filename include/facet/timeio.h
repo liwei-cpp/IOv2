@@ -308,7 +308,9 @@ struct date_parse_helper<CharT, true>
                             + (static_cast<int64_t>(m_year_of_era) - static_cast<int64_t>(it->offset)) * it->direction;
                         int est_year = static_cast<int>(std::clamp<int64_t>(est_year_64,
                             std::numeric_limits<int>::min(), std::numeric_limits<int>::max()));
-                        if ((it->from_year > est_year) || (est_year > it->to_year)) continue;
+                        const bool within_forward = it->from_year <= est_year && est_year <= it->to_year;
+                        const bool within_backward = it->to_year <= est_year && est_year <= it->from_year;
+                        if (!within_forward && !within_backward) continue;
                         deduced_year = est_year;
                         break;
                     }

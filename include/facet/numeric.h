@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -908,29 +909,12 @@ private:
         using unsigned_type = std::make_unsigned_t<TValue>;
 
         const ios_defs::fmtflags flags = io.flags();
-
-        // Consume the field width up front, before any allocation that can throw:
-        // width() is one-shot and a stale value must not survive onto the stream
-        // if we leave by an exception. Used for padding below.
         const std::size_t w = io.width();
         io.width(0);
 
-        // Five characters per byte covers the widest of the three bases (octal
-        // needs ceil(8/3) = 3, so this is comfortable) for any integer width.
-        const auto ilen = 5 * sizeof(TValue);
-        std::vector<char_type> cs_vec(ilen);
-        char_type* cs = cs_vec.data();
-
-        // Digits first, laid down back to front so they finish flush against
-        // the end of the buffer; `cs` is then walked forward to meet them.
         const ios_defs::fmtflags basefield = flags & ios_defs::basefield;
         const bool dec = (basefield != ios_defs::oct && basefield != ios_defs::hex);
 
-        // Octal and hex print the two's-complement bit pattern, which is just what
-        // the conversion to the unsigned type yields. Base ten writes the sign
-        // separately below, so its digits come from the magnitude instead; negating
-        // in the unsigned type reaches |v| without ever forming -v in `TValue`,
-        // where the most negative value has no positive counterpart.
         auto u = static_cast<unsigned_type>(v);
         if constexpr (std::is_signed_v<TValue>)
         {
@@ -938,172 +922,107 @@ private:
                 u = -u;
         }
 
-        auto len = static_cast<std::size_t>(int_to_char(cs + ilen, u, flags, dec));
-        cs += ilen - len;
+        // Even base two would need no more than one character per value bit. Two
+        // fixed buffers therefore cover both raw and maximally grouped output while
+        // keeping every ordinary integer conversion off the heap.
+        constexpr std::size_t digit_capacity = std::numeric_limits<unsigned_type>::digits;
+        std::array<char_type, digit_capacity> raw_digits{};
+        char_type* const raw_end = raw_digits.data() + raw_digits.size();
+        char_type* raw_begin = raw_end;
+
+        if (dec)
+        {
+            do // NOLINT(cppcoreguidelines-avoid-do-while)
+            {
+                *--raw_begin = m_out_atoms[s_odigits + (u % 10)];
+                u /= 10;
+            } while (u != 0);
+        }
+        else
+        {
+            const unsigned shift = (basefield == ios_defs::oct) ? 3u : 4u;
+            const unsigned_type mask = (unsigned_type{1} << shift) - 1;
+            const int alphabet = (basefield == ios_defs::hex && (flags & ios_defs::uppercase))
+                ? s_oudigits : s_odigits;
+            do // NOLINT(cppcoreguidelines-avoid-do-while)
+            {
+                *--raw_begin = m_out_atoms[alphabet + static_cast<std::size_t>(u & mask)];
+                u >>= shift;
+            } while (u != 0);
+        }
+
+        const char_type* digits = raw_begin;
+        auto digit_len = static_cast<std::size_t>(raw_end - raw_begin);
+        std::array<char_type, digit_capacity * 2> grouped_digits{};
 
         if (!m_grouping.empty())
         {
-            // Worst case one separator per digit, and the two slots left free
-            // at the front are what the sign or base marker is prepended into.
-            std::vector<char_type> cs_vec2((ilen + 1) * 2);
-            char_type* cs2 = cs_vec2.data() + 2;
-            len = static_cast<std::size_t>(FacetHelper::add_grouping(cs2, m_thousands_sep, m_grouping, cs, cs + len) - cs2);
-            std::swap(cs_vec, cs_vec2);
-            cs = cs_vec.data() + 2;
+            char_type* const grouped_end = FacetHelper::add_grouping(
+                grouped_digits.data(), m_thousands_sep, m_grouping, raw_begin, raw_end);
+            digits = grouped_digits.data();
+            digit_len = static_cast<std::size_t>(grouped_end - digits);
         }
 
-        // Whatever announces the number goes on the front -- a sign in base ten,
-        // a base marker otherwise -- written straight into the room the digit
-        // conversion left ahead of `cs`, and therefore in reverse.
+        std::array<char_type, 2> prefix{};
+        std::size_t prefix_len = 0;
         if (dec)
         {
-            // An unsigned value has no sign to write and cannot be negative, so
-            // the whole question folds away at compile time.
             if constexpr (std::is_signed_v<TValue>)
             {
                 if (v < 0)
-                {
-                    *--cs = m_out_atoms[s_ominus];
-                    ++len;
-                }
+                    prefix[prefix_len++] = m_out_atoms[s_ominus];
                 else if (flags & ios_defs::showpos)
-                {
-                    *--cs = m_out_atoms[s_oplus];
-                    ++len;
-                }
+                    prefix[prefix_len++] = m_out_atoms[s_oplus];
             }
         }
         else if (bool(flags & ios_defs::showbase) && v)
         {
-            // `0x` / `0X` for hexadecimal, a lone `0` for octal.
-            if (basefield != ios_defs::oct)
-            {
-                *--cs = m_out_atoms[s_ox + bool(flags & ios_defs::uppercase)];
-                ++len;
-            }
-            *--cs = m_out_atoms[s_odigits];
-            ++len;
+            prefix[prefix_len++] = m_out_atoms[s_odigits];
+            if (basefield == ios_defs::hex)
+                prefix[prefix_len++] = m_out_atoms[s_ox + bool(flags & ios_defs::uppercase)];
         }
 
-        // Pad.
-        if (std::cmp_greater(w, len))
+        const std::size_t len = prefix_len + digit_len;
+        if (w <= len)
         {
-            if (w - len > ios_defs::max_pad_count)
-                throw stream_error("numeric put fail: fill count exceeds max_pad_count");
-
-            std::vector<char_type> cs_vec3(w);
-            char_type* cs3 = cs_vec3.data();
-            bool startSign = (cs[0] == m_out_atoms[s_ominus]) || (cs[0] == m_out_atoms[s_oplus]);
-            bool start0x = (cs[0] == m_out_atoms[s_odigits]) && (len > 1u) &&
-                           ((cs[1] == m_out_atoms[s_ox]) || (cs[1] == m_out_atoms[s_oX]));
-            const ios_defs::fmtflags adjust = io.flags() & ios_defs::adjustfield;
-            pad(io.fill(), w, adjust, io.flags() & ios_defs::basefield,
-                cs3, cs, len, startSign, start0x);
-            std::swap(cs_vec, cs_vec3);
-            cs = cs_vec.data();
+            s = std::copy_n(prefix.data(), prefix_len, s);
+            return std::copy_n(digits, digit_len, s);
         }
 
-        // Nothing is left to decide; hand the finished field to the caller.
-        return std::copy(cs, cs + len, s);
-    }
+        const std::size_t pad_len = w - len;
+        if (pad_len > ios_defs::max_pad_count)
+            throw stream_error("numeric put fail: fill count exceeds max_pad_count");
 
-    /**
-     * @lang{ZH}
-     * @brief 将无符号整数按指定进制逐位写入缓冲区末端，返回写入的字符数。
-     *
-     * 结果在缓冲区中右对齐（从 `bufend` 向低地址方向填充）。
-     *
-     * @tparam TValue 无符号整数类型。
-     * @param bufend 写入缓冲区的尾后指针（结果从此向低地址填充）。
-     * @param v 要转换的无符号整数值。
-     * @param flags 格式标志，用于选择基数和大小写。
-     * @param dec 若为 `true`，则使用十进制；否则根据 `flags` 选择八进制或十六进制。
-     * @return 写入的字符数。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Converts an unsigned integer to characters in the specified base, writing right-to-left from the buffer end.
-     *
-     * The result is right-justified in the buffer (filled from `bufend` toward lower addresses).
-     *
-     * @tparam TValue The unsigned integer type.
-     * @param bufend One-past-the-end pointer of the write buffer (filling goes toward lower addresses).
-     * @param v The unsigned integer value to convert.
-     * @param flags Format flags used to select the radix and case.
-     * @param dec If `true`, use decimal; otherwise select octal or hexadecimal from `flags`.
-     * @return The number of characters written.
-     * @endif
-     */
-    template <typename TValue>
-    int int_to_char(CharT* bufend, TValue v, ios_defs::fmtflags flags, bool dec) const
-    {
-        char_type* cursor = bufend;
+        const bool start_sign = prefix_len == 1
+            && (prefix[0] == m_out_atoms[s_ominus] || prefix[0] == m_out_atoms[s_oplus]);
+        const bool start_0x = prefix_len == 2
+            && prefix[0] == m_out_atoms[s_odigits]
+            && (prefix[1] == m_out_atoms[s_ox] || prefix[1] == m_out_atoms[s_oX]);
+        const ios_defs::fmtflags adjust = flags & ios_defs::adjustfield;
+        const bool trails_value = adjust == ios_defs::left;
+        const bool leads_digits = !trails_value
+            && (adjust == ios_defs::internal || !(start_sign || start_0x));
+        if (fill_alters_reading(io.fill(), basefield, leads_digits, trails_value,
+                                prefix_len != 0 && prefix[0] == m_out_atoms[s_ominus]))
+            throw stream_error("numeric put fail: fill would change the value the field reads as");
 
-        if (dec)
+        if (trails_value)
         {
-            // Base ten is the odd one out: it needs a real division, and its
-            // glyphs have no upper-case spelling to choose between.
-            do // NOLINT(cppcoreguidelines-avoid-do-while)
-            {
-                *--cursor = m_out_atoms[s_odigits + (v % 10)];
-                v /= 10;
-            } while (v != 0);
-            return static_cast<int>(bufend - cursor);
+            s = std::copy_n(prefix.data(), prefix_len, s);
+            s = std::copy_n(digits, digit_len, s);
+            return std::fill_n(s, pad_len, io.fill());
         }
 
-        // Octal and hexadecimal are both powers of two, so `emit_pow2` does the
-        // work for either; they part ways only on digit width and alphabet, and
-        // octal has no upper-case form of its own.
-        if ((flags & ios_defs::basefield) == ios_defs::oct)
-            cursor = emit_pow2<3>(cursor, v, s_odigits);
-        else
-            cursor = emit_pow2<4>(cursor, v,
-                                  (flags & ios_defs::uppercase) ? s_oudigits : s_odigits);
-
-        return static_cast<int>(bufend - cursor);
-    }
-
-    /**
-     * @lang{ZH}
-     * @brief 将无符号整数按 2^Bits 进制逐位写入缓冲区末端，返回写入起点。
-     *
-     * 供 `int_to_char` 的八进制（`Bits == 3`）与十六进制（`Bits == 4`）分支共用；
-     * `Bits` 为模板参数，故掩码与移位量在编译期即为常量。
-     *
-     * @tparam Bits 每位数字占用的比特数。
-     * @tparam TValue 无符号整数类型。
-     * @param cursor 写入位置（向低地址方向填充）。
-     * @param v 要转换的值。
-     * @param alpha 字母表在 `m_out_atoms` 中的起始索引。
-     * @return 指向已写入的最高位字符的指针。
-     * @endif
-     *
-     * @lang{EN}
-     * @brief Writes an unsigned integer in base 2^Bits backwards from `cursor`,
-     * returning where it stopped.
-     *
-     * Shared by the octal (`Bits == 3`) and hexadecimal (`Bits == 4`) arms of
-     * `int_to_char`. `Bits` is a template parameter, so the mask and the shift
-     * amount stay compile-time constants in both instantiations.
-     *
-     * @tparam Bits Bits consumed per emitted digit.
-     * @tparam TValue The unsigned integer type.
-     * @param cursor Write position; filling goes toward lower addresses.
-     * @param v The value to convert.
-     * @param alpha Start index of the alphabet within `m_out_atoms`.
-     * @return A pointer to the most significant character written.
-     * @endif
-     */
-    template <int Bits, typename TValue>
-    char_type* emit_pow2(char_type* cursor, TValue v, int alpha) const
-    {
-        constexpr auto mask = static_cast<TValue>((TValue{1} << Bits) - 1);
-        do // NOLINT(cppcoreguidelines-avoid-do-while)
+        if (adjust == ios_defs::internal && (start_sign || start_0x))
         {
-            *--cursor = m_out_atoms[alpha + (v & mask)];
-            v >>= Bits;
-        } while (v != 0);
-        return cursor;
+            s = std::copy_n(prefix.data(), prefix_len, s);
+            s = std::fill_n(s, pad_len, io.fill());
+            return std::copy_n(digits, digit_len, s);
+        }
+
+        s = std::fill_n(s, pad_len, io.fill());
+        s = std::copy_n(prefix.data(), prefix_len, s);
+        return std::copy_n(digits, digit_len, s);
     }
 
     /**
@@ -1943,12 +1862,13 @@ private:
      *
      * 在 "C" locale 守卫下调用 `strtof`/`strtod`/`strtold`。
      * 按 LWG 23 处理特殊情况：无穷大映射为 `numeric_limits::max()` 的有限极值并返回失败；
-     * 转换失败（`parse_end == s` 或字符串未完全消耗）时将 `v` 设为 0 并返回失败。
+     * 转换失败（`parse_end == s` 或字符串未完全消耗）时将 `v` 设为 0 并返回失败；
+     * NaN 作为完整、非无穷的转换结果原样保留。
      *
      * @tparam TValue 浮点类型（`float`、`double` 或 `long double`）。
      * @param s 以 `'\0'` 结尾的 "C" locale ASCII 浮点字符串。
      * @param v 转换成功后写入结果的浮点数引用。
-     * @return 若转换成功且结果为有限值则返回 `true`，否则返回 `false`。
+     * @return 若字符串被完整转换且结果不是无穷大则返回 `true`（包括 NaN），否则返回 `false`。
      * @endif
      *
      * @lang{EN}
@@ -1957,50 +1877,51 @@ private:
      * Calls `strtof`/`strtod`/`strtold` under a "C" locale guard.
      * Handles special cases per LWG 23: infinity is mapped to the finite extreme value
      * `numeric_limits::max()` and failure is returned; conversion failure (when
-     * `parse_end == s` or the string is not fully consumed) sets `v` to 0 and returns failure.
+     * `parse_end == s` or the string is not fully consumed) sets `v` to 0 and returns
+     * failure; a fully converted NaN is retained as a successful result.
      *
      * @tparam TValue The floating-point type (`float`, `double`, or `long double`).
      * @param s Null-terminated "C"-locale ASCII floating-point string.
      * @param v Reference to the floating-point variable to receive the converted result.
-     * @return `true` if conversion succeeded and the result is finite; `false` otherwise.
+     * @return `true` if the whole string converted and the result is not infinity
+     * (including NaN); `false` otherwise.
      * @endif
      */
     template <typename TValue>
     bool convert_to_v(const char* s, TValue& v) const
     {
-        bool res = true;
+        TValue parsed{};
         char* parse_end = nullptr;
 
-        clocale_wrapper inter_locale("C");
-        clocale_user guard(inter_locale);
+        {
+            clocale_wrapper inter_locale("C");
+            clocale_user guard(inter_locale);
 
-        if constexpr (std::is_same_v<TValue, float>)
-            v = strtof(s, &parse_end);
-        else if constexpr (std::is_same_v<TValue, double>)
-            v = strtod(s, &parse_end);
-        else
-            v = strtold(s, &parse_end);
+            if constexpr (std::is_same_v<TValue, float>)
+                parsed = strtof(s, &parse_end);
+            else if constexpr (std::is_same_v<TValue, double>)
+                parsed = strtod(s, &parse_end);
+            else
+                parsed = strtold(s, &parse_end);
+        }
 
-        // Two distinct failures land here, and LWG 23 asks each to leave a
-        // definite value behind rather than the target untouched: a field that
-        // was not a number at all yields zero, while one that overflowed yields
-        // the largest magnitude of the matching sign.
+        // Decide the semantic result before committing it to the caller. A malformed
+        // field becomes zero, overflow becomes the matching finite extreme, and NaN
+        // remains a successful conversion just as it was before this refactoring.
         if (parse_end == s || *parse_end != '\0')
         {
             v = TValue(0);
-            res = false;
+            return false;
         }
-        else if (v == std::numeric_limits<TValue>::infinity())
+        if (std::isinf(parsed))
         {
-            v = std::numeric_limits<TValue>::max();
-            res = false;
+            const TValue limit = std::numeric_limits<TValue>::max();
+            v = std::signbit(parsed) ? -limit : limit;
+            return false;
         }
-        else if (v == -std::numeric_limits<TValue>::infinity())
-        {
-            v = -std::numeric_limits<TValue>::max();
-            res = false;
-        }
-        return res;
+
+        v = parsed;
+        return true;
     }
 
     /**
