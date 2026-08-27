@@ -816,12 +816,13 @@ private:
             *wp = m_decimal_point;
         }
 
-        // Only a real number gets grouped -- "inf" and "nan" must come through
-        // untouched. A decimal point settles it outright; failing that, text too
-        // short to be one of those words is a number, and so is text whose
-        // second and third characters are both digits.
+        // Only a real number gets grouped -- "inf", "nan" and exponent-only forms
+        // like 2e20 must come through untouched. A decimal point settles it
+        // outright; failing that, text too short to be one of those words is a
+        // number, and so is text whose second and third characters are digits.
+        const auto is_digit = [](char c) { return c >= '0' && c <= '9'; };
         const bool numeric_text =
-            wp || len < 3u || (cs[1] <= '9' && cs[2] <= '9' && cs[1] >= '0' && cs[2] >= '0');
+            wp || len < 3u || (is_digit(cs[1]) && is_digit(cs[2]));
 
         if (!m_grouping.empty() && numeric_text)
         {
@@ -836,10 +837,13 @@ private:
             if (sign_len != 0)
                 ws2[0] = ws[0];
 
-            std::size_t digit_len = len - sign_len;
-            group_float(m_grouping, m_thousands_sep, wp,
-                        ws2 + sign_len, ws + sign_len, digit_len);
-            len = digit_len + sign_len;
+            // LWG 282: grouping applies to the integer part only, so the split
+            // happens here and the fraction is handed over to be copied through.
+            const std::size_t digit_len = len - sign_len;
+            const std::size_t int_len   = wp ? static_cast<std::size_t>(wp - (ws + sign_len))
+                                             : digit_len;
+            len = sign_len + group_float(m_grouping, m_thousands_sep, ws2 + sign_len,
+                                         ws + sign_len, int_len, digit_len - int_len);
             std::swap(vec_ws, vec_ws2);
             ws = vec_ws.data();
         }
@@ -1439,49 +1443,37 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 向浮点数的整数部分插入千位分隔符，保留小数部分不变，并更新 `len`。
-     *
-     * 通过 `FacetHelper::add_grouping` 在整数部分插入 `sep`，然后将
-     * 原始内容中小数点及其后的部分原样追加到结果末尾。
+     * @brief 将已切分好的整数部分加上千位分隔符写入 `new_buf`，小数部分原样跟随。
      *
      * @param grouping 数字分组规则（内部规范化格式）。
      * @param sep 千位分隔符字符。
-     * @param p 指向宽字符缓冲区中小数点位置的指针；若无小数点则为 `nullptr`。
      * @param new_buf 输出缓冲区。
-     * @param cs 输入宽字符缓冲区的起始指针。
-     * @param len 输入字符数；函数返回后更新为输出字符数。
+     * @param src 输入宽字符缓冲区的起始指针，整数部分在前、小数部分紧随其后。
+     * @param int_len 整数部分的字符数。
+     * @param frac_len 小数部分的字符数（含小数点），无小数部分时为 0。
+     * @return 写入 `new_buf` 的字符总数。
      * @endif
      *
      * @lang{EN}
-     * @brief Inserts grouping separators into the integer part of a floating-point number, leaving the fractional part unchanged, and updates `len`.
-     *
-     * Uses `FacetHelper::add_grouping` to insert `sep` into the integer part, then
-     * appends the decimal point and everything after it from the original content.
+     * @brief Writes the already-split integer part into `new_buf` with grouping separators, followed by the fractional part verbatim.
      *
      * @param grouping Digit grouping rules (internal normalized form).
      * @param sep The thousands separator character.
-     * @param p Pointer to the decimal point position in the wide-character buffer; `nullptr` if no decimal point.
      * @param new_buf Output buffer.
-     * @param cs Pointer to the start of the input wide-character buffer.
-     * @param len Input character count; updated to the output character count on return.
+     * @param src Start of the input wide-character buffer: integer part first, fractional part immediately after.
+     * @param int_len Character count of the integer part.
+     * @param frac_len Character count of the fractional part (including the decimal point); 0 when there is none.
+     * @return The total number of characters written to `new_buf`.
      * @endif
      */
-    void group_float(const std::vector<uint8_t>& grouping, char_type sep, const char_type* p, char_type* new_buf, char_type* cs, std::size_t& len) const
+    std::size_t group_float(const std::vector<uint8_t>& grouping, char_type sep,
+                            char_type* new_buf, const char_type* src,
+                            std::size_t int_len, std::size_t frac_len) const
     {
-        // LWG 282 settled that numpunct grouping applies to the integer part
-        // only, so the fraction is split off here and copied through untouched.
-        const std::size_t int_len = p ? static_cast<std::size_t>(p - cs) : len;
         char_type* const grouped_end =
-            FacetHelper::add_grouping(new_buf, sep, grouping, cs, cs + int_len);
-
-        auto written = static_cast<std::size_t>(grouped_end - new_buf);
-        if (p)
-        {
-            const std::size_t frac_len = len - int_len;
-            std::copy(p, p + frac_len, grouped_end);
-            written += frac_len;
-        }
-        len = written;
+            FacetHelper::add_grouping(new_buf, sep, grouping, src, src + int_len);
+        std::copy(src + int_len, src + int_len + frac_len, grouped_end);
+        return static_cast<std::size_t>(grouped_end - new_buf) + frac_len;
     }
 
     /**
@@ -1951,7 +1943,7 @@ private:
      *
      * 在 "C" locale 守卫下调用 `strtof`/`strtod`/`strtold`。
      * 按 LWG 23 处理特殊情况：无穷大映射为 `numeric_limits::max()` 的有限极值并返回失败；
-     * 转换失败（`sanity == s` 或字符串未完全消耗）时将 `v` 设为 0 并返回失败。
+     * 转换失败（`parse_end == s` 或字符串未完全消耗）时将 `v` 设为 0 并返回失败。
      *
      * @tparam TValue 浮点类型（`float`、`double` 或 `long double`）。
      * @param s 以 `'\0'` 结尾的 "C" locale ASCII 浮点字符串。
@@ -1965,7 +1957,7 @@ private:
      * Calls `strtof`/`strtod`/`strtold` under a "C" locale guard.
      * Handles special cases per LWG 23: infinity is mapped to the finite extreme value
      * `numeric_limits::max()` and failure is returned; conversion failure (when
-     * `sanity == s` or the string is not fully consumed) sets `v` to 0 and returns failure.
+     * `parse_end == s` or the string is not fully consumed) sets `v` to 0 and returns failure.
      *
      * @tparam TValue The floating-point type (`float`, `double`, or `long double`).
      * @param s Null-terminated "C"-locale ASCII floating-point string.
@@ -1977,23 +1969,23 @@ private:
     bool convert_to_v(const char* s, TValue& v) const
     {
         bool res = true;
-        char* sanity = nullptr;
+        char* parse_end = nullptr;
 
         clocale_wrapper inter_locale("C");
         clocale_user guard(inter_locale);
 
         if constexpr (std::is_same_v<TValue, float>)
-            v = strtof(s, &sanity);
+            v = strtof(s, &parse_end);
         else if constexpr (std::is_same_v<TValue, double>)
-            v = strtod(s, &sanity);
+            v = strtod(s, &parse_end);
         else
-            v = strtold(s, &sanity);
+            v = strtold(s, &parse_end);
 
         // Two distinct failures land here, and LWG 23 asks each to leave a
         // definite value behind rather than the target untouched: a field that
         // was not a number at all yields zero, while one that overflowed yields
         // the largest magnitude of the matching sign.
-        if (sanity == s || *sanity != '\0')
+        if (parse_end == s || *parse_end != '\0')
         {
             v = TValue(0);
             res = false;
