@@ -604,7 +604,6 @@ struct io_traits<TChar, flush_t>
     static void swrite(T& os, const flush_t&) { os.flush(); }
 };
 
-// https://github.com/gcc-mirror/gcc/blob/075ec330307c5b1fe5ed166a633c718c06b01437/libstdc%2B%2B-v3/include/bits/ostream.h#L80
-// TODO: add quoted
-// https://github.com/gcc-mirror/gcc/blob/075ec330307c5b1fe5ed166a633c718c06b01437/libstdc%2B%2B-v3/include/std/iomanip#L88
+// TODO: add a `quoted` manipulator (C++ [quoted.manip]), for both the inserter and
+// the extractor.
 }

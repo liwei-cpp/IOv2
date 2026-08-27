@@ -255,7 +255,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] const base_ft<monetary>::pattern& pos_format_int() const { return m_int.m_pos_format; }
@@ -268,7 +269,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] const base_ft<monetary>::pattern& pos_format_nat() const { return m_nat.m_pos_format; }
@@ -281,7 +283,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] const base_ft<monetary>::pattern& neg_format_int() const { return m_int.m_neg_format; }
@@ -294,7 +297,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] const base_ft<monetary>::pattern& neg_format_nat() const { return m_nat.m_neg_format; }
@@ -766,191 +770,181 @@ private:
         const std::size_t width = io.width();
         io.width(0);
 
-        // Determine if negative or positive formats are to be used, and
-        // discard leading negative_sign if it is present.
-        const char_type* beg = digits.data();
+        // A leading minus is how the caller says the amount is negative. It selects
+        // this locale's negative pattern and negative sign string and is then dropped:
+        // the sign the field ends up carrying comes from that string, which may spell
+        // it quite differently (or not at all).
+        const char_type*       first = digits.data();
+        const char_type* const stop  = first + digits.size();
 
-        base_ft<monetary>::pattern p;
-        const std::basic_string<char_type>* sign_ptr = nullptr;
-        if (!(*beg == s_atoms[s_minus]))
-        {
-            p = info.m_pos_format;
-            sign_ptr = &(info.m_positive_sign);
-        }
-        else
-        {
-            p = info.m_neg_format;
-            sign_ptr = &(info.m_negative_sign);
-            if (digits.size())
-                ++beg;
-        }
+        const bool negative = (*first == s_atoms[s_minus]);
+        // The pattern is four bytes and is read once per slot while the strings below
+        // are being built; taken by value it stays in a register, where a reference
+        // into the facet would have to be reloaded around every write.
+        const base_ft<monetary>::pattern    order = negative ? info.m_neg_format : info.m_pos_format;
+        const std::basic_string<char_type>& sign  = negative ? info.m_negative_sign : info.m_positive_sign;
+        if (negative)
+            ++first;
 
-        // Look for valid numbers in input digits.
-        std::size_t len = 0;
-        for (auto i = beg; i != digits.data() + digits.size(); ++i)
+        // The amount runs up to the first character that is not one of this facet's
+        // digits; whatever the caller put after that is not ours to format.
+        const char_type* const digit_table = s_atoms.data() + s_zero;
+        std::size_t            len         = 0;
+        for (const char_type* q = first; q != stop; ++q)
         {
-            char_type ch = *i;
-            int j = 1;
-            for (; j < 11; ++j)
-                if (ch == s_atoms[j]) break;
-
-            if (j == 11) break;
+            if (std::find(digit_table, digit_table + 10, *q) == digit_table + 10)
+                break;
             ++len;
         }
+        if (!len)
+            return s;
 
-        if (len)
+        // The digits are the smallest units of the currency, so the amount they spell
+        // is read off their right-hand end: the run splits into an integer head and a
+        // fractional tail with the cut m_frac_digits places from that end. A run too
+        // short to reach the cut has a head of nothing, and the fraction picks up the
+        // shortfall as leading zeros — two fractional places turn 7 into .07, not 7.0.
+        // A negative frac_digits asks for no fraction at all and keeps the whole run.
+        const int         frac = info.m_frac_digits;
+        const std::size_t head = (frac < 0)                             ? len
+                               : (len > static_cast<std::size_t>(frac)) ? len - static_cast<std::size_t>(frac)
+                                                                       : 0;
+
+        std::basic_string<char_type> value;
+        value.reserve(2 * len);
+
+        if (head)
         {
-            // Assume valid input, and attempt to format.
-            // Break down input numbers into base components, as follows:
-            //   final_value = grouped units + (decimal point) + (digits)
-            std::basic_string<char_type> value;
-            value.reserve(2 * len);
-
-            // Add thousands separators to non-decimal digits, per
-            // grouping rules.
-            // len counts characters of `digits`, so it never exceeds PTRDIFF_MAX and
-            // the conversion is lossless; the subtraction must stay signed because
-            // m_frac_digits may exceed len (and may itself be negative).
-            std::ptrdiff_t paddec = static_cast<std::ptrdiff_t>(len) - info.m_frac_digits;
-            if (paddec > 0)
+            if (m_grouping.empty())
+                value.assign(first, head);
+            else
             {
-                if (info.m_frac_digits < 0)
-                    paddec = static_cast<std::ptrdiff_t>(len);
-                if (!m_grouping.empty())
-                {
-                    value.assign(2 * paddec, char_type());
-                    char_type* vend = FacetHelper::add_grouping(&value[0], m_thousands_sep, m_grouping, beg, beg + paddec);
-                    value.erase(vend - &value[0]);
-                }
-                else
-                    value.assign(beg, paddec);
+                // add_grouping writes at most one separator per digit, so twice the
+                // head is always room enough; the slack is trimmed off afterwards.
+                value.assign(2 * head, char_type());
+                const char_type* const wrote =
+                    FacetHelper::add_grouping(value.data(), m_thousands_sep, m_grouping, first, first + head);
+                value.erase(static_cast<std::size_t>(wrote - value.data()));
             }
-
-            // Deal with decimal point, decimal digits.
-            if (info.m_frac_digits > 0)
-            {
-                value += m_decimal_point;
-                if (paddec >= 0)
-                    value.append(beg + paddec, info.m_frac_digits);
-                else
-                {
-                    // Have to pad zeros in the decimal position.
-                    value.append(-paddec, s_atoms[s_zero]);
-                    value.append(beg, len);
-                }
-            }
-
-            // Calculate length of resulting string.
-            const ios_defs::fmtflags f = io.flags() & ios_defs::adjustfield;
-            len = value.size() + sign_ptr->size();
-            len += ((io.flags() & ios_defs::showbase) ? info.m_curr_symbol.size() : 0);
-
-            if (width > len && width - len > ios_defs::max_pad_count)
-                throw stream_error("monetary put fail: fill count exceeds max_pad_count");
-
-            std::basic_string<char_type> res;
-            res.reserve(2 * len);
-
-            const bool testipad = (f == ios_defs::internal && len < width);
-
-            // Where each run of fill lands is recorded as it is written, so that the
-            // readability check below can be made against the finished field instead of
-            // against the pattern: whether a run abuts the amount depends on which
-            // parts between them turn out to be empty, which the pattern alone does not
-            // say. A pattern writes at most one run per part, plus one final pad.
-            struct fill_run { std::size_t pos; std::size_t len; };
-            std::array<fill_run, 5> runs{};
-            std::size_t run_count = 0;
-            std::size_t value_pos = std::basic_string<char_type>::npos;
-
-            // Fit formatted digits into the required pattern.
-            for (int i = 0; i < 4; ++i)
-            {
-                const part which = static_cast<part>(p[i]);
-                switch (which)
-                {
-                case part::symbol:
-                    if (io.flags() & ios_defs::showbase)
-                        res += info.m_curr_symbol;
-                    break;
-                case part::sign:
-                    // Sign might not exist, or be more than one
-                    // character long. In that case, add in the rest
-                    // below.
-                    if (!sign_ptr->empty())
-                        res += (*sign_ptr)[0];
-                    break;
-                case part::value:
-                    value_pos = res.size();
-                    res += value;
-                    break;
-                case part::space:
-                    // At least one space is required, but if internal
-                    // formatting is required, an arbitrary number of
-                    // fill spaces will be necessary.
-                    runs[run_count++] = {res.size(), testipad ? width - len : 1};
-                    if (testipad)
-                        res.append(width - len, io.fill());
-                    else
-                        res += io.fill();
-                    break;
-                case part::none:
-                    if (testipad)
-                    {
-                        runs[run_count++] = {res.size(), width - len};
-                        res.append(width - len, io.fill());
-                    }
-                    break;
-                }
-            }
-
-            // Special case of multi-part sign parts.
-            if (sign_ptr->size() > 1)
-                res.append(sign_ptr->c_str() + 1, sign_ptr->size() - 1);
-
-            // Pad, if still necessary.
-            len = res.size();
-            if (width > len)
-            {
-                const std::size_t plen = width - len;
-                if (f == ios_defs::left) // After.
-                {
-                    runs[run_count++] = {res.size(), plen};
-                    res.append(plen, io.fill());
-                }
-                else // Before.
-                {
-                    res.insert(0, plen, io.fill());
-                    // Everything recorded so far just moved right by plen.
-                    for (std::size_t r = 0; r < run_count; ++r)
-                        runs[r].pos += plen;
-                    if (value_pos != std::basic_string<char_type>::npos)
-                        value_pos += plen;
-                    runs[run_count++] = {0, plen};
-                }
-                len = width;
-            }
-
-            // Fill has now been written, so this is where it gets vetted: reject a fill
-            // character that would change the amount this field reads as. The check sits
-            // here rather than at the top of the function because `fill` is sticky stream
-            // state — a stream carrying setfill('1') must keep working for every output
-            // whose width leaves nothing to pad, and those take no run at all.
-            for (std::size_t r = 0; r < run_count; ++r)
-            {
-                const bool leads_digits = (value_pos != std::basic_string<char_type>::npos)
-                                       && (runs[r].pos + runs[r].len == value_pos);
-                const bool trails_value = (value_pos != std::basic_string<char_type>::npos)
-                                       && (runs[r].pos >= value_pos + value.size());
-                if (fill_alters_reading(io.fill(), info, leads_digits, trails_value,
-                                         sign_ptr == &info.m_negative_sign))
-                    throw stream_error("monetary put fail: fill would change the value the field reads as");
-            }
-
-            // Write resulting, fully-formatted string to output iterator.
-            s = std::copy(res.data(), res.data() + len, s);
         }
-        return s;
+
+        if (frac > 0)
+        {
+            value += m_decimal_point;
+            if (static_cast<std::size_t>(frac) > len)
+                value.append(static_cast<std::size_t>(frac) - len, s_atoms[s_zero]);
+            value.append(first + head, len - head);
+        }
+
+        const ios_defs::fmtflags adjust      = io.flags() & ios_defs::adjustfield;
+        const bool               show_symbol = (io.flags() & ios_defs::showbase) != 0;
+
+        // What the field is worth before any padding: the amount, the sign string in
+        // full (even the part that trails), and the currency symbol if it is shown.
+        len = value.size() + sign.size() + (show_symbol ? info.m_curr_symbol.size() : 0);
+
+        if (width > len && width - len > ios_defs::max_pad_count)
+            throw stream_error("monetary put fail: fill count exceeds max_pad_count");
+
+        std::basic_string<char_type> res;
+        res.reserve(2 * len);
+
+        // Non-zero only under `internal`, where the shortfall is not tacked onto an
+        // end but poured into whichever pattern slot is spare.
+        const std::size_t spread = (adjust == ios_defs::internal && len < width) ? width - len : 0;
+
+        // Where each run of fill lands is recorded as it is written, so that the
+        // readability check below can be made against the finished field instead of
+        // against the pattern: whether a run abuts the amount depends on which
+        // parts between them turn out to be empty, which the pattern alone does not
+        // say. A pattern writes at most one run per part, plus one final pad.
+        struct fill_run { std::size_t pos; std::size_t len; };
+        std::array<fill_run, 5> runs{};
+        std::size_t run_count = 0;
+        std::size_t value_pos = std::basic_string<char_type>::npos;
+
+        // Lay the parts down in the order this locale asks for.
+        for (const part which : order)
+        {
+            switch (which)
+            {
+            case part::symbol:
+                if (show_symbol)
+                    res += info.m_curr_symbol;
+                break;
+            case part::sign:
+                // Only the sign's first character belongs to this slot; a longer sign
+                // string has its remainder appended once the pattern is fully down.
+                if (!sign.empty())
+                    res += sign[0];
+                break;
+            case part::value:
+                value_pos = res.size();
+                res += value;
+                break;
+            case part::space:
+                // This slot owes at least one fill character, and takes the whole
+                // internal spread when there is one to take.
+                runs[run_count++] = {res.size(), spread ? spread : 1};
+                res.append(spread ? spread : 1, io.fill());
+                break;
+            case part::none:
+                // A slot that writes nothing of its own is still somewhere the
+                // internal spread can go.
+                if (spread)
+                {
+                    runs[run_count++] = {res.size(), spread};
+                    res.append(spread, io.fill());
+                }
+                break;
+            }
+        }
+
+        // A sign spelled with more than one character wraps the field: its first
+        // character sat in the sign slot, the rest trails everything.
+        if (sign.size() > 1)
+            res.append(sign, 1);
+
+        // Whatever width is still unaccounted for is fill.
+        len = res.size();
+        if (width > len)
+        {
+            const std::size_t pad = width - len;
+            if (adjust == ios_defs::left)
+            {
+                runs[run_count++] = {len, pad};
+                res.append(pad, io.fill());
+            }
+            else
+            {
+                // Padding in front shifts everything already recorded — the amount
+                // included — right by that much.
+                res.insert(0, pad, io.fill());
+                for (std::size_t r = 0; r < run_count; ++r)
+                    runs[r].pos += pad;
+                if (value_pos != std::basic_string<char_type>::npos)
+                    value_pos += pad;
+                runs[run_count++] = {0, pad};
+            }
+            len = width;
+        }
+
+        // Fill has now been written, so this is where it gets vetted: reject a fill
+        // character that would change the amount this field reads as. The check sits
+        // here rather than at the top of the function because `fill` is sticky stream
+        // state — a stream carrying setfill('1') must keep working for every output
+        // whose width leaves nothing to pad, and those take no run at all.
+        for (std::size_t r = 0; r < run_count; ++r)
+        {
+            const bool leads_digits = (value_pos != std::basic_string<char_type>::npos)
+                                   && (runs[r].pos + runs[r].len == value_pos);
+            const bool trails_value = (value_pos != std::basic_string<char_type>::npos)
+                                   && (runs[r].pos >= value_pos + value.size());
+            if (fill_alters_reading(io.fill(), info, leads_digits, trails_value, negative))
+                throw stream_error("monetary put fail: fill would change the value the field reads as");
+        }
+
+        return std::copy(res.data(), res.data() + len, s);
     }
 
     /**
@@ -1027,151 +1021,196 @@ private:
         const split_info& info = isIntl ? m_int : m_nat;
         using part = base_ft<monetary>::part;
 
-        // Deduced sign.
-        bool negative = false;
-        // Sign size.
-        int sign_size = 0;
-        // True if sign is mandatory.
-        const bool mandatory_sign = (!info.m_positive_sign.empty() && !info.m_negative_sign.empty());
-        // Vector of grouping info from thousands_sep plucked from units.
+        // The negative pattern is the one walked, whichever sign the input turns out
+        // to carry: it is the wider of the two, since a locale may spell the positive
+        // sign as nothing at all, and the polarity is settled by the sign slot itself.
+        const base_ft<monetary>::pattern& order = info.m_neg_format;
+
+        const char_type* const digit_table = s_atoms.data() + s_zero;
+        const bool             show_symbol = (io.flags() & ios_defs::showbase) != 0;
+
+        // A locale that spells both signs cannot have the field leave one out.
+        const bool sign_required = !info.m_positive_sign.empty() && !info.m_negative_sign.empty();
+
+        bool negative  = false;   // polarity the sign slot deduced
+        bool valid     = true;    // still looking at a well-formed field
+        bool saw_point = false;   // the decimal point has gone by
+        int  sign_len  = 0;       // length of the sign string the input turned out to carry
+
+        // Digits seen since the last structural character. Before the decimal point
+        // that is the current group; when the point arrives the count is handed to
+        // `int_run` and restarts, so afterwards it counts fractional places.
+        int run     = 0;
+        int int_run = 0;
+
+        // Group widths in the order met, checked against m_grouping once the whole
+        // amount is in.
         std::vector<uint8_t> grouping_tmp;
         if (!m_grouping.empty())
             grouping_tmp.reserve(32);
-        // Last position before the decimal point.
-        int last_pos = 0;
-        // Separator positions, then, possibly, fractional digits.
-        int n = 0;
-        // If input iterator is in a valid state.
-        bool testvalid = true;
-        // Flag marking when a decimal point is found.
-        bool testdecfound = false;
 
-        // The tentative returned string is stored here.
-        std::string res; res.reserve(32);
-
-        const char_type* lit_zero = s_atoms.data() + s_zero;
-        const base_ft<monetary>::pattern p = info.m_neg_format;
+        // Digits accumulate here as ASCII, and are handed to the caller only if the
+        // field turns out to be well-formed all the way to its end.
+        std::string out;
+        out.reserve(32);
 
         // Which part carries the amount: a run of fill consumed before that index sits
         // in front of the amount, one consumed after it sits behind.
         int value_idx = 3;
         for (int i = 0; i < 4; ++i)
-            if (static_cast<part>(p[i]) == part::value)
+            if (order[i] == part::value)
             {
                 value_idx = i;
                 break;
             }
 
-        for (int i = 0; i < 4 && testvalid; ++i)
+        for (int i = 0; i < 4 && valid; ++i)
         {
-            const part which = static_cast<part>(p[i]);
             // Set when this part consumes at least one fill character, which is the
             // only case in which fill decides how much of the input counts as the
             // amount — and so the only case worth vetting.
             bool ate_fill = false;
-            switch (which)
+            switch (order[i])
             {
             case part::symbol:
-                // According to 22.2.6.1.2, p2, symbol is required
-                // if (io.flags() & ios_base::showbase), otherwise
-                // is optional and consumed only if other characters
-                // are needed to complete the format.
-                if (io.flags() & ios_defs::showbase || sign_size > 1
-                    || i == 0
-                    || (i == 1 && (mandatory_sign
-                        || (static_cast<part>(p[0])
-                        == part::sign)
-                        || (static_cast<part>(p[2])
-                        == part::space)))
-                    || (i == 2 && ((static_cast<part>(p[3])
-                        == part::value)
-                        || (mandatory_sign
-                        && (static_cast<part>(p[3])
-                            == part::sign)))))
+            {
+                // [locale.money.get.virtuals]: showbase makes the currency symbol
+                // mandatory. Otherwise it is optional, and is read only where letting
+                // it go would strand a part that still has to be reached — which
+                // depends on what this slot is followed by, hence the case analysis.
+                bool required = show_symbol || sign_len > 1;
+                if (!required)
+                    switch (i)
+                    {
+                    case 0:
+                        // Nothing has been read yet; parsing has to start somewhere.
+                        required = true;
+                        break;
+                    case 1:
+                        required = sign_required || order[0] == part::sign
+                                                 || order[2] == part::space;
+                        break;
+                    case 2:
+                        required = order[3] == part::value
+                                || (sign_required && order[3] == part::sign);
+                        break;
+                    default:
+                        break;
+                    }
+                if (!required)
+                    break;
+
+                const std::basic_string<char_type>& symbol = info.m_curr_symbol;
+                std::size_t                         taken  = 0;
+                while (taken != symbol.size() && beg != end && *beg == symbol[taken])
                 {
-                    const int len = info.m_curr_symbol.size();
-                    int j = 0;
-                    for (; beg != end && j < len && *beg == info.m_curr_symbol[j]; ++beg, (void)++j);
-                    if (j != len && (j || io.flags() & ios_defs::showbase))
-                        testvalid = false;
+                    ++beg;
+                    ++taken;
                 }
+                // Stopping part-way through the symbol always makes the field
+                // malformed; stopping before its first character only does so when
+                // showbase promised the symbol would be there.
+                if (taken != symbol.size() && (taken != 0 || show_symbol))
+                    valid = false;
                 break;
+            }
             case part::sign:
-                // Sign might not exist, or be more than one character long.
-                if (!info.m_positive_sign.empty() && beg != end && *beg == info.m_positive_sign[0])
+            {
+                // Whichever sign string the input opens with is the one it wears.
+                const std::basic_string<char_type>& pos  = info.m_positive_sign;
+                const std::basic_string<char_type>& neg  = info.m_negative_sign;
+                const std::basic_string<char_type>* worn = nullptr;
+                if (beg != end)
                 {
-                    sign_size = info.m_positive_sign.size();
+                    if (!pos.empty() && *beg == pos[0])
+                        worn = &pos;
+                    else if (!neg.empty() && *beg == neg[0])
+                        worn = &neg;
+                }
+
+                if (worn)
+                {
+                    negative = (worn == &neg);
+                    sign_len = static_cast<int>(worn->size());
                     ++beg;
                 }
-                else if (!info.m_negative_sign.empty() && beg != end && *beg == info.m_negative_sign[0])
-                {
-                    negative = true;
-                    sign_size = info.m_negative_sign.size();
-                    ++beg;
-                }
-                else if (!info.m_positive_sign.empty() && info.m_negative_sign.empty())
-                // "... if no sign is detected, the result is given the sign
-                // that corresponds to the source of the empty string"
-                    negative = true;
-                else if (mandatory_sign)
-                    testvalid = false;
+                else if (pos.empty() != neg.empty())
+                    // [locale.money.get.virtuals]: where one of the two sign strings
+                    // is empty, a field with no sign in it takes the polarity of that
+                    // empty string. Only an empty negative string makes that negative.
+                    negative = neg.empty();
+                else if (sign_required)
+                    valid = false;
                 break;
+            }
             case part::value:
-                // Extract digits, remove and stash away the
-                // grouping of found thousands separators.
+                // Digits go straight into the result; the separators between them are
+                // not kept, only the widths of the groups they mark off.
                 for (; beg != end; ++beg)
                 {
-                    const char_type c = *beg;
-                    const char_type* q = std::find(lit_zero, lit_zero + 10, c);
-                    if (q != lit_zero + 10)
+                    const char_type  c = *beg;
+                    const char_type* d = std::find(digit_table, digit_table + 10, c);
+                    if (d != digit_table + 10)
                     {
-                        res += '0' + (q - lit_zero);
-                        ++n;
+                        out += static_cast<char>('0' + (d - digit_table));
+                        ++run;
+                        continue;
                     }
-                    else if (c == m_decimal_point && !testdecfound)
+
+                    // Punctuation structures the integer part only. Past the decimal
+                    // point the fraction is a plain run of digits, so a separator or a
+                    // second point there ends the amount instead of shaping it.
+                    if (saw_point)
+                        break;
+
+                    if (c == m_decimal_point)
                     {
+                        // A locale with no fractional places has nothing for a decimal
+                        // point to introduce; the character is not ours to consume.
                         if (info.m_frac_digits <= 0)
                             break;
 
-                        last_pos = n;
-                        n = 0;
-                        testdecfound = true;
+                        int_run   = run;
+                        run       = 0;
+                        saw_point = true;
                     }
-                    else if (!m_grouping.empty() && c == m_thousands_sep && !testdecfound)
+                    else if (!m_grouping.empty() && c == m_thousands_sep)
                     {
                         // A separator with no preceding digits, or a group
                         // longer than the largest representable group size,
                         // can never satisfy any grouping spec: reject outright
                         // rather than truncating the count.
-                        if (n == 0 || std::cmp_greater(n, std::numeric_limits<uint8_t>::max()))
+                        if (run == 0 || std::cmp_greater(run, std::numeric_limits<uint8_t>::max()))
                         {
-                            testvalid = false;
+                            valid = false;
                             break;
                         }
-                        // Mark position for later analysis.
-                        grouping_tmp.push_back(static_cast<uint8_t>(n));
-                        n = 0;
+                        grouping_tmp.push_back(static_cast<uint8_t>(run));
+                        run = 0;
                     }
                     else
                         break;
                 }
-                if (res.empty())
-                    testvalid = false;
+                // An amount with no digits at all is not an amount.
+                if (out.empty())
+                    valid = false;
                 break;
             case part::space:
-                // At least one space is required.
+                // This slot owes at least one fill character.
                 if (beg != end && (*beg == io.fill()))
                 {
                     ++beg;
                     ate_fill = true;
                 }
                 else
-                    testvalid = false;
+                    valid = false;
                 [[fallthrough]];
             case part::none:
-                // Only if not at the end of the pattern.
+                // Either slot then soaks up whatever further fill follows — except in
+                // the last one, where trailing fill belongs to the stream, not to us.
                 if (i != 3)
-                for (; beg != end && (*beg == io.fill()); ++beg) ate_fill = true;
+                    for (; beg != end && (*beg == io.fill()); ++beg)
+                        ate_fill = true;
                 // Reject fill that a reader would have taken for part of the amount:
                 // `is >> setfill('1') >> get_money(v)` on "112" must fail loudly rather
                 // than silently hand back 2. Whether the run leads the digits is read
@@ -1181,48 +1220,57 @@ private:
                     && fill_alters_reading(io.fill(), info,
                                             i < value_idx && beg != end
                                                 && (*beg == m_decimal_point
-                                                    || std::find(lit_zero, lit_zero + 10, *beg)
-                                                           != lit_zero + 10),
+                                                    || std::find(digit_table, digit_table + 10, *beg)
+                                                           != digit_table + 10),
                                             i > value_idx, negative))
                     throw stream_error("monetary get fail: fill would change the value the field reads as");
                 break;
             }
         }
 
-        // Need to get the rest of the sign characters, if they exist.
-        if (sign_size > 1 && testvalid)
+        // A sign spelled with more than one character wraps the field: its first
+        // character came out of the sign slot, and the rest has to trail everything.
+        if (sign_len > 1 && valid)
         {
-            const auto& sign_str = negative ? info.m_negative_sign
-                                            : info.m_positive_sign;
-            int i = 1;
-            for (; beg != end && i < sign_size && *beg == sign_str[i]; ++beg, (void)++i);
-            if (i != sign_size)
-                testvalid = false;
+            const std::basic_string<char_type>& sign_str = negative ? info.m_negative_sign
+                                                                    : info.m_positive_sign;
+            std::size_t                         taken    = 1;
+            while (taken != sign_str.size() && beg != end && *beg == sign_str[taken])
+            {
+                ++beg;
+                ++taken;
+            }
+            if (taken != sign_str.size())
+                valid = false;
         }
 
         bool succ = true;
-        if (testvalid)
+        if (valid)
         {
-            // Strip leading zeros.
-            if (res.size() > 1)
+            // Leading zeros carry no value, but the amount must not be erased along
+            // with them: a field of nothing but zeros still comes back as one digit.
+            if (out.size() > 1)
             {
-                const auto first = res.find_first_not_of('0');
-                const bool only_zeros = first == std::string::npos;
-                if (first)
-                    res.erase(0, only_zeros ? res.size() - 1 : first);
+                const std::size_t keep = out.find_first_not_of('0');
+                if (keep == std::string::npos)
+                    out.erase(0, out.size() - 1);
+                else if (keep != 0)
+                    out.erase(0, keep);
             }
 
-            // 22.2.6.1.2, p4
-            if (negative && !res.empty() && res[0] != '0')
-                res.insert(res.begin(), '-');
+            // [locale.money.get.virtuals]: the deduced sign goes on the result — but
+            // zero has no sign, so a field that read as zero stays unmarked.
+            if (negative && !out.empty() && out[0] != '0')
+                out.insert(out.begin(), '-');
 
-            // Test for grouping fidelity.
+            // Whether the separators fell where m_grouping says they should.
             if (!grouping_tmp.empty())
             {
-                // Add the ending grouping. A final group longer than the
-                // largest representable group size cannot satisfy any spec:
-                // fail rather than truncating.
-                const int last_group = testdecfound ? last_pos : n;
+                // The leading group is the one no separator introduced, so it is
+                // counted here rather than in the loop. A group longer than the
+                // largest representable group size cannot satisfy any spec: fail
+                // rather than truncating.
+                const int last_group = saw_point ? int_run : run;
                 if (std::cmp_greater(last_group, std::numeric_limits<uint8_t>::max()))
                     succ = false;
                 else
@@ -1232,16 +1280,17 @@ private:
                 }
             }
 
-            // Iff not enough digits were supplied after the decimal-point.
-            if (testdecfound && n != info.m_frac_digits)
-                testvalid = false;
+            // A decimal point commits the field to exactly as many fractional places
+            // as the locale declares — no more, and no fewer.
+            if (saw_point && run != info.m_frac_digits)
+                valid = false;
         }
 
-        // Iff valid sequence is not recognized.
-        if (!testvalid)
+        // The result is handed over only for a field that held up all the way through.
+        if (!valid)
             succ = false;
         else
-            units.swap(res);
+            units.swap(out);
 
         return std::pair(succ, beg);
     }

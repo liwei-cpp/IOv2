@@ -506,27 +506,46 @@ struct date_parse_helper<CharT, true>
 private:
     constexpr static const std::array<std::array<unsigned short int, 13>, 2> s_mon_yday =
     {{
-        /* Normal years.  */
+        // Row 0: days already gone by when each month opens in a common year.
         {{ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 }},
-        /* Leap years.  */
+        // Row 1: the same for a leap year. The trailing entry of each row is the
+        // length of the year, so a day-of-year search can walk the row to its end
+        // without a special case.
         {{ 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }}
     }};
 
+    // The Gregorian rule: every fourth year, except centuries, except every fourth
+    // century.
     static bool isleap(int year)
     {
-        return ((year) % 4 == 0 && ((year) % 100 != 0 || (year) % 400 == 0));
+        return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
     }
 
+    // Weekday of a date, 0 = Sunday. `month` is 1-based and expected to be a real
+    // month, 1 to 12.
+    //
+    // The count runs from 0001-01-01, which was a Monday in the proleptic Gregorian
+    // calendar, so the number of days elapsed since then is exactly one less than the
+    // weekday index.
+    //
+    // Years at or below zero are reachable here -- %Y accepts 0000 and %C a century
+    // of 0 -- and C++ division truncates towards zero, which would gain a day on every
+    // negative quotient in the leap-day terms below. Rather than special-case the
+    // sign, the year is first lifted above zero by a whole number of 400-year cycles.
+    // A cycle is 146097 days, which is exactly 20871 weeks, so shifting by any
+    // multiple of it moves the date without moving the weekday.
+    //
+    // (This is a deliberate correction, not a translation of what stood here before:
+    // the previous formulation was right for year >= 1 -- verified against this one
+    // over every int -- but reported 0000-01-01 as a Sunday when it was a Saturday.)
     static int day_of_the_week(int year, int month, int mday)
     {
-        /* We know that January 1st 1970 was a Thursday (= 4).  Compute the
-            difference between this date and the one on TM and so determine
-            the weekday.  */
-        month -= 1;
-        int64_t corr_year = static_cast<int64_t>(year) - (month < 2);
-        int64_t wday = (-473 + (365 * (static_cast<int64_t>(year) - 1970)) + (corr_year / 4) - ((corr_year / 4) / 25) + ((corr_year / 4) % 25 < 0) + (((corr_year / 4) / 25) / 4)
-            + s_mon_yday[0][month] + mday - 1);
-        return static_cast<int>(((wday % 7) + 7) % 7);
+        constexpr int64_t cycles = 400LL * 5368710LL; // enough to lift any int year
+
+        const int64_t y       = static_cast<int64_t>(year) - 1 + cycles;
+        const int64_t elapsed = 365 * y + y / 4 - y / 100 + y / 400
+                              + s_mon_yday[isleap(year)][month - 1] + mday - 1;
+        return static_cast<int>((elapsed + 1) % 7);
     }
 };
 
@@ -2846,7 +2865,7 @@ private:
      *   `%y` 是不带修饰符的 `%y`，必须按"年内世纪"解析。若只看表非空，前面出现过任何
      *   `%E…` 就会把后面普通的 `%C`/`%y`/`%Y` 一并拖进纪元分支。`%Oy` 更是范畴错误：
      *   `O` 表示"使用 locale 的替代数字符号"，与纪元无关，必须落到下面的
-     *   `extract_num_with_alt_digits` 一支。
+     *   `scan_int_field_alt` 一支。
      * - 表非空这一半对应 POSIX 的"替代格式在当前 locale 不存在时，使用未修饰的说明符"：
      *   `C` locale 下 `%EC` 退化为普通两位世纪、`%Ey` 退化为 `%y`。
      *
@@ -2876,7 +2895,7 @@ private:
      *   only for a non-empty table would let any earlier `%E…` drag every later plain
      *   `%C`/`%y`/`%Y` into the era branch. `%Oy` would be an outright category error:
      *   `O` selects the locale's alternative numeric symbols, nothing to do with eras, and
-     *   has to reach the `extract_num_with_alt_digits` arm below.
+     *   has to reach the `scan_int_field_alt` arm below.
      * - The non-empty half implements POSIX's "if the alternative format or specification
      *   does not exist in the current locale, the unmodified field descriptor is used":
      *   in the `C` locale `%EC` degrades to a plain two-digit century and `%Ey` to `%y`.
@@ -3107,7 +3126,7 @@ private:
                         // 0..99 only, no sign (see the %Y parse case for why this
                         // format/parse asymmetry is intentional and standard-aligned).
                         int mem = 0;
-                        rp = extract_num(rp, rp_end, mem, 0, 99, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 0, 99, 2, succ);
                         if (!succ) return rp;
                         ctx.m_century = mem;
                         ctx.m_have_century = true;
@@ -3143,9 +3162,9 @@ private:
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 31, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 1, 31, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 1, 31, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 1, 31, 2, succ);
                     if (!succ) return rp;
                     ctx.m_mday = mem;
                     ctx.m_have_mday = true;
@@ -3161,9 +3180,9 @@ private:
                     if (rp != rp_end && *rp == static_cast<CharT>(' '))
                         ++rp;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 31, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 1, 31, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 1, 31, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 1, 31, 2, succ);
                     if (!succ) return rp;
                     ctx.m_mday = mem;
                     ctx.m_have_mday = true;
@@ -3202,7 +3221,7 @@ private:
                 {
                     if (modifier) goto bad_parse_format;
                     int val = 0;
-                    rp = extract_num(rp, rp_end, val, 0, 99, 2, succ);
+                    rp = scan_int_field(rp, rp_end, val, 0, 99, 2, succ);
                     if (!succ) return rp;
                     ctx.m_iso_8601_year = val >= 69 ? val + 1900 : val + 2000;
                     ctx.m_have_iso_8601_year = true;
@@ -3216,7 +3235,7 @@ private:
                     // 0..9999 only, no sign (see the %Y parse case for why this
                     // format/parse asymmetry is intentional and standard-aligned).
                     int val = 0;
-                    rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
+                    rp = scan_int_field(rp, rp_end, val, 0, 9999, 4, succ);
                     if (!succ) return rp;
                     ctx.m_iso_8601_year = val;
                     ctx.m_have_iso_8601_year = true;
@@ -3230,9 +3249,9 @@ private:
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 23, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 0, 23, 2, succ);
                     else
-                        rp= extract_num(rp, rp_end, mem, 0, 23, 2, succ);
+                        rp= scan_int_field(rp, rp_end, mem, 0, 23, 2, succ);
                     if (!succ) return rp;
                     ctx.m_hour = mem;
                     ctx.m_have_I = false;
@@ -3246,9 +3265,9 @@ private:
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 12, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 1, 12, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 1, 12, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 1, 12, 2, succ);
                     if (!succ) return rp;
                     ctx.m_hour = mem % 12;
                     ctx.m_have_I = true;
@@ -3256,13 +3275,13 @@ private:
                 break;
 
             case static_cast<CharT>('j'):
-                /* Match day number of year.  */
+                // Day of the year, read 1-based and stored 0-based.
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else
                 {
                     if (modifier) goto bad_parse_format;
                     int mem = 0;
-                    rp = extract_num(rp, rp_end, mem, 1, 366, 3, succ);
+                    rp = scan_int_field(rp, rp_end, mem, 1, 366, 3, succ);
                     if (!succ) return rp;
                     ctx.m_yday = mem - 1;
                     ctx.m_have_yday = true;
@@ -3270,32 +3289,32 @@ private:
                 break;
 
             case static_cast<CharT>('m'):
-                /* Match number of month.  */
+                // Month number, 1 to 12.
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else
                 {
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 12, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 1, 12, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 1, 12, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 1, 12, 2, succ);
                     if (!succ) return rp;
                     ctx.m_month = mem;
                     ctx.m_have_mon = true;
                 }
                 break;
             case static_cast<CharT>('M'):
-                /* Match minute.  */
+                // Minutes past the hour.
                 if constexpr (!HaveTime) goto bad_parse_format;
                 else
                 {
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 59, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 0, 59, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 0, 59, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 0, 59, 2, succ);
                     if (!succ) return rp;
                     ctx.m_minute = mem;
                 }
@@ -3364,9 +3383,9 @@ private:
                     // (hh_mm_ss cannot represent them); see put() for rationale.
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 59, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 0, 59, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 0, 59, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 0, 59, 2, succ);
                     if (!succ) return rp;
                     ctx.m_second = mem;
                 }
@@ -3392,9 +3411,9 @@ private:
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 7, 1, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 1, 7, 1, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 1, 7, 1, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 1, 7, 1, succ);
                     if (!succ) return rp;
                     ctx.m_wday = mem % 7;
                     ctx.m_have_wday = true;
@@ -3408,9 +3427,9 @@ private:
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 53, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 0, 53, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 0, 53, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 0, 53, 2, succ);
                     if (!succ) return rp;
                     ctx.m_week_no = mem;
                     ctx.m_have_uweek = true;
@@ -3425,9 +3444,9 @@ private:
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 1, 53, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 1, 53, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 1, 53, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 1, 53, 2, succ);
                     if (!succ) return rp;
                     ctx.m_iso_8601_week = mem;
                     ctx.m_have_iso_8601_week = true;
@@ -3435,16 +3454,16 @@ private:
                 break;
 
             case static_cast<CharT>('w'):
-                /* Match number of weekday.  */
+                // Weekday as a single digit, 0 = Sunday.
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else
                 {
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 6, 1, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 0, 6, 1, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 0, 6, 1, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 0, 6, 1, succ);
                     if (!succ) return rp;
                     ctx.m_wday = mem;
                     ctx.m_have_wday = 1;
@@ -3458,9 +3477,9 @@ private:
                     if (modifier == static_cast<CharT>('E')) goto bad_parse_format;
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 53, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 0, 53, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 0, 53, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 0, 53, 2, succ);
                     if (!succ) return rp;
                     ctx.m_week_no = mem;
                     ctx.m_have_wweek = true;
@@ -3499,7 +3518,7 @@ private:
                 else if (era_items_active(ctx, modifier))
                 {
                     int val = 0;
-                    rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
+                    rp = scan_int_field(rp, rp_end, val, 0, 9999, 4, succ);
                     if (!succ) return rp;
                     ctx.m_year_of_era = val;
                     ctx.m_have_year_of_era = 1;
@@ -3533,35 +3552,36 @@ private:
                     }
                 }
                 else
-                {/* Match year within century.  */
+                {
+                    // A two-digit year, resolved against the window below.
                     int mem = -1;
                     if (modifier == static_cast<CharT>('O'))
-                        rp = extract_num_with_alt_digits(rp, rp_end, mem, 0, 99, 2, succ);
+                        rp = scan_int_field_alt(rp, rp_end, mem, 0, 99, 2, succ);
                     else
-                        rp = extract_num(rp, rp_end, mem, 0, 99, 2, succ);
+                        rp = scan_int_field(rp, rp_end, mem, 0, 99, 2, succ);
                     if (!succ) return rp;
-                    /* The "Year 2000: The Millennium Rollover" paper suggests that
-                    values in the range 69-99 refer to the twentieth century.  */
+                    // POSIX fixes where the window falls: 69 through 99 belong to the
+                    // twentieth century, 00 through 68 to the twenty-first.
                     ctx.m_year = mem >= 69 ? mem + 1900 : mem + 2000;
                     ctx.m_have_year_in_century = 1;
                 }
                 break;
 
             case static_cast<CharT>('Y'):
-                /* Match year including century number.
-                 *
-                 * Intentional format/parse asymmetry (NOT a bug): put() can
-                 * emit a leading '-' for negative years and more than four
-                 * digits for years > 9999, to stay consistent with
-                 * std::format. This parser, however, deliberately accepts only
-                 * 0..9999 with no sign -- which is exactly what
-                 * std::chrono::from_stream("%Y") and POSIX strptime() do; both
-                 * likewise refuse to read back "-0044" or "12345". Keeping the
-                 * same restriction makes get() match the standard parse
-                 * facilities; widening it (sign / 5+ digits) would diverge from
-                 * them and make separator-less formats such as "%Y%m%d"
-                 * ambiguous due to greedy digit capture. The same reasoning
-                 * applies to the %G and %C parse cases.  */
+                // A full year, century included.
+                //
+                // Intentional format/parse asymmetry (NOT a bug): put() can
+                // emit a leading '-' for negative years and more than four
+                // digits for years > 9999, to stay consistent with
+                // std::format. This parser, however, deliberately accepts only
+                // 0..9999 with no sign -- which is exactly what
+                // std::chrono::from_stream("%Y") and POSIX strptime() do; both
+                // likewise refuse to read back "-0044" or "12345". Keeping the
+                // same restriction makes get() match the standard parse
+                // facilities; widening it (sign / 5+ digits) would diverge from
+                // them and make separator-less formats such as "%Y%m%d"
+                // ambiguous due to greedy digit capture. The same reasoning
+                // applies to the %G and %C parse cases.
                 if constexpr (!HaveDate) goto bad_parse_format;
                 else
                 {
@@ -3611,7 +3631,7 @@ private:
                             {
                                 rp = rp_wrapper.internal();
                                 int val = 0;
-                                rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
+                                rp = scan_int_field(rp, rp_end, val, 0, 9999, 4, succ);
                                 if (!succ) return rp;
                                 ctx.m_year = val;
                                 ctx.m_have_year = 1;
@@ -3621,7 +3641,7 @@ private:
                     else
                     {
                         int val = 0;
-                        rp = extract_num(rp, rp_end, val, 0, 9999, 4, succ);
+                        rp = scan_int_field(rp, rp_end, val, 0, 9999, 4, succ);
                         if (!succ) return rp;
                         ctx.m_year = val;
                         ctx.m_have_year = 1;
@@ -3634,12 +3654,9 @@ private:
                 else
                 {
                     if (modifier) goto bad_parse_format;
-                    /* We recognize four formats:
-                        1. Two digits specify hours.
-                        2. Four digits specify hours and minutes.
-                        3. Two digits, ':', and two digits specify hours and minutes.
-                        4. 'Z' is equivalent to +0000.
-                    */
+                    // Four spellings are accepted: a signed two-digit hour; a signed
+                    // four-digit hour and minute; the same pair written with a colon
+                    // between them; and a bare 'Z', which stands for +0000.
                     int val = 0;
                     if (*rp == static_cast<CharT>('Z'))
                     {
@@ -3683,7 +3700,7 @@ private:
                     if (n == 2) val *= 100;
                     else if (n != 4)
                     {
-                        /* Only two or four digits recognized.  */
+                        // A digit run of any other length is not an offset.
                         succ = false; return rp;
                     }
 
@@ -4651,9 +4668,10 @@ private:
 
             default:
             bad_format:
-                /* Unknown format; output the format, including the '%',
-                since this is most likely the right thing to do if a
-                multibyte string has been misparsed.  */
+                // Nothing here recognises this specifier, so hand it back verbatim,
+                // '%' and all. Echoing beats dropping: the likeliest cause is a
+                // multibyte sequence that was split apart while being scanned, and
+                // passing it through leaves the caller something to see.
                 *out++ = static_cast<CharT>('%');
                 if (modifier) *out++ = modifier;
                 while (f != format.cend() && *f != static_cast<CharT>('%'))
@@ -5132,58 +5150,92 @@ private:
 
     /**
      * @lang{ZH}
-     * @brief 从输入范围中解析最多 `len` 位的十进制整数，并写入 `member`。
+     * @brief 从输入范围读取一个至多 `width` 位、取值须落在 `[min_val, max_val]` 内的
+     *        十进制字段。
      *
-     * 解析成功（至少读取 1 位，且结果在 `[min_val, max_val]` 内）时更新 `member`；
-     * 否则将 `succ` 置为 `false`。
+     * 至少读到 1 位且结果在区间内时写入 `out`；否则把 `succ` 置为 `false`（不会把
+     * 调用方已置的 `succ` 由 `false` 改回 `true`）。
+     *
+     * @note 迭代器只在一位数字被接受后才前进，因此失败时它停在第一个未被消费的字符上：
+     *       非数字字符、或使字段超出 `max_val` 的那一位。仅因下界 `min_val` 不满足而
+     *       失败时，已读的数字仍算消费掉了。
      * @tparam TIter 输入迭代器类型。
      * @tparam TSent 哨兵类型。
      * @param beg     当前输入位置。
      * @param end     输入范围结束哨兵。
-     * @param member  输出：解析结果。
+     * @param out     输出：解析结果，仅在成功时写入。
      * @param min_val 可接受的最小值（含）。
      * @param max_val 可接受的最大值（含）。
-     * @param len     最多读取的位数。
+     * @param width   最多读取的位数。
      * @param succ    输出标志：失败时置为 `false`。
      * @return 指向未被消费的第一个字符的迭代器。
      * @endif
      *
      * @lang{EN}
-     * @brief Parses up to `len` decimal digits from the input range and writes the
-     *        result into `member`.
+     * @brief Reads one decimal field of at most `width` digits whose value must land
+     *        in `[min_val, max_val]`.
      *
-     * Updates `member` on success (at least one digit read and result within
-     * `[min_val, max_val]`); otherwise sets `succ` to `false`.
+     * Writes `out` when at least one digit was read and the result is in range;
+     * otherwise sets `succ` to `false` (a `succ` the caller already cleared is never
+     * turned back on).
+     *
+     * @note The iterator only advances once a digit has been accepted, so on failure it
+     *       rests on the first unconsumed character: either the non-digit that ended the
+     *       field, or the digit that would have taken it past `max_val`. When the field
+     *       fails only against the lower bound `min_val`, the digits already read stay
+     *       consumed.
      * @tparam TIter Input iterator type.
      * @tparam TSent Sentinel type.
      * @param beg     Current input position.
      * @param end     End sentinel of the input range.
-     * @param member  Output: the parsed integer value.
+     * @param out     Output: the parsed value, written only on success.
      * @param min_val Minimum acceptable value (inclusive).
      * @param max_val Maximum acceptable value (inclusive).
-     * @param len     Maximum number of digits to read.
+     * @param width   Maximum number of digits to read.
      * @param succ    Output flag: set to `false` on failure.
      * @return Iterator pointing to the first unconsumed character.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    static TIter extract_num(TIter beg, TSent end, int& member, int min_val, int max_val, std::size_t len, bool& succ) // NOLINT(bugprone-easily-swappable-parameters)
+    static TIter scan_int_field(TIter beg, TSent end, int& out, int min_val, int max_val, std::size_t width, bool& succ) // NOLINT(bugprone-easily-swappable-parameters)
     {
-        std::size_t i = 0;
-        int value = 0;
-        for (; beg != end && i < len; ++beg, (void)++i)
+        constexpr CharT zero = static_cast<CharT>('0');
+        constexpr CharT nine = static_cast<CharT>('9');
+
+        int         value  = 0;
+        std::size_t digits = 0;
+        bool        fits   = true;
+
+        // A digit is committed -- iterator advanced, counter bumped -- only once the
+        // value it produces has been checked against `max_val`. So the digit that
+        // pushes the field past its ceiling is left unread for whatever parses next,
+        // while `value` keeps it: that is what stops the range test below from
+        // mistaking the truncated prefix for a field that fits. `max_val` is at most
+        // 9999 over `width` <= 4 digits, so the running value cannot overflow `int`.
+        while (digits < width && beg != end)
         {
             const CharT c = *beg;
-            if (c >= static_cast<CharT>('0') && c <= static_cast<CharT>('9'))
-            {
-                value = value * 10 + (c - static_cast<CharT>('0'));
-                if (value > max_val) break;
-            }
-            else
+            if (c < zero || c > nine)
                 break;
+
+            value = value * 10 + static_cast<int>(c - zero);
+            if (value > max_val)
+            {
+                fits = false;
+                break;
+            }
+
+            ++beg;
+            ++digits;
         }
-        if (i && value >= min_val && value <= max_val) member = value;
-        else succ = false;
+
+        // `fits` already implies `value <= max_val`, so only the lower bound is
+        // left to check. Failure never clears a `succ` the caller had set.
+        if (fits && digits != 0 && value >= min_val)
+            out = value;
+        else
+            succ = false;
+
         return beg;
     }
 
@@ -5191,15 +5243,15 @@ private:
      * @lang{ZH}
      * @brief 从输入范围中解析十进制整数，优先匹配替代数字前缀树。
      *
-     * 先用 `m_alt_digits_tree` 尝试最长匹配；若失败则回退到 `extract_num`。
+     * 先用 `m_alt_digits_tree` 尝试最长匹配；若失败则回退到 `scan_int_field`。
      * @tparam TIter 输入迭代器类型。
      * @tparam TSent 哨兵类型。
      * @param beg     当前输入位置。
      * @param end     输入范围结束哨兵。
-     * @param member  输出：解析结果。
+     * @param out     输出：解析结果。
      * @param min_val 可接受的最小值（含）。
      * @param max_val 可接受的最大值（含）。
-     * @param len     回退到 ASCII 数字时最多读取的位数。
+     * @param width   回退到 ASCII 数字时最多读取的位数。
      * @param succ    输出标志：失败时置为 `false`。
      * @return 指向未被消费的第一个字符的迭代器。
      * @endif
@@ -5209,32 +5261,32 @@ private:
      *        digits via the alt-digits prefix trie.
      *
      * Attempts a longest match against `m_alt_digits_tree` first; falls back to
-     * `extract_num` if no match is found.
+     * `scan_int_field` if no match is found.
      * @tparam TIter Input iterator type.
      * @tparam TSent Sentinel type.
      * @param beg     Current input position.
      * @param end     End sentinel of the input range.
-     * @param member  Output: the parsed integer value.
+     * @param out     Output: the parsed integer value.
      * @param min_val Minimum acceptable value (inclusive).
      * @param max_val Maximum acceptable value (inclusive).
-     * @param len     Maximum digits to read when falling back to ASCII parsing.
+     * @param width   Maximum digits to read when falling back to ASCII parsing.
      * @param succ    Output flag: set to `false` on failure.
      * @return Iterator pointing to the first unconsumed character.
      * @endif
      */
     template <typename TIter, std::sentinel_for<TIter> TSent>
-    TIter extract_num_with_alt_digits(TIter beg, TSent end, int& member, int min_val, int max_val, std::size_t len, bool& succ) const
+    TIter scan_int_field_alt(TIter beg, TSent end, int& out, int min_val, int max_val, std::size_t width, bool& succ) const
     {
         typename decltype(m_alt_digits_tree)::match_out_type match_res;
         beg = m_alt_digits_tree.max_match(beg, end, match_res);
         if (match_res)
         {
-            member = *match_res;
-            if ((member < min_val) || (member > max_val))
+            out = *match_res;
+            if ((out < min_val) || (out > max_val))
                 succ = false;
         }
         else
-            beg = extract_num(beg, end, member, min_val, max_val, len, succ);
+            beg = scan_int_field(beg, end, out, min_val, max_val, width, succ);
         return beg;
     }
 

@@ -159,10 +159,14 @@ protected:
      * 依据 `pattern_spec` 中的三个标志（符号位置、空格、符号字符串位置）
      * 组合出满足 `moneypunct` 约束的四元素 pattern。
      * 基本不变量：
-     * - 若 `precedes`，则输出顺序中 `symbol` 在 `value` 之前；否则相反。
-     * - 若 `sep_by_space`，则在 `symbol` 与 `value` 之间插入 `space`；否则插入 `none`。
-     * - `none` 不能作为第一个元素；`space` 不能作为第一个或最后一个元素。
-     * - `sign_posn` 超出范围（默认分支）时回退到 `s_default_pattern`。
+     * - 需要排布的是两样东西：金额，以及货币符号；`sign_posn` 为 3 或 4 时符号字符串
+     *   紧贴货币符号之前或之后，随之一同移动，其余取值则由符号字符串包住整个字段
+     *   （0、1 在最前，2 在最后）。
+     * - 若 `precedes`，则货币符号（连同贴着它的符号字符串）在 `value` 之前；否则相反。
+     * - 若 `sep_by_space`，则 `space` 落在货币符号与金额的接缝处——这也是 `space`
+     *   唯一允许出现的位置（既不能是第一个，也不能是最后一个元素）。
+     * - 没有 `space` 时字段少一格，由 `none` 补在末尾，这也是 `none` 唯一允许的位置。
+     * - `sign_posn` 超出 0–4 时回退到 `s_default_pattern`。
      *
      * @param spec 包含 `precedes`、`sep_by_space` 和 `sign_posn` 的规格结构体。
      * @return 构造出的四元素 `pattern`。
@@ -174,11 +178,18 @@ protected:
      * Combines the three flags in `pattern_spec` (symbol position, space,
      * sign-string position) into a four-element `pattern` that satisfies
      * `moneypunct` constraints. Key invariants:
-     * - If `precedes`, `symbol` comes before `value` in the output; otherwise reversed.
-     * - If `sep_by_space`, a `space` is inserted between `symbol` and `value`;
-     *   otherwise `none` is used.
-     * - `none` is never the first element; `space` is never first or last.
-     * - An out-of-range `sign_posn` (default branch) falls back to `s_default_pattern`.
+     * - Two things are laid out: the amount and the currency symbol. For `sign_posn`
+     *   3 and 4 the sign string is glued to the symbol's front or back and travels
+     *   with it; for the other values it brackets the whole field instead (in front
+     *   for 0 and 1, behind for 2).
+     * - If `precedes`, the symbol (with any sign glued to it) comes before `value`;
+     *   otherwise reversed.
+     * - If `sep_by_space`, the `space` sits on the seam between symbol and amount,
+     *   which is the only position it is allowed to hold, since it can be neither
+     *   the opening nor the closing element.
+     * - Without a space the field is one slot short; `none` fills the tail, which is
+     *   the only position it is allowed to hold.
+     * - A `sign_posn` outside 0–4 falls back to `s_default_pattern`.
      *
      * @param spec A spec struct containing `precedes`, `sep_by_space`, and `sign_posn`.
      * @return The constructed four-element `pattern`.
@@ -188,162 +199,59 @@ protected:
     {
         using enum part;
         const auto [precedes, sp, posn] = spec;
-        pattern ret;
 
-        // This insanely complicated routine attempts to construct a valid
-        // pattern for use with moneypunct. A couple of invariants:
+        // sign_posn is the only field with a range to fall outside of; POSIX fills it
+        // with CHAR_MAX when the locale has nothing to say, and there is nothing to
+        // build a layout from.
+        if (posn < 0 || posn > 4)
+            return s_default_pattern;
 
-        // if (precedes) symbol -> value
-        // else value -> symbol
+        // Two things get laid out: the amount, and the currency symbol -- which for
+        // sign_posn 3 and 4 has the sign glued to its front or its back, and so
+        // travels with it. Whichever of the two goes first is what `precedes` says.
+        std::array<part, 2> group{};
+        std::size_t         group_len = 0;
+        if (posn == 3)
+            group[group_len++] = sign;
+        group[group_len++] = symbol;
+        if (posn == 4)
+            group[group_len++] = sign;
 
-        // if (sp) space
-        // else none
+        pattern     ret{};
+        std::size_t at = 0;
 
-        // none == never first
-        // space never first or last
-        switch (posn)
+        // A sign that was not glued to the symbol brackets the whole field instead:
+        // in front for sign_posn 0 and 1, behind for 2.
+        if (posn <= 1)
+            ret[at++] = sign;
+
+        // The separator lives on the seam between the symbol and the amount, which is
+        // the one place a space is allowed to be: it can open no field and close none.
+        if (precedes)
         {
-        case 0:
-        case 1:
-            // 1 The sign precedes the value and symbol.
-            ret[0] = sign;
+            for (std::size_t k = 0; k < group_len; ++k)
+                ret[at++] = group[k];
             if (sp)
-            {
-                // Pattern starts with sign.
-                if (precedes)
-                {
-                    ret[1] = symbol;
-                    ret[3] = value;
-                }
-                else
-                {
-                    ret[1] = value;
-                    ret[3] = symbol;
-                }
-                ret[2] = space;
-            }
-            else
-            {
-                // Pattern starts with sign and ends with none.
-                if (precedes)
-                {
-                    ret[1] = symbol;
-                    ret[2] = value;
-                }
-                else
-                {
-                    ret[1] = value;
-                    ret[2] = symbol;
-                }
-                ret[3] = none;
-            }
-            break;
-        case 2:
-            // 2 The sign follows the value and symbol.
-            if (sp)
-            {
-                // Pattern either ends with sign.
-                if (precedes)
-                {
-                    ret[0] = symbol;
-                    ret[2] = value;
-                }
-                else
-                {
-                    ret[0] = value;
-                    ret[2] = symbol;
-                }
-                ret[1] = space;
-                ret[3] = sign;
-            }
-            else
-            {
-                // Pattern ends with sign then none.
-                if (precedes)
-                {
-                    ret[0] = symbol;
-                    ret[1] = value;
-                }
-                else
-                {
-                    ret[0] = value;
-                    ret[1] = symbol;
-                }
-                ret[2] = sign;
-                ret[3] = none;
-            }
-            break;
-        case 3:
-            // 3 The sign immediately precedes the symbol.
-            if (precedes)
-            {
-                ret[0] = sign;
-                ret[1] = symbol;
-                if (sp)
-                {
-                    ret[2] = space;
-                    ret[3] = value;
-                }
-                else
-                {
-                    ret[2] = value;
-                    ret[3] = none;
-                }
-            }
-            else
-            {
-                ret[0] = value;
-                if (sp)
-                {
-                    ret[1] = space;
-                    ret[2] = sign;
-                    ret[3] = symbol;
-                }
-                else
-                {
-                    ret[1] = sign;
-                    ret[2] = symbol;
-                    ret[3] = none;
-                }
-            }
-            break;
-        case 4:
-            // 4 The sign immediately follows the symbol.
-            if (precedes)
-            {
-                ret[0] = symbol;
-                ret[1] = sign;
-                if (sp)
-                {
-                    ret[2] = space;
-                    ret[3] = value;
-                }
-                else
-                {
-                    ret[2] = value;
-                    ret[3] = none;
-                }
-            }
-            else
-            {
-                ret[0] = value;
-                if (sp)
-                {
-                    ret[1] = space;
-                    ret[2] = symbol;
-                    ret[3] = sign;
-                }
-                else
-                {
-                    ret[1] = symbol;
-                    ret[2] = sign;
-                    ret[3] = none;
-                }
-            }
-            break;
-        default:
-            ret = s_default_pattern;
+                ret[at++] = space;
+            ret[at++] = value;
         }
+        else
+        {
+            ret[at++] = value;
+            if (sp)
+                ret[at++] = space;
+            for (std::size_t k = 0; k < group_len; ++k)
+                ret[at++] = group[k];
+        }
+
+        if (posn == 2)
+            ret[at++] = sign;
+
+        // Without a space the field is one slot short. `none` takes up the slack, and
+        // being last is the one position it is allowed to hold.
+        if (at < ret.size())
+            ret[at++] = none;
+
         return ret;
     }
 
@@ -356,8 +264,9 @@ protected:
      * 原始的 `CHAR_MAX` 将错误地被解读为真值（即"符号在前"或"有空格"）；
      * 此函数将哨兵值映射为 0（保守默认值），与 `frac_digits` 的处理方式一致。
      * 必须在任何窄化转换之前执行此检查，因此调用者应传入原始的 `char` 类型 `lconv`
-     * 字段，而非已窄化后的参数。（`*_sign_posn` 不需要此辅助函数：其 `CHAR_MAX`
-     * 已由 switch 的默认分支导向 `s_default_pattern`。）
+     * 字段，而非已窄化后的参数。（`*_sign_posn` 不需要此辅助函数：它有自己的取值范围，
+     * `CHAR_MAX` 落在 0–4 之外，已被 `s_construct_pattern` 的范围检查导向
+     * `s_default_pattern`。）
      *
      * @param v 原始的 `char` 类型 `lconv` 标志字段。
      * @return 规范化后的值：若 `v == CHAR_MAX` 则返回 `0`，否则返回 `static_cast<int8_t>(v)`。
@@ -374,8 +283,9 @@ protected:
      * maps the sentinel to 0 — the conservative default — mirroring the
      * `frac_digits` handling. The test must happen before any narrowing, so
      * callers pass the raw `char` `lconv` field here rather than the narrowed
-     * argument. (`*_sign_posn` needs no such helper: its `CHAR_MAX` is already
-     * funnelled to `s_default_pattern` by the switch's default branch.)
+     * argument. (`*_sign_posn` needs no such helper: it has a range of its own, and
+     * `CHAR_MAX` falls outside 0–4, so `s_construct_pattern`'s range check already
+     * funnels it to `s_default_pattern`.)
      *
      * @param v The raw `char` `lconv` flag field.
      * @return The normalized value: `0` if `v == CHAR_MAX`, otherwise `static_cast<int8_t>(v)`.
@@ -695,7 +605,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const pattern& pos_format_int() const { return m_pos_format_int; }
@@ -708,7 +619,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const pattern& pos_format_nat() const { return m_pos_format_nat; }
@@ -721,7 +633,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const pattern& neg_format_int() const { return m_neg_format_int; }
@@ -734,7 +647,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const pattern& neg_format_nat() const { return m_neg_format_nat; }
@@ -1145,7 +1059,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_int() const { return m_pos_format_int; }
@@ -1158,7 +1073,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_nat() const { return m_pos_format_nat; }
@@ -1171,7 +1087,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_int() const { return m_neg_format_int; }
@@ -1184,7 +1101,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_nat() const { return m_neg_format_nat; }
@@ -1588,7 +1506,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_int() const { return m_pos_format_int; }
@@ -1601,7 +1520,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the positive format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& pos_format_nat() const { return m_pos_format_nat; }
@@ -1614,7 +1534,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the international format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_int() const { return m_neg_format_int; }
@@ -1627,7 +1548,8 @@ public:
      *
      * @lang{EN}
      * @brief Returns the negative format pattern for the national format.
-     * @return A `pattern` describing the ordering of symbol, sign string, and value.
+     * @return The four-slot `pattern` giving the order the currency symbol, the sign
+     *         string, the amount and the separating space are laid out in.
      * @endif
      */
     [[nodiscard]] virtual const base_ft<monetary>::pattern& neg_format_nat() const { return m_neg_format_nat; }
