@@ -113,13 +113,6 @@
       "output": { "outputOnFailure": true },
       "filter": { "include": { "label": "concur" } },
       "execution": { "repeat": { "mode": "until-fail", "count": 10 } }
-    },
-    {
-      "name": "gcc-valgrind",
-      "configurePreset": "gcc-release",
-      "description": "Valgrind options come from MEMORYCHECK_COMMAND_OPTIONS in the top-level CMakeLists; run this preset with -T memcheck.",
-      "output": { "outputOnFailure": true },
-      "filter": { "include": { "label": "all" } }
     }
   ]
 }
