@@ -174,7 +174,12 @@ test: all
 
 # Run all tests with valgrind
 valgrind: all
-	@for t in $(TARGETS); do echo "Running $$t with valgrind..."; valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $$t || { echo "[!] Test $$t failed!"; exit 1; }; done
+	@for t in $(TARGETS); do \
+	  echo "Running $$t with valgrind..."; \
+	  case "$$t" in *test_concur) opts=--fair-sched=yes;; *) opts=;; esac; \
+	  valgrind --error-exitcode=1 --leak-check=full --max-stackframe=6000000 $$opts $$t \
+	    || { echo "[!] Test $$t failed!"; exit 1; }; \
+	done
 
 # Clean up
 clean:

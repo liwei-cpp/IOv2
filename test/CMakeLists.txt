@@ -81,13 +81,28 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   # still selects everything test_io used to run.
   string(REGEX REPLACE "/.*" "" suite_module "${suite_dir}")
   set(suite_labels "all;${suite_module}")
+  set(suite_environment "")
   if(suite_module STREQUAL "concur")
     list(APPEND suite_labels "thread")
+    # Valgrind runs one thread at a time and by default hands the turn over only
+    # every ~100k basic blocks, so a thread spinning on another one burns whole
+    # quanta doing nothing. This is the only suite with threads to starve, and
+    # measurably so: in one CI run it took 42s under gcc and 862s under clang
+    # against a 0.16s uninstrumented run, where every other suite lands near 30x.
+    #
+    # VALGRIND_OPTS is the per-test hook. MEMORYCHECK_COMMAND_OPTIONS applies to
+    # the whole run, but valgrind reads this variable itself, and CTest can set it
+    # on one test.
+    set(suite_environment "VALGRIND_OPTS=--fair-sched=yes")
   endif()
 
   set_tests_properties(${IOV2_SUITE_NAME} PROPERTIES
       LABELS "${suite_labels}"
       WORKING_DIRECTORY "${suite_work_dir}")
+  if(suite_environment)
+    set_tests_properties(${IOV2_SUITE_NAME} PROPERTIES
+        ENVIRONMENT "${suite_environment}")
+  endif()
 endforeach()
 
 # Two ways for the split to lose tests silently, both of which leave the suites
