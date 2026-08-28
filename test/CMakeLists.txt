@@ -1,10 +1,10 @@
 # The test suite: 189 sources, 57 per-feature suites, 57 CTest tests.
 #
-# test/Makefile links everything into seven executables, one per top-level
-# directory, each driven by a hand-written main() that calls its tests in a fixed
-# order. That is too coarse to work with: a single failure means re-running
-# hundreds of unrelated tests, and there is no way to ask for just the monetary
-# facet or just ostream::seek.
+# test/Makefile linked everything into seven executables, one per top-level
+# directory, each driven by a hand-written main() that called its tests in a
+# fixed order. That was too coarse to work with: a single failure meant
+# re-running hundreds of unrelated tests, and there was no way to ask for just
+# the monetary facet or just ostream::seek.
 #
 # The suites here are those same tests, regrouped by the directory that holds
 # them and given a generated main(). Which functions each one calls, and in what
