@@ -75,6 +75,12 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
     - name: Run tests (Release)
       run: |
         cd test
@@ -147,6 +153,12 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
     - name: Run concurrency tests under ThreadSanitizer
       run: |
         # Only the concur module is built here. It collects every test that actually
@@ -174,6 +186,12 @@ jobs:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
     steps:
     - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
     - name: Generate Coverage Report
       run: |
@@ -203,6 +221,12 @@ jobs:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
     steps:
     - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
     - name: Build the shared library
       run: make shared
@@ -269,6 +293,12 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
     - name: Run clang-tidy
       run: |
         # Use default clang-tidy from the image (which will be a recent version)
@@ -313,13 +343,19 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
     - name: Configure and build (Release)
       run: |
         cmake --preset ${{ matrix.compiler }}-release
         cmake --build --preset ${{ matrix.compiler }}-release --parallel $(nproc)
 
     - name: Run tests (Release)
-      run: ctest --preset ${{ matrix.compiler }}-release
+      run: ctest --preset ${{ matrix.compiler }}-release --parallel $(nproc)
 
     - name: Run tests (Release) across locales
       run: |
@@ -329,7 +365,7 @@ jobs:
             echo "[!] locale $loc is not available in this image"; exit 1
           fi
           echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
-          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-release \
+          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-release --parallel $(nproc) \
             || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
         done
 
@@ -339,7 +375,7 @@ jobs:
         cmake --build --preset ${{ matrix.compiler }}-sanitizer --parallel $(nproc)
 
     - name: Run tests (Sanitizers)
-      run: ctest --preset ${{ matrix.compiler }}-sanitizer
+      run: ctest --preset ${{ matrix.compiler }}-sanitizer --parallel $(nproc)
       env:
         ASAN_OPTIONS: halt_on_error=1
         UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
@@ -351,7 +387,7 @@ jobs:
             echo "[!] locale $loc is not available in this image"; exit 1
           fi
           echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
-          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-sanitizer \
+          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-sanitizer --parallel $(nproc) \
             || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
         done
       env:
@@ -375,7 +411,7 @@ jobs:
         # reported "Defects: 3" and exited 16. The exit code is the guard; no
         # file under Testing/Temporary carries the defect count to grep for.
         ctest --test-dir build/${{ matrix.compiler }}-release -T memcheck \
-              --output-on-failure -L all
+              --output-on-failure -L all --parallel $(nproc)
 
   cmake-shadow-tsan:
     runs-on: ubuntu-latest
@@ -384,10 +420,22 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
     - name: Run concurrency tests under ThreadSanitizer
       run: |
         # The build preset limits this to test_concur, and the test preset repeats
         # it ten times -- matching the Makefile job above on both counts.
+        #
+        # Deliberately not --parallel: the preset selects a single test, so there
+        # is nothing to overlap, and leaving the other cores idle is the point --
+        # the ten repeats are looking for a schedule that exposes a race, and
+        # competing for cores with nothing would only change that schedule for
+        # reasons unrelated to the code under test.
         cmake --preset gcc-tsan
         cmake --build --preset gcc-tsan --parallel $(nproc)
         ctest --preset gcc-tsan
@@ -401,11 +449,17 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
     - name: Generate Coverage Report
       run: |
         cmake --preset gcc-coverage
         cmake --build --preset gcc-coverage --parallel $(nproc)
-        ctest --preset gcc-coverage
+        ctest --preset gcc-coverage --parallel $(nproc)
         lcov --capture --directory build/gcc-coverage --output-file coverage.info \
              --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
         # Anchored at the repo, unlike the Makefile job's '*/include/*': that
@@ -432,6 +486,12 @@ jobs:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
     steps:
     - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
     # The three checks below and the smoke test are duplicated from the
     # install-paths job rather than left there. They assert properties of the
@@ -465,7 +525,7 @@ jobs:
         export LC_ALL=C
         cmake --preset gcc-installed-shared
         cmake --build --preset gcc-installed-shared --parallel $(nproc)
-        ctest --preset gcc-installed-shared
+        ctest --preset gcc-installed-shared --parallel $(nproc)
 
     - name: Install + consume in header-only mode (via pkg-config iov2)
       run: |
@@ -492,7 +552,7 @@ jobs:
         export LC_ALL=C
         cmake --preset gcc-installed-header-only
         cmake --build --preset gcc-installed-header-only --parallel $(nproc)
-        ctest --preset gcc-installed-header-only
+        ctest --preset gcc-installed-header-only --parallel $(nproc)
 
     - name: Verify the installed modes used no source-tree headers
       run: |
