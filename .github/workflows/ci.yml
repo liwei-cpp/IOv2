@@ -14,14 +14,40 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+# The test suite is built and run by CMake/CTest. The jobs below come in two
+# groups:
+#
+#   build / thread-safety / coverage / install-paths / clang-tidy
+#       CMake/CTest (clang-tidy reads the library headers and belongs to
+#       neither build system). These are the six contexts main's ruleset
+#       requires, which is what makes CTest the gate rather than a second
+#       opinion. Their names say which capability is being checked, not which
+#       build system checks it, so they keep the names they had.
+#
+#   makefile-*
+#       The same 189 sources through test/Makefile, kept one release cycle as a
+#       cross-check. They are not required: a red one is a finding to look at,
+#       not a merge blocker. They and test/Makefile go away together in the
+#       next change, and the Codecov upload moves with them.
+#
+# Rolling back means pointing the ruleset at the makefile-* contexts again; no
+# job has to be restored to do it.
 jobs:
   build:
+    # Explicit, because the check context is this name and main's ruleset
+    # spells it with the compiler binary while the presets are named after the
+    # toolchain. Without it the matrix would produce "build (gcc, g++)".
+    name: build (${{ matrix.cxx }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         # Both compilers run out of the one image; sharing a base is what keeps
         # clang++ on the same libstdc++ that g++ uses.
-        compiler: [ g++, clang++ ]
+        include:
+          - preset: gcc
+            cxx: g++
+          - preset: clang
+            cxx: clang++
 
     container:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
@@ -81,17 +107,19 @@ jobs:
         # $(nproc) in this job resolves to.
         echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
 
-    - name: Run tests (Release)
+    - name: Configure and build (Release)
       run: |
-        cd test
-        make -j$(nproc) test CXX=${{ matrix.compiler }} MODE=release
+        cmake --preset ${{ matrix.preset }}-release
+        cmake --build --preset ${{ matrix.preset }}-release --parallel $(nproc)
+
+    - name: Run tests (Release)
+      run: ctest --preset ${{ matrix.preset }}-release --parallel $(nproc)
 
     - name: Run tests (Release) across locales
       run: |
-        cd test
-        # No rebuild: this re-runs the binaries the previous step just built,
-        # because the only variable here is the process locale. Compiling once
-        # and re-running is what makes several locales affordable at all.
+        # No reconfigure and no rebuild: the only variable is the process
+        # locale. Compiling once and re-running is what makes several locales
+        # affordable at all.
         #
         # Why this exists: nothing else in the workflow leaves the C locale --
         # the container sets no LANG, and the install-paths job pins LC_ALL=C.
@@ -102,6 +130,304 @@ jobs:
           # silently falls back to C. Without this check, losing locales-all
           # from the image would turn the whole matrix into N more C runs --
           # green, and testing nothing.
+          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
+            echo "[!] locale $loc is not available in this image"; exit 1
+          fi
+          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
+          LC_ALL="$loc" ctest --preset ${{ matrix.preset }}-release --parallel $(nproc) \
+            || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
+        done
+
+    - name: Configure and build (Sanitizers)
+      run: |
+        cmake --preset ${{ matrix.preset }}-sanitizer
+        cmake --build --preset ${{ matrix.preset }}-sanitizer --parallel $(nproc)
+
+    - name: Run tests (Sanitizers)
+      run: ctest --preset ${{ matrix.preset }}-sanitizer --parallel $(nproc)
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+
+    - name: Run tests (Sanitizers) across locales
+      run: |
+        # Again no rebuild -- the sanitizer binaries from the previous step are
+        # reused. This pairing is the point: the locale-dependent paths are
+        # where a stray byte becomes an out-of-range index, and only a
+        # sanitizer run reports that rather than quietly producing wrong text.
+        for loc in $IOV2_LOCALES_SAN; do
+          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
+            echo "[!] locale $loc is not available in this image"; exit 1
+          fi
+          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
+          LC_ALL="$loc" ctest --preset ${{ matrix.preset }}-sanitizer --parallel $(nproc) \
+            || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
+        done
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+
+    - name: Run memory check (Valgrind)
+      run: |
+        # Both compilers, because they produce different code for Valgrind to
+        # walk.
+        #
+        # --test-dir, not --preset: -T memcheck puts ctest in dashboard mode,
+        # which resolves the project directory from the working directory and
+        # ignores a test preset's binaryDir. Given --preset it looks for
+        # DartConfiguration.tcl beside the sources, does not find it, and fails
+        # with "Memory checker (MemoryCheckCommand) not set".
+        #
+        # A memcheck run that only writes logs and stays green would be worse
+        # than no check at all, so this exact command was verified against a
+        # program that leaks 64 bytes and writes past a 4-byte buffer: ctest
+        # reported "Defects: 3" and exited 16. The exit code is the guard; no
+        # file under Testing/Temporary carries the defect count to grep for.
+        ctest --test-dir build/${{ matrix.preset }}-release -T memcheck \
+              --output-on-failure -L all --parallel $(nproc)
+
+  thread-safety:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
+    - name: Run concurrency tests under ThreadSanitizer
+      run: |
+        # Only the concur suite is built. It collects every test that actually
+        # runs threads -- TSan has nothing to observe in a single-threaded test,
+        # so building the rest would cost minutes to inspect executions that
+        # cannot race. Devices/converters/facets document concurrency as a
+        # higher-level concern and are deliberately out of scope.
+        #
+        # The test preset repeats it ten times, because a race is only reported
+        # when the schedule actually exercises it -- a single clean run is
+        # weaker evidence than several. The reverse direction is reliable: TSan
+        # is a happens-before detector and does not invent races, so a red here
+        # is a real defect rather than CI flake.
+        #
+        # Deliberately not --parallel: the preset selects a single test, so
+        # there is nothing to overlap, and leaving the other cores idle is the
+        # point -- the ten repeats are looking for a schedule that exposes a
+        # race, and competing for cores with nothing would only change that
+        # schedule for reasons unrelated to the code under test.
+        cmake --preset gcc-tsan
+        cmake --build --preset gcc-tsan --parallel $(nproc)
+        ctest --preset gcc-tsan
+      env:
+        TSAN_OPTIONS: halt_on_error=1:exitcode=66:history_size=7
+
+  coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
+    - name: Generate Coverage Report
+      run: |
+        cmake --preset gcc-coverage
+        cmake --build --preset gcc-coverage --parallel $(nproc)
+        ctest --preset gcc-coverage --parallel $(nproc)
+        lcov --capture --directory build/gcc-coverage --output-file coverage.info \
+             --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
+        # Anchored at the repo, unlike makefile-coverage's '*/include/*': that
+        # pattern also matches /usr/local/include/c++/..., so its output carries
+        # ~110 libstdc++ headers. Codecov drops them because they are not repo
+        # files, so the published number is unaffected -- but the equivalence
+        # comparison is over the line set, and it has to compare like with like.
+        lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
+             --ignore-errors unused
+        lcov --list coverage.info
+
+    - name: Upload coverage.info
+      # Codecov is still fed by makefile-coverage, so this is the only way to
+      # get per-line data out of a run for the line-set comparison. The upload
+      # to Codecov moves here when that job goes.
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-cmake
+        path: coverage.info
+
+  install-paths:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
+    # The install itself is the root Makefile's job and stays that way; only
+    # the suite that is then run against it moved to CTest.
+
+    - name: Build the shared library
+      run: make shared
+
+    - name: Verify no unexpected runtime dependencies
+      run: |
+        # iov2_objects.cpp pulls in none of the optional converters, so the .so
+        # must not depend on zlib/Botan.
+        if readelf -d libiov2.so | grep -Eiq 'libz|libbotan'; then
+          echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
+        fi
+
+    - name: Install the shared library
+      run: |
+        make install-shared PREFIX=/opt/iov2
+        # install-shared flips the switch in the shipped header.
+        grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/common/iov2_export.h
+
+    - name: Run the full test suite against the installed shared library
+      run: |
+        # Consume libiov2 the real-user way: installed headers (switch already
+        # on) + pkg-config for cflags/libs, with the source tree's include/ off
+        # the search path entirely.
+        export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
+        export LD_LIBRARY_PATH=/opt/iov2/lib
+        export LC_ALL=C   # tests assume the C locale (default boolalpha names, etc.)
+        cmake --preset gcc-installed-shared
+        cmake --build --preset gcc-installed-shared --parallel $(nproc)
+        ctest --preset gcc-installed-shared --parallel $(nproc)
+
+    - name: Install + consume in header-only mode (via pkg-config iov2)
+      run: |
+        # The header-only install path (make install + iov2.pc) is distinct from
+        # the -I include path the build and coverage jobs use; exercise it so the
+        # install target, iov2.pc, and the shipped switch-off header stay covered.
+        make install PREFIX=/opt/iov2-ho
+        # Header-only: the shipped switch must stay commented out. This and the
+        # grep above are each other's control -- run against the other install,
+        # either one fails.
+        if grep -q '^#define IOV2_SHARED 1' /opt/iov2-ho/include/common/iov2_export.h; then
+          echo "header-only install must NOT flip the IOV2_SHARED switch"; exit 1
+        fi
+        # Written outside the repo: this job also configures CMake in this tree.
+        smoke=$(mktemp -d)
+        printf '%s\n' '#include <io/objects/out_impl.h>' \
+          'int main() { IOv2::cout << "iov2 header-only ok\n"; return 0; }' \
+          > "$smoke/consumer_ho.cpp"
+        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
+            "$smoke/consumer_ho.cpp" -o "$smoke/consumer_ho" $(pkg-config --libs iov2)
+        "$smoke/consumer_ho" | grep -q 'iov2 header-only ok'
+
+    - name: Run the full test suite against the installed header-only library
+      run: |
+        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        export LC_ALL=C
+        cmake --preset gcc-installed-header-only
+        cmake --build --preset gcc-installed-header-only --parallel $(nproc)
+        ctest --preset gcc-installed-header-only --parallel $(nproc)
+
+    - name: Verify the installed modes used no source-tree headers
+      run: |
+        # The point of both modes is that include/ in the repo is not consulted.
+        # CMakeLists.txt refuses a pkg-config prefix inside the source tree; this
+        # checks the commands that were actually issued.
+        for d in gcc-installed-shared gcc-installed-header-only; do
+          if grep -q -- "-I${PWD}/include" build/$d/compile_commands.json; then
+            echo "[!] $d compiled against the source tree"; exit 1
+          fi
+          echo "OK: $d used no source-tree headers"
+        done
+        if grep -q -- '-liov2' build/gcc-installed-header-only/compile_commands.json; then
+          echo "[!] header-only mode linked libiov2"; exit 1
+        fi
+
+  clang-tidy:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
+    - name: Run clang-tidy
+      run: |
+        # Use default clang-tidy from the image (which will be a recent version)
+        clang-tidy $(find include/common include/device include/cvt include/facet include/locale include/io/utilities -name '*.h') \
+          include/io/streambuf.h include/io/streambuf_iterator.h include/io/io_concepts.h include/io/io_base.h \
+          include/io/io_manip.h include/io/istream.h include/io/ostream.h include/io/iostream.h \
+          --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
+          --warnings-as-errors='bugprone-*' \
+          -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
+
+  # ---------------------------------------------------------------------------
+  # test/Makefile, kept one release cycle.
+  #
+  # These four jobs are what the five above replaced. They run the same 189
+  # sources through the old build system, so a disagreement between a job here
+  # and its counterpart above is a defect in the migration rather than in the
+  # library -- which is the only reason to keep paying for them. They are not
+  # required checks.
+  #
+  # They and test/Makefile are deleted together in the next change; the Codecov
+  # upload below moves to the coverage job at the same time, so that there is
+  # never a moment with two jobs uploading a report for one commit.
+  # ---------------------------------------------------------------------------
+
+  makefile-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [ g++, clang++ ]
+
+    container:
+      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
+
+    env:
+      # The same twelve and three as the build job; the rationale for each is
+      # on IOV2_LOCALES there.
+      IOV2_LOCALES: >-
+        C.UTF-8 en_US.UTF-8 zh_CN.UTF-8 de_DE.UTF-8
+        de_CH.UTF-8 fr_CA.UTF-8 ps_AF.UTF-8 tr_TR.UTF-8
+        en_HK.UTF-8 zh_CN.GBK cs_CZ.ISO-8859-2 ru_RU.KOI8-R
+      IOV2_LOCALES_SAN: >-
+        cs_CZ.ISO-8859-2 zh_CN.GBK ps_AF.UTF-8
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Runner capacity
+      run: |
+        # The denominator for every timing in this log, and what any
+        # $(nproc) in this job resolves to.
+        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
+
+    - name: Run tests (Release)
+      run: |
+        cd test
+        make -j$(nproc) test CXX=${{ matrix.compiler }} MODE=release
+
+    - name: Run tests (Release) across locales
+      run: |
+        cd test
+        # No rebuild: this re-runs the binaries the previous step just built,
+        # because the only variable here is the process locale.
+        for loc in $IOV2_LOCALES; do
           if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
             echo "[!] locale $loc is not available in this image"; exit 1
           fi
@@ -124,9 +450,7 @@ jobs:
       run: |
         cd test
         # Again no rebuild -- the sanitizer binaries from the previous step are
-        # reused. This pairing is the point: the locale-dependent paths are
-        # where a stray byte becomes an out-of-range index, and only a
-        # sanitizer run reports that rather than quietly producing wrong text.
+        # reused.
         for loc in $IOV2_LOCALES_SAN; do
           if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
             echo "[!] locale $loc is not available in this image"; exit 1
@@ -146,7 +470,7 @@ jobs:
         cd test
         make valgrind CXX=${{ matrix.compiler }} MODE=release
 
-  thread-safety:
+  makefile-thread-safety:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
@@ -161,16 +485,8 @@ jobs:
 
     - name: Run concurrency tests under ThreadSanitizer
       run: |
-        # Only the concur module is built here. It collects every test that actually
-        # runs threads -- TSan has nothing to observe in a single-threaded test, so
-        # building the rest would cost minutes to inspect executions that cannot race.
-        # Devices/converters/facets document concurrency as a higher-level concern and
-        # are deliberately out of scope.
-        #
-        # Repeated because a race is only reported when the schedule actually exercises
-        # it -- a single clean run is weaker evidence than several. The reverse direction
-        # is reliable: TSan is a happens-before detector and does not invent races, so a
-        # red here is a real defect rather than CI flake.
+        # Ten repeats of the concur binary alone; see the thread-safety job for
+        # why only that one, and why more than once.
         cd test
         make -j$(nproc) concur MODE=tsan
         for i in $(seq 1 10); do
@@ -180,7 +496,7 @@ jobs:
       env:
         TSAN_OPTIONS: halt_on_error=1:exitcode=66:history_size=7
 
-  coverage:
+  makefile-coverage:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
@@ -198,24 +514,26 @@ jobs:
         cd test
         # 1. Build and run all tests in coverage mode
         make -j$(nproc) test MODE=coverage
-        
+
         # 2. Capture coverage data
         lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
-        
+
         # 3. Filter to include ONLY the 'include' directory and exclude system/test code
         lcov --extract coverage.info '*/include/*' --output-file coverage.info --ignore-errors unused
-        
+
         # 4. Print summary to console for quick check
         lcov --list coverage.info
 
     - name: Upload coverage to Codecov
+      # Still the only uploader: exactly one job may publish a report for a
+      # commit, or Codecov merges them and reports their union.
       uses: codecov/codecov-action@v7
       with:
         files: test/coverage.info
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
 
-  install-paths:
+  makefile-install-paths:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
@@ -285,286 +603,3 @@ jobs:
           OBJ_DIR=obj_ho BIN_DIR=bin_ho \
           COMP_FLAGS="-Wall -Werror -Wshadow -std=c++23 -g -O2 -I. -I/usr/include/botan-2 $(pkg-config --cflags iov2)" \
           LINK_FLAGS="-lz -lbotan-2"
-
-  clang-tidy:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Runner capacity
-      run: |
-        # The denominator for every timing in this log, and what any
-        # $(nproc) in this job resolves to.
-        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
-
-    - name: Run clang-tidy
-      run: |
-        # Use default clang-tidy from the image (which will be a recent version)
-        clang-tidy $(find include/common include/device include/cvt include/facet include/locale include/io/utilities -name '*.h') \
-          include/io/streambuf.h include/io/streambuf_iterator.h include/io/io_concepts.h include/io/io_base.h \
-          include/io/io_manip.h include/io/istream.h include/io/ostream.h include/io/iostream.h \
-          --checks='bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-magic-numbers,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-non-const-global-variables,-cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,-clang-diagnostic-pragma-once-outside-header' \
-          --warnings-as-errors='bugprone-*' \
-          -- -std=c++23 -x c++ -I include -I /usr/include -I /usr/include/botan-2
-
-  # ---------------------------------------------------------------------------
-  # CMake/CTest shadow jobs.
-  #
-  # The suite is moving from test/Makefile to CMake/CTest. These jobs run the new
-  # build system over the same 189 sources and the same seven binaries, alongside
-  # the Makefile jobs above rather than instead of them, so the two can be
-  # compared on results, coverage and time before the Makefile is retired. They
-  # add nothing to what is tested; a difference between a shadow job and its
-  # counterpart above is a defect in the migration, not in the library.
-  #
-  # Deleting these four jobs is the whole rollback.
-  # ---------------------------------------------------------------------------
-
-  cmake-shadow-build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        compiler: [ gcc, clang ]
-
-    container:
-      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
-
-    env:
-      # Same twelve as the Makefile job; see the rationale on IOV2_LOCALES above.
-      IOV2_LOCALES: >-
-        C.UTF-8 en_US.UTF-8 zh_CN.UTF-8 de_DE.UTF-8
-        de_CH.UTF-8 fr_CA.UTF-8 ps_AF.UTF-8 tr_TR.UTF-8
-        en_HK.UTF-8 zh_CN.GBK cs_CZ.ISO-8859-2 ru_RU.KOI8-R
-      IOV2_LOCALES_SAN: >-
-        cs_CZ.ISO-8859-2 zh_CN.GBK ps_AF.UTF-8
-
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Runner capacity
-      run: |
-        # The denominator for every timing in this log, and what any
-        # $(nproc) in this job resolves to.
-        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
-
-    - name: Configure and build (Release)
-      run: |
-        cmake --preset ${{ matrix.compiler }}-release
-        cmake --build --preset ${{ matrix.compiler }}-release --parallel $(nproc)
-
-    - name: Run tests (Release)
-      run: ctest --preset ${{ matrix.compiler }}-release --parallel $(nproc)
-
-    - name: Run tests (Release) across locales
-      run: |
-        # No reconfigure and no rebuild: the only variable is the process locale.
-        for loc in $IOV2_LOCALES; do
-          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
-            echo "[!] locale $loc is not available in this image"; exit 1
-          fi
-          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
-          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-release --parallel $(nproc) \
-            || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
-        done
-
-    - name: Configure and build (Sanitizers)
-      run: |
-        cmake --preset ${{ matrix.compiler }}-sanitizer
-        cmake --build --preset ${{ matrix.compiler }}-sanitizer --parallel $(nproc)
-
-    - name: Run tests (Sanitizers)
-      run: ctest --preset ${{ matrix.compiler }}-sanitizer --parallel $(nproc)
-      env:
-        ASAN_OPTIONS: halt_on_error=1
-        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-
-    - name: Run tests (Sanitizers) across locales
-      run: |
-        for loc in $IOV2_LOCALES_SAN; do
-          if [ -n "$(LC_ALL="$loc" locale charmap 2>&1 >/dev/null)" ]; then
-            echo "[!] locale $loc is not available in this image"; exit 1
-          fi
-          echo "=== LC_ALL=$loc (charmap $(LC_ALL="$loc" locale charmap))"
-          LC_ALL="$loc" ctest --preset ${{ matrix.compiler }}-sanitizer --parallel $(nproc) \
-            || { echo "[!] ctest failed under LC_ALL=$loc"; exit 1; }
-        done
-      env:
-        ASAN_OPTIONS: halt_on_error=1
-        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-
-    - name: Run memory check (Valgrind)
-      run: |
-        # Both compilers, because the Makefile job above checks both and they
-        # produce different code for Valgrind to walk.
-        #
-        # --test-dir, not --preset: -T memcheck puts ctest in dashboard mode,
-        # which resolves the project directory from the working directory and
-        # ignores a test preset's binaryDir. Given --preset it looks for
-        # DartConfiguration.tcl beside the sources, does not find it, and fails
-        # with "Memory checker (MemoryCheckCommand) not set".
-        #
-        # A memcheck run that only writes logs and stays green would be worse
-        # than no check at all, so this exact command was verified against a
-        # program that leaks 64 bytes and writes past a 4-byte buffer: ctest
-        # reported "Defects: 3" and exited 16. The exit code is the guard; no
-        # file under Testing/Temporary carries the defect count to grep for.
-        ctest --test-dir build/${{ matrix.compiler }}-release -T memcheck \
-              --output-on-failure -L all --parallel $(nproc)
-
-  cmake-shadow-tsan:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Runner capacity
-      run: |
-        # The denominator for every timing in this log, and what any
-        # $(nproc) in this job resolves to.
-        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
-
-    - name: Run concurrency tests under ThreadSanitizer
-      run: |
-        # The build preset limits this to test_concur, and the test preset repeats
-        # it ten times -- matching the Makefile job above on both counts.
-        #
-        # Deliberately not --parallel: the preset selects a single test, so there
-        # is nothing to overlap, and leaving the other cores idle is the point --
-        # the ten repeats are looking for a schedule that exposes a race, and
-        # competing for cores with nothing would only change that schedule for
-        # reasons unrelated to the code under test.
-        cmake --preset gcc-tsan
-        cmake --build --preset gcc-tsan --parallel $(nproc)
-        ctest --preset gcc-tsan
-      env:
-        TSAN_OPTIONS: halt_on_error=1:exitcode=66:history_size=7
-
-  cmake-shadow-coverage:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Runner capacity
-      run: |
-        # The denominator for every timing in this log, and what any
-        # $(nproc) in this job resolves to.
-        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
-
-    - name: Generate Coverage Report
-      run: |
-        cmake --preset gcc-coverage
-        cmake --build --preset gcc-coverage --parallel $(nproc)
-        ctest --preset gcc-coverage --parallel $(nproc)
-        lcov --capture --directory build/gcc-coverage --output-file coverage.info \
-             --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
-        # Anchored at the repo, unlike the Makefile job's '*/include/*': that
-        # pattern also matches /usr/local/include/c++/..., so its output carries
-        # ~110 libstdc++ headers. Codecov drops them because they are not repo
-        # files, so the published number is unaffected -- but the equivalence
-        # comparison is over the line set, and it has to compare like with like.
-        lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
-             --ignore-errors unused
-        lcov --list coverage.info
-
-    - name: Upload coverage.info
-      # The Makefile coverage job sends this to Codecov and keeps no artifact, so
-      # per-line data cannot be recovered from a run. Comparing line sets across
-      # the migration needs the file itself.
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-cmake
-        path: coverage.info
-
-  cmake-shadow-install:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/liwei-cpp/iov2-ci-gcc15:latest
-    steps:
-    - uses: actions/checkout@v6
-
-    - name: Runner capacity
-      run: |
-        # The denominator for every timing in this log, and what any
-        # $(nproc) in this job resolves to.
-        echo "cpus=$(nproc) ram=$(free -m | awk '/^Mem:/ {print $2}')MB arch=$(uname -m)"
-
-    # The three checks below and the smoke test are duplicated from the
-    # install-paths job rather than left there. They assert properties of the
-    # install itself, not of the Makefile that produced it, and install-paths is
-    # deleted when the Makefile test jobs go; a check that lives only in a job
-    # scheduled for deletion is a capability about to be lost silently. They are
-    # idempotent assertions, so running them in both jobs during the shadow phase
-    # costs a second and changes nothing.
-
-    - name: Build the shared library
-      run: make shared
-
-    - name: Verify no unexpected runtime dependencies
-      run: |
-        # iov2_objects.cpp pulls in none of the optional converters, so the .so
-        # must not depend on zlib/Botan.
-        if readelf -d libiov2.so | grep -Eiq 'libz|libbotan'; then
-          echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
-        fi
-
-    - name: Install the shared library
-      run: |
-        make install-shared PREFIX=/opt/iov2
-        # install-shared flips the switch in the shipped header.
-        grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/common/iov2_export.h
-
-    - name: Run the full test suite against the installed shared library
-      run: |
-        export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
-        export LD_LIBRARY_PATH=/opt/iov2/lib
-        export LC_ALL=C
-        cmake --preset gcc-installed-shared
-        cmake --build --preset gcc-installed-shared --parallel $(nproc)
-        ctest --preset gcc-installed-shared --parallel $(nproc)
-
-    - name: Install + consume in header-only mode (via pkg-config iov2)
-      run: |
-        make install PREFIX=/opt/iov2-ho
-        # Header-only: the shipped switch must stay commented out. This and the
-        # grep above are each other's control -- run against the other install,
-        # either one fails.
-        if grep -q '^#define IOV2_SHARED 1' /opt/iov2-ho/include/common/iov2_export.h; then
-          echo "header-only install must NOT flip the IOV2_SHARED switch"; exit 1
-        fi
-        # Written outside the repo: this job also configures CMake in this tree.
-        smoke=$(mktemp -d)
-        printf '%s\n' '#include <io/objects/out_impl.h>' \
-          'int main() { IOv2::cout << "iov2 header-only ok\n"; return 0; }' \
-          > "$smoke/consumer_ho.cpp"
-        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
-        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
-            "$smoke/consumer_ho.cpp" -o "$smoke/consumer_ho" $(pkg-config --libs iov2)
-        "$smoke/consumer_ho" | grep -q 'iov2 header-only ok'
-
-    - name: Run the full test suite against the installed header-only library
-      run: |
-        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
-        export LC_ALL=C
-        cmake --preset gcc-installed-header-only
-        cmake --build --preset gcc-installed-header-only --parallel $(nproc)
-        ctest --preset gcc-installed-header-only --parallel $(nproc)
-
-    - name: Verify the installed modes used no source-tree headers
-      run: |
-        # The point of both modes is that include/ in the repo is not consulted.
-        # CMakeLists.txt refuses a pkg-config prefix inside the source tree; this
-        # checks the commands that were actually issued.
-        for d in gcc-installed-shared gcc-installed-header-only; do
-          if grep -q -- "-I${PWD}/include" build/$d/compile_commands.json; then
-            echo "[!] $d compiled against the source tree"; exit 1
-          fi
-          echo "OK: $d used no source-tree headers"
-        done
-        if grep -q -- '-liov2' build/gcc-installed-header-only/compile_commands.json; then
-          echo "[!] header-only mode linked libiov2"; exit 1
-        fi
