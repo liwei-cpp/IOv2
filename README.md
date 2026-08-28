@@ -209,14 +209,15 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 - **依赖**：核心头文件库本身无需构建，但部分特性依赖 `zlib` 和 `Botan`。
 
 **运行测试**
-`test` 目录包含了所有的单元测试与验证程序。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
+`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，共 57 个套件。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
 
 ```bash
-cd test
-make test        # 编译并运行所有测试
-make -j8 test-io # 并行编译并运行 IO 模块测试
+cmake --preset gcc-release                        # 配置
+cmake --build --preset gcc-release --parallel     # 编译全部
+ctest --preset gcc-release --parallel             # 运行全部 57 个套件
+ctest --preset gcc-release -L io                  # 只跑 IO 模块
 ```
-更多测试命令请参考 `test/README.md` 或在 `test` 目录下运行 `make help`。
+构建产物位于 `build/<preset>/`，不再污染源码树。更多用法（sanitizer、Valgrind、覆盖率、如何新增测试文件）参见 `test/README.md`，可用配置见 `cmake --list-presets`。
 
 ---
 
@@ -416,11 +417,12 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 - **Dependencies**: The core library requires no build, but specific converters depend on `zlib` and `Botan`.
 
 **Running Tests**
-The `test` directory contains all unit tests. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
+The `test` directory contains all unit tests, built by CMake/CTest as 57 suites. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
 
 ```bash
-cd test
-make test        # Build and run all tests
-make -j8 test-io # Build in parallel and run the IO module tests
+cmake --preset gcc-release                        # configure
+cmake --build --preset gcc-release --parallel     # build everything
+ctest --preset gcc-release --parallel             # run all 57 suites
+ctest --preset gcc-release -L io                  # run the IO module only
 ```
-For more testing commands, refer to `test/README.md` or run `make help` in the `test` directory.
+Build output goes to `build/<preset>/` rather than into the source tree. For sanitizers, Valgrind, coverage and how to add a test file, see `test/README.md`; `cmake --list-presets` lists the available configurations.

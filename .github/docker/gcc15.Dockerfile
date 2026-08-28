@@ -17,11 +17,9 @@ ARG DEBIAN_FRONTEND=noninteractive
 # installed before, so the image reproduces the environment the tests already
 # pass in rather than a minimized guess at it.
 #
-# cmake arrives ahead of its first user. The test suite is moving from
-# test/Makefile to CMake/CTest, and that migration runs both build systems side
-# by side for a release so their results can be compared; those shadow jobs
-# cannot start until an image carrying cmake has been published. No job consumes
-# it yet, so this addition changes nothing for the existing six.
+# cmake and lcov are what the test suite is built and measured with; it moved
+# off test/Makefile, so make is now only needed for the top-level shared-library
+# packaging targets.
 RUN apt-get update \
  && apt-get install -y \
       clang \

@@ -37,6 +37,19 @@
     },
 
     {
+      "name": "gcc-debug",
+      "inherits": "gcc",
+      "displayName": "g++, debug (-g -O0)",
+      "cacheVariables": { "IOV2_TEST_MODE": "debug" }
+    },
+    {
+      "name": "clang-debug",
+      "inherits": "clang",
+      "displayName": "clang++, debug (-g -O0)",
+      "cacheVariables": { "IOV2_TEST_MODE": "debug" }
+    },
+
+    {
       "name": "gcc-sanitizer",
       "inherits": "gcc",
       "displayName": "g++, ASan+UBSan (-O1 -g, no NDEBUG)",
@@ -79,6 +92,8 @@
   "buildPresets": [
     { "name": "gcc-release", "configurePreset": "gcc-release" },
     { "name": "clang-release", "configurePreset": "clang-release" },
+    { "name": "gcc-debug", "configurePreset": "gcc-debug" },
+    { "name": "clang-debug", "configurePreset": "clang-debug" },
     { "name": "gcc-sanitizer", "configurePreset": "gcc-sanitizer" },
     { "name": "clang-sanitizer", "configurePreset": "clang-sanitizer" },
     { "name": "gcc-coverage", "configurePreset": "gcc-coverage" },
@@ -101,6 +116,8 @@
     },
     { "name": "gcc-release", "inherits": "base", "configurePreset": "gcc-release" },
     { "name": "clang-release", "inherits": "base", "configurePreset": "clang-release" },
+    { "name": "gcc-debug", "inherits": "base", "configurePreset": "gcc-debug" },
+    { "name": "clang-debug", "inherits": "base", "configurePreset": "clang-debug" },
     { "name": "gcc-sanitizer", "inherits": "base", "configurePreset": "gcc-sanitizer" },
     { "name": "clang-sanitizer", "inherits": "base", "configurePreset": "clang-sanitizer" },
     { "name": "gcc-coverage", "inherits": "base", "configurePreset": "gcc-coverage" },
