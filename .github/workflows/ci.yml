@@ -433,10 +433,33 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    # The three checks below and the smoke test are duplicated from the
+    # install-paths job rather than left there. They assert properties of the
+    # install itself, not of the Makefile that produced it, and install-paths is
+    # deleted when the Makefile test jobs go; a check that lives only in a job
+    # scheduled for deletion is a capability about to be lost silently. They are
+    # idempotent assertions, so running them in both jobs during the shadow phase
+    # costs a second and changes nothing.
+
+    - name: Build the shared library
+      run: make shared
+
+    - name: Verify no unexpected runtime dependencies
+      run: |
+        # iov2_objects.cpp pulls in none of the optional converters, so the .so
+        # must not depend on zlib/Botan.
+        if readelf -d libiov2.so | grep -Eiq 'libz|libbotan'; then
+          echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
+        fi
+
+    - name: Install the shared library
+      run: |
+        make install-shared PREFIX=/opt/iov2
+        # install-shared flips the switch in the shipped header.
+        grep -q '^#define IOV2_SHARED 1' /opt/iov2/include/common/iov2_export.h
+
     - name: Run the full test suite against the installed shared library
       run: |
-        make shared
-        make install-shared PREFIX=/opt/iov2
         export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
         export LD_LIBRARY_PATH=/opt/iov2/lib
         export LC_ALL=C
@@ -444,9 +467,27 @@ jobs:
         cmake --build --preset gcc-installed-shared --parallel $(nproc)
         ctest --preset gcc-installed-shared
 
-    - name: Run the full test suite against the installed header-only library
+    - name: Install + consume in header-only mode (via pkg-config iov2)
       run: |
         make install PREFIX=/opt/iov2-ho
+        # Header-only: the shipped switch must stay commented out. This and the
+        # grep above are each other's control -- run against the other install,
+        # either one fails.
+        if grep -q '^#define IOV2_SHARED 1' /opt/iov2-ho/include/common/iov2_export.h; then
+          echo "header-only install must NOT flip the IOV2_SHARED switch"; exit 1
+        fi
+        # Written outside the repo: this job also configures CMake in this tree.
+        smoke=$(mktemp -d)
+        printf '%s\n' '#include <io/objects/out_impl.h>' \
+          'int main() { IOv2::cout << "iov2 header-only ok\n"; return 0; }' \
+          > "$smoke/consumer_ho.cpp"
+        export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
+        g++ -std=c++23 -D_POSIX_C_SOURCE=200809L $(pkg-config --cflags iov2) \
+            "$smoke/consumer_ho.cpp" -o "$smoke/consumer_ho" $(pkg-config --libs iov2)
+        "$smoke/consumer_ho" | grep -q 'iov2 header-only ok'
+
+    - name: Run the full test suite against the installed header-only library
+      run: |
         export PKG_CONFIG_PATH=/opt/iov2-ho/lib/pkgconfig
         export LC_ALL=C
         cmake --preset gcc-installed-header-only
