@@ -33,6 +33,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Must precede include(CTest): that is what writes these into
 # DartConfiguration.tcl, where `ctest -T memcheck` reads them. The three options
 # are the ones test/Makefile's valgrind target already passes.
+#
+# These apply to every test. The one option that must not is --fair-sched=yes,
+# which only the concur suite needs; test/CMakeLists.txt passes it through
+# VALGRIND_OPTS on that test alone.
 find_program(MEMORYCHECK_COMMAND valgrind)
 set(MEMORYCHECK_COMMAND_OPTIONS
     "--error-exitcode=1 --leak-check=full --max-stackframe=6000000")
