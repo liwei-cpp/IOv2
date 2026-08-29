@@ -366,6 +366,7 @@ void test_numeric()
     test_numeric_char8_t_put_15();
     test_numeric_char8_t_put_16();
     test_numeric_char8_t_put_17();
+    test_numeric_char8_t_put_18();
     test_numeric_char8_t_get_1();
     test_numeric_char8_t_get_2();
     test_numeric_char8_t_get_3();

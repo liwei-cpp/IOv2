@@ -244,6 +244,7 @@ void test_monetary()
     test_monetary_wchar_t_get_11();
     test_monetary_wchar_t_get_12();
     test_monetary_wchar_t_get_13();
+    test_monetary_wchar_t_get_14();
     test_monetary_wchar_t_get_15();
     test_monetary_wchar_t_get_16();
     test_monetary_wchar_t_get_17();
