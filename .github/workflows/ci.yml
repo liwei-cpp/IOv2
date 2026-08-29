@@ -238,16 +238,19 @@ jobs:
         # consistency check fire on the later passes as well: a line the .gcda
         # records as hit with no branch on it evaluated is an error to lcov, and
         # `--extract` re-checks what `--capture` was told to let through.
-        lcov_flags=(--rc branch_coverage=1
-                    --ignore-errors mismatch,inconsistent,negative,unused)
+        #
+        # A plain word-split variable, not an array: steps in a container run
+        # under sh here, not bash. Deliberately unquoted below; no flag in it
+        # contains whitespace.
+        lcov_flags="--rc branch_coverage=1 --ignore-errors mismatch,inconsistent,negative,unused"
         lcov --capture --directory build/gcc-coverage --output-file coverage.info \
-             "${lcov_flags[@]}"
+             $lcov_flags
         # Anchored at the repo. The pattern this replaced, '*/include/*', also
         # matched /usr/local/include/c++/..., so ~110 libstdc++ headers rode
         # along in every upload; Codecov discarded them for not being repo
         # files, which is why the published number never showed it.
         lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
-             "${lcov_flags[@]}"
+             $lcov_flags
         # gcov counts branches in the generated code, so a template-heavy header
         # library gets an exception-unwind edge, an implicit-destructor edge and a
         # re-instantiated short-circuit for every use. 4195 of the 9541 branches
@@ -259,8 +262,8 @@ jobs:
         # After --extract, not during --capture: the filter reads every source it
         # still has data for, and by this point that is only the repo's own headers.
         lcov --add-tracefile coverage.info --output-file coverage.info \
-             --filter branch "${lcov_flags[@]}"
-        lcov --list coverage.info "${lcov_flags[@]}"
+             --filter branch $lcov_flags
+        lcov --list coverage.info $lcov_flags
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v7
