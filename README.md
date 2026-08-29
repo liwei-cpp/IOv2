@@ -213,7 +213,7 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 
 ```bash
 cmake --preset gcc-release                        # 配置
-cmake --build --preset gcc-release --parallel     # 编译全部
+cmake --build --preset gcc-release --parallel "$(nproc)"     # 编译全部
 ctest --preset gcc-release --parallel             # 运行全部 57 个套件
 ctest --preset gcc-release -L io                  # 只跑 IO 模块
 ```
@@ -421,7 +421,7 @@ The `test` directory contains all unit tests, built by CMake/CTest as 57 suites.
 
 ```bash
 cmake --preset gcc-release                        # configure
-cmake --build --preset gcc-release --parallel     # build everything
+cmake --build --preset gcc-release --parallel "$(nproc)"     # build everything
 ctest --preset gcc-release --parallel             # run all 57 suites
 ctest --preset gcc-release -L io                  # run the IO module only
 ```

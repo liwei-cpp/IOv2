@@ -19,11 +19,17 @@ CTest 中的名字就是该目录的点分形式：`concur`、`facet.collate`、
 
 ```bash
 cmake --preset gcc-release                     # 配置
-cmake --build --preset gcc-release --parallel  # 编译全部 57 个套件
+cmake --build --preset gcc-release --parallel "$(nproc)"  # 编译全部 57 个套件
 ctest --preset gcc-release --parallel          # 运行全部
 ```
 
 `cmake --list-presets` 列出全部可用配置。
+
+`--parallel` 后面**必须给数字**。CMake 默认的生成器是 Unix Makefiles，不带数字时它把
+裸 `-j` 交给 make，而裸 `-j` 对 GNU make 意为「不限并发」。全新构建时 235 个翻译单元
+同时就绪，每个峰值接近 1GB，make 会一口气全部 fork——在 16GB 的机器上这会触发 OOM，
+而被内核挑中杀掉的往往不是编译器，是你的桌面会话。增量构建看不出来，因为同一时刻就
+绪的目标没几个。
 
 ### 预设一览
 
@@ -74,7 +80,7 @@ ctest --test-dir build/gcc-release -T memcheck --output-on-failure -L all --para
 
 ```bash
 cmake --preset gcc-coverage
-cmake --build --preset gcc-coverage --parallel
+cmake --build --preset gcc-coverage --parallel "$(nproc)"
 ctest --preset gcc-coverage --parallel
 lcov --capture --directory build/gcc-coverage --output-file coverage.info \
      --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
@@ -90,7 +96,7 @@ lcov --list coverage.info
 
 ```bash
 cmake --preset gcc-tsan
-cmake --build --preset gcc-tsan --parallel
+cmake --build --preset gcc-tsan --parallel "$(nproc)"
 ctest --preset gcc-tsan
 ```
 
@@ -125,7 +131,7 @@ make install-shared PREFIX=/opt/iov2                 # 顶层 Makefile 负责打
 export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
 export LD_LIBRARY_PATH=/opt/iov2/lib
 cmake --preset gcc-installed-shared
-cmake --build --preset gcc-installed-shared --parallel
+cmake --build --preset gcc-installed-shared --parallel "$(nproc)"
 ctest --preset gcc-installed-shared --parallel
 ```
 
@@ -157,11 +163,18 @@ command below from the **repository root**, not from this directory.
 
 ```bash
 cmake --preset gcc-release                     # configure
-cmake --build --preset gcc-release --parallel  # build all 57 suites
+cmake --build --preset gcc-release --parallel "$(nproc)"  # build all 57 suites
 ctest --preset gcc-release --parallel          # run them
 ```
 
 `cmake --list-presets` lists every available configuration.
+
+**Always give `--parallel` a number.** CMake's default generator here is Unix Makefiles,
+and without one it hands make a bare `-j`, which to GNU make means *unlimited*. On a
+clean build all 235 translation units are ready at once and each peaks near 1GB, so make
+forks the lot; on a 16GB machine that ends in the OOM killer, and what it reaps is
+usually not the compiler but your desktop session. Incremental builds hide this, because
+only a handful of targets are ever ready together.
 
 ### Presets
 
@@ -216,7 +229,7 @@ The verdict is **ctest's exit code**, not the log: no file under
 
 ```bash
 cmake --preset gcc-coverage
-cmake --build --preset gcc-coverage --parallel
+cmake --build --preset gcc-coverage --parallel "$(nproc)"
 ctest --preset gcc-coverage --parallel
 lcov --capture --directory build/gcc-coverage --output-file coverage.info \
      --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
@@ -233,7 +246,7 @@ libstdc++ headers.
 
 ```bash
 cmake --preset gcc-tsan
-cmake --build --preset gcc-tsan --parallel
+cmake --build --preset gcc-tsan --parallel "$(nproc)"
 ctest --preset gcc-tsan
 ```
 
@@ -275,7 +288,7 @@ make install-shared PREFIX=/opt/iov2                 # the top-level Makefile pa
 export PKG_CONFIG_PATH=/opt/iov2/lib/pkgconfig
 export LD_LIBRARY_PATH=/opt/iov2/lib
 cmake --preset gcc-installed-shared
-cmake --build --preset gcc-installed-shared --parallel
+cmake --build --preset gcc-installed-shared --parallel "$(nproc)"
 ctest --preset gcc-installed-shared --parallel
 ```
 

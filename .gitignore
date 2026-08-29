@@ -1,10 +1,3 @@
-# Leftovers from test/Makefile, which is gone. Nothing writes these any more,
-# but a checkout that ever ran it still has them, and they are large enough that
-# unignoring them is how one gets committed by accident. Delete yours; this rule
-# can go once nobody has them.
-test/bin_*/
-test/obj_*/
-
 # CMake build trees, one per compiler/mode/consumer combination and named after
 # the preset that created it. Out-of-source by design: moving off test/Makefile
 # is what stopped obj_*/bin_* being generated inside the source tree.
