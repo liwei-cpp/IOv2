@@ -31,7 +31,7 @@ set(IOV2_TEST_SUITE_DIRS
     io/iostream/switch_to_get
     io/iostream/switch_to_put
     io/istream/attach
-    io/istream/derice
+    io/istream/derive
     io/istream/extractors_arithmetic
     io/istream/extractors_character
     io/istream/extractors_time
@@ -320,7 +320,7 @@ set(test_io_istream_attach_ENTRIES
     test_istream_attach
 )
 
-set(test_io_istream_derice_ENTRIES
+set(test_io_istream_derive_ENTRIES
     test_istream_derive
 )
 

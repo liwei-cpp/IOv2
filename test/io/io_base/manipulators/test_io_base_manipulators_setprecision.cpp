@@ -58,6 +58,8 @@ void test_io_base_manipulators_setprecision_char_1()
     // Constructing the manipulator on its own never throws: the value is only stored.
     (void)IOv2::setprecision(300);
     (void)IOv2::setprecision(std::numeric_limits<size_t>::max());
+
+    dump_info("Done\n");
 }
 
 // An out-of-range precision is reported through the stream, not thrown at the caller.
@@ -95,6 +97,8 @@ void test_io_base_manipulators_setprecision_char_2()
         VERIFY(caught);
         VERIFY(throwing.str_fail());
     }
+
+    dump_info("Done\n");
 }
 
 // The extraction direction goes through the same check.
@@ -112,6 +116,8 @@ void test_io_base_manipulators_setprecision_char_3()
     VERIFY(iss.str_fail());
     VERIFY(iss.precision() == 10);
     iss.clear();
+
+    dump_info("Done\n");
 }
 
 void test_io_base_manipulators_setprecision_wchar_t_1()
@@ -126,4 +132,6 @@ void test_io_base_manipulators_setprecision_wchar_t_1()
 
     VERIFY(rejects_precision(woss, 300));
     VERIFY(woss.precision() == 255);
+
+    dump_info("Done\n");
 }
