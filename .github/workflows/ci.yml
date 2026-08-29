@@ -248,6 +248,18 @@ jobs:
         # files, which is why the published number never showed it.
         lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
              "${lcov_flags[@]}"
+        # gcov counts branches in the generated code, so a template-heavy header
+        # library gets an exception-unwind edge, an implicit-destructor edge and a
+        # re-instantiated short-circuit for every use. 4195 of the 9541 branches
+        # here are that: nothing in the source decides them and no test can reach
+        # them, but they move whenever an inlining decision moves, which is exactly
+        # the noise a rewrite baseline must not carry. Filtered, the same run reads
+        # 4253 of 5346. Line and function data are untouched.
+        #
+        # After --extract, not during --capture: the filter reads every source it
+        # still has data for, and by this point that is only the repo's own headers.
+        lcov --add-tracefile coverage.info --output-file coverage.info \
+             --filter branch "${lcov_flags[@]}"
         lcov --list coverage.info "${lcov_flags[@]}"
 
     - name: Upload coverage to Codecov
