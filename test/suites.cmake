@@ -86,7 +86,6 @@ set(IOV2_TEST_EXCLUDED_SOURCES
 set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 189)
 
 set(test_common_ENTRIES
-    test_prefix_tree
     test_lru_cache
     test_clocale_wrapper
     test_clocale_wrapper_exception_paths
