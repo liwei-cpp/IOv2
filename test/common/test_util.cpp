@@ -2,7 +2,10 @@
 #include <string>
 #include <support/dump_info.h>
 
-void test_prefix_tree();
+// test_prefix_tree is gone: test_prefix_tree.cpp is now GoogleTest, and its
+// cases register themselves. This file is still what derive_suites.py reads to
+// order the entries below, so it shrinks as the directory is converted rather
+// than being deleted up front.
 void test_lru_cache();
 void test_clocale_wrapper();
 void test_clocale_wrapper_exception_paths();
@@ -14,7 +17,6 @@ int main()
 {
     try
     {
-        test_prefix_tree();
         test_lru_cache();
         test_clocale_wrapper();
         test_clocale_wrapper_exception_paths();

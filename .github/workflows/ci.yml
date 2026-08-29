@@ -269,6 +269,15 @@ jobs:
       uses: codecov/codecov-action@v7
       with:
         files: coverage.info
+        # `files` adds to what the uploader finds on its own, it does not replace
+        # it -- and what it finds here is every .gcno under build/gcc-coverage,
+        # which its gcov plugin then turns into .gcov and uploads alongside. That
+        # is the whole test suite measuring itself: 178 sources that are ~100%
+        # covered by definition, which is why the published figure read 97% while
+        # lcov reported 96.2% for include/. Both switches are needed; either one
+        # alone still lets the other path through.
+        disable_search: true
+        plugins: noop
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
 

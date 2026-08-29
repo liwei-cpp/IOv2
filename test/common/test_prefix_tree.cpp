@@ -1,429 +1,403 @@
 #include <common/prefix_tree.h>
 #include <common/stamp_input_iterator.h>
-#include <support/verify.h>
-#include <support/dump_info.h>
-#include <string>
-#include <vector>
-#include <sstream>
 #include <device/mem_device.h>
 #include <io/streambuf.h>
 #include <io/streambuf_iterator.h>
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <vector>
+
 using namespace IOv2;
 
-void test_prefix_tree_basic()
+using ::testing::HasSubstr;
+
+TEST(PrefixTree, Basic)
 {
-    dump_info("Test prefix_tree basic...");
     prefix_tree<char, int> tree;
     tree.add("hello", 1);
     tree.add("world", 2);
     tree.add("he", 3);
 
-    decltype(tree)::match_out_type out;
+    decltype(tree)::match_out_type out{};
+
     std::string s1 = "hello";
     auto it1 = tree.max_match(s1.begin(), s1.end(), out);
-    VERIFY(out && *out == 1);
-    VERIFY(it1 == s1.end());
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 1);
+    EXPECT_EQ(it1, s1.end());
 
     std::string s2 = "he";
     it1 = tree.max_match(s2.begin(), s2.end(), out);
-    VERIFY(out && *out == 3);
-    VERIFY(it1 == s2.end());
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 3);
+    EXPECT_EQ(it1, s2.end());
 
     std::string s3 = "hell";
     it1 = tree.max_match(s3.begin(), s3.end(), out);
-    VERIFY(out && *out == 3); // "he" is the max match
-    VERIFY(it1 == s3.begin() + 2);
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 3) << "\"he\" is the longest stored key that prefixes \"hell\"";
+    EXPECT_EQ(it1, s3.begin() + 2);
 
     std::string s4 = "world";
     it1 = tree.max_match(s4.begin(), s4.end(), out);
-    VERIFY(out && *out == 2);
-    VERIFY(it1 == s4.end());
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 2);
+    EXPECT_EQ(it1, s4.end());
 
+    // Runs last on purpose: out still holds 2 from the call above, so this also
+    // pins that a failed match clears the previous result rather than leaving it.
     std::string s5 = "not_found";
     it1 = tree.max_match(s5.begin(), s5.end(), out);
-    VERIFY(!out); // remains empty
-    VERIFY(it1 == s5.begin());
-    dump_info("Done\n");
+    EXPECT_FALSE(out.has_value());
+    EXPECT_EQ(it1, s5.begin());
 }
 
-void test_prefix_tree_duplicate_handling()
+TEST(PrefixTree, DuplicateAdd)
 {
-    dump_info("Test prefix_tree duplicate handling...");
     prefix_tree<char, int> tree;
     tree.add("test", 10);
-    
-    // Adding same key with same value should NOT throw
-    try {
-        tree.add("test", 10);
-    } catch (...) {
-        VERIFY(false); // Should not throw
-    }
 
-    // Adding same key with different value SHOULD throw
-    try {
-        tree.add("test", 20);
-        VERIFY(false); // Should have thrown
-    } catch (const std::runtime_error& e) {
-        // Expected
-    }
+    // Re-adding a key is only an error when it would change the stored value.
+    EXPECT_NO_THROW(tree.add("test", 10));
+    EXPECT_THROW(tree.add("test", 20), std::runtime_error);
 
-    // Test with iterator version
     std::string s = "iter";
     tree.add(s.begin(), s.end(), 100);
-    try {
-        tree.add(s.begin(), s.end(), 100);
-    } catch (...) {
-        VERIFY(false); // Should not throw
-    }
+    EXPECT_NO_THROW(tree.add(s.begin(), s.end(), 100));
+    EXPECT_THROW(tree.add(s.begin(), s.end(), 200), std::runtime_error);
 
-    try {
-        tree.add(s.begin(), s.end(), 200);
-        VERIFY(false); // Should have thrown
-    } catch (const std::runtime_error& e) {
-        // Expected
-    }
-
-    // Duplicate test for large types
+    // Same rule for a value type stored out of line.
     prefix_tree<char, std::string> tree_large;
     tree_large.add("test", "val1");
-    try {
-        tree_large.add("test", "val2");
-        VERIFY(false);
-    } catch (const std::runtime_error& e) {
-        // Expected
-    }
-    dump_info("Done\n");
+    EXPECT_THROW(tree_large.add("test", "val2"), std::runtime_error);
 }
 
-void test_prefix_tree_string_view()
+TEST(PrefixTree, StringViewKey)
 {
-    dump_info("Test prefix_tree string_view...");
     prefix_tree<char, int> tree;
     std::string_view sv = "view";
     tree.add(sv, 5);
 
-    decltype(tree)::match_out_type out;
+    decltype(tree)::match_out_type out{};
     auto it = tree.max_match(sv.begin(), sv.end(), out);
-    VERIFY(out && *out == 5);
-    VERIFY(it == sv.end());
-    dump_info("Done\n");
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 5);
+    EXPECT_EQ(it, sv.end());
 }
 
-void test_prefix_tree_vector_constructor()
+TEST(PrefixTree, VectorConstructor)
 {
-    dump_info("Test prefix_tree vector constructor...");
     std::vector<const char*> strs = {"apple", "banana", "cherry"};
     prefix_tree<char, int> tree(strs);
 
-    decltype(tree)::match_out_type out;
+    // The value of each key is its index in the vector.
+    decltype(tree)::match_out_type out{};
     std::string s = "banana";
     (void)tree.max_match(s.begin(), s.end(), out);
-    VERIFY(out && *out == 1); // Index 1 in the vector
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 1);
 
-    // Test empty vector
+    // The alias is not cosmetic: a comma inside template arguments would be read
+    // as a second macro argument.
+    using int_tree = prefix_tree<char, int>;
     std::vector<const char*> empty_strs;
-    prefix_tree<char, int> empty_tree(empty_strs);
-    dump_info("Done\n");
+    EXPECT_NO_THROW((void)int_tree(empty_strs));
 }
 
-void test_prefix_tree_root_value()
+TEST(PrefixTree, RootValue)
 {
-    dump_info("Test prefix_tree root value...");
     prefix_tree<char, int> tree;
-    tree.add("", 100); // Set value at root
+    tree.add("", 100);
     tree.add("a", 1);
 
-    decltype(tree)::match_out_type out;
-    std::string s = "b"; // Does not match any child
+    // "b" matches no child, so the walk stops at the root and takes its value.
+    decltype(tree)::match_out_type out{};
+    std::string s = "b";
     auto it = tree.max_match(s.begin(), s.end(), out);
-    VERIFY(out && *out == 100); // Should pick root value
-    VERIFY(it == s.begin());
-    dump_info("Done\n");
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 100);
+    EXPECT_EQ(it, s.begin());
 }
 
-void test_prefix_tree_greedy_match()
+TEST(PrefixTree, GreedyMatch)
 {
-    dump_info("Test prefix_tree greedy match...");
     prefix_tree<char, int> tree;
     tree.add("abc", 1);
     tree.add("abcd", 2);
 
-    decltype(tree)::match_out_type out;
-    std::string s = "abcde"; 
+    // Both keys prefix the input; the longer one wins.
+    decltype(tree)::match_out_type out{};
+    std::string s = "abcde";
     auto it = tree.max_match(s.begin(), s.end(), out);
-    VERIFY(out && *out == 2); // Should match longest "abcd"
-    VERIFY(it == s.begin() + 4);
-    dump_info("Done\n");
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 2);
+    EXPECT_EQ(it, s.begin() + 4);
 }
 
-void test_prefix_tree_istreambuf()
+namespace
 {
-    dump_info("Test prefix_tree istreambuf_iterator...");
+    // The three-key tree the two istreambuf cases below share: a root value, plus
+    // "ab" nested inside "abc" so a walk can overshoot and have to come back.
+    prefix_tree<char, int> istreambuf_tree()
+    {
+        prefix_tree<char, int> tree;
+        tree.add("", 100);
+        tree.add("abc", 1);
+        tree.add("ab", 2);
+        return tree;
+    }
+}
+
+TEST(PrefixTree, StreambufPartialMatch)
+{
+    auto tree = istreambuf_tree();
+
+    mem_device dev("abxe");
+    istreambuf sb(dev);
+    istreambuf_iterator beg(sb);
+    decltype(beg) end;
+
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 2) << "\"abc\" was entered but only \"ab\" is present";
+    EXPECT_EQ(*it, 'x');
+}
+
+TEST(PrefixTree, StreambufBacktrackToRoot)
+{
+    auto tree = istreambuf_tree();
+
+    mem_device dev("axe");
+    istreambuf sb(dev);
+    istreambuf_iterator beg(sb);
+    decltype(beg) end;
+
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 100);
+    EXPECT_EQ(*it, 'a');
+}
+
+// A stamp_input_iterator wrapping an istreambuf_iterator is what timeio's era path hands
+// to max_match. It is single-pass yet steps back through sputbackc, so it satisfies
+// steppable_back but not std::bidirectional_iterator -- backing up must go through
+// operator--, never std::advance, which would take its input_iterator_tag branch and
+// walk forward with a negative count.
+
+TEST(PrefixTree, StampIteratorBacktracksTwoLevels)
+{
     prefix_tree<char, int> tree;
-    tree.add("", 100); // Root value
     tree.add("abc", 1);
-    tree.add("ab", 2);
 
-    // Test partial match and backtracking
-    {
-        mem_device dev("abxe");
-        istreambuf sb(dev);
-        istreambuf_iterator beg(sb);
-        decltype(beg) end;
-        
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(beg, end, out);
-        
-        VERIFY(out && *out == 2); // Should match "ab"
-        VERIFY(*it == 'x');
-    }
+    // The input is a proper prefix of a stored key, so the walk descends two levels,
+    // finds no value on the way and has to back up both of them.
+    mem_device dev("abq");
+    istreambuf sb(dev);
+    istreambuf_iterator raw(sb);
+    stamp_input_iterator beg(raw);
+    decltype(beg) end;
 
-    // Test backtracking to root
-    {
-        mem_device dev("axe");
-        istreambuf sb(dev);
-        istreambuf_iterator beg(sb);
-        decltype(beg) end;
-        
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(beg, end, out);
-        
-        VERIFY(out && *out == 100); // Should match root
-        VERIFY(*it == 'a');
-    }
-    dump_info("Done\n");
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    EXPECT_FALSE(out.has_value());
+    EXPECT_EQ(*it, 'a') << "back at the position it started from";
+    ++it;
+    EXPECT_EQ(*it, 'b') << "the underlying buffer was repositioned, not just the wrapper";
 }
 
-void test_prefix_tree_stamp_input_iterator()
+TEST(PrefixTree, StampIteratorBacktracksToShallowerValue)
 {
-    dump_info("Test prefix_tree stamp_input_iterator backtracking...");
-    // A stamp_input_iterator wrapping an istreambuf_iterator is what timeio's era path hands
-    // to max_match. It is single-pass yet steps back through sputbackc, so it satisfies
-    // steppable_back but not std::bidirectional_iterator -- backing up must go through
-    // operator--, never std::advance, which would take its input_iterator_tag branch and
-    // walk forward with a negative count.
-    {
-        prefix_tree<char, int> tree;
-        tree.add("abc", 1);
-
-        // The input is a proper prefix of a stored key, so the walk descends two levels,
-        // finds no value on the way and has to back up both of them.
-        mem_device dev("abq");
-        istreambuf sb(dev);
-        istreambuf_iterator raw(sb);
-        stamp_input_iterator beg(raw);
-        decltype(beg) end;
-
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(beg, end, out);
-
-        VERIFY(!out);
-        VERIFY(*it == 'a');   // back at the position it started from
-        ++it;
-        VERIFY(*it == 'b');   // the underlying buffer was repositioned, not just the wrapper
-    }
-
-    // Backing up to a value found at a shallower depth.
-    {
-        prefix_tree<char, int> tree;
-        tree.add("a", 5);
-        tree.add("abc", 1);
-
-        mem_device dev("abq");
-        istreambuf sb(dev);
-        istreambuf_iterator raw(sb);
-        stamp_input_iterator beg(raw);
-        decltype(beg) end;
-
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(beg, end, out);
-
-        VERIFY(out && *out == 5);
-        VERIFY(*it == 'b');   // one step back, just past the matched "a"
-    }
-
-    // A full match needs no backtracking at all.
-    {
-        prefix_tree<char, int> tree;
-        tree.add("abc", 1);
-
-        mem_device dev("abcz");
-        istreambuf sb(dev);
-        istreambuf_iterator raw(sb);
-        stamp_input_iterator beg(raw);
-        decltype(beg) end;
-
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(beg, end, out);
-
-        VERIFY(out && *out == 1);
-        VERIFY(*it == 'z');
-    }
-    dump_info("Done\n");
-}
-
-void test_prefix_tree_overflow()
-{
-    dump_info("Test prefix_tree TValue overflow check...");
-    
-    // int8_t max is 127. We provide 129 elements to trigger overflow.
-    std::vector<const char*> strs;
-    for (int i = 0; i < 129; ++i) {
-        strs.push_back("a"); 
-    }
-
-    try {
-        prefix_tree<char, int8_t> tree(strs);
-        VERIFY(false); // Should have thrown
-    } catch (const std::runtime_error& e) {
-        std::string msg = e.what();
-        VERIFY(msg.find("too many strings") != std::string::npos);
-    }
-    dump_info("Done\n");
-}
-
-void test_prefix_tree_uninitialized_out()
-{
-    dump_info("Test prefix_tree uninitialized out (Issue 1)...");
     prefix_tree<char, int> tree;
-    // Tree is empty, no root value, no children.
-    
-    decltype(tree)::match_out_type out;
+    tree.add("a", 5);
+    tree.add("abc", 1);
+
+    mem_device dev("abq");
+    istreambuf sb(dev);
+    istreambuf_iterator raw(sb);
+    stamp_input_iterator beg(raw);
+    decltype(beg) end;
+
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 5);
+    EXPECT_EQ(*it, 'b') << "one step back, just past the matched \"a\"";
+}
+
+TEST(PrefixTree, StampIteratorFullMatchDoesNotBacktrack)
+{
+    prefix_tree<char, int> tree;
+    tree.add("abc", 1);
+
+    mem_device dev("abcz");
+    istreambuf sb(dev);
+    istreambuf_iterator raw(sb);
+    stamp_input_iterator beg(raw);
+    decltype(beg) end;
+
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 1);
+    EXPECT_EQ(*it, 'z');
+}
+
+TEST(PrefixTree, ValueTypeOverflow)
+{
+    // The vector constructor numbers its keys, so 129 of them overflow int8_t.
+    std::vector<const char*> strs(129, "a");
+
+    try
+    {
+        prefix_tree<char, std::int8_t> tree(strs);
+        FAIL() << "expected std::runtime_error";
+    }
+    catch (const std::runtime_error& e)
+    {
+        EXPECT_THAT(e.what(), HasSubstr("too many strings"));
+    }
+}
+
+TEST(PrefixTree, EmptyTreeLeavesOutUnset)
+{
+    prefix_tree<char, int> tree;
+
+    decltype(tree)::match_out_type out{};
     std::string s = "abc";
     auto it = tree.max_match(s.begin(), s.end(), out);
-    
-    VERIFY(!out); 
-    VERIFY(it == s.begin());
-    dump_info("Done\n");
+
+    EXPECT_FALSE(out.has_value());
+    EXPECT_EQ(it, s.begin());
 }
 
-void test_prefix_tree_nullptr_check()
+TEST(PrefixTree, NullPointerInVector)
 {
-    dump_info("Test prefix_tree nullptr check (Issue 5)...");
     std::vector<const char*> strs = {"hello", nullptr, "world"};
-    try {
+
+    try
+    {
         prefix_tree<char, int> tree(strs);
-        VERIFY(false); // Should have thrown
-    } catch (const std::runtime_error& e) {
-        std::string msg = e.what();
-        VERIFY(msg.find("null pointer") != std::string::npos);
+        FAIL() << "expected std::runtime_error";
     }
-    dump_info("Done\n");
+    catch (const std::runtime_error& e)
+    {
+        EXPECT_THAT(e.what(), HasSubstr("null pointer"));
+    }
 }
 
-void test_prefix_tree_large_value()
+TEST(PrefixTree, LargeValueType)
 {
-    dump_info("Test prefix_tree large value type...");
-    // std::string is a large type (> 16 bytes usually)
+    // std::string is stored out of line, so match_out_type is a pointer here,
+    // not an optional.
     prefix_tree<char, std::string> tree;
     tree.add("hello", "value1");
     tree.add("world", "value2");
     tree.add("", "root_value");
 
-    decltype(tree)::match_out_type out;
+    decltype(tree)::match_out_type out{};
+
     std::string s1 = "hello_suffix";
     auto it1 = tree.max_match(s1.begin(), s1.end(), out);
-    VERIFY(out && *out == "value1");
-    VERIFY(it1 == s1.begin() + 5);
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(*out, "value1");
+    EXPECT_EQ(it1, s1.begin() + 5);
 
     std::string s2 = "no_match";
     auto it_s2 = tree.max_match(s2.begin(), s2.end(), out);
-    VERIFY(out && *out == "root_value");
-    VERIFY(it_s2 == s2.begin());
-    
-    // Test with const char*
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(*out, "root_value");
+    EXPECT_EQ(it_s2, s2.begin());
+
     const char* c_str = "world";
     auto it_c = tree.max_match(c_str, c_str + 5, out);
-    VERIFY(out && *out == "value2");
-    VERIFY(it_c == c_str + 5);
-
-    dump_info("Done\n");
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(*out, "value2");
+    EXPECT_EQ(it_c, c_str + 5);
 }
 
-void test_prefix_tree_int8_normal()
+TEST(PrefixTree, Int8Value)
 {
-    dump_info("Test prefix_tree int8_t normal usage...");
     std::vector<const char*> strs = {"a", "b", "c"};
-    prefix_tree<char, int8_t> tree(strs);
-    
-    decltype(tree)::match_out_type out;
+    prefix_tree<char, std::int8_t> tree(strs);
+
+    decltype(tree)::match_out_type out{};
     std::string s = "b";
     (void)tree.max_match(s.begin(), s.end(), out);
-    VERIFY(out && *out == 1);
-    dump_info("Done\n");
+    ASSERT_TRUE(out.has_value());
+    EXPECT_EQ(*out, 1);
 }
 
-void test_prefix_tree_backtracking_variants()
+TEST(PrefixTree, BacktrackSmallValueBidirectional)
 {
-    dump_info("Test prefix_tree backtracking variants...");
-    
-    // Test small type backtracking with bidirectional iterator
-    {
-        prefix_tree<char, int> tree;
-        tree.add("ab", 1);
-        std::string s = "ax";
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(s.begin(), s.end(), out);
-        VERIFY(!out);
-        VERIFY(it == s.begin());
-    }
+    prefix_tree<char, int> tree;
+    tree.add("ab", 1);
 
-    // Test large type backtracking with bidirectional iterator
-    {
-        prefix_tree<char, std::string> tree;
-        tree.add("ab", "val");
-        std::string s = "ax";
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(s.begin(), s.end(), out);
-        VERIFY(!out);
-        VERIFY(it == s.begin());
-    }
+    std::string s = "ax";
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(s.begin(), s.end(), out);
 
-    // Test large type with istreambuf_iterator backtracking
-    {
-        prefix_tree<char, std::string> tree;
-        tree.add("abc", "val"); // 'a' and 'ab' have no values
-        mem_device dev("abx");
-        istreambuf sb(dev);
-        istreambuf_iterator beg(sb);
-        decltype(beg) end;
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(beg, end, out);
-        VERIFY(!out);
-        VERIFY(*it == 'a'); // Should have backtracked 2 steps to 'a'
-    }
-    
-    // Test matching root for large type in istreambuf
-    {
-        prefix_tree<char, std::string> tree;
-        tree.add("", "root");
-        mem_device dev("x");
-        istreambuf sb(dev);
-        istreambuf_iterator beg(sb);
-        decltype(beg) end;
-        decltype(tree)::match_out_type out;
-        auto it = tree.max_match(beg, end, out);
-        VERIFY(out && *out == "root");
-        VERIFY(*it == 'x');
-    }
-    dump_info("Done\n");
+    EXPECT_FALSE(out.has_value());
+    EXPECT_EQ(it, s.begin());
 }
 
-void test_prefix_tree()
+TEST(PrefixTree, BacktrackLargeValueBidirectional)
 {
-    test_prefix_tree_basic();
-    test_prefix_tree_duplicate_handling();
-    test_prefix_tree_string_view();
-    test_prefix_tree_vector_constructor();
-    test_prefix_tree_root_value();
-    test_prefix_tree_greedy_match();
-    test_prefix_tree_istreambuf();
-    test_prefix_tree_stamp_input_iterator();
-    test_prefix_tree_overflow();
-    test_prefix_tree_uninitialized_out();
-    test_prefix_tree_nullptr_check();
-    test_prefix_tree_large_value();
-    test_prefix_tree_int8_normal();
-    test_prefix_tree_backtracking_variants();
+    prefix_tree<char, std::string> tree;
+    tree.add("ab", "val");
+
+    std::string s = "ax";
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(s.begin(), s.end(), out);
+
+    EXPECT_EQ(out, nullptr);
+    EXPECT_EQ(it, s.begin());
+}
+
+TEST(PrefixTree, BacktrackLargeValueStreambuf)
+{
+    // Neither "a" nor "ab" carries a value, so the walk backs up two steps.
+    prefix_tree<char, std::string> tree;
+    tree.add("abc", "val");
+
+    mem_device dev("abx");
+    istreambuf sb(dev);
+    istreambuf_iterator beg(sb);
+    decltype(beg) end;
+
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    EXPECT_EQ(out, nullptr);
+    EXPECT_EQ(*it, 'a');
+}
+
+TEST(PrefixTree, RootValueLargeValueStreambuf)
+{
+    prefix_tree<char, std::string> tree;
+    tree.add("", "root");
+
+    mem_device dev("x");
+    istreambuf sb(dev);
+    istreambuf_iterator beg(sb);
+    decltype(beg) end;
+
+    decltype(tree)::match_out_type out{};
+    auto it = tree.max_match(beg, end, out);
+
+    ASSERT_NE(out, nullptr);
+    EXPECT_EQ(*out, "root");
+    EXPECT_EQ(*it, 'x');
 }

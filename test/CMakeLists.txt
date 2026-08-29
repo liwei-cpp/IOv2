@@ -15,6 +15,17 @@
 include(IOv2TestOptions)
 include("${CMAKE_CURRENT_SOURCE_DIR}/suites.cmake")
 
+# Suites converted to GoogleTest. A directory joins this list as soon as its
+# first source is converted, not when the last one is: the generated main can
+# hold TEST()s and the remaining hand-written entry points at the same time,
+# which is what lets the conversion proceed one file at a time.
+set(IOV2_TEST_GTEST_SUITE_DIRS
+    common)
+
+if(IOV2_TEST_GTEST_SUITE_DIRS)
+  include(IOv2GoogleTest)
+endif()
+
 # Everything lands under <build>/test/ in the layout the tests already expect:
 # eight of them locate message catalogues by resolving /proc/self/exe and then
 # walking to <exe dir>/../IOv2TestResources. Reproducing that layout is what lets
@@ -52,12 +63,27 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   endforeach()
 
   set(suite_main "${CMAKE_CURRENT_BINARY_DIR}/generated/${suite_slug}_main.cpp")
-  configure_file("${PROJECT_SOURCE_DIR}/cmake/suite_main.cpp.in" "${suite_main}" @ONLY)
+  if(suite_dir IN_LIST IOV2_TEST_GTEST_SUITE_DIRS)
+    # The still-unconverted entries run inside one test case; an empty one would
+    # only be noise, so it is omitted once the directory is fully converted.
+    set(IOV2_SUITE_LEGACY_TEST "")
+    if(${target}_ENTRIES)
+      string(APPEND IOV2_SUITE_LEGACY_TEST
+          "TEST(Legacy, ${suite_slug})\n{\n${IOV2_SUITE_CALLS}}\n")
+    endif()
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/suite_main_gtest.cpp.in"
+                   "${suite_main}" @ONLY)
+  else()
+    configure_file("${PROJECT_SOURCE_DIR}/cmake/suite_main.cpp.in" "${suite_main}" @ONLY)
+  endif()
 
   add_executable(${target} ${suite_main} ${suite_sources})
 
   target_link_libraries(${target} PRIVATE
       iov2_test_subject iov2_test_options iov2_test_thirdparty)
+  if(suite_dir IN_LIST IOV2_TEST_GTEST_SUITE_DIRS)
+    target_link_libraries(${target} PRIVATE iov2_test_gtest)
+  endif()
 
   # -I../include then -I., in that order, exactly as the Makefile passes them.
   # The second is what makes <support/verify.h> resolve.
