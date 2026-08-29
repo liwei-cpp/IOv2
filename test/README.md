@@ -83,11 +83,16 @@ cmake --preset gcc-coverage
 cmake --build --preset gcc-coverage --parallel "$(nproc)"
 ctest --preset gcc-coverage --parallel
 lcov --capture --directory build/gcc-coverage --output-file coverage.info \
+     --rc branch_coverage=1 \
      --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
 lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
-     --ignore-errors unused
-lcov --list coverage.info
+     --rc branch_coverage=1 --ignore-errors unused
+lcov --list coverage.info --rc branch_coverage=1
 ```
+
+`--rc branch_coverage=1` 要在每一条 lcov 命令上都给：分支数据本来就在 `.gcda` 里，
+lcov 默认丢弃而已，所以加上它不需要重新编译，也不会改变行覆盖——只是多出 `BRDA`
+记录。重写批次的验收要比 line/function/branch 三项。
 
 `--extract` 的模式必须锚定在仓库路径上。写成 `*/include/*` 会把
 `/usr/local/include/c++/...` 一并匹配进来，多出上百个 libstdc++ 头文件。
@@ -232,11 +237,17 @@ cmake --preset gcc-coverage
 cmake --build --preset gcc-coverage --parallel "$(nproc)"
 ctest --preset gcc-coverage --parallel
 lcov --capture --directory build/gcc-coverage --output-file coverage.info \
+     --rc branch_coverage=1 \
      --ignore-errors mismatch --ignore-errors inconsistent --ignore-errors negative
 lcov --extract coverage.info "${PWD}/include/*" --output-file coverage.info \
-     --ignore-errors unused
-lcov --list coverage.info
+     --rc branch_coverage=1 --ignore-errors unused
+lcov --list coverage.info --rc branch_coverage=1
 ```
+
+`--rc branch_coverage=1` goes on every lcov call. The branch data is already in
+the `.gcda`; lcov drops it by default, so adding the flag needs no rebuild and
+cannot change line coverage -- it only adds `BRDA` records. Rewrite batches are
+accepted on a line/function/branch comparison.
 
 The `--extract` pattern has to be anchored at the repository. Written as
 `*/include/*` it also matches `/usr/local/include/c++/...` and drags in a hundred-odd
