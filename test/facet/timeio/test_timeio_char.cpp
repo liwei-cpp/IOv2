@@ -6654,8 +6654,6 @@ void test_timeio_char_put_20()
         VERIFY(all_supported(conf->era_date_time_format()));
         VERIFY(all_supported(conf->am_pm_format()));
     }
-    dump_info("  (part B saw " + std::to_string(checked) + " of "
-              + std::to_string(sizeof(names) / sizeof(*names)) + " candidate locales)\n");
     VERIFY(checked >= 2);   // C and C.UTF-8 are always there; more is better
 
     // The control for part B: the checker must reject what the locales are being cleared of.
@@ -6666,6 +6664,8 @@ void test_timeio_char_put_20()
     VERIFY(all_supported("%EY %Oe"));
 
     dump_info("Done\n");
+    dump_info("  (part B saw " + std::to_string(checked) + " of "
+              + std::to_string(sizeof(names) / sizeof(*names)) + " candidate locales)\n");
 }
 
 // put(sys_time) and put(local_time, offset): both carry an offset, and they part company on the
@@ -7360,7 +7360,6 @@ void test_timeio_char_expand_1()
             }
     }
 
-    dump_info("  (cross-checked " + std::to_string(checked) + " specifier/modifier pairs)\n");
     VERIFY(checked == 6 * (53 * 3 - 2));
 
     // The pair held out of the sweep: a format cut short after its modifier is passed through

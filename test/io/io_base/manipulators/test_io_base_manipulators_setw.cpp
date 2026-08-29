@@ -77,6 +77,8 @@ void test_io_base_manipulators_setw_char_1()
     // Constructing the manipulator on its own never throws: the value is only stored.
     (void)IOv2::setw(-1);
     (void)IOv2::setw(std::numeric_limits<size_t>::max());
+
+    dump_info("Done\n");
 }
 
 // A rejected width is reported through the stream, not thrown at the caller: the
@@ -121,6 +123,8 @@ void test_io_base_manipulators_setw_char_2()
         VERIFY(caught);
         VERIFY(throwing.str_fail());
     }
+
+    dump_info("Done\n");
 }
 
 // Valid widths are stored exactly, including ones far beyond what a 32-bit
@@ -151,6 +155,8 @@ void test_io_base_manipulators_setw_char_3()
     oss.flush();
     VERIFY(oss.device().str() == "****ab");
     VERIFY(oss.width() == 0);
+
+    dump_info("Done\n");
 }
 
 // The extraction side takes width as an upper bound only, so an arbitrarily
@@ -189,6 +195,8 @@ void test_io_base_manipulators_setw_char_4()
         iss >> IOv2::setw(1000) >> buf;
         VERIFY(std::string(buf) == "abcdefg");
     }
+
+    dump_info("Done\n");
 }
 
 void test_io_base_manipulators_setw_wchar_t_1()
@@ -222,4 +230,6 @@ void test_io_base_manipulators_setw_wchar_t_1()
     woss.clear();
     woss.flush();
     VERIFY(woss.device().str() == L"****ab");
+
+    dump_info("Done\n");
 }

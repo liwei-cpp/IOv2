@@ -57,6 +57,8 @@ void test_io_base_width_1()
     }
 
     VERIFY(ios.width() == 12u);
+
+    dump_info("Done\n");
 }
 
 // Valid widths round-trip exactly, including ones a 32-bit field could not hold.
@@ -85,6 +87,8 @@ void test_io_base_width_2()
 
     ios.width(0);
     VERIFY(ios.width() == 0);
+
+    dump_info("Done\n");
 }
 
 // A rejected width does not disturb the stream it was called on.
@@ -104,6 +108,8 @@ void test_io_base_width_3()
     oss << "cd";
     oss.flush();
     VERIFY(oss.device().str() == "abcd");
+
+    dump_info("Done\n");
 }
 
 void test_io_base_width_wchar_t_1()
@@ -121,4 +127,6 @@ void test_io_base_width_wchar_t_1()
     ios.width(std::ptrdiff_t(1) << 40);
     VERIFY(ios.width() == (size_t(1) << 40));
     ios.width(0);
+
+    dump_info("Done\n");
 }
