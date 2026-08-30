@@ -65,12 +65,19 @@ set(IOV2_TEST_SUITE_DIRS
     locale
 )
 
-# Sources nothing compiles: the seven aggregate main()s that test/Makefile
+# Suites whose sources are GoogleTest.  A directory appears here as soon as
+# its first source is converted, not when the last one is: the generated
+# main() can hold TEST()s and the remaining hand-written entry points at the
+# same time, which is what lets a directory be converted one file at a time.
+set(IOV2_TEST_GTEST_SUITE_DIRS
+    common
+)
+
+# Sources nothing compiles: the aggregate main()s that test/Makefile
 # built, and the dispatch-only files whose callers they were.  They remain in
 # the tree because derive_suites.py reads them -- they are what fixes the
 # entries below and their order.  See its module docstring.
 set(IOV2_TEST_EXCLUDED_SOURCES
-    common/test_util.cpp
     concur/test_concur.cpp
     cvt/test_cvt.cpp
     device/test_device.cpp
@@ -83,15 +90,10 @@ set(IOV2_TEST_EXCLUDED_SOURCES
     locale/test_locale.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 189)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 188)
 
 set(test_common_ENTRIES
-    test_lru_cache
-    test_clocale_wrapper
-    test_clocale_wrapper_exception_paths
-    test_stamp_input_iterator
-    test_copyable_mutex
-    test_copyable_atomic
+    # none: every case registers itself
 )
 
 set(test_concur_ENTRIES

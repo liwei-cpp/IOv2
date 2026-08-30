@@ -1,5 +1,9 @@
 #include <clocale>
 
+#include <common/defs.h>
+
+#include <gtest/gtest.h>
+
 namespace
 {
 // Mocking system calls for testing exception paths
@@ -28,8 +32,6 @@ inline locale_t mock_duplocale(locale_t loc)
 #define clocale_user clocale_user_mock
 
 #include <common/clocale_wrapper.h>
-#include <support/verify.h>
-#include <support/dump_info.h>
 
 #undef newlocale
 #undef duplocale
@@ -37,46 +39,41 @@ inline locale_t mock_duplocale(locale_t loc)
 
 using namespace IOv2;
 
-void test_clocale_wrapper_exception_paths()
+// The two mock switches are file-scope globals, so a case that left one armed
+// would derail whichever case ran next. The fixture clears both on entry and
+// exit rather than trusting each case to reset what it set.
+class ClocaleWrapperMock : public ::testing::Test
 {
-    dump_info("Test clocale_wrapper exception paths (Coverage for lines 49, 63, 92)...");
+protected:
+    void SetUp() override { reset(); }
+    void TearDown() override { reset(); }
 
-    // Line 49: newlocale failure
+    static void reset()
+    {
+        mock_newlocale_fail = false;
+        mock_duplocale_fail = false;
+    }
+};
+
+TEST_F(ClocaleWrapperMock, NewlocaleFailureThrows)
+{
     mock_newlocale_fail = true;
-    try {
-        clocale_wrapper_mock loc("C");
-        VERIFY(false);
-    } catch (const cvt_error& e) {
-        // Expected
-    }
-    mock_newlocale_fail = false;
+    EXPECT_THROW((void)clocale_wrapper_mock("C"), cvt_error);
+}
 
-    // Line 63: duplocale failure in copy constructor
-    {
-        clocale_wrapper_mock loc1("C");
-        mock_duplocale_fail = true;
-        try {
-            clocale_wrapper_mock loc2(loc1);
-            VERIFY(false);
-        } catch (const cvt_error& e) {
-            // Expected
-        }
-        mock_duplocale_fail = false;
-    }
+TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyConstructorThrows)
+{
+    clocale_wrapper_mock loc1("C");
 
-    // Line 92: duplocale failure in copy assignment
-    {
-        clocale_wrapper_mock loc1("C");
-        clocale_wrapper_mock loc2("C");
-        mock_duplocale_fail = true;
-        try {
-            loc2 = loc1;
-            VERIFY(false);
-        } catch (const cvt_error& e) {
-            // Expected
-        }
-        mock_duplocale_fail = false;
-    }
+    mock_duplocale_fail = true;
+    EXPECT_THROW((void)clocale_wrapper_mock(loc1), cvt_error);
+}
 
-    dump_info("Done\n");
+TEST_F(ClocaleWrapperMock, DuplocaleFailureInCopyAssignmentThrows)
+{
+    clocale_wrapper_mock loc1("C");
+    clocale_wrapper_mock loc2("C");
+
+    mock_duplocale_fail = true;
+    EXPECT_THROW(loc2 = loc1, cvt_error);
 }
