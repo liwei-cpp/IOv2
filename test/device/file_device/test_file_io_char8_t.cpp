@@ -1,800 +1,653 @@
-#include <cstring>
-#include <fstream>
-#include <stdexcept>
-#include <tuple>
+#include <common/defs.h>
+#include <device/device_concepts.h>
 #include <device/file_device.h>
 
-#include <support/dump_info.h>
 #include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_file_device_char8_t_gen_1()
+#include <gtest/gtest.h>
+
+#include <cstddef>
+#include <cstring>
+#include <limits>
+#include <string>
+#include <utility>
+
+using namespace IOv2;
+
+namespace
 {
-    using namespace IOv2;
+    static_assert(io_device<ifile_device<char8_t>>);
+    static_assert(io_device<ofile_device<char8_t>>);
+    static_assert(io_device<file_device<char8_t>>);
 
-    dump_info("Test file_device<char8_t> general 1...");
-    static_assert(IOv2::io_device<IOv2::basic_file_device<true, false, char8_t>>);
-    static_assert(IOv2::io_device<IOv2::basic_file_device<false, true, char8_t>>);
-    static_assert(IOv2::io_device<IOv2::basic_file_device<true, true, char8_t>>);
+    static_assert(std::is_same_v<ifile_device<char8_t>::char_type, char8_t>);
+    static_assert(std::is_same_v<ofile_device<char8_t>::char_type, char8_t>);
+    static_assert(std::is_same_v<file_device<char8_t>::char_type, char8_t>);
 
-    static_assert(std::is_same_v<IOv2::basic_file_device<true, false, char8_t>::char_type, char8_t>);
-    static_assert(std::is_same_v<IOv2::basic_file_device<false, true, char8_t>::char_type, char8_t>);
-    static_assert(std::is_same_v<IOv2::basic_file_device<true, true, char8_t>::char_type, char8_t>);
+    // All three seek; which direction each supports follows its template
+    // arguments, and only those.
+    static_assert(dev_cpt::support_positioning<ifile_device<char8_t>>);
+    static_assert(dev_cpt::support_get<ifile_device<char8_t>>);
+    static_assert(!dev_cpt::support_put<ifile_device<char8_t>>);
 
-    {
-        using CheckType = IOv2::basic_file_device<true, false, char8_t>;
-        static_assert(IOv2::io_device<CheckType>);
-        static_assert(IOv2::dev_cpt::support_positioning<CheckType>);
-        static_assert(!IOv2::dev_cpt::support_put<CheckType>);
-        static_assert(IOv2::dev_cpt::support_get<CheckType>);
-    }
-    
-    {
-        using CheckType = IOv2::basic_file_device<false, true, char8_t>;
-        static_assert(IOv2::io_device<CheckType>);
-        static_assert(IOv2::dev_cpt::support_positioning<CheckType>);
-        static_assert(IOv2::dev_cpt::support_put<CheckType>);
-        static_assert(!IOv2::dev_cpt::support_get<CheckType>);
-    }
-    
-    {
-        using CheckType = IOv2::basic_file_device<true, true, char8_t>;
-        static_assert(IOv2::io_device<CheckType>);
-        static_assert(IOv2::dev_cpt::support_positioning<CheckType>);
-        static_assert(IOv2::dev_cpt::support_put<CheckType>);
-        static_assert(IOv2::dev_cpt::support_get<CheckType>);
-    }
-    dump_info("Done\n");
+    static_assert(dev_cpt::support_positioning<ofile_device<char8_t>>);
+    static_assert(!dev_cpt::support_get<ofile_device<char8_t>>);
+    static_assert(dev_cpt::support_put<ofile_device<char8_t>>);
+
+    static_assert(dev_cpt::support_positioning<file_device<char8_t>>);
+    static_assert(dev_cpt::support_get<file_device<char8_t>>);
+    static_assert(dev_cpt::support_put<file_device<char8_t>>);
+
+    // Byte n of this string is n rendered in base 36, so a seek to n and the
+    // character read there check each other without a lookup table.
+    const std::u8string data = u8"0123456789abcdefghijklmnopqrstuvwxyz";
+    constexpr std::size_t data_len = 36;
+
+    char8_t at(std::size_t n) { return data[n]; }
 }
 
-void test_file_device_char8_t_close_1()
+TEST(FileDeviceChar8, Traits)
 {
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::close 1...");
-
-    const char name_01[] = "filebuf_members-1.tst";    
-    const char name_02[] = "filebuf_members-1.txt";
-    const char* name_03 = "filebuf_members-3";
-
-    basic_file_device<true, false, char8_t> fb_01;
-    basic_file_device<false, true, char8_t> fb_02;
-    basic_file_device<true, true, char8_t> fb_03;
-    
-    // bool is_open()
-    VERIFY(!fb_01.is_open());
-    VERIFY(!fb_02.is_open());
-    VERIFY(!fb_03.is_open());
-
-    {
-        file_guard g1(name_01, "abcde");
-        fb_01 = basic_file_device<true, false, char8_t>(name_01);
-        VERIFY(fb_01.is_open());
-    }
-
-    {
-        file_guard g1(name_02, "");
-        fb_02 = basic_file_device<false, true, char8_t>(name_02, file_open_flag::trunc);
-        VERIFY(fb_02.is_open());
-        
-        file_guard g2(name_03);
-        fb_03 = basic_file_device<true, true, char8_t>(name_03, file_open_flag::trunc);
-        VERIFY(fb_03.is_open());
-        
-        fb_02.close();
-        VERIFY(!fb_02.is_open());
-        
-        fb_03.close();
-        VERIFY(!fb_02.is_open());
-        
-        fb_03.close();
-        VERIFY(!fb_02.is_open());
-    }
-
-    dump_info("Done\n");
+    // Every assertion above is a static_assert; compiling is the check.
+    SUCCEED();
 }
 
-void test_file_device_char8_t_close_2()
+// ---------------------------------------------------------------------------
+// Opening and closing.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar8, ADefaultConstructedDeviceIsNotOpen)
 {
-    using namespace IOv2;
+    ifile_device<char8_t> in;
+    ofile_device<char8_t> out;
+    file_device<char8_t>  io;
 
-    dump_info("Test file_device<char8_t>::close 2...");
-    
-    const char name_01[] = "filebuf_virtuals-1.txt"; // file with data in it
-    const char name_02[] = "filebuf_virtuals-2.txt"; // empty file, need to create
-
-    // 'in'
-    char8_t buffer[] = u8"xxxxxxxxxx";
-    {
-        file_guard g1(name_01, "axxxxxxxxxx");
-        basic_file_device<true, false, char8_t> fb_01(name_01);
-
-        char8_t ch;
-        VERIFY(fb_01.dget(&ch, 1) == 1);
-        VERIFY(fb_01.dget(buffer, sizeof(buffer) - 1) == sizeof(buffer) - 1);
-        
-        fb_01.close();
-        try
-        {
-            fb_01.dget(&ch, 1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (...) {}
-
-        try
-        {
-            fb_01.dget(buffer, sizeof(buffer));
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (...) {}
-    }
-    
-    // 'out'
-    {
-        file_guard g(name_02);
-        basic_file_device<false, true, char8_t> fb_02(name_02);
-        fb_02.dput(u8"T", 1);
-        fb_02.dput(buffer, sizeof(buffer) - 1);
-
-        fb_02.close();
-        try
-        {
-            fb_02.dput(u8"T", 1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch(...) {}
-        
-        try
-        {
-            fb_02.dput(buffer, sizeof(buffer) - 1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch(...) {}
-    }
-
-    dump_info("Done\n");
+    EXPECT_FALSE(in.is_open());
+    EXPECT_FALSE(out.is_open());
+    EXPECT_FALSE(io.is_open());
 }
 
-void test_file_device_char8_t_is_open_1()
+TEST(FileDeviceChar8, EachModeOpensAndCloses)
 {
-    using namespace IOv2;
+    const char* readable = "fd_char8_open_in.tst";
+    const char* writable = "fd_char8_open_out.tst";
+    const char* both     = "fd_char8_open_io.tst";
 
-    dump_info("Test file_device<char8_t>::is_open 1...");
-    
-    const char name_01[] = "filebuf_members-1.tst";
-    const char name_02[] = "filebuf_members-1.txt";
-    const char* name_03 = "filebuf_members-3"; // empty file, need to create
+    file_guard g1(readable, data);
+    file_guard g2(writable, data);
+    file_guard g3(both, data);
 
-    basic_file_device<true, false, char8_t> fb_01;
-    basic_file_device<true, true, char8_t> fb_02;
-    basic_file_device<false, true, char8_t> fb_03;
-    VERIFY(!fb_01.is_open());
-    VERIFY(!fb_02.is_open());
-    VERIFY(!fb_03.is_open());
-    
-    file_guard g0(name_01, "abcde");
-    fb_01 = basic_file_device<true, false, char8_t>(name_01);
-    VERIFY(fb_01.is_open());
-    
-    file_guard g1(name_02, "axxxxxxxxxx");
-    fb_02 = basic_file_device<true, true, char8_t>(name_02, file_open_flag::trunc);
-    VERIFY(fb_02.is_open());
-    
-    file_guard g2(name_03);
-    fb_03 = basic_file_device<false, true, char8_t>(name_03, file_open_flag::trunc);
-    VERIFY(fb_03.is_open());
-    
-    fb_01.close();
-    fb_02.close();
-    fb_03.close();
-    VERIFY(!fb_01.is_open());
-    VERIFY(!fb_02.is_open());
-    VERIFY(!fb_03.is_open());
+    ifile_device<char8_t> in(readable);
+    ofile_device<char8_t> out(writable, file_open_flag::trunc);
+    file_device<char8_t>  io(both, file_open_flag::trunc);
 
-    dump_info("Done\n");
+    EXPECT_TRUE(in.is_open());
+    EXPECT_TRUE(out.is_open());
+    EXPECT_TRUE(io.is_open());
+
+    in.close();
+    out.close();
+    io.close();
+
+    EXPECT_FALSE(in.is_open());
+    EXPECT_FALSE(out.is_open());
+    EXPECT_FALSE(io.is_open());
 }
 
-void test_file_device_char8_t_is_open_2()
+TEST(FileDeviceChar8, ClosingTwiceIsHarmless)
 {
-    using namespace IOv2;
+    const char* name = "fd_char8_close_twice.tst";
+    file_guard g(name, data);
 
-    dump_info("Test file_device<char8_t>::is_open 2...");
+    file_device<char8_t> dev(name);
+    ASSERT_TRUE(dev.is_open());
 
-    const char* name = "tmp_file5";
-    file_guard g1(name);
+    dev.close();
+    EXPECT_FALSE(dev.is_open());
 
-    basic_file_device<false, true, char8_t> scratch_file_1(name, file_open_flag::trunc);
-    scratch_file_1.close();
-
-    basic_file_device<true, false, char8_t> scratch_file_2(name);
-    VERIFY(scratch_file_2.is_open());
-
-    dump_info("Done\n");
+    // close() is guarded by is_open(), so a second call does nothing at all.
+    dev.close();
+    EXPECT_FALSE(dev.is_open());
 }
 
-void test_file_device_char8_t_get_1()
+TEST(FileDeviceChar8, ReadingAfterCloseThrows)
 {
-    using namespace IOv2;
+    const char* name = "fd_char8_read_after_close.tst";
+    file_guard g(name, data);
 
-    dump_info("Test file_device<char8_t>::get 1...");
-    
-    const char name_01[] = "sgetc.txt"; // file with data in it
-    file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-    
-    basic_file_device<true, false, char8_t> fb_01(name_01);
-    
-    char8_t ch;
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'/');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'/');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8' ');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'9');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'9');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'0');
-    
-    auto read_position = fb_01.dtell();
-    VERIFY(read_position != 0);
+    ifile_device<char8_t> dev(name);
+    char8_t ch = 0;
+    char8_t buf[8] = {};
+    ASSERT_EQ(dev.dget(&ch, 1), 1u);
 
-    dump_info("Done\n");
+    dev.close();
+    EXPECT_ANY_THROW(dev.dget(&ch, 1));
+    EXPECT_ANY_THROW(dev.dget(buf, sizeof(buf)));
 }
 
-void test_file_device_char8_t_get_2()
+TEST(FileDeviceChar8, WritingAfterCloseThrows)
 {
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::get 2...");
-    
-    const char name_01[] = "sgetc.txt"; // file with data in it
-    const char name_03[] = "tmp_sbumpc_1io.tst"; // empty file, need to create
-    
-    // in | out 1
-    {
-        file_guard g1(name_03);
-        basic_file_device<true, true, char8_t> fb_03(name_03, file_open_flag::trunc);
-        VERIFY(fb_03.dtell() == 0);
-        
-        char8_t ch;
-        VERIFY(fb_03.dget(&ch, 1) == 0);
-        VERIFY(fb_03.dtell() == 0);
-    }
-
-    // in | out 2
-    {
-        file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, true, char8_t> fb_01(name_01);
-        VERIFY(fb_01.dtell() == 0);
-        
-        char8_t ch;
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'/');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'/');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8' ');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'9');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'9');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == u8'0');
-        
-        VERIFY(fb_01.dtell() == 6);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_get_3()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::get 3...");
-    
-    const char name_06[] = "filebuf_virtuals-6.txt"; // empty file, need to create
-    file_guard g(name_06);
-    
-    basic_file_device<true, true, char8_t> fbuf(name_06, file_open_flag::trunc);
-    fbuf.dput(u8"crazy bees!", 11);
-    fbuf.dseek(0);
-    
-    char8_t ch;
-    fbuf.dget(&ch, 1);
-    VERIFY(fbuf.dget(&ch, 1) == 1 && ch == u8'r');
-    VERIFY(fbuf.dget(&ch, 1) == 1 && ch == u8'a');
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_1()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 1...");
-
-    const char name_01[] = "seekpos.txt"; // file with data in it
-    
-    char8_t ch;
-    {
-        // in 
-        file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, false, char8_t> fb(name_01);
-        
-        fb.dseek(79);
-        VERIFY(fb.dget(&ch, 1) == 1 && ch == 't');
-    }
-    
-    {
-        // io
-        file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, true, char8_t> fb(name_01);
-        VERIFY(fb.dtell() == 0);
-        
-        // beg
-        fb.dseek(79);
-        VERIFY(fb.dget(&ch, 1) == 1 && ch == 't');
-
-        // cur
-        fb.dseek(fb.dtell() - 1);
-        auto pt_3 = fb.dtell();
-        fb.dput(u8"\n", 1);
-        fb.dseek(pt_3);
-        VERIFY(fb.dget(&ch, 1) == 1 && ch == '\n');
-        
-        // end
-        fb.drseek(0);
-        fb.dput(u8"\nof the wonderful things he does!!\nok", 37);
-        VERIFY(fb.dtell() != 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_2()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 2...");
-    
-    const char name_01[] = "seekoff.txt";
-    file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-    
-    basic_file_device<true, false, char8_t> fb(name_01);
-    
-    // beg
-    fb.dseek(2);
-    VERIFY(fb.dtell() == 2);
-    
-    char8_t ch;
-    fb.dget(&ch, 1);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'9');
-    fb.dseek(4);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'9');
-
-
-    // cur
-    fb.dseek(fb.dtell() + 2);
-    VERIFY(fb.dtell() == 7);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'1');
-    fb.dseek(fb.dtell());
-    VERIFY(fb.dtell() == 8);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'7');
-
-    // end
-    fb.drseek(0);
-    VERIFY(fb.dget(&ch, 1) == 0);
-    fb.drseek(1);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'c');
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_3()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 3...");
-    
-    const char name_01[] = "seekoff.txt";
-    file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-
-    // in | out
-    basic_file_device<true, true, char8_t> fb(name_01);
-
-    VERIFY(fb.dtell() == 0);
-
-    //beg
-    fb.dseek(3);
-    VERIFY(fb.dtell() == 3);
-    
-    char8_t ch;
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'9');
-    
-    fb.dseek(3);
-    fb.dput(u8"\n", 1);
-    fb.dseek(4);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'9');
-
-    // cur
-    fb.dseek(fb.dtell() + 2);
-    VERIFY(fb.dtell() == 7);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == u8'1');
-    fb.dseek(fb.dtell());
-    fb.dput(u8"x", 1);
-    fb.dput(u8"\n", 1);
-
-    // end
-    fb.drseek(0);
-    fb.dput(u8"\n", 1);
-    fb.dput(u8"because because because. . .", 28);
-    
-    fb.drseek(1);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '.');
-    
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_4()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 4...");
-    
-    const char name_01[] = "seekoff.txt";
-    file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-
-    // out
-    basic_file_device<false, true, char8_t> fb(name_01);
-    VERIFY(fb.dtell() == 0);
-
-    // beg
-    fb.dseek(2);
-    VERIFY(fb.dtell() == 2);
-
-    // cur
-    fb.dseek(fb.dtell() + 2);
-    VERIFY(fb.dtell() == 4);
-    fb.dseek(fb.dtell());
-    fb.dput(u8"x", 1);
-    fb.dput(u8"\n", 1);
-    
-    // end
-    fb.drseek(0);
-    fb.dput(u8"\n", 1);
-    fb.dput(u8"because because because. . .", 28);
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_5()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 5...");
-
-    const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    
-    {
-        file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, false, char8_t> fb(name_01);
-        
-        fb.dseek(0);
-        fb.dseek(0);
-    }
-    
-    {
-        basic_file_device<true, false, char8_t> fb;
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_6()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 6...");
-
-    const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    
-    {
-        file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, true, char8_t> fb(name_01);
-        
-        fb.dseek(0);
-        fb.dseek(0);
-    }
-    
-    {
-        basic_file_device<true, true, char8_t> fb;
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_7()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 7...");
-
-    const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    
-    {
-        file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<false, true, char8_t> fb(name_01);
-        
-        fb.dseek(0);
-        fb.dseek(0);
-    }
-    
-    {
-        basic_file_device<false, true, char8_t> fb;
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char8_t_seek_8()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char8_t>::seek 8...");
-
-    const char name[] = "tmp_seekoff-4.tst";
-
-    char8_t buf[12];
+    const char* name = "fd_char8_write_after_close.tst";
     file_guard g(name);
-    basic_file_device<true, true, char8_t> fb(name, file_open_flag::trunc);
-    fb.dput(u8"abcd", 4);
-    
-    fb.dseek(0);
-    VERIFY(fb.dget(buf, 3) == 3);
-    VERIFY(std::memcmp(buf, u8"abc", 3) == 0);
-    
-    // Check read => write without pubseekoff(0, ios_base::cur)
-    fb.dput(u8"ef", 2);
-    fb.dseek(0);
-    VERIFY(fb.dget(buf, 5) == 5);
-    VERIFY(std::memcmp(buf, u8"abcef", 5) == 0);
-    
-    fb.dseek(0);
-    fb.dput(u8"gh", 2);
 
-    // Check write => read without pubseekoff(0, ios_base::cur)
-    VERIFY(fb.dget(buf, 3) == 3);
-    VERIFY(std::memcmp(buf, u8"cef", 3) == 0);
-    
-    fb.dput(u8"ijkl", 4);
-    
-    fb.dseek(0);
-    VERIFY(fb.dget(buf, 2) == 2);
-    VERIFY(std::memcmp(buf, u8"gh", 2) == 0);
+    ofile_device<char8_t> dev(name, file_open_flag::trunc);
+    dev.dput(u8"T", 1);
 
-    fb.drseek(0);
-    fb.dput(u8"mno", 3);
-
-    fb.dseek(0);
-    VERIFY(fb.dget(buf, 12) == 12);
-    VERIFY(std::memcmp(buf, u8"ghcefijklmno", 12) == 0);
-  
-    dump_info("Done\n");
+    dev.close();
+    EXPECT_ANY_THROW(dev.dput(u8"T", 1));
+    EXPECT_ANY_THROW(dev.dput(data.data(), data.size()));
 }
 
-void test_file_device_char8_t_error_1()
+TEST(FileDeviceChar8, AFileWrittenAndClosedCanBeOpenedForReading)
 {
-    using namespace IOv2;
+    const char* name = "fd_char8_reopen.tst";
+    file_guard g(name);
 
-    dump_info("Test file_device<char8_t> error 1...");
+    ofile_device<char8_t> writer(name, file_open_flag::trunc);
+    writer.close();
 
-    // Case 1: Constructor Read mode on non-existent file
-    try
-    {
-        basic_file_device<true, false, char8_t> fb("non_existent_file.txt");
-        VERIFY(false);
-    }
-    catch (const device_error&) {}
-
-    // Case 2: try_open Read mode on non-existent file
-    {
-        auto res = ifile_device<char8_t>::try_open("non_existent_file.txt");
-        VERIFY(!res);
-        VERIFY(!res.error().empty());
-    }
-
-    // Case 3: Read/Write mode on non-existent file
-    try
-    {
-        basic_file_device<true, true, char8_t> fb("non_existent_file.txt");
-        VERIFY(false);
-    }
-    catch (const device_error&) {}
-
-    // Case 4: Write mode with noreplace on existing file
-    {
-        file_guard g("existing_file_u8.txt", u8"content");
-        try
-        {
-            basic_file_device<false, true, char8_t> fb("existing_file_u8.txt", file_open_flag::noreplace);
-            VERIFY(false);
-        }
-        catch (const device_error&) {}
-        
-        auto res = ofile_device<char8_t>::try_open("existing_file_u8.txt", file_open_flag::noreplace);
-        VERIFY(!res);
-    }
-
-    dump_info("Done\n");
+    ifile_device<char8_t> reader(name);
+    EXPECT_TRUE(reader.is_open());
 }
 
-void test_file_device_char8_t_coverage_extra()
+// ---------------------------------------------------------------------------
+// Reading.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar8, GetReadsBytesInOrderAndAdvancesTheposition)
 {
-    using namespace IOv2;
-    dump_info("Test file_device<char8_t> coverage extra...");
+    const char* name = "fd_char8_get_order.tst";
+    file_guard g(name, data);
 
-    const char name[] = "extra_coverage_test_u8.txt";
+    ifile_device<char8_t> dev(name);
+    EXPECT_FALSE(dev.deof());
 
-    // 1. Missing Flag Combinations (fopen_mode)
-    // IsIn && IsOut + trunc | noreplace
+    char8_t ch = 0;
+    for (std::size_t i = 0; i < 6; ++i)
     {
-        file_guard g(name);
-        file_device<char8_t> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
-        VERIFY(dev.is_open());
+        EXPECT_EQ(dev.dget(&ch, 1), 1u) << "at byte " << i;
+        EXPECT_EQ(ch, at(i)) << "at byte " << i;
     }
-    // IsOut + trunc | binary
-    {
-        file_guard g(name);
-        ofile_device<char8_t> dev(name, file_open_flag::trunc | file_open_flag::binary);
-        VERIFY(dev.is_open());
-    }
-
-    // 2. try_open error path coverage
-    {
-        auto res = ifile_device<char8_t>::try_open(name, file_open_flag::trunc);
-        VERIFY(!res);
-    }
-
-    dump_info("Done\n");
+    EXPECT_EQ(dev.dtell(), 6u);
 }
 
-void test_file_device_char8_t_move()
+TEST(FileDeviceChar8, GetOnAnEmptyFileReturnsNothing)
 {
-    using namespace IOv2;
-    dump_info("Test file_device<char8_t> move semantics...");
-    const char name[] = "move_test_u8.txt";
-    file_guard g(name, u8"move content");
-    
-    basic_file_device<true, true, char8_t> dev1(name);
-    VERIFY(dev1.is_open());
-    size_t len = dev1.dsize();
-    
-    // Move constructor
-    basic_file_device<true, true, char8_t> dev2(std::move(dev1));
-    VERIFY(dev2.is_open());
-    VERIFY(dev2.dsize() == len);
-    VERIFY(!dev1.is_open());
-    
-    // Move assignment
-    basic_file_device<true, true, char8_t> dev3;
-    dev3 = std::move(dev2);
-    VERIFY(dev3.is_open());
-    VERIFY(dev3.dsize() == len);
-    VERIFY(!dev2.is_open());
+    const char* name = "fd_char8_get_empty.tst";
+    file_guard g(name);
 
-    // Self-assignment
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wself-move"
-    dev3 = std::move(dev3);
-#pragma GCC diagnostic pop
-    VERIFY(dev3.is_open());
-    VERIFY(dev3.dsize() == len);
-    
-    dump_info("Done\n");
+    file_device<char8_t> dev(name, file_open_flag::trunc);
+    EXPECT_EQ(dev.dtell(), 0u);
+
+    char8_t ch = 0;
+    EXPECT_EQ(dev.dget(&ch, 1), 0u);
+    EXPECT_EQ(dev.dtell(), 0u);
 }
 
-void test_file_device_char8_t_more_errors()
+TEST(FileDeviceChar8, AReadWriteDeviceReadsFromTheFront)
 {
-    using namespace IOv2;
-    dump_info("Test file_device<char8_t> more errors...");
-    
-    // Invalid seek in input mode
+    const char* name = "fd_char8_get_io.tst";
+    file_guard g(name, data);
+
+    file_device<char8_t> dev(name);
+    EXPECT_EQ(dev.dtell(), 0u);
+
+    char8_t ch = 0;
+    for (std::size_t i = 0; i < 6; ++i)
     {
-        file_guard g("seek_err_u8.txt", u8"123");
-        ifile_device<char8_t> dev("seek_err_u8.txt");
-        try {
-            dev.dseek(10); // Beyond end in In mode
-            VERIFY(false);
-        } catch (const device_error&) {}
+        EXPECT_EQ(dev.dget(&ch, 1), 1u) << "at byte " << i;
+        EXPECT_EQ(ch, at(i)) << "at byte " << i;
     }
-    
-    // dtell/dsize/dseek on closed file
+    EXPECT_EQ(dev.dtell(), 6u);
+}
+
+TEST(FileDeviceChar8, ReadBackWhatWasJustWritten)
+{
+    const char* name = "fd_char8_write_read_back.tst";
+    file_guard g(name);
+
+    file_device<char8_t> dev(name, file_open_flag::trunc);
+    dev.dput(u8"crazy bees!", 11);
+
+    dev.dseek(0);
+    char8_t ch = 0;
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, u8'c');
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, u8'r');
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, u8'a');
+}
+
+// ---------------------------------------------------------------------------
+// Positioning.  dseek() takes an absolute offset and drseek() counts back from
+// the end, so drseek(0) is one past the last byte and drseek(1) is the last one.
+// A relative move is dseek() applied to dtell().
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar8, SeekFormsOnAReadOnlyDevice)
+{
+    const char* name = "fd_char8_seek_in.tst";
+    file_guard g(name, data);
+
+    ifile_device<char8_t> dev(name);
+    char8_t ch = 0;
+
+    // Absolute.
+    dev.dseek(2);
+    EXPECT_EQ(dev.dtell(), 2u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(2));
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(3));
+
+    dev.dseek(4);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(4));
+
+    // Relative, expressed through dtell().
+    dev.dseek(dev.dtell() + 2);
+    EXPECT_EQ(dev.dtell(), 7u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(7));
+
+    // Seeking to where it already is changes nothing.
+    dev.dseek(dev.dtell());
+    EXPECT_EQ(dev.dtell(), 8u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(8));
+
+    // From the end.
+    dev.drseek(0);
+    EXPECT_TRUE(dev.deof());
+    EXPECT_EQ(dev.dget(&ch, 1), 0u);
+
+    dev.drseek(1);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(data_len - 1));
+}
+
+TEST(FileDeviceChar8, SeekFormsOnAReadWriteDevice)
+{
+    const char* name = "fd_char8_seek_io.tst";
+    file_guard g(name, data);
+
+    file_device<char8_t> dev(name);
+    EXPECT_EQ(dev.dtell(), 0u);
+
+    char8_t ch = 0;
+
+    // Absolute: seek, read, then overwrite the byte just read and read it back.
+    dev.dseek(3);
+    EXPECT_EQ(dev.dtell(), 3u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(3));
+
+    dev.dseek(3);
+    dev.dput(u8"\n", 1);
+    dev.dseek(3);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, u8'\n');
+
+    // Relative.
+    dev.dseek(dev.dtell() + 2);
+    EXPECT_EQ(dev.dtell(), 6u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(6));
+
+    // From the end: appending moves the end, so drseek(1) then reads the last
+    // byte written rather than the last byte of the original file.
+    dev.drseek(0);
+    dev.dput(u8"tail.", 5);
+    dev.drseek(1);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, u8'.');
+}
+
+TEST(FileDeviceChar8, SeekFormsOnAWriteOnlyDevice)
+{
+    const char* name = "fd_char8_seek_out.tst";
+    file_guard g(name, data);
+
+    // A write-only open is fopen "w", which truncates whether or not trunc was
+    // asked for: the bytes the guard wrote are gone before the first seek.
+    // Seeking past the end is still legal -- the gap becomes a hole.
+    ofile_device<char8_t> dev(name);
+    EXPECT_EQ(dev.dtell(), 0u);
+    EXPECT_EQ(dev.dsize(), 0u);
+
+    dev.dseek(2);
+    EXPECT_EQ(dev.dtell(), 2u);
+
+    dev.dseek(dev.dtell() + 2);
+    EXPECT_EQ(dev.dtell(), 4u);
+
+    dev.dseek(dev.dtell());
+    dev.dput(u8"x", 1);
+    EXPECT_EQ(dev.dtell(), 5u);
+
+    // drseek(0) is the end of what has been written, which is 5, not 36.
+    dev.drseek(0);
+    dev.dput(u8"tail.", 5);
+    EXPECT_EQ(dev.dtell(), 10u);
+}
+
+TEST(FileDeviceChar8, SeekingAnUnopenedDeviceThrows)
+{
+    // Every mode combination: the position lives in the file handle, and a
+    // default-constructed device has none.
     {
         ifile_device<char8_t> dev;
-        try { (void)dev.dtell(); VERIFY(false); } catch (const device_error&) {}
-        try { (void)dev.dsize(); VERIFY(false); } catch (const device_error&) {}
-        try { dev.dseek(0); VERIFY(false); } catch (const device_error&) {}
-        try { dev.drseek(0); VERIFY(false); } catch (const device_error&) {}
-        try { (void)dev.deof(); VERIFY(true); } catch (...) { VERIFY(false); }
+        EXPECT_ANY_THROW(dev.dseek(0));
+        EXPECT_ANY_THROW(dev.dseek(0));
     }
-
-    // dput on closed file or null buffer
     {
         ofile_device<char8_t> dev;
-        try { dev.dput(u8"a", 1); VERIFY(false); } catch (const device_error&) {}
-
-        file_guard g("put_err_u8.txt");
-        ofile_device<char8_t> dev2("put_err_u8.txt");
-        try { dev2.dput(nullptr, 1); VERIFY(false); } catch (const device_error&) {}
+        EXPECT_ANY_THROW(dev.dseek(0));
+        EXPECT_ANY_THROW(dev.dseek(0));
     }
-
-    // Invalid open modes
-    try {
-        basic_file_device<true, false, char8_t> dev("test_u8.txt", file_open_flag::trunc);
-        VERIFY(false);
-    } catch (const device_error&) {}
-
-    // dflush on closed file
     {
-        ofile_device<char8_t> dev;
-        dev.dflush();
+        file_device<char8_t> dev;
+        EXPECT_ANY_THROW(dev.dseek(0));
+        EXPECT_ANY_THROW(dev.dseek(0));
     }
-
-    // drseek: offset > m_file_len
-    {
-        file_guard g("drseek_err_u8.txt", u8"hello");
-        ifile_device<char8_t> dev("drseek_err_u8.txt");
-        try { dev.drseek(1000); VERIFY(false); } catch (const device_error&) {}
-    }
-
-    // dseek: position exceeds INT64_MAX
-    {
-        file_guard g("dseek_overflow_u8.txt", u8"hi");
-        ofile_device<char8_t> dev("dseek_overflow_u8.txt");
-        try {
-            dev.dseek(std::numeric_limits<size_t>::max());
-            VERIFY(false);
-        } catch (const device_error&) {}
-    }
-
-    dump_info("Done\n");
 }
 
-void test_file_device_char8_t_open_modes()
+TEST(FileDeviceChar8, SeekingToTheStartOfAnOpenFileAlwaysWorks)
 {
-    using namespace IOv2;
-    dump_info("Test file_device<char8_t> open modes...");
+    const char* name = "fd_char8_seek_zero.tst";
 
-    const char name[] = "modes_test_u8.txt";
-    
-    // noreplace
+    {
+        file_guard g(name, data);
+        ifile_device<char8_t> dev(name);
+        dev.dseek(0);
+        dev.dseek(0);
+        EXPECT_EQ(dev.dtell(), 0u);
+    }
+    {
+        file_guard g(name, data);
+        file_device<char8_t> dev(name);
+        dev.dseek(0);
+        dev.dseek(0);
+        EXPECT_EQ(dev.dtell(), 0u);
+    }
+    {
+        file_guard g(name, data);
+        ofile_device<char8_t> dev(name);
+        dev.dseek(0);
+        dev.dseek(0);
+        EXPECT_EQ(dev.dtell(), 0u);
+    }
+}
+
+TEST(FileDeviceChar8, ReadAndWriteAlternateWithoutASeekBetweenThem)
+{
+    const char* name = "fd_char8_alternate.tst";
+    file_guard g(name);
+
+    file_device<char8_t> dev(name, file_open_flag::trunc);
+    char8_t buf[12] = {};
+
+    // An empty file is already at its end.
+    EXPECT_TRUE(dev.deof());
+    dev.dput(u8"1234", 4);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dseek(0);
+    EXPECT_FALSE(dev.deof());
+    EXPECT_EQ(dev.dget(buf, 3), 3u);
+    EXPECT_EQ(std::memcmp(buf, u8"123", 3), 0);
+    EXPECT_FALSE(dev.deof());
+
+    // Read then write, with nothing in between: the write continues from where
+    // the read stopped, overwriting byte 3 and appending byte 4.
+    dev.dput(u8"AB", 2);
+    EXPECT_TRUE(dev.deof());
+    dev.dseek(0);
+    EXPECT_EQ(dev.dget(buf, 5), 5u);
+    EXPECT_EQ(std::memcmp(buf, u8"123AB", 5), 0);
+    EXPECT_TRUE(dev.deof());
+
+    // Write then read, again with nothing in between.
+    dev.dseek(0);
+    dev.dput(u8"XY", 2);
+    EXPECT_FALSE(dev.deof());
+    EXPECT_EQ(dev.dget(buf, 3), 3u);
+    EXPECT_EQ(std::memcmp(buf, u8"3AB", 3), 0);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dput(u8"CDEF", 4);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dseek(0);
+    EXPECT_EQ(dev.dget(buf, 2), 2u);
+    EXPECT_EQ(std::memcmp(buf, u8"XY", 2), 0);
+    EXPECT_FALSE(dev.deof());
+
+    dev.drseek(0);
+    EXPECT_TRUE(dev.deof());
+    dev.dput(u8"GHI", 3);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dseek(0);
+    EXPECT_FALSE(dev.deof());
+    EXPECT_EQ(dev.dget(buf, 12), 12u);
+    EXPECT_EQ(std::memcmp(buf, u8"XY3ABCDEFGHI", 12), 0);
+    EXPECT_TRUE(dev.deof());
+}
+
+// ---------------------------------------------------------------------------
+// Failing to open.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar8, OpeningAMissingFileForReadingThrows)
+{
+    EXPECT_THROW((void)ifile_device<char8_t>("non_existent_file.txt"), device_error);
+    EXPECT_THROW((void)file_device<char8_t>("non_existent_file.txt"), device_error);
+}
+
+TEST(FileDeviceChar8, TryOpenReportsTheFailureInsteadOfThrowing)
+{
+    auto res = file_device<char8_t>::try_open("non_existent_file.txt");
+    EXPECT_FALSE(res.has_value());
+    EXPECT_FALSE(res.error().empty());
+}
+
+TEST(FileDeviceChar8, NoreplaceRefusesAnExistingFile)
+{
+    file_guard g("existing_file_u8.txt", std::u8string(u8"content"));
+
+    EXPECT_THROW((void)ofile_device<char8_t>("existing_file_u8.txt", file_open_flag::noreplace),
+                 device_error);
+
+    auto res = ofile_device<char8_t>::try_open("existing_file_u8.txt", file_open_flag::noreplace);
+    EXPECT_FALSE(res.has_value());
+}
+
+TEST(FileDeviceChar8, TryOpenReportsARejectedFlagCombination)
+{
+    const char* name = "fd_char8_try_open_flags.tst";
+    file_guard g(name, data);
+
+    // trunc is meaningless for a read-only device, and the constructor says so;
+    // try_open turns that into an error value.
+    auto res = ifile_device<char8_t>::try_open(name, file_open_flag::trunc);
+    EXPECT_FALSE(res.has_value());
+    EXPECT_FALSE(res.error().empty());
+}
+
+// ---------------------------------------------------------------------------
+// Move semantics.  The device owns a FILE*, so it is move-only.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar8, MoveTransfersTheOpenFile)
+{
+    const char* name = "fd_char8_move.tst";
+    file_guard g(name, std::u8string(u8"move content"));
+
+    file_device<char8_t> dev1(name);
+    ASSERT_TRUE(dev1.is_open());
+    const std::size_t len = dev1.dsize();
+
+    file_device<char8_t> dev2(std::move(dev1));
+    EXPECT_TRUE(dev2.is_open());
+    EXPECT_EQ(dev2.dsize(), len);
+    EXPECT_FALSE(dev1.is_open());
+
+    file_device<char8_t> dev3;
+    dev3 = std::move(dev2);
+    EXPECT_TRUE(dev3.is_open());
+    EXPECT_EQ(dev3.dsize(), len);
+    EXPECT_FALSE(dev2.is_open());
+
+    // Outside any macro: the diagnostic fires at the assignment itself.
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+    dev3 = std::move(dev3);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    EXPECT_TRUE(dev3.is_open());
+    EXPECT_EQ(dev3.dsize(), len);
+}
+
+TEST(FileDeviceChar8, MoveAssignmentWorksForTheSingleDirectionDevices)
+{
+    // The read-only and write-only instantiations have their own operator=,
+    // and only the read-write one is covered by the case above.
+    const char* in_name  = "fd_char8_move_in.tst";
+    const char* out_name = "fd_char8_move_out.tst";
+    file_guard g1(in_name, data);
+    file_guard g2(out_name);
+
+    ifile_device<char8_t> reader(in_name);
+    ifile_device<char8_t> reader_dst;
+    reader_dst = std::move(reader);
+    EXPECT_TRUE(reader_dst.is_open());
+    EXPECT_FALSE(reader.is_open());
+    EXPECT_EQ(reader_dst.dsize(), data_len);
+
+    ofile_device<char8_t> writer(out_name, file_open_flag::trunc);
+    ofile_device<char8_t> writer_dst;
+    writer_dst = std::move(writer);
+    EXPECT_TRUE(writer_dst.is_open());
+    EXPECT_FALSE(writer.is_open());
+    writer_dst.dput(u8"ok", 2);
+}
+
+// ---------------------------------------------------------------------------
+// Error paths.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar8, SeekingPastTheEndOfAReadOnlyFileThrows)
+{
+    file_guard g("seek_err_u8.txt", std::u8string(u8"123"));
+    ifile_device<char8_t> dev("seek_err_u8.txt");
+    EXPECT_THROW(dev.dseek(10), device_error);
+}
+
+TEST(FileDeviceChar8, PositionQueriesOnAClosedDeviceThrow)
+{
+    ifile_device<char8_t> dev;
+
+    EXPECT_THROW((void)dev.dtell(), device_error);
+    EXPECT_THROW((void)dev.dsize(), device_error);
+    EXPECT_THROW(dev.dseek(0), device_error);
+    EXPECT_THROW(dev.drseek(0), device_error);
+
+    // deof() is the exception: it answers "yes" for a closed device rather than
+    // throwing, so a read loop over one terminates instead of blowing up.
+    EXPECT_NO_THROW((void)dev.deof());
+    EXPECT_TRUE(dev.deof());
+}
+
+TEST(FileDeviceChar8, PutOnAClosedDeviceOrANullBufferThrows)
+{
+    {
+        ofile_device<char8_t> dev;
+        EXPECT_THROW(dev.dput(u8"a", 1), device_error);
+    }
+    {
+        file_guard g("put_err_u8.txt");
+        ofile_device<char8_t> dev("put_err_u8.txt");
+        EXPECT_THROW(dev.dput(nullptr, 1), device_error);
+    }
+}
+
+TEST(FileDeviceChar8, TruncIsRejectedForAReadOnlyDevice)
+{
+    EXPECT_THROW((void)ifile_device<char8_t>("test_u8.txt", file_open_flag::trunc), device_error);
+}
+
+TEST(FileDeviceChar8, FlushOnAClosedDeviceIsANoOp)
+{
+    ofile_device<char8_t> dev;
+    EXPECT_NO_THROW(dev.dflush());
+}
+
+TEST(FileDeviceChar8, DrseekPastTheStartThrows)
+{
+    file_guard g("drseek_err_u8.txt", std::u8string(u8"hello"));
+    ifile_device<char8_t> dev("drseek_err_u8.txt");
+    EXPECT_THROW(dev.drseek(1000), device_error);
+}
+
+TEST(FileDeviceChar8, DseekRejectsAnOffsetThatWouldOverflowTheFileOffsetType)
+{
+    file_guard g("dseek_overflow_u8.txt", std::u8string(u8"hi"));
+    ofile_device<char8_t> dev("dseek_overflow_u8.txt");
+    EXPECT_THROW(dev.dseek(std::numeric_limits<std::size_t>::max()), device_error);
+}
+
+// ---------------------------------------------------------------------------
+// Open flags.  Each combination selects a different fopen() mode string, and
+// the table that does it is the point of these cases.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar8, WriteOnlyOpenFlagCombinations)
+{
+    const char* name = "modes_test_u8.txt";
+
     {
         file_guard g(name);
         ofile_device<char8_t> dev(name, file_open_flag::noreplace);
-        VERIFY(dev.is_open());
+        EXPECT_TRUE(dev.is_open());
     }
-
-    // rw + noreplace
-    {
-        file_guard g(name);
-        file_device<char8_t> dev(name, file_open_flag::noreplace);
-        VERIFY(dev.is_open());
-    }
-
-    // in + binary  → fopen_mode "rb"
-    {
-        file_guard g(name, u8"existing");
-        ifile_device<char8_t> dev(name, file_open_flag::binary);
-        VERIFY(dev.is_open());
-    }
-
-    // out + binary  → fopen_mode "wb"
     {
         file_guard g(name);
         ofile_device<char8_t> dev(name, file_open_flag::binary);
-        VERIFY(dev.is_open());
+        EXPECT_TRUE(dev.is_open());
     }
+    {
+        file_guard g(name);
+        ofile_device<char8_t> dev(name, file_open_flag::trunc | file_open_flag::binary);
+        EXPECT_TRUE(dev.is_open());
+    }
+}
 
-    dump_info("Done\n");
+TEST(FileDeviceChar8, ReadWriteOpenFlagCombinations)
+{
+    const char* name = "modes_test_u8.txt";
+
+    {
+        file_guard g(name);
+        file_device<char8_t> dev(name, file_open_flag::noreplace);
+        EXPECT_TRUE(dev.is_open());
+    }
+    {
+        file_guard g(name);
+        file_device<char8_t> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
+        EXPECT_TRUE(dev.is_open());
+    }
+}
+
+TEST(FileDeviceChar8, ReadOnlyBinaryOpen)
+{
+    const char* name = "modes_test_u8.txt";
+    file_guard g(name, std::u8string(u8"existing"));
+
+    ifile_device<char8_t> dev(name, file_open_flag::binary);
+    EXPECT_TRUE(dev.is_open());
 }

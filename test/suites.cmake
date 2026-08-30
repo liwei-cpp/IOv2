@@ -71,6 +71,9 @@ set(IOV2_TEST_SUITE_DIRS
 # same time, which is what lets a directory be converted one file at a time.
 set(IOV2_TEST_GTEST_SUITE_DIRS
     common
+    device/file_device
+    device/mem_device
+    device/std_device
 )
 
 # Sources nothing compiles: the aggregate main()s that test/Makefile
@@ -80,7 +83,6 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
 set(IOV2_TEST_EXCLUDED_SOURCES
     concur/test_concur.cpp
     cvt/test_cvt.cpp
-    device/test_device.cpp
     facet/test_facet.cpp
     io/io_base/test_io_base.cpp
     io/iostream/test_iostream.cpp
@@ -90,7 +92,7 @@ set(IOV2_TEST_EXCLUDED_SOURCES
     locale/test_locale.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 188)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 187)
 
 set(test_common_ENTRIES
     # none: every case registers itself
@@ -147,112 +149,15 @@ set(test_cvt_runtime_cvt_ENTRIES
 )
 
 set(test_device_file_device_ENTRIES
-    test_file_device_char_gen_1
-    test_file_device_char_close_1
-    test_file_device_char_close_2
-    test_file_device_char_is_open_1
-    test_file_device_char_is_open_2
-    test_file_device_char_get_1
-    test_file_device_char_get_2
-    test_file_device_char_get_3
-    test_file_device_char_seek_1
-    test_file_device_char_seek_2
-    test_file_device_char_seek_3
-    test_file_device_char_seek_4
-    test_file_device_char_seek_5
-    test_file_device_char_seek_6
-    test_file_device_char_seek_7
-    test_file_device_char_seek_8
-    test_file_device_char_edge_cases
-    test_file_device_char_error_1
-    test_file_device_char_move
-    test_file_device_char_more_errors
-    test_file_device_char_system_errors
-    test_file_device_char_open_modes
-    test_file_device_char_coverage_extra
-    test_file_device_char8_t_gen_1
-    test_file_device_char8_t_close_1
-    test_file_device_char8_t_close_2
-    test_file_device_char8_t_is_open_1
-    test_file_device_char8_t_is_open_2
-    test_file_device_char8_t_get_1
-    test_file_device_char8_t_get_2
-    test_file_device_char8_t_get_3
-    test_file_device_char8_t_seek_1
-    test_file_device_char8_t_seek_2
-    test_file_device_char8_t_seek_3
-    test_file_device_char8_t_seek_4
-    test_file_device_char8_t_seek_5
-    test_file_device_char8_t_seek_6
-    test_file_device_char8_t_seek_7
-    test_file_device_char8_t_seek_8
-    test_file_device_char8_t_error_1
-    test_file_device_char8_t_move
-    test_file_device_char8_t_more_errors
-    test_file_device_char8_t_open_modes
-    test_file_device_char8_t_coverage_extra
+    # none: every case registers itself
 )
 
 set(test_device_mem_device_ENTRIES
-    test_mem_device_char_gen_1
-    test_mem_device_char_gen_2
-    test_mem_device_char_gen_3
-    test_mem_device_char_in_1
-    test_mem_device_char_in_2
-    test_mem_device_char_in_3
-    test_mem_device_char_drseek_boundary
-    test_mem_device_char_out_1
-    test_mem_device_char_out_2
-    test_mem_device_char_out_3
-    test_mem_device_char_io_1
-    test_mem_device_char_io_2
-    test_mem_device_char_dput_alias_growth
-    test_mem_device_char_extra
-    test_mem_device_wchar_t_gen_1
-    test_mem_device_wchar_t_gen_2
-    test_mem_device_wchar_t_gen_3
-    test_mem_device_wchar_t_in_1
-    test_mem_device_wchar_t_in_2
-    test_mem_device_wchar_t_in_3
-    test_mem_device_wchar_t_out_1
-    test_mem_device_wchar_t_out_2
-    test_mem_device_wchar_t_out_3
-    test_mem_device_wchar_t_io_1
-    test_mem_device_wchar_t_io_2
-    test_mem_device_char32_t_gen_1
-    test_mem_device_char32_t_gen_2
-    test_mem_device_char32_t_gen_3
-    test_mem_device_char32_t_in_1
-    test_mem_device_char32_t_in_2
-    test_mem_device_char32_t_in_3
-    test_mem_device_char32_t_out_1
-    test_mem_device_char32_t_out_2
-    test_mem_device_char32_t_out_3
-    test_mem_device_char32_t_io_1
-    test_mem_device_char32_t_io_2
-    test_mem_device_char8_t_gen_1
-    test_mem_device_char8_t_gen_2
-    test_mem_device_char8_t_gen_3
-    test_mem_device_char8_t_in_1
-    test_mem_device_char8_t_in_2
-    test_mem_device_char8_t_in_3
-    test_mem_device_char8_t_out_1
-    test_mem_device_char8_t_out_2
-    test_mem_device_char8_t_out_3
-    test_mem_device_char8_t_io_1
-    test_mem_device_char8_t_io_2
+    # none: every case registers itself
 )
 
 set(test_device_std_device_ENTRIES
-    test_std_device_gen_1
-    test_std_device_input_1
-    test_std_device_output_1
-    test_std_device_output_2
-    test_std_device_edge_cases
-    test_std_device_move
-    test_std_device_eof
-    test_std_device_errors
-    test_std_device_nonblocking
+    # none: every case registers itself
 )
 
 set(test_facet_collate_ENTRIES

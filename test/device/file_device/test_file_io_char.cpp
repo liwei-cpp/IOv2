@@ -1,953 +1,764 @@
-#include <cstring>
-#include <fstream>
-#include <stdexcept>
-#include <tuple>
+#include <common/defs.h>
+#include <device/device_concepts.h>
 #include <device/file_device.h>
 
-#include <support/dump_info.h>
 #include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_file_device_char_gen_1()
+#include <gtest/gtest.h>
+
+#include <cstddef>
+#include <cstring>
+#include <limits>
+#include <string>
+#include <utility>
+
+using namespace IOv2;
+
+namespace
 {
-    using namespace IOv2;
+    static_assert(io_device<ifile_device<char>>);
+    static_assert(io_device<ofile_device<char>>);
+    static_assert(io_device<file_device<char>>);
 
-    dump_info("Test file_device<char> general 1...");
-    static_assert(IOv2::io_device<IOv2::basic_file_device<true, false, char>>);
-    static_assert(IOv2::io_device<IOv2::basic_file_device<false, true, char>>);
-    static_assert(IOv2::io_device<IOv2::basic_file_device<true, true, char>>);
+    static_assert(std::is_same_v<ifile_device<char>::char_type, char>);
+    static_assert(std::is_same_v<ofile_device<char>::char_type, char>);
+    static_assert(std::is_same_v<file_device<char>::char_type, char>);
 
-    static_assert(std::is_same_v<IOv2::basic_file_device<true, false, char>::char_type, char>);
-    static_assert(std::is_same_v<IOv2::basic_file_device<false, true, char>::char_type, char>);
-    static_assert(std::is_same_v<IOv2::basic_file_device<true, true, char>::char_type, char>);
+    // All three seek; which direction each supports follows its template
+    // arguments, and only those.
+    static_assert(dev_cpt::support_positioning<ifile_device<char>>);
+    static_assert(dev_cpt::support_get<ifile_device<char>>);
+    static_assert(!dev_cpt::support_put<ifile_device<char>>);
 
-    {
-        using CheckType = IOv2::basic_file_device<true, false, char>;
-        static_assert(IOv2::io_device<CheckType>);
-        static_assert(IOv2::dev_cpt::support_positioning<CheckType>);
-        static_assert(!IOv2::dev_cpt::support_put<CheckType>);
-        static_assert(IOv2::dev_cpt::support_get<CheckType>);
-    }
-    
-    {
-        using CheckType = IOv2::basic_file_device<false, true, char>;
-        static_assert(IOv2::io_device<CheckType>);
-        static_assert(IOv2::dev_cpt::support_positioning<CheckType>);
-        static_assert(IOv2::dev_cpt::support_put<CheckType>);
-        static_assert(!IOv2::dev_cpt::support_get<CheckType>);
-    }
-    
-    {
-        using CheckType = IOv2::basic_file_device<true, true, char>;
-        static_assert(IOv2::io_device<CheckType>);
-        static_assert(IOv2::dev_cpt::support_positioning<CheckType>);
-        static_assert(IOv2::dev_cpt::support_put<CheckType>);
-        static_assert(IOv2::dev_cpt::support_get<CheckType>);
-    }
-    dump_info("Done\n");
+    static_assert(dev_cpt::support_positioning<ofile_device<char>>);
+    static_assert(!dev_cpt::support_get<ofile_device<char>>);
+    static_assert(dev_cpt::support_put<ofile_device<char>>);
+
+    static_assert(dev_cpt::support_positioning<file_device<char>>);
+    static_assert(dev_cpt::support_get<file_device<char>>);
+    static_assert(dev_cpt::support_put<file_device<char>>);
+
+    // Byte n of this string is n rendered in base 36, so a seek to n and the
+    // character read there check each other without a lookup table.
+    const std::string data = "0123456789abcdefghijklmnopqrstuvwxyz";
+    constexpr std::size_t data_len = 36;
+
+    char at(std::size_t n) { return data[n]; }
 }
 
-void test_file_device_char_close_1()
+TEST(FileDeviceChar, Traits)
 {
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::close 1...");
-
-    const char name_01[] = "filebuf_members-1.tst";    
-    const char name_02[] = "filebuf_members-1.txt";
-    const char* name_03 = "filebuf_members-3";
-
-    basic_file_device<true, false, char> fb_01;
-    basic_file_device<false, true, char> fb_02;
-    basic_file_device<true, true, char> fb_03;
-    
-    // bool is_open()
-    VERIFY(!fb_01.is_open());
-    VERIFY(!fb_02.is_open());
-    VERIFY(!fb_03.is_open());
-
-    {
-        file_guard g1(name_01, "abcde");
-        fb_01 = basic_file_device<true, false, char>(name_01);
-        VERIFY(fb_01.is_open());
-    }
-
-    {
-        file_guard g1(name_02, "");
-        fb_02 = basic_file_device<false, true, char>(name_02, file_open_flag::trunc);
-        VERIFY(fb_02.is_open());
-        
-        file_guard g2(name_03);
-        fb_03 = basic_file_device<true, true, char>(name_03, file_open_flag::trunc);
-        VERIFY(fb_03.is_open());
-        
-        fb_02.close();
-        VERIFY(!fb_02.is_open());
-        
-        fb_03.close();
-        VERIFY(!fb_02.is_open());
-        
-        fb_03.close();
-        VERIFY(!fb_02.is_open());
-    }
-
-    dump_info("Done\n");
+    // Every assertion above is a static_assert; compiling is the check.
+    SUCCEED();
 }
 
-void test_file_device_char_close_2()
+// ---------------------------------------------------------------------------
+// Opening and closing.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, ADefaultConstructedDeviceIsNotOpen)
 {
-    using namespace IOv2;
+    ifile_device<char> in;
+    ofile_device<char> out;
+    file_device<char>  io;
 
-    dump_info("Test file_device<char>::close 2...");
-    
-    const char name_01[] = "filebuf_virtuals-1.txt"; // file with data in it
-    const char name_02[] = "filebuf_virtuals-2.txt"; // empty file, need to create
-
-    // 'in'
-    char buffer[] = "xxxxxxxxxx";
-    {
-        file_guard g1(name_01, "axxxxxxxxxx");
-        basic_file_device<true, false, char> fb_01(name_01);
-
-        char ch;
-        VERIFY(fb_01.dget(&ch, 1) == 1);
-        VERIFY(fb_01.dget(buffer, sizeof(buffer) - 1) == sizeof(buffer) - 1);
-        
-        fb_01.close();
-        try
-        {
-            fb_01.dget(&ch, 1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (...) {}
-
-        try
-        {
-            fb_01.dget(buffer, sizeof(buffer));
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (...) {}
-    }
-    
-    // 'out'
-    {
-        file_guard g(name_02);
-        basic_file_device<false, true, char> fb_02(name_02);
-        fb_02.dput("T", 1);
-        fb_02.dput(buffer, sizeof(buffer) - 1);
-
-        fb_02.close();
-        try
-        {
-            fb_02.dput("T", 1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (...) {}
-        
-        try
-        {
-            fb_02.dput(buffer, sizeof(buffer) - 1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (...) {}
-    }
-
-    dump_info("Done\n");
+    EXPECT_FALSE(in.is_open());
+    EXPECT_FALSE(out.is_open());
+    EXPECT_FALSE(io.is_open());
 }
 
-void test_file_device_char_is_open_1()
+TEST(FileDeviceChar, EachModeOpensAndCloses)
 {
-    using namespace IOv2;
+    const char* readable = "fd_char_open_in.tst";
+    const char* writable = "fd_char_open_out.tst";
+    const char* both     = "fd_char_open_io.tst";
 
-    dump_info("Test file_device<char>::is_open 1...");
-    
-    const char name_01[] = "filebuf_members-1.tst";
-    const char name_02[] = "filebuf_members-1.txt";
-    const char* name_03 = "filebuf_members-3"; // empty file, need to create
+    file_guard g1(readable, data);
+    file_guard g2(writable, data);
+    file_guard g3(both, data);
 
-    basic_file_device<true, false, char> fb_01;
-    basic_file_device<true, true, char> fb_02;
-    basic_file_device<false, true, char> fb_03;
-    VERIFY(!fb_01.is_open());
-    VERIFY(!fb_02.is_open());
-    VERIFY(!fb_03.is_open());
-    
-    file_guard g0(name_01, "abcde");
-    fb_01 = basic_file_device<true, false, char>(name_01);
-    VERIFY(fb_01.is_open());
-    
-    file_guard g1(name_02, "axxxxxxxxxx");
-    fb_02 = basic_file_device<true, true, char>(name_02, file_open_flag::trunc);
-    VERIFY(fb_02.is_open());
-    
-    file_guard g2(name_03);
-    fb_03 = basic_file_device<false, true, char>(name_03, file_open_flag::trunc);
-    VERIFY(fb_03.is_open());
-    
-    fb_01.close();
-    fb_02.close();
-    fb_03.close();
-    VERIFY(!fb_01.is_open());
-    VERIFY(!fb_02.is_open());
-    VERIFY(!fb_03.is_open());
+    ifile_device<char> in(readable);
+    ofile_device<char> out(writable, file_open_flag::trunc);
+    file_device<char>  io(both, file_open_flag::trunc);
 
-    dump_info("Done\n");
+    EXPECT_TRUE(in.is_open());
+    EXPECT_TRUE(out.is_open());
+    EXPECT_TRUE(io.is_open());
+
+    in.close();
+    out.close();
+    io.close();
+
+    EXPECT_FALSE(in.is_open());
+    EXPECT_FALSE(out.is_open());
+    EXPECT_FALSE(io.is_open());
 }
 
-void test_file_device_char_is_open_2()
+TEST(FileDeviceChar, ClosingTwiceIsHarmless)
 {
-    using namespace IOv2;
+    const char* name = "fd_char_close_twice.tst";
+    file_guard g(name, data);
 
-    dump_info("Test file_device<char>::is_open 2...");
+    file_device<char> dev(name);
+    ASSERT_TRUE(dev.is_open());
 
-    const char* name = "tmp_file5";
-    file_guard g1(name);
+    dev.close();
+    EXPECT_FALSE(dev.is_open());
 
-    basic_file_device<false, true, char> scratch_file_1(name, file_open_flag::trunc);
-    scratch_file_1.close();
-
-    basic_file_device<true, false, char> scratch_file_2(name);
-    VERIFY(scratch_file_2.is_open());
-
-    dump_info("Done\n");
+    // close() is guarded by is_open(), so a second call does nothing at all.
+    dev.close();
+    EXPECT_FALSE(dev.is_open());
 }
 
-void test_file_device_char_get_1()
+TEST(FileDeviceChar, ReadingAfterCloseThrows)
 {
-    using namespace IOv2;
+    const char* name = "fd_char_read_after_close.tst";
+    file_guard g(name, data);
 
-    dump_info("Test file_device<char>::get 1...");
-    
-    const char name_01[] = "sgetc.txt"; // file with data in it
-    file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-    
-    basic_file_device<true, false, char> fb_01(name_01);
-    
-    VERIFY(!fb_01.deof());
-    char ch;
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == ' ');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
-    VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '0');
-    
-    auto read_position = fb_01.dtell();
-    VERIFY(read_position != 0);
+    ifile_device<char> dev(name);
+    char ch = 0;
+    char buf[8] = {};
+    ASSERT_EQ(dev.dget(&ch, 1), 1u);
 
-    dump_info("Done\n");
+    dev.close();
+    EXPECT_ANY_THROW(dev.dget(&ch, 1));
+    EXPECT_ANY_THROW(dev.dget(buf, sizeof(buf)));
 }
 
-void test_file_device_char_get_2()
+TEST(FileDeviceChar, WritingAfterCloseThrows)
 {
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::get 2...");
-    
-    const char name_01[] = "sgetc.txt"; // file with data in it
-    const char name_03[] = "tmp_sbumpc_1io.tst"; // empty file, need to create
-    
-    // in | out 1
-    {
-        file_guard g1(name_03);
-        basic_file_device<true, true, char> fb_03(name_03, file_open_flag::trunc);
-        VERIFY(fb_03.dtell() == 0);
-        
-        char ch;
-        VERIFY(fb_03.dget(&ch, 1) == 0);
-        VERIFY(fb_03.dtell() == 0);
-    }
-
-    // in | out 2
-    {
-        file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, true, char> fb_01(name_01);
-        VERIFY(fb_01.dtell() == 0);
-        
-        char ch;
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '/');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == ' ');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '9');
-        VERIFY(fb_01.dget(&ch, 1) == 1 && ch == '0');
-        
-        VERIFY(fb_01.dtell() == 6);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_get_3()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::get 3...");
-    
-    const char name_06[] = "filebuf_virtuals-6.txt"; // empty file, need to create
-    file_guard g(name_06);
-    
-    basic_file_device<true, true, char> fbuf(name_06, file_open_flag::trunc);
-    fbuf.dput("crazy bees!", 11);
-    fbuf.dseek(0);
-    
-    char ch;
-    fbuf.dget(&ch, 1);
-    VERIFY(fbuf.dget(&ch, 1) == 1 && ch == 'r');
-    VERIFY(fbuf.dget(&ch, 1) == 1 && ch == 'a');
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_1()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 1...");
-
-    const char name_01[] = "seekpos.txt"; // file with data in it
-    
-    char ch;
-    {
-        // in 
-        file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, false, char> fb(name_01);
-        
-        fb.dseek(79);
-        VERIFY(fb.dget(&ch, 1) == 1 && ch == 't');
-    }
-    
-    {
-        // io
-        file_guard g1(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, true, char> fb(name_01);
-        VERIFY(fb.dtell() == 0);
-        
-        // beg
-        fb.dseek(79);
-        VERIFY(fb.dget(&ch, 1) == 1 && ch == 't');
-
-        // cur
-        fb.dseek(fb.dtell() - 1);
-        auto pt_3 = fb.dtell();
-        fb.dput("\n", 1);
-        fb.dseek(pt_3);
-        VERIFY(fb.dget(&ch, 1) == 1 && ch == '\n');
-        
-        // end
-        fb.drseek(0);
-        fb.dput("\nof the wonderful things he does!!\nok", 37);
-        VERIFY(fb.dtell() != 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_2()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 2...");
-    
-    const char name_01[] = "seekoff.txt";
-    file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-    
-    basic_file_device<true, false, char> fb(name_01);
-    
-    // beg
-    fb.dseek(2);
-    VERIFY(fb.dtell() == 2);
-    
-    char ch;
-    fb.dget(&ch, 1);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
-    fb.dseek(4);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
-
-
-    // cur
-    fb.dseek(fb.dtell() + 2);
-    VERIFY(fb.dtell() == 7);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '1');
-    fb.dseek(fb.dtell());
-    VERIFY(fb.dtell() == 8);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '7');
-
-    // end
-    fb.drseek(0);
-    VERIFY(fb.dget(&ch, 1) == 0);
-    fb.drseek(1);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == 'c');
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_3()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 3...");
-    
-    const char name_01[] = "seekoff.txt";
-    file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-
-    // in | out
-    basic_file_device<true, true, char> fb(name_01);
-
-    VERIFY(fb.dtell() == 0);
-
-    //beg
-    fb.dseek(3);
-    VERIFY(fb.dtell() == 3);
-    
-    char ch;
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
-    
-    fb.dseek(3);
-    fb.dput("\n", 1);
-    fb.dseek(4);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '9');
-
-    // cur
-    fb.dseek(fb.dtell() + 2);
-    VERIFY(fb.dtell() == 7);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '1');
-    fb.dseek(fb.dtell());
-    fb.dput("x", 1);
-    fb.dput("\n", 1);
-
-    // end
-    fb.drseek(0);
-    fb.dput("\n", 1);
-    fb.dput("because because because. . .", 28);
-    
-    fb.drseek(1);
-    VERIFY(fb.dget(&ch, 1) == 1 && ch == '.');
-    
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_4()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 4...");
-    
-    const char name_01[] = "seekoff.txt";
-    file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-
-    // out
-    basic_file_device<false, true, char> fb(name_01);
-    VERIFY(fb.dtell() == 0);
-
-    // beg
-    fb.dseek(2);
-    VERIFY(fb.dtell() == 2);
-
-    // cur
-    fb.dseek(fb.dtell() + 2);
-    VERIFY(fb.dtell() == 4);
-    fb.dseek(fb.dtell());
-    fb.dput("x", 1);
-    fb.dput("\n", 1);
-    
-    // end
-    fb.drseek(0);
-    fb.dput("\n", 1);
-    fb.dput("because because because. . .", 28);
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_5()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 5...");
-
-    const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    
-    {
-        file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, false, char> fb(name_01);
-        
-        fb.dseek(0);
-        fb.dseek(0);
-    }
-    
-    {
-        basic_file_device<true, false, char> fb;
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_6()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 6...");
-
-    const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    
-    {
-        file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<true, true, char> fb(name_01);
-        
-        fb.dseek(0);
-        fb.dseek(0);
-    }
-    
-    {
-        basic_file_device<true, true, char> fb;
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_7()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 7...");
-
-    const char name_01[] = "filebuf_virtuals-1.tst"; // file with data in it
-    
-    {
-        file_guard g(name_01, "// 990117 bkoz\n// test functionality of basic_filebuf for char_type == char\n// this is a data file for 27filebuf.cc");
-        basic_file_device<false, true, char> fb(name_01);
-        
-        fb.dseek(0);
-        fb.dseek(0);
-    }
-    
-    {
-        basic_file_device<false, true, char> fb;
-        FAIL_SEEK(fb, 0);
-        FAIL_SEEK(fb, 0);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_seek_8()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char>::seek 8...");
-
-    const char name[] = "tmp_seekoff-4.tst";
-
-    char buf[12];
-    file_guard g(name);
-    basic_file_device<true, true, char> fb(name, file_open_flag::trunc);
-    VERIFY(fb.deof());
-    fb.dput("abcd", 4);
-    VERIFY(fb.deof());
-    
-    fb.dseek(0);
-    VERIFY(!fb.deof());
-    VERIFY(fb.dget(buf, 3) == 3);
-    VERIFY(std::memcmp(buf, "abc", 3) == 0);
-    VERIFY(!fb.deof());
-    
-    // Check read => write without pubseekoff(0, ios_base::cur)
-    fb.dput("ef", 2);
-    VERIFY(fb.deof());
-    fb.dseek(0);
-    VERIFY(!fb.deof());
-    VERIFY(fb.dget(buf, 5) == 5);
-    VERIFY(std::memcmp(buf, "abcef", 5) == 0);
-    VERIFY(fb.deof());
-    
-    fb.dseek(0);
-    fb.dput("gh", 2);
-    VERIFY(!fb.deof());
-
-    // Check write => read without pubseekoff(0, ios_base::cur)
-    VERIFY(fb.dget(buf, 3) == 3);
-    VERIFY(std::memcmp(buf, "cef", 3) == 0);
-    VERIFY(fb.deof());
-    
-    fb.dput("ijkl", 4);
-    VERIFY(fb.deof());
-    
-    fb.dseek(0);
-    VERIFY(fb.dget(buf, 2) == 2);
-    VERIFY(std::memcmp(buf, "gh", 2) == 0);
-    VERIFY(!fb.deof());
-
-    fb.drseek(0);
-    VERIFY(fb.deof());
-    fb.dput("mno", 3);
-    VERIFY(fb.deof());
-
-    fb.dseek(0);
-    VERIFY(!fb.deof());
-    VERIFY(fb.dget(buf, 12) == 12);
-    VERIFY(std::memcmp(buf, "ghcefijklmno", 12) == 0);
-    VERIFY(fb.deof());
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_edge_cases()
-{
-    using namespace IOv2;
-
-    dump_info("Test file_device<char> edge cases...");
-
-    const char name[] = "edge_cases.txt";
+    const char* name = "fd_char_write_after_close.tst";
     file_guard g(name);
 
-    {
-        basic_file_device<true, true, char> fb(name, file_open_flag::trunc);
-        
-        // Test dput(nullptr, 0)
-        fb.dput(nullptr, 0);
-        VERIFY(fb.dsize() == 0);
+    ofile_device<char> dev(name, file_open_flag::trunc);
+    dev.dput("T", 1);
 
-        // Test dget(nullptr, 0)
-        char ch;
-        VERIFY(fb.dget(nullptr, 0) == 0);
-        
-        // Test dget(nullptr, 1) should throw
-        try {
-            fb.dget(nullptr, 1);
-            throw std::runtime_error("file_device::dget(nullptr, 1) should throw");
-        } catch (const device_error&) {}
-
-        fb.dput("abc", 3);
-        fb.dseek(0);
-        VERIFY(fb.dget(nullptr, 0) == 0);
-        VERIFY(fb.dget(&ch, 1) == 1 && ch == 'a');
-    }
-
-    dump_info("Done\n");
+    dev.close();
+    EXPECT_ANY_THROW(dev.dput("T", 1));
+    EXPECT_ANY_THROW(dev.dput(data.data(), data.size()));
 }
 
-void test_file_device_char_error_1()
+TEST(FileDeviceChar, AFileWrittenAndClosedCanBeOpenedForReading)
 {
-    using namespace IOv2;
+    const char* name = "fd_char_reopen.tst";
+    file_guard g(name);
 
-    dump_info("Test file_device<char> error 1...");
+    ofile_device<char> writer(name, file_open_flag::trunc);
+    writer.close();
 
-    // Case 1: Constructor Read mode on non-existent file
-    try
-    {
-        basic_file_device<true, false, char> fb("non_existent_file.txt");
-        VERIFY(false);
-    }
-    catch (const device_error&) {}
-
-    // Case 2: try_open Read mode on non-existent file
-    {
-        auto res = file_device<char>::try_open("non_existent_file.txt");
-        VERIFY(!res);
-        // Verify error message exists
-        VERIFY(!res.error().empty());
-    }
-
-    // Case 3: Read/Write mode on non-existent file
-    try
-    {
-        basic_file_device<true, true, char> fb("non_existent_file.txt");
-        VERIFY(false);
-    }
-    catch (const device_error&) {}
-
-    // Case 4: Write mode with noreplace on existing file
-    {
-        file_guard g("existing_file.txt", "content");
-        try
-        {
-            basic_file_device<false, true, char> fb("existing_file.txt", file_open_flag::noreplace);
-            VERIFY(false);
-        }
-        catch (const device_error&) {}
-        
-        auto res = ofile_device<char>::try_open("existing_file.txt", file_open_flag::noreplace);
-        VERIFY(!res);
-    }
-
-    dump_info("Done\n");
+    ifile_device<char> reader(name);
+    EXPECT_TRUE(reader.is_open());
 }
 
-void test_file_device_char_move()
-{
-    using namespace IOv2;
-    dump_info("Test file_device<char> move semantics...");
-    const char name[] = "move_test.txt";
-    file_guard g(name, "move content");
-    
-    basic_file_device<true, true, char> dev1(name);
-    VERIFY(dev1.is_open());
-    size_t len = dev1.dsize();
-    
-    // Move constructor
-    basic_file_device<true, true, char> dev2(std::move(dev1));
-    VERIFY(dev2.is_open());
-    VERIFY(dev2.dsize() == len);
-    VERIFY(!dev1.is_open());
-    
-    // Move assignment
-    basic_file_device<true, true, char> dev3;
-    dev3 = std::move(dev2);
-    VERIFY(dev3.is_open());
-    VERIFY(dev3.dsize() == len);
-    VERIFY(!dev2.is_open());
+// ---------------------------------------------------------------------------
+// Reading.
+// ---------------------------------------------------------------------------
 
-    // Self-assignment
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wself-move"
-    dev3 = std::move(dev3);
-#pragma GCC diagnostic pop
-    VERIFY(dev3.is_open());
-    VERIFY(dev3.dsize() == len);
-    
-    dump_info("Done\n");
+TEST(FileDeviceChar, GetReadsBytesInOrderAndAdvancesTheposition)
+{
+    const char* name = "fd_char_get_order.tst";
+    file_guard g(name, data);
+
+    ifile_device<char> dev(name);
+    EXPECT_FALSE(dev.deof());
+
+    char ch = 0;
+    for (std::size_t i = 0; i < 6; ++i)
+    {
+        EXPECT_EQ(dev.dget(&ch, 1), 1u) << "at byte " << i;
+        EXPECT_EQ(ch, at(i)) << "at byte " << i;
+    }
+    EXPECT_EQ(dev.dtell(), 6u);
 }
 
-void test_file_device_char_more_errors()
+TEST(FileDeviceChar, GetOnAnEmptyFileReturnsNothing)
 {
-    using namespace IOv2;
-    dump_info("Test file_device<char> more errors...");
-    
-    // Invalid seek in input mode
+    const char* name = "fd_char_get_empty.tst";
+    file_guard g(name);
+
+    file_device<char> dev(name, file_open_flag::trunc);
+    EXPECT_EQ(dev.dtell(), 0u);
+
+    char ch = 0;
+    EXPECT_EQ(dev.dget(&ch, 1), 0u);
+    EXPECT_EQ(dev.dtell(), 0u);
+}
+
+TEST(FileDeviceChar, AReadWriteDeviceReadsFromTheFront)
+{
+    const char* name = "fd_char_get_io.tst";
+    file_guard g(name, data);
+
+    file_device<char> dev(name);
+    EXPECT_EQ(dev.dtell(), 0u);
+
+    char ch = 0;
+    for (std::size_t i = 0; i < 6; ++i)
     {
-        file_guard g("seek_err.txt", "123");
-        ifile_device<char> dev("seek_err.txt");
-        try {
-            dev.dseek(10); // Beyond end in In mode
-            VERIFY(false);
-        } catch (const device_error&) {}
+        EXPECT_EQ(dev.dget(&ch, 1), 1u) << "at byte " << i;
+        EXPECT_EQ(ch, at(i)) << "at byte " << i;
     }
-    
-    // dtell/dsize/dseek on closed file
+    EXPECT_EQ(dev.dtell(), 6u);
+}
+
+TEST(FileDeviceChar, ReadBackWhatWasJustWritten)
+{
+    const char* name = "fd_char_write_read_back.tst";
+    file_guard g(name);
+
+    file_device<char> dev(name, file_open_flag::trunc);
+    dev.dput("crazy bees!", 11);
+
+    dev.dseek(0);
+    char ch = 0;
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, 'c');
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, 'r');
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, 'a');
+}
+
+// ---------------------------------------------------------------------------
+// Positioning.  dseek() takes an absolute offset and drseek() counts back from
+// the end, so drseek(0) is one past the last byte and drseek(1) is the last one.
+// A relative move is dseek() applied to dtell().
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, SeekFormsOnAReadOnlyDevice)
+{
+    const char* name = "fd_char_seek_in.tst";
+    file_guard g(name, data);
+
+    ifile_device<char> dev(name);
+    char ch = 0;
+
+    // Absolute.
+    dev.dseek(2);
+    EXPECT_EQ(dev.dtell(), 2u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(2));
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(3));
+
+    dev.dseek(4);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(4));
+
+    // Relative, expressed through dtell().
+    dev.dseek(dev.dtell() + 2);
+    EXPECT_EQ(dev.dtell(), 7u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(7));
+
+    // Seeking to where it already is changes nothing.
+    dev.dseek(dev.dtell());
+    EXPECT_EQ(dev.dtell(), 8u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(8));
+
+    // From the end.
+    dev.drseek(0);
+    EXPECT_TRUE(dev.deof());
+    EXPECT_EQ(dev.dget(&ch, 1), 0u);
+
+    dev.drseek(1);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(data_len - 1));
+}
+
+TEST(FileDeviceChar, SeekFormsOnAReadWriteDevice)
+{
+    const char* name = "fd_char_seek_io.tst";
+    file_guard g(name, data);
+
+    file_device<char> dev(name);
+    EXPECT_EQ(dev.dtell(), 0u);
+
+    char ch = 0;
+
+    // Absolute: seek, read, then overwrite the byte just read and read it back.
+    dev.dseek(3);
+    EXPECT_EQ(dev.dtell(), 3u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(3));
+
+    dev.dseek(3);
+    dev.dput("\n", 1);
+    dev.dseek(3);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, '\n');
+
+    // Relative.
+    dev.dseek(dev.dtell() + 2);
+    EXPECT_EQ(dev.dtell(), 6u);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, at(6));
+
+    // From the end: appending moves the end, so drseek(1) then reads the last
+    // byte written rather than the last byte of the original file.
+    dev.drseek(0);
+    dev.dput("tail.", 5);
+    dev.drseek(1);
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, '.');
+}
+
+TEST(FileDeviceChar, SeekFormsOnAWriteOnlyDevice)
+{
+    const char* name = "fd_char_seek_out.tst";
+    file_guard g(name, data);
+
+    // A write-only open is fopen "w", which truncates whether or not trunc was
+    // asked for: the bytes the guard wrote are gone before the first seek.
+    // Seeking past the end is still legal -- the gap becomes a hole.
+    ofile_device<char> dev(name);
+    EXPECT_EQ(dev.dtell(), 0u);
+    EXPECT_EQ(dev.dsize(), 0u);
+
+    dev.dseek(2);
+    EXPECT_EQ(dev.dtell(), 2u);
+
+    dev.dseek(dev.dtell() + 2);
+    EXPECT_EQ(dev.dtell(), 4u);
+
+    dev.dseek(dev.dtell());
+    dev.dput("x", 1);
+    EXPECT_EQ(dev.dtell(), 5u);
+
+    // drseek(0) is the end of what has been written, which is 5, not 36.
+    dev.drseek(0);
+    dev.dput("tail.", 5);
+    EXPECT_EQ(dev.dtell(), 10u);
+}
+
+TEST(FileDeviceChar, SeekingAnUnopenedDeviceThrows)
+{
+    // Every mode combination: the position lives in the file handle, and a
+    // default-constructed device has none.
     {
         ifile_device<char> dev;
-        try { (void)dev.dtell(); VERIFY(false); } catch (const device_error&) {}
-        try { (void)dev.dsize(); VERIFY(false); } catch (const device_error&) {}
-        try { dev.dseek(0); VERIFY(false); } catch (const device_error&) {}
-        try { dev.drseek(0); VERIFY(false); } catch (const device_error&) {}
-        try { (void)dev.deof(); VERIFY(true); } catch (...) { VERIFY(false); }
+        EXPECT_ANY_THROW(dev.dseek(0));
+        EXPECT_ANY_THROW(dev.dseek(0));
     }
-    
-    // dput on closed file or null buffer
     {
         ofile_device<char> dev;
-        try { dev.dput("a", 1); VERIFY(false); } catch (const device_error&) {}
-        
+        EXPECT_ANY_THROW(dev.dseek(0));
+        EXPECT_ANY_THROW(dev.dseek(0));
+    }
+    {
+        file_device<char> dev;
+        EXPECT_ANY_THROW(dev.dseek(0));
+        EXPECT_ANY_THROW(dev.dseek(0));
+    }
+}
+
+TEST(FileDeviceChar, SeekingToTheStartOfAnOpenFileAlwaysWorks)
+{
+    const char* name = "fd_char_seek_zero.tst";
+
+    {
+        file_guard g(name, data);
+        ifile_device<char> dev(name);
+        dev.dseek(0);
+        dev.dseek(0);
+        EXPECT_EQ(dev.dtell(), 0u);
+    }
+    {
+        file_guard g(name, data);
+        file_device<char> dev(name);
+        dev.dseek(0);
+        dev.dseek(0);
+        EXPECT_EQ(dev.dtell(), 0u);
+    }
+    {
+        file_guard g(name, data);
+        ofile_device<char> dev(name);
+        dev.dseek(0);
+        dev.dseek(0);
+        EXPECT_EQ(dev.dtell(), 0u);
+    }
+}
+
+TEST(FileDeviceChar, ReadAndWriteAlternateWithoutASeekBetweenThem)
+{
+    const char* name = "fd_char_alternate.tst";
+    file_guard g(name);
+
+    file_device<char> dev(name, file_open_flag::trunc);
+    char buf[12] = {};
+
+    // An empty file is already at its end.
+    EXPECT_TRUE(dev.deof());
+    dev.dput("1234", 4);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dseek(0);
+    EXPECT_FALSE(dev.deof());
+    EXPECT_EQ(dev.dget(buf, 3), 3u);
+    EXPECT_EQ(std::memcmp(buf, "123", 3), 0);
+    EXPECT_FALSE(dev.deof());
+
+    // Read then write, with nothing in between: the write continues from where
+    // the read stopped, overwriting byte 3 and appending byte 4.
+    dev.dput("AB", 2);
+    EXPECT_TRUE(dev.deof());
+    dev.dseek(0);
+    EXPECT_EQ(dev.dget(buf, 5), 5u);
+    EXPECT_EQ(std::memcmp(buf, "123AB", 5), 0);
+    EXPECT_TRUE(dev.deof());
+
+    // Write then read, again with nothing in between.
+    dev.dseek(0);
+    dev.dput("XY", 2);
+    EXPECT_FALSE(dev.deof());
+    EXPECT_EQ(dev.dget(buf, 3), 3u);
+    EXPECT_EQ(std::memcmp(buf, "3AB", 3), 0);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dput("CDEF", 4);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dseek(0);
+    EXPECT_EQ(dev.dget(buf, 2), 2u);
+    EXPECT_EQ(std::memcmp(buf, "XY", 2), 0);
+    EXPECT_FALSE(dev.deof());
+
+    dev.drseek(0);
+    EXPECT_TRUE(dev.deof());
+    dev.dput("GHI", 3);
+    EXPECT_TRUE(dev.deof());
+
+    dev.dseek(0);
+    EXPECT_FALSE(dev.deof());
+    EXPECT_EQ(dev.dget(buf, 12), 12u);
+    EXPECT_EQ(std::memcmp(buf, "XY3ABCDEFGHI", 12), 0);
+    EXPECT_TRUE(dev.deof());
+}
+
+// ---------------------------------------------------------------------------
+// Zero-length transfers and null buffers.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, ZeroLengthTransfersAcceptANullBuffer)
+{
+    const char* name = "fd_char_null_buffer.tst";
+    file_guard g(name);
+
+    file_device<char> dev(name, file_open_flag::trunc);
+
+    // Nothing is dereferenced when the count is zero; it becomes an error as
+    // soon as a byte is actually asked for.
+    dev.dput(nullptr, 0);
+    EXPECT_EQ(dev.dsize(), 0u);
+
+    EXPECT_EQ(dev.dget(nullptr, 0), 0u);
+    EXPECT_THROW(dev.dget(nullptr, 1), device_error);
+
+    dev.dput("abc", 3);
+    dev.dseek(0);
+    EXPECT_EQ(dev.dget(nullptr, 0), 0u);
+
+    char ch = 0;
+    EXPECT_EQ(dev.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, 'a');
+}
+
+// ---------------------------------------------------------------------------
+// Failing to open.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, OpeningAMissingFileForReadingThrows)
+{
+    EXPECT_THROW((void)ifile_device<char>("non_existent_file.txt"), device_error);
+    EXPECT_THROW((void)file_device<char>("non_existent_file.txt"), device_error);
+}
+
+TEST(FileDeviceChar, TryOpenReportsTheFailureInsteadOfThrowing)
+{
+    auto res = file_device<char>::try_open("non_existent_file.txt");
+    EXPECT_FALSE(res.has_value());
+    EXPECT_FALSE(res.error().empty());
+}
+
+TEST(FileDeviceChar, NoreplaceRefusesAnExistingFile)
+{
+    file_guard g("existing_file.txt", std::string("content"));
+
+    EXPECT_THROW((void)ofile_device<char>("existing_file.txt", file_open_flag::noreplace),
+                 device_error);
+
+    auto res = ofile_device<char>::try_open("existing_file.txt", file_open_flag::noreplace);
+    EXPECT_FALSE(res.has_value());
+}
+
+TEST(FileDeviceChar, TryOpenReportsARejectedFlagCombination)
+{
+    const char* name = "fd_char_try_open_flags.tst";
+    file_guard g(name, data);
+
+    // trunc is meaningless for a read-only device, and the constructor says so;
+    // try_open turns that into an error value.
+    auto res = ifile_device<char>::try_open(name, file_open_flag::trunc);
+    EXPECT_FALSE(res.has_value());
+    EXPECT_FALSE(res.error().empty());
+}
+
+// ---------------------------------------------------------------------------
+// Move semantics.  The device owns a FILE*, so it is move-only.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, MoveTransfersTheOpenFile)
+{
+    const char* name = "fd_char_move.tst";
+    file_guard g(name, std::string("move content"));
+
+    file_device<char> dev1(name);
+    ASSERT_TRUE(dev1.is_open());
+    const std::size_t len = dev1.dsize();
+
+    file_device<char> dev2(std::move(dev1));
+    EXPECT_TRUE(dev2.is_open());
+    EXPECT_EQ(dev2.dsize(), len);
+    EXPECT_FALSE(dev1.is_open());
+
+    file_device<char> dev3;
+    dev3 = std::move(dev2);
+    EXPECT_TRUE(dev3.is_open());
+    EXPECT_EQ(dev3.dsize(), len);
+    EXPECT_FALSE(dev2.is_open());
+
+    // Outside any macro: the diagnostic fires at the assignment itself.
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-move"
+#endif
+    dev3 = std::move(dev3);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    EXPECT_TRUE(dev3.is_open());
+    EXPECT_EQ(dev3.dsize(), len);
+}
+
+TEST(FileDeviceChar, MoveAssignmentWorksForTheSingleDirectionDevices)
+{
+    // The read-only and write-only instantiations have their own operator=,
+    // and only the read-write one is covered by the case above.
+    const char* in_name  = "fd_char_move_in.tst";
+    const char* out_name = "fd_char_move_out.tst";
+    file_guard g1(in_name, data);
+    file_guard g2(out_name);
+
+    ifile_device<char> reader(in_name);
+    ifile_device<char> reader_dst;
+    reader_dst = std::move(reader);
+    EXPECT_TRUE(reader_dst.is_open());
+    EXPECT_FALSE(reader.is_open());
+    EXPECT_EQ(reader_dst.dsize(), data_len);
+
+    ofile_device<char> writer(out_name, file_open_flag::trunc);
+    ofile_device<char> writer_dst;
+    writer_dst = std::move(writer);
+    EXPECT_TRUE(writer_dst.is_open());
+    EXPECT_FALSE(writer.is_open());
+    writer_dst.dput("ok", 2);
+}
+
+// ---------------------------------------------------------------------------
+// Error paths.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, SeekingPastTheEndOfAReadOnlyFileThrows)
+{
+    file_guard g("seek_err.txt", std::string("123"));
+    ifile_device<char> dev("seek_err.txt");
+    EXPECT_THROW(dev.dseek(10), device_error);
+}
+
+TEST(FileDeviceChar, PositionQueriesOnAClosedDeviceThrow)
+{
+    ifile_device<char> dev;
+
+    EXPECT_THROW((void)dev.dtell(), device_error);
+    EXPECT_THROW((void)dev.dsize(), device_error);
+    EXPECT_THROW(dev.dseek(0), device_error);
+    EXPECT_THROW(dev.drseek(0), device_error);
+
+    // deof() is the exception: it answers "yes" for a closed device rather than
+    // throwing, so a read loop over one terminates instead of blowing up.
+    EXPECT_NO_THROW((void)dev.deof());
+    EXPECT_TRUE(dev.deof());
+}
+
+TEST(FileDeviceChar, PutOnAClosedDeviceOrANullBufferThrows)
+{
+    {
+        ofile_device<char> dev;
+        EXPECT_THROW(dev.dput("a", 1), device_error);
+    }
+    {
         file_guard g("put_err.txt");
-        ofile_device<char> dev2("put_err.txt");
-        try { dev2.dput(nullptr, 1); VERIFY(false); } catch (const device_error&) {}
+        ofile_device<char> dev("put_err.txt");
+        EXPECT_THROW(dev.dput(nullptr, 1), device_error);
     }
-
-    // Invalid open modes
-    try {
-        basic_file_device<true, false, char> dev("test.txt", file_open_flag::trunc);
-        VERIFY(false);
-    } catch (const device_error&) {}
-
-    // dflush on closed file (should be no-op)
-    {
-        ofile_device<char> dev;
-        dev.dflush();
-    }
-
-    // drseek: offset > m_file_len  (covers the "invalid parameter" path in drseek)
-    {
-        file_guard g("drseek_err.txt", "hello"); // 5 bytes
-        ifile_device<char> dev("drseek_err.txt");
-        try { dev.drseek(1000); VERIFY(false); } catch (const device_error&) {}
-    }
-
-    // dseek: position exceeds INT64_MAX  (covers the overflow guard in dseek)
-    {
-        file_guard g("dseek_overflow.txt", "hi");
-        ofile_device<char> dev("dseek_overflow.txt");
-        try {
-            dev.dseek(std::numeric_limits<size_t>::max());
-            VERIFY(false);
-        } catch (const device_error&) {}
-    }
-
-    dump_info("Done\n");
 }
 
-void test_file_device_char_system_errors()
+TEST(FileDeviceChar, TruncIsRejectedForAReadOnlyDevice)
 {
-    using namespace IOv2;
-    dump_info("Test file_device<char> system errors...");
-
-    // dflush error on /dev/full
-    try {
-        ofile_device<char> dev("/dev/full");
-        dev.dput("some data", 9);
-        dev.dflush();
-    } catch (const device_error&) {
-        // Expected failure
-    }
-
-    // close error recovery
-    try {
-        ofile_device<char> dev("/dev/full");
-        dev.dput("some data", 9);
-        dev.close(); // Should throw because dflush fails, but file should still be closed
-    } catch (const device_error&) {
-        // Expected failure
-    }
-
-    dump_info("Done\n");
+    EXPECT_THROW((void)ifile_device<char>("test.txt", file_open_flag::trunc), device_error);
 }
 
-void test_file_device_char_open_modes()
+TEST(FileDeviceChar, FlushOnAClosedDeviceIsANoOp)
 {
-    using namespace IOv2;
-    dump_info("Test file_device<char> open modes...");
+    ofile_device<char> dev;
+    EXPECT_NO_THROW(dev.dflush());
+}
 
-    const char name[] = "modes_test.txt";
-    
-    // noreplace
+TEST(FileDeviceChar, DrseekPastTheStartThrows)
+{
+    file_guard g("drseek_err.txt", std::string("hello"));
+    ifile_device<char> dev("drseek_err.txt");
+    EXPECT_THROW(dev.drseek(1000), device_error);
+}
+
+TEST(FileDeviceChar, DseekRejectsAnOffsetThatWouldOverflowTheFileOffsetType)
+{
+    file_guard g("dseek_overflow.txt", std::string("hi"));
+    ofile_device<char> dev("dseek_overflow.txt");
+    EXPECT_THROW(dev.dseek(std::numeric_limits<std::size_t>::max()), device_error);
+}
+
+// ---------------------------------------------------------------------------
+// Failures that need the operating system to produce them.  /dev/full accepts
+// an open and then fails every write with ENOSPC, which is the only portable
+// way to reach the partial-write and flush-failure paths.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, FlushReportsAWriteThatTheSystemRefused)
+{
+    ofile_device<char> dev("/dev/full");
+    dev.dput("some data", 9);
+    EXPECT_THROW(dev.dflush(), device_error);
+}
+
+TEST(FileDeviceChar, CloseReportsTheFailedFlushAndStillReleasesTheFile)
+{
+    ofile_device<char> dev("/dev/full");
+    dev.dput("some data", 9);
+
+    EXPECT_THROW(dev.close(), device_error);
+    // close() resets the handle before re-throwing, so the device is closed
+    // even though it reported an error.
+    EXPECT_FALSE(dev.is_open());
+}
+
+TEST(FileDeviceChar, PutReportsAPartialWrite)
+{
+    ofile_device<char> dev("/dev/full");
+
+    // Large enough that it cannot sit in the FILE buffer: the write reaches the
+    // system and comes back short.
+    const std::string large(1024 * 1024, 'A');
+    EXPECT_THROW(dev.dput(large.data(), large.size()), device_error);
+}
+
+TEST(FileDeviceChar, ANonSeekableFileIsRejected)
+{
+    // /dev/stderr is a pipe or a terminal here, so the constructor cannot
+    // measure its length.
+    EXPECT_ANY_THROW(
+    {
+        ifile_device<char> dev("/dev/stderr");
+        dev.dseek(1);
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Open flags.  Each combination selects a different fopen() mode string, and
+// the table that does it is the point of these cases.
+// ---------------------------------------------------------------------------
+
+TEST(FileDeviceChar, WriteOnlyOpenFlagCombinations)
+{
+    const char* name = "modes_test.txt";
+
     {
         file_guard g(name);
         ofile_device<char> dev(name, file_open_flag::noreplace);
-        VERIFY(dev.is_open());
+        EXPECT_TRUE(dev.is_open());
     }
-
-    // noreplace + binary
     {
         file_guard g(name);
         ofile_device<char> dev(name, file_open_flag::noreplace | file_open_flag::binary);
-        VERIFY(dev.is_open());
+        EXPECT_TRUE(dev.is_open());
     }
-
-    // rw + trunc
-    {
-        file_guard g(name, "existing");
-        file_device<char> dev(name, file_open_flag::trunc);
-        VERIFY(dev.dsize() == 0);
-    }
-
-    // rw + binary
-    {
-        file_guard g(name, "existing");
-        file_device<char> dev(name, file_open_flag::binary);
-        VERIFY(dev.dsize() == 8);
-    }
-
-    // rw + trunc + binary
-    {
-        file_guard g(name, "existing");
-        file_device<char> dev(name, file_open_flag::trunc | file_open_flag::binary);
-        VERIFY(dev.dsize() == 0);
-    }
-
-    // rw + noreplace
-    {
-        file_guard g(name);
-        file_device<char> dev(name, file_open_flag::noreplace);
-        VERIFY(dev.is_open());
-    }
-
-    // rw + noreplace + binary
-    {
-        file_guard g(name);
-        file_device<char> dev(name, file_open_flag::noreplace | file_open_flag::binary);
-        VERIFY(dev.is_open());
-    }
-
-    // in + binary  → fopen_mode "rb"  (covers the previously-missed return "rb" path)
-    {
-        file_guard g(name, "existing");
-        ifile_device<char> dev(name, file_open_flag::binary);
-        VERIFY(dev.is_open());
-    }
-
-    // out + binary  → fopen_mode "wb"  (covers the previously-missed return "wb" path)
     {
         file_guard g(name);
         ofile_device<char> dev(name, file_open_flag::binary);
-        VERIFY(dev.is_open());
+        EXPECT_TRUE(dev.is_open());
     }
-
-    dump_info("Done\n");
-}
-
-void test_file_device_char_coverage_extra()
-{
-    using namespace IOv2;
-    dump_info("Test file_device<char> coverage extra...");
-
-    const char name[] = "extra_coverage_test.txt";
-
-    // 1. Missing Flag Combinations (fopen_mode)
-    // IsIn && IsOut + trunc | noreplace
-    {
-        file_guard g(name);
-        file_device<char> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
-        VERIFY(dev.is_open());
-    }
-    // IsIn && IsOut + binary | trunc | noreplace
-    {
-        file_guard g(name);
-        file_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc | file_open_flag::noreplace);
-        VERIFY(dev.is_open());
-    }
-    // IsOut + trunc | noreplace
     {
         file_guard g(name);
         ofile_device<char> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
-        VERIFY(dev.is_open());
+        EXPECT_TRUE(dev.is_open());
     }
-    // IsOut + binary | trunc | noreplace
     {
         file_guard g(name);
-        ofile_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc | file_open_flag::noreplace);
-        VERIFY(dev.is_open());
+        ofile_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc
+                                     | file_open_flag::noreplace);
+        EXPECT_TRUE(dev.is_open());
     }
-
-    // 2. Partial Write in dput (using /dev/full)
-    // Trigger line 490: throw device_error("file_device::dput fail: partial write");
-    try {
-        ofile_device<char> dev("/dev/full");
-        // Write a large buffer (1MB) to ensure we exceed internal FILE buffers
-        // and trigger a real syscall that fails on /dev/full.
-        std::string large_data(1024 * 1024, 'A');
-        dev.dput(large_data.data(), large_data.size());
-        VERIFY(false); 
-    } catch (const device_error&) {
-        // Expected: partial write or early failure
-    }
-
-    // 3. fseek failure in constructor (using /dev/stderr)
-    // /dev/stderr is usually a pipe or TTY, which is non-seekable (ESPIPE).
-    // Trigger line 169: throw device_error("cannot get file length...");
-    try {
-        ifile_device<char> dev("/dev/stderr");
-        // If constructor somehow succeeds (platform specific), try dseek
-        dev.dseek(1);
-    } catch (const device_error&) {
-        // Expected
-    }
-
-    // 4. try_open error path coverage
-    {
-        // Invalid mode for read-only (trunc) triggers exception in constructor,
-        // which try_open catches and returns as unexpected.
-        auto res = ifile_device<char>::try_open(name, file_open_flag::trunc);
-        VERIFY(!res);
-        VERIFY(!res.error().empty());
-    }
-
-    dump_info("Done\n");
 }
 
+TEST(FileDeviceChar, ReadWriteOpenFlagCombinations)
+{
+    const char* name = "modes_test.txt";
+    const std::string existing = "existing";
+
+    {
+        file_guard g(name, existing);
+        file_device<char> dev(name, file_open_flag::trunc);
+        EXPECT_EQ(dev.dsize(), 0u);
+    }
+    {
+        file_guard g(name, existing);
+        file_device<char> dev(name, file_open_flag::binary);
+        EXPECT_EQ(dev.dsize(), existing.size());
+    }
+    {
+        file_guard g(name, existing);
+        file_device<char> dev(name, file_open_flag::trunc | file_open_flag::binary);
+        EXPECT_EQ(dev.dsize(), 0u);
+    }
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::noreplace);
+        EXPECT_TRUE(dev.is_open());
+    }
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::noreplace | file_open_flag::binary);
+        EXPECT_TRUE(dev.is_open());
+    }
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::trunc | file_open_flag::noreplace);
+        EXPECT_TRUE(dev.is_open());
+    }
+    {
+        file_guard g(name);
+        file_device<char> dev(name, file_open_flag::binary | file_open_flag::trunc
+                                    | file_open_flag::noreplace);
+        EXPECT_TRUE(dev.is_open());
+    }
+}
+
+TEST(FileDeviceChar, ReadOnlyBinaryOpen)
+{
+    const char* name = "modes_test.txt";
+    file_guard g(name, std::string("existing"));
+
+    ifile_device<char> dev(name, file_open_flag::binary);
+    EXPECT_TRUE(dev.is_open());
+}

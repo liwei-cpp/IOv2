@@ -1,425 +1,426 @@
-#include <stdexcept>
-#include <tuple>
 #include <device/mem_device.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <gtest/gtest.h>
 
-void test_mem_device_char32_t_gen_1()
+#include <cstddef>
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test mem_device<char32_t> general 1...");
-    static_assert(IOv2::io_device<IOv2::mem_device<char32_t>>);
-    static_assert(std::is_same_v<IOv2::mem_device<char32_t>::char_type, char32_t>);
-    
-    using CheckType = IOv2::mem_device<char32_t>;
-    static_assert(IOv2::dev_cpt::support_positioning<CheckType>);
-    static_assert(IOv2::dev_cpt::support_put<CheckType>);
-    static_assert(IOv2::dev_cpt::support_get<CheckType>);
-    dump_info("Done\n");
+    using dev = mem_device<char32_t>;
+
+    static_assert(io_device<dev>);
+    static_assert(std::is_same_v<dev::char_type, char32_t>);
+    static_assert(dev_cpt::support_positioning<dev>);
+    static_assert(dev_cpt::support_put<dev>);
+    static_assert(dev_cpt::support_get<dev>);
 }
 
-void test_mem_device_char32_t_gen_2()
+TEST(MemDeviceChar32, Traits)
 {
-    dump_info("Test mem_device<char32_t> general 2...");
-    
-    IOv2::mem_device<char32_t> sbuf;
-    VERIFY(sbuf.str().empty());
-    
-    const std::u32string str = U"This is my boomstick!";
-    IOv2::mem_device<char32_t> sbuf2(str);
-    VERIFY(sbuf2.str() == str);
-    
-    char32_t ch;
-    VERIFY((sbuf2.dget(&ch, 1) == 1) && (ch == str[0]));
-    sbuf2.dput(U"Y", 1);
-
-    dump_info("Done\n");
+    // Every assertion above is a static_assert; compiling is the check.
+    SUCCEED();
 }
 
-void test_mem_device_char32_t_gen_3()
+// ---------------------------------------------------------------------------
+// Construction and assignment.
+// ---------------------------------------------------------------------------
+
+TEST(MemDeviceChar32, DefaultConstructionIsEmpty)
 {
-    dump_info("Test mem_device<char32_t> general 3...");
-    
-    {
-        IOv2::mem_device<char32_t> obj;
-        VERIFY(obj.str() == U"");
-        VERIFY(obj.dtell() == 0);
-
-        obj = IOv2::mem_device{U"Hello world"};
-        VERIFY(obj.str() == U"Hello world");
-        VERIFY(obj.dtell() == 0);
-    }
-    
-    {
-        std::u32string ref = U"Hello world";
-        
-        IOv2::mem_device<char32_t> obj(ref);
-        VERIFY(obj.str() == ref);
-        VERIFY(obj.dtell() == 0);
-
-        ref += U"123";
-        obj = IOv2::mem_device{ref};
-        VERIFY(obj.str() == ref);
-        VERIFY(obj.dtell() == 0);
-    }
-    dump_info("Done\n");
+    dev obj;
+    EXPECT_TRUE(obj.str().empty());
+    EXPECT_EQ(obj.dtell(), 0u);
 }
 
-void test_mem_device_char32_t_in_1()
+TEST(MemDeviceChar32, ConstructionFromStringKeepsTheContents)
 {
-    dump_info("Test mem_device<char32_t> input case 1...");
-    IOv2::mem_device<char32_t> obj(U"12");
+    const std::u32string text = U"buffered characters";
+
+    dev obj(text);
+    EXPECT_EQ(obj.str(), text);
+    EXPECT_EQ(obj.dtell(), 0u);
+
     char32_t ch = 0;
-    VERIFY((obj.dget(&ch, 1) == 1) && (ch == U'1'));
-    VERIFY(obj.dtell() == 1);
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, text[0]);
 
-    VERIFY((obj.dget(&ch, 1) == 1) && (ch == U'2'));
-    VERIFY(obj.dtell() == 2);
-
-    VERIFY(obj.dget(&ch, 1) == 0);
-    VERIFY(obj.dtell() == 2);
-
-    dump_info("Done\n");
+    obj.dput(U"Y", 1);
+    EXPECT_EQ(obj.str(), U"bYffered characters");
+    EXPECT_EQ(obj.dtell(), 2u);
 }
 
-void test_mem_device_char32_t_in_2()
+TEST(MemDeviceChar32, MoveAssignmentFromTemporaryResetsThePosition)
 {
-    dump_info("Test mem_device<char32_t> input case 2...");
+    dev obj;
+    EXPECT_EQ(obj.str(), U"");
+    EXPECT_EQ(obj.dtell(), 0u);
 
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        char32_t buf[5];
-        size_t read_num = obj.dget(buf, 5);
-        VERIFY(read_num == 5);
-        VERIFY(buf[0] == U'1');
-        VERIFY(buf[1] == U'2');
-        VERIFY(buf[2] == U'3');
-        VERIFY(buf[3] == U'4');
-        VERIFY(buf[4] == U'5');
-        VERIFY(obj.dtell() == 5);
-    }
-    
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        char32_t buf[5];
-        size_t read_num = obj.dget(buf, 3);
-        VERIFY(read_num == 3);
-        VERIFY(buf[0] == U'1');
-        VERIFY(buf[1] == U'2');
-        VERIFY(buf[2] == U'3');
-        VERIFY(obj.dtell() == 3);
-
-        read_num = obj.dget(buf, 2);
-        VERIFY(read_num == 2);
-        VERIFY(buf[0] == U'4');
-        VERIFY(buf[1] == U'5');
-        VERIFY(obj.dtell() == 5);
-    }
-
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        char32_t buf[10];
-        size_t read_num = obj.dget(buf, 10);
-        VERIFY(read_num == 5);
-        VERIFY(buf[0] == U'1');
-        VERIFY(buf[1] == U'2');
-        VERIFY(buf[2] == U'3');
-        VERIFY(buf[3] == U'4');
-        VERIFY(buf[4] == U'5');
-        VERIFY(obj.dtell() == 5);
-
-        read_num = obj.dget(buf, 10);
-        VERIFY(read_num == 0);
-    }
-
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        char32_t buf[5];
-        size_t read_num = obj.dget(buf, 3);
-        VERIFY(read_num == 3);
-        VERIFY(buf[0] == U'1');
-        VERIFY(buf[1] == U'2');
-        VERIFY(buf[2] == U'3');
-        VERIFY(obj.dtell() == 3);
-        
-        read_num = obj.dget(buf, 5);
-        VERIFY(read_num == 2);
-        VERIFY(buf[0] == U'4');
-        VERIFY(buf[1] == U'5');
-        VERIFY(obj.dtell() == 5);
-
-        read_num = obj.dget(buf, 10);
-        VERIFY(read_num == 0);
-    }
-    
-    dump_info("Done\n");
+    obj = dev{U"Hello world"};
+    EXPECT_EQ(obj.str(), U"Hello world");
+    EXPECT_EQ(obj.dtell(), 0u);
 }
 
-void test_mem_device_char32_t_in_3()
+TEST(MemDeviceChar32, ConstructionCopiesTheSourceString)
 {
-    dump_info("Test mem_device<char32_t> input case 3...");
+    std::u32string ref = U"Hello world";
 
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        obj.dseek(3);
-        char32_t buf[5];
-        size_t read_num = obj.dget(buf, 5);
-        VERIFY(read_num == 2);
-        VERIFY(buf[0] == U'4');
-        VERIFY(buf[1] == U'5');
-      
-        obj.dseek(obj.dtell() - 1);
-        read_num = obj.dget(buf, 5);
-        VERIFY(read_num == 1);
-        VERIFY(buf[0] == U'5');
-    }
-    
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        obj.dseek(2);
-        
-        char32_t ch = 0;
-        VERIFY((obj.dget(&ch, 1) == 1) && (ch == U'3'));
-        
-        obj.dseek(1);
-        VERIFY((obj.dget(&ch, 1) == 1) && (ch == U'2'));
-        
-        obj.dseek(obj.dtell() + 2);
-        VERIFY((obj.dget(&ch, 1) == 1) && (ch == U'5'));
-        
-        obj.drseek(3);
-        VERIFY((obj.dget(&ch, 1) == 1) && (ch == U'3'));
-    }
-    
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.dtell() == 0L);
-        
-        obj.dseek(3);
+    dev obj(ref);
+    EXPECT_EQ(obj.str(), ref);
+    EXPECT_EQ(obj.dtell(), 0u);
 
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, -100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, obj.dtell() + 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, obj.dtell() - 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_RSEEK(obj, -100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_RSEEK(obj, 100);
-        VERIFY(obj.dtell() == 3L);
-    }
-    dump_info("Done\n");
+    // The device holds a copy, so growing `ref` does not reach it.
+    ref += U"123";
+    EXPECT_NE(obj.str(), ref);
+    obj = dev{ref};
+    EXPECT_EQ(obj.str(), ref);
+    EXPECT_EQ(obj.dtell(), 0u);
 }
 
-void test_mem_device_char32_t_out_1()
-{
-    dump_info("Test mem_device<char32_t> output case 1...");
+// ---------------------------------------------------------------------------
+// Input.
+// ---------------------------------------------------------------------------
 
-    IOv2::mem_device<char32_t> obj(U"12"); obj.drseek(0);
+TEST(MemDeviceChar32, GetOneCharacterAtATime)
+{
+    dev obj(U"12");
+    char32_t ch = 0;
+
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'1');
+    EXPECT_EQ(obj.dtell(), 1u);
+
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'2');
+    EXPECT_EQ(obj.dtell(), 2u);
+
+    EXPECT_EQ(obj.dget(&ch, 1), 0u);
+    EXPECT_EQ(obj.dtell(), 2u);
+}
+
+TEST(MemDeviceChar32, GetFillsTheWholeRequest)
+{
+    dev obj(U"12345");
+    char32_t buf[5] = {};
+
+    EXPECT_EQ(obj.dget(buf, 5), 5u);
+    EXPECT_EQ(std::u32string(buf, 5), U"12345");
+    EXPECT_EQ(obj.dtell(), 5u);
+}
+
+TEST(MemDeviceChar32, SuccessiveGetsResumeWhereTheLastStopped)
+{
+    dev obj(U"12345");
+    char32_t buf[5] = {};
+
+    EXPECT_EQ(obj.dget(buf, 3), 3u);
+    EXPECT_EQ(std::u32string(buf, 3), U"123");
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_EQ(obj.dget(buf, 2), 2u);
+    EXPECT_EQ(std::u32string(buf, 2), U"45");
+    EXPECT_EQ(obj.dtell(), 5u);
+}
+
+TEST(MemDeviceChar32, GetPastTheEndReturnsWhatIsLeft)
+{
+    dev obj(U"12345");
+    char32_t buf[10] = {};
+
+    EXPECT_EQ(obj.dget(buf, 10), 5u);
+    EXPECT_EQ(std::u32string(buf, 5), U"12345");
+    EXPECT_EQ(obj.dtell(), 5u);
+
+    EXPECT_EQ(obj.dget(buf, 10), 0u);
+}
+
+TEST(MemDeviceChar32, ShortGetAfterAFullOneStopsAtTheEnd)
+{
+    dev obj(U"12345");
+    char32_t buf[5] = {};
+
+    EXPECT_EQ(obj.dget(buf, 3), 3u);
+    EXPECT_EQ(std::u32string(buf, 3), U"123");
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_EQ(obj.dget(buf, 5), 2u);
+    EXPECT_EQ(std::u32string(buf, 2), U"45");
+    EXPECT_EQ(obj.dtell(), 5u);
+
+    EXPECT_EQ(obj.dget(buf, 10), 0u);
+}
+
+TEST(MemDeviceChar32, GetAfterSeek)
+{
+    dev obj(U"12345");
+    char32_t buf[5] = {};
+
+    obj.dseek(3);
+    EXPECT_EQ(obj.dget(buf, 5), 2u);
+    EXPECT_EQ(std::u32string(buf, 2), U"45");
+
+    obj.dseek(obj.dtell() - 1);
+    EXPECT_EQ(obj.dget(buf, 5), 1u);
+    EXPECT_EQ(buf[0], U'5');
+}
+
+TEST(MemDeviceChar32, SeekAndDrseekAddressTheSameCharacter)
+{
+    dev obj(U"12345");
+    char32_t ch = 0;
+
+    obj.dseek(2);
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'3');
+
+    obj.dseek(1);
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'2');
+
+    obj.dseek(obj.dtell() + 2);
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'5');
+
+    // Three back from the end is the same place as two from the front.
+    obj.drseek(3);
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'3');
+}
+
+TEST(MemDeviceChar32, FailedSeeksLeaveTheReadPositionAlone)
+{
+    dev obj(U"12345");
+
+    EXPECT_ANY_THROW(obj.dseek(100));
+    EXPECT_EQ(obj.dtell(), 0u);
+
+    obj.dseek(3);
+
+    EXPECT_ANY_THROW(obj.dseek(100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    // Negative offsets reach dseek as huge size_t values; they must be rejected
+    // rather than wrap into a valid position.
+    EXPECT_ANY_THROW(obj.dseek(-100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.dseek(obj.dtell() + 100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.dseek(obj.dtell() - 100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.drseek(-100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.drseek(100));
+    EXPECT_EQ(obj.dtell(), 3u);
+}
+
+// ---------------------------------------------------------------------------
+// Output.
+// ---------------------------------------------------------------------------
+
+TEST(MemDeviceChar32, PutAtTheEndAppends)
+{
+    dev obj(U"12");
+    obj.drseek(0);
+
     obj.dput(U"x", 1);
-    VERIFY(obj.str() == U"12x");
-    VERIFY(obj.dtell() == 3);
+    EXPECT_EQ(obj.str(), U"12x");
+    EXPECT_EQ(obj.dtell(), 3u);
+}
 
-    obj = IOv2::mem_device(U"12");
+TEST(MemDeviceChar32, PutInsideTheBufferOverwrites)
+{
+    dev obj(U"12");
+
     obj.dput(U"x", 1);
-    VERIFY(obj.str() == U"x2");
-    VERIFY(obj.dtell() == 1);
-    
-    obj = IOv2::mem_device<char32_t>{};
+    EXPECT_EQ(obj.str(), U"x2");
+    EXPECT_EQ(obj.dtell(), 1u);
+}
+
+TEST(MemDeviceChar32, PutIntoADefaultConstructedDevice)
+{
+    dev obj;
+
     obj.dput(U"y", 1);
-    VERIFY(obj.str() == U"y");
-    VERIFY(obj.dtell() == 1);
-
-    dump_info("Done\n");
+    EXPECT_EQ(obj.str(), U"y");
+    EXPECT_EQ(obj.dtell(), 1u);
 }
 
-void test_mem_device_char32_t_out_2()
+TEST(MemDeviceChar32, PutGrowsAnEmptyDevice)
 {
-    dump_info("Test mem_device<char32_t> output case 2...");
-
-    {
-        IOv2::mem_device<char32_t> obj;
-        obj.dput(U"12345", 5);
-        VERIFY(obj.str() == U"12345");
-        VERIFY(obj.dtell() == 5);
-    }
-    
-    {
-        IOv2::mem_device<char32_t> obj;
-        obj.dput(nullptr, 0);
-        VERIFY(obj.str() == U"");
-        VERIFY(obj.dtell() == 0);
-    }
-    
-    {
-        IOv2::mem_device<char32_t> obj;
-        obj.dput(U"123", 3);
-        VERIFY(obj.str() == U"123");
-        VERIFY(obj.dtell() == 3);
-
-        obj.dput(U"45", 2);
-        VERIFY(obj.str() == U"12345");
-        VERIFY(obj.dtell() == 5);
-    }
-
-    {
-        IOv2::mem_device<char32_t> obj;
-        obj.dput(U"123", 3);
-        VERIFY(obj.str() == U"123");
-
-        obj.dput(U"x", 1);
-        VERIFY(obj.str() == U"123x");
-
-        obj.dput(U"45", 2);
-        VERIFY(obj.str() == U"123x45");
-
-        VERIFY(obj.dtell() == 6);
-    }
-
-    dump_info("Done\n");
+    dev obj;
+    obj.dput(U"12345", 5);
+    EXPECT_EQ(obj.str(), U"12345");
+    EXPECT_EQ(obj.dtell(), 5u);
 }
 
-void test_mem_device_char32_t_out_3()
+TEST(MemDeviceChar32, ZeroLengthPutAcceptsANullBuffer)
 {
-    dump_info("Test mem_device<char32_t> output case 3...");
+    dev obj;
 
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        obj.dseek(3);
-        obj.dput(U"ab", 2);
-        VERIFY(obj.str() == U"123ab");
-      
-        obj.dseek(obj.dtell() - 1);
-        obj.dput(U"x", 1);
-        VERIFY(obj.str() == U"123ax");
-    }
-    
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        obj.dseek(2);
-        obj.dput(U"x", 1);
-        VERIFY(obj.str() == U"12x45");
-        
-        obj.dseek(1);
-        obj.dput(U"y", 1);
-        VERIFY(obj.str() == U"1yx45");
-        
-        obj.dseek(obj.dtell() + 2);
-        obj.dput(U"z", 1);
-        VERIFY(obj.str() == U"1yx4z");
-
-        obj.drseek(3);
-        obj.dput(U"a", 1);
-        VERIFY(obj.str() == U"1ya4z");
-    }
-    
-    {
-        IOv2::mem_device<char32_t> obj(U"12345"); obj.drseek(0);
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.dtell() == 5L);
-
-        obj.dseek(3);
-
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, -100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, obj.dtell() + 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_SEEK(obj, obj.dtell() - 100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_RSEEK(obj, -100);
-        VERIFY(obj.dtell() == 3L);
-
-        FAIL_RSEEK(obj, 100);
-        VERIFY(obj.dtell() == 3L);
-    }
-
-    dump_info("Done\n");
+    // Nothing is dereferenced when the count is zero.
+    obj.dput(nullptr, 0);
+    EXPECT_EQ(obj.str(), U"");
+    EXPECT_EQ(obj.dtell(), 0u);
 }
 
-void test_mem_device_char32_t_io_1()
+TEST(MemDeviceChar32, SuccessivePutsAppendInOrder)
 {
-    dump_info("Test mem_device<char32_t> input/output case 1...");
-    {
-        IOv2::mem_device<char32_t> obj;
-        VERIFY(obj.dtell() == 0L);
-        
-        obj.dput(U"123", 3);
-        VERIFY(obj.dtell() == 3L);
-        
-        obj.dseek(0);
-        char32_t ch = 0;
-        VERIFY((obj.dget(&ch, 1) == 1) && (ch == U'1'));
-        VERIFY(obj.dtell() == 1L);
-        
-        obj.drseek(0);
-        obj.dput(U"x", 1);
-        VERIFY(obj.dtell() == 4L);
-    }
+    dev obj;
 
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        VERIFY(obj.dtell() == 0L);
-        
-        char32_t buf[5] = {0};
-        size_t read_num = obj.dget(buf, 4);
-        VERIFY(read_num == 4);
-        VERIFY(obj.dtell() == 4L);
-        
-        obj.drseek(0);
-        obj.dput(U"123", 3);
-        VERIFY(obj.dtell() == 8L);
-        
-        obj.dseek(4);
-        read_num = obj.dget(buf, 5);
-        VERIFY(read_num == 4);
-        VERIFY(obj.dtell() == 8L);
-    }
+    obj.dput(U"123", 3);
+    EXPECT_EQ(obj.str(), U"123");
+    EXPECT_EQ(obj.dtell(), 3u);
 
-    dump_info("Done\n");
+    obj.dput(U"45", 2);
+    EXPECT_EQ(obj.str(), U"12345");
+    EXPECT_EQ(obj.dtell(), 5u);
 }
 
-void test_mem_device_char32_t_io_2()
+TEST(MemDeviceChar32, SinglePutBetweenLongerOnes)
 {
-    dump_info("Test mem_device<char32_t> input/output case 2...");
-    {
-        IOv2::mem_device<char32_t> obj(U"12345");
-        VERIFY(obj.dtell() == 0L);
+    dev obj;
 
-        FAIL_SEEK(obj, 10);
-        VERIFY(obj.dtell() == 0L);
+    obj.dput(U"123", 3);
+    EXPECT_EQ(obj.str(), U"123");
 
-        obj.drseek(0);
-        obj.dput(U"abcde", 5);
-        obj.dseek(10);
-        VERIFY(obj.dtell() == 10L);
-        
-        obj.dseek(3);
-        VERIFY(obj.dtell() == 3L);
-        
-        obj.dput(U"xxxx", 4);
-        VERIFY(obj.str() == U"123xxxxcde");
-    }
+    obj.dput(U"x", 1);
+    EXPECT_EQ(obj.str(), U"123x");
 
-    dump_info("Done\n");
+    obj.dput(U"45", 2);
+    EXPECT_EQ(obj.str(), U"123x45");
+    EXPECT_EQ(obj.dtell(), 6u);
 }
 
+TEST(MemDeviceChar32, PutAfterSeekOverwritesThenExtends)
+{
+    dev obj(U"12345");
+
+    obj.dseek(3);
+    obj.dput(U"ab", 2);
+    EXPECT_EQ(obj.str(), U"123ab");
+
+    obj.dseek(obj.dtell() - 1);
+    obj.dput(U"x", 1);
+    EXPECT_EQ(obj.str(), U"123ax");
+}
+
+TEST(MemDeviceChar32, SeekAndDrseekSelectTheSameByteToOverwrite)
+{
+    dev obj(U"12345");
+
+    obj.dseek(2);
+    obj.dput(U"x", 1);
+    EXPECT_EQ(obj.str(), U"12x45");
+
+    obj.dseek(1);
+    obj.dput(U"y", 1);
+    EXPECT_EQ(obj.str(), U"1yx45");
+
+    obj.dseek(obj.dtell() + 2);
+    obj.dput(U"z", 1);
+    EXPECT_EQ(obj.str(), U"1yx4z");
+
+    obj.drseek(3);
+    obj.dput(U"a", 1);
+    EXPECT_EQ(obj.str(), U"1ya4z");
+}
+
+TEST(MemDeviceChar32, FailedSeeksLeaveTheWritePositionAlone)
+{
+    dev obj(U"12345");
+    obj.drseek(0);
+
+    EXPECT_ANY_THROW(obj.dseek(100));
+    EXPECT_EQ(obj.dtell(), 5u);
+
+    obj.dseek(3);
+
+    EXPECT_ANY_THROW(obj.dseek(100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.dseek(-100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.dseek(obj.dtell() + 100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.dseek(obj.dtell() - 100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.drseek(-100));
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    EXPECT_ANY_THROW(obj.drseek(100));
+    EXPECT_EQ(obj.dtell(), 3u);
+}
+
+// ---------------------------------------------------------------------------
+// Reading and writing through the same cursor.
+// ---------------------------------------------------------------------------
+
+TEST(MemDeviceChar32, ReadThenWriteSharesOneCursor)
+{
+    dev obj;
+    EXPECT_EQ(obj.dtell(), 0u);
+
+    obj.dput(U"123", 3);
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    obj.dseek(0);
+    char32_t ch = 0;
+    EXPECT_EQ(obj.dget(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'1');
+    EXPECT_EQ(obj.dtell(), 1u);
+
+    obj.drseek(0);
+    obj.dput(U"x", 1);
+    EXPECT_EQ(obj.dtell(), 4u);
+}
+
+TEST(MemDeviceChar32, AppendingAfterAReadExtendsTheBuffer)
+{
+    dev obj(U"12345");
+    EXPECT_EQ(obj.dtell(), 0u);
+
+    char32_t buf[5] = {};
+    EXPECT_EQ(obj.dget(buf, 4), 4u);
+    EXPECT_EQ(obj.dtell(), 4u);
+
+    obj.drseek(0);
+    obj.dput(U"123", 3);
+    EXPECT_EQ(obj.dtell(), 8u);
+
+    obj.dseek(4);
+    EXPECT_EQ(obj.dget(buf, 5), 4u);
+    EXPECT_EQ(obj.dtell(), 8u);
+}
+
+TEST(MemDeviceChar32, SeekToTheNewEndAfterGrowing)
+{
+    dev obj(U"12345");
+    EXPECT_EQ(obj.dtell(), 0u);
+
+    // 10 is past the end of a five-character buffer...
+    EXPECT_ANY_THROW(obj.dseek(10));
+    EXPECT_EQ(obj.dtell(), 0u);
+
+    obj.drseek(0);
+    obj.dput(U"abcde", 5);
+
+    // ...and one past the last character of a ten-character one, which is where
+    // the next write goes, so it is a legal position.
+    obj.dseek(10);
+    EXPECT_EQ(obj.dtell(), 10u);
+
+    obj.dseek(3);
+    EXPECT_EQ(obj.dtell(), 3u);
+
+    obj.dput(U"xxxx", 4);
+    EXPECT_EQ(obj.str(), U"123xxxxcde");
+}
