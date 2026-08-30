@@ -1,4 +1,4 @@
-# The test suite: 189 sources, 57 per-feature suites, 57 CTest tests.
+# The test suite: 188 sources, 57 per-feature suites, 57 CTest tests.
 #
 # test/Makefile linked everything into seven executables, one per top-level
 # directory, each driven by a hand-written main() that called its tests in a
@@ -8,20 +8,20 @@
 #
 # The suites here are those same tests, regrouped by the directory that holds
 # them and given a generated main(). Which functions each one calls, and in what
-# order, is derived from the seven aggregate main()s by
+# order, is derived from the remaining aggregate main()s by
 # test/tools/derive_suites.py and recorded in test/suites.cmake -- so this is a
-# regrouping, not a rewrite. No test source changes.
+# regrouping, not a rewrite.
+#
+# Directories in IOV2_TEST_GTEST_SUITE_DIRS have since been converted to
+# GoogleTest. Their cases register themselves, so once a directory is fully
+# converted its aggregate main() has nothing left to order and is deleted.
 
 include(IOv2TestOptions)
 include("${CMAKE_CURRENT_SOURCE_DIR}/suites.cmake")
 
-# Suites converted to GoogleTest. A directory joins this list as soon as its
-# first source is converted, not when the last one is: the generated main can
-# hold TEST()s and the remaining hand-written entry points at the same time,
-# which is what lets the conversion proceed one file at a time.
-set(IOV2_TEST_GTEST_SUITE_DIRS
-    common)
-
+# IOV2_TEST_GTEST_SUITE_DIRS comes from suites.cmake, derived from which sources
+# include <gtest/gtest.h>. Keeping it out of here is what stops it drifting away
+# from the sources as the conversion proceeds one file at a time.
 if(IOV2_TEST_GTEST_SUITE_DIRS)
   include(IOv2GoogleTest)
 endif()

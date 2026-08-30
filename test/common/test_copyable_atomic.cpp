@@ -1,11 +1,12 @@
 #include <common/copyable_atomic.h>
-#include <support/verify.h>
-#include <support/dump_info.h>
+
+#include <gtest/gtest.h>
 
 #include <atomic>
 #include <memory>
 #include <thread>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 using namespace IOv2;
@@ -58,123 +59,121 @@ static_assert(!std::is_copy_constructible_v<RawAtomicHolder>);
 static_assert(!std::is_move_constructible_v<RawAtomicHolder>);
 }
 
-void test_copyable_atomic_traits()
+TEST(CopyableAtomic, Traits)
 {
-    dump_info("Test copyable_atomic traits...");
     // 所有断言均为编译期 static_assert；能编译通过即已验证。
-    VERIFY(true);
-    dump_info("Done\n");
+    SUCCEED();
 }
 
 // ---------------------------------------------------------------------------
 // 3. 基本原子操作：默认值、值构造、load / store / exchange 语义正确。
 // ---------------------------------------------------------------------------
-void test_copyable_atomic_basic_ops()
+TEST(CopyableAtomic, DefaultConstructionIsValueInitialized)
 {
-    dump_info("Test copyable_atomic basic ops...");
-
     // 默认构造为值初始化（false / 0）。
     copyable_atomic<bool> b;
-    VERIFY(b.load() == false);
+    EXPECT_FALSE(b.load());
     copyable_atomic<int> i;
-    VERIFY(i.load() == 0);
+    EXPECT_EQ(i.load(), 0);
+}
 
+TEST(CopyableAtomic, StoreLoadExchange)
+{
     // 值构造。
     copyable_atomic<int> c{7};
-    VERIFY(c.load() == 7);
+    EXPECT_EQ(c.load(), 7);
 
     // store / load。
     c.store(5);
-    VERIFY(c.load() == 5);
+    EXPECT_EQ(c.load(), 5);
 
     // exchange 返回旧值并置入新值。
-    VERIFY(c.exchange(9) == 5);
-    VERIFY(c.load() == 9);
+    EXPECT_EQ(c.exchange(9), 5);
+    EXPECT_EQ(c.load(), 9);
+}
 
+TEST(CopyableAtomic, ExchangeIsTestAndSet)
+{
     // exchange 的“测试并置位”语义（flush guard 用法）：首次由 false→true 返回 false，
     // 再次 exchange(true) 返回 true（已置位）。
     copyable_atomic<bool> flag;
-    VERIFY(flag.exchange(true) == false);
-    VERIFY(flag.load() == true);
-    VERIFY(flag.exchange(true) == true);
+    EXPECT_FALSE(flag.exchange(true));
+    EXPECT_TRUE(flag.load());
+    EXPECT_TRUE(flag.exchange(true));
     flag.store(false);
-    VERIFY(flag.load() == false);
-
-    dump_info("Done\n");
+    EXPECT_FALSE(flag.load());
 }
 
 // ---------------------------------------------------------------------------
 // 4. 拷贝/移动**携带当前值**（与 copyable_mutex 的“重置”相反）：副本以一次原子读取
 //    搬运源的当前值，且源与副本相互独立。
 // ---------------------------------------------------------------------------
-void test_copyable_atomic_value_carried()
+TEST(CopyableAtomic, CopyAndMoveConstructionCarryValue)
 {
-    dump_info("Test copyable_atomic value carried on copy/move...");
-
     // 拷贝构造携带值，源不变。
     copyable_atomic<int> src{42};
     copyable_atomic<int> cp = src;
-    VERIFY(cp.load() == 42);
-    VERIFY(src.load() == 42);
+    EXPECT_EQ(cp.load(), 42);
+    EXPECT_EQ(src.load(), 42);
 
     // 副本独立：改副本不影响源。
     cp.store(100);
-    VERIFY(cp.load() == 100);
-    VERIFY(src.load() == 42);
+    EXPECT_EQ(cp.load(), 100);
+    EXPECT_EQ(src.load(), 42);
 
     // 移动构造携带值。
     copyable_atomic<int> mv = std::move(src);
-    VERIFY(mv.load() == 42);
+    EXPECT_EQ(mv.load(), 42);
+}
 
-    // 拷贝赋值携带值。
+TEST(CopyableAtomic, CopyAssignmentCarriesValue)
+{
     copyable_atomic<bool> s2{true};
     copyable_atomic<bool> d2;
     d2 = s2;
-    VERIFY(d2.load() == true);
-    VERIFY(s2.load() == true);
+    EXPECT_TRUE(d2.load());
+    EXPECT_TRUE(s2.load());
+}
 
-    // 移动赋值携带值。
+TEST(CopyableAtomic, MoveAssignmentCarriesValue)
+{
     copyable_atomic<bool> s3{true};
     copyable_atomic<bool> d3;
     d3 = std::move(s3);
-    VERIFY(d3.load() == true);
-
-    dump_info("Done\n");
+    EXPECT_TRUE(d3.load());
 }
 
 // ---------------------------------------------------------------------------
 // 5. 含 copyable_atomic 的外层类型可被实际拷贝/移动后仍正常工作，且各持独立的原子量。
 // ---------------------------------------------------------------------------
-void test_copyable_atomic_enclosing_type()
+TEST(CopyableAtomic, EnclosingTypeCopy)
 {
-    dump_info("Test copyable_atomic enclosing type...");
-
     // 拷贝：值成员与原子成员的当前值都被复制；两者相互独立。
     CopyableHolder src{42, copyable_atomic<int>{7}};
     CopyableHolder copy = src;
-    VERIFY(copy.x == 42);
-    VERIFY(copy.a.load() == 7);
+    EXPECT_EQ(copy.x, 42);
+    EXPECT_EQ(copy.a.load(), 7);
     copy.a.store(100);
-    VERIFY(copy.a.load() == 100);
-    VERIFY(src.a.load() == 7);   // 源不受影响
+    EXPECT_EQ(copy.a.load(), 100);
+    EXPECT_EQ(src.a.load(), 7);   // 源不受影响
+}
 
+TEST(CopyableAtomic, EnclosingTypeMove)
+{
     // 移动：仅可移动的外层类型也应能移动。
     MoveOnlyHolder mo{std::make_unique<int>(9), copyable_atomic<bool>{true}};
     MoveOnlyHolder moved = std::move(mo);
-    VERIFY(moved.p && *moved.p == 9);
-    VERIFY(moved.f.load() == true);
-
-    dump_info("Done\n");
+    ASSERT_NE(moved.p, nullptr);
+    EXPECT_EQ(*moved.p, 9);
+    EXPECT_TRUE(moved.f.load());
 }
 
 // ---------------------------------------------------------------------------
 // 6. 并发正确性之一：N 个线程同时 exchange(true)，恰好一个观察到旧值 false——
 //    正是 flush() 中“先到者进入、其余跳过”的语义。
 // ---------------------------------------------------------------------------
-void test_copyable_atomic_exchange_once()
+TEST(CopyableAtomic, ExchangeHasExactlyOneWinner)
 {
-    dump_info("Test copyable_atomic exchange once-winner...");
-
     copyable_atomic<bool> flag;
     std::atomic<int>      winners{0};
     const int             kThreads = 64;
@@ -192,20 +191,16 @@ void test_copyable_atomic_exchange_once()
     for (auto& th : threads)
         th.join();
 
-    VERIFY(winners.load() == 1);
-    VERIFY(flag.load() == true);
-
-    dump_info("Done\n");
+    EXPECT_EQ(winners.load(), 1);
+    EXPECT_TRUE(flag.load());
 }
 
 // ---------------------------------------------------------------------------
 // 7. 并发正确性之二：把 exchange/store 当作自旋锁，多线程在临界区累加非原子计数器，
 //    最终值必须精确无丢失更新——验证 exchange/store 确实序列化了访问。
 // ---------------------------------------------------------------------------
-void test_copyable_atomic_mutual_exclusion()
+TEST(CopyableAtomic, MutualExclusion)
 {
-    dump_info("Test copyable_atomic mutual exclusion...");
-
     copyable_atomic<bool> lock;
     long long             counter    = 0;          // 故意用非原子类型
     const int             kThreads   = 8;
@@ -228,17 +223,5 @@ void test_copyable_atomic_mutual_exclusion()
     for (auto& th : threads)
         th.join();
 
-    VERIFY(counter == static_cast<long long>(kThreads) * kPerThread);
-
-    dump_info("Done\n");
-}
-
-void test_copyable_atomic()
-{
-    test_copyable_atomic_traits();
-    test_copyable_atomic_basic_ops();
-    test_copyable_atomic_value_carried();
-    test_copyable_atomic_enclosing_type();
-    test_copyable_atomic_exchange_once();
-    test_copyable_atomic_mutual_exclusion();
+    EXPECT_EQ(counter, static_cast<long long>(kThreads) * kPerThread);
 }

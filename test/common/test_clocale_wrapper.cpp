@@ -1,126 +1,96 @@
 #include <common/clocale_wrapper.h>
-#include <support/verify.h>
-#include <support/dump_info.h>
+#include <common/defs.h>
+
+#include <gtest/gtest.h>
+
 #include <type_traits>
 #include <utility>
 
 using namespace IOv2;
 
-void test_clocale_wrapper_traits()
+TEST(ClocaleWrapper, NothrowTraits)
 {
-    dump_info("Test clocale_wrapper traits...");
     static_assert(std::is_nothrow_destructible_v<clocale_wrapper>);
     static_assert(std::is_nothrow_move_constructible_v<clocale_wrapper>);
     static_assert(std::is_nothrow_move_assignable_v<clocale_wrapper>);
-    dump_info("Done\n");
 }
 
-void test_clocale_wrapper_move()
+// c_locale is private and clocale_wrapper exposes no accessor, so the only
+// thing the move and copy paths can be checked for here is that they neither
+// throw nor double-free. The freelocale() side is what the sanitizer and
+// valgrind jobs are watching.
+TEST(ClocaleWrapper, MoveConstructAndAssign)
 {
-    dump_info("Test clocale_wrapper move semantics...");
-    clocale_wrapper loc1("C");
-    
-    // Move construction
-    clocale_wrapper loc2(std::move(loc1));
-    // loc1 should now be empty (c_locale == nullptr)
-    
-    // Move assignment
-    clocale_wrapper loc3("C");
-    loc3 = std::move(loc2);
-    
-    dump_info("Done\n");
+    EXPECT_NO_THROW({
+        clocale_wrapper loc1("C");
+        clocale_wrapper loc2(std::move(loc1));
+
+        clocale_wrapper loc3("C");
+        loc3 = std::move(loc2);
+    });
 }
 
-void test_clocale_wrapper_copy()
+TEST(ClocaleWrapper, CopyConstructAndAssign)
 {
-    dump_info("Test clocale_wrapper copy semantics...");
-    clocale_wrapper loc1("C");
-    
-    // Copy construction
-    clocale_wrapper loc2(loc1);
-    
-    // Copy assignment
-    clocale_wrapper loc3("C");
-    loc3 = loc2;
-    
-    dump_info("Done\n");
+    EXPECT_NO_THROW({
+        clocale_wrapper loc1("C");
+        clocale_wrapper loc2(loc1);
+
+        clocale_wrapper loc3("C");
+        loc3 = loc2;
+    });
 }
 
-void test_clocale_wrapper_self_assignment()
+TEST(ClocaleWrapper, SelfAssignment)
 {
-    dump_info("Test clocale_wrapper self assignment...");
     clocale_wrapper loc1("C");
-    
-    // Self copy assignment
-    // Use pointer to bypass -Wself-assign-overloaded
-    [&loc1](clocale_wrapper* p) { loc1 = *p; }(&loc1);
 
+    // Through a pointer, otherwise -Wself-assign-overloaded rejects it.
+    EXPECT_NO_THROW([&loc1](clocale_wrapper* p) { loc1 = *p; }(&loc1));
+
+    // Outside the macro: a #pragma inside a macro argument is not honoured, and
+    // self-move-assignment is noexcept anyway, so there is nothing to wrap.
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wself-move"
 #endif
-    // Self move assignment
     loc1 = std::move(loc1);
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
-
-    dump_info("Done\n");
 }
 
-void test_clocale_wrapper_safety()
+// A moved-from wrapper holds a null locale_t, and both copy paths have to take
+// the null branch rather than hand it to duplocale().
+TEST(ClocaleWrapper, CopyFromMovedFrom)
 {
-    dump_info("Test clocale_wrapper safety (moved-from state and null checks)...");
-    {
+    EXPECT_NO_THROW({
         clocale_wrapper loc1("C");
         clocale_wrapper loc2(std::move(loc1));
-        // loc1 is now in a moved-from state.
 
-        // Copying from moved-from object
         clocale_wrapper loc3(loc1);
         clocale_wrapper loc4("C");
         loc4 = loc1;
-    }
-
-    // Test nullptr check
-    try {
-        clocale_wrapper loc_null(nullptr);
-        VERIFY(false);
-    } catch (const cvt_error& e) {
-        // Expected
-    }
-
-    dump_info("Done\n");
+    });
 }
 
-void test_clocale_user_moved_from_wrapper()
+TEST(ClocaleWrapper, NullNameThrows)
 {
-    dump_info("Test clocale_user with moved-from wrapper...");
+    EXPECT_THROW((void)clocale_wrapper(nullptr), cvt_error);
+}
 
+TEST(ClocaleWrapper, ClocaleUserRejectsMovedFrom)
+{
     clocale_wrapper loc1("C");
     clocale_wrapper loc2(std::move(loc1));
 
-    try {
-        clocale_user user(loc1);
-        VERIFY(false);
-    } catch (const cvt_error& e) {
-        // Expected
-    }
-
-    {
-        clocale_wrapper loc3("C");
-        clocale_user user(loc3);
-    }
-
-    dump_info("Done\n");
+    EXPECT_THROW((void)clocale_user{loc1}, cvt_error);
 }
 
-void test_clocale_wrapper()
+TEST(ClocaleWrapper, ClocaleUserAcceptsLiveWrapper)
 {
-    test_clocale_wrapper_traits();
-    test_clocale_wrapper_move();
-    test_clocale_wrapper_copy();
-    test_clocale_wrapper_self_assignment();
-    test_clocale_wrapper_safety();
-    test_clocale_user_moved_from_wrapper();
+    EXPECT_NO_THROW({
+        clocale_wrapper loc3("C");
+        clocale_user user(loc3);
+    });
 }
