@@ -71,9 +71,11 @@ set(IOV2_TEST_SUITE_DIRS
 # same time, which is what lets a directory be converted one file at a time.
 set(IOV2_TEST_GTEST_SUITE_DIRS
     common
+    concur
     device/file_device
     device/mem_device
     device/std_device
+    locale
 )
 
 # Sources nothing compiles: the aggregate main()s that test/Makefile
@@ -81,7 +83,6 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
 # the tree because derive_suites.py reads them -- they are what fixes the
 # entries below and their order.  See its module docstring.
 set(IOV2_TEST_EXCLUDED_SOURCES
-    concur/test_concur.cpp
     cvt/test_cvt.cpp
     facet/test_facet.cpp
     io/io_base/test_io_base.cpp
@@ -89,35 +90,16 @@ set(IOV2_TEST_EXCLUDED_SOURCES
     io/istream/test_istream.cpp
     io/ostream/test_ostream.cpp
     io/test_io.cpp
-    locale/test_locale.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 187)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 185)
 
 set(test_common_ENTRIES
     # none: every case registers itself
 )
 
 set(test_concur_ENTRIES
-    test_concur_output_1
-    test_concur_flush_1
-    test_concur_sentryless_1
-    test_concur_state_1
-    test_concur_tie_1
-    test_concur_tie_nonblocking_1
-    test_concur_switch_1
-    test_concur_endl_1
-    test_concur_pword_1
-    test_concur_assign_tie_target_1
-    test_concur_copy_tie_source_1
-    test_concur_copy_vs_state_1
-    test_concur_move_assign_vs_state_1
-    test_concur_attach_detach_1
-    test_concur_iostream_crossed_1
-    test_istream_sync_char_1
-    test_istream_sync_wchar_t_1
-    test_ostream_sync_char_1
-    test_ostream_sync_wchar_t_1
+    # none: every case registers itself
 )
 
 set(test_cvt_code_cvt_ENTRIES
@@ -351,49 +333,5 @@ set(test_io_traits_ENTRIES
 )
 
 set(test_locale_ENTRIES
-    test_locale_char_traits
-    test_locale_char_1
-    test_locale_char_2
-    test_locale_char_3
-    test_locale_char_4
-    test_locale_char_5
-    test_locale_char_6
-    test_locale_char_7
-    test_locale_char_8
-    test_locale_char_9
-    test_locale_char_10
-    test_locale_char_11
-    test_locale_wchar_t_traits
-    test_locale_wchar_t_1
-    test_locale_wchar_t_2
-    test_locale_wchar_t_3
-    test_locale_wchar_t_4
-    test_locale_wchar_t_5
-    test_locale_wchar_t_6
-    test_locale_wchar_t_7
-    test_locale_wchar_t_8
-    test_locale_wchar_t_9
-    test_locale_wchar_t_10
-    test_locale_char32_t_traits
-    test_locale_char32_t_1
-    test_locale_char32_t_2
-    test_locale_char32_t_3
-    test_locale_char32_t_4
-    test_locale_char32_t_5
-    test_locale_char32_t_6
-    test_locale_char32_t_7
-    test_locale_char32_t_8
-    test_locale_char32_t_9
-    test_locale_char32_t_10
-    test_locale_char8_t_traits
-    test_locale_char8_t_1
-    test_locale_char8_t_2
-    test_locale_char8_t_3
-    test_locale_char8_t_4
-    test_locale_char8_t_5
-    test_locale_char8_t_6
-    test_locale_char8_t_7
-    test_locale_char8_t_8
-    test_locale_char8_t_9
-    test_locale_char8_t_10
+    # none: every case registers itself
 )
