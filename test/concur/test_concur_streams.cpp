@@ -1,22 +1,27 @@
+#include <common/defs.h>
+#include <device/mem_device.h>
+#include <io/io_base.h>
+#include <io/iostream.h>
+#include <io/istream.h>
+#include <io/ostream.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
 #include <atomic>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <thread>
 #include <utility>
 #include <vector>
 
-#include <device/mem_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
-
 // Stream-level concurrency tests. These exist mainly to give ThreadSanitizer
-// (MODE=tsan) real concurrent executions to inspect: the stream layer promises that a
-// single operation is serialized by io_mutex(), and nothing here may report a race.
+// (the gcc-tsan preset) real concurrent executions to inspect: the stream layer
+// promises that a single operation is serialized by io_mutex(), and nothing here
+// may report a race.
 // Deliberately limited to the stream layer -- devices, converters and most facets
 // document themselves as "concurrency is handled at a higher level", so driving them
 // concurrently would flag races that are by design out of contract.
@@ -34,9 +39,8 @@ namespace
     }
 }
 
-void test_concur_output_1()
+TEST(Concur, ConcurrentOutputOnOneOstream)
 {
-    dump_info("Test concurrent output on one ostream case 1...");
     using namespace IOv2;
 
     ostream os(mem_device<char>{});
@@ -50,14 +54,11 @@ void test_concur_output_1()
         }
         (void)id;
     });
-    VERIFY(static_cast<bool>(os));
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(os));
 }
 
-void test_concur_flush_1()
+TEST(Concur, ConcurrentFlushAgainstWrites)
 {
-    dump_info("Test concurrent flush against writes case 1...");
     using namespace IOv2;
 
     ostream os(mem_device<char>{});
@@ -69,14 +70,11 @@ void test_concur_flush_1()
             else        os << "payload" << i;
         }
     });
-    VERIFY(static_cast<bool>(os));
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(os));
 }
 
-void test_concur_sentryless_1()
+TEST(Concur, SentrylessOperationsBesideFormattedIO)
 {
-    dump_info("Test concurrent sentry-less operations case 1...");
     using namespace IOv2;
 
     // tell/seek/rseek and the locale setter build no sentry, so they carry their own
@@ -95,13 +93,10 @@ void test_concur_sentryless_1()
             }
         }
     });
-
-    dump_info("Done\n");
 }
 
-void test_concur_state_1()
+TEST(Concur, ConcurrentStreamStateAccess)
 {
-    dump_info("Test concurrent stream-state access case 1...");
     using namespace IOv2;
 
     // Regression test: the state bits and the exception_ptr saved per failure category
@@ -126,13 +121,10 @@ void test_concur_state_1()
         }
         (void)sink;
     });
-
-    dump_info("Done\n");
 }
 
-void test_concur_tie_1()
+TEST(Concur, TieInBothDirectionsNeverFormsACycle)
 {
-    dump_info("Test concurrent tie() in both directions case 1...");
     using namespace IOv2;
 
     // Concurrent A.tie(B) / B.tie(A): tie_graph_mutex() fuses cycle detection and
@@ -164,13 +156,10 @@ void test_concur_tie_1()
     a.tie(nullptr);
     b.tie(nullptr);
     c.tie(nullptr);
-
-    dump_info("Done\n");
 }
 
-void test_concur_switch_1()
+TEST(Concur, ConcurrentDirectionSwitching)
 {
-    dump_info("Test concurrent switch_to_get/switch_to_put case 1...");
     using namespace IOv2;
 
     // iostream::switch_to_get/switch_to_put are ordinary operations that mutate shared
@@ -195,13 +184,10 @@ void test_concur_switch_1()
             }
         }
     });
-
-    dump_info("Done\n");
 }
 
-void test_concur_endl_1()
+TEST(Concur, EndlAgainstTheLocaleSetter)
 {
-    dump_info("Test concurrent endl against the locale setter case 1...");
     using namespace IOv2;
 
     // endl has to widen '\n', which means reading the stream's locale. The locale setter
@@ -216,7 +202,7 @@ void test_concur_endl_1()
     // thing checked here is that the flags are not left disturbed afterwards.
     const locale<char> loc("C");
     ostream os(mem_device<char>{});
-    VERIFY((os.flags() & ios_defs::unitbuf) == 0);
+    EXPECT_EQ(os.flags() & ios_defs::unitbuf, 0);
 
     spawn([&os, &loc](int id)
     {
@@ -233,14 +219,11 @@ void test_concur_endl_1()
     });
 
     // A stream that started without unitbuf must not come out of this with it set.
-    VERIFY((os.flags() & ios_defs::unitbuf) == 0);
-
-    dump_info("Done\n");
+    EXPECT_EQ(os.flags() & ios_defs::unitbuf, 0);
 }
 
-void test_concur_pword_1()
+TEST(Concur, ConcurrentPwordAndCallbackAccess)
 {
-    dump_info("Test concurrent pword/callback access case 1...");
     using namespace IOv2;
 
     // ios_base's pword storage (m_pwords, an unordered_map) and its callback list
@@ -252,8 +235,8 @@ void test_concur_pword_1()
     // side does, and an insert that rehashes on that side against a concurrent find() on
     // the other walks a freed bucket array rather than merely returning a stale value.
     ostream os(mem_device<char>{});
-    const size_t id  = os.xalloc();
-    const size_t id2 = os.xalloc();
+    const std::size_t id  = os.xalloc();
+    const std::size_t id2 = os.xalloc();
 
     // Without a registered callback, locale(loc) iterates an empty list and never touches
     // m_pwords at all -- the setter has to actually write to the map for this to bite.
@@ -279,88 +262,83 @@ void test_concur_pword_1()
         }
     });
 
-    VERIFY(static_cast<bool>(os));
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(os));
 }
 
-void test_concur_tie_nonblocking_1()
+// A tie flush goes through try_flush(), which never waits for the target's lock. The two
+// cases below both used to hang. The visible-edge AB-BA (two sync() guards taken in
+// opposite orders, no tie involved) is deliberately NOT covered: that one is the caller's
+// own lock-order bug.
+TEST(Concur, TieFlushDoesNotWaitForABlockedTarget)
 {
-    dump_info("Test tie flush never blocks case 1...");
     using namespace IOv2;
 
-    // A tie flush goes through try_flush(), which never waits for the target's lock. Two
-    // checks, both of which used to hang:
-    //   * a thread parked on the tie target's sync() cannot stall a writer on a stream tied
-    //     to it;
-    //   * the hidden-edge AB-BA -- X tied to Q, Y tied to P, one thread holding P and the
-    //     other Q -- completes instead of deadlocking.
-    // The visible-edge AB-BA (two sync() guards taken in opposite orders, no tie involved)
-    // is deliberately NOT covered: that one is the caller's own lock-order bug.
+    // A thread parked on the tie target's sync() must not stall a writer on a stream
+    // tied to it.
+    ostream target(mem_device<char>{});
+    ostream writer(mem_device<char>{});
+    writer.tie(&target);
+
+    std::atomic<bool> release{false};
+    std::atomic<bool> written{false};
+
+    std::thread holder([&]
     {
-        ostream target(mem_device<char>{});
-        ostream writer(mem_device<char>{});
-        writer.tie(&target);
+        IOv2::sync guard(target);
+        while (!release.load()) std::this_thread::yield();
+    });
 
-        std::atomic<bool> release{false};
-        std::atomic<bool> written{false};
-
-        std::thread holder([&]
-        {
-            IOv2::sync guard(target);
-            while (!release.load()) std::this_thread::yield();
-        });
-
-        std::thread w([&]
-        {
-            writer << "x";
-            written.store(true);
-        });
-
-        w.join();                   // hangs here before the fix
-        VERIFY(written.load());
-        release.store(true);
-        holder.join();
-
-        writer.tie(nullptr);
-    }
-
+    std::thread w([&]
     {
-        ostream p(mem_device<char>{});
-        ostream q(mem_device<char>{});
-        ostream x(mem_device<char>{});
-        ostream y(mem_device<char>{});
-        x.tie(&q);
-        y.tie(&p);
+        writer << "x";
+        written.store(true);
+    });
 
-        std::atomic<int> ready{0};
-        std::atomic<int> done{0};
+    w.join();                   // hangs here before the fix
+    EXPECT_TRUE(written.load());
+    release.store(true);
+    holder.join();
 
-        auto body = [&ready, &done](auto& held, auto& used, int v)
-        {
-            IOv2::sync guard(held);
-            ready.fetch_add(1);
-            while (ready.load() < 2) std::this_thread::yield();
-            used << v;
-            done.fetch_add(1);
-        };
-
-        std::thread t1([&] { body(p, x, 1); });
-        std::thread t2([&] { body(q, y, 2); });
-        t1.join();                  // hangs here before the fix
-        t2.join();
-        VERIFY(done.load() == 2);
-
-        x.tie(nullptr);
-        y.tie(nullptr);
-    }
-
-    dump_info("Done\n");
+    writer.tie(nullptr);
 }
 
-void test_concur_assign_tie_target_1()
+TEST(Concur, HiddenEdgeLockOrderInversionCompletes)
 {
-    dump_info("Test concurrent assignment to a tie target case 1...");
+    using namespace IOv2;
+
+    // The hidden-edge AB-BA -- X tied to Q, Y tied to P, one thread holding P and the
+    // other Q -- completes instead of deadlocking.
+    ostream p(mem_device<char>{});
+    ostream q(mem_device<char>{});
+    ostream x(mem_device<char>{});
+    ostream y(mem_device<char>{});
+    x.tie(&q);
+    y.tie(&p);
+
+    std::atomic<int> ready{0};
+    std::atomic<int> done{0};
+
+    auto body = [&ready, &done](auto& held, auto& used, int v)
+    {
+        IOv2::sync guard(held);
+        ready.fetch_add(1);
+        while (ready.load() < 2) std::this_thread::yield();
+        used << v;
+        done.fetch_add(1);
+    };
+
+    std::thread t1([&] { body(p, x, 1); });
+    std::thread t2([&] { body(q, y, 2); });
+    t1.join();                  // hangs here before the fix
+    t2.join();
+    EXPECT_EQ(done.load(), 2);
+
+    x.tie(nullptr);
+    y.tie(nullptr);
+}
+
+TEST(Concur, AssignmentToATieTarget)
+{
     using namespace IOv2;
 
     // Assignment replaces m_streambuf wholesale, destroying the converter a concurrent tie
@@ -395,16 +373,13 @@ void test_concur_assign_tie_target_1()
         done.store(true, std::memory_order_relaxed);
     });
 
-    VERIFY(static_cast<bool>(writer));
-    VERIFY(static_cast<bool>(target));
+    EXPECT_TRUE(static_cast<bool>(writer));
+    EXPECT_TRUE(static_cast<bool>(target));
     writer.tie(nullptr);
-
-    dump_info("Done\n");
 }
 
-void test_concur_copy_tie_source_1()
+TEST(Concur, CopyOfATieTarget)
 {
-    dump_info("Test concurrent copy of a tie target case 1...");
     using namespace IOv2;
 
     // The mirror image: copying reads the target's device, buffer and cursors while a tie flush
@@ -432,22 +407,19 @@ void test_concur_copy_tie_source_1()
             auto copy = target;                  // NOLINT(performance-unnecessary-copy-initialization)
             copy.flush();
             auto [dev, err] = copy.detach();
-            VERIFY(!err);
-            VERIFY(dev.str() == std::string(static_cast<size_t>(i) + 1, 'y'));
+            EXPECT_FALSE(err);
+            EXPECT_EQ(dev.str(), std::string(static_cast<std::size_t>(i) + 1, 'y'));
         }
         done.store(true, std::memory_order_relaxed);
     });
 
-    VERIFY(static_cast<bool>(writer));
-    VERIFY(static_cast<bool>(target));
+    EXPECT_TRUE(static_cast<bool>(writer));
+    EXPECT_TRUE(static_cast<bool>(target));
     writer.tie(nullptr);
-
-    dump_info("Done\n");
 }
 
-void test_concur_copy_vs_state_1()
+TEST(Concur, CopyAgainstStateWrites)
 {
-    dump_info("Test concurrent copy against state writes case 1...");
     using namespace IOv2;
 
     // Copy construction reads the source's whole state component -- the bits, the exception
@@ -486,14 +458,11 @@ void test_concur_copy_vs_state_1()
     });
 
     source.clear();
-    VERIFY(static_cast<bool>(source));
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(source));
 }
 
-void test_concur_move_assign_vs_state_1()
+TEST(Concur, MoveAssignmentAgainstStateWrites)
 {
-    dump_info("Test concurrent move assignment against state writes case 1...");
     using namespace IOv2;
 
     // The other half of the same hole, entered from the destination side: move assignment
@@ -523,14 +492,11 @@ void test_concur_move_assign_vs_state_1()
     });
 
     dest.clear();
-    VERIFY(static_cast<bool>(dest));
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(dest));
 }
 
-void test_concur_attach_detach_1()
+TEST(Concur, AttachDetachOnATieTarget)
 {
-    dump_info("Test concurrent attach/detach on a tie target case 1...");
     using namespace IOv2;
 
     // The same window entered through a different door: detach() guts m_streambuf and attach()
@@ -560,25 +526,22 @@ void test_concur_attach_detach_1()
         done.store(true, std::memory_order_relaxed);
     });
 
-    VERIFY(static_cast<bool>(writer));
-    VERIFY(static_cast<bool>(target));
+    EXPECT_TRUE(static_cast<bool>(writer));
+    EXPECT_TRUE(static_cast<bool>(target));
     writer.tie(nullptr);
-
-    dump_info("Done\n");
 }
 
-void test_concur_iostream_crossed_1()
+TEST(Concur, CrossedConcurrencyOnOneIostream)
 {
-    dump_info("Test crossed concurrency on one iostream case 1...");
     using namespace IOv2;
 
     // The three mutators that each already have a case of their own, now aimed at ONE iostream
     // at the same time: assignment (replaces m_streambuf wholesale), direction switching
     // (repositions the converter and clears the read buffer), and a library-initiated tie flush
     // (walks that same converter from a sentry on another stream). Each pair is already covered
-    // -- assign x tie flush by test_concur_assign_tie_target_1, direction thrash alone by
-    // test_concur_switch_1 -- but a window that only opens when all three interleave shows up in
-    // neither, and only a bidirectional stream can host all three.
+    // -- assign x tie flush by AssignmentToATieTarget, direction thrash alone by
+    // ConcurrentDirectionSwitching -- but a window that only opens when all three interleave
+    // shows up in neither, and only a bidirectional stream can host all three.
     //
     // The device carries a long run of one character with a delimiter at the end, so extraction
     // leaves the read buffer non-empty: switch_to_put() only does its interesting work
@@ -620,8 +583,6 @@ void test_concur_iostream_crossed_1()
         done.store(true, std::memory_order_relaxed);
     });
 
-    VERIFY(static_cast<bool>(writer));
+    EXPECT_TRUE(static_cast<bool>(writer));
     writer.tie(nullptr);
-
-    dump_info("Done\n");
 }

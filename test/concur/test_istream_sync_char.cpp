@@ -1,48 +1,49 @@
-#include <cfloat>
-#include <limits>
-#include <stdexcept>
+#include <device/mem_device.h>
+#include <io/io_base.h>
+#include <io/iostream.h>
+#include <io/istream.h>
+#include <io/traits/arithmetic.h>
+
+#include <gtest/gtest.h>
+
+#include <cstddef>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
-#include <device/mem_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
-
-void test_istream_sync_char_1()
+namespace
 {
-    dump_info("Test istream<char> sync-input case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    // Ten threads pull from one device, so which thread reads which pair is not
+    // fixed -- but every pair is "123 456", so each extraction still has an exact
+    // expectation. IOv2::sync is what makes the two extractions one critical
+    // section; without it a thread can read another's 456 as its own 123.
+    template <template <typename, typename> class T>
+    void extract_pairs_concurrently()
     {
-        constexpr size_t thread_num = 10;
-        constexpr size_t loop_num = 1024;
+        constexpr std::size_t thread_num = 10;
+        constexpr std::size_t loop_num = 1024;
 
         std::string ref;
         ref.reserve(loop_num * thread_num * 8);
-        for (size_t i = 0; i < loop_num * thread_num; ++i)
+        for (std::size_t i = 0; i < loop_num * thread_num; ++i)
             ref += "123 456\n";
 
         T istr{IOv2::mem_device{ref}};
         std::vector<std::thread> tr_vec;
         tr_vec.reserve(thread_num);
 
-        for (size_t thread_ID = 0; thread_ID < thread_num; ++thread_ID)
+        for (std::size_t thread_ID = 0; thread_ID < thread_num; ++thread_ID)
         {
             std::thread tr([&istr]()
             {
-                for (size_t i = 0; i < loop_num; ++i)
+                for (std::size_t i = 0; i < loop_num; ++i)
                 {
                     int v1 = 0;
                     int v2 = 0;
                     IOv2::sync(istr).stream >> v1 >> v2;
-                    VERIFY(v1 == 123);
-                    VERIFY(v2 == 456);
+                    EXPECT_EQ(v1, 123);
+                    EXPECT_EQ(v2, 456);
                 }
             });
             tr_vec.push_back(std::move(tr));
@@ -50,10 +51,15 @@ void test_istream_sync_char_1()
 
         for (auto& tr : tr_vec)
             tr.join();
-    };
+    }
+}
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+TEST(IstreamSyncChar, TenThreadsExtractWholePairs)
+{
+    extract_pairs_concurrently<IOv2::istream>();
+}
 
-    dump_info("Done\n");
+TEST(IstreamSyncChar, TenThreadsExtractWholePairsThroughAnIostream)
+{
+    extract_pairs_concurrently<IOv2::iostream>();
 }

@@ -1,328 +1,300 @@
+#include <common/defs.h>
 #include <locale/locale.h>
 
-#include <support/dump_info.h>
 #include <support/exe_path.h>
-#include <support/verify.h>
 
+#include <gtest/gtest.h>
+
+#include <clocale>
+#include <filesystem>
+#include <memory>
+#include <string>
 #include <type_traits>
-
-void test_locale_char_traits()
-{
-    dump_info("Test locale<char> traits...");
-    static_assert(std::is_nothrow_move_constructible_v<IOv2::locale<char>>);
-    static_assert(std::is_nothrow_move_assignable_v<IOv2::locale<char>>);
-    dump_info("Done\n");
-}
-
-void test_locale_char_1()
-{
-    dump_info("Test locale<char> case 1...");
-    
-    auto loc = IOv2::locale<char>("C.UTF-8");
-
-    {
-        VERIFY(loc.has<IOv2::ctype_conf<char>>());
-        auto obj = loc.get<IOv2::ctype_conf<char>>();
-        VERIFY(obj);
-    }
-
-    {
-        VERIFY(!(loc.has<IOv2::ctype_conf<wchar_t>>()));
-        auto obj = loc.get<IOv2::ctype_conf<wchar_t>>();
-        VERIFY(!obj);
-    }
-
-    auto loc_r = loc.remove<IOv2::ctype_conf<char>>();
-    {
-        VERIFY(!(loc_r.has<IOv2::ctype_conf<char>>()));
-        auto obj = loc_r.get<IOv2::ctype_conf<char>>();
-        VERIFY(!obj);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_locale_char_2()
-{
-    dump_info("Test locale<char> case 2...");
-    
-    auto loc = IOv2::locale<char>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
-    
-    VERIFY(loc.has<IOv2::ctype_conf<char>>());
-
-    dump_info("Done\n");
-}
-
-void test_locale_char_3()
-{
-    dump_info("Test locale<char> case 3...");
-    
-    auto loc1 = IOv2::locale<char>("zh_CN.UTF-8");
-    {
-        VERIFY(loc1.has<IOv2::ctype<char>>());
-        auto p1 = loc1.get<IOv2::ctype<char>>();
-        VERIFY(p1);
-
-        auto p2 = loc1.get<IOv2::ctype<char>>();
-        VERIFY(p1 == p2);
-    }
-
-    auto loc2 = loc1.remove<IOv2::ctype_conf<char>>();
-    {
-        VERIFY(!(loc2.has<IOv2::ctype<char>>()));
-        auto p1 = loc2.get<IOv2::ctype<char>>();
-        VERIFY(!p1);
-    }
-
-    auto loc3 = loc2.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
-    {
-        VERIFY(loc3.has<IOv2::ctype<char>>());
-        auto p1 = loc3.get<IOv2::ctype<char>>();
-        VERIFY(p1);
-    }
-    
-    dump_info("Done\n");
-}
 
 namespace
 {
+    // A composite facet is built by whichever of its create_rules the locale can
+    // satisfy, in the order the rule lists them: collate<char> first, ctype<char>
+    // only if the collate branch cannot be taken.
     struct test_ext1
     {
         using create_rules = IOv2::facet_create_rule<IOv2::collate<char>, IOv2::ctype<char>>;
         test_ext1(std::shared_ptr<IOv2::collate<char>> p_obj)
             : m_p1(std::move(p_obj))
         {}
-        
+
         test_ext1(std::shared_ptr<IOv2::ctype<char>> p_obj)
             : m_p2(std::move(p_obj))
         {}
-        
+
         std::shared_ptr<IOv2::collate<char>> m_p1;
         std::shared_ptr<IOv2::ctype<char>> m_p2;
     };
-    
+
+    // A pack is all-or-nothing: both confs must be present for this rule to fire.
     struct test_ext2
     {
         using create_rules = IOv2::facet_create_rule<IOv2::facet_create_pack<IOv2::ctype_conf<char>, IOv2::collate_conf<char>>>;
-     
+
         test_ext2(std::shared_ptr<IOv2::ctype_conf<char>> p_obj1,
                   std::shared_ptr<IOv2::collate_conf<char>> p_obj2)
             : m_obj1(std::move(p_obj1))
             , m_obj2(std::move(p_obj2))
         {}
-        
+
         std::shared_ptr<IOv2::ctype_conf<char>> m_obj1;
         std::shared_ptr<IOv2::collate_conf<char>> m_obj2;
     };
-    
+
+    // A rule whose alternatives are a single facet and a pack, so the fallback
+    // branch itself depends on another composite.
     struct test_ext3
     {
         using create_rules = IOv2::facet_create_rule<IOv2::timeio_conf<char>,
                                                       IOv2::facet_create_pack<test_ext2, IOv2::numeric<char>>>;
-     
+
         test_ext3(std::shared_ptr<IOv2::timeio_conf<char>> p_obj1)
             : m_obj1(std::move(p_obj1))
         {}
-        
+
         test_ext3(std::shared_ptr<test_ext2> p_obj2,
                   std::shared_ptr<IOv2::numeric<char>> p_obj3)
             : m_obj2(std::move(p_obj2))
             , m_obj3(std::move(p_obj3))
         {}
-        
+
         std::shared_ptr<IOv2::timeio_conf<char>> m_obj1;
         std::shared_ptr<test_ext2> m_obj2;
         std::shared_ptr<IOv2::numeric<char>> m_obj3;
     };
-    
+
+    // Derives from a facet the locale does hold, but declares no create_rules of
+    // its own -- so nothing can synthesise it.
     struct test_ext4 : IOv2::timeio_conf<char>
     {
         using BT = IOv2::timeio_conf<char>;
         using BT::BT;
     };
+
+    std::string resource_dir(const char* leaf)
+    {
+        std::filesystem::path p = exe_path();
+        p = p.remove_filename() / ".." / leaf;
+        return std::filesystem::canonical(p).string();
+    }
 }
 
-void test_locale_char_4()
+TEST(LocaleChar, Traits)
 {
-    dump_info("Test locale<char> case 4...");
-    
-    auto loc1 = IOv2::locale<char>("en_US.UTF-8");
-    {
-        VERIFY(loc1.has<test_ext1>());
-        auto p = loc1.get<test_ext1>();
-
-        VERIFY(p->m_p1);
-        VERIFY(!(p->m_p2));
-    }
-
-    auto loc2 = loc1.remove<IOv2::collate_conf<char>>();
-    {
-        VERIFY(loc2.has<test_ext1>());
-        auto p = loc2.get<test_ext1>();
-
-        VERIFY(!(p->m_p1));
-        VERIFY(p->m_p2);
-    }
-    
-    dump_info("Done\n");
+    static_assert(std::is_nothrow_move_constructible_v<IOv2::locale<char>>);
+    static_assert(std::is_nothrow_move_assignable_v<IOv2::locale<char>>);
+    SUCCEED();
 }
 
-void test_locale_char_5()
+TEST(LocaleChar, ANamedLocaleHoldsTheConfForItsOwnCharType)
 {
-    dump_info("Test locale<char> case 5...");
-    
+    auto loc = IOv2::locale<char>("C.UTF-8");
+
+    EXPECT_TRUE(loc.has<IOv2::ctype_conf<char>>());
+    EXPECT_TRUE(loc.get<IOv2::ctype_conf<char>>());
+}
+
+TEST(LocaleChar, AConfForAnotherCharTypeIsAbsent)
+{
+    auto loc = IOv2::locale<char>("C.UTF-8");
+
+    EXPECT_FALSE(loc.has<IOv2::ctype_conf<wchar_t>>());
+    EXPECT_FALSE(loc.get<IOv2::ctype_conf<wchar_t>>());
+}
+
+TEST(LocaleChar, RemoveDropsTheConf)
+{
+    auto loc = IOv2::locale<char>("C.UTF-8");
+
+    auto loc_r = loc.remove<IOv2::ctype_conf<char>>();
+    EXPECT_FALSE(loc_r.has<IOv2::ctype_conf<char>>());
+    EXPECT_FALSE(loc_r.get<IOv2::ctype_conf<char>>());
+}
+
+TEST(LocaleChar, InvolveInstallsAConfiguredConf)
+{
+    auto loc = IOv2::locale<char>("C.UTF-8").involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
+
+    EXPECT_TRUE(loc.has<IOv2::ctype_conf<char>>());
+}
+
+TEST(LocaleChar, ADerivedFacetIsBuiltOnceAndCached)
+{
+    auto loc1 = IOv2::locale<char>("zh_CN.UTF-8");
+
+    EXPECT_TRUE(loc1.has<IOv2::ctype<char>>());
+    auto p1 = loc1.get<IOv2::ctype<char>>();
+    ASSERT_TRUE(p1);
+
+    // The second get<>() must hand back the interned object, not rebuild it.
+    auto p2 = loc1.get<IOv2::ctype<char>>();
+    EXPECT_EQ(p1, p2);
+}
+
+TEST(LocaleChar, RemovingTheConfRemovesTheDerivedFacet)
+{
+    auto loc2 = IOv2::locale<char>("zh_CN.UTF-8").remove<IOv2::ctype_conf<char>>();
+
+    EXPECT_FALSE(loc2.has<IOv2::ctype<char>>());
+    EXPECT_FALSE(loc2.get<IOv2::ctype<char>>());
+}
+
+TEST(LocaleChar, InvolvingTheConfAgainRestoresTheDerivedFacet)
+{
+    auto loc2 = IOv2::locale<char>("zh_CN.UTF-8").remove<IOv2::ctype_conf<char>>();
+    auto loc3 = loc2.involve(std::make_shared<IOv2::ctype_conf<char>>("zh_CN.UTF-8"));
+
+    EXPECT_TRUE(loc3.has<IOv2::ctype<char>>());
+    EXPECT_TRUE(loc3.get<IOv2::ctype<char>>());
+}
+
+TEST(LocaleChar, ACompositeTakesTheFirstRuleItCanSatisfy)
+{
     auto loc1 = IOv2::locale<char>("en_US.UTF-8");
-    
-    VERIFY(loc1.has<test_ext2>());
+
+    EXPECT_TRUE(loc1.has<test_ext1>());
+    auto p = loc1.get<test_ext1>();
+    ASSERT_TRUE(p);
+
+    EXPECT_TRUE(p->m_p1);
+    EXPECT_FALSE(p->m_p2);
+}
+
+TEST(LocaleChar, ACompositeFallsBackWhenTheFirstRuleCannotBeSatisfied)
+{
+    auto loc2 = IOv2::locale<char>("en_US.UTF-8").remove<IOv2::collate_conf<char>>();
+
+    EXPECT_TRUE(loc2.has<test_ext1>());
+    auto p = loc2.get<test_ext1>();
+    ASSERT_TRUE(p);
+
+    EXPECT_FALSE(p->m_p1);
+    EXPECT_TRUE(p->m_p2);
+}
+
+TEST(LocaleChar, ACompositeIsBuiltFromTheLocalesOwnConfs)
+{
+    auto loc1 = IOv2::locale<char>("en_US.UTF-8");
+
+    EXPECT_TRUE(loc1.has<test_ext2>());
     auto ptr2 = loc1.get<test_ext2>();
-    VERIFY(ptr2);
+    ASSERT_TRUE(ptr2);
 
-    VERIFY(ptr2->m_obj1 == loc1.get<IOv2::ctype_conf<char>>());
-    VERIFY(ptr2->m_obj2 == loc1.get<IOv2::collate_conf<char>>());
-    
-    dump_info("Done\n");
+    EXPECT_EQ(ptr2->m_obj1, loc1.get<IOv2::ctype_conf<char>>());
+    EXPECT_EQ(ptr2->m_obj2, loc1.get<IOv2::collate_conf<char>>());
 }
 
-void test_locale_char_6()
+TEST(LocaleChar, ANestedRuleTakesItsSingleFacetBranchFirst)
 {
-    dump_info("Test locale<char> case 6...");
-    
     auto loc1 = IOv2::locale<char>("en_US.UTF-8");
-    {
-        VERIFY(loc1.has<test_ext3>());
-        auto ptr = loc1.get<test_ext3>();
-        VERIFY(ptr);
 
-        VERIFY(ptr->m_obj1);
-        VERIFY(ptr->m_obj1 == loc1.get<IOv2::timeio_conf<char>>());
-        VERIFY(!(ptr->m_obj2));
-        VERIFY(!(ptr->m_obj3));
-    }
+    EXPECT_TRUE(loc1.has<test_ext3>());
+    auto ptr = loc1.get<test_ext3>();
+    ASSERT_TRUE(ptr);
 
+    EXPECT_TRUE(ptr->m_obj1);
+    EXPECT_EQ(ptr->m_obj1, loc1.get<IOv2::timeio_conf<char>>());
+    EXPECT_FALSE(ptr->m_obj2);
+    EXPECT_FALSE(ptr->m_obj3);
+}
+
+TEST(LocaleChar, ANestedRuleFallsBackToThePackOfComposites)
+{
+    auto loc2 = IOv2::locale<char>("en_US.UTF-8").remove<IOv2::timeio_conf<char>>();
+
+    EXPECT_TRUE(loc2.has<test_ext3>());
+    auto ptr = loc2.get<test_ext3>();
+    ASSERT_TRUE(ptr);
+
+    EXPECT_FALSE(ptr->m_obj1);
+    EXPECT_TRUE(ptr->m_obj2);
+    EXPECT_TRUE(ptr->m_obj3);
+}
+
+TEST(LocaleChar, RemovingOneConfLeavesTheOthersDerivable)
+{
+    auto loc1 = IOv2::locale<char>("en_US.UTF-8");
     auto loc2 = loc1.remove<IOv2::timeio_conf<char>>();
-    {
-        VERIFY(loc2.has<test_ext3>());
-        auto ptr = loc2.get<test_ext3>();
-        VERIFY(ptr);
 
-        VERIFY(!(ptr->m_obj1));
-        VERIFY(ptr->m_obj2);
-        VERIFY(ptr->m_obj3);
-    }
-    
-    dump_info("Done\n");
+    EXPECT_FALSE(loc2.has<IOv2::timeio<char>>());
+    EXPECT_FALSE(loc2.get<IOv2::timeio<char>>());
+
+    EXPECT_TRUE(loc2.has<IOv2::ctype<char>>());
+    EXPECT_TRUE(loc2.get<IOv2::ctype<char>>());
 }
 
-void test_locale_char_7()
+TEST(LocaleChar, AFacetWithNoCreateRuleIsNeverSynthesised)
 {
-    dump_info("Test locale<char> case 7...");
-    
-    {
-        auto loc1 = IOv2::locale<char>("en_US.UTF-8");
-        auto loc2 = loc1.remove<IOv2::timeio_conf<char>>();
-        
-        VERIFY(!(loc2.has<IOv2::timeio<char>>()));
-        auto ptr = loc2.get<IOv2::timeio<char>>();
-        VERIFY(!ptr);
+    // test_ext4 derives from a conf the locale does hold, but declares no
+    // create_rules of its own, so there is nothing to build it from.
+    auto loc1 = IOv2::locale<char>("en_US.UTF-8");
 
-        VERIFY(loc2.has<IOv2::ctype<char>>());
-        auto ptr2 = loc2.get<IOv2::ctype<char>>();
-        VERIFY(ptr2);
-    }
-
-    {
-        auto loc1 = IOv2::locale<char>("en_US.UTF-8");
-        VERIFY(!(loc1.has<test_ext4>()));
-        auto ptr = loc1.get<test_ext4>();
-        VERIFY(!ptr);
-    }
-    dump_info("Done\n");
+    EXPECT_FALSE(loc1.has<test_ext4>());
+    EXPECT_FALSE(loc1.get<test_ext4>());
 }
 
-void test_locale_char_8()
+TEST(LocaleChar, MessagesTranslateThroughTheBoundCatalogue)
 {
-    dump_info("Test locale<char> case 8...");
-
-    std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
-    mo_path = std::filesystem::canonical(mo_path);
-    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
+    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("IOv2TestResources"));
 
     auto loc = IOv2::locale<char>("en_US.UTF-8").involve_msg("messages", "zh_CN", "zh_CN.UTF-8");
     auto msg = loc.get<IOv2::messages<char>>();
+    ASSERT_TRUE(msg);
 
     std::string ref1 = "\xe8\xaf\xb7";               //请
     std::string ref2 = "\xe8\xb0\xa2\xe8\xb0\xa2";   //谢谢
-    VERIFY(msg->translate("please") == ref1);
-    VERIFY(msg->translate("thank you") == ref2);
-    VERIFY(msg->translate("") == "");
-    VERIFY(msg->head_entry() != "");
-
-    dump_info("Done\n");
+    EXPECT_EQ(msg->translate("please"), ref1);
+    EXPECT_EQ(msg->translate("thank you"), ref2);
+    EXPECT_EQ(msg->translate(""), "");
+    EXPECT_NE(msg->head_entry(), "");
 }
 
-void test_locale_char_9()
+TEST(LocaleChar, AMissingCatalogueLeavesEveryMessageUntranslated)
 {
-    dump_info("Test locale<char> case 9...");
-
-    std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / "..";
-    mo_path = std::filesystem::canonical(mo_path);
-    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
+    // The directory above bin/ holds no catalogue, so every lookup falls back to
+    // the msgid and the header entry stays empty.
+    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("."));
 
     auto loc = IOv2::locale<char>("en_US.UTF-8").involve_msg("messages", "zh_CN", "zh_CN.UTF-8");
     auto msg = loc.get<IOv2::messages<char>>();
+    ASSERT_TRUE(msg);
 
-    VERIFY(msg->translate("please") == "please");
-    VERIFY(msg->translate("thank you") == "thank you");
-    VERIFY(msg->translate("") == "");
-    VERIFY(msg->head_entry() == "");
-
-    dump_info("Done\n");
+    EXPECT_EQ(msg->translate("please"), "please");
+    EXPECT_EQ(msg->translate("thank you"), "thank you");
+    EXPECT_EQ(msg->translate(""), "");
+    EXPECT_EQ(msg->head_entry(), "");
 }
 
-void test_locale_char_10()
+TEST(LocaleChar, HasFindsACompositeAlreadyInTheCache)
 {
-    dump_info("Test locale<char> case 10...");
-
     // has<composite>() cache-hit fast path: populating the derived-facet cache via
     // get<>() first means the following has<>() must find it in m_facets and return
     // true without rebuilding through the ft_wrapper.
-    {
-        auto loc = IOv2::locale<char>("en_US.UTF-8");
-        auto p = loc.get<test_ext2>();
-        VERIFY(p);
-        VERIFY(loc.has<test_ext2>());
-    }
-
-    // involve() rejects an empty facet pointer.
-    {
-        auto loc = IOv2::locale<char>("en_US.UTF-8");
-        bool threw = false;
-        try { (void)loc.involve(nullptr); }
-        catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
-    }
-
-    // initial_locale_name() rejects LC categories outside the five resolved ones.
-    {
-        bool threw = false;
-        try { (void)IOv2::locale<char>::initial_locale_name(LC_ALL); }
-        catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
-    }
-
-    dump_info("Done\n");
+    auto loc = IOv2::locale<char>("en_US.UTF-8");
+    EXPECT_TRUE(loc.get<test_ext2>());
+    EXPECT_TRUE(loc.has<test_ext2>());
 }
 
-void test_locale_char_11()
+TEST(LocaleChar, InvolveRejectsAnEmptyFacetPointer)
 {
-    dump_info("Test locale<char> case 11...");
+    auto loc = IOv2::locale<char>("en_US.UTF-8");
+    EXPECT_THROW((void)loc.involve(nullptr), IOv2::stream_error);
+}
 
-    std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
-    mo_path = std::filesystem::canonical(mo_path);
-    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
+TEST(LocaleChar, InitialLocaleNameRejectsAnUnresolvedCategory)
+{
+    // Only the five resolved LC categories are accepted; LC_ALL is not one of them.
+    EXPECT_THROW((void)IOv2::locale<char>::initial_locale_name(LC_ALL), IOv2::stream_error);
+}
+
+TEST(LocaleChar, AnIdenticalInvolveMsgHandsBackTheInternedConf)
+{
+    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", resource_dir("IOv2TestResources"));
 
     // The first involve_msg builds and interns the messages_conf; the second with an
     // identical (domain, lang, cvt) under the same bound directory must hit the cache
@@ -333,8 +305,7 @@ void test_locale_char_11()
 
     auto c1 = loc1.get<IOv2::messages_conf<char>>();
     auto c2 = loc2.get<IOv2::messages_conf<char>>();
-    VERIFY(!(!c1 || !c2));
-    VERIFY(c1 == c2);
-
-    dump_info("Done\n");
+    ASSERT_TRUE(c1);
+    ASSERT_TRUE(c2);
+    EXPECT_EQ(c1, c2);
 }
