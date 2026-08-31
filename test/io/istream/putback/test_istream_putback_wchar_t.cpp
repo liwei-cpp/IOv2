@@ -1,77 +1,97 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * The same putback contract as test_istream_putback_char.cpp for wchar_t: the
+ * pushed-back character is the caller's, a successful putback leaves the state
+ * alone, eofbit is cleared on the way in, and a failed stream is reported
+ * rather than thrown out of.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
+#include <io/iostream.h>
+#include <io/istream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <locale/locale.h>
 
-void test_istream_putback_wchar_t_1()
+#include <gtest/gtest.h>
+
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<wchar_t>::putback case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const std::wstring str_02(L"soul eyes: john coltrane quartet");
-        T is_00(IOv2::mem_device{str_02});
-        T is_03(IOv2::mem_device{str_02});
-        T is_04(IOv2::mem_device{str_02});
-
-        IOv2::ios_defs::iostate state1, state2;
-
-        // istream& putback(char c)
-        is_04.ignore(30);
-        is_04.clear();
-        state1 = is_04.rdstate();
-        is_04.putback(L't');
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == L't' );
-
-        is_04.clear();
-        state1 = is_04.rdstate();
-        is_04.putback(L'r');
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == L'r' );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    const std::wstring kDigits = L"0123456789abcdef";
 }
 
-// wchar_t counterpart of test_istream_putback_char_2: putback() on a failed stream is
-// rejected by the sentry and routed through handle_exception (-> strfailbit), no throw.
-void test_istream_putback_wchar_t_2()
+TEST(IstreamPutbackWchar, PutbackMakesTheNextReadYieldIt)
 {
-    dump_info("Test istream<wchar_t>::putback case 2 (failed stream)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_pushed_back = []<template <typename, typename> class T>()
     {
-        T is{IOv2::mem_device{std::wstring(L"abc")}, IOv2::locale<wchar_t>("C")};
+        T is(mem_device{kDigits});
 
-        int v = 0;
-        is >> v;                      // non-numeric input -> strfailbit
-        VERIFY( !is );
+        is.ignore(10);
+        EXPECT_EQ(is.peek(), L'a');
 
-        bool threw = false;
-        try { is.putback(L'z'); }
-        catch (...) { threw = true; }
-        VERIFY( !threw );
-        VERIFY( is.rdstate() & IOv2::ios_defs::strfailbit );
+        is.putback(L'Z');
+        EXPECT_EQ(is.peek(), L'Z');
+
+        EXPECT_EQ(is.get(), L'Z');
+        EXPECT_EQ(is.get(), L'a');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_pushed_back.operator()<istream>();
+    expect_pushed_back.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+TEST(IstreamPutbackWchar, ASuccessfulPutbackLeavesTheStateAlone)
+{
+    auto expect_state_kept = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+        is.ignore(4);
+
+        const ios_defs::iostate before = is.rdstate();
+        is.putback(L'x');
+        EXPECT_EQ(is.rdstate(), before);
+        EXPECT_EQ(is.peek(), L'x');
+
+        const ios_defs::iostate before2 = is.rdstate();
+        is.putback(L'y');
+        EXPECT_EQ(is.rdstate(), before2);
+        EXPECT_EQ(is.peek(), L'y');
+    };
+
+    expect_state_kept.operator()<istream>();
+    expect_state_kept.operator()<iostream>();
+}
+
+TEST(IstreamPutbackWchar, PutbackClearsEndOfFile)
+{
+    istream is(mem_device{std::wstring(L"ab")});
+
+    std::wstring tok;
+    is >> tok;
+    EXPECT_EQ(tok, L"ab");
+    EXPECT_TRUE(is.eof());
+
+    is.putback(L'c');
+    EXPECT_FALSE(is.eof());
+    EXPECT_EQ(is.get(), L'c');
+}
+
+TEST(IstreamPutbackWchar, PutbackOnAFailedStreamIsReportedRatherThanThrown)
+{
+    auto expect_reported = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"abc")}, locale<wchar_t>("C")};
+
+        int v = 0;
+        is >> v;
+        EXPECT_FALSE(static_cast<bool>(is));
+
+        EXPECT_NO_THROW(is.putback(L'z'));
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+    };
+
+    expect_reported.operator()<istream>();
+    expect_reported.operator()<iostream>();
 }

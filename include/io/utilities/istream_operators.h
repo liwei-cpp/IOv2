@@ -578,7 +578,8 @@ struct istream_operators
      * @param s 输出目标（指针或输出迭代器）。
      * @param n 缓冲区容量，必须为正；当 `CStrPolicy` 为 `app_zt` 时，最多写入 `n-1` 个字符。
      * @param delim 分隔符。
-     * @return 指向最后一个写入位置之后的输出迭代器/指针。
+     * @return 指向最后一个写入位置之后的输出迭代器/指针。`app_zt` 下空字符结尾
+     *         也是一个写入位置，因此返回值与 @p s 之差比提取到的字符数多一。
      * @throw stream_error 若 `s` 为空指针、@p n 为负或为 0、未提取到任何字符，或
      *        （`cons_sep` 下）在缓冲区容量内未找到分隔符。
      * @note 到达 EOF 时置位 `eofbit`——指本次提取还需要一个字符而没有；缓冲区填满后循环末尾
@@ -607,7 +608,9 @@ struct istream_operators
      * @param n The buffer capacity; must be positive. When `CStrPolicy` is `app_zt`, at most
      *          `n-1` characters are written.
      * @param delim The delimiter.
-     * @return An output iterator/pointer past the last written position.
+     * @return An output iterator/pointer past the last written position. Under `app_zt`
+     *         the null terminator is a written position too, so the distance from @p s
+     *         is one more than the number of characters extracted.
      * @throw stream_error If `s` is a null pointer, if @p n is negative or 0, if no character
      *        was extracted, or (under `cons_sep`) the delimiter was not found within the
      *        buffer capacity.
@@ -709,7 +712,8 @@ struct istream_operators
      * @tparam TSelf 派生的具体流类型（由 deducing-this 推导）。
      * @param s 输出目标（指针或输出迭代器）。
      * @param n 缓冲区容量，必须为正；当 `CStrPolicy` 为 `app_zt` 时，最多写入 `n-1` 个字符。
-     * @return 指向最后一个写入位置之后的输出迭代器/指针。
+     * @return 指向最后一个写入位置之后的输出迭代器/指针。`app_zt` 下空字符结尾
+     *         也是一个写入位置，因此返回值与 @p s 之差比提取到的字符数多一。
      * @throw stream_error 若缺少 ctype facet（用于宽化 `'\n'`）；其余异常与三参数版本一致。
      * @endif
      *
@@ -727,7 +731,9 @@ struct istream_operators
      * @param s The output target (pointer or output iterator).
      * @param n The buffer capacity; must be positive. When `CStrPolicy` is `app_zt`, at most
      *          `n-1` characters are written.
-     * @return An output iterator/pointer past the last written position.
+     * @return An output iterator/pointer past the last written position. Under `app_zt`
+     *         the null terminator is a written position too, so the distance from @p s
+     *         is one more than the number of characters extracted.
      * @throw stream_error If the ctype facet (used to widen `'\n'`) is missing; other
      *        exceptions match the three-argument overload.
      * @endif

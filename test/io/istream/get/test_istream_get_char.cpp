@@ -1,230 +1,326 @@
+/**
+ * istream<char>::get(): unformatted reads, one character or a bufferful.
+ *
+ * The buffered overload is spelled with two policies rather than with the
+ * standard's two separate functions. DelimPolicy says what happens to the
+ * delimiter -- keep_sep leaves it in the stream, cons_sep takes it out -- and
+ * CStrPolicy says whether the result is a C string, which costs one of the
+ * capacity for the terminator. The return value is where writing stopped, so
+ * the caller measures what it got by subtraction instead of asking gcount().
+ *
+ * Three ways to stop: the capacity ran out, the delimiter arrived, or the input
+ * did. They are distinguishable, and the cases below separate them. A get that
+ * extracted nothing at all is a failure whichever of the three it was, which is
+ * the one rule that catches a caller who never checks.
+ *
+ * The fixture is "0123456789abcdef", whose character at index n is n in base
+ * 16, so how far a read got and what it wrote check each other.
+ */
+#include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/iostream.h>
+#include <io/istream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <support/file_guard.h>
+
 #include <cstddef>
 #include <limits>
-#include <stdexcept>
 #include <string>
-#include <device/mem_device.h>
-#include <device/file_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_istream_get_char_1()
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<char>::get case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const char str_lit01[] = 
-        "   sun*ra \n\t\t\t   & his arkestra, featuring john gilmore: \n"
-        "                         "
-            "jazz in silhouette: images and forecasts of tomorrow";
-
-        std::string str01(str_lit01);
-
-        T is_00(IOv2::mem_device{""});
-        T is_04(IOv2::mem_device{str01});
-
-        IOv2::ios_defs::iostate statefail, stateeof;
-        statefail = IOv2::ios_defs::strfailbit;
-        stateeof = IOv2::ios_defs::eofbit;
-        char carray1[400] = "";
-
-        // int_type get()
-        // istream& get(char*, streamsize, char delim)
-        // istream& get(char*, streamsize)
-        size_t gcount = is_00.template get<IOv2::keep_sep, IOv2::no_zt>(carray1, 1) - carray1;
-        VERIFY(is_00.rdstate() & statefail);
-        VERIFY(gcount == 0);
-
-        auto next_pos = is_04.template get<IOv2::keep_sep, IOv2::no_zt>(carray1, 3); *next_pos = 0;
-        gcount = next_pos - carray1;
-        VERIFY((is_04.rdstate() & statefail) == 0);
-        VERIFY(std::string("   ") == std::string(carray1));
-        VERIFY(gcount == 3);
-
-        is_04.clear();
-        next_pos = is_04.template get<IOv2::keep_sep, IOv2::no_zt>(carray1 + 3, 199); *next_pos = 0;
-        gcount = next_pos - carray1 - 3;
-        VERIFY(gcount == 7);
-        VERIFY((is_04.rdstate() & statefail) == 0);
-        VERIFY((is_04.rdstate() & stateeof) == 0);
-        VERIFY(str01.substr(0, 10) == std::string(carray1));
-
-        is_04.clear();
-        next_pos = is_04.template get<IOv2::keep_sep, IOv2::no_zt>(carray1, 199); *next_pos = 0;
-        gcount = next_pos - carray1;
-        VERIFY(gcount == 0);
-        VERIFY((is_04.rdstate() & stateeof) == 0);
-        VERIFY(is_04.rdstate() & statefail);
-        is_04.clear();
-        next_pos = is_04.template get<IOv2::keep_sep, IOv2::no_zt>(carray1, 199, '['); *next_pos = 0;
-        gcount = next_pos - carray1;
-        VERIFY(gcount == 125);
-        VERIFY(is_04.rdstate() & stateeof);
-        VERIFY((is_04.rdstate() & statefail) == 0);
-        is_04.clear();
-        next_pos = is_04.template get<IOv2::keep_sep, IOv2::no_zt>(carray1, 199); *next_pos = 0;
-        gcount = next_pos - carray1;
-        VERIFY(gcount == 0);
-        VERIFY(is_04.rdstate() & stateeof);
-        VERIFY(is_04.rdstate() & statefail);
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    const std::string kDigits = "0123456789abcdef";
 }
 
-void test_istream_get_char_2()
+TEST(IstreamGetChar, ASingleGetYieldsTheNextCharacterAndAdvances)
 {
-    dump_info("Test istream<char>::get case 2...");
-
-    auto helper = []<template<typename, typename> class T,
-                               typename TDevice>()
+    auto expect_one_at_a_time = []<template <typename, typename> class T>()
     {
-        std::string data = []()
-        {
-            std::string res;
-            for (size_t i = 0; i < 1500; ++i)
-                res.append("1234567890\n");
-            return res;
-        }();
+        T is(mem_device{kDigits});
 
-        file_guard g("istream_unformatted-1.txt", data);
-        T infile(TDevice{"istream_unformatted-1.txt"});
-        VERIFY((bool)infile);
-        while (infile)
-        {
-            char line[1024];
-            while(infile.peek() == '\n')
-                infile.get();
-            *(infile.template get<IOv2::keep_sep, IOv2::no_zt>(line, 1023)) = 0;
-            VERIFY((std::string(line) == "1234567890") ||
-                   (std::string(line) == ""));
-        }
+        EXPECT_EQ(is.get(), '0');
+        EXPECT_EQ(is.get(), '1');
+
+        char c = '#';
+        is.get(c);
+        EXPECT_EQ(c, '2');
+        EXPECT_EQ(is.peek(), '3');
     };
 
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    expect_one_at_a_time.operator()<istream>();
+    expect_one_at_a_time.operator()<iostream>();
 }
-void test_istream_get_char_3()
-{
-    dump_info("Test istream<char>::get case 3 (EOF x exception mask)...");
 
-    auto helper = []<template<typename, typename> class T>()
+TEST(IstreamGetChar, AGetIntoABufferStopsAtTheCapacity)
+{
+    auto expect_capped = []<template <typename, typename> class T>()
     {
-        // eofbit masked: get()/get(char&) at EOF throw eof_error; eofbit set.
+        T    is(mem_device{kDigits});
+        char buf[8] = {};
+
+        char* end = is.template get<keep_sep, no_zt>(buf, 3);
+        EXPECT_EQ(end - buf, 3);
+        EXPECT_EQ(std::string(buf, end), "012");
+
+        // The stream is left exactly where writing stopped.
+        EXPECT_EQ(is.peek(), '3');
+    };
+
+    expect_capped.operator()<istream>();
+    expect_capped.operator()<iostream>();
+}
+
+// app_zt reserves one of the capacity for the terminator, so the same n yields
+// one character fewer than no_zt does.
+TEST(IstreamGetChar, AppendingATerminatorCostsOneOfTheCapacity)
+{
+    auto expect_reserved = []<template <typename, typename> class T>()
+    {
+        T    is(mem_device{kDigits});
+        char buf[8];
+        for (char& c : buf) c = '#';
+
+        char* end = is.template get<keep_sep, app_zt>(buf, 3);
+        EXPECT_EQ(std::string(buf), "01");   // reads as a C string
+        EXPECT_EQ(buf[2], '\0');
+        EXPECT_EQ(buf[3], '#');              // and no further
+
+        // The returned pointer is past everything written, the terminator
+        // included, so it is one more than the character count.
+        EXPECT_EQ(end - buf, 3);
+        EXPECT_EQ(is.peek(), '2');
+    };
+
+    expect_reserved.operator()<istream>();
+    expect_reserved.operator()<iostream>();
+}
+
+TEST(IstreamGetChar, KeepingTheDelimiterLeavesItInTheStream)
+{
+    auto expect_kept = []<template <typename, typename> class T>()
+    {
+        T    is(mem_device{std::string("012\n345")});
+        char buf[8] = {};
+
+        char* end = is.template get<keep_sep, no_zt>(buf, 7, '\n');
+        EXPECT_EQ(std::string(buf, end), "012");
+        EXPECT_EQ(is.peek(), '\n');          // still there for the next reader
+    };
+
+    expect_kept.operator()<istream>();
+    expect_kept.operator()<iostream>();
+}
+
+TEST(IstreamGetChar, ConsumingTheDelimiterTakesItOutOfTheStream)
+{
+    auto expect_consumed = []<template <typename, typename> class T>()
+    {
+        T    is(mem_device{std::string("012\n345")});
+        char buf[8] = {};
+
+        char* end = is.template get<cons_sep, no_zt>(buf, 7, '\n');
+        EXPECT_EQ(std::string(buf, end), "012");   // the delimiter is not written
+        EXPECT_EQ(is.peek(), '3');                 // but it is gone
+    };
+
+    expect_consumed.operator()<istream>();
+    expect_consumed.operator()<iostream>();
+}
+
+// cons_sep promises to consume a delimiter, so a read that filled the buffer
+// without reaching one has not done what was asked and says so.
+TEST(IstreamGetChar, ConsumingRequiresTheDelimiterWithinTheCapacity)
+{
+    auto expect_rejected = []<template <typename, typename> class T>()
+    {
+        T    is(mem_device{kDigits});
+        char buf[8] = {};
+
+        is.template get<cons_sep, no_zt>(buf, 3, '\n');
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+    };
+
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
+}
+
+// Nothing extracted is a failure however it came about: no input at all, or a
+// delimiter sitting where the first character would have been.
+TEST(IstreamGetChar, ExtractingNothingIsAFailure)
+{
+    auto expect_failed = []<template <typename, typename> class T>()
+    {
         {
-            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
-            s.exceptions(IOv2::ios_defs::eofbit);
-            bool threw = false;
-            try { (void)s.get(); }
-            catch (const IOv2::eof_error&) { threw = true; }
-            VERIFY(threw);
-            VERIFY(s.eof());
+            T    empty(mem_device{std::string("")});
+            char buf[8] = {};
+            char* end = empty.template get<keep_sep, no_zt>(buf, 4);
+            EXPECT_EQ(end, buf);
+            EXPECT_TRUE(empty.rdstate() & ios_defs::strfailbit);
         }
         {
-            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
-            s.exceptions(IOv2::ios_defs::eofbit);
-            char c = 'Z';
-            bool threw = false;
-            try { s.get(c); }
-            catch (const IOv2::eof_error&) { threw = true; }
-            VERIFY(threw);
-            VERIFY(s.eof());
-        }
-        // eofbit unmasked (default): no throw, eofbit set (regression).
-        {
-            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
-            auto c = s.get();
-            VERIFY(!c.has_value());
-            VERIFY(s.eof());
-        }
-        {
-            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
-            char c = 'Z';
-            s.get(c);
-            VERIFY(c == 'Z');
-            VERIFY(s.eof());
+            T    at_delim(mem_device{std::string("\n012")});
+            char buf[8] = {};
+            char* end = at_delim.template get<keep_sep, no_zt>(buf, 4, '\n');
+            EXPECT_EQ(end, buf);
+            EXPECT_TRUE(at_delim.rdstate() & ios_defs::strfailbit);
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_failed.operator()<istream>();
+    expect_failed.operator()<iostream>();
 }
 
-void test_istream_get_char_4()
+// Stopping because the input ran out, with room still left, is the end of file --
+// as distinct from stopping because the capacity was reached, which is not.
+TEST(IstreamGetChar, RunningOutOfInputSetsEndOfFileAndFillingTheBufferDoesNot)
 {
-    dump_info("Test istream<char>::get case 4 (negative buffer size)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_distinguished = []<template <typename, typename> class T>()
     {
-        // Same contract as read(): the capacity is a signed ptrdiff_t so that a negative
-        // value is rejected here rather than arriving as SIZE_MAX and filling the caller's
-        // buffer until the delimiter or EOF.
+        {
+            T    is(mem_device{std::string("012")});
+            char buf[8] = {};
+            char* end = is.template get<keep_sep, no_zt>(buf, 7);
+            EXPECT_EQ(std::string(buf, end), "012");
+            EXPECT_TRUE(is.eof());
+        }
+        {
+            T    is(mem_device{kDigits});
+            char buf[8] = {};
+            is.template get<keep_sep, no_zt>(buf, 4);
+            EXPECT_FALSE(is.eof());
+        }
+    };
+
+    expect_distinguished.operator()<istream>();
+    expect_distinguished.operator()<iostream>();
+}
+
+// The capacity is a signed ptrdiff_t so that a negative value is rejected here
+// rather than arriving as SIZE_MAX and filling the caller's buffer until the
+// delimiter or the end of the input.
+TEST(IstreamGetChar, ACapacityThatIsNotPositiveIsRejected)
+{
+    auto expect_rejected = []<template <typename, typename> class T>()
+    {
         for (const std::ptrdiff_t n : {std::ptrdiff_t{-1},
-                                       std::numeric_limits<std::ptrdiff_t>::min()})
+                                       std::numeric_limits<std::ptrdiff_t>::min(),
+                                       std::ptrdiff_t{0}})
         {
-            T s{IOv2::mem_device{std::string(4096, 'x')}, IOv2::locale<char>("C")};
+            SCOPED_TRACE(n);
+            T    is{mem_device{std::string(4096, 'x')}, locale<char>("C")};
             char buf[8];
-            for (char& ch : buf) ch = '#';
-            bool threw = false;
+            for (char& c : buf) c = '#';
+
             char* ret = nullptr;
-            try { ret = s.template get<IOv2::keep_sep, IOv2::app_zt>(buf, n, '\n'); }
-            catch (...) { threw = true; }
-            VERIFY( !threw );
-            VERIFY( ret == buf );
-            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
-            // app_zt must not treat a negative capacity as room for the terminator.
+            EXPECT_NO_THROW((ret = is.template get<keep_sep, app_zt>(buf, n, '\n')));
+            EXPECT_EQ(ret, buf);
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+
+            // app_zt must not read a non-positive capacity as room for the
+            // terminator either.
             for (const char c : buf)
-                VERIFY( c == '#' );
-            s.clear();
-            VERIFY( s.peek() == 'x' );
+                EXPECT_EQ(c, '#');
+
+            // And nothing was taken from the stream.
+            is.clear();
+            EXPECT_EQ(is.peek(), 'x');
         }
 
-        // The two-argument overload widens '\n' first, then forwards; it must reject the
-        // negative capacity just the same, and leave the buffer alone on the way through.
+        // The two-argument overload widens '\n' and forwards, so it has to reject
+        // the same capacities on the way through.
         {
-            T s{IOv2::mem_device{std::string(4096, 'x')}, IOv2::locale<char>("C")};
+            T    is{mem_device{std::string(4096, 'x')}, locale<char>("C")};
             char buf[8];
-            for (char& ch : buf) ch = '#';
-            bool threw = false;
-            char* ret = nullptr;
-            try { ret = s.template get<IOv2::cons_sep, IOv2::app_zt>(buf, -1); }
-            catch (...) { threw = true; }
-            VERIFY( !threw );
-            VERIFY( ret == buf );
-            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
-            for (const char c : buf)
-                VERIFY( c == '#' );
-        }
+            for (char& c : buf) c = '#';
 
-        // Zero stays a separate, already-documented rejection: it must keep behaving as
-        // before rather than being folded into the negative case.
-        {
-            T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
-            char buf[8];
-            for (char& ch : buf) ch = '#';
-            s.template get<IOv2::keep_sep, IOv2::app_zt>(buf, 0, '\n');
-            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            char* ret = nullptr;
+            EXPECT_NO_THROW((ret = is.template get<cons_sep, app_zt>(buf, -1)));
+            EXPECT_EQ(ret, buf);
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
             for (const char c : buf)
-                VERIFY( c == '#' );
+                EXPECT_EQ(c, '#');
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+TEST(IstreamGetChar, TheEndOfInputThrowsWhenEndOfFileIsMasked)
+{
+    auto expect_thrown = []<template <typename, typename> class T>()
+    {
+        {
+            T is{mem_device{std::string("")}, locale<char>("C")};
+            is.exceptions(ios_defs::eofbit);
+            EXPECT_THROW((void)is.get(), eof_error);
+            EXPECT_TRUE(is.eof());
+        }
+        {
+            T is{mem_device{std::string("")}, locale<char>("C")};
+            is.exceptions(ios_defs::eofbit);
+            char c = 'Z';
+            EXPECT_THROW(is.get(c), eof_error);
+            EXPECT_TRUE(is.eof());
+        }
+        // Unmasked, the same end is reported rather than thrown, and the
+        // caller's variable is left as it was.
+        {
+            T is{mem_device{std::string("")}, locale<char>("C")};
+            EXPECT_FALSE(is.get().has_value());
+            EXPECT_TRUE(is.eof());
+        }
+        {
+            T is{mem_device{std::string("")}, locale<char>("C")};
+            char c = 'Z';
+            is.get(c);
+            EXPECT_EQ(c, 'Z');
+            EXPECT_TRUE(is.eof());
+        }
+    };
+
+    expect_thrown.operator()<istream>();
+    expect_thrown.operator()<iostream>();
+}
+
+// The delimiter-terminated form over a real file, repeated until the input runs
+// out: each line comes back whole and in order, which is what a caller reading a
+// file a line at a time depends on.
+TEST(IstreamGetChar, RepeatedGetsWalkAFileLineByLine)
+{
+    constexpr int kLines = 200;
+
+    std::string data;
+    for (int i = 0; i < kLines; ++i)
+        data += "line-" + std::to_string(i) + "\n";
+
+    const std::string path = "test_istream_get_lines.txt";
+    file_guard        guard(path, data);
+
+    auto expect_walked = [&]<template <typename, typename> class T, typename TDevice>()
+    {
+        T is(TDevice{path});
+        ASSERT_TRUE(static_cast<bool>(is));
+
+        int read = 0;
+        while (is)
+        {
+            char  line[64] = {};
+            char* end = is.template get<cons_sep, app_zt>(line, sizeof line, '\n');
+            if (!is) break;
+            EXPECT_EQ(std::string(line), "line-" + std::to_string(read));
+            EXPECT_GT(end, line);
+            ++read;
+        }
+        EXPECT_EQ(read, kLines);
+    };
+
+    expect_walked.operator()<istream, ifile_device<char>>();
+    expect_walked.operator()<iostream, file_device<char>>();
 }
