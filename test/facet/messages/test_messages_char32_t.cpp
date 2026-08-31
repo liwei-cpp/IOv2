@@ -1,51 +1,68 @@
+/**
+ * IOv2::messages<char32_t>: the same gettext catalogue, decoded into code
+ * points.  The narrow instantiation takes a codeset argument because its result
+ * is bytes; this one has no such axis -- a char32_t is already a code point --
+ * so what is left to check is the three answers translate() can give.
+ */
 #include <facet/messages.h>
-#include <ios>
-#include <limits>
-#include <stdexcept>
+
+#include <gtest/gtest.h>
+
+#include <support/exe_path.h>
+
+#include <filesystem>
+#include <memory>
+#include <string>
 #include <type_traits>
 
-#include <support/dump_info.h>
-#include <support/exe_path.h>
-#include <support/verify.h>
+using namespace IOv2;
 
-void test_messages_facet_char32_t_common_1()
+namespace
 {
-    dump_info("Test messages<char32_t> common case 1...");
-    static_assert(std::is_same_v<IOv2::messages<char32_t>::char_type, char32_t>);
+    void bind_catalogue()
+    {
+        std::filesystem::path mo_path = exe_path();
+        mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
+        base_ft<messages>::bind_text_domain("messages", std::filesystem::canonical(mo_path).string());
+    }
 
-    dump_info("Done\n");
+    messages<char32_t> facet_for(const char* lang)
+    {
+        bind_catalogue();
+        return messages<char32_t>(std::make_shared<messages_conf<char32_t>>("messages", lang));
+    }
 }
 
-void test_messages_char32_t_translate_1()
+TEST(MessagesChar32, TheCharacterTypeIsChar32)
 {
-    dump_info("Test messages<char32_t>::translate case 1...");
-    std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
-    mo_path = std::filesystem::canonical(mo_path);
-    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
-
-    const IOv2::messages<char32_t> obj(std::make_shared<IOv2::messages_conf<char32_t>>("messages", "zh_CN"));
-
-    std::u32string ref1 = U"请";
-    std::u32string ref2 = U"谢谢";
-    VERIFY(obj.translate(U"please") == ref1);
-    VERIFY(obj.translate(U"thank you") == ref2);
-    VERIFY(obj.translate(U"") == U"");
-    VERIFY(obj.head_entry() != U"");
-
-    dump_info("Done\n");
+    static_assert(std::is_same_v<messages<char32_t>::char_type, char32_t>);
 }
 
-void test_messages_char32_t_translate_2()
+TEST(MessagesChar32, AnAvailableCatalogueTranslates)
 {
-    dump_info("Test messages<char32_t>::translate case 2...");
+    const messages<char32_t> obj = facet_for("zh_CN");
+    EXPECT_EQ(obj.translate(U"please"), std::u32string(U"请"));
+    EXPECT_EQ(obj.translate(U"thank you"), std::u32string(U"谢谢"));
+}
 
-    const IOv2::messages<char32_t> obj(std::make_shared<IOv2::messages_conf<char32_t>>("messages", "zh_HK", false));
+TEST(MessagesChar32, AnAvailableCatalogueHasAHeaderEntry)
+{
+    const messages<char32_t> obj = facet_for("zh_CN");
+    EXPECT_NE(obj.head_entry(), U"");
+}
 
-    VERIFY(obj.translate(U"please") == U"please");
-    VERIFY(obj.translate(U"thank you") == U"thank you");
-    VERIFY(obj.translate(U"") == U"");
-    VERIFY(obj.head_entry() == U"");
+TEST(MessagesChar32, AMissingCatalogueLeavesTheKeyUntranslated)
+{
+    const messages<char32_t> obj(std::make_shared<messages_conf<char32_t>>("messages", "zh_HK", false));
+    EXPECT_EQ(obj.translate(U"please"), std::u32string(U"please"));
+    EXPECT_EQ(obj.translate(U"thank you"), std::u32string(U"thank you"));
+    EXPECT_EQ(obj.head_entry(), U"");
+}
 
-    dump_info("Done\n");
+TEST(MessagesChar32, AnEmptyKeyTranslatesToNothing)
+{
+    const messages<char32_t> present = facet_for("zh_CN");
+    const messages<char32_t> absent(std::make_shared<messages_conf<char32_t>>("messages", "zh_HK", false));
+    EXPECT_EQ(present.translate(U""), U"");
+    EXPECT_EQ(absent.translate(U""), U"");
 }

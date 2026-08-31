@@ -82,6 +82,12 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
     device/file_device
     device/mem_device
     device/std_device
+    facet/collate
+    facet/ctype
+    facet/messages
+    facet/monetary
+    facet/numeric
+    facet/timeio
     locale
 )
 
@@ -90,7 +96,6 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
 # the tree because derive_suites.py reads them -- they are what fixes the
 # entries below and their order.  See its module docstring.
 set(IOV2_TEST_EXCLUDED_SOURCES
-    facet/test_facet.cpp
     io/io_base/test_io_base.cpp
     io/iostream/test_iostream.cpp
     io/istream/test_istream.cpp
@@ -98,7 +103,7 @@ set(IOV2_TEST_EXCLUDED_SOURCES
     io/test_io.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 178)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 171)
 
 set(test_common_ENTRIES
     # none: every case registers itself
@@ -149,27 +154,27 @@ set(test_device_std_device_ENTRIES
 )
 
 set(test_facet_collate_ENTRIES
-    test_collate
+    # none: every case registers itself
 )
 
 set(test_facet_ctype_ENTRIES
-    test_ctype
+    # none: every case registers itself
 )
 
 set(test_facet_messages_ENTRIES
-    test_messages
+    # none: every case registers itself
 )
 
 set(test_facet_monetary_ENTRIES
-    test_monetary
+    # none: every case registers itself
 )
 
 set(test_facet_numeric_ENTRIES
-    test_numeric
+    # none: every case registers itself
 )
 
 set(test_facet_timeio_ENTRIES
-    test_timeio
+    # none: every case registers itself
 )
 
 set(test_io_ctad_ENTRIES

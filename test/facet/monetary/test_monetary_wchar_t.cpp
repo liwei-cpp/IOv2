@@ -1,1312 +1,985 @@
-#include <sstream>
+/**
+ * The same currency contract as test_monetary_char.cpp for wchar_t.  What differs is
+ * only the type the field is written in: the pattern, the grouping, the sign
+ * placement and the parse are one algorithm over whatever character type the
+ * facet was instantiated with, and these cases are here to say that the
+ * instantiation changes none of it.
+ *
+ * The cases about the configuration rather than the field -- how a locale name
+ * is spelled, how the POSIX sign position becomes a pattern, which fill
+ * characters would change the amount a field reads as -- read the same data
+ * whatever the character type is, so they stay in the narrow file.
+ */
 #include <facet/monetary.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <facet/monetary_details.h>
+
+#include <common/defs.h>
+#include <device/mem_device.h>
+#include <io/io_base.h>
+#include <io/streambuf.h>
+#include <io/streambuf_iterator.h>
+
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+
+using namespace IOv2;
 
 namespace
 {
-    class MoneyIO : public IOv2::monetary_conf<wchar_t>
+    using part    = base_ft<monetary>::part;
+    using pattern = base_ft<monetary>::pattern;
+
+    // A configuration whose every answer can be set.  What a format case is
+    // about is the format, so it states one here instead of borrowing whichever
+    // one a locale happens to carry this year.
+    class tunable_conf : public monetary_conf<wchar_t>,
+                         public std::enable_shared_from_this<tunable_conf>
     {
     public:
-        MoneyIO(const std::string& n)
-            : IOv2::monetary_conf<wchar_t>(n)
-            , m_decimal_point(IOv2::monetary_conf<wchar_t>::decimal_point())
-            , m_thousands_sep(IOv2::monetary_conf<wchar_t>::thousands_sep())
-            , m_grouping(IOv2::monetary_conf<wchar_t>::grouping())
-            , m_negative_sign_nat(IOv2::monetary_conf<wchar_t>::negative_sign_nat())
-            , m_frac_digits_nat(IOv2::monetary_conf<wchar_t>::frac_digits_nat())
-            , m_neg_format_nat(IOv2::monetary_conf<wchar_t>::neg_format_nat())
-            , m_curr_sym_nat(IOv2::monetary_conf<wchar_t>::curr_symbol_nat())
-            , m_pos_sign_nat(IOv2::monetary_conf<wchar_t>::positive_sign_nat())
+        explicit tunable_conf(const std::string& name = "C")
+            : monetary_conf<wchar_t>(name)
+            , m_decimal_point(monetary_conf<wchar_t>::decimal_point())
+            , m_thousands_sep(monetary_conf<wchar_t>::thousands_sep())
+            , m_grouping(monetary_conf<wchar_t>::grouping())
+            , m_curr_symbol(monetary_conf<wchar_t>::curr_symbol_nat())
+            , m_positive_sign(monetary_conf<wchar_t>::positive_sign_nat())
+            , m_negative_sign(monetary_conf<wchar_t>::negative_sign_nat())
+            , m_frac_digits(monetary_conf<wchar_t>::frac_digits_nat())
+            , m_pos_format(monetary_conf<wchar_t>::pos_format_nat())
+            , m_neg_format(monetary_conf<wchar_t>::neg_format_nat())
         {}
-        
-        virtual wchar_t decimal_point() const override { return m_decimal_point; }
-        void set_decimal_point(wchar_t ch) { m_decimal_point = ch; }
-        
-        virtual wchar_t thousands_sep() const override { return m_thousands_sep; }
-        void set_thousands_sep(wchar_t ch) { m_thousands_sep = ch; }
 
-        virtual const std::vector<uint8_t>& grouping() const override { return m_grouping; }
-        void set_grouping(const std::vector<uint8_t>& g) { m_grouping = g; }
+        wchar_t                     decimal_point() const override { return m_decimal_point; }
+        wchar_t                     thousands_sep() const override { return m_thousands_sep; }
+        const std::vector<uint8_t>& grouping() const override { return m_grouping; }
+        const std::wstring&         curr_symbol_nat() const override { return m_curr_symbol; }
+        const std::wstring&         positive_sign_nat() const override { return m_positive_sign; }
+        const std::wstring&         negative_sign_nat() const override { return m_negative_sign; }
+        int                         frac_digits_nat() const override { return m_frac_digits; }
+        const pattern&              pos_format_nat() const override { return m_pos_format; }
+        const pattern&              neg_format_nat() const override { return m_neg_format; }
 
-        virtual const std::wstring& negative_sign_nat() const override { return m_negative_sign_nat; }
-        void set_negative_sign_nat(const std::wstring& i) { m_negative_sign_nat = i; }
+        tunable_conf& point(wchar_t c)                       { m_decimal_point = c; return *this; }
+        tunable_conf& separator(wchar_t c)                   { m_thousands_sep = c; return *this; }
+        tunable_conf& groups(std::vector<uint8_t> g)      { m_grouping = std::move(g); return *this; }
+        tunable_conf& symbol(std::wstring s)               { m_curr_symbol = std::move(s); return *this; }
+        tunable_conf& plus(std::wstring s)                 { m_positive_sign = std::move(s); return *this; }
+        tunable_conf& minus(std::wstring s)                { m_negative_sign = std::move(s); return *this; }
+        tunable_conf& fraction(int n)                     { m_frac_digits = n; return *this; }
+        tunable_conf& positive(pattern p)                 { m_pos_format = p; return *this; }
+        tunable_conf& negative(pattern p)                 { m_neg_format = p; return *this; }
+        tunable_conf& both(pattern p)                     { return positive(p).negative(p); }
 
-        virtual int frac_digits_nat() const override { return m_frac_digits_nat; }
-        void set_frac_digits_nat(int v) { m_frac_digits_nat = v; }
-        
-        virtual const IOv2::base_ft<IOv2::monetary>::pattern& neg_format_nat() const override { return m_neg_format_nat; }
-        void set_neg_format_nat(const IOv2::base_ft<IOv2::monetary>::pattern& p) { m_neg_format_nat = p; }
-        
-        virtual const std::wstring& curr_symbol_nat() const override { return m_curr_sym_nat; }
-        void set_curr_symbol_nat(const std::wstring& s) { m_curr_sym_nat = s; }
+        // Ends a chain: the facet's constructor takes the configuration by
+        // shared pointer, and the chain has been handing back references.
+        std::shared_ptr<tunable_conf> ptr()               { return shared_from_this(); }
 
-        virtual const std::basic_string<wchar_t>& positive_sign_nat() const override { return m_pos_sign_nat; }
-        void set_positive_sign_nat(const std::wstring& s) { m_pos_sign_nat = s; }
-        
     private:
-        wchar_t m_decimal_point;
-        wchar_t m_thousands_sep;
+        wchar_t              m_decimal_point;
+        wchar_t              m_thousands_sep;
         std::vector<uint8_t> m_grouping;
-        std::wstring m_negative_sign_nat;
-        int m_frac_digits_nat;
-        IOv2::base_ft<IOv2::monetary>::pattern m_neg_format_nat;
-        std::wstring m_curr_sym_nat;
-        std::wstring m_pos_sign_nat;
+        std::wstring         m_curr_symbol;
+        std::wstring         m_positive_sign;
+        std::wstring         m_negative_sign;
+        int                  m_frac_digits;
+        pattern              m_pos_format;
+        pattern              m_neg_format;
     };
-}
 
-void test_monetary_wchar_t_common_1()
-{
-    dump_info("Test monetary<wchar_t> common 1...");
-    static_assert(std::is_same_v<IOv2::monetary<wchar_t>::char_type, wchar_t>);
+    // The pattern the cases below start from unless they say otherwise: the
+    // symbol first, then the sign, then the amount, with nothing at the end.
+    constexpr pattern kSymbolSignValue = {part::symbol, part::none, part::sign, part::value};
 
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("C"));
-    
-    VERIFY(obj.decimal_point() == '.');
-    VERIFY(obj.thousands_sep() == ',');
-    VERIFY(obj.grouping().empty());
-    VERIFY(obj.curr_symbol_nat().empty());
-    VERIFY(obj.curr_symbol_int().empty());
-    VERIFY(obj.positive_sign_nat().empty());
-    VERIFY(obj.positive_sign_int().empty());
-    VERIFY(!(obj.negative_sign_nat().empty()));
-    VERIFY(!(obj.negative_sign_int().empty()));
-    VERIFY(obj.frac_digits_int() == 0);
-    VERIFY(obj.frac_digits_nat() == 0);
-    VERIFY(obj.pos_format_int() == obj.pos_format_nat());
-    VERIFY(obj.neg_format_int() == obj.neg_format_nat());
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_common_2()
-{
-    dump_info("Test monetary<wchar_t> common 2...");
-    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<wchar_t>>("C"));
-    IOv2::monetary obj_de(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.ISO-8859-1"));
-    
-    VERIFY(obj_c.decimal_point() != char());
-    VERIFY(obj_c.thousands_sep() != char());
-    VERIFY(obj_c.decimal_point() != obj_de.decimal_point());
-    VERIFY(obj_c.thousands_sep() != obj_de.thousands_sep());
-    VERIFY(obj_c.grouping() != obj_de.grouping());
-    VERIFY(obj_c.curr_symbol_int() != obj_de.curr_symbol_int());
-    VERIFY(obj_c.negative_sign_int() == obj_de.negative_sign_int());
-    VERIFY(obj_c.frac_digits_int() != obj_de.frac_digits_int());
-    VERIFY(obj_c.pos_format_int() != obj_de.pos_format_int());
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_put_1()
-{
-    dump_info("Test monetary<wchar_t>::put 1...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
+    std::shared_ptr<tunable_conf> tuned(const char* name = "C")
     {
-        IOv2::ios_base<wchar_t> ios;
+        return std::make_shared<tunable_conf>(name);
+    }
 
-        // total EPA budget FY 2002
-        const std::wstring digits1(L"720000000000");
-        // input less than frac_digits
-        const std::wstring digits2(L"-1");
-        std::wstring oss;
-
-        obj.put(std::back_inserter(oss), true, ios, digits1);
-        VERIFY(oss == L"7.200.000.000,00 ");
-
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == L"7.200.000.000,00 ");
-    
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits1);
-        VERIFY(oss == L"7.200.000.000,00 EUR ");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == L"7.200.000.000,00 €");
-
-        ios.unsetf(IOv2::ios_defs::showbase);
-    
-        // test io.width() > length
-        // test various fill strategies
-        ios.width(20); ios.fill('*');
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == L"***************-,01*");
-        
-        ios.width(20); ios.setf(IOv2::ios_defs::internal);
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == L"-,01****************");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_put_2()
-{
-    dump_info("Test monetary<wchar_t>::put 2...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj, const IOv2::monetary<wchar_t>& obj_c)
+    monetary<wchar_t> facet_for(const char* loc)
     {
-        IOv2::ios_base<wchar_t> ios;
+        return monetary<wchar_t>(std::make_shared<monetary_conf<wchar_t>>(loc));
+    }
 
-        // total EPA budget FY 2002
-        const std::wstring digits1(L"720000000000");
-        
-        // est. cost, national missile "defense", expressed as a loss in USD 2001
-        const std::wstring digits2(L"-10000000000000");  
-        
-        // not valid input
-        const std::wstring digits3(L"-A"); 
-        
-        // input less than frac_digits
-        const std::wstring digits4(L"-1");
-    
-        // cache the money_put facet
-        std::wstring oss;
-    
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        // test sign of more than one digit, say hong kong.
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == L"HK$7,200,000,000.00");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == L"(HKD 100,000,000,000.00)");
-        
-        
-        // test one-digit formats without zero padding
-        // note: the result is different with libstdc++'s test case (libstdc%2B%2B-v3/testsuite/22_locale/money_put/put/char/2.cc)
-        // since IOv2 set '-' as the negative sign of C locale.
-        oss.clear();
-        obj_c.put(std::back_inserter(oss), true, ios, digits4);
-        VERIFY(oss == L"-1");
-    
-        // test one-digit formats with zero padding, zero frac widths
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits4);
-        VERIFY(oss == L"(HKD .01)");
-        
-        ios.unsetf(IOv2::ios_defs::showbase);
-    
-        // test bunk input
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits3);
-        VERIFY(oss == L"");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("en_HK.UTF-8"));
-    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<wchar_t>>("C"));
-    helper(obj, obj_c);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_put_3()
-{
-    dump_info("Test monetary<wchar_t>::put 3...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
+    // std::to_string is narrow; an amount reaches the facet in the character
+    // type under test.
+    std::wstring to_digits(int64_t v)
     {
-        IOv2::ios_base<wchar_t> ios;
+        const std::string ascii = std::to_string(v);
+        return std::wstring(ascii.begin(), ascii.end());
+    }
 
-        // woman, art, thief (stole the blues)
-        const std::wstring str(L"1943 Janis Joplin");
-        const int64_t ld = 1943;
-        const std::wstring x(str.size(), L'x'); // have to have allocated string!
-        std::wstring res;
+    // Takes either spelling of an amount -- the digit string or the integer --
+    // because put() has an overload for each and they must agree.
+    template <typename TVal>
+    std::wstring put_str(const monetary<wchar_t>& obj, bool intl, ios_base<wchar_t>& io,
+                        const TVal& amount)
+    {
+        std::wstring out;
+        obj.put(std::back_inserter(out), intl, io, amount);
+        return out;
+    }
 
-        std::wstring oss;
-    
-        // 01 string
-        res = x;
-        auto ret1 = obj.put(res.begin(), false, ios, str);
-        std::wstring sanity1(res.begin(), ret1);
-        VERIFY(res == L"1943xxxxxxxxxxxxx");
-        VERIFY(sanity1 == L"1943");
+    // The round-trip case names its combination on one line, so the sibling
+    // files' literal retyping cannot reach these labels.
+    std::string trace_case(int frac, std::size_t groups, bool showbase, const std::wstring& amount)
+    {
+        return "frac=" + std::to_string(frac) + " groups=" + std::to_string(groups) + " showbase=" + std::to_string(showbase) + " amount=" + ::testing::PrintToString(amount);
+    }
 
-        // 02 int64_t
-        res = x;
-        auto ret2 = obj.put(res.begin(), false, ios, ld);
-        std::wstring sanity2(res.begin(), ret2);
-        VERIFY(res == L"1943xxxxxxxxxxxxx");
-        VERIFY(sanity2 == L"1943");
+    // What a parse produced: whether it succeeded, the digits it yielded, and
+    // the input it left behind.
+    struct parse_result
+    {
+        bool         ok;
+        std::wstring digits;
+        std::wstring rest;
     };
 
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("C"));
-    helper(obj);
+    parse_result parse_over_pointers(const monetary<wchar_t>& obj, bool intl, ios_base<wchar_t>& io,
+                                     const std::wstring& input, const std::wstring& seed)
+    {
+        parse_result res{true, seed, {}};
+        try
+        {
+            auto it  = obj.get(input.begin(), input.end(), intl, io, res.digits);
+            res.rest = std::wstring(it, input.end());
+        }
+        catch (const stream_error&)
+        {
+            res.ok = false;
+        }
+        return res;
+    }
 
-    dump_info("Done\n");
+    // The same parse over an iterator that cannot be compared to anything but a
+    // sentinel and cannot be rewound -- the shape get() is actually written for.
+    parse_result parse_over_a_stream(const monetary<wchar_t>& obj, bool intl, ios_base<wchar_t>& io,
+                                     const std::wstring& input, const std::wstring& seed)
+    {
+        parse_result res{true, seed, {}};
+        streambuf    sb(mem_device{input});
+        auto         beg = istreambuf_iterator(sb);
+        try
+        {
+            auto it = obj.get(beg, std::default_sentinel, intl, io, res.digits);
+            res.rest = std::wstring(it, decltype(it)());
+        }
+        catch (const stream_error&)
+        {
+            res.ok = false;
+        }
+        return res;
+    }
+
+    // Every parse assertion goes through here, so no case can check one iterator
+    // shape and leave the other unexamined.
+    void expect_parses(const monetary<wchar_t>& obj, bool intl, ios_base<wchar_t>& io,
+                       const std::wstring& input, const std::wstring& digits,
+                       const std::wstring& rest = L"")
+    {
+        SCOPED_TRACE(::testing::PrintToString(input));
+        for (bool streamed : {false, true})
+        {
+            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, L"")
+                                            : parse_over_pointers(obj, intl, io, input, L"");
+            EXPECT_TRUE(r.ok);
+            EXPECT_EQ(r.digits, digits);
+            EXPECT_EQ(r.rest, rest);
+        }
+    }
+
+    // A failed parse throws, and the digit string it was handed must come back
+    // exactly as it was: the caller's variable is not a scratch buffer.
+    void expect_rejects(const monetary<wchar_t>& obj, bool intl, ios_base<wchar_t>& io,
+                        const std::wstring& input)
+    {
+        SCOPED_TRACE(::testing::PrintToString(input));
+        const std::wstring seed = L"untouched";
+        for (bool streamed : {false, true})
+        {
+            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, seed)
+                                            : parse_over_pointers(obj, intl, io, input, seed);
+            EXPECT_FALSE(r.ok);
+            EXPECT_EQ(r.digits, seed);
+        }
+    }
 }
 
-void test_monetary_wchar_t_put_4()
+TEST(MonetaryWchar, TheCharacterTypeIsChar)
 {
-    dump_info("Test monetary<wchar_t>::put 4...");
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_decimal_point(L'.');
-    tmp_io->set_thousands_sep(L',');
-    tmp_io->set_grouping({3});
-    tmp_io->set_negative_sign_nat(L"()");
-    tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::space,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
+    static_assert(std::is_same_v<monetary<wchar_t>::char_type, wchar_t>);
+}
 
-    IOv2::monetary<wchar_t> obj(tmp_io);
-    IOv2::ios_base<wchar_t> ios;
+// [locale.moneypunct] fixes the "C" locale completely: no currency, no
+// grouping, no fractional digits, and the same format both ways round.
+TEST(MonetaryWchar, TheCLocaleCarriesNoCurrency)
+{
+    const monetary<wchar_t> obj = facet_for("C");
+
+    EXPECT_EQ(obj.decimal_point(), L'.');
+    EXPECT_EQ(obj.thousands_sep(), L',');
+    EXPECT_TRUE(obj.grouping().empty());
+    EXPECT_TRUE(obj.curr_symbol_nat().empty());
+    EXPECT_TRUE(obj.curr_symbol_int().empty());
+    EXPECT_TRUE(obj.positive_sign_nat().empty());
+    EXPECT_TRUE(obj.positive_sign_int().empty());
+    EXPECT_EQ(obj.frac_digits_int(), 0);
+    EXPECT_EQ(obj.frac_digits_nat(), 0);
+    EXPECT_EQ(obj.pos_format_int(), obj.pos_format_nat());
+    EXPECT_EQ(obj.neg_format_int(), obj.neg_format_nat());
+}
+
+// The negative sign is the one thing the "C" locale must still spell, or a
+// negative amount would come out indistinguishable from a positive one.
+TEST(MonetaryWchar, TheCLocaleStillHasANegativeSign)
+{
+    const monetary<wchar_t> obj = facet_for("C");
+    EXPECT_FALSE(obj.negative_sign_nat().empty());
+    EXPECT_FALSE(obj.negative_sign_int().empty());
+}
+
+TEST(MonetaryWchar, ALocaleWithCurrencyDataDiffersFromTheCLocale)
+{
+    const monetary<wchar_t> plain = facet_for("C");
+    const monetary<wchar_t> us    = facet_for("en_US.UTF-8");
+
+    EXPECT_NE(us.curr_symbol_nat(), plain.curr_symbol_nat());
+    EXPECT_NE(us.frac_digits_nat(), plain.frac_digits_nat());
+    EXPECT_NE(us.grouping(), plain.grouping());
+}
+
+// The digits are the smallest units of the currency, so the amount they spell is
+// read off their right-hand end: frac_digits places go behind the decimal point
+// and the rest in front of it.
+TEST(MonetaryWchar, TheAmountIsCutFracDigitsPlacesFromTheRight)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(2).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, L"1"), L".01");
+    EXPECT_EQ(put_str(obj, false, ios, L"12"), L".12");
+    EXPECT_EQ(put_str(obj, false, ios, L"123"), L"1.23");
+}
+
+// A run too short to reach the cut has no integral part at all, and the fraction
+// picks up the shortfall as leading zeros: two places turn 7 into .07, not 7.0.
+TEST(MonetaryWchar, AShortAmountIsPaddedInTheFractionNotTheInteger)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(3).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, L"7"), L".007");
+    EXPECT_EQ(put_str(obj, false, ios, L"70"), L".070");
+    EXPECT_EQ(put_str(obj, false, ios, L"700"), L".700");
+    EXPECT_EQ(put_str(obj, false, ios, L"7000"), L"7.000");
+}
+
+TEST(MonetaryWchar, NoFractionalDigitsMeansNoDecimalPoint)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"123456");
+}
+
+// A negative frac_digits asks for no fraction at all and keeps the whole run,
+// which is not the same statement as zero places: it is the locale saying the
+// question does not apply.
+TEST(MonetaryWchar, ANegativeFractionWidthKeepsEveryDigitIntegral)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(-1).both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"123456");
+}
+
+TEST(MonetaryWchar, GroupingInsertsTheThousandsSeparator)
+{
+    ios_base<wchar_t> ios;
+
+    const monetary<wchar_t> threes(tuned()->fraction(0).groups({3}).separator(L',')
+                                       .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(threes, false, ios, L"1234567"), L"1,234,567");
+
+    const monetary<wchar_t> ones(tuned()->fraction(0).groups({1}).separator(L'#')
+                                     .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(ones, false, ios, L"1234"), L"1#2#3#4");
+
+    // A grouping vector is read right to left and its last entry repeats, so
+    // {3,2} groups three digits then twos all the way up.
+    const monetary<wchar_t> indian(tuned()->fraction(0).groups({3, 2}).separator(L',')
+                                       .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(indian, false, ios, L"12345678"), L"1,23,45,678");
+}
+
+TEST(MonetaryWchar, AnEmptyGroupingInsertsNothing)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).groups({}).both(kSymbolSignValue).ptr());
+    const std::wstring      digits(300, L'1');
+    EXPECT_EQ(put_str(obj, false, ios, digits), digits);
+}
+
+// The symbol is the one part of the field the caller decides about: it is
+// written when showbase is set and left out otherwise, and nothing else about
+// the field changes with it.
+TEST(MonetaryWchar, TheSymbolIsWrittenOnlyWithShowbase)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(2).symbol(L"$").both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"1234.56");
+    ios.setf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"$1234.56");
+    ios.unsetf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"1234.56");
+}
+
+TEST(MonetaryWchar, ThePatternDecidesTheOrderOfTheParts)
+{
+    ios_base<wchar_t> ios;
+    ios.setf(ios_defs::showbase);
+
+    const std::pair<pattern, const wchar_t*> cases[] = {
+        {{part::symbol, part::sign, part::value, part::none}, L"$-12"},
+        {{part::sign, part::symbol, part::value, part::none}, L"-$12"},
+        {{part::value, part::space, part::symbol, part::sign}, L"12 $-"},
+        {{part::sign, part::value, part::space, part::symbol}, L"-12 $"},
+        {{part::symbol, part::space, part::value, part::sign}, L"$ 12-"},
+    };
+
+    for (const auto& [order, expected] : cases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(expected));
+        const monetary<wchar_t> obj(tuned()->fraction(0).symbol(L"$").minus(L"-").negative(order).ptr());
+        EXPECT_EQ(put_str(obj, false, ios, L"-12"), expected);
+    }
+}
+
+// A sign spelled with more than one character wraps the field: its first
+// character sits in the sign slot and the rest trails everything, which is how
+// a locale writes a negative amount in parentheses.
+TEST(MonetaryWchar, AMultiCharacterSignWrapsTheField)
+{
+    ios_base<wchar_t> ios;
+    ios.setf(ios_defs::showbase);
+    const monetary<wchar_t> obj(tuned()->fraction(2).groups({3}).separator(L',').symbol(L"$")
+                                    .minus(L"()")
+                                    .negative({part::symbol, part::space, part::sign, part::value}).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, L"-123456"), L"$ (1,234.56)");
+}
+
+TEST(MonetaryWchar, TheSignOfTheAmountChoosesThePattern)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).plus(L"+").minus(L"-")
+                                    .positive({part::sign, part::value, part::none, part::none})
+                                    .negative({part::value, part::sign, part::none, part::none}).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, L"12"), L"+12");
+    EXPECT_EQ(put_str(obj, false, ios, L"-12"), L"12-");
+}
+
+// The international and national sets are independent, and intl is what picks
+// between them: the same amount through one facet has two spellings.
+TEST(MonetaryWchar, TheInternationalFlagSelectsTheOtherPunctuation)
+{
+    ios_base<wchar_t> ios;
+    ios.setf(ios_defs::showbase);
+    const monetary<wchar_t> obj = facet_for("en_US.UTF-8");
+
+    EXPECT_NE(obj.curr_symbol_int(), obj.curr_symbol_nat());
+    const std::wstring national      = put_str(obj, false, ios, L"123456");
+    const std::wstring international = put_str(obj, true, ios, L"123456");
+    EXPECT_NE(national, international);
+    EXPECT_NE(national.find(obj.curr_symbol_nat()), std::wstring::npos);
+    EXPECT_NE(international.find(obj.curr_symbol_int()), std::wstring::npos);
+}
+
+TEST(MonetaryWchar, AShortFieldIsPaddedToTheWidth)
+{
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    ios_base<wchar_t> ios;
     ios.fill(L'*');
+    ios.width(8);
+    EXPECT_EQ(put_str(obj, false, ios, L"123"), L"*****123");
 
-    std::wstring val(L"-123456");
-
-    std::wstring fmt;
-    obj.put(std::back_inserter(fmt), false, ios, val);
-    VERIFY(fmt == L"*(1,234.56)");
-  
-    dump_info("Done\n");
+    ios.width(8);
+    ios.setf(ios_defs::left, ios_defs::adjustfield);
+    EXPECT_EQ(put_str(obj, false, ios, L"123"), L"123*****");
 }
 
-void test_monetary_wchar_t_put_5()
+// Under internal the shortfall is not tacked onto an end: it goes into whichever
+// pattern slot writes nothing of its own, which is what puts the fill between
+// the symbol and the amount rather than outside them.
+TEST(MonetaryWchar, InternalPaddingGoesIntoTheEmptySlot)
 {
-    dump_info("Test monetary<wchar_t>::put 5...");
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_thousands_sep(',');
-    tmp_io->set_grouping({1});
+    const monetary<wchar_t> obj(tuned()->fraction(0).symbol(L"$").minus(L"-")
+                                    .negative({part::symbol, part::none, part::sign, part::value}).ptr());
 
-    IOv2::monetary<wchar_t> obj(tmp_io);
-    IOv2::ios_base<wchar_t> ios;
+    ios_base<wchar_t> ios;
+    ios.setf(ios_defs::showbase);
+    ios.setf(ios_defs::internal, ios_defs::adjustfield);
     ios.fill(L'*');
-
-    int64_t val = 100000000LL;
-
-    std::wostringstream fmt;
-    std::ostreambuf_iterator<wchar_t> out(fmt);
-    obj.put(out, false, ios, val);
-    VERIFY(fmt.good());
-  
-    dump_info("Done\n");
+    ios.width(9);
+    EXPECT_EQ(put_str(obj, false, ios, L"-123"), L"$****-123");
 }
 
-void test_monetary_wchar_t_put_6()
+// width() is one-shot: the field it sized is the only one it sizes.
+TEST(MonetaryWchar, TheWidthIsConsumedByOnePut)
 {
-    dump_info("Test monetary<wchar_t>::put 6...");
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    ios_base<wchar_t>       ios;
+    ios.fill(L'*');
+    ios.width(8);
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
+    EXPECT_EQ(put_str(obj, false, ios, L"123"), L"*****123");
+    EXPECT_EQ(ios.width(), 0u);
+    EXPECT_EQ(put_str(obj, false, ios, L"123"), L"123");
+}
+
+// The amount runs up to the first character that is not a digit; what the caller
+// put after that is not the facet's to format.  With nothing to format at all,
+// nothing is written.
+TEST(MonetaryWchar, WhatIsNotADigitIsNotAnAmount)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, L"42 apples"), L"42");
+    EXPECT_EQ(put_str(obj, false, ios, L"-A"), L"");
+    EXPECT_EQ(put_str(obj, false, ios, L""), L"");
+    EXPECT_EQ(put_str(obj, false, ios, L"-"), L"");
+}
+
+TEST(MonetaryWchar, AnIntegralValueFormatsLikeItsDigitString)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(2).groups({3}).separator(L',')
+                                    .both(kSymbolSignValue).ptr());
+
+    // Each width reaches put() through its own instantiation, so each is asked
+    // to agree with the digit-string overload rather than one standing in.
+    auto agrees = [&](auto v)
     {
-        IOv2::ios_base<wchar_t> ios;
-
-        int64_t amount = 11;
-        
-        // cache the money_put facet
-        std::wstring oss;
-        obj.put(std::back_inserter(oss), true, ios, amount);
-        VERIFY(oss == L"11");
+        SCOPED_TRACE(::testing::Message() << +v);
+        EXPECT_EQ(put_str(obj, false, ios, to_digits(static_cast<int64_t>(v))),
+                  put_str(obj, false, ios, v));
     };
 
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_put_7()
-{
-    dump_info("Test monetary<wchar_t>::put 7...");
-    
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({});
-    IOv2::monetary<wchar_t> obj(tmp_io);
-    
-    std::wstring digits(300, L'1');
-    
-    std::wstring oss;
-    obj.put(std::back_inserter(oss), false, ios, digits);
-    VERIFY(oss == digits);
-    
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_1()
-{
-    dump_info("Test monetary<wchar_t>::get 1...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
+    for (int v : {0, 11, 1943, -1, -123456})
     {
-        IOv2::ios_base<wchar_t> ios;
+        agrees(static_cast<short>(v));
+        agrees(static_cast<int>(v));
+        agrees(static_cast<long>(v));
+        agrees(static_cast<long long>(v));
+    }
+    agrees(98765432109LL);
+    agrees(static_cast<unsigned>(4000000000U));
+    agrees(static_cast<unsigned long long>(12345678901234ULL));
+}
 
-        // total EPA budget FY 2002
-        const std::wstring digits1(L"720000000000");
+// put() returns where it stopped, so writing into an existing buffer has to
+// leave everything past that point alone.
+TEST(MonetaryWchar, PutReturnsThePositionAfterTheField)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
 
-        std::wstring iss;
-    
-        {
-            iss = L"7.200.000.000,00 ";
-            std::wstring result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
+    std::wstring buffer(17, L'x');
+    auto         it = obj.put(buffer.begin(), false, ios, std::wstring(L"1943"));
 
-        {
-            iss = L"7.200.000.000,00  ";
-            std::wstring result2;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
+    EXPECT_EQ(std::wstring(buffer.begin(), it), L"1943");
+    EXPECT_EQ(buffer, L"1943xxxxxxxxxxxxx");
+}
 
-        {
-            iss = L"7.200.000.000,00  a";
-            std::wstring result3;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-            VERIFY(result3 == digits1);
-            VERIFY(it != iss.end());
-            VERIFY(*it == 'a');
-        }
+// Everything above reads the field back through the same facet that wrote it.
+// The two directions are separate code, so this is the case that ties them:
+// whatever put() produced, get() has to return the amount put() was given.
+TEST(MonetaryWchar, WhatPutWritesGetReadsBack)
+{
+    const std::vector<uint8_t> groupings[] = {{}, {3}, {1}, {3, 2}};
+    const std::wstring         amounts[]   = {L"0", L"1", L"12", L"123456", L"-1", L"-123456",
+                                              L"98765432109", L"-98765432109"};
 
-        {
-            iss = L"";
-            std::wstring result4;
-            try
+
+    for (int frac : {0, 2, 3})
+        for (const std::vector<uint8_t>& g : groupings)
+            for (bool showbase : {false, true})
             {
-                obj.get(iss.begin(), iss.end(), true, ios, result4);
-                dump_info("unreachable code");
-                std::abort();
+                const monetary<wchar_t> obj(tuned()->fraction(frac).groups(g).separator(L',')
+                                                .symbol(L"$").plus(L"").minus(L"-")
+                                                .both(kSymbolSignValue).ptr());
+                ios_base<wchar_t> ios;
+                if (showbase) ios.setf(ios_defs::showbase);
+
+                for (const std::wstring& amount : amounts)
+                {
+                    SCOPED_TRACE(trace_case(frac, g.size(), showbase, amount));
+                    ios_base<wchar_t> writer;
+                    if (showbase) writer.setf(ios_defs::showbase);
+                    const std::wstring field = put_str(obj, false, writer, amount);
+                    ASSERT_FALSE(field.empty());
+                    expect_parses(obj, false, ios, field, amount);
+                }
             }
-            catch (IOv2::stream_error&) {}
-            VERIFY(result4 == L"");
-        }
-    
-        {
-            iss = L"working for enlightenment and peace in a mad world";
-            std::wstring result5;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result5);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(result5 == L"");
-        }
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-    
-        {
-            iss = L"7.200.000.000,00 EUR ";
-            std::wstring result6;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result6);
-            VERIFY(result6 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = L"7.200.000.000,00 EUR  ";
-            std::wstring result7;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result7);
-            VERIFY(result7 == digits1);
-            VERIFY(it != iss.end());
-            VERIFY(*it == ' ');
-        }
-
-        {
-            iss = L"7.200.000.000,00 \x20ac";
-            std::wstring result8;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result8);
-            VERIFY(result8 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
 }
 
-void test_monetary_wchar_t_get_2()
+// Parsing ends at the first character the format has no place for, and what is
+// left is the caller's to read next.
+TEST(MonetaryWchar, ParsingStopsAtTheFirstForeignCharacter)
 {
-    dump_info("Test monetary<wchar_t>::get 2...");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        // total EPA budget FY 2002
-        const std::wstring digits1(L"720000000000");
-
-        // est. cost, national missile "defense", expressed as a loss in USD 2001
-        const std::wstring digits2(L"-10000000000000");  
-
-        // input less than frac_digits
-        const std::wstring digits4(L"-1");
-    
-        std::wstring iss;
-        
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        {
-            iss = L"HK$7,200,000,000.00";
-            std::wstring result9;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result9);
-            VERIFY(result9 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = L"(HKD 100,000,000,000.00)";
-            std::wstring result10;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result10);
-            VERIFY(result10 == digits2);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = L"(HKD .01)";
-            std::wstring result11;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result11);
-            VERIFY(result11 == digits4);
-            VERIFY(it == iss.end());
-        }
-        
-        // for the "en_HK.ISO8859-1" locale the parsing of the very same input streams must
-        // be successful without showbase too, since the symbol field appears in
-        // the first positions in the format and the symbol, when present, must be
-        // consumed.
-        ios.unsetf(IOv2::ios_defs::showbase);
-        {
-            iss = L"HK$7,200,000,000.00";
-            std::wstring result12;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result12);
-            VERIFY(result12 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = L"(HKD 100,000,000,000.00)";
-            std::wstring result13;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result13);
-            VERIFY(result13 == digits2);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = L"(HKD .01)";
-            std::wstring result14;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result14);
-            VERIFY(result14 == digits4);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    expect_parses(obj, false, ios, L"1 apple", L"1", L" apple");
+    expect_parses(obj, false, ios, L"123abc", L"123", L"abc");
 }
 
-void test_monetary_wchar_t_get_3()
+// With grouping switched off the separator is not part of an amount, so it ends
+// one rather than continuing it.
+TEST(MonetaryWchar, ASeparatorEndsTheAmountWhenThereIsNoGrouping)
 {
-    dump_info("Test monetary<wchar_t>::get 3...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-
-        std::wstring iss;
-        {
-            iss = L"7.200.000.000,00 ";
-            int64_t result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = L"7.200.000.000,00 ";
-            int64_t result2;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).groups({}).separator(L',')
+                                    .both(kSymbolSignValue).ptr());
+    expect_parses(obj, false, ios, L"123,456", L"123", L",456");
 }
 
-void test_monetary_wchar_t_get_4()
+// Likewise the decimal point, when the locale has no fractional digits to put
+// behind it.
+TEST(MonetaryWchar, ADecimalPointEndsTheAmountWhenThereIsNoFraction)
 {
-    dump_info("Test monetary<wchar_t>::get 4...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        // input less than frac_digits
-        const long double digits4 = -1.0;
-        std::wstring iss;
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        iss = L"(HKD .01)";
-        int64_t result3;
-        auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-        VERIFY(result3 == digits4);
-        VERIFY(it == iss.end());
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).point(L'.').both(kSymbolSignValue).ptr());
+    expect_parses(obj, false, ios, L"123.455", L"123", L".455");
 }
 
-void test_monetary_wchar_t_get_5()
+TEST(MonetaryWchar, AnEmptySequenceIsNotAnAmount)
 {
-    dump_info("Test monetary<wchar_t>::get 5...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        const std::wstring str = L"1Eleanor Roosevelt";
-        
-        {
-            // 01 string
-            std::wstring res1;
-            auto it = obj.get(str.begin(), str.end(), false, ios, res1);
-            VERIFY(it != str.end());
-            std::wstring rem1(it, str.end());
-            VERIFY(res1 == L"1");
-            VERIFY(rem1 == L"Eleanor Roosevelt");
-        }
-    
-        {
-            // 02 int64_t
-            int64_t res2;
-            auto it = obj.get(str.begin(), str.end(), false, ios, res2);
-            VERIFY(it != str.end());
-            std::wstring rem2(it, str.end());
-            VERIFY(res2 == 1);
-            VERIFY(rem2 == L"Eleanor Roosevelt");
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, L"");
 }
 
-void test_monetary_wchar_t_get_6()
+TEST(MonetaryWchar, TextThatIsNotAnAmountIsRejected)
 {
-    dump_info("Test monetary<wchar_t>::get 6...");
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_decimal_point(L'.');
-    tmp_io->set_grouping({4});
-    tmp_io->set_curr_symbol_nat(L"$");
-    tmp_io->set_positive_sign_nat(L"");
-    tmp_io->set_negative_sign_nat(L"-");
-    tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-
-    IOv2::monetary<wchar_t> obj(tmp_io);
-    
-    std::wstring bufferp(L"$1234.56");
-    std::wstring buffern(L"$-1234.56");
-    std::wstring bufferp_ns(L"1234.56");
-    std::wstring buffern_ns(L"-1234.56");
-    
-    {
-        std::wstring valp;
-        obj.get(bufferp.begin(), bufferp.end(), false, ios, valp);
-        VERIFY(valp == L"123456");
-    }
-    {
-        std::wstring valn;
-        obj.get(buffern.begin(), buffern.end(), false, ios, valn);
-        VERIFY(valn == L"-123456");
-    }
-    {
-        std::wstring valp_ns;
-        obj.get(bufferp_ns.begin(), bufferp_ns.end(), false, ios, valp_ns);
-        VERIFY(valp_ns == L"123456");
-    }
-    {
-        std::wstring valn_ns;
-        obj.get(buffern_ns.begin(), buffern_ns.end(), false, ios, valn_ns);
-        VERIFY(valn_ns == L"-123456");
-    }
-  
-    dump_info("Done\n");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, L"nothing numeric");
+    expect_rejects(obj, false, ios, L"a sentence with no amount anywhere in it");
 }
 
-void test_monetary_wchar_t_get_7()
+// A fraction is all or nothing: exactly frac_digits places, or the field is not
+// an amount in this locale.
+TEST(MonetaryWchar, TheFractionMustHaveExactlyFracDigitsPlaces)
 {
-    dump_info("Test monetary<wchar_t>::get 7...");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(3).point(L'.').both(kSymbolSignValue).ptr());
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
+    expect_parses(obj, false, ios, L"12.345", L"12345");
+    expect_rejects(obj, false, ios, L"12.3456");
+    expect_rejects(obj, false, ios, L"12.34");
+    expect_rejects(obj, false, ios, L"12.");
 
-        std::wstring buffer1(L"123");
-        std::wstring buffer2(L"456");
-        std::wstring buffer3(L"Golgafrincham"); // From Nathan's original idea.
-
-        std::wstring val;
-
-        {
-            obj.get(buffer1.begin(), buffer1.end(), false, ios, val);
-            VERIFY(val == buffer1);
-        }
-        {
-            obj.get(buffer2.begin(), buffer2.end(), false, ios, val);
-            VERIFY(val == buffer2);
-        }
-        {
-            val = buffer3;
-            try
-            {
-                obj.get(buffer3.begin(), buffer3.end(), false, ios, val);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(val == buffer3);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
+    // No decimal point at all is not a short fraction: it is an amount with none.
+    expect_parses(obj, false, ios, L"12", L"12");
 }
 
-void test_monetary_wchar_t_get_8()
+TEST(MonetaryWchar, ASecondDecimalPointIsNotPartOfTheAmount)
 {
-    dump_info("Test monetary<wchar_t>::get 8...");
-    
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_decimal_point(L'.');
-    tmp_io_a->set_grouping({4});
-    tmp_io_a->set_curr_symbol_nat(L"$");
-    tmp_io_a->set_positive_sign_nat(L"()");
-    tmp_io_a->set_frac_digits_nat(2);
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_decimal_point(L'.');
-    tmp_io_b->set_grouping({4});
-    tmp_io_b->set_curr_symbol_nat(L"$");
-    tmp_io_b->set_positive_sign_nat(L"()");
-    tmp_io_b->set_frac_digits_nat(2);
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-                                
-    IOv2::monetary<wchar_t> obj_a(tmp_io_a);
-    IOv2::monetary<wchar_t> obj_b(tmp_io_b);
-    
-    std::wstring buffer_a(L"(1234.56 $)");
-    std::wstring buffer_a_ns(L"(1234.56 )");
-
-    std::wstring val_a, val_a_ns;
-    {
-        obj_a.get(buffer_a.begin(), buffer_a.end(), false, ios, val_a);
-        VERIFY(val_a == L"123456");
-    }
-    {
-        obj_a.get(buffer_a_ns.begin(), buffer_a_ns.end(), false, ios, val_a_ns);
-        VERIFY(val_a_ns == L"123456");
-    }
-
-    std::wstring buffer_b(L"(1234.56$)");
-    std::wstring buffer_b_ns(L"(1234.56)");
-
-    std::wstring val_b, val_b_ns;
-    {
-        obj_b.get(buffer_b.begin(), buffer_b.end(), false, ios, val_b);
-        VERIFY(val_b == L"123456");
-    }
-    {
-        obj_b.get(buffer_b_ns.begin(), buffer_b_ns.end(), false, ios, val_b_ns);
-        VERIFY(val_b_ns == L"123456");
-    }
-
-    dump_info("Done\n");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(2).point(L'.').both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, L"30..0");
 }
 
-void test_monetary_wchar_t_get_9()
+// The separators have to fall where this locale's grouping puts them.  A field
+// grouped some other way is a field from some other locale.
+TEST(MonetaryWchar, TheSeparatorsMustFollowTheGrouping)
 {
-    dump_info("Test monetary<wchar_t>::get 9...");
-    
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto dublin = std::make_shared<MoneyIO>("C");
-    dublin->set_frac_digits_nat(3);
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).groups({1}).separator(L'#')
+                                    .both(kSymbolSignValue).ptr());
 
-    IOv2::monetary<wchar_t> obj(dublin);
-    std::wstring liffey;
-    std::wstring coins;
-
-    {
-        // Feed it 1 digit too many, which should fail.
-        liffey = L"12.3456";
-        try
-        {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it exactly what it wants, which should succeed.
-        liffey = L"12.345";
-        obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-    }
-    {
-        // Feed it 1 digit too few, which should fail.
-        liffey = L"12.34";
-        try
-        {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it only a decimal-point, which should fail.
-        liffey = L"12.";
-        try
-        {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it no decimal-point at all, which should succeed.
-        liffey = L"12";
-        obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-    }
-    dump_info("Done\n");
+    expect_parses(obj, false, ios, L"1#2#3", L"123");
+    expect_rejects(obj, false, ios, L"00#0#1");
+    expect_rejects(obj, false, ios, L"000##1");
 }
 
-void test_monetary_wchar_t_get_10()
+// A locale that spells a positive sign but no negative one leaves the absence of
+// a sign to mean negative, which is what [locale.money.get] asks for.
+TEST(MonetaryWchar, NoSignMeansNegativeWhenOnlyThePositiveSignIsSpelled)
 {
-    dump_info("Test monetary<wchar_t>::get 10...");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).plus(L"+").minus(L"")
+                                    .both(kSymbolSignValue).ptr());
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-        std::wstring iss;
-        std::wstring extracted_amount;
-        {
-            iss = L"-$0 ";
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-            VERIFY(it != iss.end());
-            VERIFY(*it == ' ');
-            VERIFY(extracted_amount == L"0");
-            
-        }
-        {
-            extracted_amount.clear();
-            iss = L"-$ ";
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(extracted_amount.empty());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("en_US.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    expect_parses(obj, false, ios, L"69", L"-69");
+    expect_parses(obj, false, ios, L"+69", L"69");
 }
 
-void test_monetary_wchar_t_get_11()
+TEST(MonetaryWchar, ASignInTheLastSlotIsStillFound)
 {
-    dump_info("Test monetary<wchar_t>::get 11...");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).plus(L"+").minus(L"-")
+                                    .both({part::value, part::space, part::symbol, part::sign}).ptr());
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        // A _very_ big amount.
-        std::wstring str = L"1";
-        for (int i = 0; i < 2 * std::numeric_limits<int64_t>::digits10; ++i)
-            str += L".000";
-        str += L",00 ";
-
-        try
-        {
-            int64_t result1;
-            obj.get(str.begin(), str.end(), true, ios, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    expect_parses(obj, false, ios, L"123 +", L"123");
+    expect_parses(obj, false, ios, L"123 -", L"-123");
 }
 
-void test_monetary_wchar_t_get_12()
+// With showbase the symbol is part of the field and has to be there.  Without
+// it the symbol is optional -- but a symbol that is present is still consumed,
+// or the parse would stop in the middle of a field it could read.
+TEST(MonetaryWchar, ShowbaseDecidesWhetherTheSymbolIsRequired)
 {
-    dump_info("Test monetary<wchar_t>::get 12...");
+    const monetary<wchar_t> obj(tuned()->fraction(0).symbol(L"$").minus(L"-")
+                                    .both(kSymbolSignValue).ptr());
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
+    ios_base<wchar_t> required;
+    required.setf(ios_defs::showbase);
+    expect_parses(obj, false, required, L"$123", L"123");
+    expect_rejects(obj, false, required, L"123");
 
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-        
-        std::wstring iss;
-        
-        {
-            iss = L"7200000000,00 ";
-            int64_t result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = L"7200000000,00 ";
-            int64_t result2;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    ios_base<wchar_t> optional;
+    expect_parses(obj, false, optional, L"$123", L"123");
+    expect_parses(obj, false, optional, L"123", L"123");
 }
 
-void test_monetary_wchar_t_get_13()
+// A field with a symbol and no digits is not an amount, whichever way round the
+// symbol is required.
+TEST(MonetaryWchar, ASymbolWithoutDigitsIsNotAnAmount)
 {
-    dump_info("Test monetary<wchar_t>::get 13...");
+    const monetary<wchar_t> obj(tuned()->fraction(0).symbol(L"$").minus(L"-")
+                                    .both(kSymbolSignValue).ptr());
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        std::wstring iss;
-        {
-            iss = L"500,1.0 ";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = L"500,1.0 ";
-            int64_t result2;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    ios_base<wchar_t> ios;
+    ios.setf(ios_defs::showbase);
+    expect_rejects(obj, false, ios, L"$");
+    expect_rejects(obj, false, ios, L"$-");
 }
 
-void test_monetary_wchar_t_get_14()
+// The fraction alone is an amount: the integral part may be empty as long as the
+// places behind the point are all there.
+TEST(MonetaryWchar, AnAmountMayBeAllFraction)
 {
-    dump_info("Test monetary<wchar_t>::get 14...");
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_positive_sign_nat(L"+");
-    tmp_io->set_negative_sign_nat(L"");
-    
-    IOv2::monetary<wchar_t> obj(tmp_io);
+    const monetary<wchar_t> obj(tuned()->fraction(2).point(L'.').symbol(L"$").minus(L"-")
+                                    .both(kSymbolSignValue).ptr());
 
-    std::wstring buffer(L"69");
-    std::wstring val;
-    
-    obj.get(buffer.begin(), buffer.end(), false, ios, val);
-    VERIFY(val == L"-69");
-
-    dump_info("Done\n");
+    ios_base<wchar_t> ios;
+    expect_parses(obj, false, ios, L"$.00 ", L"0", L" ");
+    expect_parses(obj, false, ios, L"$-.01 ", L"-1", L" ");
 }
 
-void test_monetary_wchar_t_get_15()
+TEST(MonetaryWchar, AnAmountTooLargeForTheTargetTypeIsRejected)
 {
-    dump_info("Test monetary<wchar_t>::get 15...");
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).groups({}).both(kSymbolSignValue).ptr());
+    const std::wstring      huge(40, L'9');
 
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        std::wstring iss;
-        {
-            iss = L".100";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = L"30..0";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_16()
-{
-    dump_info("Test monetary<wchar_t>::get 16...");
-    IOv2::ios_base<wchar_t> ios1, ios2;
-    
-    IOv2::monetary obj_de(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    IOv2::monetary obj_hk(std::make_shared<IOv2::monetary_conf<wchar_t>>("en_HK.UTF-8"));
-
-    {
-        ios1.setf(IOv2::ios_defs::showbase);
-        std::wstring iss01 = L"EUR ";
-        int64_t result1;
-        try
-        {
-            obj_de.get(iss01.begin(), iss01.end(), true, ios1, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        std::wstring iss02 = L"(HKD )";
-        int64_t result2;
-        try
-        {
-            obj_hk.get(iss02.begin(), iss02.end(), true, ios2, result2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_17()
-{
-    dump_info("Test monetary<wchar_t>::get 17...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        std::wstring iss;
-        {
-            iss = L"7.200.000.000,00";
-            std::wstring result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        
-        // now try with showbase, to get currency symbol in format
-        {
-            ios.setf(IOv2::ios_defs::showbase);
-            iss = L"7.200.000.000,00EUR ";
-            std::wstring result2;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_18()
-{
-    dump_info("Test monetary<wchar_t>::get 18...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        std::wstring iss;
-        {
-            iss = L"HK7,200,000,000.00";
-            std::wstring result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = L"(HK100,000,000,000.00)";
-            std::wstring result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_19()
-{
-    dump_info("Test monetary<wchar_t>::get 19...");
-    
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_curr_symbol_nat(L"$");
-    tmp_io_a->set_positive_sign_nat(L"");
-    tmp_io_a->set_negative_sign_nat(L"");
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_curr_symbol_nat(L"%");
-    tmp_io_b->set_positive_sign_nat(L"");
-    tmp_io_b->set_negative_sign_nat(L"-");
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-
-    auto tmp_io_c = std::make_shared<MoneyIO>("C");
-    tmp_io_c->set_curr_symbol_nat(L"&");
-    tmp_io_c->set_positive_sign_nat(L"");
-    tmp_io_c->set_negative_sign_nat(L"");
-    tmp_io_c->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-                                
-    IOv2::monetary<wchar_t> obj_a(tmp_io_a);
-    IOv2::monetary<wchar_t> obj_b(tmp_io_b);
-    IOv2::monetary<wchar_t> obj_c(tmp_io_c);
-    
-    {
-        std::wstring iss_01 = L"10$";
-        std::wstring result01;
-        auto it = obj_a.get(iss_01.begin(), iss_01.end(), false, ios, result01);
-        VERIFY(it != iss_01.end());
-        VERIFY(*it == '$');
-    }
-    {
-        std::wstring iss_02 = L"50%";
-        std::wstring result02;
-        auto it = obj_a.get(iss_02.begin(), iss_02.end(), false, ios, result02);
-        VERIFY(it != iss_02.end());
-        VERIFY(*it == '%');
-    }
-    {
-        std::wstring iss_03 = L"7 &";
-        std::wstring result03;
-        auto it = obj_a.get(iss_03.begin(), iss_03.end(), false, ios, result03);
-        VERIFY(it != iss_03.end());
-        VERIFY(*it == '&');
-    }
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_20()
-{
-    dump_info("Test monetary<wchar_t>::get 20...");
-
-    auto helper = [](const IOv2::monetary<wchar_t>& obj)
-    {
-        IOv2::ios_base<wchar_t> ios;
-
-        std::wstring iss = L"$.00 ";
-        std::wstring extracted_amount;
-        auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-        VERIFY(it != iss.end());
-        VERIFY(*it == ' ');
-        VERIFY(extracted_amount == L"0");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<wchar_t>>("en_US.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_21()
-{
-    dump_info("Test monetary<wchar_t>::get 21...");
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({1});
-    tmp_io->set_thousands_sep(L'#');
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-                                  
-    IOv2::monetary<wchar_t> obj(tmp_io);
-    std::wstring buffer1(L"00#0#1");
-    std::wstring buffer2(L"000##1");
-    // Strong exception guarantee: a failed parse must leave the caller's
-    // output argument untouched, so pre-seed a sentinel and verify it survives.
-    std::wstring val1(L"sentinel"), val2(L"sentinel");
-
-    {
-        try
-        {
-            obj.get(buffer1.begin(), buffer1.end(), false, ios, val1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val1 == L"sentinel");
-    }
-    {
-        try
-        {
-            obj.get(buffer2.begin(), buffer2.end(), false, ios, val2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val2 == L"sentinel");
-    }
-
-    dump_info("Done\n");
-}
-
-void test_monetary_wchar_t_get_22()
-{
-    dump_info("Test monetary<wchar_t>::get 22...");
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_frac_digits_nat(0);
-    IOv2::monetary<wchar_t> obj(tmp_io);
-    
-    std::wstring ss = L"123.455";
+    int64_t      units = 0;
     std::wstring digits;
-    
-    auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
-    std::wstring rest = std::wstring(it, ss.end());
-    VERIFY(digits == L"123");
-    VERIFY(rest == L".455");
-  
-    dump_info("Done\n");
+    EXPECT_THROW((void)obj.get(huge.begin(), huge.end(), false, ios, units), stream_error);
+
+    // The same field is a perfectly good digit string, though: it is only the
+    // conversion to a fixed-width integer that cannot hold it.
+    EXPECT_NO_THROW((void)obj.get(huge.begin(), huge.end(), false, ios, digits));
+    EXPECT_EQ(digits, huge);
 }
 
-void test_monetary_wchar_t_get_23()
+TEST(MonetaryWchar, GettingAnIntegralValueAgreesWithGettingTheDigits)
 {
-    dump_info("Test monetary<wchar_t>::get 23...");
-    IOv2::ios_base<wchar_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({});
-    IOv2::monetary<wchar_t> obj(tmp_io);
-    
-    std::wstring ss = L"123,456";
-    std::wstring digits;
-    
-    auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
-    VERIFY(it != ss.end());
-    VERIFY(digits == L"123");
-    VERIFY(*it == L',');
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(2).groups({3}).separator(L',')
+                                    .both(kSymbolSignValue).ptr());
 
-    dump_info("Done\n");
+    for (const wchar_t* field : {L"1,234.56", L"-1,234.56", L".01", L"-.01", L"0.00"})
+    {
+        SCOPED_TRACE(::testing::PrintToString(field));
+        const std::wstring input(field);
+
+        std::wstring digits;
+        obj.get(input.begin(), input.end(), false, ios, digits);
+
+        int64_t units = 0;
+        obj.get(input.begin(), input.end(), false, ios, units);
+
+        EXPECT_EQ(to_digits(units), digits);
+    }
+}
+
+// put() writes through an output iterator, so an iterator that reaches a stream
+// rather than a container has to work as the destination too.
+TEST(MonetaryWchar, PutWritesThroughAnOutputIteratorOntoAStream)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(2).groups({3}).separator(L',')
+                                    .both(kSymbolSignValue).ptr());
+
+    streambuf sb{mem_device<wchar_t>{L""}};
+    obj.put(ostreambuf_iterator(sb), false, ios, std::wstring(L"123456"));
+    sb.flush();
+    EXPECT_EQ(sb.device().str(), L"1,234.56");
+}
+
+// The same fill vetting as on the writing side, but from the reader's end: a run
+// of fill in front of the digits is consumed as padding, and the facet refuses
+// the ones a reader would have counted as part of the amount instead.
+TEST(MonetaryWchar, AFillThatWouldChangeTheAmountIsRejectedOnTheWayBackIn)
+{
+    const monetary<wchar_t> obj = facet_for("C");
+
+    auto get = [&obj](char fill, const std::wstring& input, std::wstring& digits)
+    {
+        ios_base<wchar_t> ios;
+        ios.fill(fill);
+        digits.clear();
+        try
+        {
+            obj.get(input.begin(), input.end(), false, ios, digits);
+        }
+        catch (const stream_error&)
+        {
+            return false;
+        }
+        return true;
+    };
+
+    std::wstring digits;
+
+    // "112345" reads as 112345, never as 12345 with a '1' of padding in front.
+    EXPECT_FALSE(get(L'1', L"112345", digits));
+    EXPECT_FALSE(get(L'9', L"912345", digits));
+
+    // A leading zero is the one digit that reads the same either way.
+    EXPECT_TRUE(get(L'0', L"0000012345", digits));
+    EXPECT_EQ(digits, L"12345");
+
+    // With the sign consumed first, a '-' run behind it cannot be read as a
+    // second sign.
+    EXPECT_TRUE(get(L'-', L"-------12345", digits));
+    EXPECT_EQ(digits, L"-12345");
+
+    // Fill that cannot be read into an amount is consumed as it always was.
+    EXPECT_TRUE(get(L'*', L"*****12345", digits));
+    EXPECT_EQ(digits, L"12345");
+    EXPECT_TRUE(get(L' ', L"     12345", digits));
+    EXPECT_EQ(digits, L"12345");
+
+    // Nothing consumed means nothing to vet, whatever the stream's fill is: this
+    // input does not start with a '9', so the run stops immediately.
+    EXPECT_TRUE(get(L'9', L"12345", digits));
+    EXPECT_EQ(digits, L"12345");
+}
+
+// A `space` slot owes at least one character, so a field that put() wrote with
+// one has to be read with one.  A `none` slot owes nothing, and a field written
+// from a pattern that ends in one has no space to find.
+TEST(MonetaryWchar, ASpaceSlotIsRequiredAndANoneSlotIsNot)
+{
+    const pattern with_space = {part::sign, part::value, part::space, part::symbol};
+    const pattern with_none  = {part::sign, part::value, part::symbol, part::none};
+
+    ios_base<wchar_t> ios;
+
+    const monetary<wchar_t> spaced(tuned()->fraction(2).point(L'.').groups({4}).separator(L',')
+                                       .symbol(L"$").plus(L"()").both(with_space).ptr());
+    expect_parses(spaced, false, ios, L"(9876.05 $)", L"987605");
+    expect_parses(spaced, false, ios, L"(9876.05 )", L"987605");
+
+    const monetary<wchar_t> unspaced(tuned()->fraction(2).point(L'.').groups({4}).separator(L',')
+                                         .symbol(L"$").plus(L"()").both(with_none).ptr());
+    expect_parses(unspaced, false, ios, L"(9876.05$)", L"987605");
+    expect_parses(unspaced, false, ios, L"(9876.05)", L"987605");
+
+    // The character a `space` slot owes is the stream's fill, so a field written
+    // with the default fill and read back under another one is missing it.
+    ios_base<wchar_t> other_fill;
+    other_fill.fill(L'*');
+    expect_rejects(spaced, false, other_fill, L"(9876.05 $)");
+}
+
+// Without showbase the symbol is optional, and a symbol the parse cannot place
+// is simply not part of the field: it is left for whoever reads next.
+TEST(MonetaryWchar, AnUnplaceableSymbolEndsTheField)
+{
+    ios_base<wchar_t> ios;
+    const pattern     trailing = {part::value, part::symbol, part::none, part::sign};
+
+    for (const wchar_t* symbol : {L"$", L"%", L"&"})
+    {
+        SCOPED_TRACE(::testing::PrintToString(symbol));
+        const monetary<wchar_t> obj(tuned()->fraction(0).symbol(symbol).plus(L"").minus(L"")
+                                        .both(trailing).ptr());
+        expect_parses(obj, false, ios, std::wstring(L"10") + symbol, L"10", symbol);
+    }
+}
+
+// A locale whose sign position is 0 wraps a negative amount in parentheses
+// rather than spelling a sign, so the facet has to supply "()" where lconv has
+// only the sign string it would otherwise use.
+TEST(MonetaryWchar, ASignPositionOfZeroMeansParentheses)
+{
+    const monetary<wchar_t> obj = facet_for("en_HK.UTF-8");
+    EXPECT_EQ(obj.negative_sign_nat(), L"()");
+    EXPECT_EQ(obj.negative_sign_int(), L"()");
+
+    ios_base<wchar_t>  ios;
+    const std::wstring field = put_str(obj, false, ios, L"-123456");
+    EXPECT_EQ(field.front(), L'(');
+    EXPECT_EQ(field.back(), L')');
+    expect_parses(obj, false, ios, field, L"-123456");
+}
+
+// A `space` slot writes the stream's fill character, not a literal space, and
+// leading padding then shifts everything already written -- that run included.
+// A forgotten shift would leave the run recorded at the wrong offset, which is
+// what the fill check downstream reads.
+TEST(MonetaryWchar, PaddingInFrontShiftsTheFillAlreadyWritten)
+{
+    const monetary<wchar_t> obj(tuned()->fraction(0).symbol(L"$").minus(L"-")
+                                    .negative({part::symbol, part::space, part::sign, part::value})
+                                    .ptr());
+    ios_base<wchar_t> ios;
+    ios.setf(ios_defs::showbase);
+    ios.fill(L'*');
+    ios.width(10);
+    EXPECT_EQ(put_str(obj, false, ios, L"-12"), L"*****$*-12");
+
+    // With a fill that reads as a space the same field is legible, and the
+    // single character the slot owes is still there when nothing is padded.
+    ios_base<wchar_t> plain;
+    plain.setf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, plain, L"-12"), L"$ -12");
+}
+
+// The sign is required when the pattern makes its absence unreadable -- it opens
+// the field, or a space follows where the sign would have been.  A field that
+// then arrives without one is not an amount.
+TEST(MonetaryWchar, APatternCanMakeTheSignMandatory)
+{
+    ios_base<wchar_t> ios;
+
+    const monetary<wchar_t> leading(tuned()->fraction(0).symbol(L"$").plus(L"+").minus(L"-")
+                                        .both({part::sign, part::symbol, part::value, part::none})
+                                        .ptr());
+    expect_parses(leading, false, ios, L"+$12", L"12");
+    expect_parses(leading, false, ios, L"-$12", L"-12");
+    expect_rejects(leading, false, ios, L"$12");
+
+    const monetary<wchar_t> spaced(tuned()->fraction(0).symbol(L"$").plus(L"+").minus(L"-")
+                                       .both({part::symbol, part::sign, part::space, part::value})
+                                       .ptr());
+    expect_parses(spaced, false, ios, L"$+ 12", L"12");
+    expect_rejects(spaced, false, ios, L"$ 12");
+}
+
+// Only the sign's first character sits in the sign slot; the rest trails the
+// field.  A field that starts one and does not finish it is not an amount.
+TEST(MonetaryWchar, AnUnfinishedMultiCharacterSignIsRejected)
+{
+    ios_base<wchar_t>       ios;
+    const monetary<wchar_t> obj(tuned()->fraction(0).minus(L"-->").plus(L"")
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, L"-12->", L"-12");
+    expect_rejects(obj, false, ios, L"-12-");
+    expect_rejects(obj, false, ios, L"-12");
+}
+
+// Everything above works in the national form.  The international one is a
+// separate set of punctuation reached by a separate branch at every entry
+// point, so the round trip is run through it too.
+TEST(MonetaryWchar, TheInternationalFormRoundTripsAsWell)
+{
+    const monetary<wchar_t> obj(tuned()->fraction(2).groups({3}).separator(L',')
+                                    .symbol(L"$").plus(L"").minus(L"-")
+                                    .both(kSymbolSignValue).ptr());
+
+    const std::wstring amounts[] = {L"0", L"123456", L"-123456", L"-1"};
+
+    for (bool intl : {false, true})
+        for (const std::wstring& amount : amounts)
+        {
+            SCOPED_TRACE(trace_case(0, 0, intl, amount));
+            ios_base<wchar_t>    writer;
+            const std::wstring field = put_str(obj, intl, writer, amount);
+            ASSERT_FALSE(field.empty());
+
+            ios_base<wchar_t> reader;
+            expect_parses(obj, intl, reader, field, amount);
+
+            // And the same field read straight into an integer.
+            int64_t units = 0;
+            obj.get(field.begin(), field.end(), intl, reader, units);
+            EXPECT_EQ(to_digits(units), amount);
+        }
+}
+
+// A `space` slot takes the whole internal spread when there is one, rather than
+// the single character it owes when there is not.
+TEST(MonetaryWchar, InternalPaddingFillsTheSpaceSlot)
+{
+    const monetary<wchar_t> obj(tuned()->fraction(0).symbol(L"$").minus(L"-")
+                                    .negative({part::symbol, part::space, part::sign, part::value})
+                                    .ptr());
+    ios_base<wchar_t> ios;
+    ios.setf(ios_defs::showbase);
+    ios.setf(ios_defs::internal, ios_defs::adjustfield);
+    ios.fill(L'*');
+    ios.width(9);
+    EXPECT_EQ(put_str(obj, false, ios, L"-12"), L"$*****-12");
+}
+
+// A field that starts the symbol and does not finish it has not written the
+// symbol, so with showbase set there is nothing for the required slot to match.
+TEST(MonetaryWchar, APartiallyMatchedSymbolIsNotTheSymbol)
+{
+    const monetary<wchar_t> obj(tuned()->fraction(0).symbol(L"USD").plus(L"").minus(L"-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<wchar_t> required;
+    required.setf(ios_defs::showbase);
+    expect_parses(obj, false, required, L"USD12", L"12");
+    expect_rejects(obj, false, required, L"US12");
+
+    // Without showbase the half-written symbol is simply not part of the field.
+    ios_base<wchar_t> optional;
+    expect_rejects(obj, false, optional, L"US12");
+}
+
+// Leading zeros are stripped from the digits, and the sign has to be put back in
+// front of what is left rather than in front of what was parsed.
+TEST(MonetaryWchar, ANegativeAmountKeepsItsSignAfterLeadingZerosAreStripped)
+{
+    const monetary<wchar_t> obj(tuned()->fraction(2).point(L'.').plus(L"").minus(L"-")
+                                    .both(kSymbolSignValue).ptr());
+    ios_base<wchar_t> ios;
+
+    expect_parses(obj, false, ios, L"-0.01", L"-1");
+    expect_parses(obj, false, ios, L"-000.10", L"-10");
+    expect_parses(obj, false, ios, L"-0.00", L"0");
+    expect_parses(obj, false, ios, L"0.00", L"0");
+}
+
+// A field with no digits at all cannot become an integer either, and the target
+// is left as the caller had it.
+TEST(MonetaryWchar, AFieldWithNoDigitsIsNotAnInteger)
+{
+    const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    ios_base<wchar_t>       ios;
+
+    const std::wstring input = L"no digits here";
+    int64_t            units = 4242;
+    EXPECT_THROW((void)obj.get(input.begin(), input.end(), false, ios, units), stream_error);
+    EXPECT_EQ(units, 4242);
 }

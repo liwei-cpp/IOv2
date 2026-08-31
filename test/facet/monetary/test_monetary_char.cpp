@@ -1,2625 +1,890 @@
-#include <sstream>
+/**
+ * IOv2::monetary<char>: assembling and reading back a currency field.
+ *
+ * The algorithm is the one documented on monetary.h's insert() and extract().
+ * A field is four slots in the order the locale's pattern gives -- symbol, sign,
+ * value, and a space or nothing -- filled from that locale's punctuation; the
+ * amount is a run of digits cut frac_digits places from its right-hand end, with
+ * the integral part grouped by thousands_sep.  Reading is the same walk in
+ * reverse, and the two have to agree.
+ *
+ * Almost every case below drives that algorithm through a configuration it sets
+ * itself rather than through an installed locale.  A pattern is a pattern
+ * whoever asked for it, and stating the format in the test is what makes the
+ * expected string readable -- and what keeps the case from failing the next time
+ * glibc revises what de_DE's currency looks like.
+ *
+ * get() is written against a sentinel so it can read a stream it cannot back up
+ * in.  Every parse here is therefore run twice, once over a string's iterators
+ * and once over an istreambuf_iterator, and the two are required to agree on
+ * both the digits and where they stopped.
+ */
 #include <facet/monetary.h>
+#include <facet/monetary_details.h>
+
+#include <common/defs.h>
+#include <device/mem_device.h>
+#include <io/io_base.h>
+#include <io/streambuf.h>
 #include <io/streambuf_iterator.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+
+using namespace IOv2;
 
 namespace
 {
-    class MoneyIO : public IOv2::monetary_conf<char>
+    using part    = base_ft<monetary>::part;
+    using pattern = base_ft<monetary>::pattern;
+
+    // A configuration whose every answer can be set.  What a format case is
+    // about is the format, so it states one here instead of borrowing whichever
+    // one a locale happens to carry this year.
+    class tunable_conf : public monetary_conf<char>,
+                         public std::enable_shared_from_this<tunable_conf>
     {
     public:
-        MoneyIO(const std::string& n)
-            : IOv2::monetary_conf<char>(n)
-            , m_decimal_point(IOv2::monetary_conf<char>::decimal_point())
-            , m_thousands_sep(IOv2::monetary_conf<char>::thousands_sep())
-            , m_grouping(IOv2::monetary_conf<char>::grouping())
-            , m_negative_sign_nat(IOv2::monetary_conf<char>::negative_sign_nat())
-            , m_frac_digits_nat(IOv2::monetary_conf<char>::frac_digits_nat())
-            , m_neg_format_nat(IOv2::monetary_conf<char>::neg_format_nat())
-            , m_curr_sym_nat(IOv2::monetary_conf<char>::curr_symbol_nat())
-            , m_pos_sign_nat(IOv2::monetary_conf<char>::positive_sign_nat())
+        explicit tunable_conf(const std::string& name = "C")
+            : monetary_conf<char>(name)
+            , m_decimal_point(monetary_conf<char>::decimal_point())
+            , m_thousands_sep(monetary_conf<char>::thousands_sep())
+            , m_grouping(monetary_conf<char>::grouping())
+            , m_curr_symbol(monetary_conf<char>::curr_symbol_nat())
+            , m_positive_sign(monetary_conf<char>::positive_sign_nat())
+            , m_negative_sign(monetary_conf<char>::negative_sign_nat())
+            , m_frac_digits(monetary_conf<char>::frac_digits_nat())
+            , m_pos_format(monetary_conf<char>::pos_format_nat())
+            , m_neg_format(monetary_conf<char>::neg_format_nat())
         {}
-        
-        virtual char decimal_point() const override { return m_decimal_point; }
-        void set_decimal_point(char ch) { m_decimal_point = ch; }
-        
-        virtual char thousands_sep() const override { return m_thousands_sep; }
-        void set_thousands_sep(char ch) { m_thousands_sep = ch; }
 
-        virtual const std::vector<uint8_t>& grouping() const override { return m_grouping; }
-        void set_grouping(const std::vector<uint8_t>& g) { m_grouping = g; }
+        char decimal_point() const override { return m_decimal_point; }
+        char thousands_sep() const override { return m_thousands_sep; }
+        const std::vector<uint8_t>& grouping() const override { return m_grouping; }
+        const std::string& curr_symbol_nat() const override { return m_curr_symbol; }
+        const std::string& positive_sign_nat() const override { return m_positive_sign; }
+        const std::string& negative_sign_nat() const override { return m_negative_sign; }
+        int frac_digits_nat() const override { return m_frac_digits; }
+        const pattern& pos_format_nat() const override { return m_pos_format; }
+        const pattern& neg_format_nat() const override { return m_neg_format; }
 
-        virtual const std::string& negative_sign_nat() const override { return m_negative_sign_nat; }
-        void set_negative_sign_nat(const std::string& i) { m_negative_sign_nat = i; }
+        tunable_conf& point(char c)                       { m_decimal_point = c; return *this; }
+        tunable_conf& separator(char c)                   { m_thousands_sep = c; return *this; }
+        tunable_conf& groups(std::vector<uint8_t> g)      { m_grouping = std::move(g); return *this; }
+        tunable_conf& symbol(std::string s)               { m_curr_symbol = std::move(s); return *this; }
+        tunable_conf& plus(std::string s)                 { m_positive_sign = std::move(s); return *this; }
+        tunable_conf& minus(std::string s)                { m_negative_sign = std::move(s); return *this; }
+        tunable_conf& fraction(int n)                     { m_frac_digits = n; return *this; }
+        tunable_conf& positive(pattern p)                 { m_pos_format = p; return *this; }
+        tunable_conf& negative(pattern p)                 { m_neg_format = p; return *this; }
+        tunable_conf& both(pattern p)                     { return positive(p).negative(p); }
 
-        virtual int frac_digits_nat() const override { return m_frac_digits_nat; }
-        void set_frac_digits_nat(int v) { m_frac_digits_nat = v; }
-        
-        virtual const IOv2::base_ft<IOv2::monetary>::pattern& neg_format_nat() const override { return m_neg_format_nat; }
-        void set_neg_format_nat(const IOv2::base_ft<IOv2::monetary>::pattern& p) { m_neg_format_nat = p; }
-        
-        virtual const std::string& curr_symbol_nat() const override { return m_curr_sym_nat; }
-        void set_curr_symbol_nat(const std::string& s) { m_curr_sym_nat = s; }
+        // Ends a chain: the facet's constructor takes the configuration by
+        // shared pointer, and the chain has been handing back references.
+        std::shared_ptr<tunable_conf> ptr()               { return shared_from_this(); }
 
-        virtual const std::basic_string<char>& positive_sign_nat() const override { return m_pos_sign_nat; }
-        void set_positive_sign_nat(const std::string& s) { m_pos_sign_nat = s; }
-        
     private:
-        char m_decimal_point;
-        char m_thousands_sep;
+        char                 m_decimal_point;
+        char                 m_thousands_sep;
         std::vector<uint8_t> m_grouping;
-        std::string m_negative_sign_nat;
-        int m_frac_digits_nat;
-        IOv2::base_ft<IOv2::monetary>::pattern m_neg_format_nat;
-        std::string m_curr_sym_nat;
-        std::string m_pos_sign_nat;
-    };
-}
-
-void test_monetary_char_common_1()
-{
-    dump_info("Test monetary<char> common 1...");
-    static_assert(std::is_same_v<IOv2::monetary<char>::char_type, char>);
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    VERIFY(obj.decimal_point() == '.');
-    VERIFY(obj.thousands_sep() == ',');
-    VERIFY(obj.grouping().empty());
-    VERIFY(obj.curr_symbol_nat().empty());
-    VERIFY(obj.curr_symbol_int().empty());
-    VERIFY(obj.positive_sign_nat().empty());
-    VERIFY(obj.positive_sign_int().empty());
-    VERIFY(!(obj.negative_sign_nat().empty()));
-    VERIFY(!(obj.negative_sign_int().empty()));
-    VERIFY(obj.frac_digits_int() == 0);
-    VERIFY(obj.frac_digits_nat() == 0);
-    VERIFY(obj.pos_format_int() == obj.pos_format_nat());
-    VERIFY(obj.neg_format_int() == obj.neg_format_nat());
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_common_2()
-{
-    dump_info("Test monetary<char> common 2...");
-    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    IOv2::monetary obj_de(std::make_shared<IOv2::monetary_conf<char>>("de_DE.ISO-8859-1"));
-    
-    VERIFY(obj_c.decimal_point() != char());
-    VERIFY(obj_c.thousands_sep() != char());
-    VERIFY(obj_c.decimal_point() != obj_de.decimal_point());
-    VERIFY(obj_c.thousands_sep() != obj_de.thousands_sep());
-    VERIFY(obj_c.grouping() != obj_de.grouping());
-    VERIFY(obj_c.curr_symbol_int() != obj_de.curr_symbol_int());
-    VERIFY(obj_c.negative_sign_int() == obj_de.negative_sign_int());
-    VERIFY(obj_c.frac_digits_int() != obj_de.frac_digits_int());
-    VERIFY(obj_c.pos_format_int() != obj_de.pos_format_int());
-    
-    dump_info("Done\n");
-}
-
-void test_monetary_char_put_1()
-{
-    dump_info("Test monetary<char>::put 1...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-        
-        // total EPA budget FY 2002
-        const std::string digits1("720000000000");
-        // input less than frac_digits
-        const std::string digits2("-1");
-        std::string oss;
-        
-        obj.put(std::back_inserter(oss), true, ios, digits1);
-        VERIFY(oss == "7.200.000.000,00 ");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == "7.200.000.000,00 ");
-    
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits1);
-        VERIFY(oss == "7.200.000.000,00 EUR ");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == "7.200.000.000,00 \xE2\x82\xAC");
-
-        ios.unsetf(IOv2::ios_defs::showbase);
-
-        // test io.width() > length
-        // test various fill strategies
-        ios.width(20); ios.fill('*');
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == "***************-,01*");
-        
-        ios.width(20); ios.setf(IOv2::ios_defs::internal);
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == "-,01****************");
+        std::string          m_curr_symbol;
+        std::string          m_positive_sign;
+        std::string          m_negative_sign;
+        int                  m_frac_digits;
+        pattern              m_pos_format;
+        pattern              m_neg_format;
     };
 
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
+    // The pattern the cases below start from unless they say otherwise: the
+    // symbol first, then the sign, then the amount, with nothing at the end.
+    constexpr pattern kSymbolSignValue = {part::symbol, part::none, part::sign, part::value};
 
-    dump_info("Done\n");
-}
-
-void test_monetary_char_put_2()
-{
-    dump_info("Test monetary<char>::put 2...");
-
-    auto helper = [](const IOv2::monetary<char>& obj, const IOv2::monetary<char>& obj_c)
+    std::shared_ptr<tunable_conf> tuned(const char* name = "C")
     {
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const std::string digits1("720000000000");
-        
-        // est. cost, national missile "defense", expressed as a loss in USD 2001
-        const std::string digits2("-10000000000000");  
-        
-        // not valid input
-        const std::string digits3("-A"); 
-        
-        // input less than frac_digits
-        const std::string digits4("-1");
-    
-        // cache the money_put facet
-        std::string oss;
-    
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        // test sign of more than one digit, say hong kong.
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == "HK$7,200,000,000.00");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == "(HKD 100,000,000,000.00)");
-        
-        
-        // test one-digit formats without zero padding
-        // note: the result is different with libstdc++'s test case (libstdc%2B%2B-v3/testsuite/22_locale/money_put/put/char/2.cc)
-        // since IOv2 set '-' as the negative sign of C locale.
-        oss.clear();
-        obj_c.put(std::back_inserter(oss), true, ios, digits4);
-        VERIFY(oss == "-1");
-    
-        // test one-digit formats with zero padding, zero frac widths
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits4);
-        VERIFY(oss == "(HKD .01)");
-        
-        ios.unsetf(IOv2::ios_defs::showbase);
-    
-        // test bunk input
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits3);
-        VERIFY(oss == "");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    helper(obj, obj_c);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_put_3()
-{
-    dump_info("Test monetary<char>::put 3...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        // woman, art, thief (stole the blues)
-        const std::string str("1943 Janis Joplin");
-        const int64_t ld = 1943;
-        const std::string x(str.size(), 'x'); // have to have allocated string!
-        std::string res;
-    
-        std::string oss;
-    
-        // 01 string
-        res = x;
-        auto ret1 = obj.put(res.begin(), false, ios, str);
-        std::string sanity1(res.begin(), ret1);
-        VERIFY(res == "1943xxxxxxxxxxxxx");
-        VERIFY(sanity1 == "1943");
-    
-        // 02 int64_t
-        res = x;
-        auto ret2 = obj.put(res.begin(), false, ios, ld);
-        std::string sanity2(res.begin(), ret2);
-        VERIFY(res == "1943xxxxxxxxxxxxx");
-        VERIFY(sanity2 == "1943");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_put_4()
-{
-    dump_info("Test monetary<char>::put 4...");
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_decimal_point('.');
-    tmp_io->set_thousands_sep(',');
-    tmp_io->set_grouping({3});
-    tmp_io->set_negative_sign_nat("()");
-    tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::space,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-
-    IOv2::monetary<char> obj(tmp_io);
-    IOv2::ios_base<char> ios;
-    ios.fill('*');
-
-    std::string val("-123456");
-
-    std::string fmt;
-    obj.put(std::back_inserter(fmt), false, ios, val);
-    VERIFY(fmt == "*(1,234.56)");
-  
-    dump_info("Done\n");
-}
-
-void test_monetary_char_put_5()
-{
-    dump_info("Test monetary<char>::put 5...");
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_thousands_sep(',');
-    tmp_io->set_grouping({1});
-
-    IOv2::monetary<char> obj(tmp_io);
-    IOv2::ios_base<char> ios;
-    ios.fill('*');
-
-    int64_t val = 100000000LL;
-
-    std::ostringstream fmt;
-    std::ostreambuf_iterator<char> out(fmt);
-    obj.put(out, false, ios, val);
-    VERIFY(fmt.good());
-  
-    dump_info("Done\n");
-}
-
-void test_monetary_char_put_6()
-{
-    dump_info("Test monetary<char>::put 6...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        int64_t amount = 11;
-
-        // cache the money_put facet
-        std::string oss;
-        obj.put(std::back_inserter(oss), true, ios, amount);
-        VERIFY(oss == "11");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_put_7()
-{
-    dump_info("Test monetary<char>::put 7...");
-    
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({});
-    IOv2::monetary<char> obj(tmp_io);
-    
-    std::string digits(300, '1');
-    
-    std::string oss;
-    obj.put(std::back_inserter(oss), false, ios, digits);
-    VERIFY(oss == digits);
-    
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_1()
-{
-    dump_info("Test monetary<char>::get 1...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const std::string digits1("720000000000");
-
-        std::string iss;
-
-        {
-            iss = "7.200.000.000,00 ";
-            std::string result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = "7.200.000.000,00  ";
-            std::string result2;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = "7.200.000.000,00  a";
-            std::string result3;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-            VERIFY(result3 == digits1);
-            VERIFY(it != iss.end());
-            VERIFY(*it == 'a');
-        }
-
-        {
-            iss = "";
-            std::string result4;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result4);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(result4 == "");
-        }
-    
-        {
-            iss = "working for enlightenment and peace in a mad world";
-            std::string result5;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result5);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(result5 == "");
-        }
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        {
-            iss = "7.200.000.000,00 EUR ";
-            std::string result6;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result6);
-            VERIFY(result6 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = "7.200.000.000,00 EUR  ";
-            std::string result7;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result7);
-            VERIFY(result7 == digits1);
-            VERIFY(it != iss.end());
-            VERIFY(*it == ' ');
-        }
-        
-        {
-            iss = "7.200.000.000,00 \xE2\x82\xAC";
-            std::string result8;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result8);
-            VERIFY(result8 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_2()
-{
-    dump_info("Test monetary<char>::get 2...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const std::string digits1("720000000000");
-
-        // est. cost, national missile "defense", expressed as a loss in USD 2001
-        const std::string digits2("-10000000000000");  
-
-        // input less than frac_digits
-        const std::string digits4("-1");
-    
-        std::string iss;
-        
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        {
-            iss = "HK$7,200,000,000.00";
-            std::string result9;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result9);
-            VERIFY(result9 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = "(HKD 100,000,000,000.00)";
-            std::string result10;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result10);
-            VERIFY(result10 == digits2);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = "(HKD .01)";
-            std::string result11;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result11);
-            VERIFY(result11 == digits4);
-            VERIFY(it == iss.end());
-        }
-
-        // for the "en_HK.ISO8859-1" locale the parsing of the very same input streams must
-        // be successful without showbase too, since the symbol field appears in
-        // the first positions in the format and the symbol, when present, must be
-        // consumed.
-        ios.unsetf(IOv2::ios_defs::showbase);
-        {
-            iss = "HK$7,200,000,000.00";
-            std::string result12;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result12);
-            VERIFY(result12 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = "(HKD 100,000,000,000.00)";
-            std::string result13;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result13);
-            VERIFY(result13 == digits2);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = "(HKD .01)";
-            std::string result14;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result14);
-            VERIFY(result14 == digits4);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_3()
-{
-    dump_info("Test monetary<char>::get 3...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-
-        std::string iss;
-        {
-            iss = "7.200.000.000,00 ";
-            int64_t result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = "7.200.000.000,00 ";
-            int64_t result2;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_4()
-{
-    dump_info("Test monetary<char>::get 4...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        // input less than frac_digits
-        const long double digits4 = -1.0;
-        std::string iss;
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        iss = "(HKD .01)";
-        int64_t result3;
-        auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-        VERIFY(result3 == digits4);
-        VERIFY(it == iss.end());
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_5()
-{
-    dump_info("Test monetary<char>::get 5...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        const std::string str = "1Eleanor Roosevelt";
-
-        {
-            // 01 string
-            std::string res1;
-            auto it = obj.get(str.begin(), str.end(), false, ios, res1);
-            VERIFY(it != str.end());
-            std::string rem1(it, str.end());
-            VERIFY(res1 == "1");
-            VERIFY(rem1 == "Eleanor Roosevelt");
-        }
-
-        {
-            // 02 int64_t
-            int64_t res2;
-            auto it = obj.get(str.begin(), str.end(), false, ios, res2);
-            VERIFY(it != str.end());
-            std::string rem2(it, str.end());
-            VERIFY(res2 == 1);
-            VERIFY(rem2 == "Eleanor Roosevelt");
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_6()
-{
-    dump_info("Test monetary<char>::get 6...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_decimal_point('.');
-    tmp_io->set_grouping({4});
-    tmp_io->set_curr_symbol_nat("$");
-    tmp_io->set_positive_sign_nat("");
-    tmp_io->set_negative_sign_nat("-");
-    tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-
-    IOv2::monetary<char> obj(tmp_io);
-    
-    std::string bufferp("$1234.56");
-    std::string buffern("$-1234.56");
-    std::string bufferp_ns("1234.56");
-    std::string buffern_ns("-1234.56");
-    
-    {
-        std::string valp;
-        obj.get(bufferp.begin(), bufferp.end(), false, ios, valp);
-        VERIFY(valp == "123456");
-    }
-    {
-        std::string valn;
-        obj.get(buffern.begin(), buffern.end(), false, ios, valn);
-        VERIFY(valn == "-123456");
-    }
-    {
-        std::string valp_ns;
-        obj.get(bufferp_ns.begin(), bufferp_ns.end(), false, ios, valp_ns);
-        VERIFY(valp_ns == "123456");
-    }
-    {
-        std::string valn_ns;
-        obj.get(buffern_ns.begin(), buffern_ns.end(), false, ios, valn_ns);
-        VERIFY(valn_ns == "-123456");
-    }
-  
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_7()
-{
-    dump_info("Test monetary<char>::get 7...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        std::string buffer1("123");
-        std::string buffer2("456");
-        std::string buffer3("Golgafrincham"); // From Nathan's original idea.
-
-        std::string val;
-
-        {
-            obj.get(buffer1.begin(), buffer1.end(), false, ios, val);
-            VERIFY(val == buffer1);
-        }
-        {
-            obj.get(buffer2.begin(), buffer2.end(), false, ios, val);
-            VERIFY(val == buffer2);
-        }
-        {
-            val = buffer3;
-            try
-            {
-                obj.get(buffer3.begin(), buffer3.end(), false, ios, val);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(val == buffer3);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    helper(obj);
-    
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_8()
-{
-    dump_info("Test monetary<char>::get 8...");
-    
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_decimal_point('.');
-    tmp_io_a->set_grouping({4});
-    tmp_io_a->set_curr_symbol_nat("$");
-    tmp_io_a->set_positive_sign_nat("()");
-    tmp_io_a->set_frac_digits_nat(2);
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_decimal_point('.');
-    tmp_io_b->set_grouping({4});
-    tmp_io_b->set_curr_symbol_nat("$");
-    tmp_io_b->set_positive_sign_nat("()");
-    tmp_io_b->set_frac_digits_nat(2);
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-                                
-    IOv2::monetary<char> obj_a(tmp_io_a);
-    IOv2::monetary<char> obj_b(tmp_io_b);
-    
-    std::string buffer_a("(1234.56 $)");
-    std::string buffer_a_ns("(1234.56 )");
-
-    std::string val_a, val_a_ns;
-
-    {
-        obj_a.get(buffer_a.begin(), buffer_a.end(), false, ios, val_a);
-        VERIFY(val_a == "123456");
-    }
-    {
-        obj_a.get(buffer_a_ns.begin(), buffer_a_ns.end(), false, ios, val_a_ns);
-        VERIFY(val_a_ns == "123456");
+        return std::make_shared<tunable_conf>(name);
     }
 
-    std::string buffer_b("(1234.56$)");
-    std::string buffer_b_ns("(1234.56)");
-
-    std::string val_b, val_b_ns;
+    monetary<char> facet_for(const char* loc)
     {
-        obj_b.get(buffer_b.begin(), buffer_b.end(), false, ios, val_b);
-        VERIFY(val_b == "123456");
-    }
-    {
-        obj_b.get(buffer_b_ns.begin(), buffer_b_ns.end(), false, ios, val_b_ns);
-        VERIFY(val_b_ns == "123456");
+        return monetary<char>(std::make_shared<monetary_conf<char>>(loc));
     }
 
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_9()
-{
-    dump_info("Test monetary<char>::get 9...");
-    
-    IOv2::ios_base<char> ios;
-    
-    auto dublin = std::make_shared<MoneyIO>("C");
-    dublin->set_frac_digits_nat(3);
-                                
-    IOv2::monetary<char> obj(dublin);
-    std::string liffey;
-    std::string coins;
-    
+    // std::to_string is narrow; an amount reaches the facet in the character
+    // type under test.
+    std::string to_digits(int64_t v)
     {
-        // Feed it 1 digit too many, which should fail.
-        liffey = "12.3456";
+        const std::string ascii = std::to_string(v);
+        return std::string(ascii.begin(), ascii.end());
+    }
+
+    // Takes either spelling of an amount -- the digit string or the integer --
+    // because put() has an overload for each and they must agree.
+    template <typename TVal>
+    std::string put_str(const monetary<char>& obj, bool intl, ios_base<char>& io,
+                        const TVal& amount)
+    {
+        std::string out;
+        obj.put(std::back_inserter(out), intl, io, amount);
+        return out;
+    }
+
+    // The round-trip case names its combination on one line, so the sibling
+    // files' literal retyping cannot reach these labels.
+    std::string trace_case(int frac, std::size_t groups, bool showbase, const std::string& amount)
+    {
+        return "frac=" + std::to_string(frac) + " groups=" + std::to_string(groups) + " showbase=" + std::to_string(showbase) + " amount=" + ::testing::PrintToString(amount);
+    }
+
+    // What a parse produced: whether it succeeded, the digits it yielded, and
+    // the input it left behind.
+    struct parse_result
+    {
+        bool        ok;
+        std::string digits;
+        std::string rest;
+    };
+
+    parse_result parse_over_pointers(const monetary<char>& obj, bool intl, ios_base<char>& io,
+                                     const std::string& input, const std::string& seed)
+    {
+        parse_result res{true, seed, {}};
         try
         {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
+            auto it  = obj.get(input.begin(), input.end(), intl, io, res.digits);
+            res.rest = std::string(it, input.end());
         }
-        catch (IOv2::stream_error&) {}
+        catch (const stream_error&)
+        {
+            res.ok = false;
+        }
+        return res;
     }
+
+    // The same parse over an iterator that cannot be compared to anything but a
+    // sentinel and cannot be rewound -- the shape get() is actually written for.
+    parse_result parse_over_a_stream(const monetary<char>& obj, bool intl, ios_base<char>& io,
+                                     const std::string& input, const std::string& seed)
     {
-        // Feed it exactly what it wants, which should succeed.
-        liffey = "12.345";
-        obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-    }
-    {
-        // Feed it 1 digit too few, which should fail.
-        liffey = "12.34";
+        parse_result res{true, seed, {}};
+        streambuf    sb(mem_device{input});
+        auto         beg = istreambuf_iterator(sb);
         try
         {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
+            auto it = obj.get(beg, std::default_sentinel, intl, io, res.digits);
+            res.rest = std::string(it, decltype(it)());
         }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it only a decimal-point, which should fail.
-        liffey = "12.";
-        try
+        catch (const stream_error&)
         {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
+            res.ok = false;
         }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it no decimal-point at all, which should succeed.
-        liffey = "12";
-        obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-    }
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_10()
-{
-    dump_info("Test monetary<char>::get 10...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-        std::string iss;
-        std::string extracted_amount;
-        {
-            iss = "-$0 ";
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-            VERIFY(it != iss.end());
-            VERIFY(*it == ' ');
-            VERIFY(extracted_amount == "0");
-        }
-        {
-            extracted_amount.clear();
-            iss = "-$ ";
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(extracted_amount.empty());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_US.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_11()
-{
-    dump_info("Test monetary<char>::get 11...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        // A _very_ big amount.
-        std::string str = "1";
-        for (int i = 0; i < 2 * std::numeric_limits<uint64_t>::digits10; ++i)
-            str += ".000";
-        str += ",00 ";
-
-        try
-        {
-            int64_t result1;
-            obj.get(str.begin(), str.end(), true, ios, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_12()
-{
-    dump_info("Test monetary<char>::get 12...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-
-        std::string iss;
-
-        {
-            iss = "7200000000,00 ";
-            int64_t result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = "7200000000,00 ";
-            int64_t result2;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_13()
-{
-    dump_info("Test monetary<char>::get 13...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        std::string iss;
-        {
-            iss = "500,1.0 ";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = "500,1.0 ";
-            int64_t result2;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_14()
-{
-    dump_info("Test monetary<char>::get 14...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_positive_sign_nat("+");
-    tmp_io->set_negative_sign_nat("");
-    
-    IOv2::monetary<char> obj(tmp_io);
-
-    std::string buffer("69");
-    std::string val;
-    
-    obj.get(buffer.begin(), buffer.end(), false, ios, val);
-    VERIFY(val == "-69");
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_15()
-{
-    dump_info("Test monetary<char>::get 15...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        std::string iss;
-        {
-            iss = ".100";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = "30..0";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_16()
-{
-    dump_info("Test monetary<char>::get 16...");
-    IOv2::ios_base<char> ios1, ios2;
-    
-    IOv2::monetary<char> obj_de(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    IOv2::monetary<char> obj_hk(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-
-    {
-        ios1.setf(IOv2::ios_defs::showbase);
-        std::string iss01 = "EUR ";
-        int64_t result1;
-        try
-        {
-            obj_de.get(iss01.begin(), iss01.end(), true, ios1, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        std::string iss02 = "(HKD )";
-        int64_t result2;
-        try
-        {
-            obj_hk.get(iss02.begin(), iss02.end(), true, ios2, result2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
+        return res;
     }
 
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_17()
-{
-    dump_info("Test monetary<char>::get 17...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
+    // Every parse assertion goes through here, so no case can check one iterator
+    // shape and leave the other unexamined.
+    void expect_parses(const monetary<char>& obj, bool intl, ios_base<char>& io,
+                       const std::string& input, const std::string& digits,
+                       const std::string& rest = "")
     {
-        IOv2::ios_base<char> ios;
-
-        std::string iss;
+        SCOPED_TRACE(::testing::PrintToString(input));
+        for (bool streamed : {false, true})
         {
-            iss = "7.200.000.000,00";
-            std::string result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
+            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, "")
+                                            : parse_over_pointers(obj, intl, io, input, "");
+            EXPECT_TRUE(r.ok);
+            EXPECT_EQ(r.digits, digits);
+            EXPECT_EQ(r.rest, rest);
         }
-        
-        // now try with showbase, to get currency symbol in format
-        {
-            ios.setf(IOv2::ios_defs::showbase);
-            iss = "7.200.000.000,00EUR ";
-            std::string result2;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_18()
-{
-    dump_info("Test monetary<char>::get 18...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        IOv2::ios_base<char> ios;
-
-        std::string iss;
-        {
-            iss = "HK7,200,000,000.00";
-            std::string result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = "(HK100,000,000,000.00)";
-            std::string result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_19()
-{
-    dump_info("Test monetary<char>::get 19...");
-    
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_curr_symbol_nat("$");
-    tmp_io_a->set_positive_sign_nat("");
-    tmp_io_a->set_negative_sign_nat("");
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_curr_symbol_nat("%");
-    tmp_io_b->set_positive_sign_nat("");
-    tmp_io_b->set_negative_sign_nat("-");
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-
-    auto tmp_io_c = std::make_shared<MoneyIO>("C");
-    tmp_io_c->set_curr_symbol_nat("&");
-    tmp_io_c->set_positive_sign_nat("");
-    tmp_io_c->set_negative_sign_nat("");
-    tmp_io_c->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-                                
-    IOv2::monetary<char> obj_a(tmp_io_a);
-    IOv2::monetary<char> obj_b(tmp_io_b);
-    IOv2::monetary<char> obj_c(tmp_io_c);
-    
-    {
-        std::string iss_01 = "10$";
-        std::string result01;
-        auto it = obj_a.get(iss_01.begin(), iss_01.end(), false, ios, result01);
-        VERIFY(it != iss_01.end());
-        VERIFY(*it == '$');
-    }
-    {
-        std::string iss_02 = "50%";
-        std::string result02;
-        auto it = obj_a.get(iss_02.begin(), iss_02.end(), false, ios, result02);
-        VERIFY(it != iss_02.end());
-        VERIFY(*it == '%');
-    }
-    {
-        std::string iss_03 = "7 &";
-        std::string result03;
-        auto it = obj_a.get(iss_03.begin(), iss_03.end(), false, ios, result03);
-        VERIFY(it != iss_03.end());
-        VERIFY(*it == '&');
     }
 
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_20()
-{
-    dump_info("Test monetary<char>::get 20...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
+    // A failed parse throws, and the digit string it was handed must come back
+    // exactly as it was: the caller's variable is not a scratch buffer.
+    void expect_rejects(const monetary<char>& obj, bool intl, ios_base<char>& io,
+                        const std::string& input)
     {
-        IOv2::ios_base<char> ios;
-
-        std::string iss = "$.00 ";
-        std::string extracted_amount;
-        auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-        VERIFY(it != iss.end());
-        VERIFY(*it == ' ');
-        VERIFY(extracted_amount == "0");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_US.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_21()
-{
-    dump_info("Test monetary<char>::get 21...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({1});
-    tmp_io->set_thousands_sep('#');
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-                                  
-    IOv2::monetary<char> obj(tmp_io);
-    std::string buffer1("00#0#1");
-    std::string buffer2("000##1");
-    // Strong exception guarantee: a failed parse must leave the caller's
-    // output argument untouched, so pre-seed a sentinel and verify it survives.
-    std::string val1("sentinel"), val2("sentinel");
-
-    {
-        try
+        SCOPED_TRACE(::testing::PrintToString(input));
+        const std::string seed = "untouched";
+        for (bool streamed : {false, true})
         {
-            obj.get(buffer1.begin(), buffer1.end(), false, ios, val1);
-            dump_info("unreachable code");
-            std::abort();
+            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, seed)
+                                            : parse_over_pointers(obj, intl, io, input, seed);
+            EXPECT_FALSE(r.ok);
+            EXPECT_EQ(r.digits, seed);
         }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val1 == "sentinel");
     }
-    {
-        try
-        {
-            obj.get(buffer2.begin(), buffer2.end(), false, ios, val2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val2 == "sentinel");
-    }
-
-    dump_info("Done\n");
 }
 
-void test_monetary_char_get_22()
+TEST(MonetaryChar, TheCharacterTypeIsChar)
 {
-    dump_info("Test monetary<char>::get 22...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_frac_digits_nat(0);
-    IOv2::monetary<char> obj(tmp_io);
-    
-    std::string ss = "123.455";
-    std::string digits;
-    
-    auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
-    std::string rest = std::string(it, ss.end());
-    VERIFY(digits == "123");
-    VERIFY(rest == ".455");
-
-    dump_info("Done\n");
+    static_assert(std::is_same_v<monetary<char>::char_type, char>);
 }
 
-void test_monetary_char_get_23()
+// [locale.moneypunct] fixes the "C" locale completely: no currency, no
+// grouping, no fractional digits, and the same format both ways round.
+TEST(MonetaryChar, TheCLocaleCarriesNoCurrency)
 {
-    dump_info("Test monetary<char>::get 23...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({});
-    IOv2::monetary<char> obj(tmp_io);
-    
-    std::string ss = "123,456";
-    std::string digits;
-    
-    auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
-    VERIFY(it != ss.end());
-    VERIFY(digits == "123");
-    VERIFY(*it == ',');
+    const monetary<char> obj = facet_for("C");
 
-    dump_info("Done\n");
+    EXPECT_EQ(obj.decimal_point(), '.');
+    EXPECT_EQ(obj.thousands_sep(), ',');
+    EXPECT_TRUE(obj.grouping().empty());
+    EXPECT_TRUE(obj.curr_symbol_nat().empty());
+    EXPECT_TRUE(obj.curr_symbol_int().empty());
+    EXPECT_TRUE(obj.positive_sign_nat().empty());
+    EXPECT_TRUE(obj.positive_sign_int().empty());
+    EXPECT_EQ(obj.frac_digits_int(), 0);
+    EXPECT_EQ(obj.frac_digits_nat(), 0);
+    EXPECT_EQ(obj.pos_format_int(), obj.pos_format_nat());
+    EXPECT_EQ(obj.neg_format_int(), obj.neg_format_nat());
 }
 
-void test_monetary_char_get_24()
+// The negative sign is the one thing the "C" locale must still spell, or a
+// negative amount would come out indistinguishable from a positive one.
+TEST(MonetaryChar, TheCLocaleStillHasANegativeSign)
 {
-    dump_info("Test monetary<char>::get 24...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const std::string digits1("720000000000");
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result1;
-            auto it = obj.get(beg, end, true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == end);
-        }
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00  "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result2;
-            auto it = obj.get(beg, end, true, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == end);
-        }
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00  a"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result3;
-            auto it = obj.get(beg, end, true, ios, result3);
-            VERIFY(result3 == digits1);
-            VERIFY(it != end);
-            VERIFY(*it == 'a');
-        }
-
-        {
-            std::string result4;
-            streambuf sb(mem_device{""});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, true, ios, result4);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(it == end);
-            VERIFY(result4 == "");
-        }
-    
-        {
-            streambuf sb(mem_device{"working for enlightenment and peace in a mad world"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result5;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, true, ios, result5);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == 'w');
-            VERIFY(result5 == "");
-        }
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00 EUR "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result6;
-            auto it = obj.get(beg, end, true, ios, result6);
-            VERIFY(result6 == digits1);
-            VERIFY(it == end);
-        }
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00 EUR  "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result7;
-            auto it = obj.get(beg, end, true, ios, result7);
-            VERIFY(result7 == digits1);
-            VERIFY(it != end);
-            VERIFY(*it == ' ');
-        }
-        
-        {
-            streambuf sb(mem_device{"7.200.000.000,00 \xE2\x82\xAC"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result8;
-            auto it = obj.get(beg, end, false, ios, result8);
-            VERIFY(result8 == digits1);
-            VERIFY(it == end);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    const monetary<char> obj = facet_for("C");
+    EXPECT_FALSE(obj.negative_sign_nat().empty());
+    EXPECT_FALSE(obj.negative_sign_int().empty());
 }
 
-void test_monetary_char_get_25()
+// Every spelling whose language segment is C or POSIX names the same locale.
+// glibc normalises the codeset before lookup, so a name matched exactly used to
+// fall through to localeconv() and take the all-unavailable monetary data
+// verbatim -- losing the negative sign above with it.
+TEST(MonetaryChar, EverySpellingOfTheCLocaleCarriesTheSameData)
 {
-    dump_info("Test monetary<char>::get 25...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const std::string digits1("720000000000");
-
-        // est. cost, national missile "defense", expressed as a loss in USD 2001
-        const std::string digits2("-10000000000000");  
-
-        // input less than frac_digits
-        const std::string digits4("-1");
-    
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        {
-            streambuf sb(mem_device{"HK$7,200,000,000.00"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result9;
-            auto it = obj.get(beg, end, false, ios, result9);
-            VERIFY(result9 == digits1);
-            VERIFY(it == end);
-        }
-        {
-            streambuf sb(mem_device{"(HKD 100,000,000,000.00)"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result10;
-            auto it = obj.get(beg, end, true, ios, result10);
-            VERIFY(result10 == digits2);
-            VERIFY(it == end);
-        }
-        {
-            streambuf sb(mem_device{"(HKD .01)"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result11;
-            auto it = obj.get(beg, end, true, ios, result11);
-            VERIFY(result11 == digits4);
-            VERIFY(it == end);
-        }
-
-        // for the "en_HK.ISO8859-1" locale the parsing of the very same input streams must
-        // be successful without showbase too, since the symbol field appears in
-        // the first positions in the format and the symbol, when present, must be
-        // consumed.
-        ios.unsetf(IOv2::ios_defs::showbase);
-        {
-            streambuf sb(mem_device{"HK$7,200,000,000.00"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result12;
-            auto it = obj.get(beg, end, false, ios, result12);
-            VERIFY(result12 == digits1);
-            VERIFY(it == end);
-        }
-        {
-            streambuf sb(mem_device{"(HKD 100,000,000,000.00)"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result13;
-            auto it = obj.get(beg, end, true, ios, result13);
-            VERIFY(result13 == digits2);
-            VERIFY(it == end);
-        }
-        {
-            streambuf sb(mem_device{"(HKD .01)"});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result14;
-            auto it = obj.get(beg, end, true, ios, result14);
-            VERIFY(result14 == digits4);
-            VERIFY(it == end);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_26()
-{
-    dump_info("Test monetary<char>::get 26...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result1;
-            auto it = obj.get(beg, end, true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == end);
-        }
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result2;
-            auto it = obj.get(beg, end, false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == end);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_27()
-{
-    dump_info("Test monetary<char>::get 27...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        // input less than frac_digits
-        const long double digits4 = -1.0;
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        streambuf sb(mem_device{"(HKD .01)"});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        int64_t result3;
-        auto it = obj.get(beg, end, true, ios, result3);
-        VERIFY(result3 == digits4);
-        VERIFY(it == end);
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_28()
-{
-    dump_info("Test monetary<char>::get 28...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        const std::string str = "1Eleanor Roosevelt";
-
-        {
-            // 01 string
-            streambuf sb(mem_device{str});
-            auto beg = istreambuf_iterator(sb);
-            std::string res1;
-            auto it = obj.get(beg, std::default_sentinel, false, ios, res1);
-            VERIFY(it != std::default_sentinel);
-            std::string rem1(it, decltype(it)());
-            VERIFY(res1 == "1");
-            VERIFY(rem1 == "Eleanor Roosevelt");
-        }
-
-        {
-            // 02 int64_t
-            streambuf sb(mem_device{str});
-            auto beg = istreambuf_iterator(sb);
-            int64_t res2;
-            auto it = obj.get(beg, std::default_sentinel, false, ios, res2);
-            VERIFY(it != std::default_sentinel);
-            std::string rem2(it, decltype(it)());
-            VERIFY(res2 == 1);
-            VERIFY(rem2 == "Eleanor Roosevelt");
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_29()
-{
-    dump_info("Test monetary<char>::get 29...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_decimal_point('.');
-    tmp_io->set_grouping({4});
-    tmp_io->set_curr_symbol_nat("$");
-    tmp_io->set_positive_sign_nat("");
-    tmp_io->set_negative_sign_nat("-");
-    tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-
-    IOv2::monetary<char> obj(tmp_io);
-    
-    std::string bufferp("$1234.56");
-    std::string buffern("$-1234.56");
-    std::string bufferp_ns("1234.56");
-    std::string buffern_ns("-1234.56");
-
-    using namespace IOv2;
-    {
-        streambuf sb(mem_device{bufferp});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string valp;
-        obj.get(beg, end, false, ios, valp);
-        VERIFY(valp == "123456");
-    }
-    {
-        streambuf sb(mem_device{buffern});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string valn;
-        obj.get(beg, end, false, ios, valn);
-        VERIFY(valn == "-123456");
-    }
-    {
-        streambuf sb(mem_device{bufferp_ns});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string valp_ns;
-        obj.get(beg, end, false, ios, valp_ns);
-        VERIFY(valp_ns == "123456");
-    }
-    {
-        streambuf sb(mem_device{buffern_ns});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string valn_ns;
-        obj.get(beg, end, false, ios, valn_ns);
-        VERIFY(valn_ns == "-123456");
-    }
-  
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_30()
-{
-    dump_info("Test monetary<char>::get 30...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        std::string buffer1("123");
-        std::string buffer2("456");
-        std::string buffer3("Golgafrincham"); // From Nathan's original idea.
-
-        std::string val;
-
-        {
-            streambuf sb(mem_device{buffer1});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            obj.get(beg, end, false, ios, val);
-            VERIFY(val == buffer1);
-        }
-        {
-            streambuf sb(mem_device{buffer2});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            obj.get(beg, end, false, ios, val);
-            VERIFY(val == buffer2);
-        }
-        {
-            val = buffer3;
-            streambuf sb(mem_device{buffer3});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            try
-            {
-                obj.get(beg, end, false, ios, val);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(val == buffer3);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    helper(obj);
-    
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_31()
-{
-    dump_info("Test monetary<char>::get 31...");
-    
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_decimal_point('.');
-    tmp_io_a->set_grouping({4});
-    tmp_io_a->set_curr_symbol_nat("$");
-    tmp_io_a->set_positive_sign_nat("()");
-    tmp_io_a->set_frac_digits_nat(2);
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_decimal_point('.');
-    tmp_io_b->set_grouping({4});
-    tmp_io_b->set_curr_symbol_nat("$");
-    tmp_io_b->set_positive_sign_nat("()");
-    tmp_io_b->set_frac_digits_nat(2);
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-                                
-    IOv2::monetary<char> obj_a(tmp_io_a);
-    IOv2::monetary<char> obj_b(tmp_io_b);
-    
-    std::string buffer_a("(1234.56 $)");
-    std::string buffer_a_ns("(1234.56 )");
-
-    std::string val_a, val_a_ns;
-    using namespace IOv2;
-
-    {
-        streambuf sb(mem_device{buffer_a});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        obj_a.get(beg, end, false, ios, val_a);
-        VERIFY(val_a == "123456");
-    }
-    {
-        streambuf sb(mem_device{buffer_a_ns});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        obj_a.get(beg, end, false, ios, val_a_ns);
-        VERIFY(val_a_ns == "123456");
-    }
-
-    std::string buffer_b("(1234.56$)");
-    std::string buffer_b_ns("(1234.56)");
-
-    std::string val_b, val_b_ns;
-    {
-        streambuf sb(mem_device{buffer_b});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        obj_b.get(beg, end, false, ios, val_b);
-        VERIFY(val_b == "123456");
-    }
-    {
-        streambuf sb(mem_device{buffer_b_ns});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        obj_b.get(beg, end, false, ios, val_b_ns);
-        VERIFY(val_b_ns == "123456");
-    }
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_32()
-{
-    dump_info("Test monetary<char>::get 32...");
-    
-    IOv2::ios_base<char> ios;
-    
-    auto dublin = std::make_shared<MoneyIO>("C");
-    dublin->set_frac_digits_nat(3);
-                                
-    IOv2::monetary<char> obj(dublin);
-    std::string coins;
-
-    using namespace IOv2;
-    {
-        // Feed it 1 digit too many, which should fail.
-        streambuf sb(mem_device{"12.3456"});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        try
-        {
-            obj.get(beg, end, false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it exactly what it wants, which should succeed.
-        streambuf sb(mem_device{"12.345"});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        obj.get(beg, end, false, ios, coins);
-    }
-    {
-        // Feed it 1 digit too few, which should fail.
-        streambuf sb(mem_device{"12.34"});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        try
-        {
-            obj.get(beg, end, false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it only a decimal-point, which should fail.
-        streambuf sb(mem_device{"12."});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        try
-        {
-            obj.get(beg, end, false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it no decimal-point at all, which should succeed.
-        streambuf sb(mem_device{"12"});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        obj.get(beg, end, false, ios, coins);
-    }
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_33()
-{
-    dump_info("Test monetary<char>::get 33...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-        std::string extracted_amount;
-        {
-            streambuf sb(mem_device{"-$0 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            auto it = obj.get(beg, end, false, ios, extracted_amount);
-            VERIFY(it != end);
-            VERIFY(*it == ' ');
-            VERIFY(extracted_amount == "0");
-        }
-        {
-            extracted_amount.clear();
-            streambuf sb(mem_device{"-$ "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            try
-            {
-                obj.get(beg, end, false, ios, extracted_amount);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(extracted_amount.empty());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_US.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_34()
-{
-    dump_info("Test monetary<char>::get 34...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        // A _very_ big amount.
-        std::string str = "1";
-        for (int i = 0; i < 2 * std::numeric_limits<int64_t>::digits10; ++i)
-            str += ".000";
-        str += ",00 ";
-
-        int64_t result1;
-        streambuf sb(mem_device{str});
-        auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-        try
-        {
-            obj.get(beg, end, true, ios, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_35()
-{
-    dump_info("Test monetary<char>::get 35...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-
-        {
-            streambuf sb(mem_device{"7200000000,00 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result1;
-            auto it = obj.get(beg, end, true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == end);
-        }
-        {
-            streambuf sb(mem_device{"7200000000,00 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result2;
-            auto it = obj.get(beg, end, false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == end);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_36()
-{
-    dump_info("Test monetary<char>::get 36...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        {
-            streambuf sb(mem_device{"500,1.0 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result1;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == '.');
-        }
-        {
-            streambuf sb(mem_device{"500,1.0 "});
-            auto beg = istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result2;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, false, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == '.');
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_37()
-{
-    dump_info("Test monetary<char>::get 37...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_positive_sign_nat("+");
-    tmp_io->set_negative_sign_nat("");
-    
-    IOv2::monetary<char> obj(tmp_io);
-
-    std::string val;
-    
-    using namespace IOv2;
-    streambuf sb(mem_device{"69"});
-    auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-    obj.get(beg, end, false, ios, val);
-    VERIFY(val == "-69");
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_38()
-{
-    dump_info("Test monetary<char>::get 38...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        {
-            streambuf sb(mem_device{".100"});
-            auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result1;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == '.');
-        }
-        {
-            streambuf sb(mem_device{"30..0"});
-            auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-            int64_t result1;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == '.');
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_39()
-{
-    dump_info("Test monetary<char>::get 39...");
-    IOv2::ios_base<char> ios1, ios2;
-    
-    IOv2::monetary<char> obj_de(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    IOv2::monetary<char> obj_hk(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-
-    using namespace IOv2;
-    {
-        ios1.setf(IOv2::ios_defs::showbase);
-        streambuf sb(mem_device{"EUR "});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        int64_t result1;
-        auto it = beg;
-        try
-        {
-            obj_de.get(beg, end, true, ios1, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(*it == 'E');
-    }
-    {
-        streambuf sb(mem_device{"(HKD )"});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        int64_t result2;
-        auto it = beg;
-        try
-        {
-            it = obj_hk.get(beg, end, true, ios2, result2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(*it == ')');
-    }
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_40()
-{
-    dump_info("Test monetary<char>::get 40...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        {
-            streambuf sb(mem_device{"7.200.000.000,00"});
-            auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result1;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(it == end);
-        }
-        
-        // now try with showbase, to get currency symbol in format
-        {
-            ios.setf(IOv2::ios_defs::showbase);
-            streambuf sb(mem_device{"7.200.000.000,00EUR "});
-            auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result2;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, true, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == 'E');
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_41()
-{
-    dump_info("Test monetary<char>::get 41...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        {
-            streambuf sb(mem_device{"HK7,200,000,000.00"});
-            auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result1;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == '7');
-        }
-        {
-            streambuf sb(mem_device{"(HK100,000,000,000.00)"});
-            auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-            std::string result1;
-            auto it = beg;
-            try
-            {
-                it = obj.get(beg, end, false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(*it == '1');
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_42()
-{
-    dump_info("Test monetary<char>::get 42...");
-    
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_curr_symbol_nat("$");
-    tmp_io_a->set_positive_sign_nat("");
-    tmp_io_a->set_negative_sign_nat("");
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_curr_symbol_nat("%");
-    tmp_io_b->set_positive_sign_nat("");
-    tmp_io_b->set_negative_sign_nat("-");
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-
-    auto tmp_io_c = std::make_shared<MoneyIO>("C");
-    tmp_io_c->set_curr_symbol_nat("&");
-    tmp_io_c->set_positive_sign_nat("");
-    tmp_io_c->set_negative_sign_nat("");
-    tmp_io_c->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-                                
-    IOv2::monetary<char> obj_a(tmp_io_a);
-    IOv2::monetary<char> obj_b(tmp_io_b);
-    IOv2::monetary<char> obj_c(tmp_io_c);
-
-    using namespace IOv2;
-    {
-        streambuf sb(mem_device{"10$"});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string result01;
-        auto it = obj_a.get(beg, end, false, ios, result01);
-        VERIFY(it != end);
-        VERIFY(*it == '$');
-    }
-    {
-        streambuf sb(mem_device{"50%"});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string result02;
-        auto it = obj_a.get(beg, end, false, ios, result02);
-        VERIFY(it != end);
-        VERIFY(*it == '%');
-    }
-    {
-        streambuf sb(mem_device{"7 &"});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string result03;
-        auto it = obj_a.get(beg, end, false, ios, result03);
-        VERIFY(it != end);
-        VERIFY(*it == '&');
-    }
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_43()
-{
-    dump_info("Test monetary<char>::get 43...");
-
-    auto helper = [](const IOv2::monetary<char>& obj)
-    {
-        using namespace IOv2;
-        IOv2::ios_base<char> ios;
-
-        streambuf sb(mem_device{"$.00 "});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        std::string extracted_amount;
-        auto it = obj.get(beg, end, false, ios, extracted_amount);
-        VERIFY(it != end);
-        VERIFY(*it == ' ');
-        VERIFY(extracted_amount == "0");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>("en_US.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_44()
-{
-    dump_info("Test monetary<char>::get 44...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({1});
-    tmp_io->set_thousands_sep('#');
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-                                  
-    IOv2::monetary<char> obj(tmp_io);
-    // Strong exception guarantee: a failed parse must leave the caller's
-    // output argument untouched, so pre-seed a sentinel and verify it survives.
-    std::string val1("sentinel"), val2("sentinel");
-
-    using namespace IOv2;
-    {
-        streambuf sb(mem_device{"00#0#1"});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        auto it = beg;
-        try
-        {
-            it = obj.get(beg, end, false, ios, val1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val1 == "sentinel");
-        VERIFY(it == end);
-    }
-    {
-        streambuf sb(mem_device{"000##1"});
-        auto beg = IOv2::istreambuf_iterator(sb); auto end = std::default_sentinel;
-        auto it = beg;
-        try
-        {
-            it = obj.get(beg, end, false, ios, val2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val2 == "sentinel");
-        VERIFY(*it == '#');
-    }
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_45()
-{
-    dump_info("Test monetary<char>::get 45...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_frac_digits_nat(0);
-    IOv2::monetary<char> obj(tmp_io);
-
-    std::string digits;
-
-    using namespace IOv2;
-    streambuf sb(mem_device{"123.455"});
-    auto beg = IOv2::istreambuf_iterator(sb);
-    auto it = obj.get(beg, std::default_sentinel, false, ios, digits);
-    std::string rest(it, decltype(it)());
-    VERIFY(digits == "123");
-    VERIFY(rest == ".455");
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_get_46()
-{
-    dump_info("Test monetary<char>::get 46...");
-    IOv2::ios_base<char> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({});
-    IOv2::monetary<char> obj(tmp_io);
-
-    std::string digits;
-
-    using namespace IOv2;
-    streambuf sb(mem_device{"123,456"});
-    auto beg = IOv2::istreambuf_iterator(sb);
-    auto it = obj.get(beg, std::default_sentinel, false, ios, digits);
-    VERIFY(it != std::default_sentinel);
-    VERIFY(digits == "123");
-    VERIFY(*it == ',');
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_common_3()
-{
-    dump_info("Test monetary<char> common 3 (s_construct_pattern cases 2-4 and default)...");
-
-    using part = IOv2::base_ft<IOv2::monetary>::part;
-
-    // ar_AE.UTF-8: n_sign_posn=2, n_cs_precedes=1, n_sep_by_space=1
-    // -> case 2, sp=truthy, precedes=1 -> {symbol, space, value, sign}
-    IOv2::monetary obj_ar(std::make_shared<IOv2::monetary_conf<char>>("ar_AE.UTF-8"));
-    const IOv2::base_ft<IOv2::monetary>::pattern expected_ar =
-        {part::symbol, part::space, part::value, part::sign};
-    VERIFY(obj_ar.neg_format_nat() == expected_ar);
-
-    // nn_NO.UTF-8: n_sign_posn=3, n_cs_precedes=1, n_sep_by_space=0
-    // -> case 3, precedes=1, sp=0 -> {sign, symbol, value, none}
-    IOv2::monetary obj_no(std::make_shared<IOv2::monetary_conf<char>>("nn_NO.UTF-8"));
-    const IOv2::base_ft<IOv2::monetary>::pattern expected_no =
-        {part::sign, part::symbol, part::value, part::none};
-    VERIFY(obj_no.neg_format_nat() == expected_no);
-
-    // da_DK.UTF-8: n_sign_posn=4, n_cs_precedes=1, n_sep_by_space=2
-    // -> case 4, precedes=1, sp=truthy -> {symbol, sign, space, value}
-    IOv2::monetary obj_dk(std::make_shared<IOv2::monetary_conf<char>>("da_DK.UTF-8"));
-    const IOv2::base_ft<IOv2::monetary>::pattern expected_dk =
-        {part::symbol, part::sign, part::space, part::value};
-    VERIFY(obj_dk.neg_format_nat() == expected_dk);
-
-    // bo_CN.UTF-8: n_sign_posn=4, n_cs_precedes=1, n_sep_by_space=0
-    // -> case 4, precedes=1, sp=0 (else-branch) -> {symbol, sign, value, none}
-    IOv2::monetary obj_bo(std::make_shared<IOv2::monetary_conf<char>>("bo_CN.UTF-8"));
-    const IOv2::base_ft<IOv2::monetary>::pattern expected_bo =
-        {part::symbol, part::sign, part::value, part::none};
-    VERIFY(obj_bo.neg_format_nat() == expected_bo);
-
-    // C.utf8 names the C locale, so it takes the hard-coded defaults and never
-    // reaches s_construct_pattern; s_default_pattern is the same pattern the
-    // sign_posn=CHAR_MAX default case used to produce here.
-    IOv2::monetary obj_cu(std::make_shared<IOv2::monetary_conf<char>>("C.utf8"));
-    const IOv2::base_ft<IOv2::monetary>::pattern expected_cu =
-        {part::symbol, part::sign, part::none, part::value};
-    VERIFY(obj_cu.neg_format_nat() == expected_cu);
-    VERIFY(obj_cu.frac_digits_nat() == 0);
-    VERIFY(obj_cu.frac_digits_int() == 0);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char_common_4()
-{
-    dump_info("Test monetary<char> common 4 (C locale name spellings)...");
-
-    // Every spelling whose language segment is C or POSIX names the same locale.
-    // glibc normalises the codeset segment before lookup, so an exact-name test
-    // used to fall through to localeconv() and pick up the all-unavailable
-    // monetary data verbatim -- losing the negative sign in particular.
-    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<char>>("C"));
-    VERIFY(!obj_c.negative_sign_nat().empty());
-    VERIFY(!obj_c.negative_sign_int().empty());
+    const monetary<char> plain = facet_for("C");
 
     for (const char* name : {"POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.UTF-8@euro"})
     {
-        IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>(name));
-        VERIFY(obj.decimal_point()     == obj_c.decimal_point());
-        VERIFY(obj.thousands_sep()     == obj_c.thousands_sep());
-        VERIFY(obj.grouping()          == obj_c.grouping());
-        VERIFY(obj.curr_symbol_nat()   == obj_c.curr_symbol_nat());
-        VERIFY(obj.curr_symbol_int()   == obj_c.curr_symbol_int());
-        VERIFY(obj.positive_sign_nat() == obj_c.positive_sign_nat());
-        VERIFY(obj.positive_sign_int() == obj_c.positive_sign_int());
-        VERIFY(obj.negative_sign_nat() == obj_c.negative_sign_nat());
-        VERIFY(obj.negative_sign_int() == obj_c.negative_sign_int());
-        VERIFY(obj.frac_digits_nat()   == obj_c.frac_digits_nat());
-        VERIFY(obj.frac_digits_int()   == obj_c.frac_digits_int());
-        VERIFY(obj.pos_format_nat()    == obj_c.pos_format_nat());
-        VERIFY(obj.neg_format_nat()    == obj_c.neg_format_nat());
-        VERIFY(obj.pos_format_int()    == obj_c.pos_format_int());
-        VERIFY(obj.neg_format_int()    == obj_c.neg_format_int());
+        SCOPED_TRACE(name);
+        const monetary<char> obj = facet_for(name);
+        EXPECT_EQ(obj.decimal_point(),     plain.decimal_point());
+        EXPECT_EQ(obj.thousands_sep(),     plain.thousands_sep());
+        EXPECT_EQ(obj.grouping(),          plain.grouping());
+        EXPECT_EQ(obj.curr_symbol_nat(),   plain.curr_symbol_nat());
+        EXPECT_EQ(obj.curr_symbol_int(),   plain.curr_symbol_int());
+        EXPECT_EQ(obj.positive_sign_nat(), plain.positive_sign_nat());
+        EXPECT_EQ(obj.positive_sign_int(), plain.positive_sign_int());
+        EXPECT_EQ(obj.negative_sign_nat(), plain.negative_sign_nat());
+        EXPECT_EQ(obj.negative_sign_int(), plain.negative_sign_int());
+        EXPECT_EQ(obj.frac_digits_nat(),   plain.frac_digits_nat());
+        EXPECT_EQ(obj.frac_digits_int(),   plain.frac_digits_int());
+        EXPECT_EQ(obj.pos_format_nat(),    plain.pos_format_nat());
+        EXPECT_EQ(obj.neg_format_nat(),    plain.neg_format_nat());
+        EXPECT_EQ(obj.pos_format_int(),    plain.pos_format_int());
+        EXPECT_EQ(obj.neg_format_int(),    plain.neg_format_int());
     }
+}
 
-    // A C/POSIX language segment does not make the whole name legal. newlocale
-    // rejects each of these, so the constructor must still throw instead of
-    // silently handing back the C defaults.
+// A C or POSIX language segment does not make the whole name legal.  newlocale
+// rejects each of these, so the constructor has to as well rather than quietly
+// handing back the defaults above.
+TEST(MonetaryChar, ANameTheSystemRejectsIsNotTheCLocale)
+{
     for (const char* name : {"C.BOGUS", "C@euro", "C.", "C@", "POSIX.utf8", "POSIX@x"})
     {
-        bool threw = false;
-        try
-        {
-            IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char>>(name));
-        }
-        catch (const IOv2::cvt_error&)
-        {
-            threw = true;
-        }
-        VERIFY(threw);
+        SCOPED_TRACE(name);
+        EXPECT_THROW(facet_for(name), cvt_error);
     }
-
-    // A locale that does carry monetary data must still be read from lconv.
-    IOv2::monetary obj_us(std::make_shared<IOv2::monetary_conf<char>>("en_US.UTF-8"));
-    VERIFY(obj_us.frac_digits_nat() != obj_c.frac_digits_nat());
-    VERIFY(obj_us.curr_symbol_nat() != obj_c.curr_symbol_nat());
-
-    dump_info("Done\n");
 }
 
-void test_monetary_char_get_47()
+TEST(MonetaryChar, ALocaleWithCurrencyDataDiffersFromTheCLocale)
 {
-    dump_info("Test monetary<char>::get 47 (mandatory_sign && p[3]==sign at symbol position)...");
-    IOv2::ios_base<char> ios;
+    const monetary<char> plain = facet_for("C");
+    const monetary<char> us    = facet_for("en_US.UTF-8");
 
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_positive_sign_nat("+");
-    tmp_io->set_negative_sign_nat("-");
-    // Pattern: {value, space, symbol, sign}.
-    // At pattern position i==2 (symbol), p[3]==sign and mandatory_sign==true;
-    // this covers the branch that checks
-    //   (mandatory_sign && (static_cast<part>(p[3]) == part::sign)).
-    tmp_io->set_neg_format_nat({
-        IOv2::base_ft<IOv2::monetary>::part::value,
-        IOv2::base_ft<IOv2::monetary>::part::space,
-        IOv2::base_ft<IOv2::monetary>::part::symbol,
-        IOv2::base_ft<IOv2::monetary>::part::sign
-    });
-    IOv2::monetary<char> obj(tmp_io);
-
-    std::string digits;
-
-    // Positive: "123 +" -> digits "123"
-    std::string input_pos = "123 +";
-    auto it_pos = obj.get(input_pos.begin(), input_pos.end(), false, ios, digits);
-    VERIFY(digits == "123");
-    VERIFY(it_pos == input_pos.end());
-
-    // Negative: "123 -" -> digits "-123"
-    digits.clear();
-    std::string input_neg = "123 -";
-    auto it_neg = obj.get(input_neg.begin(), input_neg.end(), false, ios, digits);
-    VERIFY(digits == "-123");
-    VERIFY(it_neg == input_neg.end());
-
-    dump_info("Done\n");
+    EXPECT_NE(us.curr_symbol_nat(), plain.curr_symbol_nat());
+    EXPECT_NE(us.frac_digits_nat(), plain.frac_digits_nat());
+    EXPECT_NE(us.grouping(), plain.grouping());
 }
 
-void test_monetary_char_put_20()
+// The pattern is not stored by the locale: it is built from the three POSIX
+// lconv flags sign_posn, cs_precedes and sep_by_space.  These four locales are
+// the ones that reach the sign_posn cases 2, 3 and 4 -- with and without the
+// separating space -- and the fifth is the hard-coded default the C locale
+// takes without consulting lconv at all.
+TEST(MonetaryChar, ThePatternIsBuiltFromThePosixSignPosition)
 {
-    dump_info("Test monetary<char>::put 20 (fill that would change the amount read)...");
+    const std::pair<const char*, pattern> cases[] = {
+        {"ar_AE.UTF-8", {part::symbol, part::space, part::value, part::sign}},
+        {"nn_NO.UTF-8", {part::sign, part::symbol, part::value, part::none}},
+        {"da_DK.UTF-8", {part::symbol, part::sign, part::space, part::value}},
+        {"bo_CN.UTF-8", {part::symbol, part::sign, part::value, part::none}},
+        {"C.utf8",      {part::symbol, part::sign, part::none, part::value}},
+    };
 
-    // The C pattern is {sign, none, value, symbol}, so `internal` padding lands in the
-    // `none` slot, i.e. directly in front of the digits and behind the sign.
-    IOv2::monetary<char> obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
-
-    // Formats `digits` at width 14 with the given fill; an empty string means the facet
-    // rejected the fill.
-    auto put = [&obj](char fill, IOv2::ios_defs::fmtflags adjust, const std::string& digits)
+    for (const auto& [name, expected] : cases)
     {
-        IOv2::ios_base<char> ios;
+        SCOPED_TRACE(name);
+        EXPECT_EQ(facet_for(name).neg_format_nat(), expected);
+    }
+}
+
+// The digits are the smallest units of the currency, so the amount they spell is
+// read off their right-hand end: frac_digits places go behind the decimal point
+// and the rest in front of it.
+TEST(MonetaryChar, TheAmountIsCutFracDigitsPlacesFromTheRight)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(2).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, "123456"), "1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, "1"), ".01");
+    EXPECT_EQ(put_str(obj, false, ios, "12"), ".12");
+    EXPECT_EQ(put_str(obj, false, ios, "123"), "1.23");
+}
+
+// A run too short to reach the cut has no integral part at all, and the fraction
+// picks up the shortfall as leading zeros: two places turn 7 into .07, not 7.0.
+TEST(MonetaryChar, AShortAmountIsPaddedInTheFractionNotTheInteger)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(3).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, "7"), ".007");
+    EXPECT_EQ(put_str(obj, false, ios, "70"), ".070");
+    EXPECT_EQ(put_str(obj, false, ios, "700"), ".700");
+    EXPECT_EQ(put_str(obj, false, ios, "7000"), "7.000");
+}
+
+TEST(MonetaryChar, NoFractionalDigitsMeansNoDecimalPoint)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(obj, false, ios, "123456"), "123456");
+}
+
+// A negative frac_digits asks for no fraction at all and keeps the whole run,
+// which is not the same statement as zero places: it is the locale saying the
+// question does not apply.
+TEST(MonetaryChar, ANegativeFractionWidthKeepsEveryDigitIntegral)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(-1).both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(obj, false, ios, "123456"), "123456");
+}
+
+TEST(MonetaryChar, GroupingInsertsTheThousandsSeparator)
+{
+    ios_base<char> ios;
+
+    const monetary<char> threes(tuned()->fraction(0).groups({3}).separator(',')
+                                       .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(threes, false, ios, "1234567"), "1,234,567");
+
+    const monetary<char> ones(tuned()->fraction(0).groups({1}).separator('#')
+                                     .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(ones, false, ios, "1234"), "1#2#3#4");
+
+    // A grouping vector is read right to left and its last entry repeats, so
+    // {3,2} groups three digits then twos all the way up.
+    const monetary<char> indian(tuned()->fraction(0).groups({3, 2}).separator(',')
+                                       .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(indian, false, ios, "12345678"), "1,23,45,678");
+}
+
+TEST(MonetaryChar, AnEmptyGroupingInsertsNothing)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).groups({}).both(kSymbolSignValue).ptr());
+    const std::string    digits(300, '1');
+    EXPECT_EQ(put_str(obj, false, ios, digits), digits);
+}
+
+// The symbol is the one part of the field the caller decides about: it is
+// written when showbase is set and left out otherwise, and nothing else about
+// the field changes with it.
+TEST(MonetaryChar, TheSymbolIsWrittenOnlyWithShowbase)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(2).symbol("$").both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, "123456"), "1234.56");
+    ios.setf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, ios, "123456"), "$1234.56");
+    ios.unsetf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, ios, "123456"), "1234.56");
+}
+
+TEST(MonetaryChar, ThePatternDecidesTheOrderOfTheParts)
+{
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+
+    const std::pair<pattern, const char*> cases[] = {
+        {{part::symbol, part::sign, part::value, part::none}, "$-12"},
+        {{part::sign, part::symbol, part::value, part::none}, "-$12"},
+        {{part::value, part::space, part::symbol, part::sign}, "12 $-"},
+        {{part::sign, part::value, part::space, part::symbol}, "-12 $"},
+        {{part::symbol, part::space, part::value, part::sign}, "$ 12-"},
+    };
+
+    for (const auto& [order, expected] : cases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(expected));
+        const monetary<char> obj(tuned()->fraction(0).symbol("$").minus("-").negative(order).ptr());
+        EXPECT_EQ(put_str(obj, false, ios, "-12"), expected);
+    }
+}
+
+// A sign spelled with more than one character wraps the field: its first
+// character sits in the sign slot and the rest trails everything, which is how
+// a locale writes a negative amount in parentheses.
+TEST(MonetaryChar, AMultiCharacterSignWrapsTheField)
+{
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+    const monetary<char> obj(tuned()->fraction(2).groups({3}).separator(',').symbol("$")
+                                    .minus("()")
+                                    .negative({part::symbol, part::space, part::sign, part::value}).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, "-123456"), "$ (1,234.56)");
+}
+
+TEST(MonetaryChar, TheSignOfTheAmountChoosesThePattern)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).plus("+").minus("-")
+                                    .positive({part::sign, part::value, part::none, part::none})
+                                    .negative({part::value, part::sign, part::none, part::none}).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, "12"), "+12");
+    EXPECT_EQ(put_str(obj, false, ios, "-12"), "12-");
+}
+
+// The international and national sets are independent, and intl is what picks
+// between them: the same amount through one facet has two spellings.
+TEST(MonetaryChar, TheInternationalFlagSelectsTheOtherPunctuation)
+{
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+    const monetary<char> obj = facet_for("en_US.UTF-8");
+
+    EXPECT_NE(obj.curr_symbol_int(), obj.curr_symbol_nat());
+    const std::string national      = put_str(obj, false, ios, "123456");
+    const std::string international = put_str(obj, true, ios, "123456");
+    EXPECT_NE(national, international);
+    EXPECT_NE(national.find(obj.curr_symbol_nat()), std::string::npos);
+    EXPECT_NE(international.find(obj.curr_symbol_int()), std::string::npos);
+}
+
+TEST(MonetaryChar, AShortFieldIsPaddedToTheWidth)
+{
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    ios_base<char> ios;
+    ios.fill('*');
+    ios.width(8);
+    EXPECT_EQ(put_str(obj, false, ios, "123"), "*****123");
+
+    ios.width(8);
+    ios.setf(ios_defs::left, ios_defs::adjustfield);
+    EXPECT_EQ(put_str(obj, false, ios, "123"), "123*****");
+}
+
+// Under internal the shortfall is not tacked onto an end: it goes into whichever
+// pattern slot writes nothing of its own, which is what puts the fill between
+// the symbol and the amount rather than outside them.
+TEST(MonetaryChar, InternalPaddingGoesIntoTheEmptySlot)
+{
+    const monetary<char> obj(tuned()->fraction(0).symbol("$").minus("-")
+                                    .negative({part::symbol, part::none, part::sign, part::value}).ptr());
+
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+    ios.setf(ios_defs::internal, ios_defs::adjustfield);
+    ios.fill('*');
+    ios.width(9);
+    EXPECT_EQ(put_str(obj, false, ios, "-123"), "$****-123");
+}
+
+// width() is one-shot: the field it sized is the only one it sizes.
+TEST(MonetaryChar, TheWidthIsConsumedByOnePut)
+{
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    ios_base<char>       ios;
+    ios.fill('*');
+    ios.width(8);
+
+    EXPECT_EQ(put_str(obj, false, ios, "123"), "*****123");
+    EXPECT_EQ(ios.width(), 0u);
+    EXPECT_EQ(put_str(obj, false, ios, "123"), "123");
+}
+
+// A run of fill can end up where a reader would take it for part of the amount.
+// The facet refuses rather than write a field that reads as a different number.
+// The C pattern is {symbol, sign, none, value}, so internal padding lands
+// directly in front of the digits.
+TEST(MonetaryChar, AFillThatWouldChangeTheAmountIsRejected)
+{
+    const monetary<char> obj = facet_for("C");
+
+    auto put = [&obj](char fill, ios_defs::fmtflags adjust, const std::string& digits)
+    {
+        ios_base<char> ios;
         ios.fill(fill);
         ios.width(14);
-        ios.setf(adjust, IOv2::ios_defs::adjustfield);
-
-        std::string oss;
+        ios.setf(adjust, ios_defs::adjustfield);
+        std::string out;
         try
         {
-            obj.put(std::back_inserter(oss), false, ios, digits);
+            obj.put(std::back_inserter(out), false, ios, digits);
         }
-        catch (IOv2::stream_error&)
+        catch (const stream_error&)
         {
             return std::string();
         }
-        return oss;
+        return out;
     };
 
-    // '0' in front of the digits is a leading zero and reads as the same amount.
-    VERIFY(put('0', IOv2::ios_defs::internal, "12345") == "00000000012345");
-    VERIFY(put('0', IOv2::ios_defs::internal, "-12345") == "-0000000012345");
-    // Behind the amount it would read as 12345000000000.
-    VERIFY(put('0', IOv2::ios_defs::left, "12345").empty());
-    // Any other digit is dangerous wherever it lands.
-    VERIFY(put('1', IOv2::ios_defs::internal, "12345").empty());
-    VERIFY(put('9', IOv2::ios_defs::right, "12345").empty());
+    // A '0' in front of the digits is a leading zero and reads as the same
+    // amount; behind them it would read as 12345000000000.
+    EXPECT_EQ(put('0', ios_defs::internal, "12345"), "00000000012345");
+    EXPECT_EQ(put('0', ios_defs::internal, "-12345"), "-0000000012345");
+    EXPECT_EQ(put('0', ios_defs::left, "12345"), "");
 
-    // The C locale's negative sign is "-" and its positive sign is empty, so '-' in
-    // front of a positive amount turns it negative to reader and parser alike, while
-    // padding an amount that is already negative changes nothing.
-    VERIFY(put('-', IOv2::ios_defs::internal, "12345").empty());
-    // (one written sign plus eight fill characters)
-    VERIFY(put('-', IOv2::ios_defs::internal, "-12345") == "---------12345");
-    // '+' is not a sign in this locale, so it cannot be read as one.
-    VERIFY(put('+', IOv2::ios_defs::internal, "12345") == "+++++++++12345");
+    // Any other digit is dangerous wherever it lands.
+    EXPECT_EQ(put('1', ios_defs::internal, "12345"), "");
+    EXPECT_EQ(put('9', ios_defs::right, "12345"), "");
+
+    // The C locale's negative sign is "-" and its positive sign is empty, so a
+    // '-' in front of a positive amount turns it negative to reader and parser
+    // alike; padding an amount that is already negative changes nothing.
+    EXPECT_EQ(put('-', ios_defs::internal, "12345"), "");
+    EXPECT_EQ(put('-', ios_defs::internal, "-12345"), "---------12345");
+    EXPECT_EQ(put('+', ios_defs::internal, "12345"), "+++++++++12345");
 
     // The decimal point binds to the digits after it.
-    VERIFY(put('.', IOv2::ios_defs::internal, "12345").empty());
-    VERIFY(put('.', IOv2::ios_defs::left, "12345") == "12345.........");
+    EXPECT_EQ(put('.', ios_defs::internal, "12345"), "");
+    EXPECT_EQ(put('.', ios_defs::left, "12345"), "12345.........");
 
-    // Characters that cannot be read into an amount stay allowed, including the
-    // thousands separator.
-    VERIFY(put('*', IOv2::ios_defs::internal, "12345") == "*********12345");
-    VERIFY(put(',', IOv2::ios_defs::internal, "12345") == ",,,,,,,,,12345");
-    VERIFY(put(' ', IOv2::ios_defs::right, "12345") == "         12345");
-
-    // `fill` is sticky stream state: with nothing to pad there is no run to vet.
-    {
-        IOv2::ios_base<char> ios;
-        ios.fill('1');
-        std::string oss;
-        obj.put(std::back_inserter(oss), false, ios, std::string("12345"));
-        VERIFY(oss == "12345");
-    }
-
-    dump_info("Done\n");
+    // Characters that cannot be read into an amount stay allowed, the thousands
+    // separator among them.
+    EXPECT_EQ(put('*', ios_defs::internal, "12345"), "*********12345");
+    EXPECT_EQ(put(',', ios_defs::internal, "12345"), ",,,,,,,,,12345");
+    EXPECT_EQ(put(' ', ios_defs::right, "12345"), "         12345");
 }
 
-void test_monetary_char_get_48()
+// fill is sticky stream state, so a stream carrying a dangerous one has to keep
+// working for every field whose width leaves nothing to pad.
+TEST(MonetaryChar, ADangerousFillIsHarmlessWhenNothingIsPadded)
 {
-    dump_info("Test monetary<char>::get 48 (fill that would change the amount read)...");
+    const monetary<char> obj = facet_for("C");
+    ios_base<char>       ios;
+    ios.fill('1');
+    EXPECT_EQ(put_str(obj, false, ios, "12345"), "12345");
+}
 
-    IOv2::monetary<char> obj(std::make_shared<IOv2::monetary_conf<char>>("C"));
+// The amount runs up to the first character that is not a digit; what the caller
+// put after that is not the facet's to format.  With nothing to format at all,
+// nothing is written.
+TEST(MonetaryChar, WhatIsNotADigitIsNotAnAmount)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
 
-    // Parses `input` with the given fill; returns false if the facet rejected the fill.
+    EXPECT_EQ(put_str(obj, false, ios, "42 apples"), "42");
+    EXPECT_EQ(put_str(obj, false, ios, "-A"), "");
+    EXPECT_EQ(put_str(obj, false, ios, ""), "");
+    EXPECT_EQ(put_str(obj, false, ios, "-"), "");
+}
+
+TEST(MonetaryChar, AnIntegralValueFormatsLikeItsDigitString)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(2).groups({3}).separator(',')
+                                    .both(kSymbolSignValue).ptr());
+
+    // Each width reaches put() through its own instantiation, so each is asked
+    // to agree with the digit-string overload rather than one standing in.
+    auto agrees = [&](auto v)
+    {
+        SCOPED_TRACE(::testing::Message() << +v);
+        EXPECT_EQ(put_str(obj, false, ios, to_digits(static_cast<int64_t>(v))),
+                  put_str(obj, false, ios, v));
+    };
+
+    for (int v : {0, 11, 1943, -1, -123456})
+    {
+        agrees(static_cast<short>(v));
+        agrees(static_cast<int>(v));
+        agrees(static_cast<long>(v));
+        agrees(static_cast<long long>(v));
+    }
+    agrees(98765432109LL);
+    agrees(static_cast<unsigned>(4000000000U));
+    agrees(static_cast<unsigned long long>(12345678901234ULL));
+}
+
+// put() returns where it stopped, so writing into an existing buffer has to
+// leave everything past that point alone.
+TEST(MonetaryChar, PutReturnsThePositionAfterTheField)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    std::string buffer(17, 'x');
+    auto        it = obj.put(buffer.begin(), false, ios, std::string("1943"));
+
+    EXPECT_EQ(std::string(buffer.begin(), it), "1943");
+    EXPECT_EQ(buffer, "1943xxxxxxxxxxxxx");
+}
+
+// Everything above reads the field back through the same facet that wrote it.
+// The two directions are separate code, so this is the case that ties them:
+// whatever put() produced, get() has to return the amount put() was given.
+TEST(MonetaryChar, WhatPutWritesGetReadsBack)
+{
+    const std::vector<uint8_t> groupings[] = {{}, {3}, {1}, {3, 2}};
+    const std::string          amounts[]   = {"0", "1", "12", "123456", "-1", "-123456",
+                                              "98765432109", "-98765432109"};
+
+
+    for (int frac : {0, 2, 3})
+        for (const std::vector<uint8_t>& g : groupings)
+            for (bool showbase : {false, true})
+            {
+                const monetary<char> obj(tuned()->fraction(frac).groups(g).separator(',')
+                                                .symbol("$").plus("").minus("-")
+                                                .both(kSymbolSignValue).ptr());
+                ios_base<char> ios;
+                if (showbase) ios.setf(ios_defs::showbase);
+
+                for (const std::string& amount : amounts)
+                {
+                    SCOPED_TRACE(trace_case(frac, g.size(), showbase, amount));
+                    ios_base<char> writer;
+                    if (showbase) writer.setf(ios_defs::showbase);
+                    const std::string field = put_str(obj, false, writer, amount);
+                    ASSERT_FALSE(field.empty());
+                    expect_parses(obj, false, ios, field, amount);
+                }
+            }
+}
+
+// Parsing ends at the first character the format has no place for, and what is
+// left is the caller's to read next.
+TEST(MonetaryChar, ParsingStopsAtTheFirstForeignCharacter)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, "1 apple", "1", " apple");
+    expect_parses(obj, false, ios, "123abc", "123", "abc");
+}
+
+// With grouping switched off the separator is not part of an amount, so it ends
+// one rather than continuing it.
+TEST(MonetaryChar, ASeparatorEndsTheAmountWhenThereIsNoGrouping)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).groups({}).separator(',')
+                                    .both(kSymbolSignValue).ptr());
+    expect_parses(obj, false, ios, "123,456", "123", ",456");
+}
+
+// Likewise the decimal point, when the locale has no fractional digits to put
+// behind it.
+TEST(MonetaryChar, ADecimalPointEndsTheAmountWhenThereIsNoFraction)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).point('.').both(kSymbolSignValue).ptr());
+    expect_parses(obj, false, ios, "123.455", "123", ".455");
+}
+
+TEST(MonetaryChar, AnEmptySequenceIsNotAnAmount)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, "");
+}
+
+TEST(MonetaryChar, TextThatIsNotAnAmountIsRejected)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, "nothing numeric");
+    expect_rejects(obj, false, ios, "a sentence with no amount anywhere in it");
+}
+
+// A fraction is all or nothing: exactly frac_digits places, or the field is not
+// an amount in this locale.
+TEST(MonetaryChar, TheFractionMustHaveExactlyFracDigitsPlaces)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(3).point('.').both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, "12.345", "12345");
+    expect_rejects(obj, false, ios, "12.3456");
+    expect_rejects(obj, false, ios, "12.34");
+    expect_rejects(obj, false, ios, "12.");
+
+    // No decimal point at all is not a short fraction: it is an amount with none.
+    expect_parses(obj, false, ios, "12", "12");
+}
+
+TEST(MonetaryChar, ASecondDecimalPointIsNotPartOfTheAmount)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(2).point('.').both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, "30..0");
+}
+
+// The separators have to fall where this locale's grouping puts them.  A field
+// grouped some other way is a field from some other locale.
+TEST(MonetaryChar, TheSeparatorsMustFollowTheGrouping)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).groups({1}).separator('#')
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, "1#2#3", "123");
+    expect_rejects(obj, false, ios, "00#0#1");
+    expect_rejects(obj, false, ios, "000##1");
+}
+
+// A locale that spells a positive sign but no negative one leaves the absence of
+// a sign to mean negative, which is what [locale.money.get] asks for.
+TEST(MonetaryChar, NoSignMeansNegativeWhenOnlyThePositiveSignIsSpelled)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).plus("+").minus("")
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, "69", "-69");
+    expect_parses(obj, false, ios, "+69", "69");
+}
+
+TEST(MonetaryChar, ASignInTheLastSlotIsStillFound)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).plus("+").minus("-")
+                                    .both({part::value, part::space, part::symbol, part::sign}).ptr());
+
+    expect_parses(obj, false, ios, "123 +", "123");
+    expect_parses(obj, false, ios, "123 -", "-123");
+}
+
+// With showbase the symbol is part of the field and has to be there.  Without
+// it the symbol is optional -- but a symbol that is present is still consumed,
+// or the parse would stop in the middle of a field it could read.
+TEST(MonetaryChar, ShowbaseDecidesWhetherTheSymbolIsRequired)
+{
+    const monetary<char> obj(tuned()->fraction(0).symbol("$").minus("-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<char> required;
+    required.setf(ios_defs::showbase);
+    expect_parses(obj, false, required, "$123", "123");
+    expect_rejects(obj, false, required, "123");
+
+    ios_base<char> optional;
+    expect_parses(obj, false, optional, "$123", "123");
+    expect_parses(obj, false, optional, "123", "123");
+}
+
+// A field with a symbol and no digits is not an amount, whichever way round the
+// symbol is required.
+TEST(MonetaryChar, ASymbolWithoutDigitsIsNotAnAmount)
+{
+    const monetary<char> obj(tuned()->fraction(0).symbol("$").minus("-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+    expect_rejects(obj, false, ios, "$");
+    expect_rejects(obj, false, ios, "$-");
+}
+
+// The fraction alone is an amount: the integral part may be empty as long as the
+// places behind the point are all there.
+TEST(MonetaryChar, AnAmountMayBeAllFraction)
+{
+    const monetary<char> obj(tuned()->fraction(2).point('.').symbol("$").minus("-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<char> ios;
+    expect_parses(obj, false, ios, "$.00 ", "0", " ");
+    expect_parses(obj, false, ios, "$-.01 ", "-1", " ");
+}
+
+TEST(MonetaryChar, AnAmountTooLargeForTheTargetTypeIsRejected)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).groups({}).both(kSymbolSignValue).ptr());
+    const std::string    huge(40, '9');
+
+    int64_t     units = 0;
+    std::string digits;
+    EXPECT_THROW((void)obj.get(huge.begin(), huge.end(), false, ios, units), stream_error);
+
+    // The same field is a perfectly good digit string, though: it is only the
+    // conversion to a fixed-width integer that cannot hold it.
+    EXPECT_NO_THROW((void)obj.get(huge.begin(), huge.end(), false, ios, digits));
+    EXPECT_EQ(digits, huge);
+}
+
+TEST(MonetaryChar, GettingAnIntegralValueAgreesWithGettingTheDigits)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(2).groups({3}).separator(',')
+                                    .both(kSymbolSignValue).ptr());
+
+    for (const char* field : {"1,234.56", "-1,234.56", ".01", "-.01", "0.00"})
+    {
+        SCOPED_TRACE(::testing::PrintToString(field));
+        const std::string input(field);
+
+        std::string digits;
+        obj.get(input.begin(), input.end(), false, ios, digits);
+
+        int64_t units = 0;
+        obj.get(input.begin(), input.end(), false, ios, units);
+
+        EXPECT_EQ(to_digits(units), digits);
+    }
+}
+
+// put() writes through an output iterator, so an iterator that reaches a stream
+// rather than a container has to work as the destination too.
+TEST(MonetaryChar, PutWritesThroughAnOutputIteratorOntoAStream)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(2).groups({3}).separator(',')
+                                    .both(kSymbolSignValue).ptr());
+
+    streambuf sb{mem_device<char>{""}};
+    obj.put(ostreambuf_iterator(sb), false, ios, std::string("123456"));
+    sb.flush();
+    EXPECT_EQ(sb.device().str(), "1,234.56");
+}
+
+// The same fill vetting as on the writing side, but from the reader's end: a run
+// of fill in front of the digits is consumed as padding, and the facet refuses
+// the ones a reader would have counted as part of the amount instead.
+TEST(MonetaryChar, AFillThatWouldChangeTheAmountIsRejectedOnTheWayBackIn)
+{
+    const monetary<char> obj = facet_for("C");
+
     auto get = [&obj](char fill, const std::string& input, std::string& digits)
     {
-        IOv2::ios_base<char> ios;
+        ios_base<char> ios;
         ios.fill(fill);
         digits.clear();
         try
         {
             obj.get(input.begin(), input.end(), false, ios, digits);
         }
-        catch (IOv2::stream_error&)
+        catch (const stream_error&)
         {
             return false;
         }
@@ -2628,30 +893,230 @@ void test_monetary_char_get_48()
 
     std::string digits;
 
-    // The run of fill in the `none` slot decides how much of the input is the amount,
-    // so a fill that a reader would have counted as a digit must not be swallowed:
-    // "112345" reads as 112345, never as 12345.
-    VERIFY(!get('1', "112345", digits));
-    VERIFY(!get('9', "912345", digits));
+    // "112345" reads as 112345, never as 12345 with a '1' of padding in front.
+    EXPECT_FALSE(get('1', "112345", digits));
+    EXPECT_FALSE(get('9', "912345", digits));
 
     // A leading zero is the one digit that reads the same either way.
-    VERIFY(get('0', "0000012345", digits));
-    VERIFY(digits == "12345");
+    EXPECT_TRUE(get('0', "0000012345", digits));
+    EXPECT_EQ(digits, "12345");
 
-    // With a sign consumed first, a '-' run behind it cannot be read as another sign.
-    VERIFY(get('-', "-------12345", digits));
-    VERIFY(digits == "-12345");
+    // With the sign consumed first, a '-' run behind it cannot be read as a
+    // second sign.
+    EXPECT_TRUE(get('-', "-------12345", digits));
+    EXPECT_EQ(digits, "-12345");
 
-    // Fill that cannot be read into an amount is consumed as before.
-    VERIFY(get('*', "*****12345", digits));
-    VERIFY(digits == "12345");
-    VERIFY(get(' ', "     12345", digits));
-    VERIFY(digits == "12345");
+    // Fill that cannot be read into an amount is consumed as it always was.
+    EXPECT_TRUE(get('*', "*****12345", digits));
+    EXPECT_EQ(digits, "12345");
+    EXPECT_TRUE(get(' ', "     12345", digits));
+    EXPECT_EQ(digits, "12345");
 
-    // No fill consumed means nothing to vet, whatever the stream's fill happens to be:
-    // the input here does not start with a '9', so the run stops immediately.
-    VERIFY(get('9', "12345", digits));
-    VERIFY(digits == "12345");
+    // Nothing consumed means nothing to vet, whatever the stream's fill is: this
+    // input does not start with a '9', so the run stops immediately.
+    EXPECT_TRUE(get('9', "12345", digits));
+    EXPECT_EQ(digits, "12345");
+}
 
-    dump_info("Done\n");
+// A `space` slot owes at least one character, so a field that put() wrote with
+// one has to be read with one.  A `none` slot owes nothing, and a field written
+// from a pattern that ends in one has no space to find.
+TEST(MonetaryChar, ASpaceSlotIsRequiredAndANoneSlotIsNot)
+{
+    const pattern with_space = {part::sign, part::value, part::space, part::symbol};
+    const pattern with_none  = {part::sign, part::value, part::symbol, part::none};
+
+    ios_base<char> ios;
+
+    const monetary<char> spaced(tuned()->fraction(2).point('.').groups({4}).separator(',')
+                                       .symbol("$").plus("()").both(with_space).ptr());
+    expect_parses(spaced, false, ios, "(9876.05 $)", "987605");
+    expect_parses(spaced, false, ios, "(9876.05 )", "987605");
+
+    const monetary<char> unspaced(tuned()->fraction(2).point('.').groups({4}).separator(',')
+                                         .symbol("$").plus("()").both(with_none).ptr());
+    expect_parses(unspaced, false, ios, "(9876.05$)", "987605");
+    expect_parses(unspaced, false, ios, "(9876.05)", "987605");
+
+    // The character a `space` slot owes is the stream's fill, so a field written
+    // with the default fill and read back under another one is missing it.
+    ios_base<char> other_fill;
+    other_fill.fill('*');
+    expect_rejects(spaced, false, other_fill, "(9876.05 $)");
+}
+
+// Without showbase the symbol is optional, and a symbol the parse cannot place
+// is simply not part of the field: it is left for whoever reads next.
+TEST(MonetaryChar, AnUnplaceableSymbolEndsTheField)
+{
+    ios_base<char> ios;
+    const pattern  trailing = {part::value, part::symbol, part::none, part::sign};
+
+    for (const char* symbol : {"$", "%", "&"})
+    {
+        SCOPED_TRACE(::testing::PrintToString(symbol));
+        const monetary<char> obj(tuned()->fraction(0).symbol(symbol).plus("").minus("")
+                                        .both(trailing).ptr());
+        expect_parses(obj, false, ios, std::string("10") + symbol, "10", symbol);
+    }
+}
+
+// A locale whose sign position is 0 wraps a negative amount in parentheses
+// rather than spelling a sign, so the facet has to supply "()" where lconv has
+// only the sign string it would otherwise use.
+TEST(MonetaryChar, ASignPositionOfZeroMeansParentheses)
+{
+    const monetary<char> obj = facet_for("en_HK.UTF-8");
+    EXPECT_EQ(obj.negative_sign_nat(), "()");
+    EXPECT_EQ(obj.negative_sign_int(), "()");
+
+    ios_base<char> ios;
+    const std::string field = put_str(obj, false, ios, "-123456");
+    EXPECT_EQ(field.front(), '(');
+    EXPECT_EQ(field.back(), ')');
+    expect_parses(obj, false, ios, field, "-123456");
+}
+
+// A `space` slot writes the stream's fill character, not a literal space, and
+// leading padding then shifts everything already written -- that run included.
+// A forgotten shift would leave the run recorded at the wrong offset, which is
+// what the fill check downstream reads.
+TEST(MonetaryChar, PaddingInFrontShiftsTheFillAlreadyWritten)
+{
+    const monetary<char> obj(tuned()->fraction(0).symbol("$").minus("-")
+                                    .negative({part::symbol, part::space, part::sign, part::value})
+                                    .ptr());
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+    ios.fill('*');
+    ios.width(10);
+    EXPECT_EQ(put_str(obj, false, ios, "-12"), "*****$*-12");
+
+    // With a fill that reads as a space the same field is legible, and the
+    // single character the slot owes is still there when nothing is padded.
+    ios_base<char> plain;
+    plain.setf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, plain, "-12"), "$ -12");
+}
+
+// The sign is required when the pattern makes its absence unreadable -- it opens
+// the field, or a space follows where the sign would have been.  A field that
+// then arrives without one is not an amount.
+TEST(MonetaryChar, APatternCanMakeTheSignMandatory)
+{
+    ios_base<char> ios;
+
+    const monetary<char> leading(tuned()->fraction(0).symbol("$").plus("+").minus("-")
+                                        .both({part::sign, part::symbol, part::value, part::none})
+                                        .ptr());
+    expect_parses(leading, false, ios, "+$12", "12");
+    expect_parses(leading, false, ios, "-$12", "-12");
+    expect_rejects(leading, false, ios, "$12");
+
+    const monetary<char> spaced(tuned()->fraction(0).symbol("$").plus("+").minus("-")
+                                       .both({part::symbol, part::sign, part::space, part::value})
+                                       .ptr());
+    expect_parses(spaced, false, ios, "$+ 12", "12");
+    expect_rejects(spaced, false, ios, "$ 12");
+}
+
+// Only the sign's first character sits in the sign slot; the rest trails the
+// field.  A field that starts one and does not finish it is not an amount.
+TEST(MonetaryChar, AnUnfinishedMultiCharacterSignIsRejected)
+{
+    ios_base<char>       ios;
+    const monetary<char> obj(tuned()->fraction(0).minus("-->").plus("")
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, "-12->", "-12");
+    expect_rejects(obj, false, ios, "-12-");
+    expect_rejects(obj, false, ios, "-12");
+}
+
+// Everything above works in the national form.  The international one is a
+// separate set of punctuation reached by a separate branch at every entry
+// point, so the round trip is run through it too.
+TEST(MonetaryChar, TheInternationalFormRoundTripsAsWell)
+{
+    const monetary<char> obj(tuned()->fraction(2).groups({3}).separator(',')
+                                    .symbol("$").plus("").minus("-")
+                                    .both(kSymbolSignValue).ptr());
+
+    const std::string amounts[] = {"0", "123456", "-123456", "-1"};
+
+    for (bool intl : {false, true})
+        for (const std::string& amount : amounts)
+        {
+            SCOPED_TRACE(trace_case(0, 0, intl, amount));
+            ios_base<char>    writer;
+            const std::string field = put_str(obj, intl, writer, amount);
+            ASSERT_FALSE(field.empty());
+
+            ios_base<char> reader;
+            expect_parses(obj, intl, reader, field, amount);
+
+            // And the same field read straight into an integer.
+            int64_t units = 0;
+            obj.get(field.begin(), field.end(), intl, reader, units);
+            EXPECT_EQ(to_digits(units), amount);
+        }
+}
+
+// A `space` slot takes the whole internal spread when there is one, rather than
+// the single character it owes when there is not.
+TEST(MonetaryChar, InternalPaddingFillsTheSpaceSlot)
+{
+    const monetary<char> obj(tuned()->fraction(0).symbol("$").minus("-")
+                                    .negative({part::symbol, part::space, part::sign, part::value})
+                                    .ptr());
+    ios_base<char> ios;
+    ios.setf(ios_defs::showbase);
+    ios.setf(ios_defs::internal, ios_defs::adjustfield);
+    ios.fill('*');
+    ios.width(9);
+    EXPECT_EQ(put_str(obj, false, ios, "-12"), "$*****-12");
+}
+
+// A field that starts the symbol and does not finish it has not written the
+// symbol, so with showbase set there is nothing for the required slot to match.
+TEST(MonetaryChar, APartiallyMatchedSymbolIsNotTheSymbol)
+{
+    const monetary<char> obj(tuned()->fraction(0).symbol("USD").plus("").minus("-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<char> required;
+    required.setf(ios_defs::showbase);
+    expect_parses(obj, false, required, "USD12", "12");
+    expect_rejects(obj, false, required, "US12");
+
+    // Without showbase the half-written symbol is simply not part of the field.
+    ios_base<char> optional;
+    expect_rejects(obj, false, optional, "US12");
+}
+
+// Leading zeros are stripped from the digits, and the sign has to be put back in
+// front of what is left rather than in front of what was parsed.
+TEST(MonetaryChar, ANegativeAmountKeepsItsSignAfterLeadingZerosAreStripped)
+{
+    const monetary<char> obj(tuned()->fraction(2).point('.').plus("").minus("-")
+                                    .both(kSymbolSignValue).ptr());
+    ios_base<char> ios;
+
+    expect_parses(obj, false, ios, "-0.01", "-1");
+    expect_parses(obj, false, ios, "-000.10", "-10");
+    expect_parses(obj, false, ios, "-0.00", "0");
+    expect_parses(obj, false, ios, "0.00", "0");
+}
+
+// A field with no digits at all cannot become an integer either, and the target
+// is left as the caller had it.
+TEST(MonetaryChar, AFieldWithNoDigitsIsNotAnInteger)
+{
+    const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    ios_base<char>       ios;
+
+    const std::string input = "no digits here";
+    int64_t            units = 4242;
+    EXPECT_THROW((void)obj.get(input.begin(), input.end(), false, ios, units), stream_error);
+    EXPECT_EQ(units, 4242);
 }
