@@ -1,94 +1,108 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * What it takes to be an input stream, from the outside.
+ *
+ * Two separate claims. The extractors return the stream by its own type rather
+ * than by the base they were inherited from, so `derived >> x` chains into the
+ * derived interface; a class deriving from istream to add members would lose
+ * them at the first extraction otherwise.
+ *
+ * And istream_type, the concept the extractors are constrained on, is what says
+ * a type can be one. It demands ios_state rather than ios_base because code
+ * behind the concept calls handle_exception() and operator bool directly
+ * (ws_t::operator(), in_sentry's constructor), and it demands the iterator
+ * alias because i_iter() is private and the extraction concepts have nothing
+ * else to probe with. The cases below pin both requirements by exhibiting types
+ * that satisfy everything except one of them.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <io/istream.h>
+#include <io/streambuf.h>
+#include <io/streambuf_iterator.h>
+#include <io/traits/char_and_str.h>
+#include <io/utilities/istream_operators.h>
+#include <io/utilities/stream_common_operators.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <string>
+
+using namespace IOv2;
 
 namespace
 {
-struct DevIstream : public IOv2::istream<IOv2::mem_device<char>, char>
-{
-    using IOv2::istream<IOv2::mem_device<char>, char>::istream;
-    int x = 20;
-};
+    // Two derived streams with a member of their own, so the type an extraction
+    // returns is visible in the value it yields.
+    struct marked_istream : istream<mem_device<char>, char>
+    {
+        using istream<mem_device<char>, char>::istream;
+        int mark = 20;
+    };
 
-struct DevIOstream : public IOv2::istream<IOv2::mem_device<char>, char>
-{
-    using IOv2::istream<IOv2::mem_device<char>, char>::istream;
-    int x = 50;
-};
-}
+    struct marked_iostream : iostream<mem_device<char>, char>
+    {
+        using iostream<mem_device<char>, char>::iostream;
+        int mark = 50;
+    };
 
-void test_istream_derive_1()
-{
-    dump_info("Test ostream derive case 1...");
+    using probe_iter = istreambuf_iterator<istreambuf<mem_device<char>, char>>;
 
-    DevIstream obj1(IOv2::mem_device("hello"));
-    // make sure the >> operator should return DevIstream object
-    std::string str;
-    VERIFY((obj1 >> str).x == 20);
+    // Everything istream_type asks for except the state: ios_base alone.
+    struct stateless_is : ios_base<char>
+                        , stream_common_operators
+                        , istream_operators<char>
+    {
+        using char_type      = char;
+        using in_sentry_type = in_sentry<stateless_is, false>;
+        using in_iter_type   = probe_iter;
+        // Qualified: inside the struct, `locale` names ios_base's member function.
+        IOv2::locale<char> m_locale;
+    };
 
-    DevIOstream obj2(IOv2::mem_device{"hello"});
-    // make sure the >> operator should return DevIOstream object
-    VERIFY((obj2 >> str).x == 50);
+    // ios_state<char> derives from ios_base<char>, so it replaces that base
+    // rather than joining it.
+    struct stateful_is : ios_state<char>
+                       , stream_common_operators
+                       , istream_operators<char>
+    {
+        using char_type      = char;
+        using in_sentry_type = in_sentry<stateful_is, false>;
+        using in_iter_type   = probe_iter;
+        // Qualified: inside the struct, `locale` names ios_base's member function.
+        IOv2::locale<char> m_locale;
+    };
 
-    dump_info("Done\n");
-}
-
-namespace
-{
-// istream_type requires ios_state for the same reason ostream_type does: code
-// constrained by the concept calls handle_exception() and operator bool directly
-// (ws_t::operator(), in_sentry's constructor). See the note on the concept.
-struct StatelessIs : IOv2::ios_base<char>
-                   , IOv2::stream_common_operators
-                   , IOv2::istream_operators<char>
-{
-    using char_type = char;
-    using in_sentry_type = IOv2::in_sentry<StatelessIs, false>;
-    // istream_type also demands the iterator type: i_iter() is private, so the extraction
-    // concepts have only this alias to probe with. Nothing here can actually do I/O, so any
-    // well-formed istreambuf_iterator will do.
-    using in_iter_type = IOv2::istreambuf_iterator<IOv2::istreambuf<IOv2::mem_device<char>, char>>;
-    IOv2::locale<char> m_locale;
-};
-
-// ios_state<char> derives from ios_base<char>, so it replaces that base rather than
-// joining it.
-struct StatefulIs : IOv2::ios_state<char>
-                  , IOv2::stream_common_operators
-                  , IOv2::istream_operators<char>
-{
-    using char_type = char;
-    using in_sentry_type = IOv2::in_sentry<StatefulIs, false>;
-    using in_iter_type = IOv2::istreambuf_iterator<IOv2::istreambuf<IOv2::mem_device<char>, char>>;
-    IOv2::locale<char> m_locale;
-};
-
-// Two ios_base subobjects: rejected by the concept's derived_from<T, ios_base<char_type>>
-// clause through base ambiguity. See the matching case in test_ostream_derive.cpp.
+    // Two ios_base subobjects: rejected through base ambiguity by the concept's
+    // derived_from<T, ios_base<char_type>> clause.
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Winaccessible-base"
-struct DoubleBaseIs : StatefulIs, IOv2::ios_base<char> {};
+    struct double_base_is : stateful_is, ios_base<char> {};
 #pragma GCC diagnostic pop
 
-static_assert( IOv2::istream_type<IOv2::istream<IOv2::mem_device<char>, char>> );
-static_assert( IOv2::istream_type<IOv2::iostream<IOv2::mem_device<char>, char>> );
-static_assert(!IOv2::istream_type<StatelessIs> );
-static_assert( IOv2::istream_type<StatefulIs> );
-static_assert(!IOv2::istream_type<DoubleBaseIs> );
+    static_assert(istream_type<istream<mem_device<char>, char>>);
+    static_assert(istream_type<iostream<mem_device<char>, char>>);
+    static_assert(istream_type<stateful_is>);
+    static_assert(!istream_type<stateless_is>);
+    static_assert(!istream_type<double_base_is>);
 }
 
-void test_istream_derive()
+TEST(IstreamDerive, TheConceptDemandsStateAndOneUnambiguousBase)
 {
-    test_istream_derive_1();
+    // Every claim above is a static_assert; compiling is the check.
+    SUCCEED();
+}
+
+// The extractor has to hand back the stream's own type. If it returned the base,
+// the member added by the derived class would not be reachable from the result.
+TEST(IstreamDerive, AnExtractionReturnsTheDerivedStream)
+{
+    std::string str;
+
+    marked_istream is(mem_device("hello"));
+    EXPECT_EQ((is >> str).mark, 20);
+
+    marked_iostream ios(mem_device{"hello"});
+    EXPECT_EQ((ios >> str).mark, 50);
 }

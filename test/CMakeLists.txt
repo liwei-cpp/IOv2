@@ -1,4 +1,4 @@
-# The test suite: 171 sources, 57 per-feature suites, 57 CTest tests.
+# The test suite: 164 sources, 57 per-feature suites, 57 CTest tests.
 #
 # test/Makefile linked everything into seven executables, one per top-level
 # directory, each driven by a hand-written main() that called its tests in a

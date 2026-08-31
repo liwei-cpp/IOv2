@@ -1,233 +1,178 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <device/mem_device.h>
+/**
+ * istream<char>::seek(): moving the read position.
+ *
+ * seek takes an absolute position, so a relative move is spelled by the caller
+ * as seek(tell() + n) -- which is why every case here reads a position back
+ * before it moves. What seek promises is that the next read starts where it was
+ * sent, and that it leaves the stream's state as it found it, with one
+ * exception: a stream that had read to the end is usable again, because the end
+ * it reached is no longer where it is.
+ *
+ * When the device refuses the move, the failure is a state bit and the position
+ * afterwards is not reportable at all -- an unreported position is safer than a
+ * stale one, since a caller acting on a stale answer would read the wrong bytes.
+ *
+ * The fixture is "0123456789abcdef", whose character at index n is n in base
+ * 16, so a position and the character read there check each other.
+ */
 #include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/iostream.h>
+#include <io/istream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+
+#include <gtest/gtest.h>
+
 #include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_istream_seek_char_1()
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<char>::seek case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        std::string str = "Duos for Doris";
-        T iss(IOv2::mem_device{str});
-        auto p0 = iss.tell();
-        VERIFY(p0 == 0);
-
-        char ch[100];
-        iss.template get<IOv2::keep_sep, IOv2::no_zt>(ch, str.size() + 1);
-        VERIFY( iss.rdstate() == IOv2::ios_defs::eofbit );
-
-        iss.seek(0);
-        VERIFY( iss.good() );
-
-        iss.seek(0);
-        VERIFY( (bool)iss );
-        VERIFY( iss.tell() == p0 );
-
-        iss.template get<IOv2::keep_sep, IOv2::no_zt>(ch, str.size() + 1);
-        VERIFY( iss.rdstate() == IOv2::ios_defs::eofbit );
-
-        iss.seek(p0.value());
-        VERIFY( iss.good() );
-
-        iss.seek(p0.value());
-        VERIFY( (bool)iss );
-        VERIFY( iss.tell() == p0 );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    const std::string kDigits = "0123456789abcdef";
 }
 
-void test_istream_seek_char_2()
+TEST(IstreamSeekChar, SeekSendsTheNextReadWhereItWasAsked)
 {
-    dump_info("Test istream<char>::seek case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_moved = []<template <typename, typename> class T>()
     {
-        std::string num1("555");
+        T is(mem_device{kDigits});
 
-        {
-            T iss(IOv2::mem_device{num1});
-            auto pos1 = iss.tell();
-            int asNum = 0;
-            iss >> asNum;
+        is.seek(10);
+        EXPECT_EQ(is.get(), 'a');     // index 10
 
-            VERIFY( iss.eof() );
-            VERIFY( (bool)iss );
-            iss.seek(pos1.value());
-            VERIFY( (bool)iss );
-        }
-        {
-            T iss(IOv2::mem_device{num1});
-            iss.tell();
-            int asNum = 0;
-            iss >> asNum;
+        is.seek(0);
+        EXPECT_EQ(is.get(), '0');
 
-            VERIFY( iss.eof() );
-            VERIFY( (bool)iss );
-            iss.seek(0);
-            VERIFY( (bool)iss );
-        }
+        is.seek(15);
+        EXPECT_EQ(is.get(), 'f');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_moved.operator()<istream>();
+    expect_moved.operator()<iostream>();
 }
 
-void test_istream_seek_char_3()
+// A relative move is the caller's arithmetic on a position it read back, so the
+// two operations have to agree about what a position means.
+TEST(IstreamSeekChar, SeekingRelativeToTheCurrentPositionAdvancesByThatMuch)
 {
-    dump_info("Test istream<char>::seek case 3...");
-
-    auto helper = []<template<typename, typename> class T,
-                               typename TDevice>()
+    auto expect_relative = []<template <typename, typename> class T>()
     {
-        IOv2::ios_defs::iostate state01, state02;
+        T is(mem_device{kDigits});
 
-        const char str_lit01[] = "istream_seeks-1.txt";
-        const char str_lit02[] = "istream_seeks-2.txt";
+        const auto start = is.tell();
+        ASSERT_TRUE(start.has_value());
 
-        std::string str_lit01_data = 
-            "bd2\n"
-            "456x\n"
-            "9mzuv>?@ABCDEFGHIJKLMNOPQRSTUVWXYZracadabras, i wannaz\n"
-            "because because\n"
-            "because. . \n"
-            "of the wonderful things he does!!\n"
-            "ok\n";
-        std::string str_lit02_data = "";
-        file_guard g1(str_lit01, str_lit01_data);
-        file_guard g2(str_lit02, str_lit02_data);
+        is.seek(start.value() + 10);
+        EXPECT_EQ(is.tell(), start.value() + 10);
+        EXPECT_EQ(is.get(), 'a');
 
-        T if01{TDevice{str_lit01}};
-        VERIFY( if01.good() );
-
-        auto pos01 = if01.tell();
-        auto pos02 = if01.tell();
-        // istream& seek(pos_type)
-        // istream& seek(off_type, ios_base::seekdir)
-    
-        // cur 
-        // NB: see library issues list 136. It's the v-3 interp that seek
-        // only sets the input buffer, or else istreams with buffers that
-        // have _M_mode == ios_base::out will fail to have consistency
-        // between seek and tell.
-        state01 = if01.rdstate();
-        if01.seek(10 + if01.tell().value());
-        state02 = if01.rdstate();
-        pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02.value() + 10 ); 
-        VERIFY( state01 == state02 );
-        pos02 = if01.tell(); 
-        VERIFY( pos02 == pos01 ); 
-
-        // beg
-        state01 = if01.rdstate();
-        if01.seek(20);
-        state02 = if01.rdstate();
-        pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02.value() + 10 ); 
-        VERIFY( state01 == state02 );
-        pos02 = if01.tell();
-        VERIFY( pos02 == pos01 );
+        // And again from where that left off.
+        const auto here = is.tell();
+        ASSERT_TRUE(here.has_value());
+        is.seek(here.value() + 4);
+        EXPECT_EQ(is.get(), 'f');
     };
 
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    expect_relative.operator()<istream>();
+    expect_relative.operator()<iostream>();
 }
 
-void test_istream_seek_char_4()
+// The end of the input is a position, not a property of the stream: moving away
+// from it makes the stream readable again.
+TEST(IstreamSeekChar, SeekClearsEndOfFile)
 {
-    dump_info("Test istream<char>::seek case 4...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_revived = []<template <typename, typename> class T>()
     {
-        IOv2::ios_defs::iostate state01, state02;
+        T    is(mem_device{kDigits});
+        char buf[32] = {};
 
-        std::string str_lit01_data =
-            "bd2\n"
-            "456x\n"
-            "9mzuv>?@ABCDEFGHIJKLMNOPQRSTUVWXYZracadabras, i wannaz\n"
-            "because because\n"
-            "because. . \n"
-            "of the wonderful things he does!!\n"
-            "ok\n";
+        is.template get<keep_sep, no_zt>(buf, static_cast<std::ptrdiff_t>(kDigits.size()) + 1);
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
 
-        T if01{IOv2::mem_device{str_lit01_data}};
-        T if03{IOv2::mem_device{""}};
-        VERIFY( if01.good() );
-        VERIFY( if03.good() );
-
-        auto pos01 = if01.tell();
-        auto pos02 = if01.tell();
-        auto pos05 = if03.tell();
-        auto pos06 = if03.tell();
-        // istream& seek(pos_type)
-        // istream& seek(off_type, ios_base::seekdir)
-
-        // cur
-        // NB: see library issues list 136. It's the v-3 interp that seek
-        // only sets the input buffer, or else istreams with buffers that
-        // have _M_mode == ios_base::out will fail to have consistency
-        // between seek and tell.
-        state01 = if01.rdstate();
-        if01.seek(10 + if01.tell().value());
-        state02 = if01.rdstate();
-        pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02.value() + 10 ); 
-        VERIFY( state01 == state02 );
-        pos02 = if01.tell(); 
-        VERIFY( pos02 == pos01 ); 
-
-        state01 = if03.rdstate();
-        if03.seek(10 + if03.tell().value());
-        state02 = if03.rdstate();
-        pos05 = if03.tell();
-        VERIFY( !pos05.has_value() );
-        VERIFY( state01 != state02 );
-        VERIFY(state02 == IOv2::ios_defs::devfailbit);
-        pos06 = if03.tell(); 
-        VERIFY( pos05 == pos06 ); 
-
-        // beg
-        state01 = if01.rdstate();
-        if01.seek(20);
-        state02 = if01.rdstate();
-        pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02.value() + 10 ); 
-        VERIFY( state01 == state02 );
-        pos02 = if01.tell();
-        VERIFY( pos02 == pos01 ); 
-
-        state01 = if03.rdstate();
-        if03.seek(20);
-        state02 = if03.rdstate();
-        pos05 = if03.tell(); 
-        VERIFY( pos05 == pos06);
-        VERIFY( state01 == state02 );
-        pos06 = if03.tell(); 
-        VERIFY( pos05 == pos06 );
+        is.seek(0);
+        EXPECT_TRUE(is.good());
+        EXPECT_TRUE(static_cast<bool>(is));
+        EXPECT_EQ(is.tell(), 0u);
+        EXPECT_EQ(is.get(), '0');
     };
-    
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
 
-    dump_info("Done\n");
+    expect_revived.operator()<istream>();
+    expect_revived.operator()<iostream>();
+}
+
+TEST(IstreamSeekChar, ASuccessfulSeekLeavesTheStateOtherwiseAlone)
+{
+    auto expect_state_kept = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+        is.ignore(4);
+
+        const ios_defs::iostate before = is.rdstate();
+        is.seek(8);
+        EXPECT_EQ(is.rdstate(), before);
+        EXPECT_EQ(is.get(), '8');
+    };
+
+    expect_state_kept.operator()<istream>();
+    expect_state_kept.operator()<iostream>();
+}
+
+// A move the device cannot make is reported, and the position afterwards is not
+// reportable either -- a stale answer would send the next read to the wrong place.
+TEST(IstreamSeekChar, SeekingPastTheEndFailsAndLeavesNoPositionToReport)
+{
+    auto expect_failed = []<template <typename, typename> class T>()
+    {
+        T empty(mem_device{std::string("")});
+        EXPECT_TRUE(empty.good());
+
+        const auto before = empty.tell();
+        EXPECT_EQ(before, 0u);           // an empty device still has a position
+
+        const ios_defs::iostate state_before = empty.rdstate();
+        empty.seek(10);
+        EXPECT_NE(empty.rdstate(), state_before);
+        EXPECT_EQ(empty.rdstate(), ios_defs::devfailbit);
+
+        const auto after = empty.tell();
+        EXPECT_FALSE(after.has_value());
+        EXPECT_EQ(empty.tell(), after);  // and it stays that way
+    };
+
+    expect_failed.operator()<istream>();
+    expect_failed.operator()<iostream>();
+}
+
+// The same over a real file, where the position is the device's own rather than
+// an index into a buffer the stream owns.
+TEST(IstreamSeekChar, SeekWorksOverAFileDevice)
+{
+    const std::string path = "test_istream_seek_file.txt";
+    file_guard        guard(path, kDigits);
+
+    auto expect_moved = [&]<template <typename, typename> class T, typename TDevice>()
+    {
+        T is{TDevice{path}};
+        ASSERT_TRUE(is.good());
+
+        is.seek(10);
+        EXPECT_EQ(is.tell(), 10u);
+        EXPECT_EQ(is.get(), 'a');
+
+        const auto here = is.tell();
+        ASSERT_TRUE(here.has_value());
+        is.seek(here.value() + 4);
+        EXPECT_EQ(is.get(), 'f');
+
+        is.seek(0);
+        EXPECT_EQ(is.tell(), 0u);
+        EXPECT_EQ(is.get(), '0');
+    };
+
+    expect_moved.operator()<istream, ifile_device<char>>();
+    expect_moved.operator()<iostream, file_device<char>>();
 }

@@ -88,6 +88,14 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
     facet/monetary
     facet/numeric
     facet/timeio
+    io/istream/attach
+    io/istream/derive
+    io/istream/extractors_time
+    io/istream/get
+    io/istream/peek
+    io/istream/putback
+    io/istream/seek
+    io/istream/tell
     locale
 )
 
@@ -103,7 +111,7 @@ set(IOV2_TEST_EXCLUDED_SOURCES
     io/test_io.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 171)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 164)
 
 set(test_common_ENTRIES
     # none: every case registers itself
@@ -216,11 +224,11 @@ set(test_io_iostream_switch_to_put_ENTRIES
 )
 
 set(test_io_istream_attach_ENTRIES
-    test_istream_attach
+    # none: every case registers itself
 )
 
 set(test_io_istream_derive_ENTRIES
-    test_istream_derive
+    # none: every case registers itself
 )
 
 set(test_io_istream_extractors_arithmetic_ENTRIES
@@ -232,11 +240,11 @@ set(test_io_istream_extractors_character_ENTRIES
 )
 
 set(test_io_istream_extractors_time_ENTRIES
-    test_istream_extractors_time
+    # none: every case registers itself
 )
 
 set(test_io_istream_get_ENTRIES
-    test_istream_get
+    # none: every case registers itself
 )
 
 set(test_io_istream_getline_ENTRIES
@@ -248,11 +256,11 @@ set(test_io_istream_ignore_ENTRIES
 )
 
 set(test_io_istream_peek_ENTRIES
-    test_istream_peek
+    # none: every case registers itself
 )
 
 set(test_io_istream_putback_ENTRIES
-    test_istream_putback
+    # none: every case registers itself
 )
 
 set(test_io_istream_read_ENTRIES
@@ -260,11 +268,11 @@ set(test_io_istream_read_ENTRIES
 )
 
 set(test_io_istream_seek_ENTRIES
-    test_istream_seek
+    # none: every case registers itself
 )
 
 set(test_io_istream_tell_ENTRIES
-    test_istream_tell
+    # none: every case registers itself
 )
 
 set(test_io_istream_ws_ENTRIES

@@ -1,36 +1,40 @@
-#include <string>
+/**
+ * The same attach() contract as test_istream_attach_char.cpp for wchar_t: the
+ * state bits belong to the device that set them, and replacing the device
+ * clears them.  The failure path needs a file device and stays in the narrow
+ * file; what this instantiation adds is that the clearing is the stream's
+ * behaviour rather than a property of the character type.
+ */
 #include <device/mem_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/istream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/istream.h>
+#include <io/traits/char_and_str.h>
 
-// wchar_t counterpart of test_istream_attach_state_char_1.
-void test_istream_attach_state_wchar_t_1()
+#include <gtest/gtest.h>
+
+#include <string>
+
+using namespace IOv2;
+
+TEST(IstreamAttachWchar, AttachClearsEndOfFile)
 {
-    dump_info("Test istream<wchar_t> attach clears state case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_cleared = []<template <typename, typename> class T>()
     {
-        T is{IOv2::mem_device{std::wstring(L"ab")}};
+        T is{mem_device{std::wstring(L"ab")}};
 
         std::wstring tok;
         is >> tok;
-        VERIFY( tok == L"ab" );
-        VERIFY( is.eof() );
+        EXPECT_EQ(tok, L"ab");
+        EXPECT_TRUE(is.eof());
 
-        is.attach(IOv2::mem_device{std::wstring(L"cd")});
-        VERIFY( is.rdstate() == IOv2::ios_defs::goodbit );
+        is.attach(mem_device{std::wstring(L"cd")});
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
 
         std::wstring tok2;
         is >> tok2;
-        VERIFY( tok2 == L"cd" );
+        EXPECT_EQ(tok2, L"cd");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_cleared.operator()<istream>();
+    expect_cleared.operator()<iostream>();
 }

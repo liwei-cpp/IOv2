@@ -1,205 +1,154 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <device/mem_device.h>
+/**
+ * The same tell() contract as test_istream_tell_char.cpp for wchar_t.
+ *
+ * tell answers a question rather than doing anything, so most of its contract is
+ * about what it agrees with: the number of characters consumed so far, the place
+ * a subsequent read starts from, and its own previous answer. It reports through
+ * an optional, which is what lets "there is no position to report" be said
+ * without inventing a value for it -- a device that cannot report one leaves an
+ * empty optional and devfailbit behind, and a stream that simply has nothing in
+ * it still has a perfectly good position of zero.
+ *
+ * The fixture is "0123456789abcdef", whose character at index n is n in base
+ * 16, so the position tell reports and the character read there check each other.
+ */
+#include <cvt/code_cvt.h>
 #include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/iostream.h>
+#include <io/istream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+
+#include <gtest/gtest.h>
+
 #include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_istream_tell_wchar_t_1()
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<wchar_t>::tell case 1...");
-    auto helper = []<template<typename, typename> class T,
-                               typename TDevice>()
-    {
-        // in
-        T ist1{IOv2::mem_device{L""}};
-        auto p3 = ist1.tell();
-
-        // N.B. We implement the resolution of DR 453 and
-        // istringstream::tell() doesn't fail.
-        VERIFY( p3 == 0 );
-
-        std::string data = 
-            "bd2\n"
-            "456x\n"
-            "9mzuv>?@ABCDEFGHIJKLMNOPQRSTUVWXYZracadabras, i wannaz\n"
-            "because because\n"
-            "because. . \n"
-            "of the wonderful things he does!!\n"
-            "ok\n";
-
-        file_guard g1("istream_seeks-1.tst", data);
-        T ist2{IOv2::mem_device{L"bob_marley:kaya"}};
-        T ifs2{TDevice{"istream_seeks-1.tst"},
-               IOv2::code_cvt_creator<char, wchar_t>("C")};
-        p3 = ist2.tell();
-        auto p4 = ifs2.tell();
-        VERIFY( p3 == p4 );
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    const std::wstring kDigits = L"0123456789abcdef";
 }
 
-void test_istream_tell_wchar_t_2()
+TEST(IstreamTellWchar, TellStartsAtZeroAndCountsWhatWasConsumed)
 {
-    dump_info("Test istream<wchar_t>::tell case 2...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_counted = []<template <typename, typename> class T>()
     {
-        std::wstring num1(L"555");
+        T is(mem_device{kDigits});
+        EXPECT_EQ(is.tell(), 0u);
 
-        // tell
-        {
-            T iss(IOv2::mem_device{num1});
-            iss.tell();
-            int asNum = 0;
-            iss >> asNum;
-            VERIFY( iss.eof() );
-            VERIFY( (bool)iss );
-            iss.clear();
-            iss.tell();
-            VERIFY( (bool)iss );
-        }
+        is.get();
+        EXPECT_EQ(is.tell(), 1u);
 
-        // seek
-        {
-            T iss(IOv2::mem_device{num1});
-            iss.tell();
-            int asNum = 0;
-            iss >> asNum;
-            VERIFY( iss.eof() );
-            VERIFY( (bool)iss );
-            iss.seek(0);
-            VERIFY( (bool)iss );
-        }
+        is.ignore(4);
+        EXPECT_EQ(is.tell(), 5u);
 
-        // seek
+        wchar_t buf[8] = {};
+        is.template get<keep_sep, no_zt>(buf, 3);
+        EXPECT_EQ(is.tell(), 8u);   // no_zt spends the whole capacity on characters
+    };
+
+    expect_counted.operator()<istream>();
+    expect_counted.operator()<iostream>();
+}
+
+// The position tell reports is the one the next read starts from; the two would
+// be useless if they could disagree.
+TEST(IstreamTellWchar, TellNamesWhereTheNextReadWillStart)
+{
+    auto expect_agreement = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+
+        for (int i = 0; i < 6; ++i)
         {
-            T iss(IOv2::mem_device{num1});
-            auto pos1 = iss.tell();
-            int asNum = 0;
-            iss >> asNum;
-            VERIFY( iss.eof() );
-            VERIFY( (bool)iss );
-            iss.seek(pos1.value());
-            VERIFY( (bool)iss );
+            SCOPED_TRACE(i);
+            const auto here = is.tell();
+            ASSERT_TRUE(here.has_value());
+            EXPECT_EQ(is.get(), kDigits[here.value()]);
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_agreement.operator()<istream>();
+    expect_agreement.operator()<iostream>();
 }
 
-void test_istream_tell_wchar_t_3()
+TEST(IstreamTellWchar, TellDoesNotConsumeAndRepeatsItsAnswer)
 {
-    dump_info("Test istream<wchar_t>::tell case 3...");
-    auto helper = []<template<typename, typename> class T,
-                               typename TDevice>()
+    auto expect_idempotent = []<template <typename, typename> class T>()
     {
-        IOv2::ios_defs::iostate state01, state02;
+        T is(mem_device{kDigits});
+        is.ignore(6);
 
-        const char str_lit01[] = "istream_seeks-1.txt";
-
-        std::string str_lit01_data = 
-            "bd2\n"
-            "456x\n"
-            "9mzuv>?@ABCDEFGHIJKLMNOPQRSTUVWXYZracadabras, i wannaz\n"
-            "because because\n"
-            "because. . \n"
-            "of the wonderful things he does!!\n"
-            "ok\n";
-        std::string str_lit02_data = "";
-        file_guard g1(str_lit01, str_lit01_data);
-
-        T if01{TDevice{str_lit01},
-               IOv2::code_cvt_creator<char, wchar_t>("C")};
-        VERIFY( if01.good() );
-
-        auto pos01 = if01.tell();
-        auto pos02 = if01.tell();
-        VERIFY( pos01 == pos02 );
-
-        // cur 
-        // NB: see library issues list 136. It's the v-3 interp that seek
-        // only sets the input buffer, or else istreams with buffers that
-        // have _M_mode == ios_base::out will fail to have consistency
-        // between seek and tell.
-        state01 = if01.rdstate();
-        if01.seek(10 + if01.tell().value());
-        state02 = if01.rdstate();
-        pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02.value() + 10 ); 
-        VERIFY( state01 == state02 );
-        pos02 = if01.tell();
-        VERIFY( pos02 == pos01 );
+        const auto first = is.tell();
+        EXPECT_EQ(is.tell(), first);
+        EXPECT_EQ(is.tell(), first);
+        EXPECT_EQ(is.get(), L'6');       // still where it was
     };
 
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    expect_idempotent.operator()<istream>();
+    expect_idempotent.operator()<iostream>();
 }
 
-void test_istream_tell_wchar_t_4()
+// Nothing to read is not the same as nowhere to be: an empty stream is at
+// position zero, and asking does not fail it.
+TEST(IstreamTellWchar, AStreamWithNothingInItIsStillAtPositionZero)
 {
-    dump_info("Test istream<wchar_t>::tell case 4...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_zero = []<template <typename, typename> class T>()
     {
-        IOv2::ios_defs::iostate state01, state02;
-
-        std::wstring str_lit01_data = 
-            L"bd2\n"
-            L"456x\n"
-            L"9mzuv>?@ABCDEFGHIJKLMNOPQRSTUVWXYZracadabras, i wannaz\n"
-            L"because because\n"
-            L"because. . \n"
-            L"of the wonderful things he does!!\n"
-            L"ok\n";
-        std::wstring str_lit02_data = L"";
-
-        T if01{IOv2::mem_device{str_lit01_data}};
-        T if03{IOv2::mem_device{str_lit02_data}};
-        VERIFY( if01.good() );
-        VERIFY( if03.good() );
-
-        auto pos01 = if01.tell();
-        auto pos02 = if01.tell();
-        VERIFY( pos01 == pos02 );
-
-        auto pos05 = if03.tell();
-        auto pos06 = if03.tell();
-        VERIFY( pos05 == pos06 );
-
-        // cur 
-        // NB: see library issues list 136. It's the v-3 interp that seek
-        // only sets the input buffer, or else istreams with buffers that
-        // have _M_mode == ios_base::out will fail to have consistency
-        // between seek and tell.
-        state01 = if01.rdstate();
-        if01.seek(10 + if01.tell().value());
-        state02 = if01.rdstate();
-        pos01 = if01.tell(); 
-        VERIFY( pos01 == pos02.value() + 10 ); 
-        VERIFY( state01 == state02 );
-        pos02 = if01.tell(); 
-        VERIFY( pos02 == pos01 );
+        T empty(mem_device{std::wstring(L"")});
+        EXPECT_EQ(empty.tell(), 0u);
+        EXPECT_TRUE(empty.good());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_zero.operator()<istream>();
+    expect_zero.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+// A stream over a file and one over memory count the same way, so the same
+// number of reads leaves them at the same position.
+TEST(IstreamTellWchar, AFileAndAMemoryStreamCountAlike)
+{
+    const std::string path = "test_istream_tell_file.txt";
+    file_guard        guard(path, std::string("0123456789abcdef"));
+
+    auto expect_alike = [&]<template <typename, typename> class T, typename TDevice>()
+    {
+        T from_memory{mem_device{kDigits}};
+        T from_file{TDevice{path}, code_cvt_creator<char, wchar_t>("C")};
+        ASSERT_TRUE(from_file.good());
+
+        EXPECT_EQ(from_memory.tell(), from_file.tell());
+
+        from_memory.ignore(7);
+        from_file.ignore(7);
+        EXPECT_EQ(from_memory.tell(), from_file.tell());
+        EXPECT_EQ(from_memory.get(), from_file.get());
+    };
+
+    expect_alike.operator()<istream, ifile_device<char>>();
+    expect_alike.operator()<iostream, file_device<char>>();
+}
+
+// Once the device has refused a move there is no position to report, and the
+// empty optional says so rather than a value that would be wrong.
+TEST(IstreamTellWchar, AnUnreportablePositionIsEmptyRatherThanWrong)
+{
+    auto expect_empty = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{std::wstring(L"")});
+
+        is.seek(10);                      // past the end of an empty device
+        EXPECT_TRUE(is.rdstate() & ios_defs::devfailbit);
+
+        const auto pos = is.tell();
+        EXPECT_FALSE(pos.has_value());
+        EXPECT_EQ(is.tell(), pos);
+    };
+
+    expect_empty.operator()<istream>();
+    expect_empty.operator()<iostream>();
 }

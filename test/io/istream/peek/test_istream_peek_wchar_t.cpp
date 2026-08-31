@@ -1,151 +1,149 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <device/mem_device.h>
+/**
+ * The same peek contract as test_istream_peek_char.cpp for wchar_t: peek does
+ * not consume, does not move the read position, and does not change the state
+ * except at the end of the input, where an empty optional and eofbit are the
+ * report.
+ *
+ * The file case is the one that differs. file_guard writes bytes, so a wide
+ * stream over a file is a narrow device with a converter on top -- which also
+ * makes it the case where "the position did not move" has to hold across a
+ * conversion rather than over raw bytes.
+ */
+#include <cvt/code_cvt.h>
 #include <device/file_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
+#include <device/mem_device.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
+#include <io/istream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
 #include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_istream_peek_wchar_t_1()
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<wchar_t>::peek case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const std::string str_02("soul eyes: john coltrane quartet");
-        T is_03(IOv2::mem_device{str_02});
-        T is_04(IOv2::mem_device{str_02});
-        IOv2::ios_defs::iostate state1, state2;
-
-        char carray[60] = "";
-
-        // istream& ignore(streamsize n = 1, int_type delim = traits::eof())
-        is_04.read(carray, 9);
-        VERIFY( is_04.peek() == ':' );
-
-        state1 = is_04.rdstate();
-        is_04.ignore();
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == ' ' );
-
-        state1 = is_04.rdstate();
-        is_04.ignore(0);
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == ' ' );
-
-        state1 = is_04.rdstate();
-        is_04.ignore(5, ' ');
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == 'j' );
-
-        state1 = is_04.rdstate();
-        VERIFY( is_04.peek() == 'j' );
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-
-        is_04.ignore(30);
-        state1 = is_04.rdstate();
-        VERIFY( !is_04.peek().has_value() );
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    const std::wstring kDigits = L"0123456789abcdef";
 }
 
-void test_istream_peek_wchar_t_2()
+TEST(IstreamPeekWchar, PeekReportsTheNextCharacterWithoutConsumingIt)
 {
-    dump_info("Test istream<wchar_t>::peek case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_non_destructive = []<template <typename, typename> class T>()
     {
-        T stream{IOv2::mem_device{L""}};
-        VERIFY( stream.rdstate() == IOv2::ios_defs::goodbit );
-        auto c = stream.peek();
-        VERIFY( !c.has_value() );
-        VERIFY( stream.rdstate() == IOv2::ios_defs::eofbit );
+        T is(mem_device{kDigits});
+
+        EXPECT_EQ(is.peek(), L'0');
+        EXPECT_EQ(is.peek(), L'0');
+        EXPECT_EQ(is.peek(), L'0');
+
+        EXPECT_EQ(is.get(), L'0');
+        EXPECT_EQ(is.peek(), L'1');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_non_destructive.operator()<istream>();
+    expect_non_destructive.operator()<iostream>();
 }
 
-void test_istream_peek_wchar_t_3()
+TEST(IstreamPeekWchar, PeekLeavesTheStateAlone)
 {
-    dump_info("Test istream<wchar_t>::peek case 3...");
-
-    auto helper = []<template<typename, typename> class T,
-                               typename TDevice>()
+    auto expect_state_kept = []<template <typename, typename> class T>()
     {
-        std::string data =
-            "bd2\n"
-            "456x\n"
-            "9mzuv>?@ABCDEFGHIJKLMNOPQRSTUVWXYZracadabras, i wannaz\n"
-            "because because\n"
-            "because. . \n"
-            "of the wonderful things he does!!\n"
-            "ok\n";
+        T is(mem_device{kDigits});
 
-        file_guard g("istream_seeks-1.txt", data);
-
-        T if01(TDevice{"istream_seeks-1.txt"},
-               IOv2::code_cvt_creator<char, wchar_t>("C"));
-        if01.seek(0);
-        auto pos01 = if01.tell();
-        if01.peek();
-        auto pos02 = if01.tell();
-        VERIFY( pos02 == pos01 );
+        const ios_defs::iostate before = is.rdstate();
+        EXPECT_EQ(is.peek(), L'0');
+        EXPECT_EQ(is.rdstate(), before);
     };
 
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    expect_state_kept.operator()<istream>();
+    expect_state_kept.operator()<iostream>();
 }
 
-
-void test_istream_peek_wchar_t_4()
+TEST(IstreamPeekWchar, PeekReportsWhateverTheCursorIsOn)
 {
-    dump_info("Test istream<wchar_t>::peek case 4 (EOF x exception mask)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_follows_cursor = []<template <typename, typename> class T>()
     {
-        // eofbit masked: peek() at EOF throws eof_error; eofbit set.
-        {
-            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
-            s.exceptions(IOv2::ios_defs::eofbit);
-            bool threw = false;
-            try { (void)s.peek(); }
-            catch (const IOv2::eof_error&) { threw = true; }
-            VERIFY(threw);
-            VERIFY(s.eof());
-        }
-        // eofbit unmasked (default): no throw, eofbit set (regression).
-        {
-            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
-            auto c = s.peek();
-            VERIFY(!c.has_value());
-            VERIFY(s.eof());
-        }
+        T is(mem_device{kDigits});
+
+        wchar_t buf[8] = {};
+        is.read(buf, 4);
+        EXPECT_EQ(is.peek(), L'4');
+
+        is.ignore();
+        EXPECT_EQ(is.peek(), L'5');
+
+        is.ignore(0);
+        EXPECT_EQ(is.peek(), L'5');
+
+        is.ignore(6, L'8');
+        EXPECT_EQ(is.peek(), L'9');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_follows_cursor.operator()<istream>();
+    expect_follows_cursor.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+TEST(IstreamPeekWchar, PeekAtTheEndReportsNothingAndSetsEndOfFile)
+{
+    auto expect_end = []<template <typename, typename> class T>()
+    {
+        T empty{mem_device{std::wstring(L"")}};
+        EXPECT_EQ(empty.rdstate(), ios_defs::goodbit);
+        EXPECT_FALSE(empty.peek().has_value());
+        EXPECT_EQ(empty.rdstate(), ios_defs::eofbit);
+
+        T drained(mem_device{kDigits});
+        drained.ignore(kDigits.size());
+        EXPECT_FALSE(drained.peek().has_value());
+        EXPECT_TRUE(drained.eof());
+    };
+
+    expect_end.operator()<istream>();
+    expect_end.operator()<iostream>();
+}
+
+TEST(IstreamPeekWchar, PeekDoesNotMoveTheReadPosition)
+{
+    const std::string path = "test_istream_peek_position_wide.txt";
+    file_guard        guard(path, std::string("0123456789abcdef"));
+
+    auto expect_still = [&path]<template <typename, typename> class T, typename TDevice>()
+    {
+        T is(TDevice{path}, code_cvt_creator<char, wchar_t>("C"));
+        is.seek(0);
+
+        const auto before = is.tell();
+        EXPECT_EQ(is.peek(), L'0');
+        EXPECT_EQ(is.tell(), before);
+
+        is.seek(10);
+        const auto middle = is.tell();
+        EXPECT_EQ(is.peek(), L'a');
+        EXPECT_EQ(is.tell(), middle);
+    };
+
+    expect_still.operator()<istream, ifile_device<char>>();
+    expect_still.operator()<iostream, file_device<char>>();
+}
+
+TEST(IstreamPeekWchar, PeekAtTheEndThrowsWhenEndOfFileIsMasked)
+{
+    auto expect_thrown = []<template <typename, typename> class T>()
+    {
+        T masked{mem_device{std::wstring(L"")}, locale<wchar_t>("C")};
+        masked.exceptions(ios_defs::eofbit);
+        EXPECT_THROW((void)masked.peek(), eof_error);
+        EXPECT_TRUE(masked.eof());
+
+        T unmasked{mem_device{std::wstring(L"")}, locale<wchar_t>("C")};
+        EXPECT_FALSE(unmasked.peek().has_value());
+        EXPECT_TRUE(unmasked.eof());
+    };
+
+    expect_thrown.operator()<istream>();
+    expect_thrown.operator()<iostream>();
 }
