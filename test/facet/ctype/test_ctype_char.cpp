@@ -1,283 +1,384 @@
+/**
+ * IOv2::ctype<char>, checked two ways.
+ *
+ * The classification and case-mapping answers themselves come from the C
+ * library, so restating them here would only restate the locale database.  What
+ * the cases below check instead is that the facet delivers them faithfully:
+ * every one of the 256 byte values is compared against std::ctype_byname for the
+ * same locale, and every bulk operation is compared against the single-character
+ * one it is supposed to repeat.
+ *
+ * The rest are the properties [locale.ctype.virtuals] states outright -- is_any
+ * as a masked is(), scan_is_any and scan_not_any as searches over is_any, and
+ * the "C" locale's fixed answers for the categories the standard pins down.
+ */
 #include <facet/ctype.h>
-#include <ios>
-#include <limits>
-#include <stdexcept>
-#include <type_traits>
+#include <facet/ctype_details.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <gtest/gtest.h>
+
+#include <cstddef>
+#include <locale>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+
+using namespace IOv2;
+
 namespace
 {
-    constexpr auto charLen = std::numeric_limits<unsigned char>::max();
-    
-    template <typename C>
-    struct ref_ctype_sealed : std::ctype_byname<C>
+    using CT   = base_ft<ctype>;
+    using mask = CT::mask;
+
+    // Every value an unsigned char can take, the full domain of the facet's table.
+    constexpr int kByteValues = 256;
+
+    ctype<char> facet_for(const char* loc)
     {
-        ref_ctype_sealed(const char* name)
-            : std::ctype_byname<C>(name) {}
+        return ctype<char>(std::make_shared<ctype_conf<char>>(loc));
+    }
+
+    // std::ctype_byname's constructor is protected against direct use, so a
+    // trivial derived class is the only way to get one outside a std::locale.
+    struct ref_ctype : std::ctype_byname<char>
+    {
+        explicit ref_ctype(const char* name) : std::ctype_byname<char>(name) {}
     };
-    
-    auto convert_to_iov2_mask(std::ctype_base::mask in)
+
+    mask to_iov2(std::ctype_base::mask in)
     {
-        IOv2::base_ft<IOv2::ctype>::mask res = static_cast<IOv2::base_ft<IOv2::ctype>::mask>(0);
-        if ((in & std::ctype_base::upper) == std::ctype_base::upper) res |= IOv2::base_ft<IOv2::ctype>::upper;
-        if ((in & std::ctype_base::lower) == std::ctype_base::lower) res |= IOv2::base_ft<IOv2::ctype>::lower;
-        if ((in & std::ctype_base::alpha) == std::ctype_base::alpha) res |= IOv2::base_ft<IOv2::ctype>::alpha;
-        if ((in & std::ctype_base::digit) == std::ctype_base::digit) res |= IOv2::base_ft<IOv2::ctype>::digit;
-        if ((in & std::ctype_base::xdigit) == std::ctype_base::xdigit) res |= IOv2::base_ft<IOv2::ctype>::xdigit;
-        if ((in & std::ctype_base::space) == std::ctype_base::space) res |= IOv2::base_ft<IOv2::ctype>::space;
-        if ((in & std::ctype_base::print) == std::ctype_base::print) res |= IOv2::base_ft<IOv2::ctype>::print;
-        if ((in & std::ctype_base::graph) == std::ctype_base::graph) res |= IOv2::base_ft<IOv2::ctype>::graph;
-        if ((in & std::ctype_base::cntrl) == std::ctype_base::cntrl) res |= IOv2::base_ft<IOv2::ctype>::cntrl;
-        if ((in & std::ctype_base::punct) == std::ctype_base::punct) res |= IOv2::base_ft<IOv2::ctype>::punct;
-        if ((in & std::ctype_base::alnum) == std::ctype_base::alnum) res |= IOv2::base_ft<IOv2::ctype>::alnum;
-        
+        mask res = static_cast<mask>(0);
+        auto copy_bit = [&](std::ctype_base::mask from, mask to)
+        { if ((in & from) == from) res |= to; };
+
+        copy_bit(std::ctype_base::upper,  CT::upper);
+        copy_bit(std::ctype_base::lower,  CT::lower);
+        copy_bit(std::ctype_base::alpha,  CT::alpha);
+        copy_bit(std::ctype_base::digit,  CT::digit);
+        copy_bit(std::ctype_base::xdigit, CT::xdigit);
+        copy_bit(std::ctype_base::space,  CT::space);
+        copy_bit(std::ctype_base::print,  CT::print);
+        copy_bit(std::ctype_base::cntrl,  CT::cntrl);
+        copy_bit(std::ctype_base::punct,  CT::punct);
         return res;
     }
-}
 
-void test_ctype_facet_char_1()
-{
-    dump_info("Test ctype<char> 1...");
-    static_assert(std::is_same_v<IOv2::ctype<char>::char_type, char>);
+    // alnum and graph are unions of the bits above rather than bits of their
+    // own, so they are listed apart: they belong in the mask algebra cases but
+    // not in a table that has to enumerate distinct bits.
+    struct named_mask { const char* name; mask value; };
+    const named_mask kCategories[] = {
+        {"upper", CT::upper}, {"lower", CT::lower}, {"alpha", CT::alpha},
+        {"digit", CT::digit}, {"xdigit", CT::xdigit}, {"space", CT::space},
+        {"print", CT::print}, {"cntrl", CT::cntrl}, {"punct", CT::punct},
+        {"alnum", CT::alnum}, {"graph", CT::graph},
+    };
 
-    const IOv2::ctype<char> obj(std::make_shared<IOv2::ctype_conf<char>>("en_US.UTF-8"));
-
-    const ref_ctype_sealed<char> ref("en_US.UTF-8");
-    
-    char chs[charLen];
-    for (unsigned char i = 0; i < charLen; ++i) chs[i] = static_cast<char>(i);
-    
-    std::ctype<char>::mask mask_ref[charLen];
-    ref.is(chs, chs + charLen, mask_ref);
-    for (unsigned char i = 0; i < charLen; ++i)
+    std::string every_byte()
     {
-        auto m = obj.is(i);
-        auto cur_ref = convert_to_iov2_mask(mask_ref[i]);
-        VERIFY(m == cur_ref);
-
-        VERIFY(obj.toupper(i) == ref.toupper(static_cast<char>(i)));
-
-        VERIFY(obj.tolower(i) == ref.tolower(static_cast<char>(i)));
-
-        VERIFY(obj.widen(i) == ref.widen(static_cast<char>(i)));
-
-        VERIFY(obj.narrow(i, 0) == ref.narrow(static_cast<char>(i), 0));
+        std::string out(kByteValues, '\0');
+        for (int i = 0; i < kByteValues; ++i) out[i] = static_cast<char>(i);
+        return out;
     }
-
-    dump_info("Done\n");
 }
 
-void test_ctype_facet_char_2()
+TEST(CtypeChar, TheCharacterTypeIsChar)
 {
-    dump_info("Test ctype<char> 2...");
-    const IOv2::ctype<char> obj(std::make_shared<IOv2::ctype_conf<char>>("en_US.UTF-8"));
-    
-    char chs[charLen];
-    for (unsigned char i = 0; i < charLen; ++i) chs[i] = static_cast<char>(i);
-    
-    IOv2::base_ft<IOv2::ctype>::mask mask_res[charLen];
-    auto mask_ptr = obj.is_seq(chs, chs + charLen, mask_res);
-    VERIFY(mask_ptr == mask_res + charLen);
-    for (int i = 0; i < charLen; ++i)
-        VERIFY(obj.is(static_cast<char>(i)) == mask_res[i]);
-
-    char uchs[charLen];
-    auto uchs_ptr = obj.toupper_seq(chs, chs + charLen, uchs);
-    VERIFY(uchs_ptr == uchs + charLen);
-    for (int i = 0; i < charLen; ++i)
-        VERIFY(obj.toupper(static_cast<char>(i)) == uchs[i]);
-
-    char lchs[charLen];
-    auto lchs_ptr = obj.tolower_seq(chs, chs + charLen, lchs);
-    VERIFY(lchs_ptr == lchs + charLen);
-    for (int i = 0; i < charLen; ++i)
-        VERIFY(obj.tolower(static_cast<char>(i)) == lchs[i]);
-
-    char wchs[charLen];
-    auto wchs_ptr = obj.widen_seq(chs, chs + charLen, wchs);
-    VERIFY(wchs_ptr == wchs + charLen);
-    for (int i = 0; i < charLen; ++i)
-        VERIFY(obj.widen(static_cast<char>(i)) == wchs[i]);
-
-    char nchs[charLen];
-    auto nchs_ptr = obj.narrow_seq(chs, chs + charLen, 0, nchs);
-    VERIFY(nchs_ptr == nchs + charLen);
-    for (int i = 0; i < charLen; ++i)
-        VERIFY(obj.widen(static_cast<char>(i)) == nchs[i]);
-    dump_info("Done\n");
+    static_assert(std::is_same_v<ctype<char>::char_type, char>);
+    static_assert(std::is_same_v<ctype<char>::mask, mask>);
 }
 
-void test_ctype_facet_char_3()
+TEST(CtypeChar, ClassificationMatchesTheStandardFacet)
 {
-    dump_info("Test ctype<char> 3...");
-    const char *const ca = "aaaaa";
-    const char *const cz = "zzzzz";
-    const char *const cA = "AAAAA";
-    const char *const cZ = "ZZZZZ";
-    const char *const c0 = "00000";
-    const char *const c9 = "99999";
-    const char *const cs = "     ";
-    const char *const xf = "fffff";
-    const char *const xF = "FFFFF";
-    const char *const p1 = "!!!!!";
-    const char *const p2 = "/////";
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    const ref_ctype   ref("en_US.UTF-8");
+    const std::string all = every_byte();
 
-    const IOv2::ctype<char> obj(std::make_shared<IOv2::ctype_conf<char>>("C"));
-    auto _is = [&obj](IOv2::base_ft<IOv2::ctype>::mask m, const char *const b, const char *const e)
+    std::vector<std::ctype_base::mask> expected(kByteValues);
+    ref.is(all.data(), all.data() + kByteValues, expected.data());
+
+    for (int i = 0; i < kByteValues; ++i)
     {
-        VERIFY(obj.scan_is_any(m, b, e) == b);
-        VERIFY(obj.scan_not_any(m, b, e) == e);
-    };
+        SCOPED_TRACE(i);
+        EXPECT_EQ(obj.is(all[i]), to_iov2(expected[i]));
+    }
+}
 
-    auto _not = [&obj](IOv2::base_ft<IOv2::ctype>::mask m, const char *const b, const char *const e)
+TEST(CtypeChar, CaseMappingMatchesTheStandardFacet)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    const ref_ctype   ref("en_US.UTF-8");
+
+    for (int i = 0; i < kByteValues; ++i)
     {
-        VERIFY(obj.scan_is_any(m, b, e) == e);
-        VERIFY(obj.scan_not_any(m, b, e) == b);
-    };
-    
-    // 'a'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, ca, ca + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::alpha, ca, ca + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, ca, ca + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, ca, ca + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, ca, ca + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::lower, ca, ca + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, ca, ca + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, ca, ca + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, ca, ca + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, ca, ca + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::xdigit, ca, ca + 5);
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        EXPECT_EQ(obj.toupper(c), ref.toupper(c));
+        EXPECT_EQ(obj.tolower(c), ref.tolower(c));
+    }
+}
 
-    // 'z'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, cz, cz + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::alpha, cz, cz + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, cz, cz + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, cz, cz + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, cz, cz + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::lower, cz, cz + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, cz, cz + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, cz, cz + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, cz, cz + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, cz, cz + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::xdigit, cz, cz + 5);
-    
-    // 'A'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, cA, cA + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::alpha, cA, cA + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, cA, cA + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, cA, cA + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, cA, cA + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, cA, cA + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, cA, cA + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, cA, cA + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, cA, cA + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::upper, cA, cA + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::xdigit, cA, cA + 5);
-    
-    // 'Z'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, cZ, cZ + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::alpha, cZ, cZ + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, cZ, cZ + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, cZ, cZ + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, cZ, cZ + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, cZ, cZ + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, cZ, cZ + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, cZ, cZ + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, cZ, cZ + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::upper, cZ, cZ + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::xdigit, cZ, cZ + 5);
+TEST(CtypeChar, WidenAndNarrowMatchTheStandardFacet)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    const ref_ctype   ref("en_US.UTF-8");
 
-    // '0'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, c0, c0 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::alpha, c0, c0 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, c0, c0 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::digit, c0, c0 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, c0, c0 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, c0, c0 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, c0, c0 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, c0, c0 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, c0, c0 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, c0, c0 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::xdigit, c0, c0 + 5);
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        EXPECT_EQ(obj.widen(c), ref.widen(c));
+        EXPECT_EQ(obj.narrow(c, 0), ref.narrow(c, 0));
+    }
+}
 
-    // '9'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, c9, c9 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::alpha, c9, c9 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, c9, c9 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::digit, c9, c9 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, c9, c9 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, c9, c9 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, c9, c9 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, c9, c9 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, c9, c9 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, c9, c9 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::xdigit, c9, c9 + 5);
-    
-    // ' '
-    _not(IOv2::base_ft<IOv2::ctype>::alnum, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::alpha, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::graph, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, cs, cs + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, cs, cs + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::space, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, cs, cs + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::xdigit, cs, cs + 5);
+// The five bulk operations exist only to repeat the single-character one over a
+// range, so each is checked against its own scalar counterpart rather than
+// against a second copy of the locale data.
+TEST(CtypeChar, IsSeqClassifiesEveryCharacterOfTheRange)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    const std::string all = every_byte();
 
-    // 'f'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, xf, xf + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::alpha, xf, xf + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, xf, xf + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, xf, xf + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, xf, xf + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::lower, xf, xf + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, xf, xf + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, xf, xf + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, xf, xf + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, xf, xf + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::xdigit, xf, xf + 5);
+    std::vector<mask> out(kByteValues);
+    EXPECT_EQ(obj.is_seq(all.data(), all.data() + kByteValues, out.data()),
+              out.data() + kByteValues);
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        EXPECT_EQ(out[i], obj.is(all[i]));
+    }
+}
 
-    // 'F'
-    _is(IOv2::base_ft<IOv2::ctype>::alnum, xF, xF + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::alpha, xF, xF + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, xF, xF + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, xF, xF + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, xF, xF + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, xF, xF + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, xF, xF + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::punct, xF, xF + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, xF, xF + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::upper, xF, xF + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::xdigit, xF, xF + 5);
-  
-    // '!'
-    _not(IOv2::base_ft<IOv2::ctype>::alnum, p1, p1 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::alpha, p1, p1 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, p1, p1 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, p1, p1 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, p1, p1 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, p1, p1 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, p1, p1 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::punct, p1, p1 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, p1, p1 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, p1, p1 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::xdigit, p1, p1 + 5);
+TEST(CtypeChar, CaseMappingSeqMapsEveryCharacterOfTheRange)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    const std::string all = every_byte();
 
-    // '/'
-    _not(IOv2::base_ft<IOv2::ctype>::alnum, p2, p2 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::alpha, p2, p2 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::cntrl, p2, p2 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::digit, p2, p2 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::graph, p2, p2 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::lower, p2, p2 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::print, p2, p2 + 5);
-    _is(IOv2::base_ft<IOv2::ctype>::punct, p2, p2 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::space, p2, p2 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::upper, p2, p2 + 5);
-    _not(IOv2::base_ft<IOv2::ctype>::xdigit, p2, p2 + 5);
-    
-    dump_info("Done\n");
+    std::string upper(kByteValues, '\0');
+    std::string lower(kByteValues, '\0');
+    EXPECT_EQ(obj.toupper_seq(all.data(), all.data() + kByteValues, upper.data()),
+              upper.data() + kByteValues);
+    EXPECT_EQ(obj.tolower_seq(all.data(), all.data() + kByteValues, lower.data()),
+              lower.data() + kByteValues);
+
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        EXPECT_EQ(upper[i], obj.toupper(all[i]));
+        EXPECT_EQ(lower[i], obj.tolower(all[i]));
+    }
+}
+
+TEST(CtypeChar, WidenAndNarrowSeqMapEveryCharacterOfTheRange)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    const std::string all = every_byte();
+
+    std::string widened(kByteValues, '\0');
+    std::string narrowed(kByteValues, '\0');
+    EXPECT_EQ(obj.widen_seq(all.data(), all.data() + kByteValues, widened.data()),
+              widened.data() + kByteValues);
+    EXPECT_EQ(obj.narrow_seq(all.data(), all.data() + kByteValues, 0, narrowed.data()),
+              narrowed.data() + kByteValues);
+
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        EXPECT_EQ(widened[i], obj.widen(all[i]));
+        EXPECT_EQ(narrowed[i], obj.narrow(all[i], 0));
+    }
+}
+
+TEST(CtypeChar, AnEmptyRangeWritesNothing)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    const char        one = 'a';
+
+    mask m = static_cast<mask>(0);
+    char c = '\0';
+    EXPECT_EQ(obj.is_seq(&one, &one, &m), &m);
+    EXPECT_EQ(obj.toupper_seq(&one, &one, &c), &c);
+    EXPECT_EQ(obj.tolower_seq(&one, &one, &c), &c);
+    EXPECT_EQ(obj.widen_seq(&one, &one, &c), &c);
+    EXPECT_EQ(obj.narrow_seq(&one, &one, 0, &c), &c);
+}
+
+// is_any is is() masked by the category, which is what makes every other query
+// in the facet a question about the same table.
+TEST(CtypeChar, IsAnyIsTheClassificationMaskedByTheCategory)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    for (int i = 0; i < kByteValues; ++i)
+        for (const named_mask& cat : kCategories)
+        {
+            SCOPED_TRACE(std::string(cat.name) + " " + std::to_string(i));
+            const char c = static_cast<char>(i);
+            EXPECT_EQ(obj.is_any(cat.value, c), (obj.is(c) & cat.value) != 0);
+        }
+}
+
+// A mask names a set of categories, so asking about a union has to answer the
+// union of the answers -- for every pair, not just the disjoint ones.
+TEST(CtypeChar, AskingAboutAUnionOfCategoriesUnionsTheAnswers)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    for (int i = 0; i < kByteValues; ++i)
+        for (const named_mask& lhs : kCategories)
+            for (const named_mask& rhs : kCategories)
+            {
+                SCOPED_TRACE(std::string(lhs.name) + "|" + rhs.name + " " + std::to_string(i));
+                const char c = static_cast<char>(i);
+                EXPECT_EQ(obj.is_any(lhs.value | rhs.value, c),
+                          obj.is_any(lhs.value, c) || obj.is_any(rhs.value, c));
+            }
+}
+
+TEST(CtypeChar, UpperAndLowerCharactersAreAlphabetic)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        if (obj.is_any(CT::upper, c) || obj.is_any(CT::lower, c))
+        {
+            EXPECT_TRUE(obj.is_any(CT::alpha, c));
+        }
+    }
+}
+
+TEST(CtypeChar, ControlCharactersAreNotPrintable)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        EXPECT_FALSE(obj.is_any(CT::cntrl, c) && obj.is_any(CT::print, c));
+    }
+}
+
+// The "C" locale is the one the standard fixes completely, so it is the only one
+// whose membership can be written down here rather than looked up.
+TEST(CtypeChar, TheCLocalePinsDownTheDigitCategories)
+{
+    const ctype<char> obj = facet_for("C");
+    const std::string digits  = "0123456789";
+    const std::string hex     = "0123456789abcdefABCDEF";
+
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        EXPECT_EQ(obj.is_any(CT::digit, c), digits.find(c) != std::string::npos);
+        EXPECT_EQ(obj.is_any(CT::xdigit, c), hex.find(c) != std::string::npos);
+    }
+}
+
+// print is graph plus the space character, and nothing else: a printable
+// character that is neither alphanumeric nor punctuation can only be ' '.
+TEST(CtypeChar, TheCLocalePrintsGraphAndTheSpaceCharacter)
+{
+    const ctype<char> obj = facet_for("C");
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        EXPECT_EQ(obj.is_any(CT::print, c), obj.is_any(CT::graph, c) || c == ' ');
+    }
+}
+
+TEST(CtypeChar, ScanIsAnyReturnsTheFirstCharacterInTheCategory)
+{
+    const ctype<char> obj  = facet_for("C");
+    const std::string data = "  9x";
+
+    EXPECT_EQ(obj.scan_is_any(CT::digit, data.data(), data.data() + data.size()),
+              data.data() + 2);
+    EXPECT_EQ(obj.scan_is_any(CT::space, data.data(), data.data() + data.size()),
+              data.data());
+    EXPECT_EQ(obj.scan_is_any(CT::alpha, data.data(), data.data() + data.size()),
+              data.data() + 3);
+}
+
+TEST(CtypeChar, ScanIsAnyReturnsTheEndWhenNothingMatches)
+{
+    const ctype<char> obj  = facet_for("C");
+    const std::string data = "  9x";
+    EXPECT_EQ(obj.scan_is_any(CT::cntrl, data.data(), data.data() + data.size()),
+              data.data() + data.size());
+}
+
+TEST(CtypeChar, ScanNotAnyReturnsTheFirstCharacterOutsideTheCategory)
+{
+    const ctype<char> obj  = facet_for("C");
+    const std::string data = "  9x";
+
+    EXPECT_EQ(obj.scan_not_any(CT::space, data.data(), data.data() + data.size()),
+              data.data() + 2);
+    EXPECT_EQ(obj.scan_not_any(CT::digit, data.data(), data.data() + data.size()),
+              data.data());
+    EXPECT_EQ(obj.scan_not_any(CT::print, data.data(), data.data() + data.size()),
+              data.data() + data.size());
+}
+
+TEST(CtypeChar, ScanningAnEmptyRangeReturnsItsEnd)
+{
+    const ctype<char> obj = facet_for("C");
+    const char        one = 'a';
+    EXPECT_EQ(obj.scan_is_any(CT::alpha, &one, &one), &one);
+    EXPECT_EQ(obj.scan_not_any(CT::alpha, &one, &one), &one);
+}
+
+// The two scans are searches over is_any, so on a run of one repeated character
+// each can only answer the front of the range or its end -- and which one it is
+// has to be exactly what is_any says about that character.
+TEST(CtypeChar, ScanAgreesWithIsAnyForEveryCharacterAndCategory)
+{
+    const ctype<char> obj = facet_for("C");
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        const std::string run(5, static_cast<char>(i));
+        const char*       beg = run.data();
+        const char*       end = run.data() + run.size();
+
+        for (const named_mask& cat : kCategories)
+        {
+            SCOPED_TRACE(std::string(cat.name) + " " + std::to_string(i));
+            const bool member = obj.is_any(cat.value, run[0]);
+            EXPECT_EQ(obj.scan_is_any(cat.value, beg, end), member ? beg : end);
+            EXPECT_EQ(obj.scan_not_any(cat.value, beg, end), member ? end : beg);
+        }
+    }
+}
+
+// Case mapping is idempotent: a character that has already been mapped is a
+// fixed point of the same mapping.  The stronger claim that the two undo each
+// other is false in Unicode -- U+00B5 MICRO SIGN uppercases to GREEK CAPITAL MU,
+// which lowercases to GREEK SMALL MU rather than back to the micro sign.
+TEST(CtypeChar, CaseMappingIsIdempotent)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        EXPECT_EQ(obj.toupper(obj.toupper(c)), obj.toupper(c));
+        EXPECT_EQ(obj.tolower(obj.tolower(c)), obj.tolower(c));
+    }
+}
+
+// widen and narrow are inverses on the character type they are both defined
+// over, which for char is every value it can hold.
+TEST(CtypeChar, NarrowUndoesWiden)
+{
+    const ctype<char> obj = facet_for("en_US.UTF-8");
+    for (int i = 0; i < kByteValues; ++i)
+    {
+        SCOPED_TRACE(i);
+        const char c = static_cast<char>(i);
+        EXPECT_EQ(obj.narrow(obj.widen(c), '?'), c);
+    }
 }

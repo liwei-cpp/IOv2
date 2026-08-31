@@ -1,1313 +1,985 @@
-#include <sstream>
+/**
+ * The same currency contract as test_monetary_char.cpp for char8_t.  What differs is
+ * only the type the field is written in: the pattern, the grouping, the sign
+ * placement and the parse are one algorithm over whatever character type the
+ * facet was instantiated with, and these cases are here to say that the
+ * instantiation changes none of it.
+ *
+ * The cases about the configuration rather than the field -- how a locale name
+ * is spelled, how the POSIX sign position becomes a pattern, which fill
+ * characters would change the amount a field reads as -- read the same data
+ * whatever the character type is, so they stay in the narrow file.
+ */
 #include <facet/monetary.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <facet/monetary_details.h>
+
+#include <common/defs.h>
+#include <device/mem_device.h>
+#include <io/io_base.h>
+#include <io/streambuf.h>
+#include <io/streambuf_iterator.h>
+
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <vector>
+
+using namespace IOv2;
 
 namespace
 {
-    class MoneyIO : public IOv2::monetary_conf<char8_t>
+    using part    = base_ft<monetary>::part;
+    using pattern = base_ft<monetary>::pattern;
+
+    // A configuration whose every answer can be set.  What a format case is
+    // about is the format, so it states one here instead of borrowing whichever
+    // one a locale happens to carry this year.
+    class tunable_conf : public monetary_conf<char8_t>,
+                         public std::enable_shared_from_this<tunable_conf>
     {
     public:
-        MoneyIO(const std::string& n)
-            : IOv2::monetary_conf<char8_t>(n)
-            , m_decimal_point(IOv2::monetary_conf<char8_t>::decimal_point())
-            , m_thousands_sep(IOv2::monetary_conf<char8_t>::thousands_sep())
-            , m_grouping(IOv2::monetary_conf<char8_t>::grouping())
-            , m_negative_sign_nat(IOv2::monetary_conf<char8_t>::negative_sign_nat())
-            , m_frac_digits_nat(IOv2::monetary_conf<char8_t>::frac_digits_nat())
-            , m_neg_format_nat(IOv2::monetary_conf<char8_t>::neg_format_nat())
-            , m_curr_sym_nat(IOv2::monetary_conf<char8_t>::curr_symbol_nat())
-            , m_pos_sign_nat(IOv2::monetary_conf<char8_t>::positive_sign_nat())
+        explicit tunable_conf(const std::string& name = "C")
+            : monetary_conf<char8_t>(name)
+            , m_decimal_point(monetary_conf<char8_t>::decimal_point())
+            , m_thousands_sep(monetary_conf<char8_t>::thousands_sep())
+            , m_grouping(monetary_conf<char8_t>::grouping())
+            , m_curr_symbol(monetary_conf<char8_t>::curr_symbol_nat())
+            , m_positive_sign(monetary_conf<char8_t>::positive_sign_nat())
+            , m_negative_sign(monetary_conf<char8_t>::negative_sign_nat())
+            , m_frac_digits(monetary_conf<char8_t>::frac_digits_nat())
+            , m_pos_format(monetary_conf<char8_t>::pos_format_nat())
+            , m_neg_format(monetary_conf<char8_t>::neg_format_nat())
         {}
-        
-        virtual char8_t decimal_point() const override { return m_decimal_point; }
-        void set_decimal_point(char8_t ch) { m_decimal_point = ch; }
-        
-        virtual char8_t thousands_sep() const override { return m_thousands_sep; }
-        void set_thousands_sep(char8_t ch) { m_thousands_sep = ch; }
 
-        virtual const std::vector<uint8_t>& grouping() const override { return m_grouping; }
-        void set_grouping(const std::vector<uint8_t>& g) { m_grouping = g; }
+        char8_t                     decimal_point() const override { return m_decimal_point; }
+        char8_t                     thousands_sep() const override { return m_thousands_sep; }
+        const std::vector<uint8_t>& grouping() const override { return m_grouping; }
+        const std::u8string&        curr_symbol_nat() const override { return m_curr_symbol; }
+        const std::u8string&        positive_sign_nat() const override { return m_positive_sign; }
+        const std::u8string&        negative_sign_nat() const override { return m_negative_sign; }
+        int                         frac_digits_nat() const override { return m_frac_digits; }
+        const pattern&              pos_format_nat() const override { return m_pos_format; }
+        const pattern&              neg_format_nat() const override { return m_neg_format; }
 
-        virtual const std::u8string & negative_sign_nat() const override { return m_negative_sign_nat; }
-        void set_negative_sign_nat(const std::u8string & i) { m_negative_sign_nat = i; }
+        tunable_conf& point(char8_t c)                       { m_decimal_point = c; return *this; }
+        tunable_conf& separator(char8_t c)                   { m_thousands_sep = c; return *this; }
+        tunable_conf& groups(std::vector<uint8_t> g)      { m_grouping = std::move(g); return *this; }
+        tunable_conf& symbol(std::u8string s)               { m_curr_symbol = std::move(s); return *this; }
+        tunable_conf& plus(std::u8string s)                 { m_positive_sign = std::move(s); return *this; }
+        tunable_conf& minus(std::u8string s)                { m_negative_sign = std::move(s); return *this; }
+        tunable_conf& fraction(int n)                     { m_frac_digits = n; return *this; }
+        tunable_conf& positive(pattern p)                 { m_pos_format = p; return *this; }
+        tunable_conf& negative(pattern p)                 { m_neg_format = p; return *this; }
+        tunable_conf& both(pattern p)                     { return positive(p).negative(p); }
 
-        virtual int frac_digits_nat() const override { return m_frac_digits_nat; }
-        void set_frac_digits_nat(int v) { m_frac_digits_nat = v; }
-        
-        virtual const IOv2::base_ft<IOv2::monetary>::pattern& neg_format_nat() const override { return m_neg_format_nat; }
-        void set_neg_format_nat(const IOv2::base_ft<IOv2::monetary>::pattern& p) { m_neg_format_nat = p; }
-        
-        virtual const std::u8string & curr_symbol_nat() const override { return m_curr_sym_nat; }
-        void set_curr_symbol_nat(const std::u8string & s) { m_curr_sym_nat = s; }
+        // Ends a chain: the facet's constructor takes the configuration by
+        // shared pointer, and the chain has been handing back references.
+        std::shared_ptr<tunable_conf> ptr()               { return shared_from_this(); }
 
-        virtual const std::basic_string<char8_t>& positive_sign_nat() const override { return m_pos_sign_nat; }
-        void set_positive_sign_nat(const std::u8string & s) { m_pos_sign_nat = s; }
-        
     private:
-        char8_t m_decimal_point;
-        char8_t m_thousands_sep;
+        char8_t              m_decimal_point;
+        char8_t              m_thousands_sep;
         std::vector<uint8_t> m_grouping;
-        std::u8string  m_negative_sign_nat;
-        int m_frac_digits_nat;
-        IOv2::base_ft<IOv2::monetary>::pattern m_neg_format_nat;
-        std::u8string  m_curr_sym_nat;
-        std::u8string  m_pos_sign_nat;
-    };
-}
-
-void test_monetary_char8_t_common_1()
-{
-    dump_info("Test monetary<char8_t> common 1...");
-    static_assert(std::is_same_v<IOv2::monetary<char8_t>::char_type, char8_t>);
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
-
-    VERIFY(obj.decimal_point() == '.');
-    VERIFY(obj.thousands_sep() == ',');
-    VERIFY(obj.grouping().empty());
-    VERIFY(obj.curr_symbol_nat().empty());
-    VERIFY(obj.curr_symbol_int().empty());
-    VERIFY(obj.positive_sign_nat().empty());
-    VERIFY(obj.positive_sign_int().empty());
-    VERIFY(!(obj.negative_sign_nat().empty()));
-    VERIFY(!(obj.negative_sign_int().empty()));
-    VERIFY(obj.frac_digits_int() == 0);
-    VERIFY(obj.frac_digits_nat() == 0);
-    VERIFY(obj.pos_format_int() == obj.pos_format_nat());
-    VERIFY(obj.neg_format_int() == obj.neg_format_nat());
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_common_2()
-{
-    dump_info("Test monetary<char8_t> common 2...");
-
-    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
-    IOv2::monetary obj_de(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.ISO-8859-1"));
-
-    VERIFY(obj_c.decimal_point() != char());
-    VERIFY(obj_c.thousands_sep() != char());
-    VERIFY(obj_c.decimal_point() != obj_de.decimal_point());
-    VERIFY(obj_c.thousands_sep() != obj_de.thousands_sep());
-    VERIFY(obj_c.grouping() != obj_de.grouping());
-    VERIFY(obj_c.curr_symbol_int() != obj_de.curr_symbol_int());
-    VERIFY(obj_c.negative_sign_int() == obj_de.negative_sign_int());
-    VERIFY(obj_c.frac_digits_int() != obj_de.frac_digits_int());
-    VERIFY(obj_c.pos_format_int() != obj_de.pos_format_int());
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_put_1()
-{
-    dump_info("Test monetary<char8_t>::put 1...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        // total EPA budget FY 2002
-        const std::u8string  digits1(u8"720000000000");
-        // input less than frac_digits
-        const std::u8string  digits2(u8"-1");
-        std::u8string  oss;
-        
-        obj.put(std::back_inserter(oss), true, ios, digits1);
-        VERIFY(oss == u8"7.200.000.000,00 ");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == u8"7.200.000.000,00 ");
-    
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits1);
-        VERIFY(oss == u8"7.200.000.000,00 EUR ");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == u8"7.200.000.000,00 €");
-
-        ios.unsetf(IOv2::ios_defs::showbase);
-    
-        // test io.width() > length
-        // test various fill strategies
-        ios.width(20); ios.fill('*');
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == u8"***************-,01*");
-        
-        ios.width(20); ios.setf(IOv2::ios_defs::internal);
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == u8"-,01****************");
+        std::u8string        m_curr_symbol;
+        std::u8string        m_positive_sign;
+        std::u8string        m_negative_sign;
+        int                  m_frac_digits;
+        pattern              m_pos_format;
+        pattern              m_neg_format;
     };
 
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
+    // The pattern the cases below start from unless they say otherwise: the
+    // symbol first, then the sign, then the amount, with nothing at the end.
+    constexpr pattern kSymbolSignValue = {part::symbol, part::none, part::sign, part::value};
 
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_put_2()
-{
-    dump_info("Test monetary<char8_t>::put 2...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj, const IOv2::monetary<char8_t>& obj_c)
+    std::shared_ptr<tunable_conf> tuned(const char* name = "C")
     {
-        IOv2::ios_base<char8_t> ios;
-
-        // total EPA budget FY 2002
-        const std::u8string  digits1(u8"720000000000");
-        
-        // est. cost, national missile "defense", expressed as a loss in USD 2001
-        const std::u8string  digits2(u8"-10000000000000");  
-        
-        // not valid input
-        const std::u8string  digits3(u8"-A"); 
-        
-        // input less than frac_digits
-        const std::u8string  digits4(u8"-1");
-    
-        // cache the money_put facet
-        std::u8string  oss;
-    
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-        
-        // test sign of more than one digit, say hong kong.
-        oss.clear();
-        obj.put(std::back_inserter(oss), false, ios, digits1);
-        VERIFY(oss == u8"HK$7,200,000,000.00");
-        
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits2);
-        VERIFY(oss == u8"(HKD 100,000,000,000.00)");
-        
-        
-        // test one-digit formats without zero padding
-        // note: the result is different with libstdc++'s test case (libstdc%2B%2B-v3/testsuite/22_locale/money_put/put/char/2.cc)
-        // since IOv2 set '-' as the negative sign of C locale.
-        oss.clear();
-        obj_c.put(std::back_inserter(oss), true, ios, digits4);
-        VERIFY(oss == u8"-1");
-    
-        // test one-digit formats with zero padding, zero frac widths
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits4);
-        VERIFY(oss == u8"(HKD .01)");
-        
-        ios.unsetf(IOv2::ios_defs::showbase);
-    
-        // test bunk input
-        oss.clear();
-        obj.put(std::back_inserter(oss), true, ios, digits3);
-        VERIFY(oss == u8"");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_HK.UTF-8"));
-    IOv2::monetary obj_c(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
-    helper(obj, obj_c);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_put_3()
-{
-    dump_info("Test monetary<char8_t>::put 3...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        // woman, art, thief (stole the blues)
-        const std::u8string  str(u8"1943 Janis Joplin");
-        const int64_t ld = 1943;
-        const std::u8string  x(str.size(), L'x'); // have to have allocated string!
-        std::u8string  res;
-
-        std::u8string  oss;
-
-        // 01 string
-        res = x;
-        auto ret1 = obj.put(res.begin(), false, ios, str);
-        std::u8string  sanity1(res.begin(), ret1);
-        VERIFY(res == u8"1943xxxxxxxxxxxxx");
-        VERIFY(sanity1 == u8"1943");
-    
-        // 02 int64_t
-        res = x;
-        auto ret2 = obj.put(res.begin(), false, ios, ld);
-        std::u8string  sanity2(res.begin(), ret2);
-        VERIFY(res == u8"1943xxxxxxxxxxxxx");
-        VERIFY(sanity2 == u8"1943");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_put_4()
-{
-    dump_info("Test monetary<char8_t>::put 4...");
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_decimal_point(L'.');
-    tmp_io->set_thousands_sep(L',');
-    tmp_io->set_grouping({3});
-    tmp_io->set_negative_sign_nat(u8"()");
-    tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::space,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-
-    IOv2::monetary<char8_t> obj(tmp_io);
-    IOv2::ios_base<char8_t> ios;
-    ios.fill(L'*');
-
-    std::u8string  val(u8"-123456");
-
-    std::u8string  fmt;
-    obj.put(std::back_inserter(fmt), false, ios, val);
-    VERIFY(fmt == u8"*(1,234.56)");
-  
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_put_5()
-{
-    dump_info("Test monetary<char8_t>::put 5...");
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_thousands_sep(',');
-    tmp_io->set_grouping({1});
-
-    IOv2::monetary<char8_t> obj(tmp_io);
-    IOv2::ios_base<char8_t> ios;
-    ios.fill(L'*');
-
-    int64_t val = 100000000LL;
-
-    std::basic_ostringstream<char8_t> fmt;
-    std::ostreambuf_iterator<char8_t> out(fmt);
-    obj.put(out, false, ios, val);
-    VERIFY(fmt.good());
-  
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_put_6()
-{
-    dump_info("Test monetary<char8_t>::put 6...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        int64_t amount = 11;
-
-        // cache the money_put facet
-        std::u8string  oss;
-        obj.put(std::back_inserter(oss), true, ios, amount);
-        VERIFY(oss == u8"11");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_put_7()
-{
-    dump_info("Test monetary<char8_t>::put 7...");
-    
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({});
-    IOv2::monetary<char8_t> obj(tmp_io);
-    
-    std::u8string  digits(300, L'1');
-    
-    std::u8string  oss;
-    obj.put(std::back_inserter(oss), false, ios, digits);
-    VERIFY(oss == digits);
-    
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_1()
-{
-    dump_info("Test monetary<char8_t>::get 1...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        // total EPA budget FY 2002
-        const std::u8string  digits1(u8"720000000000");
-
-        std::u8string  iss;
-
-        {
-            iss = u8"7.200.000.000,00 ";
-            std::u8string  result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = u8"7.200.000.000,00  ";
-            std::u8string  result2;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = u8"7.200.000.000,00  a";
-            std::u8string  result3;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-            VERIFY(result3 == digits1);
-            VERIFY(it != iss.end());
-            VERIFY(*it == 'a');
-        }
-
-        {
-            iss = u8"";
-            std::u8string  result4;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result4);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(result4 == u8"");
-        }
-
-        {
-            iss = u8"working for enlightenment and peace in a mad world";
-            std::u8string  result5;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result5);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(result5 == u8"");
-        }
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-    
-        {
-            iss = u8"7.200.000.000,00 EUR ";
-            std::u8string  result6;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result6);
-            VERIFY(result6 == digits1);
-            VERIFY(it == iss.end());
-        }
-
-        {
-            iss = u8"7.200.000.000,00 EUR  ";
-            std::u8string  result7;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result7);
-            VERIFY(result7 == digits1);
-            VERIFY(it != iss.end());
-            VERIFY(*it == ' ');
-        }
-
-        {
-            iss = u8"7.200.000.000,00 \xE2\x82\xAC";
-            std::u8string  result8;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result8);
-            VERIFY(result8 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_2()
-{
-    dump_info("Test monetary<char8_t>::get 2...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        // total EPA budget FY 2002
-        const std::u8string  digits1(u8"720000000000");
-
-        // est. cost, national missile "defense", expressed as a loss in USD 2001
-        const std::u8string  digits2(u8"-10000000000000");  
-
-        // input less than frac_digits
-        const std::u8string  digits4(u8"-1");
-
-        std::u8string  iss;
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        {
-            iss = u8"HK$7,200,000,000.00";
-            std::u8string  result9;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result9);
-            VERIFY(result9 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = u8"(HKD 100,000,000,000.00)";
-            std::u8string  result10;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result10);
-            VERIFY(result10 == digits2);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = u8"(HKD .01)";
-            std::u8string  result11;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result11);
-            VERIFY(result11 == digits4);
-            VERIFY(it == iss.end());
-        }
-
-        // for the "en_HK.ISO8859-1" locale the parsing of the very same input streams must
-        // be successful without showbase too, since the symbol field appears in
-        // the first positions in the format and the symbol, when present, must be
-        // consumed.
-        ios.unsetf(IOv2::ios_defs::showbase);
-        {
-            iss = u8"HK$7,200,000,000.00";
-            std::u8string  result12;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result12);
-            VERIFY(result12 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = u8"(HKD 100,000,000,000.00)";
-            std::u8string  result13;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result13);
-            VERIFY(result13 == digits2);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = u8"(HKD .01)";
-            std::u8string  result14;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result14);
-            VERIFY(result14 == digits4);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_3()
-{
-    dump_info("Test monetary<char8_t>::get 3...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-        
-        std::u8string  iss;
-        {
-            iss = u8"7.200.000.000,00 ";
-            int64_t result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-        
-        {
-            iss = u8"7.200.000.000,00 ";
-            int64_t result2;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_4()
-{
-    dump_info("Test monetary<char8_t>::get 4...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        // input less than frac_digits
-        const long double digits4 = -1.0;
-        std::u8string  iss;
-
-        // now try with showbase, to get currency symbol in format
-        ios.setf(IOv2::ios_defs::showbase);
-
-        iss = u8"(HKD .01)";
-        int64_t result3;
-        auto it = obj.get(iss.begin(), iss.end(), true, ios, result3);
-        VERIFY(result3 == digits4);
-        VERIFY(it == iss.end());
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_5()
-{
-    dump_info("Test monetary<char8_t>::get 5...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        const std::u8string  str = u8"1Eleanor Roosevelt";
-
-        {
-            // 01 string
-            std::u8string  res1;
-            auto it = obj.get(str.begin(), str.end(), false, ios, res1);
-            VERIFY(it != str.end());
-            std::u8string  rem1(it, str.end());
-            VERIFY(res1 == u8"1");
-            VERIFY(rem1 == u8"Eleanor Roosevelt");
-        }
-
-        {
-            // 02 int64_t
-            int64_t res2;
-            auto it = obj.get(str.begin(), str.end(), false, ios, res2);
-            VERIFY(it != str.end());
-            std::u8string  rem2(it, str.end());
-            VERIFY(res2 == 1);
-            VERIFY(rem2 == u8"Eleanor Roosevelt");
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_6()
-{
-    dump_info("Test monetary<char8_t>::get 6...");
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_decimal_point(L'.');
-    tmp_io->set_grouping({4});
-    tmp_io->set_curr_symbol_nat(u8"$");
-    tmp_io->set_positive_sign_nat(u8"");
-    tmp_io->set_negative_sign_nat(u8"-");
-    tmp_io->set_frac_digits_nat(2);
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-
-    IOv2::monetary<char8_t> obj(tmp_io);
-    
-    std::u8string  bufferp(u8"$1234.56");
-    std::u8string  buffern(u8"$-1234.56");
-    std::u8string  bufferp_ns(u8"1234.56");
-    std::u8string  buffern_ns(u8"-1234.56");
-    
-    {
-        std::u8string  valp;
-        obj.get(bufferp.begin(), bufferp.end(), false, ios, valp);
-        VERIFY(valp == u8"123456");
-    }
-    {
-        std::u8string  valn;
-        obj.get(buffern.begin(), buffern.end(), false, ios, valn);
-        VERIFY(valn == u8"-123456");
-    }
-    {
-        std::u8string  valp_ns;
-        obj.get(bufferp_ns.begin(), bufferp_ns.end(), false, ios, valp_ns);
-        VERIFY(valp_ns == u8"123456");
-    }
-    {
-        std::u8string  valn_ns;
-        obj.get(buffern_ns.begin(), buffern_ns.end(), false, ios, valn_ns);
-        VERIFY(valn_ns == u8"-123456");
-    }
-  
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_7()
-{
-    dump_info("Test monetary<char8_t>::get 7...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-    
-        std::u8string  buffer1(u8"123");
-        std::u8string  buffer2(u8"456");
-        std::u8string  buffer3(u8"Golgafrincham"); // From Nathan's original idea.
-
-        std::u8string  val;
-
-        {
-            obj.get(buffer1.begin(), buffer1.end(), false, ios, val);
-            VERIFY(val == buffer1);
-        }
-        {
-            obj.get(buffer2.begin(), buffer2.end(), false, ios, val);
-            VERIFY(val == buffer2);
-        }
-        {
-            val = buffer3;
-            try
-            {
-                obj.get(buffer3.begin(), buffer3.end(), false, ios, val);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(val == buffer3);
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("C"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_8()
-{
-    dump_info("Test monetary<char8_t>::get 8...");
-    
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_decimal_point(L'.');
-    tmp_io_a->set_grouping({4});
-    tmp_io_a->set_curr_symbol_nat(u8"$");
-    tmp_io_a->set_positive_sign_nat(u8"()");
-    tmp_io_a->set_frac_digits_nat(2);
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_decimal_point(L'.');
-    tmp_io_b->set_grouping({4});
-    tmp_io_b->set_curr_symbol_nat(u8"$");
-    tmp_io_b->set_positive_sign_nat(u8"()");
-    tmp_io_b->set_frac_digits_nat(2);
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-                                
-    IOv2::monetary<char8_t> obj_a(tmp_io_a);
-    IOv2::monetary<char8_t> obj_b(tmp_io_b);
-    
-    std::u8string  buffer_a(u8"(1234.56 $)");
-    std::u8string  buffer_a_ns(u8"(1234.56 )");
-
-    std::u8string  val_a, val_a_ns;
-
-    {
-        obj_a.get(buffer_a.begin(), buffer_a.end(), false, ios, val_a);
-        VERIFY(val_a == u8"123456");
-    }
-    {
-        obj_a.get(buffer_a_ns.begin(), buffer_a_ns.end(), false, ios, val_a_ns);
-        VERIFY(val_a_ns == u8"123456");
+        return std::make_shared<tunable_conf>(name);
     }
 
-    std::u8string  buffer_b(u8"(1234.56$)");
-    std::u8string  buffer_b_ns(u8"(1234.56)");
-
-    std::u8string  val_b, val_b_ns;
+    monetary<char8_t> facet_for(const char* loc)
     {
-        obj_b.get(buffer_b.begin(), buffer_b.end(), false, ios, val_b);
-        VERIFY(val_b == u8"123456");
-    }
-    {
-        obj_b.get(buffer_b_ns.begin(), buffer_b_ns.end(), false, ios, val_b_ns);
-        VERIFY(val_b_ns == u8"123456");
+        return monetary<char8_t>(std::make_shared<monetary_conf<char8_t>>(loc));
     }
 
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_9()
-{
-    dump_info("Test monetary<char8_t>::get 9...");
-    
-    IOv2::ios_base<char8_t> ios;
-    
-    auto dublin = std::make_shared<MoneyIO>("C");
-    dublin->set_frac_digits_nat(3);
-                                
-    IOv2::monetary<char8_t> obj(dublin);
-    std::u8string  liffey;
-    std::u8string  coins;
-    
+    // std::to_string is narrow; an amount reaches the facet in the character
+    // type under test.
+    std::u8string to_digits(int64_t v)
     {
-        // Feed it 1 digit too many, which should fail.
-        liffey = u8"12.3456";
+        const std::string ascii = std::to_string(v);
+        return std::u8string(ascii.begin(), ascii.end());
+    }
+
+    // Takes either spelling of an amount -- the digit string or the integer --
+    // because put() has an overload for each and they must agree.
+    template <typename TVal>
+    std::u8string put_str(const monetary<char8_t>& obj, bool intl, ios_base<char8_t>& io,
+                        const TVal& amount)
+    {
+        std::u8string out;
+        obj.put(std::back_inserter(out), intl, io, amount);
+        return out;
+    }
+
+    // The round-trip case names its combination on one line, so the sibling
+    // files' literal retyping cannot reach these labels.
+    std::string trace_case(int frac, std::size_t groups, bool showbase, const std::u8string& amount)
+    {
+        return "frac=" + std::to_string(frac) + " groups=" + std::to_string(groups) + " showbase=" + std::to_string(showbase) + " amount=" + ::testing::PrintToString(amount);
+    }
+
+    // What a parse produced: whether it succeeded, the digits it yielded, and
+    // the input it left behind.
+    struct parse_result
+    {
+        bool          ok;
+        std::u8string digits;
+        std::u8string rest;
+    };
+
+    parse_result parse_over_pointers(const monetary<char8_t>& obj, bool intl, ios_base<char8_t>& io,
+                                     const std::u8string& input, const std::u8string& seed)
+    {
+        parse_result res{true, seed, {}};
         try
         {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
+            auto it  = obj.get(input.begin(), input.end(), intl, io, res.digits);
+            res.rest = std::u8string(it, input.end());
         }
-        catch (IOv2::stream_error&) {}
+        catch (const stream_error&)
+        {
+            res.ok = false;
+        }
+        return res;
     }
+
+    // The same parse over an iterator that cannot be compared to anything but a
+    // sentinel and cannot be rewound -- the shape get() is actually written for.
+    parse_result parse_over_a_stream(const monetary<char8_t>& obj, bool intl, ios_base<char8_t>& io,
+                                     const std::u8string& input, const std::u8string& seed)
     {
-        // Feed it exactly what it wants, which should succeed.
-        liffey = u8"12.345";
-        obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-    }
-    {
-        // Feed it 1 digit too few, which should fail.
-        liffey = u8"12.34";
+        parse_result res{true, seed, {}};
+        streambuf    sb(mem_device{input});
+        auto         beg = istreambuf_iterator(sb);
         try
         {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
+            auto it = obj.get(beg, std::default_sentinel, intl, io, res.digits);
+            res.rest = std::u8string(it, decltype(it)());
         }
-        catch (IOv2::stream_error&) {}
+        catch (const stream_error&)
+        {
+            res.ok = false;
+        }
+        return res;
     }
+
+    // Every parse assertion goes through here, so no case can check one iterator
+    // shape and leave the other unexamined.
+    void expect_parses(const monetary<char8_t>& obj, bool intl, ios_base<char8_t>& io,
+                       const std::u8string& input, const std::u8string& digits,
+                       const std::u8string& rest = u8"")
     {
-        // Feed it only a decimal-point, which should fail.
-        liffey = u8"12.";
+        SCOPED_TRACE(::testing::PrintToString(input));
+        for (bool streamed : {false, true})
+        {
+            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, u8"")
+                                            : parse_over_pointers(obj, intl, io, input, u8"");
+            EXPECT_TRUE(r.ok);
+            EXPECT_EQ(r.digits, digits);
+            EXPECT_EQ(r.rest, rest);
+        }
+    }
+
+    // A failed parse throws, and the digit string it was handed must come back
+    // exactly as it was: the caller's variable is not a scratch buffer.
+    void expect_rejects(const monetary<char8_t>& obj, bool intl, ios_base<char8_t>& io,
+                        const std::u8string& input)
+    {
+        SCOPED_TRACE(::testing::PrintToString(input));
+        const std::u8string seed = u8"untouched";
+        for (bool streamed : {false, true})
+        {
+            SCOPED_TRACE(streamed ? "streambuf iterator" : "string iterator");
+            const parse_result r = streamed ? parse_over_a_stream(obj, intl, io, input, seed)
+                                            : parse_over_pointers(obj, intl, io, input, seed);
+            EXPECT_FALSE(r.ok);
+            EXPECT_EQ(r.digits, seed);
+        }
+    }
+}
+
+TEST(MonetaryChar8, TheCharacterTypeIsChar)
+{
+    static_assert(std::is_same_v<monetary<char8_t>::char_type, char8_t>);
+}
+
+// [locale.moneypunct] fixes the "C" locale completely: no currency, no
+// grouping, no fractional digits, and the same format both ways round.
+TEST(MonetaryChar8, TheCLocaleCarriesNoCurrency)
+{
+    const monetary<char8_t> obj = facet_for("C");
+
+    EXPECT_EQ(obj.decimal_point(), u8'.');
+    EXPECT_EQ(obj.thousands_sep(), u8',');
+    EXPECT_TRUE(obj.grouping().empty());
+    EXPECT_TRUE(obj.curr_symbol_nat().empty());
+    EXPECT_TRUE(obj.curr_symbol_int().empty());
+    EXPECT_TRUE(obj.positive_sign_nat().empty());
+    EXPECT_TRUE(obj.positive_sign_int().empty());
+    EXPECT_EQ(obj.frac_digits_int(), 0);
+    EXPECT_EQ(obj.frac_digits_nat(), 0);
+    EXPECT_EQ(obj.pos_format_int(), obj.pos_format_nat());
+    EXPECT_EQ(obj.neg_format_int(), obj.neg_format_nat());
+}
+
+// The negative sign is the one thing the "C" locale must still spell, or a
+// negative amount would come out indistinguishable from a positive one.
+TEST(MonetaryChar8, TheCLocaleStillHasANegativeSign)
+{
+    const monetary<char8_t> obj = facet_for("C");
+    EXPECT_FALSE(obj.negative_sign_nat().empty());
+    EXPECT_FALSE(obj.negative_sign_int().empty());
+}
+
+TEST(MonetaryChar8, ALocaleWithCurrencyDataDiffersFromTheCLocale)
+{
+    const monetary<char8_t> plain = facet_for("C");
+    const monetary<char8_t> us    = facet_for("en_US.UTF-8");
+
+    EXPECT_NE(us.curr_symbol_nat(), plain.curr_symbol_nat());
+    EXPECT_NE(us.frac_digits_nat(), plain.frac_digits_nat());
+    EXPECT_NE(us.grouping(), plain.grouping());
+}
+
+// The digits are the smallest units of the currency, so the amount they spell is
+// read off their right-hand end: frac_digits places go behind the decimal point
+// and the rest in front of it.
+TEST(MonetaryChar8, TheAmountIsCutFracDigitsPlacesFromTheRight)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(2).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, u8"1"), u8".01");
+    EXPECT_EQ(put_str(obj, false, ios, u8"12"), u8".12");
+    EXPECT_EQ(put_str(obj, false, ios, u8"123"), u8"1.23");
+}
+
+// A run too short to reach the cut has no integral part at all, and the fraction
+// picks up the shortfall as leading zeros: two places turn 7 into .07, not 7.0.
+TEST(MonetaryChar8, AShortAmountIsPaddedInTheFractionNotTheInteger)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(3).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, u8"7"), u8".007");
+    EXPECT_EQ(put_str(obj, false, ios, u8"70"), u8".070");
+    EXPECT_EQ(put_str(obj, false, ios, u8"700"), u8".700");
+    EXPECT_EQ(put_str(obj, false, ios, u8"7000"), u8"7.000");
+}
+
+TEST(MonetaryChar8, NoFractionalDigitsMeansNoDecimalPoint)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"123456");
+}
+
+// A negative frac_digits asks for no fraction at all and keeps the whole run,
+// which is not the same statement as zero places: it is the locale saying the
+// question does not apply.
+TEST(MonetaryChar8, ANegativeFractionWidthKeepsEveryDigitIntegral)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(-1).both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"123456");
+}
+
+TEST(MonetaryChar8, GroupingInsertsTheThousandsSeparator)
+{
+    ios_base<char8_t> ios;
+
+    const monetary<char8_t> threes(tuned()->fraction(0).groups({3}).separator(u8',')
+                                       .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(threes, false, ios, u8"1234567"), u8"1,234,567");
+
+    const monetary<char8_t> ones(tuned()->fraction(0).groups({1}).separator(u8'#')
+                                     .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(ones, false, ios, u8"1234"), u8"1#2#3#4");
+
+    // A grouping vector is read right to left and its last entry repeats, so
+    // {3,2} groups three digits then twos all the way up.
+    const monetary<char8_t> indian(tuned()->fraction(0).groups({3, 2}).separator(u8',')
+                                       .both(kSymbolSignValue).ptr());
+    EXPECT_EQ(put_str(indian, false, ios, u8"12345678"), u8"1,23,45,678");
+}
+
+TEST(MonetaryChar8, AnEmptyGroupingInsertsNothing)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).groups({}).both(kSymbolSignValue).ptr());
+    const std::u8string     digits(300, u8'1');
+    EXPECT_EQ(put_str(obj, false, ios, digits), digits);
+}
+
+// The symbol is the one part of the field the caller decides about: it is
+// written when showbase is set and left out otherwise, and nothing else about
+// the field changes with it.
+TEST(MonetaryChar8, TheSymbolIsWrittenOnlyWithShowbase)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(2).symbol(u8"$").both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"1234.56");
+    ios.setf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"$1234.56");
+    ios.unsetf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"1234.56");
+}
+
+TEST(MonetaryChar8, ThePatternDecidesTheOrderOfTheParts)
+{
+    ios_base<char8_t> ios;
+    ios.setf(ios_defs::showbase);
+
+    const std::pair<pattern, const char8_t*> cases[] = {
+        {{part::symbol, part::sign, part::value, part::none}, u8"$-12"},
+        {{part::sign, part::symbol, part::value, part::none}, u8"-$12"},
+        {{part::value, part::space, part::symbol, part::sign}, u8"12 $-"},
+        {{part::sign, part::value, part::space, part::symbol}, u8"-12 $"},
+        {{part::symbol, part::space, part::value, part::sign}, u8"$ 12-"},
+    };
+
+    for (const auto& [order, expected] : cases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(expected));
+        const monetary<char8_t> obj(tuned()->fraction(0).symbol(u8"$").minus(u8"-").negative(order).ptr());
+        EXPECT_EQ(put_str(obj, false, ios, u8"-12"), expected);
+    }
+}
+
+// A sign spelled with more than one character wraps the field: its first
+// character sits in the sign slot and the rest trails everything, which is how
+// a locale writes a negative amount in parentheses.
+TEST(MonetaryChar8, AMultiCharacterSignWrapsTheField)
+{
+    ios_base<char8_t> ios;
+    ios.setf(ios_defs::showbase);
+    const monetary<char8_t> obj(tuned()->fraction(2).groups({3}).separator(u8',').symbol(u8"$")
+                                    .minus(u8"()")
+                                    .negative({part::symbol, part::space, part::sign, part::value}).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, u8"-123456"), u8"$ (1,234.56)");
+}
+
+TEST(MonetaryChar8, TheSignOfTheAmountChoosesThePattern)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).plus(u8"+").minus(u8"-")
+                                    .positive({part::sign, part::value, part::none, part::none})
+                                    .negative({part::value, part::sign, part::none, part::none}).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, u8"12"), u8"+12");
+    EXPECT_EQ(put_str(obj, false, ios, u8"-12"), u8"12-");
+}
+
+// The international and national sets are independent, and intl is what picks
+// between them: the same amount through one facet has two spellings.
+TEST(MonetaryChar8, TheInternationalFlagSelectsTheOtherPunctuation)
+{
+    ios_base<char8_t> ios;
+    ios.setf(ios_defs::showbase);
+    const monetary<char8_t> obj = facet_for("en_US.UTF-8");
+
+    EXPECT_NE(obj.curr_symbol_int(), obj.curr_symbol_nat());
+    const std::u8string national      = put_str(obj, false, ios, u8"123456");
+    const std::u8string international = put_str(obj, true, ios, u8"123456");
+    EXPECT_NE(national, international);
+    EXPECT_NE(national.find(obj.curr_symbol_nat()), std::u8string::npos);
+    EXPECT_NE(international.find(obj.curr_symbol_int()), std::u8string::npos);
+}
+
+TEST(MonetaryChar8, AShortFieldIsPaddedToTheWidth)
+{
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    ios_base<char8_t> ios;
+    ios.fill(u8'*');
+    ios.width(8);
+    EXPECT_EQ(put_str(obj, false, ios, u8"123"), u8"*****123");
+
+    ios.width(8);
+    ios.setf(ios_defs::left, ios_defs::adjustfield);
+    EXPECT_EQ(put_str(obj, false, ios, u8"123"), u8"123*****");
+}
+
+// Under internal the shortfall is not tacked onto an end: it goes into whichever
+// pattern slot writes nothing of its own, which is what puts the fill between
+// the symbol and the amount rather than outside them.
+TEST(MonetaryChar8, InternalPaddingGoesIntoTheEmptySlot)
+{
+    const monetary<char8_t> obj(tuned()->fraction(0).symbol(u8"$").minus(u8"-")
+                                    .negative({part::symbol, part::none, part::sign, part::value}).ptr());
+
+    ios_base<char8_t> ios;
+    ios.setf(ios_defs::showbase);
+    ios.setf(ios_defs::internal, ios_defs::adjustfield);
+    ios.fill(u8'*');
+    ios.width(9);
+    EXPECT_EQ(put_str(obj, false, ios, u8"-123"), u8"$****-123");
+}
+
+// width() is one-shot: the field it sized is the only one it sizes.
+TEST(MonetaryChar8, TheWidthIsConsumedByOnePut)
+{
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    ios_base<char8_t>       ios;
+    ios.fill(u8'*');
+    ios.width(8);
+
+    EXPECT_EQ(put_str(obj, false, ios, u8"123"), u8"*****123");
+    EXPECT_EQ(ios.width(), 0u);
+    EXPECT_EQ(put_str(obj, false, ios, u8"123"), u8"123");
+}
+
+// The amount runs up to the first character that is not a digit; what the caller
+// put after that is not the facet's to format.  With nothing to format at all,
+// nothing is written.
+TEST(MonetaryChar8, WhatIsNotADigitIsNotAnAmount)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    EXPECT_EQ(put_str(obj, false, ios, u8"42 apples"), u8"42");
+    EXPECT_EQ(put_str(obj, false, ios, u8"-A"), u8"");
+    EXPECT_EQ(put_str(obj, false, ios, u8""), u8"");
+    EXPECT_EQ(put_str(obj, false, ios, u8"-"), u8"");
+}
+
+TEST(MonetaryChar8, AnIntegralValueFormatsLikeItsDigitString)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(2).groups({3}).separator(u8',')
+                                    .both(kSymbolSignValue).ptr());
+
+    // Each width reaches put() through its own instantiation, so each is asked
+    // to agree with the digit-string overload rather than one standing in.
+    auto agrees = [&](auto v)
+    {
+        SCOPED_TRACE(::testing::Message() << +v);
+        EXPECT_EQ(put_str(obj, false, ios, to_digits(static_cast<int64_t>(v))),
+                  put_str(obj, false, ios, v));
+    };
+
+    for (int v : {0, 11, 1943, -1, -123456})
+    {
+        agrees(static_cast<short>(v));
+        agrees(static_cast<int>(v));
+        agrees(static_cast<long>(v));
+        agrees(static_cast<long long>(v));
+    }
+    agrees(98765432109LL);
+    agrees(static_cast<unsigned>(4000000000U));
+    agrees(static_cast<unsigned long long>(12345678901234ULL));
+}
+
+// put() returns where it stopped, so writing into an existing buffer has to
+// leave everything past that point alone.
+TEST(MonetaryChar8, PutReturnsThePositionAfterTheField)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    std::u8string buffer(17, u8'x');
+    auto          it = obj.put(buffer.begin(), false, ios, std::u8string(u8"1943"));
+
+    EXPECT_EQ(std::u8string(buffer.begin(), it), u8"1943");
+    EXPECT_EQ(buffer, u8"1943xxxxxxxxxxxxx");
+}
+
+// Everything above reads the field back through the same facet that wrote it.
+// The two directions are separate code, so this is the case that ties them:
+// whatever put() produced, get() has to return the amount put() was given.
+TEST(MonetaryChar8, WhatPutWritesGetReadsBack)
+{
+    const std::vector<uint8_t> groupings[] = {{}, {3}, {1}, {3, 2}};
+    const std::u8string        amounts[]   = {u8"0", u8"1", u8"12", u8"123456", u8"-1", u8"-123456",
+                                              u8"98765432109", u8"-98765432109"};
+
+
+    for (int frac : {0, 2, 3})
+        for (const std::vector<uint8_t>& g : groupings)
+            for (bool showbase : {false, true})
+            {
+                const monetary<char8_t> obj(tuned()->fraction(frac).groups(g).separator(u8',')
+                                                .symbol(u8"$").plus(u8"").minus(u8"-")
+                                                .both(kSymbolSignValue).ptr());
+                ios_base<char8_t> ios;
+                if (showbase) ios.setf(ios_defs::showbase);
+
+                for (const std::u8string& amount : amounts)
+                {
+                    SCOPED_TRACE(trace_case(frac, g.size(), showbase, amount));
+                    ios_base<char8_t> writer;
+                    if (showbase) writer.setf(ios_defs::showbase);
+                    const std::u8string field = put_str(obj, false, writer, amount);
+                    ASSERT_FALSE(field.empty());
+                    expect_parses(obj, false, ios, field, amount);
+                }
+            }
+}
+
+// Parsing ends at the first character the format has no place for, and what is
+// left is the caller's to read next.
+TEST(MonetaryChar8, ParsingStopsAtTheFirstForeignCharacter)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, u8"1 apple", u8"1", u8" apple");
+    expect_parses(obj, false, ios, u8"123abc", u8"123", u8"abc");
+}
+
+// With grouping switched off the separator is not part of an amount, so it ends
+// one rather than continuing it.
+TEST(MonetaryChar8, ASeparatorEndsTheAmountWhenThereIsNoGrouping)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).groups({}).separator(u8',')
+                                    .both(kSymbolSignValue).ptr());
+    expect_parses(obj, false, ios, u8"123,456", u8"123", u8",456");
+}
+
+// Likewise the decimal point, when the locale has no fractional digits to put
+// behind it.
+TEST(MonetaryChar8, ADecimalPointEndsTheAmountWhenThereIsNoFraction)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).point(u8'.').both(kSymbolSignValue).ptr());
+    expect_parses(obj, false, ios, u8"123.455", u8"123", u8".455");
+}
+
+TEST(MonetaryChar8, AnEmptySequenceIsNotAnAmount)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, u8"");
+}
+
+TEST(MonetaryChar8, TextThatIsNotAnAmountIsRejected)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, u8"nothing numeric");
+    expect_rejects(obj, false, ios, u8"a sentence with no amount anywhere in it");
+}
+
+// A fraction is all or nothing: exactly frac_digits places, or the field is not
+// an amount in this locale.
+TEST(MonetaryChar8, TheFractionMustHaveExactlyFracDigitsPlaces)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(3).point(u8'.').both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, u8"12.345", u8"12345");
+    expect_rejects(obj, false, ios, u8"12.3456");
+    expect_rejects(obj, false, ios, u8"12.34");
+    expect_rejects(obj, false, ios, u8"12.");
+
+    // No decimal point at all is not a short fraction: it is an amount with none.
+    expect_parses(obj, false, ios, u8"12", u8"12");
+}
+
+TEST(MonetaryChar8, ASecondDecimalPointIsNotPartOfTheAmount)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(2).point(u8'.').both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, u8"30..0");
+}
+
+// The separators have to fall where this locale's grouping puts them.  A field
+// grouped some other way is a field from some other locale.
+TEST(MonetaryChar8, TheSeparatorsMustFollowTheGrouping)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).groups({1}).separator(u8'#')
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, u8"1#2#3", u8"123");
+    expect_rejects(obj, false, ios, u8"00#0#1");
+    expect_rejects(obj, false, ios, u8"000##1");
+}
+
+// A locale that spells a positive sign but no negative one leaves the absence of
+// a sign to mean negative, which is what [locale.money.get] asks for.
+TEST(MonetaryChar8, NoSignMeansNegativeWhenOnlyThePositiveSignIsSpelled)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).plus(u8"+").minus(u8"")
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, u8"69", u8"-69");
+    expect_parses(obj, false, ios, u8"+69", u8"69");
+}
+
+TEST(MonetaryChar8, ASignInTheLastSlotIsStillFound)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).plus(u8"+").minus(u8"-")
+                                    .both({part::value, part::space, part::symbol, part::sign}).ptr());
+
+    expect_parses(obj, false, ios, u8"123 +", u8"123");
+    expect_parses(obj, false, ios, u8"123 -", u8"-123");
+}
+
+// With showbase the symbol is part of the field and has to be there.  Without
+// it the symbol is optional -- but a symbol that is present is still consumed,
+// or the parse would stop in the middle of a field it could read.
+TEST(MonetaryChar8, ShowbaseDecidesWhetherTheSymbolIsRequired)
+{
+    const monetary<char8_t> obj(tuned()->fraction(0).symbol(u8"$").minus(u8"-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<char8_t> required;
+    required.setf(ios_defs::showbase);
+    expect_parses(obj, false, required, u8"$123", u8"123");
+    expect_rejects(obj, false, required, u8"123");
+
+    ios_base<char8_t> optional;
+    expect_parses(obj, false, optional, u8"$123", u8"123");
+    expect_parses(obj, false, optional, u8"123", u8"123");
+}
+
+// A field with a symbol and no digits is not an amount, whichever way round the
+// symbol is required.
+TEST(MonetaryChar8, ASymbolWithoutDigitsIsNotAnAmount)
+{
+    const monetary<char8_t> obj(tuned()->fraction(0).symbol(u8"$").minus(u8"-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<char8_t> ios;
+    ios.setf(ios_defs::showbase);
+    expect_rejects(obj, false, ios, u8"$");
+    expect_rejects(obj, false, ios, u8"$-");
+}
+
+// The fraction alone is an amount: the integral part may be empty as long as the
+// places behind the point are all there.
+TEST(MonetaryChar8, AnAmountMayBeAllFraction)
+{
+    const monetary<char8_t> obj(tuned()->fraction(2).point(u8'.').symbol(u8"$").minus(u8"-")
+                                    .both(kSymbolSignValue).ptr());
+
+    ios_base<char8_t> ios;
+    expect_parses(obj, false, ios, u8"$.00 ", u8"0", u8" ");
+    expect_parses(obj, false, ios, u8"$-.01 ", u8"-1", u8" ");
+}
+
+TEST(MonetaryChar8, AnAmountTooLargeForTheTargetTypeIsRejected)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).groups({}).both(kSymbolSignValue).ptr());
+    const std::u8string     huge(40, u8'9');
+
+    int64_t       units = 0;
+    std::u8string digits;
+    EXPECT_THROW((void)obj.get(huge.begin(), huge.end(), false, ios, units), stream_error);
+
+    // The same field is a perfectly good digit string, though: it is only the
+    // conversion to a fixed-width integer that cannot hold it.
+    EXPECT_NO_THROW((void)obj.get(huge.begin(), huge.end(), false, ios, digits));
+    EXPECT_EQ(digits, huge);
+}
+
+TEST(MonetaryChar8, GettingAnIntegralValueAgreesWithGettingTheDigits)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(2).groups({3}).separator(u8',')
+                                    .both(kSymbolSignValue).ptr());
+
+    for (const char8_t* field : {u8"1,234.56", u8"-1,234.56", u8".01", u8"-.01", u8"0.00"})
+    {
+        SCOPED_TRACE(::testing::PrintToString(field));
+        const std::u8string input(field);
+
+        std::u8string digits;
+        obj.get(input.begin(), input.end(), false, ios, digits);
+
+        int64_t units = 0;
+        obj.get(input.begin(), input.end(), false, ios, units);
+
+        EXPECT_EQ(to_digits(units), digits);
+    }
+}
+
+// put() writes through an output iterator, so an iterator that reaches a stream
+// rather than a container has to work as the destination too.
+TEST(MonetaryChar8, PutWritesThroughAnOutputIteratorOntoAStream)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(2).groups({3}).separator(u8',')
+                                    .both(kSymbolSignValue).ptr());
+
+    streambuf sb{mem_device<char8_t>{u8""}};
+    obj.put(ostreambuf_iterator(sb), false, ios, std::u8string(u8"123456"));
+    sb.flush();
+    EXPECT_EQ(sb.device().str(), u8"1,234.56");
+}
+
+// The same fill vetting as on the writing side, but from the reader's end: a run
+// of fill in front of the digits is consumed as padding, and the facet refuses
+// the ones a reader would have counted as part of the amount instead.
+TEST(MonetaryChar8, AFillThatWouldChangeTheAmountIsRejectedOnTheWayBackIn)
+{
+    const monetary<char8_t> obj = facet_for("C");
+
+    auto get = [&obj](char fill, const std::u8string& input, std::u8string& digits)
+    {
+        ios_base<char8_t> ios;
+        ios.fill(fill);
+        digits.clear();
         try
         {
-            obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-            dump_info("unreachable code");
-            std::abort();
+            obj.get(input.begin(), input.end(), false, ios, digits);
         }
-        catch (IOv2::stream_error&) {}
-    }
-    {
-        // Feed it no decimal-point at all, which should succeed.
-        liffey = u8"12";
-        obj.get(liffey.begin(), liffey.end(), false, ios, coins);
-    }
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_10()
-{
-    dump_info("Test monetary<char8_t>::get 10...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-        std::u8string  iss;
-        std::u8string  extracted_amount;
+        catch (const stream_error&)
         {
-            iss = u8"-$0 ";
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-            VERIFY(it != iss.end());
-            VERIFY(*it == ' ');
-            VERIFY(extracted_amount == u8"0");
+            return false;
         }
-        {
-            extracted_amount.clear();
-            iss = u8"-$ ";
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-            VERIFY(extracted_amount.empty());
-        }
+        return true;
     };
 
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_US.UTF-8"));
-    helper(obj);
+    std::u8string digits;
 
-    dump_info("Done\n");
+    // "112345" reads as 112345, never as 12345 with a '1' of padding in front.
+    EXPECT_FALSE(get(u8'1', u8"112345", digits));
+    EXPECT_FALSE(get(u8'9', u8"912345", digits));
+
+    // A leading zero is the one digit that reads the same either way.
+    EXPECT_TRUE(get(u8'0', u8"0000012345", digits));
+    EXPECT_EQ(digits, u8"12345");
+
+    // With the sign consumed first, a '-' run behind it cannot be read as a
+    // second sign.
+    EXPECT_TRUE(get(u8'-', u8"-------12345", digits));
+    EXPECT_EQ(digits, u8"-12345");
+
+    // Fill that cannot be read into an amount is consumed as it always was.
+    EXPECT_TRUE(get(u8'*', u8"*****12345", digits));
+    EXPECT_EQ(digits, u8"12345");
+    EXPECT_TRUE(get(u8' ', u8"     12345", digits));
+    EXPECT_EQ(digits, u8"12345");
+
+    // Nothing consumed means nothing to vet, whatever the stream's fill is: this
+    // input does not start with a '9', so the run stops immediately.
+    EXPECT_TRUE(get(u8'9', u8"12345", digits));
+    EXPECT_EQ(digits, u8"12345");
 }
 
-void test_monetary_char8_t_get_11()
+// A `space` slot owes at least one character, so a field that put() wrote with
+// one has to be read with one.  A `none` slot owes nothing, and a field written
+// from a pattern that ends in one has no space to find.
+TEST(MonetaryChar8, ASpaceSlotIsRequiredAndANoneSlotIsNot)
 {
-    dump_info("Test monetary<char8_t>::get 11...");
+    const pattern with_space = {part::sign, part::value, part::space, part::symbol};
+    const pattern with_none  = {part::sign, part::value, part::symbol, part::none};
 
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
+    ios_base<char8_t> ios;
+
+    const monetary<char8_t> spaced(tuned()->fraction(2).point(u8'.').groups({4}).separator(u8',')
+                                       .symbol(u8"$").plus(u8"()").both(with_space).ptr());
+    expect_parses(spaced, false, ios, u8"(9876.05 $)", u8"987605");
+    expect_parses(spaced, false, ios, u8"(9876.05 )", u8"987605");
+
+    const monetary<char8_t> unspaced(tuned()->fraction(2).point(u8'.').groups({4}).separator(u8',')
+                                         .symbol(u8"$").plus(u8"()").both(with_none).ptr());
+    expect_parses(unspaced, false, ios, u8"(9876.05$)", u8"987605");
+    expect_parses(unspaced, false, ios, u8"(9876.05)", u8"987605");
+
+    // The character a `space` slot owes is the stream's fill, so a field written
+    // with the default fill and read back under another one is missing it.
+    ios_base<char8_t> other_fill;
+    other_fill.fill(u8'*');
+    expect_rejects(spaced, false, other_fill, u8"(9876.05 $)");
+}
+
+// Without showbase the symbol is optional, and a symbol the parse cannot place
+// is simply not part of the field: it is left for whoever reads next.
+TEST(MonetaryChar8, AnUnplaceableSymbolEndsTheField)
+{
+    ios_base<char8_t> ios;
+    const pattern     trailing = {part::value, part::symbol, part::none, part::sign};
+
+    for (const char8_t* symbol : {u8"$", u8"%", u8"&"})
     {
-        IOv2::ios_base<char8_t> ios;
-
-        // A _very_ big amount.
-        std::u8string  str = u8"1";
-        for (int i = 0; i < 2 * std::numeric_limits<int64_t>::digits10; ++i)
-            str += u8".000";
-        str += u8",00 ";
-
-        try
-        {
-            int64_t result1;
-            obj.get(str.begin(), str.end(), true, ios, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_12()
-{
-    dump_info("Test monetary<char8_t>::get 12...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        // total EPA budget FY 2002
-        const long double  digits1 = 720000000000.0;
-
-        std::u8string  iss;
-
-        {
-            iss = u8"7200000000,00 ";
-            int64_t result1;
-            auto it = obj.get(iss.begin(), iss.end(), true, ios, result1);
-            VERIFY(result1 == digits1);
-            VERIFY(it == iss.end());
-        }
-        {
-            iss = u8"7200000000,00 ";
-            int64_t result2;
-            auto it = obj.get(iss.begin(), iss.end(), false, ios, result2);
-            VERIFY(result2 == digits1);
-            VERIFY(it == iss.end());
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
-    
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_13()
-{
-    dump_info("Test monetary<char8_t>::get 13...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        std::u8string  iss;
-        {
-            iss = u8"500,1.0 ";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = u8"500,1.0 ";
-            int64_t result2;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_14()
-{
-    dump_info("Test monetary<char8_t>::get 14...");
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_positive_sign_nat(u8"+");
-    tmp_io->set_negative_sign_nat(u8"");
-    
-    IOv2::monetary<char8_t> obj(tmp_io);
-
-    std::u8string  buffer(u8"69");
-    std::u8string  val;
-    
-    obj.get(buffer.begin(), buffer.end(), false, ios, val);
-    VERIFY(val == u8"-69");
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_15()
-{
-    dump_info("Test monetary<char8_t>::get 15...");
-
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        std::u8string  iss;
-        {
-            iss = u8".100";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-        {
-            iss = u8"30..0";
-            int64_t result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_16()
-{
-    dump_info("Test monetary<char8_t>::get 16...");
-    IOv2::ios_base<char8_t> ios1, ios2;
-    
-    IOv2::monetary<char8_t> obj_de(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    IOv2::monetary<char8_t> obj_hk(std::make_shared<IOv2::monetary_conf<char8_t>>("en_HK.UTF-8"));
-
-    {
-        ios1.setf(IOv2::ios_defs::showbase);
-        std::u8string  iss01 = u8"EUR ";
-        int64_t result1;
-        try
-        {
-            obj_de.get(iss01.begin(), iss01.end(), true, ios1, result1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
+        SCOPED_TRACE(::testing::PrintToString(symbol));
+        const monetary<char8_t> obj(tuned()->fraction(0).symbol(symbol).plus(u8"").minus(u8"")
+                                        .both(trailing).ptr());
+        expect_parses(obj, false, ios, std::u8string(u8"10") + symbol, u8"10", symbol);
     }
-    {
-        std::u8string  iss02 = u8"(HKD )";
-        int64_t result2;
-        try
-        {
-            obj_hk.get(iss02.begin(), iss02.end(), true, ios2, result2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-    }
-
-    dump_info("Done\n");
 }
 
-void test_monetary_char8_t_get_17()
+// A locale whose sign position is 0 wraps a negative amount in parentheses
+// rather than spelling a sign, so the facet has to supply "()" where lconv has
+// only the sign string it would otherwise use.
+TEST(MonetaryChar8, ASignPositionOfZeroMeansParentheses)
 {
-    dump_info("Test monetary<char8_t>::get 17...");
+    const monetary<char8_t> obj = facet_for("en_HK.UTF-8");
+    EXPECT_EQ(obj.negative_sign_nat(), u8"()");
+    EXPECT_EQ(obj.negative_sign_int(), u8"()");
 
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
-
-        std::u8string  iss;
-        {
-            iss = u8"7.200.000.000,00";
-            std::u8string  result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-
-        // now try with showbase, to get currency symbol in format
-        {
-            ios.setf(IOv2::ios_defs::showbase);
-            iss = u8"7.200.000.000,00EUR ";
-            std::u8string  result2;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), true, ios, result2);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("de_DE.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    ios_base<char8_t>   ios;
+    const std::u8string field = put_str(obj, false, ios, u8"-123456");
+    EXPECT_EQ(field.front(), u8'(');
+    EXPECT_EQ(field.back(), u8')');
+    expect_parses(obj, false, ios, field, u8"-123456");
 }
 
-void test_monetary_char8_t_get_18()
+// A `space` slot writes the stream's fill character, not a literal space, and
+// leading padding then shifts everything already written -- that run included.
+// A forgotten shift would leave the run recorded at the wrong offset, which is
+// what the fill check downstream reads.
+TEST(MonetaryChar8, PaddingInFrontShiftsTheFillAlreadyWritten)
 {
-    dump_info("Test monetary<char8_t>::get 18...");
+    const monetary<char8_t> obj(tuned()->fraction(0).symbol(u8"$").minus(u8"-")
+                                    .negative({part::symbol, part::space, part::sign, part::value})
+                                    .ptr());
+    ios_base<char8_t> ios;
+    ios.setf(ios_defs::showbase);
+    ios.fill(u8'*');
+    ios.width(10);
+    EXPECT_EQ(put_str(obj, false, ios, u8"-12"), u8"*****$*-12");
 
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
+    // With a fill that reads as a space the same field is legible, and the
+    // single character the slot owes is still there when nothing is padded.
+    ios_base<char8_t> plain;
+    plain.setf(ios_defs::showbase);
+    EXPECT_EQ(put_str(obj, false, plain, u8"-12"), u8"$ -12");
+}
 
-        std::u8string  iss;
+// The sign is required when the pattern makes its absence unreadable -- it opens
+// the field, or a space follows where the sign would have been.  A field that
+// then arrives without one is not an amount.
+TEST(MonetaryChar8, APatternCanMakeTheSignMandatory)
+{
+    ios_base<char8_t> ios;
+
+    const monetary<char8_t> leading(tuned()->fraction(0).symbol(u8"$").plus(u8"+").minus(u8"-")
+                                        .both({part::sign, part::symbol, part::value, part::none})
+                                        .ptr());
+    expect_parses(leading, false, ios, u8"+$12", u8"12");
+    expect_parses(leading, false, ios, u8"-$12", u8"-12");
+    expect_rejects(leading, false, ios, u8"$12");
+
+    const monetary<char8_t> spaced(tuned()->fraction(0).symbol(u8"$").plus(u8"+").minus(u8"-")
+                                       .both({part::symbol, part::sign, part::space, part::value})
+                                       .ptr());
+    expect_parses(spaced, false, ios, u8"$+ 12", u8"12");
+    expect_rejects(spaced, false, ios, u8"$ 12");
+}
+
+// Only the sign's first character sits in the sign slot; the rest trails the
+// field.  A field that starts one and does not finish it is not an amount.
+TEST(MonetaryChar8, AnUnfinishedMultiCharacterSignIsRejected)
+{
+    ios_base<char8_t>       ios;
+    const monetary<char8_t> obj(tuned()->fraction(0).minus(u8"-->").plus(u8"")
+                                    .both(kSymbolSignValue).ptr());
+
+    expect_parses(obj, false, ios, u8"-12->", u8"-12");
+    expect_rejects(obj, false, ios, u8"-12-");
+    expect_rejects(obj, false, ios, u8"-12");
+}
+
+// Everything above works in the national form.  The international one is a
+// separate set of punctuation reached by a separate branch at every entry
+// point, so the round trip is run through it too.
+TEST(MonetaryChar8, TheInternationalFormRoundTripsAsWell)
+{
+    const monetary<char8_t> obj(tuned()->fraction(2).groups({3}).separator(u8',')
+                                    .symbol(u8"$").plus(u8"").minus(u8"-")
+                                    .both(kSymbolSignValue).ptr());
+
+    const std::u8string amounts[] = {u8"0", u8"123456", u8"-123456", u8"-1"};
+
+    for (bool intl : {false, true})
+        for (const std::u8string& amount : amounts)
         {
-            iss = u8"HK7,200,000,000.00";
-            std::u8string  result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
+            SCOPED_TRACE(trace_case(0, 0, intl, amount));
+            ios_base<char8_t>    writer;
+            const std::u8string field = put_str(obj, intl, writer, amount);
+            ASSERT_FALSE(field.empty());
+
+            ios_base<char8_t> reader;
+            expect_parses(obj, intl, reader, field, amount);
+
+            // And the same field read straight into an integer.
+            int64_t units = 0;
+            obj.get(field.begin(), field.end(), intl, reader, units);
+            EXPECT_EQ(to_digits(units), amount);
         }
-        {
-            iss = u8"(HK100,000,000,000.00)";
-            std::u8string  result1;
-            try
-            {
-                obj.get(iss.begin(), iss.end(), false, ios, result1);
-                dump_info("unreachable code");
-                std::abort();
-            }
-            catch (IOv2::stream_error&) {}
-        }
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_HK.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
 }
 
-void test_monetary_char8_t_get_19()
+// A `space` slot takes the whole internal spread when there is one, rather than
+// the single character it owes when there is not.
+TEST(MonetaryChar8, InternalPaddingFillsTheSpaceSlot)
 {
-    dump_info("Test monetary<char8_t>::get 19...");
-    
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io_a = std::make_shared<MoneyIO>("C");
-    tmp_io_a->set_curr_symbol_nat(u8"$");
-    tmp_io_a->set_positive_sign_nat(u8"");
-    tmp_io_a->set_negative_sign_nat(u8"");
-    tmp_io_a->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::none,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-
-    auto tmp_io_b = std::make_shared<MoneyIO>("C");
-    tmp_io_b->set_curr_symbol_nat(u8"%");
-    tmp_io_b->set_positive_sign_nat(u8"");
-    tmp_io_b->set_negative_sign_nat(u8"-");
-    tmp_io_b->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign,
-                                  IOv2::base_ft<IOv2::monetary>::part::none});
-
-    auto tmp_io_c = std::make_shared<MoneyIO>("C");
-    tmp_io_c->set_curr_symbol_nat(u8"&");
-    tmp_io_c->set_positive_sign_nat(u8"");
-    tmp_io_c->set_negative_sign_nat(u8"");
-    tmp_io_c->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::value,
-                                  IOv2::base_ft<IOv2::monetary>::part::space,
-                                  IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                  IOv2::base_ft<IOv2::monetary>::part::sign});
-                                
-    IOv2::monetary<char8_t> obj_a(tmp_io_a);
-    IOv2::monetary<char8_t> obj_b(tmp_io_b);
-    IOv2::monetary<char8_t> obj_c(tmp_io_c);
-    
-    {
-        std::u8string  iss_01 = u8"10$";
-        std::u8string  result01;
-        auto it = obj_a.get(iss_01.begin(), iss_01.end(), false, ios, result01);
-        VERIFY(it != iss_01.end());
-        VERIFY(*it == '$');
-    }
-    {
-        std::u8string  iss_02 = u8"50%";
-        std::u8string  result02;
-        auto it = obj_a.get(iss_02.begin(), iss_02.end(), false, ios, result02);
-        VERIFY(it != iss_02.end());
-        VERIFY(*it == '%');
-    }
-    {
-        std::u8string  iss_03 = u8"7 &";
-        std::u8string  result03;
-        auto it = obj_a.get(iss_03.begin(), iss_03.end(), false, ios, result03);
-        VERIFY(it != iss_03.end());
-        VERIFY(*it == '&');
-    }
-
-    dump_info("Done\n");
+    const monetary<char8_t> obj(tuned()->fraction(0).symbol(u8"$").minus(u8"-")
+                                    .negative({part::symbol, part::space, part::sign, part::value})
+                                    .ptr());
+    ios_base<char8_t> ios;
+    ios.setf(ios_defs::showbase);
+    ios.setf(ios_defs::internal, ios_defs::adjustfield);
+    ios.fill(u8'*');
+    ios.width(9);
+    EXPECT_EQ(put_str(obj, false, ios, u8"-12"), u8"$*****-12");
 }
 
-void test_monetary_char8_t_get_20()
+// A field that starts the symbol and does not finish it has not written the
+// symbol, so with showbase set there is nothing for the required slot to match.
+TEST(MonetaryChar8, APartiallyMatchedSymbolIsNotTheSymbol)
 {
-    dump_info("Test monetary<char8_t>::get 20...");
+    const monetary<char8_t> obj(tuned()->fraction(0).symbol(u8"USD").plus(u8"").minus(u8"-")
+                                    .both(kSymbolSignValue).ptr());
 
-    auto helper = [](const IOv2::monetary<char8_t>& obj)
-    {
-        IOv2::ios_base<char8_t> ios;
+    ios_base<char8_t> required;
+    required.setf(ios_defs::showbase);
+    expect_parses(obj, false, required, u8"USD12", u8"12");
+    expect_rejects(obj, false, required, u8"US12");
 
-        std::u8string  iss = u8"$.00 ";
-        std::u8string  extracted_amount;
-        auto it = obj.get(iss.begin(), iss.end(), false, ios, extracted_amount);
-        VERIFY(it != iss.end());
-        VERIFY(*it == ' ');
-        VERIFY(extracted_amount == u8"0");
-    };
-
-    IOv2::monetary obj(std::make_shared<IOv2::monetary_conf<char8_t>>("en_US.UTF-8"));
-    helper(obj);
-
-    dump_info("Done\n");
+    // Without showbase the half-written symbol is simply not part of the field.
+    ios_base<char8_t> optional;
+    expect_rejects(obj, false, optional, u8"US12");
 }
 
-void test_monetary_char8_t_get_21()
+// Leading zeros are stripped from the digits, and the sign has to be put back in
+// front of what is left rather than in front of what was parsed.
+TEST(MonetaryChar8, ANegativeAmountKeepsItsSignAfterLeadingZerosAreStripped)
 {
-    dump_info("Test monetary<char8_t>::get 21...");
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({1});
-    tmp_io->set_thousands_sep(L'#');
-    tmp_io->set_neg_format_nat({IOv2::base_ft<IOv2::monetary>::part::symbol,
-                                IOv2::base_ft<IOv2::monetary>::part::none,
-                                IOv2::base_ft<IOv2::monetary>::part::sign,
-                                IOv2::base_ft<IOv2::monetary>::part::value});
-                                  
-    IOv2::monetary<char8_t> obj(tmp_io);
-    std::u8string  buffer1(u8"00#0#1");
-    std::u8string  buffer2(u8"000##1");
-    // Strong exception guarantee: a failed parse must leave the caller's
-    // output argument untouched, so pre-seed a sentinel and verify it survives.
-    std::u8string  val1(u8"sentinel"), val2(u8"sentinel");
+    const monetary<char8_t> obj(tuned()->fraction(2).point(u8'.').plus(u8"").minus(u8"-")
+                                    .both(kSymbolSignValue).ptr());
+    ios_base<char8_t> ios;
 
-    {
-        try
-        {
-            obj.get(buffer1.begin(), buffer1.end(), false, ios, val1);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val1 == u8"sentinel");
-    }
-    {
-        try
-        {
-            obj.get(buffer2.begin(), buffer2.end(), false, ios, val2);
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(val2 == u8"sentinel");
-    }
-
-    dump_info("Done\n");
+    expect_parses(obj, false, ios, u8"-0.01", u8"-1");
+    expect_parses(obj, false, ios, u8"-000.10", u8"-10");
+    expect_parses(obj, false, ios, u8"-0.00", u8"0");
+    expect_parses(obj, false, ios, u8"0.00", u8"0");
 }
 
-void test_monetary_char8_t_get_22()
+// A field with no digits at all cannot become an integer either, and the target
+// is left as the caller had it.
+TEST(MonetaryChar8, AFieldWithNoDigitsIsNotAnInteger)
 {
-    dump_info("Test monetary<char8_t>::get 22...");
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_frac_digits_nat(0);
-    IOv2::monetary<char8_t> obj(tmp_io);
-    
-    std::u8string  ss = u8"123.455";
-    std::u8string  digits;
-    
-    auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
-    std::u8string  rest = std::u8string (it, ss.end());
-    VERIFY(digits == u8"123");
-    VERIFY(rest == u8".455");
+    const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
+    ios_base<char8_t>       ios;
 
-    dump_info("Done\n");
-}
-
-void test_monetary_char8_t_get_23()
-{
-    dump_info("Test monetary<char8_t>::get 23...");
-    IOv2::ios_base<char8_t> ios;
-    
-    auto tmp_io = std::make_shared<MoneyIO>("C");
-    tmp_io->set_grouping({});
-    IOv2::monetary<char8_t> obj(tmp_io);
-    
-    std::u8string  ss = u8"123,456";
-    std::u8string  digits;
-    
-    auto it = obj.get(ss.begin(), ss.end(), false, ios, digits);
-    VERIFY(it != ss.end());
-    VERIFY(digits == u8"123");
-    VERIFY(*it == L',');
-
-    dump_info("Done\n");
+    const std::u8string input = u8"no digits here";
+    int64_t            units = 4242;
+    EXPECT_THROW((void)obj.get(input.begin(), input.end(), false, ios, units), stream_error);
+    EXPECT_EQ(units, 4242);
 }

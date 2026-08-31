@@ -1,548 +1,484 @@
-#include <deque>
-#include <list>
-#include <stdexcept>
-#include <vector>
+/**
+ * The collation contract for IOv2::collate<char>, as stated in
+ * include/facet/collate.h and include/facet/collate_details.h: a range is cut
+ * into segments at every '\0', each segment goes through strcoll/strxfrm under
+ * the configured locale, and the first unequal segment decides the order.
+ *
+ * Two locales make those rules checkable without depending on collation data.
+ * In "C", strcoll is byte order and strxfrm is the identity, so a key is its own
+ * input and every expectation below can be read off the literal.  In
+ * de_DE.UTF-8, a letter's primary weight ignores case and diacritics, which is
+ * precisely where collation order and byte order disagree -- the reason
+ * transform() exists at all.
+ */
 #include <facet/collate.h>
+#include <facet/collate_details.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
-void test_collate_char_compare_1()
+#include <gtest/gtest.h>
+
+#include <compare>
+#include <cstddef>
+#include <deque>
+#include <iterator>
+#include <list>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test collate<char> compare 1...");
-    const IOv2::collate<char> obj(std::make_shared<IOv2::collate_conf<char>>("C"));
-    
-    char strlit1[] = "monkey picked tikuanyin oolong";
-    char strlit2[] = "imperial tea court green oolong";
-    const size_t size1 = std::size(strlit1);
-    const size_t size2 = std::size(strlit2);
+    // The two locales the cases above describe.  Every other string in this file
+    // is test data in the character type under test.
+    constexpr const char* kPlain  = "C";
+    constexpr const char* kGerman = "de_DE.UTF-8";
 
-    { // compare with const char as input
-        auto i1 = obj.compare(strlit1, strlit1 + size1, strlit1, strlit1 + 7);
-        VERIFY(i1 == std::strong_ordering::greater);
-        i1 = obj.compare(strlit1, strlit1 + 7, strlit1, strlit1 + size1);
-        VERIFY(i1 == std::strong_ordering::less);
-        i1 = obj.compare(strlit1, strlit1 + 7, strlit1, strlit1 + 7);
-        VERIFY(i1 == std::strong_ordering::equal);
-        auto i2 = obj.compare(strlit2, strlit2 + size2, strlit2, strlit2 + 13);
-        VERIFY(i2 == std::strong_ordering::greater);
-        i2 = obj.compare(strlit2, strlit2 + 13, strlit2, strlit2 + size2);
-        VERIFY(i2 == std::strong_ordering::less);
-        i2 = obj.compare(strlit2, strlit2 + size2, strlit2, strlit2 + size2);
-        VERIFY(i2 == std::strong_ordering::equal);
-    }
-    
-    { // compare with const char & list as input
-        std::list<char> lstLit1{strlit1, strlit1 + 7};
-        std::list<char> lstLit2{strlit2, strlit2 + size2};
-        
-        auto i1 = obj.compare(strlit1, strlit1 + size1, lstLit1.begin(), lstLit1.end());
-        VERIFY(i1 == std::strong_ordering::greater);
-        i1 = obj.compare(lstLit1.begin(), lstLit1.end(), strlit1, strlit1 + size1);
-        VERIFY(i1 == std::strong_ordering::less);
-        i1 = obj.compare(lstLit1.begin(), lstLit1.end(), lstLit1.begin(), lstLit1.end());
-        VERIFY(i1 == std::strong_ordering::equal);
-        auto i2 = obj.compare(lstLit2.begin(), lstLit2.end(), strlit2, strlit2 + 13);
-        VERIFY(i2 == std::strong_ordering::greater);
-        i2 = obj.compare(strlit2, strlit2 + 13, lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::less);
-        i2 = obj.compare(lstLit2.begin(), lstLit2.end(), lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::equal);
-    }
-    
-    { // compare with const list as input
-        std::list<char> lstLit1{strlit1, strlit1 + size1};
-        auto lstLit1Ptr = lstLit1.begin(); std::advance(lstLit1Ptr, 7);
-        std::list<char> lstLit2{strlit2, strlit2 + size2};
-        auto lstLit2Ptr = lstLit2.begin(); std::advance(lstLit2Ptr, 13);
-        auto i1 = obj.compare(lstLit1.begin(), lstLit1.end(), lstLit1.begin(), lstLit1Ptr);
-        VERIFY(i1 == std::strong_ordering::greater);
-        i1 = obj.compare(lstLit1.begin(), lstLit1Ptr, lstLit1.begin(), lstLit1.end());
-        VERIFY(i1 == std::strong_ordering::less);
-        i1 = obj.compare(lstLit1.begin(), lstLit1Ptr, lstLit1.begin(), lstLit1Ptr);
-        VERIFY(i1 == std::strong_ordering::equal);
-        auto i2 = obj.compare(lstLit2.begin(), lstLit2.end(), lstLit2.begin(), lstLit2Ptr);
-        VERIFY(i2 == std::strong_ordering::greater);
-        i2 = obj.compare(lstLit2.begin(), lstLit2Ptr, lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::less);
-        i2 = obj.compare(lstLit2.begin(), lstLit2.end(), lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::equal);
+    collate<char> facet_for(const char* loc)
+    {
+        return collate<char>(std::make_shared<collate_conf<char>>(loc));
     }
 
-    dump_info("Done\n");
+    // -1/0/1 rather than the ordering itself: GoogleTest has no printer for
+    // std::strong_ordering, so a failed EXPECT_EQ on one prints a byte dump.
+    int order(std::strong_ordering res)
+    {
+        return res < 0 ? -1 : (res > 0 ? 1 : 0);
+    }
+
+    // Templated so the three sibling character types share it verbatim.
+    template <typename S>
+    std::string trace(const S& lhs, const S& rhs)
+    {
+        return ::testing::PrintToString(lhs) + " vs " + ::testing::PrintToString(rhs);
+    }
+
+    // Every fixture is an explicit range over a std::string, because what these
+    // tests are about is the '\0' inside a range -- a C string cannot carry one.
+    int compare_ptr(const collate<char>& obj, const std::string& lhs, const std::string& rhs)
+    {
+        return order(obj.compare(lhs.data(), lhs.data() + lhs.size(),
+                                 rhs.data(), rhs.data() + rhs.size()));
+    }
+
+    // U+00E4 and U+00C4 spelled out: the file is read as UTF-8, but a reader
+    // still has to know which bytes reach strcoll for the German cases to mean
+    // anything.
+    const std::string a_umlaut = "\xC3\xA4";  // ä
+    const std::string A_umlaut = "\xC3\x84";  // Ä
+
+    const std::string kCases[] = {
+        "",  "a",  "b",  "ab",  "abc",
+        std::string("a\0", 2),
+        std::string("a\0a", 3),
+        std::string("a\0b", 3),
+        std::string("b\0a", 3),
+        std::string("ab\0cd", 5),
+        std::string("\0", 1),
+        std::string("\0\0", 2),
+        a_umlaut, A_umlaut, "B",
+    };
 }
 
-void test_collate_char_compare_2()
+TEST(CollateChar, ANullConfigurationIsRejected)
 {
-    dump_info("Test collate<char> compare 2...");
-    const IOv2::collate<char> obj(std::make_shared<IOv2::collate_conf<char>>("de_DE.UTF-8"));
-    
-    const char strlit3[] = "Äuglein Augment"; // "C" == "Augment Äuglein"
-    const char strlit4[] = "Base baß Baß Bast"; // "C" == "Base baß Baß Bast"
-    size_t size3 = std::size(strlit3);
-    size_t size4 = std::size(strlit4);
-    {  // compare with const char as input
-        auto i1 = obj.compare(strlit3, strlit3 + size3, strlit3, strlit3 + 7);
-        VERIFY(i1 == std::strong_ordering::greater);
-        i1 = obj.compare(strlit3, strlit3 + 7, strlit3, strlit3 + size3);
-        VERIFY(i1 == std::strong_ordering::less);
-        i1 = obj.compare(strlit3, strlit3 + 7, strlit3, strlit3 + 7);
-        VERIFY(i1 == std::strong_ordering::equal);
-        i1 = obj.compare(strlit3, strlit3 + 6, strlit3 + 8, strlit3 + 14);
-        VERIFY(i1 == std::strong_ordering::less);
-        auto i2 = obj.compare(strlit4, strlit4 + size4, strlit4, strlit4 + 13);
-        VERIFY(i2 == std::strong_ordering::greater);
-        i2 = obj.compare(strlit4, strlit4 + 13, strlit4, strlit4 + size4);
-        VERIFY(i2 == std::strong_ordering::less);
-        i2 = obj.compare(strlit4, strlit4 + size4, strlit4, strlit4 + size4);
-        VERIFY(i2 == std::strong_ordering::equal);
-    }
-    
-    {  // compare with const char & list as input
-        std::list<char> lstLit1{strlit3, strlit3 + 7};
-        std::list<char> lstLit2{strlit4, strlit4 + size4};
-        auto i1 = obj.compare(strlit3, strlit3 + size3, lstLit1.begin(), lstLit1.end());
-        VERIFY(i1 == std::strong_ordering::greater);
-        i1 = obj.compare(lstLit1.begin(), lstLit1.end(), strlit3, strlit3 + size3);
-        VERIFY(i1 == std::strong_ordering::less);
-        i1 = obj.compare(lstLit1.begin(), lstLit1.end(), lstLit1.begin(), lstLit1.end());
-        VERIFY(i1 == std::strong_ordering::equal);
-        auto i2 = obj.compare(lstLit2.begin(), lstLit2.end(), strlit4, strlit4 + 13);
-        VERIFY(i2 == std::strong_ordering::greater);
-        i2 = obj.compare(strlit4, strlit4 + 13, lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::less);
-        i2 = obj.compare(lstLit2.begin(), lstLit2.end(), lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::equal);
-    }
-    
-    {  // compare with list as input
-        std::list<char> lstLit1{strlit3, strlit3 + size3};
-        std::list<char> lstLit2{strlit4, strlit4 + size4};
-        auto lstLit1_6 = lstLit1.begin(); std::advance(lstLit1_6, 6);
-        auto lstLit1_7 = lstLit1.begin(); std::advance(lstLit1_7, 7);
-        auto lstLit1_8 = lstLit1.begin(); std::advance(lstLit1_8, 8);
-        auto lstLit1_E = lstLit1.begin(); std::advance(lstLit1_E, 14);
-        auto lstLit2_D = lstLit2.begin(); std::advance(lstLit2_D, 13);
-        
-        auto i1 = obj.compare(lstLit1.begin(), lstLit1.end(), lstLit1.begin(), lstLit1_7);
-        VERIFY(i1 == std::strong_ordering::greater);
-        i1 = obj.compare(lstLit1.begin(), lstLit1_7, lstLit1.begin(), lstLit1.end());
-        VERIFY(i1 == std::strong_ordering::less);
-        i1 = obj.compare(lstLit1.begin(), lstLit1_7, lstLit1.begin(), lstLit1_7);
-        VERIFY(i1 == std::strong_ordering::equal);
-        i1 = obj.compare(lstLit1.begin(), lstLit1_6, lstLit1_8, lstLit1_E);
-        VERIFY(i1 == std::strong_ordering::less);
-        auto i2 = obj.compare(lstLit2.begin(), lstLit2.end(), lstLit2.begin(), lstLit2_D);
-        VERIFY(i2 == std::strong_ordering::greater);
-        i2 = obj.compare(lstLit2.begin(), lstLit2_D, lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::less);
-        i2 = obj.compare(lstLit2.begin(), lstLit2.end(), lstLit2.begin(), lstLit2.end());
-        VERIFY(i2 == std::strong_ordering::equal);
-    }
-
-    dump_info("Done\n");
+    std::shared_ptr<collate_conf<char>> empty;
+    EXPECT_THROW(collate<char>{empty}, std::runtime_error);
 }
 
-void test_collate_char_compare_3()
+TEST(CollateChar, EqualRangesCompareEqual)
 {
-    dump_info("Test collate<char> compare 3...");
-    const IOv2::collate<char> obj_c(std::make_shared<IOv2::collate_conf<char>>("C"));
-    const IOv2::collate<char> obj_de(std::make_shared<IOv2::collate_conf<char>>("de_DE.UTF-8"));
-    
-    const char strlit1[] = "a\0a\0";
-    const char strlit2[] = "a\0b\0";
-    const char strlit3[] = "a\0\xc4\0";
-    const char strlit4[] = "a\0B\0";
-    const char strlit5[] = "aa\0";
-    const char strlit6[] = "b\0a\0";
-    
-    {  // compare with const char as input
-        VERIFY(obj_c.compare(strlit1, strlit1 + 3, strlit2, strlit2 + 3) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(strlit1, strlit1 + 3, strlit2, strlit2 + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(strlit3, strlit3 + 3, strlit4, strlit4 + 3) == std::strong_ordering::greater);
-        VERIFY(obj_de.compare(strlit3, strlit3 + 3, strlit4, strlit4 + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(strlit1, strlit1 + 3, strlit1, strlit1 + 4) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(strlit3, strlit3 + 4, strlit3, strlit3 + 3) == std::strong_ordering::greater);
-        VERIFY(obj_c.compare(strlit1, strlit1 + 4, strlit4, strlit4 + 1) == std::strong_ordering::greater);
-        VERIFY(obj_de.compare(strlit3, strlit3 + 3, strlit3, strlit3 + 3) == std::strong_ordering::equal);
-        VERIFY(obj_c.compare(strlit1, strlit1 + 2, strlit1, strlit1 + 4) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(strlit1, strlit1 + 3, strlit5, strlit5 + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(strlit6, strlit6 + 3, strlit1, strlit1 + 3) == std::strong_ordering::greater);
+    const collate<char> obj = facet_for(kPlain);
+    for (const std::string& s : kCases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(s));
+        EXPECT_EQ(compare_ptr(obj, s, s), 0);
     }
-
-    {  // compare with deque as input
-        std::deque<char> deqlit1{std::begin(strlit1), std::end(strlit1)};
-        std::deque<char> deqlit2{std::begin(strlit2), std::end(strlit2)};
-        std::deque<char> deqlit3{std::begin(strlit3), std::end(strlit3)};
-        std::deque<char> deqlit4{std::begin(strlit4), std::end(strlit4)};
-        std::deque<char> deqlit5{std::begin(strlit5), std::end(strlit5)};
-        std::deque<char> deqlit6{std::begin(strlit6), std::end(strlit6)};
-        
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, deqlit2.begin(), deqlit2.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(deqlit1.begin(), deqlit1.begin() + 3, deqlit2.begin(), deqlit2.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(deqlit3.begin(), deqlit3.begin() + 3, deqlit4.begin(), deqlit4.begin() + 3) == std::strong_ordering::greater);
-        VERIFY(obj_de.compare(deqlit3.begin(), deqlit3.begin() + 3, deqlit4.begin(), deqlit4.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, deqlit1.begin(), deqlit1.begin() + 4) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(deqlit3.begin(), deqlit3.begin() + 4, deqlit3.begin(), deqlit3.begin() + 3) == std::strong_ordering::greater);
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 4, deqlit4.begin(), deqlit4.begin() + 1) == std::strong_ordering::greater);
-        VERIFY(obj_de.compare(deqlit3.begin(), deqlit3.begin() + 3, deqlit3.begin(), deqlit3.begin() + 3) == std::strong_ordering::equal);
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 2, deqlit1.begin(), deqlit1.begin() + 4) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(deqlit1.begin(), deqlit1.begin() + 3, deqlit5.begin(), deqlit5.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(deqlit6.begin(), deqlit6.begin() + 3, deqlit1.begin(), deqlit1.begin() + 3) == std::strong_ordering::greater);
-    }
-
-    {  // compare with const char & deque as input
-        std::deque<char> deqlit1{std::begin(strlit1), std::end(strlit1)};
-        std::deque<char> deqlit2{std::begin(strlit2), std::end(strlit2)};
-        std::deque<char> deqlit3{std::begin(strlit3), std::end(strlit3)};
-        std::deque<char> deqlit4{std::begin(strlit4), std::end(strlit4)};
-        std::deque<char> deqlit5{std::begin(strlit5), std::end(strlit5)};
-        std::deque<char> deqlit6{std::begin(strlit6), std::end(strlit6)};
-        
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, strlit2, strlit2 + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(strlit1, strlit1 + 3, deqlit2.begin(), deqlit2.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(deqlit1.begin(), deqlit1.begin() + 3, strlit2, strlit2 + 3) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(strlit1, strlit1 + 3, deqlit2.begin(), deqlit2.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(deqlit3.begin(), deqlit3.begin() + 3, strlit4, strlit4 + 3) == std::strong_ordering::greater);
-        VERIFY(obj_c.compare(strlit3, strlit3 + 3, deqlit4.begin(), deqlit4.begin() + 3) == std::strong_ordering::greater);
-        VERIFY(obj_de.compare(deqlit3.begin(), deqlit3.begin() + 3, strlit4, strlit4 + 3) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(strlit3, strlit3 + 3, deqlit4.begin(), deqlit4.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 3, strlit1, strlit1 + 4) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(strlit1, strlit1 + 3, deqlit1.begin(), deqlit1.begin() + 4) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(deqlit3.begin(), deqlit3.begin() + 4, strlit3, strlit3 + 3) == std::strong_ordering::greater);
-        VERIFY(obj_de.compare(strlit3, strlit3 + 4, deqlit3.begin(), deqlit3.begin() + 3) == std::strong_ordering::greater);
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 4, strlit4, strlit4 + 1) == std::strong_ordering::greater);
-        VERIFY(obj_c.compare(strlit1, strlit1 + 4, deqlit4.begin(), deqlit4.begin() + 1) == std::strong_ordering::greater);
-        VERIFY(obj_de.compare(deqlit3.begin(), deqlit3.begin() + 3, strlit3, strlit3 + 3) == std::strong_ordering::equal);
-        VERIFY(obj_de.compare(strlit3, strlit3 + 3, deqlit3.begin(), deqlit3.begin() + 3) == std::strong_ordering::equal);
-        VERIFY(obj_c.compare(deqlit1.begin(), deqlit1.begin() + 2, strlit1, strlit1 + 4) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(strlit1, strlit1 + 2, deqlit1.begin(), deqlit1.begin() + 4) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(deqlit1.begin(), deqlit1.begin() + 3, strlit5, strlit5 + 3) == std::strong_ordering::less);
-        VERIFY(obj_de.compare(strlit1, strlit1 + 3, deqlit5.begin(), deqlit5.begin() + 3) == std::strong_ordering::less);
-        VERIFY(obj_c.compare(deqlit6.begin(), deqlit6.begin() + 3, strlit1, strlit1 + 3) == std::strong_ordering::greater);
-        VERIFY(obj_c.compare(strlit6, strlit6 + 3, deqlit1.begin(), deqlit1.begin() + 3) == std::strong_ordering::greater);
-    }
-    
-    dump_info("Done\n");
 }
 
-void test_collate_char_transform_1()
+TEST(CollateChar, AProperPrefixSortsFirst)
 {
-    dump_info("Test collate<char> transform 1...");
-    const IOv2::collate<char> obj(std::make_shared<IOv2::collate_conf<char>>("de_DE.UTF-8"));
-    
-    const char strlit3[] = "Äuglein Augment"; // "C" == "Augment Äuglein"
-    const char strlit4[] = "Base baß Baß Bast"; // "C" == "Base baß Baß Bast"
-    
-    auto len1 = obj.transform_length(std::begin(strlit3), std::end(strlit3));
-    auto len2 = obj.transform_length(std::begin(strlit4), std::end(strlit4));
-    
-    {  // transform_length with list iterator as input
-        std::list<char> s1{std::begin(strlit3), std::end(strlit3)};
-        std::list<char> s2{std::begin(strlit4), std::end(strlit4)};
-        
-        VERIFY(obj.transform_length(s1.begin(), s1.end()) == len1);
-        VERIFY(obj.transform_length(s2.begin(), s2.end()) == len2);
-    }
-    
-    std::string str_trans1, str_trans2;
-    str_trans1.resize(len1); str_trans2.resize(len2);
-    
-    {   // transform using char array as input / output
-        auto [it, s] = obj.transform(std::begin(strlit3), std::end(strlit3), str_trans1.data());
-        VERIFY(s == len1);
-        VERIFY(it == str_trans1.data() + len1);
-        
-        std::tie(it, s) = obj.transform(std::begin(strlit4), std::end(strlit4), str_trans2.data());
-        VERIFY(s == len2);
-        VERIFY(it == str_trans2.data() + len2);
-        
-        VERIFY(str_trans1 < str_trans2);
-    }
-
-    {   // transform using list as input and char array as output
-        std::list<char> lstlit3{std::begin(strlit3), std::end(strlit3)};
-        std::list<char> lstlit4{std::begin(strlit4), std::end(strlit4)};
-        std::string str_trans2_1, str_trans2_2;
-        str_trans2_1.resize(len1); str_trans2_2.resize(len2);
-        auto [it, s] = obj.transform(lstlit3.begin(), lstlit3.end(), str_trans2_1.data());
-        VERIFY(s == len1);
-        VERIFY(it == str_trans2_1.data() + len1);
-        VERIFY(str_trans2_1 == str_trans1);
-            
-        std::tie(it, s) = obj.transform(lstlit4.begin(), lstlit4.end(), str_trans2_2.data());
-        VERIFY(s == len2);
-        VERIFY(it == str_trans2_2.data() + len2);
-        VERIFY(str_trans2_2 == str_trans2);
-    }
-    
-    {   // transform char array as input and back_inserter as output
-        std::string str_trans2_1, str_trans2_2;
-        auto b1 = std::back_inserter(str_trans2_1);
-        auto b2 = std::back_inserter(str_trans2_2);
-        auto [it, s] = obj.transform(std::begin(strlit3), std::end(strlit3), b1);
-        VERIFY(s == len1);
-        VERIFY(str_trans2_1 == str_trans1);
-            
-        std::tie(it, s) = obj.transform(std::begin(strlit4), std::end(strlit4), b2);
-        VERIFY(s == len2);
-        VERIFY(str_trans2_2 == str_trans2);
-    }
-    
-    {   // transform list as input and back_inserter as output
-        std::list<char> lstlit3{std::begin(strlit3), std::end(strlit3)};
-        std::list<char> lstlit4{std::begin(strlit4), std::end(strlit4)};
-        std::string str_trans2_1, str_trans2_2;
-        auto b1 = std::back_inserter(str_trans2_1);
-        auto b2 = std::back_inserter(str_trans2_2);
-        auto [it, s] = obj.transform(lstlit3.begin(), lstlit3.end(), b1);
-        VERIFY(s == len1);
-        VERIFY(str_trans2_1 == str_trans1);
-            
-        std::tie(it, s) = obj.transform(lstlit4.begin(), lstlit4.end(), b2);
-        VERIFY(s == len2);
-        VERIFY(str_trans2_2 == str_trans2);
-    }
-    
-    dump_info("Done\n");
+    const collate<char> obj = facet_for(kPlain);
+    EXPECT_EQ(compare_ptr(obj, "abc", "abcd"), -1);
+    EXPECT_EQ(compare_ptr(obj, "abcd", "abc"), 1);
 }
 
-void test_collate_char_transform_2()
+TEST(CollateChar, AnEmptyRangeSortsBeforeANonEmptyOne)
 {
-    dump_info("Test collate<char> transform 2...");
-    const IOv2::collate<char> obj(std::make_shared<IOv2::collate_conf<char>>("C"));
-    
-    constexpr size_t MAX_SIZE = 10000000;
-    const std::string sstr(MAX_SIZE, 'a');
-    auto len1 = obj.transform_length(sstr.begin(), sstr.end());
-    VERIFY(len1 == MAX_SIZE);
-    VERIFY(obj.transform_length(sstr.data(), sstr.data() + MAX_SIZE) == len1);
-
-    std::string str_trans1;
-    str_trans1.resize(len1);
-    {   // transform using char array as input / output
-        auto [it, s] = obj.transform(sstr.data(), sstr.data() + MAX_SIZE, str_trans1.data());
-        VERIFY(s == len1);
-        VERIFY(it == str_trans1.data() + len1);
-        
-        for (size_t i = 0; i < MAX_SIZE; ++i)
-            VERIFY(str_trans1[i] == 'a');
-    }
-
-    {   // transform using list as input and char array as output
-        std::list<char> lstlit3{sstr.begin(), sstr.end()};
-        std::string str_trans2_1; str_trans2_1.resize(len1);
-        auto [it, s] = obj.transform(lstlit3.begin(), lstlit3.end(), str_trans2_1.data());
-        VERIFY(s == len1);
-        VERIFY(it == str_trans2_1.data() + len1);
-        VERIFY(str_trans2_1 == str_trans1);
-    }
-    
-    {   // transform char array as input and back_inserter as output
-        std::string str_trans2_1;
-        auto b1 = std::back_inserter(str_trans2_1);
-        auto [it, s] = obj.transform(sstr.data(), sstr.data() + MAX_SIZE, b1);
-        VERIFY(s == len1);
-        VERIFY(str_trans2_1 == str_trans1);
-    }
-
-    {   // transform list as input and back_inserter as output
-        std::list<char> lstlit3{sstr.begin(), sstr.end()};
-        std::string str_trans2_1;
-        auto b1 = std::back_inserter(str_trans2_1);
-        auto [it, s] = obj.transform(lstlit3.begin(), lstlit3.end(), b1);
-        VERIFY(s == len1);
-        VERIFY(str_trans2_1 == str_trans1);
-    }
-    dump_info("Done\n");
+    const collate<char> obj = facet_for(kPlain);
+    EXPECT_EQ(compare_ptr(obj, "", "a"), -1);
+    EXPECT_EQ(compare_ptr(obj, "a", ""), 1);
+    EXPECT_EQ(compare_ptr(obj, "", ""), 0);
 }
 
-void test_collate_char_transform_3()
+// 'a' is 0x61 and 'B' is 0x42, so byte order and dictionary order disagree here.
+// The "C" locale has to take the byte order; the German case below takes the
+// other one on the same pair.
+TEST(CollateChar, TheCLocaleComparesByByteValue)
 {
-    dump_info("Test collate<char> transform 3...");
-    const IOv2::collate<char> obj_c(std::make_shared<IOv2::collate_conf<char>>("C"));
-    const IOv2::collate<char> obj_de(std::make_shared<IOv2::collate_conf<char>>("de_DE.UTF-8"));
-
-    const char strlit1[] = "a\0a\0";
-    const char strlit2[] = "a\0b\0";
-    const char strlit3[] = "a\0\xc4\0";
-    const char strlit4[] = "a\0B\0";
-    const char strlit5[] = "aa\0";
-    const char strlit6[] = "b\0a\0";
-    
-    auto len1_c = obj_c.transform_length(std::begin(strlit1), std::end(strlit1));
-    auto len2_c = obj_c.transform_length(std::begin(strlit2), std::end(strlit2));
-    auto len3_c = obj_c.transform_length(std::begin(strlit3), std::end(strlit3));
-    auto len4_c = obj_c.transform_length(std::begin(strlit4), std::end(strlit4));
-    auto len5_c = obj_c.transform_length(std::begin(strlit5), std::end(strlit5));
-    auto len6_c = obj_c.transform_length(std::begin(strlit6), std::end(strlit6));
-    auto len1_de = obj_de.transform_length(std::begin(strlit1), std::end(strlit1));
-    auto len2_de = obj_de.transform_length(std::begin(strlit2), std::end(strlit2));
-    auto len3_de = obj_de.transform_length(std::begin(strlit3), std::end(strlit3));
-    auto len4_de = obj_de.transform_length(std::begin(strlit4), std::end(strlit4));
-    auto len5_de = obj_de.transform_length(std::begin(strlit5), std::end(strlit5));
-    auto len6_de = obj_de.transform_length(std::begin(strlit6), std::end(strlit6));
-    
-    {  // transform_length with list iterator as input
-        std::list<char> s1{std::begin(strlit1), std::end(strlit1)};
-        std::list<char> s2{std::begin(strlit2), std::end(strlit2)};
-        std::list<char> s3{std::begin(strlit3), std::end(strlit3)};
-        std::list<char> s4{std::begin(strlit4), std::end(strlit4)};
-        std::list<char> s5{std::begin(strlit5), std::end(strlit5)};
-        std::list<char> s6{std::begin(strlit6), std::end(strlit6)};
-        
-        VERIFY(obj_c.transform_length(s1.begin(), s1.end()) == len1_c);
-        VERIFY(obj_c.transform_length(s2.begin(), s2.end()) == len2_c);
-        VERIFY(obj_c.transform_length(s3.begin(), s3.end()) == len3_c);
-        VERIFY(obj_c.transform_length(s4.begin(), s4.end()) == len4_c);
-        VERIFY(obj_c.transform_length(s5.begin(), s5.end()) == len5_c);
-        VERIFY(obj_c.transform_length(s6.begin(), s6.end()) == len6_c);
-
-        VERIFY(obj_de.transform_length(s1.begin(), s1.end()) == len1_de);
-        VERIFY(obj_de.transform_length(s2.begin(), s2.end()) == len2_de);
-        VERIFY(obj_de.transform_length(s3.begin(), s3.end()) == len3_de);
-        VERIFY(obj_de.transform_length(s4.begin(), s4.end()) == len4_de);
-        VERIFY(obj_de.transform_length(s5.begin(), s5.end()) == len5_de);
-        VERIFY(obj_de.transform_length(s6.begin(), s6.end()) == len6_de);
-    }
-
-    {
-        std::string str1, str2;
-        obj_c.transform(strlit1, strlit1 + 3, std::back_inserter(str1));
-        obj_c.transform(strlit2, strlit2 + 3, std::back_inserter(str2));
-        VERIFY(str1 < str2);
-    }
-
-    {
-        std::string str1, str2;
-        obj_de.transform(strlit1, strlit1 + 3, std::back_inserter(str1));
-        obj_de.transform(strlit2, strlit2 + 3, std::back_inserter(str2));
-        VERIFY(str1 < str2);
-    }
-
-    {
-        std::string str1, str2;
-        obj_c.transform(strlit3, strlit3 + 3, std::back_inserter(str1));
-        obj_c.transform(strlit4, strlit4 + 3, std::back_inserter(str2));
-        VERIFY(str1 > str2);
-    }
-
-    {
-        std::string str1, str2;
-        obj_de.transform(strlit3, strlit3 + 3, std::back_inserter(str1));
-        obj_de.transform(strlit4, strlit4 + 3, std::back_inserter(str2));
-        VERIFY(str1 < str2);
-    }
-
-    {
-        std::string str1, str2;
-        obj_c.transform(strlit1, strlit1 + 1, std::back_inserter(str1));
-        obj_c.transform(strlit5, strlit5 + 1, std::back_inserter(str2));
-        VERIFY(str1 == str2);
-    }
-    
-    {
-        std::string str1, str2;
-        obj_de.transform(strlit6, strlit6 + 3, std::back_inserter(str1));
-        obj_de.transform(strlit1, strlit1 + 3, std::back_inserter(str2));
-        VERIFY(str1 > str2);
-    }
-    
-    {
-        std::string str1, str2;
-        obj_c.transform(strlit1, strlit1 + 3, std::back_inserter(str1));
-        obj_c.transform(strlit5, strlit5 + 3, std::back_inserter(str2));
-        VERIFY(str1 < str2);
-    }
-
-    {
-        std::string str1, str2;
-        obj_c.transform(strlit2, strlit2 + 3, std::back_inserter(str1));
-        obj_c.transform(strlit2, strlit2 + 4, std::back_inserter(str2));
-        VERIFY(str1 < str2);
-    }
-    
-    {
-        std::string str1, str2;
-        obj_de.transform(strlit2, strlit2 + 4, std::back_inserter(str1));
-        obj_de.transform(strlit2, strlit2 + 3, std::back_inserter(str2));
-        VERIFY(str1 > str2);
-    }
-    dump_info("Done\n");
+    const collate<char> obj = facet_for(kPlain);
+    EXPECT_EQ(compare_ptr(obj, "a", "B"), 1);
+    EXPECT_EQ(compare_ptr(obj, a_umlaut, "b"), 1);
+    EXPECT_EQ(compare_ptr(obj, A_umlaut, "B"), 1);
 }
 
-void test_collate_char_transform_4()
+TEST(CollateChar, TheFirstUnequalSegmentDecides)
 {
-    dump_info("Test collate<char> transform 4...");
-    const IOv2::collate obj(std::make_shared<IOv2::collate_conf<char>>("de_DE.UTF-8"));
-    
-    const char strlit[] = "Äuglein Augment\0Base baß Baß Bast";
-    const char strlit1[] = "Äuglein Augment";
-    const char strlit2[] = "Base baß Baß Bast";
-    
-    // Note: std::end of the above strings includes the eos (\0).
-    size_t len = obj.transform_length(std::begin(strlit), std::end(strlit));
-    size_t len1 = obj.transform_length(std::begin(strlit1), std::end(strlit1));
-    size_t len2 = obj.transform_length(std::begin(strlit2), std::end(strlit2));
-    
-    VERIFY(len1 + len2 == len);
+    const collate<char> obj = facet_for(kPlain);
+    EXPECT_EQ(compare_ptr(obj, std::string("a\0b", 3), std::string("a\0c", 3)), -1);
+    EXPECT_EQ(compare_ptr(obj, std::string("a\0b", 3), std::string("a\0a", 3)), 1);
 
-    std::string t, t1, t2;
-    obj.transform(std::begin(strlit), std::end(strlit), std::back_inserter(t));
-    obj.transform(std::begin(strlit1), std::end(strlit1), std::back_inserter(t1));
-    obj.transform(std::begin(strlit2), std::end(strlit2), std::back_inserter(t2));
-    
-    VERIFY(t1 + t2 == t);
-    {
-        // use char* as input and output
-        std::string t3, t4;
-        t3.resize(len1 - 3); t4.resize(len - 3);
-        obj.transform(std::begin(strlit), std::end(strlit), t3.data(), len1 - 3);
-        VERIFY(t3.size() == len1 - 3);
-        VERIFY(t3 == t1.substr(0, t1.size() - 3));
-        
-        obj.transform(std::begin(strlit), std::end(strlit), t4.data(), len - 3);
-        VERIFY(t4.size() == len - 3);
-        VERIFY(t4 == t.substr(0, t.size() - 3));
-    }
-    
-    {
-        // use char* as input and back_inserter as output
-        std::string t3, t4;
-        obj.transform(std::begin(strlit), std::end(strlit), std::back_inserter(t3), len1 - 3);
-        VERIFY(t3.size() == len1 - 3);
-        VERIFY(t3 == t1.substr(0, t1.size() - 3));
-        
-        obj.transform(std::begin(strlit), std::end(strlit), std::back_inserter(t4), len - 3);
-        VERIFY(t4.size() == len - 3);
-        VERIFY(t4 == t.substr(0, t.size() - 3));
-    }
-    
-    {
-        // use list iterator as input and char* as output
-        std::list<char> ls_strlit(std::begin(strlit), std::end(strlit));
-        std::string t3, t4;
-        t3.resize(len1 - 3); t4.resize(len - 3);
-        obj.transform(ls_strlit.begin(), ls_strlit.end(), t3.data(), len1 - 3);
-        VERIFY(t3.size() == len1 - 3);
-        VERIFY(t3 == t1.substr(0, t1.size() - 3));
-        
-        obj.transform(ls_strlit.begin(), ls_strlit.end(), t4.data(), len - 3);
-        VERIFY(t4.size() == len - 3);
-        VERIFY(t4 == t.substr(0, t.size() - 3));
-    }
-    
-    {
-        // use list iterator as input and back_inserter as output
-        std::list<char> ls_strlit(std::begin(strlit), std::end(strlit));
-        std::string t3, t4;
-        obj.transform(ls_strlit.begin(), ls_strlit.end(), std::back_inserter(t3), len1 - 3);
-        VERIFY(t3.size() == len1 - 3);
-        VERIFY(t3 == t1.substr(0, t1.size() - 3));
-        
-        obj.transform(ls_strlit.begin(), ls_strlit.end(), std::back_inserter(t4), len - 3);
-        VERIFY(t4.size() == len - 3);
-        VERIFY(t4 == t.substr(0, t.size() - 3));
-    }
+    // The second segment loses its say once the first one has spoken.
+    EXPECT_EQ(compare_ptr(obj, std::string("b\0a", 3), std::string("a\0z", 3)), 1);
+}
 
-    dump_info("Done\n");
+TEST(CollateChar, SegmentsAfterAnEqualPrefixMakeTheLongerRangeGreater)
+{
+    const collate<char> obj = facet_for(kPlain);
+    EXPECT_EQ(compare_ptr(obj, std::string("a\0b", 3), std::string("a\0", 2)), 1);
+    EXPECT_EQ(compare_ptr(obj, std::string("a\0", 2), std::string("a\0b", 3)), -1);
+}
+
+// An embedded '\0' is a separator, so a range that contains one ends in an empty
+// segment the other range does not have.  That is the only thing separating
+// these two ranges, and the terminated one is the greater.
+TEST(CollateChar, AnExplicitTerminatorSortsAfterAMissingOne)
+{
+    const collate<char> obj = facet_for(kPlain);
+    EXPECT_EQ(compare_ptr(obj, std::string("a\0", 2), "a"), 1);
+    EXPECT_EQ(compare_ptr(obj, "a", std::string("a\0", 2)), -1);
+    EXPECT_EQ(compare_ptr(obj, std::string("a\0", 2), std::string("a\0", 2)), 0);
+}
+
+TEST(CollateChar, GermanCollationIgnoresCaseAtThePrimaryLevel)
+{
+    const collate<char> obj = facet_for(kGerman);
+    EXPECT_EQ(compare_ptr(obj, "a", "B"), -1);
+    EXPECT_EQ(compare_ptr(obj, "B", "a"), 1);
+}
+
+TEST(CollateChar, GermanCollationPlacesAnUmlautWithItsBaseLetter)
+{
+    const collate<char> obj = facet_for(kGerman);
+    EXPECT_EQ(compare_ptr(obj, a_umlaut, "b"), -1);
+    EXPECT_EQ(compare_ptr(obj, A_umlaut, "B"), -1);
+}
+
+// Same primary weight as 'a', so the tie is broken one level down and the
+// umlaut is the greater of the two.  Without this the case above would also be
+// satisfied by a locale that simply dropped the diacritic.
+TEST(CollateChar, GermanCollationSeparatesAnUmlautFromItsBaseLetterAtTheSecondaryLevel)
+{
+    const collate<char> obj = facet_for(kGerman);
+    EXPECT_EQ(compare_ptr(obj, a_umlaut, "a"), 1);
+    EXPECT_EQ(compare_ptr(obj, "a", a_umlaut), -1);
+}
+
+// The four compare() overloads reach the segmenting loop by three different
+// routes -- std::find over pointers, data_to_vec over iterators, and one of each
+// -- so they are only interchangeable if they agree on every pair.
+TEST(CollateChar, ListIteratorsCompareLikePointers)
+{
+    for (const char* loc : {kPlain, kGerman})
+    {
+        const collate<char> obj = facet_for(loc);
+        for (const std::string& lhs : kCases)
+            for (const std::string& rhs : kCases)
+            {
+                SCOPED_TRACE(std::string(loc) + " " + trace(lhs, rhs));
+                std::list<char> l(lhs.begin(), lhs.end());
+                std::list<char> r(rhs.begin(), rhs.end());
+                EXPECT_EQ(order(obj.compare(l.begin(), l.end(), r.begin(), r.end())),
+                          compare_ptr(obj, lhs, rhs));
+            }
+    }
+}
+
+TEST(CollateChar, DequeIteratorsCompareLikePointers)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& lhs : kCases)
+        for (const std::string& rhs : kCases)
+        {
+            SCOPED_TRACE(trace(lhs, rhs));
+            std::deque<char> l(lhs.begin(), lhs.end());
+            std::deque<char> r(rhs.begin(), rhs.end());
+            EXPECT_EQ(order(obj.compare(l.begin(), l.end(), r.begin(), r.end())),
+                      compare_ptr(obj, lhs, rhs));
+        }
+}
+
+TEST(CollateChar, APointerAndAnIteratorCompareLikeTwoPointers)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& lhs : kCases)
+        for (const std::string& rhs : kCases)
+        {
+            SCOPED_TRACE(trace(lhs, rhs));
+            std::list<char>  l(lhs.begin(), lhs.end());
+            std::list<char>  r(rhs.begin(), rhs.end());
+            std::deque<char> dl(lhs.begin(), lhs.end());
+            std::deque<char> dr(rhs.begin(), rhs.end());
+            EXPECT_EQ(order(obj.compare(lhs.data(), lhs.data() + lhs.size(), r.begin(), r.end())),
+                      compare_ptr(obj, lhs, rhs));
+            EXPECT_EQ(order(obj.compare(l.begin(), l.end(), rhs.data(), rhs.data() + rhs.size())),
+                      compare_ptr(obj, lhs, rhs));
+
+            // A random-access iterator reaches the same overload by a different
+            // deduction, so both container shapes are put through the mix.
+            EXPECT_EQ(order(obj.compare(lhs.data(), lhs.data() + lhs.size(), dr.begin(), dr.end())),
+                      compare_ptr(obj, lhs, rhs));
+            EXPECT_EQ(order(obj.compare(dl.begin(), dl.end(), rhs.data(), rhs.data() + rhs.size())),
+                      compare_ptr(obj, lhs, rhs));
+        }
+}
+
+// The iterator/pointer overload is the pointer/iterator one with the arguments
+// swapped and the answer negated, so a sign it forgot to flip would only show up
+// here.
+TEST(CollateChar, SwappingTheArgumentsReversesTheResult)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& lhs : kCases)
+        for (const std::string& rhs : kCases)
+        {
+            SCOPED_TRACE(trace(lhs, rhs));
+            EXPECT_EQ(compare_ptr(obj, lhs, rhs), -compare_ptr(obj, rhs, lhs));
+        }
+}
+
+// strxfrm is the identity in "C", and transform_length adds one per separator,
+// so the key of an n-character range is n characters long however the '\0's fall.
+TEST(CollateChar, TheCLocaleKeyIsAsLongAsTheInput)
+{
+    const collate<char> obj = facet_for(kPlain);
+    for (const std::string& s : kCases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(s));
+        EXPECT_EQ(obj.transform_length(s.data(), s.data() + s.size()), s.size());
+    }
+}
+
+TEST(CollateChar, TransformLengthCountsEachSegmentSeparator)
+{
+    const collate<char> obj = facet_for(kGerman);
+    const std::string   head("a\0", 2);
+    const std::string   tail("b");
+    const std::string   both("a\0b", 3);
+
+    EXPECT_EQ(obj.transform_length(both.data(), both.data() + both.size()),
+              obj.transform_length(head.data(), head.data() + head.size()) +
+              obj.transform_length(tail.data(), tail.data() + tail.size()));
+}
+
+TEST(CollateChar, TransformLengthIsTheSameThroughIterators)
+{
+    for (const char* loc : {kPlain, kGerman})
+    {
+        const collate<char> obj = facet_for(loc);
+        for (const std::string& s : kCases)
+        {
+            SCOPED_TRACE(std::string(loc) + " " + ::testing::PrintToString(s));
+            const std::size_t expected = obj.transform_length(s.data(), s.data() + s.size());
+            std::list<char>   l(s.begin(), s.end());
+            std::deque<char>  d(s.begin(), s.end());
+            EXPECT_EQ(obj.transform_length(l.begin(), l.end()), expected);
+            EXPECT_EQ(obj.transform_length(d.begin(), d.end()), expected);
+        }
+    }
+}
+
+TEST(CollateChar, TheCLocaleKeyIsTheInputItself)
+{
+    const collate<char> obj = facet_for(kPlain);
+    for (const std::string& s : kCases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(s));
+        std::string key(s.size(), '\xFF');
+        auto [it, n] = obj.transform(s.data(), s.data() + s.size(), key.data());
+        EXPECT_EQ(n, s.size());
+        EXPECT_EQ(it, key.data() + s.size());
+        EXPECT_EQ(key, s);
+    }
+}
+
+TEST(CollateChar, TransformWritesExactlyTransformLengthCharacters)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& s : kCases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(s));
+        const std::size_t len = obj.transform_length(s.data(), s.data() + s.size());
+        std::string       key(len, '\xFF');
+        auto [it, n] = obj.transform(s.data(), s.data() + s.size(), key.data());
+        EXPECT_EQ(n, len);
+        EXPECT_EQ(it, key.data() + len);
+    }
+}
+
+// What transform() is for: comparing two keys byte by byte has to give the same
+// answer as calling compare() on the originals.  Byte order alone does not, or
+// the facet would have nothing to do.
+TEST(CollateChar, KeysOrderLikeCompare)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& lhs : kCases)
+        for (const std::string& rhs : kCases)
+        {
+            SCOPED_TRACE(trace(lhs, rhs));
+            std::string kl, kr;
+            obj.transform(lhs.data(), lhs.data() + lhs.size(), std::back_inserter(kl));
+            obj.transform(rhs.data(), rhs.data() + rhs.size(), std::back_inserter(kr));
+            EXPECT_EQ(order(kl <=> kr), compare_ptr(obj, lhs, rhs));
+        }
+}
+
+// A terminated segment contributes its weights and a separator; an unterminated
+// tail contributes only its weights.  So splitting a range at a '\0' splits its
+// key at the same place.
+TEST(CollateChar, AKeyIsTheConcatenationOfItsSegmentKeys)
+{
+    const collate<char> obj = facet_for(kGerman);
+    const std::string   head("Zange\0", 6);
+    const std::string   tail(A_umlaut + "pfel");
+    const std::string   both = head + tail;
+
+    std::string k_head, k_tail, k_both;
+    obj.transform(head.data(), head.data() + head.size(), std::back_inserter(k_head));
+    obj.transform(tail.data(), tail.data() + tail.size(), std::back_inserter(k_tail));
+    obj.transform(both.data(), both.data() + both.size(), std::back_inserter(k_both));
+
+    EXPECT_EQ(k_head.size() + k_tail.size(), k_both.size());
+    EXPECT_EQ(k_head + k_tail, k_both);
+    EXPECT_EQ(obj.transform_length(both.data(), both.data() + both.size()), k_both.size());
+}
+
+TEST(CollateChar, AnOutputIteratorReceivesTheSameKey)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& s : kCases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(s));
+        const std::size_t len = obj.transform_length(s.data(), s.data() + s.size());
+        std::string       direct(len, '\xFF');
+        obj.transform(s.data(), s.data() + s.size(), direct.data());
+
+        std::string through;
+        auto [it, n] = obj.transform(s.data(), s.data() + s.size(), std::back_inserter(through));
+        EXPECT_EQ(n, len);
+        EXPECT_EQ(through, direct);
+    }
+}
+
+TEST(CollateChar, AnInputIteratorProducesTheSameKey)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& s : kCases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(s));
+        const std::size_t len = obj.transform_length(s.data(), s.data() + s.size());
+        std::string       direct(len, '\xFF');
+        obj.transform(s.data(), s.data() + s.size(), direct.data());
+
+        std::list<char> l(s.begin(), s.end());
+        std::string     through(len, '\xFF');
+        auto [it, n] = obj.transform(l.begin(), l.end(), through.data());
+        EXPECT_EQ(n, len);
+        EXPECT_EQ(it, through.data() + len);
+        EXPECT_EQ(through, direct);
+
+        std::deque<char> d(s.begin(), s.end());
+        std::string      random_access(len, '\xFF');
+        EXPECT_EQ(obj.transform(d.begin(), d.end(), random_access.data()).second, len);
+        EXPECT_EQ(random_access, direct);
+    }
+}
+
+TEST(CollateChar, IteratorsOnBothSidesProduceTheSameKey)
+{
+    const collate<char> obj = facet_for(kGerman);
+    for (const std::string& s : kCases)
+    {
+        SCOPED_TRACE(::testing::PrintToString(s));
+        const std::size_t len = obj.transform_length(s.data(), s.data() + s.size());
+        std::string       direct(len, '\xFF');
+        obj.transform(s.data(), s.data() + s.size(), direct.data());
+
+        std::deque<char> d(s.begin(), s.end());
+        std::string      through;
+        auto [it, n] = obj.transform(d.begin(), d.end(), std::back_inserter(through));
+        EXPECT_EQ(n, len);
+        EXPECT_EQ(through, direct);
+    }
+}
+
+// mx_len is a hard cap on characters written, checked both before a segment and
+// before the separator that follows it.  In "C" the key is the input, so the
+// truncation point is visible: 3 stops right after the separator, 4 keeps one
+// character of the second segment.
+TEST(CollateChar, AMaximumLengthTruncatesTheKey)
+{
+    const collate<char> obj   = facet_for(kPlain);
+    const std::string   input("ab\0cd", 5);
+    const char*         lo = input.data();
+    const char*         hi = input.data() + input.size();
+
+    for (std::size_t mx = 1; mx <= input.size(); ++mx)
+    {
+        SCOPED_TRACE(mx);
+        const std::string expected = input.substr(0, mx);
+
+        std::string a(mx, '\xFF');
+        EXPECT_EQ(obj.transform(lo, hi, a.data(), mx).second, mx);
+        EXPECT_EQ(a, expected);
+
+        std::list<char> l(input.begin(), input.end());
+        std::string     b(mx, '\xFF');
+        EXPECT_EQ(obj.transform(l.begin(), l.end(), b.data(), mx).second, mx);
+        EXPECT_EQ(b, expected);
+
+        std::string c;
+        EXPECT_EQ(obj.transform(lo, hi, std::back_inserter(c), mx).second, mx);
+        EXPECT_EQ(c, expected);
+
+        std::string d;
+        EXPECT_EQ(obj.transform(l.begin(), l.end(), std::back_inserter(d), mx).second, mx);
+        EXPECT_EQ(d, expected);
+    }
+}
+
+// The staging buffers start at reserve(64), so anything past that grows them.
+// 128 KiB in one segment forces many growth rounds and a key far too large for
+// any small-buffer optimisation; in "C" the result is still exactly the input.
+TEST(CollateChar, ALargeInputIsTransformedInOnePiece)
+{
+    const collate<char> obj = facet_for(kPlain);
+    const std::string   input(std::size_t{1} << 17, 'a');
+
+    EXPECT_EQ(obj.transform_length(input.data(), input.data() + input.size()), input.size());
+
+    std::string key(input.size(), '\xFF');
+    auto [it, n] = obj.transform(input.data(), input.data() + input.size(), key.data());
+    EXPECT_EQ(n, input.size());
+    EXPECT_EQ(key, input);
+}
+
+// The same amount of work spread over many segments instead of one: every
+// iteration reuses the buffers the previous one grew, and the separators have to
+// come out in the right places.
+TEST(CollateChar, ManySegmentsAreTransformedInOrder)
+{
+    const collate<char> obj      = facet_for(kPlain);
+    const std::size_t   segments = 5000;
+    std::string         input;
+    for (std::size_t i = 0; i < segments; ++i)
+        input += std::string("ab\0", 3);
+
+    EXPECT_EQ(obj.transform_length(input.data(), input.data() + input.size()), input.size());
+
+    std::string key;
+    auto [it, n] = obj.transform(input.data(), input.data() + input.size(), std::back_inserter(key));
+    EXPECT_EQ(n, input.size());
+    EXPECT_EQ(key, input);
 }

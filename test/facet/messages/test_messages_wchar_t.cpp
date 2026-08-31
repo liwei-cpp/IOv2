@@ -1,51 +1,68 @@
+/**
+ * IOv2::messages<wchar_t>: the same gettext catalogue, decoded into wide
+ * characters.  The narrow instantiation takes a codeset argument because its
+ * result is bytes; the wide one has no such axis -- a wchar_t is already a code
+ * point -- so what is left to check is the three answers translate() can give.
+ */
 #include <facet/messages.h>
-#include <ios>
-#include <limits>
-#include <stdexcept>
+
+#include <gtest/gtest.h>
+
+#include <support/exe_path.h>
+
+#include <filesystem>
+#include <memory>
+#include <string>
 #include <type_traits>
 
-#include <support/dump_info.h>
-#include <support/exe_path.h>
-#include <support/verify.h>
+using namespace IOv2;
 
-void test_messages_facet_wchar_t_common_1()
+namespace
 {
-    dump_info("Test messages<wchar_t> common case 1...");
-    static_assert(std::is_same_v<IOv2::messages<wchar_t>::char_type, wchar_t>);
+    void bind_catalogue()
+    {
+        std::filesystem::path mo_path = exe_path();
+        mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
+        base_ft<messages>::bind_text_domain("messages", std::filesystem::canonical(mo_path).string());
+    }
 
-    dump_info("Done\n");
+    messages<wchar_t> facet_for(const char* lang)
+    {
+        bind_catalogue();
+        return messages<wchar_t>(std::make_shared<messages_conf<wchar_t>>("messages", lang));
+    }
 }
 
-void test_messages_wchar_t_translate_1()
+TEST(MessagesWchar, TheCharacterTypeIsWchar)
 {
-    dump_info("Test messages<wchar_t>::translate case 1...");
-    std::filesystem::path mo_path = exe_path();
-    mo_path = mo_path.remove_filename() / ".." / "IOv2TestResources";
-    mo_path = std::filesystem::canonical(mo_path);
-    IOv2::base_ft<IOv2::messages>::bind_text_domain("messages", mo_path.string());
-
-    const IOv2::messages<wchar_t> obj(std::make_shared<IOv2::messages_conf<wchar_t>>("messages", "zh_CN"));
-
-    std::wstring ref1 = L"请";
-    std::wstring ref2 = L"谢谢";
-    VERIFY(obj.translate(L"please") == ref1);
-    VERIFY(obj.translate(L"thank you") == ref2);
-    VERIFY(obj.translate(L"") == L"");
-    VERIFY(obj.head_entry() != L"");
-
-    dump_info("Done\n");
+    static_assert(std::is_same_v<messages<wchar_t>::char_type, wchar_t>);
 }
 
-void test_messages_wchar_t_translate_2()
+TEST(MessagesWchar, AnAvailableCatalogueTranslates)
 {
-    dump_info("Test messages<wchar_t>::translate case 2...");
+    const messages<wchar_t> obj = facet_for("zh_CN");
+    EXPECT_EQ(obj.translate(L"please"), std::wstring(L"请"));
+    EXPECT_EQ(obj.translate(L"thank you"), std::wstring(L"谢谢"));
+}
 
-    const IOv2::messages<wchar_t> obj(std::make_shared<IOv2::messages_conf<wchar_t>>("messages", "zh_HK", false));
+TEST(MessagesWchar, AnAvailableCatalogueHasAHeaderEntry)
+{
+    const messages<wchar_t> obj = facet_for("zh_CN");
+    EXPECT_NE(obj.head_entry(), L"");
+}
 
-    VERIFY(obj.translate(L"please") == L"please");
-    VERIFY(obj.translate(L"thank you") == L"thank you");
-    VERIFY(obj.translate(L"") == L"");
-    VERIFY(obj.head_entry() == L"");
+TEST(MessagesWchar, AMissingCatalogueLeavesTheKeyUntranslated)
+{
+    const messages<wchar_t> obj(std::make_shared<messages_conf<wchar_t>>("messages", "zh_HK", false));
+    EXPECT_EQ(obj.translate(L"please"), std::wstring(L"please"));
+    EXPECT_EQ(obj.translate(L"thank you"), std::wstring(L"thank you"));
+    EXPECT_EQ(obj.head_entry(), L"");
+}
 
-    dump_info("Done\n");
+TEST(MessagesWchar, AnEmptyKeyTranslatesToNothing)
+{
+    const messages<wchar_t> present = facet_for("zh_CN");
+    const messages<wchar_t> absent(std::make_shared<messages_conf<wchar_t>>("messages", "zh_HK", false));
+    EXPECT_EQ(present.translate(L""), L"");
+    EXPECT_EQ(absent.translate(L""), L"");
 }
