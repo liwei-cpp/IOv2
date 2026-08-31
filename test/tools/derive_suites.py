@@ -34,9 +34,8 @@ MANIFEST = os.path.join(TEST_DIR, "suites.cmake")
 # A directory drops off this list once its last source becomes GoogleTest: the
 # cases register themselves, so there is no order left for the main() to fix and
 # nothing here left to read.  test/common went first, then test/device, then
-# test/concur and test/locale.
+# test/concur and test/locale, then test/cvt.
 MAIN_SOURCES = [
-    "cvt/test_cvt.cpp",
     "facet/test_facet.cpp",
     "io/test_io.cpp",
 ]

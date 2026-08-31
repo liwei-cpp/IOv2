@@ -1,471 +1,466 @@
+#include <common/defs.h>
 #include <cvt/crypt/vigenere_cvt.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
-void test_vigenere_cvt_gen_1()
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <utility>
+
+using namespace IOv2;
+
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt general case 1...");
-    
+    using CharCvt   = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
+    using CharCvtNr = Crypt::Classic::vigenere_cvt<no_rb_root_cvt<mem_device<char>>>;
+
+    constexpr std::size_t kSize = 4102;
+
+    // The external sample: 586 repetitions of the UTF-8 for U'李' U'伟' plus one
+    // byte cycling 1..127. The seven-byte period matches the seven-byte key, so
+    // every position's shift is fixed and the expected plaintext can be written
+    // out in the same loop.
+    void build_sample(std::string& external, std::string& internal, int sign)
     {
-        using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char>);
-        static_assert(std::is_same_v<CheckType::external_type, char>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(cvt_cpt::support_positioning<CheckType>);
-        static_assert(cvt_cpt::support_io_switch<CheckType>);
-    }
-    
-    {
-        using CheckType = Crypt::Classic::vigenere_cvt<no_rb_root_cvt<mem_device<char32_t>>>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char32_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char32_t>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(cvt_cpt::support_positioning<CheckType>);
-        static_assert(cvt_cpt::support_io_switch<CheckType>);
+        external.resize(kSize);
+        internal.resize(kSize);
+        const char key[] = "liweixy";
+        for (std::size_t i = 0; i < kSize; i += 7)
+        {
+            external[i + 0] = '\xE6';
+            external[i + 1] = '\x9D';
+            external[i + 2] = '\x8E';
+            external[i + 3] = '\xE4';
+            external[i + 4] = '\xBC';
+            external[i + 5] = '\x9F';
+            external[i + 6] = (i / 7) % 127 + 1;
+            for (int k = 0; k < 7; ++k)
+                internal[i + k] = static_cast<char>(external[i + k] + sign * key[k]);
+        }
     }
 
-    dump_info("Done\n");
-}
+    // Sizes the loops rotate through, so no call is aligned with the key period.
+    constexpr std::size_t kGetChunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+    constexpr std::size_t kPutChunks[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
 
-void test_vigenere_cvt_gen_2()
-{
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt<mem_device> general case 2...");
-    
-    using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-    
-    auto helper1 = [](auto& obj)
+    // "hello" is already in the device and the converter opens for output at the
+    // end of it, so the first six characters written are the ones the key shifts.
+    CharCvt cvt_over_hello()
     {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        auto obj2(obj);
-        VERIFY(obj2.device().str() == "hello");
-        
+        mem_device dev{"hello"};
+        dev.drseek(0);
+        return CharCvt{rb_root_cvt{std::move(dev)}, "abcdef"};
+    }
+
+    // Appending " world" to a stream whose key starts at 'a' gives a shift that
+    // walks the key one letter per character.
+    template <typename T>
+    void expect_world_is_shifted_by_the_key(T& obj)
+    {
         obj.put(" world", 6);
         obj.flush();
-        auto new_str = obj.device().str();
-        VERIFY(new_str.size() == 11);
-        VERIFY(new_str.substr(0, 5) == "hello");
-        VERIFY(new_str[5] == static_cast<char>(' ' + 'a'));
-        VERIFY(new_str[6] == static_cast<char>('w' + 'b'));
-        VERIFY(new_str[7] == static_cast<char>('o' + 'c'));
-        VERIFY(new_str[8] == static_cast<char>('r' + 'd'));
-        VERIFY(new_str[9] == static_cast<char>('l' + 'e'));
-        VERIFY(new_str[10] == static_cast<char>('d' + 'f'));
-        
-        VERIFY(obj2.device().str() == "hello");
-    };
-    
-    {
-        mem_device dev{"hello"}; dev.drseek(0);
-        CheckType obj{rb_root_cvt{std::move(dev)}, "abcdef"};
-        helper1(obj);
 
-        mem_device dev2{"hello"}; dev2.drseek(0);
-        CheckType tmp{rb_root_cvt{std::move(dev2)}, "abcdef"};
-        runtime_cvt obj2(std::move(tmp));
-        helper1(obj2);
+        const std::string s = obj.device().str();
+        ASSERT_EQ(s.size(), 11u);
+        EXPECT_EQ(s.substr(0, 5), "hello");
+        EXPECT_EQ(s[5],  static_cast<char>(' ' + 'a'));
+        EXPECT_EQ(s[6],  static_cast<char>('w' + 'b'));
+        EXPECT_EQ(s[7],  static_cast<char>('o' + 'c'));
+        EXPECT_EQ(s[8],  static_cast<char>('r' + 'd'));
+        EXPECT_EQ(s[9],  static_cast<char>('l' + 'e'));
+        EXPECT_EQ(s[10], static_cast<char>('d' + 'f'));
     }
-    
-    auto helper2 = []<typename T>(T& obj)
+
+    // A converter forked before any write shares the device contents but not the
+    // key position, so writing through one must leave the other's view untouched.
+    template <typename T, typename Fork>
+    void expect_a_fork_does_not_see_later_writes(T& obj, Fork fork)
     {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        T obj2{Crypt::Classic::vigenere_cvt{rb_root_cvt{mem_device("")}, "abcdef"}};
-        obj2 = obj;
-        VERIFY(obj2.device().str() == "hello");
-        
-        obj.put(" world", 6);
-        obj.flush();
-        auto new_str = obj.device().str();
-        VERIFY(new_str.size() == 11);
-        VERIFY(new_str.substr(0, 5) == "hello");
-        VERIFY(new_str[5] == static_cast<char>(' ' + 'a'));
-        VERIFY(new_str[6] == static_cast<char>('w' + 'b'));
-        VERIFY(new_str[7] == static_cast<char>('o' + 'c'));
-        VERIFY(new_str[8] == static_cast<char>('r' + 'd'));
-        VERIFY(new_str[9] == static_cast<char>('l' + 'e'));
-        VERIFY(new_str[10] == static_cast<char>('d' + 'f'));
 
-        VERIFY(obj2.device().str() == "hello");
-    };
+        T forked = fork(obj);
+        EXPECT_EQ(forked.device().str(), "hello");
 
-    {
-        mem_device dev{"hello"}; dev.drseek(0);
-        CheckType obj{rb_root_cvt{std::move(dev)}, "abcdef"};
-        helper2(obj);
-
-        mem_device dev2{"hello"}; dev2.drseek(0);
-        CheckType tmp{rb_root_cvt{std::move(dev2)}, "abcdef"};
-        runtime_cvt obj2(std::move(tmp));
-        helper2(obj2);
+        expect_world_is_shifted_by_the_key(obj);
+        EXPECT_EQ(forked.device().str(), "hello");
     }
 
-    auto helper3 = [](auto& obj)
+    // Moving hands the device over wholesale: the target sees exactly what the
+    // source had.
+    template <typename T, typename Transfer>
+    void expect_a_move_carries_the_device(T& obj, Transfer transfer)
     {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        auto obj2(std::move(obj));
-        VERIFY(obj2.device().str() == "hello");
-    };
-    {
-        mem_device dev{"hello"}; dev.drseek(0);
-        CheckType obj{rb_root_cvt{std::move(dev)}, "abcdef"};
-        helper3(obj);
 
-        mem_device dev2{"hello"}; dev2.drseek(0);
-        CheckType tmp{rb_root_cvt{std::move(dev2)}, "abcdef"};
-        runtime_cvt obj2(std::move(tmp));
-        helper3(obj2);
+        T moved = transfer(obj);
+        EXPECT_EQ(moved.device().str(), "hello");
     }
 
-    auto helper4 = []<typename T>(T& obj)
+    // Reads the whole sample back in rotating chunks and compares it character by
+    // character with the expected plaintext.
+    template <typename T>
+    void expect_decrypts_to(T& obj, const std::string& expected)
     {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::input);
         obj.main_cont_beg();
-        T obj2{Crypt::Classic::vigenere_cvt{rb_root_cvt{mem_device("")}, "abcdef"}};
-        obj2 = std::move(obj);
-        VERIFY(obj2.device().str() == "hello");
-    };
-    {
-        mem_device dev{"hello"}; dev.drseek(0);
-        CheckType obj{rb_root_cvt{std::move(dev)}, "abcdef"};
-        helper4(obj);
+        EXPECT_EQ(obj.tell(), 0u);
 
-        mem_device dev2{"hello"}; dev2.drseek(0);
-        CheckType tmp{rb_root_cvt{std::move(dev2)}, "abcdef"};
-        runtime_cvt obj2(std::move(tmp));
-        helper4(obj2);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_vigenere_cvt_get_1()
-{
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt::get case 1...");
-    using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-
-    std::string e_lit; e_lit.resize(4102);
-    std::string i_lit; i_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';                i_lit[i+0] = e_lit[i+0] - 'l';
-        e_lit[i+1] = '\x9D';                i_lit[i+1] = e_lit[i+1] - 'i';
-        e_lit[i+2] = '\x8E';                i_lit[i+2] = e_lit[i+2] - 'w';
-        e_lit[i+3] = '\xE4';                i_lit[i+3] = e_lit[i+3] - 'e';
-        e_lit[i+4] = '\xBC';                i_lit[i+4] = e_lit[i+4] - 'i';
-        e_lit[i+5] = '\x9F';                i_lit[i+5] = e_lit[i+5] - 'x';
-        e_lit[i+6] = (i / 7) % 127 + 1;     i_lit[i+6] = e_lit[i+6] - 'y';
-    }
-
-    auto helper = [&i_lit](auto& obj)
-    {
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
-
-        char out_buf[4102];
-        size_t total_count = 0;
-        char* cur_pos = out_buf;
-        int out_buffer_id = 0;
+        std::string out_buf(kSize, '\0');
+        std::size_t total = 0;
+        char*       cur   = out_buf.data();
+        int         id    = 0;
         while (true)
         {
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
+            std::size_t n = std::min<std::size_t>(kSize - total, kGetChunks[id++]);
+            auto        s = obj.get(cur, n);
+            id %= std::size(kGetChunks);
+            cur   += s;
+            total += s;
             if (s == 0) break;
         }
-        VERIFY(total_count == 4102);
-        VERIFY(cur_pos == out_buf + 4102);
-        for (size_t i = 0; i < 4102; ++i)
-            VERIFY(out_buf[i] == i_lit[i]);
-    };
 
-    CheckType obj{rb_root_cvt{mem_device(e_lit)}, "liweixy"};
-    helper(obj);
-    
-    CheckType tmp{rb_root_cvt{mem_device(e_lit)}, "liweixy"};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_vigenere_cvt_get_nra_1()
-{
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt::get_nra case 1...");
-    using CheckType = Crypt::Classic::vigenere_cvt<no_rb_root_cvt<mem_device<char>>>;
-
-    std::string e_lit; e_lit.resize(4102);
-    std::string i_lit; i_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';                i_lit[i+0] = e_lit[i+0] - 'l';
-        e_lit[i+1] = '\x9D';                i_lit[i+1] = e_lit[i+1] - 'i';
-        e_lit[i+2] = '\x8E';                i_lit[i+2] = e_lit[i+2] - 'w';
-        e_lit[i+3] = '\xE4';                i_lit[i+3] = e_lit[i+3] - 'e';
-        e_lit[i+4] = '\xBC';                i_lit[i+4] = e_lit[i+4] - 'i';
-        e_lit[i+5] = '\x9F';                i_lit[i+5] = e_lit[i+5] - 'x';
-        e_lit[i+6] = (i / 7) % 127 + 1;     i_lit[i+6] = e_lit[i+6] - 'y';
+        EXPECT_EQ(total, kSize);
+        EXPECT_EQ(cur, out_buf.data() + kSize);
+        EXPECT_EQ(out_buf, expected);
     }
-
-    auto helper = [&i_lit](auto& obj)
-    {
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
-    
-        char out_buf[4102];
-        size_t total_count = 0;
-        char* cur_pos = out_buf;
-        int out_buffer_id = 0;
-        while (true)
-        {
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
-            if (s == 0) break;
-        }
-        VERIFY(total_count == 4102);
-        VERIFY(cur_pos == out_buf + 4102);
-        for (size_t i = 0; i < 4102; ++i)
-            VERIFY(out_buf[i] == i_lit[i]);
-    };
-
-    CheckType obj{no_rb_root_cvt{mem_device(e_lit)}, "liweixy"};
-    helper(obj);
-    
-    CheckType tmp{no_rb_root_cvt{mem_device(e_lit)}, "liweixy"};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_vigenere_cvt_put_1()
+TEST(VigenereCvt, TraitsOverARbRootCvtOfChar)
 {
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt::put case 1...");
     using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-
-    std::string e_lit; e_lit.resize(4102);
-    std::string i_lit; i_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';                i_lit[i+0] = e_lit[i+0] + 'l';
-        e_lit[i+1] = '\x9D';                i_lit[i+1] = e_lit[i+1] + 'i';
-        e_lit[i+2] = '\x8E';                i_lit[i+2] = e_lit[i+2] + 'w';
-        e_lit[i+3] = '\xE4';                i_lit[i+3] = e_lit[i+3] + 'e';
-        e_lit[i+4] = '\xBC';                i_lit[i+4] = e_lit[i+4] + 'i';
-        e_lit[i+5] = '\x9F';                i_lit[i+5] = e_lit[i+5] + 'x';
-        e_lit[i+6] = (i / 7) % 127 + 1;     i_lit[i+6] = e_lit[i+6] + 'y';
-    }
-
-    auto helper = [&e_lit, &i_lit](auto& obj)
-    {
-        size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
-        
-        char* cur_pos = e_lit.data();
-        int buffer_id = 0;
-        while (cur_pos < e_lit.data() + 4102)
-        {
-            size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], e_lit.data() + 4102 - cur_pos);
-            obj.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-        }
-    
-        VERIFY(cur_pos == e_lit.data() + 4102);
-        obj.flush();
-        auto& dev = obj.device();
-        for (size_t i = 0; i < 4102; ++i)
-            VERIFY(dev.str()[i] == i_lit[i]);
-    };
-
-    CheckType obj{rb_root_cvt{mem_device("")}, "liweixy"};
-    helper(obj);
-    
-    CheckType tmp{rb_root_cvt{mem_device("")}, "liweixy"};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char>);
+    static_assert(std::is_same_v<CheckType::external_type, char>);
+    // A per-character shift is position-addressable and direction-agnostic, so
+    // unlike a compressor this converter keeps all four capabilities.
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(cvt_cpt::support_positioning<CheckType>);
+    static_assert(cvt_cpt::support_io_switch<CheckType>);
 }
 
-void test_vigenere_cvt_seek_1()
+TEST(VigenereCvt, TraitsOverANoRbRootCvtOfChar32)
 {
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt::seek case 1...");
+    using CheckType = Crypt::Classic::vigenere_cvt<no_rb_root_cvt<mem_device<char32_t>>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char32_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char32_t>);
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(cvt_cpt::support_positioning<CheckType>);
+    static_assert(cvt_cpt::support_io_switch<CheckType>);
+}
 
-    auto helper = [](auto& obj)
+TEST(VigenereCvt, ACopyConstructedForkDoesNotSeeLaterWrites)
+{
+    auto obj = cvt_over_hello();
+    expect_a_fork_does_not_see_later_writes(obj, [](auto& src) { return CharCvt{src}; });
+}
+
+TEST(VigenereCvt, ACopyConstructedForkDoesNotSeeLaterWritesThroughARuntimeCvt)
+{
+    runtime_cvt obj{cvt_over_hello()};
+    expect_a_fork_does_not_see_later_writes(obj, [](auto& src) { return runtime_cvt{src}; });
+}
+
+TEST(VigenereCvt, ACopyAssignedForkDoesNotSeeLaterWrites)
+{
+    auto obj = cvt_over_hello();
+    expect_a_fork_does_not_see_later_writes(obj, [](auto& src)
     {
-        VERIFY(obj.bos() == io_status::input);
+        CharCvt dst{rb_root_cvt{mem_device("")}, "abcdef"};
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(VigenereCvt, ACopyAssignedForkDoesNotSeeLaterWritesThroughARuntimeCvt)
+{
+    runtime_cvt obj{cvt_over_hello()};
+    expect_a_fork_does_not_see_later_writes(obj, [](auto& src)
+    {
+        runtime_cvt dst{CharCvt{rb_root_cvt{mem_device("")}, "abcdef"}};
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(VigenereCvt, MoveConstructionCarriesTheDevice)
+{
+    auto obj = cvt_over_hello();
+    expect_a_move_carries_the_device(obj, [](auto& src) { return CharCvt{std::move(src)}; });
+}
+
+TEST(VigenereCvt, MoveConstructionCarriesTheDeviceThroughARuntimeCvt)
+{
+    runtime_cvt obj{cvt_over_hello()};
+    expect_a_move_carries_the_device(obj, [](auto& src) { return runtime_cvt{std::move(src)}; });
+}
+
+TEST(VigenereCvt, MoveAssignmentCarriesTheDevice)
+{
+    auto obj = cvt_over_hello();
+    expect_a_move_carries_the_device(obj, [](auto& src)
+    {
+        CharCvt dst{rb_root_cvt{mem_device("")}, "abcdef"};
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(VigenereCvt, MoveAssignmentCarriesTheDeviceThroughARuntimeCvt)
+{
+    runtime_cvt obj{cvt_over_hello()};
+    expect_a_move_carries_the_device(obj, [](auto& src)
+    {
+        runtime_cvt dst{CharCvt{rb_root_cvt{mem_device("")}, "abcdef"}};
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(VigenereCvt, ChunkedGetDecryptsTheWholeStream)
+{
+    std::string external, internal;
+    build_sample(external, internal, -1);
+
+    CharCvt obj{rb_root_cvt{mem_device(external)}, "liweixy"};
+    expect_decrypts_to(obj, internal);
+}
+
+TEST(VigenereCvt, ChunkedGetDecryptsTheWholeStreamThroughARuntimeCvt)
+{
+    std::string external, internal;
+    build_sample(external, internal, -1);
+
+    runtime_cvt obj{CharCvt{rb_root_cvt{mem_device(external)}, "liweixy"}};
+    expect_decrypts_to(obj, internal);
+}
+
+// The same read through a root converter without a read-back buffer: the
+// converter has to reassemble the stream from the device's own reads.
+TEST(VigenereCvt, ChunkedGetDecryptsTheWholeStreamWithoutAReadBuffer)
+{
+    std::string external, internal;
+    build_sample(external, internal, -1);
+
+    CharCvtNr obj{no_rb_root_cvt{mem_device(external)}, "liweixy"};
+    expect_decrypts_to(obj, internal);
+}
+
+TEST(VigenereCvt, ChunkedGetDecryptsTheWholeStreamWithoutAReadBufferThroughARuntimeCvt)
+{
+    std::string external, internal;
+    build_sample(external, internal, -1);
+
+    runtime_cvt obj{CharCvtNr{no_rb_root_cvt{mem_device(external)}, "liweixy"}};
+    expect_decrypts_to(obj, internal);
+}
+
+namespace
+{
+    // The put mirror of expect_decrypts_to: writing the sample in rotating chunks
+    // has to leave the device holding the key-shifted text.
+    template <typename T>
+    void expect_encrypts_to(T& obj, std::string& plain, const std::string& expected)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        
+        EXPECT_EQ(obj.tell(), 0u);
+
+        char* cur = plain.data();
+        int   id  = 0;
+        while (cur < plain.data() + kSize)
+        {
+            std::size_t n = std::min<std::size_t>(kPutChunks[id++], plain.data() + kSize - cur);
+            obj.put(cur, n);
+            id %= std::size(kPutChunks);
+            cur += n;
+        }
+        EXPECT_EQ(cur, plain.data() + kSize);
+
+        obj.flush();
+        EXPECT_EQ(obj.device().str(), expected);
+    }
+}
+
+TEST(VigenereCvt, ChunkedPutEncryptsTheWholeStream)
+{
+    std::string plain, expected;
+    build_sample(plain, expected, +1);
+
+    CharCvt obj{rb_root_cvt{mem_device("")}, "liweixy"};
+    expect_encrypts_to(obj, plain, expected);
+}
+
+TEST(VigenereCvt, ChunkedPutEncryptsTheWholeStreamThroughARuntimeCvt)
+{
+    std::string plain, expected;
+    build_sample(plain, expected, +1);
+
+    runtime_cvt obj{CharCvt{rb_root_cvt{mem_device("")}, "liweixy"}};
+    expect_encrypts_to(obj, plain, expected);
+}
+
+namespace
+{
+    // seek() and rseek() move the key position along with the read position: the
+    // character that comes out depends on where in the key the converter thinks it
+    // is, so a wrong position shows up as a wrong shift rather than a wrong byte.
+    template <typename T>
+    void expect_seek_moves_the_key_position(T& obj)
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
         obj.seek(3);
-        VERIFY(obj.tell() == 3);
-        
-        char ch = 0;
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('4' - 'e')));
-        
-        obj.rseek(3);
-        VERIFY(obj.tell() == 2);
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('3' - 'w')));
-    };
-    
-    using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-    {
-        mem_device dev("12345");
-        CheckType obj(rb_root_cvt{dev}, "liwei");
-        helper(obj);
-    }
-    {
-        mem_device dev("12345");
-        CheckType tmp(rb_root_cvt{dev}, "liwei");
-        runtime_cvt obj(std::move(tmp));
-        helper(obj);
-    }
+        EXPECT_EQ(obj.tell(), 3u);
 
-    dump_info("Done\n");
+        char ch = 0;
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, static_cast<char>('4' - 'e'));
+
+        // rseek counts from the end of the five-character device, so rseek(3)
+        // lands on index 2.
+        obj.rseek(3);
+        EXPECT_EQ(obj.tell(), 2u);
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, static_cast<char>('3' - 'w'));
+    }
 }
 
-void test_vigenere_cvt_seek_2()
+TEST(VigenereCvt, SeekMovesTheKeyPosition)
 {
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt::seek case 2...");
+    mem_device dev("12345");
+    CharCvt    obj(rb_root_cvt{dev}, "liwei");
+    expect_seek_moves_the_key_position(obj);
+}
 
-    auto helper = [](auto& obj)
+TEST(VigenereCvt, SeekMovesTheKeyPositionThroughARuntimeCvt)
+{
+    mem_device  dev("12345");
+    runtime_cvt obj{CharCvt{rb_root_cvt{dev}, "liwei"}};
+    expect_seek_moves_the_key_position(obj);
+}
+
+namespace
+{
+    // main_cont_beg() marks where the main content starts: reads taken before it
+    // are a prologue, so tell() restarts at 0 and positions are counted from
+    // there. Seeks past either end must throw and leave the position alone.
+    template <typename T>
+    void expect_positions_are_relative_to_the_main_content(T& obj)
     {
-        VERIFY(obj.bos() == io_status::input);
+        EXPECT_EQ(obj.bos(), io_status::input);
+
         char c = 0;
-        VERIFY((obj.get(&c, 1) == 1) && (c == '1'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == '2'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == '3'));
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, '1');
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, '2');
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, '3');
 
         obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
 
         obj.seek(3);
-        VERIFY(obj.tell() == 3);
-        
+        EXPECT_EQ(obj.tell(), 3u);
+
         char ch = 0;
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('d' - 'e')));
-        
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, static_cast<char>('d' - 'e'));
+
         obj.rseek(3);
-        VERIFY(obj.tell() == 4);
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == static_cast<char>('e' - 'i')));
+        EXPECT_EQ(obj.tell(), 4u);
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, static_cast<char>('e' - 'i'));
 
-        FAIL_RSEEK(obj, 60);
-        VERIFY(obj.tell() == 5);
+        // Past the start of the main content, and past its end: both are refused,
+        // and neither is allowed to move the position it failed to reach.
+        EXPECT_ANY_THROW(obj.rseek(60));
+        EXPECT_EQ(obj.tell(), 5u);
 
-        FAIL_RSEEK(obj, 9);
-        VERIFY(obj.tell() == 5);
+        EXPECT_ANY_THROW(obj.rseek(9));
+        EXPECT_EQ(obj.tell(), 5u);
 
-        // seek out-of-bounds → seek_impl catches, tell() still works, rethrows (line 419)
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.tell() == 5);
-    };
+        EXPECT_ANY_THROW(obj.seek(100));
+        EXPECT_EQ(obj.tell(), 5u);
+    }
+}
 
+TEST(VigenereCvt, PositionsAreRelativeToTheMainContent)
+{
     Crypt::Classic::vigenere_cvt_creator<char> creator("liwei");
     auto obj = creator.create(rb_root_cvt{mem_device("123abcdefg")});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device("123abcdefg")});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
+    expect_positions_are_relative_to_the_main_content(obj);
 }
 
-void test_vigenere_cvt_error_1()
+TEST(VigenereCvt, PositionsAreRelativeToTheMainContentThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test vigenere_cvt error paths...");
+    Crypt::Classic::vigenere_cvt_creator<char> creator("liwei");
+    runtime_cvt obj{creator.create(rb_root_cvt{mem_device("123abcdefg")})};
+    expect_positions_are_relative_to_the_main_content(obj);
+}
 
-    // vigenere_cvt_creator with empty key throws
-    {
-        bool threw = false;
-        try { Crypt::Classic::vigenere_cvt_creator<char> bad_creator(""); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
+// An empty key would make the cipher the identity and hide the mistake, so it is
+// rejected wherever a key enters: at the creator, at the constructor, and at
+// attach() on a converter whose key was moved away.
+TEST(VigenereCvt, AnEmptyKeyIsRejectedByTheCreator)
+{
+    EXPECT_THROW(Crypt::Classic::vigenere_cvt_creator<char>(""), cvt_error);
+}
 
-    // vigenere_cvt constructor with empty key throws
-    {
-        bool threw = false;
-        try
-        {
-            using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-            std::string_view empty_key{};
-            CheckType obj(rb_root_cvt{mem_device("")}, empty_key);
-        }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
+TEST(VigenereCvt, AnEmptyKeyIsRejectedByTheConstructor)
+{
+    std::string_view empty_key{};
+    EXPECT_THROW(CharCvt(rb_root_cvt{mem_device("")}, empty_key), cvt_error);
+}
 
-    // attach_impl() empty key: move-from then call attach() — hits line 183
-    {
-        using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-        CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
-        auto moved = std::move(obj);
-        // obj is moved-from: m_key is empty
-        bool threw = false;
-        try { obj.attach(); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
+TEST(VigenereCvt, AttachIsRejectedOnAMovedFromConverter)
+{
+    CharCvt obj(rb_root_cvt{mem_device("")}, "liwei");
+    auto    moved = std::move(obj);
 
-    // detach_impl() resets m_pos; attach_impl() validates key on re-use
-    {
-        using CheckType = Crypt::Classic::vigenere_cvt<rb_root_cvt<mem_device<char>>>;
-        CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put("hello", 5);
-        obj.seek(3);
-        VERIFY(obj.tell() == 3);
-        auto [dev2, err] = obj.detach();
-        // detach_impl() was called: m_pos reset to 0
-        // attach_impl() validates key is non-empty
-        obj.attach();
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put("world", 5);
-        auto [dev3, err3] = obj.detach();
-        // "world" encrypted from m_pos=0 (reset by detach_impl)
-        const std::string expected = {
-            static_cast<char>('w' + 'l'),
-            static_cast<char>('o' + 'i'),
-            static_cast<char>('r' + 'w'),
-            static_cast<char>('l' + 'e'),
-            static_cast<char>('d' + 'i'),
-        };
-        VERIFY(dev3.str() == expected);
-    }
+    EXPECT_THROW(obj.attach(), cvt_error);
+}
 
-    dump_info("Done\n");
+// detach() resets the key position, so the stream written after a re-attach is
+// shifted from the start of the key again rather than from wherever the previous
+// stream left off.
+TEST(VigenereCvt, DetachResetsTheKeyPosition)
+{
+    CharCvt obj(rb_root_cvt{mem_device("")}, "liwei");
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    obj.put("hello", 5);
+    obj.seek(3);
+    EXPECT_EQ(obj.tell(), 3u);
+    obj.detach();
+
+    obj.attach();
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    obj.put("world", 5);
+    auto [dev, err] = obj.detach();
+
+    const std::string expected = {
+        static_cast<char>('w' + 'l'),
+        static_cast<char>('o' + 'i'),
+        static_cast<char>('r' + 'w'),
+        static_cast<char>('l' + 'e'),
+        static_cast<char>('d' + 'i'),
+    };
+    EXPECT_EQ(dev.str(), expected);
 }

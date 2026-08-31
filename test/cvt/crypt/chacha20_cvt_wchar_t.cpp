@@ -1,289 +1,235 @@
+#include <common/defs.h>
 #include <cvt/crypt/chacha20_cvt.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
-void test_chacha20_cvt_wchar_t_gen_1()
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+using namespace IOv2;
+
+// The char counterpart of these cases lives in chacha20_cvt.cpp. Here the
+// converter's internal type is wchar_t while the device holds char, so each
+// element becomes four ciphertext bytes -- which is what the truncation case at
+// the bottom is about.
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt<wchar_t> general case 1...");
-    
+    using WcharCvt = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>, wchar_t>;
+
+    constexpr std::size_t kSize   = 4102;
+    constexpr std::size_t kChunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+
+    std::wstring sample()
     {
-        using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>, wchar_t>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
-        static_assert(std::is_same_v<CheckType::internal_type, wchar_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
-    }
-    
-    {
-        using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char8_t>, false>, wchar_t>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, wchar_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char8_t>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
+        std::wstring out;
+        out.resize(kSize);
+        for (std::size_t i = 0; i < kSize; i += 7)
+        {
+            out[i + 0] = L'\xE6';
+            out[i + 1] = L'\x9D';
+            out[i + 2] = L'\x8E';
+            out[i + 3] = L'\xE4';
+            out[i + 4] = L'\xBC';
+            out[i + 5] = L'\x9F';
+            out[i + 6] = (i / 7) % 127 + 1;
+        }
+        return out;
     }
 
-    dump_info("Done\n");
+    auto creator() { return Crypt::chacha20_cvt_creator<wchar_t>("liwei"); }
+
+    // Writes the sample in rotating chunks and returns the ciphertext. With
+    // move_between_chunks the converter is moved out and back between every
+    // chunk: the keystream position lives in the cipher object, so a move that
+    // dropped or restarted it would corrupt everything after the first chunk.
+    template <typename T>
+    std::string encrypt_in_chunks(T& obj, const std::wstring& plain, bool move_between_chunks)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+
+        std::size_t    total = 0;
+        const wchar_t* cur   = plain.data();
+        int            id    = 0;
+        while (total < kSize)
+        {
+            std::size_t n = std::min<std::size_t>(kSize - total, kChunks[id++]);
+            if (move_between_chunks)
+            {
+                T moved(std::move(obj));
+                moved.put(cur, n);
+                obj = std::move(moved);
+            }
+            else
+            {
+                obj.put(cur, n);
+            }
+            id %= std::size(kChunks);
+            cur   += n;
+            total += n;
+        }
+
+        auto [dev, err] = obj.detach();
+        return dev.str();
+    }
+
+    template <typename T>
+    void expect_decrypts_in_chunks(const std::string& enc, const std::wstring& plain)
+    {
+        T obj(creator().create(rb_root_cvt{mem_device(enc)}));
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::wstring buf(kSize * 2, L'\0');
+        std::size_t  total = 0;
+        wchar_t*     cur   = buf.data();
+        int          id    = 0;
+        while (true)
+        {
+            std::size_t n = std::min<std::size_t>(kSize * 2 - total, kChunks[id++]);
+            T           moved(std::move(obj));
+            auto        s = moved.get(cur, n);
+            id %= std::size(kChunks);
+            cur   += s;
+            total += s;
+            if (s == 0) break;
+            obj = std::move(moved);
+        }
+
+        ASSERT_EQ(cur - buf.data(), static_cast<std::ptrdiff_t>(kSize));
+        buf.resize(kSize);
+        EXPECT_EQ(buf, plain);
+    }
 }
 
-void test_chacha20_cvt_wchar_t_gen_2()
+TEST(Chacha20CvtWchar, TraitsOverARbRootCvtOfChar)
 {
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt<wchar_t> general case 2...");
-
-    std::wstring e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = L'\xE6';
-        e_lit[i+1] = L'\x9D';
-        e_lit[i+2] = L'\x8E';
-        e_lit[i+3] = L'\xE4';
-        e_lit[i+4] = L'\xBC';
-        e_lit[i+5] = L'\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    auto helper = [&e_lit]<typename T>(T& obj)
-    {
-        Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
-        std::string enc_msg;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-    
-            size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-            size_t total_count = 0;
-            wchar_t* cur_pos = e_lit.data();
-            int buffer_id = 0;
-            while (total_count < 4102)
-            {
-                auto obj2(std::move(obj));
-                size_t dest_size = std::min<size_t>(4102 - total_count, buffer_size[buffer_id++]);
-                obj2.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-                total_count += dest_size;
-                obj = std::move(obj2);
-            }
-    
-            auto [dev, err] = obj.detach();
-            enc_msg = dev.str();
-        }
-    
-        {
-            T local_obj(creator.create(rb_root_cvt{mem_device(enc_msg)}));
-            VERIFY(local_obj.bos() == io_status::input);
-            local_obj.main_cont_beg();
-            
-            size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-        
-            std::wstring buf; buf.resize(4102 * 2);
-            size_t total_count = 0;
-            wchar_t* cur_pos = buf.data();
-            int out_buffer_id = 0;
-            while (true)
-            {
-                auto obj2(std::move(local_obj));
-                size_t dest_size = std::min<size_t>(4102 * 2 - total_count, out_buffer_size[out_buffer_id++]);
-                auto s = obj2.get(cur_pos, dest_size);
-                out_buffer_id %= std::size(out_buffer_size);
-                cur_pos += s;
-                total_count += s;
-                if (s == 0) break;
-                local_obj = std::move(obj2);
-            }
-        
-            VERIFY(cur_pos - buf.data() == 4102);
-            buf.resize(4102);
-            VERIFY(buf == e_lit);
-        }
-    };
-
-    Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj);
-
-    runtime_cvt obj2(creator.create(rb_root_cvt{mem_device("")}));
-    helper(obj2);
-
-    dump_info("Done\n");
+    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char>, true>, wchar_t>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
+    static_assert(std::is_same_v<CheckType::internal_type, wchar_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char>);
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    // The keystream is generated forward from the IV, so there is no way to jump
+    // to a position or to turn the stream around mid-way.
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
 }
 
-void test_chacha20_cvt_wchar_t_put_1()
+TEST(Chacha20CvtWchar, TraitsOverANoRbRootCvtOfChar8)
 {
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt<wchar_t>::put case 1...");
-
-    std::wstring e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = L'\xE6';
-        e_lit[i+1] = L'\x9D';
-        e_lit[i+2] = L'\x8E';
-        e_lit[i+3] = L'\xE4';
-        e_lit[i+4] = L'\xBC';
-        e_lit[i+5] = L'\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    auto out_helper = [&e_lit](auto& obj1, auto& obj2)
-    {
-        auto helper = [&e_lit](auto& obj)
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-    
-            size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-            size_t total_count = 0;
-            auto cur_pos = e_lit.data();
-            int buffer_id = 0;
-            while (total_count < 4102)
-            {
-                size_t dest_size = std::min<size_t>(4102 - total_count, buffer_size[buffer_id++]);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-                total_count += dest_size;
-            }
-    
-            auto [dev, err] = obj.detach();
-            return dev.str();
-        };
-        
-        std::string r1 = helper(obj1);
-        std::string r2 = helper(obj2);
-        VERIFY(r1 != r2);
-    };
-
-    Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
-    {
-        auto obj1 = creator.create(rb_root_cvt{mem_device("")});
-        auto obj2 = creator.create(rb_root_cvt{mem_device("")});
-        out_helper(obj1, obj2);
-    }
-    {
-        runtime_cvt obj1(creator.create(rb_root_cvt{mem_device("")}));
-        runtime_cvt obj2(creator.create(rb_root_cvt{mem_device("")}));
-        out_helper(obj1, obj2);
-    }
-    dump_info("Done\n");
+    using CheckType = Crypt::chacha20_cvt<root_cvt<mem_device<char8_t>, false>, wchar_t>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, wchar_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char8_t>);
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
 }
 
-void test_chacha20_cvt_wchar_t_io_1()
+TEST(Chacha20CvtWchar, MovingTheConverterBetweenChunksPreservesTheKeystream)
 {
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt<wchar_t> io case 1...");
-
-    std::wstring e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = L'\xE6';
-        e_lit[i+1] = L'\x9D';
-        e_lit[i+2] = L'\x8E';
-        e_lit[i+3] = L'\xE4';
-        e_lit[i+4] = L'\xBC';
-        e_lit[i+5] = L'\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    auto helper = [&e_lit]<typename T>(T& obj)
-    {
-        Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
-        std::string enc_msg;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-    
-            size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-            size_t total_count = 0;
-            wchar_t* cur_pos = e_lit.data();
-            int buffer_id = 0;
-            while (total_count < 4102)
-            {
-                size_t dest_size = std::min<size_t>(4102 - total_count, buffer_size[buffer_id++]);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-                total_count += dest_size;
-            }
-    
-            auto [dev, err] = obj.detach();
-            enc_msg = dev.str();
-        }
-    
-        {
-            T local_obj(creator.create(rb_root_cvt{mem_device(enc_msg)}));
-            VERIFY(local_obj.bos() == io_status::input);
-            local_obj.main_cont_beg();
-            
-            std::wstring buf;
-            buf.resize(4102 * 2);
-            VERIFY(local_obj.get(buf.data(), buf.size()) == 4102);
-            buf.resize(4102);
-            VERIFY(buf == e_lit);
-        }
-    };
-
-    Crypt::chacha20_cvt_creator<wchar_t> creator("liwei");
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj);
-
-    runtime_cvt obj2(creator.create(rb_root_cvt{mem_device("")}));
-    helper(obj2);
-    
-    dump_info("Done\n");
+    const std::wstring plain = sample();
+    auto               obj   = creator().create(rb_root_cvt{mem_device("")});
+    const std::string  enc   = encrypt_in_chunks(obj, plain, true);
+    expect_decrypts_in_chunks<WcharCvt>(enc, plain);
 }
-void test_chacha20_cvt_wchar_t_err_1()
+
+TEST(Chacha20CvtWchar, MovingTheConverterBetweenChunksPreservesTheKeystreamThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt<wchar_t> error paths...");
+    const std::wstring plain = sample();
+    runtime_cvt        obj(creator().create(rb_root_cvt{mem_device("")}));
+    const std::string  enc = encrypt_in_chunks(obj, plain, true);
+    expect_decrypts_in_chunks<runtime_cvt<mem_device<char>, wchar_t>>(enc, plain);
+}
 
-    // Encrypt 1 wchar_t element, then truncate ciphertext by 1 byte so it is not
-    // wchar_t-aligned. Decrypting triggers the EOF-on-non-aligned-boundary path
-    // (lines 533-535 splice entry + line 567 taint-and-throw).
+TEST(Chacha20CvtWchar, ChunkedPutRoundTrips)
+{
+    const std::wstring plain = sample();
+    auto               obj   = creator().create(rb_root_cvt{mem_device("")});
+    const std::string  enc   = encrypt_in_chunks(obj, plain, false);
+
+    auto dec = creator().create(rb_root_cvt{mem_device(enc)});
+    EXPECT_EQ(dec.bos(), io_status::input);
+    dec.main_cont_beg();
+
+    std::wstring buf(kSize * 2, L'\0');
+    EXPECT_EQ(dec.get(buf.data(), buf.size()), kSize);
+    buf.resize(kSize);
+    EXPECT_EQ(buf, plain);
+}
+
+TEST(Chacha20CvtWchar, ChunkedPutRoundTripsThroughARuntimeCvt)
+{
+    const std::wstring plain = sample();
+    runtime_cvt        obj(creator().create(rb_root_cvt{mem_device("")}));
+    const std::string  enc = encrypt_in_chunks(obj, plain, false);
+
+    runtime_cvt dec(creator().create(rb_root_cvt{mem_device(enc)}));
+    EXPECT_EQ(dec.bos(), io_status::input);
+    dec.main_cont_beg();
+
+    std::wstring buf(kSize * 2, L'\0');
+    EXPECT_EQ(dec.get(buf.data(), buf.size()), kSize);
+    buf.resize(kSize);
+    EXPECT_EQ(buf, plain);
+}
+
+// Each session draws a fresh random IV, so the same plaintext under the same key
+// must not encrypt to the same bytes twice. Equal ciphertexts would mean the IV
+// is fixed, which is the classic keystream-reuse break.
+TEST(Chacha20CvtWchar, TwoSessionsWithTheSameKeyProduceDifferentCiphertext)
+{
+    const std::wstring plain = sample();
+    auto               obj1  = creator().create(rb_root_cvt{mem_device("")});
+    auto               obj2  = creator().create(rb_root_cvt{mem_device("")});
+
+    EXPECT_NE(encrypt_in_chunks(obj1, plain, false), encrypt_in_chunks(obj2, plain, false));
+}
+
+TEST(Chacha20CvtWchar, TwoSessionsWithTheSameKeyProduceDifferentCiphertextThroughARuntimeCvt)
+{
+    const std::wstring plain = sample();
+    runtime_cvt        obj1(creator().create(rb_root_cvt{mem_device("")}));
+    runtime_cvt        obj2(creator().create(rb_root_cvt{mem_device("")}));
+
+    EXPECT_NE(encrypt_in_chunks(obj1, plain, false), encrypt_in_chunks(obj2, plain, false));
+}
+
+// One wchar_t encrypts to four ciphertext bytes after the IV. Dropping the last
+// byte leaves a stream that ends in the middle of an element: the converter must
+// report that as an error rather than hand back a half-decoded character.
+TEST(Chacha20CvtWchar, AStreamThatEndsMidElementIsRejected)
+{
+    Crypt::chacha20_cvt_creator<wchar_t> key_creator("errkey");
+
+    std::string enc;
     {
-        Crypt::chacha20_cvt_creator<wchar_t> creator("errkey");
-        std::string enc_msg;
-        {
-            auto enc_obj = creator.create(rb_root_cvt{mem_device("")});
-            enc_obj.bos();
-            enc_obj.main_cont_beg();
-            wchar_t ch = L'A';
-            enc_obj.put(&ch, 1);
-            auto [dev, err] = enc_obj.detach();
-            enc_msg = dev.str(); // IV_len bytes + 4 bytes ciphertext
-        }
-
-        // Truncate last byte: IV_len + 3 bytes = non-aligned for wchar_t
-        if (enc_msg.size() > 4)
-        {
-            enc_msg.resize(enc_msg.size() - 1);
-
-            using WcharType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>, wchar_t>;
-            WcharType dec_obj(rb_root_cvt{mem_device(enc_msg)}, "errkey");
-            dec_obj.bos();          // reads IV successfully
-            dec_obj.main_cont_beg();
-            wchar_t buf[2];
-            bool threw = false;
-            try { dec_obj.get(buf, 1); } // 3 bytes available, needs 4 → EOF mid-element
-            catch (const cvt_error&) { threw = true; }
-            VERIFY(threw);
-        }
+        auto enc_obj = key_creator.create(rb_root_cvt{mem_device("")});
+        enc_obj.bos();
+        enc_obj.main_cont_beg();
+        wchar_t ch = L'A';
+        enc_obj.put(&ch, 1);
+        auto [dev, err] = enc_obj.detach();
+        enc = dev.str(); // IV bytes + 4 bytes of ciphertext
     }
+    ASSERT_GT(enc.size(), 4u);
+    enc.resize(enc.size() - 1);
 
-    dump_info("Done\n");
+    WcharCvt dec_obj(rb_root_cvt{mem_device(enc)}, "errkey");
+    dec_obj.bos(); // the IV still reads fine
+    dec_obj.main_cont_beg();
+
+    wchar_t buf[2];
+    EXPECT_THROW((void)dec_obj.get(buf, 1), cvt_error);
 }

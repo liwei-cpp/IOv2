@@ -1,754 +1,778 @@
-#include <limits>
-#include <typeinfo>
+#include <common/defs.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <gtest/gtest.h>
 
-void test_root_cvt_mem_gen_1()
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <limits>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+using namespace IOv2;
+
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> general case 1...");
-    
+    using MemCvt = rb_root_cvt<mem_device<char>>;
+
+    constexpr std::size_t kSize = 4102;
+
+    // 586 repetitions of the UTF-8 for U'李' U'伟' plus one byte cycling 1..127.
+    // What matters here is the length: 4102 is not a multiple of any chunk size
+    // below, so the loops cross the root converter's buffer boundary at every
+    // offset.
+    std::string sample()
     {
-        using CheckType = no_rb_root_cvt<mem_device<char>>;
-        static_assert(io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char>);
-        static_assert(std::is_same_v<CheckType::external_type, char>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(cvt_cpt::support_positioning<CheckType>);
-        static_assert(cvt_cpt::support_io_switch<CheckType>);
-    }
-    
-    {
-        using CheckType = rb_root_cvt<mem_device<char32_t>>;
-        static_assert(io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char32_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char32_t>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(cvt_cpt::support_positioning<CheckType>);
-        static_assert(cvt_cpt::support_io_switch<CheckType>);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_gen_2()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> general case 2...");
-    
-    auto helper = [](const auto& ori_obj)
-    {
+        std::string out;
+        out.resize(kSize);
+        for (std::size_t i = 0; i < kSize; i += 7)
         {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            auto obj2(obj);
-            VERIFY(obj2.device().str() == "hello");
-            
-            obj.put(" world", 6);
-            obj.flush();
-            VERIFY(obj.device().str() == "hello world");
-            VERIFY(obj2.device().str() == "hello");
+            out[i + 0] = '\xE6';
+            out[i + 1] = '\x9D';
+            out[i + 2] = '\x8E';
+            out[i + 3] = '\xE4';
+            out[i + 4] = '\xBC';
+            out[i + 5] = '\x9F';
+            out[i + 6] = (i / 7) % 127 + 1;
         }
-
-        {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
-            obj2 = obj;
-            VERIFY(obj2.device().str() == "hello");
-            
-            obj.put(" world", 6);
-            obj.flush();
-            VERIFY(obj.device().str() == "hello world");
-            VERIFY(obj2.device().str() == "hello");
-        }
-
-        {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            auto obj2(std::move(obj));
-            VERIFY(obj2.device().str() == "hello");
-        }
-
-        {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
-            obj2 = std::move(obj);
-            VERIFY(obj2.device().str() == "hello");
-        }
-    };
-
-    mem_device dev{"hello"}; dev.drseek(0);
-    auto obj1 = rb_root_cvt{std::move(dev)};
-    helper(obj1);
-    
-    runtime_cvt obj2(std::move(obj1));
-    helper(obj2);
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_gen_3()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> general case 3...");
-    
-    auto helper = [](const auto& ori_obj)
-    {
-        {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::input);
-            obj.main_cont_beg();
-            std::string str; str.resize(5);
-            VERIFY(obj.get(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
-            
-            auto obj2(obj);
-            VERIFY(obj2.tell() == 5);
-            str.resize(6);
-            VERIFY(obj2.get(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
-            
-            str = "xxxxxx";
-            VERIFY(obj.get(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj.tell() == 11);
-        }
-        
-        {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::input);
-            obj.main_cont_beg();
-            std::string str; str.resize(5);
-            VERIFY(obj.get(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
-            
-            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
-            obj2 = obj;
-            VERIFY(obj2.tell() == 5);
-            str.resize(6);
-            VERIFY(obj2.get(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
-            
-            str = "xxxxxx";
-            VERIFY(obj.get(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj.tell() == 11);
-        }
-    
-        {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::input);
-            obj.main_cont_beg();
-            std::string str; str.resize(5);
-            VERIFY(obj.get(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
-            
-            auto obj2(std::move(obj));
-            VERIFY(obj2.tell() == 5);
-            str.resize(6);
-            VERIFY(obj2.get(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
-        }
-    
-        {
-            auto obj = ori_obj;
-            VERIFY(obj.bos() == io_status::input);
-            obj.main_cont_beg();
-            std::string str; str.resize(5);
-            VERIFY(obj.get(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
-            
-            decltype(obj) obj2{rb_root_cvt{mem_device("")}};
-            obj2 = std::move(obj);
-            VERIFY(obj2.tell() == 5);
-            str.resize(6);
-            VERIFY(obj2.get(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
-        }
-    };
-
-    auto obj1 = rb_root_cvt{mem_device("hello world")};
-    helper(obj1);
-
-    runtime_cvt obj2(std::move(obj1));
-    helper(obj2);
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_get_1()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::get case 1...");
-
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
+        return out;
     }
 
-    auto helper = [&e_lit](auto& obj)
-    {
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+    constexpr std::size_t kGetChunks[]  = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+    constexpr std::size_t kWideChunks[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
 
-        VERIFY(obj.bos() == io_status::input);
+    // A device holding "hello" with the read cursor pushed to the end, so the
+    // converter opens for output and appends rather than overwriting.
+    MemCvt cvt_over_hello()
+    {
+        mem_device dev{"hello"};
+        dev.drseek(0);
+        return rb_root_cvt{std::move(dev)};
+    }
+
+    // A converter forked before any write shares nothing with the original: the
+    // fork keeps the device as it was, the original goes on to grow it.
+    template <typename T, typename Fork>
+    void expect_a_fork_does_not_see_later_writes(const T& ori, Fork fork)
+    {
+        T obj = ori;
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        char out_buf[4102];
-        size_t total_count = 0;
-        char* cur_pos = out_buf;
-        int out_buffer_id = 0;
+
+        T forked = fork(obj);
+        EXPECT_EQ(forked.device().str(), "hello");
+
+        obj.put(" world", 6);
+        obj.flush();
+        EXPECT_EQ(obj.device().str(), "hello world");
+        EXPECT_EQ(forked.device().str(), "hello");
+    }
+
+    template <typename T, typename Transfer>
+    void expect_a_move_carries_the_device(const T& ori, Transfer transfer)
+    {
+        T obj = ori;
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+
+        T moved = transfer(obj);
+        EXPECT_EQ(moved.device().str(), "hello");
+    }
+
+    // A copy taken mid-read carries the read position, and the two then advance
+    // independently: both must be able to read the same remaining six characters.
+    template <typename T, typename Fork>
+    void expect_a_fork_reads_on_independently(const T& ori, Fork fork)
+    {
+        T obj = ori;
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::string str(5, '\0');
+        EXPECT_EQ(obj.get(str.data(), 5), 5u);
+        EXPECT_EQ(str, "hello");
+        EXPECT_EQ(obj.tell(), 5u);
+
+        T forked = fork(obj);
+        EXPECT_EQ(forked.tell(), 5u);
+        str.resize(6);
+        EXPECT_EQ(forked.get(str.data(), 6), 6u);
+        EXPECT_EQ(str, " world");
+        EXPECT_EQ(forked.tell(), 11u);
+
+        str = "xxxxxx";
+        EXPECT_EQ(obj.get(str.data(), 6), 6u);
+        EXPECT_EQ(str, " world");
+        EXPECT_EQ(obj.tell(), 11u);
+    }
+
+    // A move carries the read position too, but leaves nothing behind, so the
+    // remaining characters have to come out of the target alone.
+    template <typename T, typename Transfer>
+    void expect_a_move_carries_the_read_position(const T& ori, Transfer transfer)
+    {
+        T obj = ori;
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::string str(5, '\0');
+        EXPECT_EQ(obj.get(str.data(), 5), 5u);
+        EXPECT_EQ(str, "hello");
+        EXPECT_EQ(obj.tell(), 5u);
+
+        T moved = transfer(obj);
+        EXPECT_EQ(moved.tell(), 5u);
+        str.resize(6);
+        EXPECT_EQ(moved.get(str.data(), 6), 6u);
+        EXPECT_EQ(str, " world");
+        EXPECT_EQ(moved.tell(), 11u);
+    }
+
+    template <typename T, std::size_t N>
+    void expect_chunked_get_reads_the_sample(T& obj, const std::string& expected,
+                                             const std::size_t (&chunks)[N])
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::string out_buf(kSize, '\0');
+        std::size_t total = 0;
+        char*       cur   = out_buf.data();
+        int         id    = 0;
         while (true)
         {
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
+            std::size_t n = std::min<std::size_t>(kSize - total, chunks[id++]);
+            auto        s = obj.get(cur, n);
+            id %= N;
+            cur   += s;
+            total += s;
             if (s == 0) break;
         }
-        VERIFY(total_count == 4102);
-        VERIFY(cur_pos == out_buf + 4102);
-        for (size_t i = 0; i < 4102; ++i)
-            VERIFY(out_buf[i] == e_lit[i]);
-    };
 
-    auto obj1 = rb_root_cvt{mem_device(e_lit)};
-    helper(obj1);
-    
-    runtime_cvt obj2(rb_root_cvt{mem_device(e_lit)});
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_get_nra_1()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::get_nra case 1...");
-
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
+        EXPECT_EQ(total, kSize);
+        EXPECT_EQ(cur, out_buf.data() + kSize);
+        EXPECT_EQ(out_buf, expected);
     }
 
-    auto helper = [&e_lit](auto& obj)
+    template <typename T>
+    void expect_chunked_put_writes_the_sample(T& obj, const std::string& plain)
     {
-        size_t out_buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-
-        VERIFY(obj.bos() == io_status::input);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        char out_buf[4102];
-        size_t total_count = 0;
-        char* cur_pos = out_buf;
-        int out_buffer_id = 0;
-        while (true)
+
+        const char* cur = plain.data();
+        int         id  = 0;
+        while (cur < plain.data() + kSize)
         {
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
-            if (s == 0) break;
+            std::size_t n = std::min<std::size_t>(kWideChunks[id++], plain.data() + kSize - cur);
+            obj.put(cur, n);
+            id %= std::size(kWideChunks);
+            cur += n;
         }
-        VERIFY(total_count == 4102);
-        VERIFY(cur_pos == out_buf + 4102);
-        for (size_t i = 0; i < 4102; ++i)
-            VERIFY(out_buf[i] == e_lit[i]);
-    };
+        EXPECT_EQ(cur, plain.data() + kSize);
 
-    auto obj1 = no_rb_root_cvt{mem_device(e_lit)};
-    helper(obj1);
-    
-    runtime_cvt obj2(no_rb_root_cvt{mem_device(e_lit)});
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_put_1()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::put case 1...");
-
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    auto helper = [&e_lit = std::as_const(e_lit)] (auto& obj)
-    {
-        size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        const char* cur_pos = e_lit.data();
-        int buffer_id = 0;
-        while (cur_pos < e_lit.data() + 4102)
-        {
-            size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], e_lit.data() + 4102 - cur_pos);
-            obj.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-        }
-    
-        VERIFY(cur_pos == e_lit.data() + 4102);
-    
         obj.flush();
         const mem_device<char>& dev = obj.device();
-        VERIFY(dev.str() == e_lit);
-    };
-
-    auto obj1 = rb_root_cvt{mem_device("")};
-    helper(obj1);
-    
-    runtime_cvt obj2(rb_root_cvt{mem_device("")});
-    helper(obj2);
-
-    dump_info("Done\n");
+        EXPECT_EQ(dev.str(), plain);
+    }
 }
 
-void test_root_cvt_mem_seek_1()
+TEST(RootCvtMem, TraitsWithoutAReadBuffer)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::seek case 1...");
+    using CheckType = no_rb_root_cvt<mem_device<char>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char>);
+    static_assert(std::is_same_v<CheckType::external_type, char>);
+    // A memory device is addressable and bidirectional, so the root converter
+    // over it offers everything.
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(cvt_cpt::support_positioning<CheckType>);
+    static_assert(cvt_cpt::support_io_switch<CheckType>);
+}
 
-    auto helper = [](auto& obj)
+TEST(RootCvtMem, TraitsOverAChar32Device)
+{
+    using CheckType = rb_root_cvt<mem_device<char32_t>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char32_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char32_t>);
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(cvt_cpt::support_positioning<CheckType>);
+    static_assert(cvt_cpt::support_io_switch<CheckType>);
+}
+
+TEST(RootCvtMem, ACopyConstructedForkDoesNotSeeLaterWrites)
+{
+    expect_a_fork_does_not_see_later_writes(cvt_over_hello(),
+                                            [](auto& src) { return MemCvt{src}; });
+}
+
+TEST(RootCvtMem, ACopyConstructedForkDoesNotSeeLaterWritesThroughARuntimeCvt)
+{
+    runtime_cvt ori{cvt_over_hello()};
+    expect_a_fork_does_not_see_later_writes(ori, [](auto& src) { return runtime_cvt{src}; });
+}
+
+TEST(RootCvtMem, ACopyAssignedForkDoesNotSeeLaterWrites)
+{
+    expect_a_fork_does_not_see_later_writes(cvt_over_hello(), [](auto& src)
     {
-        VERIFY(obj.bos() == io_status::input);
+        MemCvt dst{rb_root_cvt{mem_device("")}};
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, ACopyAssignedForkDoesNotSeeLaterWritesThroughARuntimeCvt)
+{
+    runtime_cvt ori{cvt_over_hello()};
+    expect_a_fork_does_not_see_later_writes(ori, [](auto& src)
+    {
+        runtime_cvt dst{rb_root_cvt{mem_device("")}};
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, MoveConstructionCarriesTheDevice)
+{
+    expect_a_move_carries_the_device(cvt_over_hello(),
+                                     [](auto& src) { return MemCvt{std::move(src)}; });
+}
+
+TEST(RootCvtMem, MoveConstructionCarriesTheDeviceThroughARuntimeCvt)
+{
+    runtime_cvt ori{cvt_over_hello()};
+    expect_a_move_carries_the_device(ori, [](auto& src) { return runtime_cvt{std::move(src)}; });
+}
+
+TEST(RootCvtMem, MoveAssignmentCarriesTheDevice)
+{
+    expect_a_move_carries_the_device(cvt_over_hello(), [](auto& src)
+    {
+        MemCvt dst{rb_root_cvt{mem_device("")}};
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, MoveAssignmentCarriesTheDeviceThroughARuntimeCvt)
+{
+    runtime_cvt ori{cvt_over_hello()};
+    expect_a_move_carries_the_device(ori, [](auto& src)
+    {
+        runtime_cvt dst{rb_root_cvt{mem_device("")}};
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, ACopyConstructedForkReadsOnIndependently)
+{
+    MemCvt ori{mem_device("hello world")};
+    expect_a_fork_reads_on_independently(ori, [](auto& src) { return MemCvt{src}; });
+}
+
+TEST(RootCvtMem, ACopyConstructedForkReadsOnIndependentlyThroughARuntimeCvt)
+{
+    runtime_cvt ori{rb_root_cvt{mem_device("hello world")}};
+    expect_a_fork_reads_on_independently(ori, [](auto& src) { return runtime_cvt{src}; });
+}
+
+TEST(RootCvtMem, ACopyAssignedForkReadsOnIndependently)
+{
+    MemCvt ori{mem_device("hello world")};
+    expect_a_fork_reads_on_independently(ori, [](auto& src)
+    {
+        MemCvt dst{rb_root_cvt{mem_device("")}};
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, ACopyAssignedForkReadsOnIndependentlyThroughARuntimeCvt)
+{
+    runtime_cvt ori{rb_root_cvt{mem_device("hello world")}};
+    expect_a_fork_reads_on_independently(ori, [](auto& src)
+    {
+        runtime_cvt dst{rb_root_cvt{mem_device("")}};
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, MoveConstructionCarriesTheReadPosition)
+{
+    MemCvt ori{mem_device("hello world")};
+    expect_a_move_carries_the_read_position(ori, [](auto& src) { return MemCvt{std::move(src)}; });
+}
+
+TEST(RootCvtMem, MoveConstructionCarriesTheReadPositionThroughARuntimeCvt)
+{
+    runtime_cvt ori{rb_root_cvt{mem_device("hello world")}};
+    expect_a_move_carries_the_read_position(ori,
+                                            [](auto& src) { return runtime_cvt{std::move(src)}; });
+}
+
+TEST(RootCvtMem, MoveAssignmentCarriesTheReadPosition)
+{
+    MemCvt ori{mem_device("hello world")};
+    expect_a_move_carries_the_read_position(ori, [](auto& src)
+    {
+        MemCvt dst{rb_root_cvt{mem_device("")}};
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, MoveAssignmentCarriesTheReadPositionThroughARuntimeCvt)
+{
+    runtime_cvt ori{rb_root_cvt{mem_device("hello world")}};
+    expect_a_move_carries_the_read_position(ori, [](auto& src)
+    {
+        runtime_cvt dst{rb_root_cvt{mem_device("")}};
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(RootCvtMem, ChunkedGetReadsTheWholeSample)
+{
+    const std::string expected = sample();
+    MemCvt            obj{mem_device(expected)};
+    expect_chunked_get_reads_the_sample(obj, expected, kGetChunks);
+}
+
+TEST(RootCvtMem, ChunkedGetReadsTheWholeSampleThroughARuntimeCvt)
+{
+    const std::string expected = sample();
+    runtime_cvt       obj{rb_root_cvt{mem_device(expected)}};
+    expect_chunked_get_reads_the_sample(obj, expected, kGetChunks);
+}
+
+// The same read without a read-back buffer, and with one chunk (90) larger than
+// the others so the no-buffer path has to serve an oversized request too.
+TEST(RootCvtMem, ChunkedGetReadsTheWholeSampleWithoutAReadBuffer)
+{
+    const std::string expected = sample();
+    auto              obj = no_rb_root_cvt{mem_device(expected)};
+    expect_chunked_get_reads_the_sample(obj, expected, kWideChunks);
+}
+
+TEST(RootCvtMem, ChunkedGetReadsTheWholeSampleWithoutAReadBufferThroughARuntimeCvt)
+{
+    const std::string expected = sample();
+    runtime_cvt       obj{no_rb_root_cvt{mem_device(expected)}};
+    expect_chunked_get_reads_the_sample(obj, expected, kWideChunks);
+}
+
+TEST(RootCvtMem, ChunkedPutWritesTheWholeSample)
+{
+    const std::string plain = sample();
+    MemCvt            obj{mem_device("")};
+    expect_chunked_put_writes_the_sample(obj, plain);
+}
+
+TEST(RootCvtMem, ChunkedPutWritesTheWholeSampleThroughARuntimeCvt)
+{
+    const std::string plain = sample();
+    runtime_cvt       obj{rb_root_cvt{mem_device("")}};
+    expect_chunked_put_writes_the_sample(obj, plain);
+}
+
+namespace
+{
+    // seek() takes an absolute position, rseek() counts back from the end of the
+    // five-character device, so rseek(3) lands on index 2.
+    template <typename T>
+    void expect_seek_and_rseek_land_where_asked(T& obj)
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
         obj.main_cont_beg();
+
         obj.seek(3);
-        VERIFY(obj.tell() == 3);
-        
+        EXPECT_EQ(obj.tell(), 3u);
+
         char ch = 0;
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == '4'));
-        
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, '4');
+
         obj.rseek(3);
-        VERIFY(obj.tell() == 2);
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == '3'));
-    };
+        EXPECT_EQ(obj.tell(), 2u);
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, '3');
+    }
 
-    auto obj1 = rb_root_cvt{mem_device("12345")};
-    helper(obj1);
-
-    runtime_cvt obj2(rb_root_cvt{mem_device("12345")});
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_seek_2()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::seek case 2...");
-
-    auto helper = [](auto& obj)
+    // main_cont_beg() marks where the main content starts: reads taken before it
+    // are a prologue, so tell() restarts at 0 and positions are counted from
+    // there. An rseek that would land before that point must be refused and must
+    // not move the position it failed to reach.
+    template <typename T>
+    void expect_positions_are_relative_to_the_main_content(T& obj)
     {
-        VERIFY(obj.bos() == io_status::input);
+        EXPECT_EQ(obj.bos(), io_status::input);
+
         char c = 0;
-        VERIFY((obj.get(&c, 1) == 1) && (c == '1'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == '2'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == '3'));
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, '1');
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, '2');
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, '3');
 
         obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
 
         obj.seek(3);
-        VERIFY(obj.tell() == 3);
-        
+        EXPECT_EQ(obj.tell(), 3u);
+
         char ch = 0;
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'd'));
-        
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, 'd');
+
         obj.rseek(3);
-        VERIFY(obj.tell() == 4);
-        VERIFY((obj.get(&ch, 1) == 1) && (ch == 'e'));
+        EXPECT_EQ(obj.tell(), 4u);
+        EXPECT_EQ(obj.get(&ch, 1), 1u);
+        EXPECT_EQ(ch, 'e');
 
-        FAIL_RSEEK(obj, 60);
-        VERIFY(obj.tell() == 5);
+        EXPECT_ANY_THROW(obj.rseek(60));
+        EXPECT_EQ(obj.tell(), 5u);
 
-        FAIL_RSEEK(obj, 9);
-        VERIFY(obj.tell() == 5);
-    };
+        EXPECT_ANY_THROW(obj.rseek(9));
+        EXPECT_EQ(obj.tell(), 5u);
+    }
 
-    auto obj1 = rb_root_cvt{mem_device("123abcdefg")};
-    helper(obj1);
-
-    runtime_cvt obj2(rb_root_cvt{mem_device("123abcdefg")});
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_reset_1()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::reset case 1...");
-
-    auto helper = [](auto& obj)
+    // detach() hands the device back and attach() gives a fresh one; the
+    // converter has to come back to a state where bos() starts a new stream with
+    // its own prologue and its own position origin.
+    template <typename T>
+    void expect_reattach_restarts_the_stream(T& obj)
     {
-        VERIFY(obj.bos() == io_status::output);
-
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.put("hello", 5);
         obj.main_cont_beg();
         obj.put(" world", 6);
-        VERIFY(obj.tell() == 6);
+        EXPECT_EQ(obj.tell(), 6u);
 
         auto [ori, ori_err] = obj.detach();
         obj.attach(mem_device(""));
-        VERIFY(ori.str() == "hello world");
-        
+        EXPECT_EQ(ori.str(), "hello world");
+
         obj.bos();
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
         obj.put("liwei", 5);
         obj.main_cont_beg();
         obj.put(" cpp", 4);
-        VERIFY(obj.tell() == 4);
-    
+        EXPECT_EQ(obj.tell(), 4u);
+
         obj.flush();
         const mem_device<char>& new_dev = obj.device();
-        VERIFY(new_dev.str() == "liwei cpp");
-    };
+        EXPECT_EQ(new_dev.str(), "liwei cpp");
+    }
 
-    auto obj1 = rb_root_cvt{mem_device("")};
-    helper(obj1);
-
-    runtime_cvt obj2(rb_root_cvt{mem_device("")});
-    helper(obj2);
-    dump_info("Done\n");
-}
-
-void test_root_cvt_mem_device_1()
-{
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::device case 1...");
-
-    auto helper = []<typename T>(T& obj)
+    // Three sessions on one converter, with the first device detached, parked, and
+    // attached again: the writes have to resume on the device they belong to, not
+    // spill into whichever one happens to be attached.
+    template <typename T>
+    void expect_devices_can_be_swapped_in_and_out(T& obj)
     {
         using device_type = typename T::device_type;
 
         device_type f1("");
         obj.attach(std::move(f1));
-        obj.bos(); obj.main_cont_beg();
+        obj.bos();
+        obj.main_cont_beg();
         obj.put("abc", 3);
 
         auto [detach1_dev, detach1_err] = obj.detach();
         f1 = std::move(detach1_dev);
         obj.attach(device_type(""));
-        obj.bos(); obj.main_cont_beg();
+        obj.bos();
+        obj.main_cont_beg();
         obj.put("123", 3);
 
         auto [f2, f2_err] = obj.detach();
         obj.attach(std::move(f1));
-        obj.bos(); obj.main_cont_beg();
+        obj.bos();
+        obj.main_cont_beg();
         obj.put("def", 3);
 
         auto [detach2_dev, detach2_err] = obj.detach();
         f1 = std::move(detach2_dev);
-        VERIFY(f1.str() == "abcdef");
-        VERIFY(f2.str() == "123");
-    };
-    {
-        auto obj = rb_root_cvt{mem_device("")};
-        helper(obj);
+        EXPECT_EQ(f1.str(), "abcdef");
+        EXPECT_EQ(f2.str(), "123");
     }
-    
-    {
-        auto tmp = rb_root_cvt{mem_device("")};
-        runtime_cvt obj(std::move(tmp));
-        helper(obj);
-    }
-    dump_info("Done\n");
 }
 
-void test_root_cvt_mem_detach_1()
+TEST(RootCvtMem, SeekAndRseekLandWhereAsked)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::detach case 1...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        char ch = 0;
-        obj.get(&ch, 1);
-        VERIFY(ch == '1');
-        VERIFY(obj.device().dtell() == 1);
-        
-        auto [dev, err] = obj.detach();
-        VERIFY(dev.dtell() == 1);
-    };
-    {
-        auto obj = rb_root_cvt{mem_device("12345678")};
-        helper(obj);
-    }
-    
-    {
-        runtime_cvt obj(rb_root_cvt{mem_device("12345678")});
-        helper(obj);
-    }
-    dump_info("Done\n");
+    MemCvt obj{mem_device("12345")};
+    expect_seek_and_rseek_land_where_asked(obj);
 }
 
-void test_root_cvt_mem_detach_2()
+TEST(RootCvtMem, SeekAndRseekLandWhereAskedThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::detach case 2...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        obj.put("123", 3);
-        VERIFY(obj.device().dtell() == 3);
-        
-        auto [dev, err] = obj.detach();
-        VERIFY(dev.dtell() == 3);
-    };
-    {
-        auto obj = rb_root_cvt{mem_device("")};
-        helper(obj);
-    }
-    
-    {
-        runtime_cvt obj(rb_root_cvt{mem_device("")});
-        helper(obj);
-    }
-    dump_info("Done\n");
+    runtime_cvt obj{rb_root_cvt{mem_device("12345")}};
+    expect_seek_and_rseek_land_where_asked(obj);
 }
 
-void test_root_cvt_mem_attach_1()
+TEST(RootCvtMem, PositionsAreRelativeToTheMainContent)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::attach case 1...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        char ch = 0;
-        obj.get(&ch, 1);
-        VERIFY(ch == '1');
-        VERIFY(obj.device().dtell() == 1);
-        
-        auto [dev, err] = obj.detach();
-        obj.attach(mem_device{""});
-        VERIFY(dev.dtell() == 1);
-    };
-    {
-        auto obj = rb_root_cvt{mem_device("12345678")};
-        helper(obj);
-    }
-    
-    {
-        runtime_cvt obj(rb_root_cvt{mem_device("12345678")});
-        helper(obj);
-    }
-    dump_info("Done\n");
+    MemCvt obj{mem_device("123abcdefg")};
+    expect_positions_are_relative_to_the_main_content(obj);
 }
 
-void test_root_cvt_mem_attach_2()
+TEST(RootCvtMem, PositionsAreRelativeToTheMainContentThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device>::attach case 2...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        obj.put("123", 3);
-        VERIFY(obj.device().dtell() == 3);
-        
-        auto [dev, err] = obj.detach();
-        obj.attach(mem_device{""});
-        VERIFY(dev.dtell() == 3);
-    };
-    {
-        auto obj = rb_root_cvt{mem_device("")};
-        helper(obj);
-    }
-    
-    {
-        runtime_cvt obj(rb_root_cvt{mem_device("")});
-        helper(obj);
-    }
-    dump_info("Done\n");
+    runtime_cvt obj{rb_root_cvt{mem_device("123abcdefg")}};
+    expect_positions_are_relative_to_the_main_content(obj);
 }
 
-void test_root_cvt_mem_self_assignment()
+TEST(RootCvtMem, AttachAfterDetachRestartsTheStream)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> self-assignment...");
-
-    {
-        mem_device dev{"hello"}; dev.drseek(0);
-        auto obj = rb_root_cvt{std::move(dev)};
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put(" world", 6);
-
-        // Self copy assignment
-        const auto& const_obj = obj;
-        obj = const_obj;
-
-        obj.flush();
-        VERIFY(obj.device().str() == "hello world");
-
-        // Self move assignment
-        auto* pObj = &obj;
-        obj = std::move(*pObj);
-        VERIFY(obj.device().str() == "hello world");
-    }
-
-    {
-        mem_device dev{"hello"}; dev.drseek(0);
-        runtime_cvt obj(rb_root_cvt{std::move(dev)});
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put(" world", 6);
-
-        // Self copy assignment
-        const auto& const_obj = obj;
-        obj = const_obj;
-        obj.flush();
-        VERIFY(obj.device().str() == "hello world");
-
-        // Self move assignment
-        auto* pObj = &obj;
-        obj = std::move(*pObj);
-        VERIFY(obj.device().str() == "hello world");
-    }
-
-    dump_info("Done\n");
+    MemCvt obj{mem_device("")};
+    expect_reattach_restarts_the_stream(obj);
 }
 
-// is_eof() for the mem_device partial specialisation
-void test_root_cvt_mem_eof_1()
+TEST(RootCvtMem, AttachAfterDetachRestartsTheStreamThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> is_eof case 1...");
-
-    // Non-empty stream → deof() returns false
-    {
-        auto obj = rb_root_cvt{mem_device("hello")};
-        obj.bos(); obj.main_cont_beg();
-        VERIFY(!obj.is_eof());
-    }
-
-    // Empty stream → deof() returns true
-    {
-        auto obj = rb_root_cvt{mem_device("")};
-        obj.bos(); obj.main_cont_beg();
-        VERIFY(obj.is_eof());
-    }
-
-    // After consuming all content → true
-    {
-        auto obj = rb_root_cvt{mem_device("ab")};
-        obj.bos(); obj.main_cont_beg();
-        char buf[2];
-        obj.get(buf, 2);
-        VERIFY(obj.is_eof());
-    }
-
-    dump_info("Done\n");
+    runtime_cvt obj{rb_root_cvt{mem_device("")}};
+    expect_reattach_restarts_the_stream(obj);
 }
 
-// seek() position-overflow for the mem_device specialisation
-void test_root_cvt_mem_seek_overflow_1()
+TEST(RootCvtMem, DevicesCanBeSwappedInAndOut)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> seek overflow case 1...");
+    MemCvt obj{mem_device("")};
+    expect_devices_can_be_swapped_in_and_out(obj);
+}
 
-    // After get() + main_cont_beg(), m_bos_len becomes 1.
-    // Seeking SIZE_MAX triggers: SIZE_MAX > SIZE_MAX - 1 → overflow throw.
-    auto helper = [](auto& obj)
+TEST(RootCvtMem, DevicesCanBeSwappedInAndOutThroughARuntimeCvt)
+{
+    runtime_cvt obj{rb_root_cvt{mem_device("")}};
+    expect_devices_can_be_swapped_in_and_out(obj);
+}
+
+// What the converter consumed from the device has to be reflected in the device
+// it hands back: a detached device whose cursor was rewound would re-serve
+// characters the caller already has.
+TEST(RootCvtMem, DetachHandsBackTheDeviceAtTheReadPosition)
+{
+    MemCvt obj{mem_device("12345678")};
+    char   ch = 0;
+    obj.get(&ch, 1);
+    EXPECT_EQ(ch, '1');
+    EXPECT_EQ(obj.device().dtell(), 1u);
+
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.dtell(), 1u);
+}
+
+TEST(RootCvtMem, DetachHandsBackTheDeviceAtTheReadPositionThroughARuntimeCvt)
+{
+    runtime_cvt obj{rb_root_cvt{mem_device("12345678")}};
+    char        ch = 0;
+    obj.get(&ch, 1);
+    EXPECT_EQ(ch, '1');
+    EXPECT_EQ(obj.device().dtell(), 1u);
+
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.dtell(), 1u);
+}
+
+TEST(RootCvtMem, DetachHandsBackTheDeviceAtTheWritePosition)
+{
+    MemCvt obj{mem_device("")};
+    obj.put("123", 3);
+    EXPECT_EQ(obj.device().dtell(), 3u);
+
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.dtell(), 3u);
+}
+
+TEST(RootCvtMem, DetachHandsBackTheDeviceAtTheWritePositionThroughARuntimeCvt)
+{
+    runtime_cvt obj{rb_root_cvt{mem_device("")}};
+    obj.put("123", 3);
+    EXPECT_EQ(obj.device().dtell(), 3u);
+
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.dtell(), 3u);
+}
+
+// Attaching a new device afterwards must not reach back into the one already
+// handed out.
+TEST(RootCvtMem, AttachAfterDetachLeavesTheOldReadDeviceAlone)
+{
+    MemCvt obj{mem_device("12345678")};
+    char   ch = 0;
+    obj.get(&ch, 1);
+    EXPECT_EQ(ch, '1');
+    EXPECT_EQ(obj.device().dtell(), 1u);
+
+    auto [dev, err] = obj.detach();
+    obj.attach(mem_device{""});
+    EXPECT_EQ(dev.dtell(), 1u);
+}
+
+TEST(RootCvtMem, AttachAfterDetachLeavesTheOldReadDeviceAloneThroughARuntimeCvt)
+{
+    runtime_cvt obj{rb_root_cvt{mem_device("12345678")}};
+    char        ch = 0;
+    obj.get(&ch, 1);
+    EXPECT_EQ(ch, '1');
+    EXPECT_EQ(obj.device().dtell(), 1u);
+
+    auto [dev, err] = obj.detach();
+    obj.attach(mem_device{""});
+    EXPECT_EQ(dev.dtell(), 1u);
+}
+
+TEST(RootCvtMem, AttachAfterDetachLeavesTheOldWriteDeviceAlone)
+{
+    MemCvt obj{mem_device("")};
+    obj.put("123", 3);
+    EXPECT_EQ(obj.device().dtell(), 3u);
+
+    auto [dev, err] = obj.detach();
+    obj.attach(mem_device{""});
+    EXPECT_EQ(dev.dtell(), 3u);
+}
+
+TEST(RootCvtMem, AttachAfterDetachLeavesTheOldWriteDeviceAloneThroughARuntimeCvt)
+{
+    runtime_cvt obj{rb_root_cvt{mem_device("")}};
+    obj.put("123", 3);
+    EXPECT_EQ(obj.device().dtell(), 3u);
+
+    auto [dev, err] = obj.detach();
+    obj.attach(mem_device{""});
+    EXPECT_EQ(dev.dtell(), 3u);
+}
+
+// Both assignment operators guard against the source and the target being the
+// same object; without the guard the device would be released before it is read.
+TEST(RootCvtMem, SelfAssignmentLeavesTheStreamIntact)
+{
+    auto obj = cvt_over_hello();
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    obj.put(" world", 6);
+
+    const auto& const_obj = obj;
+    obj = const_obj;
+    obj.flush();
+    EXPECT_EQ(obj.device().str(), "hello world");
+
+    auto* p_obj = &obj;
+    obj = std::move(*p_obj);
+    EXPECT_EQ(obj.device().str(), "hello world");
+}
+
+TEST(RootCvtMem, SelfAssignmentLeavesTheStreamIntactThroughARuntimeCvt)
+{
+    runtime_cvt obj{cvt_over_hello()};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    obj.put(" world", 6);
+
+    const auto& const_obj = obj;
+    obj = const_obj;
+    obj.flush();
+    EXPECT_EQ(obj.device().str(), "hello world");
+
+    auto* p_obj = &obj;
+    obj = std::move(*p_obj);
+    EXPECT_EQ(obj.device().str(), "hello world");
+}
+
+TEST(RootCvtMem, IsEofIsFalseOnANonEmptyStream)
+{
+    MemCvt obj{mem_device("hello")};
+    obj.bos();
+    obj.main_cont_beg();
+    EXPECT_FALSE(obj.is_eof());
+}
+
+TEST(RootCvtMem, IsEofIsTrueOnAnEmptyStream)
+{
+    MemCvt obj{mem_device("")};
+    obj.bos();
+    obj.main_cont_beg();
+    EXPECT_TRUE(obj.is_eof());
+}
+
+TEST(RootCvtMem, IsEofBecomesTrueOnceEverythingIsRead)
+{
+    MemCvt obj{mem_device("ab")};
+    obj.bos();
+    obj.main_cont_beg();
+
+    char buf[2];
+    obj.get(buf, 2);
+    EXPECT_TRUE(obj.is_eof());
+}
+
+namespace
+{
+    // seek() adds the position to the length of the prologue before handing it to
+    // the device. With a one-character prologue, SIZE_MAX would wrap, so the
+    // overflow has to be caught before the addition rather than after.
+    template <typename T>
+    void expect_seek_rejects_an_overflowing_position(T& obj)
     {
         obj.bos();
         char ch = 0;
-        obj.get(&ch, 1);     // dtell() advances to 1
-        obj.main_cont_beg(); // m_bos_len = 1
-        bool threw = false;
-        try {
-            obj.seek(std::numeric_limits<size_t>::max());
-        } catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    };
+        obj.get(&ch, 1);     // the device cursor advances to 1
+        obj.main_cont_beg(); // so the prologue is one character long
 
-    {
-        auto obj = rb_root_cvt{mem_device("hello")};
-        helper(obj);
+        EXPECT_THROW(obj.seek(std::numeric_limits<std::size_t>::max()), cvt_error);
     }
-    {
-        runtime_cvt obj(rb_root_cvt{mem_device("hello")});
-        helper(obj);
-    }
-
-    dump_info("Done\n");
 }
 
-// retrieve() is a no-op on the mem_device specialization but must be reachable (line 1288).
-void test_root_cvt_mem_retrieve_1()
+TEST(RootCvtMem, SeekRejectsAnOverflowingPosition)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> retrieve...");
+    MemCvt obj{mem_device("hello")};
+    expect_seek_rejects_an_overflowing_position(obj);
+}
 
-    auto obj = rb_root_cvt{mem_device("hello")};
-    obj.bos(); obj.main_cont_beg();
+TEST(RootCvtMem, SeekRejectsAnOverflowingPositionThroughARuntimeCvt)
+{
+    runtime_cvt obj{rb_root_cvt{mem_device("hello")}};
+    expect_seek_rejects_an_overflowing_position(obj);
+}
+
+// retrieve() has nothing to report for a memory device, but it is part of the
+// converter interface and has to be callable.
+TEST(RootCvtMem, RetrieveIsANoop)
+{
+    MemCvt obj{mem_device("hello")};
+    obj.bos();
+    obj.main_cont_beg();
 
     cvt_status stat;
-    obj.retrieve(stat);
-
-    dump_info("Done\n");
+    EXPECT_NO_THROW(obj.retrieve(stat));
 }
 
-// rseek() when m_bos_len > device.dsize() must throw (line 1499).
-void test_root_cvt_mem_rseek_bos_overflow_1()
+// rseek() counts back from the end of the main content, which is the device size
+// minus the prologue. Swapping in a device shorter than the prologue makes that
+// subtraction impossible, and it has to be refused rather than wrapped.
+TEST(RootCvtMem, RseekIsRejectedWhenTheDeviceIsShorterThanThePrologue)
 {
-    using namespace IOv2;
-    dump_info("Test root_cvt<mem_device> rseek bos_len-overflow...");
-
-    // Read 5 bytes in BOS phase; main_cont_beg() records m_bos_len = dtell() = 5.
-    // Replacing the device with an empty one makes dsize()=0 < m_bos_len=5.
-    auto obj = rb_root_cvt{mem_device("hello world")};
+    MemCvt obj{mem_device("hello world")};
     obj.bos();
-    char buf[5];
-    obj.get(buf, 5);     // dtell() advances to 5
-    obj.main_cont_beg(); // m_bos_len = 5
-    obj.device() = mem_device{""};  // dsize() = 0 < m_bos_len = 5
-    bool threw = false;
-    try { obj.rseek(0); } catch (const cvt_error&) { threw = true; }
-    VERIFY(threw);
 
-    dump_info("Done\n");
+    char buf[5];
+    obj.get(buf, 5);     // the device cursor advances to 5
+    obj.main_cont_beg(); // so the prologue is five characters long
+
+    obj.device() = mem_device{""}; // now the whole device is shorter than that
+    EXPECT_THROW(obj.rseek(0), cvt_error);
 }

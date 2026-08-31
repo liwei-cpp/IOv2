@@ -1,777 +1,615 @@
+#include <common/defs.h>
 #include <cvt/comp/zlib_cvt.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
-#include <support/dump_info.h>
+
 #include <support/injectable_device.h>
-#include <support/verify.h>
+
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+using namespace IOv2;
 
 namespace
 {
-    std::string s_e_lit = []()
+    constexpr std::size_t kSize = 4102;
+
+    // 586 repetitions of the UTF-8 for U'李' U'伟' plus one byte cycling 1..127.
+    // The repeating six bytes give the compressor something to find, the cycling
+    // byte stops it from collapsing the whole stream into one match, and 4102 is a
+    // multiple of neither the chunk sizes below nor zlib's internal buffer.
+    std::string s_e_lit = []
     {
-        std::string e_lit; e_lit.resize(4102);
-        for (int i = 0; i < 4102; i += 7)
+        std::string out;
+        out.resize(kSize);
+        for (std::size_t i = 0; i < kSize; i += 7)
         {
-            e_lit[i+0] = '\xE6';
-            e_lit[i+1] = '\x9D';
-            e_lit[i+2] = '\x8E';
-            e_lit[i+3] = '\xE4';
-            e_lit[i+4] = '\xBC';
-            e_lit[i+5] = '\x9F';
-            e_lit[i+6] = (i / 7) % 127 + 1;
+            out[i + 0] = '\xE6';
+            out[i + 1] = '\x9D';
+            out[i + 2] = '\x8E';
+            out[i + 3] = '\xE4';
+            out[i + 4] = '\xBC';
+            out[i + 5] = '\x9F';
+            out[i + 6] = (i / 7) % 127 + 1;
         }
-        return e_lit;
+        return out;
     }();
-}
 
-void test_zlib_cvt_gen_1()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt general case 1...");
-    
+    // Sizes the put/get loops rotate through. 90 is in there so at least one chunk
+    // is larger than zlib's own scratch buffer.
+    constexpr std::size_t kChunks[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
+
+    using CharCvt = Comp::zlib_cvt<rb_root_cvt<mem_device<char>>>;
+
+    // Every case below is run twice: once on the statically typed zlib_cvt and
+    // once on the same converter behind a runtime_cvt, which reaches it through a
+    // virtual interface. The two have to agree byte for byte.
+    CharCvt     static_cvt(unsigned level = 8) { return CharCvt{rb_root_cvt{mem_device("")}, level}; }
+    auto        runtime_of(CharCvt&& obj) { return runtime_cvt{std::move(obj)}; }
+
+    // Writes the whole sample through obj in rotating chunks and returns what the
+    // device ended up holding.
+    template <typename T>
+    std::string put_in_chunks(T& obj)
     {
-        using CheckType = Comp::zlib_cvt<rb_root_cvt<mem_device<char>>>;
-        static_assert(io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char>);
-        static_assert(std::is_same_v<CheckType::external_type, char>);
-
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
-    }
-    
-    {
-        using CheckType = Comp::zlib_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
-        static_assert(io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char8_t>);
-
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
-    }
-
-    dump_info("Done\n");
-}
-
-void test_zlib_cvt_gen_2()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt general case 2...");
-    
-    auto helper = []<typename T>(T& obj)
-    {
-        std::string compress_res;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put(s_e_lit.data(), 1024);
-            
-            auto obj2(obj);
-            obj.put(s_e_lit.data() + 1024, 4102 - 1024);
-            obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
-            
-            auto [dev1, err1] = obj.detach();
-            auto [dev2, err2] = obj2.detach();
-            
-            VERIFY(dev1.str() == dev2.str());
-            compress_res = dev1.str();
-        }
-    
-        {
-            T obj2{Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0}};
-            VERIFY(obj2.bos() == io_status::input);
-            obj2.main_cont_beg();
-    
-            std::string out_buf1; out_buf1.resize(4102);
-            std::string out_buf2; out_buf2.resize(4102 - 1026);
-    
-            VERIFY(obj2.get(out_buf1.data(), 1026) == 1026);
-            auto obj3(obj2);
-            
-            VERIFY(obj2.get(out_buf1.data() + 1026, 4102 - 1026) == 4102 - 1026);
-            VERIFY(obj3.get(out_buf2.data(), 4102 - 1026) == 4102 - 1026);
-    
-            VERIFY(out_buf1 == s_e_lit);
-            VERIFY(out_buf1.substr(1026) == out_buf2);
-        }
-    };
-
-    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 8};
-    helper(obj);
-    
-    Comp::zlib_cvt tmp{rb_root_cvt{mem_device("")}, 8};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-    dump_info("Done\n");
-}
-
-void test_zlib_cvt_gen_3()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt general case 3...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        std::string compress_res;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put(s_e_lit.data(), 1024);
-            
-            T obj2(Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8});
-            obj2 = obj;
-            obj.put(s_e_lit.data() + 1024, 4102 - 1024);
-            obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
-            
-            auto [dev1, err1] = obj.detach();
-            auto [dev2, err2] = obj2.detach();
-            
-            VERIFY(dev1.str() == dev2.str());
-            compress_res = dev1.str();
-        }
-    
-        {
-            T obj2{Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0}};
-            VERIFY(obj2.bos() == io_status::input);
-            obj2.main_cont_beg();
-    
-            std::string out_buf1; out_buf1.resize(4102);
-            std::string out_buf2; out_buf2.resize(4102 - 1026);
-    
-            VERIFY(obj2.get(out_buf1.data(), 1026) == 1026);
-    
-            T obj3(Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8});
-            obj3 = obj2;
-            
-            VERIFY(obj2.get(out_buf1.data() + 1026, 4102 - 1026) == 4102 - 1026);
-            VERIFY(obj3.get(out_buf2.data(), 4102 - 1026) == 4102 - 1026);
-    
-            VERIFY(out_buf1 == s_e_lit);
-            VERIFY(out_buf1.substr(1026) == out_buf2);
-        }
-    };
-
-    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 8};
-    helper(obj);
-    
-    Comp::zlib_cvt tmp{rb_root_cvt{mem_device("")}, 8};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_zlib_cvt_gen_4()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt general case 4...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        std::string compress_res;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put(s_e_lit.data(), 1024);
-    
-            T obj2(std::move(obj));
-            obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
-            auto [dev, err] = obj2.detach();
-
-            compress_res = dev.str();
-        }
-    
-        {
-            T obj2{Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0}};
-            VERIFY(obj2.bos() == io_status::input);
-            obj2.main_cont_beg();
-    
-            std::string out_buf; out_buf.resize(4102);
-    
-            VERIFY(obj2.get(out_buf.data(), 1026) == 1026);
-            auto obj3(std::move(obj2));
-            
-            VERIFY(obj3.get(out_buf.data() + 1026, 4102 - 1026) == 4102 - 1026);
-    
-            VERIFY(out_buf == s_e_lit);
-        }
-    };
-
-    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 8};
-    helper(obj);
-    
-    Comp::zlib_cvt tmp{rb_root_cvt{mem_device("")}, 8};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_zlib_cvt_gen_5()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt general case 5...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        std::string compress_res;    
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put(s_e_lit.data(), 1024);
-    
-            T obj2(Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8});
-            obj2 = std::move(obj);
-            obj2.put(s_e_lit.data() + 1024, 4102 - 1024);
-            auto [dev, err] = obj2.detach();
-
-            compress_res = dev.str();
-        }
-    
-        {
-            T obj2(Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0});
-            VERIFY(obj2.bos() == io_status::input);
-            obj2.main_cont_beg();
-    
-            std::string out_buf; out_buf.resize(4102);
-    
-            VERIFY(obj2.get(out_buf.data(), 1026) == 1026);
-            T obj3(Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8});
-            obj3 = std::move(obj2);
-            
-            VERIFY(obj3.get(out_buf.data() + 1026, 4102 - 1026) == 4102 - 1026);
-    
-            VERIFY(out_buf == s_e_lit);
-        }
-    };
-
-    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 8};
-    helper(obj);
-    
-    Comp::zlib_cvt tmp{rb_root_cvt{mem_device("")}, 8};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_zlib_cvt_bos_1()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt::bos case 1...");
-
-    auto helper = [](auto& obj)
-    {
-        const auto& dev = obj.device();
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        VERIFY(dev.str() == "\x78\x9c");
-    };
 
-    using CheckType = Comp::zlib_cvt<rb_root_cvt<mem_device<char>>>;
-    CheckType obj(rb_root_cvt{mem_device("")}, 6);
-    helper(obj);
-    
-    CheckType tmp(rb_root_cvt{mem_device("")}, 6);
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
+        char* cur = s_e_lit.data();
+        int   id  = 0;
+        while (cur < s_e_lit.data() + kSize)
+        {
+            std::size_t n = std::min<std::size_t>(kChunks[id++], s_e_lit.data() + kSize - cur);
+            obj.put(cur, n);
+            id %= std::size(kChunks);
+            cur += n;
+        }
+        auto [dev, err] = obj.detach();
 
-    dump_info("Done\n");
-}
-
-void test_zlib_cvt_bos_2()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt::bos case 2...");
-
-    auto helper = [](auto& obj)
-    {
-        const auto& dev = obj.device();
-        VERIFY(obj.bos() == io_status::output);
-
-        char buf[] = "123";
-        obj.put(buf, 3);
-
-        obj.main_cont_beg();
-        VERIFY(dev.str() == "\x78\x9c""123");
-    };
-
-    using CheckType = Comp::zlib_cvt<rb_root_cvt<mem_device<char>>>;
-    CheckType obj(rb_root_cvt{mem_device("")}, 6);
-    helper(obj);
-
-    CheckType tmp(rb_root_cvt{mem_device("")}, 6);
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_zlib_cvt_bos_3()
-{
-    using namespace IOv2;
-    dump_info("Test zlib_cvt::bos failure on malformed input header...");
-
-    auto helper = [](auto& obj)
-    {
-        bool got_exception = false;
-        try { obj.bos(); }
-        catch (...) { got_exception = true; }
-        VERIFY(got_exception);
-    };
-
-    // 0xFF 0xFF: invalid zlib header (CM bits = 15; only 8 / deflate is legal).
-    // inflate returns Z_DATA_ERROR before producing output, so bos() unwinds while
-    // m_strm.next_in still points into the dying header_buf stack frame.
-    // inflate_guard's destructor must scrub that pointer; this test exercises the
-    // failure path so any future regression that reads stale m_strm fields during
-    // teardown is caught here.
-    std::string malformed("\xFF\xFF", 2);
-
-    {
-        Comp::zlib_cvt obj{rb_root_cvt{mem_device(malformed)}, 6};
-        helper(obj);
-    }   // dtor runs here; must complete cleanly with no read of stale m_strm.next_in.
-
-    {
-        Comp::zlib_cvt tmp{rb_root_cvt{mem_device(malformed)}, 6};
-        runtime_cvt obj2(std::move(tmp));
-        helper(obj2);
+        EXPECT_EQ(cur, s_e_lit.data() + kSize);
+        return dev.str();
     }
 
-    dump_info("Done\n");
+    // Decompresses `compressed` in one get() and checks it against the sample.
+    template <typename T>
+    void expect_inflates_to_sample(const std::string& compressed)
+    {
+        T obj{Comp::zlib_cvt{rb_root_cvt{mem_device(compressed)}, 0}};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::string out_buf(4200, '\0');
+        EXPECT_EQ(obj.get(out_buf.data(), 4200), kSize);
+        EXPECT_EQ(out_buf.substr(0, kSize), s_e_lit);
+    }
+
+    // A copy taken mid-stream has to carry the compressor state with it: from the
+    // fork on, the original and the copy see the same remaining input and must
+    // produce the same output. `fork` is what makes the second converter -- copy
+    // construction in one case, copy assignment in the other.
+    template <typename T, typename Fork>
+    void expect_fork_matches_original(T& obj, Fork fork)
+    {
+        std::string compressed;
+        {
+            EXPECT_EQ(obj.bos(), io_status::output);
+            obj.main_cont_beg();
+            obj.put(s_e_lit.data(), 1024);
+
+            T forked = fork(obj);
+            obj.put(s_e_lit.data() + 1024, kSize - 1024);
+            forked.put(s_e_lit.data() + 1024, kSize - 1024);
+
+            auto [dev1, err1] = obj.detach();
+            auto [dev2, err2] = forked.detach();
+
+            EXPECT_EQ(dev1.str(), dev2.str());
+            compressed = dev1.str();
+        }
+
+        T reader{Comp::zlib_cvt{rb_root_cvt{mem_device(compressed)}, 0}};
+        EXPECT_EQ(reader.bos(), io_status::input);
+        reader.main_cont_beg();
+
+        std::string out_buf1(kSize, '\0');
+        std::string out_buf2(kSize - 1026, '\0');
+
+        EXPECT_EQ(reader.get(out_buf1.data(), 1026), 1026u);
+        T forked = fork(reader);
+
+        EXPECT_EQ(reader.get(out_buf1.data() + 1026, kSize - 1026), kSize - 1026);
+        EXPECT_EQ(forked.get(out_buf2.data(), kSize - 1026), kSize - 1026);
+
+        EXPECT_EQ(out_buf1, s_e_lit);
+        EXPECT_EQ(out_buf1.substr(1026), out_buf2);
+    }
+
+    // Moving mid-stream leaves the source empty and the target holding the whole
+    // stream, so the transfer is checked by finishing the stream through the
+    // target alone. `transfer` is move construction or move assignment.
+    template <typename T, typename Transfer>
+    void expect_move_carries_the_stream(T& obj, Transfer transfer)
+    {
+        std::string compressed;
+        {
+            EXPECT_EQ(obj.bos(), io_status::output);
+            obj.main_cont_beg();
+            obj.put(s_e_lit.data(), 1024);
+
+            T moved = transfer(obj);
+            moved.put(s_e_lit.data() + 1024, kSize - 1024);
+            auto [dev, err] = moved.detach();
+            compressed = dev.str();
+        }
+
+        T reader{Comp::zlib_cvt{rb_root_cvt{mem_device(compressed)}, 0}};
+        EXPECT_EQ(reader.bos(), io_status::input);
+        reader.main_cont_beg();
+
+        std::string out_buf(kSize, '\0');
+        EXPECT_EQ(reader.get(out_buf.data(), 1026), 1026u);
+        T moved = transfer(reader);
+
+        EXPECT_EQ(moved.get(out_buf.data() + 1026, kSize - 1026), kSize - 1026);
+        EXPECT_EQ(out_buf, s_e_lit);
+    }
 }
 
-void test_zlib_cvt_io_1()
+TEST(ZlibCvt, TraitsOverARbRootCvtOfChar)
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt io case 1...");
+    using CheckType = Comp::zlib_cvt<rb_root_cvt<mem_device<char>>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char>);
+    static_assert(std::is_same_v<CheckType::external_type, char>);
 
-    auto helper = []<typename T>(T& obj)
-    {
-        size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-        std::string compress_res;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = obj.detach();
-
-            VERIFY(cur_pos == s_e_lit.data() + 4102);
-            compress_res = dev.str();
-        }
-        
-        {
-            T obj2{Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0}};
-            VERIFY(obj2.bos() == io_status::input);
-            obj2.main_cont_beg();
-    
-            std::string out_buf; out_buf.resize(4200);
-            auto s = obj2.get(out_buf.data(), 4200);
-            VERIFY(s == 4102);
-            VERIFY(out_buf.substr(0, 4102) == s_e_lit);
-        }
-    };
-
-    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 8};
-    helper(obj);
-    
-    Comp::zlib_cvt tmp{rb_root_cvt{mem_device("")}, 8};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    // A deflate stream has no addressable positions, and switching direction
+    // mid-stream would need a second zlib state.
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
 }
 
-void test_zlib_cvt_io_2()
+TEST(ZlibCvt, TraitsOverANoRbRootCvtOfChar8)
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt io case 2...");
+    using CheckType = Comp::zlib_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char8_t>);
 
-    auto helper = []<typename T>(T& obj)
-    {
-        size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-        std::string compress_res;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = obj.detach();
-
-            VERIFY(cur_pos == s_e_lit.data() + 4102);
-            compress_res = dev.str();
-        }
-        
-        {
-            T obj2{Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0}};
-            VERIFY(obj2.bos() == io_status::input);
-            obj2.main_cont_beg();
-    
-            std::string out_buf; out_buf.resize(4200);
-            auto s = obj2.get(out_buf.data(), 4200);
-            VERIFY(s == 4102);
-            VERIFY(out_buf.substr(0, 4102) == s_e_lit);
-        }
-    };
-
-    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 0};    // no compression
-    helper(obj);
-    
-    Comp::zlib_cvt tmp{rb_root_cvt{mem_device("")}, 0};
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2);
-
-    dump_info("Done\n");
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
 }
 
-void test_zlib_cvt_io_3()
+TEST(ZlibCvt, ACopyConstructedForkMatchesTheOriginal)
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt io case 3...");
+    auto obj = static_cvt();
+    expect_fork_matches_original(obj, [](auto& src) { return CharCvt{src}; });
+}
 
-    auto helper = []<typename T>(T& obj)
+TEST(ZlibCvt, ACopyConstructedForkMatchesTheOriginalThroughARuntimeCvt)
+{
+    auto obj = runtime_of(static_cvt());
+    expect_fork_matches_original(obj, [](auto& src) { return runtime_cvt{src}; });
+}
+
+TEST(ZlibCvt, ACopyAssignedForkMatchesTheOriginal)
+{
+    auto obj = static_cvt();
+    expect_fork_matches_original(obj, [](auto& src)
     {
-        std::string compress_res;
+        auto dst = static_cvt();
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(ZlibCvt, ACopyAssignedForkMatchesTheOriginalThroughARuntimeCvt)
+{
+    auto obj = runtime_of(static_cvt());
+    expect_fork_matches_original(obj, [](auto& src)
+    {
+        auto dst = runtime_of(static_cvt());
+        dst = src;
+        return dst;
+    });
+}
+
+TEST(ZlibCvt, MoveConstructionCarriesTheStream)
+{
+    auto obj = static_cvt();
+    expect_move_carries_the_stream(obj, [](auto& src) { return CharCvt{std::move(src)}; });
+}
+
+TEST(ZlibCvt, MoveConstructionCarriesTheStreamThroughARuntimeCvt)
+{
+    auto obj = runtime_of(static_cvt());
+    expect_move_carries_the_stream(obj, [](auto& src) { return runtime_cvt{std::move(src)}; });
+}
+
+TEST(ZlibCvt, MoveAssignmentCarriesTheStream)
+{
+    auto obj = static_cvt();
+    expect_move_carries_the_stream(obj, [](auto& src)
+    {
+        auto dst = static_cvt();
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(ZlibCvt, MoveAssignmentCarriesTheStreamThroughARuntimeCvt)
+{
+    auto obj = runtime_of(static_cvt());
+    expect_move_carries_the_stream(obj, [](auto& src)
+    {
+        auto dst = runtime_of(static_cvt());
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+// zlib takes 0..9; anything above is clamped rather than rejected, so a level of
+// 15 still has to produce a usable stream.
+TEST(ZlibCvt, ALevelAboveNineIsClamped)
+{
+    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 15};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    char data[] = "test data";
+    obj.put(data, 9);
+    EXPECT_NO_THROW(obj.detach());
+}
+
+// adjust() dynamic_casts its argument to the behaviours zlib_cvt understands; a
+// plain cvt_behavior matches none of them and must fall through to the base.
+TEST(ZlibCvt, AdjustWithABaseBehaviourFallsThroughToTheBase)
+{
+    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 6};
+    obj.bos();
+    obj.main_cont_beg();
+    cvt_behavior base_acc;
+    EXPECT_NO_THROW(obj.adjust(base_acc));
+    obj.detach();
+}
+
+TEST(ZlibCvt, SelfAssignmentLeavesTheStreamIntact)
+{
+    Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 6};
+    obj.bos();
+    obj.main_cont_beg();
+    char data[] = "abc";
+    obj.put(data, 3);
+
+    const auto& const_obj = obj;
+    obj = const_obj;
+    EXPECT_NO_THROW(obj.detach());
+}
+
+// bos() only decides the direction; the 2-byte zlib header reaches the device
+// when main_cont_beg() flushes it.
+TEST(ZlibCvt, MainContBegEmitsTheZlibHeader)
+{
+    CharCvt     obj = static_cvt(6);
+    const auto& dev = obj.device();
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    EXPECT_EQ(dev.str(), "\x78\x9c");
+}
+
+TEST(ZlibCvt, MainContBegEmitsTheZlibHeaderThroughARuntimeCvt)
+{
+    runtime_cvt obj = runtime_of(static_cvt(6));
+    const auto& dev = obj.device();
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    EXPECT_EQ(dev.str(), "\x78\x9c");
+}
+
+// Data written between bos() and main_cont_beg() still lands after the header:
+// the header is buffered ahead of it, not written when bos() returns.
+TEST(ZlibCvt, PutBeforeMainContBegLandsAfterTheHeader)
+{
+    CharCvt     obj = static_cvt(6);
+    const auto& dev = obj.device();
+    EXPECT_EQ(obj.bos(), io_status::output);
+
+    char buf[] = "123";
+    obj.put(buf, 3);
+
+    obj.main_cont_beg();
+    EXPECT_EQ(dev.str(), "\x78\x9c""123");
+}
+
+TEST(ZlibCvt, PutBeforeMainContBegLandsAfterTheHeaderThroughARuntimeCvt)
+{
+    runtime_cvt obj = runtime_of(static_cvt(6));
+    const auto& dev = obj.device();
+    EXPECT_EQ(obj.bos(), io_status::output);
+
+    char buf[] = "123";
+    obj.put(buf, 3);
+
+    obj.main_cont_beg();
+    EXPECT_EQ(dev.str(), "\x78\x9c""123");
+}
+
+// 0xFF 0xFF: invalid zlib header (CM bits = 15; only 8 / deflate is legal).
+// inflate returns Z_DATA_ERROR before producing output, so bos() unwinds while
+// m_strm.next_in still points into the dying header_buf stack frame.
+// inflate_guard's destructor must scrub that pointer; this test exercises the
+// failure path so any future regression that reads stale m_strm fields during
+// teardown is caught here. The destructor at the end of the test is part of what
+// is under test -- it must complete cleanly.
+TEST(ZlibCvt, BosThrowsOnAMalformedHeader)
+{
+    std::string    malformed("\xFF\xFF", 2);
+    Comp::zlib_cvt obj{rb_root_cvt{mem_device(malformed)}, 6};
+    EXPECT_ANY_THROW(obj.bos());
+}
+
+TEST(ZlibCvt, BosThrowsOnAMalformedHeaderThroughARuntimeCvt)
+{
+    std::string    malformed("\xFF\xFF", 2);
+    Comp::zlib_cvt tmp{rb_root_cvt{mem_device(malformed)}, 6};
+    runtime_cvt    obj{std::move(tmp)};
+    EXPECT_ANY_THROW(obj.bos());
+}
+
+TEST(ZlibCvt, ChunkedPutRoundTrips)
+{
+    CharCvt obj = static_cvt(8);
+    expect_inflates_to_sample<CharCvt>(put_in_chunks(obj));
+}
+
+TEST(ZlibCvt, ChunkedPutRoundTripsThroughARuntimeCvt)
+{
+    runtime_cvt obj = runtime_of(static_cvt(8));
+    expect_inflates_to_sample<runtime_cvt<mem_device<char>, char>>(put_in_chunks(obj));
+}
+
+// Level 0 stores rather than compresses, so the deflate path never emits a match
+// and the reader has to cope with a stream that is longer than its input.
+TEST(ZlibCvt, ChunkedPutRoundTripsAtLevelZero)
+{
+    CharCvt obj = static_cvt(0);
+    expect_inflates_to_sample<CharCvt>(put_in_chunks(obj));
+}
+
+TEST(ZlibCvt, ChunkedPutRoundTripsAtLevelZeroThroughARuntimeCvt)
+{
+    runtime_cvt obj = runtime_of(static_cvt(0));
+    expect_inflates_to_sample<runtime_cvt<mem_device<char>, char>>(put_in_chunks(obj));
+}
+
+namespace
+{
+    // The mirror of put_in_chunks: one put() of the whole sample, then a get()
+    // loop in rotating chunks that stops when inflate reports nothing left.
+    template <typename T>
+    void expect_chunked_get_round_trip(T& obj)
+    {
+        std::string compressed;
         {
-            VERIFY(obj.bos() == io_status::output);
+            EXPECT_EQ(obj.bos(), io_status::output);
             obj.main_cont_beg();
-            obj.put(s_e_lit.data(), 4102);
+            obj.put(s_e_lit.data(), kSize);
             auto [dev, err] = obj.detach();
-
-            compress_res = dev.str();
+            compressed = dev.str();
         }
-        
+
+        T reader{Comp::zlib_cvt{rb_root_cvt{mem_device(compressed)}, 0}};
+        EXPECT_EQ(reader.bos(), io_status::input);
+        reader.main_cont_beg();
+
+        constexpr std::size_t get_chunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+
+        std::string out_buf(kSize, '\0');
+        std::size_t total = 0;
+        char*       cur   = out_buf.data();
+        int         id    = 0;
+        while (true)
         {
-            T obj2{Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0}};
-            VERIFY(obj2.bos() == io_status::input);
-            obj2.main_cont_beg();
-    
-            size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-            std::string out_buf; out_buf.resize(4102);
-            size_t total_count = 0;
-            char* cur_pos = out_buf.data();
-            int out_buffer_id = 0;
-            while (true)
-            {
-                size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-                if (dest_size == 0) break;
-                auto s = obj2.get(cur_pos, dest_size);
-                out_buffer_id %= std::size(out_buffer_size);
-                cur_pos += s;
-                total_count += s;
-                if (s == 0) break;
-            }
-        
-            VERIFY(cur_pos - out_buf.data() == 4102);
-            VERIFY(out_buf.substr(0, 4102) == s_e_lit);
+            std::size_t n = std::min<std::size_t>(kSize - total, get_chunks[id++]);
+            if (n == 0) break;
+            auto s = reader.get(cur, n);
+            id %= std::size(get_chunks);
+            cur   += s;
+            total += s;
+            if (s == 0) break;
         }
-    };
 
+        EXPECT_EQ(cur - out_buf.data(), static_cast<std::ptrdiff_t>(kSize));
+        EXPECT_EQ(out_buf, s_e_lit);
+    }
+}
+
+TEST(ZlibCvt, ChunkedGetRoundTrips)
+{
     Comp::zlib_cvt_creator<char> creator{6};
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj);
-    
-    auto tmp = creator.create(rb_root_cvt{mem_device("")});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
+    auto                         obj = creator.create(rb_root_cvt{mem_device("")});
+    expect_chunked_get_round_trip(obj);
 }
 
-void test_zlib_cvt_flush_1()
+TEST(ZlibCvt, ChunkedGetRoundTripsThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt::flush case 1...");
+    Comp::zlib_cvt_creator<char> creator{6};
+    auto                         tmp = creator.create(rb_root_cvt{mem_device("")});
+    runtime_cvt                  obj{std::move(tmp)};
+    expect_chunked_get_round_trip(obj);
+}
 
-    auto helper = []<typename T>(T& obj)
+namespace
+{
+    // Without zlib_sync_flush, flush() is advisory: deflate keeps buffering, so
+    // flushing after every chunk has to produce exactly the same bytes as not
+    // flushing at all.
+    template <typename T>
+    void expect_flush_is_transparent(T& obj)
     {
-        size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-        std::string compress_res;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = obj.detach();
+        const std::string unflushed = put_in_chunks(obj);
 
-            VERIFY(cur_pos == s_e_lit.data() + 4102);
-            compress_res = dev.str();
-        }
-        
-        {
-            T local_obj{Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8}};
-            VERIFY(local_obj.bos() == io_status::output);
-            local_obj.main_cont_beg();
-            
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                local_obj.put(cur_pos, dest_size);
-                local_obj.flush();
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = local_obj.detach();
-            VERIFY(compress_res == dev.str());
-        }
-    };
+        T           local{Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8}};
+        EXPECT_EQ(local.bos(), io_status::output);
+        local.main_cont_beg();
 
+        char* cur = s_e_lit.data();
+        int   id  = 0;
+        while (cur < s_e_lit.data() + kSize)
+        {
+            std::size_t n = std::min<std::size_t>(kChunks[id++], s_e_lit.data() + kSize - cur);
+            local.put(cur, n);
+            local.flush();
+            id %= std::size(kChunks);
+            cur += n;
+        }
+        auto [dev, err] = local.detach();
+        EXPECT_EQ(unflushed, dev.str());
+    }
+}
+
+TEST(ZlibCvt, FlushWithoutSyncFlushDoesNotChangeTheOutput)
+{
     Comp::zlib_cvt_creator<char> creator{8};
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj);
-    
-    auto tmp = creator.create(rb_root_cvt{mem_device("")});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
+    auto                         obj = creator.create(rb_root_cvt{mem_device("")});
+    expect_flush_is_transparent(obj);
 }
 
-void test_zlib_cvt_flush_2()
+TEST(ZlibCvt, FlushWithoutSyncFlushDoesNotChangeTheOutputThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt::flush case 2...");
-
-    auto helper = []<typename T>(T& obj)
-    {
-        size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-        std::string compress_res;
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = obj.detach();
-
-            VERIFY(cur_pos == s_e_lit.data() + 4102);
-            compress_res = dev.str();
-        }
-        
-        {
-            T local_obj{Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8}};
-            VERIFY(local_obj.bos() == io_status::output);
-            local_obj.main_cont_beg();
-    
-            Comp::zlib_sync_flush acc(true);
-            local_obj.adjust(acc);
-            
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t ori_dev_size = local_obj.device().str().size();
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                local_obj.put(cur_pos, dest_size);
-                
-                VERIFY(local_obj.device().str().size() == ori_dev_size);
-                local_obj.flush();
-                VERIFY(local_obj.device().str().size() != ori_dev_size);
-                
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = local_obj.detach();
-            VERIFY(compress_res != dev.str());
-            
-            compress_res = dev.str();
-        }
-    
-        {
-            T local_obj{Comp::zlib_cvt{rb_root_cvt{mem_device(compress_res)}, 0}};
-            VERIFY(local_obj.bos() == io_status::input);
-            local_obj.main_cont_beg();
-    
-            std::string out_buf; out_buf.resize(4200);
-            auto s = local_obj.get(out_buf.data(), 4200);
-            VERIFY(s == 4102);
-            VERIFY(out_buf.substr(0, 4102) == s_e_lit);
-        }
-    };
-
     Comp::zlib_cvt_creator<char> creator{8};
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj);
-    
-    auto tmp = creator.create(rb_root_cvt{mem_device("")});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
+    auto                         tmp = creator.create(rb_root_cvt{mem_device("")});
+    runtime_cvt                  obj{std::move(tmp)};
+    expect_flush_is_transparent(obj);
 }
 
-void test_zlib_cvt_reset_1()
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt::reset case 1...");
-
-    auto helper = []<typename T>(T& obj)
+    // With zlib_sync_flush on, each flush() has to push a sync point out to the
+    // device: the device must not grow on put() alone and must grow on flush().
+    // The result is a longer stream than the unflushed one, and it still has to
+    // inflate back to the sample.
+    template <typename T>
+    void expect_sync_flush_emits_eagerly(T& obj)
     {
-        size_t buffer_size[] = {2, 41, 3, 90, 7, 11, 13, 17, 19};
-        std::string compress_res;
+        const std::string unflushed = put_in_chunks(obj);
+
+        T local{Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8}};
+        EXPECT_EQ(local.bos(), io_status::output);
+        local.main_cont_beg();
+
+        Comp::zlib_sync_flush acc(true);
+        local.adjust(acc);
+
+        char* cur = s_e_lit.data();
+        int   id  = 0;
+        while (cur < s_e_lit.data() + kSize)
         {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
+            std::size_t before = local.device().str().size();
+            std::size_t n = std::min<std::size_t>(kChunks[id++], s_e_lit.data() + kSize - cur);
+            local.put(cur, n);
 
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = obj.detach();
-            obj.attach(mem_device(""));
+            EXPECT_EQ(local.device().str().size(), before);
+            local.flush();
+            EXPECT_NE(local.device().str().size(), before);
 
-            VERIFY(cur_pos == s_e_lit.data() + 4102);
-            compress_res = dev.str();
+            id %= std::size(kChunks);
+            cur += n;
         }
+        auto [dev, err] = local.detach();
+        EXPECT_NE(unflushed, dev.str());
 
-        {
-            T local_obj{Comp::zlib_cvt{rb_root_cvt{mem_device("")}, 8}};
-            VERIFY(local_obj.bos() == io_status::output);
-            local_obj.main_cont_beg();
+        expect_inflates_to_sample<T>(dev.str());
+    }
+}
 
-            char* cur_pos = s_e_lit.data();
-            int buffer_id = 0;
-            while (cur_pos < s_e_lit.data() + 4102)
-            {
-                size_t dest_size = std::min<size_t>(buffer_size[buffer_id++], s_e_lit.data() + 4102 - cur_pos);
-                local_obj.put(cur_pos, dest_size);
-                local_obj.flush();
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-            }
-            auto [dev, err] = local_obj.detach();
-            VERIFY(compress_res == dev.str());
-        }
-    };
-
+TEST(ZlibCvt, SyncFlushEmitsAfterEveryFlush)
+{
     Comp::zlib_cvt_creator<char> creator{8};
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device("")});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
+    auto                         obj = creator.create(rb_root_cvt{mem_device("")});
+    expect_sync_flush_emits_eagerly(obj);
 }
 
-void test_zlib_cvt_gen_6()
+TEST(ZlibCvt, SyncFlushEmitsAfterEveryFlushThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt gen 6: level clamp, adjust base behavior, self-assignment...");
-
-    // compression level > 9 is silently clamped to 9
-    {
-        Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 15};
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        char data[] = "test data";
-        obj.put(data, 9);
-        obj.detach();
-    }
-
-    // adjust() with base cvt_behavior: dynamic_cast returns nullptr, only BT::adjust() is called
-    {
-        Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 6};
-        obj.bos();
-        obj.main_cont_beg();
-        cvt_behavior base_acc;
-        obj.adjust(base_acc);
-        obj.detach();
-    }
-
-    // self-assignment in copy-assignment operator: 'this == &val' guard → return *this immediately
-    {
-        Comp::zlib_cvt obj{rb_root_cvt{mem_device("")}, 6};
-        obj.bos();
-        obj.main_cont_beg();
-        char data[] = "abc";
-        obj.put(data, 3);
-        const auto& const_obj = obj;
-        obj = const_obj;
-        obj.detach();
-    }
-
-    dump_info("Done\n");
+    Comp::zlib_cvt_creator<char> creator{8};
+    auto                         tmp = creator.create(rb_root_cvt{mem_device("")});
+    runtime_cvt                  obj{std::move(tmp)};
+    expect_sync_flush_emits_eagerly(obj);
 }
 
-void test_zlib_cvt_error_1()
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt error paths: truncated stream...");
-
-    // Truncated stream: only the 2-byte zlib header "\x78\x9c", no compressed payload.
-    // bos() consumes the header successfully; get() finds no more input and throws
-    // "compressed stream truncated" (ret != Z_STREAM_END && avail_out != 0 after reader
-    // returns len == 0).
+    // detach() hands the device back and attach() gives the converter a fresh one.
+    // A converter that survived that pair has to be usable again from bos()
+    // onwards, and produce what a converter that was never detached produces.
+    template <typename T>
+    void expect_reattach_restarts_the_stream(T& obj)
     {
-        std::string just_header("\x78\x9c", 2);
-        Comp::zlib_cvt obj{rb_root_cvt{mem_device(just_header)}, 6};
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        char buf[16] = {};
-        bool threw = false;
-        try { obj.get(buf, 16); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
+        const std::string first = put_in_chunks(obj);
+        obj.attach(mem_device(""));
 
-    dump_info("Done\n");
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+
+        char* cur = s_e_lit.data();
+        int   id  = 0;
+        while (cur < s_e_lit.data() + kSize)
+        {
+            std::size_t n = std::min<std::size_t>(kChunks[id++], s_e_lit.data() + kSize - cur);
+            obj.put(cur, n);
+            id %= std::size(kChunks);
+            cur += n;
+        }
+        auto [dev, err] = obj.detach();
+        EXPECT_EQ(first, dev.str());
+    }
 }
 
-void test_zlib_cvt_eof_1()
+TEST(ZlibCvt, AttachAfterDetachRestartsTheStream)
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt is_eof and m_stream_ended early-return...");
+    Comp::zlib_cvt_creator<char> creator{8};
+    auto                         obj = creator.create(rb_root_cvt{mem_device("")});
+    expect_reattach_restarts_the_stream(obj);
+}
 
-    // compress a small string
+TEST(ZlibCvt, AttachAfterDetachRestartsTheStreamThroughARuntimeCvt)
+{
+    Comp::zlib_cvt_creator<char> creator{8};
+    auto                         tmp = creator.create(rb_root_cvt{mem_device("")});
+    runtime_cvt                  obj{std::move(tmp)};
+    expect_reattach_restarts_the_stream(obj);
+}
+
+// A stream that is nothing but the 2-byte header: bos() consumes it happily, and
+// get() then finds no payload. inflate has neither reached Z_STREAM_END nor
+// filled the output buffer, which is what "compressed stream truncated" means.
+TEST(ZlibCvt, GetThrowsOnATruncatedStream)
+{
+    std::string    just_header("\x78\x9c", 2);
+    Comp::zlib_cvt obj{rb_root_cvt{mem_device(just_header)}, 6};
+    EXPECT_EQ(obj.bos(), io_status::input);
+    obj.main_cont_beg();
+
+    char buf[16] = {};
+    EXPECT_THROW((void)obj.get(buf, 16), cvt_error);
+}
+
+// m_stream_ended latches at Z_STREAM_END: is_eof() reports it, and a further
+// get() takes the early return rather than asking zlib again.
+TEST(ZlibCvt, IsEofLatchesAtStreamEnd)
+{
     std::string compressed;
     {
         Comp::zlib_cvt comp{rb_root_cvt{mem_device("")}, 6};
@@ -780,102 +618,98 @@ void test_zlib_cvt_eof_1()
         char data[] = "hello";
         comp.put(data, 5);
         auto [dev, err] = comp.detach();
-        if (err) std::rethrow_exception(err);
+        ASSERT_FALSE(err);
         compressed = dev.str();
     }
 
-    // decompress with a buffer larger than the payload
-    {
-        Comp::zlib_cvt decomp{rb_root_cvt{mem_device(compressed)}, 6};
-        VERIFY(decomp.bos() == io_status::input);
-        decomp.main_cont_beg();
+    Comp::zlib_cvt decomp{rb_root_cvt{mem_device(compressed)}, 6};
+    EXPECT_EQ(decomp.bos(), io_status::input);
+    decomp.main_cont_beg();
 
-        char buf[64] = {};
-        // request 64 bytes: inflate will produce 5 then hit Z_STREAM_END → m_stream_ended = true
-        auto n = decomp.get(buf, 64);
-        VERIFY(n == 5);
-        VERIFY(buf[0] == 'h' && buf[4] == 'o');
+    char buf[64] = {};
+    EXPECT_EQ(decomp.get(buf, 64), 5u);
+    EXPECT_EQ(buf[0], 'h');
+    EXPECT_EQ(buf[4], 'o');
 
-        // is_eof() should return true now (m_stream_ended is latched)
-        VERIFY(decomp.is_eof());
-
-        // calling get() again should hit the 'm_stream_ended' early-return and produce 0
-        auto n2 = decomp.get(buf, 64);
-        VERIFY(n2 == 0);
-    }
-
-    dump_info("Done\n");
+    EXPECT_TRUE(decomp.is_eof());
+    EXPECT_EQ(decomp.get(buf, 64), 0u);
 }
 
-void test_zlib_cvt_bos_4()
+// bos() hands zlib the direction and bos_impl() allocates the matching state --
+// deflateInit for output, inflateInit for input -- while main_cont_beg() resets
+// m_io_status to neutral when it fails. Releasing that state needs the direction
+// too, so abs_cvt must call detach_impl() BEFORE the reset; otherwise
+// close_stream() matches neither branch and zlib's internal state (350 KB
+// compressing, 41 KB decompressing) is never freed. bos_impl()'s own guards do
+// not cover this: they are released by the time bos_impl returns.
+//
+// Like BosThrowsOnAMalformedHeader, a plain run cannot see the leak -- the
+// sanitizer preset is what judges these. What a plain run checks is that bos()
+// really succeeded and main_cont_beg() really failed, i.e. that the case still
+// reaches the window at all.
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test zlib_cvt teardown when main_cont_beg fails...");
-
-    // bos() hands zlib the direction and bos_impl() allocates the matching state --
-    // deflateInit for output, inflateInit for input -- while main_cont_beg() resets
-    // m_io_status to neutral when it fails. Releasing that state needs the direction too, so
-    // abs_cvt must call detach_impl() BEFORE the reset; otherwise close_stream() matches
-    // neither branch and zlib's internal state (350 KB compressing, 41 KB decompressing) is
-    // never freed. bos_impl()'s own guards do not cover this: they are released by the time
-    // bos_impl returns.
-    //
-    // Like test_zlib_cvt_bos_3, a plain run cannot see the leak -- MODE=sanitizer is what
-    // judges this test. What a plain run does check is that bos() really succeeded and
-    // main_cont_beg() really failed, i.e. that the case still reaches the window at all.
-    auto expect = [](auto& obj, io_status dir)
+    template <typename T>
+    void expect_bos_succeeds_then_main_cont_beg_throws(T& obj, io_status dir)
     {
-        VERIFY(obj.bos() == dir);
-        bool got_exception = false;
-        try { obj.main_cont_beg(); }
-        catch (...) { got_exception = true; }
-        VERIFY(got_exception);
-    };
+        EXPECT_EQ(obj.bos(), dir);
+        EXPECT_ANY_THROW(obj.main_cont_beg());
+    }
 
-    // Output: bos_impl() writes the 2-byte header into the root converter's buffer and
-    // main_cont_beg() flushes it out. Failing dput makes that flush throw on the write itself;
-    // failing dtell makes it throw on the reposition query that follows a successful write.
-    for (int which = 0; which < 2; ++which)
-    {
-        injectable_device<char> dev{std::string("")};
-        auto st = dev.shared_state();
-        if (which == 0) st->fail_dput = true;
-        else            st->fail_dtell = true;
-
-        Comp::zlib_cvt obj{no_rb_root_cvt{std::move(dev)}, 6};
-        expect(obj, io_status::output);
-    }   // dtor runs here; deflateEnd must already have happened.
-
-    std::string compressed;
+    std::string compressed_hello()
     {
         Comp::zlib_cvt comp{rb_root_cvt{mem_device("")}, 6};
-        VERIFY(comp.bos() == io_status::output);
+        EXPECT_EQ(comp.bos(), io_status::output);
         comp.main_cont_beg();
         comp.put("hello", 5);
         auto [dev, err] = comp.detach();
-        compressed = dev.str();
+        return dev.str();
     }
+}
 
-    // Input: the header reads fine, so inflateInit's state is live when the query fails.
-    {
-        injectable_device<char> dev{compressed};
-        dev.shared_state()->fail_dtell = true;
-        Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
-        expect(obj, io_status::input);
-    }
+// Output: bos_impl() writes the 2-byte header into the root converter's buffer
+// and main_cont_beg() flushes it out. A failing dput makes that flush throw on
+// the write itself.
+TEST(ZlibCvt, DeflateStateIsReleasedWhenTheHeaderWriteFails)
+{
+    injectable_device<char> dev{std::string("")};
+    dev.shared_state()->fail_dput = true;
 
-    // Negative control: on the same input payload, failing dget instead makes bos() itself
-    // throw. That is the path bos_impl()'s inflate_guard already covered and which never
-    // leaked. If it ever stops throwing, the three cases above have lost their window.
-    {
-        injectable_device<char> dev{compressed};
-        dev.shared_state()->fail_dget = true;
-        Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
-        bool got_exception = false;
-        try { (void)obj.bos(); }
-        catch (...) { got_exception = true; }
-        VERIFY(got_exception);
-    }
+    Comp::zlib_cvt obj{no_rb_root_cvt{std::move(dev)}, 6};
+    expect_bos_succeeds_then_main_cont_beg_throws(obj, io_status::output);
+}
 
-    dump_info("Done\n");
+// The same window reached one step later: the write succeeds and the reposition
+// query that follows it throws instead.
+TEST(ZlibCvt, DeflateStateIsReleasedWhenThePostWriteTellFails)
+{
+    injectable_device<char> dev{std::string("")};
+    dev.shared_state()->fail_dtell = true;
+
+    Comp::zlib_cvt obj{no_rb_root_cvt{std::move(dev)}, 6};
+    expect_bos_succeeds_then_main_cont_beg_throws(obj, io_status::output);
+}
+
+// Input: the header reads fine, so inflateInit's state is live when the query
+// fails.
+TEST(ZlibCvt, InflateStateIsReleasedWhenTheTellAfterTheHeaderFails)
+{
+    injectable_device<char> dev{compressed_hello()};
+    dev.shared_state()->fail_dtell = true;
+
+    Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
+    expect_bos_succeeds_then_main_cont_beg_throws(obj, io_status::input);
+}
+
+// Negative control for the three above: on the same payload, failing dget
+// instead makes bos() itself throw. That is the path bos_impl()'s inflate_guard
+// already covered and which never leaked. If it ever stops throwing, the three
+// cases above have lost their window.
+TEST(ZlibCvt, BosItselfThrowsWhenTheHeaderReadFails)
+{
+    injectable_device<char> dev{compressed_hello()};
+    dev.shared_state()->fail_dget = true;
+
+    Comp::zlib_cvt obj{rb_root_cvt{std::move(dev)}, 6};
+    EXPECT_ANY_THROW((void)obj.bos());
 }
