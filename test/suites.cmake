@@ -72,6 +72,13 @@ set(IOV2_TEST_SUITE_DIRS
 set(IOV2_TEST_GTEST_SUITE_DIRS
     common
     concur
+    cvt/code_cvt
+    cvt/comp
+    cvt/crypt
+    cvt/cvt_io
+    cvt/cvt_pipe_creator
+    cvt/root_cvt
+    cvt/runtime_cvt
     device/file_device
     device/mem_device
     device/std_device
@@ -83,7 +90,6 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
 # the tree because derive_suites.py reads them -- they are what fixes the
 # entries below and their order.  See its module docstring.
 set(IOV2_TEST_EXCLUDED_SOURCES
-    cvt/test_cvt.cpp
     facet/test_facet.cpp
     io/io_base/test_io_base.cpp
     io/iostream/test_iostream.cpp
@@ -92,7 +98,7 @@ set(IOV2_TEST_EXCLUDED_SOURCES
     io/test_io.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 185)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 178)
 
 set(test_common_ENTRIES
     # none: every case registers itself
@@ -103,31 +109,31 @@ set(test_concur_ENTRIES
 )
 
 set(test_cvt_code_cvt_ENTRIES
-    test_code_cvt
+    # none: every case registers itself
 )
 
 set(test_cvt_comp_ENTRIES
-    test_comp_cvt
+    # none: every case registers itself
 )
 
 set(test_cvt_crypt_ENTRIES
-    test_crypt_cvt
+    # none: every case registers itself
 )
 
 set(test_cvt_cvt_io_ENTRIES
-    test_cvt_io
+    # none: every case registers itself
 )
 
 set(test_cvt_cvt_pipe_creator_ENTRIES
-    test_cvt_pipe_creator
+    # none: every case registers itself
 )
 
 set(test_cvt_root_cvt_ENTRIES
-    test_root_cvt
+    # none: every case registers itself
 )
 
 set(test_cvt_runtime_cvt_ENTRIES
-    test_runtime_cvt
+    # none: every case registers itself
 )
 
 set(test_device_file_device_ENTRIES

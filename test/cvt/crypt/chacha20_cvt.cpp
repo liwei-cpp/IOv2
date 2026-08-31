@@ -1,450 +1,362 @@
+#include <common/defs.h>
 #include <cvt/crypt/chacha20_cvt.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
 #include <botan/secmem.h>
 
-void test_chacha20_cvt_gen_1()
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+using namespace IOv2;
+
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt general case 1...");
-    
-    {
-        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char>);
-        static_assert(std::is_same_v<CheckType::external_type, char>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
-    }
-    
-    {
-        using CheckType = Crypt::chacha20_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char8_t>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
-    }
+    using CharCvt = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
 
-    dump_info("Done\n");
-}
+    constexpr std::size_t kSize = 4102;
 
-void test_chacha20_cvt_gen_2()
-{
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt general case 2...");
-
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
+    // 586 repetitions of the UTF-8 for U'李' U'伟' plus one byte cycling 1..127.
+    // ChaCha20 is a stream cipher, so what matters here is only that the sample is
+    // long enough to cross several keystream blocks and that 4102 is not a
+    // multiple of any chunk size below.
+    std::string sample()
     {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    auto helper = [&e_lit]<typename T>(T& obj)
-    {
-        std::string enc_msg;
+        std::string out;
+        out.resize(kSize);
+        for (std::size_t i = 0; i < kSize; i += 7)
         {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-    
-            size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-            size_t total_count = 0;
-            char* cur_pos = e_lit.data();
-            int buffer_id = 0;
-            while (total_count < 4102)
-            {
-                auto obj2(std::move(obj));
-                size_t dest_size = std::min<size_t>(4102 - total_count, buffer_size[buffer_id++]);
-                obj2.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-                total_count += dest_size;
-                obj = std::move(obj2);
-            }
-    
-            auto [dev, err] = obj.detach();
-            enc_msg = dev.str();
+            out[i + 0] = '\xE6';
+            out[i + 1] = '\x9D';
+            out[i + 2] = '\x8E';
+            out[i + 3] = '\xE4';
+            out[i + 4] = '\xBC';
+            out[i + 5] = '\x9F';
+            out[i + 6] = (i / 7) % 127 + 1;
         }
-    
+        return out;
+    }
+
+    constexpr std::size_t kChunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+
+    // Writes the sample in rotating chunks and returns the ciphertext. With
+    // move_between_chunks the converter is moved out and back between every
+    // chunk: the keystream position lives in the cipher object, so a move that
+    // dropped or restarted it would corrupt everything after the first chunk.
+    template <typename T>
+    std::string encrypt_in_chunks(T& obj, const std::string& plain, bool move_between_chunks)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+
+        std::size_t total = 0;
+        const char* cur   = plain.data();
+        int         id    = 0;
+        while (total < kSize)
         {
-            T local_obj(Crypt::chacha20_cvt{rb_root_cvt{mem_device(enc_msg)}, "liwei"});
-            VERIFY(local_obj.bos() == io_status::input);
-            local_obj.main_cont_beg();
-            
-            size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-        
-            std::string buf; buf.resize(4102 * 2);
-            size_t total_count = 0;
-            char* cur_pos = buf.data();
-            int out_buffer_id = 0;
-            while (true)
+            std::size_t n = std::min<std::size_t>(kSize - total, kChunks[id++]);
+            if (move_between_chunks)
             {
-                auto obj2(std::move(local_obj));
-                size_t dest_size = std::min<size_t>(4102 * 2 - total_count, out_buffer_size[out_buffer_id++]);
-                auto s = obj2.get(cur_pos, dest_size);
-                out_buffer_id %= std::size(out_buffer_size);
-                cur_pos += s;
-                total_count += s;
-                if (s == 0) break;
-                local_obj = std::move(obj2);
+                T moved(std::move(obj));
+                moved.put(cur, n);
+                obj = std::move(moved);
             }
-        
-            VERIFY(cur_pos - buf.data() == 4102);
-            buf.resize(4102);
-            VERIFY(buf == e_lit);
-        }
-    };
-
-    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-    CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
-    helper(obj);
-
-    CheckType tmp(rb_root_cvt{mem_device("")}, "liwei");
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_chacha20_cvt_put_1()
-{
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt::put case 1...");
-
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-
-    auto out_helper = [&e_lit](auto& obj1, auto& obj2)
-    {
-        auto helper = [&e_lit](auto& obj)
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-    
-            size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-            size_t total_count = 0;
-            char* cur_pos = e_lit.data();
-            int buffer_id = 0;
-            while (total_count < 4102)
+            else
             {
-                size_t dest_size = std::min<size_t>(4102 - total_count, buffer_size[buffer_id++]);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-                total_count += dest_size;
+                obj.put(cur, n);
             }
-    
-            auto [dev, err] = obj.detach();
-            return dev.str();
-        };
-        
-        std::string r1 = helper(obj1);
-        std::string r2 = helper(obj2);
-        VERIFY(r1 != r2);
-    };
+            id %= std::size(kChunks);
+            cur   += n;
+            total += n;
+        }
 
-    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-    {
-        CheckType obj1(rb_root_cvt{mem_device("")}, "liwei");
-        CheckType obj2(rb_root_cvt{mem_device("")}, "liwei");
-        out_helper(obj1, obj2);
-    }
-    {
-        CheckType tmp1(rb_root_cvt{mem_device("")}, "liwei");
-        CheckType tmp2(rb_root_cvt{mem_device("")}, "liwei");
-        runtime_cvt obj1(std::move(tmp1));
-        runtime_cvt obj2(std::move(tmp2));
-        out_helper(obj1, obj2);
-    }
-    dump_info("Done\n");
-}
-
-void test_chacha20_cvt_io_1()
-{
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt io case 1...");
-
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
+        auto [dev, err] = obj.detach();
+        return dev.str();
     }
 
-    auto helper = [&e_lit]<typename T>(T& obj)
+    // Reads the ciphertext back in rotating chunks, again optionally moving the
+    // converter between every one, and checks it decrypts to the sample.
+    template <typename T>
+    void expect_decrypts_in_chunks(const std::string& enc, const std::string& plain,
+                                   bool move_between_chunks)
     {
-        std::string enc_msg;
+        T obj(CharCvt{rb_root_cvt{mem_device(enc)}, "liwei"});
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::string buf(kSize * 2, '\0');
+        std::size_t total = 0;
+        char*       cur   = buf.data();
+        int         id    = 0;
+        while (true)
         {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-    
-            size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-            size_t total_count = 0;
-            char* cur_pos = e_lit.data();
-            int buffer_id = 0;
-            while (total_count < 4102)
+            std::size_t n = std::min<std::size_t>(kSize * 2 - total, kChunks[id++]);
+            std::size_t s = 0;
+            if (move_between_chunks)
             {
-                size_t dest_size = std::min<size_t>(4102 - total_count, buffer_size[buffer_id++]);
-                obj.put(cur_pos, dest_size);
-                buffer_id %= std::size(buffer_size);
-                cur_pos += dest_size;
-                total_count += dest_size;
+                T moved(std::move(obj));
+                s = moved.get(cur, n);
+                if (s != 0) obj = std::move(moved);
             }
-    
-            auto [dev, err] = obj.detach();
-            enc_msg = dev.str();
+            else
+            {
+                s = obj.get(cur, n);
+            }
+            id %= std::size(kChunks);
+            cur   += s;
+            total += s;
+            if (s == 0) break;
         }
-    
-        {
-            T local_obj(Crypt::chacha20_cvt{rb_root_cvt{mem_device(enc_msg)}, "liwei"});
-            VERIFY(local_obj.bos() == io_status::input);
-            local_obj.main_cont_beg();
-            
-            std::string buf;
-            buf.resize(4102 * 2);
-            VERIFY(local_obj.get(buf.data(), buf.size()) == 4102);
-            buf.resize(4102);
-            VERIFY(buf == e_lit);
-        }
-    };
 
-    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-    CheckType obj(rb_root_cvt{mem_device("")}, "liwei");
-    helper(obj);
+        ASSERT_EQ(cur - buf.data(), static_cast<std::ptrdiff_t>(kSize));
+        buf.resize(kSize);
+        EXPECT_EQ(buf, plain);
+    }
 
-    CheckType tmp(rb_root_cvt{mem_device("")}, "liwei");
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-    
-    dump_info("Done\n");
-}
-
-void test_chacha20_cvt_key_1()
-{
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt key difference...");
-
-    std::string msg = "Hello, world! This is a test message for ChaCha20.";
-    std::string enc_msg;
-
-    using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-
+    std::string encrypt_whole(const std::string& msg, const char* key)
     {
-        CheckType obj(rb_root_cvt{mem_device("")}, "key1");
+        CharCvt obj(rb_root_cvt{mem_device("")}, key);
         obj.bos();
         obj.main_cont_beg();
         obj.put(msg.data(), msg.size());
         auto [dev, err] = obj.detach();
-        enc_msg = dev.str();
+        return dev.str();
     }
 
+    std::string decrypt_whole(const std::string& enc, const char* key, std::size_t room)
     {
-        CheckType obj(rb_root_cvt{mem_device(enc_msg)}, "key1");
+        CharCvt obj(rb_root_cvt{mem_device(enc)}, key);
         obj.bos();
         obj.main_cont_beg();
-        std::string dec_msg;
-        dec_msg.resize(msg.size());
-        obj.get(dec_msg.data(), dec_msg.size());
-        VERIFY(dec_msg == msg);
+        std::string out(room, '\0');
+        auto        n = obj.get(out.data(), out.size());
+        out.resize(n);
+        return out;
     }
-
-    {
-        CheckType obj(rb_root_cvt{mem_device(enc_msg)}, "key2");
-        obj.bos();
-        obj.main_cont_beg();
-        std::string dec_msg;
-        dec_msg.resize(msg.size());
-        obj.get(dec_msg.data(), dec_msg.size());
-        VERIFY(dec_msg != msg);
-    }
-
-    dump_info("Done\n");
 }
 
-void test_chacha20_cvt_raw_key_1()
+TEST(Chacha20Cvt, TraitsOverARbRootCvtOfChar)
 {
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt raw-key constructor and error paths...");
-
-    // key_gen with empty string throws
-    {
-        bool threw = false;
-        try { Crypt::chacha20_cvt_helpers::key_gen(""); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
-
-    // Raw key constructor with valid 32-byte key: encrypt then decrypt
-    {
-        Botan::secure_vector<uint8_t> key(32, 0xAB);
-        std::string msg = "raw-key test message";
-        std::string enc_msg;
-
-        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-        {
-            CheckType obj(rb_root_cvt{mem_device("")}, key);
-            obj.bos();
-            obj.main_cont_beg();
-            obj.put(msg.data(), msg.size());
-            auto [dev, err] = obj.detach();
-            VERIFY(!err);
-            enc_msg = dev.str();
-        }
-        {
-            CheckType obj(rb_root_cvt{mem_device(enc_msg)}, key);
-            obj.bos();
-            obj.main_cont_beg();
-            std::string dec;
-            dec.resize(msg.size() * 2);
-            auto n = obj.get(dec.data(), dec.size());
-            dec.resize(n);
-            VERIFY(dec == msg);
-        }
-    }
-
-    // Raw key constructor with invalid key length throws
-    {
-        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-        Botan::secure_vector<uint8_t> bad_key(5, 0x00);
-        bool threw = false;
-        try { CheckType obj(rb_root_cvt{mem_device("")}, bad_key); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
-
-    // Move assignment operator
-    {
-        using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-        std::string msg = "move assign test";
-        CheckType obj1(rb_root_cvt{mem_device("")}, "movekey");
-        CheckType obj2(rb_root_cvt{mem_device("")}, "movekey");
-
-        obj1.bos();
-        obj1.main_cont_beg();
-        obj2 = std::move(obj1);
-        obj2.put(msg.data(), msg.size());
-        auto [dev, err] = obj2.detach();
-        VERIFY(!err);
-        VERIFY(!dev.str().empty());
-    }
-
-    dump_info("Done\n");
-}
-
-void test_chacha20_cvt_attach_1()
-{
-    using namespace IOv2;
-    dump_info("Test chacha20_cvt attach/detach cycle...");
-
-    std::string msg = "attach-cycle test message for chacha20";
-    std::string enc1, enc2;
-
     using CheckType = Crypt::chacha20_cvt<rb_root_cvt<mem_device<char>>>;
-    CheckType obj(rb_root_cvt{mem_device("")}, "attachkey");
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char>);
+    static_assert(std::is_same_v<CheckType::external_type, char>);
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    // The keystream is generated forward from the IV, so there is no way to jump
+    // to a position or to turn the stream around mid-way.
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
+}
 
-    // First session
+TEST(Chacha20Cvt, TraitsOverANoRbRootCvtOfChar8)
+{
+    using CheckType = Crypt::chacha20_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char8_t>);
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
+}
+
+TEST(Chacha20Cvt, MovingTheConverterBetweenChunksPreservesTheKeystream)
+{
+    const std::string plain = sample();
+    CharCvt           obj(rb_root_cvt{mem_device("")}, "liwei");
+    const std::string enc = encrypt_in_chunks(obj, plain, true);
+    expect_decrypts_in_chunks<CharCvt>(enc, plain, true);
+}
+
+TEST(Chacha20Cvt, MovingTheConverterBetweenChunksPreservesTheKeystreamThroughARuntimeCvt)
+{
+    const std::string plain = sample();
+    runtime_cvt       obj(CharCvt{rb_root_cvt{mem_device("")}, "liwei"});
+    const std::string enc = encrypt_in_chunks(obj, plain, true);
+    expect_decrypts_in_chunks<runtime_cvt<mem_device<char>, char>>(enc, plain, true);
+}
+
+TEST(Chacha20Cvt, ChunkedPutRoundTrips)
+{
+    const std::string plain = sample();
+    CharCvt           obj(rb_root_cvt{mem_device("")}, "liwei");
+    const std::string enc = encrypt_in_chunks(obj, plain, false);
+
+    CharCvt dec(rb_root_cvt{mem_device(enc)}, "liwei");
+    EXPECT_EQ(dec.bos(), io_status::input);
+    dec.main_cont_beg();
+
+    std::string buf(kSize * 2, '\0');
+    EXPECT_EQ(dec.get(buf.data(), buf.size()), kSize);
+    buf.resize(kSize);
+    EXPECT_EQ(buf, plain);
+}
+
+TEST(Chacha20Cvt, ChunkedPutRoundTripsThroughARuntimeCvt)
+{
+    const std::string plain = sample();
+    runtime_cvt       obj(CharCvt{rb_root_cvt{mem_device("")}, "liwei"});
+    const std::string enc = encrypt_in_chunks(obj, plain, false);
+
+    runtime_cvt dec(CharCvt{rb_root_cvt{mem_device(enc)}, "liwei"});
+    EXPECT_EQ(dec.bos(), io_status::input);
+    dec.main_cont_beg();
+
+    std::string buf(kSize * 2, '\0');
+    EXPECT_EQ(dec.get(buf.data(), buf.size()), kSize);
+    buf.resize(kSize);
+    EXPECT_EQ(buf, plain);
+}
+
+// Each session draws a fresh random IV, so the same plaintext under the same key
+// must not encrypt to the same bytes twice. Equal ciphertexts would mean the IV
+// is fixed, which is the classic keystream-reuse break.
+TEST(Chacha20Cvt, TwoSessionsWithTheSameKeyProduceDifferentCiphertext)
+{
+    const std::string plain = sample();
+    CharCvt           obj1(rb_root_cvt{mem_device("")}, "liwei");
+    CharCvt           obj2(rb_root_cvt{mem_device("")}, "liwei");
+
+    EXPECT_NE(encrypt_in_chunks(obj1, plain, false), encrypt_in_chunks(obj2, plain, false));
+}
+
+TEST(Chacha20Cvt, TwoSessionsWithTheSameKeyProduceDifferentCiphertextThroughARuntimeCvt)
+{
+    const std::string plain = sample();
+    runtime_cvt       obj1(CharCvt{rb_root_cvt{mem_device("")}, "liwei"});
+    runtime_cvt       obj2(CharCvt{rb_root_cvt{mem_device("")}, "liwei"});
+
+    EXPECT_NE(encrypt_in_chunks(obj1, plain, false), encrypt_in_chunks(obj2, plain, false));
+}
+
+TEST(Chacha20Cvt, TheSameKeyRecoversTheMessage)
+{
+    const std::string msg = "Hello, world! This is a test message for ChaCha20.";
+    EXPECT_EQ(decrypt_whole(encrypt_whole(msg, "key1"), "key1", msg.size()), msg);
+}
+
+TEST(Chacha20Cvt, ADifferentKeyDoesNotRecoverTheMessage)
+{
+    const std::string msg = "Hello, world! This is a test message for ChaCha20.";
+    EXPECT_NE(decrypt_whole(encrypt_whole(msg, "key1"), "key2", msg.size()), msg);
+}
+
+// A passphrase is stretched into the 32-byte key, and an empty one carries no
+// entropy at all, so it is refused rather than stretched into a fixed key.
+TEST(Chacha20Cvt, AnEmptyPassphraseIsRejected)
+{
+    EXPECT_THROW(Crypt::chacha20_cvt_helpers::key_gen(""), cvt_error);
+}
+
+// The other constructor takes the 32 raw key bytes directly, skipping key_gen.
+TEST(Chacha20Cvt, ARawKeyRoundTrips)
+{
+    Botan::secure_vector<uint8_t> key(32, 0xAB);
+    const std::string             msg = "raw-key test message";
+
+    std::string enc;
+    {
+        CharCvt obj(rb_root_cvt{mem_device("")}, key);
+        obj.bos();
+        obj.main_cont_beg();
+        obj.put(msg.data(), msg.size());
+        auto [dev, err] = obj.detach();
+        EXPECT_FALSE(err);
+        enc = dev.str();
+    }
+
+    CharCvt obj(rb_root_cvt{mem_device(enc)}, key);
+    obj.bos();
+    obj.main_cont_beg();
+    std::string dec(msg.size() * 2, '\0');
+    auto        n = obj.get(dec.data(), dec.size());
+    dec.resize(n);
+    EXPECT_EQ(dec, msg);
+}
+
+// ChaCha20 takes a 256-bit key; a raw key of any other length is a caller error
+// and must not be silently padded.
+TEST(Chacha20Cvt, ARawKeyOfTheWrongLengthIsRejected)
+{
+    Botan::secure_vector<uint8_t> bad_key(5, 0x00);
+    EXPECT_THROW(CharCvt(rb_root_cvt{mem_device("")}, bad_key), cvt_error);
+}
+
+TEST(Chacha20Cvt, MoveAssignmentCarriesAnOpenStream)
+{
+    const std::string msg = "move assign test";
+    CharCvt           obj1(rb_root_cvt{mem_device("")}, "movekey");
+    CharCvt           obj2(rb_root_cvt{mem_device("")}, "movekey");
+
+    obj1.bos();
+    obj1.main_cont_beg();
+    obj2 = std::move(obj1);
+    obj2.put(msg.data(), msg.size());
+
+    auto [dev, err] = obj2.detach();
+    EXPECT_FALSE(err);
+    EXPECT_FALSE(dev.str().empty());
+}
+
+// attach() starts a new session on the same converter: a new IV is drawn, so the
+// second ciphertext differs from the first, and both still decrypt.
+TEST(Chacha20Cvt, AttachStartsAFreshSessionWithANewIv)
+{
+    const std::string msg = "attach-cycle test message for chacha20";
+    CharCvt           obj(rb_root_cvt{mem_device("")}, "attachkey");
+
     obj.bos();
     obj.main_cont_beg();
     obj.put(msg.data(), msg.size());
-    {
-        auto [dev, err] = obj.detach();
-        VERIFY(!err);
-        enc1 = dev.str();
-    }
+    auto [dev1, err1] = obj.detach();
+    EXPECT_FALSE(err1);
+    const std::string enc1 = dev1.str();
 
-    // attach() exercises attach_impl(): resets cipher state
     obj.attach();
     obj.bos();
     obj.main_cont_beg();
     obj.put(msg.data(), msg.size());
-    {
-        auto [dev, err] = obj.detach();
-        VERIFY(!err);
-        enc2 = dev.str();
-    }
+    auto [dev2, err2] = obj.detach();
+    EXPECT_FALSE(err2);
+    const std::string enc2 = dev2.str();
 
-    // Both sessions produce different ciphertext (different random IVs)
-    VERIFY(enc1 != enc2);
+    EXPECT_NE(enc1, enc2);
+    EXPECT_EQ(decrypt_whole(enc1, "attachkey", msg.size() * 2), msg);
+    EXPECT_EQ(decrypt_whole(enc2, "attachkey", msg.size() * 2), msg);
+}
 
-    // Both decrypt correctly
-    auto decrypt = [&msg](const std::string& enc)
-    {
-        CheckType dec_obj(rb_root_cvt{mem_device(enc)}, "attachkey");
-        dec_obj.bos();
-        dec_obj.main_cont_beg();
-        std::string out;
-        out.resize(msg.size() * 2);
-        auto n = dec_obj.get(out.data(), out.size());
-        out.resize(n);
-        VERIFY(out == msg);
-    };
-    decrypt(enc1);
-    decrypt(enc2);
+TEST(Chacha20Cvt, BosIsRejectedOnAMovedFromConverter)
+{
+    CharCvt src(rb_root_cvt{mem_device("")}, "attachkey");
+    auto    moved = std::move(src);
 
-    // bos_impl() on moved-from (null m_cipher) — hits line 396
-    {
-        CheckType src(rb_root_cvt{mem_device("")}, "attachkey");
-        auto moved = std::move(src);
-        bool threw = false;
-        try { src.bos(); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
+    EXPECT_THROW((void)src.bos(), cvt_error);
+}
 
-    // attach_impl() on moved-from (null m_cipher) — hits line 351
-    {
-        CheckType src(rb_root_cvt{mem_device("")}, "attachkey");
-        auto moved = std::move(src);
-        bool threw = false;
-        try { src.attach(); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
+TEST(Chacha20Cvt, AttachIsRejectedOnAMovedFromConverter)
+{
+    CharCvt src(rb_root_cvt{mem_device("")}, "attachkey");
+    auto    moved = std::move(src);
 
-    // bos_impl() input mode with too-short device data — incomplete IV read (hits line 419)
-    {
-        // ChaCha20 IV is 12 bytes; a 5-byte device has less than that
-        CheckType dec_obj(rb_root_cvt{mem_device("hello")}, "attachkey");
-        bool threw = false;
-        try { dec_obj.bos(); }
-        catch (const cvt_error&) { threw = true; }
-        VERIFY(threw);
-    }
+    EXPECT_THROW(src.attach(), cvt_error);
+}
 
-    dump_info("Done\n");
+// Opening for input starts by reading the 12-byte IV off the front of the
+// stream. Five bytes is not an IV, and the converter must say so rather than
+// decrypt with whatever it managed to read.
+TEST(Chacha20Cvt, BosThrowsWhenTheStreamIsTooShortForTheIv)
+{
+    CharCvt obj(rb_root_cvt{mem_device("hello")}, "attachkey");
+    EXPECT_THROW((void)obj.bos(), cvt_error);
 }

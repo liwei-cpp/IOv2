@@ -1,1491 +1,1138 @@
+#include <common/defs.h>
 #include <cvt/code_cvt.h>
 #include <cvt/cvt_facilities.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <gtest/gtest.h>
 
-void test_code_cvt_mem_char8_t_gen_1()
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+using namespace IOv2;
+
+// The counterpart of code_cvt_mem_char_char32_t.cpp: there the external side is
+// char and the encoding comes from a named locale, here it is char8_t and the
+// library's own UTF-8 kernel does the work, so no locale name is given at all.
+namespace
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> general case 1...");
-    
+    using RbCvt   = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    using NoRbCvt = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
+
+    constexpr std::size_t kExtSize = 4102;          // char8_t on the device
+    constexpr std::size_t kIntSize = 4102 / 7 * 3;  // char32_t they decode to
+
+    // 586 repetitions of the UTF-8 for U'李' (3 bytes) and U'伟' (3 bytes) plus one
+    // ASCII byte cycling 1..127. Seven external units per three internal
+    // characters is what makes the two sizes above differ, and it is why every
+    // chunk size below lands mid-character sooner or later.
+    std::u8string external_sample()
     {
-        using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-        static_assert(io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char8_t>);
-        
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(cvt_cpt::support_get<CheckType>);
-        static_assert(cvt_cpt::support_positioning<CheckType>);
-        static_assert(cvt_cpt::support_io_switch<CheckType>);
+        std::u8string out;
+        out.resize(kExtSize);
+        for (std::size_t i = 0; i < kExtSize; i += 7)
+        {
+            out[i + 0] = u8'\xE6';
+            out[i + 1] = u8'\x9D';
+            out[i + 2] = u8'\x8E';
+            out[i + 3] = u8'\xE4';
+            out[i + 4] = u8'\xBC';
+            out[i + 5] = u8'\x9F';
+            out[i + 6] = (i / 7) % 127 + 1;
+        }
+        return out;
     }
 
+    std::u32string internal_sample()
     {
-        using CheckType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
-        static_assert(io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char8_t>);
+        std::u32string out;
+        out.reserve(kIntSize);
+        for (std::size_t i = 0; i < kIntSize; i += 3)
+        {
+            out.push_back(U'李');
+            out.push_back(U'伟');
+            out.push_back((i / 3) % 127 + 1);
+        }
+        return out;
     }
 
-    dump_info("Done\n");
-}
+    constexpr std::size_t kChunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
 
-void test_code_cvt_mem_char8_t_gen_2()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> general case 2...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
+    // Little-endian char32_t code units written as UTF-8 bytes -- what these tests
+    // use as a fixed, seekable prologue: every character is four units wide, so a
+    // character index and a unit offset differ by a constant.
+    std::u8string as_char32_units(const char* ascii)
     {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
+        std::u8string out;
+        for (const char* p = ascii; *p; ++p)
+        {
+            out += static_cast<char8_t>(*p);
+            out += u8'\x00';
+            out += u8'\x00';
+            out += u8'\x00';
+        }
+        return out;
     }
 
-    auto helper = [](auto& obj)
+    void expect_decodes_to_the_sample(const std::vector<char32_t>& out_buf)
     {
-        VERIFY(obj.bos() == io_status::input);
+        auto it = out_buf.begin();
+        for (std::size_t i = 0; i < out_buf.size(); i += 3)
+        {
+            EXPECT_EQ(*it++, U'李');
+            EXPECT_EQ(*it++, U'伟');
+            EXPECT_EQ(*it++, static_cast<char32_t>((i / 3) % 127 + 1));
+        }
+    }
+
+    // Reads the whole sample in rotating chunks. `fork` decides what happens to the
+    // converter between chunks: it is handed the live converter and returns the one
+    // the next chunk goes through, and `restore` puts that one back. Between them
+    // they take a full copy or a full move every step, so the decoder state and the
+    // position have to survive both directions of the round trip.
+    template <typename T, typename Fork, typename Restore>
+    void expect_chunked_get_survives(T& obj, Fork fork, Restore restore)
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
         obj.main_cont_beg();
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-        std::vector<char32_t> out_buf; out_buf.resize(4102);
-        size_t total_count = 0;
-        char32_t* cur_pos = out_buf.data();
-        int out_buffer_id = 0;
+
+        std::vector<char32_t> out_buf(kExtSize);
+        std::size_t           total = 0;
+        char32_t*             cur   = out_buf.data();
+        int                   id    = 0;
         while (true)
         {
-            auto obj2(obj);
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj2.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
-            VERIFY(obj2.tell() == total_count);
+            T           stepped = fork(obj);
+            std::size_t n       = std::min<std::size_t>(kExtSize - total, kChunks[id++]);
+            auto        s       = stepped.get(cur, n);
+            id %= std::size(kChunks);
+            cur   += s;
+            total += s;
+            EXPECT_EQ(stepped.tell(), total);
             if (s == 0) break;
-            obj = obj2;
+            restore(obj, stepped);
         }
-    
-        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
-        out_buf.resize(4102 / 7 * 3);
-            
-        auto it = out_buf.begin();
-        for (size_t i = 0; i < out_buf.size(); i += 3)
-        {
-            VERIFY(*it++ == U'李');
-            VERIFY(*it++ == U'伟');
-            VERIFY(*it++ == (i / 3) % 127 + 1);
-        }
-    };
 
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-
-    CheckType obj1{rb_root_cvt{mem_device(e_lit)}};
-    helper(obj1);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(e_lit)}}};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_gen_3()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> general case 3...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
+        ASSERT_EQ(cur - out_buf.data(), static_cast<std::ptrdiff_t>(kIntSize));
+        out_buf.resize(kIntSize);
+        expect_decodes_to_the_sample(out_buf);
     }
 
-    auto helper = [](auto& obj)
+    template <typename T, typename Fork, typename Restore>
+    void expect_chunked_put_survives(T& obj, Fork fork, Restore restore)
     {
-        VERIFY(obj.bos() == io_status::input);
+        const std::u32string i_lit = internal_sample();
+
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-        std::vector<char32_t> out_buf; out_buf.resize(4102);
-        size_t total_count = 0;
-        char32_t* cur_pos = out_buf.data();
-        int out_buffer_id = 0;
+
+        std::size_t     total = 0;
+        const char32_t* cur   = i_lit.data();
+        int             id    = 0;
+        while (total < kIntSize)
+        {
+            T           stepped = fork(obj);
+            std::size_t n       = std::min<std::size_t>(kIntSize - total, kChunks[id++]);
+            stepped.put(cur, n);
+            id %= std::size(kChunks);
+            cur   += n;
+            total += n;
+            EXPECT_EQ(stepped.tell(), total);
+            restore(obj, stepped);
+        }
+
+        auto [dev, err] = obj.detach();
+        EXPECT_EQ(dev.str(), external_sample());
+    }
+
+    template <typename T>
+    void expect_chunked_get_reads_the_sample(T& obj)
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+
+        std::vector<char32_t> out_buf(kExtSize);
+        std::size_t           total = 0;
+        char32_t*             cur   = out_buf.data();
+        int                   id    = 0;
         while (true)
         {
-            auto obj2(std::move(obj));
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj2.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
-            VERIFY(obj2.tell() == total_count);
+            std::size_t n = std::min<std::size_t>(kExtSize - total, kChunks[id++]);
+            auto        s = obj.get(cur, n);
+            id %= std::size(kChunks);
+            cur   += s;
+            total += s;
+            EXPECT_EQ(obj.tell(), total);
             if (s == 0) break;
-            obj = std::move(obj2);
         }
-    
-        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
-        out_buf.resize(4102 / 7 * 3);
-            
-        auto it = out_buf.begin();
-        for (size_t i = 0; i < out_buf.size(); i += 3)
-        {
-            VERIFY(*it++ == U'李');
-            VERIFY(*it++ == U'伟');
-            VERIFY(*it++ == (i / 3) % 127 + 1);
-        }
-    };
 
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj1{rb_root_cvt{mem_device(e_lit)}};
-    helper(obj1);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(e_lit)}}};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_gen_4()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> general case 4...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
+        ASSERT_EQ(cur - out_buf.data(), static_cast<std::ptrdiff_t>(kIntSize));
+        out_buf.resize(kIntSize);
+        expect_decodes_to_the_sample(out_buf);
     }
 
-    auto helper = [&i_lit, &e_lit](auto& obj)
+    template <typename T>
+    void expect_chunked_put_writes_the_sample(T& obj)
     {
-        VERIFY(obj.bos() == io_status::output);
+        const std::u32string i_lit = internal_sample();
+
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
 
-        size_t total_count = 0;
-        char32_t* cur_pos = i_lit.data();
-        int buffer_id = 0;
-        while (total_count < 4102 / 7 * 3)
+        std::size_t     total = 0;
+        const char32_t* cur   = i_lit.data();
+        int             id    = 0;
+        while (total < kIntSize)
         {
-            auto obj2(obj);
-            size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
-            obj2.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-            total_count += dest_size;
-            VERIFY(obj2.tell() == total_count);
-            obj = obj2;
+            std::size_t n = std::min<std::size_t>(kIntSize - total, kChunks[id++]);
+            obj.put(cur, n);
+            id %= std::size(kChunks);
+            cur   += n;
+            total += n;
+            EXPECT_EQ(obj.tell(), total);
         }
-        obj.flush();
 
-        VERIFY(obj.device().str() == e_lit);
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_gen_5()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> general case 5...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
+        EXPECT_EQ(obj.device().str(), external_sample());
     }
 
-    auto helper = [&i_lit, &e_lit](auto& obj)
+    template <typename T>
+    void expect_whole_put_writes_the_sample(T& obj)
     {
-        VERIFY(obj.bos() == io_status::output);
+        const std::u32string i_lit = internal_sample();
+
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+        obj.put(i_lit.data(), i_lit.size());
 
-        size_t total_count = 0;
-        char32_t* cur_pos = i_lit.data();
-        int buffer_id = 0;
-        while (total_count < 4102 / 7 * 3)
-        {
-            auto obj2(std::move(obj));
-            size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
-            obj2.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-            total_count += dest_size;
-            VERIFY(obj2.tell() == total_count);
-            obj = std::move(obj2);
-        }
-        obj.flush();
-
-        VERIFY(obj.device().str() == e_lit);
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+        EXPECT_EQ(obj.device().str(), external_sample());
+    }
 }
 
-void test_code_cvt_mem_char8_t_bos_1()
+TEST(CodeCvtMemChar8, TraitsOverAMemDeviceOfChar8)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::bos case 1...");
-
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
-
-        VERIFY(obj.device().dtell() == 0);
-    };
-    
     using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char8_t>);
 
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(cvt_cpt::support_get<CheckType>);
+    static_assert(cvt_cpt::support_positioning<CheckType>);
+    static_assert(cvt_cpt::support_io_switch<CheckType>);
 }
 
-void test_code_cvt_mem_char8_t_bos_2()
+TEST(CodeCvtMemChar8, TraitsWithoutAReadBuffer)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::bos case 2...");
+    using CheckType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char32_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char8_t>);
+}
 
-    auto helper = [](auto& obj)
+// The decoder carries state between chunks -- a multi-byte sequence can be split
+// across two get() calls -- so a converter that is copied or moved between every
+// chunk has to carry that state with it.
+TEST(CodeCvtMemChar8, ChunkedGetSurvivesACopyBetweenEveryChunk)
+{
+    RbCvt obj{rb_root_cvt{mem_device(external_sample())}};
+    expect_chunked_get_survives(obj, [](auto& src) { return src; },
+                                 [](auto& dst, auto& src) { dst = src; });
+}
+
+TEST(CodeCvtMemChar8, ChunkedGetSurvivesACopyBetweenEveryChunkThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}}};
+    expect_chunked_get_survives(obj, [](auto& src) { return src; },
+                                 [](auto& dst, auto& src) { dst = src; });
+}
+
+TEST(CodeCvtMemChar8, ChunkedGetSurvivesAMoveBetweenEveryChunk)
+{
+    RbCvt obj{rb_root_cvt{mem_device(external_sample())}};
+    expect_chunked_get_survives(obj, [](auto& src) { return std::move(src); },
+                                 [](auto& dst, auto& src) { dst = std::move(src); });
+}
+
+TEST(CodeCvtMemChar8, ChunkedGetSurvivesAMoveBetweenEveryChunkThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}}};
+    expect_chunked_get_survives(obj, [](auto& src) { return std::move(src); },
+                                 [](auto& dst, auto& src) { dst = std::move(src); });
+}
+
+TEST(CodeCvtMemChar8, ChunkedPutSurvivesACopyBetweenEveryChunk)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    expect_chunked_put_survives(obj, [](auto& src) { return src; },
+                                 [](auto& dst, auto& src) { dst = src; });
+}
+
+TEST(CodeCvtMemChar8, ChunkedPutSurvivesACopyBetweenEveryChunkThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(std::u8string{})}}};
+    expect_chunked_put_survives(obj, [](auto& src) { return src; },
+                                 [](auto& dst, auto& src) { dst = src; });
+}
+
+TEST(CodeCvtMemChar8, ChunkedPutSurvivesAMoveBetweenEveryChunk)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    expect_chunked_put_survives(obj, [](auto& src) { return std::move(src); },
+                                 [](auto& dst, auto& src) { dst = std::move(src); });
+}
+
+TEST(CodeCvtMemChar8, ChunkedPutSurvivesAMoveBetweenEveryChunkThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(std::u8string{})}}};
+    expect_chunked_put_survives(obj, [](auto& src) { return std::move(src); },
+                                 [](auto& dst, auto& src) { dst = std::move(src); });
+}
+
+namespace
+{
+    template <typename T>
+    void expect_an_empty_prologue_leaves_both_positions_at_zero(T& obj)
     {
-        VERIFY(obj.bos() == io_status::input);
-        
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        EXPECT_EQ(obj.tell(), 0u);
+        EXPECT_EQ(obj.device().dtell(), 0u);
+    }
+
+    // Three characters read out of a prologue stored four units each: the device
+    // is twelve units in but tell() restarts at zero.
+    template <typename T>
+    void expect_a_read_prologue_of_three_characters(T& obj, char32_t c1, char32_t c2, char32_t c3)
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
+
         char32_t c = 0;
-        VERIFY((obj.get(&c, 1) == 1) && (c == U'1'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == U'2'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == U'3'));
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, c1);
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, c2);
+        EXPECT_EQ(obj.get(&c, 1), 1u);
+        EXPECT_EQ(c, c3);
 
         obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
 
-        auto [detach_dev, detach_err] = obj.detach();
-        VERIFY(detach_dev.dtell() == 12);
-    };
-    
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    std::u8string info;
-    info += u8'1'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'2'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'3'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'4'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'5'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    CheckType obj(rb_root_cvt{mem_device(info)});
-    helper(obj);
+        auto [dev, err] = obj.detach();
+        EXPECT_EQ(dev.dtell(), 12u);
+    }
 
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(info)}}};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_bos_3()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::bos case 3...");
-
-    auto helper = [](auto& obj)
+    // A prologue written rather than read: the three characters have to be on the
+    // device by the time main_cont_beg() returns.
+    template <typename T>
+    void expect_a_write_prologue(T& obj, const char32_t* text, const std::u8string& expected)
     {
-        VERIFY(obj.bos() == io_status::input);
-        char32_t c = 0;
-        VERIFY((obj.get(&c, 1) == 1) && (c == U'李'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == U'd'));
-        VERIFY((obj.get(&c, 1) == 1) && (c == U'伟'));
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.put(text, 3);
         obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
 
-        auto [detach_dev, detach_err] = obj.detach();
-        VERIFY(detach_dev.dtell() == 12);
-    };
-    
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    std::u8string info;
-    info += u8'\x4e'; info += u8'\x67'; info += u8'\x00'; info += u8'\x00';
-    info += u8'd';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'\x1f'; info += u8'\x4f'; info += u8'\x00'; info += u8'\x00';
-    info += u8'c';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'p';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'p';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    CheckType obj(rb_root_cvt{mem_device(info)});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(info)}}};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_bos_4()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::bos case 4...");
-
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        char32_t buf[] = U"123";
-        obj.put(buf, 3);
-        obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
 
         const auto& dev = obj.device();
-        VERIFY(dev.dtell() == 12);
-        
-        std::u8string info;
-        info += '1'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += '2'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += '3'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        VERIFY(dev.str() == info);
-    };
-    
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
+        EXPECT_EQ(dev.dtell(), 12u);
+        EXPECT_EQ(dev.str(), expected);
+    }
 
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_bos_5()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::bos case 5...");
-
-    auto helper = [](auto& obj)
+    // Little-endian char32_t units for U'李' U'd' U'伟'.
+    std::u8string li_d_wei_units()
     {
-        VERIFY(obj.bos() == io_status::output);
-
-        char32_t buf[] = U"李d伟";
-        obj.put(buf, 3);
-        obj.main_cont_beg();
-
-        VERIFY(obj.tell() == 0);
-
-        auto& dev = obj.device();
-        VERIFY(dev.dtell() == 12);
         std::u8string info;
         info += u8'\x4e'; info += u8'\x67'; info += u8'\x00'; info += u8'\x00';
         info += u8'd';    info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
         info += u8'\x1f'; info += u8'\x4f'; info += u8'\x00'; info += u8'\x00';
-        VERIFY(dev.str() == info);
-    };
-    
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+        return info;
+    }
 }
 
-void test_code_cvt_mem_char8_t_get_1()
+TEST(CodeCvtMemChar8, AnEmptyPrologueLeavesBothPositionsAtZero)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::get case 1...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-        std::vector<char32_t> out_buf; out_buf.resize(4102);
-        size_t total_count = 0;
-        char32_t* cur_pos = out_buf.data();
-        int out_buffer_id = 0;
-        while (true)
-        {
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
-            VERIFY(obj.tell() == total_count);
-            if (s == 0) break;
-        }
-    
-        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
-        out_buf.resize(4102 / 7 * 3);
-            
-        auto it = out_buf.begin();
-        for (size_t i = 0; i < out_buf.size(); i += 3)
-        {
-            VERIFY(*it++ == U'李');
-            VERIFY(*it++ == U'伟');
-            VERIFY(*it++ == (i / 3) % 127 + 1);
-        }
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj{rb_root_cvt{mem_device(e_lit)}};
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(e_lit)}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_an_empty_prologue_leaves_both_positions_at_zero(obj);
 }
 
-void test_code_cvt_mem_char8_t_get_nra_1()
+TEST(CodeCvtMemChar8, AnEmptyPrologueLeavesBothPositionsAtZeroThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::get_nra case 1...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-        std::vector<char32_t> out_buf; out_buf.resize(4102);
-        size_t total_count = 0;
-        char32_t* cur_pos = out_buf.data();
-        int out_buffer_id = 0;
-        while (true)
-        {
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
-            VERIFY(obj.tell() == total_count);
-            if (s == 0) break;
-        }
-    
-        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
-        out_buf.resize(4102 / 7 * 3);
-            
-        auto it = out_buf.begin();
-        for (size_t i = 0; i < out_buf.size(); i += 3)
-        {
-            VERIFY(*it++ == U'李');
-            VERIFY(*it++ == U'伟');
-            VERIFY(*it++ == (i / 3) % 127 + 1);
-        }
-    };
-
-    using CheckType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj{no_rb_root_cvt{mem_device(e_lit)}};
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{no_rb_root_cvt{mem_device(e_lit)}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_an_empty_prologue_leaves_both_positions_at_zero(obj);
 }
 
-void test_code_cvt_mem_char8_t_put_1()
+TEST(CodeCvtMemChar8, AReadPrologueOfAsciiCharacters)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::put case 1...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
-    }
-
-    auto helper = [&i_lit, &e_lit](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-
-        size_t total_count = 0;
-        char32_t* cur_pos = i_lit.data();
-        int buffer_id = 0;
-        while (total_count < 4102 / 7 * 3)
-        {
-            size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
-            obj.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-            total_count += dest_size;
-            VERIFY(obj.tell() == total_count);
-        }
-        obj.flush();
-
-        VERIFY(obj.device().str() == e_lit);
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+    RbCvt obj(rb_root_cvt{mem_device(as_char32_units("12345"))});
+    expect_a_read_prologue_of_three_characters(obj, U'1', U'2', U'3');
 }
 
-void test_code_cvt_mem_char8_t_put_2()
+TEST(CodeCvtMemChar8, AReadPrologueOfAsciiCharactersThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::put case 2...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
-    }
-
-    auto helper = [&i_lit, &e_lit](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put(i_lit.data(), i_lit.size());
-        obj.flush();
-
-        VERIFY(obj.device().str() == e_lit);
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(as_char32_units("12345"))}}};
+    expect_a_read_prologue_of_three_characters(obj, U'1', U'2', U'3');
 }
 
-void test_code_cvt_mem_char8_t_flush_1()
+TEST(CodeCvtMemChar8, AReadPrologueOfMixedWidthCharacters)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::flush case 1...");
+    RbCvt obj(rb_root_cvt{mem_device(li_d_wei_units() + as_char32_units("cpp"))});
+    expect_a_read_prologue_of_three_characters(obj, U'李', U'd', U'伟');
+}
 
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
-    }
+TEST(CodeCvtMemChar8, AReadPrologueOfMixedWidthCharactersThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(li_d_wei_units() + as_char32_units("cpp"))}}};
+    expect_a_read_prologue_of_three_characters(obj, U'李', U'd', U'伟');
+}
 
-    auto helper = [&i_lit, &e_lit](auto& obj)
+TEST(CodeCvtMemChar8, AWritePrologueOfAsciiCharacters)
+{
+    RbCvt          obj(rb_root_cvt{mem_device(u8"")});
+    const char32_t text[] = U"123";
+    expect_a_write_prologue(obj, text, as_char32_units("123"));
+}
+
+TEST(CodeCvtMemChar8, AWritePrologueOfAsciiCharactersThroughARuntimeCvt)
+{
+    runtime_cvt    obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    const char32_t text[] = U"123";
+    expect_a_write_prologue(obj, text, as_char32_units("123"));
+}
+
+TEST(CodeCvtMemChar8, AWritePrologueOfMixedWidthCharacters)
+{
+    RbCvt          obj(rb_root_cvt{mem_device(u8"")});
+    const char32_t text[] = U"李d伟";
+    expect_a_write_prologue(obj, text, li_d_wei_units());
+}
+
+TEST(CodeCvtMemChar8, AWritePrologueOfMixedWidthCharactersThroughARuntimeCvt)
+{
+    runtime_cvt    obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    const char32_t text[] = U"李d伟";
+    expect_a_write_prologue(obj, text, li_d_wei_units());
+}
+
+TEST(CodeCvtMemChar8, ChunkedGetDecodesTheWholeSample)
+{
+    RbCvt obj{rb_root_cvt{mem_device(external_sample())}};
+    expect_chunked_get_reads_the_sample(obj);
+}
+
+TEST(CodeCvtMemChar8, ChunkedGetDecodesTheWholeSampleThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(external_sample())}}};
+    expect_chunked_get_reads_the_sample(obj);
+}
+
+// The same read with no read-back buffer under the converter: a split multi-byte
+// sequence cannot be re-read from the kernel, so the decoder has to hold the
+// partial state itself.
+TEST(CodeCvtMemChar8, ChunkedGetDecodesTheWholeSampleWithoutAReadBuffer)
+{
+    NoRbCvt obj{no_rb_root_cvt{mem_device(external_sample())}};
+    expect_chunked_get_reads_the_sample(obj);
+}
+
+TEST(CodeCvtMemChar8, ChunkedGetDecodesTheWholeSampleWithoutAReadBufferThroughARuntimeCvt)
+{
+    runtime_cvt obj{NoRbCvt{no_rb_root_cvt{mem_device(external_sample())}}};
+    expect_chunked_get_reads_the_sample(obj);
+}
+
+TEST(CodeCvtMemChar8, ChunkedPutEncodesTheWholeSample)
+{
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_chunked_put_writes_the_sample(obj);
+}
+
+TEST(CodeCvtMemChar8, ChunkedPutEncodesTheWholeSampleThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_chunked_put_writes_the_sample(obj);
+}
+
+// One put() of everything must produce the same units as the chunked one.
+TEST(CodeCvtMemChar8, AWholePutEncodesTheSameUnitsAsAChunkedOne)
+{
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_whole_put_writes_the_sample(obj);
+}
+
+TEST(CodeCvtMemChar8, AWholePutEncodesTheSameUnitsAsAChunkedOneThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_whole_put_writes_the_sample(obj);
+}
+
+namespace
+{
+    // flush() has to push the encoder's pending units all the way to the device,
+    // and must not move the position: tell() still counts what the caller wrote.
+    template <typename T>
+    void expect_flush_completes_the_encoding(T& obj)
     {
+        const std::u32string i_lit    = internal_sample();
+        const std::u8string  expected = external_sample();
+
         const auto& dev = obj.device();
-
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        
+
         obj.put(i_lit.data(), i_lit.size());
         obj.flush();
-        VERIFY(dev.str().size() == e_lit.size());
-        VERIFY(obj.tell() == i_lit.size());
-    
-        VERIFY(dev.str() == e_lit);
-    };
-    
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_flush_2()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::flush case 2...");
-
-    std::u8string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = '\xE6';
-        e_lit[i+1] = '\x9D';
-        e_lit[i+2] = '\x8E';
-        e_lit[i+3] = '\xE4';
-        e_lit[i+4] = '\xBC';
-        e_lit[i+5] = '\x9F';
-        e_lit[i+6] = (i / 7) % 127 + 1;
-    }
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
+        EXPECT_EQ(dev.str().size(), expected.size());
+        EXPECT_EQ(obj.tell(), i_lit.size());
+        EXPECT_EQ(dev.str(), expected);
     }
 
-    auto helper = [&i_lit, &e_lit](auto& obj)
+    // Flushing after every chunk has to move units to the device each time, and
+    // still add up to exactly the same stream at the end.
+    template <typename T>
+    void expect_a_flush_after_every_chunk_reaches_the_device(T& obj)
     {
-        VERIFY(obj.bos() == io_status::output);
+        const std::u32string i_lit = internal_sample();
+
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
 
-        size_t total_count = 0;
-        char32_t* cur_pos = i_lit.data();
-        int buffer_id = 0;
-        while (total_count < 4102 / 7 * 3)
+        std::size_t     total = 0;
+        const char32_t* cur   = i_lit.data();
+        int             id    = 0;
+        while (total < kIntSize)
         {
-            size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
-            size_t ori_len = obj.device().str().size();
-            obj.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-            
-            VERIFY(obj.tell() == total_count + dest_size);
+            std::size_t n       = std::min<std::size_t>(kIntSize - total, kChunks[id++]);
+            std::size_t ori_len = obj.device().str().size();
+            obj.put(cur, n);
+            id %= std::size(kChunks);
+            cur += n;
+
+            EXPECT_EQ(obj.tell(), total + n);
             obj.flush();
-            total_count += dest_size;
-            VERIFY(obj.device().str().size() != ori_len);
-            VERIFY(obj.tell() == total_count);
+            total += n;
+            EXPECT_NE(obj.device().str().size(), ori_len);
+            EXPECT_EQ(obj.tell(), total);
         }
         obj.flush();
-
-        VERIFY(obj.device().str() == e_lit);
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+        EXPECT_EQ(obj.device().str(), external_sample());
+    }
 }
 
-void test_code_cvt_mem_char8_t_seek_1()
+TEST(CodeCvtMemChar8, FlushCompletesTheEncoding)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::seek case 1...");
-    
-    auto helper = [](auto& obj)
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_flush_completes_the_encoding(obj);
+}
+
+TEST(CodeCvtMemChar8, FlushCompletesTheEncodingThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_flush_completes_the_encoding(obj);
+}
+
+TEST(CodeCvtMemChar8, AFlushAfterEveryChunkReachesTheDevice)
+{
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_a_flush_after_every_chunk_reaches_the_device(obj);
+}
+
+TEST(CodeCvtMemChar8, AFlushAfterEveryChunkReachesTheDeviceThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_a_flush_after_every_chunk_reaches_the_device(obj);
+}
+
+namespace
+{
+    // UTF-8 is variable width, so the converter cannot turn a character index into
+    // a unit offset without decoding everything in front of it: every seek but the
+    // one that is already true is refused, in both directions and both modes.
+    template <typename T>
+    void expect_seek_is_refused_while_reading(T& obj)
     {
-        VERIFY(obj.bos() == io_status::input);
+        EXPECT_EQ(obj.bos(), io_status::input);
         obj.main_cont_beg();
 
-        VERIFY(obj.tell() == 0);
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.tell() == 0);
-        FAIL_SEEK(obj, 1);
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
+        EXPECT_ANY_THROW(obj.seek(100));
+        EXPECT_EQ(obj.tell(), 0u);
+        EXPECT_ANY_THROW(obj.seek(1));
+        EXPECT_EQ(obj.tell(), 0u);
         obj.seek(0);
-        VERIFY(obj.tell() == 0);
-        
-        std::u32string str; str.resize(6);
-        VERIFY(obj.get(str.data(), 6) == 6);
-        VERIFY(str == U"123456");
-    };
+        EXPECT_EQ(obj.tell(), 0u);
 
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"123456")});
-    helper(obj);
+        std::u32string str(6, U'\0');
+        EXPECT_EQ(obj.get(str.data(), 6), 6u);
+        EXPECT_EQ(str, U"123456");
+    }
 
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"123456")}}};
-    helper(obj2);
-    dump_info("Done\n");
-}
-
-void test_code_cvt_mem_char8_t_seek_2()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::seek case 2...");
-
-    auto helper = [](auto& obj)
+    template <typename T>
+    void expect_rseek_is_refused_while_reading(T& obj)
     {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::input);
         obj.main_cont_beg();
-        
-        VERIFY(obj.tell() == 0);
+
+        EXPECT_EQ(obj.tell(), 0u);
+        EXPECT_ANY_THROW(obj.rseek(100));
+        EXPECT_EQ(obj.tell(), 0u);
+        EXPECT_ANY_THROW(obj.rseek(1));
+        EXPECT_EQ(obj.tell(), 0u);
+        EXPECT_ANY_THROW(obj.rseek(0));
+        EXPECT_EQ(obj.tell(), 0u);
+
+        std::u32string str(6, U'\0');
+        EXPECT_EQ(obj.get(str.data(), 6), 6u);
+        EXPECT_EQ(obj.device().str(), std::u8string(u8"123456"));
+    }
+
+    // `reposition` is seek or rseek: either way it is refused, the position stays
+    // put, and the writes simply append.
+    template <typename T, typename Reposition>
+    void expect_repositioning_is_refused_while_writing(T& obj, Reposition reposition)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+
+        EXPECT_EQ(obj.tell(), 0u);
         char32_t ch = U'李';
         obj.put(&ch, 1);
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.tell(), 1u);
         ch = U'x';
         obj.put(&ch, 1);
-        VERIFY(obj.tell() == 2);
+        EXPECT_EQ(obj.tell(), 2u);
         ch = U'伟';
         obj.put(&ch, 1);
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.tell(), 3u);
 
-        FAIL_SEEK(obj, 100);
-        VERIFY(obj.tell() == 3);
-        FAIL_SEEK(obj, 1);
-        VERIFY(obj.tell() == 3);
-        FAIL_SEEK(obj, 0);
-        VERIFY(obj.tell() == 3);
-        
-        char32_t c[] = U"xy";
+        EXPECT_ANY_THROW(reposition(obj, 100));
+        EXPECT_EQ(obj.tell(), 3u);
+        EXPECT_ANY_THROW(reposition(obj, 1));
+        EXPECT_EQ(obj.tell(), 3u);
+        EXPECT_ANY_THROW(reposition(obj, 0));
+        EXPECT_EQ(obj.tell(), 3u);
+
+        const char32_t c[] = U"xy";
         obj.put(c, 2);
         obj.flush();
 
-        if (obj.device().str() != u8"李x伟xy") std::runtime_error("code_cvt<memory<char8_t>> response incorrect");
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+        EXPECT_EQ(obj.device().str(), std::u8string(u8"李x伟xy"));
+    }
 }
 
-void test_code_cvt_mem_char8_t_rseek_1()
+TEST(CodeCvtMemChar8, SeekIsRefusedWhileReading)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::rseek case 1...");
-    
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        
-        VERIFY(obj.tell() == 0);
-        FAIL_RSEEK(obj, 100);
-        VERIFY(obj.tell() == 0);
-        FAIL_RSEEK(obj, 1);
-        VERIFY(obj.tell() == 0);
-        FAIL_RSEEK(obj, 0);
-        VERIFY(obj.tell() == 0);
-        
-        std::u32string str; str.resize(6);
-        VERIFY(obj.get(str.data(), 6) == 6);
-        if (obj.device().str() != u8"123456") std::runtime_error("code_cvt<memory<char8_t>> response incorrect");
-    };
-    
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"123456")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"123456")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+    RbCvt obj(rb_root_cvt{mem_device(u8"123456")});
+    expect_seek_is_refused_while_reading(obj);
 }
 
-void test_code_cvt_mem_char8_t_rseek_2()
+TEST(CodeCvtMemChar8, SeekIsRefusedWhileReadingThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::rseek case 2...");
-    
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        
-        VERIFY(obj.tell() == 0);
-        char32_t ch = U'李';
-        obj.put(&ch, 1);
-        VERIFY(obj.tell() == 1);
-        ch = U'x';
-        obj.put(&ch, 1);
-        VERIFY(obj.tell() == 2);
-        ch = U'伟';
-        obj.put(&ch, 1);
-        VERIFY(obj.tell() == 3);
-
-        FAIL_RSEEK(obj, 100);
-        VERIFY(obj.tell() == 3);
-        FAIL_RSEEK(obj, 1);
-        VERIFY(obj.tell() == 3);
-        FAIL_RSEEK(obj, 1);
-        VERIFY(obj.tell() == 3);
-        
-        char32_t c[] = U"xy";
-        obj.put(c, 2);
-        obj.flush();
-    
-        if (obj.device().str() != u8"李x伟xy") std::runtime_error("code_cvt<memory<char8_t>> response incorrect");
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
-
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
-
-    dump_info("Done\n");
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"123456")}}};
+    expect_seek_is_refused_while_reading(obj);
 }
 
-void test_code_cvt_mem_char8_t_io_1()
+TEST(CodeCvtMemChar8, SeekIsRefusedWhileWriting)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> io case 1...");
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_repositioning_is_refused_while_writing(
+        obj, [](auto& o, std::size_t n) { o.seek(n); });
+}
 
-    auto helper = [](auto& obj)
+TEST(CodeCvtMemChar8, SeekIsRefusedWhileWritingThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_repositioning_is_refused_while_writing(
+        obj, [](auto& o, std::size_t n) { o.seek(n); });
+}
+
+TEST(CodeCvtMemChar8, RseekIsRefusedWhileReading)
+{
+    RbCvt obj(rb_root_cvt{mem_device(u8"123456")});
+    expect_rseek_is_refused_while_reading(obj);
+}
+
+TEST(CodeCvtMemChar8, RseekIsRefusedWhileReadingThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"123456")}}};
+    expect_rseek_is_refused_while_reading(obj);
+}
+
+TEST(CodeCvtMemChar8, RseekIsRefusedWhileWriting)
+{
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_repositioning_is_refused_while_writing(
+        obj, [](auto& o, std::size_t n) { o.rseek(n); });
+}
+
+TEST(CodeCvtMemChar8, RseekIsRefusedWhileWritingThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_repositioning_is_refused_while_writing(
+        obj, [](auto& o, std::size_t n) { o.rseek(n); });
+}
+
+namespace
+{
+    // A four-unit-wide prologue makes positions addressable again, but only inside
+    // the main content, and only after the stream has been turned round explicitly.
+    // Turning it back to writing afterwards is refused: the decoder would have to
+    // know where the read left off in units.
+    template <typename T>
+    void expect_turning_around_is_refused(T& obj)
     {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
 
-        char32_t bos_str[] = U"abcdefgh";
+        const char32_t bos_str[] = U"abcdefgh";
         obj.put(bos_str, 8);
         obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
-        
-        char32_t content1[] = U"12345";
+        EXPECT_EQ(obj.tell(), 0u);
+
+        const char32_t content1[] = U"12345";
         obj.put(content1, 5);
-        FAIL_SEEK(obj, 0);
-        
-        std::u32string get_content; get_content.resize(3);
-        VERIFY(obj.get(get_content.data(), 3) == 0);
-        VERIFY(obj.tell() == 5);
-    
-        char32_t content2[] = U"78";
+        EXPECT_ANY_THROW(obj.seek(0));
+
+        std::u32string get_content(3, U'\0');
+        EXPECT_EQ(obj.get(get_content.data(), 3), 0u);
+        EXPECT_EQ(obj.tell(), 5u);
+
+        const char32_t content2[] = U"78";
         obj.put(content2, 2);
-        VERIFY(obj.tell() == 7);
+        EXPECT_EQ(obj.tell(), 7u);
         obj.flush();
-    
+
         obj.switch_to_get();
         obj.seek(0);
         get_content.resize(3);
-        VERIFY(obj.get(get_content.data(), 3) == 3);
-        VERIFY(get_content == U"123");
-        try
-        {
-            obj.switch_to_put();
-            dump_info("un-reachable logic");
-            std::abort();
-        }
-        catch(...) {}
-    
-        std::u8string info;
-        info += u8'a'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8'b'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8'c'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8'd'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8'e'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8'f'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8'g'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8'h'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-        info += u8"1234578";
-        VERIFY(obj.device().str() == info);
-    };
-    
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    CheckType obj(rb_root_cvt{mem_device(u8"")});
-    helper(obj);
+        EXPECT_EQ(obj.get(get_content.data(), 3), 3u);
+        EXPECT_EQ(get_content, U"123");
 
-    runtime_cvt obj2{CheckType{rb_root_cvt{mem_device(u8"")}}};
-    helper(obj2);
+        EXPECT_ANY_THROW(obj.switch_to_put());
 
-    dump_info("Done\n");
-}
+        EXPECT_EQ(obj.device().str(), as_char32_units("abcdefgh") + u8"1234578");
+    }
 
-void test_code_cvt_mem_char8_t_io_2()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> io case 2...");
-
-    std::u8string info;
-    info += u8'a'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'b'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'c'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'd'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'e'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'f'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'g'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8'h'; info += u8'\x00'; info += u8'\x00'; info += u8'\x00';
-    info += u8"12345";
-
-    auto helper = [&info](auto& obj)
+    // A stream being read cannot be written to at all: the unit offset of the
+    // current character is not known.
+    template <typename T>
+    void expect_writing_is_refused_while_reading(T& obj, const std::u8string& info)
     {
-        std::u32string bos_str; bos_str.resize(8);
-        VERIFY(obj.bos() == io_status::input);
-        VERIFY(obj.get(bos_str.data(), 8) == 8);
-        VERIFY(bos_str == U"abcdefgh");
+        EXPECT_EQ(obj.bos(), io_status::input);
+
+        std::u32string bos_str(8, U'\0');
+        EXPECT_EQ(obj.get(bos_str.data(), 8), 8u);
+        EXPECT_EQ(bos_str, U"abcdefgh");
         obj.main_cont_beg();
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
 
-        std::u32string content_str; content_str.resize(2);
-        VERIFY(obj.get(content_str.data(), 2) == 2);
-        VERIFY(content_str == U"12");
+        std::u32string content_str(2, U'\0');
+        EXPECT_EQ(obj.get(content_str.data(), 2), 2u);
+        EXPECT_EQ(content_str, U"12");
 
-        try
-        {
-            char32_t content1[] = U"67";
-            obj.put(content1, 2);
-            dump_info("Unreachable code...");
-            exit(-1);
-        }
-        catch (...)
-        {
-        }
-        VERIFY(obj.tell() == 2);
+        const char32_t content1[] = U"67";
+        EXPECT_ANY_THROW(obj.put(content1, 2));
+        EXPECT_EQ(obj.tell(), 2u);
 
         obj.seek(0);
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0u);
 
         content_str.resize(10);
-        VERIFY(obj.get(content_str.data(), 10) == 5);
-        VERIFY(content_str.substr(0, 5) == U"12345");
+        EXPECT_EQ(obj.get(content_str.data(), 10), 5u);
+        EXPECT_EQ(content_str.substr(0, 5), U"12345");
 
-        VERIFY(obj.device().str() == info);
-    };
+        EXPECT_EQ(obj.device().str(), info);
+    }
+}
 
+TEST(CodeCvtMemChar8, TurningAroundIsRefused)
+{
+    RbCvt obj(rb_root_cvt{mem_device(u8"")});
+    expect_turning_around_is_refused(obj);
+}
+
+TEST(CodeCvtMemChar8, TurningAroundIsRefusedThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(u8"")}}};
+    expect_turning_around_is_refused(obj);
+}
+
+TEST(CodeCvtMemChar8, WritingIsRefusedWhileReading)
+{
+    const std::u8string              info = as_char32_units("abcdefgh") + u8"12345";
     code_cvt_creator<char8_t, char32_t> creator;
     auto obj = creator.create(no_rb_root_cvt{mem_device(info)});
-    helper(obj);
-
-    runtime_cvt obj2(creator.create(no_rb_root_cvt{mem_device(info)}));
-    helper(obj2);
-
-    dump_info("Done\n");
+    expect_writing_is_refused_while_reading(obj, info);
 }
 
-// Covers line 480 (char8_t::is_state_dep), lines 531-532 (out_helper 2-byte),
-// and lines 613-619 (in_helper 2-byte success path).
-void test_code_cvt_mem_char8_t_gen_6()
+TEST(CodeCvtMemChar8, WritingIsRefusedWhileReadingThroughARuntimeCvt)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> general case 6 (2-byte UTF-8)...");
+    const std::u8string              info = as_char32_units("abcdefgh") + u8"12345";
+    code_cvt_creator<char8_t, char32_t> creator;
+    runtime_cvt obj(creator.create(no_rb_root_cvt{mem_device(info)}));
+    expect_writing_is_refused_while_reading(obj, info);
+}
 
-    // Direct kernel instantiation: covers is_state_dep() (line 480)
+// UTF-8 has no shift state: a decoder never needs to remember anything that is
+// not in the bytes themselves, which is what lets a copy taken mid-stream resume
+// exactly where the original was.
+TEST(CodeCvtMemChar8, TheUtf8KernelIsNotStateDependent)
+{
+    codecvt_kernel<char8_t, char32_t> k;
+    EXPECT_FALSE(k.is_state_dep());
+}
+
+namespace
+{
+    // é U+00E9 = C3 A9, ñ U+00F1 = C3 B1, µ U+00B5 = C2 B5, then a one-byte 'A':
+    // the two-byte encoding paths, with a single-byte character behind them so the
+    // decoder has to come back out of the two-byte branch cleanly.
+    std::u8string two_byte_sample()
     {
-        codecvt_kernel<char8_t, char32_t> k;
-        VERIFY(!k.is_state_dep());
+        std::u8string out;
+        out += char8_t(0xC3); out += char8_t(0xA9);
+        out += char8_t(0xC3); out += char8_t(0xB1);
+        out += char8_t(0xC2); out += char8_t(0xB5);
+        out += char8_t(0x41);
+        return out;
     }
 
-    // é=U+00E9={0xC3,0xA9}, ñ=U+00F1={0xC3,0xB1}, µ=U+00B5={0xC2,0xB5}
-    std::u8string e_lit;
-    e_lit += char8_t(0xC3); e_lit += char8_t(0xA9);
-    e_lit += char8_t(0xC3); e_lit += char8_t(0xB1);
-    e_lit += char8_t(0xC2); e_lit += char8_t(0xB5);
-    e_lit += char8_t(0x41);  // 'A'
-    std::u32string i_lit = { U'é', U'ñ', U'µ', U'A' };
-
-    auto helper_get = [&](auto& obj) {
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        std::u32string out(4, 0);
-        VERIFY(obj.get(out.data(), 4) == 4);
-        VERIFY(out == i_lit);
-    };
-
-    auto helper_put = [&](auto& obj) {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put(i_lit.data(), i_lit.size());
-        obj.flush();
-        VERIFY(obj.device().str() == e_lit);
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-
-    CheckType obj1{rb_root_cvt{mem_device(e_lit)}};
-    helper_get(obj1);
-    runtime_cvt obj1r{CheckType{rb_root_cvt{mem_device(e_lit)}}};
-    helper_get(obj1r);
-
-    CheckType obj2{rb_root_cvt{mem_device(std::u8string{})}};
-    helper_put(obj2);
-    runtime_cvt obj2r{CheckType{rb_root_cvt{mem_device(std::u8string{})}}};
-    helper_put(obj2r);
-
-    dump_info("Done\n");
-}
-
-// Covers lines 540-548 (out_helper 4-byte) and lines 635, 637-646
-// (in_helper 4-byte success path).
-void test_code_cvt_mem_char8_t_gen_7()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>> general case 7 (4-byte UTF-8)...");
-
-    // 😀=U+1F600={0xF0,0x9F,0x98,0x80}, 💩=U+1F4A9={0xF0,0x9F,0x92,0xA9}
-    std::u8string e_lit;
-    e_lit += char8_t(0xF0); e_lit += char8_t(0x9F);
-    e_lit += char8_t(0x98); e_lit += char8_t(0x80);
-    e_lit += char8_t(0xF0); e_lit += char8_t(0x9F);
-    e_lit += char8_t(0x92); e_lit += char8_t(0xA9);
-    e_lit += char8_t(0x42);  // 'B'
-    std::u32string i_lit = { U'\U0001F600', U'\U0001F4A9', U'B' };
-
-    auto helper_get = [&](auto& obj) {
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        std::u32string out(3, 0);
-        VERIFY(obj.get(out.data(), 3) == 3);
-        VERIFY(out == i_lit);
-    };
-
-    auto helper_put = [&](auto& obj) {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put(i_lit.data(), i_lit.size());
-        obj.flush();
-        VERIFY(obj.device().str() == e_lit);
-    };
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-
-    CheckType obj1{rb_root_cvt{mem_device(e_lit)}};
-    helper_get(obj1);
-    runtime_cvt obj1r{CheckType{rb_root_cvt{mem_device(e_lit)}}};
-    helper_get(obj1r);
-
-    CheckType obj2{rb_root_cvt{mem_device(std::u8string{})}};
-    helper_put(obj2);
-    runtime_cvt obj2r{CheckType{rb_root_cvt{mem_device(std::u8string{})}}};
-    helper_put(obj2r);
-
-    dump_info("Done\n");
-}
-
-// Covers line 525 (out_helper surrogate rejected), lines 547-548
-// (out_helper > 0x10FFFF rejected), and line 926 (put encoding error throw).
-void test_code_cvt_mem_char8_t_put_err_1()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::put encoding error case 1...");
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-
-    auto make_obj = [] {
-        return CheckType{rb_root_cvt{mem_device(std::u8string{})}};
-    };
-
-    auto try_put = [](auto& obj, char32_t ch) {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        try {
-            obj.put(&ch, 1);
-            throw std::runtime_error("test_code_cvt_mem_char8_t_put_err_1: expected throw");
-        } catch (const cvt_error&) {}
-    };
-
-    // Surrogate U+D800 → line 525 → line 926
-    { auto o = make_obj(); try_put(o, static_cast<char32_t>(0xD800U)); }
-    // Surrogate U+DFFF → line 525 → line 926
-    { auto o = make_obj(); try_put(o, static_cast<char32_t>(0xDFFFU)); }
-    // > 0x10FFFF → lines 547-548 → line 926
-    { auto o = make_obj(); try_put(o, static_cast<char32_t>(0x110000U)); }
-
-    dump_info("Done\n");
-}
-
-// Counterpart of test_code_cvt_mem_char_put_err_2 for the library's own UTF-8
-// kernel: a rejected code point must not leave the 4 bytes reserved by put_buf
-// behind in the device.
-void test_code_cvt_mem_char8_t_put_err_2()
-{
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::put encoding error case 2...");
-
-    using RbType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-    using NoRbType = code_cvt<no_rb_root_cvt<mem_device<char8_t>>, char32_t>;
-
-    auto try_put = [](auto& obj, char32_t ch) {
-        try {
-            obj.put(&ch, 1);
-            throw std::runtime_error("test_code_cvt_mem_char8_t_put_err_2: expected throw");
-        } catch (const cvt_error&) {}
-    };
-
-    auto check_empty = [&](auto& obj, char32_t bad) {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        try_put(obj, bad);
-        VERIFY(obj.device().str().empty());
-    };
-
-    { RbType o{rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0xD800U)); }
-    { NoRbType o{no_rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0xD800U)); }
-    { RbType o{rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0x110000U)); }
-    { NoRbType o{no_rb_root_cvt{mem_device(std::u8string{})}}; check_empty(o, static_cast<char32_t>(0x110000U)); }
-
-    // A multi-byte code point in front: the device must end exactly at its last byte,
-    // with no trailing remnant of the rejected one.
+    // 😀 U+1F600 = F0 9F 98 80, 💩 U+1F4A9 = F0 9F 92 A9, then 'B': the four-byte
+    // paths, which are the only ones that reach outside the basic plane.
+    std::u8string four_byte_sample()
     {
-        NoRbType obj{no_rb_root_cvt{mem_device(std::u8string{})}};
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        const char32_t ok[] = { U'a', U'李' };
-        obj.put(ok, 2);
-        try_put(obj, static_cast<char32_t>(0xD800U));
-        VERIFY(obj.device().str() == std::u8string{u8"a李"});
+        std::u8string out;
+        out += char8_t(0xF0); out += char8_t(0x9F);
+        out += char8_t(0x98); out += char8_t(0x80);
+        out += char8_t(0xF0); out += char8_t(0x9F);
+        out += char8_t(0x92); out += char8_t(0xA9);
+        out += char8_t(0x42);
+        return out;
     }
 
-    dump_info("Done\n");
+    template <typename T>
+    void expect_decodes(T& obj, const std::u32string& expected)
+    {
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
+        std::u32string out(expected.size(), 0);
+        EXPECT_EQ(obj.get(out.data(), expected.size()), expected.size());
+        EXPECT_EQ(out, expected);
+    }
+
+    template <typename T>
+    void expect_encodes(T& obj, const std::u32string& source, const std::u8string& expected)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        obj.put(source.data(), source.size());
+        obj.flush();
+        EXPECT_EQ(obj.device().str(), expected);
+    }
 }
 
-// Covers lines 610-611 (invalid start byte), 614-615 (bad 2-byte continuation),
-// 617 (overlong 2-byte), 626-627 (bad 3-byte continuation), 631 (surrogate in 3-byte),
-// 641-642 (bad 4-byte continuation), 644 (4-byte out of range), 649 (byte >= 0xF8),
-// and line 986 (get invalid sequence throw).
-void test_code_cvt_mem_char8_t_get_err_1()
+TEST(CodeCvtMemChar8, TwoByteSequencesDecode)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::get error case 1...");
+    RbCvt obj{rb_root_cvt{mem_device(two_byte_sample())}};
+    expect_decodes(obj, std::u32string{U'é', U'ñ', U'µ', U'A'});
+}
 
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+TEST(CodeCvtMemChar8, TwoByteSequencesDecodeThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(two_byte_sample())}}};
+    expect_decodes(obj, std::u32string{U'é', U'ñ', U'µ', U'A'});
+}
 
-    auto run_err = [](const std::u8string& bad_bytes) {
-        CheckType obj{rb_root_cvt{mem_device(bad_bytes)}};
-        VERIFY(obj.bos() == io_status::input);
+TEST(CodeCvtMemChar8, TwoByteSequencesEncode)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    expect_encodes(obj, std::u32string{U'é', U'ñ', U'µ', U'A'}, two_byte_sample());
+}
+
+TEST(CodeCvtMemChar8, TwoByteSequencesEncodeThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(std::u8string{})}}};
+    expect_encodes(obj, std::u32string{U'é', U'ñ', U'µ', U'A'}, two_byte_sample());
+}
+
+TEST(CodeCvtMemChar8, FourByteSequencesDecode)
+{
+    RbCvt obj{rb_root_cvt{mem_device(four_byte_sample())}};
+    expect_decodes(obj, std::u32string{U'\U0001F600', U'\U0001F4A9', U'B'});
+}
+
+TEST(CodeCvtMemChar8, FourByteSequencesDecodeThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(four_byte_sample())}}};
+    expect_decodes(obj, std::u32string{U'\U0001F600', U'\U0001F4A9', U'B'});
+}
+
+TEST(CodeCvtMemChar8, FourByteSequencesEncode)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    expect_encodes(obj, std::u32string{U'\U0001F600', U'\U0001F4A9', U'B'}, four_byte_sample());
+}
+
+TEST(CodeCvtMemChar8, FourByteSequencesEncodeThroughARuntimeCvt)
+{
+    runtime_cvt obj{RbCvt{rb_root_cvt{mem_device(std::u8string{})}}};
+    expect_encodes(obj, std::u32string{U'\U0001F600', U'\U0001F4A9', U'B'}, four_byte_sample());
+}
+
+// UTF-8 has no encoding for the surrogate range or for anything above U+10FFFF,
+// so the encoder refuses those rather than emitting something a decoder would
+// then reject.
+TEST(CodeCvtMemChar8, TheEncoderRejectsCodePointsUtf8CannotRepresent)
+{
+    for (char32_t bad : {static_cast<char32_t>(0xD800U),
+                         static_cast<char32_t>(0xDFFFU),
+                         static_cast<char32_t>(0x110000U)})
+    {
+        SCOPED_TRACE(static_cast<unsigned long>(bad));
+        RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        char32_t buf[4];
-        try {
-            obj.get(buf, 4);
-            throw std::runtime_error("test_code_cvt_mem_char8_t_get_err_1: expected throw");
-        } catch (const cvt_error&) {}
+        EXPECT_THROW(obj.put(&bad, 1), cvt_error);
+    }
+}
+
+// A rejected code point must not leave behind the four units put_buf reserved for
+// it: the cvt_writer specialization for mem_device reserves straight inside the
+// device and commit() is a no-op, so without the put_buf_guard in put_main they
+// would stay there as filler.
+namespace
+{
+    template <typename T>
+    void expect_a_failed_encode_leaves_the_device_empty(T& obj, char32_t bad)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        EXPECT_THROW(obj.put(&bad, 1), cvt_error);
+        EXPECT_TRUE(obj.device().str().empty());
+    }
+}
+
+TEST(CodeCvtMemChar8, AFailedEncodeOfASurrogateLeavesTheDeviceEmpty)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    expect_a_failed_encode_leaves_the_device_empty(obj, static_cast<char32_t>(0xD800U));
+}
+
+TEST(CodeCvtMemChar8, AFailedEncodeOfASurrogateLeavesTheDeviceEmptyWithoutAReadBuffer)
+{
+    NoRbCvt obj{no_rb_root_cvt{mem_device(std::u8string{})}};
+    expect_a_failed_encode_leaves_the_device_empty(obj, static_cast<char32_t>(0xD800U));
+}
+
+TEST(CodeCvtMemChar8, AFailedEncodeOfAnOutOfRangeCodePointLeavesTheDeviceEmpty)
+{
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
+    expect_a_failed_encode_leaves_the_device_empty(obj, static_cast<char32_t>(0x110000U));
+}
+
+TEST(CodeCvtMemChar8, AFailedEncodeOfAnOutOfRangeCodePointLeavesTheDeviceEmptyWithoutAReadBuffer)
+{
+    NoRbCvt obj{no_rb_root_cvt{mem_device(std::u8string{})}};
+    expect_a_failed_encode_leaves_the_device_empty(obj, static_cast<char32_t>(0x110000U));
+}
+
+// With a multi-byte code point in front, the device must end exactly at its last
+// unit, with no remnant of the rejected one.
+TEST(CodeCvtMemChar8, AFailedEncodeLeavesTheEarlierOutputUntouched)
+{
+    NoRbCvt obj{no_rb_root_cvt{mem_device(std::u8string{})}};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+
+    const char32_t ok[] = {U'a', U'李'};
+    obj.put(ok, 2);
+
+    const char32_t bad = static_cast<char32_t>(0xD800U);
+    EXPECT_THROW(obj.put(&bad, 1), cvt_error);
+    EXPECT_EQ(obj.device().str(), std::u8string{u8"a李"});
+}
+
+// Every way a UTF-8 sequence can be malformed, one per case: a continuation byte
+// where a start byte belongs, a continuation that is not one, an overlong form, a
+// surrogate spelled out in three bytes, a code point above U+10FFFF, and a start
+// byte no UTF-8 sequence ever begins with.
+TEST(CodeCvtMemChar8, EveryMalformedSequenceIsRejected)
+{
+    const std::u8string bad_inputs[] = {
+        {char8_t(0x80)},                                              // continuation as start
+        {char8_t(0xC3), char8_t(0x20)},                               // bad 2-byte continuation
+        {char8_t(0xC0), char8_t(0x80)},                               // overlong null
+        {char8_t(0xE6), char8_t(0x20), char8_t(0x8E)},                // bad 3-byte continuation
+        {char8_t(0xE6), char8_t(0x9D), char8_t(0x20)},                // bad 3-byte continuation
+        {char8_t(0xED), char8_t(0xA0), char8_t(0x80)},                // U+D800 as 3 bytes
+        {char8_t(0xF0), char8_t(0x20), char8_t(0x80), char8_t(0x80)}, // bad 4-byte continuation
+        {char8_t(0xF4), char8_t(0x90), char8_t(0x80), char8_t(0x80)}, // above U+10FFFF
+        {char8_t(0xF0), char8_t(0x80), char8_t(0x80), char8_t(0x80)}, // overlong 4-byte null
+        {char8_t(0xFF)},                                              // never a start byte
     };
 
-    // 0x80: continuation byte as start → lines 610-611
-    run_err({ char8_t(0x80) });
-    // {0xC3, 0x20}: bad continuation in 2-byte → lines 614-615
-    run_err({ char8_t(0xC3), char8_t(0x20) });
-    // {0xC0, 0x80}: overlong null (2-byte) → line 617
-    run_err({ char8_t(0xC0), char8_t(0x80) });
-    // {0xE6, 0x20, 0x8E}: bad c2 in 3-byte → lines 626-627
-    run_err({ char8_t(0xE6), char8_t(0x20), char8_t(0x8E) });
-    // {0xE6, 0x9D, 0x20}: bad c3 in 3-byte → lines 626-627
-    run_err({ char8_t(0xE6), char8_t(0x9D), char8_t(0x20) });
-    // {0xED, 0xA0, 0x80}: U+D800 encoded as 3-byte (surrogate) → line 631
-    run_err({ char8_t(0xED), char8_t(0xA0), char8_t(0x80) });
-    // {0xF0, 0x20, 0x80, 0x80}: bad c2 in 4-byte → lines 641-642
-    run_err({ char8_t(0xF0), char8_t(0x20), char8_t(0x80), char8_t(0x80) });
-    // {0xF4, 0x90, 0x80, 0x80}: U+110000 (> 0x10FFFF) → line 644
-    run_err({ char8_t(0xF4), char8_t(0x90), char8_t(0x80), char8_t(0x80) });
-    // {0xF0, 0x80, 0x80, 0x80}: U+0000 overlong 4-byte (< 0x10000) → line 644
-    run_err({ char8_t(0xF0), char8_t(0x80), char8_t(0x80), char8_t(0x80) });
-    // 0xFF: byte >= 0xF8 → line 649
-    run_err({ char8_t(0xFF) });
+    for (std::size_t i = 0; i < std::size(bad_inputs); ++i)
+    {
+        SCOPED_TRACE(i);
+        RbCvt obj{rb_root_cvt{mem_device(bad_inputs[i])}};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
 
-    dump_info("Done\n");
+        char32_t buf[4];
+        EXPECT_THROW((void)obj.get(buf, 4), cvt_error);
+    }
 }
 
-// Covers line 612 (2-byte partial break), line 637 (4-byte partial break),
-// and line 972 (get partial input sequence throw).
-void test_code_cvt_mem_char8_t_get_partial_1()
+// A stream that ends part-way through a sequence is a different failure from a
+// malformed one, and the decoder has to reach it from both the two-byte and the
+// four-byte branch.
+TEST(CodeCvtMemChar8, AStreamEndingMidSequenceIsRejected)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt<memory<char8_t>>::get partial sequence case 1...");
-
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-
-    auto run_partial = [](const std::u8string& partial) {
-        CheckType obj{rb_root_cvt{mem_device(partial)}};
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        char32_t buf[4];
-        try {
-            obj.get(buf, 1);
-            throw std::runtime_error("test_code_cvt_mem_char8_t_get_partial_1: expected throw");
-        } catch (const cvt_error&) {}
+    const std::u8string partials[] = {
+        {char8_t(0xC3)},                                // first of two
+        {char8_t(0xF0), char8_t(0x9F), char8_t(0x98)},  // three of four
     };
 
-    // Single 2-byte start byte: line 612 break → line 972
-    run_partial({ char8_t(0xC3) });
-    // 3 bytes of a 4-byte sequence: line 637 break → line 972
-    run_partial({ char8_t(0xF0), char8_t(0x9F), char8_t(0x98) });
+    for (std::size_t i = 0; i < std::size(partials); ++i)
+    {
+        SCOPED_TRACE(i);
+        RbCvt obj{rb_root_cvt{mem_device(partials[i])}};
+        EXPECT_EQ(obj.bos(), io_status::input);
+        obj.main_cont_beg();
 
-    dump_info("Done\n");
+        char32_t buf[4];
+        EXPECT_THROW((void)obj.get(buf, 1), cvt_error);
+    }
 }
 
-// Covers lines 833-836 (code_cvt::attach), lines 1162-1163 (switch_to_put
-// from output, no-op) and lines 1164-1167 (switch_to_put from neutral).
-void test_code_cvt_attach_1()
+// switch_to_put on a converter that is already writing changes nothing; after an
+// attach() the converter is back to neutral, and the same call is what settles
+// the direction, standing in for bos().
+TEST(CodeCvtMemChar8, SwitchToPutIsANoopWhileWritingAndSettlesTheDirectionAfterAttach)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt::attach and switch_to_put from neutral/output...");
+    RbCvt obj{rb_root_cvt{mem_device(std::u8string{})}};
 
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
-
-    CheckType obj{rb_root_cvt{mem_device(std::u8string{})}};
-
-    VERIFY(obj.bos() == io_status::output);
+    EXPECT_EQ(obj.bos(), io_status::output);
     obj.main_cont_beg();
     char32_t ch = U'X';
     obj.put(&ch, 1);
 
-    // switch_to_put when already in output: no-op (lines 1162-1163)
     obj.switch_to_put();
-    VERIFY(obj.tell() == 1);
+    EXPECT_EQ(obj.tell(), 1u);
 
-    // attach() resets to neutral (lines 833-836, close_stream)
     auto [old_dev, old_err] = obj.detach();
     obj.attach(mem_device(std::u8string{}));
-    VERIFY(old_dev.str().size() >= 1);
+    EXPECT_GE(old_dev.str().size(), 1u);
 
-    // switch_to_put from neutral (lines 1164-1167); skip bos() since
-    // switch_to_put already established the direction
     obj.switch_to_put();
     obj.main_cont_beg();
     obj.put(&ch, 1);
     obj.flush();
-    VERIFY(obj.device().str().size() == 1);  // 'X' (U+0058) = 1 UTF-8 byte
-
-    dump_info("Done\n");
+    EXPECT_EQ(obj.device().str().size(), 1u); // 'X' is one UTF-8 unit
 }
 
-// Covers lines 1207-1208 (switch_to_get from input, no-op) and
-// lines 1209-1212 (switch_to_get from neutral).
-void test_code_cvt_switch_1()
+TEST(CodeCvtMemChar8, SwitchToGetIsANoopWhileReadingAndSettlesTheDirectionAfterAttach)
 {
-    using namespace IOv2;
-    dump_info("Test code_cvt::switch_to_get from input/neutral...");
+    const std::u8string content = {char8_t(0xC3), char8_t(0xA9)}; // é
 
-    using CheckType = code_cvt<rb_root_cvt<mem_device<char8_t>>, char32_t>;
+    RbCvt obj{rb_root_cvt{mem_device(content)}};
 
-    // Input: é (U+00E9) = {0xC3, 0xA9}
-    std::u8string content = { char8_t(0xC3), char8_t(0xA9) };
-
-    CheckType obj{rb_root_cvt{mem_device(content)}};
-
-    VERIFY(obj.bos() == io_status::input);
+    EXPECT_EQ(obj.bos(), io_status::input);
     obj.main_cont_beg();
 
-    // switch_to_get when already in input: no-op (lines 1207-1208)
     obj.switch_to_get();
 
     char32_t ch = 0;
-    VERIFY(obj.get(&ch, 1) == 1 && ch == U'é');
+    EXPECT_EQ(obj.get(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'é');
 
-    // attach() resets to neutral
     obj.attach(mem_device(content));
 
-    // switch_to_get from neutral (lines 1209-1212); skip bos() since
-    // switch_to_get already established the direction
     obj.switch_to_get();
     obj.main_cont_beg();
     ch = 0;
-    VERIFY(obj.get(&ch, 1) == 1 && ch == U'é');
-
-    dump_info("Done\n");
+    EXPECT_EQ(obj.get(&ch, 1), 1u);
+    EXPECT_EQ(ch, U'é');
 }
 
-// Covers code_cvt.h lines 518-519 (out_helper reversed range),
-// 521-522 (out_helper buffer < 4 bytes), 596-597 (in_helper reversed range).
-void test_code_cvt_mem_char8_t_kernel_helpers_1()
+// The encode/decode helpers take a range and must reject one that is inverted --
+// a caller error that would otherwise read or write outside the buffer.
+TEST(CodeCvtMemChar8, TheEncodeHelperRejectsAnInvertedRange)
 {
-    using namespace IOv2;
-    dump_info("Test codecvt_kernel<char8_t,char32_t> invalid range and small buffer...");
-
     codecvt_kernel<char8_t, char32_t> kernel;
 
-    // out_helper: to > to_end → throws (lines 518-519)
-    {
-        char8_t buf[4];
-        char8_t* to = buf + 2;
-        char8_t* to_end = buf;
-        try {
-            kernel.out_helper(U'A', to, to_end);
-            throw std::runtime_error("out_helper reversed: expected throw");
-        } catch (const cvt_error&) {}
-    }
-
-    // out_helper: 2-byte buffer (2 < 4) → false (lines 521-522)
-    {
-        char8_t buf[2];
-        char8_t* to = buf;
-        char8_t* to_end = buf + 2;
-        bool r = kernel.out_helper(U'A', to, to_end);
-        VERIFY(!r);
-    }
-
-    // in_helper: from > from_end → throws (lines 596-597)
-    {
-        const char8_t input[] = u8"hello";
-        const char8_t* from = input + 3;
-        const char8_t* from_end = input;
-        char32_t out[4];
-        char32_t* to = out;
-        char32_t* to_end = out + 4;
-        try {
-            kernel.in_helper(from, from_end, to, to_end);
-            throw std::runtime_error("in_helper reversed: expected throw");
-        } catch (const cvt_error&) {}
-    }
-
-    dump_info("Done\n");
+    char8_t  buf[4];
+    char8_t* to     = buf + 2;
+    char8_t* to_end = buf;
+    EXPECT_THROW((void)kernel.out_helper(U'A', to, to_end), cvt_error);
 }
 
-void test_cvt_facilities_1()
+// The helper reserves room for the widest sequence it might produce, so a buffer
+// with fewer than four units left is reported as full even for a one-unit
+// character.
+TEST(CodeCvtMemChar8, TheEncodeHelperReportsABufferTooSmallForTheWidestSequence)
 {
-    using namespace IOv2;
-    dump_info("Test cvt_facilities...");
+    codecvt_kernel<char8_t, char32_t> kernel;
 
-    // to_u32string(u8string_view): UTF-8 → UTF-32
-    {
-        auto r = detail::to_u32string(u8"hello");
-        VERIFY(r == U"hello");
-    }
-    {
-        auto r = detail::to_u32string(u8"李伟");
-        VERIFY(r.size() == 2);
-        VERIFY(r[0] == U'李');
-        VERIFY(r[1] == U'伟');
-    }
-    {
-        auto r = detail::to_u32string(u8"");
-        VERIFY(r.empty());
-    }
+    char8_t  buf[2];
+    char8_t* to     = buf;
+    char8_t* to_end = buf + 2;
+    EXPECT_FALSE(kernel.out_helper(U'A', to, to_end));
+}
 
-    // to_u8string(const std::u32string&): UTF-32 → UTF-8
-    {
-        auto r = detail::to_u8string(U"hello");
-        VERIFY(r == u8"hello");
-    }
-    {
-        auto r = detail::to_u8string(std::u32string{U'李', U'伟'});
-        VERIFY(r == u8"李伟");
-    }
-    {
-        auto r = detail::to_u8string(std::u32string{});
-        VERIFY(r.empty());
-    }
+TEST(CodeCvtMemChar8, TheDecodeHelperRejectsAnInvertedRange)
+{
+    codecvt_kernel<char8_t, char32_t> kernel;
 
-    // to_u8string(char32_t): single code point → UTF-8
-    {
-        auto r = detail::to_u8string(U'A');
-        VERIFY(r == u8"A");
-    }
-    {
-        auto r = detail::to_u8string(U'李');
-        VERIFY(r == u8"李");
-    }
+    const char8_t  input[]  = u8"hello";
+    const char8_t* from     = input + 3;
+    const char8_t* from_end = input;
+    char32_t       out[4];
+    char32_t*      to     = out;
+    char32_t*      to_end = out + 4;
+    EXPECT_THROW(kernel.in_helper(from, from_end, to, to_end), cvt_error);
+}
 
-    // to_wstring(string_view, locale_name): narrow → wide using C locale
-    {
-        auto r = detail::to_wstring("hello", "C");
-        VERIFY(r == L"hello");
-    }
-    {
-        auto r = detail::to_wstring("", "C");
-        VERIFY(r.empty());
-    }
+// The standalone conversion helpers the rest of the library uses for names and
+// messages, rather than for streams.
+TEST(CvtFacilities, Utf8ToUtf32)
+{
+    EXPECT_EQ(detail::to_u32string(u8"hello"), U"hello");
 
-    // to_u32string(string_view, locale_name): narrow → UTF-32 using C locale
-    {
-        auto r = detail::to_u32string("hello", "C");
-        VERIFY(r == U"hello");
-    }
-    {
-        auto r = detail::to_u32string("", "C");
-        VERIFY(r.empty());
-    }
+    auto r = detail::to_u32string(u8"李伟");
+    ASSERT_EQ(r.size(), 2u);
+    EXPECT_EQ(r[0], U'李');
+    EXPECT_EQ(r[1], U'伟');
 
-    dump_info("Done\n");
+    EXPECT_TRUE(detail::to_u32string(u8"").empty());
+}
+
+TEST(CvtFacilities, Utf32ToUtf8)
+{
+    EXPECT_EQ(detail::to_u8string(U"hello"), std::u8string(u8"hello"));
+    EXPECT_EQ(detail::to_u8string(std::u32string{U'李', U'伟'}), std::u8string(u8"李伟"));
+    EXPECT_TRUE(detail::to_u8string(std::u32string{}).empty());
+}
+
+TEST(CvtFacilities, ASingleCodePointToUtf8)
+{
+    EXPECT_EQ(detail::to_u8string(U'A'), std::u8string(u8"A"));
+    EXPECT_EQ(detail::to_u8string(U'李'), std::u8string(u8"李"));
+}
+
+TEST(CvtFacilities, NarrowToWideThroughANamedLocale)
+{
+    EXPECT_EQ(detail::to_wstring("hello", "C"), L"hello");
+    EXPECT_TRUE(detail::to_wstring("", "C").empty());
+}
+
+TEST(CvtFacilities, NarrowToUtf32ThroughANamedLocale)
+{
+    EXPECT_EQ(detail::to_u32string("hello", "C"), U"hello");
+    EXPECT_TRUE(detail::to_u32string("", "C").empty());
 }

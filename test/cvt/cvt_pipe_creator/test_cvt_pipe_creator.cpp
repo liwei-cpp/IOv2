@@ -1,371 +1,270 @@
-#include <cvt/root_cvt.h>
+#include <common/defs.h>
 #include <cvt/code_cvt.h>
 #include <cvt/comp/zlib_cvt.h>
-#include <cvt/crypt/vigenere_cvt.h>
 #include <cvt/crypt/hash_cvt.h>
+#include <cvt/crypt/vigenere_cvt.h>
 #include <cvt/cvt_pipe_creator.h>
+#include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <gtest/gtest.h>
 
-void test_cvt_pipe_creator_put_1()
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <string>
+#include <utility>
+#include <vector>
+
+using namespace IOv2;
+
+namespace
 {
-    // vigenere_cvt + code_cvt
-    using namespace IOv2;
-    dump_info("Test cvt pipe creator put 1...");
+    // The fixed sample is 4102 external bytes: 586 repetitions of the UTF-8 for
+    // U'李' U'伟' (three bytes each) plus one ASCII byte that cycles 1..127, so
+    // the stream mixes multi-byte and single-byte sequences and 4102 is not a
+    // multiple of any chunk size used below.
+    constexpr int         kBytes  = 4102;
+    constexpr int         kChars  = 4102 / 7 * 3;
+    constexpr const char* kKey    = "abcdefg";
 
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
+    // Chunk sizes the put/get loops rotate through. They are coprime with the
+    // 3-byte UTF-8 sequences on purpose: every call has to land mid-character
+    // sooner or later, which is what exercises the pipe's partial-conversion
+    // paths.
+    constexpr std::size_t kChunks[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
+
+    std::u32string source_chars()
     {
-        e_lit[i+0] = static_cast<char>('\xE6' + 'a');
-        e_lit[i+1] = static_cast<char>('\x9D' + 'b');
-        e_lit[i+2] = static_cast<char>('\x8E' + 'c');
-        e_lit[i+3] = static_cast<char>('\xE4' + 'd');
-        e_lit[i+4] = static_cast<char>('\xBC' + 'e');
-        e_lit[i+5] = static_cast<char>('\x9F' + 'f');
-        e_lit[i+6] = (i / 7) % 127 + 1 + 'g';
-    }
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
-    }
-
-    auto helper = [&i_lit, &e_lit](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-
-        size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-
-        size_t total_count = 0;
-        char32_t* cur_pos = i_lit.data();
-        int buffer_id = 0;
-        while (total_count < 4102 / 7 * 3)
+        std::u32string out;
+        out.reserve(kChars);
+        for (int i = 0; i < kChars; i += 3)
         {
-            size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
-            obj.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-            total_count += dest_size;
-            VERIFY(obj.tell() == total_count);
+            out.push_back(U'李');
+            out.push_back(U'伟');
+            out.push_back((i / 3) % 127 + 1);
         }
-
-        auto [dev, err] = obj.detach();
-        VERIFY(dev.str() == e_lit);
-    };
-    
-    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                   code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
-
-    {
-        auto obj = creator.create(rb_root_cvt{mem_device("")});
-        helper(obj);
+        return out;
     }
 
+    // What a vigenere_cvt over the UTF-8 of source_chars() must produce: the key
+    // is exactly seven bytes and the pattern repeats every seven bytes, so each
+    // position's shift is fixed and the whole stream can be written out directly.
+    std::string vigenere_bytes()
     {
-        auto tmp = creator.create(rb_root_cvt{mem_device("")});
-        runtime_cvt obj(std::move(tmp));
-        helper(obj);
-    }
-    dump_info("Done\n");
-}
-
-void test_cvt_pipe_creator_put_2()
-{
-    // hash_cvt + vigenere_cvt + zlib_cvt + code_cvt
-    using namespace IOv2;
-    dump_info("Test cvt pipe creator put 2...");
-
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
+        std::string out;
+        out.resize(kBytes);
+        for (int i = 0; i < kBytes; i += 7)
+        {
+            out[i + 0] = static_cast<char>('\xE6' + 'a');
+            out[i + 1] = static_cast<char>('\x9D' + 'b');
+            out[i + 2] = static_cast<char>('\x8E' + 'c');
+            out[i + 3] = static_cast<char>('\xE4' + 'd');
+            out[i + 4] = static_cast<char>('\xBC' + 'e');
+            out[i + 5] = static_cast<char>('\x9F' + 'f');
+            out[i + 6] = (i / 7) % 127 + 1 + 'g';
+        }
+        return out;
     }
 
-    std::string hash_res;
-    auto helper = [&i_lit](auto& obj)
+    auto vigenere_then_code()
     {
-        VERIFY(obj.bos() == io_status::output);
+        return Crypt::Classic::vigenere_cvt_creator(kKey) |
+               code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
+    }
+
+    // Writes source_chars() in rotating chunks and returns the bytes the device
+    // ended up holding. With check_tell, tell() is verified after every chunk: it
+    // counts internal characters consumed, not external bytes produced.
+    template <typename Cvt>
+    std::string put_in_chunks(Cvt& obj, bool check_tell)
+    {
+        const std::u32string i_lit = source_chars();
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
 
-        size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-
-        size_t total_count = 0;
-        char32_t* cur_pos = i_lit.data();
-        int buffer_id = 0;
-        while (total_count < 4102 / 7 * 3)
+        std::size_t     total    = 0;
+        const char32_t* cur      = i_lit.data();
+        int             chunk_id = 0;
+        while (total < kChars)
         {
-            size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
-            obj.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-            total_count += dest_size;
+            std::size_t n = std::min<std::size_t>(kChars - total, kChunks[chunk_id++]);
+            obj.put(cur, n);
+            chunk_id %= std::size(kChunks);
+            cur   += n;
+            total += n;
+            // tell() is only declared when every stage supports positioning; a
+            // hash stage removes it from the type altogether.
+            if constexpr (requires { obj.tell(); })
+            {
+                if (check_tell) { EXPECT_EQ(obj.tell(), total); }
+            }
         }
 
         auto [dev, err] = obj.detach();
         return dev.str();
-    };
-
-    {
-        auto creator = (Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                        Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5)) |
-                       (Comp::zlib_cvt_creator<char>(6) | 
-                        code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
-
-        auto obj = creator.create(rb_root_cvt{mem_device("")});
-        hash_res = helper(obj);
     }
 
+    // Reads back in rotating chunks until get() returns 0, then checks the whole
+    // decoded stream character by character against the pattern put_in_chunks
+    // writes.
+    template <typename Cvt>
+    void get_in_chunks(Cvt& obj)
     {
-        auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                       Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
-                       Comp::zlib_cvt_creator<char>(6) | 
-                       code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
-
-        auto tmp = creator.create(rb_root_cvt{mem_device("")});
-        runtime_cvt obj{std::move(tmp)};
-        VERIFY(hash_res == helper(obj));
-    }
-
-    dump_info("Done\n");
-}
-
-void test_cvt_pipe_creator_put_3()
-{
-    // hash_cvt + zlib_cvt + vigenere_cvt + code_cvt
-    using namespace IOv2;
-    dump_info("Test cvt pipe creator put 3...");
-
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
-    }
-
-    std::string hash_res;
-    auto helper = [&i_lit](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::input);
         obj.main_cont_beg();
 
-        size_t buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-
-        size_t total_count = 0;
-        char32_t* cur_pos = i_lit.data();
-        int buffer_id = 0;
-        while (total_count < 4102 / 7 * 3)
-        {
-            size_t dest_size = std::min<size_t>(4102 / 7 * 3 - total_count, buffer_size[buffer_id++]);
-            obj.put(cur_pos, dest_size);
-            buffer_id %= std::size(buffer_size);
-            cur_pos += dest_size;
-            total_count += dest_size;
-        }
-
-        auto [dev, err] = obj.detach();
-        return dev.str();
-    };
-
-    {
-        auto creator = (Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                        Comp::zlib_cvt_creator<char>(6)) | 
-                       (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
-                        code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
-
-        auto obj = creator.create(rb_root_cvt{mem_device("")});
-        hash_res = helper(obj);
-    }
-
-    {
-        auto creator = (Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                        Comp::zlib_cvt_creator<char>(6)) | 
-                       (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
-                        code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
-
-        auto tmp = creator.create(rb_root_cvt{mem_device("")});
-        runtime_cvt obj{std::move(tmp)};
-        VERIFY(hash_res == helper(obj));
-    }
-    
-    dump_info("Done\n");
-}
-
-void test_cvt_pipe_creator_get_1()
-{
-    // vigenere_cvt + code_cvt
-    using namespace IOv2;
-    dump_info("Test cvt pipe creator get 1...");
-
-    std::string e_lit; e_lit.resize(4102);
-    for (int i = 0; i < 4102; i += 7)
-    {
-        e_lit[i+0] = static_cast<char>('\xE6' + 'a');
-        e_lit[i+1] = static_cast<char>('\x9D' + 'b');
-        e_lit[i+2] = static_cast<char>('\x8E' + 'c');
-        e_lit[i+3] = static_cast<char>('\xE4' + 'd');
-        e_lit[i+4] = static_cast<char>('\xBC' + 'e');
-        e_lit[i+5] = static_cast<char>('\x9F' + 'f');
-        e_lit[i+6] = (i / 7) % 127 + 1 + 'g';
-    }
-
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::input);
-        obj.main_cont_beg();
-        size_t out_buffer_size[] = {2, 41, 3, 5, 7, 11, 13, 17, 19};
-    
-        std::vector<char32_t> out_buf; out_buf.resize(4102);
-        size_t total_count = 0;
-        char32_t* cur_pos = out_buf.data();
-        int out_buffer_id = 0;
+        std::vector<char32_t> out_buf(kBytes);
+        std::size_t           total    = 0;
+        char32_t*             cur      = out_buf.data();
+        int                   chunk_id = 0;
         while (true)
         {
-            size_t dest_size = std::min<size_t>(4102 - total_count, out_buffer_size[out_buffer_id++]);
-            auto s = obj.get(cur_pos, dest_size);
-            out_buffer_id %= std::size(out_buffer_size);
-            cur_pos += s;
-            total_count += s;
-            VERIFY(obj.tell() == total_count);
+            std::size_t n = std::min<std::size_t>(kBytes - total, kChunks[chunk_id++]);
+            auto        s = obj.get(cur, n);
+            chunk_id %= std::size(kChunks);
+            cur   += s;
+            total += s;
+            EXPECT_EQ(obj.tell(), total);
             if (s == 0) break;
         }
-    
-        VERIFY(cur_pos - out_buf.data() == 4102 / 7 * 3);
-        out_buf.resize(4102 / 7 * 3);
-            
+
+        ASSERT_EQ(cur - out_buf.data(), kChars);
+        out_buf.resize(kChars);
+
         auto it = out_buf.begin();
-        for (size_t i = 0; i < out_buf.size(); i += 3)
+        for (std::size_t i = 0; i < out_buf.size(); i += 3)
         {
-            VERIFY(*it++ == U'李');
-            VERIFY(*it++ == U'伟');
-            VERIFY(*it++ == (i / 3) % 127 + 1);
+            EXPECT_EQ(*it++, U'李');
+            EXPECT_EQ(*it++, U'伟');
+            EXPECT_EQ(*it++, static_cast<char32_t>((i / 3) % 127 + 1));
         }
-    };
-    
-    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                   code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
-
-    {
-        auto obj = creator.create(rb_root_cvt{mem_device(e_lit)});
-        helper(obj);
-    }
-    
-    {
-        auto tmp = creator.create(rb_root_cvt{mem_device(e_lit)});
-        runtime_cvt obj{std::move(tmp)};
-        helper(obj);
-    }
-    dump_info("Done\n");
-}
-
-void test_cvt_pipe_creator_io_1()
-{
-    // vigenere_cvt + zlib_cvt + code_cvt
-    using namespace IOv2;
-    dump_info("Test cvt pipe creator IO case 1...");
-
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
     }
 
-    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                   Comp::zlib_cvt_creator<char>(6) | 
-                   code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
-
-    auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& p_creator)
+    // Writes the whole sample in one call, then reads it back through a freshly
+    // created pipe of the same shape. A pipe that only round-trips chunk by chunk
+    // would pass get_in_chunks and still fail here.
+    template <typename Cvt, typename Creator>
+    void round_trip(Cvt& obj, const Creator& creator)
     {
-        std::string e_lit;
-        VERIFY(obj.bos() == io_status::output);
+        const std::u32string i_lit = source_chars();
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
         obj.put(i_lit.data(), i_lit.size());
-    
+
         auto [dev, err] = obj.detach();
-        e_lit = dev.str();
-        
-        T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});
-        std::u32string ilit2; ilit2.resize(4102 * 2);
-        VERIFY(obj2.bos() == io_status::input);
-        obj2.main_cont_beg();
-        
-        VERIFY(obj2.get(ilit2.data(), 4102 * 2) == 4102 / 7 * 3);
-        VERIFY(ilit2.substr(0, 4102 / 7 * 3) == i_lit);
-    };
-    
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj, creator);
 
-    auto tmp = creator.create(rb_root_cvt{mem_device("")});
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2, creator);
+        Cvt            back = creator.create(rb_root_cvt{mem_device(dev.str())});
+        std::u32string read_back(kBytes * 2, U'\0');
+        EXPECT_EQ(back.bos(), io_status::input);
+        back.main_cont_beg();
 
-    dump_info("Done\n");
+        EXPECT_EQ(back.get(read_back.data(), kBytes * 2), kChars);
+        EXPECT_EQ(read_back.substr(0, kChars), i_lit);
+    }
 }
 
-void test_cvt_pipe_creator_io_2()
+TEST(CvtPipeCreator, PutThroughAStaticPipe)
 {
-    // vigenere_cvt + zlib_cvt + code_cvt
-    using namespace IOv2;
-    dump_info("Test cvt pipe creator IO case 2...");
+    auto obj = vigenere_then_code().create(rb_root_cvt{mem_device("")});
+    EXPECT_EQ(put_in_chunks(obj, true), vigenere_bytes());
+}
 
-    std::u32string i_lit; i_lit.reserve(4102 / 7 * 3);
-    for (int i = 0; i < 4102 / 7 * 3; i += 3)
-    {
-        i_lit.push_back(U'李');
-        i_lit.push_back(U'伟');
-        i_lit.push_back((i / 3) % 127 + 1);
-    }
+TEST(CvtPipeCreator, PutThroughARuntimeCvt)
+{
+    auto        tmp = vigenere_then_code().create(rb_root_cvt{mem_device("")});
+    runtime_cvt obj(std::move(tmp));
+    EXPECT_EQ(put_in_chunks(obj, true), vigenere_bytes());
+}
 
-    auto creator = Crypt::Classic::vigenere_cvt_creator("abcdefg") | 
-                   (Comp::zlib_cvt_creator<char>(6) | 
+// operator| is left-associative, so `a | b | c | d` and `(a | b) | (c | d)` name
+// different nestings of the same four stages. The bytes that come out must not
+// depend on which nesting was written.
+TEST(CvtPipeCreator, GroupingOfThePipeOperatorDoesNotChangeTheBytes)
+{
+    auto grouped = (Crypt::Classic::vigenere_cvt_creator(kKey) |
+                    Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5)) |
+                   (Comp::zlib_cvt_creator<char>(6) |
+                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
+    auto flat = Crypt::Classic::vigenere_cvt_creator(kKey) |
+                Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
+                Comp::zlib_cvt_creator<char>(6) |
+                code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
+
+    auto obj = grouped.create(rb_root_cvt{mem_device("")});
+    // A hash stage has no position of its own, so tell() is not available here.
+    std::string expected = put_in_chunks(obj, false);
+
+    auto        tmp = flat.create(rb_root_cvt{mem_device("")});
+    runtime_cvt via_runtime(std::move(tmp));
+    EXPECT_EQ(put_in_chunks(via_runtime, false), expected);
+}
+
+// The same four stages with the hash moved past the compressor: a runtime_cvt
+// must still produce byte-for-byte what the statically typed pipe does.
+TEST(CvtPipeCreator, ARuntimeCvtMatchesTheStaticPipeWithTheHashAfterZlib)
+{
+    auto creator = (Crypt::Classic::vigenere_cvt_creator(kKey) |
+                    Comp::zlib_cvt_creator<char>(6)) |
+                   (Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5) |
                     code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
 
-    auto helper = [&i_lit]<typename T, typename U>(T& obj, const U& p_creator)
-    {
-        std::string e_lit;
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put(i_lit.data(), i_lit.size());
-    
-        auto [dev, err] = obj.detach();
-        e_lit = dev.str();
-        
-        T obj2 = p_creator.create(rb_root_cvt{mem_device(e_lit)});
-        std::u32string ilit2; ilit2.resize(4102 * 2);
-        VERIFY(obj2.bos() == io_status::input);
-        obj2.main_cont_beg();
-        
-        VERIFY(obj2.get(ilit2.data(), 4102 * 2) == 4102 / 7 * 3);
-        VERIFY(ilit2.substr(0, 4102 / 7 * 3) == i_lit);
-    };
+    auto        obj      = creator.create(rb_root_cvt{mem_device("")});
+    std::string expected = put_in_chunks(obj, false);
 
-    auto obj = creator.create(rb_root_cvt{mem_device("")});
-    helper(obj, creator);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device("")});
-    runtime_cvt obj2{std::move(tmp)};
-    helper(obj2, creator);
-    
-    dump_info("Done\n");
+    auto        tmp = creator.create(rb_root_cvt{mem_device("")});
+    runtime_cvt via_runtime(std::move(tmp));
+    EXPECT_EQ(put_in_chunks(via_runtime, false), expected);
 }
 
-void test_cvt_pipe_creator()
+TEST(CvtPipeCreator, GetThroughAStaticPipe)
 {
-    test_cvt_pipe_creator_put_1();
-    test_cvt_pipe_creator_put_2();
-    test_cvt_pipe_creator_put_3();
-    test_cvt_pipe_creator_get_1();
-    test_cvt_pipe_creator_io_1();
-    test_cvt_pipe_creator_io_2();
+    auto obj = vigenere_then_code().create(rb_root_cvt{mem_device(vigenere_bytes())});
+    get_in_chunks(obj);
+}
+
+TEST(CvtPipeCreator, GetThroughARuntimeCvt)
+{
+    auto        tmp = vigenere_then_code().create(rb_root_cvt{mem_device(vigenere_bytes())});
+    runtime_cvt obj(std::move(tmp));
+    get_in_chunks(obj);
+}
+
+TEST(CvtPipeCreator, RoundTripThroughAStaticPipe)
+{
+    auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
+                   Comp::zlib_cvt_creator<char>(6) |
+                   code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
+    round_trip(obj, creator);
+}
+
+TEST(CvtPipeCreator, RoundTripThroughARuntimeCvt)
+{
+    auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
+                   Comp::zlib_cvt_creator<char>(6) |
+                   code_cvt_creator<char, char32_t>("zh_CN.UTF-8");
+    auto        tmp = creator.create(rb_root_cvt{mem_device("")});
+    runtime_cvt obj(std::move(tmp));
+    round_trip(obj, creator);
+}
+
+TEST(CvtPipeCreator, RoundTripWithTheTailGroupedToTheRight)
+{
+    auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
+                   (Comp::zlib_cvt_creator<char>(6) |
+                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
+    auto obj = creator.create(rb_root_cvt{mem_device("")});
+    round_trip(obj, creator);
+}
+
+TEST(CvtPipeCreator, RoundTripWithTheTailGroupedToTheRightThroughARuntimeCvt)
+{
+    auto creator = Crypt::Classic::vigenere_cvt_creator(kKey) |
+                   (Comp::zlib_cvt_creator<char>(6) |
+                    code_cvt_creator<char, char32_t>("zh_CN.UTF-8"));
+    auto        tmp = creator.create(rb_root_cvt{mem_device("")});
+    runtime_cvt obj(std::move(tmp));
+    round_trip(obj, creator);
 }

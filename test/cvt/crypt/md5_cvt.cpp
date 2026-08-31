@@ -1,371 +1,419 @@
+#include <common/defs.h>
 #include <cvt/crypt/hash_cvt.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+
+#include <gtest/gtest.h>
+
+#include <string>
+#include <type_traits>
+#include <utility>
+
+using namespace IOv2;
 
 namespace
 {
-    std::string hello_md5_hex_low = "5d41402abc4b2a76b9719d911017c592";
-    std::string hello_md5_hex_up  = "5D41402ABC4B2A76B9719D911017C592";
-    std::string hello_md5_binary  = "\x5D\x41\x40\x2A\xBC\x4B\x2A\x76\xB9\x71\x9D\x91\x10\x17\xC5\x92";
+    // RFC 1321 test vector: MD5("hello"), in the three formats hash_cvt can emit.
+    const std::string hello_md5_hex_low = "5d41402abc4b2a76b9719d911017c592";
+    const std::string hello_md5_hex_up  = "5D41402ABC4B2A76B9719D911017C592";
+    const std::string hello_md5_binary  = "\x5D\x41\x40\x2A\xBC\x4B\x2A\x76\xB9\x71\x9D\x91\x10\x17\xC5\x92";
 
-    std::u8string liwei_md5_hex_low = u8"ffb031550e9681adbe2223cc408d48fc";
-    std::u8string liwei_md5_hex_up  = u8"FFB031550E9681ADBE2223CC408D48FC";
-    std::u8string liwei_md5_binary  = u8"\xFF\xB0\x31\x55\x0E\x96\x81\xAD\xBE\x22\x23\xCC\x40\x8D\x48\xFC";
-}
+    // MD5 of the six UTF-8 bytes of u8"李伟", for the char8_t instantiation.
+    const std::u8string liwei_md5_hex_low = u8"ffb031550e9681adbe2223cc408d48fc";
+    const std::u8string liwei_md5_hex_up  = u8"FFB031550E9681ADBE2223CC408D48FC";
+    const std::u8string liwei_md5_binary  = u8"\xFF\xB0\x31\x55\x0E\x96\x81\xAD\xBE\x22\x23\xCC\x40\x8D\x48\xFC";
 
-void test_md5_cvt_gen_1()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt general case 1...");
-    
+    auto md5_over_empty_char()
     {
-        using CheckType = Crypt::hash_cvt<rb_root_cvt<mem_device<char>>>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char>);
-        static_assert(std::is_same_v<CheckType::external_type, char>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(!cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
-    }
-    
-    {
-        using CheckType = Crypt::hash_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
-        static_assert(IOv2::io_converter<CheckType>);
-        static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
-        static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
-        static_assert(std::is_same_v<CheckType::external_type, char8_t>);
-        static_assert(cvt_cpt::support_put<CheckType>);
-        static_assert(!cvt_cpt::support_get<CheckType>);
-        static_assert(!cvt_cpt::support_positioning<CheckType>);
-        static_assert(!cvt_cpt::support_io_switch<CheckType>);
+        return Crypt::hash_cvt_creator<char>(Crypt::hash_algo::MD5)
+                   .create(rb_root_cvt{mem_device{""}});
     }
 
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_gen_2()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt general case 2...");
-    
-    auto helper = [](auto& obj)
+    auto md5_over_empty_char8()
     {
-        VERIFY(obj.bos() == io_status::output);
+        return Crypt::hash_cvt_creator<char8_t>(Crypt::hash_algo::MD5)
+                   .create(rb_root_cvt{mem_device{u8""}});
+    }
+
+    // A converter forked after "he" carries the digest state with it, so only the
+    // fork -- which goes on to see "llo" -- can produce MD5("hello"). The original,
+    // finished at "he", must not.
+    template <typename T, typename Fork>
+    void expect_only_the_fork_completes_the_digest(T& obj, Fork fork)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
         obj.put("he", 2);
-        auto obj2(obj);
-        obj2.put("llo", 3);
-        auto [dev, err] = obj2.detach();
-        VERIFY(dev.str() == hello_md5_hex_low);
+
+        T forked = fork(obj);
+        forked.put("llo", 3);
+
+        auto [dev, err] = forked.detach();
+        EXPECT_EQ(dev.str(), hello_md5_hex_low);
+
         auto [dev2, err2] = obj.detach();
-        VERIFY(dev2.str() != hello_md5_hex_low);
-    };
+        EXPECT_NE(dev2.str(), hello_md5_hex_low);
+    }
 
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_gen_3()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt general case 3...");
-
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto helper = [&creator]<typename T>(T& obj)
+    // Moving after "he" leaves the source with nothing to finish, so the digest
+    // has to come out of the target alone.
+    template <typename T, typename Transfer>
+    void expect_the_move_target_completes_the_digest(T& obj, Transfer transfer)
     {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
         obj.put("he", 2);
-        T obj2(creator.create(rb_root_cvt{mem_device{""}}));
-        obj2 = obj;
-        obj2.put("llo", 3);
-        auto [dev, err] = obj2.detach();
-        VERIFY(dev.str() == hello_md5_hex_low);
-        auto [dev2, err2] = obj.detach();
-        VERIFY(dev2.str() != hello_md5_hex_low);
-    };
 
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
+        T moved = transfer(obj);
+        moved.put("llo", 3);
 
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
+        auto [dev, err] = moved.detach();
+        EXPECT_EQ(dev.str(), hello_md5_hex_low);
+    }
 
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_gen_4()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt general case 4...");
-
-    auto helper = [](auto& obj)
+    // One digest of "hello" in whatever format the converter is currently set to.
+    // The attach() after detach() is what makes the converter reusable for another
+    // stream, and is the only place that path is exercised.
+    template <typename T>
+    void expect_hello_digest(T& obj, const std::string& expected)
     {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        obj.put("he", 2);
-        auto obj2(std::move(obj));
-        obj2.put("llo", 3);
-        auto [dev, err] = obj2.detach();
-        VERIFY(dev.str() == hello_md5_hex_low);
-    };
-
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_gen_5()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt general case 5...");
-    
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto helper = [&creator]<typename T>(T& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-        obj.put("he", 2);
-        T obj2(creator.create(rb_root_cvt{mem_device{""}}));
-        obj2 = std::move(obj);
-        obj2.put("llo", 3);
-        auto [dev, err] = obj2.detach();
-        VERIFY(dev.str() == hello_md5_hex_low);
-    };
-
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_put_1()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt::put case 1...");
-    
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
-        obj.main_cont_beg();
-
+        obj.put("hello", 5);
         auto [dev, err] = obj.detach();
-        VERIFY(dev.str().empty());
-    };
+        obj.attach();
+        EXPECT_EQ(dev.str(), expected);
+    }
 
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-    
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_put_2()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt::put case 2...");
-
-    auto helper = [](auto& obj)
+    template <typename T>
+    void expect_hello_digest(T& obj, Crypt::hash_fmt fmt, const std::string& expected)
     {
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put("hello", 5);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == hello_md5_hex_low);
-        }
-
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::lower_hex));
-            obj.put("hello", 5);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == hello_md5_hex_low);
-        }
-        
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
-            obj.put("hello", 5);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == hello_md5_hex_up);
-        }
-        
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::binary));
-            obj.put("hello", 5);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == hello_md5_binary);
-        }
-    };
-
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_put_3()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt::put case 3...");
-
-    auto helper = [](auto& obj)
-    {
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put("hello", 5);
-            obj.adjust(Crypt::dump_hash('\n'));
-            obj.put("hello", 5);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == hello_md5_hex_low + '\n' + hello_md5_hex_low);
-        }
-
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put("hello", 5);
-            obj.adjust(Crypt::dump_hash('*'));
-            obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
-            obj.put("hello", 5);
-            auto [dev, err] = obj.detach();
-            VERIFY(dev.str() == hello_md5_hex_low + '*' + hello_md5_hex_up);
-        }
-    };
-
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
-
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
-}
-
-void test_md5_cvt_put_4()
-{
-    using namespace IOv2;
-    dump_info("Test md5_cvt::put case 4...");
-
-    auto helper = [](auto& obj)
-    {
-        VERIFY(obj.bos() == io_status::output);
+        EXPECT_EQ(obj.bos(), io_status::output);
         obj.main_cont_beg();
-        obj.put("he", 2);
-        obj.put("llo", 3);
+        obj.adjust(Crypt::set_hash_fmt(fmt));
+        obj.put("hello", 5);
         auto [dev, err] = obj.detach();
-        VERIFY(dev.str() == hello_md5_hex_low);
-    };
+        obj.attach();
+        EXPECT_EQ(dev.str(), expected);
+    }
 
-    Crypt::hash_cvt_creator<char> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(rb_root_cvt{mem_device{""}});
-    helper(obj);
+    template <typename T>
+    void expect_liwei_digest(T& obj, const std::u8string& expected)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        obj.put(u8"李伟", 6);
+        auto [dev, err] = obj.detach();
+        obj.attach();
+        EXPECT_EQ(dev.str(), expected);
+    }
 
-    auto tmp = creator.create(rb_root_cvt{mem_device{""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
-
-    dump_info("Done\n");
+    template <typename T>
+    void expect_liwei_digest(T& obj, Crypt::hash_fmt fmt, const std::u8string& expected)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        obj.adjust(Crypt::set_hash_fmt(fmt));
+        obj.put(u8"李伟", 6);
+        auto [dev, err] = obj.detach();
+        obj.attach();
+        EXPECT_EQ(dev.str(), expected);
+    }
 }
 
-void test_md5_cvt_put_5()
+TEST(Md5Cvt, TraitsOverARbRootCvtOfChar)
 {
-    using namespace IOv2;
-    dump_info("Test md5_cvt::put case 5...");
+    using CheckType = Crypt::hash_cvt<rb_root_cvt<mem_device<char>>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char>);
+    static_assert(std::is_same_v<CheckType::external_type, char>);
+    // A hash consumes input and emits a digest, so it is write-only, has no
+    // positions, and cannot be turned around mid-stream.
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(!cvt_cpt::support_get<CheckType>);
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
+}
 
-    auto helper = [](auto& obj)
+TEST(Md5Cvt, TraitsOverANoRbRootCvtOfChar8)
+{
+    using CheckType = Crypt::hash_cvt<no_rb_root_cvt<mem_device<char8_t>>>;
+    static_assert(io_converter<CheckType>);
+    static_assert(std::is_same_v<CheckType::device_type, mem_device<char8_t>>);
+    static_assert(std::is_same_v<CheckType::internal_type, char8_t>);
+    static_assert(std::is_same_v<CheckType::external_type, char8_t>);
+    static_assert(cvt_cpt::support_put<CheckType>);
+    static_assert(!cvt_cpt::support_get<CheckType>);
+    static_assert(!cvt_cpt::support_positioning<CheckType>);
+    static_assert(!cvt_cpt::support_io_switch<CheckType>);
+}
+
+TEST(Md5Cvt, ACopyConstructedForkCarriesTheDigestState)
+{
+    auto obj = md5_over_empty_char();
+    expect_only_the_fork_completes_the_digest(obj, [](auto& src) { return decltype(md5_over_empty_char()){src}; });
+}
+
+TEST(Md5Cvt, ACopyConstructedForkCarriesTheDigestStateThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_only_the_fork_completes_the_digest(obj, [](auto& src) { return runtime_cvt{src}; });
+}
+
+TEST(Md5Cvt, ACopyAssignedForkCarriesTheDigestState)
+{
+    auto obj = md5_over_empty_char();
+    expect_only_the_fork_completes_the_digest(obj, [](auto& src)
     {
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.put(u8"李伟", 6);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == liwei_md5_hex_low);
-        }
+        auto dst = md5_over_empty_char();
+        dst = src;
+        return dst;
+    });
+}
 
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::lower_hex));
-            obj.put(u8"李伟", 6);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == liwei_md5_hex_low);
-        }
+TEST(Md5Cvt, ACopyAssignedForkCarriesTheDigestStateThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_only_the_fork_completes_the_digest(obj, [](auto& src)
+    {
+        runtime_cvt dst{md5_over_empty_char()};
+        dst = src;
+        return dst;
+    });
+}
 
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
-            obj.put(u8"李伟", 6);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == liwei_md5_hex_up);
-        }
-    
-        {
-            VERIFY(obj.bos() == io_status::output);
-            obj.main_cont_beg();
-            obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::binary));
-            obj.put(u8"李伟", 6);
-            auto [dev, err] = obj.detach();
-            obj.attach();
-            VERIFY(dev.str() == liwei_md5_binary);
-        }
-    };
-    
-    Crypt::hash_cvt_creator<char8_t> creator(Crypt::hash_algo::MD5);
-    auto obj = creator.create(rb_root_cvt{mem_device{u8""}});
-    helper(obj);
+TEST(Md5Cvt, MoveConstructionCarriesTheDigestState)
+{
+    auto obj = md5_over_empty_char();
+    expect_the_move_target_completes_the_digest(obj, [](auto& src)
+    { return decltype(md5_over_empty_char()){std::move(src)}; });
+}
 
-    auto tmp = creator.create(rb_root_cvt{mem_device{u8""}});
-    runtime_cvt obj2(std::move(tmp));
-    helper(obj2);
+TEST(Md5Cvt, MoveConstructionCarriesTheDigestStateThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_the_move_target_completes_the_digest(obj, [](auto& src) { return runtime_cvt{std::move(src)}; });
+}
 
-    dump_info("Done\n");
+TEST(Md5Cvt, MoveAssignmentCarriesTheDigestState)
+{
+    auto obj = md5_over_empty_char();
+    expect_the_move_target_completes_the_digest(obj, [](auto& src)
+    {
+        auto dst = md5_over_empty_char();
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+TEST(Md5Cvt, MoveAssignmentCarriesTheDigestStateThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_the_move_target_completes_the_digest(obj, [](auto& src)
+    {
+        runtime_cvt dst{md5_over_empty_char()};
+        dst = std::move(src);
+        return dst;
+    });
+}
+
+// A stream that was opened and closed without a single put() has nothing to
+// digest, so nothing is emitted -- not the digest of the empty string.
+TEST(Md5Cvt, AStreamWithNoInputEmitsNothing)
+{
+    auto obj = md5_over_empty_char();
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    auto [dev, err] = obj.detach();
+    EXPECT_TRUE(dev.str().empty());
+}
+
+TEST(Md5Cvt, AStreamWithNoInputEmitsNothingThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    auto [dev, err] = obj.detach();
+    EXPECT_TRUE(dev.str().empty());
+}
+
+TEST(Md5Cvt, TheDigestDefaultsToLowerHex)
+{
+    auto obj = md5_over_empty_char();
+    expect_hello_digest(obj, hello_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheDigestDefaultsToLowerHexThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_hello_digest(obj, hello_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheDigestCanBeAskedForInLowerHex)
+{
+    auto obj = md5_over_empty_char();
+    expect_hello_digest(obj, Crypt::hash_fmt::lower_hex, hello_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheDigestCanBeAskedForInLowerHexThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_hello_digest(obj, Crypt::hash_fmt::lower_hex, hello_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheDigestCanBeAskedForInUpperHex)
+{
+    auto obj = md5_over_empty_char();
+    expect_hello_digest(obj, Crypt::hash_fmt::upper_hex, hello_md5_hex_up);
+}
+
+TEST(Md5Cvt, TheDigestCanBeAskedForInUpperHexThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_hello_digest(obj, Crypt::hash_fmt::upper_hex, hello_md5_hex_up);
+}
+
+TEST(Md5Cvt, TheDigestCanBeAskedForAsRawBytes)
+{
+    auto obj = md5_over_empty_char();
+    expect_hello_digest(obj, Crypt::hash_fmt::binary, hello_md5_binary);
+}
+
+TEST(Md5Cvt, TheDigestCanBeAskedForAsRawBytesThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_hello_digest(obj, Crypt::hash_fmt::binary, hello_md5_binary);
+}
+
+namespace
+{
+    // dump_hash closes the current digest, writes it followed by the given
+    // separator, and starts a new one -- so one stream can carry several digests.
+    template <typename T>
+    void expect_dump_hash_separates_digests(T& obj)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.adjust(Crypt::dump_hash('\n'));
+        obj.put("hello", 5);
+        auto [dev, err] = obj.detach();
+        EXPECT_EQ(dev.str(), hello_md5_hex_low + '\n' + hello_md5_hex_low);
+    }
+
+    // A format change made after dump_hash applies to the digest that follows it,
+    // not retroactively to the one already written.
+    template <typename T>
+    void expect_a_format_change_applies_to_the_next_digest(T& obj)
+    {
+        EXPECT_EQ(obj.bos(), io_status::output);
+        obj.main_cont_beg();
+        obj.put("hello", 5);
+        obj.adjust(Crypt::dump_hash('*'));
+        obj.adjust(Crypt::set_hash_fmt(Crypt::hash_fmt::upper_hex));
+        obj.put("hello", 5);
+        auto [dev, err] = obj.detach();
+        EXPECT_EQ(dev.str(), hello_md5_hex_low + '*' + hello_md5_hex_up);
+    }
+}
+
+TEST(Md5Cvt, DumpHashSeparatesConsecutiveDigests)
+{
+    auto obj = md5_over_empty_char();
+    expect_dump_hash_separates_digests(obj);
+}
+
+TEST(Md5Cvt, DumpHashSeparatesConsecutiveDigestsThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_dump_hash_separates_digests(obj);
+}
+
+TEST(Md5Cvt, AFormatChangeAppliesToTheNextDigest)
+{
+    auto obj = md5_over_empty_char();
+    expect_a_format_change_applies_to_the_next_digest(obj);
+}
+
+TEST(Md5Cvt, AFormatChangeAppliesToTheNextDigestThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    expect_a_format_change_applies_to_the_next_digest(obj);
+}
+
+// The digest depends on the byte sequence, not on how it was split across put()
+// calls: "he" then "llo" must hash the same as "hello" in one go.
+TEST(Md5Cvt, TheDigestDoesNotDependOnHowPutsAreSplit)
+{
+    auto obj = md5_over_empty_char();
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    obj.put("he", 2);
+    obj.put("llo", 3);
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.str(), hello_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheDigestDoesNotDependOnHowPutsAreSplitThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char()};
+    EXPECT_EQ(obj.bos(), io_status::output);
+    obj.main_cont_beg();
+    obj.put("he", 2);
+    obj.put("llo", 3);
+    auto [dev, err] = obj.detach();
+    EXPECT_EQ(dev.str(), hello_md5_hex_low);
+}
+
+// The same four format cases over char8_t, on input that is genuinely multi-byte:
+// the hash is taken over the six UTF-8 code units, and the digest comes back in
+// the device's own character type.
+TEST(Md5Cvt, TheChar8DigestDefaultsToLowerHex)
+{
+    auto obj = md5_over_empty_char8();
+    expect_liwei_digest(obj, liwei_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheChar8DigestDefaultsToLowerHexThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char8()};
+    expect_liwei_digest(obj, liwei_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheChar8DigestCanBeAskedForInLowerHex)
+{
+    auto obj = md5_over_empty_char8();
+    expect_liwei_digest(obj, Crypt::hash_fmt::lower_hex, liwei_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheChar8DigestCanBeAskedForInLowerHexThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char8()};
+    expect_liwei_digest(obj, Crypt::hash_fmt::lower_hex, liwei_md5_hex_low);
+}
+
+TEST(Md5Cvt, TheChar8DigestCanBeAskedForInUpperHex)
+{
+    auto obj = md5_over_empty_char8();
+    expect_liwei_digest(obj, Crypt::hash_fmt::upper_hex, liwei_md5_hex_up);
+}
+
+TEST(Md5Cvt, TheChar8DigestCanBeAskedForInUpperHexThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char8()};
+    expect_liwei_digest(obj, Crypt::hash_fmt::upper_hex, liwei_md5_hex_up);
+}
+
+TEST(Md5Cvt, TheChar8DigestCanBeAskedForAsRawBytes)
+{
+    auto obj = md5_over_empty_char8();
+    expect_liwei_digest(obj, Crypt::hash_fmt::binary, liwei_md5_binary);
+}
+
+TEST(Md5Cvt, TheChar8DigestCanBeAskedForAsRawBytesThroughARuntimeCvt)
+{
+    runtime_cvt obj{md5_over_empty_char8()};
+    expect_liwei_digest(obj, Crypt::hash_fmt::binary, liwei_md5_binary);
 }
