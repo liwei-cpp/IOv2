@@ -1,6 +1,6 @@
 // Compile-time regression coverage for the io_traits extension point.
 //
-// Everything here is a static_assert; the runtime function only reports that the translation
+// Everything here is a static_assert; the single runtime case only reports that the translation
 // unit compiled at all -- which is itself the point of the first block.
 //
 // The load-bearing assumption of the whole design is that naming a member of an *incomplete*
@@ -27,7 +27,8 @@
 #include <io/traits/char_and_str.h>
 #include <io/traits/nullptr.h>
 #include <io/traits/tm.h>
-#include <support/dump_info.h>
+
+#include <gtest/gtest.h>
 
 namespace
 {
@@ -312,8 +313,9 @@ static_assert( !extractable_lvalue<is_c, volatile int>   );
 static_assert( !extractable_lvalue<is_c, volatile void*> );
 }
 
-void test_io_traits()
+// The static_asserts above are the test; compiling this file is what passes it. This case
+// exists so the suite reports a result rather than an empty run.
+TEST(IoTraits, EveryDetectionRuleHoldsAtCompileTime)
 {
-    dump_info("Test io_traits detection (compile-time only)...");
-    dump_info("Done\n");
+    SUCCEED() << "all io_traits detection checks are static_asserts in this file";
 }

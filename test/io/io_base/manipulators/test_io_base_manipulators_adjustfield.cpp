@@ -1,176 +1,159 @@
-#include <limits>
-#include <stdexcept>
-#include <system_error>
-#include <string>
+/**
+ * boolalpha and the adjustfield manipulators.
+ *
+ * A bool has two spellings -- a digit, or a word from the numeric facet -- and
+ * boolalpha chooses between them. The words are the facet's, not the library's,
+ * so a facet that answers differently must change what is written and nothing
+ * else about it.
+ *
+ * The padding half is about what internal means for a value with no sign and no
+ * base indication. There is nothing to hold back, so internal has to fall
+ * through to right; that is true of a bool in either spelling and of a string,
+ * and it is the case an implementation gets wrong by treating internal as a
+ * separate branch that forgets to pad at all.
+ *
+ * The fill is '*' throughout: '.' is the decimal point, and a fill equal to it
+ * is refused on the numeric path, which would make the digit cases below fail
+ * for a reason that has nothing to do with adjustment.
+ */
 #include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/traits/arithmetic.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <memory>
+#include <string>
+
+using namespace IOv2;
 
 namespace
 {
-    struct MyNP: IOv2::numeric_conf<char>
+    // A facet whose words are nothing like "true"/"false", so a hard-coded pair
+    // anywhere in the formatting path shows up.
+    struct switch_words : numeric_conf<char>
     {
-        MyNP()
-            : IOv2::numeric_conf<char>("C")
-        {}
+        switch_words() : numeric_conf<char>("C") {}
+        const std::string& truename() const override { return m_on; }
+        const std::string& falsename() const override { return m_off; }
 
-        const std::string& truename() const override { return m_tname; }
-        const std::string& falsename() const override { return m_fname; }
     private:
-        const std::string m_tname = "yea";
-        const std::string m_fname = "nay";
+        const std::string m_on  = "on";
+        const std::string m_off = "off";
     };
-    
-    struct WMyNP: IOv2::numeric_conf<wchar_t>
+
+    struct wide_switch_words : numeric_conf<wchar_t>
     {
-        WMyNP()
-            : IOv2::numeric_conf<wchar_t>("C")
-        {}
+        wide_switch_words() : numeric_conf<wchar_t>("C") {}
+        const std::wstring& truename() const override { return m_on; }
+        const std::wstring& falsename() const override { return m_off; }
 
-        const std::wstring& truename() const override { return m_tname; }
-        const std::wstring& falsename() const override { return m_fname; }
     private:
-        const std::wstring m_tname = L"yea";
-        const std::wstring m_fname = L"nay";
+        const std::wstring m_on  = L"on";
+        const std::wstring m_off = L"off";
     };
+
+    template <typename C, typename TFn>
+    std::basic_string<C> formatted(const locale<C>& loc, TFn&& apply)
+    {
+        ostream os{mem_device{std::basic_string<C>{}}, loc};
+        apply(os);
+        auto [dev, err] = os.detach();
+        return dev.str();
+    }
 }
 
-void test_io_base_manipulators_adjustfield_char_1()
+TEST(IoBaseManipAdjustfield, BoolalphaChoosesBetweenTheDigitAndTheWord)
 {
-    dump_info("Test ios_base<char> adjustfield case 1...");
-    const char lit[] = "1 0\n"
-                        "true false\n"
-                        ":  true:\n"
-                        ":true  :\n"
-                        ": false:\n"
-                        ":  1:\n"
-                        ":1  :\n"
-                        ":  0:\n"
-                        "yea nay\n"
-                        ":   yea:\n"
-                        ":yea   :\n"
-                        ":   nay:\n";
+    const locale<char> c("C");
 
-    IOv2::ostream oss{IOv2::mem_device{""}};
-    oss.locale(IOv2::locale<char>("C"));
-    oss << true << " " << false << IOv2::endl;
-    oss << IOv2::boolalpha;
-    oss << true << " " << false << IOv2::endl;
+    EXPECT_EQ(formatted<char>(c, [](auto& os) { os << true << ' ' << false; }), "1 0");
+    EXPECT_EQ(formatted<char>(c, [](auto& os) { os << boolalpha << true << ' ' << false; }),
+              "true false");
 
-    oss << ":" << IOv2::setw(6) << IOv2::internal << true << ":" << IOv2::endl;
-    oss << ":" << IOv2::setw(6) << IOv2::left << true << ":" << IOv2::endl;
-    oss << ":" << IOv2::setw(6) << IOv2::right << false << ":" << IOv2::endl;
-    oss << IOv2::noboolalpha;
-    oss << ":" << IOv2::setw(3) << IOv2::internal << true << ":" << IOv2::endl;
-    oss << ":" << IOv2::setw(3) << IOv2::left << true << ":" << IOv2::endl;
-    oss << ":" << IOv2::setw(3) << IOv2::right << false << ":" << IOv2::endl;
-
-    IOv2::locale<char> loc = IOv2::locale<char>("C").involve(std::make_shared<MyNP>());
-    oss.locale(loc);
-
-    oss << IOv2::boolalpha;
-    oss << true << " " << false << IOv2::endl;
-
-    oss << ":" << IOv2::setw(6) << IOv2::internal << true << ":" << IOv2::endl;
-    oss << ":" << IOv2::setw(6) << IOv2::left << true << ":" << IOv2::endl;
-    oss << ":" << IOv2::setw(6) << IOv2::right << false << ":" << IOv2::endl;
-
-    VERIFY(oss.good());
-
-    auto [dev1, err1] = oss.detach();
-    VERIFY(dev1.str() == lit);
-    dump_info("Done\n");
+    // The flag is not a one-shot: it can be turned back off and on again.
+    EXPECT_EQ(formatted<char>(c, [](auto& os) {
+                  os << boolalpha << true << ' ' << noboolalpha << true << ' '
+                     << boolalpha << false;
+              }),
+              "true 1 false");
 }
 
-void test_io_base_manipulators_adjustfield_char_2()
+TEST(IoBaseManipAdjustfield, TheWordsComeFromTheFacet)
 {
-    dump_info("Test ios_base<char> adjustfield case 2...");
-    IOv2::ostream o{IOv2::mem_device{""}};
-    o << IOv2::setw(6) << IOv2::right << "san";
-    auto [dev2, err2] = o.detach();
-    VERIFY(dev2.str() == "   san");
-    o.attach(IOv2::mem_device{""});
+    const locale<char> mine = locale<char>("C").involve(std::make_shared<switch_words>());
 
-    o << IOv2::setw(6) << IOv2::internal << "fran";
-    auto [dev3, err3] = o.detach();
-    VERIFY(dev3.str() == "  fran");
-    o.attach(IOv2::mem_device{""});
+    EXPECT_EQ(formatted<char>(mine, [](auto& os) { os << boolalpha << true << ' ' << false; }),
+              "on off");
 
-    o << IOv2::setw(6) << IOv2::left << "cisco";
-    auto [dev4, err4] = o.detach();
-    VERIFY(dev4.str() == "cisco ");
-
-    dump_info("Done\n");
+    // Without boolalpha the facet's words are not consulted at all.
+    EXPECT_EQ(formatted<char>(mine, [](auto& os) { os << true << ' ' << false; }), "1 0");
 }
 
-void test_io_base_manipulators_adjustfield_wchar_t_1()
+// Nothing to pin, so internal lands where right does -- for a word, for a digit,
+// and for a string, all three of which reach different formatting paths.
+TEST(IoBaseManipAdjustfield, InternalFallsThroughToRightWhenThereIsNothingToPin)
 {
-    dump_info("Test ios_base<wchar_t> adjustfield case 1...");
-    const wchar_t lit[] = L"1 0\n"
-                          L"true false\n"
-                          L":  true:\n"
-                          L":true  :\n"
-                          L": false:\n"
-                          L":  1:\n"
-                          L":1  :\n"
-                          L":  0:\n"
-                          L"yea nay\n"
-                          L":   yea:\n"
-                          L":yea   :\n"
-                          L":   nay:\n";
+    const locale<char> c("C");
 
-    IOv2::ostream oss{IOv2::mem_device{L""}};
-    oss.locale(IOv2::locale<wchar_t>("C"));
-    oss << true << L" " << false << IOv2::endl;
-    oss << IOv2::boolalpha;
-    oss << true << L" " << false << IOv2::endl;
+    auto in_field = [&c](ios_defs::fmtflags adjust, bool words, bool v) {
+        return formatted<char>(c, [&](auto& os) {
+            if (words)
+                os << boolalpha;
+            os << setw(6) << setfill('*');
+            os.setf(adjust, ios_defs::adjustfield);
+            os << v;
+        });
+    };
 
-    oss << L":" << IOv2::setw(6) << IOv2::internal << true << L":" << IOv2::endl;
-    oss << L":" << IOv2::setw(6) << IOv2::left << true << L":" << IOv2::endl;
-    oss << L":" << IOv2::setw(6) << IOv2::right << false << L":" << IOv2::endl;
-    oss << IOv2::noboolalpha;
-    oss << L":" << IOv2::setw(3) << IOv2::internal << true << L":" << IOv2::endl;
-    oss << L":" << IOv2::setw(3) << IOv2::left << true << L":" << IOv2::endl;
-    oss << L":" << IOv2::setw(3) << IOv2::right << false << L":" << IOv2::endl;
+    EXPECT_EQ(in_field(ios_defs::right, true, true), "**true");
+    EXPECT_EQ(in_field(ios_defs::internal, true, true), "**true");
+    EXPECT_EQ(in_field(ios_defs::left, true, true), "true**");
+    EXPECT_EQ(in_field(ios_defs::right, true, false), "*false");
 
-    IOv2::locale<wchar_t> loc = IOv2::locale<wchar_t>("C").involve(std::make_shared<WMyNP>());
-    oss.locale(loc);
+    EXPECT_EQ(in_field(ios_defs::right, false, true), "*****1");
+    EXPECT_EQ(in_field(ios_defs::internal, false, true), "*****1");
+    EXPECT_EQ(in_field(ios_defs::left, false, true), "1*****");
 
-    oss << IOv2::boolalpha;
-    oss << true << L" " << false << IOv2::endl;
+    auto string_in_field = [&c](ios_defs::fmtflags adjust) {
+        return formatted<char>(c, [adjust](auto& os) {
+            os << setw(6) << setfill('*');
+            os.setf(adjust, ios_defs::adjustfield);
+            os << "north";
+        });
+    };
 
-    oss << L":" << IOv2::setw(6) << IOv2::internal << true << L":" << IOv2::endl;
-    oss << L":" << IOv2::setw(6) << IOv2::left << true << L":" << IOv2::endl;
-    oss << L":" << IOv2::setw(6) << IOv2::right << false << L":" << IOv2::endl;
-
-    VERIFY(oss.good());
-    auto [dev5, err5] = oss.detach();
-    VERIFY(dev5.str() == lit);
-    dump_info("Done\n");
+    EXPECT_EQ(string_in_field(ios_defs::right), "*north");
+    EXPECT_EQ(string_in_field(ios_defs::internal), "*north");
+    EXPECT_EQ(string_in_field(ios_defs::left), "north*");
 }
 
-void test_io_base_manipulators_adjustfield_wchar_t_2()
+TEST(IoBaseManipAdjustfield, TheSameRulesHoldOnAWideStream)
 {
-    dump_info("Test ios_base<wchar_t> adjustfield case 2...");
-    IOv2::ostream o{IOv2::mem_device{L""}};
-    o << IOv2::setw(6) << IOv2::right << L"san";
-    auto [dev6, err6] = o.detach();
-    VERIFY(dev6.str() == L"   san");
-    o.attach(IOv2::mem_device{L""});
+    const locale<wchar_t> c("C");
+    const locale<wchar_t> mine =
+        locale<wchar_t>("C").involve(std::make_shared<wide_switch_words>());
 
-    o << IOv2::setw(6) << IOv2::internal << L"fran";
-    auto [dev7, err7] = o.detach();
-    VERIFY(dev7.str() == L"  fran");
-    o.attach(IOv2::mem_device{L""});
+    EXPECT_EQ(formatted<wchar_t>(c, [](auto& os) { os << true << L' ' << false; }), L"1 0");
+    EXPECT_EQ(formatted<wchar_t>(c, [](auto& os) { os << boolalpha << true << L' ' << false; }),
+              L"true false");
+    EXPECT_EQ(formatted<wchar_t>(mine,
+                                 [](auto& os) { os << boolalpha << true << L' ' << false; }),
+              L"on off");
 
-    o << IOv2::setw(6) << IOv2::left << L"cisco";
-    auto [dev8, err8] = o.detach();
-    VERIFY(dev8.str() == L"cisco ");
+    auto in_field = [&c](ios_defs::fmtflags adjust) {
+        return formatted<wchar_t>(c, [adjust](auto& os) {
+            os << boolalpha << setw(6) << setfill(L'*');
+            os.setf(adjust, ios_defs::adjustfield);
+            os << true;
+        });
+    };
 
-    dump_info("Done\n");
+    EXPECT_EQ(in_field(ios_defs::right), L"**true");
+    EXPECT_EQ(in_field(ios_defs::internal), L"**true");
+    EXPECT_EQ(in_field(ios_defs::left), L"true**");
 }

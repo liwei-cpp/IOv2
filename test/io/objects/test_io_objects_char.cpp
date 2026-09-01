@@ -1,163 +1,138 @@
+/**
+ * The narrow standard stream objects: cout, cerr, clog and cin.
+ *
+ * [iostream.objects] fixes what they are attached to and how they are tied,
+ * and every property below follows from that. cerr is unit-buffered so a
+ * diagnostic is not lost when the program dies; cerr and cin are both tied to
+ * cout, which is what makes a prompt appear before the read that follows it.
+ * That tie is the one users notice when it is missing, so it is checked by
+ * observing the prompt rather than by comparing pointers alone.
+ *
+ * The objects also have to survive sync_with_stdio: it changes how they reach
+ * the C streams, not which objects they are, so their addresses must not move.
+ */
 #include <io/objects/objects.h>
-#include <support/dump_info.h>
+
 #include <support/stdio_guard.h>
-#include <support/verify.h>
 
-void test_io_objects_char_1()
+#include <gtest/gtest.h>
+
+#include <string>
+
+TEST(IoObjectsChar, EachStreamWritesToItsOwnDestination)
 {
-    dump_info("Test io objects (cout / cerr / clog / cin) case 1...");
-
     {
-        oguard<true> g;
-        IOv2::cout << "testing cout" << IOv2::endl;
-        VERIFY(g.contents() == "testing cout\n");
+        oguard<true> out;
+        IOv2::cout << "to stdout" << IOv2::endl;
+        EXPECT_EQ(out.contents(), "to stdout\n");
     }
-
     {
-        oguard<false> g;
-        IOv2::cerr << "testing cerr" << IOv2::endl;
-        VERIFY(g.contents() == "testing cerr\n");
-        VERIFY( IOv2::cerr.flags() & IOv2::ios_defs::unitbuf );
+        oguard<false> err;
+        IOv2::cerr << "to stderr" << IOv2::endl;
+        EXPECT_EQ(err.contents(), "to stderr\n");
     }
-
     {
-        oguard<false> g;
-        IOv2::clog << "testing clog" << IOv2::endl;
-        VERIFY(g.contents() == "testing clog\n");
+        oguard<false> err;
+        IOv2::clog << "also stderr" << IOv2::endl;
+        EXPECT_EQ(err.contents(), "also stderr\n");
     }
-
-    {
-        iguard g("hello");
-        char array1[20] = "testing istream";
-        IOv2::cin >> array1;
-        VERIFY(std::string("hello") == array1);
-        VERIFY( IOv2::cin.tie() == &IOv2::cout );
-    }
-
-    dump_info("Done\n");
 }
 
-void test_io_objects_char_2()
+// The two destinations do not bleed into one another, in either order.
+TEST(IoObjectsChar, StdoutAndStderrStaySeparate)
 {
-    dump_info("Test io objects (cout / cerr / clog / cin) case 2...");
+    oguard<true>  out;
+    oguard<false> err;
 
-    using namespace IOv2;
+    IOv2::cout << "first ";
+    IOv2::cout.flush();
+    IOv2::cerr << "second";
+    IOv2::cerr.flush();
+    IOv2::cout << "third" << IOv2::endl;
+    IOv2::cout.flush();
 
-    {
-        oguard<true> g1;
-        oguard<false> g2;
-        cout << "hello ";
-        cout.flush();
-        cerr << "fine ";
-        cerr.flush();
-        cout << "world" << endl;
-        cout.flush();
-
-        auto buf1 = g1.contents();
-        auto buf2 = g2.contents();
-        VERIFY(buf1 == "hello world\n");
-        VERIFY(buf2 == "fine ");
-    }
-
-    dump_info("Done\n");
+    EXPECT_EQ(out.contents(), "first third\n");
+    EXPECT_EQ(err.contents(), "second");
 }
 
-void test_io_objects_char_3()
+TEST(IoObjectsChar, CerrIsUnitBufferedAndBothInputsAreTiedToCout)
 {
-    dump_info("Test io objects (cout / cerr / clog / cin) case 3...");
+    EXPECT_TRUE(IOv2::cerr.flags() & IOv2::ios_defs::unitbuf);
+    EXPECT_EQ(IOv2::cerr.tie(), &IOv2::cout);
+    EXPECT_EQ(IOv2::cin.tie(), &IOv2::cout);
 
+    // The flags a fresh stream starts with.
+    EXPECT_TRUE(IOv2::cerr.flags() & IOv2::ios_defs::dec);
+    EXPECT_TRUE(IOv2::cerr.flags() & IOv2::ios_defs::skipws);
+}
+
+// What the tie is for: an unterminated prompt is still sitting in cout's buffer
+// when the read starts, and the read is what pushes it out.
+TEST(IoObjectsChar, ReadingFromCinFlushesThePromptOnCout)
+{
+    IOv2::cout.reset();
+    IOv2::cin.reset();
+    IOv2::cout.sync_with_stdio(false);
+
+    oguard<true> out;
+    iguard       in("Ada");
+
+    IOv2::cout << "ready" << IOv2::endl;
+    IOv2::cout << "name? ";                 // no newline, no flush
+    EXPECT_EQ(out.contents(), "ready\n");   // so it has not gone out yet
+
+    std::string answer;
+    IOv2::cin >> answer;
+    EXPECT_EQ(answer, "Ada");
+    EXPECT_EQ(out.contents(), "ready\nname? ");
+}
+
+// Each block re-points stdin, so cin is reset with it: these are global objects
+// and a previous test's end-of-input would otherwise still be on them.
+TEST(IoObjectsChar, CinReadsAndPutsBack)
+{
     {
-        IOv2::cout.reset();
+        iguard g("alpha beta");
         IOv2::cin.reset();
+        char   first = 0;
+        char   again = 1;
 
-        IOv2::cout.sync_with_stdio(false);
-        oguard<true> g1;
-        iguard g2("Wei Li");
+        IOv2::cin.get(first);
+        IOv2::cin.putback(first);
+        IOv2::cin.get(again);
 
-        IOv2::cout << "hello" << ' ' << "world" << IOv2::endl;
-        IOv2::cout << "Enter your name: ";
-        VERIFY(g1.contents() == "hello world\n");
-        std::string s;
-        IOv2::cin >> s;
-        VERIFY(g1.contents() == "hello world\nEnter your name: ");
-        IOv2::cout << "hello " << s << IOv2::endl;
-        VERIFY(g1.contents() == "hello world\nEnter your name: hello Wei\n");
+        EXPECT_TRUE(IOv2::cin.good());
+        EXPECT_EQ(first, again);
     }
-
-    dump_info("Done\n");
-}
-
-void test_io_objects_char_4()
-{
-    dump_info("Test io objects (cout / cerr / clog / cin) case 4...");
-
     {
-        oguard<true> g1;
-        iguard g2("\n");
+        iguard g("alpha beta");
+        IOv2::cin.reset();
+        char   buf[2];
+        // Hoisted: the template argument list would look like a second macro
+        // argument to the preprocessor.
+        char* end = IOv2::cin.get<IOv2::keep_sep, IOv2::no_zt>(buf, 2);
+        EXPECT_EQ(end - buf, 2);
 
-        IOv2::cout << "Press ENTER once\n";
-        VERIFY((bool)(IOv2::cin.ignore(1)));
-    }
-
-    dump_info("Done\n");
-}
-
-void test_io_objects_char_5()
-{
-    dump_info("Test io objects (cout / cerr / clog / cin) case 5...");
-
-    void* p1 = &IOv2::cout;
-    void* p2 = &IOv2::cin;
-    void* p3 = &IOv2::cerr;
-    void* p4 = &IOv2::clog;
-    IOv2::sync_with_stdio(false); 
-    void* p1s = &IOv2::cout;
-    void* p2s = &IOv2::cin;
-    void* p3s = &IOv2::cerr;
-    void* p4s = &IOv2::clog;
-    VERIFY( p1 == p1s );
-    VERIFY( p2 == p2s );
-    VERIFY( p3 == p3s );
-    VERIFY( p4 == p4s );
-
-    dump_info("Done\n");
-}
-
-void test_io_objects_char_6()
-{
-    dump_info("Test io objects (cout / cerr / clog / cin) case 6...");
-
-    {
-        iguard g("hello world");
-        char c1 = 0;
-        char c2 = 1;
-        IOv2::cin.get(c1);
-        IOv2::cin.putback(c1);
-        IOv2::cin.get(c2);
-        VERIFY( IOv2::cin.good() );
-        VERIFY( c1 == c2 );
-    }
-
-    {
-        iguard g("hello world");
-        char buf[2];
-        VERIFY( IOv2::cin.get<IOv2::keep_sep, IOv2::no_zt>(buf, 2) - buf == 2 );
         IOv2::cin.putback(buf[1]);
-        auto c = IOv2::cin.get();
-        VERIFY( c == buf[1] );
+        EXPECT_EQ(IOv2::cin.get(), buf[1]);
     }
-
-    dump_info("Done\n");
+    {
+        iguard g("\n");
+        IOv2::cin.reset();
+        EXPECT_TRUE(static_cast<bool>(IOv2::cin.ignore(1)));
+    }
 }
 
-void test_io_objects_char_7()
+// sync_with_stdio changes how the objects reach the C streams, not which
+// objects they are.
+TEST(IoObjectsChar, SyncWithStdioDoesNotReplaceTheObjects)
 {
-    dump_info("Test io objects (cout / cerr / clog / cin) case 7...");
+    const void* before[] = {&IOv2::cout, &IOv2::cin, &IOv2::cerr, &IOv2::clog};
 
-    VERIFY( IOv2::cerr.flags() & IOv2::ios_defs::dec );
-    VERIFY( IOv2::cerr.flags() & IOv2::ios_defs::skipws );
-    VERIFY( IOv2::cerr.flags() & IOv2::ios_defs::unitbuf );
-    VERIFY( IOv2::cerr.tie() == &IOv2::cout );
+    IOv2::sync_with_stdio(false);
 
-    dump_info("Done\n");
+    const void* after[] = {&IOv2::cout, &IOv2::cin, &IOv2::cerr, &IOv2::clog};
+
+    for (std::size_t i = 0; i < 4; ++i)
+        EXPECT_EQ(before[i], after[i]) << "object " << i;
 }

@@ -1,172 +1,175 @@
-#include <limits>
-#include <stdexcept>
-#include <system_error>
-#include <string>
+/**
+ * put_money and get_money.
+ *
+ * The manipulators do nothing themselves: they hand the value to the monetary
+ * facet, so the digits, the grouping and the decimal mark are the locale's and
+ * the amount is always in the smallest unit. What the tests below own is the
+ * round trip -- whatever put_money writes, get_money must read back as the same
+ * amount -- and the state rule that a stream already failed does neither.
+ *
+ * The static_asserts at the bottom are the larger half of the file. They pin
+ * down which target types each direction accepts, and the ADL trap that made an
+ * unqualified put_money(str) ambiguous with std::put_money while put_money(n)
+ * compiled fine.
+ */
 #include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/traits/arithmetic.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <support/dump_info.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
 #include <support/io_traits_probe.h>
-#include <support/verify.h>
 
-void test_io_base_manipulators_put_money_char_1()
+#include <gtest/gtest.h>
+
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test ios_base<char> put_money case 1...");
+    // Every monetary expectation here depends on a real system locale. Skipping is
+    // honest where it is missing; asserting would only report the machine.
+    bool have_locale(const char* name)
+    {
+        try { (void)locale<char>(name); }
+        catch (const cvt_error&) { return false; }
+        return true;
+    }
 
-    IOv2::ostream oss{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.ISO-8859-1")};
-    
-    const std::string str("720000000000");
-    oss << IOv2::put_money(str);
-    VERIFY(oss.good());
-    auto [dev1, err1] = oss.detach();
-    VERIFY(dev1.str() == "7.200.000.000,00 ");
-
-    dump_info("Done\n");
+    constexpr const char* kGrouped = "de_DE.ISO-8859-1";
 }
 
-void test_io_base_manipulators_put_money_char_2()
+// The amount is in the smallest unit, so the facet is what decides where the
+// decimal mark lands and how the integer part is grouped.
+TEST(IoBaseManipMoney, PutMoneyWritesTheAmountTheWayTheFacetSpellsIt)
 {
-    dump_info("Test ios_base<char> put_money case 2...");
+    if (!have_locale(kGrouped))
+        GTEST_SKIP() << kGrouped << " is not installed here";
 
-    IOv2::ostream oss{IOv2::mem_device{""}, IOv2::locale<char>("en_US.UTF-8")};
-    
-    const std::string str("123");
-    oss.setstate(IOv2::ios_defs::cvtfailbit);
+    ostream oss{mem_device{""}, locale<char>(kGrouped)};
+    oss << put_money(std::string("123456789"));
 
-    oss << IOv2::put_money(str);
-    VERIFY(oss.cvt_fail());
-    auto [dev2, err2] = oss.detach();
-    VERIFY(dev2.str().empty());
-
-    dump_info("Done\n");
+    EXPECT_TRUE(oss.good());
+    auto [dev, err] = oss.detach();
+    EXPECT_EQ(dev.str(), "1.234.567,89 ");
 }
 
-void test_io_base_manipulators_put_money_char_3()
+// Whatever put_money wrote, get_money reads back as the same amount. The rvalue
+// form here needs the by-value operator>> overload.
+TEST(IoBaseManipMoney, TheAmountSurvivesTheRoundTrip)
 {
-    dump_info("Test ios_base<char> put_money case 3...");
+    if (!have_locale(kGrouped))
+        GTEST_SKIP() << kGrouped << " is not installed here";
 
-    // A volatile integral formats exactly as the plain one: monetary::put takes it by value,
-    // so deduction drops the cv-qualifier.
-    const long long plain = 123456;
-    volatile long long vol = 123456;
+    ostream oss{mem_device{""}, locale<char>(kGrouped)};
+    oss << put_money(std::string("123456789"));
+    auto [written, werr] = oss.detach();
 
-    IOv2::ostream oss1{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.ISO-8859-1")};
-    oss1 << IOv2::put_money(plain);
-    VERIFY(oss1.good());
+    istream iss{mem_device{written.str()}, locale<char>(kGrouped)};
+    std::string back;
+    iss >> get_money(back);
 
-    IOv2::ostream oss2{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.ISO-8859-1")};
-    oss2 << IOv2::put_money(vol);
-    VERIFY(oss2.good());
-
-    auto [dev5, err5] = oss1.detach();
-    auto [dev6, err6] = oss2.detach();
-    VERIFY(!dev5.str().empty());
-    VERIFY(dev5.str() == dev6.str());
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(iss));
+    EXPECT_FALSE(iss.str_fail());
+    EXPECT_EQ(back, "123456789");
 }
 
-void test_io_base_manipulators_put_money_wchar_t_1()
+// Integral target, and the named-lvalue form `auto g = get_money(v); is >> g;`
+// which resolves to the generic extraction operator instead.
+TEST(IoBaseManipMoney, GetMoneyAlsoReadsIntoAnIntegralTarget)
 {
-    dump_info("Test ios_base<wchar_t> put_money case 1...");
+    if (!have_locale(kGrouped))
+        GTEST_SKIP() << kGrouped << " is not installed here";
 
-    IOv2::ostream oss{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("de_DE.ISO-8859-1")};
-    
-    const std::wstring str(L"720000000000");
-    oss << IOv2::put_money(str);
-    VERIFY(oss.good());
-    auto [dev3, err3] = oss.detach();
-    VERIFY(dev3.str() == L"7.200.000.000,00 ");
-
-    dump_info("Done\n");
-}
-
-void test_io_base_manipulators_put_money_wchar_t_2()
-{
-    dump_info("Test ios_base<wchar_t> put_money case 2...");
-
-    IOv2::ostream oss{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("en_US.UTF-8")};
-    
-    const std::wstring str(L"123");
-    oss.setstate(IOv2::ios_defs::cvtfailbit);
-
-    oss << IOv2::put_money(str);
-    VERIFY(oss.cvt_fail());
-    auto [dev4, err4] = oss.detach();
-    VERIFY(dev4.str().empty());
-
-    dump_info("Done\n");
-}
-void test_io_base_manipulators_get_money_char_1()
-{
-    dump_info("Test ios_base<char> get_money case 1...");
-
-    // Round-trips the put_money case-1 output. Exercises the idiomatic rvalue form
-    // `is >> get_money(x)`, which needs the by-value operator>> overload.
-    IOv2::istream iss{IOv2::mem_device{std::string("7.200.000.000,00 ")},
-                      IOv2::locale<char>("de_DE.ISO-8859-1")};
-
-    std::string str;
-    iss >> IOv2::get_money(str);
-    VERIFY(static_cast<bool>(iss));
-    VERIFY(!iss.str_fail());
-    VERIFY(str == "720000000000");
-
-    dump_info("Done\n");
-}
-
-void test_io_base_manipulators_get_money_char_2()
-{
-    dump_info("Test ios_base<char> get_money case 2...");
-
-    // Integral target, and the named-lvalue form `auto g = get_money(v); is >> g;`
-    // which resolves to the generic extraction operator instead.
-    IOv2::istream iss{IOv2::mem_device{std::string("1.234,56 ")},
-                      IOv2::locale<char>("de_DE.ISO-8859-1")};
+    istream iss{mem_device{std::string("1.234,56 ")}, locale<char>(kGrouped)};
 
     long long units = -1;
-    auto manip = IOv2::get_money(units);
+    auto      manip = get_money(units);
     iss >> manip;
-    VERIFY(static_cast<bool>(iss));
-    VERIFY(units == 123456);
 
-    // A stream already in a failed state extracts nothing and leaves the target alone.
-    IOv2::istream iss2{IOv2::mem_device{std::string("1.234,56 ")},
-                       IOv2::locale<char>("de_DE.ISO-8859-1")};
-    long long untouched = -1;
-    iss2.setstate(IOv2::ios_defs::cvtfailbit);
-    iss2 >> IOv2::get_money(untouched);
-    VERIFY(iss2.cvt_fail());
-    VERIFY(untouched == -1);
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(iss));
+    EXPECT_EQ(units, 123456);
 }
 
-void test_io_base_manipulators_get_money_wchar_t_1()
+// A stream already in a failed state does neither direction, and leaves the
+// target and the device exactly as they were.
+TEST(IoBaseManipMoney, AFailedStreamDoesNothingInEitherDirection)
 {
-    dump_info("Test ios_base<wchar_t> get_money case 1...");
+    if (!have_locale(kGrouped))
+        GTEST_SKIP() << kGrouped << " is not installed here";
 
-    IOv2::istream iss{IOv2::mem_device{std::wstring(L"7.200.000.000,00 ")},
-                      IOv2::locale<wchar_t>("de_DE.ISO-8859-1")};
+    {
+        ostream oss{mem_device{""}, locale<char>(kGrouped)};
+        oss.setstate(ios_defs::cvtfailbit);
+        oss << put_money(std::string("123"));
 
-    std::wstring str;
-    iss >> IOv2::get_money(str);
-    VERIFY(static_cast<bool>(iss));
-    VERIFY(!iss.str_fail());
-    VERIFY(str == L"720000000000");
+        EXPECT_TRUE(oss.cvt_fail());
+        auto [dev, err] = oss.detach();
+        EXPECT_TRUE(dev.str().empty());
+    }
+    {
+        istream iss{mem_device{std::string("1.234,56 ")}, locale<char>(kGrouped)};
+        long long untouched = -1;
+        iss.setstate(ios_defs::cvtfailbit);
+        iss >> get_money(untouched);
 
-    dump_info("Done\n");
+        EXPECT_TRUE(iss.cvt_fail());
+        EXPECT_EQ(untouched, -1);
+    }
+}
+
+// A volatile integral formats exactly as the plain one: monetary::put takes it by value,
+// so deduction drops the cv-qualifier.
+TEST(IoBaseManipMoney, AVolatileAmountFormatsLikeAPlainOne)
+{
+    if (!have_locale(kGrouped))
+        GTEST_SKIP() << kGrouped << " is not installed here";
+
+    const long long    plain = 123456;
+    volatile long long vol   = 123456;
+
+    ostream oss1{mem_device{""}, locale<char>(kGrouped)};
+    oss1 << put_money(plain);
+    EXPECT_TRUE(oss1.good());
+
+    ostream oss2{mem_device{""}, locale<char>(kGrouped)};
+    oss2 << put_money(vol);
+    EXPECT_TRUE(oss2.good());
+
+    auto [dev1, err1] = oss1.detach();
+    auto [dev2, err2] = oss2.detach();
+    EXPECT_FALSE(dev1.str().empty());
+    EXPECT_EQ(dev1.str(), dev2.str());
+}
+
+// The same round trip on a wide stream: the separators have to survive widening.
+TEST(IoBaseManipMoney, TheRoundTripHoldsOnAWideStream)
+{
+    if (!have_locale(kGrouped))
+        GTEST_SKIP() << kGrouped << " is not installed here";
+
+    ostream oss{mem_device{L""}, locale<wchar_t>(kGrouped)};
+    oss << put_money(std::wstring(L"123456789"));
+    EXPECT_TRUE(oss.good());
+    auto [written, werr] = oss.detach();
+    EXPECT_EQ(written.str(), L"1.234.567,89 ");
+
+    istream iss{mem_device{written.str()}, locale<wchar_t>(kGrouped)};
+    std::wstring back;
+    iss >> get_money(back);
+    EXPECT_TRUE(static_cast<bool>(iss));
+    EXPECT_EQ(back, L"123456789");
 }
 
 namespace
 {
-using MoneyIs = IOv2::istream<IOv2::mem_device<char>, char>;
-using MoneyOs = IOv2::ostream<IOv2::mem_device<char>, char>;
+using MoneyIs = istream<mem_device<char>, char>;
+using MoneyOs = ostream<mem_device<char>, char>;
 
 // get_money deduces its target type from the argument, so a const lvalue deduces `const int`
 // -- and std::integral<const int> is true, since std::is_integral_v ignores cv-qualification.
@@ -178,48 +181,48 @@ using MoneyOs = IOv2::ostream<IOv2::mem_device<char>, char>;
 // Every probe here goes through io_traits rather than through `is >> get_money(x)`, so a failure
 // points at the io_traits specialization itself rather than at the value-category and
 // parse-context handling operator>> layers on top of it.
-static_assert(  extractable<char, IOv2::get_money_t<int>> );
-static_assert(  extractable<char, IOv2::get_money_t<std::string>> );
-static_assert( !extractable<char, IOv2::get_money_t<const int>> );
-static_assert( !extractable<char, IOv2::get_money_t<volatile int>> );
-static_assert( !extractable<char, IOv2::get_money_t<const std::string>> );
-static_assert( !extractable<char, IOv2::get_money_t<bool>> );
-static_assert( !extractable<char, IOv2::get_money_t<double>> );
-static_assert( !extractable<char, IOv2::get_money_t<std::wstring>> );
+static_assert(  extractable<char, get_money_t<int>> );
+static_assert(  extractable<char, get_money_t<std::string>> );
+static_assert( !extractable<char, get_money_t<const int>> );
+static_assert( !extractable<char, get_money_t<volatile int>> );
+static_assert( !extractable<char, get_money_t<const std::string>> );
+static_assert( !extractable<char, get_money_t<bool>> );
+static_assert( !extractable<char, get_money_t<double>> );
+static_assert( !extractable<char, get_money_t<std::wstring>> );
 
 // put_money carries no such restriction: output does not write to the target and put_money takes
 // const _MoneyT&, so inserting a const lvalue stays a legitimate use.
 
 // The io_traits bool exclusion normalizes cv, its string branch does not: put() takes the integral
 // by value (cv dropped), but its string overload takes a plain const&, which volatile cannot bind.
-static_assert(  insertable<char, IOv2::put_money_t<int>> );
-static_assert(  insertable<char, IOv2::put_money_t<const int>> );
-static_assert(  insertable<char, IOv2::put_money_t<volatile int>> );
-static_assert(  insertable<char, IOv2::put_money_t<std::string>> );
-static_assert( !insertable<char, IOv2::put_money_t<bool>> );
-static_assert( !insertable<char, IOv2::put_money_t<const bool>> );
-static_assert( !insertable<char, IOv2::put_money_t<volatile bool>> );
-static_assert( !insertable<char, IOv2::put_money_t<double>> );
-static_assert( !insertable<char, IOv2::put_money_t<volatile std::string>> );
-static_assert( !insertable<char, IOv2::put_money_t<std::wstring>> );
+static_assert(  insertable<char, put_money_t<int>> );
+static_assert(  insertable<char, put_money_t<const int>> );
+static_assert(  insertable<char, put_money_t<volatile int>> );
+static_assert(  insertable<char, put_money_t<std::string>> );
+static_assert( !insertable<char, put_money_t<bool>> );
+static_assert( !insertable<char, put_money_t<const bool>> );
+static_assert( !insertable<char, put_money_t<volatile bool>> );
+static_assert( !insertable<char, put_money_t<double>> );
+static_assert( !insertable<char, put_money_t<volatile std::string>> );
+static_assert( !insertable<char, put_money_t<std::wstring>> );
 
 // Direction: put_money inserts only, get_money extracts only. It is expressed by which member
 // io_traits provides, so the stream type drops out of the probe -- and it always had to: an
 // iostream satisfies istream_type and ostream_type alike, so no constraint on the stream could
 // ever have carried the direction.
-static_assert(  insertable <char, IOv2::put_money_t<int>> );
-static_assert( !extractable<char, IOv2::put_money_t<int>> );
-static_assert(  extractable<char, IOv2::get_money_t<int>> );
-static_assert( !insertable <char, IOv2::get_money_t<int>> );
+static_assert(  insertable <char, put_money_t<int>> );
+static_assert( !extractable<char, put_money_t<int>> );
+static_assert(  extractable<char, get_money_t<int>> );
+static_assert( !insertable <char, get_money_t<int>> );
 
-static_assert(  insertable <char, IOv2::put_money_t<std::string>> );
-static_assert( !extractable<char, IOv2::put_money_t<std::string>> );
-static_assert(  extractable<char, IOv2::get_money_t<std::string>> );
-static_assert( !insertable <char, IOv2::get_money_t<std::string>> );
+static_assert(  insertable <char, put_money_t<std::string>> );
+static_assert( !extractable<char, put_money_t<std::string>> );
+static_assert(  extractable<char, get_money_t<std::string>> );
+static_assert( !insertable <char, get_money_t<std::string>> );
 
 // The char_type has to match too: a char-stream money manipulator is not usable on a wide stream.
-static_assert( !insertable <wchar_t, IOv2::put_money_t<std::string>> );
-static_assert( !extractable<wchar_t, IOv2::get_money_t<std::string>> );
+static_assert( !insertable <wchar_t, put_money_t<std::string>> );
+static_assert( !extractable<wchar_t, get_money_t<std::string>> );
 }
 
 // put_money / get_money are function objects rather than function templates, so that an
@@ -232,7 +235,7 @@ static_assert( !extractable<wchar_t, IOv2::get_money_t<std::string>> );
 // compiled while put_money(str) did not, in the same translation unit.
 //
 // These probes must be unqualified and must sit under a using-directive, since that is the only
-// spelling that ever broke. Every other test in this file writes IOv2::put_money, which is why
+// spelling that ever broke. Every other test in this file writes put_money, which is why
 // the gap went unnoticed.
 namespace adl_probe
 {

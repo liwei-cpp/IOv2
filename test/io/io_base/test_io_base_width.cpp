@@ -1,132 +1,116 @@
+/**
+ * ios_base::width, whose whole difficulty is the type of its argument.
+ *
+ * The width is a count, so it is held as an unsigned value, but callers compute
+ * it with subtraction -- `total - label.size()` -- and an underflow there
+ * arrives as a huge positive number rather than as a negative one. IOv2 refuses
+ * those instead of padding to half the address space, which means the setter has
+ * to reject both spellings of "negative": the signed one, and the unsigned one
+ * that has already wrapped.
+ *
+ * The refusal has to leave the previous width in place, and has to leave the
+ * stream it was called on good, or a caller's next write would silently change.
+ */
+#include <device/mem_device.h>
+#include <io/io_base.h>
+#include <io/ostream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
 #include <cstddef>
 #include <limits>
 #include <string>
-#include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_base.h>
-#include <io/ostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
-namespace
-{
-    template <typename TFn>
-    bool throws_stream_error(TFn&& fn)
-    {
-        try { fn(); }
-        catch (const IOv2::stream_error&) { return true; }
-        return false;
-    }
-}
+using namespace IOv2;
 
 // The setter rejects negative widths, including the ones that arrive already
 // wrapped as unsigned, and leaves the previous width in place when it does.
-void test_io_base_width_1()
+TEST(IosBaseWidth, ANegativeWidthIsRejectedHoweverItIsSpelled)
 {
-    dump_info("Test ios_base<char> width case 1...");
+    ios_base<char> ios;
+    ASSERT_EQ(ios.width(), 0u);
 
-    IOv2::ios_base<char> ios;
-    VERIFY(ios.width() == 0);
+    EXPECT_EQ(ios.width(12), 0u);
+    ASSERT_EQ(ios.width(), 12u);
 
-    VERIFY(ios.width(12) == 0);
-    VERIFY(ios.width() == 12u);
+    EXPECT_THROW(ios.width(-1), stream_error);
+    EXPECT_EQ(ios.width(), 12u);
 
-    VERIFY(throws_stream_error([&ios]{ ios.width(-1); }));
-    VERIFY(ios.width() == 12u);
+    const int n = -3;
+    EXPECT_THROW(ios.width(n), stream_error);
 
-    {
-        int n = -3;
-        VERIFY(throws_stream_error([&ios, n]{ ios.width(n); }));
-    }
-    {
-        int total = 10;
-        std::string label(20, 'x');
-        VERIFY(throws_stream_error([&ios, total, &label]{ ios.width(total - label.size()); }));
-    }
-    {
-        size_t w = size_t(10) - size_t(20);
-        VERIFY(throws_stream_error([&ios, w]{ ios.width(w); }));
-    }
-    {
-        size_t w = size_t(1) << 63;
-        VERIFY(throws_stream_error([&ios, w]{ ios.width(w); }));
-    }
-    {
-        size_t w = std::numeric_limits<size_t>::max();
-        VERIFY(throws_stream_error([&ios, w]{ ios.width(w); }));
-    }
+    // The shape a caller actually writes: a field width computed by subtraction,
+    // where the label turned out longer than the field.
+    const int         total = 10;
+    const std::string label(20, 'x');
+    EXPECT_THROW(ios.width(total - label.size()), stream_error);
 
-    VERIFY(ios.width() == 12u);
+    // The same value arriving already wrapped, with no sign left to look at.
+    EXPECT_THROW(ios.width(size_t(10) - size_t(20)), stream_error);
+    EXPECT_THROW(ios.width(size_t(1) << 63), stream_error);
+    EXPECT_THROW(ios.width(std::numeric_limits<size_t>::max()), stream_error);
 
-    dump_info("Done\n");
+    EXPECT_EQ(ios.width(), 12u);
 }
 
 // Valid widths round-trip exactly, including ones a 32-bit field could not hold.
-void test_io_base_width_2()
+TEST(IosBaseWidth, AValidWidthRoundTripsExactly)
 {
-    dump_info("Test ios_base<char> width case 2...");
+    ios_base<char> ios;
 
-    IOv2::ios_base<char> ios;
-
-    VERIFY(ios.width(0) == 0);
-    VERIFY(ios.width() == 0);
+    EXPECT_EQ(ios.width(0), 0u);
+    EXPECT_EQ(ios.width(), 0u);
 
     ios.width(50000000);
-    VERIFY(ios.width() == 50000000u);
+    EXPECT_EQ(ios.width(), 50000000u);
 
     ios.width(std::ptrdiff_t(1) << 40);
-    VERIFY(ios.width() == (size_t(1) << 40));
+    EXPECT_EQ(ios.width(), (size_t(1) << 40));
 
     const auto pmax = std::numeric_limits<std::ptrdiff_t>::max();
-    VERIFY(ios.width(pmax) == (size_t(1) << 40));
-    VERIFY(ios.width() == static_cast<size_t>(pmax));
+    EXPECT_EQ(ios.width(pmax), (size_t(1) << 40));
+    EXPECT_EQ(ios.width(), static_cast<size_t>(pmax));
 
     // A width read back from the getter can be fed to the setter unchanged.
     ios.width(static_cast<std::ptrdiff_t>(ios.width()));
-    VERIFY(ios.width() == static_cast<size_t>(pmax));
+    EXPECT_EQ(ios.width(), static_cast<size_t>(pmax));
 
     ios.width(0);
-    VERIFY(ios.width() == 0);
-
-    dump_info("Done\n");
+    EXPECT_EQ(ios.width(), 0u);
 }
 
 // A rejected width does not disturb the stream it was called on.
-void test_io_base_width_3()
+TEST(IosBaseWidth, ARejectedWidthLeavesTheStreamUsable)
 {
-    dump_info("Test ios_base<char> width case 3...");
+    ostream os{mem_device{""}};
+    os.locale(locale<char>("C"));
 
-    IOv2::ostream oss{IOv2::mem_device{""}};
-    oss.locale(IOv2::locale<char>("C"));
+    os << "ab";
 
-    oss << "ab";
+    EXPECT_THROW(os.width(-1), stream_error);
+    EXPECT_TRUE(os.good());
+    EXPECT_EQ(os.width(), 0u);
 
-    VERIFY(throws_stream_error([&oss]{ oss.width(-1); }));
-    VERIFY(oss.good());
-    VERIFY(oss.width() == 0);
-
-    oss << "cd";
-    oss.flush();
-    VERIFY(oss.device().str() == "abcd");
-
-    dump_info("Done\n");
+    os << "cd";
+    os.flush();
+    EXPECT_EQ(os.device().str(), "abcd");
 }
 
-void test_io_base_width_wchar_t_1()
+TEST(IosBaseWidth, TheSameHoldsForAWideStream)
 {
-    dump_info("Test ios_base<wchar_t> width case 1...");
-
-    IOv2::ios_base<wchar_t> ios;
+    ios_base<wchar_t> ios;
 
     ios.width(7);
-    VERIFY(ios.width() == 7u);
+    EXPECT_EQ(ios.width(), 7u);
 
-    VERIFY(throws_stream_error([&ios]{ ios.width(-1); }));
-    VERIFY(ios.width() == 7u);
+    EXPECT_THROW(ios.width(-1), stream_error);
+    EXPECT_EQ(ios.width(), 7u);
 
     ios.width(std::ptrdiff_t(1) << 40);
-    VERIFY(ios.width() == (size_t(1) << 40));
-    ios.width(0);
+    EXPECT_EQ(ios.width(), (size_t(1) << 40));
 
-    dump_info("Done\n");
+    ios.width(0);
+    EXPECT_EQ(ios.width(), 0u);
 }

@@ -1,112 +1,110 @@
-#include <cstdlib>
-#include <limits>
-#include <stdexcept>
-#include <system_error>
-#include <string>
+/**
+ * ios_base::fill: where the character comes from, and which characters are
+ * allowed to be it.
+ *
+ * The fill is stream state, not locale state. A stream takes its initial fill
+ * from the locale it is built with, but from then on it is the caller's to set,
+ * and changing the locale must not reach back in and change it -- which is what
+ * the first two tests pin down, using a ctype whose widen(' ') is deliberately
+ * not a space so that a re-derived fill would be visible.
+ *
+ * The rest is the vetting rule: a fill is refused when it would change the
+ * number the padded field reads as. Which characters those are depends on the
+ * base, because under hex the letters a-f are digits, and on where the padding
+ * lands, because a run past the value can never be read back into it.
+ */
 #include <device/mem_device.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
 #include <io/traits/arithmetic.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <memory>
+#include <string>
+
+using namespace IOv2;
 
 namespace
 {
+    // widen(' ') answers with a tab, so a fill that were re-derived from the
+    // locale would stop being a space and the difference would be visible.
     template <typename C>
-    struct tabby_mctype : IOv2::ctype_conf<C>
+    struct tabby_ctype : ctype_conf<C>
     {
-        tabby_mctype()
-            : IOv2::ctype_conf<C>("C") {}
-        virtual C widen(char c) const override
-        {
-            return (c == ' ') ? '\t' : c;
-        }
+        tabby_ctype() : ctype_conf<C>("C") {}
+        C widen(char c) const override { return (c == ' ') ? C('\t') : C(c); }
     };
 }
 
-void test_io_base_char_fill_1()
+TEST(IosBaseFill, ChangingTheLocaleDoesNotChangeTheFill)
 {
-    dump_info("Test ios_base<char> fill case 1...");
-    {
-        IOv2::ostream out{IOv2::mem_device{""}};
-        IOv2::locale<char> loc = IOv2::locale<char>().involve(std::make_shared<tabby_mctype<char>>());
-        out.locale(loc);
-        
-        // Imbuing a new locale doesn't affect fill().
-        VERIFY(out.fill() == ' ');
-        out.fill('*');
-        out.locale(IOv2::locale<char>{});
-        VERIFY(out.fill() == '*');
-    }
+    ostream out{mem_device{""}};
 
-    dump_info("Done\n");
+    ASSERT_EQ(out.fill(), ' ');
+
+    // A locale whose ctype would widen ' ' differently leaves the fill alone.
+    out.locale(locale<char>().involve(std::make_shared<tabby_ctype<char>>()));
+    EXPECT_EQ(out.fill(), ' ');
+
+    // And a fill the caller chose survives going back to an ordinary locale.
+    out.fill('*');
+    out.locale(locale<char>{});
+    EXPECT_EQ(out.fill(), '*');
 }
 
-void test_io_base_wchar_t_fill_1()
+TEST(IosBaseFill, TheSameHoldsForAWideStream)
 {
-    dump_info("Test ios_base<wchar_t> fill case 1...");
-    {
-        IOv2::ostream out{IOv2::mem_device{L""}};
-        IOv2::locale<wchar_t> loc = IOv2::locale<wchar_t>().involve(std::make_shared<tabby_mctype<wchar_t>>());
-        out.locale(loc);
-        
-        // Imbuing a new locale doesn't affect fill().
-        VERIFY(out.fill() == L' ');
-        out.fill(L'*');
-        out.locale(IOv2::locale<wchar_t>{});
-        VERIFY(out.fill() == L'*');
-    }
+    ostream out{mem_device{L""}};
 
-    dump_info("Done\n");
+    ASSERT_EQ(out.fill(), L' ');
+
+    out.locale(locale<wchar_t>().involve(std::make_shared<tabby_ctype<wchar_t>>()));
+    EXPECT_EQ(out.fill(), L' ');
+
+    out.fill(L'*');
+    out.locale(locale<wchar_t>{});
+    EXPECT_EQ(out.fill(), L'*');
 }
 
-void test_io_base_char_fill_2()
+// A fill character is rejected only where padding is actually written, and the
+// rejection reaches the stream as an ordinary formatting failure: strfailbit, and
+// an exception only if that bit is masked in.
+TEST(IosBaseFill, AFillIsVettedOnlyWhereItWouldBeWritten)
 {
-    dump_info("Test ios_base<char> fill case 2 (fill that would change the value read)...");
+    ostream out{mem_device{""}};
+    out << setfill('0');
 
-    // A fill character is rejected only where padding is actually written, and the
-    // rejection reaches the stream as an ordinary formatting failure: strfailbit, and
-    // an exception only if that bit is masked in.
-    {
-        IOv2::ostream out{IOv2::mem_device{""}};
-        out << IOv2::setfill('0');
+    // Nothing to pad, so the sticky fill is never written and never vetted.
+    out << 42;
+    EXPECT_TRUE(out.good());
 
-        // Nothing to pad, so the sticky fill is never written and never vetted.
-        out << 42;
-        VERIFY(out.good());
+    // Zero-padding a negative number to the right would write "00000-42", which
+    // reads as no number at all.
+    out << setw(8) << right << -42;
+    EXPECT_FALSE(out.good());
+    EXPECT_TRUE(out.rdstate() & ios_defs::strfailbit);
 
-        // Zero-padding a negative number to the right would write "00000-42", which
-        // reads as no number at all.
-        out << IOv2::setw(8) << IOv2::right << -42;
-        VERIFY(!out.good());
-        VERIFY(out.rdstate() & IOv2::ios_defs::strfailbit);
+    out.clear();
+    // `internal` puts the same zeros where they read as leading zeros.
+    out << setw(8) << internal << -42;
+    EXPECT_TRUE(out.good());
 
-        out.clear();
-        // `internal` puts the same zeros where they read as leading zeros.
-        out << IOv2::setw(8) << IOv2::internal << -42;
-        VERIFY(out.good());
+    auto [dev, err] = out.detach();
+    EXPECT_EQ(dev.str(), "42-0000042");
+}
 
-        auto [dev, err] = out.detach();
-        VERIFY(dev.str() == "42-0000042");
-    }
+// With strfailbit masked in, the same rejection is reported as an exception.
+TEST(IosBaseFill, TheRejectionThrowsWhenStrfailbitIsMasked)
+{
+    ostream out{mem_device{""}};
+    out.exceptions(ios_defs::strfailbit);
+    out << setfill('9') << setw(8);
 
-    // With strfailbit masked in, the same rejection is reported as an exception.
-    {
-        IOv2::ostream out{IOv2::mem_device{""}};
-        out.exceptions(IOv2::ios_defs::strfailbit);
-        out << IOv2::setfill('9') << IOv2::setw(8);
-        try
-        {
-            out << 42;
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (IOv2::stream_error&) {}
-        VERIFY(out.rdstate() & IOv2::ios_defs::strfailbit);
-    }
-
-    dump_info("Done\n");
+    EXPECT_THROW(out << 42, stream_error);
+    EXPECT_TRUE(out.rdstate() & ios_defs::strfailbit);
 }
 
 namespace
@@ -114,15 +112,15 @@ namespace
     // Writes `v` into a fresh stream under `base` with the given fill, width and
     // adjustment, and reports whether the insertion was accepted. `text` receives what
     // was written, so an accepted case can be checked for content as well.
-    bool fill_accepted(char fill, IOv2::ios_defs::fmtflags base,
-                       IOv2::ios_defs::fmtflags adjust, unsigned long v,
-                       std::string& text, IOv2::ios_defs::fmtflags extra = {})
+    bool fill_accepted(char fill, ios_defs::fmtflags base, ios_defs::fmtflags adjust,
+                       unsigned long v, std::string& text, ios_defs::fmtflags extra = {})
     {
-        IOv2::ostream out{IOv2::mem_device{""}};
-        out.setf(base, IOv2::ios_defs::basefield);
-        out.setf(adjust, IOv2::ios_defs::adjustfield);
-        if (extra != IOv2::ios_defs::fmtflags{}) out.setf(extra);
-        out << IOv2::setfill(fill) << IOv2::setw(8) << v;
+        ostream out{mem_device{""}};
+        out.setf(base, ios_defs::basefield);
+        out.setf(adjust, ios_defs::adjustfield);
+        if (extra != ios_defs::fmtflags{})
+            out.setf(extra);
+        out << setfill(fill) << setw(8) << v;
         const bool ok = out.good();
         auto [dev, err] = out.detach();
         text = dev.str();
@@ -130,95 +128,94 @@ namespace
     }
 }
 
-void test_io_base_char_fill_3()
+// Under hex the six letter digits read as part of the value just as '1'-'9' do:
+// setfill('f') on 0xab would write "ffffffab", which reads back as 4294967211.
+// Both cases are rejected whatever `uppercase` says, because the extractor takes
+// mixed-case hex.
+TEST(IosBaseFill, UnderHexTheLetterDigitsAreDigitsToo)
 {
-    dump_info("Test ios_base<char> fill case 3 (the digit set follows basefield)...");
-
-    const auto hex      = IOv2::ios_defs::hex;
-    const auto oct      = IOv2::ios_defs::oct;
-    const auto dec      = IOv2::ios_defs::dec;
-    const auto right    = IOv2::ios_defs::right;
-    const auto left     = IOv2::ios_defs::left;
-    const auto internal = IOv2::ios_defs::internal;
-
     std::string text;
 
-    // Under hex the six letter digits read as part of the value just as '1'-'9' do:
-    // setfill('f') on 0xab would write "ffffffab", which reads back as 4294967211.
-    // Both cases are rejected whatever `uppercase` says, because the extractor takes
-    // mixed-case hex.
     for (char f : {'a', 'b', 'c', 'd', 'e', 'f', 'A', 'B', 'C', 'D', 'E', 'F'})
-        for (auto adjust : {right, left, internal})
+        for (auto adjust : {ios_defs::right, ios_defs::left, ios_defs::internal})
         {
-            VERIFY(!fill_accepted(f, hex, adjust, 0xab, text));
-            VERIFY(!fill_accepted(f, hex, adjust, 0xab, text, IOv2::ios_defs::uppercase));
+            EXPECT_FALSE(fill_accepted(f, ios_defs::hex, adjust, 0xab, text)) << "fill " << f;
+            EXPECT_FALSE(fill_accepted(f, ios_defs::hex, adjust, 0xab, text,
+                                       ios_defs::uppercase))
+                << "fill " << f << " with uppercase";
         }
+}
 
-    // '0' keeps working where it reads as a leading zero, so the tightening above did
-    // not swallow the one digit that is legitimate.
-    VERIFY(fill_accepted('0', hex, right, 0xab, text));
-    VERIFY(text == "000000ab");
-    VERIFY(fill_accepted('0', hex, internal, 0xab, text));
-    VERIFY(text == "000000ab");
-    VERIFY(!fill_accepted('0', hex, left, 0xab, text));
+// '0' keeps working where it reads as a leading zero, so the tightening above did
+// not swallow the one digit that is legitimate.
+TEST(IosBaseFill, ZeroStaysUsableWhereItReadsAsALeadingZero)
+{
+    std::string text;
+
+    EXPECT_TRUE(fill_accepted('0', ios_defs::hex, ios_defs::right, 0xab, text));
+    EXPECT_EQ(text, "000000ab");
+    EXPECT_TRUE(fill_accepted('0', ios_defs::hex, ios_defs::internal, 0xab, text));
+    EXPECT_EQ(text, "000000ab");
+    EXPECT_FALSE(fill_accepted('0', ios_defs::hex, ios_defs::left, 0xab, text));
 
     // With showbase the prefix sits between a right-adjusted fill and the digits, so
     // only `internal` still reads as leading zeros.
-    VERIFY(!fill_accepted('0', hex, right, 0xab, text, IOv2::ios_defs::showbase));
-    VERIFY(fill_accepted('0', hex, internal, 0xab, text, IOv2::ios_defs::showbase));
-    VERIFY(text == "0x0000ab");
+    EXPECT_FALSE(fill_accepted('0', ios_defs::hex, ios_defs::right, 0xab, text,
+                               ios_defs::showbase));
+    EXPECT_TRUE(fill_accepted('0', ios_defs::hex, ios_defs::internal, 0xab, text,
+                              ios_defs::showbase));
+    EXPECT_EQ(text, "0x0000ab");
+}
+
+TEST(IosBaseFill, TheDigitSetFollowsTheBase)
+{
+    std::string text;
 
     // Outside hex those letters are not digits and stay usable.
-    VERIFY(fill_accepted('f', dec, right, 42, text));
-    VERIFY(text == "ffffff42");
-    VERIFY(fill_accepted('f', oct, right, 0777, text));
-    VERIFY(text == "fffff777");
+    EXPECT_TRUE(fill_accepted('f', ios_defs::dec, ios_defs::right, 42, text));
+    EXPECT_EQ(text, "ffffff42");
+    EXPECT_TRUE(fill_accepted('f', ios_defs::oct, ios_defs::right, 0777, text));
+    EXPECT_EQ(text, "fffff777");
 
     // The test asks whether a character looks like a digit to a reader, not whether the
     // base would accept it: '8' and '9' are not octal digits but "88888777" still reads
     // as a number, so they stay rejected under oct.
     for (char f : {'8', '9'})
-        for (auto adjust : {right, left, internal})
-            VERIFY(!fill_accepted(f, oct, adjust, 0777, text));
+        for (auto adjust : {ios_defs::right, ios_defs::left, ios_defs::internal})
+            EXPECT_FALSE(fill_accepted(f, ios_defs::oct, adjust, 0777, text)) << "fill " << f;
 
     // Ordinary non-digit fills are untouched in every base.
-    for (auto base : {dec, oct, hex})
+    for (auto base : {ios_defs::dec, ios_defs::oct, ios_defs::hex})
     {
-        VERIFY(fill_accepted('*', base, right, 42, text));
-        VERIFY(fill_accepted(' ', base, right, 42, text));
+        EXPECT_TRUE(fill_accepted('*', base, ios_defs::right, 42, text));
+        EXPECT_TRUE(fill_accepted(' ', base, ios_defs::right, 42, text));
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_wchar_t_fill_2()
+// The atom table is widened through the same ctype, so the criterion has to hold on
+// a wide stream too; char is the only width the cases above cover.
+TEST(IosBaseFill, TheSameCriterionHoldsOnAWideStream)
 {
-    dump_info("Test ios_base<wchar_t> fill case 2 (the digit set follows basefield)...");
-
-    // The atom table is widened through the same ctype, so the criterion has to hold on
-    // a wide stream too; char is the only width the cases above cover.
     {
-        IOv2::ostream out{IOv2::mem_device{L""}};
-        out.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
-        out << IOv2::setfill(L'f') << IOv2::setw(8) << 0xabUL;
-        VERIFY(!out.good());
-        VERIFY(out.rdstate() & IOv2::ios_defs::strfailbit);
+        ostream out{mem_device{L""}};
+        out.setf(ios_defs::hex, ios_defs::basefield);
+        out << setfill(L'f') << setw(8) << 0xabUL;
+        EXPECT_FALSE(out.good());
+        EXPECT_TRUE(out.rdstate() & ios_defs::strfailbit);
     }
     {
-        IOv2::ostream out{IOv2::mem_device{L""}};
-        out.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
-        out << IOv2::setfill(L'0') << IOv2::setw(8) << 0xabUL;
-        VERIFY(out.good());
+        ostream out{mem_device{L""}};
+        out.setf(ios_defs::hex, ios_defs::basefield);
+        out << setfill(L'0') << setw(8) << 0xabUL;
+        EXPECT_TRUE(out.good());
         auto [dev, err] = out.detach();
-        VERIFY(dev.str() == L"000000ab");
+        EXPECT_EQ(dev.str(), L"000000ab");
     }
     {
-        IOv2::ostream out{IOv2::mem_device{L""}};
-        out << IOv2::setfill(L'f') << IOv2::setw(8) << 42UL;
-        VERIFY(out.good());
+        ostream out{mem_device{L""}};
+        out << setfill(L'f') << setw(8) << 42UL;
+        EXPECT_TRUE(out.good());
         auto [dev, err] = out.detach();
-        VERIFY(dev.str() == L"ffffff42");
+        EXPECT_EQ(dev.str(), L"ffffff42");
     }
-
-    dump_info("Done\n");
 }

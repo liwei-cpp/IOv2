@@ -1,188 +1,168 @@
-#include <limits>
-#include <stdexcept>
-#include <system_error>
-#include <string>
+/**
+ * The basefield manipulators, and how a base interacts with everything else the
+ * numeric facet does.
+ *
+ * Three rules meet here and can each be got wrong independently. showbase
+ * prepends "0" for octal and "0x" for hex. Grouping applies to the digits and
+ * not to that prefix, so the separator never lands between the "0x" and the
+ * first digit. And internal adjustment puts the fill between the prefix and the
+ * digits -- where there is a base indication to hold back at all, which "0x" is
+ * and octal's leading "0" is not. That is also the only adjustment for which a
+ * '0' fill is legal at all --
+ * under left it would trail the value and under right it would sit in front of
+ * the prefix, and both change what the field reads as.
+ *
+ * The separator here is '_' rather than a space so that a missing separator and
+ * a padding space cannot be confused for one another.
+ */
 #include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/traits/arithmetic.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <memory>
+#include <string>
+#include <vector>
+
+using namespace IOv2;
 
 namespace
 {
-    struct MyNP: IOv2::numeric_conf<char>
+    template <typename C>
+    struct grouped_conf : numeric_conf<C>
     {
-        MyNP()
-            : IOv2::numeric_conf<char>("C")
-        {}
+        grouped_conf() : numeric_conf<C>("C") {}
+        const std::vector<std::uint8_t>& grouping() const override { return m_grouping; }
+        C thousands_sep() const override { return C('_'); }
 
-        const std::vector<uint8_t>& grouping() const override { return m_grouping; };
-        char thousands_sep() const override { return m_thousands_sep; }
     private:
-        std::vector<uint8_t> m_grouping = {3};
-        char m_thousands_sep = ' ';
+        std::vector<std::uint8_t> m_grouping = {3};
     };
-    
-    struct WMyNP: IOv2::numeric_conf<wchar_t>
+
+    template <typename C>
+    locale<C> grouped()
     {
-        WMyNP()
-            : IOv2::numeric_conf<wchar_t>("C")
-        {}
+        return locale<C>("C").involve(std::make_shared<grouped_conf<C>>());
+    }
 
-        const std::vector<uint8_t>& grouping() const override { return m_grouping; };
-        wchar_t thousands_sep() const override { return m_thousands_sep; }
-    private:
-        std::vector<uint8_t> m_grouping = {3};
-        wchar_t m_thousands_sep = L' ';
-    };
+    // Formats one value into a fresh stream, so no format flag leaks between cases.
+    template <typename C, typename TFn>
+    std::basic_string<C> formatted(TFn&& apply)
+    {
+        ostream os{mem_device{std::basic_string<C>{}}, grouped<C>()};
+        apply(os);
+        auto [dev, err] = os.detach();
+        return dev.str();
+    }
 }
 
-void test_io_base_manipulators_basefield_char_1()
+TEST(IoBaseManipBasefield, ShowbaseWritesAZeroForOctalAndZeroXForHex)
 {
-    dump_info("Test ios_base<char> basefield case 1...");
-    const char lit[] = "0123 456\n"
-                     ": 01 234 567:\n"
-                     ":0123 456   :\n"
-                     ":    012 345:\n"
-                     ":     01 234:\n"
-                     ":0726 746 425:\n"
-                     ":04 553 207 :\n"
-                     ":   0361 100:\n"
-                     ":       0173:\n"
-                     "0x12 345 678\n"
-                     "|0x000012 345 678|\n"
-                     "|0x12 345 678    |\n"
-                     "|    0x12 345 678|\n"
-                     "|0x000012 345 678|\n";
+    EXPECT_EQ(formatted<char>([](auto& os) { os << oct << showbase << 0123456l; }),
+              "0123_456");
+    EXPECT_EQ(formatted<char>([](auto& os) { os << hex << showbase << 0x12345678l; }),
+              "0x12_345_678");
 
-    IOv2::ostream oss{IOv2::mem_device{""}};
-    oss.locale(IOv2::locale<char>("C").involve(std::make_shared<MyNP>()));
-    
-    // Octals
-    oss << IOv2::oct << IOv2::showbase;
-    oss << 0123456l << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11);
-    oss << 01234567l << ":" << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11) << IOv2::left;
-    oss << 0123456l << ":" << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11) << IOv2::right;
-    oss << 012345l << ":" << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11) << IOv2::internal;
-    oss << 01234l << ":" << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11);
-    oss << 123456789l << ":" << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11) << IOv2::left;
-    oss << 1234567l << ":" << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11) << IOv2::right;
-    oss << 123456l << ":" << IOv2::endl;
-    
-    oss << ":" << IOv2::setw(11) << IOv2::internal;
-    oss << 123l << ":" << IOv2::endl;
-
-    // Hexadecimals
-    oss << IOv2::hex << IOv2::setfill('0');
-    oss << 0x12345678l << IOv2::endl;
-    
-    oss << "|" << IOv2::setw(16);
-    oss << 0x12345678l << "|" << IOv2::endl;
-    
-    // '0' only pads a hex value where it lands between the "0x" and the digits, i.e.
-    // under `internal`. Padding `left` would append "0000" to the value and padding
-    // `right` would put it in front of the "0x", and both are rejected outright, so
-    // these two use the ordinary space fill.
-    oss << "|" << IOv2::setw(16) << IOv2::left << IOv2::setfill(' ');
-    oss << 0x12345678l << "|" << IOv2::endl;
-
-    oss << "|" << IOv2::setw(16) << IOv2::right;
-    oss << 0x12345678l << "|" << IOv2::endl;
-
-    oss << "|" << IOv2::setw(16) << IOv2::internal << IOv2::setfill('0');
-    oss << 0x12345678l << "|" << IOv2::endl;
-
-    VERIFY(oss.good());
-    auto [dev, err] = oss.detach();
-    VERIFY(dev.str() == lit);
-    dump_info("Done\n");
+    // Without showbase there is no prefix, and the grouping is unchanged.
+    EXPECT_EQ(formatted<char>([](auto& os) { os << oct << 0123456l; }), "123_456");
+    EXPECT_EQ(formatted<char>([](auto& os) { os << hex << 0x12345678l; }), "12_345_678");
 }
 
-void test_io_base_manipulators_basefield_wchar_t_1()
+// Grouping counts the digits, not the prefix: 123456789 is nine octal digits, so
+// they group evenly and the "0" simply sits in front of the first group.
+TEST(IoBaseManipBasefield, TheBasePrefixTakesNoPartInGrouping)
 {
-    dump_info("Test ios_base<wchar_t> basefield case 1...");
-    const wchar_t lit[] = L"0123 456\n"
-                          L": 01 234 567:\n"
-                          L":0123 456   :\n"
-                          L":    012 345:\n"
-                          L":     01 234:\n"
-                          L":0726 746 425:\n"
-                          L":04 553 207 :\n"
-                          L":   0361 100:\n"
-                          L":       0173:\n"
-                          L"0x12 345 678\n"
-                          L"|0x000012 345 678|\n"
-                          L"|0x12 345 678    |\n"
-                          L"|    0x12 345 678|\n"
-                          L"|0x000012 345 678|\n";
+    EXPECT_EQ(formatted<char>([](auto& os) { os << oct << showbase << 123456789l; }),
+              "0726_746_425");
+    EXPECT_EQ(formatted<char>([](auto& os) { os << oct << showbase << 1234567l; }),
+              "04_553_207");
+}
 
-    IOv2::ostream oss{IOv2::mem_device{L""}};
-    oss.locale(IOv2::locale<wchar_t>("C").involve(std::make_shared<WMyNP>()));
-    
-    // Octals
-    oss << IOv2::oct << IOv2::showbase;
-    oss << 0123456l << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11);
-    oss << 01234567l << L":" << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11) << IOv2::left;
-    oss << 0123456l << L":" << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11) << IOv2::right;
-    oss << 012345l << L":" << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11) << IOv2::internal;
-    oss << 01234l << L":" << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11);
-    oss << 123456789l << L":" << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11) << IOv2::left;
-    oss << 1234567l << L":" << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11) << IOv2::right;
-    oss << 123456l << L":" << IOv2::endl;
-    
-    oss << L":" << IOv2::setw(11) << IOv2::internal;
-    oss << 123l << L":" << IOv2::endl;
+TEST(IoBaseManipBasefield, AdjustfieldDecidesWhereTheFieldPaddingGoes)
+{
+    // The fill is '*' rather than '.': a fill equal to the decimal point is
+    // refused for right and internal, which is its own rule and not this one.
+    auto in_field = [](ios_defs::fmtflags adjust) {
+        return formatted<char>([adjust](auto& os) {
+            os << oct << showbase << setw(12) << setfill('*');
+            os.setf(adjust, ios_defs::adjustfield);
+            os << 01234567l;
+        });
+    };
 
-    // Hexadecimals
-    oss << IOv2::hex << IOv2::setfill(L'0');
-    oss << 0x12345678l << IOv2::endl;
-    
-    oss << L"|" << IOv2::setw(16);
-    oss << 0x12345678l << L"|" << IOv2::endl;
-    
-    // See the narrow-character case above: '0' pads a hex value only under `internal`.
-    oss << L"|" << IOv2::setw(16) << IOv2::left << IOv2::setfill(L' ');
-    oss << 0x12345678l << L"|" << IOv2::endl;
+    EXPECT_EQ(in_field(ios_defs::right), "**01_234_567");
+    EXPECT_EQ(in_field(ios_defs::left), "01_234_567**");
 
-    oss << L"|" << IOv2::setw(16) << IOv2::right;
-    oss << 0x12345678l << L"|" << IOv2::endl;
+    // Octal's leading "0" is a digit, not a separate base indication, so there is
+    // nothing for internal to pin and it lands where right does.
+    EXPECT_EQ(in_field(ios_defs::internal), "**01_234_567");
 
-    oss << L"|" << IOv2::setw(16) << IOv2::internal << IOv2::setfill(L'0');
-    oss << 0x12345678l << L"|" << IOv2::endl;
+    // "0x" is a base indication, and that is what internal holds back.
+    EXPECT_EQ(formatted<char>([](auto& os) {
+                  os << hex << showbase << setw(14) << internal << setfill('*')
+                     << 0x12345678l;
+              }),
+              "0x**12_345_678");
+}
 
-    VERIFY(oss.good());
-    auto [dev, err] = oss.detach();
-    VERIFY(dev.str() == lit);
-    dump_info("Done\n");
+// '0' only pads a hex value where it lands between the "0x" and the digits, i.e.
+// under `internal`. Padding `left` would append "0000" to the value and padding
+// `right` would put it in front of the "0x", and both are rejected outright.
+TEST(IoBaseManipBasefield, AZeroFillIsOnlyLegalUnderInternal)
+{
+    auto attempt = [](ios_defs::fmtflags adjust, std::string& text) {
+        ostream os{mem_device{""}, grouped<char>()};
+        os << hex << showbase << setw(16) << setfill('0');
+        os.setf(adjust, ios_defs::adjustfield);
+        os << 0x12345678l;
+        const bool ok = os.good();
+        auto [dev, err] = os.detach();
+        text = dev.str();
+        return ok;
+    };
+
+    std::string text;
+    EXPECT_TRUE(attempt(ios_defs::internal, text));
+    EXPECT_EQ(text, "0x000012_345_678");
+
+    EXPECT_FALSE(attempt(ios_defs::left, text));
+    EXPECT_FALSE(attempt(ios_defs::right, text));
+
+    // An ordinary fill works for all three.
+    auto spaced = [](ios_defs::fmtflags adjust) {
+        return formatted<char>([adjust](auto& os) {
+            os << hex << showbase << setw(16) << setfill(' ');
+            os.setf(adjust, ios_defs::adjustfield);
+            os << 0x12345678l;
+        });
+    };
+    EXPECT_EQ(spaced(ios_defs::left), "0x12_345_678    ");
+    EXPECT_EQ(spaced(ios_defs::right), "    0x12_345_678");
+}
+
+// Every rule above is the facet's, so it has to hold identically on a wide
+// stream; the separator is the one character that could get lost in widening.
+TEST(IoBaseManipBasefield, TheSameRulesHoldOnAWideStream)
+{
+    EXPECT_EQ(formatted<wchar_t>([](auto& os) { os << oct << showbase << 123456789l; }),
+              L"0726_746_425");
+    EXPECT_EQ(formatted<wchar_t>([](auto& os) { os << hex << showbase << 0x12345678l; }),
+              L"0x12_345_678");
+
+    EXPECT_EQ(formatted<wchar_t>([](auto& os) {
+                  os << hex << showbase << setw(16) << internal << setfill(L'0')
+                     << 0x12345678l;
+              }),
+              L"0x000012_345_678");
+
+    EXPECT_EQ(formatted<wchar_t>([](auto& os) {
+                  os << oct << showbase << setw(12) << left << setfill(L'*') << 01234567l;
+              }),
+              L"01_234_567**");
 }

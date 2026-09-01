@@ -9,13 +9,12 @@ in a directory that is itself a suite, and record it there in the order it is
 reached.  What comes out is a partition -- every function that ran in an
 aggregate binary runs in exactly one suite, and in the same relative order.
 
-The Makefile is gone and nothing compiles those mains any more, but they are
-still the input here, which is why they are still in the tree.  The obvious
-replacement -- take each directory's call-graph roots as its entries -- is not
-equivalent: it yields 238 entries against these 235, because three test
-functions were written and never called from any main().  Adopting it would
-enable them, which changes the coverage line set and so has to be its own change
-with its own baseline, not a side effect of deleting a build system.
+Every suite is GoogleTest now, so there are no mains left to read and no order
+left to preserve: the cases register themselves.  What the script still derives
+is the list of suite directories and which of them are GoogleTest, both of which
+CMake needs and neither of which is worth keeping by hand.  The walk above is
+kept because it is what a suite would need again if one ever went back to a
+hand-ordered main().
 
 Run with --check to verify the checked-in manifest still matches the sources.
 """
@@ -34,18 +33,17 @@ MANIFEST = os.path.join(TEST_DIR, "suites.cmake")
 # A directory drops off this list once its last source becomes GoogleTest: the
 # cases register themselves, so there is no order left for the main() to fix and
 # nothing here left to read.  test/common went first, then test/device, then
-# test/concur and test/locale, then test/cvt, then test/facet.
-MAIN_SOURCES = [
-    "io/test_io.cpp",
-]
+# test/concur and test/locale, then test/cvt, then test/facet, and finally
+# test/io -- which empties the list.  Every suite now registers its own cases,
+# so the entries below are all empty and this script is left doing two things:
+# listing the suite directories, and saying which of them are GoogleTest.
+MAIN_SOURCES = []
 
-# Directories that only dispatch: their sole source declares the aggregators of
-# the directories below and calls them in order.  Once each of those becomes a
-# suite there is nothing left for the dispatcher to do, so it is not a suite and
-# its source is not compiled.  It is read, though -- see the module docstring for
-# why these files are excluded rather than deleted.
-DISPATCH_DIRS = ["cvt", "device", "facet", "io",
-                 "io/iostream", "io/istream", "io/ostream"]
+# Directories that only dispatched: their sole source declared the aggregators of
+# the directories below and called them in order.  The last of those sources is
+# gone now that every suite is GoogleTest, so the list is empty; it is kept so
+# the mechanism is still here if a hand-ordered suite ever comes back.
+DISPATCH_DIRS = []
 
 DEF_RE = re.compile(r'^(?:void|int)\s+(test_\w+)\s*\(\s*\)\s*(?:\n\s*)?\{', re.M)
 CALL_RE = re.compile(r'\b(test_\w+)\s*\(\s*\)\s*;')

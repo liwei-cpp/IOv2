@@ -1,135 +1,152 @@
-#include <limits>
-#include <stdexcept>
-#include <system_error>
-#include <string>
-#include <string_view>
+/**
+ * put_time and get_time.
+ *
+ * Both hand a std::tm and a format string to the time facet, so every
+ * conversion specifier and every name is the locale's; what the manipulators
+ * own is only that the format reaches the facet unchanged and that the result
+ * is reported through the stream.
+ *
+ * get_time is the larger half, because parsing has to decide what happens to
+ * the fields the format does not mention. IOv2 leaves them as the caller left
+ * them rather than taking them from the wall clock, recomputes tm_wday and
+ * tm_yday from the resulting date, and normalises out-of-range fields with
+ * std::chrono so that no TZ or DST state can perturb the answer.
+ */
 #include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/tm.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <support/dump_info.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <io/traits/tm.h>
+#include <locale/locale.h>
+
 #include <support/io_traits_probe.h>
-#include <support/verify.h>
+
+#include <gtest/gtest.h>
+
+#include <ctime>
+#include <string>
+#include <string_view>
+
+using namespace IOv2;
 
 namespace
 {
-    std::tm test_tm(int sec, int min, int hour, int mday, int mon, int year, int wday, int yday, int isdst)
+    // Static so that the members this helper does not name -- tm_gmtoff and
+    // tm_zone on glibc -- start out zeroed rather than indeterminate.
+    std::tm test_tm(int sec, int min, int hour, int mday, int mon, int year,
+                    int wday, int yday, int isdst)
     {
         static std::tm tmp;
-        tmp.tm_sec = sec;
-        tmp.tm_min = min;
-        tmp.tm_hour = hour;
-        tmp.tm_mday = mday;
-        tmp.tm_mon = mon;
-        tmp.tm_year = year;
-        tmp.tm_wday = wday;
-        tmp.tm_yday = yday;
+        tmp.tm_sec   = sec;
+        tmp.tm_min   = min;
+        tmp.tm_hour  = hour;
+        tmp.tm_mday  = mday;
+        tmp.tm_mon   = mon;
+        tmp.tm_year  = year;
+        tmp.tm_wday  = wday;
+        tmp.tm_yday  = yday;
         tmp.tm_isdst = isdst;
         return tmp;
     }
+
+    bool have_locale(const char* name)
+    {
+        try { (void)locale<char>(name); }
+        catch (const cvt_error&) { return false; }
+        return true;
+    }
+
+    // 2024-02-29 was a Thursday: a leap day, so a format that reaches the date
+    // arithmetic at all has somewhere to go wrong.
+    std::tm leap_day() { return test_tm(0, 0, 12, 29, 1, 124, 4, 59, 0); }
 }
 
-void test_io_base_manipulators_put_time_char_1()
+// The format reaches the facet unchanged, specifier for specifier.
+TEST(IoBaseManipTime, PutTimeWritesWhateverTheFormatAsksFor)
 {
-    dump_info("Test ios_base<char> put_time case 1...");
+    const std::tm when = leap_day();
 
-    IOv2::ostream oss{IOv2::mem_device{""}, IOv2::locale<char>("C")};
-    const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
-    oss << IOv2::put_time(&time1, "%a %Y");
-    auto [dev1, err1] = oss.detach();
-    VERIFY(dev1.str() == "Sun 1971");
-
-    dump_info("Done\n");
+    {
+        ostream oss{mem_device{""}, locale<char>("C")};
+        oss << put_time(&when, "%Y-%m-%d");
+        auto [dev, err] = oss.detach();
+        EXPECT_EQ(dev.str(), "2024-02-29");
+    }
+    {
+        ostream oss{mem_device{""}, locale<char>("C")};
+        oss << put_time(&when, "%A %H:%M");
+        auto [dev, err] = oss.detach();
+        EXPECT_EQ(dev.str(), "Thursday 12:00");
+    }
 }
 
-void test_io_base_manipulators_put_time_char_2()
+// The names are the locale's, not the library's.
+TEST(IoBaseManipTime, TheNamesComeFromTheLocale)
 {
-    dump_info("Test ios_base<char> put_time case 2...");
+    if (!have_locale("de_DE.UTF-8"))
+        GTEST_SKIP() << "de_DE.UTF-8 is not installed here";
 
-    IOv2::ostream oss{IOv2::mem_device{""}, IOv2::locale<char>("de_DE.UTF-8")};
-    const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
-    oss << IOv2::put_time(&time1, "%A %Y");
-    auto [dev2, err2] = oss.detach();
-    VERIFY(dev2.str() == "Sonntag 1971");
+    const std::tm when = leap_day();
 
-    dump_info("Done\n");
+    ostream oss{mem_device{""}, locale<char>("de_DE.UTF-8")};
+    oss << put_time(&when, "%A, %d.%m.%Y");
+    auto [dev, err] = oss.detach();
+    EXPECT_EQ(dev.str(), "Donnerstag, 29.02.2024");
 }
 
-void test_io_base_manipulators_put_time_wchar_t_1()
+TEST(IoBaseManipTime, PutTimeBehavesTheSameOnAWideStream)
 {
-    dump_info("Test ios_base<wchar_t> put_time case 1...");
+    const std::tm when = leap_day();
 
-    IOv2::ostream oss{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("C")};
-    const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
-    oss << IOv2::put_time(&time1, L"%a %Y");
-    auto [dev3, err3] = oss.detach();
-    VERIFY(dev3.str() == L"Sun 1971");
-
-    dump_info("Done\n");
+    ostream oss{mem_device{L""}, locale<wchar_t>("C")};
+    oss << put_time(&when, L"%A %Y-%m-%d");
+    auto [dev, err] = oss.detach();
+    EXPECT_EQ(dev.str(), L"Thursday 2024-02-29");
 }
 
-void test_io_base_manipulators_put_time_wchar_t_2()
+TEST(IoBaseManipTime, GetTimeReadsBackWhatPutTimeWrote)
 {
-    dump_info("Test ios_base<wchar_t> put_time case 2...");
-
-    IOv2::ostream oss{IOv2::mem_device{L""}, IOv2::locale<wchar_t>("de_DE.UTF-8")};
-    const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
-    oss << IOv2::put_time(&time1, L"%A %Y");
-    auto [dev4, err4] = oss.detach();
-    VERIFY(dev4.str() == L"Sonntag 1971");
-
-    dump_info("Done\n");
-}
-void test_io_base_manipulators_get_time_char_1()
-{
-    dump_info("Test ios_base<char> get_time case 1...");
-
     // Round-trips put_time. Exercises the idiomatic rvalue form `is >> get_time(...)`,
     // which needs the by-value operator>> overload.
-    IOv2::istream iss{IOv2::mem_device{std::string("1971-04-04 12:34:56")},
-                      IOv2::locale<char>("C")};
+    istream iss{mem_device{std::string("1971-04-04 12:34:56")},
+                      locale<char>("C")};
 
     std::tm parsed{};
-    iss >> IOv2::get_time(&parsed, "%Y-%m-%d %H:%M:%S");
-    VERIFY(static_cast<bool>(iss));
-    VERIFY(!iss.str_fail());
-    VERIFY(parsed.tm_year == 71);
-    VERIFY(parsed.tm_mon == 3);
-    VERIFY(parsed.tm_mday == 4);
-    VERIFY(parsed.tm_hour == 12);
-    VERIFY(parsed.tm_min == 34);
-    VERIFY(parsed.tm_sec == 56);
+    iss >> get_time(&parsed, "%Y-%m-%d %H:%M:%S");
+    EXPECT_TRUE(static_cast<bool>(iss));
+    EXPECT_FALSE(iss.str_fail());
+    EXPECT_EQ(parsed.tm_year, 71);
+    EXPECT_EQ(parsed.tm_mon, 3);
+    EXPECT_EQ(parsed.tm_mday, 4);
+    EXPECT_EQ(parsed.tm_hour, 12);
+    EXPECT_EQ(parsed.tm_min, 34);
+    EXPECT_EQ(parsed.tm_sec, 56);
     // Derived by the context, not present in the input.
-    VERIFY(parsed.tm_wday == 0);
-    VERIFY(parsed.tm_yday == 93);
-
-    dump_info("Done\n");
+    EXPECT_EQ(parsed.tm_wday, 0);
+    EXPECT_EQ(parsed.tm_yday, 93);
 }
 
-void test_io_base_manipulators_get_time_char_2()
+TEST(IoBaseManipTime, ANullTargetOrFormatIsReportedNotDereferenced)
 {
-    dump_info("Test ios_base<char> get_time case 2...");
-
     // Null tm / format pointers are reported as a stream failure rather than
     // dereferenced; the target must be left untouched.
     std::tm parsed{};
     parsed.tm_year = 42;
 
-    IOv2::istream iss{IOv2::mem_device{std::string("1971-04-04 12:34:56")},
-                      IOv2::locale<char>("C")};
-    iss >> IOv2::get_time(&parsed, static_cast<const char*>(nullptr));
-    VERIFY(iss.str_fail());
-    VERIFY(parsed.tm_year == 42);
+    istream iss{mem_device{std::string("1971-04-04 12:34:56")},
+                      locale<char>("C")};
+    iss >> get_time(&parsed, static_cast<const char*>(nullptr));
+    EXPECT_TRUE(iss.str_fail());
+    EXPECT_EQ(parsed.tm_year, 42);
 
-    IOv2::istream iss2{IOv2::mem_device{std::string("1971-04-04 12:34:56")},
-                       IOv2::locale<char>("C")};
-    iss2 >> IOv2::get_time(static_cast<std::tm*>(nullptr), "%Y-%m-%d %H:%M:%S");
-    VERIFY(iss2.str_fail());
+    istream iss2{mem_device{std::string("1971-04-04 12:34:56")},
+                       locale<char>("C")};
+    iss2 >> get_time(static_cast<std::tm*>(nullptr), "%Y-%m-%d %H:%M:%S");
+    EXPECT_TRUE(iss2.str_fail());
 
     // The null check lives in io_traits<...>::sread, which the extraction operator calls after
     // building its sentry, so the leading whitespace skipws consumes is gone by the time the
@@ -138,53 +155,47 @@ void test_io_base_manipulators_get_time_char_2()
     for (int null_fmt = 0; null_fmt < 2; ++null_fmt)
     {
         std::tm target{};
-        IOv2::istream iss3{IOv2::mem_device{std::string("   1971-04-04")},
-                           IOv2::locale<char>("C")};
-        VERIFY(iss3.tell() == 0);
+        istream iss3{mem_device{std::string("   1971-04-04")},
+                           locale<char>("C")};
+        EXPECT_EQ(iss3.tell(), 0);
 
         if (null_fmt != 0)
-            iss3 >> IOv2::get_time(&target, static_cast<const char*>(nullptr));
+            iss3 >> get_time(&target, static_cast<const char*>(nullptr));
         else
-            iss3 >> IOv2::get_time(static_cast<std::tm*>(nullptr), "%Y-%m-%d");
+            iss3 >> get_time(static_cast<std::tm*>(nullptr), "%Y-%m-%d");
 
-        VERIFY(iss3.str_fail());
+        EXPECT_TRUE(iss3.str_fail());
         iss3.clear();
-        VERIFY(iss3.tell() == 3);
+        EXPECT_EQ(iss3.tell(), 3);
 
         // Retrying from that position still sees the whole input.
-        iss3 >> IOv2::get_time(&target, "%Y-%m-%d");
-        VERIFY(!iss3.str_fail());
-        VERIFY(target.tm_year == 71 && target.tm_mon == 3 && target.tm_mday == 4);
+        iss3 >> get_time(&target, "%Y-%m-%d");
+        EXPECT_FALSE(iss3.str_fail());
+        EXPECT_EQ(target.tm_year, 71);
+        EXPECT_EQ(target.tm_mon, 3);
+        EXPECT_EQ(target.tm_mday, 4);
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_get_time_wchar_t_1()
+TEST(IoBaseManipTime, GetTimeBehavesTheSameOnAWideStream)
 {
-    dump_info("Test ios_base<wchar_t> get_time case 1...");
-
-    IOv2::istream iss{IOv2::mem_device{std::wstring(L"1971-04-04 12:34:56")},
-                      IOv2::locale<wchar_t>("C")};
+    istream iss{mem_device{std::wstring(L"1971-04-04 12:34:56")},
+                      locale<wchar_t>("C")};
 
     std::tm parsed{};
-    iss >> IOv2::get_time(&parsed, L"%Y-%m-%d %H:%M:%S");
-    VERIFY(static_cast<bool>(iss));
-    VERIFY(!iss.str_fail());
-    VERIFY(parsed.tm_year == 71);
-    VERIFY(parsed.tm_mon == 3);
-    VERIFY(parsed.tm_mday == 4);
-    VERIFY(parsed.tm_hour == 12);
-    VERIFY(parsed.tm_min == 34);
-    VERIFY(parsed.tm_sec == 56);
-
-    dump_info("Done\n");
+    iss >> get_time(&parsed, L"%Y-%m-%d %H:%M:%S");
+    EXPECT_TRUE(static_cast<bool>(iss));
+    EXPECT_FALSE(iss.str_fail());
+    EXPECT_EQ(parsed.tm_year, 71);
+    EXPECT_EQ(parsed.tm_mon, 3);
+    EXPECT_EQ(parsed.tm_mday, 4);
+    EXPECT_EQ(parsed.tm_hour, 12);
+    EXPECT_EQ(parsed.tm_min, 34);
+    EXPECT_EQ(parsed.tm_sec, 56);
 }
 
-void test_io_base_manipulators_get_time_char_3()
+TEST(IoBaseManipTime, FieldsTheFormatDoesNotMentionKeepTheirPreviousValues)
 {
-    dump_info("Test ios_base<char> get_time case 3...");
-
     // Fields the format string does not parse keep the values the target already held,
     // instead of being taken from the wall clock.
     const std::tm preset = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);   // 2020-05-17 09:08:07
@@ -192,52 +203,62 @@ void test_io_base_manipulators_get_time_char_3()
     // Time only: the date is untouched.
     {
         std::tm parsed = preset;
-        IOv2::istream iss{IOv2::mem_device{std::string("23:45")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%H:%M");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 120 && parsed.tm_mon == 4 && parsed.tm_mday == 17);
-        VERIFY(parsed.tm_hour == 23 && parsed.tm_min == 45 && parsed.tm_sec == 7);
+        istream iss{mem_device{std::string("23:45")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%H:%M");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 120);
+        EXPECT_EQ(parsed.tm_mon, 4);
+        EXPECT_EQ(parsed.tm_mday, 17);
+        EXPECT_EQ(parsed.tm_hour, 23);
+        EXPECT_EQ(parsed.tm_min, 45);
+        EXPECT_EQ(parsed.tm_sec, 7);
     }
 
     // Date only: the time is untouched.
     {
         std::tm parsed = preset;
-        IOv2::istream iss{IOv2::mem_device{std::string("1999-12-31")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%Y-%m-%d");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 99 && parsed.tm_mon == 11 && parsed.tm_mday == 31);
-        VERIFY(parsed.tm_hour == 9 && parsed.tm_min == 8 && parsed.tm_sec == 7);
+        istream iss{mem_device{std::string("1999-12-31")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%Y-%m-%d");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 99);
+        EXPECT_EQ(parsed.tm_mon, 11);
+        EXPECT_EQ(parsed.tm_mday, 31);
+        EXPECT_EQ(parsed.tm_hour, 9);
+        EXPECT_EQ(parsed.tm_min, 8);
+        EXPECT_EQ(parsed.tm_sec, 7);
     }
 
     // Month and day only: the year is untouched.
     {
         std::tm parsed = preset;
-        IOv2::istream iss{IOv2::mem_device{std::string("03/04")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%m/%d");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 120 && parsed.tm_mon == 2 && parsed.tm_mday == 4);
+        istream iss{mem_device{std::string("03/04")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%m/%d");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 120);
+        EXPECT_EQ(parsed.tm_mon, 2);
+        EXPECT_EQ(parsed.tm_mday, 4);
     }
 
     // Two extractions accumulate into one tm: the first one's result is not wiped by the
     // second one's unparsed fields.
     {
         std::tm parsed = preset;
-        IOv2::istream iss{IOv2::mem_device{std::string("2001-02-03")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%Y-%m-%d");
-        IOv2::istream iss2{IOv2::mem_device{std::string("11:22:33")}, IOv2::locale<char>("C")};
-        iss2 >> IOv2::get_time(&parsed, "%H:%M:%S");
-        VERIFY(!iss.str_fail() && !iss2.str_fail());
-        VERIFY(parsed.tm_year == 101 && parsed.tm_mon == 1 && parsed.tm_mday == 3);
-        VERIFY(parsed.tm_hour == 11 && parsed.tm_min == 22 && parsed.tm_sec == 33);
+        istream iss{mem_device{std::string("2001-02-03")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%Y-%m-%d");
+        istream iss2{mem_device{std::string("11:22:33")}, locale<char>("C")};
+        iss2 >> get_time(&parsed, "%H:%M:%S");
+        EXPECT_FALSE(iss.str_fail() && !iss2.str_fail());
+        EXPECT_EQ(parsed.tm_year, 101);
+        EXPECT_EQ(parsed.tm_mon, 1);
+        EXPECT_EQ(parsed.tm_mday, 3);
+        EXPECT_EQ(parsed.tm_hour, 11);
+        EXPECT_EQ(parsed.tm_min, 22);
+        EXPECT_EQ(parsed.tm_sec, 33);
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_get_time_char_4()
+TEST(IoBaseManipTime, WdayAndYdayAreRecomputedFromTheResultingDate)
 {
-    dump_info("Test ios_base<char> get_time case 4...");
-
     const std::tm preset = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);   // 2020-05-17 09:08:07
 
     // tm_wday / tm_yday are always recomputed from the resulting date, and tm_isdst is
@@ -245,29 +266,29 @@ void test_io_base_manipulators_get_time_char_4()
     // value would be wrong once the date has been rewritten.
     {
         std::tm parsed = preset;
-        IOv2::istream iss{IOv2::mem_device{std::string("2026-07-28")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%Y-%m-%d");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_wday == 2);
-        VERIFY(parsed.tm_yday == 208);
-        VERIFY(parsed.tm_isdst == -1);
+        istream iss{mem_device{std::string("2026-07-28")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%Y-%m-%d");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_wday, 2);
+        EXPECT_EQ(parsed.tm_yday, 208);
+        EXPECT_EQ(parsed.tm_isdst, -1);
     }
 
     // A two-digit year keeps following the POSIX century rule; the target's century does
     // not leak into it.
     {
         std::tm parsed = preset;
-        IOv2::istream iss{IOv2::mem_device{std::string("03")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%y");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 2003 - 1900);
+        istream iss{mem_device{std::string("03")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%y");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 2003 - 1900);
 
         std::tm parsed2 = preset;
         parsed2.tm_year = 1875 - 1900;
-        IOv2::istream iss2{IOv2::mem_device{std::string("03")}, IOv2::locale<char>("C")};
-        iss2 >> IOv2::get_time(&parsed2, "%y");
-        VERIFY(!iss2.str_fail());
-        VERIFY(parsed2.tm_year == 2003 - 1900);
+        istream iss2{mem_device{std::string("03")}, locale<char>("C")};
+        iss2 >> get_time(&parsed2, "%y");
+        EXPECT_FALSE(iss2.str_fail());
+        EXPECT_EQ(parsed2.tm_year, 2003 - 1900);
     }
 
     // %C alone leaves the year within the century open, and that one is 0 rather than the
@@ -275,20 +296,17 @@ void test_io_base_manipulators_get_time_char_4()
     // %C says nothing about at all, do still come from the target.
     {
         std::tm parsed = preset;
-        IOv2::istream iss{IOv2::mem_device{std::string("18")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%C");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 1800 - 1900);
-        VERIFY(parsed.tm_mon == 4 && parsed.tm_mday == 17);
+        istream iss{mem_device{std::string("18")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%C");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 1800 - 1900);
+        EXPECT_EQ(parsed.tm_mon, 4);
+        EXPECT_EQ(parsed.tm_mday, 17);
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_get_time_char_5()
+TEST(IoBaseManipTime, OutOfRangeFieldsAreNormalisedWithoutConsultingTheTimezone)
 {
-    dump_info("Test ios_base<char> get_time case 5...");
-
     // Out-of-range tm fields are normalized with std::chrono rather than mktime, so no
     // TZ / DST state can perturb them.
     struct { int year, mon, mday, sec; int exp_year, exp_mon, exp_mday, exp_sec; } cases[] = {
@@ -302,22 +320,22 @@ void test_io_base_manipulators_get_time_char_5()
     for (const auto& c : cases)
     {
         std::tm parsed = test_tm(c.sec, 8, 9, c.mday, c.mon, c.year, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string("09")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%H");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == c.exp_year - 1900);
-        VERIFY(parsed.tm_mon == c.exp_mon - 1);
-        VERIFY(parsed.tm_mday == c.exp_mday);
-        VERIFY(parsed.tm_sec == c.exp_sec);
+        istream iss{mem_device{std::string("09")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%H");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, c.exp_year - 1900);
+        EXPECT_EQ(parsed.tm_mon, c.exp_mon - 1);
+        EXPECT_EQ(parsed.tm_mday, c.exp_mday);
+        EXPECT_EQ(parsed.tm_sec, c.exp_sec);
     }
 
     // A year far outside what std::chrono::year can hold is clamped instead of wrapping.
     {
         std::tm parsed = test_tm(7, 8, 9, 17, 4, 100000, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string("09")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%H");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 32767 - 1900);
+        istream iss{mem_device{std::string("09")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%H");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 32767 - 1900);
     }
 
     // A day carried over from the target that does not exist in the parsed month becomes
@@ -335,31 +353,28 @@ void test_io_base_manipulators_get_time_char_5()
     for (const auto& c : yields)
     {
         std::tm parsed = test_tm(7, 8, 9, c.mday, c.mon, c.year, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string(c.in)}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, c.fmt);
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == c.exp_year - 1900);
-        VERIFY(parsed.tm_mon == c.exp_mon - 1);
-        VERIFY(parsed.tm_mday == c.exp_mday);
+        istream iss{mem_device{std::string(c.in)}, locale<char>("C")};
+        iss >> get_time(&parsed, c.fmt);
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, c.exp_year - 1900);
+        EXPECT_EQ(parsed.tm_mon, c.exp_mon - 1);
+        EXPECT_EQ(parsed.tm_mday, c.exp_mday);
     }
 
     // A day that really was parsed does not give way: February 31 is reported as a failed
     // extraction and the target is left untouched.
     {
         std::tm parsed = test_tm(7, 8, 9, 15, 1, 120, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string("31")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%d");
-        VERIFY(iss.str_fail());
-        VERIFY(parsed.tm_mon == 1 && parsed.tm_mday == 15);
+        istream iss{mem_device{std::string("31")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%d");
+        EXPECT_TRUE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_mon, 1);
+        EXPECT_EQ(parsed.tm_mday, 15);
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_get_time_char_6()
+TEST(IoBaseManipTime, ExtractingATmDirectlyGetsTheSameTreatment)
 {
-    dump_info("Test ios_base<char> get_time case 6...");
-
     // `is >> tm` goes through parse_context_type<char, std::tm> and gets the same
     // treatment. The C locale's %c is %a %b %e %H:%M:%S %Y, and the stream format appends
     // %z and (%Z) where the platform's tm carries tm_gmtoff and tm_zone, so the input
@@ -367,41 +382,43 @@ void test_io_base_manipulators_get_time_char_6()
     {
         std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);
 #ifdef __USE_MISC
-        IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018 +0530 (IST)")},
-                          IOv2::locale<char>("C")};
+        istream iss{mem_device{std::string("Tue Feb  6 07:08:09 2018 +0530 (IST)")},
+                          locale<char>("C")};
 #else
-        IOv2::istream iss{IOv2::mem_device{std::string("Tue Feb  6 07:08:09 2018")},
-                          IOv2::locale<char>("C")};
+        istream iss{mem_device{std::string("Tue Feb  6 07:08:09 2018")},
+                          locale<char>("C")};
 #endif
         iss >> parsed;
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 118 && parsed.tm_mon == 1 && parsed.tm_mday == 6);
-        VERIFY(parsed.tm_hour == 7 && parsed.tm_min == 8 && parsed.tm_sec == 9);
-        VERIFY(parsed.tm_wday == 2 && parsed.tm_yday == 36);
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 118);
+        EXPECT_EQ(parsed.tm_mon, 1);
+        EXPECT_EQ(parsed.tm_mday, 6);
+        EXPECT_EQ(parsed.tm_hour, 7);
+        EXPECT_EQ(parsed.tm_min, 8);
+        EXPECT_EQ(parsed.tm_sec, 9);
+        EXPECT_EQ(parsed.tm_wday, 2);
+        EXPECT_EQ(parsed.tm_yday, 36);
         // The point of appending them: the offset and the zone reach the tm rather than
         // being dropped. Each restores its own member; neither substitutes for the other.
 #ifdef __USE_MISC
-        VERIFY(parsed.tm_gmtoff == 5 * 3600 + 30 * 60);
-        VERIFY(parsed.tm_zone != nullptr && std::string_view(parsed.tm_zone) == "IST");
+        EXPECT_EQ(parsed.tm_gmtoff, 5 * 3600 + 30 * 60);
+        EXPECT_NE(parsed.tm_zone, nullptr);
+        EXPECT_EQ(std::string_view(parsed.tm_zone), "IST");
 #endif
     }
 
     // Types without a parse context of their own keep extracting as before.
     {
         int n = 7;
-        IOv2::istream iss{IOv2::mem_device{std::string("42")}, IOv2::locale<char>("C")};
+        istream iss{mem_device{std::string("42")}, locale<char>("C")};
         iss >> n;
-        VERIFY(!iss.str_fail());
-        VERIFY(n == 42);
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(n, 42);
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_get_time_char_7()
+TEST(IoBaseManipTime, AnOutOfRangeTimeFieldCarriesIntoTheDate)
 {
-    dump_info("Test ios_base<char> get_time case 7...");
-
     // An out-of-range time field in the target carries into the date, exactly as the date
     // group already did. Before the fix the time was reduced modulo 24 hours and the day that
     // fell out was dropped, so 00:00:-5 stayed on the same day instead of moving back one --
@@ -425,15 +442,15 @@ void test_io_base_manipulators_get_time_char_7()
     for (const auto& c : carry)
     {
         std::tm parsed = test_tm(c.sec, c.min, c.hour, 1, 0, 121, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string("|")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "|");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == c.exp_year - 1900);
-        VERIFY(parsed.tm_mon == c.exp_mon - 1);
-        VERIFY(parsed.tm_mday == c.exp_mday);
-        VERIFY(parsed.tm_hour == c.exp_hour);
-        VERIFY(parsed.tm_min == c.exp_min);
-        VERIFY(parsed.tm_sec == c.exp_sec);
+        istream iss{mem_device{std::string("|")}, locale<char>("C")};
+        iss >> get_time(&parsed, "|");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, c.exp_year - 1900);
+        EXPECT_EQ(parsed.tm_mon, c.exp_mon - 1);
+        EXPECT_EQ(parsed.tm_mday, c.exp_mday);
+        EXPECT_EQ(parsed.tm_hour, c.exp_hour);
+        EXPECT_EQ(parsed.tm_min, c.exp_min);
+        EXPECT_EQ(parsed.tm_sec, c.exp_sec);
     }
 
     // The time carry and the date group's own normalization share one carry rather than being
@@ -441,42 +458,48 @@ void test_io_base_manipulators_get_time_char_7()
     // on January 1.
     {
         std::tm parsed = test_tm(0, 0, 24, 0, 0, 121, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string("|")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "|");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 0 && parsed.tm_mday == 1);
-        VERIFY(parsed.tm_hour == 0 && parsed.tm_min == 0 && parsed.tm_sec == 0);
+        istream iss{mem_device{std::string("|")}, locale<char>("C")};
+        iss >> get_time(&parsed, "|");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 121);
+        EXPECT_EQ(parsed.tm_mon, 0);
+        EXPECT_EQ(parsed.tm_mday, 1);
+        EXPECT_EQ(parsed.tm_hour, 0);
+        EXPECT_EQ(parsed.tm_min, 0);
+        EXPECT_EQ(parsed.tm_sec, 0);
     }
 
     // A leap second is still the one truncation in the time group: 60 becomes 59 and carries
     // nothing, so 23:59:60 stays on its own day.
     {
         std::tm parsed = test_tm(60, 59, 23, 1, 0, 121, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string("|")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "|");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 0 && parsed.tm_mday == 1);
-        VERIFY(parsed.tm_hour == 23 && parsed.tm_min == 59 && parsed.tm_sec == 59);
+        istream iss{mem_device{std::string("|")}, locale<char>("C")};
+        iss >> get_time(&parsed, "|");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 121);
+        EXPECT_EQ(parsed.tm_mon, 0);
+        EXPECT_EQ(parsed.tm_mday, 1);
+        EXPECT_EQ(parsed.tm_hour, 23);
+        EXPECT_EQ(parsed.tm_min, 59);
+        EXPECT_EQ(parsed.tm_sec, 59);
     }
 
     // Parsed fields still win over the fallback: the carry only decides what the format string
     // leaves alone. Here the day has already moved to the 2nd when %H overwrites the hour.
     {
         std::tm parsed = test_tm(0, 0, 24, 1, 0, 121, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string("07")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%H");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 0 && parsed.tm_mday == 2);
-        VERIFY(parsed.tm_hour == 7);
+        istream iss{mem_device{std::string("07")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%H");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 121);
+        EXPECT_EQ(parsed.tm_mon, 0);
+        EXPECT_EQ(parsed.tm_mday, 2);
+        EXPECT_EQ(parsed.tm_hour, 7);
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_get_time_char_8()
+TEST(IoBaseManipTime, AWeekdayIsResolvedAgainstTheFallbackDate)
 {
-    dump_info("Test ios_base<char> get_time case 8...");
-
     // Weekday and week-number specifiers against a fallback date. A weekday states only a
     // position within some week, so a date can be rebuilt from it only against a reference.
     // That reference used to be January 1 of the deduced year -- "assume week number is 1" --
@@ -505,14 +528,16 @@ void test_io_base_manipulators_get_time_char_8()
     for (const auto& c : wd)
     {
         std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 0);    // 2020-05-17 09:08:07
-        IOv2::istream iss{IOv2::mem_device{std::string(c.input)}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, c.fmt);
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 120);
-        VERIFY(parsed.tm_mon == c.exp_mon - 1);
-        VERIFY(parsed.tm_mday == c.exp_mday);
-        VERIFY(parsed.tm_wday == c.exp_wday);
-        VERIFY(parsed.tm_hour == 9 && parsed.tm_min == 8 && parsed.tm_sec == 7);
+        istream iss{mem_device{std::string(c.input)}, locale<char>("C")};
+        iss >> get_time(&parsed, c.fmt);
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 120);
+        EXPECT_EQ(parsed.tm_mon, c.exp_mon - 1);
+        EXPECT_EQ(parsed.tm_mday, c.exp_mday);
+        EXPECT_EQ(parsed.tm_wday, c.exp_wday);
+        EXPECT_EQ(parsed.tm_hour, 9);
+        EXPECT_EQ(parsed.tm_min, 8);
+        EXPECT_EQ(parsed.tm_sec, 7);
     }
 
     // %V without %G takes the year from the same deduction every other path uses, so a week
@@ -530,12 +555,12 @@ void test_io_base_manipulators_get_time_char_8()
     for (const auto& c : iso)
     {
         std::tm parsed = test_tm(0, 0, 0, 17, 4, 120, 0, 0, 0);
-        IOv2::istream iss{IOv2::mem_device{std::string(c.input)}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, c.fmt);
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == c.exp_year - 1900);
-        VERIFY(parsed.tm_mon == c.exp_mon - 1);
-        VERIFY(parsed.tm_mday == c.exp_mday);
+        istream iss{mem_device{std::string(c.input)}, locale<char>("C")};
+        iss >> get_time(&parsed, c.fmt);
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, c.exp_year - 1900);
+        EXPECT_EQ(parsed.tm_mon, c.exp_mon - 1);
+        EXPECT_EQ(parsed.tm_mday, c.exp_mday);
     }
 
     // An inert weekday must not keep the day out of the clamp: the fallback day is still a
@@ -543,35 +568,37 @@ void test_io_base_manipulators_get_time_char_8()
     // reaching year_month_day as a nonexistent February 31.
     {
         std::tm parsed = test_tm(0, 0, 0, 31, 0, 120, 0, 0, 0);    // 2020-01-31, a leap year
-        IOv2::istream iss{IOv2::mem_device{std::string("02 Sun")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%m %a");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 120 && parsed.tm_mon == 1 && parsed.tm_mday == 29);
+        istream iss{mem_device{std::string("02 Sun")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%m %a");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 120);
+        EXPECT_EQ(parsed.tm_mon, 1);
+        EXPECT_EQ(parsed.tm_mday, 29);
     }
     {
         std::tm parsed = test_tm(0, 0, 0, 31, 0, 121, 0, 0, 0);    // 2021-01-31, not a leap year
-        IOv2::istream iss{IOv2::mem_device{std::string("02 Sun")}, IOv2::locale<char>("C")};
-        iss >> IOv2::get_time(&parsed, "%m %a");
-        VERIFY(!iss.str_fail());
-        VERIFY(parsed.tm_year == 121 && parsed.tm_mon == 1 && parsed.tm_mday == 28);
+        istream iss{mem_device{std::string("02 Sun")}, locale<char>("C")};
+        iss >> get_time(&parsed, "%m %a");
+        EXPECT_FALSE(iss.str_fail());
+        EXPECT_EQ(parsed.tm_year, 121);
+        EXPECT_EQ(parsed.tm_mon, 1);
+        EXPECT_EQ(parsed.tm_mday, 28);
     }
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_get_time_wchar_t_2()
+TEST(IoBaseManipTime, TheFallbacksAreIndependentOfTheCharacterType)
 {
-    dump_info("Test ios_base<wchar_t> get_time case 2...");
-
     // The fallbacks are independent of the character type.
     std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);        // 2020-05-17 09:08:07
-    IOv2::istream iss{IOv2::mem_device{std::wstring(L"23:45")}, IOv2::locale<wchar_t>("C")};
-    iss >> IOv2::get_time(&parsed, L"%H:%M");
-    VERIFY(!iss.str_fail());
-    VERIFY(parsed.tm_year == 120 && parsed.tm_mon == 4 && parsed.tm_mday == 17);
-    VERIFY(parsed.tm_hour == 23 && parsed.tm_min == 45 && parsed.tm_sec == 7);
-
-    dump_info("Done\n");
+    istream iss{mem_device{std::wstring(L"23:45")}, locale<wchar_t>("C")};
+    iss >> get_time(&parsed, L"%H:%M");
+    EXPECT_FALSE(iss.str_fail());
+    EXPECT_EQ(parsed.tm_year, 120);
+    EXPECT_EQ(parsed.tm_mon, 4);
+    EXPECT_EQ(parsed.tm_mday, 17);
+    EXPECT_EQ(parsed.tm_hour, 23);
+    EXPECT_EQ(parsed.tm_min, 45);
+    EXPECT_EQ(parsed.tm_sec, 7);
 }
 
 namespace
@@ -581,14 +608,14 @@ namespace
 // specialization itself rather than at the value-category and parse-context handling the operators
 // layer on top of it. The stream type drops out for the same reason it could never have carried
 // the direction -- an iostream satisfies istream_type and ostream_type alike.
-static_assert(  insertable <char, IOv2::put_time_t<char>> );
-static_assert( !extractable<char, IOv2::put_time_t<char>> );
-static_assert(  extractable<char, IOv2::get_time_t<char>> );
-static_assert( !insertable <char, IOv2::get_time_t<char>> );
+static_assert(  insertable <char, put_time_t<char>> );
+static_assert( !extractable<char, put_time_t<char>> );
+static_assert(  extractable<char, get_time_t<char>> );
+static_assert( !insertable <char, get_time_t<char>> );
 
 // The char_type has to match the manipulator's own: put_time/get_time carry the format string.
-static_assert( !insertable <wchar_t, IOv2::put_time_t<char>> );
-static_assert( !extractable<wchar_t, IOv2::get_time_t<char>> );
-static_assert(  insertable <wchar_t, IOv2::put_time_t<wchar_t>> );
-static_assert(  extractable<wchar_t, IOv2::get_time_t<wchar_t>> );
+static_assert( !insertable <wchar_t, put_time_t<char>> );
+static_assert( !extractable<wchar_t, get_time_t<char>> );
+static_assert(  insertable <wchar_t, put_time_t<wchar_t>> );
+static_assert(  extractable<wchar_t, get_time_t<wchar_t>> );
 }
