@@ -1,35 +1,48 @@
-#include <exception>
-#include <stdexcept>
-#include <string>
+/**
+ * Two unrelated pieces of ios_base state.
+ *
+ * boolalpha is the format flag that swaps a bool between digits and words; the
+ * words come from the numeric facet, so what it writes is the locale's business
+ * and the flag only decides which of the two forms is asked for.
+ *
+ * The second half is about handle_exception, which has to be idempotent: a
+ * failure that passes through two nested handling points must reach the caller
+ * as the same exception both times, not as a generic stand-in the second time
+ * round.
+ */
 #include <device/mem_device.h>
-#include <io/traits/arithmetic.h>
+#include <io/io_base.h>
 #include <io/ostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
-void test_io_base_boolalpha_1()
+#include <gtest/gtest.h>
+
+#include <exception>
+#include <string>
+
+using namespace IOv2;
+
+// The flag decides the form; the facet decides the words. Both forms are checked
+// on one stream, because setting the flag must not be a one-shot.
+TEST(IosBaseState, BoolalphaWritesTheWordsTheFacetSupplies)
 {
-    dump_info("Test ios_base::boolalpha case 1...");
+    ostream os(mem_device{""}, locale<char>("C"));
+    os.flags(ios_defs::boolalpha);
 
-    const std::string strue("true");
-    const std::string sfalse("false");
-    
-    IOv2::locale<char> loc_c("C");
-    IOv2::ostream ostr01(IOv2::mem_device{""}, loc_c);
-    ostr01.flags(IOv2::ios_defs::boolalpha);
+    os << true << ' ' << false << ' ' << true;
+    EXPECT_EQ(os.device().str(), "true false true");
+}
 
-    ostr01 << true;
-    auto [dev1, err1] = ostr01.detach();
-    std::string str02 = dev1.str();
-    VERIFY(str02 == strue);
+// Without the flag a bool is a number, and 0/1 rather than the value's bit
+// pattern.
+TEST(IosBaseState, WithoutBoolalphaABoolIsWrittenAsADigit)
+{
+    ostream os(mem_device{""}, locale<char>("C"));
 
-    ostr01.attach(IOv2::mem_device{""});
-    ostr01 << false;
-    auto [dev2, err2] = ostr01.detach();
-    str02 = dev2.str();
-    VERIFY(str02 == sfalse);
-
-    dump_info("Done\n");
+    os << true << ' ' << false;
+    EXPECT_EQ(os.device().str(), "1 0");
 }
 
 // Handling the same exception twice is observably the same as handling it once. Nested
@@ -38,45 +51,41 @@ void test_io_base_boolalpha_1()
 // regression would look like is the message being swapped, not a crash -- clear() falls back
 // to a generic stand-in ("stream failure bit has been set") whenever the category holds no
 // stored exception_ptr, and the first pass consumes the one that was stored.
-void test_io_base_state_handle_exception_idempotent_1()
+TEST(IosBaseState, HandlingTheSameExceptionTwiceReportsItTheSameWay)
 {
-    dump_info("Test ios_base::handle_exception idempotence case 1...");
-
     std::string original;
     std::exception_ptr ex;
     try
     {
-        throw IOv2::stream_error("handle_exception idempotence probe");
+        throw stream_error("handle_exception idempotence probe");
     }
-    catch (const IOv2::stream_error& e)
+    catch (const stream_error& e)
     {
         original = e.what();
         ex = std::current_exception();
     }
 
-    IOv2::ostream oss(IOv2::mem_device{""}, IOv2::locale<char>("C"));
-    oss.exceptions(IOv2::ios_defs::strfailbit);
+    ostream oss(mem_device{""}, locale<char>("C"));
+    oss.exceptions(ios_defs::strfailbit);
 
     std::string first;
     try { oss.handle_exception(ex); }
-    catch (const IOv2::stream_error& e) { first = e.what(); }
-    VERIFY(first == original);
-    VERIFY(oss.str_fail());
+    catch (const stream_error& e) { first = e.what(); }
+    EXPECT_EQ(first, original);
+    EXPECT_TRUE(oss.str_fail());
 
     std::string second;
     try { oss.handle_exception(ex); }
-    catch (const IOv2::stream_error& e) { second = e.what(); }
-    VERIFY(second == original);
-    VERIFY(oss.str_fail());
+    catch (const stream_error& e) { second = e.what(); }
+    EXPECT_EQ(second, original);
+    EXPECT_TRUE(oss.str_fail());
 
     // With the bit out of the mask neither pass throws, and the bit stays set.
     oss.clear();
-    oss.exceptions(IOv2::ios_defs::goodbit);
-    VERIFY(oss.good());
+    oss.exceptions(ios_defs::goodbit);
+    ASSERT_TRUE(oss.good());
 
-    oss.handle_exception(ex);
-    oss.handle_exception(ex);
-    VERIFY(oss.str_fail());
-
-    dump_info("Done\n");
+    EXPECT_NO_THROW(oss.handle_exception(ex));
+    EXPECT_NO_THROW(oss.handle_exception(ex));
+    EXPECT_TRUE(oss.str_fail());
 }

@@ -1,21 +1,20 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
 #include <cvt/code_cvt.h>
 #include <cvt/comp/zlib_cvt.h>
 #include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
 #include <io/io_manip.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+
 #include <support/injectable_device.h>
 #include <support/no_seek_device.h>
-#include <support/verify.h>
+
+#include <gtest/gtest.h>
+
+#include <string>
+#include <type_traits>
 
 namespace
 {
@@ -36,38 +35,32 @@ namespace
     }();
 }
 
-void test_iostream_switch_to_put_char_1()
+TEST(IostreamSwitchToPutChar, SwitchingOnAFreshStreamIsAlwaysAllowed)
 {
-    dump_info("Test iostream<char>::switch_to_put case 1...");
-
     {
         IOv2::iostream str(IOv2::mem_device{""});
         str.switch_to_put();
-        VERIFY(static_cast<bool>(str));
+        EXPECT_TRUE(static_cast<bool>(str));
     }
 
     {
         IOv2::iostream str(IOv2::mem_device{"abcde"});
         str.switch_to_put();
-        VERIFY(static_cast<bool>(str));
+        EXPECT_TRUE(static_cast<bool>(str));
     }
-
-    dump_info("Done\n");
 }
 
-void test_iostream_switch_to_put_char_2()
+TEST(IostreamSwitchToPutChar, APipelineThatCannotSwitchIsRejectedAtTheDeclaration)
 {
-    dump_info("Test iostream<char>::switch_to_put case 2...");
-
     IOv2::ostream ostr(IOv2::mem_device{""},
                        IOv2::Comp::zlib_cvt_creator<char>{6});
     ostr << s_e_lit;
-    VERIFY(static_cast<bool>(ostr));
+    EXPECT_TRUE(static_cast<bool>(ostr));
     auto [dev, err] = ostr.detach();
     std::string compress_res = dev.str();
 
-    VERIFY(!compress_res.empty());
-    VERIFY(compress_res.size() < s_e_lit.size());
+    EXPECT_FALSE(compress_res.empty());
+    EXPECT_TRUE(compress_res.size() < s_e_lit.size());
 
     // A zlib pipeline cannot change direction (support_io_switch is false), so an iostream over
     // one is rejected at the declaration level by base_streambuf's creator constructor
@@ -84,26 +77,20 @@ void test_iostream_switch_to_put_char_2()
     static_assert(std::is_constructible_v<IOv2::istream<IOv2::mem_device<char>, char>,
                                           IOv2::mem_device<char>,
                                           IOv2::Comp::zlib_cvt_creator<char>>);
-
-    dump_info("Done\n");
 }
 
-void test_iostream_switch_to_put_char_3()
+TEST(IostreamSwitchToPutChar, SwitchingAfterWritingThroughAConverterKeepsTheStreamGood)
 {
-    dump_info("Test iostream<char>::switch_to_put case 3...");
-
     IOv2::iostream str(IOv2::mem_device{""},
                        IOv2::code_cvt_creator<char, wchar_t>("C"));
     str << L"abcde";
-    VERIFY(static_cast<bool>(str));
+    EXPECT_TRUE(static_cast<bool>(str));
 
     str.seek(0);
-    VERIFY(static_cast<bool>(str));
+    EXPECT_TRUE(static_cast<bool>(str));
 
     str.switch_to_put();
-    VERIFY(static_cast<bool>(str));
-
-    dump_info("Done\n");
+    EXPECT_TRUE(static_cast<bool>(str));
 }
 
 namespace
@@ -117,8 +104,8 @@ namespace
     {
         std::string w;
         str >> w;
-        VERIFY(static_cast<bool>(str));
-        VERIFY(w == "ab");
+        EXPECT_TRUE(static_cast<bool>(str));
+        EXPECT_EQ(w, "ab");
     }
 }
 
@@ -128,10 +115,8 @@ namespace
 // -- and that the bit is devfailbit, not cvtfailbit, because switch_to_put() catches cvt_error,
 // which a device_error does not match, so it travels out unwrapped and the contextual "cannot
 // reposition N buffered/put-back character(s)" message is not generated here.
-void test_iostream_switch_to_put_char_4()
+TEST(IostreamSwitchToPutChar, ADeviceFailureDuringTheSwitchIsReportedAsDevfailbit)
 {
-    dump_info("Test iostream<char>::switch_to_put case 4...");
-
     // a dseek failure: the seek was reached, exactly one bit is set, and nothing is lost
     {
         injectable_device<char> dev{"ab cdef"};
@@ -147,13 +132,13 @@ void test_iostream_switch_to_put_char_4()
         str.switch_to_put();
         st->fail_dseek = false;
 
-        VERIFY(st->dseek == seek_before + 1);      // dseek was actually reached
-        VERIFY(st->dtell == tell_before + 1);
-        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);   // exactly one bit
+        EXPECT_EQ(st->dseek, seek_before + 1);      // dseek was actually reached
+        EXPECT_EQ(st->dtell, tell_before + 1);
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::devfailbit);   // exactly one bit
 
         str.clear();
-        VERIFY(str.tell() == pos_before);          // position survives the failed switch
-        VERIFY(str.peek() == ' ');                 // and so does the buffered delimiter
+        EXPECT_EQ(str.tell(), pos_before);          // position survives the failed switch
+        EXPECT_EQ(str.peek(), ' ');                 // and so does the buffered delimiter
     }
 
     // a dtell failure: the seek must NOT have been reached, which fixes the order
@@ -170,9 +155,9 @@ void test_iostream_switch_to_put_char_4()
         str.switch_to_put();
         st->fail_dtell = false;
 
-        VERIFY(st->dtell == tell_before + 1);
-        VERIFY(st->dseek == seek_before);          // tell comes first, and it never got past it
-        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);
+        EXPECT_EQ(st->dtell, tell_before + 1);
+        EXPECT_EQ(st->dseek, seek_before);          // tell comes first, and it never got past it
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::devfailbit);
     }
 
     // a character substituted by putback() is preserved just the same
@@ -188,11 +173,11 @@ void test_iostream_switch_to_put_char_4()
         str.switch_to_put();
         st->fail_dseek = false;
 
-        VERIFY(st->dseek == seek_before + 1);
-        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);
+        EXPECT_EQ(st->dseek, seek_before + 1);
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::devfailbit);
 
         str.clear();
-        VERIFY(str.peek() == 'Z');
+        EXPECT_EQ(str.peek(), 'Z');
     }
 
     // on an already-failed stream the call returns early: it touches neither primitive
@@ -205,7 +190,7 @@ void test_iostream_switch_to_put_char_4()
         st->fail_dseek = true;
         str.switch_to_put();                       // fails, leaving the stream in a bad state
         st->fail_dseek = false;
-        VERIFY(str.rdstate() == IOv2::ios_defs::devfailbit);
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::devfailbit);
 
         const auto state_before = str.rdstate();
         const auto seek_before  = st->dseek;
@@ -213,40 +198,36 @@ void test_iostream_switch_to_put_char_4()
 
         str.switch_to_put();                       // second call, stream still failed
 
-        VERIFY(str.rdstate() == state_before);
-        VERIFY(st->dseek == seek_before);
-        VERIFY(st->dtell == tell_before);
+        EXPECT_EQ(str.rdstate(), state_before);
+        EXPECT_EQ(st->dseek, seek_before);
+        EXPECT_EQ(st->dtell, tell_before);
     }
-
-    dump_info("Done\n");
 }
 
 // switch_to_put() when the CONVERTER cannot reposition -- the other half of the same
 // @warning in iostream.h. no_seek_device gets there without any fake converter kernel; see
 // the comment on that device for why. Here the bit is cvtfailbit, and because the throw comes
 // before the read buffer is cleared, the buffered content is kept rather than discarded.
-void test_iostream_switch_to_put_char_5()
+TEST(IostreamSwitchToPutChar, AConverterFailureDuringTheSwitchIsReportedAsCvtfailbit)
 {
-    dump_info("Test iostream<char>::switch_to_put case 5...");
-
     // a non-empty read buffer forces a reposition the pipeline cannot do
     {
         IOv2::iostream str(no_seek_device<char>{"ab cdef"});
         read_one_word(str);
 
         str.switch_to_put();
-        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);   // exactly one bit
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::cvtfailbit);   // exactly one bit
 
         str.clear();
-        VERIFY(str.peek() == ' ');   // thrown before the clear, so the delimiter is still there
+        EXPECT_EQ(str.peek(), ' ');   // thrown before the clear, so the delimiter is still there
     }
 
     // an empty read buffer needs no reposition at all, so the switch succeeds
     {
         IOv2::iostream str(no_seek_device<char>{"abcdef"});
         str.switch_to_put();
-        VERIFY(static_cast<bool>(str));
-        VERIFY(str.rdstate() == IOv2::ios_defs::goodbit);
+        EXPECT_TRUE(static_cast<bool>(str));
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::goodbit);
     }
 
     // clear() really clears it: the next switch sets the bit again rather than sticking
@@ -255,11 +236,11 @@ void test_iostream_switch_to_put_char_5()
         read_one_word(str);
 
         str.switch_to_put();
-        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::cvtfailbit);
         str.clear();
-        VERIFY(str.rdstate() == IOv2::ios_defs::goodbit);
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::goodbit);
         str.switch_to_put();
-        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::cvtfailbit);
     }
 
     // the original exception is stored, so what comes back out carries the context of the
@@ -268,7 +249,7 @@ void test_iostream_switch_to_put_char_5()
         IOv2::iostream str(no_seek_device<char>{"ab cdef"});
         read_one_word(str);
         str.switch_to_put();
-        VERIFY(str.rdstate() == IOv2::ios_defs::cvtfailbit);
+        EXPECT_EQ(str.rdstate(), IOv2::ios_defs::cvtfailbit);
 
         bool threw = false;
         try
@@ -278,10 +259,8 @@ void test_iostream_switch_to_put_char_5()
         catch (const IOv2::cvt_error& e)
         {
             threw = true;
-            VERIFY(std::string(e.what()).find("cannot reposition") != std::string::npos);
+            EXPECT_NE(std::string(e.what()).find("cannot reposition"), std::string::npos);
         }
-        VERIFY(threw);
+        EXPECT_TRUE(threw);
     }
-
-    dump_info("Done\n");
 }

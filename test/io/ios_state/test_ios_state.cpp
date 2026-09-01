@@ -1,10 +1,24 @@
+/**
+ * ios_state: the state bits, the exception mask, and the rule that ties them.
+ *
+ * Setting the mask is not a passive act. exceptions(mask) re-applies the state
+ * through clear(rdstate()), so arming a category whose bit is already set
+ * raises immediately -- and so does a later setstate(goodbit), which re-clears
+ * the same state and raises again. That is the whole of the first two tests,
+ * and it is the part callers are surprised by.
+ *
+ * The static_asserts at the top are a separate matter: fmtflags and iostate are
+ * two bitmask types, not two spellings of one integer, and keeping them apart
+ * is what stops a state bit being handed to a formatting interface.
+ */
+#include <io/io_base.h>
+#include <io/io_manip.h>
+
+#include <gtest/gtest.h>
+
 #include <cstdint>
 #include <string>
 #include <type_traits>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
 namespace
 {
@@ -49,84 +63,42 @@ static_assert((IOv2::ios_defs::adjustfield & ~IOv2::ios_defs::left)
 static_assert((IOv2::ios_defs::skipws | IOv2::ios_defs::dec) == fmt{0x1002});
 }
 
-void test_ios_state_1()
+// Arming a category on a stream that has not failed changes nothing else.
+TEST(IosState, ArmingACategoryOnACleanStreamIsQuiet)
 {
-    dump_info("Test ios_state case 1...");
-    {
-        IOv2::ios_state<char> ios_01;
-        VERIFY(ios_01.exceptions() == IOv2::ios_defs::goodbit);
-    }
-    {
-        IOv2::ios_state<char> ios_01;
-        try
-        {
-            ios_01.exceptions(IOv2::ios_defs::cvtfailbit);
-        }
-        catch(...)
-        {
-            dump_info("Unreachable code\n");
-            std::abort();
-        }
-        auto iostate02 = ios_01.exceptions();
-        VERIFY(iostate02 == IOv2::ios_defs::cvtfailbit);
-    }
-    {
-        IOv2::ios_defs::iostate iostate02 = IOv2::ios_defs::goodbit;
-        IOv2::ios_state<char> ios_01;
-        ios_01.clear(IOv2::ios_defs::cvtfailbit);
-        try
-        {
-            ios_01.exceptions(IOv2::ios_defs::cvtfailbit);
-            dump_info("Unreachable code\n");
-            std::abort();
-        }
-        catch (IOv2::cvt_error&)
-        {
-            iostate02 = ios_01.exceptions();
-        }
-        catch(...)
-        {
-            dump_info("Unreachable code\n");
-            std::abort();
-        }
-        VERIFY(iostate02 == IOv2::ios_defs::cvtfailbit);
-    }
-    dump_info("Done\n");
+    IOv2::ios_state<char> s;
+    EXPECT_EQ(s.exceptions(), IOv2::ios_defs::goodbit);
+
+    EXPECT_NO_THROW(s.exceptions(IOv2::ios_defs::cvtfailbit));
+    EXPECT_EQ(s.exceptions(), IOv2::ios_defs::cvtfailbit);
 }
 
-void test_ios_state_2()
+// exceptions(mask) re-applies the current state through clear(rdstate()), so
+// arming a category whose bit is already set raises there and then. The mask is
+// stored first, so it is in force by the time the exception comes out.
+TEST(IosState, ArmingACategoryThatHasAlreadyFailedRaisesImmediately)
 {
-    dump_info("Test ios_state case 2...");
+    IOv2::ios_state<char> s;
+    s.clear(IOv2::ios_defs::cvtfailbit);
 
-    IOv2::ios_state<char> stream;
-    try
-    {
-        stream.setstate(IOv2::ios_defs::cvtfailbit);
-        stream.exceptions(IOv2::ios_defs::cvtfailbit);
-        dump_info("Unreachable code\n");
-        std::abort();
-    }
-    catch (...)
-    {
-        // Don't clear.
-    }
-    
-    try
-    {
-        // Calls clear(rdstate()), which throws in this case.
-        stream.setstate(IOv2::ios_defs::goodbit);
-        dump_info("Unreachable code\n");
-        std::abort();
-    }
-    catch (...) {}
-
-    dump_info("Done\n");
+    EXPECT_THROW(s.exceptions(IOv2::ios_defs::cvtfailbit), IOv2::cvt_error);
+    EXPECT_EQ(s.exceptions(), IOv2::ios_defs::cvtfailbit);
 }
 
-void test_ios_state_handle_exception_eof_1()
+// setstate(goodbit) adds no bit, but it still goes through clear(rdstate()), so
+// on an armed and already-failed stream it raises just as the arming did. A
+// caller reaching for it to "do nothing" gets an exception instead.
+TEST(IosState, SetstateOfGoodbitStillReappliesTheStateAndSoStillRaises)
 {
-    dump_info("Test ios_state::handle_exception with eof_error case 1...");
+    IOv2::ios_state<char> s;
+    s.setstate(IOv2::ios_defs::cvtfailbit);
 
+    EXPECT_THROW(s.exceptions(IOv2::ios_defs::cvtfailbit), IOv2::cvt_error);
+    EXPECT_THROW(s.setstate(IOv2::ios_defs::goodbit), IOv2::cvt_error);
+}
+
+TEST(IosState, AnEofErrorRaisesLikeEveryOtherCategory)
+{
     // Regression test: handle_exception() routes a caught eof_error through
     // setstate(eofbit) -> clear(). When exceptions(eofbit) is enabled, this
     // must actually raise a notification exception, exactly like the
@@ -150,12 +122,11 @@ void test_ios_state_handle_exception_eof_1()
         }
         catch (...)
         {
-            dump_info("Unreachable code\n");
-            std::abort();
+            ADD_FAILURE() << "the eof_error was replaced by something else";
         }
 
-        VERIFY(threw);
-        VERIFY(stream.eof());
+        EXPECT_TRUE(threw);
+        EXPECT_TRUE(stream.eof());
     }
 
     // Without exceptions(eofbit) enabled, the state bit is still set but no
@@ -163,25 +134,13 @@ void test_ios_state_handle_exception_eof_1()
     {
         IOv2::ios_state<char> stream;
 
-        try
-        {
-            stream.handle_exception(std::make_exception_ptr(IOv2::eof_error{}));
-        }
-        catch (...)
-        {
-            dump_info("Unreachable code\n");
-            std::abort();
-        }
-
-        VERIFY(stream.eof());
+        EXPECT_NO_THROW(stream.handle_exception(std::make_exception_ptr(IOv2::eof_error{})));
+        EXPECT_TRUE(stream.eof());
     }
-
-    dump_info("Done\n");
 }
 
-void test_ios_state_clear_exceptions_1()
+TEST(IosState, ClearRethrowsTheStashedExceptionOrThrowsAFreshOne)
 {
-    dump_info("Test ios_state::clear exception routing case 1...");
     using namespace IOv2;
 
     // For each failure category, clear() must, when the corresponding exception
@@ -202,8 +161,8 @@ void test_ios_state_clear_exceptions_1()
         {
             threw = (std::string(e.what()) == "stashed dev");
         }
-        VERIFY(threw);
-        VERIFY(s.dev_fail());
+        EXPECT_TRUE(threw);
+        EXPECT_TRUE(s.dev_fail());
     }
 
     // --- devfailbit: no stashed exception -> fresh device_error ---
@@ -219,7 +178,7 @@ void test_ios_state_clear_exceptions_1()
         {
             threw = true;
         }
-        VERIFY(threw);
+        EXPECT_TRUE(threw);
     }
 
     // --- cvtfailbit: stashed exception is re-thrown ---
@@ -235,8 +194,8 @@ void test_ios_state_clear_exceptions_1()
         {
             threw = (std::string(e.what()) == "stashed cvt");
         }
-        VERIFY(threw);
-        VERIFY(s.cvt_fail());
+        EXPECT_TRUE(threw);
+        EXPECT_TRUE(s.cvt_fail());
     }
 
     // --- strfailbit: stashed exception is re-thrown ---
@@ -252,8 +211,8 @@ void test_ios_state_clear_exceptions_1()
         {
             threw = (std::string(e.what()) == "stashed str");
         }
-        VERIFY(threw);
-        VERIFY(s.str_fail());
+        EXPECT_TRUE(threw);
+        EXPECT_TRUE(s.str_fail());
     }
 
     // --- strfailbit: no stashed exception -> fresh stream_error ---
@@ -269,7 +228,7 @@ void test_ios_state_clear_exceptions_1()
         {
             threw = true;
         }
-        VERIFY(threw);
+        EXPECT_TRUE(threw);
     }
 
     // --- otherfailbit: no stashed exception -> fresh stream_error ---
@@ -285,20 +244,16 @@ void test_ios_state_clear_exceptions_1()
         {
             threw = true;
         }
-        VERIFY(threw);
-        VERIFY(s.other_fail());
+        EXPECT_TRUE(threw);
+        EXPECT_TRUE(s.other_fail());
     }
-
-    dump_info("Done\n");
 }
 
 // handle_exception must only set bits -- never throw -- while an exception is unwinding, even
 // when the mask says the bit should throw. Otherwise a destructor that reports a failure through
 // it would call std::terminate and lose the original exception.
-void test_ios_state_unwinding_1()
+TEST(IosState, AFailureReportedWhileUnwindingSetsTheBitWithoutThrowing)
 {
-    dump_info("Test ios_state::handle_exception during unwinding case 1...");
-
     // A destructor reporting a failure while another exception is in flight: bit set, no throw.
     {
         IOv2::ios_state<char> s;
@@ -323,8 +278,8 @@ void test_ios_state_unwinding_1()
         {
             caught_original = true;   // the original exception survives
         }
-        VERIFY(caught_original);
-        VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+        EXPECT_TRUE(caught_original);
+        EXPECT_TRUE(s.rdstate() & IOv2::ios_defs::strfailbit);
     }
 
     // The check is exact inside a catch handler: the exception being handled no longer counts,
@@ -346,8 +301,8 @@ void test_ios_state_unwinding_1()
         {
             threw = true;
         }
-        VERIFY(threw);
-        VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+        EXPECT_TRUE(threw);
+        EXPECT_TRUE(s.rdstate() & IOv2::ios_defs::strfailbit);
     }
 
     // Control: outside any unwinding the mask is honored as before.
@@ -358,48 +313,33 @@ void test_ios_state_unwinding_1()
         bool threw = false;
         try { s.handle_exception(std::make_exception_ptr(IOv2::stream_error("plain"))); }
         catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
-        VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
+        EXPECT_TRUE(threw);
+        EXPECT_TRUE(s.rdstate() & IOv2::ios_defs::strfailbit);
     }
-
-    dump_info("Done\n");
 }
 
-void test_ios_state_bitmask_types_1()
+TEST(IosState, TheFlagAccessorsKeepTheirOwnBitmaskType)
 {
-    dump_info("Test ios_state bitmask types case 1...");
-
     IOv2::ios_state<char> s;
-    VERIFY(s.flags() == (IOv2::ios_defs::skipws | IOv2::ios_defs::dec));
-    VERIFY(s.setf(IOv2::ios_defs::boolalpha) == (IOv2::ios_defs::skipws | IOv2::ios_defs::dec));
-    VERIFY(s.flags() == (IOv2::ios_defs::skipws | IOv2::ios_defs::dec | IOv2::ios_defs::boolalpha));
+    EXPECT_EQ(s.flags(), (IOv2::ios_defs::skipws | IOv2::ios_defs::dec));
+    EXPECT_EQ(s.setf(IOv2::ios_defs::boolalpha), (IOv2::ios_defs::skipws | IOv2::ios_defs::dec));
+    EXPECT_EQ(s.flags(), (IOv2::ios_defs::skipws | IOv2::ios_defs::dec | IOv2::ios_defs::boolalpha));
 
     s.setf(IOv2::ios_defs::hex, IOv2::ios_defs::basefield);
-    VERIFY((s.flags() & IOv2::ios_defs::basefield) == IOv2::ios_defs::hex);
+    EXPECT_EQ((s.flags() & IOv2::ios_defs::basefield), IOv2::ios_defs::hex);
     s.unsetf(IOv2::ios_defs::boolalpha);
-    VERIFY(!(s.flags() & IOv2::ios_defs::boolalpha));
-    VERIFY(s.flags(IOv2::ios_defs::skipws) == (IOv2::ios_defs::skipws | IOv2::ios_defs::hex));
-    VERIFY(s.flags() == IOv2::ios_defs::skipws);
+    EXPECT_FALSE((s.flags() & IOv2::ios_defs::boolalpha));
+    EXPECT_EQ(s.flags(IOv2::ios_defs::skipws), (IOv2::ios_defs::skipws | IOv2::ios_defs::hex));
+    EXPECT_EQ(s.flags(), IOv2::ios_defs::skipws);
 
-    VERIFY(s.good());
+    EXPECT_TRUE(s.good());
     s.setstate(IOv2::ios_defs::strfailbit | IOv2::ios_defs::eofbit);
-    VERIFY(s.rdstate() == (IOv2::ios_defs::strfailbit | IOv2::ios_defs::eofbit));
-    VERIFY(s.str_fail() && s.eof() && !s.good() && !static_cast<bool>(s));
+    EXPECT_EQ(s.rdstate(), (IOv2::ios_defs::strfailbit | IOv2::ios_defs::eofbit));
+    EXPECT_TRUE(s.str_fail() && s.eof() && !s.good() && !static_cast<bool>(s));
     s.unset_state(IOv2::ios_defs::strfailbit);
-    VERIFY(s.rdstate() == IOv2::ios_defs::eofbit);
-    VERIFY(static_cast<bool>(s));
+    EXPECT_EQ(s.rdstate(), IOv2::ios_defs::eofbit);
+    EXPECT_TRUE(static_cast<bool>(s));
     s.clear();
-    VERIFY(s.good() && s.rdstate() == IOv2::ios_defs::goodbit);
-
-    dump_info("Done\n");
-}
-
-void test_ios_state()
-{
-    test_ios_state_1();
-    test_ios_state_2();
-    test_ios_state_handle_exception_eof_1();
-    test_ios_state_clear_exceptions_1();
-    test_ios_state_unwinding_1();
-    test_ios_state_bitmask_types_1();
+    EXPECT_TRUE(s.good());
+    EXPECT_EQ(s.rdstate(), IOv2::ios_defs::goodbit);
 }

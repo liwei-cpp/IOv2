@@ -12,8 +12,8 @@
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+
+#include <gtest/gtest.h>
 
 namespace
 {
@@ -30,38 +30,32 @@ namespace
     }();
 }
 
-void test_iostream_switch_to_put_wchar_t_1()
+TEST(IostreamSwitchToPutWchar, SwitchingOnAFreshStreamIsAlwaysAllowed)
 {
-    dump_info("Test iostream<wchar_t>::switch_to_put case 1...");
-
     {
         IOv2::iostream str(IOv2::mem_device{L""});
         str.switch_to_put();
-        VERIFY(static_cast<bool>(str));
+        EXPECT_TRUE(static_cast<bool>(str));
     }
 
     {
         IOv2::iostream str(IOv2::mem_device{L"abcde"});
         str.switch_to_put();
-        VERIFY(static_cast<bool>(str));
+        EXPECT_TRUE(static_cast<bool>(str));
     }
-
-    dump_info("Done\n");
 }
 
-void test_iostream_switch_to_put_wchar_t_2()
+TEST(IostreamSwitchToPutWchar, APipelineThatCannotSwitchIsRejectedAtTheDeclaration)
 {
-    dump_info("Test iostream<wchar_t>::switch_to_put case 2...");
-
     IOv2::ostream ostr(IOv2::mem_device{""},
                        IOv2::Comp::zlib_cvt_creator<char>{6} | IOv2::code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
     ostr << s_e_lit;
-    VERIFY(static_cast<bool>(ostr));
+    EXPECT_TRUE(static_cast<bool>(ostr));
     auto [dev, err] = ostr.detach();
     auto compress_res = dev.str();
 
-    VERIFY(!compress_res.empty());
-    VERIFY(compress_res.size() < s_e_lit.size() / 3 * 7);
+    EXPECT_FALSE(compress_res.empty());
+    EXPECT_TRUE(compress_res.size() < s_e_lit.size() / 3 * 7);
 
     // A zlib pipeline cannot change direction (support_io_switch is false), so an iostream over
     // one is rejected at the declaration level by base_streambuf's creator constructor
@@ -78,37 +72,31 @@ void test_iostream_switch_to_put_wchar_t_2()
     static_assert(std::is_constructible_v<IOv2::istream<IOv2::mem_device<char>, char>,
                                           IOv2::mem_device<char>,
                                           IOv2::Comp::zlib_cvt_creator<char>>);
-
-    dump_info("Done\n");
 }
 
-void test_iostream_switch_to_put_wchar_t_3()
+TEST(IostreamSwitchToPutWchar, SwitchingAfterWritingThroughAConverterKeepsTheStreamGood)
 {
-    dump_info("Test iostream<wchar_t>::switch_to_put case 3...");
-
     IOv2::iostream str(IOv2::mem_device{""},
                        IOv2::code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
     str << L"abcde";
-    VERIFY(static_cast<bool>(str));
+    EXPECT_TRUE(static_cast<bool>(str));
 
     str.seek(0);
-    VERIFY(!str);
+    EXPECT_FALSE(str);
 
     str.clear();
     str.switch_to_get();
     str.seek(0);
-    VERIFY(static_cast<bool>(str));
+    EXPECT_TRUE(static_cast<bool>(str));
 
     str.switch_to_put();
-    VERIFY(!str);
+    EXPECT_FALSE(str);
 
     str.clear();
     str.switch_to_get();
     str.rseek(0);
-    VERIFY(!str);
+    EXPECT_FALSE(str);
     str.clear();
     str.switch_to_put();
-    VERIFY(!str);
-
-    dump_info("Done\n");
+    EXPECT_FALSE(str);
 }

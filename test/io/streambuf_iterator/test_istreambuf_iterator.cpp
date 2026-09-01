@@ -1,200 +1,210 @@
-#include <chrono>
-#include <string>
-#include <thread>
+/**
+ * istreambuf_iterator: an input iterator that reads through a streambuf.
+ *
+ * A default-constructed one is the end, and comparing against it is the only
+ * way to ask "is there more". That question is the interesting one: on a stream
+ * that has data but has not ended, the answer does not exist yet, so the
+ * comparison has to wait for the writer rather than guess -- which the last
+ * test checks over a real pipe.
+ *
+ * The iterator caches at most one look-ahead character, and that cache is what
+ * the increment and putback cases are about: a postfix ++ hands back a copy
+ * holding the character it read, so putting a character back through one has to
+ * push the cached one first.
+ */
 #include <cvt/root_cvt.h>
 #include <device/mem_device.h>
 #include <device/std_device.h>
-#include <io/traits/char_and_str.h>
 #include <io/istream.h>
 #include <io/streambuf_iterator.h>
-#include <support/dump_info.h>
+#include <io/traits/char_and_str.h>
+
 #include <support/stdio_guard.h>
-#include <support/verify.h>
 
-void test_istreambuf_iterator_gen_1()
+#include <gtest/gtest.h>
+
+#include <chrono>
+#include <iterator>
+#include <string>
+#include <thread>
+#include <type_traits>
+
+using namespace IOv2;
+
+TEST(IstreambufIterator, ItSatisfiesInputIteratorForItsCharacterType)
 {
-    dump_info("Test istreambuf_iterator general case 1...");
-    using namespace IOv2;
-
     {
-        using CheckType = istreambuf_iterator<streambuf<mem_device<char>, char>>;
-        static_assert(std::input_iterator<CheckType>);
-        static_assert(std::is_same_v<CheckType::value_type, char>);
+        using It = istreambuf_iterator<streambuf<mem_device<char>, char>>;
+        static_assert(std::input_iterator<It>);
+        static_assert(std::is_same_v<It::value_type, char>);
     }
-
     {
-        using CheckType = istreambuf_iterator<streambuf<mem_device<char>, char>>;
-        static_assert(std::input_iterator<CheckType>);
-        static_assert(std::is_same_v<CheckType::value_type, char>);
+        using It = istreambuf_iterator<istreambuf<mem_device<char>, char>>;
+        static_assert(std::input_iterator<It>);
+        static_assert(std::is_same_v<It::value_type, char>);
     }
-
     {
-        using CheckType = istreambuf_iterator<streambuf<mem_device<char>, char32_t>>;
-        static_assert(std::input_iterator<CheckType>);
-        static_assert(std::is_same_v<CheckType::value_type, char32_t>);
+        using It = istreambuf_iterator<streambuf<mem_device<char>, char32_t>>;
+        static_assert(std::input_iterator<It>);
+        static_assert(std::is_same_v<It::value_type, char32_t>);
     }
-
-    {
-        using CheckType = istreambuf_iterator<streambuf<mem_device<char>, char32_t>>;
-        static_assert(std::input_iterator<CheckType>);
-        static_assert(std::is_same_v<CheckType::value_type, char32_t>);
-    }
-
-    dump_info("Done\n");
+    SUCCEED() << "the conformance checks in this case are static_asserts";
 }
 
-void test_istreambuf_iterator_gen_2()
+namespace
 {
-    dump_info("Test istreambuf_iterator general case 2...");
-    using namespace IOv2;
+    // Long enough that the buffer is refilled at least once, and with no repeated
+    // prefix, so a position mistake cannot go unnoticed.
+    const std::string kText = "a short line, then a longer one after it";
+}
 
-    std::string str01 = "playa hermosa, liberia, guanacaste";
-    
-    auto helper = [&str01]<typename TStreamBuf>(const TStreamBuf& sb_ori)
+// A default-constructed iterator is the end. Reaching it is what ends a range,
+// and two ends are equal to each other whatever they came from.
+TEST(IstreambufIterator, ADefaultConstructedIteratorIsTheEnd)
+{
+    auto helper = []<typename T>(const T& fresh)
     {
-        TStreamBuf sb(sb_ori);
-        istreambuf_iterator istrb_it01(sb);
-        decltype(istrb_it01) istrb_eos;
-        VERIFY(istrb_it01 != istrb_eos);
+        T    sb(fresh);
+        auto first = istreambuf_iterator(sb);
+        decltype(first) last;
 
-        std::string tmp(istrb_it01, istrb_eos);
-        VERIFY(tmp == str01);
-        VERIFY(istrb_it01 == istrb_eos);
+        EXPECT_NE(first, last);
 
-        // equality
-        decltype(istrb_it01) istrb_it07;
-        decltype(istrb_it01) istrb_it08;
-        VERIFY(istrb_it07 == istrb_it08);
+        const std::string all(first, last);
+        EXPECT_EQ(all, kText);
+        EXPECT_EQ(first, last);
 
-        TStreamBuf sb2(sb_ori);
-        decltype(istrb_it01) istrb_it21(sb2);
-        decltype(istrb_it01) istrb_it22(sb2);
-        VERIFY(istrb_it21 == istrb_it22);
+        decltype(first) one_end;
+        decltype(first) another_end;
+        EXPECT_EQ(one_end, another_end);
 
-        VERIFY(istrb_it07 != istrb_it22);
-    
-        // charT operator*() const
-        // istreambuf_iterator& operator++();
-        // istreambuf_iterator& operator++(int);
-        istreambuf_iterator istrb_it27(sb2);
-        char c;
-        for (std::size_t i = 0; i < str01.size() - 2; ++i)
-        {
-            c = *istrb_it27++;
-            VERIFY(c == str01[i]);
-        }
-
-        VERIFY(sb2.sbumpc() == str01[str01.size() - 2]);
-        VERIFY(sb2.sbumpc() == str01[str01.size() - 1]);
-
-        TStreamBuf sb3(sb_ori);
-        istreambuf_iterator istrb_it28(sb3);
-        for (std::size_t i = 0; i < str01.size() - 2;)
-        {
-            c = *++istrb_it28;
-            VERIFY(c == str01[++i]);
-        }
-
-        VERIFY(sb3.sbumpc() == str01[str01.size() - 2]);
-        VERIFY(sb3.sbumpc() == str01[str01.size() - 1]);
+        T    other(fresh);
+        auto a = istreambuf_iterator(other);
+        auto b = istreambuf_iterator(other);
+        EXPECT_EQ(a, b);                // same buffer, so the same position
+        EXPECT_NE(one_end, b);
     };
 
-    streambuf sb(mem_device{str01});
+    streambuf sb(mem_device{kText});
     helper(sb);
-    
-    istreambuf sb2(mem_device{str01});
-    helper(sb2);
-
-    dump_info("Done\n");
+    istreambuf isb(mem_device{kText});
+    helper(isb);
 }
 
-void test_istreambuf_iterator_get_1()
+// Post-increment yields the character it was on and then advances;
+// pre-increment advances and yields the next one. The buffer's own position
+// follows along, which is what lets sbumpc pick up where the iterator stopped.
+TEST(IstreambufIterator, PostAndPreIncrementDifferInWhichCharacterTheyYield)
 {
-    dump_info("Test istreambuf_iterator get case 1...");
-    using namespace IOv2;
-    
-    const std::string s("free the vieques");
-    streambuf sb_ori(mem_device{s});
-
-    // 1
-    std::string res_postfix;
-    streambuf sb1(sb_ori);
-    istreambuf_iterator isbufit01(sb1);
-    for (std::size_t j = 0; j < s.size(); ++j, isbufit01++)
-        res_postfix += *isbufit01;
-
-    // 2
-    std::string res_prefix;
-    streambuf sb2(sb_ori);
-    istreambuf_iterator isbufit02(sb2);
-    for (std::size_t j = 0; j < s.size(); ++j, ++isbufit02)
-        res_prefix += *isbufit02;
-
-    // 3 mixed
-    std::string res_mixed;
-    streambuf sb3(sb_ori);
-    istreambuf_iterator isbufit03(sb3);
-    for (std::size_t j = 0; j < (s.size() / 2); ++j)
+    auto helper = []<typename T>(const T& fresh)
     {
-        res_mixed += *isbufit03;
-        ++isbufit03;
-        res_mixed += *isbufit03;
-        isbufit03++;
-    }
-    
-    VERIFY(res_postfix == res_prefix);
-    VERIFY(res_mixed == res_prefix);
+        {
+            T    sb(fresh);
+            auto it = istreambuf_iterator(sb);
+            for (std::size_t i = 0; i + 2 < kText.size(); ++i)
+                EXPECT_EQ(*it++, kText[i]);
 
-    dump_info("Done\n");
+            EXPECT_EQ(sb.sbumpc(), kText[kText.size() - 2]);
+            EXPECT_EQ(sb.sbumpc(), kText[kText.size() - 1]);
+        }
+        {
+            T    sb(fresh);
+            auto it = istreambuf_iterator(sb);
+            for (std::size_t i = 0; i + 2 < kText.size();)
+                EXPECT_EQ(*++it, kText[++i]);
+
+            EXPECT_EQ(sb.sbumpc(), kText[kText.size() - 2]);
+            EXPECT_EQ(sb.sbumpc(), kText[kText.size() - 1]);
+        }
+    };
+
+    streambuf sb(mem_device{kText});
+    helper(sb);
+    istreambuf isb(mem_device{kText});
+    helper(isb);
 }
 
-void test_istreambuf_iterator_sentinel_1()
+// However the walk is spelled -- all postfix, all prefix, or alternating -- the
+// sequence of characters is the same one.
+TEST(IstreambufIterator, TheSpellingOfTheIncrementDoesNotChangeTheSequence)
 {
-    dump_info("Test istreambuf_iterator with sentinel case 1...");
+    streambuf original(mem_device{kText});
+
+    std::string postfix;
+    {
+        streambuf sb(original);
+        auto      it = istreambuf_iterator(sb);
+        for (std::size_t i = 0; i < kText.size(); ++i, it++)
+            postfix += *it;
+    }
+
+    std::string prefix;
+    {
+        streambuf sb(original);
+        auto      it = istreambuf_iterator(sb);
+        for (std::size_t i = 0; i < kText.size(); ++i, ++it)
+            prefix += *it;
+    }
+
+    std::string mixed;
+    {
+        streambuf sb(original);
+        auto      it = istreambuf_iterator(sb);
+        for (std::size_t i = 0; i < kText.size() / 2; ++i)
+        {
+            mixed += *it;
+            ++it;
+            mixed += *it;
+            it++;
+        }
+    }
+
+    EXPECT_EQ(postfix, kText);
+    EXPECT_EQ(prefix, postfix);
+    EXPECT_EQ(mixed, prefix.substr(0, mixed.size()));
+}
+
+TEST(IstreambufIterator, TheDefaultSentinelIsUsableAsTheEnd)
+{
     using namespace IOv2;
     
     static_assert(std::sentinel_for<std::default_sentinel_t,
                                     istreambuf_iterator<streambuf<mem_device<char>, char>>>);
 
     istreambuf_iterator<streambuf<mem_device<char>, char>> i = std::default_sentinel;
-    VERIFY(i == std::default_sentinel);
-    VERIFY(std::default_sentinel == i);
-
-    dump_info("Done\n");
+    EXPECT_EQ(i, std::default_sentinel);
+    EXPECT_EQ(std::default_sentinel, i);
 }
 
-void test_istreambuf_iterator_sentinel_2()
+TEST(IstreambufIterator, ComparingAgainstTheSentinelReportsWhetherMoreIsComing)
 {
-    dump_info("Test istreambuf_iterator with sentinel case 2...");
     using namespace IOv2;
 
     {
         streambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
-        VERIFY(iter != std::default_sentinel);
-        VERIFY(std::default_sentinel != iter);
+        EXPECT_NE(iter, std::default_sentinel);
+        EXPECT_NE(std::default_sentinel, iter);
 
         (void)std::next(iter, 3);
-        VERIFY(iter == std::default_sentinel);
-        VERIFY(std::default_sentinel == iter);
+        EXPECT_EQ(iter, std::default_sentinel);
+        EXPECT_EQ(std::default_sentinel, iter);
     }
 
     {
         istreambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
-        VERIFY(iter != std::default_sentinel);
-        VERIFY(std::default_sentinel != iter);
+        EXPECT_NE(iter, std::default_sentinel);
+        EXPECT_NE(std::default_sentinel, iter);
 
         (void)std::next(iter, 3);
-        VERIFY(iter == std::default_sentinel);
-        VERIFY(std::default_sentinel == iter);
+        EXPECT_EQ(iter, std::default_sentinel);
+        EXPECT_EQ(std::default_sentinel, iter);
     }
-    dump_info("Done\n");
 }
 
-void test_istreambuf_iterator_chain_increment_1()
+TEST(IstreambufIterator, AChainedIncrementOnACachedCopyDoesNotLoseACharacter)
 {
-    dump_info("Test istreambuf_iterator chained increment on a cached copy case 1...");
     using namespace IOv2;
 
     // Regression test: once operator++(int) returns a copy that caches an
@@ -209,11 +219,11 @@ void test_istreambuf_iterator_chain_increment_1()
         {
             istreambuf_iterator it(sb);
             auto old1 = it++;
-            VERIFY(*old1 == 'a');
+            EXPECT_EQ(*old1, 'a');
 
             ++old1;
-            VERIFY(*it == 'b');
-            VERIFY(*old1 == 'b');
+            EXPECT_EQ(*it, 'b');
+            EXPECT_EQ(*old1, 'b');
         }
     };
 
@@ -223,12 +233,12 @@ void test_istreambuf_iterator_chain_increment_1()
         {
             istreambuf_iterator it(sb);
             auto old1 = it++;
-            VERIFY(*old1 == 'a');
+            EXPECT_EQ(*old1, 'a');
 
             auto old2 = old1++;
-            VERIFY(*old2 == 'a');
-            VERIFY(*old1 == 'b');
-            VERIFY(*it == 'b');
+            EXPECT_EQ(*old2, 'a');
+            EXPECT_EQ(*old1, 'b');
+            EXPECT_EQ(*it, 'b');
         }
     };
 
@@ -248,40 +258,35 @@ void test_istreambuf_iterator_chain_increment_1()
         istreambuf sb(mem_device{"abc"});
         helper_postfix(sb);
     }
-
-    dump_info("Done\n");
 }
 
-void test_istreambuf_iterator_putback_1()
+TEST(IstreambufIterator, PutbackReplacesTheCharacterTheIteratorWillYieldNext)
 {
-    dump_info("Test istreambuf_iterator::sputbackc case 1...");
     using namespace IOv2;
 
     {
         streambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
         ++iter;
-        VERIFY(*iter == 'b');
+        EXPECT_EQ(*iter, 'b');
         iter.sputbackc('x');
-        VERIFY(*iter++ == 'x');
-        VERIFY(*iter++ == 'b');
+        EXPECT_EQ(*iter++, 'x');
+        EXPECT_EQ(*iter++, 'b');
     }
 
     {
         istreambuf in(mem_device{"abc"});
         istreambuf_iterator iter(in);
         ++iter;
-        VERIFY(*iter == 'b');
+        EXPECT_EQ(*iter, 'b');
         iter.sputbackc('x');
-        VERIFY(*iter++ == 'x');
-        VERIFY(*iter++ == 'b');
+        EXPECT_EQ(*iter++, 'x');
+        EXPECT_EQ(*iter++, 'b');
     }
-    dump_info("Done\n");
 }
 
-void test_istreambuf_iterator_putback_2()
+TEST(IstreambufIterator, PutbackPushesTheCachedLookAheadBackFirst)
 {
-    dump_info("Test istreambuf_iterator::sputbackc case 2...");
     using namespace IOv2;
 
     // sputbackc on an iterator that still holds a cached look-ahead character
@@ -296,7 +301,7 @@ void test_istreambuf_iterator_putback_2()
         std::string got;
         decltype(old) eos;
         for (; old != eos; ++old) got.push_back(*old);
-        VERIFY(got == "xabc");
+        EXPECT_EQ(got, "xabc");
     };
 
     {
@@ -320,15 +325,12 @@ void test_istreambuf_iterator_putback_2()
         {
             threw = true;
         }
-        VERIFY(threw);
+        EXPECT_TRUE(threw);
     }
-
-    dump_info("Done\n");
 }
 
-void test_istreambuf_iterator_sentinel_3()
+TEST(IstreambufIterator, EndDetectionWaitsForTheWriterRatherThanGuessing)
 {
-    dump_info("Test istreambuf_iterator sentinel case 3 (end detection may wait)...");
     using namespace IOv2;
 
     // A pipe carrying "ab" whose write end closes only after a delay. Comparing against the
@@ -354,8 +356,6 @@ void test_istreambuf_iterator_sentinel_3()
     catch (...) { threw = true; }
     closer.join();
 
-    VERIFY(!threw);
-    VERIFY(got == "ab");
-
-    dump_info("Done\n");
+    EXPECT_FALSE(threw);
+    EXPECT_EQ(got, "ab");
 }

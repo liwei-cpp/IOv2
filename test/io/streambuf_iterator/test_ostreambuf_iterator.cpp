@@ -1,87 +1,119 @@
+/**
+ * ostreambuf_iterator: an output iterator that forwards to streambuf::sputc().
+ *
+ * Only assignment does anything. operator*, operator++ and operator++(int) all
+ * return the iterator unchanged, which is what lets the usual `*it++ = c`
+ * spelling work without writing three times -- and is the property an
+ * implementation breaks by making one of them advance or emit.
+ *
+ * Because it holds only a reference to the buffer, other traffic on that buffer
+ * in between is not the iterator's problem: it always writes wherever the
+ * buffer's put position happens to be.
+ */
 #include <cvt/root_cvt.h>
 #include <device/mem_device.h>
 #include <io/streambuf_iterator.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
-void test_ostreambuf_iterator_gen_1()
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <iterator>
+#include <string>
+#include <type_traits>
+
+using namespace IOv2;
+
+TEST(OstreambufIterator, ItSatisfiesOutputIteratorForItsCharacterType)
 {
-    dump_info("Test ostreambuf_iterator general case 1...");
-    using namespace IOv2;
-
     {
-        using CheckType = ostreambuf_iterator<streambuf<mem_device<char>, char>>;
-        static_assert(std::output_iterator<CheckType, char>);
-        static_assert(std::is_same_v<CheckType::value_type, char>);
+        using It = ostreambuf_iterator<streambuf<mem_device<char>, char>>;
+        static_assert(std::output_iterator<It, char>);
+        static_assert(std::is_same_v<It::value_type, char>);
     }
-
     {
-        using CheckType = ostreambuf_iterator<streambuf<mem_device<char>, char>>;
-        static_assert(std::output_iterator<CheckType, char>);
-        static_assert(std::is_same_v<CheckType::value_type, char>);
+        using It = ostreambuf_iterator<ostreambuf<mem_device<char>, char>>;
+        static_assert(std::output_iterator<It, char>);
+        static_assert(std::is_same_v<It::value_type, char>);
     }
-
     {
-        using CheckType = ostreambuf_iterator<streambuf<mem_device<char>, char32_t>>;
-        static_assert(std::output_iterator<CheckType, char32_t>);
-        static_assert(std::is_same_v<CheckType::value_type, char32_t>);
+        using It = ostreambuf_iterator<streambuf<mem_device<char>, char32_t>>;
+        static_assert(std::output_iterator<It, char32_t>);
+        static_assert(std::is_same_v<It::value_type, char32_t>);
     }
-
-    {
-        using CheckType = ostreambuf_iterator<streambuf<mem_device<char>, char32_t>>;
-        static_assert(std::output_iterator<CheckType, char32_t>);
-        static_assert(std::is_same_v<CheckType::value_type, char32_t>);
-    }
-
-    dump_info("Done\n");
+    SUCCEED() << "the conformance checks in this case are static_asserts";
 }
 
-// https://github.com/gcc-mirror/gcc/blob/d4a777d098d524a3f26c3db28e50d064a7a4407e/libstdc%2B%2B-v3/testsuite/24_iterators/ostreambuf_iterator/2.cc
-void test_ostreambuf_iterator_put_1()
+// Assignment is the only operation that emits anything.
+TEST(OstreambufIterator, OnlyAssignmentWrites)
 {
-    dump_info("Test ostreambuf_iterator put case 1...");
-    using namespace IOv2;
-
-    auto helper = []<typename T>(const T& sb_ori)
+    auto helper = []<typename T>(const T& fresh)
     {
-        std::string str01 = "playa hermosa, liberia, guanacaste";
-        std::string str02 = "bodega bay, lost coast, california";
-        T strbuf01 = sb_ori;
+        T  buf = fresh;
+        auto it = ostreambuf_iterator(buf);
 
-        // ctor sanity checks
-        ostreambuf_iterator ostrb_it01(strbuf01);
-        ostrb_it01++;
-        ++ostrb_it01;
-        ostrb_it01 = 'a';
-        (void)*ostrb_it01;
-    
-        // charT operator*() const
-        // ostreambuf_iterator& operator++();
-        // ostreambuf_iterator& operator++(int);
-        ostreambuf_iterator ostrb_it27(strbuf01);
-        int j = str02.size();   // same as str01.size
-        for (int i = 0; i < j; ++i)
-            ostrb_it27 = str02[i];
-        auto [dev1, err1] = strbuf01.detach();
-        auto tmp = dev1.str();
-        VERIFY(tmp != str01);
-        VERIFY(tmp == 'a' + str02);
+        // Dereferencing and incrementing, in every spelling, before anything is
+        // written: none of them may put a character.
+        (void)*it;
+        ++it;
+        it++;
+        (void)*it++;
 
-        T strbuf02 = sb_ori;
-        ostreambuf_iterator ostrb_it28(strbuf02);
-        j = str01.size();
-        for (int i = 0; i < j + 2; ++i)
-            ostrb_it28 = 'b';
-        auto [dev2, err2] = strbuf01.detach();
-        tmp = dev2.str();
-        VERIFY(tmp != str01);
-        VERIFY(tmp != str02);
+        auto [dev, err] = buf.detach();
+        EXPECT_TRUE(dev.str().empty());
     };
-    
+
     streambuf sb{mem_device{""}};
     helper(sb);
+    ostreambuf osb{mem_device{""}};
+    helper(osb);
+}
 
-    ostreambuf sb2{mem_device{""}};
-    helper(sb2);
-    dump_info("Done\n");
+// The `*it++ = c` spelling writes exactly one character per assignment, which is
+// what makes the iterator usable with the standard algorithms.
+TEST(OstreambufIterator, TheUsualSpellingWritesOneCharacterPerAssignment)
+{
+    const std::string text = "one two three";
+
+    auto helper = [&text]<typename T>(const T& fresh)
+    {
+        {
+            T    buf = fresh;
+            auto it  = ostreambuf_iterator(buf);
+            for (char c : text)
+                *it++ = c;
+
+            auto [dev, err] = buf.detach();
+            EXPECT_EQ(dev.str(), text);
+        }
+        {
+            // The same thing through an algorithm that only knows the concept.
+            T    buf = fresh;
+            std::copy(text.begin(), text.end(), ostreambuf_iterator(buf));
+
+            auto [dev, err] = buf.detach();
+            EXPECT_EQ(dev.str(), text);
+        }
+    };
+
+    streambuf sb{mem_device{""}};
+    helper(sb);
+    ostreambuf osb{mem_device{""}};
+    helper(osb);
+}
+
+// Two iterators over the same buffer share its put position, because neither of
+// them holds one.
+TEST(OstreambufIterator, TwoIteratorsOverOneBufferWriteInSequence)
+{
+    streambuf buf{mem_device{""}};
+
+    auto first  = ostreambuf_iterator(buf);
+    auto second = ostreambuf_iterator(buf);
+
+    *first++  = 'a';
+    *second++ = 'b';
+    *first++  = 'c';
+
+    auto [dev, err] = buf.detach();
+    EXPECT_EQ(dev.str(), "abc");
 }

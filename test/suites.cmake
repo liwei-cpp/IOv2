@@ -88,6 +88,12 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
     facet/monetary
     facet/numeric
     facet/timeio
+    io/ctad
+    io/io_base
+    io/io_base/manipulators
+    io/ios_state
+    io/iostream/switch_to_get
+    io/iostream/switch_to_put
     io/istream/attach
     io/istream/derive
     io/istream/extractors_arithmetic
@@ -102,6 +108,7 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
     io/istream/seek
     io/istream/tell
     io/istream/ws
+    io/objects
     io/ostream/appmode
     io/ostream/callbacks
     io/ostream/cvt
@@ -116,6 +123,9 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
     io/ostream/seek
     io/ostream/tell
     io/ostream/tie
+    io/stream_buf
+    io/streambuf_iterator
+    io/traits
     locale
 )
 
@@ -124,12 +134,9 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
 # the tree because derive_suites.py reads them -- they are what fixes the
 # entries below and their order.  See its module docstring.
 set(IOV2_TEST_EXCLUDED_SOURCES
-    io/io_base/test_io_base.cpp
-    io/iostream/test_iostream.cpp
-    io/test_io.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 146)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 137)
 
 set(test_common_ENTRIES
     # none: every case registers itself
@@ -204,41 +211,27 @@ set(test_facet_timeio_ENTRIES
 )
 
 set(test_io_ctad_ENTRIES
-    # none: this suite is compile-time only
+    # none: every case registers itself
 )
 
 set(test_io_io_base_ENTRIES
-    test_io_base_char_fill_1
-    test_io_base_char_fill_2
-    test_io_base_char_fill_3
-    test_io_base_wchar_t_fill_1
-    test_io_base_wchar_t_fill_2
-    test_io_base_width_1
-    test_io_base_width_2
-    test_io_base_width_3
-    test_io_base_width_wchar_t_1
-    test_io_base_boolalpha_1
-    test_io_base_state_handle_exception_idempotent_1
-    test_io_base_storage_1
-    test_io_base_storage_2
-    test_io_base_storage_3
-    test_io_base_storage_4
+    # none: every case registers itself
 )
 
 set(test_io_io_base_manipulators_ENTRIES
-    test_io_base_manipulators
+    # none: every case registers itself
 )
 
 set(test_io_ios_state_ENTRIES
-    test_ios_state
+    # none: every case registers itself
 )
 
 set(test_io_iostream_switch_to_get_ENTRIES
-    test_iostream_switch_to_get
+    # none: every case registers itself
 )
 
 set(test_io_iostream_switch_to_put_ENTRIES
-    test_iostream_switch_to_put
+    # none: every case registers itself
 )
 
 set(test_io_istream_attach_ENTRIES
@@ -298,7 +291,7 @@ set(test_io_istream_ws_ENTRIES
 )
 
 set(test_io_objects_ENTRIES
-    test_io_objects
+    # none: every case registers itself
 )
 
 set(test_io_ostream_appmode_ENTRIES
@@ -358,15 +351,15 @@ set(test_io_ostream_tie_ENTRIES
 )
 
 set(test_io_stream_buf_ENTRIES
-    test_streambuf
+    # none: every case registers itself
 )
 
 set(test_io_streambuf_iterator_ENTRIES
-    test_streambuf_iterator
+    # none: every case registers itself
 )
 
 set(test_io_traits_ENTRIES
-    test_io_traits
+    # none: every case registers itself
 )
 
 set(test_locale_ENTRIES

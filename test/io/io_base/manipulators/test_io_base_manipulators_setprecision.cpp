@@ -1,14 +1,28 @@
-#include <cstddef>
-#include <limits>
-#include <string>
+/**
+ * setprecision, whose argument has a range and whose range check is deferred.
+ *
+ * The manipulator object only stores what it was given; the check happens when
+ * it is applied to a stream, so an out-of-range precision is reported through
+ * the stream's error model rather than by throwing out of the manipulator. The
+ * precision itself is held in a single byte, so the value that matters is one
+ * just past 255 -- narrowing instead of checking would turn 300 into 44.
+ */
 #include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <cstddef>
+#include <cstdint>
+#include <limits>
+#include <string>
+
+using namespace IOv2;
 
 namespace
 {
@@ -19,7 +33,7 @@ namespace
     bool rejects_precision(TStream& s, TPrec n)
     {
         const std::uint8_t before = s.precision();
-        s << IOv2::setprecision(n);
+        s << setprecision(n);
         const bool rejected = s.str_fail() && s.precision() == before;
         s.clear();
         return rejected;
@@ -28,110 +42,87 @@ namespace
 
 // The whole 0..255 range is accepted and stored exactly; anything above it is rejected
 // rather than wrapping into the low byte.
-void test_io_base_manipulators_setprecision_char_1()
+TEST(IoBaseManipSetprecision, TheWholeByteRangeIsAcceptedAndAnythingAboveItRefused)
 {
-    dump_info("Test ios_base<char> setprecision case 1...");
+    ostream oss{mem_device{""}};
+    oss.locale(locale<char>("C"));
 
-    IOv2::ostream oss{IOv2::mem_device{""}};
-    oss.locale(IOv2::locale<char>("C"));
+    oss << setprecision(0);
+    EXPECT_EQ(oss.precision(), 0);
 
-    oss << IOv2::setprecision(0);
-    VERIFY(oss.precision() == 0);
+    oss << setprecision(17);
+    EXPECT_EQ(oss.precision(), 17);
 
-    oss << IOv2::setprecision(17);
-    VERIFY(oss.precision() == 17);
-
-    oss << IOv2::setprecision(255);
-    VERIFY(oss.precision() == 255);
+    oss << setprecision(255);
+    EXPECT_EQ(oss.precision(), 255);
 
     // 300 would become 44 if it were narrowed instead of checked.
-    VERIFY(rejects_precision(oss, 300));
-    VERIFY(oss.precision() == 255);
+    EXPECT_TRUE(rejects_precision(oss, 300));
+    EXPECT_EQ(oss.precision(), 255);
 
-    VERIFY(rejects_precision(oss, 256));
-    VERIFY(rejects_precision(oss, std::numeric_limits<size_t>::max()));
+    EXPECT_TRUE(rejects_precision(oss, 256));
+    EXPECT_TRUE(rejects_precision(oss, std::numeric_limits<size_t>::max()));
     {
         size_t n = 1000;
-        VERIFY(rejects_precision(oss, n));
+        EXPECT_TRUE(rejects_precision(oss, n));
     }
 
     // Constructing the manipulator on its own never throws: the value is only stored.
-    (void)IOv2::setprecision(300);
-    (void)IOv2::setprecision(std::numeric_limits<size_t>::max());
-
-    dump_info("Done\n");
+    (void)setprecision(300);
+    (void)setprecision(std::numeric_limits<size_t>::max());
 }
 
 // An out-of-range precision is reported through the stream, not thrown at the caller.
-void test_io_base_manipulators_setprecision_char_2()
+TEST(IoBaseManipSetprecision, TheRefusalIsReportedThroughTheStream)
 {
-    dump_info("Test ios_base<char> setprecision case 2...");
-
-    IOv2::ostream oss{IOv2::mem_device{""}};
-    oss.locale(IOv2::locale<char>("C"));
+    ostream oss{mem_device{""}};
+    oss.locale(locale<char>("C"));
 
     oss << "ab";
 
-    bool threw = false;
-    try { oss << IOv2::setprecision(300) << "cd"; }
-    catch (const IOv2::stream_error&) { threw = true; }
-
-    VERIFY(!threw);
-    VERIFY(!oss.good());
-    VERIFY(oss.str_fail());
+    EXPECT_NO_THROW(oss << setprecision(300) << "cd");
+    EXPECT_FALSE(oss.good());
+    EXPECT_TRUE(oss.str_fail());
 
     // "cd" never made it out: the stream was already failed by then.
     oss.clear();
     oss.flush();
-    VERIFY(oss.device().str() == "ab");
+    EXPECT_EQ(oss.device().str(), "ab");
 
     // With strfailbit in the exception mask the same failure propagates.
     {
-        IOv2::ostream throwing{IOv2::mem_device{""}};
-        throwing.locale(IOv2::locale<char>("C"));
-        throwing.exceptions(IOv2::ios_defs::strfailbit);
+        ostream throwing{mem_device{""}};
+        throwing.locale(locale<char>("C"));
+        throwing.exceptions(ios_defs::strfailbit);
 
-        bool caught = false;
-        try { throwing << IOv2::setprecision(300); }
-        catch (const IOv2::stream_error&) { caught = true; }
-        VERIFY(caught);
-        VERIFY(throwing.str_fail());
+        EXPECT_THROW(throwing << setprecision(300), stream_error);
+        EXPECT_TRUE(throwing.str_fail());
     }
-
-    dump_info("Done\n");
 }
 
 // The extraction direction goes through the same check.
-void test_io_base_manipulators_setprecision_char_3()
+TEST(IoBaseManipSetprecision, ExtractionGoesThroughTheSameCheck)
 {
-    dump_info("Test ios_base<char> setprecision case 3...");
+    istream iss{mem_device{std::string("1.5")}};
+    iss.locale(locale<char>("C"));
 
-    IOv2::istream iss{IOv2::mem_device{std::string("1.5")}};
-    iss.locale(IOv2::locale<char>("C"));
+    iss >> setprecision(10);
+    EXPECT_EQ(iss.precision(), 10);
 
-    iss >> IOv2::setprecision(10);
-    VERIFY(iss.precision() == 10);
-
-    iss >> IOv2::setprecision(300);
-    VERIFY(iss.str_fail());
-    VERIFY(iss.precision() == 10);
+    iss >> setprecision(300);
+    EXPECT_TRUE(iss.str_fail());
+    EXPECT_EQ(iss.precision(), 10);
     iss.clear();
-
-    dump_info("Done\n");
 }
 
-void test_io_base_manipulators_setprecision_wchar_t_1()
+TEST(IoBaseManipSetprecision, TheSameRangeHoldsOnAWideStream)
 {
-    dump_info("Test ios_base<wchar_t> setprecision case 1...");
+    ostream woss{mem_device{L""}};
+    woss.locale(locale<wchar_t>("C"));
 
-    IOv2::ostream woss{IOv2::mem_device{L""}};
-    woss.locale(IOv2::locale<wchar_t>("C"));
+    woss << setprecision(255);
+    EXPECT_EQ(woss.precision(), 255);
 
-    woss << IOv2::setprecision(255);
-    VERIFY(woss.precision() == 255);
-
-    VERIFY(rejects_precision(woss, 300));
-    VERIFY(woss.precision() == 255);
-
-    dump_info("Done\n");
+    EXPECT_TRUE(rejects_precision(woss, 300));
+    EXPECT_EQ(woss.precision(), 255);
 }

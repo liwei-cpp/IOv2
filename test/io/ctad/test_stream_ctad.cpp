@@ -9,13 +9,18 @@
 // constructor deduced TChar from the locale and accepted a mismatched pair, and the failure
 // then surfaced as a unique_ptr error deep inside runtime_cvt rather than at the call.
 //
-// These are compile-time only; the file defines nothing and is linked for its static_asserts.
-#include <type_traits>
-#include <device/mem_device.h>
+// These are compile-time only: every check below is a static_assert, so the suite passes by
+// compiling. The gtest header is included so the suite is built and registered like the rest,
+// and one runtime case is there to say out loud that the file ran.
 #include <cvt/code_cvt.h>
+#include <device/mem_device.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <io/iostream.h>
+
+#include <gtest/gtest.h>
+
+#include <type_traits>
 
 namespace
 {
@@ -69,4 +74,11 @@ static_assert( !std::is_constructible_v<IOv2::istream<MD, wchar_t>, MD, IOv2::lo
 static_assert( !std::is_constructible_v<IOv2::ostream<MD, wchar_t>, MD, IOv2::locale<wchar_t>> );
 static_assert(  std::is_constructible_v<IOv2::istream<MD, char>,    MD, IOv2::locale<char>>    );
 static_assert(  std::is_constructible_v<IOv2::ostream<MD, char>,    MD, IOv2::locale<char>>    );
+}
+
+// The static_asserts above are the test. This case exists so the suite reports a result
+// rather than an empty run.
+TEST(StreamCtad, EveryDeductionRuleHoldsAtCompileTime)
+{
+    SUCCEED() << "all deduction and constraint checks are static_asserts in this file";
 }

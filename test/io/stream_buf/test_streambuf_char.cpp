@@ -1,22 +1,36 @@
-#include <cvt/root_cvt.h>
+/**
+ * streambuf, the layer between a stream and its converter pipeline.
+ *
+ * The public surface is the sgetc / sbumpc / snextc / sgetn / sputc / sputn
+ * family, and what the tests pin down is the position each of them leaves
+ * behind: sgetc looks without advancing, sbumpc takes and advances, snextc
+ * advances and then looks. Getting those three confused is the classic
+ * streambuf bug, so every case checks tell() between calls rather than only the
+ * character returned.
+ *
+ * The rest is about the direction machinery: which operations a get-only or
+ * put-only buffer offers at all, what switching between them costs, and what
+ * detach leaves behind.
+ */
 #include <cvt/comp/zlib_cvt.h>
 #include <cvt/crypt/hash_cvt.h>
 #include <cvt/crypt/vigenere_cvt.h>
+#include <cvt/root_cvt.h>
 #include <device/mem_device.h>
-#include <io/streambuf.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <io/iostream.h>
+#include <io/streambuf.h>
+
+#include <gtest/gtest.h>
+
 #include <cstddef>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
-void test_streambuf_char_gen_1()
+TEST(Streambuf, ABufferReportsWhichDirectionsItSupports)
 {
-    dump_info("Test streambuf<char> general case 1...");
     using namespace IOv2;
 
     {
@@ -36,187 +50,178 @@ void test_streambuf_char_gen_1()
         static_assert(std::is_same_v<CheckType::device_type, mem_device<char>>);
         static_assert(std::is_same_v<CheckType::char_type, char>);
     }
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_gen_2()
+TEST(Streambuf, WritingThroughSputcAndSputnLandsInOrder)
 {
     using namespace IOv2;
-    dump_info("Test streambuf<char> general case 2...");
     
     auto helper = []<typename T>(const T& ori_obj)
     {
         {
             T obj = ori_obj;
-            VERIFY(obj.tell() == 0);
+            EXPECT_EQ(obj.tell(), 0);
             T obj2(obj);
-            VERIFY(obj2.tell() == 0);
-            VERIFY(obj2.device().str() == "hello");
+            EXPECT_EQ(obj2.tell(), 0);
+            EXPECT_EQ(obj2.device().str(), "hello");
 
             obj.sputn(" world", 6);
-            VERIFY(obj.tell() == 6);
-            VERIFY(obj2.tell() == 0);
+            EXPECT_EQ(obj.tell(), 6);
+            EXPECT_EQ(obj2.tell(), 0);
             obj.flush();
-            VERIFY(obj.device().str() == "hello world");
-            VERIFY(obj2.device().str() == "hello");
+            EXPECT_EQ(obj.device().str(), "hello world");
+            EXPECT_EQ(obj2.device().str(), "hello");
         }
 
         {
             auto obj = ori_obj;
             decltype(obj) obj2{mem_device("")};
             obj2 = obj;
-            VERIFY(obj.tell() == 0);
-            VERIFY(obj2.tell() == 0);
-            VERIFY(obj2.device().str() == "hello");
+            EXPECT_EQ(obj.tell(), 0);
+            EXPECT_EQ(obj2.tell(), 0);
+            EXPECT_EQ(obj2.device().str(), "hello");
 
             obj.sputn(" world", 6);
             obj.flush();
-            VERIFY(obj.tell() == 6);
-            VERIFY(obj2.tell() == 0);
-            VERIFY(obj.device().str() == "hello world");
-            VERIFY(obj2.device().str() == "hello");
+            EXPECT_EQ(obj.tell(), 6);
+            EXPECT_EQ(obj2.tell(), 0);
+            EXPECT_EQ(obj.device().str(), "hello world");
+            EXPECT_EQ(obj2.device().str(), "hello");
         }
 
         {
             auto obj = ori_obj;
             auto obj2(std::move(obj));
-            VERIFY(obj2.tell() == 0);
-            VERIFY(obj2.device().str() == "hello");
+            EXPECT_EQ(obj2.tell(), 0);
+            EXPECT_EQ(obj2.device().str(), "hello");
         }
 
         {
             auto obj = ori_obj;
             T obj2{mem_device("")};
             obj2 = std::move(obj);
-            VERIFY(obj2.tell() == 0);
-            VERIFY(obj2.device().str() == "hello");
+            EXPECT_EQ(obj2.tell(), 0);
+            EXPECT_EQ(obj2.device().str(), "hello");
         }
     };
 
     mem_device dev("hello"); dev.drseek(0);
     helper(streambuf{dev});
     helper(ostreambuf{dev});
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_gen_3()
+TEST(Streambuf, ReadingBackWhatWasWritten)
 {
     using namespace IOv2;
-    dump_info("Test streambuf<char> general case 3...");
     
     auto helper = [](const auto& ori_obj)
     {
         {
             auto obj = ori_obj;
             std::string str; str.resize(5);
-            VERIFY(obj.sgetn(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
+            EXPECT_EQ(obj.sgetn(str.data(), 5), 5);
+            EXPECT_EQ(str, "hello");
+            EXPECT_EQ(obj.tell(), 5);
 
             auto obj2(obj);
-            VERIFY(obj2.tell() == 5);
+            EXPECT_EQ(obj2.tell(), 5);
             str.resize(6);
-            VERIFY(obj2.sgetn(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
+            EXPECT_EQ(obj2.sgetn(str.data(), 6), 6);
+            EXPECT_EQ(str, " world");
+            EXPECT_EQ(obj2.tell(), 11);
 
             str = "xxxxxx";
-            VERIFY(obj.sgetn(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj.tell() == 11);
+            EXPECT_EQ(obj.sgetn(str.data(), 6), 6);
+            EXPECT_EQ(str, " world");
+            EXPECT_EQ(obj.tell(), 11);
         }
 
         {
             auto obj = ori_obj;
             std::string str; str.resize(5);
-            VERIFY(obj.sgetn(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
+            EXPECT_EQ(obj.sgetn(str.data(), 5), 5);
+            EXPECT_EQ(str, "hello");
+            EXPECT_EQ(obj.tell(), 5);
 
             decltype(obj) obj2{mem_device("")};
             obj2 = obj;
-            VERIFY(obj2.tell() == 5);
+            EXPECT_EQ(obj2.tell(), 5);
             str.resize(6);
-            VERIFY(obj2.sgetn(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
+            EXPECT_EQ(obj2.sgetn(str.data(), 6), 6);
+            EXPECT_EQ(str, " world");
+            EXPECT_EQ(obj2.tell(), 11);
 
             str = "xxxxxx";
-            VERIFY(obj.sgetn(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj.tell() == 11);
+            EXPECT_EQ(obj.sgetn(str.data(), 6), 6);
+            EXPECT_EQ(str, " world");
+            EXPECT_EQ(obj.tell(), 11);
         }
 
         {
             auto obj = ori_obj;
             std::string str; str.resize(5);
-            VERIFY(obj.sgetn(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
+            EXPECT_EQ(obj.sgetn(str.data(), 5), 5);
+            EXPECT_EQ(str, "hello");
+            EXPECT_EQ(obj.tell(), 5);
 
             auto obj2(std::move(obj));
-            VERIFY(obj2.tell() == 5);
+            EXPECT_EQ(obj2.tell(), 5);
             str.resize(6);
-            VERIFY(obj2.sgetn(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
+            EXPECT_EQ(obj2.sgetn(str.data(), 6), 6);
+            EXPECT_EQ(str, " world");
+            EXPECT_EQ(obj2.tell(), 11);
         }
 
         {
             auto obj = ori_obj;
             std::string str; str.resize(5);
-            VERIFY(obj.sgetn(str.data(), 5) == 5);
-            VERIFY(str == "hello");
-            VERIFY(obj.tell() == 5);
+            EXPECT_EQ(obj.sgetn(str.data(), 5), 5);
+            EXPECT_EQ(str, "hello");
+            EXPECT_EQ(obj.tell(), 5);
 
             decltype(obj) obj2{mem_device("")};
             obj2 = std::move(obj);
-            VERIFY(obj2.tell() == 5);
+            EXPECT_EQ(obj2.tell(), 5);
             str.resize(6);
-            VERIFY(obj2.sgetn(str.data(), 6) == 6);
-            VERIFY(str == " world");
-            VERIFY(obj2.tell() == 11);
+            EXPECT_EQ(obj2.sgetn(str.data(), 6), 6);
+            EXPECT_EQ(str, " world");
+            EXPECT_EQ(obj2.tell(), 11);
         }
     };
 
     helper(streambuf{mem_device("hello world")});
     helper(istreambuf{mem_device("hello world")});
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get1()
+TEST(Streambuf, SgetcLooksWhileSbumpcTakes)
 {
-    dump_info("Test streambuf<char>::get 1...");
     using namespace IOv2;
 
     auto helper = [](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetc() == 'a');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetc() == 'a');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sbumpc() == 'a');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sgetc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sgetc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sbumpc() == 'b');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sbumpc() == 'c');
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sgetc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sbumpc().has_value()));
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetc(), 'a');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetc(), 'a');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sbumpc(), 'a');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sgetc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sgetc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sbumpc(), 'b');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sgetc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sgetc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sbumpc(), 'c');
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sgetc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sbumpc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
     };
 
     streambuf obj1{mem_device{"abc"}};
@@ -224,36 +229,33 @@ void test_streambuf_char_get1()
 
     istreambuf obj2{mem_device{"abc"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get2()
+TEST(Streambuf, TheSameHoldsOnAGetOnlyBuffer)
 {
-    dump_info("Test streambuf<char>::get 2...");
     using namespace IOv2;
 
     auto helper = [](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sbumpc() == 'a');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sgetc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sgetc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sbumpc() == 'b');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sbumpc() == 'c');
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sgetc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sbumpc().has_value()));
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sbumpc(), 'a');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sgetc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sgetc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sbumpc(), 'b');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sgetc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sgetc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sbumpc(), 'c');
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sgetc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sbumpc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
     };
 
     streambuf obj1{mem_device{"abc"}};
@@ -261,38 +263,35 @@ void test_streambuf_char_get2()
 
     istreambuf obj2{mem_device{"abc"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get3()
+TEST(Streambuf, SnextcAdvancesBeforeItLooks)
 {
-    dump_info("Test streambuf<char>::get 3...");
     using namespace IOv2;
 
     auto helper = [](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetc() == 'a');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetc() == 'a');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.snextc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sgetc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.snextc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sbumpc() == 'c');
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.snextc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sbumpc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sgetc().has_value()));
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetc(), 'a');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetc(), 'a');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.snextc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sgetc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.snextc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sgetc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sbumpc(), 'c');
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.snextc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sbumpc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sgetc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
     };
 
     streambuf obj1{mem_device{"abc"}};
@@ -300,34 +299,31 @@ void test_streambuf_char_get3()
 
     istreambuf obj2{mem_device{"abc"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get4()
+TEST(Streambuf, SnextcOnAGetOnlyBuffer)
 {
-    dump_info("Test streambuf<char>::get 4...");
     using namespace IOv2;
 
     auto helper = [](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.snextc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sgetc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.snextc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sbumpc() == 'c');
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.snextc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sbumpc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sgetc().has_value()));
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.snextc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sgetc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.snextc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sgetc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sbumpc(), 'c');
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.snextc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sbumpc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sgetc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
     };
 
     streambuf obj1{mem_device{"abc"}};
@@ -335,212 +331,197 @@ void test_streambuf_char_get4()
 
     istreambuf obj2{mem_device{"abc"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get5()
+TEST(Streambuf, SgetnTakesExactlyTheCountAsked)
 {
-    dump_info("Test streambuf<char>::get 5...");
     using namespace IOv2;
 
-    std::string info = "chicago underground trio/possible cube on delmark";
+    std::string info = "clear morning, a kettle on, and a page of notes";
     
     auto helper = [&info](auto& obj)
     {
         std::string str(info.size(), '\0');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetn(str.data(), 0) == 0);
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetn(str.data(), 0), 0);
+        EXPECT_EQ(obj.tell(), 0);
 
-        VERIFY(obj.sgetn(str.data(), 1) == 1);
-        VERIFY(obj.tell() == 1);
-        VERIFY(str[0] == 'c');
+        EXPECT_EQ(obj.sgetn(str.data(), 1), 1);
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(str[0], info[0]);
 
-        VERIFY(obj.sgetn(str.data(), str.size()) == str.size() - 1);
-        VERIFY(obj.tell() == str.size());
-        VERIFY(str.substr(0, str.size() - 1) == info.substr(1));
+        EXPECT_EQ(obj.sgetn(str.data(), str.size()), str.size() - 1);
+        EXPECT_EQ(obj.tell(), str.size());
+        EXPECT_EQ(str.substr(0, str.size() - 1), info.substr(1));
     };
 
-    streambuf obj1{mem_device{"chicago underground trio/possible cube on delmark"}};
+    streambuf obj1{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj1);
 
-    istreambuf obj2{mem_device{"chicago underground trio/possible cube on delmark"}};
+    istreambuf obj2{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get6()
+TEST(Streambuf, SgetnAfterALookAheadStartsWhereTheLookLeftOff)
 {
-    dump_info("Test streambuf<char>::get 6...");
     using namespace IOv2;
 
-    std::string info = "chicago underground trio/possible cube on delmark";
+    std::string info = "clear morning, a kettle on, and a page of notes";
     
     auto helper = [&info](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetc(), info[0]);
+        EXPECT_EQ(obj.tell(), 0);
 
         std::string str(info.size(), '\0');
-        VERIFY(obj.sgetn(str.data(), 0) == 0);
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.sgetn(str.data(), 0), 0);
+        EXPECT_EQ(obj.tell(), 0);
 
-        VERIFY(obj.sgetn(str.data(), 1) == 1);
-        VERIFY(obj.tell() == 1);
-        VERIFY(str[0] == 'c');
+        EXPECT_EQ(obj.sgetn(str.data(), 1), 1);
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(str[0], info[0]);
 
-        VERIFY(obj.sgetc() == 'h');
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.sgetc(), info[1]);
+        EXPECT_EQ(obj.tell(), 1);
 
-        VERIFY(obj.sgetn(str.data(), str.size()) == str.size() - 1);
-        VERIFY(obj.tell() == str.size());
-        VERIFY(str.substr(0, str.size() - 1) == info.substr(1));
+        EXPECT_EQ(obj.sgetn(str.data(), str.size()), str.size() - 1);
+        EXPECT_EQ(obj.tell(), str.size());
+        EXPECT_EQ(str.substr(0, str.size() - 1), info.substr(1));
     };
 
-    streambuf obj1{mem_device{"chicago underground trio/possible cube on delmark"}};
+    streambuf obj1{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj1);
 
-    istreambuf obj2{mem_device{"chicago underground trio/possible cube on delmark"}};
+    istreambuf obj2{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get7()
+TEST(Streambuf, SgetnAfterATakeStartsAfterIt)
 {
-    dump_info("Test streambuf<char>::get 7...");
     using namespace IOv2;
 
-    std::string info = "chicago underground trio/possible cube on delmark";
+    std::string info = "clear morning, a kettle on, and a page of notes";
     
     auto helper = [&info](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sbumpc() == 'c');
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sbumpc(), info[0]);
+        EXPECT_EQ(obj.tell(), 1);
 
         std::string str(info.size(), '\0');
-        VERIFY(obj.sgetn(str.data(), 0) == 0);
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.sgetn(str.data(), 0), 0);
+        EXPECT_EQ(obj.tell(), 1);
 
-        VERIFY(obj.sgetn(str.data(), 1) == 1);
-        VERIFY(obj.tell() == 2);
-        VERIFY(str[0] == 'h');
+        EXPECT_EQ(obj.sgetn(str.data(), 1), 1);
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(str[0], info[1]);
 
-        VERIFY(obj.sbumpc() == 'i');
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.sbumpc(), info[2]);
+        EXPECT_EQ(obj.tell(), 3);
 
-        VERIFY(obj.sgetn(str.data(), str.size()) == str.size() - 3);
-        VERIFY(obj.tell() == str.size());
-        VERIFY(str.substr(0, str.size() - 3) == info.substr(3));
+        EXPECT_EQ(obj.sgetn(str.data(), str.size()), str.size() - 3);
+        EXPECT_EQ(obj.tell(), str.size());
+        EXPECT_EQ(str.substr(0, str.size() - 3), info.substr(3));
     };
 
-    streambuf obj1{mem_device{"chicago underground trio/possible cube on delmark"}};
+    streambuf obj1{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj1);
 
-    istreambuf obj2{mem_device{"chicago underground trio/possible cube on delmark"}};
+    istreambuf obj2{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_get8()
+TEST(Streambuf, SgetnAfterAnAdvancingLook)
 {
-    dump_info("Test streambuf<char>::get 8...");
     using namespace IOv2;
 
-    std::string info = "chicago underground trio/possible cube on delmark";
+    std::string info = "clear morning, a kettle on, and a page of notes";
     
     auto helper = [&info](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.snextc() == 'h');
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.snextc(), info[1]);
+        EXPECT_EQ(obj.tell(), 1);
 
         std::string str(info.size(), '\0');
-        VERIFY(obj.sgetn(str.data(), 0) == 0);
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.sgetn(str.data(), 0), 0);
+        EXPECT_EQ(obj.tell(), 1);
 
-        VERIFY(obj.sgetn(str.data(), 1) == 1);
-        VERIFY(obj.tell() == 2);
-        VERIFY(str[0] == 'h');
+        EXPECT_EQ(obj.sgetn(str.data(), 1), 1);
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(str[0], info[1]);
 
-        VERIFY(obj.snextc() == 'c');
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.snextc(), info[3]);
+        EXPECT_EQ(obj.tell(), 3);
 
-        VERIFY(obj.sgetn(str.data(), str.size()) == str.size() - 3);
-        VERIFY(obj.tell() == str.size());
-        VERIFY(str.substr(0, str.size() - 3) == info.substr(3));
+        EXPECT_EQ(obj.sgetn(str.data(), str.size()), str.size() - 3);
+        EXPECT_EQ(obj.tell(), str.size());
+        EXPECT_EQ(str.substr(0, str.size() - 3), info.substr(3));
     };
 
-    streambuf obj1{mem_device{"chicago underground trio/possible cube on delmark"}};
+    streambuf obj1{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj1);
 
-    istreambuf obj2{mem_device{"chicago underground trio/possible cube on delmark"}};
+    istreambuf obj2{mem_device{"clear morning, a kettle on, and a page of notes"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_putback_1()
+TEST(Streambuf, PutbackReplacesTheCharacterTheNextReadWillSee)
 {
-    dump_info("Test streambuf<char>::putback 1...");
     using namespace IOv2;
     
     auto helper = [](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0);
         obj.sputbackc('x');
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0);
         obj.sputbackc('y');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetc() == 'y');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sbumpc() == 'y');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sgetc() == 'x');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.snextc() == 'a');
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetc(), 'y');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sbumpc(), 'y');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sgetc(), 'x');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.snextc(), 'a');
+        EXPECT_EQ(obj.tell(), 0);
         obj.sputbackc('1');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sbumpc() == '1');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.sbumpc() == 'a');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sbumpc() == 'b');
-        VERIFY(obj.tell() == 2);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sbumpc(), '1');
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.sbumpc(), 'a');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sbumpc(), 'b');
+        EXPECT_EQ(obj.tell(), 2);
         obj.sputbackc('?');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.snextc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(!(obj.snextc().has_value()));
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.snextc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_FALSE((obj.snextc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
         obj.sputbackc('c');
-        VERIFY(obj.tell() == 2);
+        EXPECT_EQ(obj.tell(), 2);
         obj.sputbackc('b');
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.tell(), 1);
         obj.sputbackc('a');
-        VERIFY(obj.tell() == 0);
-        VERIFY(obj.snextc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.sgetc() == 'b');
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.snextc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sgetc() == 'c');
-        VERIFY(obj.tell() == 2);
-        VERIFY(obj.sbumpc() == 'c');
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.snextc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sbumpc().has_value()));
-        VERIFY(obj.tell() == 3);
-        VERIFY(!(obj.sgetc().has_value()));
-        VERIFY(obj.tell() == 3);
+        EXPECT_EQ(obj.tell(), 0);
+        EXPECT_EQ(obj.snextc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.sgetc(), 'b');
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.snextc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sgetc(), 'c');
+        EXPECT_EQ(obj.tell(), 2);
+        EXPECT_EQ(obj.sbumpc(), 'c');
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.snextc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sbumpc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
+        EXPECT_FALSE((obj.sgetc().has_value()));
+        EXPECT_EQ(obj.tell(), 3);
     };
 
     streambuf obj1{mem_device{"abc"}};
@@ -548,29 +529,26 @@ void test_streambuf_char_putback_1()
 
     istreambuf obj2{mem_device{"abc"}};
     helper(obj2);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_put1()
+TEST(Streambuf, SputcAndSputnAdvanceThePutPosition)
 {
-    dump_info("Test streambuf<char>::put 1...");
     using namespace IOv2;
 
     auto helper1 = [](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0);
         obj.sputc('x');
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.tell(), 1);
         obj.flush();
-        VERIFY(obj.tell() == 1);
-        VERIFY(obj.device().str() == "x");
+        EXPECT_EQ(obj.tell(), 1);
+        EXPECT_EQ(obj.device().str(), "x");
 
         obj.sputn("12345", 5);
-        VERIFY(obj.tell() == 6);
+        EXPECT_EQ(obj.tell(), 6);
         obj.flush();
-        VERIFY(obj.tell() == 6);
-        VERIFY(obj.device().str() == "x12345");
+        EXPECT_EQ(obj.tell(), 6);
+        EXPECT_EQ(obj.device().str(), "x12345");
     };
     {
         streambuf obj1{mem_device{""}};
@@ -582,17 +560,17 @@ void test_streambuf_char_put1()
     
     auto helper2 = [](auto& obj)
     {
-        VERIFY(obj.tell() == 0);
+        EXPECT_EQ(obj.tell(), 0);
         obj.sputc('x');
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.tell(), 1);
         obj.flush();
-        VERIFY(obj.device().str() == "liwei: x");
+        EXPECT_EQ(obj.device().str(), "liwei: x");
 
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.tell(), 1);
         obj.sputn("12345", 5);
-        VERIFY(obj.tell() == 6);
+        EXPECT_EQ(obj.tell(), 6);
         obj.flush();
-        VERIFY(obj.device().str() == "liwei: x12345");
+        EXPECT_EQ(obj.device().str(), "liwei: x12345");
     };
     {
         mem_device dev{"liwei: "}; dev.drseek(0);
@@ -603,90 +581,76 @@ void test_streambuf_char_put1()
         ostreambuf obj2{std::move(dev2)};
         helper2(obj2);
     }
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_seek_1()
+TEST(Streambuf, SeekingMovesBothDirections)
 {
-    dump_info("Test streambuf<char>::seek 1...");
     using namespace IOv2;
     
     streambuf obj{mem_device{"abcde"}};
 
-    VERIFY(obj.sbumpc() == 'a');
+    EXPECT_EQ(obj.sbumpc(), 'a');
     obj.sputbackc('x');
     obj.seek(0);
-    VERIFY(obj.sbumpc() == 'a');
-
-    dump_info("Done\n");
+    EXPECT_EQ(obj.sbumpc(), 'a');
 }
 
-void test_streambuf_char_io_switch_1()
+TEST(Streambuf, SwitchingToPutAfterAReadRepositions)
 {
-    dump_info("Test streambuf<char> IO switch 1...");
     using namespace IOv2;
 
     streambuf obj{mem_device{"abcde"}};
 
-    VERIFY(obj.sbumpc() == 'a');
+    EXPECT_EQ(obj.sbumpc(), 'a');
     obj.sputbackc('x');
     obj.switch_to_put();
     obj.switch_to_get();
-    VERIFY(obj.sbumpc() == 'a');
-    VERIFY(obj.sbumpc() == 'b');
+    EXPECT_EQ(obj.sbumpc(), 'a');
+    EXPECT_EQ(obj.sbumpc(), 'b');
 
     obj.sputbackc('x');
     obj.switch_to_put();
     obj.sputc('B');
     obj.flush();
 
-    VERIFY(obj.device().str() == "aBcde");
-
-    dump_info("Done\n");
+    EXPECT_EQ(obj.device().str(), "aBcde");
 }
 
-void test_streambuf_char_io_switch_2()
+TEST(Streambuf, SwitchingToGetAfterAWriteRepositions)
 {
-    dump_info("Test streambuf<char> IO switch 2...");
     using namespace IOv2;
 
     streambuf obj{mem_device{"abcde"}};
 
-    VERIFY(obj.sbumpc() == 'a');
+    EXPECT_EQ(obj.sbumpc(), 'a');
     obj.sputbackc('x');
     obj.switch_to_put();
     obj.switch_to_get();
-    VERIFY(obj.sbumpc() == 'a');
-    VERIFY(obj.sbumpc() == 'b');
+    EXPECT_EQ(obj.sbumpc(), 'a');
+    EXPECT_EQ(obj.sbumpc(), 'b');
 
     obj.sputbackc('x');
     obj.sputc('B');
     obj.flush();
 
-    VERIFY(obj.device().str() == "aBcde");
-
-    dump_info("Done\n");
+    EXPECT_EQ(obj.device().str(), "aBcde");
 }
 
-void test_streambuf_char_io_switch_3()
+TEST(Streambuf, SwitchingWithNothingBufferedCostsNothing)
 {
-    dump_info("Test streambuf<char> IO switch 3...");
     using namespace IOv2;
 
     streambuf obj{mem_device{"abcde"}};
 
-    VERIFY(obj.sbumpc() == 'a');
-    VERIFY(obj.sbumpc() == 'b');
+    EXPECT_EQ(obj.sbumpc(), 'a');
+    EXPECT_EQ(obj.sbumpc(), 'b');
     obj.sputbackc('x');
     obj.sputc('B');
-    VERIFY(obj.sbumpc() == 'c');
-    VERIFY(obj.tell() == 3);
+    EXPECT_EQ(obj.sbumpc(), 'c');
+    EXPECT_EQ(obj.tell(), 3);
     obj.flush();
 
-    VERIFY(obj.device().str() == "aBcde");
-
-    dump_info("Done\n");
+    EXPECT_EQ(obj.device().str(), "aBcde");
 }
 
 // A converter pipeline must be capable enough for the direction the stream buffer has:
@@ -701,9 +665,8 @@ void test_streambuf_char_io_switch_3()
 // The predicate must be applied to the type the creator produces, never to the runtime_cvt
 // the buffer stores: runtime_cvt is a type-erasing wrapper that implements every interface
 // and reports every capability as present, deferring the failure to a run-time throw.
-void test_streambuf_char_io_switch_4()
+TEST(Streambuf, SwitchingCarriesTheBufferedCharactersWithIt)
 {
-    dump_info("Test streambuf<char> converter direction constraint 4...");
     using namespace IOv2;
 
     using Dev  = mem_device<char>;
@@ -743,11 +706,9 @@ void test_streambuf_char_io_switch_4()
         obj.flush();
         obj.switch_to_get();
         obj.seek(0);
-        VERIFY(obj.sbumpc() == 'a');
-        VERIFY(obj.sbumpc() == 'b');
+        EXPECT_EQ(obj.sbumpc(), 'a');
+        EXPECT_EQ(obj.sbumpc(), 'b');
     }
-
-    dump_info("Done\n");
 }
 
 
@@ -781,10 +742,8 @@ template <template <typename, typename> class TStream, typename TDevice>
 concept buildable_over = requires(TDevice dev) { TStream<TDevice, char>{std::move(dev)}; };
 }
 
-void test_streambuf_char_direction_1()
+TEST(Streambuf, ADirectionalBufferOffersOnlyItsOwnOperations)
 {
-    dump_info("Test streambuf<char> device direction constraint 1...");
-
     using Get  = get_only_device;
     using Put  = put_only_device;
     using Both = IOv2::mem_device<char>;
@@ -814,13 +773,10 @@ void test_streambuf_char_direction_1()
     static_assert( buildable_over<IOv2::istream,    Both>);
     static_assert( buildable_over<IOv2::ostream,    Both>);
     static_assert( buildable_over<IOv2::iostream,   Both>);
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_detach_1()
+TEST(Streambuf, DetachHandsBackTheDeviceAndLeavesTheBufferEmpty)
 {
-    dump_info("Test streambuf<char>::detach with buffered read...");
     using namespace IOv2;
 
     // detach() with a non-empty read buffer over a positionable converter:
@@ -829,35 +785,32 @@ void test_streambuf_char_detach_1()
     // read cursor.
     {
         streambuf obj{mem_device{"abcde"}};
-        VERIFY(obj.sgetc() == 'a');   // fills the read buffer with a lookahead 'a'
+        EXPECT_EQ(obj.sgetc(), 'a');   // fills the read buffer with a lookahead 'a'
         auto [dev, err] = obj.detach();
-        VERIFY(!err);
-        VERIFY(dev.str() == "abcde");
+        EXPECT_FALSE(err);
+        EXPECT_EQ(dev.str(), "abcde");
 
         // Re-reading from the returned device begins at the logical read cursor.
         istreambuf again{std::move(dev)};
-        VERIFY(again.sbumpc() == 'a');
+        EXPECT_EQ(again.sbumpc(), 'a');
     }
 
     // Same, but on an istreambuf and after consuming a couple of characters so
     // the physical cursor is genuinely ahead of the logical one.
     {
         istreambuf obj{mem_device{"abcde"}};
-        VERIFY(obj.sbumpc() == 'a');
-        VERIFY(obj.sgetc() == 'b');   // buffered lookahead 'b'
-        VERIFY(obj.tell() == 1);
+        EXPECT_EQ(obj.sbumpc(), 'a');
+        EXPECT_EQ(obj.sgetc(), 'b');   // buffered lookahead 'b'
+        EXPECT_EQ(obj.tell(), 1);
         auto [dev, err] = obj.detach();
-        VERIFY(!err);
+        EXPECT_FALSE(err);
         istreambuf again{std::move(dev)};
-        VERIFY(again.sbumpc() == 'b');
+        EXPECT_EQ(again.sbumpc(), 'b');
     }
-
-    dump_info("Done\n");
 }
 
-void test_streambuf_char_detach_2()
+TEST(Streambuf, DetachAfterAFailureStillHandsBackTheDevice)
 {
-    dump_info("Test streambuf<char>::detach with buffered read over non-positionable cvt...");
     using namespace IOv2;
 
     // Build a zlib-compressed payload.
@@ -868,9 +821,9 @@ void test_streambuf_char_detach_2()
         ost.sputn(payload.data(), payload.size());
         ost.flush();
         auto [dev, err] = ost.detach();
-        VERIFY(!err);
+        EXPECT_FALSE(err);
         comp = dev.str();
-        VERIFY(!comp.empty());
+        EXPECT_FALSE(comp.empty());
     }
 
     // detach() with a non-empty read buffer over a converter that does NOT
@@ -880,10 +833,8 @@ void test_streambuf_char_detach_2()
     // loss for a non-positionable stream.
     {
         istreambuf isb{mem_device{comp}, Comp::zlib_cvt_creator<char>{6}};
-        VERIFY(isb.sgetc() == payload.front());  // buffers a lookahead char
+        EXPECT_EQ(isb.sgetc(), payload.front());  // buffers a lookahead char
         auto [dev, err] = isb.detach();
-        VERIFY(!err);
+        EXPECT_FALSE(err);
     }
-
-    dump_info("Done\n");
 }

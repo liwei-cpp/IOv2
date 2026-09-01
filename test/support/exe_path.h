@@ -6,10 +6,11 @@
 #include <string>
 #include <unistd.h>
 
-// Deliberately free of support/verify.h: that header reaches objects.h through
-// dump_info.h, and every TU that sees objects.h has to emit code for its eight
-// inline stream singletons. A failure here throws what VERIFY threw, so the
-// aggregate main()s that still catch it report it exactly as before.
+// Throws rather than asserting, so that a caller decides how to report it. This
+// header used to say "deliberately free of support/verify.h", which pulled in
+// objects.h and made every including TU emit code for its eight inline stream
+// singletons; that header is gone now, but the reason to stay dependency-free
+// here has not changed.
 inline std::string exe_path()
 {
     char dest[PATH_MAX];

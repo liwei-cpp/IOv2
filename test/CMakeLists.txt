@@ -86,7 +86,7 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   endif()
 
   # -I../include then -I., in that order, exactly as the Makefile passes them.
-  # The second is what makes <support/verify.h> resolve.
+  # The second is what makes <support/file_guard.h> and friends resolve.
   target_include_directories(${target} PRIVATE
       ${IOV2_TEST_SUBJECT_INCLUDE_DIRS}
       "${CMAKE_CURRENT_SOURCE_DIR}")
