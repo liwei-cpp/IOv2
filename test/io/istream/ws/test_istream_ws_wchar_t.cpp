@@ -1,259 +1,267 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * The same ws contract and the same manipulator-dispatch rules as
+ * test_istream_ws_char.cpp for wchar_t.
+ *
+ * Which io_traits member exists is what carries a manipulator's direction, and
+ * that is independent of the character type -- so the direction matrix has to
+ * come out the same here, and setfill is still the one manipulator whose
+ * character type must match the stream's. What this instantiation adds beyond
+ * the repetition is the mismatch pointing the other way: setfill_t<char> is
+ * what a wide stream must reject.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
 #include <facet/ctype.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
 #include <io/io_manip.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
-void test_istream_ws_wchar_t_1()
+#include <gtest/gtest.h>
+
+#include <string>
+
+using namespace IOv2;
+
+TEST(IstreamWsWchar, WsDiscardsEveryWhitespaceCharacterAndStopsOnTheFirstOther)
 {
-    dump_info("Test istream<wchar_t> with ws case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_skipped = []<template <typename, typename> class T>()
     {
-        const std::wstring str01(L" santa barbara ");
+        T is{mem_device{std::wstring(L" \t\n\v\f\r x")}};
 
-        // template<_CharT, _Traits>
-        //  basic_istream<_CharT, _Traits>& ws(basic_istream<_Char, _Traits>& is)
-        T iss01{IOv2::mem_device{str01}};
-        T iss02{IOv2::mem_device{str01}};
-
-        std::wstring str04;
-        std::wstring str05;
-        iss01 >> str04;
-        VERIFY( str04.size() != str01.size() );
-        VERIFY( str04 == L"santa" );
-
-        iss02 >> IOv2::ws;
-        iss02 >> str05;
-        VERIFY( str05.size() != str01.size() );
-        VERIFY( str05 == L"santa" );
-        VERIFY( str05 == str04 );
-
-        iss01 >> str04;
-        VERIFY( str04.size() != str01.size() );
-        VERIFY( str04 == L"barbara" );
-
-        iss02 >> IOv2::ws;
-        iss02 >> str05;
-        VERIFY( str05.size() != str01.size() );
-        VERIFY( str05 == L"barbara" );
-        VERIFY( str05 == str04 );
-
-        VERIFY( (bool)iss01 );
-        VERIFY( (bool)iss02 );
-        VERIFY( !iss01.eof() );
-        VERIFY( !iss02.eof() );
-
-        iss01 >> IOv2::ws;
-        VERIFY( (bool)iss01 );
-        VERIFY( iss01.eof() );
+        is >> ws;
+        EXPECT_EQ(is.peek(), L'x');
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_skipped.operator()<istream>();
+    expect_skipped.operator()<iostream>();
 }
 
-// wchar_t counterpart of test_istream_function_manip_char_1: a function-pointer manipulator
-// in a NON-CONST lvalue must dispatch to operator>>(T&, void(*)(ios_base<wchar_t>&)) rather
-// than being shadowed by the generic value operator>>.
-void test_istream_function_manip_wchar_t_1()
+TEST(IstreamWsWchar, WsOnANonWhitespaceCharacterChangesNothing)
 {
-    dump_info("Test istream<wchar_t> function-pointer manipulator via operator>> case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_unchanged = []<template <typename, typename> class T>()
     {
-        T iss{IOv2::mem_device{std::wstring(L"hello world")}};
+        T is{mem_device{std::wstring(L"abc")}};
+
+        const ios_defs::iostate before = is.rdstate();
+        is >> ws;
+        EXPECT_EQ(is.rdstate(), before);
+        EXPECT_EQ(is.peek(), L'a');
+    };
+
+    expect_unchanged.operator()<istream>();
+    expect_unchanged.operator()<iostream>();
+}
+
+TEST(IstreamWsWchar, WsAtTheEndSetsEndOfFileWithoutFailing)
+{
+    auto expect_end = []<template <typename, typename> class T>()
+    {
+        T all_space{mem_device{std::wstring(L"   \t\n")}};
+        all_space >> ws;
+        EXPECT_TRUE(all_space.eof());
+        EXPECT_FALSE(all_space.rdstate() & ios_defs::strfailbit);
+        EXPECT_TRUE(static_cast<bool>(all_space));
+    };
+
+    expect_end.operator()<istream>();
+    expect_end.operator()<iostream>();
+}
+
+TEST(IstreamWsWchar, WsSkipsWhereExtractionWillNotWhenSkipwsIsOff)
+{
+    auto expect_manual = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"  42  7")}, locale<wchar_t>("C")};
+        is.unsetf(ios_defs::skipws);
+
+        int v = 0;
+        is >> v;
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+        is.clear();
+
+        is >> ws >> v;
+        EXPECT_EQ(v, 42);
+
+        is >> ws >> v;
+        EXPECT_EQ(v, 7);
+    };
+
+    expect_manual.operator()<istream>();
+    expect_manual.operator()<iostream>();
+}
+
+// wchar_t counterpart of the char case: a function-pointer manipulator in a NON-CONST lvalue
+// must dispatch to operator>>(T&, void(*)(ios_base<wchar_t>&)) rather than being shadowed by
+// the generic value operator>>.
+TEST(IstreamWsWchar, AFunctionPointerManipulatorBeatsTheGenericExtraction)
+{
+    auto expect_dispatched = []<template <typename, typename> class T>()
+    {
+        T iss{mem_device{std::wstring(L"hello world")}};
 
         static int calls;
         calls = 0;
-        void (*manip)(IOv2::ios_base<wchar_t>&) = [](IOv2::ios_base<wchar_t>&){ ++calls; };
+        void (*manip)(ios_base<wchar_t>&) = [](ios_base<wchar_t>&) { ++calls; };
 
         iss >> manip;
-        VERIFY( calls == 1 );
+        EXPECT_EQ(calls, 1);
 
         iss >> manip >> manip;        // operator>> returns the stream, so manipulators chain
-        VERIFY( calls == 3 );
+        EXPECT_EQ(calls, 3);
 
         // a capture-less lambda reaches the same overload once decayed with unary +
-        iss >> +[](IOv2::ios_base<wchar_t>&){ ++calls; };
-        VERIFY( calls == 4 );
+        iss >> +[](ios_base<wchar_t>&) { ++calls; };
+        EXPECT_EQ(calls, 4);
 
         // the generic value operator>> still extracts real values afterwards
         std::wstring tok;
         iss >> tok;
-        VERIFY( tok == L"hello" );
+        EXPECT_EQ(tok, L"hello");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_dispatched.operator()<istream>();
+    expect_dispatched.operator()<iostream>();
 }
 
-// wchar_t counterpart of test_istream_null_manip_char_1: a null manipulator must be
-// rejected, leaving strfailbit set (no mask -> no throw). The tag-object manipulators need
-// no such branch: an object cannot be null.
-void test_istream_null_manip_wchar_t_1()
+// wchar_t counterpart: a null manipulator must be rejected, leaving strfailbit set (no mask
+// -> no throw). The tag-object manipulators need no such branch: an object cannot be null.
+TEST(IstreamWsWchar, ANullFunctionPointerManipulatorIsRejected)
 {
-    dump_info("Test istream<wchar_t> null manipulator via operator>> case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_rejected = []<template <typename, typename> class T>()
     {
-        T iss{IOv2::mem_device{std::wstring(L"hello world")}};
+        T iss{mem_device{std::wstring(L"hello world")}};
 
-        iss >> static_cast<void(*)(IOv2::ios_base<wchar_t>&)>(nullptr);
-        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        EXPECT_NO_THROW(iss >> static_cast<void (*)(ios_base<wchar_t>&)>(nullptr));
+        EXPECT_TRUE(iss.rdstate() & ios_defs::strfailbit);
         iss.clear();
 
         static int base_calls;
         base_calls = 0;
-        iss >> +[](IOv2::ios_base<wchar_t>&){ ++base_calls; };
-        VERIFY( base_calls == 1 );
-        VERIFY( !(iss.rdstate() & IOv2::ios_defs::strfailbit) );
+        iss >> +[](ios_base<wchar_t>&) { ++base_calls; };
+        EXPECT_EQ(base_calls, 1);
+        EXPECT_FALSE(iss.rdstate() & ios_defs::strfailbit);
 
         std::wstring tok;
         iss >> tok;
-        VERIFY( tok == L"hello" );
+        EXPECT_EQ(tok, L"hello");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
 }
 
-// wchar_t counterpart of test_istream_ws_no_ctype_char_1: removing the ctype facet makes
-// the sentry's whitespace-skip fail with stream_error -> strfailbit (no mask -> no throw).
-void test_istream_ws_no_ctype_wchar_t_1()
+// wchar_t counterpart: removing the ctype facet makes the sentry's whitespace-skip fail with
+// stream_error -> strfailbit (no mask -> no throw).
+TEST(IstreamWsWchar, TheSentryFailsWhenTheLocaleHasNoCtypeFacet)
 {
-    dump_info("Test istream<wchar_t> sentry with no ctype facet case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_failed = []<template <typename, typename> class T>()
     {
-        const auto loc = IOv2::locale<wchar_t>("C").remove<IOv2::ctype_conf<wchar_t>>();
+        const auto loc = locale<wchar_t>("C").remove<ctype_conf<wchar_t>>();
 
-        T iss{IOv2::mem_device{std::wstring(L"  42")}, loc};
-        iss >> IOv2::ws;
-        VERIFY( iss.str_fail() );
+        T iss{mem_device{std::wstring(L"  42")}, loc};
+        EXPECT_NO_THROW(iss >> ws);
+        EXPECT_TRUE(iss.str_fail());
 
-        T iss2{IOv2::mem_device{std::wstring(L"  42")}, loc};
+        T iss2{mem_device{std::wstring(L"  42")}, loc};
         int v = 0;
-        iss2 >> v;
-        VERIFY( iss2.str_fail() );
+        EXPECT_NO_THROW(iss2 >> v);
+        EXPECT_TRUE(iss2.str_fail());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_failed.operator()<istream>();
+    expect_failed.operator()<iostream>();
 }
 
 namespace
 {
 // wchar_t counterpart: a bare abs_flusher tie target whose flush fails. try_flush() is
 // noexcept by contract, so the failure is absorbed here and recorded on the target itself.
-struct ThrowingTieW : public IOv2::abs_flusher
+struct ThrowingTieW : public abs_flusher
 {
     int  flushed = 0;
     bool failed  = false;
+
     void try_flush() noexcept override
     {
         ++flushed;
-        try { throw IOv2::stream_error("tied flush boom"); }
+        try { throw stream_error("tied flush boom"); }
         catch (...) { failed = true; }
     }
 };
 }
 
-// wchar_t counterpart of test_istream_tied_flush_char_1: the input sentry flushes the tied
-// stream before locking; a failing flush stays on the target and extraction still succeeds.
-void test_istream_tied_flush_wchar_t_1()
+// wchar_t counterpart: the input sentry flushes the tied stream before locking; a failing
+// flush stays on the target and extraction still succeeds.
+TEST(IstreamWsWchar, AFailingTiedFlushStaysOnTheTiedStream)
 {
-    dump_info("Test istream<wchar_t> tied-stream flush throw case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_absorbed = []<template <typename, typename> class T>()
     {
         ThrowingTieW tt;
-        T iss{IOv2::mem_device{std::wstring(L"42 rest")}, IOv2::locale<wchar_t>("C")};
+        T iss{mem_device{std::wstring(L"42 rest")}, locale<wchar_t>("C")};
         iss.tie(&tt);
 
         int v = 0;
         iss >> v;
-        VERIFY( tt.flushed >= 1 );
-        VERIFY( tt.failed );          // the failure was recorded on the target
-        VERIFY( v == 42 );
-        VERIFY( iss.good() );         // and not on the initiator
+        EXPECT_GE(tt.flushed, 1);
+        EXPECT_TRUE(tt.failed);       // the failure was recorded on the target
+        EXPECT_EQ(v, 42);
+        EXPECT_TRUE(iss.good());      // and not on the initiator
 
         iss.tie(nullptr);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_absorbed.operator()<istream>();
+    expect_absorbed.operator()<iostream>();
 }
-
 
 namespace
 {
-using DirIn_w   = IOv2::istream<IOv2::mem_device<wchar_t>, wchar_t>;
-using DirOut_w  = IOv2::ostream<IOv2::mem_device<wchar_t>, wchar_t>;
-using DirBoth_w = IOv2::iostream<IOv2::mem_device<wchar_t>, wchar_t>;
+using DirIn_w   = istream<mem_device<wchar_t>, wchar_t>;
+using DirOut_w  = ostream<mem_device<wchar_t>, wchar_t>;
+using DirBoth_w = iostream<mem_device<wchar_t>, wchar_t>;
 
 // See the char counterpart for why the io_traits members are probed directly rather than
 // through `s >> m` / `s << m`.
 template <typename S, typename M>
 concept can_extract_w = requires (S& s, const M& m)
-{ IOv2::io_traits<typename S::char_type, M>::sread(s, m); };
+{ io_traits<typename S::char_type, M>::sread(s, m); };
 
 template <typename S, typename M>
 concept can_insert_w = requires (S& s, const M& m)
-{ IOv2::io_traits<typename S::char_type, M>::swrite(s, m); };
+{ io_traits<typename S::char_type, M>::swrite(s, m); };
 
 // wchar_t counterpart of the char direction matrix. Which io_traits member exists is
 // character-type agnostic, so the wrong direction has to be rejected here too.
-static_assert(  can_extract_w<DirBoth_w, IOv2::ws_t>   && !can_insert_w<DirBoth_w, IOv2::ws_t> );
-static_assert(  can_insert_w<DirBoth_w, IOv2::endl_t>  && !can_extract_w<DirBoth_w, IOv2::endl_t> );
-static_assert(  can_insert_w<DirBoth_w, IOv2::ends_t>  && !can_extract_w<DirBoth_w, IOv2::ends_t> );
-static_assert(  can_insert_w<DirBoth_w, IOv2::flush_t> && !can_extract_w<DirBoth_w, IOv2::flush_t> );
+static_assert(  can_extract_w<DirBoth_w, ws_t>   && !can_insert_w<DirBoth_w, ws_t> );
+static_assert(  can_insert_w<DirBoth_w, endl_t>  && !can_extract_w<DirBoth_w, endl_t> );
+static_assert(  can_insert_w<DirBoth_w, ends_t>  && !can_extract_w<DirBoth_w, ends_t> );
+static_assert(  can_insert_w<DirBoth_w, flush_t> && !can_extract_w<DirBoth_w, flush_t> );
 
-static_assert(  can_extract_w<DirIn_w, IOv2::ws_t>     && !can_insert_w<DirIn_w, IOv2::ws_t> );
-static_assert( !can_extract_w<DirIn_w, IOv2::endl_t>   && !can_insert_w<DirIn_w, IOv2::endl_t> );
-static_assert(  can_insert_w<DirOut_w, IOv2::endl_t>   && !can_extract_w<DirOut_w, IOv2::endl_t> );
-static_assert( !can_extract_w<DirOut_w, IOv2::ws_t>    && !can_insert_w<DirOut_w, IOv2::ws_t> );
+static_assert(  can_extract_w<DirIn_w, ws_t>     && !can_insert_w<DirIn_w, ws_t> );
+static_assert( !can_extract_w<DirIn_w, endl_t>   && !can_insert_w<DirIn_w, endl_t> );
+static_assert(  can_insert_w<DirOut_w, endl_t>   && !can_extract_w<DirOut_w, endl_t> );
+static_assert( !can_extract_w<DirOut_w, ws_t>    && !can_insert_w<DirOut_w, ws_t> );
 
 // setfill is the one manipulator whose character type must match the stream's exactly. That
 // requirement used to live in the parameter type setfill_t<typename T::char_type>; it is now a
 // requires-clause on both io_traits members, so a mismatch is rejected at the declaration
 // rather than inside the body.
-static_assert(  can_insert_w<DirBoth_w, IOv2::setfill_t<wchar_t>>
-             && can_extract_w<DirBoth_w, IOv2::setfill_t<wchar_t>> );
-static_assert( !can_insert_w<DirBoth_w, IOv2::setfill_t<char>>
-            && !can_extract_w<DirBoth_w, IOv2::setfill_t<char>> );
+static_assert(  can_insert_w<DirBoth_w, setfill_t<wchar_t>>
+             && can_extract_w<DirBoth_w, setfill_t<wchar_t>> );
+static_assert( !can_insert_w<DirBoth_w, setfill_t<char>>
+            && !can_extract_w<DirBoth_w, setfill_t<char>> );
 }
 
-// wchar_t counterpart of test_istream_manip_direction_char_1.
-void test_istream_manip_direction_wchar_t_1()
+// wchar_t counterpart of the runtime direction check.
+TEST(IstreamWsWchar, TheSurvivingDirectionStillRunsOnABidirectionalStream)
 {
-    dump_info("Test istream<wchar_t> manipulator direction case 1...");
-
-    DirBoth_w iss{IOv2::mem_device{std::wstring(L"  santa")}};
-    iss >> IOv2::ws;
+    DirBoth_w iss{mem_device{std::wstring(L"  token")}};
+    iss >> ws;
     std::wstring tok;
     iss >> tok;
-    VERIFY( tok == L"santa" );
-
-    dump_info("Done\n");
+    EXPECT_EQ(tok, L"token");
 }

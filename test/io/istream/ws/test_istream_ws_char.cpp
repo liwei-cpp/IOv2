@@ -1,69 +1,139 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <utility>
+/**
+ * The ws manipulator, and around it the rules that decide which manipulators an
+ * istream<char> will accept at all.
+ *
+ * ws is the whole of unformatted whitespace skipping: it discards characters
+ * for as long as the locale calls them whitespace and stops on the first one it
+ * does not, or on the end of the input -- which is an end, not a failure, so
+ * eofbit is set and the stream stays usable-looking. That is the one part of ws
+ * a caller can get wrong, because every other extraction that skips whitespace
+ * does fail when it finds nothing after it.
+ *
+ * The rest of the file is about dispatch rather than about ws itself. IOv2
+ * decides a manipulator's direction by which io_traits member exists, not by a
+ * constraint on the stream, because a bidirectional stream satisfies both
+ * constraints and would accept a manipulator through the wrong operator. The
+ * static_asserts at the bottom are that rule stated as a matrix; the function
+ * pointer cases are the one manipulator shape that goes around io_traits
+ * entirely and so has to be checked by hand.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
 #include <facet/ctype.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
 #include <io/io_manip.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <io/traits/arithmetic.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
-void test_istream_ws_char_1()
+#include <gtest/gtest.h>
+
+#include <string>
+#include <utility>
+
+using namespace IOv2;
+
+// Every character the "C" locale classifies as whitespace, so that "whitespace"
+// is not silently narrowed to the space character.
+TEST(IstreamWsChar, WsDiscardsEveryWhitespaceCharacterAndStopsOnTheFirstOther)
 {
-    dump_info("Test istream<char> with ws case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_skipped = []<template <typename, typename> class T>()
     {
-        const std::string str01(" santa barbara ");
+        T is{mem_device{std::string(" \t\n\v\f\r x")}};
 
-        // template<_CharT, _Traits>
-        //  basic_istream<_CharT, _Traits>& ws(basic_istream<_Char, _Traits>& is)
-        T iss01{IOv2::mem_device{str01}};
-        T iss02{IOv2::mem_device{str01}};
-
-        std::string str04;
-        std::string str05;
-        iss01 >> str04;
-        VERIFY( str04.size() != str01.size() );
-        VERIFY( str04 == "santa" );
-
-        iss02 >> IOv2::ws;
-        iss02 >> str05;
-        VERIFY( str05.size() != str01.size() );
-        VERIFY( str05 == "santa" );
-        VERIFY( str05 == str04 );
-
-        iss01 >> str04;
-        VERIFY( str04.size() != str01.size() );
-        VERIFY( str04 == "barbara" );
-
-        iss02 >> IOv2::ws;
-        iss02 >> str05;
-        VERIFY( str05.size() != str01.size() );
-        VERIFY( str05 == "barbara" );
-        VERIFY( str05 == str04 );
-
-        VERIFY( (bool)iss01 );
-        VERIFY( (bool)iss02 );
-        VERIFY( !iss01.eof() );
-        VERIFY( !iss02.eof() );
-
-        iss01 >> IOv2::ws;
-        VERIFY( (bool)iss01 );
-        VERIFY( iss01.eof() );
+        is >> ws;
+        EXPECT_EQ(is.peek(), 'x');
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_skipped.operator()<istream>();
+    expect_skipped.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+// Nothing to skip is not an error and not a no-op worth reporting: the position
+// and the state both stay where they were.
+TEST(IstreamWsChar, WsOnANonWhitespaceCharacterChangesNothing)
+{
+    auto expect_unchanged = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("abc")}};
+
+        const ios_defs::iostate before = is.rdstate();
+        is >> ws;
+        EXPECT_EQ(is.rdstate(), before);
+        EXPECT_EQ(is.peek(), 'a');
+
+        // Repeating it is still nothing.
+        is >> ws >> ws;
+        EXPECT_EQ(is.peek(), 'a');
+    };
+
+    expect_unchanged.operator()<istream>();
+    expect_unchanged.operator()<iostream>();
+}
+
+// Running off the end while skipping is the end of the input, which ws reports
+// with eofbit alone. It does not fail -- unlike a formatted extraction, which
+// skips whitespace only in order to find something after it and fails when it
+// does not. A caller that checks the stream after ws must therefore look at
+// eof(), not at the boolean conversion.
+TEST(IstreamWsChar, WsAtTheEndSetsEndOfFileWithoutFailing)
+{
+    auto expect_end = []<template <typename, typename> class T>()
+    {
+        {
+            T all_space{mem_device{std::string("   \t\n")}};
+            all_space >> ws;
+            EXPECT_TRUE(all_space.eof());
+            EXPECT_FALSE(all_space.rdstate() & ios_defs::strfailbit);
+            EXPECT_TRUE(static_cast<bool>(all_space));
+        }
+        {
+            // Nothing at all is the same answer.
+            T empty{mem_device{std::string("")}};
+            empty >> ws;
+            EXPECT_TRUE(empty.eof());
+            EXPECT_FALSE(empty.rdstate() & ios_defs::strfailbit);
+        }
+        {
+            // Whereas an extraction over the same input fails, because it needed
+            // a value and the whitespace was only in the way.
+            T all_space{mem_device{std::string("   \t\n")}, locale<char>("C")};
+            int v = 0;
+            all_space >> v;
+            EXPECT_TRUE(all_space.rdstate() & ios_defs::strfailbit);
+        }
+    };
+
+    expect_end.operator()<istream>();
+    expect_end.operator()<iostream>();
+}
+
+// With skipws off an extraction stops dead on leading whitespace; ws is then
+// the caller's way to get past it, which is what the manipulator is for.
+TEST(IstreamWsChar, WsSkipsWhereExtractionWillNotWhenSkipwsIsOff)
+{
+    auto expect_manual = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("  42  7")}, locale<char>("C")};
+        is.unsetf(ios_defs::skipws);
+
+        int v = 0;
+        is >> v;
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+        is.clear();
+
+        is >> ws >> v;
+        EXPECT_EQ(v, 42);
+
+        // And again for the next one, since skipws is still off.
+        is >> ws >> v;
+        EXPECT_EQ(v, 7);
+    };
+
+    expect_manual.operator()<istream>();
+    expect_manual.operator()<iostream>();
 }
 
 // A function pointer is the only manipulator shape that bypasses io_traits, and it must beat
@@ -77,74 +147,66 @@ void test_istream_ws_char_1()
 // ios_base<char>& form is direction-free by construction -- ios_base exposes no streambuf and
 // no device, so such a manipulator cannot do I/O at all. Anything that does need I/O declares
 // its direction through io_traits instead.
-void test_istream_function_manip_char_1()
+TEST(IstreamWsChar, AFunctionPointerManipulatorBeatsTheGenericExtraction)
 {
-    dump_info("Test istream<char> function-pointer manipulator via operator>> case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_dispatched = []<template <typename, typename> class T>()
     {
-        T iss{IOv2::mem_device{std::string("hello world")}};
+        T iss{mem_device{std::string("hello world")}};
 
         static int calls;
         calls = 0;
-        void (*manip)(IOv2::ios_base<char>&) = [](IOv2::ios_base<char>&){ ++calls; };
+        void (*manip)(ios_base<char>&) = [](ios_base<char>&) { ++calls; };
 
         iss >> manip;                 // a non-const lvalue must still reach this overload
-        VERIFY( calls == 1 );
+        EXPECT_EQ(calls, 1);
 
         iss >> manip >> manip;        // operator>> returns the stream, so manipulators chain
-        VERIFY( calls == 3 );
+        EXPECT_EQ(calls, 3);
 
         // a capture-less lambda reaches the same overload once decayed with unary +
-        iss >> +[](IOv2::ios_base<char>&){ ++calls; };
-        VERIFY( calls == 4 );
+        iss >> +[](ios_base<char>&) { ++calls; };
+        EXPECT_EQ(calls, 4);
 
         // the generic value operator>> still extracts real values afterwards
         std::string tok;
         iss >> tok;
-        VERIFY( tok == "hello" );
+        EXPECT_EQ(tok, "hello");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_dispatched.operator()<istream>();
+    expect_dispatched.operator()<iostream>();
 }
 
 // A null function-pointer manipulator passed to operator>> must be rejected: the operator
 // throws stream_error, its own handler categorizes it into strfailbit, and -- with no
 // exception mask set -- returns the stream without throwing. The tag-object manipulators
 // need no such branch: an object cannot be null.
-void test_istream_null_manip_char_1()
+TEST(IstreamWsChar, ANullFunctionPointerManipulatorIsRejected)
 {
-    dump_info("Test istream<char> null manipulator via operator>> case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_rejected = []<template <typename, typename> class T>()
     {
-        T iss{IOv2::mem_device{std::string("hello world")}};
+        T iss{mem_device{std::string("hello world")}};
 
         // overload: operator>>(T&, void(*)(ios_base<char>&))
-        iss >> static_cast<void(*)(IOv2::ios_base<char>&)>(nullptr);
-        VERIFY( iss.rdstate() & IOv2::ios_defs::strfailbit );
+        EXPECT_NO_THROW(iss >> static_cast<void (*)(ios_base<char>&)>(nullptr));
+        EXPECT_TRUE(iss.rdstate() & ios_defs::strfailbit);
         iss.clear();
 
         // same overload, non-null: the callable runs against the stream's ios_base
         static int base_calls;
         base_calls = 0;
-        iss >> +[](IOv2::ios_base<char>&){ ++base_calls; };
-        VERIFY( base_calls == 1 );
-        VERIFY( !(iss.rdstate() & IOv2::ios_defs::strfailbit) );
+        iss >> +[](ios_base<char>&) { ++base_calls; };
+        EXPECT_EQ(base_calls, 1);
+        EXPECT_FALSE(iss.rdstate() & ios_defs::strfailbit);
 
         // stream is still usable after the rejected manipulator
         std::string tok;
         iss >> tok;
-        VERIFY( tok == "hello" );
+        EXPECT_EQ(tok, "hello");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
 }
 
 // The input sentry classifies leading whitespace through the ctype facet. With that facet
@@ -152,30 +214,26 @@ void test_istream_null_manip_char_1()
 // which is reported as strfailbit; the follow-up validity check inside the sentry then
 // re-throws on the now-failed stream. Both the ws manipulator and skipws-enabled
 // extraction drive this path. With no exception mask set nothing escapes to the caller.
-void test_istream_ws_no_ctype_char_1()
+TEST(IstreamWsChar, TheSentryFailsWhenTheLocaleHasNoCtypeFacet)
 {
-    dump_info("Test istream<char> sentry with no ctype facet case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_failed = []<template <typename, typename> class T>()
     {
-        const auto loc = IOv2::locale<char>("C").remove<IOv2::ctype_conf<char>>();
+        const auto loc = locale<char>("C").remove<ctype_conf<char>>();
 
         // ws manipulator: sentry constructed with noskip == false -> needs the ctype facet
-        T iss{IOv2::mem_device{std::string("  42")}, loc};
-        iss >> IOv2::ws;
-        VERIFY( iss.str_fail() );
+        T iss{mem_device{std::string("  42")}, loc};
+        EXPECT_NO_THROW(iss >> ws);
+        EXPECT_TRUE(iss.str_fail());
 
         // skipws-enabled extraction takes the same sentry skip path
-        T iss2{IOv2::mem_device{std::string("  42")}, loc};
+        T iss2{mem_device{std::string("  42")}, loc};
         int v = 0;
-        iss2 >> v;
-        VERIFY( iss2.str_fail() );
+        EXPECT_NO_THROW(iss2 >> v);
+        EXPECT_TRUE(iss2.str_fail());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_failed.operator()<istream>();
+    expect_failed.operator()<iostream>();
 }
 
 namespace
@@ -185,58 +243,52 @@ namespace
 // absorbed here and recorded on the target itself -- mirroring what out_flusher<T> does with
 // handle_exception<true>(). It must never reach the initiating stream, which would otherwise
 // have the target's failure misattributed to it.
-struct ThrowingTie : public IOv2::abs_flusher
+struct ThrowingTie : public abs_flusher
 {
     int  flushed = 0;
     bool failed  = false;
+
     void try_flush() noexcept override
     {
         ++flushed;
-        try { throw IOv2::stream_error("tied flush boom"); }
+        try { throw stream_error("tied flush boom"); }
         catch (...) { failed = true; }
     }
 };
 
 // The contract itself: a tie flush can never throw into the sentry.
-static_assert(noexcept(std::declval<IOv2::abs_flusher&>().try_flush()));
+static_assert(noexcept(std::declval<abs_flusher&>().try_flush()));
 }
 
 // An istream can have a tied stream; the input sentry flushes it before acquiring the lock.
 // When that flush fails, the failure stays on the target and extraction proceeds normally.
-// Verifies the tied stream was flushed, that it recorded its own failure, and that the value
-// still reads back with the reader untouched.
-void test_istream_tied_flush_char_1()
+TEST(IstreamWsChar, AFailingTiedFlushStaysOnTheTiedStream)
 {
-    dump_info("Test istream<char> tied-stream flush throw case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_absorbed = []<template <typename, typename> class T>()
     {
         ThrowingTie tt;
-        T iss{IOv2::mem_device{std::string("42 rest")}, IOv2::locale<char>("C")};
+        T iss{mem_device{std::string("42 rest")}, locale<char>("C")};
         iss.tie(&tt);
 
         int v = 0;
         iss >> v;                     // sentry flushes tt -> fails -> absorbed by the target
-        VERIFY( tt.flushed >= 1 );
-        VERIFY( tt.failed );          // the failure was recorded on the target
-        VERIFY( v == 42 );
-        VERIFY( iss.good() );         // and not on the initiator
+        EXPECT_GE(tt.flushed, 1);
+        EXPECT_TRUE(tt.failed);       // the failure was recorded on the target
+        EXPECT_EQ(v, 42);
+        EXPECT_TRUE(iss.good());      // and not on the initiator
 
         iss.tie(nullptr);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_absorbed.operator()<istream>();
+    expect_absorbed.operator()<iostream>();
 }
-
 
 namespace
 {
-using DirIn_c   = IOv2::istream<IOv2::mem_device<char>, char>;
-using DirOut_c  = IOv2::ostream<IOv2::mem_device<char>, char>;
-using DirBoth_c = IOv2::iostream<IOv2::mem_device<char>, char>;
+using DirIn_c   = istream<mem_device<char>, char>;
+using DirOut_c  = ostream<mem_device<char>, char>;
+using DirBoth_c = iostream<mem_device<char>, char>;
 
 // These probe the stream form of io_traits directly -- the rung the insertion / extraction
 // operators try first for a manipulator. `requires { s >> m; }` would answer a broader question:
@@ -244,11 +296,11 @@ using DirBoth_c = IOv2::iostream<IOv2::mem_device<char>, char>;
 // failure would no longer point at the stream form itself.
 template <typename S, typename M>
 concept can_extract = requires (S& s, const M& m)
-{ IOv2::io_traits<typename S::char_type, M>::sread(s, m); };
+{ io_traits<typename S::char_type, M>::sread(s, m); };
 
 template <typename S, typename M>
 concept can_insert = requires (S& s, const M& m)
-{ IOv2::io_traits<typename S::char_type, M>::swrite(s, m); };
+{ io_traits<typename S::char_type, M>::swrite(s, m); };
 
 // A manipulator legal in both directions declares both members. No library manipulator outside
 // io_manip.h has this shape, so one is defined here to pin the behaviour down.
@@ -289,48 +341,44 @@ namespace
 // istream_type and ostream_type are both satisfied, the wrong direction must not compile.
 // A constraint alone cannot achieve that -- such a stream satisfies either one -- so the
 // direction has to be which member exists.
-static_assert(  can_extract<DirBoth_c, IOv2::ws_t>    && !can_insert<DirBoth_c, IOv2::ws_t> );
-static_assert(  can_insert<DirBoth_c, IOv2::endl_t>   && !can_extract<DirBoth_c, IOv2::endl_t> );
-static_assert(  can_insert<DirBoth_c, IOv2::ends_t>   && !can_extract<DirBoth_c, IOv2::ends_t> );
-static_assert(  can_insert<DirBoth_c, IOv2::flush_t>  && !can_extract<DirBoth_c, IOv2::flush_t> );
+static_assert(  can_extract<DirBoth_c, ws_t>    && !can_insert<DirBoth_c, ws_t> );
+static_assert(  can_insert<DirBoth_c, endl_t>   && !can_extract<DirBoth_c, endl_t> );
+static_assert(  can_insert<DirBoth_c, ends_t>   && !can_extract<DirBoth_c, ends_t> );
+static_assert(  can_insert<DirBoth_c, flush_t>  && !can_extract<DirBoth_c, flush_t> );
 
 // Unidirectional streams keep their own direction and gain nothing in the other one.
-static_assert(  can_extract<DirIn_c, IOv2::ws_t>      && !can_insert<DirIn_c, IOv2::ws_t> );
-static_assert( !can_extract<DirIn_c, IOv2::endl_t>    && !can_insert<DirIn_c, IOv2::endl_t> );
-static_assert(  can_insert<DirOut_c, IOv2::endl_t>    && !can_extract<DirOut_c, IOv2::endl_t> );
-static_assert( !can_extract<DirOut_c, IOv2::ws_t>     && !can_insert<DirOut_c, IOv2::ws_t> );
+static_assert(  can_extract<DirIn_c, ws_t>      && !can_insert<DirIn_c, ws_t> );
+static_assert( !can_extract<DirIn_c, endl_t>    && !can_insert<DirIn_c, endl_t> );
+static_assert(  can_insert<DirOut_c, endl_t>    && !can_extract<DirOut_c, endl_t> );
+static_assert( !can_extract<DirOut_c, ws_t>     && !can_insert<DirOut_c, ws_t> );
 
 // Manipulators tagged both ways stay usable both ways.
-static_assert(  can_insert<DirBoth_c, both_manip>    &&  can_extract<DirBoth_c, both_manip> );
-static_assert(  can_insert<DirBoth_c, IOv2::setw_t>   &&  can_extract<DirBoth_c, IOv2::setw_t> );
-static_assert(  can_insert<DirBoth_c, IOv2::setfill_t<char>>
-             && can_extract<DirBoth_c, IOv2::setfill_t<char>> );
+static_assert(  can_insert<DirBoth_c, both_manip>  &&  can_extract<DirBoth_c, both_manip> );
+static_assert(  can_insert<DirBoth_c, setw_t>      &&  can_extract<DirBoth_c, setw_t> );
+static_assert(  can_insert<DirBoth_c, setfill_t<char>>
+             && can_extract<DirBoth_c, setfill_t<char>> );
 
 // A setfill_t whose character type does not match the stream is rejected in both directions:
 // io_traits carries the same_as constraint on its members precisely so this stays visible to a
 // requires-expression rather than erroring inside the body.
-static_assert( !can_insert<DirBoth_c, IOv2::setfill_t<wchar_t>>
-            && !can_extract<DirBoth_c, IOv2::setfill_t<wchar_t>> );
+static_assert( !can_insert<DirBoth_c, setfill_t<wchar_t>>
+            && !can_extract<DirBoth_c, setfill_t<wchar_t>> );
 }
 
 // Runtime companion to the direction static_asserts above: the surviving direction still works
 // on a bidirectional stream.
-void test_istream_manip_direction_char_1()
+TEST(IstreamWsChar, TheSurvivingDirectionStillRunsOnABidirectionalStream)
 {
-    dump_info("Test istream<char> manipulator direction case 1...");
-
-    DirBoth_c iss{IOv2::mem_device{std::string("  santa")}};
-    iss >> IOv2::ws;
+    DirBoth_c iss{mem_device{std::string("  token")}};
+    iss >> ws;
     std::string tok;
     iss >> tok;
-    VERIFY( tok == "santa" );
+    EXPECT_EQ(tok, "token");
 
     // A manipulator tagged both ways runs from either operator.
-    int calls = 0;
-    DirBoth_c iss3{IOv2::mem_device{std::string("x")}};
+    int       calls = 0;
+    DirBoth_c iss3{mem_device{std::string("x")}};
     iss3 >> counting_manip{&calls};
     iss3 << counting_manip{&calls};
-    VERIFY( calls == 2 );
-
-    dump_info("Done\n");
+    EXPECT_EQ(calls, 2);
 }

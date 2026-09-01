@@ -1,339 +1,322 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <device/mem_device.h>
+/**
+ * istream<char>::ignore(n, delim): discarding input without looking at it.
+ *
+ * ignore has three ways to stop and the caller usually cares which: it has
+ * discarded n characters, it has found and discarded the delimiter, or the
+ * input ran out. The last one sets eofbit but is not a failure, because
+ * discarding fewer characters than offered is only a problem if the caller
+ * needed them -- and a caller that needed them would not be discarding them.
+ * That is the whole difference between ignore and read.
+ *
+ * The delimiter is a character, not a widened integer, so no character value is
+ * reserved to mean "no delimiter" and a byte like 0xFF cannot be mistaken for
+ * the end of the input. The unbounded form is spelled by passing the maximum
+ * count, which is the one count that does not stop the search.
+ *
+ * The fixture is "0123456789abcdef", whose character at index n is n in base
+ * 16, so how far an ignore got is readable from the character it stopped on.
+ */
 #include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/iostream.h>
+#include <io/istream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
 #include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_istream_ignore_char_1()
+#include <limits>
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<char>::ignore case 1...");
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T is_00(IOv2::mem_device{""});
-        T is_03(IOv2::mem_device{"soul eyes: john coltrane quartet"});
-        T is_04(IOv2::mem_device{"soul eyes: john coltrane quartet"});
+    const std::string kDigits = "0123456789abcdef";
 
-        IOv2::ios_defs::iostate state1, state2;
-
-        // istream& read(char_type* s, streamsize n)
-        char carray[60] = "";
-        is_04.read(carray, 9);
-        VERIFY( is_04.peek() == ':' );
-
-        // istream& ignore(streamsize n = 1, int_type delim = traits::eof())
-        state1 = is_04.rdstate();
-        is_04.ignore();
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == ' ' );
-
-        state1 = is_04.rdstate();
-        is_04.ignore(0);
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == ' ' );
-
-        state1 = is_04.rdstate();
-        is_04.ignore(5, ' ');
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == 'j' );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    constexpr auto kUnbounded = std::numeric_limits<std::streamsize>::max();
 }
 
-void test_istream_ignore_char_2()
+TEST(IstreamIgnoreChar, IgnoreDiscardsOneCharacterByDefaultAndNCharactersOnRequest)
 {
-    dump_info("Test istream<char>::ignore case 2...");
-    auto prepare = [](std::string::size_type len, unsigned nchunks, char delim)
+    auto expect_counted = []<template <typename, typename> class T>()
     {
-        std::string ret;
-        for (unsigned i = 0; i < nchunks; ++i)
+        T is(mem_device{kDigits});
+
+        const ios_defs::iostate before = is.rdstate();
+        is.ignore();
+        EXPECT_EQ(is.rdstate(), before);   // discarding is not an event
+        EXPECT_EQ(is.peek(), '1');
+
+        is.ignore(4);
+        EXPECT_EQ(is.peek(), '5');
+
+        is.ignore(10);
+        EXPECT_EQ(is.peek(), 'f');
+    };
+
+    expect_counted.operator()<istream>();
+    expect_counted.operator()<iostream>();
+}
+
+// A count of zero asks for nothing, with or without a delimiter, and so cannot
+// move the read position even when the delimiter is right there.
+TEST(IstreamIgnoreChar, ACountOfZeroDiscardsNothing)
+{
+    auto expect_nothing = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+
+        is.ignore(0);
+        EXPECT_EQ(is.peek(), '0');
+
+        is.ignore(0, '0');             // the delimiter is the next character
+        EXPECT_EQ(is.peek(), '0');
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+    };
+
+    expect_nothing.operator()<istream>();
+    expect_nothing.operator()<iostream>();
+}
+
+// The delimiter is discarded along with everything before it: ignore stops
+// after it, not on it, which is what makes repeated calls walk record by
+// record without the caller having to step over the separator.
+TEST(IstreamIgnoreChar, TheDelimiterIsDiscardedTooAndIgnoreStopsAfterIt)
+{
+    auto expect_consumed = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+
+        is.ignore(kUnbounded, '4');
+        EXPECT_EQ(is.peek(), '5');
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+
+        // Finding it immediately still discards it and nothing else.
+        is.ignore(kUnbounded, '5');
+        EXPECT_EQ(is.peek(), '6');
+    };
+
+    expect_consumed.operator()<istream>();
+    expect_consumed.operator()<iostream>();
+}
+
+// With both a count and a delimiter, whichever comes first wins. The count
+// includes the delimiter, so a delimiter at position n is out of reach of a
+// call bounded by n.
+TEST(IstreamIgnoreChar, TheCountAndTheDelimiterAreBothLimitsAndTheNearerOneStops)
+{
+    auto expect_first = []<template <typename, typename> class T>()
+    {
         {
-            for (std::string::size_type j = 0; j < len; ++j)
-                ret.push_back('a' + rand() % 26);
-            len *= 2;
-            ret.push_back(delim);
+            // The delimiter is within the count: it stops the call.
+            T is(mem_device{kDigits});
+            is.ignore(6, '3');
+            EXPECT_EQ(is.peek(), '4');
         }
-        return ret;
-    };
-    
-    auto check = [](auto& stream, const std::string& str, unsigned nchunks, char delim)
-    {
-        std::string::size_type index = 0, index_new = 0;
-        unsigned n = 0;
-
-        while (true)
         {
-            stream.ignore(std::numeric_limits<std::streamsize>::max(), delim);
-            index_new = str.find(delim, index);
-            index = index_new + 1;
-            ++n;
-            if (!stream.good()) break;
+            // The delimiter is past the count: the count stops the call and the
+            // delimiter is still in the stream.
+            T is(mem_device{kDigits});
+            is.ignore(3, '8');
+            EXPECT_EQ(is.peek(), '3');
+            EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
         }
-        VERIFY( !stream.str_fail() );
-        VERIFY( stream.eof() );
-        VERIFY( n == nchunks + 1 );
-    };
-
-    auto helper = [&prepare, &check]<template<typename, typename> class T,
-                                               typename TDevice>()
-    {
-        const char filename[] = "istream_ignore.txt";
-        const char delim = '|';
-        const unsigned nchunks = 10;
-        const std::string data = prepare(555, nchunks, delim);
-        file_guard g(filename, data);
-    
-        T ifstrm(TDevice{filename});
-        check(ifstrm, data, nchunks, delim);
-        auto [dev, err] = ifstrm.detach();
-        dev.close();
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_char_3()
-{
-    dump_info("Test istream<char>::ignore case 3...");
-    auto helper = []<template<typename, typename> class T,
-                               typename TDevice>()
-    {
-        std::string data = []()
         {
-            std::string res;
-            for (size_t i = 0; i < 1500; ++i)
-                res.append("1234567890\n");
-            return res;
-        }();
-    
-        file_guard g("istream_unformatted-1.txt", data);
-        T ifstrm(TDevice{"istream_unformatted-1.txt"});
-        IOv2::ios_defs::iostate state1, state2;
-
-        state1 = ifstrm.rdstate();
-        VERIFY( state1 == IOv2::ios_defs::goodbit );
-        VERIFY( ifstrm.peek() == '1' );
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(1);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == '2' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(10);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == '1' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(100);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == '2' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(1000);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == '1' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(10000);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == '2' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(std::numeric_limits<std::streamsize>::max());
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 != state2 );
-        VERIFY( state2 == IOv2::ios_defs::eofbit );
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_char_4()
-{
-    dump_info("Test istream<char>::ignore case 4...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T ss(IOv2::mem_device{"abcd" "\xFF" "1234ina donna coolbrith"});
-        char c;
-        ss >> c;
-        VERIFY( c == 'a' );
-        ss.ignore(8);
-        ss >> c;
-        VERIFY( c == 'i' );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_char_5()
-{
-    dump_info("Test istream<char>::ignore case 5...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T istr(IOv2::mem_device{"abcdefg\n"});
-
-        istr.ignore(0);
-        istr.ignore(0, 'b');
-
-        istr.ignore();  // Advance to next position.
-        istr.ignore(0, 'b');
-
-        VERIFY(istr.peek() == 'b');
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_char_6()
-{
-    dump_info("Test istream<char>::ignore case 6...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        {
-            T s{IOv2::mem_device{" +   -"}};
-            s.ignore(1, '+');
-            VERIFY( s.get() == '+' );
-            s.ignore(3, '-');
-            VERIFY( s.get() == '-' );
-        }
-
-        {
-            T s{IOv2::mem_device{".+...-"}};
-            s.ignore(1, '+');
-            VERIFY( s.get() == '+' );
-            s.ignore(3, '-');
-            VERIFY( s.get() == '-' );
+            // Exactly at the boundary: the count covers the delimiter itself.
+            T is(mem_device{kDigits});
+            is.ignore(4, '3');
+            EXPECT_EQ(is.peek(), '4');
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_first.operator()<istream>();
+    expect_first.operator()<iostream>();
 }
 
-void test_istream_ignore_char_7()
+// Running out of input while discarding is the end, not a failure: eofbit is
+// set, strfailbit is not, and the stream still converts to true.
+TEST(IstreamIgnoreChar, RunningOutOfInputSetsEndOfFileWithoutFailing)
 {
-    dump_info("Test istream<char>::ignore case 7...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_end = []<template <typename, typename> class T>()
     {
         {
-            T s(IOv2::mem_device{"  "});
-            s.ignore(2, '+');
-            VERIFY( (bool)s );
-            VERIFY( !s.get().has_value() );
-            VERIFY( s.eof() );
+            // Bounded by a count larger than what is there.
+            T is(mem_device{std::string("ab")});
+            is.ignore(10);
+            EXPECT_TRUE(is.eof());
+            EXPECT_FALSE(is.rdstate() & ios_defs::strfailbit);
+            EXPECT_TRUE(static_cast<bool>(is));
         }
-    
         {
-            T s(IOv2::mem_device{"  "});
-            s.ignore(2);
-            VERIFY( (bool)s );
-            VERIFY( !s.get().has_value() );
-            VERIFY( s.eof() );
+            // Bounded by a delimiter that is not there.
+            T is(mem_device{std::string("ab")});
+            is.ignore(kUnbounded, '|');
+            EXPECT_TRUE(is.eof());
+            EXPECT_FALSE(is.rdstate() & ios_defs::strfailbit);
+        }
+        {
+            // Nothing there to begin with.
+            T is{mem_device{std::string("")}};
+            is.ignore();
+            EXPECT_TRUE(is.eof());
+            EXPECT_FALSE(is.rdstate() & ios_defs::strfailbit);
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_end.operator()<istream>();
+    expect_end.operator()<iostream>();
 }
 
-void test_istream_ignore_char_8()
+// A character value is a character value: the delimiter parameter has the
+// stream's character type, so nothing is set aside to mean "no more input" and
+// a byte that would be the traditional end-of-file sentinel is discarded like
+// any other.
+TEST(IstreamIgnoreChar, NoCharacterValueIsReservedToMeanEndOfInput)
 {
-    dump_info("Test istream<char>::ignore case 8 (EOF x exception mask)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_transparent = []<template <typename, typename> class T>()
     {
-        // eofbit masked: ignore() at EOF throws eof_error; eofbit set.
         {
-            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
-            s.exceptions(IOv2::ios_defs::eofbit);
-            bool threw = false;
-            try { s.ignore(); }
-            catch (const IOv2::eof_error&) { threw = true; }
-            VERIFY(threw);
-            VERIFY(s.eof());
+            // 0xFF sits in the middle and is passed over without stopping.
+            T is(mem_device{std::string("ab\xFF" "cd")});
+            is.ignore(4);
+            EXPECT_EQ(is.peek(), 'd');
+            EXPECT_FALSE(is.eof());
         }
-        // eofbit unmasked (default): no throw, eofbit set (regression).
         {
-            T s{IOv2::mem_device{std::string("")}, IOv2::locale<char>("C")};
-            s.ignore();
-            VERIFY(s.eof());
+            // And it works as a delimiter in its own right.
+            T is(mem_device{std::string("ab\xFF" "cd")});
+            is.ignore(kUnbounded, '\xFF');
+            EXPECT_EQ(is.peek(), 'c');
+            EXPECT_FALSE(is.eof());
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_transparent.operator()<istream>();
+    expect_transparent.operator()<iostream>();
 }
 
-// ignore(n, delim) on a stream already in a failed state: the input sentry rejects the
-// invalid stream (throws stream_error), which the function's own try/catch routes through
-// handle_exception (-> strfailbit). With no exception mask set nothing escapes. This drives
-// the catch branch of the delimited istream_operators::ignore(n, delim) overload.
-void test_istream_ignore_char_9()
+// Repeated unbounded calls are how a caller skips records, so they have to
+// terminate: each one either lands after a delimiter or at the end. Over a file
+// large enough to span several device reads, the delimiters found must come to
+// exactly the number written, and the loop must stop at the end rather than
+// spinning on a stream that is already exhausted.
+TEST(IstreamIgnoreChar, RepeatedUnboundedIgnoresWalkTheRecordsAndThenStop)
 {
-    dump_info("Test istream<char>::ignore case 9 (failed stream, delimited)...");
+    constexpr int  kRecords = 400;
+    constexpr char kDelim   = '|';
 
-    auto helper = []<template<typename, typename> class T>()
+    std::string data;
+    for (int i = 0; i < kRecords; ++i)
+        data += std::string(20 + i % 40, 'x') + kDelim;
+
+    const std::string path = "test_istream_ignore_records.txt";
+    file_guard        guard(path, data);
+
+    auto expect_walked = [&]<template <typename, typename> class T, typename TDevice>()
     {
-        T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
+        T is(TDevice{path});
+        ASSERT_TRUE(static_cast<bool>(is));
+
+        int found = 0;
+        while (is.good())
+        {
+            is.ignore(kUnbounded, kDelim);
+            if (is.good()) ++found;
+        }
+
+        EXPECT_EQ(found, kRecords);
+        EXPECT_TRUE(is.eof());
+        EXPECT_FALSE(is.str_fail());
+    };
+
+    expect_walked.operator()<istream, ifile_device<char>>();
+    expect_walked.operator()<iostream, file_device<char>>();
+}
+
+// Counts far larger than one device read still stop where they were told to,
+// which is the case a buffered implementation gets wrong by refilling once too
+// often or once too few.
+TEST(IstreamIgnoreChar, ACountLargerThanTheBufferStopsWhereItWasTold)
+{
+    const std::string line = "0123456789\n";
+    std::string       data;
+    for (int i = 0; i < 1500; ++i)
+        data += line;
+
+    const std::string path = "test_istream_ignore_bulk.txt";
+    file_guard        guard(path, data);
+
+    auto expect_stopped = [&]<template <typename, typename> class T, typename TDevice>()
+    {
+        T is(TDevice{path});
+        ASSERT_TRUE(static_cast<bool>(is));
+
+        // Each count is a whole number of lines, so what is left under the
+        // cursor names how far the call went.
+        for (const std::streamsize n : {std::streamsize{11}, std::streamsize{110},
+                                        std::streamsize{1100}, std::streamsize{11000}})
+        {
+            SCOPED_TRACE(n);
+            is.ignore(n);
+            EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+            EXPECT_EQ(is.peek(), '0');
+        }
+
+        // And the unbounded form runs to the end of a file of this size.
+        is.ignore(kUnbounded);
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+    };
+
+    expect_stopped.operator()<istream, ifile_device<char>>();
+    expect_stopped.operator()<iostream, file_device<char>>();
+}
+
+TEST(IstreamIgnoreChar, IgnoreAtTheEndThrowsWhenEndOfFileIsMasked)
+{
+    auto expect_thrown = []<template <typename, typename> class T>()
+    {
+        {
+            T is{mem_device{std::string("")}, locale<char>("C")};
+            is.exceptions(ios_defs::eofbit);
+            EXPECT_THROW(is.ignore(), eof_error);
+            EXPECT_TRUE(is.eof());
+        }
+        {
+            T is{mem_device{std::string("")}, locale<char>("C")};
+            EXPECT_NO_THROW(is.ignore());
+            EXPECT_TRUE(is.eof());
+        }
+    };
+
+    expect_thrown.operator()<istream>();
+    expect_thrown.operator()<iostream>();
+}
+
+// ignore on a stream already in a failed state: the input sentry rejects the invalid stream
+// (throws stream_error), which the function's own try/catch routes through handle_exception
+// (-> strfailbit). With no exception mask set nothing escapes.
+TEST(IstreamIgnoreChar, IgnoreOnAFailedStreamIsReportedRatherThanThrown)
+{
+    auto expect_reported = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("abc")}, locale<char>("C")};
 
         int v = 0;
-        s >> v;                       // non-numeric input -> strfailbit
-        VERIFY( !s );
+        is >> v;                      // non-numeric input -> strfailbit
+        EXPECT_FALSE(static_cast<bool>(is));
 
-        bool threw = false;
-        try { s.ignore(5, 'x'); }     // sentry rejects the failed stream -> caught
-        catch (...) { threw = true; }
-        VERIFY( !threw );
-        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+        // Both the delimited and the plain overload have to take that branch.
+        EXPECT_NO_THROW(is.ignore(5, 'x'));
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+
+        EXPECT_NO_THROW(is.ignore(5));
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_reported.operator()<istream>();
+    expect_reported.operator()<iostream>();
 }

@@ -1,397 +1,158 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * The same four endings as test_istream_getline_char.cpp for wchar_t: the
+ * delimiter was found, the capacity ran out first, the input ran out having
+ * given something, or the input ran out having given nothing.
+ *
+ * The stopping conditions are counted in characters, so a wide fixture reaches
+ * them at the same call numbers as a narrow one regardless of how many bytes
+ * its characters would encode to -- which is what this instantiation is for.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
 #include <facet/ctype.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
+#include <io/iostream.h>
 #include <io/istream.h>
-#include <io/ostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
-void test_istream_getline_wchar_t_1()
+#include <gtest/gtest.h>
+
+#include <cstddef>
+#include <string>
+
+using namespace IOv2;
+
+TEST(IstreamGetlineWchar, TheStoppingConditionIsReadableFromTheState)
 {
-    dump_info("Test istream<wchar_t>::getline case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_matrix = []<template <typename, typename> class T>()
     {
-        const wchar_t str_lit01[] = L"\t\t\t    sun*ra \n"
-            L"                            "
-            L"and his myth science arkestra present\n"
-            L"                            "
-            L"angles and demons @ play\n"
-            L"                            "
-            L"the nubians of plutonia";
+        T is(mem_device{std::wstring(L"ab\ncdefgh\ni")});
 
-        std::wstring str01(str_lit01);
+        wchar_t buf[5];
 
-        T is_00(IOv2::mem_device{L""});
-        T is_04(IOv2::mem_device{str01});
+        wchar_t* end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"ab");
+        EXPECT_EQ(end - buf, 3);
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
 
-        IOv2::ios_defs::iostate state1, state2, statefail, stateeof;
-        statefail = IOv2::ios_defs::strfailbit;
-        stateeof = IOv2::ios_defs::eofbit;
-        wchar_t carray1[400] = L"";
-
-        // istream& getline(char* s, streamsize n, char delim)
-        // istream& getline(char* s, streamsize n)
-        state1 = is_00.rdstate();
-        is_00.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 20, L'*');
-        state2 = is_00.rdstate();
-        // make sure failbit was set, since we couldn't extract
-        // from the null streambuf...
-        VERIFY(state1 != state2);
-        VERIFY(state2 & statefail);
-
-        state1 = is_04.rdstate();
-        size_t gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 1, L'\t') - carray1; // extracts, throws away
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 1);
-        VERIFY(state1 == state2);
-        VERIFY(state1 == 0);
-        VERIFY(std::wstring(L"") == std::wstring(carray1));
-
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 20, L'*') - carray1;
-        state2 = is_04.rdstate();  
-        VERIFY(gcount == 10);
-        VERIFY(state1 == state2);
-        VERIFY(state1 == 0);
-        VERIFY(std::wstring(L"\t\t    sun") == std::wstring(carray1));
-
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 20) - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 4);
-        VERIFY(state1 == state2);
-        VERIFY(state1 == 0);
-        VERIFY(std::wstring(L"ra ") == std::wstring(carray1));
-
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 65) - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 65);
-        VERIFY(state1 != state2);
-        VERIFY(state2 == statefail);
-        VERIFY(std::wstring(L"                            and his myth science arkestra presen")
-               == std::wstring(carray1));
-
-        is_04.clear();
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 120, L'|') - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 107);
-        VERIFY(state1 != state2);
-        VERIFY(state2 == stateeof);
-
-        is_04.clear();
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 100, L'|') - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 1);
-        VERIFY(state1 != state2);
-        VERIFY(state2 & statefail);
-        VERIFY(state2 & stateeof);
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_wchar_t_2()
-{
-    dump_info("Test istream<wchar_t>::getline case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const wchar_t* charray = L"\n"
-            L"a\n"
-            L"aa\n"
-            L"aaa\n"
-            L"aaaa\n"
-            L"aaaaa\n"
-            L"aaaaaa\n"
-            L"aaaaaaa\n"
-            L"aaaaaaaa\n"
-            L"aaaaaaaaa\n"
-            L"aaaaaaaaaa\n"
-            L"aaaaaaaaaaa\n"
-            L"aaaaaaaaaaaa\n"
-            L"aaaaaaaaaaaaa\n"
-            L"aaaaaaaaaaaaaa\n";
-
-        const std::streamsize it = 5;
-        std::size_t blen = std::wcslen(charray);
-        std::size_t br = 0;
-
-        wchar_t tmp[it];
-        T ifs(IOv2::mem_device{charray});
-        VERIFY((bool)ifs);
-
-        while (true)
-        {
-            size_t gcount = ifs.template get<IOv2::cons_sep, IOv2::app_zt>(tmp, it) - tmp;
-            br += gcount - 1;
-            if (ifs.eof())
-            {
-                // Just sanity checks to make sure we've extracted the same
-                // number of chars that were in the streambuf
-                VERIFY(br + 15 == blen);
-                break;
-            }
-            else if (ifs.str_fail())
-            {
-                // delimiter not read
-                //
-                // either
-                // -> extracted no characters
-                // or
-                // -> n - 1 characters are stored
-                ifs.clear(ifs.rdstate() & ~IOv2::ios_defs::strfailbit);
-                VERIFY((gcount == 0) || (std::wcslen(tmp) == it - 1));
-                VERIFY((bool)ifs);
-            }
-            else
-            {
-                // delimiter was read.
-                //
-                // -> strlen(__s) < n - 1 
-                // -> delimiter was seen -> gcount() > strlen(__s)
-                VERIFY(gcount == static_cast<size_t>(std::wcslen(tmp) + 1));
-            }
-        }
-
-        ifs.clear(ifs.rdstate() & ~IOv2::ios_defs::eofbit);
-        auto gcount = ifs.template get<IOv2::cons_sep, IOv2::app_zt>(tmp, it) - tmp;
-        VERIFY((ifs.str_fail()) && (gcount == 1));
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_wchar_t_3()
-{
-    dump_info("Test istream<wchar_t>::getline case 3...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const size_t it = 5;
-        wchar_t tmp[it];
-        const wchar_t* str_lit = L"abcd\n";
-
-        T istr(IOv2::mem_device{str_lit});
-        size_t gcount = istr.template get<IOv2::cons_sep, IOv2::app_zt>(tmp, it) - tmp;
-        VERIFY(gcount == 5);
-        VERIFY(std::wcslen(tmp) == 4);
-        VERIFY(!istr.str_fail());
-        VERIFY(!istr.eof());
-
-        istr.clear(istr.rdstate() & ~IOv2::ios_defs::eofbit);
-        wchar_t c = L'z';
-        istr.get(c);
-        VERIFY(c == L'z');
-        VERIFY(istr.eof());
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_wchar_t_4()
-{
-    dump_info("Test istream<wchar_t>::getline case 4...");
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T is(IOv2::mem_device{L"1234567890abcdefghij"});
-        typedef std::char_traits<wchar_t>   traits_type;
-
-        wchar_t buffer[10];
-        std::fill_n(buffer, 10, L'X');
-
-        size_t gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer) / sizeof(wchar_t), L'0') - buffer;
-        VERIFY(gcount == 10);
-        VERIFY(is.rdstate() == IOv2::ios_defs::goodbit);
-        VERIFY(traits_type::compare(buffer, L"123456789\0", sizeof(buffer) / sizeof(wchar_t)) == 0);
+        end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"cdef");
+        EXPECT_EQ(end - buf, 5);
+        EXPECT_EQ(is.rdstate(), ios_defs::strfailbit);
+        EXPECT_FALSE(is.eof());
 
         is.clear();
-        std::fill_n(buffer, 10, L'X');
-        gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer) / sizeof(wchar_t)) - buffer;
-        VERIFY(gcount == 10);
-        VERIFY(is.rdstate() == IOv2::ios_defs::strfailbit);
-        VERIFY(traits_type::compare(buffer, L"abcdefghi\0", sizeof(buffer) / sizeof(wchar_t)) == 0);
+        end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"gh");
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+
+        end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"i");
+        EXPECT_EQ(end - buf, 2);
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
 
         is.clear();
-        std::fill_n(buffer, 10, L'X');
-        gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer) / sizeof(wchar_t)) - buffer;
-        VERIFY(gcount == 2);
-        VERIFY(is.rdstate() == IOv2::ios_defs::eofbit);
-        VERIFY(traits_type::compare(buffer, L"j\0XXXXXXXX", sizeof(buffer) / sizeof(wchar_t)) == 0);
+        end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"");
+        EXPECT_EQ(end - buf, 1);
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit | ios_defs::strfailbit);
+    };
+
+    expect_matrix.operator()<istream>();
+    expect_matrix.operator()<iostream>();
+}
+
+// The same fixture written in characters that are several bytes wide reaches
+// each ending at the same call, because the capacity counts characters.
+TEST(IstreamGetlineWchar, TheCapacityCountsCharactersNotBytes)
+{
+    auto expect_characters = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{std::wstring(L"é中\n漢字ξ中é\n中")});
+
+        wchar_t buf[5];
+
+        wchar_t* end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"é中");
+        EXPECT_EQ(end - buf, 3);
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+
+        end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"漢字ξ中");        // four characters, the capacity
+        EXPECT_EQ(end - buf, 5);
+        EXPECT_EQ(is.rdstate(), ios_defs::strfailbit);
 
         is.clear();
-        std::fill_n(buffer, 10, L'X');
-        gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer) / sizeof(wchar_t)) - buffer;
-        VERIFY(gcount == 1);
-        VERIFY(is.rdstate() == (IOv2::ios_defs::eofbit | IOv2::ios_defs::strfailbit));
-        VERIFY(traits_type::compare(buffer, L"\0XXXXXXXXX", sizeof(buffer) / sizeof(wchar_t)) == 0);
+        end = is.template get<cons_sep, app_zt>(buf, 5, L'\n');
+        EXPECT_EQ(std::wstring(buf), L"é");
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_characters.operator()<istream>();
+    expect_characters.operator()<iostream>();
 }
 
-void test_istream_getline_wchar_t_5()
+TEST(IstreamGetlineWchar, ACapacityOfOneLeavesRoomOnlyForTheTerminator)
 {
-    dump_info("Test istream<wchar_t>::getline case 5...");
-    auto prepare = [](std::string::size_type len, unsigned nchunks, char delim)
+    auto expect_terminator_only = []<template <typename, typename> class T>()
     {
-        std::string ret;
-        std::wstring wret;
-        for (unsigned i = 0; i < nchunks; ++i)
-        {
-            for (std::string::size_type j = 0; j < len; ++j)
-            {
-                char c = 'a' + rand() % 26;
-                ret.push_back(c);
-                wret.push_back(c);
-            }
-            len *= 2;
-            ret.push_back(delim);
-            wret.push_back(delim);
-        }
-        return std::pair{ret, wret};
+        T is(mem_device{std::wstring(L"abc")});
+
+        wchar_t buf[4];
+        for (wchar_t& c : buf) c = L'*';
+
+        wchar_t* end = is.template get<cons_sep, app_zt>(buf, 1, L'\n');
+        EXPECT_EQ(end - buf, 1);
+        EXPECT_EQ(buf[0], L'\0');
+        EXPECT_EQ(buf[1], L'*');
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear();
+        EXPECT_EQ(is.peek(), L'a');
     };
 
-    auto check = [](auto& stream, const std::wstring& str, unsigned nchunks, char delim)
-    {
-        wchar_t buf[1000000];
-        std::wstring::size_type index = 0, index_new = 0;
-        unsigned n = 0;
-
-        size_t gcount = 0;
-        while (true)
-        {
-            gcount = stream.template get<IOv2::cons_sep, IOv2::app_zt>(buf, sizeof(buf), delim) - buf;
-            if (!stream) break;
-
-            index_new = str.find(delim, index);
-            VERIFY( gcount == (size_t)(index_new - index) + 1);
-            VERIFY( !str.compare(index, index_new - index, buf) );
-            index = index_new + 1;
-            ++n;
-        }
-        VERIFY( gcount == 1 );
-        VERIFY( stream.eof() );
-        VERIFY( n == nchunks );
-    };
-    
-    auto helper = [&prepare, &check]<template<typename, typename> class T,
-                                               typename TDevice>()
-    {
-        const char filename[] = "istream_getline.txt";
-        const char delim = '|';
-        const unsigned nchunks = 10;
-
-        auto [data, wdata] = prepare.operator()(777, nchunks, delim);
-        file_guard g(filename, data);
-
-        T ifstrm(TDevice{filename},
-                 IOv2::code_cvt_creator<char, wchar_t>("C"));
-        check(ifstrm, wdata, nchunks, delim);
-        auto [dev, err] = ifstrm.detach();
-        dev.close();
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    expect_terminator_only.operator()<istream>();
+    expect_terminator_only.operator()<iostream>();
 }
 
-void test_istream_getline_wchar_t_6()
+// wchar_t counterpart: a null output pointer with a non-zero size is rejected up front,
+// and under no_zt nothing is written through it.
+TEST(IstreamGetlineWchar, ANullDestinationIsRejected)
 {
-    dump_info("Test istream<wchar_t>::getline case 6...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_rejected = []<template <typename, typename> class T>()
     {
-        T istr01(IOv2::mem_device{L""});
-        T istr02(IOv2::mem_device{L""});
-        wchar_t buf02[2] = L"*" ;
+        T is(mem_device{std::wstring(L"hello")});
 
-        istr01.peek();
-        VERIFY( istr01.eof() );
-    
-        VERIFY( istr01.template get<IOv2::cons_sep, IOv2::app_zt>(buf02, 0) == buf02 );
-        VERIFY( istr01.str_fail() );
-
-        istr02.peek();
-        VERIFY( istr02.eof() );
-        VERIFY( istr02.template get<IOv2::cons_sep, IOv2::app_zt>(buf02, 1) == buf02 + 1);
-        VERIFY( istr02.str_fail() );
-        VERIFY( buf02[0] == wchar_t{} );
+        wchar_t* ret = nullptr;
+        EXPECT_NO_THROW((ret = is.template get<cons_sep, no_zt>(
+                             static_cast<wchar_t*>(nullptr), 5, L'\n')));
+        EXPECT_EQ(ret, nullptr);
+        EXPECT_TRUE(is.str_fail());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
 }
 
-void test_istream_getline_wchar_t_7()
+// wchar_t counterpart: with the ctype facet removed the default delimiter cannot be
+// widened, so the call fails -- and under app_zt the error path still terminates the
+// buffer, leaving buf + 1 as the returned pointer.
+TEST(IstreamGetlineWchar, TheDefaultDelimiterNeedsTheCtypeFacet)
 {
-    dump_info("Test istream<wchar_t>::getline case 7 (null destination pointer)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_failed = []<template <typename, typename> class T>()
     {
-        // Null output pointer + non-zero size -> stream_error -> strfailbit; no_zt writes no
-        // terminator, so the null pointer is never dereferenced and is returned unchanged.
-        T istr(IOv2::mem_device{std::wstring(L"hello")});
-        auto ret = istr.template get<IOv2::cons_sep, IOv2::no_zt>(
-                       static_cast<wchar_t*>(nullptr), 5, L'\n');
-        VERIFY( ret == nullptr );
-        VERIFY( istr.str_fail() );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_wchar_t_8()
-{
-    dump_info("Test istream<wchar_t>::getline case 8 (no ctype facet)...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        // get(s, n) derives the L'\n' delimiter via ctype::widen; removing the ctype facet
-        // makes that throw stream_error -> strfailbit. The app_zt policy still writes the
-        // trailing terminator in the error path, so buf[0] == L'\0' and the return is buf + 1.
-        const auto loc = IOv2::locale<wchar_t>("C").remove<IOv2::ctype_conf<wchar_t>>();
-        T istr{IOv2::mem_device{std::wstring(L"hello")}, loc};
+        const auto loc = locale<wchar_t>("C").remove<ctype_conf<wchar_t>>();
+        T is{mem_device{std::wstring(L"hello")}, loc};
 
         wchar_t buf[8];
         buf[0] = L'*';
-        auto ret = istr.template get<IOv2::cons_sep, IOv2::app_zt>(buf, 8);
-        VERIFY( ret == buf + 1 );
-        VERIFY( buf[0] == wchar_t{} );
-        VERIFY( istr.str_fail() );
+
+        wchar_t* ret = nullptr;
+        EXPECT_NO_THROW((ret = is.template get<cons_sep, app_zt>(buf, 8)));
+        EXPECT_EQ(ret, buf + 1);
+        EXPECT_EQ(buf[0], L'\0');
+        EXPECT_TRUE(is.str_fail());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_failed.operator()<istream>();
+    expect_failed.operator()<iostream>();
 }

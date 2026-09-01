@@ -1,393 +1,211 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * Reading a line at a time out of an istream<char>, which IOv2 spells as
+ * get<cons_sep, app_zt>: consume the delimiter, terminate the result.
+ *
+ * The policies themselves are covered in the get suite. What is left here, and
+ * what a line-reading loop actually depends on, is telling the four ways such a
+ * call can end apart *afterwards*, from the state alone:
+ *
+ *   the delimiter was found        goodbit
+ *   the capacity ran out first     strfailbit
+ *   the input ran out, got some    eofbit
+ *   the input ran out, got none    eofbit | strfailbit
+ *
+ * A loop that treats the second as the third truncates a long line into two,
+ * and one that treats the fourth as the third loops forever on an exhausted
+ * stream -- so the four are pinned down as a sequence over one fixture, in the
+ * order a real reader meets them.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
 #include <facet/ctype.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <io/istream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
-void test_istream_getline_char_1()
+#include <gtest/gtest.h>
+
+#include <cstddef>
+#include <cstring>
+#include <string>
+
+using namespace IOv2;
+
+// One fixture arranged so that consecutive calls with a capacity of five --
+// four characters and the terminator -- meet each ending in turn.
+TEST(IstreamGetlineChar, TheStoppingConditionIsReadableFromTheState)
 {
-    dump_info("Test istream<char>::getline case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_matrix = []<template <typename, typename> class T>()
     {
-        const char str_lit01[] = "\t\t\t    sun*ra \n"
-            "                            "
-            "and his myth science arkestra present\n"
-            "                            "
-            "angles and demons @ play\n"
-            "                            "
-            "the nubians of plutonia";
+        T is(mem_device{std::string("ab\ncdefgh\ni")});
 
-        std::string str01(str_lit01);
+        char buf[5];
 
-        T is_00(IOv2::mem_device{""});
-        T is_04(IOv2::mem_device{str01});
+        // 1. The delimiter arrived with room to spare: nothing is reported.
+        char* end = is.template get<cons_sep, app_zt>(buf, 5, '\n');
+        EXPECT_EQ(std::string(buf), "ab");
+        EXPECT_EQ(end - buf, 3);                       // two characters and the terminator
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
 
-        IOv2::ios_defs::iostate state1, state2, statefail, stateeof;
-        statefail = IOv2::ios_defs::strfailbit;
-        stateeof = IOv2::ios_defs::eofbit;
-        char carray1[400] = "";
+        // 2. The capacity ran out before the delimiter did. This is a failure
+        //    even though four perfectly good characters came back, because the
+        //    line asked for is not the line delivered.
+        end = is.template get<cons_sep, app_zt>(buf, 5, '\n');
+        EXPECT_EQ(std::string(buf), "cdef");
+        EXPECT_EQ(end - buf, 5);
+        EXPECT_EQ(is.rdstate(), ios_defs::strfailbit);
+        EXPECT_FALSE(is.eof());                        // and not because of the input
 
-        // istream& getline(char* s, streamsize n, char delim)
-        // istream& getline(char* s, streamsize n)
-        state1 = is_00.rdstate();
-        is_00.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 20, '*');
-        state2 = is_00.rdstate();
-        // make sure failbit was set, since we couldn't extract
-        // from the null streambuf...
-        VERIFY(state1 != state2);
-        VERIFY(state2 & statefail);
+        // The rest of that line is still there, which is how a caller recovers.
+        is.clear();
+        end = is.template get<cons_sep, app_zt>(buf, 5, '\n');
+        EXPECT_EQ(std::string(buf), "gh");
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
 
-        state1 = is_04.rdstate();
-        size_t gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 1, '\t') - carray1; // extracts, throws away
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 1);
-        VERIFY(state1 == state2);
-        VERIFY(state1 == 0);
-        VERIFY(std::string("") == std::string(carray1));
+        // 3. The input ran out with something extracted: an end, not a failure.
+        //    A last line without a trailing delimiter arrives this way.
+        end = is.template get<cons_sep, app_zt>(buf, 5, '\n');
+        EXPECT_EQ(std::string(buf), "i");
+        EXPECT_EQ(end - buf, 2);
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
 
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 20, '*') - carray1;
-        state2 = is_04.rdstate();  
-        VERIFY(gcount == 10);
-        VERIFY(state1 == state2);
-        VERIFY(state1 == 0);
-        VERIFY(std::string("\t\t    sun") == std::string(carray1));
-
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 20) - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 4);
-        VERIFY(state1 == state2);
-        VERIFY(state1 == 0);
-        VERIFY(std::string("ra ") == std::string(carray1));
-
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 65) - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 65);
-        VERIFY(state1 != state2);
-        VERIFY(state2 == statefail);
-        VERIFY(std::string("                            and his myth science arkestra presen")
-               == std::string(carray1));
-
-        is_04.clear();
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 120, '|') - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 107);
-        VERIFY(state1 != state2);
-        VERIFY(state2 == stateeof);
-
-        is_04.clear();
-        state1 = is_04.rdstate();
-        gcount = is_04.template get<IOv2::cons_sep, IOv2::app_zt>(carray1, 100, '|') - carray1;
-        state2 = is_04.rdstate();
-        VERIFY(gcount == 1);
-        VERIFY(state1 != state2);
-        VERIFY(state2 & statefail);
-        VERIFY(state2 & stateeof);
+        // 4. The input ran out with nothing extracted: both, which is the
+        //    answer a loop must stop on.
+        is.clear();
+        end = is.template get<cons_sep, app_zt>(buf, 5, '\n');
+        EXPECT_EQ(std::string(buf), "");
+        EXPECT_EQ(end - buf, 1);                       // the terminator alone
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit | ios_defs::strfailbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_matrix.operator()<istream>();
+    expect_matrix.operator()<iostream>();
 }
 
-void test_istream_getline_char_2()
+// A capacity of one is entirely spent on the terminator, so there is no room
+// for a character and the call fails without consuming anything -- as distinct
+// from a capacity of zero, which has no room for the terminator either.
+TEST(IstreamGetlineChar, ACapacityOfOneLeavesRoomOnlyForTheTerminator)
 {
-    dump_info("Test istream<char>::getline case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_terminator_only = []<template <typename, typename> class T>()
     {
-        const char* charray = "\n"
-            "a\n"
-            "aa\n"
-            "aaa\n"
-            "aaaa\n"
-            "aaaaa\n"
-            "aaaaaa\n"
-            "aaaaaaa\n"
-            "aaaaaaaa\n"
-            "aaaaaaaaa\n"
-            "aaaaaaaaaa\n"
-            "aaaaaaaaaaa\n"
-            "aaaaaaaaaaaa\n"
-            "aaaaaaaaaaaaa\n"
-            "aaaaaaaaaaaaaa\n";
+        T is(mem_device{std::string("abc")});
 
-        const std::streamsize it = 5;
-        std::size_t blen = std::strlen(charray);
-        std::size_t br = 0;
+        char buf[4];
+        for (char& c : buf) c = '*';
 
-        char tmp[it];
-        T ifs(IOv2::mem_device{charray});
-        VERIFY((bool)ifs);
+        char* end = is.template get<cons_sep, app_zt>(buf, 1, '\n');
+        EXPECT_EQ(end - buf, 1);
+        EXPECT_EQ(buf[0], '\0');
+        EXPECT_EQ(buf[1], '*');                        // and no further
+        EXPECT_TRUE(is.str_fail());
 
-        while (true)
+        // Nothing was taken, so the input is intact for the next reader.
+        is.clear();
+        EXPECT_EQ(is.peek(), 'a');
+    };
+
+    expect_terminator_only.operator()<istream>();
+    expect_terminator_only.operator()<iostream>();
+}
+
+// The loop invariant a line reader relies on, checked over lines that grow past
+// the buffer and back: on every call exactly one of the endings holds, and when
+// the delimiter was found the result is shorter than the capacity allows --
+// which is what makes "did it fit" answerable without a second query.
+TEST(IstreamGetlineChar, EveryCallEndsInExactlyOneOfTheFourWays)
+{
+    constexpr std::ptrdiff_t kCapacity = 8;
+
+    // Lines shorter than, exactly at, and well past the capacity, so that all
+    // four endings occur and the capacity boundary is crossed in both directions.
+    std::string data;
+    for (const int n : {0, 1, 6, 7, 8, 20, 3})
+        data += std::string(static_cast<std::size_t>(n), 'x') + "\n";
+
+    auto expect_invariant = [&]<template <typename, typename> class T>()
+    {
+        T is(mem_device{data});
+
+        std::string reassembled;
+        int         guard = 0;
+        while (is.good() && guard++ < 100)
         {
-            size_t gcount = ifs.template get<IOv2::cons_sep, IOv2::app_zt>(tmp, it) - tmp;
-            br += gcount - 1;
-            if (ifs.eof())
+            char        buf[kCapacity];
+            char*       end = is.template get<cons_sep, app_zt>(buf, kCapacity, '\n');
+            const auto  len = static_cast<std::size_t>(end - buf) - 1;   // less the terminator
+
+            EXPECT_EQ(std::strlen(buf), len);
+
+            if (is.good())
             {
-                // Just sanity checks to make sure we've extracted the same
-                // number of chars that were in the streambuf
-                VERIFY(br + 15 == blen);    // +15 for 15 '\n'
-                break;
+                // The delimiter was found, so what came back is a whole line
+                // and the delimiter itself is gone.
+                EXPECT_LE(static_cast<std::ptrdiff_t>(len), kCapacity - 1);
+                reassembled += std::string(buf, len) + "\n";
             }
-            else if (ifs.str_fail())
+            else if (is.str_fail() && !is.eof())
             {
-                // delimiter not read
-                //
-                // either
-                // -> extracted no characters
-                // or
-                // -> n - 1 characters are stored
-                ifs.clear(ifs.rdstate() & ~IOv2::ios_defs::strfailbit);
-                VERIFY((gcount == 0) || (std::strlen(tmp) == it - 1));
-                VERIFY((bool)ifs);
-            }
-            else
-            {
-                // delimiter was read.
-                //
-                // -> strlen(__s) < n - 1 
-                // -> delimiter was seen -> gcount() > strlen(__s)
-                VERIFY(gcount == static_cast<size_t>(std::strlen(tmp) + 1));
+                // The capacity stopped it, so the buffer is exactly full.
+                EXPECT_EQ(static_cast<std::ptrdiff_t>(len), kCapacity - 1);
+                reassembled += std::string(buf, len);
+                is.clear();
             }
         }
 
-        ifs.clear(ifs.rdstate() & ~IOv2::ios_defs::eofbit);
-        auto gcount = ifs.template get<IOv2::cons_sep, IOv2::app_zt>(tmp, it) - tmp;
-        VERIFY((ifs.str_fail()) && (gcount == 1));
+        // Ending on both bits is the only way out of the loop for input that
+        // ends with a delimiter.
+        EXPECT_EQ(is.rdstate(), ios_defs::eofbit | ios_defs::strfailbit);
+
+        // And nothing was lost or invented along the way.
+        EXPECT_EQ(reassembled, data);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_invariant.operator()<istream>();
+    expect_invariant.operator()<iostream>();
 }
 
-void test_istream_getline_char_3()
+// A null output pointer with a non-zero size is rejected up front with stream_error
+// -> strfailbit. no_zt means no trailing terminator is written, so nothing touches
+// the null pointer; the returned pointer is the (unmodified) null input.
+TEST(IstreamGetlineChar, ANullDestinationIsRejected)
 {
-    dump_info("Test istream<char>::getline case 3...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_rejected = []<template <typename, typename> class T>()
     {
-        const size_t it = 5;
-        char tmp[it];
-        const char* str_lit = "abcd\n";
+        T is(mem_device{std::string("hello")});
 
-        T istr(IOv2::mem_device{str_lit});
-        size_t gcount = istr.template get<IOv2::cons_sep, IOv2::app_zt>(tmp,it) - tmp;
-        VERIFY(gcount == 5);
-        VERIFY(strlen(tmp) == 4);
-        VERIFY(!istr.str_fail());
-        VERIFY(!istr.eof());
-
-        istr.clear(istr.rdstate() & ~IOv2::ios_defs::eofbit);
-        char c = 'z';
-        istr.get(c);
-        VERIFY(c == 'z');
-        VERIFY(istr.eof());
+        char* ret = nullptr;
+        EXPECT_NO_THROW((ret = is.template get<cons_sep, no_zt>(
+                             static_cast<char*>(nullptr), 5, '\n')));
+        EXPECT_EQ(ret, nullptr);
+        EXPECT_TRUE(is.str_fail());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
 }
 
-void test_istream_getline_char_4()
+// The delimiter-less get(s, n) derives the '\n' delimiter via ctype::widen. With the
+// ctype facet removed, that lookup throws stream_error ("no ctype facet") -> strfailbit.
+// Because the app_zt (C-string) policy is in effect, the error path still writes the
+// trailing terminator, so buf[0] == '\0' and the returned pointer is buf + 1.
+TEST(IstreamGetlineChar, TheDefaultDelimiterNeedsTheCtypeFacet)
 {
-    dump_info("Test istream<char>::getline case 4...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_failed = []<template <typename, typename> class T>()
     {
-        T is(IOv2::mem_device{"1234567890abcdefghij"});
-        typedef std::char_traits<char>   traits_type;
-
-        char buffer[10];
-        std::fill_n(buffer, 10, 'X');
-
-        size_t gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer), '0') - buffer;
-        VERIFY(gcount == 10);
-        VERIFY(is.rdstate() == IOv2::ios_defs::goodbit);
-        VERIFY(traits_type::compare(buffer, "123456789\0", sizeof(buffer)) == 0);
-
-        is.clear();
-        std::fill_n(buffer, 10, 'X');
-        gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer)) - buffer;
-        VERIFY(gcount == 10);
-        VERIFY(is.rdstate() == IOv2::ios_defs::strfailbit);
-        VERIFY(traits_type::compare(buffer, "abcdefghi\0", sizeof(buffer)) == 0);
-
-        is.clear();
-        std::fill_n(buffer, 10, 'X');
-        gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer)) - buffer;
-        VERIFY(gcount == 2);
-        VERIFY(is.rdstate() == IOv2::ios_defs::eofbit);
-        VERIFY(traits_type::compare(buffer, "j\0XXXXXXXX", sizeof(buffer)) == 0);
-
-        is.clear();
-        std::fill_n(buffer, 10, 'X');
-        gcount = is.template get<IOv2::cons_sep, IOv2::app_zt>(buffer, sizeof(buffer)) - buffer;
-        VERIFY(gcount == 1);
-        VERIFY(is.rdstate() == (IOv2::ios_defs::eofbit | IOv2::ios_defs::strfailbit));
-        VERIFY(traits_type::compare(buffer, "\0XXXXXXXXX", sizeof(buffer)) == 0);
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_char_5()
-{
-    dump_info("Test istream<char>::getline case 5...");
-    auto prepare = [](std::string::size_type len, unsigned nchunks, char delim)
-    {
-        std::string ret;
-        for (unsigned i = 0; i < nchunks; ++i)
-        {
-            for (std::string::size_type j = 0; j < len; ++j)
-                ret.push_back('a' + rand() % 26);
-            len *= 2;
-            ret.push_back(delim);
-        }
-        return ret;
-    };
-
-    auto check = [](auto& stream, const std::string& str, unsigned nchunks, char delim)
-    {
-        char buf[1000000];
-        std::string::size_type index = 0, index_new = 0;
-        unsigned n = 0;
-
-        size_t gcount = 0;
-        while (true)
-        {
-            gcount = stream.template get<IOv2::cons_sep, IOv2::app_zt>(buf, sizeof(buf), delim) - buf;
-            if (!stream) break;
-
-            index_new = str.find(delim, index);
-            VERIFY( gcount == (size_t)(index_new - index) + 1);
-            VERIFY( !str.compare(index, index_new - index, buf) );
-            index = index_new + 1;
-            ++n;
-        }
-        VERIFY( gcount == 1 );
-        VERIFY( stream.eof() );
-        VERIFY( n == nchunks );
-    };
-    
-    auto helper = [&prepare, &check]<template<typename, typename> class T,
-                                               typename TDevice>()
-    {
-        const char filename[] = "istream_getline.txt";
-        const char delim = '|';
-        const unsigned nchunks = 10;
-        const std::string data = prepare(777, nchunks, delim);
-        file_guard g(filename, data);
-
-        T ifstrm(TDevice{filename});
-        check(ifstrm, data, nchunks, delim);
-        auto [dev, err] = ifstrm.detach();
-        dev.close();
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_char_6()
-{
-    dump_info("Test istream<char>::getline case 6...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T istr01(IOv2::mem_device{""});
-        T istr02(IOv2::mem_device{""});
-        char buf02[2] = "*" ;
-
-        istr01.peek();
-        VERIFY( istr01.eof() );
-
-        VERIFY( istr01.template get<IOv2::cons_sep, IOv2::app_zt>(buf02, 0) == buf02 );
-        VERIFY( istr01.str_fail() );
-
-        istr02.peek();
-        VERIFY( istr02.eof() );
-        VERIFY( istr02.template get<IOv2::cons_sep, IOv2::app_zt>(buf02, 1) == buf02 + 1 );
-        VERIFY( istr02.str_fail() );
-        VERIFY( buf02[0] == char{} );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_char_7()
-{
-    dump_info("Test istream<char>::getline case 7 (null destination pointer)...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        // A null output pointer with a non-zero size is rejected up front with stream_error
-        // -> strfailbit. no_zt means no trailing terminator is written, so nothing touches
-        // the null pointer; the returned pointer is the (unmodified) null input.
-        T istr(IOv2::mem_device{std::string("hello")});
-        auto ret = istr.template get<IOv2::cons_sep, IOv2::no_zt>(
-                       static_cast<char*>(nullptr), 5, '\n');
-        VERIFY( ret == nullptr );
-        VERIFY( istr.str_fail() );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_getline_char_8()
-{
-    dump_info("Test istream<char>::getline case 8 (no ctype facet)...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        // The delimiter-less get(s, n) derives the '\n' delimiter via ctype::widen. With the
-        // ctype facet removed, that lookup throws stream_error ("no ctype facet") -> strfailbit.
-        // Because the app_zt (C-string) policy is in effect, the error path still writes the
-        // trailing terminator, so buf[0] == '\0' and the returned pointer is buf + 1.
-        const auto loc = IOv2::locale<char>("C").remove<IOv2::ctype_conf<char>>();
-        T istr{IOv2::mem_device{std::string("hello")}, loc};
+        const auto loc = locale<char>("C").remove<ctype_conf<char>>();
+        T is{mem_device{std::string("hello")}, loc};
 
         char buf[8];
         buf[0] = '*';
-        auto ret = istr.template get<IOv2::cons_sep, IOv2::app_zt>(buf, 8);
-        VERIFY( ret == buf + 1 );
-        VERIFY( buf[0] == char{} );
-        VERIFY( istr.str_fail() );
+
+        char* ret = nullptr;
+        EXPECT_NO_THROW((ret = is.template get<cons_sep, app_zt>(buf, 8)));
+        EXPECT_EQ(ret, buf + 1);
+        EXPECT_EQ(buf[0], '\0');
+        EXPECT_TRUE(is.str_fail());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_failed.operator()<istream>();
+    expect_failed.operator()<iostream>();
 }

@@ -1,436 +1,260 @@
-#include <cstddef>
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <device/mem_device.h>
+/**
+ * Formatted extraction of characters and character arrays from an
+ * istream<char>: operator>>(CharT&) and operator>>(CharT (&)[N]).
+ *
+ * Both skip leading whitespace and both are formatted, so both fail when they
+ * find nothing. What separates them is the bound. The single-character form
+ * takes exactly one. The array form takes a whole token, which means it has to
+ * stop somewhere before the caller's buffer ends -- and there are two limits
+ * that can do it: the array bound N, which the operator deduces from the
+ * parameter type and therefore always knows, and the field width, which the
+ * caller sets and which is spent by the extraction that honours it. The
+ * smaller of the two wins, and one place is always kept for the terminator.
+ *
+ * A char stream also accepts signed char and unsigned char, and reads them as
+ * characters rather than as small numbers -- '6' comes back as '6' and not
+ * as 54, which is the one place the character extractors could plausibly be
+ * confused with the arithmetic ones.
+ */
 #include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/io_manip.h>
+#include <io/iostream.h>
+#include <io/istream.h>
+#include <io/ostream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
 #include <io/traits/nullptr.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+
+#include <gtest/gtest.h>
+
 #include <support/file_guard.h>
 #include <support/injectable_device.h>
 #include <support/io_traits_probe.h>
-#include <support/verify.h>
 
-void test_istream_extractors_character_char_1()
+#include <cstddef>
+#include <cstring>
+#include <string>
+#include <vector>
+
+using namespace IOv2;
+
+TEST(IstreamExtractCharacterChar, ASingleCharacterExtractionSkipsWhitespaceAndTakesOne)
 {
-    dump_info("Test istream<char> operator>> (character) case 1...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_one = []<template <typename, typename> class T>()
     {
-        const std::string str_02("coltrane playing 'softly as a morning sunrise'");
-        const std::string str_03("coltrane");
+        T is(mem_device{std::string("  ab c")});
 
-        T is_01(IOv2::mem_device{""});
-        T is_02(IOv2::mem_device{str_02});
-        IOv2::ios_defs::iostate state1, state2, statefail;
-        statefail = IOv2::ios_defs::strfailbit;
+        char c = '#';
+        is >> c;
+        EXPECT_EQ(c, 'a');
+        EXPECT_EQ(is.peek(), 'b');     // and no more than one
 
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, _CharT*)
-        const int n = 20;
-        char array1[n];
-        array1[0] = '\0';
+        is >> c;
+        EXPECT_EQ(c, 'b');
 
-        state1 = is_01.rdstate();
-        is_01 >> array1;   // should snake 0 characters, not alter stream state
-        state2 = is_01.rdstate();
-        VERIFY(state1 != state2);
-        VERIFY(state2 & statefail);
-
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake "coltrane"
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY((state2 & statefail) == 0);
-        VERIFY(array1[str_03.size() - 1] == 'e');
-        array1[str_03.size()] = '\0';
-        VERIFY(str_03.compare(0, str_03.size(), array1) == 0);
-        auto int1 = is_02.peek(); // should be ' '
-        VERIFY(int1 == ' ');
-
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake "playing" as sentry "eats" ws
-        state2 = is_02.rdstate();
-        int1 = is_02.peek(); // should be ' '
-        VERIFY(int1 == ' ');
-        VERIFY(state1 == state2);
-        VERIFY((state2 & statefail) == 0);
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, unsigned char*)
-        unsigned char array2[n];
-        state1 = is_02.rdstate();
-        is_02 >> array2;   // should snake 'softly
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY((state2 & statefail) == 0);
-        VERIFY(array2[0] == '\'');
-        VERIFY(array2[1] == 's');
-        VERIFY(array2[6] == 'y');
-        int1 = is_02.peek(); // should be ' '
-        VERIFY(int1 == ' ');
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, signed char*)
-        signed char array3[n];
-        state1 = is_02.rdstate();
-        is_02 >> array3;   // should snake "as"
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY((state2 & statefail) == 0);
-        VERIFY(array3[0] == 'a');
-        VERIFY(array3[1] == 's');
-        int1 = is_02.peek(); // should be ' '
-        VERIFY(int1 == ' ');
+        is >> c;                       // the space before 'c' is skipped
+        EXPECT_EQ(c, 'c');
+        EXPECT_TRUE(is.good());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_one.operator()<istream>();
+    expect_one.operator()<iostream>();
 }
 
-void test_istream_extractors_character_char_2()
+// Finding nothing is a failure, and a failed extraction does not write to the
+// caller's variable -- so a caller who forgot to check still sees whatever they
+// had rather than something invented.
+TEST(IstreamExtractCharacterChar, ACharacterExtractionThatFindsNothingLeavesTheVariableAlone)
 {
-    dump_info("Test istream<char> operator>> (character) case 2...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_untouched = []<template <typename, typename> class T>()
     {
-        const std::string str_02("or coltrane playing tunji with jimmy garrison");
-
-        T is_01(IOv2::mem_device{""});
-        T is_02(IOv2::mem_device{str_02});
-        IOv2::ios_defs::iostate state1, state2, statefail;
-        statefail = IOv2::ios_defs::strfailbit;
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, _CharT&)
-        char c1 = 'c', c2 = 'c';
-        state1 = is_01.rdstate();
-        is_01 >> c1;   
-        state2 = is_01.rdstate();
-        VERIFY(state1 != state2);
-        VERIFY(c1 == c2);
-        VERIFY(state2 & statefail);
-
-        state1 = is_02.rdstate();
-        is_02 >> c1;   
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(c1 == 'o');
-        is_02 >> c1;
-        is_02 >> c1;
-        VERIFY(c1 == 'c');
-        VERIFY((state2 & statefail) == 0);
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, unsigned char&)
-        unsigned char uc1 = 'c';
-        state1 = is_02.rdstate();
-        is_02 >> uc1;
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(uc1 == 'o');
-        is_02 >> uc1;
-        is_02 >> uc1;
-        VERIFY(uc1 == 't');
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, signed char&)
-        signed char sc1 = 'c';
-        state1 = is_02.rdstate();
-        is_02 >> sc1;   
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(sc1 == 'r');
-        is_02 >> sc1;
-        is_02 >> sc1;
-        VERIFY(sc1 == 'n');
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_extractors_character_char_3()
-{
-    dump_info("Test istream<char> operator>> (character) case 3...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const std::string str_02("coltrane playing 'softly as a morning sunrise'");
-        const std::string str_03("coltran");
-        T is_02(IOv2::mem_device{str_02});
-        IOv2::ios_defs::iostate state1, state2, statefail;
-        statefail = IOv2::ios_defs::strfailbit;
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, _CharT*)
-        const int n = 20;
-        char array1[n];
-
-        // testing with width() control enabled.
-        is_02.width(8);
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake "coltran"
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(str_03.compare(0, str_03.size(), array1) == 0);
-
-        is_02.width(1);
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake nothing, set failbit
-        state2 = is_02.rdstate();
-        VERIFY(state1 != state2);
-        VERIFY(state2 == statefail);
-        VERIFY(array1[0] == '\0');
-
-        is_02.width(8);
-        is_02.clear();
-        state1 = is_02.rdstate();
-        VERIFY(!state1);
-        is_02 >> array1;   // should snake "e"
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(array1[0] == 'e');
-
-        // testing for correct exception setting
-        T is_03(IOv2::mem_device{"   impulse!!"});
-        T is_04(IOv2::mem_device{"   impulse!!"});
-
-        is_03 >> array1;
-        VERIFY(std::string(array1) == "impulse!!");
-        VERIFY(is_03.rdstate() == IOv2::ios_defs::eofbit);
-
-        is_04.width(9);
-        is_04 >> array1;
-        VERIFY(std::string(array1) == "impulse!");
-        VERIFY(is_04.rdstate() == 0);
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_extractors_character_char_4()
-{
-    dump_info("Test istream<char> operator>> (character) case 4...");
-    auto prepare = [](std::string::size_type len, unsigned nchunks)
-    {
-        std::string ret;
-        for (unsigned i = 0; i < nchunks; ++i)
         {
-            for (std::string::size_type j = 0; j < len; ++j)
-                ret.push_back('a' + rand() % 26);
-            len *= 2;
-            ret.push_back(' ');
+            T is{mem_device{std::string("")}};
+            char c = '#';
+            is >> c;
+            EXPECT_EQ(c, '#');
+            EXPECT_TRUE(is.str_fail());
         }
-        return ret;
-    };
-    
-    // NB: The chunks here grow by doubling (666, 1332, ... 340992), so they far exceed the
-    // 0..255 range a field width can express. Extraction therefore targets std::string, whose
-    // sread grows dynamically; a raw char* target would need a setw() bound that cannot be
-    // expressed for these sizes. The point of the case -- streambuf refill across tokens much
-    // larger than the internal buffer -- is unaffected.
-    auto check = [](auto& stream, const std::string& str, unsigned nchunks)
-    {
-        std::string chunk;
-
-        std::string::size_type index = 0, index_new = 0;
-        unsigned n = 0;
-
-        while (stream >> chunk)
         {
-            index_new = str.find(' ', index);
-            VERIFY(str.compare(index, index_new - index, chunk) == 0);
-            index = index_new + 1;
-            ++n;
+            // Whitespace only: the skip runs off the end, so there is still
+            // nothing to extract.
+            T is{mem_device{std::string("   ")}};
+            char c = '#';
+            is >> c;
+            EXPECT_EQ(c, '#');
+            EXPECT_TRUE(is.str_fail());
+            EXPECT_TRUE(is.eof());
         }
-        VERIFY(stream.eof());
-        VERIFY(n == nchunks);
     };
 
-    auto helper = [&prepare, &check]<template<typename, typename> class T,
-                                               typename TDevice>()
-    {
-        std::string filename = "inserters_extractors-4.txt";
-        file_guard g(filename);
-
-        const unsigned nchunks = 10;
-        const std::string data = prepare(666, nchunks);
-        IOv2::ostream ofstream(IOv2::ofile_device<char>{filename});
-        ofstream.write(data.data(), data.size());
-        auto [odev, oerr] = ofstream.detach();
-        odev.close();
-
-        T ifstrm(TDevice{filename});
-        check(ifstrm, data, nchunks);
-        auto [idev, ierr] = ifstrm.detach();
-        idev.close();
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    expect_untouched.operator()<istream>();
+    expect_untouched.operator()<iostream>();
 }
 
-void test_istream_extractors_character_char_5()
+TEST(IstreamExtractCharacterChar, AnArrayExtractionTakesAWholeTokenAndTerminatesIt)
 {
-    dump_info("Test istream<char> operator>> (character) case 5...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_token = []<template <typename, typename> class T>()
     {
-        const std::string str_01("Consoli ");
-        T is_01(IOv2::mem_device{str_01});
+        T is(mem_device{std::string("  alpha beta ")});
 
-        IOv2::ios_defs::iostate state1, state2;
+        char buf[16];
+        for (char& c : buf) c = '#';
 
-        char array1[10];
+        is >> buf;
+        EXPECT_STREQ(buf, "alpha");
+        EXPECT_EQ(buf[6], '#');             // nothing written past the terminator
+        EXPECT_EQ(is.peek(), ' ');          // the whitespace that stopped it is left
+        EXPECT_TRUE(is.good());
 
-        is_01.width(0);
-        state1 = is_01.rdstate();
-        is_01 >> array1;
-        state2 = is_01.rdstate();
-
-        VERIFY(state1 == state2);
-        VERIFY(str_01.compare(0, 7, array1) == 0);
+        is >> buf;
+        EXPECT_STREQ(buf, "beta");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_token.operator()<istream>();
+    expect_token.operator()<iostream>();
 }
 
-void test_istream_extractors_character_char_6()
+// The array bound is part of the parameter type, so it is always known and
+// always applies -- there is no way to ask for more than the destination holds.
+// One place goes to the terminator, so an array of N takes N-1 characters.
+TEST(IstreamExtractCharacterChar, TheArrayBoundLimitsTheExtractionOnItsOwn)
 {
-    dump_info("Test istream<char> operator>> (character) case 6...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_bounded = []<template <typename, typename> class T>()
     {
-        T in(IOv2::mem_device{"abcdefghi jk l"});
+        T is(mem_device{std::string("abcdefghi jk l")});
 
-        char pc[3];
-        in >> pc;
-        VERIFY(in.good());
-        VERIFY(pc[0] == 'a' && pc[1] == 'b' && pc[2] == '\0');
+        char three[3];
+        is >> three;                        // two characters and the terminator
+        EXPECT_STREQ(three, "ab");
+        EXPECT_TRUE(is.good());
 
-        signed char sc[4];
-        in >> sc;
-        VERIFY(in.good());
-        VERIFY(sc[0] == 'c' && sc[1] == 'd' && sc[2] == 'e' && sc[3] == '\0');
+        // The rest of the token is still there, so a bounded read truncates
+        // rather than discards.
+        char four[4];
+        is >> four;
+        EXPECT_STREQ(four, "cde");
 
-        unsigned char uc[4];
-        in >> uc;
-        VERIFY(in.good());
-        VERIFY(uc[0] == 'f' && uc[1] == 'g' && uc[2] == 'h' && uc[3] == '\0');
+        // A token shorter than the bound simply ends early.
+        char big[16];
+        is >> big;
+        EXPECT_STREQ(big, "fghi");
 
-        pc[2] = '#';
-        in >> pc;
-        VERIFY(in.good());
-        VERIFY(pc[0] == 'i' && pc[1] == '\0' && pc[2] == '#');
-
-        in >> pc;
-        VERIFY(in.good());
-        VERIFY(pc[0] == 'j' && pc[1] == 'k' && pc[2] == '\0');
-
-        pc[2] = '#';
-        in >> pc;
-        VERIFY(in.eof());
-        VERIFY(pc[0] == 'l' && pc[1] == '\0' && pc[2] == '#');
+        three[2] = '#';
+        is >> three;
+        EXPECT_STREQ(three, "jk");
+        EXPECT_TRUE(is.good());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_bounded.operator()<istream>();
+    expect_bounded.operator()<iostream>();
 }
 
-void test_istream_extractors_character_char_7()
+// The field width is the caller's own limit. It applies to both destinations,
+// and the extraction that honours it spends it -- otherwise it would silently
+// truncate the next extraction too.
+TEST(IstreamExtractCharacterChar, TheFieldWidthLimitsTheExtractionAndIsSpentByIt)
 {
-    dump_info("Test istream<char> operator>> (character) case 7...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_width = []<template <typename, typename> class T>()
     {
-        char buf[5] = {'x', 'x', 'x', 'x', 'x'};
-        std::string s("  four");
-    
-        T in(IOv2::mem_device{s});
-        in >> buf;
-        VERIFY(in.good());
-        VERIFY(buf[4] == '\0');
-        VERIFY(std::string(buf) == "four");
-
-        in.clear();
-        in.attach(IOv2::mem_device{s});
-        for (int i = 0; i < 5; ++i)
-            buf[i] = 'x';
-        in.width(5);
-        in >> buf;
-        VERIFY(in.good());
-        VERIFY(std::string(buf) == "four");
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_extractors_character_char_8()
-{
-    dump_info("Test istream<char> operator>> (character) case 8...");
-    auto helper = []<template<typename, typename> class T>()
-    {
-        // width() bounds the read, so it must be able to express any length a
-        // destination can hold -- not just the small values a field width takes.
-        const std::string src(1000, 'a');
-
         {
-            T in(IOv2::mem_device{src});
+            T is(mem_device{std::string("abcdefghij")});
+
+            char buf[16];
+            is >> setw(4) >> buf;           // three characters and the terminator
+            EXPECT_STREQ(buf, "abc");
+            EXPECT_EQ(is.width(), 0);
+
+            // Spent, so the next one is bounded only by the array.
+            is >> buf;
+            EXPECT_STREQ(buf, "defghij");
+        }
+        {
+            // Whichever of the two limits is smaller decides.
+            T is(mem_device{std::string(1000, 'a')});
+
+            char buf[8];
+            is >> setw(64) >> buf;          // the array is smaller
+            EXPECT_EQ(std::strlen(buf), 7u);
+
+            is.clear();
+            char big[64];
+            is >> setw(8) >> big;           // the width is smaller
+            EXPECT_EQ(std::strlen(big), 7u);
+        }
+        {
+            // A string destination needs no terminator, so the width buys a
+            // character more there than it does into an array of the same size.
+            T is(mem_device{std::string("abcdefghij")});
+
             std::string s;
-            in >> IOv2::setw(600) >> s;
-            VERIFY(in.good());
-            VERIFY(s.size() == 600);
-            VERIFY(in.width() == 0);
-        }
-        {
-            // The array bound N still wins: min(width, N) - 1 characters are read.
-            T in(IOv2::mem_device{src});
-            char buf[300];
-            in >> IOv2::setw(600) >> buf;
-            VERIFY(in.good());
-            VERIFY(std::string(buf).size() == 299);
-        }
-        {
-            T in(IOv2::mem_device{src});
-            char buf[300];
-            in >> IOv2::setw(280) >> buf;
-            VERIFY(in.good());
-            VERIFY(std::string(buf).size() == 279);
+            is >> setw(4) >> s;
+            EXPECT_EQ(s, "abcd");
+            EXPECT_EQ(is.width(), 0);
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_width.operator()<istream>();
+    expect_width.operator()<iostream>();
 }
 
-void test_istream_extractors_character_char_9()
+// A limit of one leaves no room for a character, only for the terminator, so
+// the extraction has nothing it is allowed to take and says so.
+TEST(IstreamExtractCharacterChar, ALimitOfOneLeavesRoomOnlyForTheTerminator)
 {
-    dump_info("Test istream<char> operator>> case 9 (character conformance)...");
+    auto expect_empty = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{std::string("abcdef")});
 
-    // Availability is probed through `extractable` (support/io_traits_probe.h) rather than
-    // `requires { in >> v; }`, so a failure points at io_traits itself and not at the
-    // value-category and parse-context handling operator>> layers on top of it.
+        char buf[16];
+        buf[0] = '#';
+        is >> setw(1) >> buf;
+        EXPECT_EQ(buf[0], '\0');
+        EXPECT_TRUE(is.str_fail());
+
+        // Nothing was consumed on the way to the failure.
+        is.clear();
+        EXPECT_EQ(is.peek(), 'a');
+    };
+
+    expect_empty.operator()<istream>();
+    expect_empty.operator()<iostream>();
+}
+
+// The last token of an input that does not end in whitespace stops because the
+// input ran out. That sets eofbit but is not a failure: the token is complete.
+TEST(IstreamExtractCharacterChar, ATokenEndedByTheInputIsStillAWholeToken)
+{
+    auto expect_last = []<template <typename, typename> class T>()
+    {
+        {
+            T is(mem_device{std::string("   measure")});
+            char buf[16];
+            is >> buf;
+            EXPECT_STREQ(buf, "measure");
+            EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+            EXPECT_FALSE(is.str_fail());
+        }
+        {
+            // Stopping on a limit instead leaves the stream at the next
+            // character, so the end has not been seen.
+            T is(mem_device{std::string("   measure")});
+            char buf[16];
+            is >> setw(8) >> buf;
+            EXPECT_STREQ(buf, "measure");
+            EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+        }
+    };
+
+    expect_last.operator()<istream>();
+    expect_last.operator()<iostream>();
+}
+
+// Availability is probed through `extractable` (support/io_traits_probe.h) rather than
+// `requires { in >> v; }`, so a failure points at io_traits itself and not at the
+// value-category and parse-context handling operator>> layers on top of it.
+TEST(IstreamExtractCharacterChar, SignedAndUnsignedCharAreReadAsCharactersNotNumbers)
+{
     static_assert( extractable<char, char> );
     static_assert( extractable<char, signed char> );
     static_assert( extractable<char, unsigned char> );
@@ -440,80 +264,162 @@ void test_istream_extractors_character_char_9()
     static_assert( !extractable<char, char32_t> );
     static_assert( !extractable<char, std::nullptr_t> );
 
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_characters = []<template <typename, typename> class T>()
     {
         // A char stream reads signed char / unsigned char as characters, not as numbers.
-        T in(IOv2::mem_device{std::string("65")});
-        signed char sc = 0;
+        T is(mem_device{std::string("65")});
+
+        signed char   sc = 0;
         unsigned char uc = 0;
-        in >> sc >> uc;
-        VERIFY(in.good());
-        VERIFY(sc == static_cast<signed char>('6'));
-        VERIFY(uc == static_cast<unsigned char>('5'));
+        is >> sc >> uc;
+        EXPECT_TRUE(is.good());
+        EXPECT_EQ(sc, static_cast<signed char>('6'));
+        EXPECT_EQ(uc, static_cast<unsigned char>('5'));
+
+        // The array forms of both are character arrays for the same reason.
+        T arr(mem_device{std::string("cde fgh")});
+        signed char   sbuf[4];
+        unsigned char ubuf[4];
+        arr >> sbuf >> ubuf;
+        EXPECT_EQ(sbuf[0], 'c');
+        EXPECT_EQ(sbuf[3], '\0');
+        EXPECT_EQ(ubuf[0], 'f');
+        EXPECT_EQ(ubuf[3], '\0');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_characters.operator()<istream>();
+    expect_characters.operator()<iostream>();
 }
 
-void test_istream_extractors_character_char_10()
+// width() bounds the read, so it must be able to express any length a
+// destination can hold -- not just the small values a field width takes.
+TEST(IstreamExtractCharacterChar, TheWidthIsNotLimitedToWhatAFieldWidthCanExpress)
 {
-    dump_info("Test istream<char> character extractors case 10 (setw is consumed even when the extraction throws)...");
+    auto expect_large = []<template <typename, typename> class T>()
+    {
+        const std::string src(1000, 'a');
 
-    // width() is one-shot state visible across operations, so a string extraction that
-    // leaves by an exception must still have consumed it -- otherwise the stale width
-    // silently truncates the *next* extraction, which reports good(). The failure has to
-    // land inside the read loop (a device error on a buffer refill), because a throw
-    // after the loop was never the leaking path.
+        {
+            T is(mem_device{src});
+            std::string s;
+            is >> setw(600) >> s;
+            EXPECT_TRUE(is.good());
+            EXPECT_EQ(s.size(), 600u);
+            EXPECT_EQ(is.width(), 0);
+        }
+        {
+            // The array bound N still wins: min(width, N) - 1 characters are read.
+            T is(mem_device{src});
+            char buf[300];
+            is >> setw(600) >> buf;
+            EXPECT_TRUE(is.good());
+            EXPECT_EQ(std::strlen(buf), 299u);
+        }
+        {
+            T is(mem_device{src});
+            char buf[300];
+            is >> setw(280) >> buf;
+            EXPECT_TRUE(is.good());
+            EXPECT_EQ(std::strlen(buf), 279u);
+        }
+    };
+
+    expect_large.operator()<istream>();
+    expect_large.operator()<iostream>();
+}
+
+// width() is one-shot state visible across operations, so a string extraction that
+// leaves by an exception must still have consumed it -- otherwise the stale width
+// silently truncates the *next* extraction, which reports good(). The failure has to
+// land inside the read loop (a device error on a buffer refill), because a throw
+// after the loop was never the leaking path.
+TEST(IstreamExtractCharacterChar, TheWidthIsSpentEvenWhenTheExtractionThrows)
+{
     constexpr std::size_t payload = 20000;   // well past the 2048-char buffer
     constexpr std::size_t leak_w  = 3000;
 
     {
         injectable_device<char> dev{std::string(payload, 'A')};
-        auto st = dev.shared_state();
-        IOv2::istream in(std::move(dev));
+        auto                    st = dev.shared_state();
+        istream                 in(std::move(dev));
 
         // Prime the buffer and leave most of it unread.
         std::string s1;
-        in >> IOv2::setw(10) >> s1;
-        VERIFY(in.good());
-        VERIFY(s1.size() == 10);
+        in >> setw(10) >> s1;
+        ASSERT_TRUE(in.good());
+        EXPECT_EQ(s1.size(), 10u);
 
         // The next refill fails, so this extraction throws part-way through the loop.
         st->fail_dget = true;
         std::string s2;
-        in >> IOv2::setw(leak_w) >> s2;
-        VERIFY(!in.good());
-        VERIFY(in.width() == 0);
+        in >> setw(leak_w) >> s2;
+        EXPECT_FALSE(in.good());
+        EXPECT_EQ(in.width(), 0);
 
         // With the width consumed, an extraction that asks for no width is not capped.
         st->fail_dget = false;
         in.clear();
         std::string s3;
         in >> s3;
-        VERIFY(s3.size() > leak_w);
-        VERIFY(s3.find_first_not_of('A') == std::string::npos);
+        EXPECT_GT(s3.size(), leak_w);
+        EXPECT_EQ(s3.find_first_not_of('A'), std::string::npos);
     }
 
     // The character-array path consumes the width up front and always has; keeping the
     // two side by side is what stops them drifting apart again.
     {
         injectable_device<char> dev{std::string(payload, 'A')};
-        auto st = dev.shared_state();
-        IOv2::istream in(std::move(dev));
+        auto                    st = dev.shared_state();
+        istream                 in(std::move(dev));
 
         char buf[16];
-        in >> IOv2::setw(sizeof(buf)) >> buf;
-        VERIFY(in.good());
+        in >> setw(sizeof(buf)) >> buf;
+        ASSERT_TRUE(in.good());
 
         st->fail_dget = true;
         std::string s2;
-        in >> IOv2::setw(leak_w) >> s2;
-        VERIFY(!in.good());
-        VERIFY(in.width() == 0);
+        in >> setw(leak_w) >> s2;
+        EXPECT_FALSE(in.good());
+        EXPECT_EQ(in.width(), 0);
     }
+}
 
-    dump_info("Done\n");
+// Tokens far longer than the stream's internal buffer have to be reassembled
+// across several device reads, and the boundary between two of those reads must
+// not look like the end of a token. The lengths straddle the buffer size in
+// both directions so that a boundary lands inside a token, between two, and on
+// the whitespace itself.
+TEST(IstreamExtractCharacterChar, TokensSpanningSeveralDeviceReadsComeBackWhole)
+{
+    std::vector<std::string> tokens;
+    for (const std::size_t n : {1u, 2047u, 2048u, 2049u, 5000u, 3u, 20000u})
+        tokens.push_back(std::string(n, static_cast<char>('a' + tokens.size())));
+
+    std::string data;
+    for (const std::string& t : tokens)
+        data += t + " ";
+
+    const std::string path = "test_istream_extract_long_tokens.txt";
+    file_guard        guard(path, data);
+
+    auto expect_whole = [&]<template <typename, typename> class T, typename TDevice>()
+    {
+        T is(TDevice{path});
+        ASSERT_TRUE(static_cast<bool>(is));
+
+        std::size_t n = 0;
+        std::string tok;
+        while (is >> tok)
+        {
+            ASSERT_LT(n, tokens.size());
+            EXPECT_EQ(tok, tokens[n]);
+            ++n;
+        }
+
+        EXPECT_EQ(n, tokens.size());
+        EXPECT_TRUE(is.eof());
+    };
+
+    expect_whole.operator()<istream, ifile_device<char>>();
+    expect_whole.operator()<iostream, file_device<char>>();
 }
