@@ -1,174 +1,158 @@
-#include <stdexcept>
-#include <string>
+/**
+ * Callbacks registered on an output stream and run when its locale changes.
+ *
+ * [ios.base.callback] fixes two things: every registered callback is called,
+ * and they are called in the opposite order of registration. IOv2 hands each
+ * one the new locale and the pword currently stored under the id it was
+ * registered with, and takes what it returns as the new pword -- so the same
+ * mechanism inserts, replaces and erases pword entries depending on what comes
+ * back, and each of those three answers is checked here.
+ *
+ * A callback that throws must not be able to stop the others: the first
+ * exception is held, the remaining callbacks still run, and the stream is left
+ * failed rather than half-imbued.
+ */
 #include <device/mem_device.h>
 #include <io/io_base.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
+#include <io/ostream.h>
 #include <locale/locale.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
 
-void test_ostream_callbacks_1()
+#include <gtest/gtest.h>
+
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test ostream callback case 1...");
-    using namespace IOv2;
+    using callback_t =
+        std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)>;
 
+    // A callback that records that it ran and leaves the pword as it found it.
+    callback_t recorder(std::vector<char>& log, char tag)
+    {
+        return callback_t{[&log, tag](const locale<char>&, std::shared_ptr<void> pword) {
+            log.push_back(tag);
+            return pword;
+        }};
+    }
+}
+
+TEST(OstreamCallbacks, CallbacksRunInTheOppositeOrderOfRegistration)
+{
     auto helper = []<typename T>()
     {
-        const std::string str01("the nubians of plutonia");
-        std::string str02;
-    
-        std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)> callb01
-            = [&str02](const locale<char>&, std::shared_ptr<void> res)
-            {
-                str02 += "the nubians";
-                return res;
-            };
-    
-        std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)> callb02
-            = [&str02](const locale<char>&, std::shared_ptr<void> res)
-            {
-                str02 += " of ";
-                return res;
-            };
-    
-        std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)> callb03
-            = [&str02](const locale<char>&, std::shared_ptr<void> res)
-            {
-                str02 += "plutonia";
-                return res;
-            };
-    
-        using namespace IOv2;
-        T ios01;
-        ios01.register_callback(callb03, 1);
-        ios01.register_callback(callb02, 1);
-        ios01.register_callback(callb01, 1);
-        IOv2::locale<char> loc("C");
-        ios01.locale(loc);
-        VERIFY(str01 == str02);
+        std::vector<char> log;
+
+        T os;
+        os.register_callback(recorder(log, 'a'), 1);
+        os.register_callback(recorder(log, 'b'), 1);
+        os.register_callback(recorder(log, 'c'), 1);
+
+        os.locale(locale<char>("C"));
+
+        EXPECT_EQ(log, (std::vector<char>{'c', 'b', 'a'}));
     };
-    
+
     helper.operator()<ostream<mem_device<char>, char>>();
     helper.operator()<iostream<mem_device<char>, char>>();
-
-    dump_info("Done\n");
 }
 
-void test_ostream_callbacks_sync_1()
+// The synchronized view reaches the same registry, so registering through it
+// and imbuing through it behave exactly as above.
+TEST(OstreamCallbacks, TheSyncViewReachesTheSameRegistry)
 {
-    dump_info("Test ostream callback (with sync) case 1...");
-    using namespace IOv2;
-
     auto helper = []<typename T>()
     {
-        const std::string str01("the nubians of plutonia");
-        std::string str02;
-    
-        std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)> callb01
-            = [&str02](const locale<char>&, std::shared_ptr<void> res)
-            {
-                str02 += "the nubians";
-                return res;
-            };
-    
-        std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)> callb02
-            = [&str02](const locale<char>&, std::shared_ptr<void> res)
-            {
-                str02 += " of ";
-                return res;
-            };
-    
-        std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)> callb03
-            = [&str02](const locale<char>&, std::shared_ptr<void> res)
-            {
-                str02 += "plutonia";
-                return res;
-            };
-    
-        using namespace IOv2;
-        T ios01;
-        IOv2::sync(ios01).stream.register_callback(callb03, 1);
-        IOv2::sync(ios01).stream.register_callback(callb02, 1);
-        IOv2::sync(ios01).stream.register_callback(callb01, 1);
-        IOv2::locale<char> loc("C");
-        IOv2::sync(ios01).stream.locale(loc);
-        VERIFY(str01 == str02);
+        std::vector<char> log;
+
+        T os;
+        IOv2::sync(os).stream.register_callback(recorder(log, 'a'), 1);
+        IOv2::sync(os).stream.register_callback(recorder(log, 'b'), 1);
+        IOv2::sync(os).stream.register_callback(recorder(log, 'c'), 1);
+
+        IOv2::sync(os).stream.locale(locale<char>("C"));
+
+        EXPECT_EQ(log, (std::vector<char>{'c', 'b', 'a'}));
     };
-    
+
     helper.operator()<ostream<mem_device<char>, char>>();
     helper.operator()<iostream<mem_device<char>, char>>();
-
-    dump_info("Done\n");
 }
 
-void test_ostream_callbacks_pword_1()
+// insert path: the id has no pword yet, the callback returns new data.
+TEST(OstreamCallbacks, WhatACallbackReturnsBecomesThePwordForItsId)
 {
-    dump_info("Test ostream callback pword mutation case 1...");
-    using namespace IOv2;
+    ostream<mem_device<char>, char> os{mem_device<char>{""}};
 
-    using cb_t = std::function<std::shared_ptr<void>(const locale<char>&, std::shared_ptr<void>)>;
-    locale<char> loc("C");
+    auto data = std::make_shared<int>(42);
+    os.register_callback(callback_t{[data](const locale<char>&, std::shared_ptr<void>)
+                                    { return data; }},
+                         5);
 
-    // insert path: id has no pword yet, callback returns new data -> inserted.
-    {
-        ostream<mem_device<char>, char> ios{mem_device<char>{""}};
-        auto data = std::make_shared<int>(42);
-        ios.register_callback(cb_t{[data](const locale<char>&, std::shared_ptr<void>)
-                                   { return data; }},
-                              5);
-        ios.locale(loc);
-        VERIFY(ios.get_pword(5) == data);
-    }
-
-    // replace path: id already has a pword, callback returns different data.
-    {
-        ostream<mem_device<char>, char> ios{mem_device<char>{""}};
-        auto old_data = std::make_shared<int>(1);
-        auto new_data = std::make_shared<int>(2);
-        ios.set_pword(5, old_data);
-        ios.register_callback(cb_t{[new_data](const locale<char>&, std::shared_ptr<void>)
-                                   { return new_data; }},
-                              5);
-        ios.locale(loc);
-        VERIFY(ios.get_pword(5) == new_data);
-    }
-
-    // erase path: id already has a pword, callback returns nullptr -> erased.
-    {
-        ostream<mem_device<char>, char> ios{mem_device<char>{""}};
-        auto old_data = std::make_shared<int>(1);
-        ios.set_pword(5, old_data);
-        ios.register_callback(cb_t{[](const locale<char>&, std::shared_ptr<void>)
-                                   { return std::shared_ptr<void>{}; }},
-                              5);
-        ios.locale(loc);
-        VERIFY(ios.get_pword(5) == nullptr);
-    }
-
-    // throwing callbacks: access_callbacks() captures the first exception and
-    // rethrows it after all callbacks have run; a second throwing callback
-    // exercises the already-have-an-exception branch. locale() routes the
-    // rethrown exception through handle_exception(), leaving the stream failed.
-    {
-        ostream<mem_device<char>, char> ios{mem_device<char>{""}};
-        ios.register_callback(cb_t{[](const locale<char>&, std::shared_ptr<void>) -> std::shared_ptr<void>
-                                   { throw stream_error("cb boom 1"); }},
-                              5);
-        ios.register_callback(cb_t{[](const locale<char>&, std::shared_ptr<void>) -> std::shared_ptr<void>
-                                   { throw stream_error("cb boom 2"); }},
-                              5);
-        ios.locale(loc);
-        VERIFY(!static_cast<bool>(ios));
-        VERIFY(ios.str_fail());
-    }
-
-    dump_info("Done\n");
+    os.locale(locale<char>("C"));
+    EXPECT_EQ(os.get_pword(5), data);
 }
 
-void test_ostream_callbacks()
+// replace path: the id already has a pword, the callback returns different data.
+TEST(OstreamCallbacks, ACallbackCanReplaceThePwordItWasHanded)
 {
-    test_ostream_callbacks_1();
-    test_ostream_callbacks_sync_1();
-    test_ostream_callbacks_pword_1();
+    ostream<mem_device<char>, char> os{mem_device<char>{""}};
+
+    auto old_data = std::make_shared<int>(1);
+    auto new_data = std::make_shared<int>(2);
+    os.set_pword(5, old_data);
+    os.register_callback(callback_t{[new_data](const locale<char>&, std::shared_ptr<void>)
+                                    { return new_data; }},
+                         5);
+
+    os.locale(locale<char>("C"));
+    EXPECT_EQ(os.get_pword(5), new_data);
+}
+
+// erase path: the id already has a pword, the callback returns nullptr.
+TEST(OstreamCallbacks, ACallbackThatReturnsNothingErasesThePword)
+{
+    ostream<mem_device<char>, char> os{mem_device<char>{""}};
+
+    os.set_pword(5, std::make_shared<int>(1));
+    os.register_callback(callback_t{[](const locale<char>&, std::shared_ptr<void>)
+                                    { return std::shared_ptr<void>{}; }},
+                         5);
+
+    os.locale(locale<char>("C"));
+    EXPECT_EQ(os.get_pword(5), nullptr);
+}
+
+// access_callbacks() captures the first exception and rethrows it after all
+// callbacks have run; the second throwing callback exercises the
+// already-have-an-exception branch. locale() routes the rethrown exception
+// through handle_exception(), leaving the stream failed.
+TEST(OstreamCallbacks, AThrowingCallbackDoesNotStopTheOthersAndLeavesTheStreamFailed)
+{
+    ostream<mem_device<char>, char> os{mem_device<char>{""}};
+
+    std::vector<char> log;
+    os.register_callback(callback_t{[&log](const locale<char>&, std::shared_ptr<void>)
+                                        -> std::shared_ptr<void> {
+                             log.push_back('a');
+                             throw stream_error("cb boom 1");
+                         }},
+                         5);
+    os.register_callback(callback_t{[&log](const locale<char>&, std::shared_ptr<void>)
+                                        -> std::shared_ptr<void> {
+                             log.push_back('b');
+                             throw stream_error("cb boom 2");
+                         }},
+                         5);
+
+    EXPECT_NO_THROW(os.locale(locale<char>("C")));
+
+    EXPECT_EQ(log, (std::vector<char>{'b', 'a'}));
+    EXPECT_FALSE(static_cast<bool>(os));
+    EXPECT_TRUE(os.str_fail());
 }

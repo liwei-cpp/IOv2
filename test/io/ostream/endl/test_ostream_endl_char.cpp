@@ -1,166 +1,184 @@
-#include <stdexcept>
-#include <string>
+/**
+ * The endl manipulator on an ostream<char>, and around it the manipulator
+ * dispatch it shares with ends and flush.
+ *
+ * [ostream.manip] gives endl two steps: insert widen('\n'), then flush. The
+ * widening is the part that can fail, because it goes through the ctype facet,
+ * and the tests below pin down what the stream looks like when it does.
+ *
+ * The rest of the file is about how a manipulator reaches the stream at all.
+ * endl, ends and flush are tag objects whose whole behaviour lives in
+ * io_traits, and os << m is the only entry -- the standard's direct-call form,
+ * endl(os), does not exist here. A function pointer is the one manipulator
+ * shape that bypasses io_traits, so it has to be checked separately.
+ */
 #include <device/mem_device.h>
 #include <facet/ctype.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/ostream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
-void test_ostream_endl_char_1()
+#include <gtest/gtest.h>
+
+#include <string>
+
+using namespace IOv2;
+
+TEST(OstreamEndlChar, EndlWritesANewline)
 {
-    dump_info("Test ostream<char> with endl case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        const std::string str01(" santa barbara ");    
-        auto oss01 = T(IOv2::mem_device{" santa barbara "});
-        auto oss02 = T(IOv2::mem_device{""});
-        
-        oss01 << IOv2::endl;
-        VERIFY(oss01.device().str().size() == str01.size());
+        auto os = T(mem_device{std::string("")});
 
-        oss02 << IOv2::endl;
-        VERIFY(oss02.device().str().size() == 1);
+        os << endl;
+        EXPECT_EQ(os.device().str(), "\n");
+        EXPECT_TRUE(os.good());
     };
-    
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
 
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-// Insertion-side companion to test_istream_function_manip_char_1. A function pointer is the
+// One newline per call, at the position writing has reached, so the text comes
+// back as lines rather than as one run.
+TEST(OstreamEndlChar, EachEndlEndsTheLineItWasWrittenOn)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        auto os = T(mem_device{std::string("")});
+
+        os << "first" << endl << "second" << endl << "third";
+        EXPECT_EQ(os.device().str(), "first\nsecond\nthird");
+    };
+
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
+}
+
+// ends and flush reach the stream the same way endl does; that they do is the
+// claim here, not what they write, which their own suites cover.
+TEST(OstreamEndlChar, EndsAndFlushDispatchThroughIoTraitsToo)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        auto os = T(mem_device{std::string("")});
+
+        os << endl;
+        EXPECT_EQ(os.device().str().size(), 1u);
+        EXPECT_TRUE(os.good());
+
+        os << ends;
+        EXPECT_EQ(os.device().str().size(), 2u);
+        EXPECT_TRUE(os.good());
+
+        os << flush;
+        EXPECT_TRUE(os.good());
+    };
+
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
+}
+
+// Insertion-side companion to the istream function-manipulator case. A function pointer is the
 // only manipulator shape that bypasses io_traits, and its parameter is a non-deduced context,
 // so it has to beat the generic operator<< -- whose parameter is const TValue& -- on partial
 // ordering. The invocation counter proves the manipulator overload ran.
-void test_ostream_function_manip_char_1()
+TEST(OstreamEndlChar, AFunctionPointerManipulatorBeatsTheGenericInserter)
 {
-    dump_info("Test ostream<char> function-pointer manipulator via operator<< case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto oss = T(IOv2::mem_device{std::string("")});
+        auto       os = T(mem_device{std::string("")});
         static int calls;
         calls = 0;
-        void (*manip)(IOv2::ios_base<char>&) = [](IOv2::ios_base<char>&){ ++calls; };
+        void (*manip)(ios_base<char>&) = [](ios_base<char>&) { ++calls; };
 
-        oss << manip;
-        VERIFY( calls == 1 );
+        os << manip;
+        EXPECT_EQ(calls, 1);
 
-        oss << manip << manip;        // operator<< returns the stream, so manipulators chain
-        VERIFY( calls == 3 );
+        os << manip << manip;        // operator<< returns the stream, so manipulators chain
+        EXPECT_EQ(calls, 3);
 
         // a capture-less lambda reaches the same overload once decayed with unary +
-        oss << +[](IOv2::ios_base<char>&){ ++calls; };
-        VERIFY( calls == 4 );
+        os << +[](ios_base<char>&) { ++calls; };
+        EXPECT_EQ(calls, 4);
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
 // A null function-pointer manipulator passed to operator<< must be rejected: the operator
 // throws stream_error, its own handler categorizes it into strfailbit, and -- with no
 // exception mask set -- returns the stream without throwing. The tag-object manipulators
 // need no such branch: an object cannot be null.
-void test_ostream_null_manip_char_1()
+TEST(OstreamEndlChar, ANullFunctionPointerManipulatorIsRejected)
 {
-    dump_info("Test ostream<char> null manipulator via operator<< case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto oss = T(IOv2::mem_device{std::string("")});
+        auto os = T(mem_device{std::string("")});
 
         // overload: operator<<(T&, void(*)(ios_base<char>&))
-        oss << static_cast<void(*)(IOv2::ios_base<char>&)>(nullptr);
-        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
-        oss.clear();
+        os << static_cast<void (*)(ios_base<char>&)>(nullptr);
+        EXPECT_TRUE(os.rdstate() & ios_defs::strfailbit);
+        os.clear();
 
         // same overload, non-null: the callable runs against the stream's ios_base
         static int base_calls;
         base_calls = 0;
-        oss << +[](IOv2::ios_base<char>&){ ++base_calls; };
-        VERIFY( base_calls == 1 );
-        VERIFY( !(oss.rdstate() & IOv2::ios_defs::strfailbit) );
+        os << +[](ios_base<char>&) { ++base_calls; };
+        EXPECT_EQ(base_calls, 1);
+        EXPECT_FALSE(os.rdstate() & ios_defs::strfailbit);
 
         // stream is still usable after the rejected manipulator
-        oss << "ok";
-        auto [dev, err] = oss.detach();
-        VERIFY( dev.str() == "ok" );
+        os << "ok";
+        auto [dev, err] = os.detach();
+        EXPECT_EQ(dev.str(), "ok");
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-void test_ostream_endl_char_2()
+// endl needs a ctype facet to widen '\n'; without one it fails. It used to set
+// unitbuf before that point and restore it only on the normal path, so the failure
+// left unitbuf set on the stream for good -- every later write then flushed to the
+// device, silently and permanently. endl no longer touches the flags at all.
+TEST(OstreamEndlChar, EndlWithoutACtypeFacetFailsWithoutDisturbingTheFlags)
 {
-    dump_info("Test ostream<char> with endl case 2 (facet failure leaves the flags alone)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        // endl needs a ctype facet to widen '\n'; without one it fails. It used to set
-        // unitbuf before that point and restore it only on the normal path, so the failure
-        // left unitbuf set on the stream for good -- every later write then flushed to the
-        // device, silently and permanently. endl no longer touches the flags at all.
-        IOv2::locale<char> loc("C");
-        T str(IOv2::mem_device{""}, loc.remove<IOv2::ctype_conf<char>>());
+        locale<char> loc("C");
+        T            os(mem_device{""}, loc.remove<ctype_conf<char>>());
 
-        const IOv2::ios_defs::fmtflags before = str.flags();
-        VERIFY((before & IOv2::ios_defs::unitbuf) == 0);
+        const ios_defs::fmtflags before = os.flags();
+        ASSERT_EQ(before & ios_defs::unitbuf, 0);
 
-        str << IOv2::endl;
+        os << endl;
 
-        VERIFY(str.str_fail());                 // reported as a stream failure
-        VERIFY(str.flags() == before);          // and nothing else was disturbed
-
-        // The same holds when the failure is reported by throwing.
-        T thr(IOv2::mem_device{""}, loc.remove<IOv2::ctype_conf<char>>());
-        thr.exceptions(IOv2::ios_defs::strfailbit);
-        const IOv2::ios_defs::fmtflags thr_before = thr.flags();
-
-        bool threw = false;
-        try { thr << IOv2::endl; }
-        catch (const IOv2::stream_error&) { threw = true; }
-        VERIFY(threw);
-        VERIFY(thr.flags() == thr_before);
+        EXPECT_TRUE(os.str_fail());        // reported as a stream failure
+        EXPECT_EQ(os.flags(), before);     // and nothing else was disturbed
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-// endl/ends/flush are tag objects whose whole behaviour lives in io_traits, and os << m is the
-// only entry -- the standard's direct-call form, std::endl(os), does not exist here. endl is
-// covered by the cases above; this covers ends and flush.
-void test_ostream_manip_tag_char_1()
+// The same failure reported by throwing takes the same care with the flags.
+TEST(OstreamEndlChar, TheThrownFormOfThatFailureAlsoLeavesTheFlagsAlone)
 {
-    dump_info("Test ostream<char> tag manipulators case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto oss = T(IOv2::mem_device{std::string("")});
-        oss << IOv2::endl;
-        VERIFY( oss.device().str() == "\n" );
-        VERIFY( oss.good() );
+        locale<char> loc("C");
+        T            os(mem_device{""}, loc.remove<ctype_conf<char>>());
+        os.exceptions(ios_defs::strfailbit);
 
-        oss << IOv2::ends;
-        VERIFY( oss.device().str().size() == 2 );
-        VERIFY( oss.good() );
+        const ios_defs::fmtflags before = os.flags();
 
-        oss << IOv2::flush;
-        VERIFY( oss.good() );
+        EXPECT_THROW(os << endl, stream_error);
+        EXPECT_EQ(os.flags(), before);
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }

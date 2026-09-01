@@ -1,12 +1,24 @@
+/**
+ * How an ostream<wchar_t> reports failures.
+ *
+ * The categories, the mask and the rethrow rule are the character type's
+ * business only in that the failing inserter has to be found for wchar_t at
+ * all; everything structural -- the copy guarantees, the unwinding rule -- is
+ * checked once, in the char file. What is here is the same category-by-category
+ * walk over a wide stream, so that a mask honoured only for char would show up.
+ */
+#include <device/mem_device.h>
+#include <io/iostream.h>
+#include <io/ostream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <support/failing_device.h>
+
+#include <gtest/gtest.h>
+
 #include <stdexcept>
 #include <string>
-#include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/failing_device.h>
-#include <support/verify.h>
 
 namespace
 {
@@ -28,121 +40,98 @@ namespace IOv2
     };
 }
 
-void test_ostream_exceptions_wchar_t_1()
+TEST(OstreamExceptionsWchar, AMaskedInserterFailureReachesTheCallerAndFailsTheStream)
 {
-    dump_info("Test ostream<wchar_t> exceptions case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        T strm(IOv2::mem_device{L""});
-        strm.exceptions(IOv2::ios_defs::otherfailbit);
-        try
-        {
-            strm << dummy_type{};
-            dump_info("unreachable code");
-            std::abort();
-        }
-        catch (const foobar&)
-        {
-            // the fail of strm will cause the stream_file to be set
-            VERIFY(!strm);
-        }
-        catch (...)
-        {
-            VERIFY(false);
-        }
+        T os(IOv2::mem_device{L""});
+        os.exceptions(IOv2::ios_defs::otherfailbit);
+
+        EXPECT_THROW(os << dummy_type{}, foobar);
+        EXPECT_FALSE(static_cast<bool>(os));
     };
 
     helper.operator()<IOv2::ostream>();
     helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
 }
 
-void test_ostream_exceptions_wchar_t_2()
+TEST(OstreamExceptionsWchar, AFailureOutsideTheMaskOnlySetsTheState)
 {
-    dump_info("Test ostream<wchar_t> exceptions case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        T out(IOv2::mem_device{L""});
-        out.setf(IOv2::ios_defs::unitbuf);
-        out.exceptions(IOv2::ios_defs::cvtfailbit);
-        out << dummy_type{};
-        VERIFY(!out);
+        T os(IOv2::mem_device{L""});
+        os.setf(IOv2::ios_defs::unitbuf);
+        os.exceptions(IOv2::ios_defs::cvtfailbit);
 
-        out.clear();
-        VERIFY((bool)out);
-        out.exceptions(IOv2::ios_defs::cvtfailbit);
-        out << dummy_type{};
-        VERIFY(!out);
+        EXPECT_NO_THROW(os << dummy_type{});
+        EXPECT_FALSE(static_cast<bool>(os));
+
+        os.clear();
+        ASSERT_TRUE(static_cast<bool>(os));
+        os.exceptions(IOv2::ios_defs::cvtfailbit);
+
+        EXPECT_NO_THROW(os << dummy_type{});
+        EXPECT_FALSE(static_cast<bool>(os));
     };
 
     helper.operator()<IOv2::ostream>();
     helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
 }
 
-void test_ostream_exceptions_wchar_t_3()
+// devfailbit masked: a unitbuf stream whose device fails its flush reports the
+// failure through the out_sentry destructor. Because the destructor runs on a
+// normal scope exit (no unwinding), it routes the device_error through
+// handle_exception, which rethrows the original device_error to the caller and
+// leaves devfailbit set.
+TEST(OstreamExceptionsWchar, AMaskedFlushFailureIsRethrownFromTheSentryDestructor)
 {
-    dump_info("Test ostream<wchar_t> exceptions case 3 (flush failure x exception mask)...");
-
-    // devfailbit masked: a unitbuf stream whose device fails its flush reports the
-    // failure through the out_sentry destructor. Because the destructor runs on a
-    // normal scope exit (no unwinding), it routes the device_error through
-    // handle_exception, which rethrows the original device_error to the caller and
-    // leaves devfailbit set.
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto helper = []<template<typename, typename> class T>()
-        {
-            T out(failing_device<wchar_t>{std::wstring(L""), true}, IOv2::locale<wchar_t>("C"));
-            out.setf(IOv2::ios_defs::unitbuf);
-            out.exceptions(IOv2::ios_defs::devfailbit);
-            bool caught = false;
-            try { out.put(L'x'); }
-            catch (const IOv2::device_error&) { caught = true; }
-            catch (...) { VERIFY(false); }
-            VERIFY(caught);
-            VERIFY(out.rdstate() & IOv2::ios_defs::devfailbit);
-        };
-        helper.operator()<IOv2::ostream>();
-        helper.operator()<IOv2::iostream>();
-    }
+        T os(failing_device<wchar_t>{std::wstring(L""), true}, IOv2::locale<wchar_t>("C"));
+        os.setf(IOv2::ios_defs::unitbuf);
+        os.exceptions(IOv2::ios_defs::devfailbit);
 
-    // no mask: the same flush failure only sets devfailbit and does not throw.
+        EXPECT_THROW(os.put(L'x'), IOv2::device_error);
+        EXPECT_TRUE(os.rdstate() & IOv2::ios_defs::devfailbit);
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+}
+
+// no mask: the same flush failure only sets devfailbit and does not throw.
+TEST(OstreamExceptionsWchar, AnUnmaskedFlushFailureOnlySetsDevfailbit)
+{
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto helper = []<template<typename, typename> class T>()
-        {
-            T out(failing_device<wchar_t>{std::wstring(L""), true}, IOv2::locale<wchar_t>("C"));
-            out.setf(IOv2::ios_defs::unitbuf);
-            bool threw = false;
-            try { out.put(L'x'); }
-            catch (...) { threw = true; }
-            VERIFY(!threw);
-            VERIFY(out.rdstate() & IOv2::ios_defs::devfailbit);
-        };
-        helper.operator()<IOv2::ostream>();
-        helper.operator()<IOv2::iostream>();
-    }
+        T os(failing_device<wchar_t>{std::wstring(L""), true}, IOv2::locale<wchar_t>("C"));
+        os.setf(IOv2::ios_defs::unitbuf);
 
-    // unwinding branch: the operation body itself throws (swrite throws foobar) while
-    // unitbuf is set, so the out_sentry destructor runs during stack unwinding and the
-    // device flush also fails. The destructor must swallow that failure and never throw
-    // during unwinding (no std::terminate). operator<< then catches swrite's foobar
-    // and, with otherfailbit unmasked, only sets state, so control returns normally;
-    // reaching the assertion proves there was no terminate and the stream failed.
+        EXPECT_NO_THROW(os.put(L'x'));
+        EXPECT_TRUE(os.rdstate() & IOv2::ios_defs::devfailbit);
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
+}
+
+// unwinding branch: the operation body itself throws (swrite throws foobar) while
+// unitbuf is set, so the out_sentry destructor runs during stack unwinding and the
+// device flush also fails. The destructor must swallow that failure and never throw
+// during unwinding (no std::terminate). operator<< then catches swrite's foobar
+// and, with otherfailbit unmasked, only sets state, so control returns normally;
+// reaching the assertion proves there was no terminate and the stream failed.
+TEST(OstreamExceptionsWchar, TheSentryDestructorSwallowsAFlushFailureWhileUnwinding)
+{
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto helper = []<template<typename, typename> class T>()
-        {
-            T out(failing_device<wchar_t>{std::wstring(L""), true}, IOv2::locale<wchar_t>("C"));
-            out.setf(IOv2::ios_defs::unitbuf);
-            out << dummy_type{};
-            VERIFY(!out);
-        };
-        helper.operator()<IOv2::ostream>();
-        helper.operator()<IOv2::iostream>();
-    }
+        T os(failing_device<wchar_t>{std::wstring(L""), true}, IOv2::locale<wchar_t>("C"));
+        os.setf(IOv2::ios_defs::unitbuf);
 
-    dump_info("Done\n");
+        os << dummy_type{};
+        EXPECT_FALSE(static_cast<bool>(os));
+    };
+
+    helper.operator()<IOv2::ostream>();
+    helper.operator()<IOv2::iostream>();
 }

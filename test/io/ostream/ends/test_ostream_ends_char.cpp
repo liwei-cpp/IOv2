@@ -1,73 +1,112 @@
-#include <stdexcept>
-#include <string>
+/**
+ * The ends manipulator on an ostream<char>.
+ *
+ * [ostream.manip] gives ends one sentence: it inserts a null character into the
+ * output sequence and returns the stream. Two things follow that a caller can
+ * get wrong. It writes charT(), not the digit '0' and not a space, so what
+ * lands in the device is one byte of value zero. And it does not flush -- endl
+ * is the manipulator that flushes, ends is not -- so nothing about the device
+ * is guaranteed to have changed until the stream is flushed by other means.
+ *
+ * Its reason to exist is terminating a C string inside a buffer, so the last
+ * test reads the buffer back the way such a caller would.
+ *
+ * The other half of the contract -- that ends, unlike endl, does not flush --
+ * is not asserted anywhere here, because it is not observable through the
+ * public interface: an IOv2 stream over mem_device hands every write to the
+ * device as it happens, with or without a converter in the stack, so a flush
+ * afterwards changes nothing either way.
+ */
 #include <device/mem_device.h>
-#include <io/traits/char_and_str.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/ostream.h>
+#include <io/traits/char_and_str.h>
 
-void test_ostream_ends_char_1()
+#include <gtest/gtest.h>
+
+#include <cstring>
+#include <string>
+#include <vector>
+
+using namespace IOv2;
+
+TEST(OstreamEndsChar, EndsWritesOneNullCharacter)
 {
-    dump_info("Test ostream<char> with ends case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        const std::string str01(" santa barbara ");
-        auto oss01 = T(IOv2::mem_device{" santa barbara "});
-        auto oss02 = T(IOv2::mem_device{""});
+        auto os = T(mem_device{""});
 
-        oss01 << IOv2::ends;
-        VERIFY(oss01.device().str().size() == str01.size());
-        
-        oss02 << IOv2::ends;
-        oss02.flush();
-        VERIFY(oss02.device().str().size() == 1);
-        VERIFY(oss02.device().str()[0] == char());
+        os << ends;
+        os.flush();
+
+        const std::string out = os.device().str();
+        ASSERT_EQ(out.size(), 1u);
+        EXPECT_EQ(out[0], char());
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-void test_ostream_ends_char_2()
+TEST(OstreamEndsChar, EachEndsAddsExactlyOneCharacterWhereItWasWritten)
 {
-    dump_info("Test ostream<char> with ends case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto osst_01 = T(IOv2::mem_device{""});
-        const std::string str_00("herbie_hancock");
-        size_t len1 = str_00.size();
-        osst_01 << str_00;
-        osst_01.flush();
-        VERIFY(osst_01.device().str().size() == len1);
+        auto os = T(mem_device{""});
 
-        osst_01 << IOv2::ends;
+        os << "first" << ends << "second" << ends << "third";
+        os.flush();
 
-        const std::string str_01("speak like a child");
-        size_t len2 = str_01.size();
-        osst_01 << str_01;
-        osst_01.flush();
-        size_t len3 = osst_01.device().str().size();
-        VERIFY(len1 < len3);
-        VERIFY(len3 == len1 + len2 + 1);
-
-        osst_01 << IOv2::ends;
-
-        const std::string str_02("+ inventions and dimensions");
-        size_t len4 = str_02.size();
-        osst_01 << str_02;
-        osst_01.flush();
-        size_t len5 = osst_01.device().str().size();
-        VERIFY(len3 < len5);
-        VERIFY(len5 == len3 + len4 + 1);
+        const std::string expected("first\0second\0third", 18);
+        EXPECT_EQ(os.device().str(), expected);
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+// ends returns the stream, which is what let the expression above chain; here
+// the same thing is checked one insertion at a time.
+TEST(OstreamEndsChar, EndsReturnsTheStream)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        auto os = T(mem_device{""});
+
+        auto& same = (os << ends);
+        EXPECT_EQ(&same, &os);
+        same << "tail";
+        os.flush();
+
+        EXPECT_EQ(os.device().str(), std::string("\0tail", 5));
+    };
+
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
+}
+
+// What ends is for: the buffer can afterwards be walked as a sequence of C
+// strings, which only works because the terminator is a real zero byte.
+TEST(OstreamEndsChar, TerminatedRecordsCanBeReadBackAsCStrings)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        auto os = T(mem_device{""});
+
+        os << "alpha" << ends << "" << ends << "gamma" << ends;
+        os.flush();
+
+        const std::string   out = os.device().str();
+        std::vector<std::string> records;
+        for (const char* p = out.data(); p < out.data() + out.size(); p += std::strlen(p) + 1)
+            records.emplace_back(p);
+
+        ASSERT_EQ(records.size(), 3u);
+        EXPECT_EQ(records[0], "alpha");
+        EXPECT_EQ(records[1], "");
+        EXPECT_EQ(records[2], "gamma");
+    };
+
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }

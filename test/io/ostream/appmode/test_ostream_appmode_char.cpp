@@ -1,197 +1,204 @@
-#include <cfloat>
-#include <limits>
-#include <stdexcept>
-#include <string>
-#include <device/mem_device.h>
+/**
+ * The appmode / noappmode manipulators on an ostream<char>.
+ *
+ * appmode is IOv2's own: while it is on, every write goes to the end of the
+ * stream no matter where the position was left, and it does not move the
+ * position for anything else. So a seek followed by a write under appmode
+ * appends, while the same seek followed by a write under noappmode overwrites
+ * exactly where the seek landed -- the two are checked in one interleaved
+ * sequence, because a flag that is only ever turned on tells you nothing about
+ * whether it can be turned off again.
+ *
+ * Each case is checked twice, once directly and once through the synchronized
+ * view, since that view reaches the stream by a different path and has to end
+ * up in the same place.
+ */
 #include <device/file_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
+#include <device/mem_device.h>
 #include <io/io_manip.h>
+#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+#include <io/traits/char_and_str.h>
+
 #include <support/file_guard.h>
-#include <support/verify.h>
 
-void test_ostream_appmode_char_1()
+#include <gtest/gtest.h>
+
+#include <string>
+
+using namespace IOv2;
+
+TEST(OstreamAppmodeChar, AppmodeAppendsWhileNoappmodeWritesWhereTheSeekLanded)
 {
-    dump_info("Test ostream<char> with app mode case 1...");
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        T ostr{IOv2::mem_device{"abcde"}};
-        ostr.put('L');
-        ostr.flush();
-        VERIFY(ostr.device().str() == "Lbcde");
+        T os{mem_device{"abcde"}};
 
-        ostr << IOv2::appmode;
-        ostr.put('W');
-        ostr.flush();
-        VERIFY(ostr.device().str() == "LbcdeW");
+        os.put('L');                   // no appmode: overwrites at the start
+        os.flush();
+        EXPECT_EQ(os.device().str(), "Lbcde");
 
-        ostr.seek(0);
-        VERIFY(static_cast<bool>(ostr));
+        os << appmode;
+        os.put('W');                   // appended, wherever the position was
+        os.flush();
+        EXPECT_EQ(os.device().str(), "LbcdeW");
 
-        ostr.put('X');
-        ostr.flush();
+        os.seek(0);
+        ASSERT_TRUE(static_cast<bool>(os));
 
-        ostr.seek(1);
-        VERIFY(static_cast<bool>(ostr));
-        ostr << IOv2::noappmode;
-        ostr.put('Y');
-        ostr << IOv2::appmode;
-        ostr.flush();
-        VERIFY(ostr.device().str() == "LYcdeWX");
+        os.put('X');                   // still appmode: the seek does not matter
+        os.flush();
+
+        os.seek(1);
+        ASSERT_TRUE(static_cast<bool>(os));
+        os << noappmode;
+        os.put('Y');                   // now the seek does matter
+        os << appmode;
+        os.flush();
+
+        EXPECT_EQ(os.device().str(), "LYcdeWX");
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-void test_ostream_appmode_char_sync_1()
+TEST(OstreamAppmodeChar, TheSameHoldsThroughTheSyncView)
 {
-    dump_info("Test ostream<char> with app mode (with sync) case 1...");
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        T ostr{IOv2::mem_device{"abcde"}};
-        IOv2::sync(ostr).stream.put('L');
-        IOv2::sync(ostr).stream.flush();
-        VERIFY(IOv2::sync(ostr).stream.device().str() == "Lbcde");
+        T os{mem_device{"abcde"}};
 
-        IOv2::sync(ostr).stream << IOv2::appmode;
-        IOv2::sync(ostr).stream.put('W');
-        IOv2::sync(ostr).stream.flush();
-        VERIFY(IOv2::sync(ostr).stream.device().str() == "LbcdeW");
+        IOv2::sync(os).stream.put('L');
+        IOv2::sync(os).stream.flush();
+        EXPECT_EQ(IOv2::sync(os).stream.device().str(), "Lbcde");
 
-        IOv2::sync(ostr).stream.seek(0);
-        VERIFY(static_cast<bool>(IOv2::sync(ostr).stream));
+        IOv2::sync(os).stream << appmode;
+        IOv2::sync(os).stream.put('W');
+        IOv2::sync(os).stream.flush();
+        EXPECT_EQ(IOv2::sync(os).stream.device().str(), "LbcdeW");
 
-        IOv2::sync(ostr).stream.put('X');
-        IOv2::sync(ostr).stream.flush();
+        IOv2::sync(os).stream.seek(0);
+        ASSERT_TRUE(static_cast<bool>(IOv2::sync(os).stream));
 
-        IOv2::sync(ostr).stream.seek(1);
-        VERIFY(static_cast<bool>(IOv2::sync(ostr).stream));
-        IOv2::sync(ostr).stream << IOv2::noappmode;
-        IOv2::sync(ostr).stream.put('Y');
-        IOv2::sync(ostr).stream << IOv2::appmode;
-        IOv2::sync(ostr).stream.flush();
-        VERIFY(IOv2::sync(ostr).stream.device().str() == "LYcdeWX");
+        IOv2::sync(os).stream.put('X');
+        IOv2::sync(os).stream.flush();
+
+        IOv2::sync(os).stream.seek(1);
+        ASSERT_TRUE(static_cast<bool>(IOv2::sync(os).stream));
+        IOv2::sync(os).stream << noappmode;
+        IOv2::sync(os).stream.put('Y');
+        IOv2::sync(os).stream << appmode;
+        IOv2::sync(os).stream.flush();
+
+        EXPECT_EQ(IOv2::sync(os).stream.device().str(), "LYcdeWX");
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-void test_ostream_appmode_char_2()
+// The same sequence against a real file, where "the end" is the file's end and
+// the answer has to survive being written out and read back.
+TEST(OstreamAppmodeChar, AppmodeMeansTheEndOfTheFile)
 {
-    dump_info("Test ostream<char> with app mode case 2...");
-    auto helper = []<template<typename, typename> class T>()
-    {
-        file_guard g("appmode_test", "abcde");
-        T ostr{IOv2::file_device<char>{"appmode_test"}};
-
-        ostr.put('L');
-        ostr << IOv2::appmode;
-        ostr.put('W');
-        ostr.seek(0);
-        ostr.put('X');
-        ostr.seek(1);
-        ostr << IOv2::noappmode;
-        ostr.put('Y');
-        ostr << IOv2::appmode;
-        ostr.flush();
-        VERIFY(static_cast<bool>(ostr));
-        auto [dev1, err1] = ostr.detach();
-        dev1.close();
-
-        VERIFY(g.contents() == "LYcdeWX");
-    };
-
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_ostream_appmode_char_sync_2()
-{
-    dump_info("Test ostream<char> with app mode (with sync) case 2...");
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
         file_guard g("appmode_test", "abcde");
-        T ostr{IOv2::file_device<char>{"appmode_test"}};
+        T          os{file_device<char>{"appmode_test"}};
 
-        IOv2::sync(ostr).stream.put('L');
-        IOv2::sync(ostr).stream << IOv2::appmode;
-        IOv2::sync(ostr).stream.put('W');
-        IOv2::sync(ostr).stream.seek(0);
-        IOv2::sync(ostr).stream.put('X');
-        IOv2::sync(ostr).stream.seek(1);
-        IOv2::sync(ostr).stream << IOv2::noappmode;
-        IOv2::sync(ostr).stream.put('Y');
-        IOv2::sync(ostr).stream << IOv2::appmode;
-        IOv2::sync(ostr).stream.flush();
-        VERIFY(static_cast<bool>(IOv2::sync(ostr).stream));
-        auto [dev2, err2] = IOv2::sync(ostr).stream.detach();
-        dev2.close();
+        os.put('L');
+        os << appmode;
+        os.put('W');
+        os.seek(0);
+        os.put('X');
+        os.seek(1);
+        os << noappmode;
+        os.put('Y');
+        os << appmode;
+        os.flush();
+        EXPECT_TRUE(static_cast<bool>(os));
 
-        VERIFY(g.contents() == "LYcdeWX");
+        auto [dev, err] = os.detach();
+        dev.close();
+
+        EXPECT_EQ(g.contents(), "LYcdeWX");
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-void test_ostream_appmode_char_3()
+TEST(OstreamAppmodeChar, TheSameHoldsOnAFileThroughTheSyncView)
 {
-    dump_info("Test ostream<char> with app mode case 3...");
+    auto helper = []<template <typename, typename> class T>()
+    {
+        file_guard g("appmode_test", "abcde");
+        T          os{file_device<char>{"appmode_test"}};
 
-    IOv2::iostream str{IOv2::mem_device{"abcde"}};
-    str << IOv2::appmode << 'W';
-    str.flush();
-    VERIFY(str.device().str() == "abcdeW");
+        IOv2::sync(os).stream.put('L');
+        IOv2::sync(os).stream << appmode;
+        IOv2::sync(os).stream.put('W');
+        IOv2::sync(os).stream.seek(0);
+        IOv2::sync(os).stream.put('X');
+        IOv2::sync(os).stream.seek(1);
+        IOv2::sync(os).stream << noappmode;
+        IOv2::sync(os).stream.put('Y');
+        IOv2::sync(os).stream << appmode;
+        IOv2::sync(os).stream.flush();
+        EXPECT_TRUE(static_cast<bool>(IOv2::sync(os).stream));
+
+        auto [dev, err] = IOv2::sync(os).stream.detach();
+        dev.close();
+
+        EXPECT_EQ(g.contents(), "LYcdeWX");
+    };
+
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
+}
+
+// appmode is about writing. Reading is left where it was -- at the end here,
+// so the read fails on eof -- and writing afterwards still appends.
+TEST(OstreamAppmodeChar, AppmodeDoesNotMoveTheReadPosition)
+{
+    iostream ios{mem_device{"abcde"}};
+
+    ios << appmode << 'W';
+    ios.flush();
+    EXPECT_EQ(ios.device().str(), "abcdeW");
 
     char ch = 0;
-    str.get(ch);
-    VERIFY(!static_cast<bool>(str));
-    VERIFY(ch == 0);
-    VERIFY(str.eof());
-    str.clear();
+    ios.get(ch);
+    EXPECT_FALSE(static_cast<bool>(ios));
+    EXPECT_EQ(ch, 0);
+    EXPECT_TRUE(ios.eof());
+    ios.clear();
 
-    str << " hello";
+    ios << " hello";
 
-    auto [dev3, err3] = str.detach();
-    VERIFY(dev3.str() == "abcdeW hello");
-
-    dump_info("Done\n");
+    auto [dev, err] = ios.detach();
+    EXPECT_EQ(dev.str(), "abcdeW hello");
 }
 
-void test_ostream_appmode_char_sync_3()
+TEST(OstreamAppmodeChar, TheSameWhileReadingThroughTheSyncView)
 {
-    dump_info("Test ostream<char> with app mode (with sync) case 3...");
+    iostream ios{mem_device{"abcde"}};
 
-    IOv2::iostream str{IOv2::mem_device{"abcde"}};
-    IOv2::sync(str).stream << IOv2::appmode << 'W';
-    IOv2::sync(str).stream.flush();
-    VERIFY(IOv2::sync(str).stream.device().str() == "abcdeW");
+    IOv2::sync(ios).stream << appmode << 'W';
+    IOv2::sync(ios).stream.flush();
+    EXPECT_EQ(IOv2::sync(ios).stream.device().str(), "abcdeW");
 
     char ch = 0;
-    IOv2::sync(str).stream.get(ch);
-    VERIFY(!static_cast<bool>(IOv2::sync(str).stream));
-    VERIFY(ch == 0);
-    IOv2::sync(str).stream.clear();
+    IOv2::sync(ios).stream.get(ch);
+    EXPECT_FALSE(static_cast<bool>(IOv2::sync(ios).stream));
+    EXPECT_EQ(ch, 0);
+    EXPECT_TRUE(IOv2::sync(ios).stream.eof());
+    IOv2::sync(ios).stream.clear();
 
-    IOv2::sync(str).stream << " hello";
+    IOv2::sync(ios).stream << " hello";
 
-    auto [dev4, err4] = IOv2::sync(str).stream.detach();
-    VERIFY(dev4.str() == "abcdeW hello");
-
-    dump_info("Done\n");
+    auto [dev, err] = IOv2::sync(ios).stream.detach();
+    EXPECT_EQ(dev.str(), "abcdeW hello");
 }
-

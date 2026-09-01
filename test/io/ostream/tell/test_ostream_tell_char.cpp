@@ -1,20 +1,35 @@
-#include <limits>
-#include <memory>
-#include <optional>
-#include <stdexcept>
-#include <string>
-#include <utility>
+/**
+ * ostream<char>::tell.
+ *
+ * tell answers with an optional: a position when it can be had, nothing when
+ * the stream is in no state to have one. Two ways to reach the empty answer are
+ * covered here -- a stream that has already failed, and a device that cannot
+ * report its own position -- because the difference between "no position" and
+ * "position zero" is exactly what a caller who writes tell().value() gets
+ * wrong.
+ *
+ * Where the position moves as characters are written is the seek suite's
+ * business; what is left here is where it starts and when it stops answering.
+ */
 #include <common/defs.h>
-#include <device/mem_device.h>
 #include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/io_manip.h>
+#include <io/iostream.h>
+#include <io/ostream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+
 #include <support/file_guard.h>
-#include <support/verify.h>
+
+#include <gtest/gtest.h>
+
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+
+using namespace IOv2;
 
 namespace
 {
@@ -61,88 +76,94 @@ private:
 };
 }
 
-void test_ostream_tell_char_1()
+// A fresh output stream is at the beginning, including over a device that
+// already holds something -- what is in the device is not what has been
+// written through the stream.
+TEST(OstreamTellChar, ANewStreamStartsAtTheBeginning)
 {
-    dump_info("Test ostream<char>::tell case 1...");
-
     // trunc is spelled out so that both devices create the file: ofile_device opens "w" either
     // way, but file_device without it opens "r+" and would fail on a file that does not exist.
-    auto helper = []<template <typename, typename> class T,
-                                typename TDevice>()
+    auto helper = []<template <typename, typename> class T, typename TDevice>()
     {
-        file_guard g1("istream_seeks-3.txt");
-        T ost1{IOv2::mem_device{""}};
-        T ofs1{TDevice{"istream_seeks-3.txt", IOv2::file_open_flag::trunc}};
-        
-        auto p1 = ost1.tell();
-        auto p2 = ofs1.tell();
-        VERIFY( p1 == 0 );
-        VERIFY( p2 == 0 );
-        
-        T ost2{IOv2::mem_device{"bob_marley:kaya"}};
-        VERIFY( ost2.tell() == 0 );
+        const std::string path = "test_ostream_tell_start.txt";
+        file_guard        guard(path);
+
+        T empty{mem_device{""}};
+        T seeded{mem_device{"already there"}};
+        T file{TDevice{path, file_open_flag::trunc}};
+
+        EXPECT_EQ(empty.tell(), 0u);
+        EXPECT_EQ(seeded.tell(), 0u);
+        EXPECT_EQ(file.tell(), 0u);
+
+        auto [dev, err] = file.detach();
+        dev.close();
     };
 
-    helper.template operator()<IOv2::ostream, IOv2::ofile_device<char>>();
-    helper.template operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    helper.template operator()<ostream, ofile_device<char>>();
+    helper.template operator()<iostream, file_device<char>>();
 }
 
-void test_ostream_tell_char_2()
+TEST(OstreamTellChar, TheAnswerCountsWhatHasBeenWritten)
 {
-    dump_info("Test ostream<char>::tell case 2...");
-
     auto helper = []<template <typename, typename> class T>()
     {
-        T ost{IOv2::mem_device{""}};
-        auto pos1 = ost.tell();
-        VERIFY(pos1 == 0);
+        T os{mem_device{""}};
+        EXPECT_EQ(os.tell(), 0u);
 
-        ost << "RZA ";
-        pos1 = ost.tell();
-        VERIFY( pos1 == 4 );
+        os << "four";
+        EXPECT_EQ(os.tell(), 4u);
 
-        ost << "ghost dog: way of the samurai";
-        pos1 = ost.tell();
-        VERIFY( pos1 == 33 );
+        os << ' ' << 42;
+        EXPECT_EQ(os.tell(), 7u);
     };
 
-    helper.template operator()<IOv2::ostream>();
-    helper.template operator()<IOv2::iostream>();
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
+}
 
-    dump_info("Done\n");
+// A failed stream has no position to give, and says so rather than giving zero.
+TEST(OstreamTellChar, AFailedStreamHasNoPosition)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        T os{mem_device{""}};
+        os << "abc";
+        ASSERT_TRUE(os.tell().has_value());
+
+        os.seek(99);                   // refused by the device
+        EXPECT_FALSE(os.tell().has_value());
+
+        os.clear();
+        EXPECT_EQ(os.tell(), 3u);
+    };
+
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
 }
 
 // When the underlying device's dtell() throws, tell() routes it through handle_exception
 // (-> devfailbit) and returns an empty optional; with no exception mask set it does not throw.
 // This drives the catch branch of stream_common_operators::tell().
-void test_ostream_tell_char_3()
+TEST(OstreamTellChar, ADeviceThatCannotReportItsPositionIsReportedNotThrown)
 {
-    dump_info("Test ostream<char>::tell case 3 (device tell failure)...");
-
     auto helper = []<template <typename, typename> class T>()
     {
         throw_tell_device<char> dev{std::string("abc")};
-        auto flag = dev.fail_flag();
-        T ost{dev};
+        auto                    flag = dev.fail_flag();
+        T                       os{dev};
 
-        VERIFY( ost.tell() == 0 );   // succeeds while the flag is false
-        *flag = true;                // now the device's dtell() throws
+        EXPECT_EQ(os.tell(), 0u);      // succeeds while the flag is false
+        *flag = true;                  // now the device's dtell() throws
 
         std::optional<size_t> pos = 0;
-        bool threw = false;
-        try { pos = ost.tell(); }
-        catch (...) { threw = true; }
-        VERIFY( !threw );
-        VERIFY( !pos.has_value() );
-        VERIFY( ost.rdstate() & IOv2::ios_defs::devfailbit );
+        EXPECT_NO_THROW(pos = os.tell());
+        EXPECT_FALSE(pos.has_value());
+        EXPECT_TRUE(os.rdstate() & ios_defs::devfailbit);
 
-        *flag = false;               // let teardown succeed
+        *flag = false;                 // let teardown succeed
     };
 
-    helper.template operator()<IOv2::ostream>();
-    helper.template operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
 }

@@ -102,6 +102,20 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
     io/istream/seek
     io/istream/tell
     io/istream/ws
+    io/ostream/appmode
+    io/ostream/callbacks
+    io/ostream/cvt
+    io/ostream/derive
+    io/ostream/endl
+    io/ostream/ends
+    io/ostream/exceptions
+    io/ostream/flush
+    io/ostream/inserters_arithmetic
+    io/ostream/inserters_character
+    io/ostream/inserters_time
+    io/ostream/seek
+    io/ostream/tell
+    io/ostream/tie
     locale
 )
 
@@ -112,11 +126,10 @@ set(IOV2_TEST_GTEST_SUITE_DIRS
 set(IOV2_TEST_EXCLUDED_SOURCES
     io/io_base/test_io_base.cpp
     io/iostream/test_iostream.cpp
-    io/ostream/test_ostream.cpp
     io/test_io.cpp
 )
 
-set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 157)
+set(IOV2_TEST_SOURCE_TOTAL_EXPECTED 146)
 
 set(test_common_ENTRIES
     # none: every case registers itself
@@ -289,59 +302,59 @@ set(test_io_objects_ENTRIES
 )
 
 set(test_io_ostream_appmode_ENTRIES
-    test_ostream_appmode
+    # none: every case registers itself
 )
 
 set(test_io_ostream_callbacks_ENTRIES
-    test_ostream_callbacks
+    # none: every case registers itself
 )
 
 set(test_io_ostream_cvt_ENTRIES
-    test_ostream_cvt
+    # none: every case registers itself
 )
 
 set(test_io_ostream_derive_ENTRIES
-    test_ostream_derive
+    # none: every case registers itself
 )
 
 set(test_io_ostream_endl_ENTRIES
-    test_ostream_endl
+    # none: every case registers itself
 )
 
 set(test_io_ostream_ends_ENTRIES
-    test_ostream_ends
+    # none: every case registers itself
 )
 
 set(test_io_ostream_exceptions_ENTRIES
-    test_ostream_exceptions
+    # none: every case registers itself
 )
 
 set(test_io_ostream_flush_ENTRIES
-    test_ostream_flush
+    # none: every case registers itself
 )
 
 set(test_io_ostream_inserters_arithmetic_ENTRIES
-    test_ostream_inserters_arithmetic
+    # none: every case registers itself
 )
 
 set(test_io_ostream_inserters_character_ENTRIES
-    test_ostream_inserters_character
+    # none: every case registers itself
 )
 
 set(test_io_ostream_inserters_time_ENTRIES
-    test_ostream_inserters_time
+    # none: every case registers itself
 )
 
 set(test_io_ostream_seek_ENTRIES
-    test_ostream_seek
+    # none: every case registers itself
 )
 
 set(test_io_ostream_tell_ENTRIES
-    test_ostream_tell
+    # none: every case registers itself
 )
 
 set(test_io_ostream_tie_ENTRIES
-    test_ostream_tie
+    # none: every case registers itself
 )
 
 set(test_io_stream_buf_ENTRIES
