@@ -1480,182 +1480,177 @@ private:
     {
         using unsigned_type = std::make_unsigned_t<TValue>;
 
-        CharT c{};
+        const ios_defs::fmtflags requested_base = io.flags() & ios_defs::basefield;
+        const bool infer_base = requested_base == 0;
+        int radix = requested_base == ios_defs::hex ? 16
+                  : requested_base == ios_defs::oct ? 8
+                  : 10;
 
-        // With no base set in the flags the text itself decides, so `base` is
-        // provisional until the prefix scan below has run.
-        const ios_defs::fmtflags basefield = io.flags() & ios_defs::basefield;
-        int base = basefield == ios_defs::oct ? 8
-                 : basefield == ios_defs::hex ? 16
-                 : 10;
-
-        bool at_end = beg == end;
-
-        // -- sign ----------------------------------------------------------
         bool negative = false;
-        if (!at_end)
+        if (beg != end)
         {
-            c = *beg;
-            negative = c == m_in_atoms[s_iminus];
-            if ((negative || c == m_in_atoms[s_iplus]) && !is_punct(c))
+            const char_type first = *beg;
+            const bool has_sign = first == m_in_atoms[s_iminus]
+                               || first == m_in_atoms[s_iplus];
+            if (has_sign && !is_punct(first))
             {
-                if (++beg != end)
-                    c = *beg;
-                else
-                    at_end = true;
+                negative = first == m_in_atoms[s_iminus];
+                ++beg;
             }
         }
 
-        // -- leading zeros and base prefix ---------------------------------
-        // Base ten is the only base that lets a run of zeros stand in front of
-        // the number. Everywhere else a second zero is an ordinary digit and
-        // belongs to the accumulation loop, so at most one is taken here.
-        bool saw_zero  = false;
-        int  group_len = 0;
-        while (!at_end && !is_punct(c) && c == m_in_atoms[s_izero]
-               && (!saw_zero || base == 10))
+        // Consume one possible prefix zero up front. Any further zero is handled
+        // by the ordinary digit loop, which keeps prefix handling independent of
+        // the length of the field and avoids a second digit-scanning phase.
+        bool has_digit = false;
+        int digits_in_group = 0;
+        if (beg != end && *beg == m_in_atoms[s_izero] && !is_punct(*beg))
         {
-            saw_zero = true;
-            ++group_len;
-            if (basefield == 0) base = 8;   // a bare leading `0` means octal
-            if (base == 8) group_len = 0;   // that prefix zero starts no group
-            if (++beg != end) c = *beg;
-            else at_end = true;
-        }
+            has_digit = true;
+            digits_in_group = 1;
+            ++beg;
 
-        // `0x` / `0X` behind that zero makes it a hexadecimal prefix -- either
-        // confirming a base the flags already fixed, or choosing one when they
-        // left it open. Under any other base the `x` is simply not ours, and is
-        // left for the caller to trip over.
-        if (saw_zero && !at_end && !is_punct(c)
-            && (c == m_in_atoms[s_ix] || c == m_in_atoms[s_iX]))
-        {
-            if (basefield == 0) base = 16;
-            if (base == 16)
+            if (infer_base)
+                radix = 8;
+            if (radix == 8)
+                digits_in_group = 0;
+
+            if (beg != end && !is_punct(*beg)
+                && (*beg == m_in_atoms[s_ix] || *beg == m_in_atoms[s_iX])
+                && (infer_base || radix == 16))
             {
-                saw_zero  = false;          // the `0` was prefix, not a digit
-                group_len = 0;
-                if (++beg != end) c = *beg;
-                else at_end = true;
+                radix = 16;
+                has_digit = false;
+                digits_in_group = 0;
+                ++beg;
             }
         }
 
-        // The base is settled now, and with it how much of the atom table is
-        // in play: hexadecimal reaches across both letter alphabets, every
-        // other base stops at its own digit count.
-        const std::size_t span = (base == 16 ? s_iend - s_izero : base);
+        const unsigned_type magnitude_limit =
+            negative && std::is_signed_v<TValue>
+                ? -static_cast<unsigned_type>(std::numeric_limits<TValue>::min())
+                : static_cast<unsigned_type>(std::numeric_limits<TValue>::max());
+        const unsigned_type radix_value = static_cast<unsigned_type>(radix);
+        const unsigned_type cutoff = magnitude_limit / radix_value;
+        const unsigned_type last_digit_limit = magnitude_limit % radix_value;
 
-        // -- digits --------------------------------------------------------
-        std::vector<uint8_t> groups_seen;
-        if (!m_grouping.empty()) groups_seen.reserve(32);
-        bool malformed = false;
-        bool overflowed = false;
-        const unsigned_type value_limit = (negative && std::is_signed_v<TValue>)
-                                        ? -static_cast<unsigned_type>(std::numeric_limits<TValue>::min()) : std::numeric_limits<TValue>::max();
-        const unsigned_type accum_limit = value_limit / static_cast<unsigned_type>(base);
-        unsigned_type result = 0;
-        const char_type* const digit_table = m_in_atoms.data() + s_izero;
+        unsigned_type magnitude = 0;
+        bool out_of_range = false;
+        bool invalid_grouping = false;
+        std::vector<uint8_t> group_widths;
+        if (!m_grouping.empty())
+            group_widths.reserve(32);
 
-        while (!at_end)
+        const char_type* const digit_atoms = m_in_atoms.data() + s_izero;
+        const char_type* const primary_end = digit_atoms + radix;
+        const char_type* const uppercase_hex = digit_atoms + 16;
+
+        while (beg != end)
         {
-            // Punctuation is tested before the digit table, because a locale
-            // may well have nominated a character that appears in both.
-            if (!m_grouping.empty() && c == m_thousands_sep)
+            const char_type current = *beg;
+
+            // Locale punctuation takes precedence even if widening happened to
+            // give it the same representation as a sign or digit.
+            if (!m_grouping.empty() && current == m_thousands_sep)
             {
-                // A separator has to close a group that actually holds digits,
-                // which rules out a leading separator and two in a row alike.
-                // Group widths are kept as bytes, so one too wide to record is
-                // rejected rather than silently wrapped.
-                if (group_len == 0
-                    || std::cmp_greater(group_len, std::numeric_limits<uint8_t>::max()))
+                if (digits_in_group == 0
+                    || std::cmp_greater(digits_in_group,
+                                        std::numeric_limits<uint8_t>::max()))
                 {
-                    malformed = true;
+                    invalid_grouping = true;
                     break;
                 }
-                groups_seen.push_back(static_cast<uint8_t>(group_len));
-                group_len = 0;
+
+                group_widths.push_back(static_cast<uint8_t>(digits_in_group));
+                digits_in_group = 0;
+                ++beg;
+                continue;
             }
-            else if (c == m_decimal_point)
+            if (current == m_decimal_point)
                 break;
-            else
+
+            int digit = -1;
+            const char_type* match = std::find(digit_atoms, primary_end, current);
+            if (match != primary_end)
+                digit = static_cast<int>(match - digit_atoms);
+            else if (radix == 16)
             {
-                const char_type* q = std::find(digit_table, digit_table + span, c);
-                if (q == digit_table + span)
-                    break;
+                const char_type* upper = std::find(uppercase_hex,
+                                                   uppercase_hex + 6, current);
+                if (upper != uppercase_hex + 6)
+                    digit = static_cast<int>(upper - uppercase_hex) + 10;
+            }
+            if (digit < 0)
+                break;
 
-                // The table runs '0'-'9', then 'a'-'f', then 'A'-'F', so an
-                // upper-case letter sits six slots past the value it denotes.
-                int digit = static_cast<int>(q - digit_table);
-                if (digit > 15) digit -= 6;
-
-                // Once the running value has passed the point where another
-                // digit could fit, accumulation stops but consumption does not:
-                // the caller still has to be left past the whole field.
-                if (result > accum_limit)
-                    overflowed = true;
+            has_digit = true;
+            if (!out_of_range)
+            {
+                const unsigned_type next = static_cast<unsigned_type>(digit);
+                if (magnitude > cutoff)
+                    out_of_range = true;
+                else if (magnitude == cutoff && next > last_digit_limit)
+                {
+                    // Preserve the established counter semantics: when the
+                    // previous magnitude is exactly at the cutoff, this digit
+                    // is counted before the group width freezes.
+                    out_of_range = true;
+                    ++digits_in_group;
+                }
                 else
                 {
-                    result *= static_cast<unsigned_type>(base);
-                    overflowed |= result > value_limit - static_cast<unsigned_type>(digit);
-                    result += static_cast<unsigned_type>(digit);
-                    ++group_len;
+                    magnitude = magnitude * radix_value + next;
+                    ++digits_in_group;
                 }
             }
-
-            if (++beg != end) c = *beg;
-            else at_end = true;
+            ++beg;
         }
 
         bool success = true;
-        // Grouping was only ever recorded if the input actually used it; when
-        // it did, the trailing group is closed off and the whole shape held up
-        // against what the locale demands.
-        if (!groups_seen.empty())
+        if (!group_widths.empty())
         {
-            if (std::cmp_greater(group_len, std::numeric_limits<uint8_t>::max()))
-            {
-                malformed = true;
-            }
+            if (std::cmp_greater(digits_in_group,
+                                 std::numeric_limits<uint8_t>::max()))
+                invalid_grouping = true;
             else
             {
-                groups_seen.push_back(static_cast<uint8_t>(group_len));
-                success = FacetHelper::verify_grouping(m_grouping, groups_seen);
+                group_widths.push_back(static_cast<uint8_t>(digits_in_group));
+                success = FacetHelper::verify_grouping(m_grouping, group_widths);
             }
         }
 
-        // LWG 23 (Num_get overflow result): when the field overflows,
-        // v must be set to numeric_limits::max() / min() with failbit.
+        // LWG 23 (Num_get overflow result): when the field overflows, v must be
+        // set to numeric_limits::max() / min() with failbit.
         //
-        // `overflowed` is checked BEFORE `malformed` by design. Once the
-        // digit-accumulation loop sets `overflowed`, ++group_len is skipped
-        // for every subsequent digit, so group_len freezes. A later, otherwise
+        // `out_of_range` is tested BEFORE `invalid_grouping` by design. Once the
+        // digit loop sets `out_of_range`, ++digits_in_group is skipped for every
+        // later digit, so the counter freezes. A subsequent, otherwise
         // well-formed thousands_sep then fails the grouping check and sets
-        // `malformed` — but that is a side effect of the overflow
+        // `invalid_grouping` -- but that is a side effect of the overflow
         // short-circuit, not an independent structural error in the input.
         //
-        // Letting `malformed` win in that overlap would map a structurally
-        // valid, numerically out-of-range input (e.g. "12,345,678,901,234,567"
-        // into uint32_t under grouping "\3") to v = 0 instead of v = max,
-        // contradicting LWG 23. We diverge from libstdc++'s ordering here
-        // (which has the same latent issue) to keep the overflow signal
-        // dominant whenever it fires.
-        if (overflowed)
+        // Letting `invalid_grouping` win in that overlap would map a
+        // structurally valid, numerically out-of-range field (say
+        // "12,345,678,901,234,567" read into uint32_t under grouping "\3") to
+        // v = 0 instead of v = max, contradicting LWG 23. We diverge from
+        // libstdc++'s ordering here -- it has the same latent issue -- to keep
+        // the overflow signal dominant whenever it fires.
+        if (out_of_range)
         {
-            if (negative && std::is_signed_v<TValue>)
-                v = std::numeric_limits<TValue>::min();
-            else
-                v = std::numeric_limits<TValue>::max();
+            v = negative && std::is_signed_v<TValue>
+                    ? std::numeric_limits<TValue>::min()
+                    : std::numeric_limits<TValue>::max();
             success = false;
         }
-        else if ((group_len == 0 && !saw_zero && groups_seen.empty()) || malformed)
+        else if (!has_digit || invalid_grouping)
         {
             v = 0;
             success = false;
         }
         else
-            v = negative ? -result : result;
+            v = negative ? -magnitude : magnitude;
 
-        return std::pair(success, beg);
+        return {success, beg};
     }
 
     /**

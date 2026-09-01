@@ -35,21 +35,20 @@ using namespace IOv2;
 
 namespace
 {
-    // Static so that the members this helper does not name -- tm_gmtoff and
-    // tm_zone on glibc -- start out zeroed rather than indeterminate.
-    std::tm test_tm(int sec, int min, int hour, int mday, int mon, int year,
-                    int wday, int yday, int isdst)
+    // Value-initialisation also clears any platform-specific trailing fields.
+    std::tm calendar_time(int year, int month, int day, int hour, int minute, int second,
+                          int weekday, int yearday, int daylight)
     {
-        static std::tm tmp;
-        tmp.tm_sec   = sec;
-        tmp.tm_min   = min;
-        tmp.tm_hour  = hour;
-        tmp.tm_mday  = mday;
-        tmp.tm_mon   = mon;
+        std::tm tmp{};
         tmp.tm_year  = year;
-        tmp.tm_wday  = wday;
-        tmp.tm_yday  = yday;
-        tmp.tm_isdst = isdst;
+        tmp.tm_mon   = month;
+        tmp.tm_mday  = day;
+        tmp.tm_hour  = hour;
+        tmp.tm_min   = minute;
+        tmp.tm_sec   = second;
+        tmp.tm_wday  = weekday;
+        tmp.tm_yday  = yearday;
+        tmp.tm_isdst = daylight;
         return tmp;
     }
 
@@ -62,7 +61,7 @@ namespace
 
     // 2024-02-29 was a Thursday: a leap day, so a format that reaches the date
     // arithmetic at all has somewhere to go wrong.
-    std::tm leap_day() { return test_tm(0, 0, 12, 29, 1, 124, 4, 59, 0); }
+    std::tm leap_day() { return calendar_time(124, 1, 29, 12, 0, 0, 4, 59, 0); }
 }
 
 // The format reaches the facet unchanged, specifier for specifier.
@@ -198,7 +197,7 @@ TEST(IoBaseManipTime, FieldsTheFormatDoesNotMentionKeepTheirPreviousValues)
 {
     // Fields the format string does not parse keep the values the target already held,
     // instead of being taken from the wall clock.
-    const std::tm preset = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);   // 2020-05-17 09:08:07
+    const std::tm preset = calendar_time(120, 4, 17, 9, 8, 7, 0, 0, 1);   // 2020-05-17 09:08:07
 
     // Time only: the date is untouched.
     {
@@ -259,7 +258,7 @@ TEST(IoBaseManipTime, FieldsTheFormatDoesNotMentionKeepTheirPreviousValues)
 
 TEST(IoBaseManipTime, WdayAndYdayAreRecomputedFromTheResultingDate)
 {
-    const std::tm preset = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);   // 2020-05-17 09:08:07
+    const std::tm preset = calendar_time(120, 4, 17, 9, 8, 7, 0, 0, 1);   // 2020-05-17 09:08:07
 
     // tm_wday / tm_yday are always recomputed from the resulting date, and tm_isdst is
     // always -1: no format specifier carries DST information, and keeping the caller's
@@ -319,7 +318,7 @@ TEST(IoBaseManipTime, OutOfRangeFieldsAreNormalisedWithoutConsultingTheTimezone)
 
     for (const auto& c : cases)
     {
-        std::tm parsed = test_tm(c.sec, 8, 9, c.mday, c.mon, c.year, 0, 0, 0);
+        std::tm parsed = calendar_time(c.year, c.mon, c.mday, 9, 8, c.sec, 0, 0, 0);
         istream iss{mem_device{std::string("09")}, locale<char>("C")};
         iss >> get_time(&parsed, "%H");
         EXPECT_FALSE(iss.str_fail());
@@ -331,7 +330,7 @@ TEST(IoBaseManipTime, OutOfRangeFieldsAreNormalisedWithoutConsultingTheTimezone)
 
     // A year far outside what std::chrono::year can hold is clamped instead of wrapping.
     {
-        std::tm parsed = test_tm(7, 8, 9, 17, 4, 100000, 0, 0, 0);
+        std::tm parsed = calendar_time(100000, 4, 17, 9, 8, 7, 0, 0, 0);
         istream iss{mem_device{std::string("09")}, locale<char>("C")};
         iss >> get_time(&parsed, "%H");
         EXPECT_FALSE(iss.str_fail());
@@ -352,7 +351,7 @@ TEST(IoBaseManipTime, OutOfRangeFieldsAreNormalisedWithoutConsultingTheTimezone)
 
     for (const auto& c : yields)
     {
-        std::tm parsed = test_tm(7, 8, 9, c.mday, c.mon, c.year, 0, 0, 0);
+        std::tm parsed = calendar_time(c.year, c.mon, c.mday, 9, 8, 7, 0, 0, 0);
         istream iss{mem_device{std::string(c.in)}, locale<char>("C")};
         iss >> get_time(&parsed, c.fmt);
         EXPECT_FALSE(iss.str_fail());
@@ -364,7 +363,7 @@ TEST(IoBaseManipTime, OutOfRangeFieldsAreNormalisedWithoutConsultingTheTimezone)
     // A day that really was parsed does not give way: February 31 is reported as a failed
     // extraction and the target is left untouched.
     {
-        std::tm parsed = test_tm(7, 8, 9, 15, 1, 120, 0, 0, 0);
+        std::tm parsed = calendar_time(120, 1, 15, 9, 8, 7, 0, 0, 0);
         istream iss{mem_device{std::string("31")}, locale<char>("C")};
         iss >> get_time(&parsed, "%d");
         EXPECT_TRUE(iss.str_fail());
@@ -380,7 +379,7 @@ TEST(IoBaseManipTime, ExtractingATmDirectlyGetsTheSameTreatment)
     // %z and (%Z) where the platform's tm carries tm_gmtoff and tm_zone, so the input
     // carries an offset and a zone token too.
     {
-        std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);
+        std::tm parsed = calendar_time(120, 4, 17, 9, 8, 7, 0, 0, 1);
 #ifdef __USE_MISC
         istream iss{mem_device{std::string("Tue Feb  6 07:08:09 2018 +0530 (IST)")},
                           locale<char>("C")};
@@ -441,7 +440,7 @@ TEST(IoBaseManipTime, AnOutOfRangeTimeFieldCarriesIntoTheDate)
 
     for (const auto& c : carry)
     {
-        std::tm parsed = test_tm(c.sec, c.min, c.hour, 1, 0, 121, 0, 0, 0);
+        std::tm parsed = calendar_time(121, 0, 1, c.hour, c.min, c.sec, 0, 0, 0);
         istream iss{mem_device{std::string("|")}, locale<char>("C")};
         iss >> get_time(&parsed, "|");
         EXPECT_FALSE(iss.str_fail());
@@ -457,7 +456,7 @@ TEST(IoBaseManipTime, AnOutOfRangeTimeFieldCarriesIntoTheDate)
     // applied one after the other: mday 0 (the last day of December) plus 24 hours lands back
     // on January 1.
     {
-        std::tm parsed = test_tm(0, 0, 24, 0, 0, 121, 0, 0, 0);
+        std::tm parsed = calendar_time(121, 0, 0, 24, 0, 0, 0, 0, 0);
         istream iss{mem_device{std::string("|")}, locale<char>("C")};
         iss >> get_time(&parsed, "|");
         EXPECT_FALSE(iss.str_fail());
@@ -472,7 +471,7 @@ TEST(IoBaseManipTime, AnOutOfRangeTimeFieldCarriesIntoTheDate)
     // A leap second is still the one truncation in the time group: 60 becomes 59 and carries
     // nothing, so 23:59:60 stays on its own day.
     {
-        std::tm parsed = test_tm(60, 59, 23, 1, 0, 121, 0, 0, 0);
+        std::tm parsed = calendar_time(121, 0, 1, 23, 59, 60, 0, 0, 0);
         istream iss{mem_device{std::string("|")}, locale<char>("C")};
         iss >> get_time(&parsed, "|");
         EXPECT_FALSE(iss.str_fail());
@@ -487,7 +486,7 @@ TEST(IoBaseManipTime, AnOutOfRangeTimeFieldCarriesIntoTheDate)
     // Parsed fields still win over the fallback: the carry only decides what the format string
     // leaves alone. Here the day has already moved to the 2nd when %H overwrites the hour.
     {
-        std::tm parsed = test_tm(0, 0, 24, 1, 0, 121, 0, 0, 0);
+        std::tm parsed = calendar_time(121, 0, 1, 24, 0, 0, 0, 0, 0);
         istream iss{mem_device{std::string("07")}, locale<char>("C")};
         iss >> get_time(&parsed, "%H");
         EXPECT_FALSE(iss.str_fail());
@@ -527,7 +526,7 @@ TEST(IoBaseManipTime, AWeekdayIsResolvedAgainstTheFallbackDate)
 
     for (const auto& c : wd)
     {
-        std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 0);    // 2020-05-17 09:08:07
+        std::tm parsed = calendar_time(120, 4, 17, 9, 8, 7, 0, 0, 0);    // 2020-05-17 09:08:07
         istream iss{mem_device{std::string(c.input)}, locale<char>("C")};
         iss >> get_time(&parsed, c.fmt);
         EXPECT_FALSE(iss.str_fail());
@@ -554,7 +553,7 @@ TEST(IoBaseManipTime, AWeekdayIsResolvedAgainstTheFallbackDate)
 
     for (const auto& c : iso)
     {
-        std::tm parsed = test_tm(0, 0, 0, 17, 4, 120, 0, 0, 0);
+        std::tm parsed = calendar_time(120, 4, 17, 0, 0, 0, 0, 0, 0);
         istream iss{mem_device{std::string(c.input)}, locale<char>("C")};
         iss >> get_time(&parsed, c.fmt);
         EXPECT_FALSE(iss.str_fail());
@@ -567,7 +566,7 @@ TEST(IoBaseManipTime, AWeekdayIsResolvedAgainstTheFallbackDate)
     // fallback, so January 31 plus %m=02 lands on the last day of February rather than
     // reaching year_month_day as a nonexistent February 31.
     {
-        std::tm parsed = test_tm(0, 0, 0, 31, 0, 120, 0, 0, 0);    // 2020-01-31, a leap year
+        std::tm parsed = calendar_time(120, 0, 31, 0, 0, 0, 0, 0, 0);    // 2020-01-31, a leap year
         istream iss{mem_device{std::string("02 Sun")}, locale<char>("C")};
         iss >> get_time(&parsed, "%m %a");
         EXPECT_FALSE(iss.str_fail());
@@ -576,7 +575,7 @@ TEST(IoBaseManipTime, AWeekdayIsResolvedAgainstTheFallbackDate)
         EXPECT_EQ(parsed.tm_mday, 29);
     }
     {
-        std::tm parsed = test_tm(0, 0, 0, 31, 0, 121, 0, 0, 0);    // 2021-01-31, not a leap year
+        std::tm parsed = calendar_time(121, 0, 31, 0, 0, 0, 0, 0, 0);    // 2021-01-31, not a leap year
         istream iss{mem_device{std::string("02 Sun")}, locale<char>("C")};
         iss >> get_time(&parsed, "%m %a");
         EXPECT_FALSE(iss.str_fail());
@@ -589,7 +588,7 @@ TEST(IoBaseManipTime, AWeekdayIsResolvedAgainstTheFallbackDate)
 TEST(IoBaseManipTime, TheFallbacksAreIndependentOfTheCharacterType)
 {
     // The fallbacks are independent of the character type.
-    std::tm parsed = test_tm(7, 8, 9, 17, 4, 120, 0, 0, 1);        // 2020-05-17 09:08:07
+    std::tm parsed = calendar_time(120, 4, 17, 9, 8, 7, 0, 0, 1);        // 2020-05-17 09:08:07
     istream iss{mem_device{std::wstring(L"23:45")}, locale<wchar_t>("C")};
     iss >> get_time(&parsed, L"%H:%M");
     EXPECT_FALSE(iss.str_fail());

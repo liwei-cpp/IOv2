@@ -264,7 +264,7 @@ TEST(MonetaryWchar, TheAmountIsCutFracDigitsPlacesFromTheRight)
     ios_base<wchar_t>       ios;
     const monetary<wchar_t> obj(tuned()->fraction(2).both(kSymbolSignValue).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, L"827364"), L"8273.64");
     EXPECT_EQ(put_str(obj, false, ios, L"1"), L".01");
     EXPECT_EQ(put_str(obj, false, ios, L"12"), L".12");
     EXPECT_EQ(put_str(obj, false, ios, L"123"), L"1.23");
@@ -333,13 +333,13 @@ TEST(MonetaryWchar, AnEmptyGroupingInsertsNothing)
 TEST(MonetaryWchar, TheSymbolIsWrittenOnlyWithShowbase)
 {
     ios_base<wchar_t>       ios;
-    const monetary<wchar_t> obj(tuned()->fraction(2).symbol(L"$").both(kSymbolSignValue).ptr());
+    const monetary<wchar_t> obj(tuned()->fraction(3).symbol(L"@").both(kSymbolSignValue).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, L"482715"), L"482.715");
     ios.setf(ios_defs::showbase);
-    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"$1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, L"482715"), L"@482.715");
     ios.unsetf(ios_defs::showbase);
-    EXPECT_EQ(put_str(obj, false, ios, L"123456"), L"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, L"482715"), L"482.715");
 }
 
 TEST(MonetaryWchar, ThePatternDecidesTheOrderOfTheParts)
@@ -374,7 +374,7 @@ TEST(MonetaryWchar, AMultiCharacterSignWrapsTheField)
                                     .minus(L"()")
                                     .negative({part::symbol, part::space, part::sign, part::value}).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, L"-123456"), L"$ (1,234.56)");
+    EXPECT_EQ(put_str(obj, false, ios, L"-827364"), L"$ (8,273.64)");
 }
 
 TEST(MonetaryWchar, TheSignOfTheAmountChoosesThePattern)
@@ -476,7 +476,7 @@ TEST(MonetaryWchar, AnIntegralValueFormatsLikeItsDigitString)
                   put_str(obj, false, ios, v));
     };
 
-    for (int v : {0, 11, 1943, -1, -123456})
+    for (int v : {0, 7, 2607, -3, -654321})
     {
         agrees(static_cast<short>(v));
         agrees(static_cast<int>(v));
@@ -495,11 +495,11 @@ TEST(MonetaryWchar, PutReturnsThePositionAfterTheField)
     ios_base<wchar_t>       ios;
     const monetary<wchar_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
 
-    std::wstring buffer(17, L'x');
-    auto         it = obj.put(buffer.begin(), false, ios, std::wstring(L"1943"));
+    std::wstring buffer(13, L'^');
+    auto         it = obj.put(buffer.begin() + 2, false, ios, std::wstring(L"2607"));
 
-    EXPECT_EQ(std::wstring(buffer.begin(), it), L"1943");
-    EXPECT_EQ(buffer, L"1943xxxxxxxxxxxxx");
+    EXPECT_EQ(it, buffer.begin() + 6);
+    EXPECT_EQ(buffer, L"^^2607^^^^^^^");
 }
 
 // Everything above reads the field back through the same facet that wrote it.
@@ -508,7 +508,7 @@ TEST(MonetaryWchar, PutReturnsThePositionAfterTheField)
 TEST(MonetaryWchar, WhatPutWritesGetReadsBack)
 {
     const std::vector<uint8_t> groupings[] = {{}, {3}, {1}, {3, 2}};
-    const std::wstring         amounts[]   = {L"0", L"1", L"12", L"123456", L"-1", L"-123456",
+    const std::wstring         amounts[]   = {L"0", L"1", L"12", L"827364", L"-1", L"-827364",
                                               L"98765432109", L"-98765432109"};
 
 
@@ -552,7 +552,7 @@ TEST(MonetaryWchar, ASeparatorEndsTheAmountWhenThereIsNoGrouping)
     ios_base<wchar_t>       ios;
     const monetary<wchar_t> obj(tuned()->fraction(0).groups({}).separator(L',')
                                     .both(kSymbolSignValue).ptr());
-    expect_parses(obj, false, ios, L"123,456", L"123", L",456");
+    expect_parses(obj, false, ios, L"742,908", L"742", L",908");
 }
 
 // Likewise the decimal point, when the locale has no fractional digits to put
@@ -561,7 +561,7 @@ TEST(MonetaryWchar, ADecimalPointEndsTheAmountWhenThereIsNoFraction)
 {
     ios_base<wchar_t>       ios;
     const monetary<wchar_t> obj(tuned()->fraction(0).point(L'.').both(kSymbolSignValue).ptr());
-    expect_parses(obj, false, ios, L"123.455", L"123", L".455");
+    expect_parses(obj, false, ios, L"742.908", L"742", L".908");
 }
 
 TEST(MonetaryWchar, AnEmptySequenceIsNotAnAmount)
@@ -584,22 +584,22 @@ TEST(MonetaryWchar, TextThatIsNotAnAmountIsRejected)
 TEST(MonetaryWchar, TheFractionMustHaveExactlyFracDigitsPlaces)
 {
     ios_base<wchar_t>       ios;
-    const monetary<wchar_t> obj(tuned()->fraction(3).point(L'.').both(kSymbolSignValue).ptr());
+    const monetary<wchar_t> obj(tuned()->fraction(4).point(L'.').both(kSymbolSignValue).ptr());
 
-    expect_parses(obj, false, ios, L"12.345", L"12345");
-    expect_rejects(obj, false, ios, L"12.3456");
-    expect_rejects(obj, false, ios, L"12.34");
-    expect_rejects(obj, false, ios, L"12.");
+    expect_parses(obj, false, ios, L"73.5926", L"735926");
+    expect_rejects(obj, false, ios, L"73.59261");
+    expect_rejects(obj, false, ios, L"73.592");
+    expect_rejects(obj, false, ios, L"73.");
 
     // No decimal point at all is not a short fraction: it is an amount with none.
-    expect_parses(obj, false, ios, L"12", L"12");
+    expect_parses(obj, false, ios, L"73", L"73");
 }
 
 TEST(MonetaryWchar, ASecondDecimalPointIsNotPartOfTheAmount)
 {
     ios_base<wchar_t>       ios;
-    const monetary<wchar_t> obj(tuned()->fraction(2).point(L'.').both(kSymbolSignValue).ptr());
-    expect_rejects(obj, false, ios, L"30..0");
+    const monetary<wchar_t> obj(tuned()->fraction(2).point(L':').both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, L"47::2");
 }
 
 // The separators have to fall where this locale's grouping puts them.  A field
@@ -607,12 +607,12 @@ TEST(MonetaryWchar, ASecondDecimalPointIsNotPartOfTheAmount)
 TEST(MonetaryWchar, TheSeparatorsMustFollowTheGrouping)
 {
     ios_base<wchar_t>       ios;
-    const monetary<wchar_t> obj(tuned()->fraction(0).groups({1}).separator(L'#')
+    const monetary<wchar_t> obj(tuned()->fraction(0).groups({2}).separator(L'#')
                                     .both(kSymbolSignValue).ptr());
 
-    expect_parses(obj, false, ios, L"1#2#3", L"123");
-    expect_rejects(obj, false, ios, L"00#0#1");
-    expect_rejects(obj, false, ios, L"000##1");
+    expect_parses(obj, false, ios, L"7#06#45", L"70645");
+    expect_rejects(obj, false, ios, L"007#06#45");
+    expect_rejects(obj, false, ios, L"7#06##45");
 }
 
 // A locale that spells a positive sign but no negative one leaves the absence of
@@ -672,12 +672,12 @@ TEST(MonetaryWchar, ASymbolWithoutDigitsIsNotAnAmount)
 // places behind the point are all there.
 TEST(MonetaryWchar, AnAmountMayBeAllFraction)
 {
-    const monetary<wchar_t> obj(tuned()->fraction(2).point(L'.').symbol(L"$").minus(L"-")
+    const monetary<wchar_t> obj(tuned()->fraction(3).point(L'.').symbol(L"@").minus(L"-")
                                     .both(kSymbolSignValue).ptr());
 
     ios_base<wchar_t> ios;
-    expect_parses(obj, false, ios, L"$.00 ", L"0", L" ");
-    expect_parses(obj, false, ios, L"$-.01 ", L"-1", L" ");
+    expect_parses(obj, false, ios, L"@.000 ", L"0", L" ");
+    expect_parses(obj, false, ios, L"@-.042 ", L"-42", L" ");
 }
 
 TEST(MonetaryWchar, AnAmountTooLargeForTheTargetTypeIsRejected)
@@ -834,10 +834,10 @@ TEST(MonetaryWchar, ASignPositionOfZeroMeansParentheses)
     EXPECT_EQ(obj.negative_sign_int(), L"()");
 
     ios_base<wchar_t>  ios;
-    const std::wstring field = put_str(obj, false, ios, L"-123456");
+    const std::wstring field = put_str(obj, false, ios, L"-827364");
     EXPECT_EQ(field.front(), L'(');
     EXPECT_EQ(field.back(), L')');
-    expect_parses(obj, false, ios, field, L"-123456");
+    expect_parses(obj, false, ios, field, L"-827364");
 }
 
 // A `space` slot writes the stream's fill character, not a literal space, and
@@ -905,7 +905,7 @@ TEST(MonetaryWchar, TheInternationalFormRoundTripsAsWell)
                                     .symbol(L"$").plus(L"").minus(L"-")
                                     .both(kSymbolSignValue).ptr());
 
-    const std::wstring amounts[] = {L"0", L"123456", L"-123456", L"-1"};
+    const std::wstring amounts[] = {L"0", L"827364", L"-827364", L"-1"};
 
     for (bool intl : {false, true})
         for (const std::wstring& amount : amounts)

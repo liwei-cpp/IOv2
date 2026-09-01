@@ -22,7 +22,11 @@
 
 namespace
 {
-    struct foobar: std::exception { };
+    class insertion_failure final : public std::runtime_error
+    {
+    public:
+        insertion_failure() : std::runtime_error("injected wide inserter failure") { }
+    };
     struct dummy_type {};
 }
 
@@ -35,7 +39,7 @@ namespace IOv2
             requires (std::is_same_v<TChar, typename TIter::value_type>)
         static TIter swrite(TIter, ios_base<TChar>&, const locale<TChar>&, dummy_type)
         {
-            throw foobar();
+            throw insertion_failure();
         }
     };
 }
@@ -47,7 +51,7 @@ TEST(OstreamExceptionsWchar, AMaskedInserterFailureReachesTheCallerAndFailsTheSt
         T os(IOv2::mem_device{L""});
         os.exceptions(IOv2::ios_defs::otherfailbit);
 
-        EXPECT_THROW(os << dummy_type{}, foobar);
+        EXPECT_THROW(os << dummy_type{}, insertion_failure);
         EXPECT_FALSE(static_cast<bool>(os));
     };
 
@@ -115,10 +119,10 @@ TEST(OstreamExceptionsWchar, AnUnmaskedFlushFailureOnlySetsDevfailbit)
     helper.operator()<IOv2::iostream>();
 }
 
-// unwinding branch: the operation body itself throws (swrite throws foobar) while
+// unwinding branch: the operation body itself throws while
 // unitbuf is set, so the out_sentry destructor runs during stack unwinding and the
 // device flush also fails. The destructor must swallow that failure and never throw
-// during unwinding (no std::terminate). operator<< then catches swrite's foobar
+// during unwinding (no std::terminate). operator<< then catches that failure
 // and, with otherfailbit unmasked, only sets state, so control returns normally;
 // reaching the assertion proves there was no terminate and the stream failed.
 TEST(OstreamExceptionsWchar, TheSentryDestructorSwallowsAFlushFailureWhileUnwinding)

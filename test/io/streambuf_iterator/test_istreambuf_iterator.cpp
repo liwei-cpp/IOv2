@@ -124,44 +124,28 @@ TEST(IstreambufIterator, PostAndPreIncrementDifferInWhichCharacterTheyYield)
     helper(isb);
 }
 
-// However the walk is spelled -- all postfix, all prefix, or alternating -- the
-// sequence of characters is the same one.
-TEST(IstreambufIterator, TheSpellingOfTheIncrementDoesNotChangeTheSequence)
+// Prefix and postfix increments may be interleaved in one pass.  Varying the
+// choice as the input advances also crosses a refill without constructing three
+// identical traversals whose agreement could hide a shared mistake.
+TEST(IstreambufIterator, MixedIncrementFormsPreserveOneContinuousSequence)
 {
-    streambuf original(mem_device{kText});
+    streambuf sb(mem_device{kText});
+    auto      it = istreambuf_iterator(sb);
+    decltype(it) end;
+    std::string observed;
 
-    std::string postfix;
+    for (std::size_t position = 0; it != end; ++position)
     {
-        streambuf sb(original);
-        auto      it = istreambuf_iterator(sb);
-        for (std::size_t i = 0; i < kText.size(); ++i, it++)
-            postfix += *it;
-    }
-
-    std::string prefix;
-    {
-        streambuf sb(original);
-        auto      it = istreambuf_iterator(sb);
-        for (std::size_t i = 0; i < kText.size(); ++i, ++it)
-            prefix += *it;
-    }
-
-    std::string mixed;
-    {
-        streambuf sb(original);
-        auto      it = istreambuf_iterator(sb);
-        for (std::size_t i = 0; i < kText.size() / 2; ++i)
-        {
-            mixed += *it;
-            ++it;
-            mixed += *it;
+        observed.push_back(*it);
+        if (position % 3 == 1)
             it++;
-        }
+        else
+            ++it;
     }
 
-    EXPECT_EQ(postfix, kText);
-    EXPECT_EQ(prefix, postfix);
-    EXPECT_EQ(mixed, prefix.substr(0, mixed.size()));
+    EXPECT_EQ(observed.size(), kText.size());
+    EXPECT_EQ(observed, kText);
+    EXPECT_EQ(it, end);
 }
 
 TEST(IstreambufIterator, TheDefaultSentinelIsUsableAsTheEnd)

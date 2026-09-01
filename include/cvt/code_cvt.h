@@ -663,7 +663,9 @@ struct codecvt_kernel<char8_t, TInt>
                 auto c2 = static_cast<uint32_t>(from[1]);
                 if ((c2 & 0xC0U) != 0x80U) [[unlikely]]
                     return std::pair{false, static_cast<std::size_t>(to - ori_to)};
-                auto c = (c1 << 6) + c2 - 0x3080U;
+                const auto encoded = c2 + (c1 << 6);
+                constexpr auto prefix_bias = (0xC0U << 6) + 0x80U;
+                const auto c = encoded - prefix_bias;
                 if (c < 0x80U) return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 *to++ = c;
                 from += 2;
@@ -675,7 +677,9 @@ struct codecvt_kernel<char8_t, TInt>
                 auto c3 = static_cast<uint32_t>(from[2]);
                 if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U)) [[unlikely]]
                     return std::pair{false, static_cast<std::size_t>(to - ori_to)};
-                auto c = (c1 << 12) + (c2 << 6) + c3 - 0xE2080U;
+                const auto encoded = c3 + (c2 << 6) + (c1 << 12);
+                constexpr auto prefix_bias = (0xE0U << 12) + (0x80U << 6) + 0x80U;
+                const auto c = encoded - prefix_bias;
                 if (c < 0x800U) return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 if (c >= 0xD800U && c <= 0xDFFFU) [[unlikely]]
                     return std::pair{false, static_cast<std::size_t>(to - ori_to)};
@@ -690,7 +694,10 @@ struct codecvt_kernel<char8_t, TInt>
                 auto c4 = static_cast<uint32_t>(from[3]);
                 if (((c2 & 0xC0U) != 0x80U) || ((c3 & 0xC0U) != 0x80U) || ((c4 & 0xC0U) != 0x80U)) [[unlikely]]
                     return std::pair{false, static_cast<std::size_t>(to - ori_to)};
-                auto c = (c1 << 18) + (c2 << 12) + (c3 << 6) + c4 - 0x3C82080U;
+                const auto encoded = c4 + (c3 << 6) + (c2 << 12) + (c1 << 18);
+                constexpr auto prefix_bias =
+                    (0xF0U << 18) + (0x80U << 12) + (0x80U << 6) + 0x80U;
+                const auto c = encoded - prefix_bias;
                 if (c < 0x10000U || c > 0x10FFFFU) return std::pair{false, static_cast<std::size_t>(to - ori_to)};
                 *to++ = c;
                 from += 4;

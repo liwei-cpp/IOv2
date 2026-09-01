@@ -122,27 +122,31 @@ TEST(IstreamExtractCharacterChar, TheArrayBoundLimitsTheExtractionOnItsOwn)
 {
     auto expect_bounded = []<template <typename, typename> class T>()
     {
-        T is(mem_device{std::string("abcdefghi jk l")});
+        T is(mem_device{std::string("orchard planet ox")});
 
-        char three[3];
-        is >> three;                        // two characters and the terminator
-        EXPECT_STREQ(three, "ab");
+        char first[4];
+        is >> first;                        // three characters and the terminator
+        EXPECT_STREQ(first, "orc");
         EXPECT_TRUE(is.good());
 
         // The rest of the token is still there, so a bounded read truncates
         // rather than discards.
-        char four[4];
-        is >> four;
-        EXPECT_STREQ(four, "cde");
+        char second[3];
+        is >> second;
+        EXPECT_STREQ(second, "ha");
 
         // A token shorter than the bound simply ends early.
-        char big[16];
-        is >> big;
-        EXPECT_STREQ(big, "fghi");
+        char remainder[16];
+        is >> remainder;
+        EXPECT_STREQ(remainder, "rd");
 
-        three[2] = '#';
-        is >> three;
-        EXPECT_STREQ(three, "jk");
+        char whole[16];
+        is >> whole;
+        EXPECT_STREQ(whole, "planet");
+
+        char tiny[3];
+        is >> tiny;
+        EXPECT_STREQ(tiny, "ox");
         EXPECT_TRUE(is.good());
     };
 
@@ -158,16 +162,16 @@ TEST(IstreamExtractCharacterChar, TheFieldWidthLimitsTheExtractionAndIsSpentByIt
     auto expect_width = []<template <typename, typename> class T>()
     {
         {
-            T is(mem_device{std::string("abcdefghij")});
+            T is(mem_device{std::string("watermelon")});
 
             char buf[16];
             is >> setw(4) >> buf;           // three characters and the terminator
-            EXPECT_STREQ(buf, "abc");
+            EXPECT_STREQ(buf, "wat");
             EXPECT_EQ(is.width(), 0);
 
             // Spent, so the next one is bounded only by the array.
             is >> buf;
-            EXPECT_STREQ(buf, "defghij");
+            EXPECT_STREQ(buf, "ermelon");
         }
         {
             // Whichever of the two limits is smaller decides.
@@ -185,11 +189,11 @@ TEST(IstreamExtractCharacterChar, TheFieldWidthLimitsTheExtractionAndIsSpentByIt
         {
             // A string destination needs no terminator, so the width buys a
             // character more there than it does into an array of the same size.
-            T is(mem_device{std::string("abcdefghij")});
+            T is(mem_device{std::string("watermelon")});
 
             std::string s;
             is >> setw(4) >> s;
-            EXPECT_EQ(s, "abcd");
+            EXPECT_EQ(s, "wate");
             EXPECT_EQ(is.width(), 0);
         }
     };

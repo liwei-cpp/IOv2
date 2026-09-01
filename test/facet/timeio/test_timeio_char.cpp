@@ -69,21 +69,40 @@ namespace
         }
     }
 
-    std::tm test_tm(int sec, int min, int hour, int mday, int mon, int year,
-                    int wday, int yday, int isdst)
+    std::tm calendar_time(int year, int month, int day, int hour, int minute, int second,
+                          int weekday, int yearday, int daylight)
     {
         std::tm tmp{};
-        tmp.tm_sec   = sec;
-        tmp.tm_min   = min;
-        tmp.tm_hour  = hour;
-        tmp.tm_mday  = mday;
-        tmp.tm_mon   = mon;
         tmp.tm_year  = year;
-        tmp.tm_wday  = wday;
-        tmp.tm_yday  = yday;
-        tmp.tm_isdst = isdst;
+        tmp.tm_mon   = month;
+        tmp.tm_mday  = day;
+        tmp.tm_hour  = hour;
+        tmp.tm_min   = minute;
+        tmp.tm_sec   = second;
+        tmp.tm_wday  = weekday;
+        tmp.tm_yday  = yearday;
+        tmp.tm_isdst = daylight;
         return tmp;
     }
+
+    template <typename TChar>
+    class expanded_composite_conf final : public timeio_conf<TChar>
+    {
+    public:
+        expanded_composite_conf()
+            : timeio_conf<TChar>("C")
+            , m_format(140, static_cast<TChar>('q'))
+        {
+            for (char c : std::string_view{"-%Y-%m-%d-%T-"})
+                m_format.push_back(static_cast<TChar>(c));
+            m_format.append(20, static_cast<TChar>('z'));
+        }
+
+        const std::basic_string<TChar>& date_time_format() const override { return m_format; }
+
+    private:
+        std::basic_string<TChar> m_format;
+    };
 
     auto create_zoned_time(int y, unsigned m, unsigned d, int h, int min, int s,
                            const std::string& tz)
@@ -808,7 +827,7 @@ TEST(TimeioChar, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
 TEST(TimeioChar, ABrokenDownTimeWritesEveryConversionSpecifier)
 {
     const timeio<char> obj = facet_for("ja_JP.UTF-8");
-    const std::tm      tp  = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 0, 0, 0);
+    const std::tm      tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
     static const conversion kConversions[] = {
         {'%', 0, "%"},
@@ -1010,12 +1029,12 @@ namespace
 }
 
 // %Z is the one specifier a std::tm answers from a field rather than from the
-// calendar, and the field may be empty two different ways.  test_tm leaves
+// calendar, and the field may be empty two different ways.  calendar_time leaves
 // tm_zone null; a caller can just as well set it to "".  Neither names a zone.
 TEST(TimeioChar, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
 {
     const timeio<char> obj = facet_for("ja_JP.UTF-8");
-    const std::tm      tp  = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 0, 0, 0);
+    const std::tm      tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
     EXPECT_EQ(put_one(obj, tp, 'Z'), "UNKNOWN");
     EXPECT_EQ(put_one(obj, tp, 'z'), "+0000");
@@ -1038,7 +1057,7 @@ TEST(TimeioChar, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
 // next release that revises it.
 TEST(TimeioChar, TheLocaleDecidesItsWordsAndLayouts)
 {
-    const std::tm broken = test_tm(0, 0, 12, 4, 4 - 1, 1971 - 1900, 0, 93, 0);
+    const std::tm broken = calendar_time(1971 - 1900, 4 - 1, 4, 12, 0, 0, 0, 93, 0);
 
     for (const char* loc : {"C", "de_DE.UTF-8", "en_HK.UTF-8", "es_ES.UTF-8", "fr_FR.UTF-8"})
     {
@@ -1229,24 +1248,24 @@ TEST(TimeioChar, TheTwelveHourClockNeedsItsMeridiem)
     EXPECT_EQ(morning.tm_hour, 7);
 }
 
-// %c under a locale this file does not otherwise touch, against strftime.
-// ta_IN is the interesting one: its %c is long enough to have been truncated
-// by a fixed-size buffer somewhere along the way.
-TEST(TimeioChar, TheCompositeFormatsMatchTheCLibrary)
+// A composite is a format indirection, not a fixed-size C buffer.  Supplying a
+// deliberately long format makes that observable without depending on one
+// platform locale continuing to have a particular spelling.
+TEST(TimeioChar, ACompositeFormatCanExpandPastAConventionalStackBuffer)
 {
-    timeio obj(std::make_shared<timeio_conf<char>>("ta_IN.UTF-8"));
-    const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
-    auto zt = create_zoned_time(1971, 4, 4, 12, 0, 0, "America/Los_Angeles");
+    std::shared_ptr<timeio_conf<char>> conf = std::make_shared<expanded_composite_conf<char>>();
+    timeio                            obj(conf);
+    auto zt = create_zoned_time(2022, 11, 17, 21, 47, 26, "America/Los_Angeles");
 
-    std::string res;
-    obj.put(std::back_inserter(res), zt, 'c');
+    std::string actual;
+    obj.put(std::back_inserter(actual), zt, 'c');
 
-    char time_buffer[128];
-    setlocale(LC_ALL, "ta_IN");
-    std::strftime(time_buffer, 128, "%c", &time1);
-    setlocale(LC_ALL, "C");
+    std::string expected(140, 'q');
+    expected += "-2022-11-17-21:47:26-";
+    expected.append(20, 'z');
 
-    EXPECT_EQ(time_buffer, res);
+    EXPECT_GT(actual.size(), 128u);
+    EXPECT_EQ(actual, expected);
 }
 
 TEST(TimeioChar, TheCLocaleReadsEveryConversionSpecifier)
@@ -2295,92 +2314,40 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
         EXPECT_THROW(obj.get(input.begin(), input.end(), ctx, format), stream_error);
     }
 
+    struct clock_case { const char* input; int hour; int minute; };
+    for (const clock_case tc : {
+             clock_case{"12:11AM", 0, 11},
+             clock_case{"03:14AM", 3, 14},
+             clock_case{"09:27AM", 9, 27},
+             clock_case{"12:29PM", 12, 29},
+             clock_case{"02:38PM", 14, 38},
+             clock_case{"09:52PM", 21, 52},
+         })
     {
-        std::string input = "12:00AM";
-        std::string format = "%I:%M%p";
+        SCOPED_TRACE(tc.input);
+        std::string input(tc.input);
+        time_parse_context<char> ctx;
+        const auto ret = obj.get(input.begin(), input.end(), ctx, std::string_view{"%I:%M%p"});
+        const auto time = ctx_to<std::tm>(ctx);
+        EXPECT_EQ(ret, input.end());
+        EXPECT_EQ(time.tm_hour, tc.hour);
+        EXPECT_EQ(time.tm_min, tc.minute);
+    }
+
+    {
+        std::string input = "08%46";
+        std::string format = "%H%%%S";
 
         time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         EXPECT_EQ(ret, input.end());
         auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 0);
-        EXPECT_EQ(time.tm_min, 0);
+        EXPECT_EQ(time.tm_hour, 8);
+        EXPECT_EQ(time.tm_sec, 46);
     }
 
     {
-        std::string input = "12:37AM";
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 0);
-        EXPECT_EQ(time.tm_min, 37);
-    }
-
-    {
-        std::string input = "01:25AM";
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 1);
-        EXPECT_EQ(time.tm_min, 25);
-    }
-
-    {
-        std::string input = "12:00PM";
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 12);
-        EXPECT_EQ(time.tm_min, 0);
-    }
-
-    {
-        std::string input = "12:42PM";
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 12);
-        EXPECT_EQ(time.tm_min, 42);
-    }
-
-    {
-        std::string input = "07:23PM";
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 19);
-        EXPECT_EQ(time.tm_min, 23);
-    }
-
-    {
-        std::string input = "17%20";
-        std::string format = "%H%%%M";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 17);
-        EXPECT_EQ(time.tm_min, 20);
-    }
-
-    {
-        std::string input = "24:30";
+        std::string input = "29:14";
         std::string format = "%H:%M";
 
         time_parse_context<char> ctx;
@@ -2388,14 +2355,14 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
     }
 
     {
-        std::string input = "Decembur";
-        std::string format = "%bembur";
+        std::string input = "Oct+tail";
+        std::string format = "%b+tail";
 
         time_parse_context<char> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         EXPECT_EQ(ret, input.end());
         auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_mon, 11);
+        EXPECT_EQ(time.tm_mon, 9);
     }
 }
 
@@ -2656,118 +2623,62 @@ TEST(TimeioChar, AWeekdayOrMonthNameIsMatchedTheSameWayFromAStream)
         EXPECT_THROW(obj.get(beg, std::default_sentinel, ctx, format), stream_error);
     }
 
+    struct clock_case { const char* input; int hour; int minute; };
+    for (const clock_case tc : {
+             clock_case{"12:11AM", 0, 11},
+             clock_case{"03:14AM", 3, 14},
+             clock_case{"09:27AM", 9, 27},
+             clock_case{"12:29PM", 12, 29},
+             clock_case{"02:38PM", 14, 38},
+             clock_case{"09:52PM", 21, 52},
+         })
     {
-        streambuf sb(mem_device{"12:00AM"});
+        SCOPED_TRACE(tc.input);
+        streambuf sb(mem_device{tc.input});
         auto beg = istreambuf_iterator(sb);
-        std::string format = "%I:%M%p";
+        time_parse_context<char> ctx;
+        const auto ret = obj.get(beg, std::default_sentinel, ctx,
+                                 std::string_view{"%I:%M%p"});
+        const auto time = ctx_to<std::tm>(ctx);
+        EXPECT_EQ(ret, std::default_sentinel);
+        EXPECT_EQ(time.tm_hour, tc.hour);
+        EXPECT_EQ(time.tm_min, tc.minute);
+    }
+
+    {
+        streambuf sb(mem_device{"08%46"});
+        auto beg = istreambuf_iterator(sb);
+        std::string format = "%H%%%S";
 
         time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         EXPECT_EQ(ret, std::default_sentinel);
         auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 0);
-        EXPECT_EQ(time.tm_min, 0);
+        EXPECT_EQ(time.tm_hour, 8);
+        EXPECT_EQ(time.tm_sec, 46);
     }
 
     {
-        streambuf sb(mem_device{"12:37AM"});
-        auto beg = istreambuf_iterator(sb);
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        EXPECT_EQ(ret, std::default_sentinel);
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 0);
-        EXPECT_EQ(time.tm_min, 37);
-    }
-
-    {
-        streambuf sb(mem_device{"01:25AM"});
-        auto beg = istreambuf_iterator(sb);
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        EXPECT_EQ(ret, std::default_sentinel);
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 1);
-        EXPECT_EQ(time.tm_min, 25);
-    }
-
-    {
-        streambuf sb(mem_device{"12:00PM"});
-        auto beg = istreambuf_iterator(sb);
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        EXPECT_EQ(ret, std::default_sentinel);
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 12);
-        EXPECT_EQ(time.tm_min, 0);
-    }
-
-    {
-        streambuf sb(mem_device{"12:42PM"});
-        auto beg = istreambuf_iterator(sb);
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        EXPECT_EQ(ret, std::default_sentinel);
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 12);
-        EXPECT_EQ(time.tm_min, 42);
-    }
-
-    {
-        streambuf sb(mem_device{"07:23PM"});
-        auto beg = istreambuf_iterator(sb);
-        std::string format = "%I:%M%p";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        EXPECT_EQ(ret, std::default_sentinel);
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 19);
-        EXPECT_EQ(time.tm_min, 23);
-    }
-
-    {
-        streambuf sb(mem_device{"17%20"});
-        auto beg = istreambuf_iterator(sb);
-        std::string format = "%H%%%M";
-
-        time_parse_context<char> ctx;
-        auto ret = obj.get(beg, std::default_sentinel, ctx, format);
-        EXPECT_EQ(ret, std::default_sentinel);
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 17);
-        EXPECT_EQ(time.tm_min, 20);
-    }
-
-    {
-        streambuf sb(mem_device{"24:30"});
+        streambuf sb(mem_device{"29:14"});
         auto beg = istreambuf_iterator(sb);
         std::string format = "%H:%M";
 
         time_parse_context<char> ctx;
         auto it = beg;
         EXPECT_THROW(it = obj.get(beg, std::default_sentinel, ctx, format), stream_error);
-        EXPECT_FALSE((it == std::default_sentinel) || (*it != '4'));
+        EXPECT_FALSE((it == std::default_sentinel) || (*it != '9'));
     }
 
     {
-        streambuf sb(mem_device{"Decembur"});
+        streambuf sb(mem_device{"Oct+tail"});
         auto beg = istreambuf_iterator(sb);
-        std::string format = "%bembur";
+        std::string format = "%b+tail";
 
         time_parse_context<char> ctx;
         auto ret = obj.get(beg, std::default_sentinel, ctx, format);
         EXPECT_EQ(ret, std::default_sentinel);
         auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_mon, 11);
+        EXPECT_EQ(time.tm_mon, 9);
     }
 }
 
@@ -4355,7 +4266,7 @@ TEST(TimeioChar, AParsedContextConvertsToEveryShapeItCanFill)
 TEST(TimeioChar, ALoneOrUnknownSpecifierIsEchoedVerbatim)
 {
     timeio obj(std::make_shared<timeio_conf<char>>("C"));
-    const std::tm t = test_tm(3, 2, 1, 15, 0, 124, 1, 14, 0);
+    const std::tm t = calendar_time(124, 0, 15, 1, 2, 3, 1, 14, 0);
 
     struct { const char* fmt; const char* want; } cases[] = {
         {"%Y%", "2024%"},   // a lone '%' after a real specifier
@@ -5299,7 +5210,7 @@ TEST(TimeioChar, AnUnknownZoneIsATokenOfItsOwn)
     // The token the put side writes when the field exists but names nothing.
     EXPECT_EQ(ft_basic<tio>::s_unknown_zone, "UNKNOWN");
 
-    std::tm tp = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 3, 247, 0);
+    std::tm tp = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 3, 247, 0);
 
     // Whatever put writes for %Z must parse back through the trie: that is the whole
     // reason the token is registered there rather than being print-only.
@@ -5465,7 +5376,7 @@ TEST(TimeioChar, AnOffsetOutsideItsRangeIsRejected)
 
     auto put_z = [&](long gmtoff)
     {
-        std::tm tp = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 3, 247, 0);
+        std::tm tp = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 3, 247, 0);
         tp.tm_gmtoff = gmtoff;
         tp.tm_zone = "CST";
         std::string res;
@@ -5533,4 +5444,3 @@ TEST(TimeioChar, AnOffsetOutsideItsRangeIsRejected)
     EXPECT_EQ(put_z_local(seconds{-2147483648LL}), "-2359");
     EXPECT_EQ(put_z_local(seconds{4294967296LL}), "+2359");
 }
-

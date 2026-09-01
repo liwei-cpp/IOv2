@@ -76,12 +76,6 @@ namespace
         std::vector<std::uint8_t> m_group;
     };
 
-    // Hexfloat output is all ASCII, so narrowing it to reach std::stod is safe.
-    std::string narrow(const std::wstring& w)
-    {
-        return std::string(w.begin(), w.end());
-    }
-
     // A user-defined operator&& yielding bool, at namespace scope because a
     // local class cannot define a friend.
     struct measurement
@@ -280,22 +274,18 @@ TEST(OstreamInsertArithmeticWchar, InternalPinsTheSignOrElseTheBaseMarker)
 {
     auto helper = []<template <typename, typename> class T>()
     {
-        {
+        auto render = [](double value, ios_defs::fmtflags adjust) {
             T os(mem_device{L""}, locale<wchar_t>("C"));
-            os << hexfloat << setw(14) << internal << setfill(L'*') << 272.0;
-            EXPECT_EQ(os.device().str(), L"0x******1.1p+8");
-        }
-        {
-            T os(mem_device{L""}, locale<wchar_t>("C"));
-            os << hexfloat << setw(14) << internal << setfill(L'*') << -272.0;
-            EXPECT_EQ(os.device().str(), L"-*****0x1.1p+8");
-        }
-        {
-            // right pins nothing, so the whole value moves to the end.
-            T os(mem_device{L""}, locale<wchar_t>("C"));
-            os << hexfloat << setw(14) << right << setfill(L'*') << 272.0;
-            EXPECT_EQ(os.device().str(), L"******0x1.1p+8");
-        }
+            os << hexfloat << setw(13) << setfill(L'~');
+            os.setf(adjust, ios_defs::adjustfield);
+            os << value;
+            return os.device().str();
+        };
+
+        EXPECT_EQ(render(40.0, ios_defs::internal), L"0x~~~~~1.4p+5");
+        EXPECT_EQ(render(-40.0, ios_defs::internal), L"-~~~~0x1.4p+5");
+        // right pins nothing, so the whole value moves to the end.
+        EXPECT_EQ(render(40.0, ios_defs::right), L"~~~~~0x1.4p+5");
     };
 
     helper.operator()<ostream>();
@@ -511,57 +501,40 @@ TEST(OstreamInsertArithmeticWchar, HexfloatWritesAHexSignificandAndABinaryExpone
 {
     auto helper = []<template <typename, typename> class TO, typename T>()
     {
+        struct format_case { T value; const wchar_t* decimal; };
         TO os{mem_device{L""}, locale<wchar_t>("C")};
+        for (const format_case tc : {
+                 format_case{static_cast<T>(40), L"40"},
+                 format_case{static_cast<T>(-13.5), L"-13.5"},
+                 format_case{static_cast<T>(0.125), L"0.125"},
+             })
+        {
+            os << hexfloat << tc.value << L'|' << uppercase << tc.value
+               << L'|' << nouppercase << defaultfloat << tc.value;
+            EXPECT_TRUE(static_cast<bool>(os));
 
-        T d = 272.;        // 0x1.1p+8
-        os << hexfloat << setprecision(1);
-        os << d;
+            auto [dev, err] = os.detach();
+            const std::wstring text = dev.str();
+            const std::size_t first = text.find(L'|');
+            ASSERT_NE(first, std::wstring::npos);
+            const std::size_t second = text.find(L'|', first + 1);
+            ASSERT_NE(second, std::wstring::npos);
 
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev14, err14] = os.detach();
-        auto str = dev14.str();
-        EXPECT_EQ(std::stod(narrow(str)), d);
-        EXPECT_EQ(str.substr(0, 2), L"0x");
-        EXPECT_NE(str.find(L'p'), std::wstring::npos);
+            const std::wstring lower = text.substr(0, first);
+            const std::wstring upper = text.substr(first + 1, second - first - 1);
+            const std::wstring decimal = text.substr(second + 1);
+            const std::size_t prefix = tc.value < 0 ? 1u : 0u;
 
-        os.attach(mem_device{L""});
-        os << uppercase << d;
-        os.flush();
-        EXPECT_TRUE(static_cast<bool>(os));
-        EXPECT_EQ(std::stod(narrow(os.device().str())), d);
-        EXPECT_EQ(os.device().str().substr(0, 2), L"0X");
-        EXPECT_NE(os.device().str().find(L'P'), std::wstring::npos);
+            EXPECT_EQ(std::stold(lower), static_cast<long double>(tc.value));
+            EXPECT_EQ(lower.substr(prefix, 2), L"0x");
+            EXPECT_NE(lower.find(L'p'), std::wstring::npos);
+            EXPECT_EQ(std::stold(upper), static_cast<long double>(tc.value));
+            EXPECT_EQ(upper.substr(prefix, 2), L"0X");
+            EXPECT_NE(upper.find(L'P'), std::wstring::npos);
+            EXPECT_EQ(decimal, tc.decimal);
 
-        os << nouppercase;
-        os.attach(mem_device{L""});
-        os << defaultfloat << setprecision(6);
-        os << d;
-        os.flush();
-        EXPECT_TRUE(static_cast<bool>(os));
-        EXPECT_EQ(os.device().str(), L"272");
-
-        os.attach(mem_device{L""});
-        d = 15.;           // 0x1.ep+3
-        os << hexfloat << setprecision(1);
-        os << d;
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev15, err15] = os.detach();
-        EXPECT_EQ(std::stod(narrow(dev15.str())), d);
-
-        os.attach(mem_device{L""});
-        os << uppercase << setprecision(1);
-        os << d;
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev16, err16] = os.detach();
-        EXPECT_EQ(std::stod(narrow(dev16.str())), d);
-
-        os << nouppercase;
-        os.attach(mem_device{L""});
-        os << defaultfloat << setprecision(6);
-        os << d;
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev17, err17] = os.detach();
-        EXPECT_EQ(dev17.str(), L"15");
+            os.attach(mem_device{L""});
+        }
     };
 
     helper.template operator()<ostream, double>();

@@ -106,20 +106,24 @@ TEST(IstreamExtractCharacterWchar, TheArrayBoundLimitsTheExtractionOnItsOwn)
 {
     auto expect_bounded = []<template <typename, typename> class T>()
     {
-        T is(mem_device{std::wstring(L"abcdefghi jk l")});
+        T is(mem_device{std::wstring(L"orchard planet")});
 
-        wchar_t three[3];
-        is >> three;
-        EXPECT_STREQ(three, L"ab");
+        wchar_t first[4];
+        is >> first;
+        EXPECT_STREQ(first, L"orc");
         EXPECT_TRUE(is.good());
 
-        wchar_t four[4];
-        is >> four;
-        EXPECT_STREQ(four, L"cde");
+        wchar_t second[3];
+        is >> second;
+        EXPECT_STREQ(second, L"ha");
 
-        wchar_t big[16];
-        is >> big;
-        EXPECT_STREQ(big, L"fghi");
+        wchar_t remainder[16];
+        is >> remainder;
+        EXPECT_STREQ(remainder, L"rd");
+
+        wchar_t whole[16];
+        is >> whole;
+        EXPECT_STREQ(whole, L"planet");
     };
 
     expect_bounded.operator()<istream>();
@@ -131,15 +135,15 @@ TEST(IstreamExtractCharacterWchar, TheFieldWidthLimitsTheExtractionAndIsSpentByI
     auto expect_width = []<template <typename, typename> class T>()
     {
         {
-            T is(mem_device{std::wstring(L"abcdefghij")});
+            T is(mem_device{std::wstring(L"watermelon")});
 
             wchar_t buf[16];
             is >> setw(4) >> buf;
-            EXPECT_STREQ(buf, L"abc");
+            EXPECT_STREQ(buf, L"wat");
             EXPECT_EQ(is.width(), 0);
 
             is >> buf;
-            EXPECT_STREQ(buf, L"defghij");
+            EXPECT_STREQ(buf, L"ermelon");
         }
         {
             T is(mem_device{std::wstring(1000, L'a')});
@@ -156,11 +160,11 @@ TEST(IstreamExtractCharacterWchar, TheFieldWidthLimitsTheExtractionAndIsSpentByI
         {
             // A string destination needs no terminator, so the width buys a
             // character more there than it does into an array of the same size.
-            T is(mem_device{std::wstring(L"abcdefghij")});
+            T is(mem_device{std::wstring(L"watermelon")});
 
             std::wstring s;
             is >> setw(4) >> s;
-            EXPECT_EQ(s, L"abcd");
+            EXPECT_EQ(s, L"wate");
             EXPECT_EQ(is.width(), 0);
         }
     };
