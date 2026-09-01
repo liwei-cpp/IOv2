@@ -1,57 +1,65 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * Inserting a std::tm into an ostream<char>.
+ *
+ * The inserter writes the time facet's default format, and IOv2 extends that
+ * format so a written tm can be read back whole: where the platform's tm
+ * carries tm_gmtoff and tm_zone, the offset and the zone name are appended.
+ */
 #include <device/mem_device.h>
-#include <io/traits/tm.h>
-#include <io/io_manip.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/ostream.h>
+#include <io/traits/tm.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <ctime>
+#include <string>
+
+using namespace IOv2;
 
 namespace
 {
-    std::tm test_tm(int sec, int min, int hour, int mday, int mon, int year, int wday, int yday, int isdst)
+    // Static so that the members this helper does not name -- tm_gmtoff and
+    // tm_zone on glibc -- start out zeroed rather than indeterminate.
+    std::tm make_tm(int sec, int min, int hour, int mday, int mon, int year,
+                    int wday, int yday, int isdst)
     {
         static std::tm tmp;
-        tmp.tm_sec = sec;
-        tmp.tm_min = min;
-        tmp.tm_hour = hour;
-        tmp.tm_mday = mday;
-        tmp.tm_mon = mon;
-        tmp.tm_year = year;
-        tmp.tm_wday = wday;
-        tmp.tm_yday = yday;
+        tmp.tm_sec   = sec;
+        tmp.tm_min   = min;
+        tmp.tm_hour  = hour;
+        tmp.tm_mday  = mday;
+        tmp.tm_mon   = mon;
+        tmp.tm_year  = year;
+        tmp.tm_wday  = wday;
+        tmp.tm_yday  = yday;
         tmp.tm_isdst = isdst;
         return tmp;
     }
 }
 
-void test_ostream_inserters_time_char_1()
+TEST(OstreamInsertTimeChar, ATmIsWrittenInTheDefaultFormatOfTheCLocale)
 {
-    dump_info("Test ostream<char> operator<< (time) case 1...");
-
     auto helper = []<template <typename, typename> class T>()
     {
-        std::tm tp = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 0, 0, 0);
-        T f(IOv2::mem_device{""}, IOv2::locale<char>("C"));
+        const std::tm tp = make_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 0, 0, 0);
 
+        T f(mem_device{""}, locale<char>("C"));
         f << tp;
-        VERIFY((bool)f);
+        EXPECT_TRUE(static_cast<bool>(f));
+
         auto [dev, err] = f.detach();
-        const std::string res = dev.str();
-        // The stream format appends %z and (%Z) where the platform's tm carries tm_gmtoff and
-        // tm_zone, so that both survive a round trip. A tm with no zone writes the unknown-zone
-        // token, which parses back to an empty tm_zone rather than to nothing.
+
+        // A tm with no zone still writes the unknown-zone token, which reads
+        // back as an empty tm_zone rather than as nothing at all.
 #ifdef __USE_MISC
-        VERIFY(res == "Wed Sep  4 13:33:18 2024 +0000 (UNKNOWN)");
+        EXPECT_EQ(dev.str(), "Wed Sep  4 13:33:18 2024 +0000 (UNKNOWN)");
 #else
-        VERIFY(res == "Wed Sep  4 13:33:18 2024");
+        EXPECT_EQ(dev.str(), "Wed Sep  4 13:33:18 2024");
 #endif
     };
 
-    helper.template operator()<IOv2::ostream>();
-    helper.template operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
 }

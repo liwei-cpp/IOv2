@@ -1,25 +1,44 @@
-#include <limits>
-#include <memory>
-#include <optional>
-#include <stdexcept>
-#include <string>
-#include <utility>
+/**
+ * ostream<wchar_t>::tell.
+ *
+ * tell answers with an optional: a position when it can be had, nothing when
+ * the stream is in no state to have one. Two ways to reach the empty answer are
+ * covered here -- a stream that has already failed, and a device that cannot
+ * report its own position -- because the difference between "no position" and
+ * "position zero" is exactly what a caller who writes tell().value() gets
+ * wrong.
+ *
+ * Where the position moves as characters are written is the seek suite's
+ * business; what is left here is where it starts and when it stops answering.
+ */
 #include <common/defs.h>
-#include <device/mem_device.h>
+#include <cvt/code_cvt.h>
 #include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/io_manip.h>
+#include <io/iostream.h>
+#include <io/istream.h>
+#include <io/ostream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+
 #include <support/file_guard.h>
-#include <support/verify.h>
+
+#include <gtest/gtest.h>
+
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+
+using namespace IOv2;
 
 namespace
 {
-// wchar_t counterpart of the throw_tell_device in the char tell test: a mem_device wrapper
-// whose dtell() throws once a shared flag is flipped (after construction).
+// A mem_device wrapper whose dtell() throws once a shared flag is flipped. The stream reads
+// the device position during construction, so the flag starts false (construction succeeds)
+// and is flipped afterwards to make a later tell() fail. The flag is shared so the copy held
+// inside the stream sees the flip.
 template <class CharT>
 class throw_tell_device
 {
@@ -59,88 +78,122 @@ private:
 };
 }
 
-void test_ostream_tell_wchar_t_1()
+// A fresh output stream is at the beginning, including over a device that
+// already holds something -- what is in the device is not what has been
+// written through the stream.
+TEST(OstreamTellWchar, ANewStreamStartsAtTheBeginning)
 {
-    dump_info("Test ostream<wchar_t>::tell case 1...");
-
     // trunc is spelled out so that both devices create the file: ofile_device opens "w" either
     // way, but file_device without it opens "r+" and would fail on a file that does not exist.
-    auto helper = []<template <typename, typename> class T,
-                                typename TDevice>()
+    auto helper = []<template <typename, typename> class T, typename TDevice>()
     {
-        file_guard g1("istream_seeks-3.txt");
-        T ost1{IOv2::mem_device{L""}};
-        T ofs1{TDevice{"istream_seeks-3.txt", IOv2::file_open_flag::trunc},
-               IOv2::code_cvt_creator<char, wchar_t>("C")};
-        
-        auto p1 = ost1.tell();
-        auto p2 = ofs1.tell();
-        VERIFY( p1 == 0 );
-        VERIFY( p2 == 0 );
-        
-        T ost2{IOv2::mem_device{L"bob_marley:kaya"}};
-        VERIFY( ost2.tell() == 0 );
+        const std::string path = "test_ostream_tell_start.txt";
+        file_guard        guard(path);
+
+        T empty{mem_device{L""}};
+        T seeded{mem_device{L"already there"}};
+        T file{TDevice{path, file_open_flag::trunc}, code_cvt_creator<char, wchar_t>("C")};
+
+        EXPECT_EQ(empty.tell(), 0u);
+        EXPECT_EQ(seeded.tell(), 0u);
+        EXPECT_EQ(file.tell(), 0u);
+
+        auto [dev, err] = file.detach();
+        dev.close();
     };
 
-    helper.template operator()<IOv2::ostream, IOv2::ofile_device<char>>();
-    helper.template operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    helper.template operator()<ostream, ofile_device<char>>();
+    helper.template operator()<iostream, file_device<char>>();
 }
 
-void test_ostream_tell_wchar_t_2()
+TEST(OstreamTellWchar, TheAnswerCountsWhatHasBeenWritten)
 {
-    dump_info("Test ostream<wchar_t>::tell case 2...");
-
     auto helper = []<template <typename, typename> class T>()
     {
-        T ost{IOv2::mem_device{L""}};
-        auto pos1 = ost.tell();
-        VERIFY(pos1 == 0);
+        T os{mem_device{L""}};
+        EXPECT_EQ(os.tell(), 0u);
 
-        ost << L"RZA ";
-        pos1 = ost.tell();
-        VERIFY( pos1 == 4 );
+        os << L"four";
+        EXPECT_EQ(os.tell(), 4u);
 
-        ost << L"ghost dog: way of the samurai";
-        pos1 = ost.tell();
-        VERIFY( pos1 == 33 );
+        os << L' ' << 42;
+        EXPECT_EQ(os.tell(), 7u);
     };
 
-    helper.template operator()<IOv2::ostream>();
-    helper.template operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
 }
 
-// wchar_t counterpart of test_ostream_tell_char_3: a throwing device dtell() drives tell()
-// into its catch -> devfailbit, returning an empty optional without throwing (no exception mask).
-void test_ostream_tell_wchar_t_3()
+// A failed stream has no position to give, and says so rather than giving zero.
+TEST(OstreamTellWchar, AFailedStreamHasNoPosition)
 {
-    dump_info("Test ostream<wchar_t>::tell case 3 (device tell failure)...");
+    auto helper = []<template <typename, typename> class T>()
+    {
+        T os{mem_device{L""}};
+        os << L"abc";
+        ASSERT_TRUE(os.tell().has_value());
 
+        os.seek(99);                   // refused by the device
+        EXPECT_FALSE(os.tell().has_value());
+
+        os.clear();
+        EXPECT_EQ(os.tell(), 3u);
+    };
+
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
+}
+
+// When the underlying device's dtell() throws, tell() routes it through handle_exception
+// (-> devfailbit) and returns an empty optional; with no exception mask set it does not throw.
+// This drives the catch branch of stream_common_operators::tell().
+TEST(OstreamTellWchar, ADeviceThatCannotReportItsPositionIsReportedNotThrown)
+{
     auto helper = []<template <typename, typename> class T>()
     {
         throw_tell_device<wchar_t> dev{std::wstring(L"abc")};
-        auto flag = dev.fail_flag();
-        T ost{dev};
+        auto                    flag = dev.fail_flag();
+        T                       os{dev};
 
-        VERIFY( ost.tell() == 0 );
-        *flag = true;
+        EXPECT_EQ(os.tell(), 0u);      // succeeds while the flag is false
+        *flag = true;                  // now the device's dtell() throws
 
         std::optional<size_t> pos = 0;
-        bool threw = false;
-        try { pos = ost.tell(); }
-        catch (...) { threw = true; }
-        VERIFY( !threw );
-        VERIFY( !pos.has_value() );
-        VERIFY( ost.rdstate() & IOv2::ios_defs::devfailbit );
+        EXPECT_NO_THROW(pos = os.tell());
+        EXPECT_FALSE(pos.has_value());
+        EXPECT_TRUE(os.rdstate() & ios_defs::devfailbit);
 
-        *flag = false;
+        *flag = false;                 // let teardown succeed
     };
 
-    helper.template operator()<IOv2::ostream>();
-    helper.template operator()<IOv2::iostream>();
+    helper.template operator()<ostream>();
+    helper.template operator()<iostream>();
+}
 
-    dump_info("Done\n");
+// The answer is in characters even when the device is counting bytes: five
+// bytes reach the file, but the stream has written two characters.
+TEST(OstreamTellWchar, TheAnswerIsInCharactersNotInDeviceUnits)
+{
+    const std::string path = "test_ostream_tell_units.txt";
+    file_guard        guard(path);
+
+    {
+        ostream os(ofile_device<char>{path, file_open_flag::trunc},
+                   code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
+        ASSERT_TRUE(static_cast<bool>(os));
+
+        os << L"\u4e2d\u00e9";
+        EXPECT_EQ(os.tell(), 2u);
+
+        auto [dev, err] = os.detach();
+        dev.close();
+    }
+
+    istream is{ifile_device<char>{path}};
+    ASSERT_TRUE(static_cast<bool>(is));
+    EXPECT_EQ(is.tell(), 0u);
+
+    std::string got(16, '\0');
+    char*       end = is.read(got.data(), static_cast<std::ptrdiff_t>(got.size()));
+    EXPECT_EQ(static_cast<std::size_t>(end - got.data()), 5u);
 }

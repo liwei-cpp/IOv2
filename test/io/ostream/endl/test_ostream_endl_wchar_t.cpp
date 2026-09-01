@@ -1,120 +1,127 @@
-#include <stdexcept>
-#include <string>
+/**
+ * The endl manipulator on an ostream<wchar_t>, and the manipulator dispatch
+ * around it.
+ *
+ * Same contract as the narrow case -- insert widen('\n'), then flush -- with
+ * one wide-specific claim: what endl inserts is one wchar_t, so multi-byte text
+ * on either side of it must not change how much endl contributes.
+ *
+ * The ctype-facet failure path is checked once, in the char file; what is
+ * character-type-specific here is dispatch, because the function-pointer
+ * overload has to name ios_base<wchar_t> to be found at all.
+ */
 #include <device/mem_device.h>
-#include <facet/ctype.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <io/ostream.h>
+#include <io/traits/char_and_str.h>
 
+#include <gtest/gtest.h>
 
-void test_ostream_endl_wchar_t_1()
+#include <string>
+
+using namespace IOv2;
+
+TEST(OstreamEndlWchar, EndlWritesANewline)
 {
-    dump_info("Test ostream<wchar_t> with endl case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        const std::wstring str01(L" santa barbara ");    
-        auto oss01 = T(IOv2::mem_device{str01});
-        auto oss02 = T(IOv2::mem_device{L""});
+        auto os = T(mem_device{std::wstring(L"")});
 
-        oss01 << IOv2::endl;
-        VERIFY(oss01.device().str().size() == str01.size());
-
-        oss02 << IOv2::endl;
-        VERIFY(oss02.device().str().size() == 1);
+        os << endl;
+        EXPECT_EQ(os.device().str(), L"\n");
+        EXPECT_TRUE(os.good());
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-// wchar_t counterpart of test_ostream_function_manip_char_1: a function-pointer manipulator
-// must dispatch to operator<<(T&, void(*)(ios_base<wchar_t>&)) rather than to the generic
-// operator<<.
-void test_ostream_function_manip_wchar_t_1()
+// The newline is one character, not one byte, whatever sits next to it.
+TEST(OstreamEndlWchar, EachEndlEndsTheLineItWasWrittenOn)
 {
-    dump_info("Test ostream<wchar_t> function-pointer manipulator via operator<< case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto oss = T(IOv2::mem_device{std::wstring(L"")});
+        auto os = T(mem_device{std::wstring(L"")});
+
+        os << L"中é" << endl << L"漢字ξ" << endl << L"z";
+        EXPECT_EQ(os.device().str(), std::wstring(L"中é\n漢字ξ\nz"));
+        EXPECT_EQ(os.device().str().size(), 8u);
+    };
+
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
+}
+
+TEST(OstreamEndlWchar, EndsAndFlushDispatchThroughIoTraitsToo)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        auto os = T(mem_device{std::wstring(L"")});
+
+        os << endl;
+        EXPECT_EQ(os.device().str().size(), 1u);
+        EXPECT_TRUE(os.good());
+
+        os << ends;
+        EXPECT_EQ(os.device().str().size(), 2u);
+        EXPECT_TRUE(os.good());
+
+        os << flush;
+        EXPECT_TRUE(os.good());
+    };
+
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
+}
+
+// A function-pointer manipulator must dispatch to
+// operator<<(T&, void(*)(ios_base<wchar_t>&)) rather than to the generic operator<<.
+TEST(OstreamEndlWchar, AFunctionPointerManipulatorBeatsTheGenericInserter)
+{
+    auto helper = []<template <typename, typename> class T>()
+    {
+        auto       os = T(mem_device{std::wstring(L"")});
         static int calls;
         calls = 0;
-        void (*manip)(IOv2::ios_base<wchar_t>&) = [](IOv2::ios_base<wchar_t>&){ ++calls; };
+        void (*manip)(ios_base<wchar_t>&) = [](ios_base<wchar_t>&) { ++calls; };
 
-        oss << manip;
-        VERIFY( calls == 1 );
+        os << manip;
+        EXPECT_EQ(calls, 1);
 
-        oss << manip << manip;        // operator<< returns the stream, so manipulators chain
-        VERIFY( calls == 3 );
+        os << manip << manip;        // operator<< returns the stream, so manipulators chain
+        EXPECT_EQ(calls, 3);
 
         // a capture-less lambda reaches the same overload once decayed with unary +
-        oss << +[](IOv2::ios_base<wchar_t>&){ ++calls; };
-        VERIFY( calls == 4 );
+        os << +[](ios_base<wchar_t>&) { ++calls; };
+        EXPECT_EQ(calls, 4);
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }
 
-// wchar_t counterpart of test_ostream_null_manip_char_1: a null manipulator must be
-// rejected, leaving strfailbit set (no mask -> no throw).
-void test_ostream_null_manip_wchar_t_1()
+// A null manipulator must be rejected, leaving strfailbit set (no mask -> no throw).
+TEST(OstreamEndlWchar, ANullFunctionPointerManipulatorIsRejected)
 {
-    dump_info("Test ostream<wchar_t> null manipulator via operator<< case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto helper = []<template <typename, typename> class T>()
     {
-        auto oss = T(IOv2::mem_device{std::wstring(L"")});
+        auto os = T(mem_device{std::wstring(L"")});
 
-        oss << static_cast<void(*)(IOv2::ios_base<wchar_t>&)>(nullptr);
-        VERIFY( oss.rdstate() & IOv2::ios_defs::strfailbit );
-        oss.clear();
+        os << static_cast<void (*)(ios_base<wchar_t>&)>(nullptr);
+        EXPECT_TRUE(os.rdstate() & ios_defs::strfailbit);
+        os.clear();
 
         static int base_calls;
         base_calls = 0;
-        oss << +[](IOv2::ios_base<wchar_t>&){ ++base_calls; };
-        VERIFY( base_calls == 1 );
-        VERIFY( !(oss.rdstate() & IOv2::ios_defs::strfailbit) );
+        os << +[](ios_base<wchar_t>&) { ++base_calls; };
+        EXPECT_EQ(base_calls, 1);
+        EXPECT_FALSE(os.rdstate() & ios_defs::strfailbit);
 
-        oss << L"ok";
-        auto [dev, err] = oss.detach();
-        VERIFY( dev.str() == L"ok" );
+        os << L"ok";
+        auto [dev, err] = os.detach();
+        EXPECT_EQ(dev.str(), L"ok");
     };
 
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-// wchar_t counterpart of test_ostream_manip_tag_char_1.
-void test_ostream_manip_tag_wchar_t_1()
-{
-    dump_info("Test ostream<wchar_t> tag manipulators case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        auto oss = T(IOv2::mem_device{std::wstring(L"")});
-        oss << IOv2::endl;
-        VERIFY( oss.device().str() == L"\n" );
-        VERIFY( oss.good() );
-
-        oss << IOv2::ends;
-        VERIFY( oss.device().str().size() == 2 );
-        VERIFY( oss.good() );
-
-        oss << IOv2::flush;
-        VERIFY( oss.good() );
-    };
-
-    helper.operator()<IOv2::ostream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    helper.operator()<ostream>();
+    helper.operator()<iostream>();
 }

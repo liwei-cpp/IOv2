@@ -8,7 +8,6 @@ void test_io_traits();
 void test_streambuf();
 void test_streambuf_iterator();
 
-void test_ostream();
 void test_iostream();
 
 void test_io_objects();
@@ -22,7 +21,6 @@ int main()
         test_io_traits();
         test_streambuf();
         test_streambuf_iterator();
-        test_ostream();
         test_iostream();
         test_io_objects();
         return 0;

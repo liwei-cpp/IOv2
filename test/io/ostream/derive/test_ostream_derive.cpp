@@ -1,22 +1,26 @@
-#include <stdexcept>
-#include <string>
-#include <utility>
-
-#include <cvt/code_cvt.h>
-#include <cvt/comp/zlib_cvt.h>
-#include <cvt/crypt/vigenere_cvt.h>
-#include <cvt/crypt/hash_cvt.h>
-#include <cvt/cvt_pipe_creator.h>
+/**
+ * Deriving from ostream, and the concept that says what a derived type must
+ * still be.
+ *
+ * Two things have to survive derivation. The inherited operator<< must return
+ * the derived type, or a chain falls back to the base after the first
+ * insertion; and a derived operator<< must be able to sit alongside the
+ * inherited ones without hiding them.
+ *
+ * The rest of the file is about the boundaries of ostream_type: what a type has
+ * to carry to satisfy it, and the two shapes that must not.
+ */
 #include <device/mem_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
 #include <io/io_base.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
+#include <io/ostream.h>
+#include <io/traits/char_and_str.h>
 #include <locale/locale.h>
 
-#include <support/dump_info.h>
-#include <support/verify.h>
+#include <gtest/gtest.h>
+
+#include <string>
+#include <utility>
 
 namespace
 {
@@ -31,19 +35,15 @@ struct DevIOstream : public IOv2::ostream<IOv2::mem_device<char>, char>
 };
 }
 
-void test_ostream_derive_1()
+TEST(OstreamDerive, InsertionReturnsTheDerivedTypeNotTheBase)
 {
-    dump_info("Test ostream derive case 1...");
-
     DevOstream obj1;
     // make sure the << operator should return DevOstream object
-    VERIFY((obj1 << "hello").x == 20);
+    EXPECT_EQ((obj1 << "hello").x, 20);
 
     DevIOstream obj2;
     // make sure the << operator should return DevIOstream object
-    VERIFY((obj2 << "hello").x == 50);
-
-    dump_info("Done\n");
+    EXPECT_EQ((obj2 << "hello").x, 50);
 }
 
 namespace
@@ -64,14 +64,16 @@ public:
 };
 }
 
-void test_ostream_derive_2()
+// A derived operator<< taking its own type has to coexist with the inherited
+// ones, so a chain can alternate between them.
+TEST(OstreamDerive, ADerivedInserterChainsWithTheInheritedOnes)
 {
     MyLogger logger;
     logger << Level{"DEBUG"} << "User login\n"
            << Level{"WARN"} << "something happened";
+
     auto [dev, err] = logger.detach();
-    auto str = dev.str();
-    VERIFY(str == "[DEBUG] User login\n[WARN] something happened");
+    EXPECT_EQ(dev.str(), "[DEBUG] User login\n[WARN] something happened");
 }
 
 namespace
@@ -110,10 +112,8 @@ static_assert(noexcept(std::declval<IOv2::abs_flusher&>().try_flush()));
 //     stays on the target and the insertion still succeeds (ThrowingFlusher case).
 //   * tie() accepts a non-stream flusher node: its cycle-detection walk dynamic_casts the
 //     target to stream_common_operators*, gets null, and breaks (both cases reach it).
-void test_ostream_derive_3()
+TEST(OstreamDerive, ATiedBareFlusherIsFlushedAndItsFailureStaysThere)
 {
-    dump_info("Test ostream derive case 3 (tied bare flusher)...");
-
     auto helper = []<template<typename, typename> class T>()
     {
         {
@@ -121,28 +121,26 @@ void test_ostream_derive_3()
             T oss{IOv2::mem_device{std::string("")}};
             oss.tie(&tf);                 // non-stream node -> cycle walk breaks
             oss << "x";                   // sentry flushes tf -> fails -> absorbed by the target
-            VERIFY( tf.flushed >= 1 );
-            VERIFY( tf.failed );          // the failure was recorded on the target
-            VERIFY( oss.good() );         // and must not fail the initiating stream
+            EXPECT_GE( tf.flushed, 1 );
+            EXPECT_TRUE( tf.failed );     // the failure was recorded on the target
+            EXPECT_TRUE( oss.good() );    // and must not fail the initiating stream
             oss.tie(nullptr);
             auto [dev, err] = oss.detach();
-            VERIFY( dev.str() == "x" );
+            EXPECT_EQ( dev.str(), "x" );
         }
         {
             QuietFlusher qf;
             T oss{IOv2::mem_device{std::string("")}};
             oss.tie(&qf);
             oss << "y";                   // tied flush succeeds
-            VERIFY( qf.flushed >= 1 );
-            VERIFY( oss.good() );
+            EXPECT_GE( qf.flushed, 1 );
+            EXPECT_TRUE( oss.good() );
             oss.tie(nullptr);
         }
     };
 
     helper.operator()<IOv2::ostream>();
     helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
 }
 
 namespace
@@ -193,11 +191,4 @@ static_assert( IOv2::ostream_type<IOv2::iostream<IOv2::mem_device<char>, char>> 
 static_assert(!IOv2::ostream_type<StatelessOs> );
 static_assert( IOv2::ostream_type<StatefulOs> );
 static_assert(!IOv2::ostream_type<DoubleBaseOs> );
-}
-
-void test_ostream_derive()
-{
-    test_ostream_derive_1();
-    test_ostream_derive_2();
-    test_ostream_derive_3();
 }

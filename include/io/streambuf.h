@@ -597,14 +597,14 @@ public:
 
     /**
      * @lang{ZH}
-     * @brief 相对定位（相对当前位置偏移 `pos`）。
-     * @param pos 相对偏移量。
+     * @brief 从尾定位（相对末尾偏移 `pos`，`0` 表示末尾）。
+     * @param pos 相对末尾处的偏移量。
      * @note 若支持输入，定位会清空读缓冲区（丢弃已 peek/put-back 的字符）。
      * @endif
      *
      * @lang{EN}
-     * @brief Relative seek (offset `pos` from the current position).
-     * @param pos The relative offset.
+     * @brief Seeks to the position `pos` measured from the end (`0` is the end).
+     * @param pos The offset from the end.
      * @note If input is supported, seeking clears the read buffer (discarding any
      * peeked/put-back characters).
      * @endif
