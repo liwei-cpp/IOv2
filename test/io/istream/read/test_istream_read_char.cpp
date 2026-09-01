@@ -1,254 +1,297 @@
+/**
+ * istream<char>::read(s, n): taking exactly n characters, or saying why not.
+ *
+ * read is the unformatted extraction with no delimiter and no terminator: it
+ * asks for a count and either gets it or reaches the end of the input trying.
+ * Those two outcomes are what the caller has to be able to tell apart, and
+ * IOv2 makes the distinction by return value rather than by a separate query --
+ * read returns where writing stopped, so the caller measures what it got by
+ * subtraction instead of asking gcount(). A short read is also a failure:
+ * eofbit says the input ran out, strfailbit says the request was not met.
+ *
+ * The remaining cases are about what read refuses. A null destination and a
+ * count that is not positive are rejected before anything is extracted and
+ * before anything is written, which matters because the count is signed
+ * precisely so that a negative one cannot arrive as a huge unsigned length.
+ *
+ * The fixture is "0123456789abcdef", whose character at index n is n in base
+ * 16, so how far a read got and what it wrote check each other.
+ */
+#include <device/mem_device.h>
+#include <device/std_device.h>
+#include <io/iostream.h>
+#include <io/istream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
+
+#include <gtest/gtest.h>
+
+#include <support/stdio_guard.h>
+
 #include <chrono>
 #include <cstddef>
 #include <limits>
-#include <stdexcept>
 #include <string>
 #include <thread>
-#include <device/mem_device.h>
-#include <device/file_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <device/std_device.h>
-#include <support/file_guard.h>
-#include <support/stdio_guard.h>
-#include <support/verify.h>
 
-void test_istream_read_char_1()
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<char>::read case 1...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const std::string str_02("soul eyes: john coltrane quartet");
-        T is_00{IOv2::mem_device{""}};
-        T is_03{IOv2::mem_device{str_02}};
-        T is_04{IOv2::mem_device{str_02}};
-        IOv2::ios_defs::iostate state1, state2, statefail, stateeof;
-        statefail = IOv2::ios_defs::strfailbit;
-        stateeof = IOv2::ios_defs::eofbit;
-
-        // istream& read(char_type* s, streamsize n)
-        char carray[60] = "";
-        state1 = is_04.rdstate();
-        is_04.read(carray, 0);
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-
-        state1 = is_04.rdstate();
-        is_04.read(carray, 9);
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( !std::strncmp(carray, "soul eyes", 9) );
-        VERIFY( is_04.peek() == ':' );
-
-        state1 = is_03.rdstate();
-        is_03.read(carray, 60);
-        state2 = is_03.rdstate();
-        VERIFY( state1 != state2 );
-        VERIFY( static_cast<bool>(state2 & stateeof) ); 
-        VERIFY( static_cast<bool>(state2 & statefail) ); 
-        VERIFY( !std::strncmp(carray, "soul eyes: john coltrane quartet", 35) );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    const std::string kDigits = "0123456789abcdef";
 }
 
-void test_istream_read_char_2()
+TEST(IstreamReadChar, ReadTakesExactlyTheCountAsked)
 {
-    dump_info("Test istream<char>::read case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_exact = []<template <typename, typename> class T>()
     {
-        const std::string str_00("Red_Garland_Qunitet-Soul_Junction");
-        std::vector<char> c_array(str_00.size() + 4);
+        T is(mem_device{kDigits});
 
-        T is_00(IOv2::mem_device{str_00});
-        IOv2::ios_defs::iostate state1, statefail, stateeof;
-        statefail = IOv2::ios_defs::strfailbit;
-        stateeof = IOv2::ios_defs::eofbit;
+        char        buf[8] = {};
+        char* end    = is.read(buf, 4);
 
-        state1 = stateeof | statefail;
-        size_t gcount = is_00.read(c_array.data(), str_00.size() + 1) - c_array.data();
-        VERIFY( gcount == str_00.size() );
-        VERIFY( is_00.rdstate() == state1 );
+        EXPECT_EQ(end - buf, 4);
+        EXPECT_EQ(std::string(buf, end), "0123");
 
-        is_00.read(c_array.data(), str_00.size());
-        VERIFY( is_00.rdstate() == state1 );
+        // Getting what was asked for is not an event: the state is untouched
+        // and the stream is left on the character after the last one taken.
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+        EXPECT_EQ(is.peek(), '4');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_exact.operator()<istream>();
+    expect_exact.operator()<iostream>();
 }
 
-void test_istream_read_char_3()
+// Successive reads continue where the previous one stopped, so a caller can
+// walk the input in pieces of whatever size suits it.
+TEST(IstreamReadChar, SuccessiveReadsWalkTheInput)
 {
-    dump_info("Test istream<char>::read case 3...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_walked = []<template <typename, typename> class T>()
     {
-        T iss(IOv2::mem_device{"Juana Briones"});
-        char tab[13];
-        iss.read(tab, 13);
-        if (!iss)
-            VERIFY( false );
+        T is(mem_device{kDigits});
+
+        char buf[16] = {};
+        EXPECT_EQ(std::string(buf, is.read(buf, 4)), "0123");
+        EXPECT_EQ(std::string(buf, is.read(buf, 6)), "456789");
+        EXPECT_EQ(std::string(buf, is.read(buf, 6)), "abcdef");
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+
+        // The last read ended on the last character without going past it, so
+        // the end of the input has not been seen yet.
+        EXPECT_FALSE(is.eof());
+        EXPECT_FALSE(is.peek().has_value());
+        EXPECT_TRUE(is.eof());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_walked.operator()<istream>();
+    expect_walked.operator()<iostream>();
 }
 
-void test_istream_read_char_4()
+// A count of zero asks for nothing, which is always satisfiable: no state
+// changes and the read position does not move.
+TEST(IstreamReadChar, ACountOfZeroIsSatisfiedWithoutReading)
 {
-    dump_info("Test istream<char>::read case 4 (short read at EOF x exception mask)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_nothing = []<template <typename, typename> class T>()
     {
-        // eofbit masked: short read throws stream_error, which unwinds through the in_sentry
-        // destructor. The destructor must not throw during unwinding (no std::terminate);
-        // eofbit gets set, and the masked eofbit then surfaces as a normal exception from
-        // read()'s own handler. Reaching the assertions proves there was no terminate.
+        T is(mem_device{kDigits});
+
+        char        buf[8];
+        for (char& c : buf) c = '#';
+        char* end = is.read(buf, 0);
+
+        EXPECT_EQ(end, buf);
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+        EXPECT_EQ(is.peek(), '0');
+        for (const char c : buf)
+            EXPECT_EQ(c, '#');
+
+        // Also at the end of the input, where there is nothing to read but
+        // still nothing being asked for.
+        is.ignore(kDigits.size());
+        EXPECT_EQ(is.read(buf, 0), buf);
+        EXPECT_FALSE(is.eof());
+    };
+
+    expect_nothing.operator()<istream>();
+    expect_nothing.operator()<iostream>();
+}
+
+// Running out with the count unmet writes what there was and reports both
+// halves of the story: eofbit for why it stopped, strfailbit for the request
+// not having been met.
+TEST(IstreamReadChar, AShortReadKeepsWhatItGotAndReportsTheShortfall)
+{
+    auto expect_short = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+
+        char        buf[32] = {};
+        char* end     = is.read(buf, 32);
+
+        EXPECT_EQ(static_cast<std::size_t>(end - buf), kDigits.size());
+        EXPECT_EQ(std::string(buf, end), kDigits);
+        EXPECT_TRUE(is.rdstate() & ios_defs::eofbit);
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+
+        // Reading again from a stream that already failed extracts nothing and
+        // leaves the state where it was.
+        const ios_defs::iostate after = is.rdstate();
+        EXPECT_EQ(is.read(buf, 4), buf);
+        EXPECT_EQ(is.rdstate(), after);
+    };
+
+    expect_short.operator()<istream>();
+    expect_short.operator()<iostream>();
+}
+
+// A stream with nothing in it is the shortfall taken to its limit: zero
+// characters written, both bits set.
+TEST(IstreamReadChar, ReadingFromAnEmptyStreamFails)
+{
+    auto expect_failed = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::string("")}};
+
+        char        buf[8];
+        for (char& c : buf) c = '#';
+        char* end = is.read(buf, 4);
+
+        EXPECT_EQ(end, buf);
+        EXPECT_TRUE(is.rdstate() & ios_defs::eofbit);
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+        for (const char c : buf)
+            EXPECT_EQ(c, '#');
+    };
+
+    expect_failed.operator()<istream>();
+    expect_failed.operator()<iostream>();
+}
+
+// With eofbit masked the shortfall is thrown rather than returned. The throw
+// leaves read()'s sentry by unwinding, so the sentry's destructor must not
+// throw on the way out -- reaching the assertions at all is what proves it
+// did not, since a throwing destructor during unwinding calls std::terminate.
+TEST(IstreamReadChar, AShortReadThrowsWhenEndOfFileIsMasked)
+{
+    auto expect_thrown = []<template <typename, typename> class T>()
+    {
         {
-            T s{IOv2::mem_device{std::string("ab")}, IOv2::locale<char>("C")};
-            s.exceptions(IOv2::ios_defs::eofbit);
+            T is{mem_device{std::string("ab")}, locale<char>("C")};
+            is.exceptions(ios_defs::eofbit);
+
             char buf[8] = {};
-            bool caught = false;
-            try { s.read(buf, 5); }
-            catch (...) { caught = true; }
-            VERIFY(caught);
-            VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
-            VERIFY(s.rdstate() & IOv2::ios_defs::eofbit);
+            EXPECT_ANY_THROW(is.read(buf, 5));
+            EXPECT_TRUE(is.rdstate() & ios_defs::eofbit);
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
         }
-        // no mask: short read sets strfailbit + eofbit and returns without throwing.
         {
-            T s{IOv2::mem_device{std::string("ab")}, IOv2::locale<char>("C")};
+            T is{mem_device{std::string("ab")}, locale<char>("C")};
+
             char buf[8] = {};
-            bool threw = false;
-            try { s.read(buf, 5); }
-            catch (...) { threw = true; }
-            VERIFY(!threw);
-            VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
-            VERIFY(s.rdstate() & IOv2::ios_defs::eofbit);
+            EXPECT_NO_THROW(is.read(buf, 5));
+            EXPECT_TRUE(is.rdstate() & ios_defs::eofbit);
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_thrown.operator()<istream>();
+    expect_thrown.operator()<iostream>();
 }
 
-void test_istream_read_char_5()
+TEST(IstreamReadChar, ANullDestinationIsRejected)
 {
-    dump_info("Test istream<char>::read case 5 (no wait past the request)...");
-
-    // A pipe holding "42\n" with its write end still open: the data is all there, but the
-    // stream has not ended. read(buf, 3) consumes exactly the buffered characters, so
-    // nothing may go on to ask the device whether more is coming -- that question can only
-    // be answered by waiting for the writer, and no caller asked it.
-    //
-    // The write end is closed after a delay rather than left open, so a regression waits
-    // for that instead of hanging: the elapsed-time check then fails cleanly.
-    pipe_iguard g("42\n");
-    std::thread closer([&g]{ std::this_thread::sleep_for(std::chrono::seconds(3)); g.close_write(); });
-
-    IOv2::istream is{IOv2::std_device<STDIN_FILENO>{}};
-    char buf[3] = {};
-    const auto t0 = std::chrono::steady_clock::now();
-    is.read(buf, 3);
-    const auto elapsed = std::chrono::steady_clock::now() - t0;
-    closer.join();
-
-    VERIFY(std::string(buf, 3) == "42\n");
-    VERIFY(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() < 1000);
-
-    dump_info("Done\n");
-}
-
-void test_istream_read_char_6()
-{
-    dump_info("Test istream<char>::read case 6 (null destination buffer)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_rejected = []<template <typename, typename> class T>()
     {
-        // read into a null buffer with a non-zero count: the sentry succeeds, then read
-        // rejects the null pointer with stream_error -> strfailbit. With no exception mask
-        // set it does not throw, and the returned pointer is s + gcount == nullptr.
-        T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
-        bool threw = false;
+        // The sentry succeeds -- there is input to be had -- and read then
+        // refuses the destination rather than writing through it.
+        T is{mem_device{std::string("abc")}, locale<char>("C")};
+
         char* ret = nullptr;
-        try { ret = s.read(nullptr, 5); }
-        catch (...) { threw = true; }
-        VERIFY( !threw );
-        VERIFY( ret == nullptr );
-        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+        EXPECT_NO_THROW(ret = is.read(nullptr, 5));
+        EXPECT_EQ(ret, nullptr);
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+
+        // Nothing was taken on the way to the refusal.
+        is.clear();
+        EXPECT_EQ(is.peek(), 'a');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
 }
 
-void test_istream_read_char_7()
+// The count is a signed ptrdiff_t so that a negative value is rejected here
+// rather than arriving as a length near SIZE_MAX and overrunning the caller's
+// buffer. The buffer being untouched afterwards is the point of the test.
+TEST(IstreamReadChar, ACountThatIsNegativeIsRejected)
 {
-    dump_info("Test istream<char>::read case 7 (negative character count)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_rejected = []<template <typename, typename> class T>()
     {
-        // The count is a signed ptrdiff_t precisely so that a negative value survives the
-        // call instead of arriving as SIZE_MAX. read() rejects it with stream_error ->
-        // strfailbit, and -- the point of the test -- writes nothing into the caller's
-        // buffer, which a SIZE_MAX count would have overrun.
         for (const std::ptrdiff_t n : {std::ptrdiff_t{-1},
                                        std::numeric_limits<std::ptrdiff_t>::min()})
         {
-            T s{IOv2::mem_device{std::string(4096, 'x')}, IOv2::locale<char>("C")};
+            SCOPED_TRACE(n);
+            T is{mem_device{std::string(4096, 'x')}, locale<char>("C")};
+
             char buf[8];
-            for (char& ch : buf) ch = '#';
-            bool threw = false;
+            for (char& c : buf) c = '#';
+
             char* ret = nullptr;
-            try { ret = s.read(buf, n); }
-            catch (...) { threw = true; }
-            VERIFY( !threw );
-            VERIFY( ret == buf );
-            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            EXPECT_NO_THROW(ret = is.read(buf, n));
+            EXPECT_EQ(ret, buf);
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
             for (const char c : buf)
-                VERIFY( c == '#' );
+                EXPECT_EQ(c, '#');
+
             // The rejection happens before anything is extracted.
-            s.clear();
-            VERIFY( s.peek() == 'x' );
+            is.clear();
+            EXPECT_EQ(is.peek(), 'x');
         }
 
-        // A masked strfailbit turns the same rejection into an exception.
+        // Masking strfailbit turns the same refusal into an exception, and the
+        // buffer is still left alone.
         {
-            T s{IOv2::mem_device{std::string("abc")}, IOv2::locale<char>("C")};
-            s.exceptions(IOv2::ios_defs::strfailbit);
+            T is{mem_device{std::string("abc")}, locale<char>("C")};
+            is.exceptions(ios_defs::strfailbit);
+
             char buf[8];
-            for (char& ch : buf) ch = '#';
-            bool threw = false;
-            try { s.read(buf, -1); }
-            catch (...) { threw = true; }
-            VERIFY( threw );
-            VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+            for (char& c : buf) c = '#';
+
+            EXPECT_ANY_THROW(is.read(buf, -1));
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
             for (const char c : buf)
-                VERIFY( c == '#' );
+                EXPECT_EQ(c, '#');
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+// read asks for a count, so once it has that count it is done. On a device
+// that can block -- a pipe whose writer has not finished -- asking for one
+// character more than was requested means waiting for a writer nobody asked
+// about, so a read that is satisfied must not go back to the device at all.
+//
+// The write end is closed after a delay rather than left open, so a regression
+// waits for that instead of hanging and the elapsed-time check fails cleanly.
+TEST(IstreamReadChar, ASatisfiedReadDoesNotGoBackToTheDevice)
+{
+    pipe_iguard guard("42\n");
+    std::thread closer([&guard] {
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        guard.close_write();
+    });
+
+    istream is{std_device<STDIN_FILENO>{}};
+
+    char       buf[3] = {};
+    const auto start   = std::chrono::steady_clock::now();
+    is.read(buf, 3);
+    const auto elapsed = std::chrono::steady_clock::now() - start;
+    closer.join();
+
+    EXPECT_EQ(std::string(buf, 3), "42\n");
+    EXPECT_LT(std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count(), 1000);
 }

@@ -1,345 +1,201 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * The same ignore() contract as test_istream_ignore_char.cpp for wchar_t: a
+ * count and a delimiter are both limits and the nearer one stops the call, the
+ * delimiter is discarded along with what preceded it, and running out of input
+ * is an end rather than a failure.
+ *
+ * The file cases stay in the narrow file; what this instantiation adds is that
+ * both the count and the delimiter are in characters, which only shows on
+ * characters that are more than one byte wide.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
+#include <io/iostream.h>
+#include <io/istream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <locale/locale.h>
 
-void test_istream_ignore_wchar_t_1()
+#include <gtest/gtest.h>
+
+#include <limits>
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<wchar_t>::ignore case 1...");
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T is_00(IOv2::mem_device{L""});
-        T is_03(IOv2::mem_device{L"soul eyes: john coltrane quartet"});
-        T is_04(IOv2::mem_device{L"soul eyes: john coltrane quartet"});
+    const std::wstring kDigits = L"0123456789abcdef";
 
-        IOv2::ios_defs::iostate state1, state2;
-
-        // istream& read(char_type* s, streamsize n)
-        wchar_t carray[60] = L"";
-        is_04.read(carray, 9);
-        VERIFY( is_04.peek() == L':' );
-
-        // istream& ignore(streamsize n = 1, int_type delim = traits::eof())
-        state1 = is_04.rdstate();
-        is_04.ignore();
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == L' ' );
-
-        state1 = is_04.rdstate();
-        is_04.ignore(0);
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == L' ' );
-
-        state1 = is_04.rdstate();
-        is_04.ignore(5, L' ');
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( is_04.peek() == L'j' );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    constexpr auto kUnbounded = std::numeric_limits<std::streamsize>::max();
 }
 
-void test_istream_ignore_wchar_t_2()
+TEST(IstreamIgnoreWchar, IgnoreDiscardsOneCharacterByDefaultAndNCharactersOnRequest)
 {
-    dump_info("Test istream<wchar_t>::ignore case 2...");
-    auto prepare = [](std::string::size_type len, unsigned nchunks, char delim)
+    auto expect_counted = []<template <typename, typename> class T>()
     {
-        std::string ret;
-        std::wstring wret;
-        for (unsigned i = 0; i < nchunks; ++i)
+        T is(mem_device{kDigits});
+
+        const ios_defs::iostate before = is.rdstate();
+        is.ignore();
+        EXPECT_EQ(is.rdstate(), before);
+        EXPECT_EQ(is.peek(), L'1');
+
+        is.ignore(4);
+        EXPECT_EQ(is.peek(), L'5');
+
+        is.ignore(10);
+        EXPECT_EQ(is.peek(), L'f');
+    };
+
+    expect_counted.operator()<istream>();
+    expect_counted.operator()<iostream>();
+}
+
+TEST(IstreamIgnoreWchar, ACountOfZeroDiscardsNothing)
+{
+    auto expect_nothing = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+
+        is.ignore(0);
+        EXPECT_EQ(is.peek(), L'0');
+
+        is.ignore(0, L'0');
+        EXPECT_EQ(is.peek(), L'0');
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+    };
+
+    expect_nothing.operator()<istream>();
+    expect_nothing.operator()<iostream>();
+}
+
+TEST(IstreamIgnoreWchar, TheDelimiterIsDiscardedTooAndIgnoreStopsAfterIt)
+{
+    auto expect_consumed = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+
+        is.ignore(kUnbounded, L'4');
+        EXPECT_EQ(is.peek(), L'5');
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+    };
+
+    expect_consumed.operator()<istream>();
+    expect_consumed.operator()<iostream>();
+}
+
+TEST(IstreamIgnoreWchar, TheCountAndTheDelimiterAreBothLimitsAndTheNearerOneStops)
+{
+    auto expect_first = []<template <typename, typename> class T>()
+    {
         {
-            for (std::string::size_type j = 0; j < len; ++j)
-            {
-                char ch = 'a' + rand() % 26;
-                ret.push_back(ch);
-                wret.push_back(ch);
-            }
-            len *= 2;
-            ret.push_back(delim);
-            wret.push_back(delim);
+            T is(mem_device{kDigits});
+            is.ignore(6, L'3');
+            EXPECT_EQ(is.peek(), L'4');
         }
-        return std::pair{ret, wret};
-    };
-    
-    auto check = [](auto& stream, const std::wstring& str, unsigned nchunks, wchar_t delim)
-    {
-        std::string::size_type index = 0, index_new = 0;
-        unsigned n = 0;
-
-        while (true)
         {
-            stream.ignore(std::numeric_limits<std::streamsize>::max(), delim);
-            index_new = str.find(delim, index);
-            index = index_new + 1;
-            ++n;
-            if (!stream.good()) break;
-        }
-        VERIFY( !stream.str_fail() );
-        VERIFY( stream.eof() );
-        VERIFY( n == nchunks + 1 );
-    };
-
-    auto helper = [&prepare, &check]<template<typename, typename> class T,
-                                               typename TDevice>()
-    {
-        const char filename[] = "istream_ignore.txt";
-        const wchar_t delim = L'|';
-        const unsigned nchunks = 10;
-        const auto [data, wdata] = prepare(555, nchunks, delim);
-        file_guard g(filename, data);
-
-        T ifstrm(TDevice{filename},
-                 IOv2::code_cvt_creator<char, wchar_t>("C"));
-        check(ifstrm, wdata, nchunks, delim);
-        auto [dev, err] = ifstrm.detach();
-        dev.close();
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_wchar_t_3()
-{
-    dump_info("Test istream<wchar_t>::ignore case 3...");
-    auto helper = []<template<typename, typename> class T,
-                               typename TDevice>()
-    {
-        std::string data = []()
-        {
-            std::string res;
-            for (size_t i = 0; i < 1500; ++i)
-                res.append("1234567890\n");
-            return res;
-        }();
-
-        file_guard g("istream_unformatted-1.txt", data);
-        T ifstrm(TDevice{"istream_unformatted-1.txt"},
-                 IOv2::code_cvt_creator<char, wchar_t>("C"));
-        IOv2::ios_defs::iostate state1, state2;
-
-        state1 = ifstrm.rdstate();
-        VERIFY( state1 == IOv2::ios_defs::goodbit );
-        VERIFY( ifstrm.peek() == L'1' );
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(1);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == L'2' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(10);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == L'1' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(100);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == L'2' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(1000);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == L'1' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(10000);
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( ifstrm.peek() == L'2' );
-
-        state1 = ifstrm.rdstate();
-        ifstrm.ignore(std::numeric_limits<std::streamsize>::max());
-        state2 = ifstrm.rdstate();
-        VERIFY( state1 != state2 );
-        VERIFY( state2 == IOv2::ios_defs::eofbit );
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_wchar_t_4()
-{
-    dump_info("Test istream<wchar_t>::ignore case 4...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T ss(IOv2::mem_device{L"abcd" "\xFF" "1234ina donna coolbrith"});
-        wchar_t c;
-        ss >> c;
-        VERIFY( c == L'a' );
-        ss.ignore(8);
-        ss >> c;
-        VERIFY( c == L'i' );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_wchar_t_5()
-{
-    dump_info("Test istream<wchar_t>::ignore case 5...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        T istr(IOv2::mem_device{L"abcdefg\n"});
-
-        istr.ignore(0);
-        istr.ignore(0, L'b');
-
-        istr.ignore();  // Advance to next position.
-        istr.ignore(0, L'b');
-
-        VERIFY(istr.peek() == L'b');
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_ignore_wchar_t_6()
-{
-    dump_info("Test istream<wchar_t>::ignore case 6...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        {
-            T s{IOv2::mem_device{L" +   -"}};
-            s.ignore(1, L'+');
-            VERIFY( s.get() == L'+' );
-            s.ignore(3, L'-');
-            VERIFY( s.get() == L'-' );
-        }
-
-        {
-            T s{IOv2::mem_device{L".+...-"}};
-            s.ignore(1, L'+');
-            VERIFY( s.get() == L'+' );
-            s.ignore(3, L'-');
-            VERIFY( s.get() == L'-' );
+            T is(mem_device{kDigits});
+            is.ignore(3, L'8');
+            EXPECT_EQ(is.peek(), L'3');
+            EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_first.operator()<istream>();
+    expect_first.operator()<iostream>();
 }
 
-void test_istream_ignore_wchar_t_7()
+TEST(IstreamIgnoreWchar, RunningOutOfInputSetsEndOfFileWithoutFailing)
 {
-    dump_info("Test istream<wchar_t>::ignore case 7...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_end = []<template <typename, typename> class T>()
     {
         {
-            T s(IOv2::mem_device{L"  "});
-            s.ignore(2, L'+');
-            VERIFY( (bool)s );
-            VERIFY( !s.get().has_value() );
-            VERIFY( s.eof() );
+            T is(mem_device{std::wstring(L"ab")});
+            is.ignore(10);
+            EXPECT_TRUE(is.eof());
+            EXPECT_FALSE(is.rdstate() & ios_defs::strfailbit);
+            EXPECT_TRUE(static_cast<bool>(is));
         }
-
         {
-            T s(IOv2::mem_device{L"  "});
-            s.ignore(2);
-            VERIFY( (bool)s );
-            VERIFY( !s.get().has_value() );
-            VERIFY( s.eof() );
+            T is(mem_device{std::wstring(L"ab")});
+            is.ignore(kUnbounded, L'|');
+            EXPECT_TRUE(is.eof());
+            EXPECT_FALSE(is.rdstate() & ios_defs::strfailbit);
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_end.operator()<istream>();
+    expect_end.operator()<iostream>();
 }
 
-void test_istream_ignore_wchar_t_8()
+// Both limits count characters rather than the bytes they encode to, so a
+// fixture of multi-byte characters lands on the same positions as an ASCII one.
+TEST(IstreamIgnoreWchar, TheCountAndTheDelimiterAreBothInCharacters)
 {
-    dump_info("Test istream<wchar_t>::ignore case 8 (EOF x exception mask)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_characters = []<template <typename, typename> class T>()
     {
-        // eofbit masked: ignore() at EOF throws eof_error; eofbit set.
+        const std::wstring wide = L"é中é中é|x";
         {
-            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
-            s.exceptions(IOv2::ios_defs::eofbit);
-            bool threw = false;
-            try { s.ignore(); }
-            catch (const IOv2::eof_error&) { threw = true; }
-            VERIFY(threw);
-            VERIFY(s.eof());
+            T is(mem_device{wide});
+            is.ignore(3);
+            EXPECT_EQ(is.peek(), wide[3]);
         }
-        // eofbit unmasked (default): no throw, eofbit set (regression).
         {
-            T s{IOv2::mem_device{std::wstring(L"")}, IOv2::locale<wchar_t>("C")};
-            s.ignore();
-            VERIFY(s.eof());
+            T is(mem_device{wide});
+            is.ignore(kUnbounded, L'中');
+            EXPECT_EQ(is.peek(), wide[2]);
+        }
+        {
+            T is(mem_device{wide});
+            is.ignore(kUnbounded, L'|');
+            EXPECT_EQ(is.peek(), L'x');
         }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_characters.operator()<istream>();
+    expect_characters.operator()<iostream>();
 }
 
-// wchar_t counterpart of test_istream_ignore_char_9: ignore(n, delim) on a failed stream is
-// rejected by the sentry and routed through handle_exception (-> strfailbit), no throw.
-void test_istream_ignore_wchar_t_9()
+TEST(IstreamIgnoreWchar, IgnoreAtTheEndThrowsWhenEndOfFileIsMasked)
 {
-    dump_info("Test istream<wchar_t>::ignore case 9 (failed stream, delimited)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_thrown = []<template <typename, typename> class T>()
     {
-        T s{IOv2::mem_device{std::wstring(L"abc")}, IOv2::locale<wchar_t>("C")};
+        {
+            T is{mem_device{std::wstring(L"")}, locale<wchar_t>("C")};
+            is.exceptions(ios_defs::eofbit);
+            EXPECT_THROW(is.ignore(), eof_error);
+            EXPECT_TRUE(is.eof());
+        }
+        {
+            T is{mem_device{std::wstring(L"")}, locale<wchar_t>("C")};
+            EXPECT_NO_THROW(is.ignore());
+            EXPECT_TRUE(is.eof());
+        }
+    };
+
+    expect_thrown.operator()<istream>();
+    expect_thrown.operator()<iostream>();
+}
+
+// wchar_t counterpart: ignore on a failed stream is rejected by the sentry and routed
+// through handle_exception (-> strfailbit), no throw.
+TEST(IstreamIgnoreWchar, IgnoreOnAFailedStreamIsReportedRatherThanThrown)
+{
+    auto expect_reported = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"abc")}, locale<wchar_t>("C")};
 
         int v = 0;
-        s >> v;                       // non-numeric input -> strfailbit
-        VERIFY( !s );
+        is >> v;
+        EXPECT_FALSE(static_cast<bool>(is));
 
-        bool threw = false;
-        try { s.ignore(5, L'x'); }
-        catch (...) { threw = true; }
-        VERIFY( !threw );
-        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+        EXPECT_NO_THROW(is.ignore(5, L'x'));
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+
+        EXPECT_NO_THROW(is.ignore(5));
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_reported.operator()<istream>();
+    expect_reported.operator()<iostream>();
 }

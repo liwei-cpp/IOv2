@@ -1,168 +1,193 @@
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * The same read() contract as test_istream_read_char.cpp for wchar_t: a count
+ * is either met or the input ran out trying, the return value says which by
+ * saying where writing stopped, and a destination or a count that read will
+ * not accept is refused before anything is written or extracted.
+ *
+ * The blocking-device case stays in the narrow file, since a pipe carries
+ * bytes; what this instantiation covers is that the counting is in characters
+ * rather than in bytes, which is only visible where the two differ.
+ */
 #include <device/mem_device.h>
-#include <device/file_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
 #include <io/iostream.h>
-#include <support/dump_info.h>
-#include <support/file_guard.h>
-#include <support/verify.h>
+#include <io/istream.h>
+#include <io/traits/char_and_str.h>
+#include <locale/locale.h>
 
-void test_istream_read_wchar_t_1()
+#include <gtest/gtest.h>
+
+#include <cstddef>
+#include <limits>
+#include <string>
+
+using namespace IOv2;
+
+namespace
 {
-    dump_info("Test istream<wchar_t>::read case 1...");
-    
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const std::wstring str_02(L"soul eyes: john coltrane quartet");
-        T is_00{IOv2::mem_device{L""}};
-        T is_03{IOv2::mem_device{str_02}};
-        T is_04{IOv2::mem_device{str_02}};
-        IOv2::ios_defs::iostate state1, state2, statefail, stateeof;
-        statefail = IOv2::ios_defs::strfailbit;
-        stateeof = IOv2::ios_defs::eofbit;
-
-        // istream& read(char_type* s, streamsize n)
-        wchar_t carray[60] = L"";
-        state1 = is_04.rdstate();
-        is_04.read(carray, 0);
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-
-        state1 = is_04.rdstate();
-        is_04.read(carray, 9);
-        state2 = is_04.rdstate();
-        VERIFY( state1 == state2 );
-        VERIFY( !std::wcsncmp(carray, L"soul eyes", 9) );
-        VERIFY( is_04.peek() == ':' );
-
-        state1 = is_03.rdstate();
-        is_03.read(carray, 60);
-        state2 = is_03.rdstate();
-        VERIFY( state1 != state2 );
-        VERIFY( static_cast<bool>(state2 & stateeof) ); 
-        VERIFY( static_cast<bool>(state2 & statefail) ); 
-        VERIFY( !std::wcsncmp(carray, L"soul eyes: john coltrane quartet", 35) );
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    const std::wstring kDigits = L"0123456789abcdef";
 }
 
-void test_istream_read_wchar_t_2()
+TEST(IstreamReadWchar, ReadTakesExactlyTheCountAsked)
 {
-    dump_info("Test istream<wchar_t>::read case 2...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_exact = []<template <typename, typename> class T>()
     {
-        const std::wstring str_00(L"Red_Garland_Qunitet-Soul_Junction");
-        std::vector<wchar_t> c_array(str_00.size() + 4);
+        T is(mem_device{kDigits});
 
-        T is_00(IOv2::mem_device{str_00});
-        IOv2::ios_defs::iostate state1, statefail, stateeof;
-        statefail = IOv2::ios_defs::strfailbit;
-        stateeof = IOv2::ios_defs::eofbit;
+        wchar_t        buf[8] = {};
+        wchar_t* end    = is.read(buf, 4);
 
-        state1 = stateeof | statefail;
-        size_t gcount = is_00.read(c_array.data(), str_00.size() + 1) - c_array.data();
-        VERIFY( gcount == str_00.size() );
-        VERIFY( is_00.rdstate() == state1 );
-
-        is_00.read(c_array.data(), str_00.size());
-        VERIFY( is_00.rdstate() == state1 );
+        EXPECT_EQ(end - buf, 4);
+        EXPECT_EQ(std::wstring(buf, end), L"0123");
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+        EXPECT_EQ(is.peek(), L'4');
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_exact.operator()<istream>();
+    expect_exact.operator()<iostream>();
 }
 
-void test_istream_read_wchar_t_3()
+TEST(IstreamReadWchar, SuccessiveReadsWalkTheInput)
 {
-    dump_info("Test istream<wchar_t>::read case 3...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_walked = []<template <typename, typename> class T>()
     {
-        T iss(IOv2::mem_device{L"Juana Briones"});
-        wchar_t tab[13];
-        iss.read(tab, 13);
-        if (!iss)
-            VERIFY( false );
-    };
-    
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+        T is(mem_device{kDigits});
 
-    dump_info("Done\n");
-}
-
-void test_istream_read_wchar_t_4()
-{
-    dump_info("Test istream<wchar_t>::read case 4 (short read at EOF x exception mask)...");
-
-    auto helper = []<template<typename, typename> class T>()
-    {
-        // eofbit masked: short read throws stream_error, which unwinds through the in_sentry
-        // destructor (which must not throw during unwinding -> no std::terminate). Reaching
-        // the assertions proves there was no terminate.
-        {
-            T s{IOv2::mem_device{std::wstring(L"ab")}, IOv2::locale<wchar_t>("C")};
-            s.exceptions(IOv2::ios_defs::eofbit);
-            wchar_t buf[8] = {};
-            bool caught = false;
-            try { s.read(buf, 5); }
-            catch (...) { caught = true; }
-            VERIFY(caught);
-            VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
-            VERIFY(s.rdstate() & IOv2::ios_defs::eofbit);
-        }
-        // no mask: short read sets strfailbit + eofbit and returns without throwing.
-        {
-            T s{IOv2::mem_device{std::wstring(L"ab")}, IOv2::locale<wchar_t>("C")};
-            wchar_t buf[8] = {};
-            bool threw = false;
-            try { s.read(buf, 5); }
-            catch (...) { threw = true; }
-            VERIFY(!threw);
-            VERIFY(s.rdstate() & IOv2::ios_defs::strfailbit);
-            VERIFY(s.rdstate() & IOv2::ios_defs::eofbit);
-        }
+        wchar_t buf[16] = {};
+        EXPECT_EQ(std::wstring(buf, is.read(buf, 4)), L"0123");
+        EXPECT_EQ(std::wstring(buf, is.read(buf, 6)), L"456789");
+        EXPECT_EQ(std::wstring(buf, is.read(buf, 6)), L"abcdef");
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_walked.operator()<istream>();
+    expect_walked.operator()<iostream>();
 }
 
-void test_istream_read_wchar_t_5()
+TEST(IstreamReadWchar, ACountOfZeroIsSatisfiedWithoutReading)
 {
-    dump_info("Test istream<wchar_t>::read case 5 (null destination buffer)...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_nothing = []<template <typename, typename> class T>()
     {
-        // read into a null buffer with a non-zero count: read rejects the null pointer with
-        // stream_error -> strfailbit; no mask means no throw and the return is nullptr.
-        T s{IOv2::mem_device{std::wstring(L"abc")}, IOv2::locale<wchar_t>("C")};
-        bool threw = false;
+        T is(mem_device{kDigits});
+
+        wchar_t buf[8];
+        for (wchar_t& c : buf) c = L'#';
+
+        EXPECT_EQ(is.read(buf, 0), buf);
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+        EXPECT_EQ(is.peek(), L'0');
+        for (const wchar_t c : buf)
+            EXPECT_EQ(c, L'#');
+    };
+
+    expect_nothing.operator()<istream>();
+    expect_nothing.operator()<iostream>();
+}
+
+TEST(IstreamReadWchar, AShortReadKeepsWhatItGotAndReportsTheShortfall)
+{
+    auto expect_short = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{kDigits});
+
+        wchar_t        buf[32] = {};
+        wchar_t* end     = is.read(buf, 32);
+
+        EXPECT_EQ(static_cast<std::size_t>(end - buf), kDigits.size());
+        EXPECT_EQ(std::wstring(buf, end), kDigits);
+        EXPECT_TRUE(is.rdstate() & ios_defs::eofbit);
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+    };
+
+    expect_short.operator()<istream>();
+    expect_short.operator()<iostream>();
+}
+
+// The count is in characters, not in the bytes they would occupy: the fixture
+// is chosen so that each character is several bytes wide when encoded, and the
+// count still comes out one per character.
+TEST(IstreamReadWchar, TheCountIsInCharactersNotBytes)
+{
+    auto expect_characters = []<template <typename, typename> class T>()
+    {
+        const std::wstring wide = L"é中é中é";
+        T is(mem_device{wide});
+
+        wchar_t        buf[8] = {};
+        wchar_t* end    = is.read(buf, 3);
+
+        EXPECT_EQ(end - buf, 3);
+        EXPECT_EQ(std::wstring(buf, end), wide.substr(0, 3));
+        EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+
+        // Two characters are left, so asking for three is one too many.
+        wchar_t rest[8] = {};
+        EXPECT_EQ(is.read(rest, 3) - rest, 2);
+        EXPECT_TRUE(is.rdstate() & ios_defs::eofbit);
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+    };
+
+    expect_characters.operator()<istream>();
+    expect_characters.operator()<iostream>();
+}
+
+TEST(IstreamReadWchar, AShortReadThrowsWhenEndOfFileIsMasked)
+{
+    auto expect_thrown = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"ab")}, locale<wchar_t>("C")};
+        is.exceptions(ios_defs::eofbit);
+
+        wchar_t buf[8] = {};
+        EXPECT_ANY_THROW(is.read(buf, 5));
+        EXPECT_TRUE(is.rdstate() & ios_defs::eofbit);
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+    };
+
+    expect_thrown.operator()<istream>();
+    expect_thrown.operator()<iostream>();
+}
+
+TEST(IstreamReadWchar, ANullDestinationIsRejected)
+{
+    auto expect_rejected = []<template <typename, typename> class T>()
+    {
+        T is{mem_device{std::wstring(L"abc")}, locale<wchar_t>("C")};
+
         wchar_t* ret = nullptr;
-        try { ret = s.read(nullptr, 5); }
-        catch (...) { threw = true; }
-        VERIFY( !threw );
-        VERIFY( ret == nullptr );
-        VERIFY( s.rdstate() & IOv2::ios_defs::strfailbit );
+        EXPECT_NO_THROW(ret = is.read(nullptr, 5));
+        EXPECT_EQ(ret, nullptr);
+        EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+TEST(IstreamReadWchar, ACountThatIsNegativeIsRejected)
+{
+    auto expect_rejected = []<template <typename, typename> class T>()
+    {
+        for (const std::ptrdiff_t n : {std::ptrdiff_t{-1},
+                                       std::numeric_limits<std::ptrdiff_t>::min()})
+        {
+            SCOPED_TRACE(n);
+            T is{mem_device{std::wstring(4096, L'x')}, locale<wchar_t>("C")};
+
+            wchar_t buf[8];
+            for (wchar_t& c : buf) c = L'#';
+
+            wchar_t* ret = nullptr;
+            EXPECT_NO_THROW(ret = is.read(buf, n));
+            EXPECT_EQ(ret, buf);
+            EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
+            for (const wchar_t c : buf)
+                EXPECT_EQ(c, L'#');
+
+            is.clear();
+            EXPECT_EQ(is.peek(), L'x');
+        }
+    };
+
+    expect_rejected.operator()<istream>();
+    expect_rejected.operator()<iostream>();
 }

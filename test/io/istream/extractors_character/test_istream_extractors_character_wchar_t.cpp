@@ -1,340 +1,224 @@
-#include <cstddef>
-#include <limits>
-#include <stdexcept>
-#include <string>
+/**
+ * The same character and character-array extraction contract as
+ * test_istream_extractors_character_char.cpp for wchar_t.
+ *
+ * The two limits -- the deduced array bound and the field width -- and the
+ * terminator that one place is always kept for are counted in characters, so
+ * they land in the same places here. What differs is which character types the
+ * stream accepts at all: a wide stream takes wchar_t and nothing else, where
+ * the narrow one also took signed char and unsigned char.
+ */
 #include <cvt/code_cvt.h>
-#include <device/mem_device.h>
 #include <device/file_device.h>
+#include <device/mem_device.h>
+#include <io/io_manip.h>
+#include <io/iostream.h>
+#include <io/istream.h>
+#include <io/ostream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
 #include <io/traits/nullptr.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
-#include <support/dump_info.h>
+
+#include <gtest/gtest.h>
+
 #include <support/file_guard.h>
 #include <support/io_traits_probe.h>
-#include <support/verify.h>
 
-void test_istream_extractors_character_wchar_t_1()
+#include <cstddef>
+#include <cwchar>
+#include <string>
+#include <vector>
+
+using namespace IOv2;
+
+TEST(IstreamExtractCharacterWchar, ASingleCharacterExtractionSkipsWhitespaceAndTakesOne)
 {
-    dump_info("Test istream<wchar_t> operator>> (character) case 1...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_one = []<template <typename, typename> class T>()
     {
-        const std::wstring str_02(L"coltrane playing 'softly as a morning sunrise'");
-        const std::wstring str_03(L"coltrane");
+        T is(mem_device{std::wstring(L"  ab c")});
 
-        T is_01(IOv2::mem_device{L""});
-        T is_02(IOv2::mem_device{str_02});
-        IOv2::ios_defs::iostate state1, state2, statefail;
-        statefail = IOv2::ios_defs::strfailbit;
+        wchar_t c = L'#';
+        is >> c;
+        EXPECT_EQ(c, L'a');
+        EXPECT_EQ(is.peek(), L'b');
 
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, _CharT*)
-        const int n = 20;
-        wchar_t array1[n];
-        array1[0] = L'\0';
+        is >> c;
+        EXPECT_EQ(c, L'b');
 
-        state1 = is_01.rdstate();
-        is_01 >> array1;   // should snake 0 characters, not alter stream state
-        state2 = is_01.rdstate();
-        VERIFY(state1 != state2);
-        VERIFY(state2 & statefail);
-
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake "coltrane"
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY((state2 & statefail) == 0);
-        VERIFY(array1[str_03.size() - 1] == L'e');
-        array1[str_03.size()] = L'\0';
-        VERIFY(str_03.compare(0, str_03.size(), array1) == 0);
-        auto int1 = is_02.peek(); // should be ' '
-        VERIFY(int1 == L' ');
-
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake "playing" as sentry "eats" ws
-        state2 = is_02.rdstate();
-        int1 = is_02.peek(); // should be ' '
-        VERIFY(int1 == L' ');
-        VERIFY(state1 == state2);
-        VERIFY((state2 & statefail) == 0);
+        is >> c;
+        EXPECT_EQ(c, L'c');
+        EXPECT_TRUE(is.good());
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_one.operator()<istream>();
+    expect_one.operator()<iostream>();
 }
 
-void test_istream_extractors_character_wchar_t_2()
+TEST(IstreamExtractCharacterWchar, ACharacterExtractionThatFindsNothingLeavesTheVariableAlone)
 {
-    dump_info("Test istream<wchar_t> operator>> (character) case 2...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_untouched = []<template <typename, typename> class T>()
     {
-        const std::wstring str_02(L"or coltrane playing tunji with jimmy garrison");
-
-        T is_01(IOv2::mem_device{L""});
-        T is_02(IOv2::mem_device{str_02});
-        IOv2::ios_defs::iostate state1, state2, statefail;
-        statefail = IOv2::ios_defs::strfailbit;
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, _CharT&)
-        wchar_t c1 = L'c', c2 = L'c';
-        state1 = is_01.rdstate();
-        is_01 >> c1;   
-        state2 = is_01.rdstate();
-        VERIFY(state1 != state2);
-        VERIFY(c1 == c2);
-        VERIFY(state2 & statefail);
-
-        state1 = is_02.rdstate();
-        is_02 >> c1;   
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(c1 == L'o');
-        is_02 >> c1;
-        is_02 >> c1;
-        VERIFY(c1 == L'c');
-        VERIFY((state2 & statefail) == 0);
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_extractors_character_wchar_t_3()
-{
-    dump_info("Test istream<wchar_t> operator>> (character) case 3...");
-    auto helper = []<template<typename, typename> class T>()
-    {
-        const std::wstring str_02(L"coltrane playing 'softly as a morning sunrise'");
-        const std::wstring str_03(L"coltran");
-        T is_02(IOv2::mem_device{str_02});
-        IOv2::ios_defs::iostate state1, state2, statefail;
-        statefail = IOv2::ios_defs::strfailbit;
-
-        // template<_CharT, _Traits>
-        //  basic_istream& operator>>(istream&, _CharT*)
-        const int n = 20;
-        wchar_t array1[n];
-
-        // testing with width() control enabled.
-        is_02.width(8);
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake "coltran"
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(str_03.compare(0, str_03.size(), array1) == 0);
-
-        is_02.width(1);
-        state1 = is_02.rdstate();
-        is_02 >> array1;   // should snake nothing, set failbit
-        state2 = is_02.rdstate();
-        VERIFY(state1 != state2);
-        VERIFY(state2 == statefail);
-        VERIFY(array1[0] == L'\0');
-
-        is_02.width(8);
-        is_02.clear();
-        state1 = is_02.rdstate();
-        VERIFY(!state1);
-        is_02 >> array1;   // should snake "e"
-        state2 = is_02.rdstate();
-        VERIFY(state1 == state2);
-        VERIFY(array1[0] == L'e');
-
-        // testing for correct exception setting
-        T is_03(IOv2::mem_device{L"   impulse!!"});
-        T is_04(IOv2::mem_device{L"   impulse!!"});
-
-        is_03 >> array1;
-        VERIFY(std::wstring(array1) == L"impulse!!");
-        VERIFY(is_03.rdstate() == IOv2::ios_defs::eofbit);
-
-        is_04.width(9);
-        is_04 >> array1;
-        VERIFY(std::wstring(array1) == L"impulse!");
-        VERIFY(is_04.rdstate() == 0);
-    };
-
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
-}
-
-void test_istream_extractors_character_wchar_t_4()
-{
-    dump_info("Test istream<wchar_t> operator>> (character) case 4...");
-    auto prepare = [](std::wstring::size_type len, unsigned nchunks)
-    {
-        std::wstring ret;
-        for (unsigned i = 0; i < nchunks; ++i)
         {
-            for (std::string::size_type j = 0; j < len; ++j)
-                ret.push_back('a' + rand() % 26);
-            len *= 2;
-            ret.push_back(' ');
+            T is{mem_device{std::wstring(L"")}};
+            wchar_t c = L'#';
+            is >> c;
+            EXPECT_EQ(c, L'#');
+            EXPECT_TRUE(is.str_fail());
         }
-        return ret;
-    };
-    
-    // NB: The chunks here grow by doubling (666, 1332, ... 340992), so they far exceed the
-    // 0..255 range a field width can express. Extraction therefore targets std::wstring, whose
-    // sread grows dynamically; a raw wchar_t* target would need a setw() bound that cannot be
-    // expressed for these sizes. The point of the case -- streambuf refill across tokens much
-    // larger than the internal buffer -- is unaffected.
-    auto check = [](auto& stream, const std::wstring& str, unsigned nchunks)
-    {
-        std::wstring chunk;
-
-        std::string::size_type index = 0, index_new = 0;
-        unsigned n = 0;
-
-        while (stream >> chunk)
         {
-            index_new = str.find(' ', index);
-            VERIFY(str.compare(index, index_new - index, chunk) == 0);
-            index = index_new + 1;
-            ++n;
+            T is{mem_device{std::wstring(L"   ")}};
+            wchar_t c = L'#';
+            is >> c;
+            EXPECT_EQ(c, L'#');
+            EXPECT_TRUE(is.str_fail());
+            EXPECT_TRUE(is.eof());
         }
-        VERIFY(stream.eof());
-        VERIFY(n == nchunks);
     };
 
-    auto helper = [&prepare, &check]<template<typename, typename> class T,
-                                               typename TDevice>()
-    {
-        std::string filename = "inserters_extractors-4.txt";
-        file_guard g(filename);
-
-        const unsigned nchunks = 10;
-        const std::wstring data = prepare(666, nchunks);
-        IOv2::ostream ofstream(IOv2::ofile_device<char>{filename},
-                            IOv2::code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
-        ofstream.write(data.data(), data.size());
-        auto [odev, oerr] = ofstream.detach();
-        odev.close();
-
-        T ifstrm(TDevice{filename},
-                 IOv2::code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
-        check(ifstrm, data, nchunks);
-        auto [idev, ierr] = ifstrm.detach();
-        idev.close();
-    };
-
-    helper.operator()<IOv2::istream, IOv2::ifile_device<char>>();
-    helper.operator()<IOv2::iostream, IOv2::file_device<char>>();
-
-    dump_info("Done\n");
+    expect_untouched.operator()<istream>();
+    expect_untouched.operator()<iostream>();
 }
 
-void test_istream_extractors_character_wchar_t_5()
+TEST(IstreamExtractCharacterWchar, AnArrayExtractionTakesAWholeTokenAndTerminatesIt)
 {
-    dump_info("Test istream<wchar_t> operator>> (character) case 5...");
-
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_token = []<template <typename, typename> class T>()
     {
-        const std::wstring str_01(L"Consoli ");
-        T is_01(IOv2::mem_device{str_01});
+        T is(mem_device{std::wstring(L"  alpha beta ")});
 
-        IOv2::ios_defs::iostate state1, state2;
+        wchar_t buf[16];
+        for (wchar_t& c : buf) c = L'#';
 
-        wchar_t array1[10];
+        is >> buf;
+        EXPECT_STREQ(buf, L"alpha");
+        EXPECT_EQ(buf[6], L'#');
+        EXPECT_EQ(is.peek(), L' ');
+        EXPECT_TRUE(is.good());
 
-        is_01.width(0);
-        state1 = is_01.rdstate();
-        is_01 >> array1;
-        state2 = is_01.rdstate();
-
-        VERIFY(state1 == state2);
-        VERIFY(str_01.compare(0, 7, array1) == 0);
+        is >> buf;
+        EXPECT_STREQ(buf, L"beta");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_token.operator()<istream>();
+    expect_token.operator()<iostream>();
 }
 
-void test_istream_extractors_character_wchar_t_6()
+TEST(IstreamExtractCharacterWchar, TheArrayBoundLimitsTheExtractionOnItsOwn)
 {
-    dump_info("Test istream<wchar_t> operator>> (character) case 6...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_bounded = []<template <typename, typename> class T>()
     {
-        T in(IOv2::mem_device{L"abc d e"});
+        T is(mem_device{std::wstring(L"abcdefghi jk l")});
 
-        wchar_t pc[3];
-        in >> pc;
-        VERIFY(in.good());
-        VERIFY(pc[0] == L'a' && pc[1] == L'b' && pc[2] == L'\0');
+        wchar_t three[3];
+        is >> three;
+        EXPECT_STREQ(three, L"ab");
+        EXPECT_TRUE(is.good());
 
-        pc[2] = L'#';
-        in >> pc;
-        VERIFY(in.good());
-        VERIFY(pc[0] == L'c' && pc[1] == L'\0' && pc[2] == L'#');
+        wchar_t four[4];
+        is >> four;
+        EXPECT_STREQ(four, L"cde");
 
-        pc[2] = L'#';
-        in >> pc;
-        VERIFY(in.good());
-        VERIFY(pc[0] == L'd' && pc[1] == L'\0' && pc[2] == L'#');
-
-        pc[2] = '#';
-        in >> pc;
-        VERIFY(in.eof());
-        VERIFY(pc[0] == L'e' && pc[1] == L'\0' && pc[2] == L'#');
+        wchar_t big[16];
+        is >> big;
+        EXPECT_STREQ(big, L"fghi");
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_bounded.operator()<istream>();
+    expect_bounded.operator()<iostream>();
 }
 
-void test_istream_extractors_character_wchar_t_7()
+TEST(IstreamExtractCharacterWchar, TheFieldWidthLimitsTheExtractionAndIsSpentByIt)
 {
-    dump_info("Test istream<wchar_t> operator>> (character) case 7...");
-    auto helper = []<template<typename, typename> class T>()
+    auto expect_width = []<template <typename, typename> class T>()
     {
-        wchar_t buf[5] = {L'x', L'x', L'x', L'x', L'x'};
-        std::wstring s(L"  four");
+        {
+            T is(mem_device{std::wstring(L"abcdefghij")});
 
-        T in(IOv2::mem_device{s});
-        in >> buf;
-        VERIFY(in.good());
-        VERIFY(buf[4] == L'\0');
-        VERIFY(std::wstring(buf) == L"four");
+            wchar_t buf[16];
+            is >> setw(4) >> buf;
+            EXPECT_STREQ(buf, L"abc");
+            EXPECT_EQ(is.width(), 0);
 
-        in.clear();
-        in.attach(IOv2::mem_device{s});
-        for (int i = 0; i < 5; ++i)
-            buf[i] = L'x';
-        in.width(5);
-        in >> buf;
-        VERIFY(in.good());
-        VERIFY(std::wstring(buf) == L"four");
+            is >> buf;
+            EXPECT_STREQ(buf, L"defghij");
+        }
+        {
+            T is(mem_device{std::wstring(1000, L'a')});
+
+            wchar_t buf[8];
+            is >> setw(64) >> buf;
+            EXPECT_EQ(std::wcslen(buf), 7u);
+
+            is.clear();
+            wchar_t big[64];
+            is >> setw(8) >> big;
+            EXPECT_EQ(std::wcslen(big), 7u);
+        }
+        {
+            // A string destination needs no terminator, so the width buys a
+            // character more there than it does into an array of the same size.
+            T is(mem_device{std::wstring(L"abcdefghij")});
+
+            std::wstring s;
+            is >> setw(4) >> s;
+            EXPECT_EQ(s, L"abcd");
+            EXPECT_EQ(is.width(), 0);
+        }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
-
-    dump_info("Done\n");
+    expect_width.operator()<istream>();
+    expect_width.operator()<iostream>();
 }
 
-void test_istream_extractors_character_wchar_t_8()
+TEST(IstreamExtractCharacterWchar, ALimitOfOneLeavesRoomOnlyForTheTerminator)
 {
-    dump_info("Test istream<wchar_t> operator>> case 8 (character conformance)...");
+    auto expect_empty = []<template <typename, typename> class T>()
+    {
+        T is(mem_device{std::wstring(L"abcdef")});
 
-    // Availability is probed through `extractable` (support/io_traits_probe.h) rather than
-    // `requires { in >> v; }`, so a failure points at io_traits itself and not at the
-    // value-category and parse-context handling operator>> layers on top of it.
-    // Extraction is by reference, so unlike insertion it gets no integral promotion
-    // and therefore no numeric fallback -- a wide stream extracts wchar_t only.
+        wchar_t buf[16];
+        buf[0] = L'#';
+        is >> setw(1) >> buf;
+        EXPECT_EQ(buf[0], L'\0');
+        EXPECT_TRUE(is.str_fail());
+
+        is.clear();
+        EXPECT_EQ(is.peek(), L'a');
+    };
+
+    expect_empty.operator()<istream>();
+    expect_empty.operator()<iostream>();
+}
+
+TEST(IstreamExtractCharacterWchar, ATokenEndedByTheInputIsStillAWholeToken)
+{
+    auto expect_last = []<template <typename, typename> class T>()
+    {
+        {
+            T is(mem_device{std::wstring(L"   measure")});
+            wchar_t buf[16];
+            is >> buf;
+            EXPECT_STREQ(buf, L"measure");
+            EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+            EXPECT_FALSE(is.str_fail());
+        }
+        {
+            T is(mem_device{std::wstring(L"   measure")});
+            wchar_t buf[16];
+            is >> setw(8) >> buf;
+            EXPECT_STREQ(buf, L"measure");
+            EXPECT_EQ(is.rdstate(), ios_defs::goodbit);
+        }
+    };
+
+    expect_last.operator()<istream>();
+    expect_last.operator()<iostream>();
+}
+
+// A wide stream takes its own character type and no other: the narrow types it
+// would otherwise silently widen are rejected at the io_traits level, which is
+// where the probe looks rather than through `in >> v`.
+TEST(IstreamExtractCharacterWchar, OnlyTheStreamsOwnCharacterTypeIsExtractable)
+{
     static_assert( extractable<wchar_t, wchar_t> );
     static_assert( !extractable<wchar_t, char> );
     static_assert( !extractable<wchar_t, signed char> );
@@ -343,20 +227,103 @@ void test_istream_extractors_character_wchar_t_8()
     static_assert( !extractable<wchar_t, char16_t> );
     static_assert( !extractable<wchar_t, char32_t> );
     static_assert( !extractable<wchar_t, std::nullptr_t> );
+}
 
-    auto helper = []<template<typename, typename> class T>()
+// The limits count characters, so a token of multi-byte characters is bounded
+// at the same place as an ASCII one rather than at the same number of bytes.
+TEST(IstreamExtractCharacterWchar, TheLimitsCountCharactersNotBytes)
+{
+    auto expect_characters = []<template <typename, typename> class T>()
     {
-        T in(IOv2::mem_device{std::wstring(L"65 ")});
-        wchar_t wc = 0;
-        int n = 0;
-        in >> wc >> n;
-        VERIFY(in.good());
-        VERIFY(wc == L'6');
-        VERIFY(n == 5);
+        {
+            T is(mem_device{std::wstring(L"  漢字仮名交じり文 x")});
+
+            wchar_t buf[5];
+            is >> buf;                      // four characters and the terminator
+            EXPECT_STREQ(buf, L"漢字仮名");
+            EXPECT_TRUE(is.good());
+        }
+        {
+            T is(mem_device{std::wstring(L"  漢字仮名交じり文 x")});
+
+            std::wstring s;
+            is >> setw(3) >> s;
+            EXPECT_EQ(s, L"漢字仮");   // three characters, no terminator to pay for
+            EXPECT_EQ(is.width(), 0);
+        }
     };
 
-    helper.operator()<IOv2::istream>();
-    helper.operator()<IOv2::iostream>();
+    expect_characters.operator()<istream>();
+    expect_characters.operator()<iostream>();
+}
 
-    dump_info("Done\n");
+// Tokens far longer than the stream's internal buffer, over a real file and a
+// real multi-byte encoding.
+//
+// A wide stream on a byte device carries a converter with a buffer of its own,
+// and a block bigger than that buffer is handed to the device in one piece
+// rather than copied through it. Reaching that path takes a single unformatted
+// write of the whole text as the first thing the stream does, so that is how
+// the file is written. Reading it back a token at a time then has to reassemble
+// tokens across device reads, and the second half of the text is deliberately
+// not ASCII so that those read boundaries fall between the bytes of a character
+// as often as not. The token lengths straddle the converter's buffer in both
+// directions.
+TEST(IstreamExtractCharacterWchar, LongTokensRoundTripThroughAConvertingFileStream)
+{
+    std::vector<std::wstring> tokens;
+    auto add = [&tokens](std::size_t n, const std::wstring& from) {
+        std::wstring t;
+        t.reserve(n);
+        for (std::size_t i = 0; i < n; ++i)
+            t += from[(i + tokens.size()) % from.size()];
+        tokens.push_back(std::move(t));
+    };
+
+    for (const std::size_t n : {1u, 1023u, 1024u, 2048u, 5000u, 300000u, 3u})
+        add(n, L"abcdez");
+    for (const std::size_t n : {1u, 1023u, 2048u, 5000u})
+        add(n, L"a中é漢zξ");
+
+    const std::string path = "test_istream_extract_wide_tokens.txt";
+    file_guard        guard(path);
+
+    {
+        ostream os(ofile_device<char>{path},
+                   code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
+        ASSERT_TRUE(static_cast<bool>(os));
+
+        // One write per token, so the writes straddle whatever buffering sits
+        // between the stream and the file: some fit in what is left, some do not.
+        for (const std::wstring& t : tokens)
+        {
+            const std::wstring piece = t + L' ';
+            os.write(piece.data(), static_cast<std::ptrdiff_t>(piece.size()));
+        }
+
+        auto [dev, err] = os.detach();
+        dev.close();
+    }
+
+    auto expect_whole = [&]<template <typename, typename> class T, typename TDevice>()
+    {
+        T is(TDevice{path}, code_cvt_creator<char, wchar_t>("zh_CN.UTF-8"));
+        ASSERT_TRUE(static_cast<bool>(is));
+
+        std::size_t  n = 0;
+        std::wstring tok;
+        while (is >> tok)
+        {
+            ASSERT_LT(n, tokens.size());
+            EXPECT_EQ(tok.size(), tokens[n].size());
+            EXPECT_EQ(tok, tokens[n]);
+            ++n;
+        }
+
+        EXPECT_EQ(n, tokens.size());
+        EXPECT_TRUE(is.eof());
+    };
+
+    expect_whole.operator()<istream, ifile_device<char>>();
+    expect_whole.operator()<iostream, file_device<char>>();
 }
