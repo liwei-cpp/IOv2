@@ -42,11 +42,18 @@ SO_FLAGS  := -std=c++23 -O2 -fPIC -fvisibility=hidden -shared \
 SO_LDFLAGS :=
 # SO_LDFLAGS := -Wl,-z,nodelete
 
-LIB       := libiov2.so
+# The installed name, and where the build puts it. Out-of-source like the CMake
+# presets: build/ is the one directory a clone generates, so nothing lands beside
+# the sources. LIB_NAME is what gets installed and uninstalled under PREFIX;
+# LIB is only where this Makefile writes it.
+LIB_NAME  := libiov2.so
+LIB_DIR   ?= build/make
+LIB       := $(LIB_DIR)/$(LIB_NAME)
 SRC       := src/iov2_objects.cpp
 
 # Build the shared library.
 $(LIB): $(SRC)
+	@mkdir -p $(LIB_DIR)
 	$(CXX) $(SO_FLAGS) $(SRC) $(SO_LDFLAGS) -o $(LIB)
 
 shared: $(LIB)
@@ -70,7 +77,7 @@ install-shared: $(LIB)
 	sed 's|^prefix=.*|prefix=$(PREFIX)|' pkgconfig/iov2-shared.pc > $(PCDIR)/iov2-shared.pc
 
 clean:
-	rm -f $(LIB)
+	rm -rf $(LIB_DIR)
 
 # Remove what install / install-shared put under PREFIX: IOv2's own top-level
 # include entries (by name), the library, and both .pc files. Harmless if some
@@ -79,7 +86,7 @@ uninstall:
 	@for d in $(notdir $(wildcard include/*)); do \
 	    echo "removing $(PREFIX)/include/$$d"; rm -rf "$(PREFIX)/include/$$d"; \
 	done
-	rm -f $(PREFIX)/lib/$(LIB)
+	rm -f $(PREFIX)/lib/$(LIB_NAME)
 	rm -f $(PCDIR)/iov2.pc $(PCDIR)/iov2-shared.pc
 
 help:
@@ -89,8 +96,8 @@ help:
 	@echo "  shared           Build $(LIB) from $(SRC)"
 	@echo "  install          Install headers + iov2.pc         -> header-only mode (default)"
 	@echo "  install-shared   Build + install headers (IOV2_SHARED on) + $(LIB) + iov2-shared.pc"
-	@echo "  clean            Remove $(LIB)"
-	@echo "  uninstall        Remove installed headers, $(LIB), and .pc files from PREFIX"
+	@echo "  clean            Remove $(LIB_DIR)"
+	@echo "  uninstall        Remove installed headers, $(LIB_NAME), and .pc files from PREFIX"
 	@echo ""
 	@echo "Variables (override on the command line):"
 	@echo "  CXX=$(CXX)"

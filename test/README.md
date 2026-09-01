@@ -114,20 +114,13 @@ TSan 是 happens-before 检测器，不会凭空造出竞争，所以报红就�
 1. 把 `.cpp` 放进它所属的目录。同一目录下的所有 `.cpp` 自动进入该目录对应的套件，
    glob 带 `CONFIGURE_DEPENDS`，不需要登记文件名。
 2. 新建目录 = 新建套件，无需额外配置。
-3. 用 `TEST(前缀, 用例名)` 写用例，它自己会注册，不需要在任何地方登记。新建目录时
-   重新生成一次清单（`test/suites.cmake` 由脚本生成，**不要手改**）：
+3. 用 `TEST(前缀, 用例名)` 写用例，它自己会注册，不需要在任何地方登记。
+4. 重新配置一次（`cmake --preset gcc-release`）就行；配置时会打印
+   `IOv2 tests: N sources in M suites`，这是核对文件真的被认进来的地方。
 
-   ```bash
-   python3 test/tools/derive_suites.py          # 重新生成
-   python3 test/tools/derive_suites.py --check  # 校验：与源码不符则失败
-   ```
-
-4. 重新配置一次（`cmake --preset gcc-release`），CMake 会核对源文件总数并检查每个
-   `.cpp` 都归属于某个套件。数量对不上或有文件无人认领，配置阶段直接报错——这两种
-   情况都会让测试悄悄变少而 CI 仍然全绿。
-
-全部套件都已是 GoogleTest，用例自行注册，所以入口表是空的，当年那七个聚合 `main()`
-和纯派发文件也都删掉了。清单现在只剩两件事：套件目录清单，以及哪些是 GoogleTest。
+套件划分就是"凡是直接含 `.cpp` 的目录各为一套"，由 `test/CMakeLists.txt` 在配置时
+算出来，没有需要维护的清单文件——所以也不存在"某个 `.cpp` 不属于任何套件"这种
+悄悄少跑测试的情况。
 
 ### 对着已安装的库跑
 
@@ -274,23 +267,15 @@ invent races, so a red result is a real defect.
    file has to be registered by name.
 2. A new directory is a new suite, with no further configuration.
 3. Write the case as `TEST(Prefix, CaseName)`; it registers itself and does not
-   have to be listed anywhere. When adding a directory, regenerate the manifest
-   (`test/suites.cmake` is generated and **must not be edited by hand**):
+   have to be listed anywhere.
+4. Configure once more (`cmake --preset gcc-release`). Configuring prints
+   `IOv2 tests: N sources in M suites`, which is where to check that the file was
+   picked up.
 
-   ```bash
-   python3 test/tools/derive_suites.py          # regenerate
-   python3 test/tools/derive_suites.py --check  # verify against the sources
-   ```
-
-4. Configure once more (`cmake --preset gcc-release`). CMake checks the total source
-   count against the manifest and that every `.cpp` is claimed by some suite; either
-   a wrong count or an unclaimed file is a hard error at configure time. Both are
-   ways to silently run fewer tests while CI stays green.
-
-Every suite is GoogleTest now, so the cases register themselves, the entry lists
-are empty, and the seven aggregate `main()`s of the old build -- along with the
-dispatch-only files under them -- have been deleted. What the manifest still
-carries is the list of suite directories and which of them are GoogleTest.
+The partition is simply "one suite per directory that directly holds a `.cpp`",
+computed by `test/CMakeLists.txt` at configure time. There is no manifest to keep
+in step, and so no way for a `.cpp` to belong to no suite and quietly stop being
+run while CI stays green.
 
 ### Running Against an Installed Library
 

@@ -312,7 +312,7 @@ jobs:
       run: |
         # iov2_objects.cpp pulls in none of the optional converters, so the .so
         # must not depend on zlib/Botan.
-        if readelf -d libiov2.so | grep -Eiq 'libz|libbotan'; then
+        if readelf -d build/make/libiov2.so | grep -Eiq 'libz|libbotan'; then
           echo "libiov2.so unexpectedly links zlib/Botan"; exit 1
         fi
 

@@ -1,4 +1,4 @@
-# The test suite: 164 sources, 57 per-feature suites, 57 CTest tests.
+# The test suite: 137 sources, 57 per-feature suites, 57 CTest tests.
 #
 # test/Makefile linked everything into seven executables, one per top-level
 # directory, each driven by a hand-written main() that called its tests in a
@@ -7,36 +7,37 @@
 # the monetary facet or just ostream::seek.
 #
 # The suites here are those same tests, regrouped by the directory that holds
-# them and given a generated main(). Which functions each one calls, and in what
-# order, is derived from the remaining aggregate main()s by
-# test/tools/derive_suites.py and recorded in test/suites.cmake -- so this is a
-# regrouping, not a rewrite.
-#
-# Directories in IOV2_TEST_GTEST_SUITE_DIRS have since been converted to
-# GoogleTest. Their cases register themselves, so once a directory is fully
-# converted its aggregate main() has nothing left to order and is deleted.
+# them. Every suite is GoogleTest now, so the cases register themselves and
+# there is no order left to preserve; the partition is simply "one suite per
+# directory that directly holds a .cpp", computed below rather than recorded in
+# a manifest.
 
 include(IOv2TestOptions)
-include("${CMAKE_CURRENT_SOURCE_DIR}/suites.cmake")
+include(IOv2GoogleTest)
 
-# IOV2_TEST_GTEST_SUITE_DIRS comes from suites.cmake, derived from which sources
-# include <gtest/gtest.h>. Keeping it out of here is what stops it drifting away
-# from the sources as the conversion proceeds one file at a time.
-if(IOV2_TEST_GTEST_SUITE_DIRS)
-  include(IOv2GoogleTest)
+# One suite per directory that directly holds a source. Deriving it here is what
+# makes a new directory a new suite with no other edit, and makes it impossible
+# for a source to belong to no suite -- the two ways the split used to lose
+# tests silently while staying green.
+file(GLOB_RECURSE IOV2_TEST_ALL_SOURCES CONFIGURE_DEPENDS
+     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+if(NOT IOV2_TEST_ALL_SOURCES)
+  message(FATAL_ERROR "No test sources found under ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
-# Everything lands under <build>/test/ in the layout the tests already expect:
-# eight of them locate message catalogues by resolving /proc/self/exe and then
-# walking to <exe dir>/../IOv2TestResources. Reproducing that layout is what lets
-# this migration leave those tests untouched; replacing it with an environment
-# variable is a separate, later change.
+set(IOV2_TEST_SUITE_DIRS "")
+foreach(source IN LISTS IOV2_TEST_ALL_SOURCES)
+  get_filename_component(source_dir "${source}" DIRECTORY)
+  file(RELATIVE_PATH source_dir "${CMAKE_CURRENT_SOURCE_DIR}" "${source_dir}")
+  list(APPEND IOV2_TEST_SUITE_DIRS "${source_dir}")
+endforeach()
+list(REMOVE_DUPLICATES IOV2_TEST_SUITE_DIRS)
+list(SORT IOV2_TEST_SUITE_DIRS)
+
 set(IOV2_TEST_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/bin")
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/IOv2TestResources"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-
-set(IOV2_TEST_CLAIMED_SOURCES "")
 
 foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   string(REPLACE "/" "_" suite_slug "${suite_dir}")
@@ -47,43 +48,11 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   # into its parent as well would run those tests twice.
   file(GLOB suite_sources CONFIGURE_DEPENDS
        "${CMAKE_CURRENT_SOURCE_DIR}/${suite_dir}/*.cpp")
-  foreach(excluded IN LISTS IOV2_TEST_EXCLUDED_SOURCES)
-    list(REMOVE_ITEM suite_sources "${CMAKE_CURRENT_SOURCE_DIR}/${excluded}")
-  endforeach()
-  if(NOT suite_sources)
-    message(FATAL_ERROR "Suite '${suite_dir}' has no sources left to compile")
-  endif()
-  list(APPEND IOV2_TEST_CLAIMED_SOURCES ${suite_sources})
 
-  set(IOV2_SUITE_DECLARATIONS "")
-  set(IOV2_SUITE_CALLS "")
-  foreach(entry IN LISTS ${target}_ENTRIES)
-    string(APPEND IOV2_SUITE_DECLARATIONS "void ${entry}();\n")
-    string(APPEND IOV2_SUITE_CALLS "        ${entry}();\n")
-  endforeach()
-
-  set(suite_main "${CMAKE_CURRENT_BINARY_DIR}/generated/${suite_slug}_main.cpp")
-  if(suite_dir IN_LIST IOV2_TEST_GTEST_SUITE_DIRS)
-    # The still-unconverted entries run inside one test case; an empty one would
-    # only be noise, so it is omitted once the directory is fully converted.
-    set(IOV2_SUITE_LEGACY_TEST "")
-    if(${target}_ENTRIES)
-      string(APPEND IOV2_SUITE_LEGACY_TEST
-          "TEST(Legacy, ${suite_slug})\n{\n${IOV2_SUITE_CALLS}}\n")
-    endif()
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/suite_main_gtest.cpp.in"
-                   "${suite_main}" @ONLY)
-  else()
-    configure_file("${PROJECT_SOURCE_DIR}/cmake/suite_main.cpp.in" "${suite_main}" @ONLY)
-  endif()
-
-  add_executable(${target} ${suite_main} ${suite_sources})
+  add_executable(${target} "${PROJECT_SOURCE_DIR}/cmake/gtest_main.cpp" ${suite_sources})
 
   target_link_libraries(${target} PRIVATE
-      iov2_test_subject iov2_test_options iov2_test_thirdparty)
-  if(suite_dir IN_LIST IOV2_TEST_GTEST_SUITE_DIRS)
-    target_link_libraries(${target} PRIVATE iov2_test_gtest)
-  endif()
+      iov2_test_subject iov2_test_options iov2_test_thirdparty iov2_test_gtest)
 
   # -I../include then -I., in that order, exactly as the Makefile passes them.
   # The second is what makes <support/file_guard.h> and friends resolve.
@@ -131,35 +100,9 @@ foreach(suite_dir IN LISTS IOV2_TEST_SUITE_DIRS)
   endif()
 endforeach()
 
-# Two ways for the split to lose tests silently, both of which leave the suites
-# green and show up only as a hole in the coverage report: a glob that stops
-# matching, and a new directory that no suite covers. Check the total against the
-# manifest, then check that the suites between them claim every source the
-# manifest does not name as deliberately excluded.
-file(GLOB_RECURSE IOV2_TEST_ALL_SOURCES CONFIGURE_DEPENDS
-     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 list(LENGTH IOV2_TEST_ALL_SOURCES IOV2_TEST_SOURCE_TOTAL)
-if(NOT IOV2_TEST_SOURCE_TOTAL EQUAL IOV2_TEST_SOURCE_TOTAL_EXPECTED)
-  message(FATAL_ERROR
-      "Found ${IOV2_TEST_SOURCE_TOTAL} test sources, expected "
-      "${IOV2_TEST_SOURCE_TOTAL_EXPECTED}. If sources were added or removed, "
-      "re-run test/tools/derive_suites.py.")
-endif()
-
-set(IOV2_TEST_UNCLAIMED_SOURCES ${IOV2_TEST_ALL_SOURCES})
-list(REMOVE_ITEM IOV2_TEST_UNCLAIMED_SOURCES ${IOV2_TEST_CLAIMED_SOURCES})
-foreach(excluded IN LISTS IOV2_TEST_EXCLUDED_SOURCES)
-  list(REMOVE_ITEM IOV2_TEST_UNCLAIMED_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/${excluded}")
-endforeach()
-if(IOV2_TEST_UNCLAIMED_SOURCES)
-  message(FATAL_ERROR
-      "These test sources belong to no suite: ${IOV2_TEST_UNCLAIMED_SOURCES}. "
-      "Re-run test/tools/derive_suites.py.")
-endif()
-
-list(LENGTH IOV2_TEST_CLAIMED_SOURCES IOV2_TEST_CLAIMED_COUNT)
 list(LENGTH IOV2_TEST_SUITE_DIRS IOV2_TEST_SUITE_COUNT)
 message(STATUS
-    "IOv2 tests: ${IOV2_TEST_CLAIMED_COUNT} of ${IOV2_TEST_SOURCE_TOTAL} sources in "
+    "IOv2 tests: ${IOV2_TEST_SOURCE_TOTAL} sources in "
     "${IOV2_TEST_SUITE_COUNT} suites (mode=${IOV2_TEST_MODE}, "
     "consumer=${IOV2_TEST_CONSUMER})")

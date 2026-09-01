@@ -1,19 +1,22 @@
+# What a fresh clone generates when it is built, tested or documented with the
+# commands this repository provides. Anything an editor, a personal script or a
+# one-off command leaves behind is deliberately not listed: those belong in a
+# global ignore file, not here.
+
 # CMake build trees, one per compiler/mode/consumer combination and named after
 # the preset that created it. Out-of-source by design: moving off test/Makefile
-# is what stopped obj_*/bin_* being generated inside the source tree.
+# is what stopped obj_*/bin_* being generated inside the source tree. Everything
+# a build produces lands in here: objects, binaries, .gcda/.gcno, CTest's
+# Testing/ directory, compile_commands.json, and the top-level Makefile's
+# libiov2.so (build/make/).
 /build/
 
-# Coverage data
-*.gcda
-*.gcno
+# The lcov summary the coverage instructions in test/README.md write, which they
+# name without a path and so leave next to the sources.
 coverage.info
 
-# Auto-generated documentation (should not be committed to source tree)
+# Doxygen output. Doxyfile.en and Doxyfile.zh both set OUTPUT_DIRECTORY = docs,
+# so running either from a clone fills these two in beside the checked-in
+# docs/index.html.
 docs/en/
 docs/zh/
-docs/.nojekyll
-
-# Locally-generated compilation database for clangd/IDE (machine-specific
-# absolute paths; regenerate locally, do not commit)
-compile_commands.json
-.cache/
