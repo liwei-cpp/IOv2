@@ -59,21 +59,40 @@ namespace
         }
     }
 
-    std::tm test_tm(int sec, int min, int hour, int mday, int mon, int year,
-                    int wday, int yday, int isdst)
+    std::tm calendar_time(int year, int month, int day, int hour, int minute, int second,
+                          int weekday, int yearday, int daylight)
     {
         std::tm tmp{};
-        tmp.tm_sec   = sec;
-        tmp.tm_min   = min;
-        tmp.tm_hour  = hour;
-        tmp.tm_mday  = mday;
-        tmp.tm_mon   = mon;
         tmp.tm_year  = year;
-        tmp.tm_wday  = wday;
-        tmp.tm_yday  = yday;
-        tmp.tm_isdst = isdst;
+        tmp.tm_mon   = month;
+        tmp.tm_mday  = day;
+        tmp.tm_hour  = hour;
+        tmp.tm_min   = minute;
+        tmp.tm_sec   = second;
+        tmp.tm_wday  = weekday;
+        tmp.tm_yday  = yearday;
+        tmp.tm_isdst = daylight;
         return tmp;
     }
+
+    template <typename TChar>
+    class expanded_composite_conf final : public timeio_conf<TChar>
+    {
+    public:
+        expanded_composite_conf()
+            : timeio_conf<TChar>("C")
+            , m_format(140, static_cast<TChar>('q'))
+        {
+            for (char c : std::string_view{"-%Y-%m-%d-%T-"})
+                m_format.push_back(static_cast<TChar>(c));
+            m_format.append(20, static_cast<TChar>('z'));
+        }
+
+        const std::basic_string<TChar>& date_time_format() const override { return m_format; }
+
+    private:
+        std::basic_string<TChar> m_format;
+    };
 
     auto create_zoned_time(int y, unsigned m, unsigned d, int h, int min, int s,
                            const std::string& tz)
@@ -798,7 +817,7 @@ TEST(TimeioChar8, ATimeOfDayWritesEveryConversionSpecifierItCanSupply)
 TEST(TimeioChar8, ABrokenDownTimeWritesEveryConversionSpecifier)
 {
     const timeio<char8_t> obj = facet_for("ja_JP.UTF-8");
-    const std::tm         tp  = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 0, 0, 0);
+    const std::tm         tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
     static const conversion kConversions[] = {
         {u8'%', 0, u8"%"},
@@ -931,12 +950,12 @@ namespace
 }
 
 // %Z is the one specifier a std::tm answers from a field rather than from the
-// calendar, and the field may be empty two different ways.  test_tm leaves
+// calendar, and the field may be empty two different ways.  calendar_time leaves
 // tm_zone null; a caller can just as well set it to "".  Neither names a zone.
 TEST(TimeioChar8, ABrokenDownTimeNamesItsZoneOrSaysItCannot)
 {
     const timeio<char8_t> obj = facet_for("ja_JP.UTF-8");
-    const std::tm         tp  = test_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 0, 0, 0);
+    const std::tm         tp  = calendar_time(2024 - 1900, 9 - 1, 4, 13, 33, 18, 0, 0, 0);
 
     EXPECT_EQ(put_one(obj, tp, u8'Z'), u8"UNKNOWN");
     EXPECT_EQ(put_one(obj, tp, u8'z'), u8"+0000");
@@ -1109,24 +1128,22 @@ TEST(TimeioChar8, TheTwelveHourClockNeedsItsMeridiem)
     EXPECT_EQ(morning.tm_hour, 7);
 }
 
-// %c under a locale this file does not otherwise touch, against strftime.
-// ta_IN is the interesting one: its %c is long enough to have been truncated
-// by a fixed-size buffer somewhere along the way.
-TEST(TimeioChar8, TheCompositeFormatsMatchTheCLibrary)
+TEST(TimeioChar8, ACompositeFormatCanExpandPastAConventionalStackBuffer)
 {
-    timeio obj(std::make_shared<timeio_conf<char8_t>>("ta_IN.UTF-8"));
-    const tm time1 = test_tm(0, 0, 12, 4, 3, 71, 0, 93, 0);
-    auto     zt = create_zoned_time(1971, 4, 4, 12, 0, 0, "America/Los_Angeles");
+    std::shared_ptr<timeio_conf<char8_t>> conf =
+        std::make_shared<expanded_composite_conf<char8_t>>();
+    timeio obj(conf);
+    auto   zt = create_zoned_time(2022, 11, 17, 21, 47, 26, "America/Los_Angeles");
 
-    std::u8string res;
-    obj.put(std::back_inserter(res), zt, u8'c');
+    std::u8string actual;
+    obj.put(std::back_inserter(actual), zt, u8'c');
 
-    char time_buffer[128];
-    setlocale(LC_ALL, "ta_IN");
-    std::strftime(time_buffer, 128, "%c", &time1);
-    setlocale(LC_ALL, "C");
+    std::u8string expected(140, u8'q');
+    expected += u8"-2022-11-17-21:47:26-";
+    expected.append(20, u8'z');
 
-    EXPECT_EQ(std::u8string(reinterpret_cast<const char8_t*>(time_buffer)), res);
+    EXPECT_GT(actual.size(), 128u);
+    EXPECT_EQ(actual, expected);
 }
 
 TEST(TimeioChar8, TheCLocaleReadsEveryConversionSpecifier)
@@ -2175,92 +2192,40 @@ TEST(TimeioChar8, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
         EXPECT_THROW(obj.get(input.begin(), input.end(), ctx, format), stream_error);
     }
 
+    struct clock_case { const char8_t* input; int hour; int minute; };
+    for (const clock_case tc : {
+             clock_case{u8"12:11AM", 0, 11},
+             clock_case{u8"03:14AM", 3, 14},
+             clock_case{u8"09:27AM", 9, 27},
+             clock_case{u8"12:29PM", 12, 29},
+             clock_case{u8"02:38PM", 14, 38},
+             clock_case{u8"09:52PM", 21, 52},
+         })
     {
-        std::u8string input = u8"12:00AM";
-        std::u8string format = u8"%I:%M%p";
+        std::u8string input(tc.input);
+        time_parse_context<char8_t> ctx;
+        const auto ret = obj.get(input.begin(), input.end(), ctx,
+                                 std::u8string_view{u8"%I:%M%p"});
+        const auto time = ctx_to<std::tm>(ctx);
+        EXPECT_EQ(ret, input.end());
+        EXPECT_EQ(time.tm_hour, tc.hour);
+        EXPECT_EQ(time.tm_min, tc.minute);
+    }
+
+    {
+        std::u8string input = u8"08%46";
+        std::u8string format = u8"%H%%%S";
 
         time_parse_context<char8_t> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         EXPECT_EQ(ret, input.end());
         auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 0);
-        EXPECT_EQ(time.tm_min, 0);
+        EXPECT_EQ(time.tm_hour, 8);
+        EXPECT_EQ(time.tm_sec, 46);
     }
 
     {
-        std::u8string input = u8"12:37AM";
-        std::u8string format = u8"%I:%M%p";
-
-        time_parse_context<char8_t> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 0);
-        EXPECT_EQ(time.tm_min, 37);
-    }
-
-    {
-        std::u8string input = u8"01:25AM";
-        std::u8string format = u8"%I:%M%p";
-
-        time_parse_context<char8_t> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 1);
-        EXPECT_EQ(time.tm_min, 25);
-    }
-
-    {
-        std::u8string input = u8"12:00PM";
-        std::u8string format = u8"%I:%M%p";
-
-        time_parse_context<char8_t> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 12);
-        EXPECT_EQ(time.tm_min, 0);
-    }
-
-    {
-        std::u8string input = u8"12:42PM";
-        std::u8string format = u8"%I:%M%p";
-
-        time_parse_context<char8_t> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 12);
-        EXPECT_EQ(time.tm_min, 42);
-    }
-
-    {
-        std::u8string input = u8"07:23PM";
-        std::u8string format = u8"%I:%M%p";
-
-        time_parse_context<char8_t> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 19);
-        EXPECT_EQ(time.tm_min, 23);
-    }
-
-    {
-        std::u8string input = u8"17%20";
-        std::u8string format = u8"%H%%%M";
-
-        time_parse_context<char8_t> ctx;
-        auto ret = obj.get(input.begin(), input.end(), ctx, format);
-        EXPECT_EQ(ret, input.end());
-        auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_hour, 17);
-        EXPECT_EQ(time.tm_min, 20);
-    }
-
-    {
-        std::u8string input = u8"24:30";
+        std::u8string input = u8"29:14";
         std::u8string format = u8"%H:%M";
 
         time_parse_context<char8_t> ctx;
@@ -2268,14 +2233,14 @@ TEST(TimeioChar8, AWeekdayOrMonthNameIsMatchedAgainstBothSpellings)
     }
 
     {
-        std::u8string input = u8"Decembur";
-        std::u8string format = u8"%bembur";
+        std::u8string input = u8"Oct+tail";
+        std::u8string format = u8"%b+tail";
 
         time_parse_context<char8_t> ctx;
         auto ret = obj.get(input.begin(), input.end(), ctx, format);
         EXPECT_EQ(ret, input.end());
         auto time = ctx_to<std::tm>(ctx);
-        EXPECT_EQ(time.tm_mon, 11);
+        EXPECT_EQ(time.tm_mon, 9);
     }
 }
 
@@ -3434,7 +3399,7 @@ TEST(TimeioChar8, AValueThatIsNotAValidTimeIsRejected)
 TEST(TimeioChar8, ALoneOrUnknownSpecifierIsEchoedVerbatim)
 {
     timeio obj(std::make_shared<timeio_conf<char8_t>>("C"));
-    const std::tm t = test_tm(3, 2, 1, 15, 0, 124, 1, 14, 0);
+    const std::tm t = calendar_time(124, 0, 15, 1, 2, 3, 1, 14, 0);
 
     struct { const char8_t* fmt; const char8_t* want; } cases[] = {
         {u8"%Y%", u8"2024%"},   // a lone u8'%' after a real specifier
@@ -3546,4 +3511,3 @@ TEST(TimeioChar8, TheZoneTierDecidesHowAZoneNameIsParsed)
         EXPECT_EQ(us.get(res.begin(), res.end(), ctx, std::u8string_view(u8"%c")), res.end());
     }
 }
-

@@ -29,39 +29,34 @@
 
 `ios_base::precision(streamsize)` 接受任意 `streamsize`,所以 `os.precision(INT_MAX)` 是完全合法的标准用法。
 
-根因位于 `libstdc++-v3/include/bits/locale_facets.tcc` 的 `num_put<>::_M_insert_float`(GCC 15.1.0 行号):
+根因位于 `libstdc++-v3/include/bits/locale_facets.tcc` 的 `num_put<>::_M_insert_float`。实际实现可在
+[`locale_facets.tcc`（GCC commit `1b306039ac49f8ad91ca71d3de3150a3c9fa792a`）](https://github.com/gcc-mirror/gcc/blob/1b306039ac49f8ad91ca71d3de3150a3c9fa792a/libstdc%2B%2B-v3/include/bits/locale_facets.tcc#L1009-L1073)
+核验。关键控制流可概括为以下项目自拟伪代码（并非 GCC 源码）：
 
-```cpp
-// 1009: 只钳制了负值,没有钳制 > INT_MAX
-const streamsize __prec = __io.precision() < 0 ? 6 : __io.precision();
-// 1015:
-int __len;
-...
-// 1027/1028: 初始缓冲很小(__max_digits*3,double 约 51),不含 __prec
-int   __cs_size = __max_digits * 3;
-char* __cs = static_cast<char*>(__builtin_alloca(__cs_size));
-// 1030: 变参调用,"%.*f" 通过 va_arg 取 int 精度,最终返回 vsnprintf 的结果
-__len = std::__convert_from_v(_S_get_c_locale(), __cs, __cs_size, __fbuf, __prec, __v);
-// 1037: 唯一的判断 —— 捕捉不到负的 __len
-if (__len >= __cs_size) { __cs_size = __len + 1; __cs = __builtin_alloca(__cs_size); ... }
-...
-// 1071-1073: 负的 __len 被当成长度复用
-_CharT* __ws = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * __len));
-__ctype.widen(__cs, __cs + __len, __ws);
+```text
+precision := 流精度；仅把负值替换为默认精度
+capacity  := 一个不包含 precision 的较小初始容量
+length    := 调用 C 格式化函数(buffer, capacity, precision, value)
+
+如果 length >= capacity：
+    按 length + 1 在栈上重新分配并重试
+
+按 length 在栈上分配宽字符缓冲区
+拓宽 buffer[0 .. length)
 ```
 
 关键链条:
 
 1. `%.*f` 在精度 = `INT_MAX` 时,要产出约 21 亿位小数,总长度超过 `INT_MAX`。C 标准下 `vsnprintf` 的返回类型是 `int`,装不下这个长度;glibc 与 Apple libc 都会**返回 -1 并置 `errno = EOVERFLOW`**。
-2. libstdc++ 把该返回值存进 `int __len`(= -1),而**唯一的检查是 `if (__len >= __cs_size)`**(第 1037 行),`-1 >= 51` 为假,于是把 -1 当成「转换成功、长度 -1」继续。
-3. `-1` 随后被当成长度复用:`__builtin_alloca(sizeof(_CharT) * __len)`(第 1071 行)、`widen(__cs, __cs + __len, __ws)`(第 1073 行),以及随后的 `_M_pad`。在 `size_t` 语境下 `-1` 变成 `~SIZE_MAX`,触发一次越界 `memmove` → **SIGSEGV**。
+2. libstdc++ 把该返回值存进一个 `int` 长度变量(值为 -1),而后续唯一的检查只处理「返回长度不小于当前容量」的情况。由于 -1 小于约 51 的初始容量,执行会把它误当成成功结果并继续。
+3. 该负数随后既参与宽字符栈缓冲区的尺寸计算,又充当待拓宽字符区间的长度,最后还进入填充流程。在转换为无符号尺寸后,它变成一个极大的值,触发越界 `memmove` → **SIGSEGV**。
 
 存在两种崩溃模式(开启 `std::fixed` 时都崩):
 
 | 精度(`std::fixed`) | 底层 `vsnprintf` | libstdc++ 结果 |
 |---|---|---|
-| `INT_MAX` | 返回 **-1**(EOVERFLOW) | `int __len = -1` 未检查 → `_M_pad` 中 `memmove(~SIZE_MAX)` → **SIGSEGV** |
-| `INT_MAX - 100` | 返回 **~2.1×10⁹** | `__len >= __cs_size` 成立 → 重试时 `alloca(__len+1)` ≈ 2 GB 栈分配 → **栈溢出 SIGSEGV** |
+| `INT_MAX` | 返回 **-1**(EOVERFLOW) | 负长度未检查 → 填充阶段收到极大的无符号长度 → **SIGSEGV** |
+| `INT_MAX - 100` | 返回 **~2.1×10⁹** | 返回长度超过初始容量 → 重试时申请约 2 GB 栈空间 → **栈溢出 SIGSEGV** |
 | 默认 `%g`(未开 fixed) | 输出很短(去掉尾零) | 不崩 —— 因此普通 `std::cout << x` 测试发现不了 |
 
 最小复现(`repro_gcc_num_put_precision_overflow.cpp`,见仓库根目录):
@@ -94,17 +89,14 @@ snprintf(buf, n, "%.*f", INT_MAX-100, 1.5) -> 2147483549, errno=0
 
 #### 修复建议
 
-在 `__convert_from_v` 返回后、复用 `__len` 之前,检查负返回值并优雅处理,例如:
+在格式转换返回后、把返回值用作长度之前,检查负返回值并优雅处理。例如以下伪代码：
 
-```cpp
-__len = std::__convert_from_v(...);
-if (__len < 0)
-  {
-    // 转换无法表示该长度(EOVERFLOW):置 badbit / 抛异常,绝不把负值当长度用
-    __io.setstate(ios_base::badbit);   // 或者按既有约定处理
-    return __s;
-  }
-if (__len >= __cs_size) { ... }
+```text
+length := 调用格式化函数(...)
+如果 length < 0：
+    按库的错误约定置状态或抛出异常，然后返回
+否则如果 length >= capacity：
+    扩大缓冲区并重试
 ```
 
 更彻底的做法是在进入转换前对 `__prec` 设上限(任何会让总输出超过 `INT_MAX` 的精度都不可能产出合法结果)。
@@ -142,40 +134,34 @@ When formatting a floating-point value, `std::num_put` passes `str.precision()` 
 
 `ios_base::precision(streamsize)` accepts any `streamsize`, so `os.precision(INT_MAX)` is perfectly well-formed standard usage.
 
-The root cause is in `num_put<>::_M_insert_float`, `libstdc++-v3/include/bits/locale_facets.tcc` (GCC 15.1.0 line numbers):
+The root cause is in `num_put<>::_M_insert_float`, `libstdc++-v3/include/bits/locale_facets.tcc`. The implementation can be verified in
+[`locale_facets.tcc` at GCC commit `1b306039ac49f8ad91ca71d3de3150a3c9fa792a`](https://github.com/gcc-mirror/gcc/blob/1b306039ac49f8ad91ca71d3de3150a3c9fa792a/libstdc%2B%2B-v3/include/bits/locale_facets.tcc#L1009-L1073).
+Its relevant control flow is summarized by this independently written pseudocode (not GCC source):
 
-```cpp
-// 1009: clamps the negative side only, never > INT_MAX
-const streamsize __prec = __io.precision() < 0 ? 6 : __io.precision();
-// 1015:
-int __len;
-...
-// 1027/1028: small initial buffer (__max_digits*3, ~51 for double); excludes __prec
-int   __cs_size = __max_digits * 3;
-char* __cs = static_cast<char*>(__builtin_alloca(__cs_size));
-// 1030: variadic; "%.*f" consumes the precision via va_arg(int) and ultimately
-//       returns vsnprintf's result
-__len = std::__convert_from_v(_S_get_c_locale(), __cs, __cs_size, __fbuf, __prec, __v);
-// 1037: the ONLY guard -- a negative __len slips through
-if (__len >= __cs_size) { __cs_size = __len + 1; __cs = __builtin_alloca(__cs_size); ... }
-...
-// 1071-1073: the negative __len is reused as a length
-_CharT* __ws = static_cast<_CharT*>(__builtin_alloca(sizeof(_CharT) * __len));
-__ctype.widen(__cs, __cs + __len, __ws);
+```text
+precision := stream precision, replacing only negative values with the default
+capacity  := a small initial capacity that does not include precision
+length    := call C formatter(buffer, capacity, precision, value)
+
+if length >= capacity:
+    allocate length + 1 bytes on the stack and retry
+
+allocate a wide-character stack buffer using length
+widen buffer[0 .. length)
 ```
 
 The chain:
 
 1. `%.*f` at precision `INT_MAX` would emit ~2.1 billion fractional digits; the total length exceeds `INT_MAX`. C's `vsnprintf` returns `int`, which cannot represent that length, so both glibc and Apple libc **return -1 and set `errno = EOVERFLOW`**.
-2. libstdc++ stores that in `int __len` (= -1), and the **only** check is `if (__len >= __cs_size)` (line 1037). `-1 >= 51` is false, so the -1 is mistaken for "conversion succeeded, length -1" and execution continues.
-3. The `-1` is then reused as a length: `__builtin_alloca(sizeof(_CharT) * __len)` (line 1071), `widen(__cs, __cs + __len, __ws)` (line 1073), and later `_M_pad`. In a `size_t` context `-1` becomes `~SIZE_MAX`, driving an out-of-bounds `memmove` → **SIGSEGV**.
+2. libstdc++ stores that return value in an `int` length variable (now -1), while its only subsequent check handles the case where the reported length is at least the current capacity. Because -1 is below the roughly 51-byte initial capacity, execution mistakes it for a successful result and continues.
+3. The negative value then participates in sizing a wide-character stack buffer, delimiting the input range to widen, and the later padding path. Conversion to an unsigned size turns it into a huge value, driving an out-of-bounds `memmove` → **SIGSEGV**.
 
 Two crash regimes (both with `std::fixed`):
 
 | precision (`std::fixed`) | underlying `vsnprintf` | libstdc++ outcome |
 |---|---|---|
-| `INT_MAX` | returns **-1** (EOVERFLOW) | `int __len = -1` unchecked → `memmove(~SIZE_MAX)` in `_M_pad` → **SIGSEGV** |
-| `INT_MAX - 100` | returns **~2.1×10⁹** | `__len >= __cs_size` → retry `alloca(__len+1)` ≈ 2 GB → **stack-overflow SIGSEGV** |
+| `INT_MAX` | returns **-1** (EOVERFLOW) | negative length unchecked → padding receives a huge unsigned length → **SIGSEGV** |
+| `INT_MAX - 100` | returns **~2.1×10⁹** | reported length exceeds initial capacity → retry requests about 2 GB of stack space → **stack-overflow SIGSEGV** |
 | default `%g` (no fixed) | short (trailing zeros stripped) | fine — so plain `std::cout << x` never hits it |
 
 Minimal reproducer (`repro_gcc_num_put_precision_overflow.cpp`, repo root):
@@ -208,18 +194,14 @@ snprintf(buf, n, "%.*f", INT_MAX-100, 1.5) -> 2147483549, errno=0
 
 #### Suggested fix
 
-After `__convert_from_v` and before reusing `__len`, check for a negative return and handle it gracefully:
+After the formatting call and before using its return value as a length, check for a negative result and fail cleanly. In pseudocode:
 
-```cpp
-__len = std::__convert_from_v(...);
-if (__len < 0)
-  {
-    // conversion cannot represent the length (EOVERFLOW): set badbit / throw;
-    // never use the negative value as a length.
-    __io.setstate(ios_base::badbit);   // or per the established convention
-    return __s;
-  }
-if (__len >= __cs_size) { ... }
+```text
+length := call formatter(...)
+if length < 0:
+    set the library's error state or throw according to its convention, then return
+else if length >= capacity:
+    grow the buffer and retry
 ```
 
 A stronger fix is to bound `__prec` before the conversion (any precision large enough to push total output past `INT_MAX` cannot yield a valid result anyway).

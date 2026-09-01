@@ -18,32 +18,17 @@
 
 using namespace IOv2;
 
-namespace
-{
-    // Static so that the members this helper does not name -- tm_gmtoff and
-    // tm_zone on glibc -- start out zeroed rather than indeterminate.
-    std::tm make_tm(int sec, int min, int hour, int mday, int mon, int year,
-                    int wday, int yday, int isdst)
-    {
-        static std::tm tmp;
-        tmp.tm_sec   = sec;
-        tmp.tm_min   = min;
-        tmp.tm_hour  = hour;
-        tmp.tm_mday  = mday;
-        tmp.tm_mon   = mon;
-        tmp.tm_year  = year;
-        tmp.tm_wday  = wday;
-        tmp.tm_yday  = yday;
-        tmp.tm_isdst = isdst;
-        return tmp;
-    }
-}
-
 TEST(OstreamInsertTimeWchar, ATmIsWrittenInTheDefaultFormatOfTheCLocale)
 {
     auto helper = []<template <typename, typename> class T>()
     {
-        const std::tm tp = make_tm(18, 33, 13, 4, 9 - 1, 2024 - 1900, 0, 0, 0);
+        std::tm tp{};
+        tp.tm_year = 2024 - 1900;
+        tp.tm_mon  = 9 - 1;
+        tp.tm_mday = 4;
+        tp.tm_hour = 13;
+        tp.tm_min  = 33;
+        tp.tm_sec  = 18;
 
         T f(mem_device{L""}, locale<wchar_t>("C"));
         f << tp;

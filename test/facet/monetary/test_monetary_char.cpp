@@ -337,7 +337,7 @@ TEST(MonetaryChar, TheAmountIsCutFracDigitsPlacesFromTheRight)
     ios_base<char>       ios;
     const monetary<char> obj(tuned()->fraction(2).both(kSymbolSignValue).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, "123456"), "1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, "827364"), "8273.64");
     EXPECT_EQ(put_str(obj, false, ios, "1"), ".01");
     EXPECT_EQ(put_str(obj, false, ios, "12"), ".12");
     EXPECT_EQ(put_str(obj, false, ios, "123"), "1.23");
@@ -406,13 +406,13 @@ TEST(MonetaryChar, AnEmptyGroupingInsertsNothing)
 TEST(MonetaryChar, TheSymbolIsWrittenOnlyWithShowbase)
 {
     ios_base<char>       ios;
-    const monetary<char> obj(tuned()->fraction(2).symbol("$").both(kSymbolSignValue).ptr());
+    const monetary<char> obj(tuned()->fraction(3).symbol("@").both(kSymbolSignValue).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, "123456"), "1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, "482715"), "482.715");
     ios.setf(ios_defs::showbase);
-    EXPECT_EQ(put_str(obj, false, ios, "123456"), "$1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, "482715"), "@482.715");
     ios.unsetf(ios_defs::showbase);
-    EXPECT_EQ(put_str(obj, false, ios, "123456"), "1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, "482715"), "482.715");
 }
 
 TEST(MonetaryChar, ThePatternDecidesTheOrderOfTheParts)
@@ -447,7 +447,7 @@ TEST(MonetaryChar, AMultiCharacterSignWrapsTheField)
                                     .minus("()")
                                     .negative({part::symbol, part::space, part::sign, part::value}).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, "-123456"), "$ (1,234.56)");
+    EXPECT_EQ(put_str(obj, false, ios, "-827364"), "$ (8,273.64)");
 }
 
 TEST(MonetaryChar, TheSignOfTheAmountChoosesThePattern)
@@ -613,7 +613,7 @@ TEST(MonetaryChar, AnIntegralValueFormatsLikeItsDigitString)
                   put_str(obj, false, ios, v));
     };
 
-    for (int v : {0, 11, 1943, -1, -123456})
+    for (int v : {0, 7, 2607, -3, -654321})
     {
         agrees(static_cast<short>(v));
         agrees(static_cast<int>(v));
@@ -632,11 +632,11 @@ TEST(MonetaryChar, PutReturnsThePositionAfterTheField)
     ios_base<char>       ios;
     const monetary<char> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
 
-    std::string buffer(17, 'x');
-    auto        it = obj.put(buffer.begin(), false, ios, std::string("1943"));
+    std::string buffer(13, '^');
+    auto        it = obj.put(buffer.begin() + 2, false, ios, std::string("2607"));
 
-    EXPECT_EQ(std::string(buffer.begin(), it), "1943");
-    EXPECT_EQ(buffer, "1943xxxxxxxxxxxxx");
+    EXPECT_EQ(it, buffer.begin() + 6);
+    EXPECT_EQ(buffer, "^^2607^^^^^^^");
 }
 
 // Everything above reads the field back through the same facet that wrote it.
@@ -645,7 +645,7 @@ TEST(MonetaryChar, PutReturnsThePositionAfterTheField)
 TEST(MonetaryChar, WhatPutWritesGetReadsBack)
 {
     const std::vector<uint8_t> groupings[] = {{}, {3}, {1}, {3, 2}};
-    const std::string          amounts[]   = {"0", "1", "12", "123456", "-1", "-123456",
+    const std::string          amounts[]   = {"0", "1", "12", "827364", "-1", "-827364",
                                               "98765432109", "-98765432109"};
 
 
@@ -689,7 +689,7 @@ TEST(MonetaryChar, ASeparatorEndsTheAmountWhenThereIsNoGrouping)
     ios_base<char>       ios;
     const monetary<char> obj(tuned()->fraction(0).groups({}).separator(',')
                                     .both(kSymbolSignValue).ptr());
-    expect_parses(obj, false, ios, "123,456", "123", ",456");
+    expect_parses(obj, false, ios, "742,908", "742", ",908");
 }
 
 // Likewise the decimal point, when the locale has no fractional digits to put
@@ -698,7 +698,7 @@ TEST(MonetaryChar, ADecimalPointEndsTheAmountWhenThereIsNoFraction)
 {
     ios_base<char>       ios;
     const monetary<char> obj(tuned()->fraction(0).point('.').both(kSymbolSignValue).ptr());
-    expect_parses(obj, false, ios, "123.455", "123", ".455");
+    expect_parses(obj, false, ios, "742.908", "742", ".908");
 }
 
 TEST(MonetaryChar, AnEmptySequenceIsNotAnAmount)
@@ -721,22 +721,22 @@ TEST(MonetaryChar, TextThatIsNotAnAmountIsRejected)
 TEST(MonetaryChar, TheFractionMustHaveExactlyFracDigitsPlaces)
 {
     ios_base<char>       ios;
-    const monetary<char> obj(tuned()->fraction(3).point('.').both(kSymbolSignValue).ptr());
+    const monetary<char> obj(tuned()->fraction(4).point('.').both(kSymbolSignValue).ptr());
 
-    expect_parses(obj, false, ios, "12.345", "12345");
-    expect_rejects(obj, false, ios, "12.3456");
-    expect_rejects(obj, false, ios, "12.34");
-    expect_rejects(obj, false, ios, "12.");
+    expect_parses(obj, false, ios, "73.5926", "735926");
+    expect_rejects(obj, false, ios, "73.59261");
+    expect_rejects(obj, false, ios, "73.592");
+    expect_rejects(obj, false, ios, "73.");
 
     // No decimal point at all is not a short fraction: it is an amount with none.
-    expect_parses(obj, false, ios, "12", "12");
+    expect_parses(obj, false, ios, "73", "73");
 }
 
 TEST(MonetaryChar, ASecondDecimalPointIsNotPartOfTheAmount)
 {
     ios_base<char>       ios;
-    const monetary<char> obj(tuned()->fraction(2).point('.').both(kSymbolSignValue).ptr());
-    expect_rejects(obj, false, ios, "30..0");
+    const monetary<char> obj(tuned()->fraction(2).point(':').both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, "47::2");
 }
 
 // The separators have to fall where this locale's grouping puts them.  A field
@@ -744,12 +744,12 @@ TEST(MonetaryChar, ASecondDecimalPointIsNotPartOfTheAmount)
 TEST(MonetaryChar, TheSeparatorsMustFollowTheGrouping)
 {
     ios_base<char>       ios;
-    const monetary<char> obj(tuned()->fraction(0).groups({1}).separator('#')
+    const monetary<char> obj(tuned()->fraction(0).groups({2}).separator('#')
                                     .both(kSymbolSignValue).ptr());
 
-    expect_parses(obj, false, ios, "1#2#3", "123");
-    expect_rejects(obj, false, ios, "00#0#1");
-    expect_rejects(obj, false, ios, "000##1");
+    expect_parses(obj, false, ios, "7#06#45", "70645");
+    expect_rejects(obj, false, ios, "007#06#45");
+    expect_rejects(obj, false, ios, "7#06##45");
 }
 
 // A locale that spells a positive sign but no negative one leaves the absence of
@@ -809,12 +809,12 @@ TEST(MonetaryChar, ASymbolWithoutDigitsIsNotAnAmount)
 // places behind the point are all there.
 TEST(MonetaryChar, AnAmountMayBeAllFraction)
 {
-    const monetary<char> obj(tuned()->fraction(2).point('.').symbol("$").minus("-")
+    const monetary<char> obj(tuned()->fraction(3).point('.').symbol("@").minus("-")
                                     .both(kSymbolSignValue).ptr());
 
     ios_base<char> ios;
-    expect_parses(obj, false, ios, "$.00 ", "0", " ");
-    expect_parses(obj, false, ios, "$-.01 ", "-1", " ");
+    expect_parses(obj, false, ios, "@.000 ", "0", " ");
+    expect_parses(obj, false, ios, "@-.042 ", "-42", " ");
 }
 
 TEST(MonetaryChar, AnAmountTooLargeForTheTargetTypeIsRejected)
@@ -971,10 +971,10 @@ TEST(MonetaryChar, ASignPositionOfZeroMeansParentheses)
     EXPECT_EQ(obj.negative_sign_int(), "()");
 
     ios_base<char> ios;
-    const std::string field = put_str(obj, false, ios, "-123456");
+    const std::string field = put_str(obj, false, ios, "-827364");
     EXPECT_EQ(field.front(), '(');
     EXPECT_EQ(field.back(), ')');
-    expect_parses(obj, false, ios, field, "-123456");
+    expect_parses(obj, false, ios, field, "-827364");
 }
 
 // A `space` slot writes the stream's fill character, not a literal space, and
@@ -1042,7 +1042,7 @@ TEST(MonetaryChar, TheInternationalFormRoundTripsAsWell)
                                     .symbol("$").plus("").minus("-")
                                     .both(kSymbolSignValue).ptr());
 
-    const std::string amounts[] = {"0", "123456", "-123456", "-1"};
+    const std::string amounts[] = {"0", "827364", "-827364", "-1"};
 
     for (bool intl : {false, true})
         for (const std::string& amount : amounts)

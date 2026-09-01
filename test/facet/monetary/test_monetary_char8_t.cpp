@@ -264,7 +264,7 @@ TEST(MonetaryChar8, TheAmountIsCutFracDigitsPlacesFromTheRight)
     ios_base<char8_t>       ios;
     const monetary<char8_t> obj(tuned()->fraction(2).both(kSymbolSignValue).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, u8"827364"), u8"8273.64");
     EXPECT_EQ(put_str(obj, false, ios, u8"1"), u8".01");
     EXPECT_EQ(put_str(obj, false, ios, u8"12"), u8".12");
     EXPECT_EQ(put_str(obj, false, ios, u8"123"), u8"1.23");
@@ -333,13 +333,13 @@ TEST(MonetaryChar8, AnEmptyGroupingInsertsNothing)
 TEST(MonetaryChar8, TheSymbolIsWrittenOnlyWithShowbase)
 {
     ios_base<char8_t>       ios;
-    const monetary<char8_t> obj(tuned()->fraction(2).symbol(u8"$").both(kSymbolSignValue).ptr());
+    const monetary<char8_t> obj(tuned()->fraction(3).symbol(u8"@").both(kSymbolSignValue).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, u8"482715"), u8"482.715");
     ios.setf(ios_defs::showbase);
-    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"$1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, u8"482715"), u8"@482.715");
     ios.unsetf(ios_defs::showbase);
-    EXPECT_EQ(put_str(obj, false, ios, u8"123456"), u8"1234.56");
+    EXPECT_EQ(put_str(obj, false, ios, u8"482715"), u8"482.715");
 }
 
 TEST(MonetaryChar8, ThePatternDecidesTheOrderOfTheParts)
@@ -374,7 +374,7 @@ TEST(MonetaryChar8, AMultiCharacterSignWrapsTheField)
                                     .minus(u8"()")
                                     .negative({part::symbol, part::space, part::sign, part::value}).ptr());
 
-    EXPECT_EQ(put_str(obj, false, ios, u8"-123456"), u8"$ (1,234.56)");
+    EXPECT_EQ(put_str(obj, false, ios, u8"-827364"), u8"$ (8,273.64)");
 }
 
 TEST(MonetaryChar8, TheSignOfTheAmountChoosesThePattern)
@@ -476,7 +476,7 @@ TEST(MonetaryChar8, AnIntegralValueFormatsLikeItsDigitString)
                   put_str(obj, false, ios, v));
     };
 
-    for (int v : {0, 11, 1943, -1, -123456})
+    for (int v : {0, 7, 2607, -3, -654321})
     {
         agrees(static_cast<short>(v));
         agrees(static_cast<int>(v));
@@ -495,11 +495,11 @@ TEST(MonetaryChar8, PutReturnsThePositionAfterTheField)
     ios_base<char8_t>       ios;
     const monetary<char8_t> obj(tuned()->fraction(0).both(kSymbolSignValue).ptr());
 
-    std::u8string buffer(17, u8'x');
-    auto          it = obj.put(buffer.begin(), false, ios, std::u8string(u8"1943"));
+    std::u8string buffer(13, u8'^');
+    auto          it = obj.put(buffer.begin() + 2, false, ios, std::u8string(u8"2607"));
 
-    EXPECT_EQ(std::u8string(buffer.begin(), it), u8"1943");
-    EXPECT_EQ(buffer, u8"1943xxxxxxxxxxxxx");
+    EXPECT_EQ(it, buffer.begin() + 6);
+    EXPECT_EQ(buffer, u8"^^2607^^^^^^^");
 }
 
 // Everything above reads the field back through the same facet that wrote it.
@@ -508,7 +508,7 @@ TEST(MonetaryChar8, PutReturnsThePositionAfterTheField)
 TEST(MonetaryChar8, WhatPutWritesGetReadsBack)
 {
     const std::vector<uint8_t> groupings[] = {{}, {3}, {1}, {3, 2}};
-    const std::u8string        amounts[]   = {u8"0", u8"1", u8"12", u8"123456", u8"-1", u8"-123456",
+    const std::u8string        amounts[]   = {u8"0", u8"1", u8"12", u8"827364", u8"-1", u8"-827364",
                                               u8"98765432109", u8"-98765432109"};
 
 
@@ -552,7 +552,7 @@ TEST(MonetaryChar8, ASeparatorEndsTheAmountWhenThereIsNoGrouping)
     ios_base<char8_t>       ios;
     const monetary<char8_t> obj(tuned()->fraction(0).groups({}).separator(u8',')
                                     .both(kSymbolSignValue).ptr());
-    expect_parses(obj, false, ios, u8"123,456", u8"123", u8",456");
+    expect_parses(obj, false, ios, u8"742,908", u8"742", u8",908");
 }
 
 // Likewise the decimal point, when the locale has no fractional digits to put
@@ -561,7 +561,7 @@ TEST(MonetaryChar8, ADecimalPointEndsTheAmountWhenThereIsNoFraction)
 {
     ios_base<char8_t>       ios;
     const monetary<char8_t> obj(tuned()->fraction(0).point(u8'.').both(kSymbolSignValue).ptr());
-    expect_parses(obj, false, ios, u8"123.455", u8"123", u8".455");
+    expect_parses(obj, false, ios, u8"742.908", u8"742", u8".908");
 }
 
 TEST(MonetaryChar8, AnEmptySequenceIsNotAnAmount)
@@ -584,22 +584,22 @@ TEST(MonetaryChar8, TextThatIsNotAnAmountIsRejected)
 TEST(MonetaryChar8, TheFractionMustHaveExactlyFracDigitsPlaces)
 {
     ios_base<char8_t>       ios;
-    const monetary<char8_t> obj(tuned()->fraction(3).point(u8'.').both(kSymbolSignValue).ptr());
+    const monetary<char8_t> obj(tuned()->fraction(4).point(u8'.').both(kSymbolSignValue).ptr());
 
-    expect_parses(obj, false, ios, u8"12.345", u8"12345");
-    expect_rejects(obj, false, ios, u8"12.3456");
-    expect_rejects(obj, false, ios, u8"12.34");
-    expect_rejects(obj, false, ios, u8"12.");
+    expect_parses(obj, false, ios, u8"73.5926", u8"735926");
+    expect_rejects(obj, false, ios, u8"73.59261");
+    expect_rejects(obj, false, ios, u8"73.592");
+    expect_rejects(obj, false, ios, u8"73.");
 
     // No decimal point at all is not a short fraction: it is an amount with none.
-    expect_parses(obj, false, ios, u8"12", u8"12");
+    expect_parses(obj, false, ios, u8"73", u8"73");
 }
 
 TEST(MonetaryChar8, ASecondDecimalPointIsNotPartOfTheAmount)
 {
     ios_base<char8_t>       ios;
-    const monetary<char8_t> obj(tuned()->fraction(2).point(u8'.').both(kSymbolSignValue).ptr());
-    expect_rejects(obj, false, ios, u8"30..0");
+    const monetary<char8_t> obj(tuned()->fraction(2).point(u8':').both(kSymbolSignValue).ptr());
+    expect_rejects(obj, false, ios, u8"47::2");
 }
 
 // The separators have to fall where this locale's grouping puts them.  A field
@@ -607,12 +607,12 @@ TEST(MonetaryChar8, ASecondDecimalPointIsNotPartOfTheAmount)
 TEST(MonetaryChar8, TheSeparatorsMustFollowTheGrouping)
 {
     ios_base<char8_t>       ios;
-    const monetary<char8_t> obj(tuned()->fraction(0).groups({1}).separator(u8'#')
+    const monetary<char8_t> obj(tuned()->fraction(0).groups({2}).separator(u8'#')
                                     .both(kSymbolSignValue).ptr());
 
-    expect_parses(obj, false, ios, u8"1#2#3", u8"123");
-    expect_rejects(obj, false, ios, u8"00#0#1");
-    expect_rejects(obj, false, ios, u8"000##1");
+    expect_parses(obj, false, ios, u8"7#06#45", u8"70645");
+    expect_rejects(obj, false, ios, u8"007#06#45");
+    expect_rejects(obj, false, ios, u8"7#06##45");
 }
 
 // A locale that spells a positive sign but no negative one leaves the absence of
@@ -672,12 +672,12 @@ TEST(MonetaryChar8, ASymbolWithoutDigitsIsNotAnAmount)
 // places behind the point are all there.
 TEST(MonetaryChar8, AnAmountMayBeAllFraction)
 {
-    const monetary<char8_t> obj(tuned()->fraction(2).point(u8'.').symbol(u8"$").minus(u8"-")
+    const monetary<char8_t> obj(tuned()->fraction(3).point(u8'.').symbol(u8"@").minus(u8"-")
                                     .both(kSymbolSignValue).ptr());
 
     ios_base<char8_t> ios;
-    expect_parses(obj, false, ios, u8"$.00 ", u8"0", u8" ");
-    expect_parses(obj, false, ios, u8"$-.01 ", u8"-1", u8" ");
+    expect_parses(obj, false, ios, u8"@.000 ", u8"0", u8" ");
+    expect_parses(obj, false, ios, u8"@-.042 ", u8"-42", u8" ");
 }
 
 TEST(MonetaryChar8, AnAmountTooLargeForTheTargetTypeIsRejected)
@@ -834,10 +834,10 @@ TEST(MonetaryChar8, ASignPositionOfZeroMeansParentheses)
     EXPECT_EQ(obj.negative_sign_int(), u8"()");
 
     ios_base<char8_t>   ios;
-    const std::u8string field = put_str(obj, false, ios, u8"-123456");
+    const std::u8string field = put_str(obj, false, ios, u8"-827364");
     EXPECT_EQ(field.front(), u8'(');
     EXPECT_EQ(field.back(), u8')');
-    expect_parses(obj, false, ios, field, u8"-123456");
+    expect_parses(obj, false, ios, field, u8"-827364");
 }
 
 // A `space` slot writes the stream's fill character, not a literal space, and
@@ -905,7 +905,7 @@ TEST(MonetaryChar8, TheInternationalFormRoundTripsAsWell)
                                     .symbol(u8"$").plus(u8"").minus(u8"-")
                                     .both(kSymbolSignValue).ptr());
 
-    const std::u8string amounts[] = {u8"0", u8"123456", u8"-123456", u8"-1"};
+    const std::u8string amounts[] = {u8"0", u8"827364", u8"-827364", u8"-1"};
 
     for (bool intl : {false, true})
         for (const std::u8string& amount : amounts)

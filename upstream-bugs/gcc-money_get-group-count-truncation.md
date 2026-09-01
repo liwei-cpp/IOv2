@@ -23,17 +23,18 @@
 
 ### Bug 描述
 
-`std::money_get<charT>::do_get`(经内部辅助函数 `money_get::_M_extract`)在解析带千位分隔符的货币串时,会把"两个相邻千位分隔符之间的数字个数"以 `char` 形式记录下来,用于事后的分组合法性校验:
+`std::money_get<charT>::do_get`(经内部辅助函数 `money_get::_M_extract`)在解析带千位分隔符的货币串时,会把"两个相邻千位分隔符之间的数字个数"以 `char` 形式记录下来,用于事后的分组合法性校验。实际实现可在
+[`locale_facets_nonio.tcc`（GCC commit `5115c7e447fc07457443df874bf57840e8316d5f`）](https://github.com/gcc-mirror/gcc/blob/5115c7e447fc07457443df874bf57840e8316d5f/libstdc%2B%2B-v3/include/bits/locale_facets_nonio.tcc#L266-L330)
+核验。其关键数据流可概括为以下项目自拟伪代码（并非 GCC 源码）：
 
-```cpp
-__grouping_tmp += static_cast<char>(__n);                              // 每遇到一个分隔符
-...
-__grouping_tmp += static_cast<char>(__testdecfound ? __last_pos : __n); // 最后一组
+```text
+遇到分隔符时：把当前组的位数窄化为一个字符单元，再追加到分组记录
+输入结束时：把最后一组的位数窄化为一个字符单元，再追加到分组记录
 ```
 
-这里的计数 `__n` 是 `int`,却被截断进 `char`。于是当某一组的位数为 `256·k + g`(k ≥ 1)时,它会被记成 `g`。随后 `std::__verify_grouping` 拿这个被截断的值去和 `moneypunct::grouping()` 比较,导致**一个畸形的超长分组在位数 ≡ 合法组大小 (mod 256) 时被误判为合法**:`failbit` 不置位。
+这里的组位数计数是 `int`,却被截断进 `char`。于是当某一组的位数为 `256·k + g`(k ≥ 1)时,它会被记成 `g`。随后 `std::__verify_grouping` 拿这个被截断的值去和 `moneypunct::grouping()` 比较,导致**一个畸形的超长分组在位数 ≡ 合法组大小 (mod 256) 时被误判为合法**:`failbit` 不置位。
 
-根因位于 `libstdc++-v3/include/bits/locale_facets_nonio.tcc` 的 `money_get::_M_extract` 中上述 `static_cast<char>` 处。
+根因位于 `libstdc++-v3/include/bits/locale_facets_nonio.tcc` 的 `money_get::_M_extract` 中两次把组位数窄化到 `char` 的位置。
 
 **性质说明(重要)**:这是纯粹的一致性/正确性缺陷,**不是内存安全问题**——被截断的计数值只在 `__verify_grouping` 里参与比较(`==` / `<=`),从不被当作下标或长度去访问缓冲区;解析出的数值数字串本身也完全正确(包含全部数字),受影响的仅仅是"分组是否合法"这个 `failbit` 判定。触发它需要"单个分组 ≥ 256 位连续数字"这种现实货币里不可能出现的输入。
 
@@ -75,17 +76,18 @@ IOv2 自身的 `monetary` facet 的解析逻辑与 libstdc++ 的 `_M_extract` �
 
 ### Bug description
 
-`std::money_get<charT>::do_get` (via the internal helper `money_get::_M_extract`) records the number of digits seen between two adjacent thousands-separators as a `char`, for the later grouping-validity check:
+`std::money_get<charT>::do_get` (via the internal helper `money_get::_M_extract`) records the number of digits seen between two adjacent thousands-separators as a `char`, for the later grouping-validity check. The implementation can be verified in
+[`locale_facets_nonio.tcc` at GCC commit `5115c7e447fc07457443df874bf57840e8316d5f`](https://github.com/gcc-mirror/gcc/blob/5115c7e447fc07457443df874bf57840e8316d5f/libstdc%2B%2B-v3/include/bits/locale_facets_nonio.tcc#L266-L330).
+Its relevant data flow is summarized by this independently written pseudocode (not GCC source):
 
-```cpp
-__grouping_tmp += static_cast<char>(__n);                              // per separator
-...
-__grouping_tmp += static_cast<char>(__testdecfound ? __last_pos : __n); // last group
+```text
+on a separator: narrow the current group's digit count to one character unit, then record it
+at end of input: narrow the final group's digit count to one character unit, then record it
 ```
 
-The count `__n` is an `int` but is truncated into a `char`. So a group of `256·k + g` digits (k ≥ 1) is recorded as `g`. `std::__verify_grouping` then compares that truncated value against `moneypunct::grouping()`, so **a malformed over-long group whose length is congruent to a valid group size mod 256 is accepted as valid**: `failbit` is not set.
+The group-length counter is an `int` but is truncated into a `char`. So a group of `256·k + g` digits (k ≥ 1) is recorded as `g`. `std::__verify_grouping` then compares that truncated value against `moneypunct::grouping()`, so **a malformed over-long group whose length is congruent to a valid group size mod 256 is accepted as valid**: `failbit` is not set.
 
-The root cause is the `static_cast<char>` shown above, in `money_get::_M_extract` in `libstdc++-v3/include/bits/locale_facets_nonio.tcc`.
+The root cause is the pair of conversions that narrow group lengths to `char` in `money_get::_M_extract` in `libstdc++-v3/include/bits/locale_facets_nonio.tcc`.
 
 **Nature (important)**: this is a pure conformance/correctness defect, **not a memory-safety issue** — the truncated count is only ever *compared* inside `__verify_grouping` (`==` / `<=`), never used as an index or size, so there is no out-of-bounds access; the extracted digit string is also fully correct (it contains every digit). Only the grouping-validity verdict (`failbit`) is wrong. Triggering it requires a single group of ≥ 256 consecutive digits, which does not occur in real monetary input.
 

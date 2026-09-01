@@ -20,6 +20,10 @@
 - **Bug 描述 (Description)**: 触发条件、根因分析、最小复现说明;必要时引用相关标准条款(如 LWG 缺陷编号、ISO C++ 段落)。
 - **IOv2 的处理 (What IOv2 does)**: IOv2 内部是否已经做了对应修复或规避,如果没有则说明原因(例如这是编译器优化缺陷,IOv2 无法在库代码层规避)。
 
+### 上游源码说明
+
+缺陷分析不直接收录上游实现的逐字源码。需要解释实现细节时，应使用项目自行撰写的文字或语言无关的伪代码，并提供指向不可变 commit 与具体文件/行号的上游链接，供读者核验。最小复现器和 IOv2 自身的修复代码不受此规则影响，但必须明确其来源，避免与上游实现混淆。
+
 ### 已上报 bug 列表
 
 | 上游项目 | 编号 | 主题 | 状态 |
@@ -49,6 +53,10 @@ Each reported bug is tracked in a single `.md` file under this directory. Sugges
 - **Current status**: the upstream `Status` / `Resolution` (e.g. `UNCONFIRMED`, `NEW`, `RESOLVED FIXED`), whether an assignee has picked it up, and whether a patch exists.
 - **Description**: trigger conditions, root-cause analysis, and a minimal reproducer summary; relevant standard clauses (LWG defect numbers, ISO C++ paragraph references) where applicable.
 - **What IOv2 does**: whether IOv2 has fixed or worked around the issue internally, and if not, why (e.g. the bug lives in the compiler optimizer and cannot be addressed at the library level).
+
+### Describing upstream source
+
+Bug reports do not reproduce upstream implementation source verbatim. When implementation details matter, use independently written prose or language-neutral pseudocode and provide an upstream link pinned to an immutable commit and the relevant file/lines for verification. Minimal reproducers and IOv2's own fixes are outside this rule, but their origin must remain explicit so they cannot be confused with upstream implementation code.
 
 ### Reported bugs
 

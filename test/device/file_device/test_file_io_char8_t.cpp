@@ -207,16 +207,15 @@ TEST(FileDeviceChar8, ReadBackWhatWasJustWritten)
     file_guard g(name);
 
     file_device<char8_t> dev(name, file_open_flag::trunc);
-    dev.dput(u8"crazy bees!", 11);
+    const std::u8string payload = u8"red fox\n";
+    dev.dput(payload.data(), payload.size());
+    ASSERT_EQ(dev.dsize(), payload.size());
 
     dev.dseek(0);
-    char8_t ch = 0;
-    EXPECT_EQ(dev.dget(&ch, 1), 1u);
-    EXPECT_EQ(ch, u8'c');
-    EXPECT_EQ(dev.dget(&ch, 1), 1u);
-    EXPECT_EQ(ch, u8'r');
-    EXPECT_EQ(dev.dget(&ch, 1), 1u);
-    EXPECT_EQ(ch, u8'a');
+    char8_t first[3] = {};
+    EXPECT_EQ(dev.dget(first, sizeof(first)), sizeof(first));
+    EXPECT_EQ(std::u8string(first, sizeof(first)), payload.substr(0, sizeof(first)));
+    EXPECT_EQ(dev.dtell(), sizeof(first));
 }
 
 // ---------------------------------------------------------------------------

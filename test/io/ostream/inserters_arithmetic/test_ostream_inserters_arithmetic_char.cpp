@@ -267,22 +267,18 @@ TEST(OstreamInsertArithmeticChar, InternalPinsTheSignOrElseTheBaseMarker)
 {
     auto helper = []<template <typename, typename> class T>()
     {
-        {
+        auto render = [](double value, ios_defs::fmtflags adjust) {
             T os(mem_device{""}, locale<char>("C"));
-            os << hexfloat << setw(14) << internal << setfill('*') << 272.0;
-            EXPECT_EQ(os.device().str(), "0x******1.1p+8");
-        }
-        {
-            T os(mem_device{""}, locale<char>("C"));
-            os << hexfloat << setw(14) << internal << setfill('*') << -272.0;
-            EXPECT_EQ(os.device().str(), "-*****0x1.1p+8");
-        }
-        {
-            // right pins nothing, so the whole value moves to the end.
-            T os(mem_device{""}, locale<char>("C"));
-            os << hexfloat << setw(14) << right << setfill('*') << 272.0;
-            EXPECT_EQ(os.device().str(), "******0x1.1p+8");
-        }
+            os << hexfloat << setw(13) << setfill('~');
+            os.setf(adjust, ios_defs::adjustfield);
+            os << value;
+            return os.device().str();
+        };
+
+        EXPECT_EQ(render(40.0, ios_defs::internal), "0x~~~~~1.4p+5");
+        EXPECT_EQ(render(-40.0, ios_defs::internal), "-~~~~0x1.4p+5");
+        // right pins nothing, so the whole value moves to the end.
+        EXPECT_EQ(render(40.0, ios_defs::right), "~~~~~0x1.4p+5");
     };
 
     helper.operator()<ostream>();
@@ -498,57 +494,40 @@ TEST(OstreamInsertArithmeticChar, HexfloatWritesAHexSignificandAndABinaryExponen
 {
     auto helper = []<template <typename, typename> class TO, typename T>()
     {
+        struct format_case { T value; const char* decimal; };
         TO os{mem_device{""}, locale<char>("C")};
+        for (const format_case tc : {
+                 format_case{static_cast<T>(40), "40"},
+                 format_case{static_cast<T>(-13.5), "-13.5"},
+                 format_case{static_cast<T>(0.125), "0.125"},
+             })
+        {
+            os << hexfloat << tc.value << '|' << uppercase << tc.value
+               << '|' << nouppercase << defaultfloat << tc.value;
+            EXPECT_TRUE(static_cast<bool>(os));
 
-        T d = 272.;        // 0x1.1p+8
-        os << hexfloat << setprecision(1);
-        os << d;
+            auto [dev, err] = os.detach();
+            const std::string text = dev.str();
+            const std::size_t first = text.find('|');
+            ASSERT_NE(first, std::string::npos);
+            const std::size_t second = text.find('|', first + 1);
+            ASSERT_NE(second, std::string::npos);
 
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev14, err14] = os.detach();
-        auto str = dev14.str();
-        EXPECT_EQ(std::stod(str), d);
-        EXPECT_EQ(str.substr(0, 2), "0x");
-        EXPECT_NE(str.find('p'), std::string::npos);
+            const std::string lower = text.substr(0, first);
+            const std::string upper = text.substr(first + 1, second - first - 1);
+            const std::string decimal = text.substr(second + 1);
+            const std::size_t prefix = tc.value < 0 ? 1u : 0u;
 
-        os.attach(mem_device{""});
-        os << uppercase << d;
-        os.flush();
-        EXPECT_TRUE(static_cast<bool>(os));
-        EXPECT_EQ(std::stod(os.device().str()), d);
-        EXPECT_EQ(os.device().str().substr(0, 2), "0X");
-        EXPECT_NE(os.device().str().find('P'), std::string::npos);
+            EXPECT_EQ(std::stold(lower), static_cast<long double>(tc.value));
+            EXPECT_EQ(lower.substr(prefix, 2), "0x");
+            EXPECT_NE(lower.find('p'), std::string::npos);
+            EXPECT_EQ(std::stold(upper), static_cast<long double>(tc.value));
+            EXPECT_EQ(upper.substr(prefix, 2), "0X");
+            EXPECT_NE(upper.find('P'), std::string::npos);
+            EXPECT_EQ(decimal, tc.decimal);
 
-        os << nouppercase;
-        os.attach(mem_device{""});
-        os << defaultfloat << setprecision(6);
-        os << d;
-        os.flush();
-        EXPECT_TRUE(static_cast<bool>(os));
-        EXPECT_EQ(os.device().str(), "272");
-
-        os.attach(mem_device{""});
-        d = 15.;           // 0x1.ep+3
-        os << hexfloat << setprecision(1);
-        os << d;
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev15, err15] = os.detach();
-        EXPECT_EQ(std::stod(dev15.str()), d);
-
-        os.attach(mem_device{""});
-        os << uppercase << setprecision(1);
-        os << d;
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev16, err16] = os.detach();
-        EXPECT_EQ(std::stod(dev16.str()), d);
-
-        os << nouppercase;
-        os.attach(mem_device{""});
-        os << defaultfloat << setprecision(6);
-        os << d;
-        EXPECT_TRUE(static_cast<bool>(os));
-        auto [dev17, err17] = os.detach();
-        EXPECT_EQ(dev17.str(), "15");
+            os.attach(mem_device{""});
+        }
     };
 
     helper.template operator()<ostream, double>();

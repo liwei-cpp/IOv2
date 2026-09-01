@@ -30,7 +30,11 @@
 
 namespace
 {
-    struct foobar: std::exception { };
+    class insertion_failure final : public std::runtime_error
+    {
+    public:
+        insertion_failure() : std::runtime_error("injected inserter failure") { }
+    };
     struct dummy_type {};
 
     // Runs fn(os) from a destructor, so that the I/O happens while an exception is unwinding.
@@ -55,7 +59,7 @@ namespace IOv2
             requires (std::is_same_v<TChar, typename TIter::value_type>)
         static TIter swrite(TIter, ios_base<TChar>&, const locale<TChar>&, dummy_type)
         {
-            throw foobar();
+            throw insertion_failure();
         }
     };
 }
@@ -69,7 +73,7 @@ TEST(OstreamExceptionsChar, AMaskedInserterFailureReachesTheCallerAndFailsTheStr
         T os(IOv2::mem_device{""});
         os.exceptions(IOv2::ios_defs::otherfailbit);
 
-        EXPECT_THROW(os << dummy_type{}, foobar);
+        EXPECT_THROW(os << dummy_type{}, insertion_failure);
         EXPECT_FALSE(static_cast<bool>(os));
     };
 
@@ -139,10 +143,10 @@ TEST(OstreamExceptionsChar, AnUnmaskedFlushFailureOnlySetsDevfailbit)
     helper.operator()<IOv2::iostream>();
 }
 
-// unwinding branch: the operation body itself throws (swrite throws foobar) while
+// unwinding branch: the operation body itself throws while
 // unitbuf is set, so the out_sentry destructor runs during stack unwinding and the
 // device flush also fails. The destructor must swallow that failure and never throw
-// during unwinding (no std::terminate). operator<< then catches swrite's foobar
+// during unwinding (no std::terminate). operator<< then catches that failure
 // and, with otherfailbit unmasked, only sets state, so control returns normally;
 // reaching the assertion proves there was no terminate and the stream failed.
 TEST(OstreamExceptionsChar, TheSentryDestructorSwallowsAFlushFailureWhileUnwinding)
@@ -388,9 +392,9 @@ TEST(OstreamExceptionsChar, MaskedFailuresNeverThrowWhileUnwinding)
             try
             {
                 unwind_probe<decltype(out), decltype(op)> p{out, op};
-                throw foobar();
+                throw insertion_failure();
             }
-            catch (const foobar&) { caught_original = true; }
+            catch (const insertion_failure&) { caught_original = true; }
             catch (...)           { ADD_FAILURE() << "the original exception was replaced"; }
 
             EXPECT_TRUE(caught_original);            // the original exception survives

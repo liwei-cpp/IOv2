@@ -3,7 +3,7 @@
  *
  * The parse is one pass with no backtracking: characters are taken while they
  * could still belong to a number in the current base, and the first one that
- * could not is left where it is. So "20000AB" yields 20000 and leaves 'A'
+ * could not is left where it is. So "73109tail" yields 73109 and leaves 't'
  * behind, and every case below that checks a value also checks where the
  * stream stopped -- a parse that consumed one character too many looks correct
  * until the next extraction.
@@ -163,21 +163,26 @@ TEST(IstreamExtractArithmeticChar, ExtractionStopsAtTheFirstCharacterThatCannotB
 {
     auto expect_stopped = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::string("20000AB")}, locale<char>("C")};
+        struct parse_case { const char* text; long value; char next; };
+        for (const parse_case tc : {
+                 parse_case{"73109tail", 73109, 't'},
+                 parse_case{"908172635", 908172635, '\0'},
+             })
+        {
+            SCOPED_TRACE(tc.text);
+            T is{mem_device{std::string(tc.text)}, locale<char>("C")};
+            long value = -1;
+            is >> value;
+            EXPECT_EQ(value, tc.value);
 
-        int n = 15;
-        is >> n;
-        EXPECT_EQ(n, 20000);
-        EXPECT_TRUE(is.good());
-        EXPECT_EQ(is.peek(), 'A');
-
-        // Reaching the end of the input instead is where eofbit comes from,
-        // and the value is still good.
-        T at_end{mem_device{std::string("12220101")}, locale<char>("C")};
-        long l = 0;
-        at_end >> l;
-        EXPECT_EQ(l, 12220101);
-        EXPECT_EQ(at_end.rdstate(), ios_defs::eofbit);
+            if (tc.next == '\0')
+                EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+            else
+            {
+                EXPECT_TRUE(is.good());
+                EXPECT_EQ(is.peek(), tc.next);
+            }
+        }
     };
 
     expect_stopped.operator()<istream>();
@@ -199,24 +204,24 @@ TEST(IstreamExtractArithmeticChar, TheBaseFlagsSelectWhichDigitsBelong)
         {
             // No basefield flag: 0x is hexadecimal, a leading 0 is octal, and
             // anything else is decimal.
-            T is{mem_device{std::string("0x32 0X33 033 33")}, locale<char>("C")};
+            T is{mem_device{std::string("0x7d 0X2a 0751 2049")}, locale<char>("C")};
             is.unsetf(ios_defs::basefield);
 
             int n = 0;
             is >> n;
-            EXPECT_EQ(n, 50);
+            EXPECT_EQ(n, 125);
             is >> n;
-            EXPECT_EQ(n, 51);
+            EXPECT_EQ(n, 42);
             is >> n;
-            EXPECT_EQ(n, 27);
+            EXPECT_EQ(n, 489);
             is >> n;
-            EXPECT_EQ(n, 33);
+            EXPECT_EQ(n, 2049);
             EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
         }
         {
             // With a base fixed, the prefix is no longer a prefix: under dec
-            // the 0 of "0x32" is a whole number and 'x' is the next character.
-            T is{mem_device{std::string("0x32 0X33 033 33")}, locale<char>("C")};
+            // the 0 of "0x94" is a whole number and 'x' is the next character.
+            T is{mem_device{std::string("0x94 0X57 071 86")}, locale<char>("C")};
 
             int  n = 0, m = 0;
             char c = 0;
@@ -224,16 +229,16 @@ TEST(IstreamExtractArithmeticChar, TheBaseFlagsSelectWhichDigitsBelong)
             is >> dec >> n >> c >> m;
             EXPECT_EQ(n, 0);
             EXPECT_EQ(c, 'x');
-            EXPECT_EQ(m, 32);
+            EXPECT_EQ(m, 94);
 
             is >> oct >> m >> c >> n;
             EXPECT_EQ(m, 0);
             EXPECT_EQ(c, 'X');
-            EXPECT_EQ(n, 27);          // "33" in octal
+            EXPECT_EQ(n, 47);          // "57" in octal
 
             is >> dec >> m >> n;
-            EXPECT_EQ(m, 33);
-            EXPECT_EQ(n, 33);
+            EXPECT_EQ(m, 71);
+            EXPECT_EQ(n, 86);
             EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
         }
     };
@@ -319,7 +324,7 @@ TEST(IstreamExtractArithmeticChar, AValueOutOfRangeIsClampedAndReported)
 
         std::string digits;
         while (digits.size() < static_cast<std::size_t>(overflow_digits) + 1)
-            digits += "1234567890";
+            digits += "9753108642";
 
         istream is{mem_device{digits}, locale<char>("C")};
         TV      v{};
@@ -373,21 +378,21 @@ TEST(IstreamExtractArithmeticChar, WithoutGroupingASeparatorIsJustAStoppingChara
 {
     auto expect_stopped = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::string("205,199,144")}, locale<char>("C")};
+        T is{mem_device{std::string("73,4,9021")}, locale<char>("C")};
+        const unsigned expected[] = {73u, 4u, 9021u};
 
-        unsigned n = 0;
-        char     c = 0;
-
-        is >> n;
-        EXPECT_EQ(n, 205u);
-        is >> c;
-        EXPECT_EQ(c, ',');
-        is >> n;
-        EXPECT_EQ(n, 199u);
-        is >> c;
-        EXPECT_EQ(c, ',');
-        is >> n;
-        EXPECT_EQ(n, 144u);
+        for (unsigned index = 0; index < 3; ++index)
+        {
+            unsigned value = 0;
+            is >> value;
+            EXPECT_EQ(value, expected[index]);
+            if (index != 2)
+            {
+                char separator = 0;
+                is >> separator;
+                EXPECT_EQ(separator, ',');
+            }
+        }
         EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
         EXPECT_FALSE(is.str_fail());
     };
@@ -405,40 +410,40 @@ TEST(IstreamExtractArithmeticChar, GroupingIsCheckedWhenTheLocaleAsksForIt)
     auto expect_grouped = []<template <typename, typename> class T>()
     {
         {
-            // Groups of three.
-            T is{mem_device{std::string("205,199 1,024,365 123,22,24")}, grouped_by({3})};
+            // Groups of four.
+            T is{mem_device{std::string("73,6201 8,0246,1357 41,286,5091")}, grouped_by({4})};
 
             unsigned n = 0;
             is >> n;
-            EXPECT_EQ(n, 205199u);
+            EXPECT_EQ(n, 736201u);
             EXPECT_TRUE(is.good());
 
             is >> n;
-            EXPECT_EQ(n, 1024365u);
+            EXPECT_EQ(n, 802461357u);
             EXPECT_TRUE(is.good());
 
-            // "123,22,24": the digits are read and kept, the spacing is not.
+            // The middle group is too short: its digits are kept, its layout is not.
             is >> n;
-            EXPECT_EQ(n, 1232224u);
+            EXPECT_EQ(n, 412865091u);
             EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
         }
         {
-            // A grouping of {2, 3} is two on the right and three thereafter,
+            // A grouping of {1, 4} is one on the right and four thereafter,
             // which is what makes the sizes position-dependent rather than one
             // repeated number.
-            T is{mem_device{std::string("1,22 205,19 22,123,22")}, grouped_by({2, 3})};
+            T is{mem_device{std::string("7,6 3124,5 84,3021,7")}, grouped_by({1, 4})};
 
             unsigned n = 0;
             is >> n;
-            EXPECT_EQ(n, 122u);
+            EXPECT_EQ(n, 76u);
             EXPECT_TRUE(is.good());
 
             is >> n;
-            EXPECT_EQ(n, 20519u);
+            EXPECT_EQ(n, 31245u);
             EXPECT_TRUE(is.good());
 
             is >> n;
-            EXPECT_EQ(n, 2212322u);
+            EXPECT_EQ(n, 8430217u);
             EXPECT_FALSE(is.str_fail());
         }
     };
@@ -543,39 +548,37 @@ TEST(IstreamExtractArithmeticChar, FloatingPointSyntaxIsAcceptedWhereItIsWellFor
     auto expect_syntax = []<template <typename, typename> class T>()
     {
         {
-            T is{mem_device{std::string("3. 4.5E+2 .6E1 2.456e3")}, locale<char>("C")};
+            T is{mem_device{std::string("12. 7.25E+1 .125e2 6.375e-1")}, locale<char>("C")};
+            const double expected[] = {12.0, 72.5, 12.5, 0.6375};
 
-            double d = 0;
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 3.0);
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 450.0);
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 6.0);
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 2456.0);
+            for (double answer : expected)
+            {
+                double value = 0;
+                is >> value;
+                EXPECT_DOUBLE_EQ(value, answer);
+            }
             EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
         }
         {
             // A sign belongs to the exponent only after the 'e'; elsewhere it
             // ends the number, which is what separates these two values.
-            T is{mem_device{std::string("2.456e3-+0.567e-2")}, locale<char>("C")};
+            T is{mem_device{std::string("9.75e1+-2.5e-1")}, locale<char>("C")};
 
             double f1 = 0, f2 = 0;
             char   c  = 0;
             is >> f1 >> c >> f2;
-            EXPECT_DOUBLE_EQ(f1, 2456.0);
-            EXPECT_EQ(c, '-');
-            EXPECT_DOUBLE_EQ(f2, 0.00567);
+            EXPECT_DOUBLE_EQ(f1, 97.5);
+            EXPECT_EQ(c, '+');
+            EXPECT_DOUBLE_EQ(f2, -0.25);
         }
         {
             // An 'E' with nothing usable after it is a number that was started
             // and not finished: the failure is reported and the 'E' is consumed.
-            T is{mem_device{std::string("0E20 5Ea E16")}, locale<char>("C")};
+            T is{mem_device{std::string("6E2 8Ez E9")}, locale<char>("C")};
 
             double f = 0;
             is >> f;
-            EXPECT_DOUBLE_EQ(f, 0.0);
+            EXPECT_DOUBLE_EQ(f, 600.0);
             EXPECT_TRUE(is.good());
 
             f = 1;
@@ -586,7 +589,7 @@ TEST(IstreamExtractArithmeticChar, FloatingPointSyntaxIsAcceptedWhereItIsWellFor
             is.clear();
             char c = 0;
             is >> c;
-            EXPECT_EQ(c, 'a');
+            EXPECT_EQ(c, 'z');
 
             // And an exponent with no mantissa at all is not a number either.
             f = 1;
@@ -617,17 +620,18 @@ TEST(IstreamExtractArithmeticChar, AnOverlongMantissaIsRoundedRatherThanRejected
 {
     auto expect_rounded = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::string("1.2345678901234567890123456789012345678901234567890123456"
-                                    "  1246.9")},
-             locale<char>("C")};
+        std::string input = "0.";
+        input.append(80, '7');
+        input += "  861.25";
+        T is{mem_device{std::move(input)}, locale<char>("C")};
 
         double d = 0;
         is >> d;
         EXPECT_FALSE(is.str_fail());
-        EXPECT_NEAR(d, 1.2345678901234567, 1e-15);
+        EXPECT_NEAR(d, 7.0 / 9.0, 1e-15);
 
         is >> d;
-        EXPECT_DOUBLE_EQ(d, 1246.9);
+        EXPECT_DOUBLE_EQ(d, 861.25);
     };
 
     expect_rounded.operator()<istream>();

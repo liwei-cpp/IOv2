@@ -128,13 +128,25 @@ TEST(IstreamExtractArithmeticWchar, ExtractionStopsAtTheFirstCharacterThatCannot
 {
     auto expect_stopped = []<template <typename, typename> class T>()
     {
-        T is{mem_device{std::wstring(L"20000AB")}, locale<wchar_t>("C")};
+        struct parse_case { const wchar_t* text; int value; wchar_t next; };
+        for (const parse_case tc : {
+                 parse_case{L"73109tail", 73109, L't'},
+                 parse_case{L"908172635", 908172635, L'\0'},
+             })
+        {
+            T is{mem_device{std::wstring(tc.text)}, locale<wchar_t>("C")};
+            int value = -1;
+            is >> value;
+            EXPECT_EQ(value, tc.value);
 
-        int n = 15;
-        is >> n;
-        EXPECT_EQ(n, 20000);
-        EXPECT_TRUE(is.good());
-        EXPECT_EQ(is.peek(), L'A');
+            if (tc.next == L'\0')
+                EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
+            else
+            {
+                EXPECT_TRUE(is.good());
+                EXPECT_EQ(is.peek(), tc.next);
+            }
+        }
     };
 
     expect_stopped.operator()<istream>();
@@ -152,29 +164,29 @@ TEST(IstreamExtractArithmeticWchar, TheBaseFlagsSelectWhichDigitsBelong)
             EXPECT_EQ(n, 0x123);
         }
         {
-            T is{mem_device{std::wstring(L"0x32 0X33 033 33")}, locale<wchar_t>("C")};
+            T is{mem_device{std::wstring(L"0x7d 0X2a 0751 2049")}, locale<wchar_t>("C")};
             is.unsetf(ios_defs::basefield);
 
             int n = 0;
             is >> n;
-            EXPECT_EQ(n, 50);
+            EXPECT_EQ(n, 125);
             is >> n;
-            EXPECT_EQ(n, 51);
+            EXPECT_EQ(n, 42);
             is >> n;
-            EXPECT_EQ(n, 27);
+            EXPECT_EQ(n, 489);
             is >> n;
-            EXPECT_EQ(n, 33);
+            EXPECT_EQ(n, 2049);
             EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
         }
         {
-            T is{mem_device{std::wstring(L"0x32")}, locale<wchar_t>("C")};
+            T is{mem_device{std::wstring(L"0x94")}, locale<wchar_t>("C")};
 
             int     n = 0, m = 0;
             wchar_t c = 0;
             is >> dec >> n >> c >> m;
             EXPECT_EQ(n, 0);
             EXPECT_EQ(c, L'x');
-            EXPECT_EQ(m, 32);
+            EXPECT_EQ(m, 94);
         }
     };
 
@@ -223,39 +235,39 @@ TEST(IstreamExtractArithmeticWchar, GroupingIsCheckedWhenTheLocaleAsksForIt)
     {
         {
             // Without grouping the separator merely stops the number.
-            T is{mem_device{std::wstring(L"205,199")}, locale<wchar_t>("C")};
+            T is{mem_device{std::wstring(L"73,6201")}, locale<wchar_t>("C")};
             unsigned n = 0;
             is >> n;
-            EXPECT_EQ(n, 205u);
+            EXPECT_EQ(n, 73u);
             EXPECT_FALSE(is.str_fail());
             EXPECT_EQ(is.peek(), L',');
         }
         {
-            T is{mem_device{std::wstring(L"205,199 1,024,365 123,22,24")}, tuned({3})};
+            T is{mem_device{std::wstring(L"73,6201 8,0246,1357 41,286,5091")}, tuned({4})};
 
             unsigned n = 0;
             is >> n;
-            EXPECT_EQ(n, 205199u);
+            EXPECT_EQ(n, 736201u);
             EXPECT_TRUE(is.good());
 
             is >> n;
-            EXPECT_EQ(n, 1024365u);
+            EXPECT_EQ(n, 802461357u);
             EXPECT_TRUE(is.good());
 
             is >> n;
-            EXPECT_EQ(n, 1232224u);
+            EXPECT_EQ(n, 412865091u);
             EXPECT_TRUE(is.rdstate() & ios_defs::strfailbit);
         }
         {
-            T is{mem_device{std::wstring(L"1,22 205,19")}, tuned({2, 3})};
+            T is{mem_device{std::wstring(L"7,6 3124,5")}, tuned({1, 4})};
 
             unsigned n = 0;
             is >> n;
-            EXPECT_EQ(n, 122u);
+            EXPECT_EQ(n, 76u);
             EXPECT_TRUE(is.good());
 
             is >> n;
-            EXPECT_EQ(n, 20519u);
+            EXPECT_EQ(n, 31245u);
         }
     };
 
@@ -268,31 +280,29 @@ TEST(IstreamExtractArithmeticWchar, FloatingPointSyntaxIsAcceptedWhereItIsWellFo
     auto expect_syntax = []<template <typename, typename> class T>()
     {
         {
-            T is{mem_device{std::wstring(L"3. 4.5E+2 .6E1 2.456e3")}, locale<wchar_t>("C")};
+            T is{mem_device{std::wstring(L"12. 7.25E+1 .125e2 6.375e-1")}, locale<wchar_t>("C")};
+            const double expected[] = {12.0, 72.5, 12.5, 0.6375};
 
-            double d = 0;
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 3.0);
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 450.0);
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 6.0);
-            is >> d;
-            EXPECT_DOUBLE_EQ(d, 2456.0);
+            for (double answer : expected)
+            {
+                double value = 0;
+                is >> value;
+                EXPECT_DOUBLE_EQ(value, answer);
+            }
             EXPECT_EQ(is.rdstate(), ios_defs::eofbit);
         }
         {
-            T is{mem_device{std::wstring(L"2.456e3-+0.567e-2")}, locale<wchar_t>("C")};
+            T is{mem_device{std::wstring(L"9.75e1+-2.5e-1")}, locale<wchar_t>("C")};
 
             double  f1 = 0, f2 = 0;
             wchar_t c  = 0;
             is >> f1 >> c >> f2;
-            EXPECT_DOUBLE_EQ(f1, 2456.0);
-            EXPECT_EQ(c, L'-');
-            EXPECT_DOUBLE_EQ(f2, 0.00567);
+            EXPECT_DOUBLE_EQ(f1, 97.5);
+            EXPECT_EQ(c, L'+');
+            EXPECT_DOUBLE_EQ(f2, -0.25);
         }
         {
-            T is{mem_device{std::wstring(L"5Ea")}, locale<wchar_t>("C")};
+            T is{mem_device{std::wstring(L"8Ez")}, locale<wchar_t>("C")};
 
             double f = 1;
             is >> f;
