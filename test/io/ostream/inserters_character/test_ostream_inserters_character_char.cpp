@@ -18,6 +18,7 @@
  * arithmetic path.
  */
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/ostream.h>

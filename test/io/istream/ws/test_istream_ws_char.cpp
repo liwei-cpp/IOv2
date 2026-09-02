@@ -20,14 +20,18 @@
  * pointer cases are the one manipulator shape that goes around io_traits
  * entirely and so has to be checked by hand.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
-#include <facet/ctype.h>
+#include <facet/ctype_details.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/traits/arithmetic.h>
 #include <io/traits/char_and_str.h>
+#include <io/utilities/istream_operators.h>
+#include <io/utilities/ostream_operators.h>
 #include <locale/locale.h>
 
 #include <gtest/gtest.h>

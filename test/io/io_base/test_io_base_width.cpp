@@ -14,6 +14,7 @@
  * The refusal has to leave the previous width in place, and has to leave the
  * stream it was called on good, or a caller's next write would silently change.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
 #include <io/io_base.h>
 #include <io/ostream.h>

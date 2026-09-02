@@ -18,6 +18,7 @@
  * resting on an offset into a phrase.
  */
 #include <device/mem_device.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/arithmetic.h>

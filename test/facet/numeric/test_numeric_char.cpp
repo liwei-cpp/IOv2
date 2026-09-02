@@ -22,6 +22,7 @@
  * in, so every parse here is run twice: once over a string's iterators and once
  * over an istreambuf_iterator.
  */
+#include <facet/ctype_details.h>
 #include <facet/numeric.h>
 #include <facet/numeric_details.h>
 
@@ -35,7 +36,6 @@
 #include <gtest/gtest.h>
 
 #include <charconv>
-#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <iterator>
@@ -43,7 +43,9 @@
 #include <memory>
 #include <string>
 #include <system_error>
+#include <tuple>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 using namespace IOv2;

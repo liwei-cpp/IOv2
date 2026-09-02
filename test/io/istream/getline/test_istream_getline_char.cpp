@@ -20,10 +20,12 @@
  * order a real reader meets them.
  */
 #include <device/mem_device.h>
-#include <facet/ctype.h>
+#include <facet/ctype_details.h>
+#include <io/io_base.h>
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/traits/char_and_str.h>
+#include <io/utilities/istream_operators.h>
 #include <locale/locale.h>
 
 #include <gtest/gtest.h>

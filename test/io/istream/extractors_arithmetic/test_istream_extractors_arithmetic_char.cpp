@@ -22,7 +22,10 @@
  * checks learns of it and a caller who does not gets a bounded value rather
  * than a wrapped one.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
+#include <facet/numeric_details.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
@@ -33,11 +36,14 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <cstdint>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 using namespace IOv2;

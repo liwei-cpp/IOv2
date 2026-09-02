@@ -3,6 +3,7 @@
 
 #include <common/defs.h>
 #include <cvt/crypt/vigenere_cvt.h>
+#include <cvt/cvt_concepts.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/mem_device.h>

@@ -15,10 +15,10 @@
  * tm_yday from the resulting date, and normalises out-of-range fields with
  * std::chrono so that no TZ or DST state can perturb the answer.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
-#include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
 #include <io/traits/arithmetic.h>

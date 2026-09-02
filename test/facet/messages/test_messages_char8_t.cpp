@@ -13,6 +13,7 @@
  * read: it names the entry that was chosen, or is empty when none was.
  */
 #include <facet/messages.h>
+#include <facet/messages_details.h>
 
 #include <gtest/gtest.h>
 
@@ -22,8 +23,10 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <stdlib.h>
 #include <string>
 #include <type_traits>
+#include <vector>
 
 using namespace IOv2;
 

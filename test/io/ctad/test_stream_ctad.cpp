@@ -20,10 +20,12 @@
 #include <io/iostream.h>
 #include <io/istream.h>
 #include <io/ostream.h>
+#include <locale/locale.h>
 
 #include <gtest/gtest.h>
 
 #include <type_traits>
+#include <utility>
 
 namespace
 {

@@ -20,6 +20,7 @@
  * for a reason that has nothing to do with adjustment.
  */
 #include <device/mem_device.h>
+#include <facet/numeric_details.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/ostream.h>

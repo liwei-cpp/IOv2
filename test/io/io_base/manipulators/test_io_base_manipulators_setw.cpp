@@ -14,6 +14,7 @@
  * reset. On the extraction side it is an upper bound instead, so an enormous
  * one is legal and simply reads no more than the input holds.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>

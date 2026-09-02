@@ -10,6 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <fcntl.h>
+#include <type_traits>
 #include <unistd.h>
 
 #include <chrono>

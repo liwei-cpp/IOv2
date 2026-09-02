@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <common/defs.h>
+#include <device/device_concepts.h>
 #include <device/mem_device.h>
 
 #include <gtest/gtest.h>
@@ -9,6 +10,7 @@
 #include <cstddef>
 #include <limits>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 using namespace IOv2;

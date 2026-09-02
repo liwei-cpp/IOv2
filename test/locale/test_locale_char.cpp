@@ -2,6 +2,16 @@
 // SPDX-License-Identifier: MIT
 
 #include <common/defs.h>
+#include <facet/collate.h>
+#include <facet/collate_details.h>
+#include <facet/ctype.h>
+#include <facet/ctype_details.h>
+#include <facet/facet_common.h>
+#include <facet/messages.h>
+#include <facet/messages_details.h>
+#include <facet/numeric.h>
+#include <facet/timeio.h>
+#include <facet/timeio_details.h>
 #include <locale/locale.h>
 
 #include <support/exe_path.h>
@@ -13,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 namespace
 {

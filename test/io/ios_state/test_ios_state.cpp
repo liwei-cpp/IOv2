@@ -14,12 +14,14 @@
  * two bitmask types, not two spellings of one integer, and keeping them apart
  * is what stops a state bit being handed to a formatting interface.
  */
+#include <common/defs.h>
 #include <io/io_base.h>
 #include <io/io_manip.h>
 
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <exception>
 #include <string>
 #include <type_traits>
 

@@ -14,12 +14,17 @@
  * The objects also have to survive sync_with_stdio: it changes how they reach
  * the C streams, not which objects they are, so their addresses must not move.
  */
+#include <io/io_base.h>
+#include <io/objects/in_impl.h>
 #include <io/objects/objects.h>
+#include <io/objects/out_impl.h>
+#include <io/ostream.h>
 
 #include <support/stdio_guard.h>
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <string>
 
 TEST(IoObjectsChar, EachStreamWritesToItsOwnDestination)

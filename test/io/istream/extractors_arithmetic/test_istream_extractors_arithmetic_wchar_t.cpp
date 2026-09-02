@@ -14,7 +14,10 @@
  * a point outside ASCII, and digits that look like digits to a reader but are
  * not the facet's digits.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
+#include <facet/numeric_details.h>
+#include <io/io_base.h>
 #include <io/io_manip.h>
 #include <io/iostream.h>
 #include <io/istream.h>
@@ -30,6 +33,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 using namespace IOv2;

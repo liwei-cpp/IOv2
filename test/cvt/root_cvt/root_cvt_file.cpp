@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include <common/defs.h>
+#include <cvt/cvt_concepts.h>
 #include <cvt/root_cvt.h>
 #include <cvt/runtime_cvt.h>
 #include <device/file_device.h>

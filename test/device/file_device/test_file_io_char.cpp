@@ -13,6 +13,7 @@
 #include <cstring>
 #include <limits>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 using namespace IOv2;

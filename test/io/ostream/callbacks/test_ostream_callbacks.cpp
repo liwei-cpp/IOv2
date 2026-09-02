@@ -15,6 +15,7 @@
  * exception is held, the remaining callbacks still run, and the stream is left
  * failed rather than half-imbued.
  */
+#include <common/defs.h>
 #include <device/mem_device.h>
 #include <io/io_base.h>
 #include <io/iostream.h>
