@@ -9,8 +9,8 @@
 ### 构建系统
 
 本目录的测试由顶层的 CMake/CTest 构建，配置以 preset 形式给出（见仓库根目录的
-`CMakePresets.json`）。189 个源文件被分成 **57 个套件**，每个套件对应一个目录，
-CTest 中的名字就是该目录的点分形式：`concur`、`facet.collate`、`io.istream.read`。
+`CMakePresets.json`）。测试源文件按目录划分成套件，每个直接含 `.cpp` 的目录各成
+一套，CTest 中的名字就是该目录的点分形式：`concur`、`facet.collate`、`io.istream.read`。
 
 构建产物一律在 `build/<preset>/` 下，不写进源码树。所有命令都在**仓库根目录**执行，
 不是本目录。
@@ -19,14 +19,14 @@ CTest 中的名字就是该目录的点分形式：`concur`、`facet.collate`、
 
 ```bash
 cmake --preset gcc-release                     # 配置
-cmake --build --preset gcc-release --parallel "$(nproc)"  # 编译全部 57 个套件
+cmake --build --preset gcc-release --parallel "$(nproc)"  # 编译全部套件
 ctest --preset gcc-release --parallel          # 运行全部
 ```
 
 `cmake --list-presets` 列出全部可用配置。
 
 `--parallel` 后面**必须给数字**。CMake 默认的生成器是 Unix Makefiles，不带数字时它把
-裸 `-j` 交给 make，而裸 `-j` 对 GNU make 意为「不限并发」。全新构建时 235 个翻译单元
+裸 `-j` 交给 make，而裸 `-j` 对 GNU make 意为「不限并发」。全新构建时所有翻译单元
 同时就绪，每个峰值接近 1GB，make 会一口气全部 fork——在 16GB 的机器上这会触发 OOM，
 而被内核挑中杀掉的往往不是编译器，是你的桌面会话。增量构建看不出来，因为同一时刻就
 绪的目标没几个。
@@ -150,9 +150,9 @@ rm -rf build              # 全部
 ### Build System
 
 The tests here are built by the top-level CMake/CTest; configurations are given as
-presets (see `CMakePresets.json` in the repository root). The 189 sources are split
-into **57 suites**, one per directory, and a suite's CTest name is that directory in
-dotted form: `concur`, `facet.collate`, `io.istream.read`.
+presets (see `CMakePresets.json` in the repository root). The sources are split into
+suites, one per directory that directly holds a `.cpp`, and a suite's CTest name is
+that directory in dotted form: `concur`, `facet.collate`, `io.istream.read`.
 
 Build output always goes to `build/<preset>/`, never into the source tree. Run every
 command below from the **repository root**, not from this directory.
@@ -161,7 +161,7 @@ command below from the **repository root**, not from this directory.
 
 ```bash
 cmake --preset gcc-release                     # configure
-cmake --build --preset gcc-release --parallel "$(nproc)"  # build all 57 suites
+cmake --build --preset gcc-release --parallel "$(nproc)"  # build every suite
 ctest --preset gcc-release --parallel          # run them
 ```
 
@@ -169,7 +169,7 @@ ctest --preset gcc-release --parallel          # run them
 
 **Always give `--parallel` a number.** CMake's default generator here is Unix Makefiles,
 and without one it hands make a bare `-j`, which to GNU make means *unlimited*. On a
-clean build all 235 translation units are ready at once and each peaks near 1GB, so make
+clean build every translation unit is ready at once and each peaks near 1GB, so make
 forks the lot; on a 16GB machine that ends in the OOM killer, and what it reaps is
 usually not the compiler but your desktop session. Incremental builds hide this, because
 only a handful of targets are ever ready together.
