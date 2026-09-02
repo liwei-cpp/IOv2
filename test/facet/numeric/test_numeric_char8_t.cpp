@@ -843,6 +843,31 @@ TEST(NumericChar8, PaddingAValueThatStartsWithAZeroIsNotAPrefix)
     EXPECT_EQ(put_str(obj, internal, 255L), u8"0x****ff");
 }
 
+// A pointer is formatted as hex with a base prefix, so every adjustment has to
+// treat "0x" the way it treats a sign: as something the fill goes around, never
+// into.  A literal address keeps the field width predictable.
+TEST(NumericChar8, EachAdjustmentPadsAPointerAroundItsPrefix)
+{
+    const numeric<char8_t> obj = facet_for("C");
+    void* const            p   = reinterpret_cast<void*>(0x1);
+
+    auto put = [&obj, p](ios_defs::fmtflags adjust, bool set_adjust)
+    {
+        ios_base<char8_t> ios;
+        ios.fill(u8'*');
+        ios.width(5);
+        if (set_adjust)
+            ios.setf(adjust, ios_defs::adjustfield);
+        return put_str(obj, ios, p);
+    };
+
+    // Right is the default here, so the unset case has to agree with it.
+    EXPECT_EQ(put(ios_defs::right, false), u8"**0x1");
+    EXPECT_EQ(put(ios_defs::right, true), u8"**0x1");
+    EXPECT_EQ(put(ios_defs::internal, true), u8"0x**1");
+    EXPECT_EQ(put(ios_defs::left, true), u8"0x1**");
+}
+
 // The same rule as for a currency field: a run of fill that a reader would take
 // for part of the number is refused rather than written.
 TEST(NumericChar8, AFillThatWouldChangeTheNumberIsRejected)

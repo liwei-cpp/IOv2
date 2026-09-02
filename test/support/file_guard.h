@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <string>
 
 namespace
