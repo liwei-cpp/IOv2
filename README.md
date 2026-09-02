@@ -219,6 +219,23 @@ ctest --preset gcc-release -L io                  # 只跑 IO 模块
 ```
 构建产物位于 `build/<preset>/`，不再污染源码树。更多用法（sanitizer、Valgrind、覆盖率、如何新增测试文件）参见 `test/README.md`，可用配置见 `cmake --list-presets`。
 
+### 许可证
+IOv2 依据 **MIT 许可证**分发，全文见 `LICENSE`。
+
+本仓库有两条许可边界，克隆前请留意：
+
+| 范围 | 许可证 |
+| --- | --- |
+| `main` 分支，`b40a29d` 及其之后 | MIT |
+| `main` 历史中更早的修订版本 | 不按 MIT 提供，见下 |
+| `book-v1` 分支、`book-v1.0.0` / `book-v1.0.1` | GPL-3.0-or-later |
+
+早于 `b40a29d` 的修订版本，以及 `book-v1` 这条书籍配套线，含有衍生自 libstdc++（`GPL-3.0-or-later WITH GCC-exception-3.1`）与 glibc（`LGPL-2.1-or-later`）的代码。这些内容已从当前树中移除并重写；保留历史是有意为之，它是替换过程的审计记录。**许可是对作品的授予，不沿 Git 的 parent 关系传播**：本文件出现在某个提交上，不说明其祖先包含什么。
+
+审计方法、结果、有意保留的内容与已知残留，记载于 [`PROVENANCE.md`](PROVENANCE.md)；完整条款与第三方声明见 [`NOTICE`](NOTICE)。
+
+库本身 header-only，除 C++ 标准库外无依赖；测试使用 GoogleTest（BSD-3-Clause），由 CMake 在 configure 阶段拉取，本仓库不再分发其任何部分。
+
 ---
 
 ## English
@@ -426,3 +443,30 @@ ctest --preset gcc-release --parallel             # run all 57 suites
 ctest --preset gcc-release -L io                  # run the IO module only
 ```
 Build output goes to `build/<preset>/` rather than into the source tree. For sanitizers, Valgrind, coverage and how to add a test file, see `test/README.md`; `cmake --list-presets` lists the available configurations.
+
+### License
+IOv2 is distributed under the **MIT License**. See `LICENSE` for the full text.
+
+This repository has two licence boundaries. Note them before cloning:
+
+| Scope | Licence |
+| --- | --- |
+| `main`, at `b40a29d` and later | MIT |
+| Earlier revisions in `main`'s history | Not offered under MIT — see below |
+| `book-v1` branch, `book-v1.0.0` / `book-v1.0.1` | GPL-3.0-or-later |
+
+Revisions preceding `b40a29d`, and the `book-v1` line that accompanies the
+book, contain code derived from libstdc++
+(`GPL-3.0-or-later WITH GCC-exception-3.1`) and glibc (`LGPL-2.1-or-later`).
+That material has been removed from the current tree and rewritten; the history
+is kept deliberately, as the audit record of how it was replaced. **A licence is
+granted over a work, and does not propagate along Git parent edges**: this file
+appearing at one commit says nothing about what its ancestors contain.
+
+The audit method, its results, what was deliberately kept, and what is known to
+remain are recorded in [`PROVENANCE.md`](PROVENANCE.md). The full terms and
+third-party notices are in [`NOTICE`](NOTICE).
+
+The library itself is header-only with no dependencies beyond the C++ standard
+library. The tests use GoogleTest (BSD-3-Clause), fetched by CMake at configure
+time; no part of it is redistributed here.
