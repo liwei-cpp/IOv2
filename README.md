@@ -228,7 +228,7 @@ IOv2 依据 **MIT 许可证**分发，全文见 `LICENSE`。
 | --- | --- |
 | `main` 分支，`b40a29d` 及其之后 | MIT |
 | `main` 历史中更早的修订版本 | 不按 MIT 提供，见下 |
-| `book-v1` 分支、`book-v1.0.0` / `book-v1.0.1` | GPL-3.0-or-later |
+| `book-v1` 分支、`book-v1.0.0` / `book-v1.0.1` / `book-v1.0.2` | GPL-3.0-or-later |
 
 早于 `b40a29d` 的修订版本，以及 `book-v1` 这条书籍配套线，含有衍生自 libstdc++（`GPL-3.0-or-later WITH GCC-exception-3.1`）与 glibc（`LGPL-2.1-or-later`）的代码。这些内容已从当前树中移除并重写；保留历史是有意为之，它是替换过程的审计记录。**许可是对作品的授予，不沿 Git 的 parent 关系传播**：本文件出现在某个提交上，不说明其祖先包含什么。
 
@@ -453,7 +453,7 @@ This repository has two licence boundaries. Note them before cloning:
 | --- | --- |
 | `main`, at `b40a29d` and later | MIT |
 | Earlier revisions in `main`'s history | Not offered under MIT — see below |
-| `book-v1` branch, `book-v1.0.0` / `book-v1.0.1` | GPL-3.0-or-later |
+| `book-v1` branch, `book-v1.0.0` / `book-v1.0.1` / `book-v1.0.2` | GPL-3.0-or-later |
 
 Revisions preceding `b40a29d`, and the `book-v1` line that accompanies the
 book, contain code derived from libstdc++
