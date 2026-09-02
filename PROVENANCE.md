@@ -290,6 +290,16 @@ accurate one.
 neither confirm nor refute where the original material came from. The internal
 evidence described in §3 is the whole of the case.
 
+**The per-file results were not preserved.** The scans in §4 were run across
+the tree file by file, but only the aggregates were written down. The method
+was arrived at iteratively over several rounds rather than as one finished
+tool, and neither the scripts nor the per-file output was kept. §4's numbers
+are therefore reproducible from the corpus in §2 and the method in §3, but they
+cannot be read off a stored ledger: a reader wanting per-file assurance has to
+re-run the method rather than consult a record of it. The per-file statement
+this tree does carry is the SPDX marker on every source file, and that is a
+statement of licence, not of audit.
+
 **Detection has a floor.** The calibration in §3 shows unrelated files reaching
 26.6 % containment at the extreme. A sufficiently thorough paraphrase would
 score inside the noise. The claim made here is that everything the described
@@ -344,5 +354,10 @@ below it.
   callgrind 指令数 350,166,169 → 347,500,345（−0.76%），逐函数零回退。
   当前树中已无已知的 libstdc++ 指纹。
 * **§10 局限**：这**不是** clean-room——作者读过 libstdc++ 源码；准确的说法是
-  "独立重写 ＋ 等价性验证 ＋ 来源审计"。Git 只能追到根提交，无法佐证。检测有
-  下限：无关文件极端值可达 26.6 % containment，足够彻底的改写会落在噪声内。
+  "独立重写 ＋ 等价性验证 ＋ 来源审计"。Git 只能追到根提交，无法佐证。
+  **逐文件结果未留存**：§4 的扫描是逐文件跑的，但只记下了汇总；方法是多轮迭代
+  出来的，不是一件成型工具，脚本与逐文件输出都没有保留，所以那些数字可由 §2 的
+  语料加 §3 的方法复现，却无法从一份现成台账上读到——想要逐文件保证的读者只能
+  重跑一遍。本树确实带有的逐文件陈述是每个源文件上的 SPDX 标记，而那是许可声明，
+  不是审计结论。检测有下限：无关文件极端值可达 26.6 % containment，足够彻底的
+  改写会落在噪声内。
