@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * Reading a line at a time out of an istream<char>, which IOv2 spells as
  * get<cons_sep, app_zt>: consume the delimiter, terminate the result.

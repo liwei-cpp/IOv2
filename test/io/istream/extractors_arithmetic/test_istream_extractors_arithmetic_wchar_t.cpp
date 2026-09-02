@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same arithmetic extraction contract as
  * test_istream_extractors_arithmetic_char.cpp for wchar_t.

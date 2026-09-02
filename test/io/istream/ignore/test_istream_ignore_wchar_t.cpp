@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same ignore() contract as test_istream_ignore_char.cpp for wchar_t: a
  * count and a delimiter are both limits and the nearer one stops the call, the

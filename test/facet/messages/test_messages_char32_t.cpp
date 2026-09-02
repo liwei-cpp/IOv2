@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * IOv2::messages<char32_t>: the same gettext catalogue, decoded into code
  * points.  The narrow instantiation takes a codeset argument because its result

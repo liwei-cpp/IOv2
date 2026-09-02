@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * ios_base::fill: where the character comes from, and which characters are
  * allowed to be it.

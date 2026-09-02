@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same four endings as test_istream_getline_char.cpp for wchar_t: the
  * delimiter was found, the capacity ran out first, the input ran out having

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The collation contract for IOv2::collate<char>, as stated in
  * include/facet/collate.h and include/facet/collate_details.h: a range is cut

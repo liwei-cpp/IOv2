@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same character and character-array extraction contract as
  * test_istream_extractors_character_char.cpp for wchar_t.

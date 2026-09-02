@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same currency contract as test_monetary_char.cpp for char8_t.  What differs is
  * only the type the field is written in: the pattern, the grouping, the sign

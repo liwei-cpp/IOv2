@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 #pragma once
 #include <common/copyable_mutex.h>
 #include <cvt/cvt_concepts.h>

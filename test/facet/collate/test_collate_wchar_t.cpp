@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same collation contract as test_collate_char.cpp, one level up: for
  * wchar_t the segments go to wcscoll and wcsxfrm rather than wcscoll and

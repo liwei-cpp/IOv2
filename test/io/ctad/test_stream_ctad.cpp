@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 // Class-template-argument-deduction probes for istream / ostream / iostream.
 //
 // The locale-taking constructors are constrained, and that constraint is what carries the

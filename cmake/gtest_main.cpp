@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 // The main() every test suite links.
 //
 // One executable per suite is what makes a failure re-runnable on its own, and

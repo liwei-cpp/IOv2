@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same attach() contract as test_istream_attach_char.cpp for wchar_t: the
  * state bits belong to the device that set them, and replacing the device

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 #include <common/prefix_tree.h>
 #include <common/stamp_input_iterator.h>
 #include <device/mem_device.h>

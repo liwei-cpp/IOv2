@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same putback contract as test_istream_putback_char.cpp for wchar_t: the
  * pushed-back character is the caller's, a successful putback leaves the state
