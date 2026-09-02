@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * IOv2::timeio<char>: writing a time value out through strftime's conversion
  * specifiers and reading one back in through strptime's.

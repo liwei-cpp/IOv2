@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same collation contract as test_collate_char.cpp for char32_t, which
  * reaches wcscoll and wcsxfrm by reinterpreting its input as wchar_t.  That

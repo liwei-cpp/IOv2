@@ -17,6 +17,10 @@ The MIT License applies to the source tree as of commit
 and to every later revision of the 'main' branch, except where an
 individual file says otherwise in its own header.
 
+Every .h and .cpp file under include/, src/, test/ and cmake/ carries an
+SPDX-License-Identifier line stating this, so the attribution travels
+with the file if it is copied out of the repository.
+
 It does NOT apply retroactively to earlier revisions in this
 repository's history.  A licence is granted over a work, not over a Git
 reachability relation: the presence of this file at one commit says
@@ -126,6 +130,10 @@ MIT 许可证适用于下述提交所代表的源码树
     b40a29d58ca7afff6c79b2201cbe6f580a835992
 
 以及 'main' 分支此后的每一个修订版本；个别文件在自身头部另有声明的除外。
+
+`include/`、`src/`、`test/`、`cmake/` 下的每个 `.h` 与 `.cpp` 文件都带有
+SPDX-License-Identifier 标记声明这一点，因此文件被单独拷贝出仓库时，归属
+信息也随之带走。
 
 它**不**向前追溯适用于本仓库历史中更早的修订版本。许可是对作品的授予，
 而不是对 Git 可达关系的授予：本文件出现在某个提交上，并不说明该提交的

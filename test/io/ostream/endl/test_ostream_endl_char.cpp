@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The endl manipulator on an ostream<char>, and around it the manipulator
  * dispatch it shares with ends and flush.

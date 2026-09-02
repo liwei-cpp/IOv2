@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same peek contract as test_istream_peek_char.cpp for wchar_t: peek does
  * not consume, does not move the read position, and does not change the state

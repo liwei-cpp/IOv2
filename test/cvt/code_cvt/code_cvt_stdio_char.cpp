@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 #include <common/defs.h>
 #include <cvt/code_cvt.h>
 #include <cvt/code_cvt_stdio.h>

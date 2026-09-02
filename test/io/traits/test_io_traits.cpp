@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 // Compile-time regression coverage for the io_traits extension point.
 //
 // Everything here is a static_assert; the single runtime case only reports that the translation

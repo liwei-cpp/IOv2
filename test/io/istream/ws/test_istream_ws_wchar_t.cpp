@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same ws contract and the same manipulator-dispatch rules as
  * test_istream_ws_char.cpp for wchar_t.

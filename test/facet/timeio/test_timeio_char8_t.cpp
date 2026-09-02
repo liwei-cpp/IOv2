@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same conversion-specifier contract as test_timeio_char.cpp for char8_t.  The
  * tables are the same tables: what a specifier produces depends on the locale

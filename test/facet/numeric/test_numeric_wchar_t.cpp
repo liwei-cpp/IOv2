@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same numeric contract as test_numeric_char.cpp for wchar_t.  The digits, the
  * base, the grouping, the sign and the field width are one algorithm over

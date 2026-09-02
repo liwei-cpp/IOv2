@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The ws manipulator, and around it the rules that decide which manipulators an
  * istream<char> will accept at all.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same read() contract as test_istream_read_char.cpp for wchar_t: a count
  * is either met or the input ran out trying, the return value says which by

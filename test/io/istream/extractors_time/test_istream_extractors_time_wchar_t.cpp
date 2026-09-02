@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same contract as test_istream_extractors_time_char.cpp: a std::tm is
  * filled from the locale's %c, extended with %z and (%Z) where the platform's

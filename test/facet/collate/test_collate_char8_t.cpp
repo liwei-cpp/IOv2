@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * The same collation contract as test_collate_char.cpp for char8_t, which
  * routes through the narrow strcoll and strxfrm on its UTF-8 bytes.  That is

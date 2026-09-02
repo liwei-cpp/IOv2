@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * Formatted extraction of characters and character arrays from an
  * istream<char>: operator>>(CharT&) and operator>>(CharT (&)[N]).

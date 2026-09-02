@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
+// SPDX-License-Identifier: MIT
+
 /**
  * IOv2::messages<char8_t>, and with it the language-selection rules the other
  * three instantiations share but do not exercise.
