@@ -60,18 +60,15 @@ is claimed here.
 THE book-v1 LINE
 ----------------
 
-The 'book-v1' branch and the 'book-v1.0.0' / 'book-v1.0.1' /
-'book-v1.0.2' tags are a separate, frozen line of work: the source code
-accompanying the book.  That line contains the derived material
-described above and is distributed under the GNU General Public License
-version 3 or later.
+The 'book-v1' branch and the 'book-v1.0.*' tags are a separate, frozen
+line of work: the source code accompanying the book.  That line contains
+the derived material described above and is distributed under the GNU
+General Public License version 3 or later.
 
 The authoritative terms for it are the LICENSE and NOTICE files at the
-'book-v1.0.2' tag.  All three tags carry the identical source tree and
-differ only in those two files: 'book-v1.0.0' predates them,
-'book-v1.0.1' added them, and 'book-v1.0.2' revised the NOTICE to state
-the third-party provenance completely.  The two earlier tags are
-superseded.
+most recent 'book-v1.0.*' tag.  Every tag on that line carries the
+identical source tree; they differ only in those two files, each tag
+superseding the ones before it.
 
 Code from that line may not be treated as MIT-licensed.
 
@@ -174,13 +171,11 @@ SPDX-License-Identifier 标记声明这一点，因此文件被单独拷贝出�
 book-v1 线
 ----------
 
-'book-v1' 分支与 'book-v1.0.0' / 'book-v1.0.1' / 'book-v1.0.2' 三个 tag 是一条
-独立且已冻结的工作线：本书的配套源码。该线含有上述衍生材料，依据 GNU 通用公共
-许可证第 3 版或任何更新版本分发。
+'book-v1' 分支与 'book-v1.0.*' 系列 tag 是一条独立且已冻结的工作线：本书的配套
+源码。该线含有上述衍生材料，依据 GNU 通用公共许可证第 3 版或任何更新版本分发。
 
-以 'book-v1.0.2' tag 上的 LICENSE 与 NOTICE 文件为准。三个 tag 的源码树完全相同，
-差异只在这两个文件上：'book-v1.0.0' 尚无此二文件，'book-v1.0.1' 添加了它们，
-'book-v1.0.2' 修订了 NOTICE 以完整说明第三方来源。前两个 tag 已被取代。
+以该线上最新的 'book-v1.0.*' tag 所带的 LICENSE 与 NOTICE 文件为准。该线各 tag
+的源码树完全相同，差异只在这两个文件上，后一个 tag 取代它之前的各个 tag。
 
 该线中的代码不得被当作 MIT 许可的代码使用。
 

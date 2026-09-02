@@ -40,7 +40,7 @@ IOv2 的系统架构分为以下几个正交的维度：
    - **编码转换**：如 `code_cvt`、`code_cvt_stdio`，支持多字节与宽字符等转换。
    - **压缩解压**：`zlib_cvt`（依赖 zlib）提供数据压缩与解压能力。
    - **密码学与哈希**：
-     - `chacha20_cvt`: 提供现代、安全的流加密支持。
+     - `chacha20_cvt`: 基于现代流密码 ChaCha20 的加解密支持。当前实现的安全性仍有待加强（未做认证加密），后续会引入更稳妥的方案。
      - `hash_cvt`: 进行哈希计算（依赖 Botan）。
      - `vigenere_cvt`: **[仅限教育用途]** 位于 `IOv2::Crypt::Classic` 命名空间。维吉尼亚密码在现代密码学中已被完全破解，**禁止用于保护任何敏感数据**。
    - **运行时转换**：`runtime_cvt` 提供基于类型擦除的运行时的转换器多态支持。
@@ -211,16 +211,17 @@ make IOV2_PKG=iov2-shared   # 共享 .so（无需 -DIOV2_SHARED）
 
 ### 开发环境与测试
 - **标准**：C++23 及以上。
+- **平台**：目前只支持 **Linux + glibc + libstdc++**，CI 也只覆盖这套环境。`std_device` 直接使用 POSIX 接口，`timeio`、`numeric` 用到 glibc 的 `nl_langinfo` 扩展项（`_NL_TIME_ERA_*`、`YESSTR`/`NOSTR` 等），macOS 与 Windows 尚未适配。
 - **编译器**：GCC 15+ 或 Clang 18+ (建议配合 libstdc++)。
 - **依赖**：核心头文件库本身无需构建，但部分特性依赖 `zlib` 和 `Botan`。
 
 **运行测试**
-`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，共 57 个套件。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
+`test` 目录包含了所有的单元测试与验证程序，由 CMake/CTest 构建，按目录划分成套件。运行测试前，请确保系统中已安装必要的依赖（如 `botan-2` 和 `zlib` 开发包）。
 
 ```bash
 cmake --preset gcc-release                        # 配置
 cmake --build --preset gcc-release --parallel "$(nproc)"     # 编译全部
-ctest --preset gcc-release --parallel             # 运行全部 57 个套件
+ctest --preset gcc-release --parallel             # 运行全部套件
 ctest --preset gcc-release -L io                  # 只跑 IO 模块
 ```
 构建产物位于 `build/<preset>/`，不再污染源码树。更多用法（sanitizer、Valgrind、覆盖率、如何新增测试文件）参见 `test/README.md`，可用配置见 `cmake --list-presets`。
@@ -234,7 +235,7 @@ IOv2 依据 **MIT 许可证**分发，全文见 [`LICENSE`](LICENSE)。
 | --- | --- |
 | `main` 分支，`b40a29d` 及其之后 | MIT |
 | `main` 历史中更早的修订版本 | 不按 MIT 提供，见下 |
-| `book-v1` 分支、`book-v1.0.0` / `book-v1.0.1` / `book-v1.0.2` | GPL-3.0-or-later |
+| `book-v1` 分支与 `book-v1.0.*` 系列 tag | GPL-3.0-or-later |
 
 早于 `b40a29d` 的修订版本，以及 `book-v1` 这条书籍配套线，含有衍生自 libstdc++（`GPL-3.0-or-later WITH GCC-exception-3.1`）与 glibc（`LGPL-2.1-or-later`）的代码。这些内容已从当前树中移除并重写；保留历史是有意为之，它是替换过程的审计记录。**许可是对作品的授予，不沿 Git 的 parent 关系传播**：本文件出现在某个提交上，不说明其祖先包含什么。
 
@@ -273,7 +274,7 @@ The architecture is divided into the following orthogonal dimensions:
    Manages intermediate transformations with support for infinite chaining. Built-in converters include:
    - **Encodings**: e.g., `code_cvt`, `code_cvt_stdio` for multibyte/wide-character conversions.
    - **Compression**: `zlib_cvt` (requires zlib) for data compression and decompression.
-   - **Cryptography & Hashing**: `chacha20_cvt` and `vigenere_cvt` for encryption/decryption, and `hash_cvt` for hashing (requires Botan).
+   - **Cryptography & Hashing**: `chacha20_cvt` (the modern ChaCha20 stream cipher; the present implementation is not yet authenticated encryption, and a stronger scheme is planned) and `vigenere_cvt` for encryption/decryption, and `hash_cvt` for hashing (requires Botan).
    - **Runtime Conversion**: `runtime_cvt` provides polymorphic converter dispatch at runtime via type erasure.
 
 3. **Semantic Layer (Semantic Interpretation)**
@@ -444,16 +445,17 @@ Thread safety is provided **at the stream-object layer**: every stream owns a re
 
 ### Development Environment & Tests
 - **Standard**: C++23 or later.
+- **Platform**: **Linux with glibc and libstdc++** only, which is also all CI covers. `std_device` uses POSIX calls directly, and `timeio` and `numeric` rely on glibc's `nl_langinfo` extensions (`_NL_TIME_ERA_*`, `YESSTR`/`NOSTR`); macOS and Windows are not yet supported.
 - **Compiler**: GCC 15+ or Clang 18+ (with libstdc++ recommended).
 - **Dependencies**: The core library requires no build, but specific converters depend on `zlib` and `Botan`.
 
 **Running Tests**
-The `test` directory contains all unit tests, built by CMake/CTest as 57 suites. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
+The `test` directory contains all unit tests, built by CMake/CTest as one suite per directory. Ensure you have the necessary dependencies installed (e.g., `botan-2` and `zlib` development packages).
 
 ```bash
 cmake --preset gcc-release                        # configure
 cmake --build --preset gcc-release --parallel "$(nproc)"     # build everything
-ctest --preset gcc-release --parallel             # run all 57 suites
+ctest --preset gcc-release --parallel             # run every suite
 ctest --preset gcc-release -L io                  # run the IO module only
 ```
 Build output goes to `build/<preset>/` rather than into the source tree. For sanitizers, Valgrind, coverage and how to add a test file, see `test/README.md`; `cmake --list-presets` lists the available configurations.
@@ -467,7 +469,7 @@ This repository has two licence boundaries. Note them before cloning:
 | --- | --- |
 | `main`, at `b40a29d` and later | MIT |
 | Earlier revisions in `main`'s history | Not offered under MIT — see below |
-| `book-v1` branch, `book-v1.0.0` / `book-v1.0.1` / `book-v1.0.2` | GPL-3.0-or-later |
+| `book-v1` branch and the `book-v1.0.*` tags | GPL-3.0-or-later |
 
 Revisions preceding `b40a29d`, and the `book-v1` line that accompanies the
 book, contain code derived from libstdc++
