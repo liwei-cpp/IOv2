@@ -3,7 +3,7 @@
 
 #include <clocale>
 
-#include <common/defs.h>
+#include <IOv2/common/defs.h>
 
 #include <gtest/gtest.h>
 
@@ -34,7 +34,7 @@ inline locale_t mock_duplocale(locale_t loc)
 #define clocale_wrapper clocale_wrapper_mock
 #define clocale_user clocale_user_mock
 
-#include <common/clocale_wrapper.h>
+#include <IOv2/common/clocale_wrapper.h>
 
 #undef newlocale
 #undef duplocale

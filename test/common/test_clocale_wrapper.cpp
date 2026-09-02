@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
 // SPDX-License-Identifier: MIT
 
-#include <common/clocale_wrapper.h>
-#include <common/defs.h>
+#include <IOv2/common/clocale_wrapper.h>
+#include <IOv2/common/defs.h>
 
 #include <gtest/gtest.h>
 

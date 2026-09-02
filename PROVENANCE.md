@@ -160,7 +160,7 @@ is original.
 | `7e4bd82` | 2026-08-27 | Reconstructed backward era years |
 | `5a2c2e0` … `ab5ddb4` | 2026-08-28 – 2026-08-31 | Converted all 57 test suites to GoogleTest, re-deriving the fixtures rather than porting them |
 | `b40a29d` | 2026-09-01 | Re-derived the constructs that still resembled libstdc++: the `code_cvt.h` bias constants, the `numeric.h` integer parser, the remaining test fixtures |
-| this commit | 2026-09-01 | Replaced `numeric.h`'s packed digit-atom tables with named fields, removing the last shared literal (§9) |
+| `0664cbb` | 2026-09-01 | Replaced `numeric.h`'s packed digit-atom tables with named fields, removing the last shared literal (§9) |
 
 ## 6. Deliberately unchanged
 

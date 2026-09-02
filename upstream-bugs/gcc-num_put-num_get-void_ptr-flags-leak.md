@@ -47,7 +47,7 @@
 
 IOv2 自己的 `numeric` facet 在 `put(const void*)` / `get(void*&)` 中历史上写法与 libstdc++ 同源(手动 save/restore),因此同样存在这个缺陷。我们在向上游提交 bug 的同时,**已经在 IOv2 内部进行了修复**:
 
-- **文件**:`include/facet/numeric.h`。
+- **文件**:`include/IOv2/facet/numeric.h`。
 - **改动**:在私有段引入嵌套结构体 `fmtflags_guard`,构造时记录 `m_saved = io.flags()`,析构时无条件 `m_io.flags(m_saved)`;拷贝与移动操作显式 `= delete`,避免作用域逃逸。`put(const void*)` 与 `get(void*&)` 进入时各自实例化一个 guard 再去改写 flags,无论后续 `insert_int` / `extract_int` 正常返回还是抛异常,析构都会把原 flags 还原回去。
 - **取舍**:**这是一处刻意偏离 libstdc++ 行为的修复**。在 libstdc++ 下,异常路径会留下被污染的 flags;在 IOv2 下,异常路径上的 sentry 仍然会把异常吞掉并把 `badbit` 设上,但 `flags()` 会保留为调用前的值。考虑到 `flags()` 不在 `do_put` / `do_get` 的可观察合同里,把它还原回原值是更安全、更符合直觉的选择,也更符合基本异常保证。
 - **复现器**:`repro_gcc_void_ptr_flags_leak.cpp`(仓库根目录),原生 GCC 工具链上可直接编译运行,演示 libstdc++ 在异常路径上泄漏 flags 的行为,以及"下游 `<< 255` 输出 `0xff`"的可观察后果。
@@ -92,7 +92,7 @@ The suggested upstream fix is to replace the manual save/restore in both `do_put
 
 IOv2's own `numeric` facet's `put(const void*)` / `get(void*&)` historically share the manual save/restore shape with libstdc++, so they inherit the same defect. We have **fixed the issue inside IOv2** at the same time as filing the upstream bug:
 
-- **File**: `include/facet/numeric.h`.
+- **File**: `include/IOv2/facet/numeric.h`.
 - **Change**: a private nested struct `fmtflags_guard` records `m_saved = io.flags()` at construction and unconditionally calls `m_io.flags(m_saved)` in its destructor; copy and move are explicitly `= delete`. Both `put(const void*)` and `get(void*&)` instantiate this guard before mutating flags, so whether the inner `insert_int` / `extract_int` returns normally or throws, the destructor restores the original flags.
 - **Trade-off**: **this is a deliberate divergence from libstdc++ behavior.** Under libstdc++, the exception path leaves `flags()` polluted; under IOv2, the sentry still swallows the exception and sets `badbit` on the exception path, but `flags()` is restored to its pre-call value. Given that `flags()` is not part of the observable contract of `do_put` / `do_get`, restoring it is the safer, more intuitive choice and more in line with the basic exception guarantee.
 - **Reproducer**: `repro_gcc_void_ptr_flags_leak.cpp` (at the repository root) is a self-contained program that compiles on a native GCC toolchain and demonstrates both the libstdc++ leak on the exception path and the downstream `<< 255` → `"0xff"` corruption.

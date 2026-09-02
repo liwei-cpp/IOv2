@@ -20,10 +20,10 @@
  * device as it happens, with or without a converter in the stack, so a flush
  * afterwards changes nothing either way.
  */
-#include <device/mem_device.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <gtest/gtest.h>
 

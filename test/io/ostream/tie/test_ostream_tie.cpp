@@ -11,14 +11,14 @@
  * lock, so cycles have to be impossible to create by any route -- including the
  * routes that do not go through tie() at all.
  */
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/utilities/ostream_operators.h>
-#include <locale/locale.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/utilities/ostream_operators.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

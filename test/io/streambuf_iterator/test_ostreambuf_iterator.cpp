@@ -13,9 +13,9 @@
  * in between is not the iterator's problem: it always writes wherever the
  * buffer's put position happens to be.
  */
-#include <device/mem_device.h>
-#include <io/streambuf.h>
-#include <io/streambuf_iterator.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/streambuf.h>
+#include <IOv2/io/streambuf_iterator.h>
 
 #include <gtest/gtest.h>
 

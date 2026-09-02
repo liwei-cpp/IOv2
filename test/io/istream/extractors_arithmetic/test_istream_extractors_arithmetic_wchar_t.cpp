@@ -14,17 +14,17 @@
  * a point outside ASCII, and digits that look like digits to a reader but are
  * not the facet's digits.
  */
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <facet/numeric_details.h>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/facet/numeric_details.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/io_manip.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

@@ -61,9 +61,9 @@
 #define IOV2_SHARED
 #define IOV2_EXPORTS
 
-#include <io/objects/in_impl.h>
-#include <io/objects/out_impl.h>
-#include <locale/ori_facet_buf.h>
+#include <IOv2/io/objects/in_impl.h>
+#include <IOv2/io/objects/out_impl.h>
+#include <IOv2/locale/ori_facet_buf.h>
 
 namespace IOv2
 {

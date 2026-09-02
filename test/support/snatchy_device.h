@@ -6,8 +6,8 @@
 #include <string>
 #include <type_traits>
 
-#include <common/defs.h>
-#include <device/device_concepts.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/device_concepts.h>
 template <class CharT, size_t MaxGetLen>
 class snatchy_device
 {

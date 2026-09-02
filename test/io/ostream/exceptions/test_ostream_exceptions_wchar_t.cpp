@@ -10,13 +10,13 @@
  * checked once, in the char file. What is here is the same category-by-category
  * walk over a wide stream, so that a mask honoured only for char would show up.
  */
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <support/failing_device.h>
 

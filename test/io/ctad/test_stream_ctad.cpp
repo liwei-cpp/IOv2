@@ -15,12 +15,12 @@
 // These are compile-time only: every check below is a static_assert, so the suite passes by
 // compiling. The gtest header is included so the suite is built and registered like the rest,
 // and one runtime case is there to say out loud that the file ran.
-#include <cvt/code_cvt.h>
-#include <device/mem_device.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <locale/locale.h>
+#include <IOv2/cvt/code_cvt.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

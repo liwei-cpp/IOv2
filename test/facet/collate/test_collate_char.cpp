@@ -3,7 +3,7 @@
 
 /**
  * The collation contract for IOv2::collate<char>, as stated in
- * include/facet/collate.h and include/facet/collate_details.h: a range is cut
+ * include/IOv2/facet/collate.h and include/IOv2/facet/collate_details.h: a range is cut
  * into segments at every '\0', each segment goes through strcoll/strxfrm under
  * the configured locale, and the first unequal segment decides the order.
  *
@@ -14,8 +14,8 @@
  * precisely where collation order and byte order disagree -- the reason
  * transform() exists at all.
  */
-#include <facet/collate.h>
-#include <facet/collate_details.h>
+#include <IOv2/facet/collate.h>
+#include <IOv2/facet/collate_details.h>
 
 #include <gtest/gtest.h>
 

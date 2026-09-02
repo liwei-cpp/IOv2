@@ -6,8 +6,8 @@
 #include <string>
 #include <utility>
 
-#include <common/defs.h>
-#include <device/mem_device.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
 
 // A minimal I/O device for tests that wraps a mem_device and can be told to
 // make its dflush() throw device_error on demand. Used to exercise the

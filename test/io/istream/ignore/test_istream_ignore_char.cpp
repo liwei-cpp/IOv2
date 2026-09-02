@@ -19,15 +19,15 @@
  * The fixture is "0123456789abcdef", whose character at index n is n in base
  * 16, so how far an ignore got is readable from the character it stopped on.
  */
-#include <common/defs.h>
-#include <device/file_device.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

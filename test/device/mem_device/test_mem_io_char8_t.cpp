@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 liwei <liweifriends@gmail.com>
 // SPDX-License-Identifier: MIT
 
-#include <device/device_concepts.h>
-#include <device/mem_device.h>
+#include <IOv2/device/device_concepts.h>
+#include <IOv2/device/mem_device.h>
 
 #include <gtest/gtest.h>
 

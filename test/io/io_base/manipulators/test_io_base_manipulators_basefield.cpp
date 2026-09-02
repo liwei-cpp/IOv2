@@ -18,14 +18,14 @@
  * The separator here is '_' rather than a space so that a missing separator and
  * a padding space cannot be confused for one another.
  */
-#include <device/mem_device.h>
-#include <facet/numeric_details.h>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/facet/numeric_details.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/io_manip.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

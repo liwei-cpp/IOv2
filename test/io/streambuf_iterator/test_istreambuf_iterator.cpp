@@ -15,12 +15,12 @@
  * holding the character it read, so putting a character back through one has to
  * push the cached one first.
  */
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <device/std_device.h>
-#include <io/streambuf.h>
-#include <io/streambuf_iterator.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/device/std_device.h>
+#include <IOv2/io/streambuf.h>
+#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <support/stdio_guard.h>
 

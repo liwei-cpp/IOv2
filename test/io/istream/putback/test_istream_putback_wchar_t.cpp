@@ -7,13 +7,13 @@
  * alone, eofbit is cleared on the way in, and a failed stream is reported
  * rather than thrown out of.
  */
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

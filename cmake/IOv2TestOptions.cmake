@@ -83,8 +83,8 @@ add_library(iov2_test_subject INTERFACE)
 # Makefile passes -I../include before -I., so a header present in both trees
 # resolves to the library's copy. CMake would otherwise put a target's own
 # directories ahead of any it inherits through linking, silently reversing that.
-# No header collides today, but include/ and test/ share six directory names, so
-# the first one added would diverge between the two build systems.
+# The order remains explicit so source-tree and installed consumers resolve the
+# same public headers even if a future test support directory uses the IOv2 name.
 set(IOV2_TEST_SUBJECT_INCLUDE_DIRS "")
 
 if(IOV2_TEST_CONSUMER STREQUAL "source")

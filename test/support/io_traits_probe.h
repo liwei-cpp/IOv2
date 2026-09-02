@@ -5,12 +5,12 @@
 
 #include <iterator>
 
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/streambuf.h>
-#include <io/streambuf_iterator.h>
-#include <io/traits/traits_base.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/streambuf.h>
+#include <IOv2/io/streambuf_iterator.h>
+#include <IOv2/io/traits/traits_base.h>
+#include <IOv2/locale/locale.h>
 
 // One io_traits<TChar, TValue> carries both directions, so the class existing says nothing
 // about which direction is available: io_traits<TChar, nullptr_t> is write-only,

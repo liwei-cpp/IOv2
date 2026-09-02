@@ -12,8 +12,8 @@
  * catalogue for this language -- so filtered_lang() is what the cases below
  * read: it names the entry that was chosen, or is empty when none was.
  */
-#include <facet/messages.h>
-#include <facet/messages_details.h>
+#include <IOv2/facet/messages.h>
+#include <IOv2/facet/messages_details.h>
 
 #include <gtest/gtest.h>
 

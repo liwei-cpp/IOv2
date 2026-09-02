@@ -16,14 +16,14 @@
  * base, because under hex the letters a-f are digits, and on where the padding
  * lands, because a run past the value can never be read back into it.
  */
-#include <common/clocale_wrapper.h>
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <locale/locale.h>
+#include <IOv2/common/clocale_wrapper.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/io_manip.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

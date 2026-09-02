@@ -1,17 +1,16 @@
-# Chinese translations for PACKAGE package.
-# Copyright (C) 2024 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# liwei <liwei@liewi-pc>, 2024.
+# Chinese translations for IOv2.
+# Copyright (c) 2026 liwei <liweifriends@gmail.com>
+# SPDX-License-Identifier: MIT
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
+"Project-Id-Version: IOv2 0.1.0\n"
+"Report-Msgid-Bugs-To: https://github.com/liwei-cpp/IOv2/issues\n"
 "POT-Creation-Date: 2024-01-26 23:50+0800\n"
-"PO-Revision-Date: 2024-01-26 23:58+0800\n"
-"Last-Translator: liwei <liwei@liewi-pc>\n"
+"PO-Revision-Date: 2026-09-02 00:00-0700\n"
+"Last-Translator: liwei <liweifriends@gmail.com>\n"
 "Language-Team: Chinese\n"
-"Language: zh\n"
+"Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"

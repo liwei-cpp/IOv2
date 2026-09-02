@@ -15,8 +15,8 @@
  * as a masked is(), scan_is_any and scan_not_any as searches over is_any, and
  * the "C" locale's fixed answers for the categories the standard pins down.
  */
-#include <facet/ctype.h>
-#include <facet/ctype_details.h>
+#include <IOv2/facet/ctype.h>
+#include <IOv2/facet/ctype_details.h>
 
 #include <gtest/gtest.h>
 

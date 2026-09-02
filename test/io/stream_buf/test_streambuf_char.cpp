@@ -15,14 +15,14 @@
  * put-only buffer offers at all, what switching between them costs, and what
  * detach leaves behind.
  */
-#include <cvt/comp/zlib_cvt.h>
-#include <cvt/crypt/hash_cvt.h>
-#include <cvt/crypt/vigenere_cvt.h>
-#include <device/mem_device.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/streambuf.h>
+#include <IOv2/cvt/comp/zlib_cvt.h>
+#include <IOv2/cvt/crypt/hash_cvt.h>
+#include <IOv2/cvt/crypt/vigenere_cvt.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/streambuf.h>
 
 #include <gtest/gtest.h>
 

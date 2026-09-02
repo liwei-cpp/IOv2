@@ -6,8 +6,8 @@
 #include <string>
 #include <utility>
 
-#include <common/defs.h>
-#include <device/mem_device.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
 
 // A bidirectional device that deliberately provides no positioning primitives, yielding a
 // pipeline that can change direction yet cannot reposition -- the state switch_to_put() has to

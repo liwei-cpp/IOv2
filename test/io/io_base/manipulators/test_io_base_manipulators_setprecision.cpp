@@ -10,14 +10,14 @@
  * precision itself is held in a single byte, so the value that matters is one
  * just past 255 -- narrowing instead of checking would turn 300 into 44.
  */
-#include <common/defs.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/io_manip.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

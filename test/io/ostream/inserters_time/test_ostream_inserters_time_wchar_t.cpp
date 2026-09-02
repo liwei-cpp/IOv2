@@ -8,11 +8,11 @@
  * format so a written tm can be read back whole: where the platform's tm
  * carries tm_gmtoff and tm_zone, the offset and the zone name are appended.
  */
-#include <device/mem_device.h>
-#include <io/iostream.h>
-#include <io/ostream.h>
-#include <io/traits/tm.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/tm.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

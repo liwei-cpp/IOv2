@@ -10,14 +10,14 @@
  * like it selected that base -- the tests below pass values whose low 32 bits
  * are 8, 10 and 16 to pin that down.
  */
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/io_manip.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/io_manip.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

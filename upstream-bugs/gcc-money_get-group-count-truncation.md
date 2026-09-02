@@ -56,7 +56,7 @@ B 与 C 唯一的差别只是中间组的位数(4 vs 259)。`259 = 256 + 3`,`sta
 
 IOv2 自身的 `monetary` facet 的解析逻辑与 libstdc++ 的 `_M_extract` 同源,因此同样存在这处截断。我们在向上游提交 bug 的同时,**已经在 IOv2 内部进行了修复**:
 
-- **文件**:`include/facet/monetary.h`(`monetary::extract`)。
+- **文件**:`include/IOv2/facet/monetary.h`(`monetary::extract`)。
 - **改动**:在两处把"组位数"写入 `grouping_tmp` 的地方——遇到分隔符时的中间组,以及末尾的最后一组——加入上限检查:一旦组位数超过 `std::numeric_limits<uint8_t>::max()`,直接判失败(中间组置 `testvalid = false` 并 `break`,末组置 `succ = false`),不再 `static_cast<uint8_t>` 截断。阈值刻意采用 `std::numeric_limits<uint8_t>::max()` 而非字面量 `255`,与 `grouping_tmp` 的元素类型保持一致。
 - **效果**:任何"单组位数超过 `uint8_t` 上限"的输入都会被如实判为分组不合法,彻底消除截断回绕。这与给 GCC 提议的修复方向一致。
 
@@ -109,7 +109,7 @@ Reproducer: the minimal self-contained program `money_group_bug.cpp` filed with 
 
 IOv2's own `monetary` facet shares the same extraction logic as libstdc++'s `_M_extract`, so it inherits the same truncation. We have **fixed the issue inside IOv2** at the same time as filing the upstream bug:
 
-- **File**: `include/facet/monetary.h` (`monetary::extract`).
+- **File**: `include/IOv2/facet/monetary.h` (`monetary::extract`).
 - **Change**: at both sites where a group's digit count is appended to `grouping_tmp` — the middle groups (on hitting a separator) and the final group — an upper-bound check is added: once the count exceeds `std::numeric_limits<uint8_t>::max()`, the grouping is failed outright (middle group sets `testvalid = false` and `break`s; the final group sets `succ = false`) instead of being truncated via `static_cast<uint8_t>`. The threshold deliberately uses `std::numeric_limits<uint8_t>::max()` rather than the literal `255`, matching the element type of `grouping_tmp`.
 - **Effect**: any input whose single group exceeds the `uint8_t` limit is faithfully reported as malformed grouping, eliminating the wrap-around. This matches the fix direction proposed to GCC.
 

@@ -11,14 +11,14 @@
  * and a multi-byte encoding cannot do that without rescanning from the start --
  * so it refuses, through cvtfailbit, rather than landing somewhere wrong.
  */
-#include <cvt/code_cvt.h>
-#include <device/file_device.h>
-#include <device/mem_device.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/cvt/code_cvt.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 #include <support/file_guard.h>
 

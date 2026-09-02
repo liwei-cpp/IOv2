@@ -4,6 +4,7 @@
 [![C++ CI](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml/badge.svg)](https://github.com/liwei-cpp/IOv2/actions/workflows/ci.yml)
 [![Generate Doxygen Documentation](https://github.com/liwei-cpp/IOv2/actions/workflows/docs.yml/badge.svg)](https://github.com/liwei-cpp/IOv2/actions/workflows/docs.yml)
 [![codecov](https://codecov.io/gh/liwei-cpp/IOv2/graph/badge.svg)](https://codecov.io/gh/liwei-cpp/IOv2)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **A Modern & Composable C++ I/O Framework**
 
@@ -56,9 +57,9 @@ IOv2 的系统架构分为以下几个正交的维度：
 ### 快速开始
 
 ```cpp
-#include <io/iostream.h>
-#include <device/file_device.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 using namespace IOv2;
 
@@ -74,12 +75,12 @@ int main() {
 
 ### 扩展点：让自定义类型支持 `<<` / `>>`
 
-全库只有**一个** I/O 扩展点：`IOv2::io_traits<TChar, T>`（声明在 `io/traits/traits_base.h`）。它的主模板**故意不定义**——"某个类型不支持某个方向"就表达为"该特化不存在"。内置类型的特化按类别分放在 `io/traits/` 下（`char_and_str.h`、`arithmetic.h`、`tm.h`、`nullptr.h` 等），它们**不会**被流头文件自动带上，用到哪个就 include 哪个。
+全库只有**一个** I/O 扩展点：`IOv2::io_traits<TChar, T>`（声明在 `IOv2/io/traits/traits_base.h`）。它的主模板**故意不定义**——"某个类型不支持某个方向"就表达为"该特化不存在"。内置类型的特化按类别分放在 `IOv2/io/traits/` 下（`char_and_str.h`、`arithmetic.h`、`tm.h`、`nullptr.h` 等），它们**不会**被流头文件自动带上，用到哪个就 include 哪个。
 
 给自己的类型接上 `os << t` / `is >> t`，只需在命名空间 `IOv2` 里特化它，并按需要提供下列成员。名字里的 `s` 是 **static** 的意思，与 sentry 无关。
 
 ```cpp
-#include <io/traits/traits_base.h>
+#include <IOv2/io/traits/traits_base.h>
 
 namespace IOv2
 {
@@ -108,7 +109,7 @@ struct io_traits<TChar, my_point>
 - 上面是**迭代器形式**，格式化 I/O 用这一档。操纵符用的是**流形式**——`static void swrite(T& s, const my_point& v)` / `sread`，直接拿到流本身，**不加锁、不建哨兵**，需要就自己来。两种形式靠参数个数区分，一个特化**只能提供其中一种**：两种都提供是编译错误。库内置的操纵符没有 `operator()`，逻辑全在扩展点里，`os << m` / `is >> m` 是仅有的入口；标准的 `std::ws(is)` / `std::endl(os)` 直接调用形式在本库不存在。
 - **扩展只能走特化 `io_traits` 这一条路，不要在自己的命名空间里写 `operator<<` / `operator>>`。** 加锁、建哨兵、消费 `width` / `fill`、把异常转交 `handle_exception`——这些都是运算符的职责，手写一条就全部绕开了，而且在多线程下不再与其它插入互斥。特化扩展点则完全没有这个问题：它不参与重载决议，运算符照常负责上述全部工作。真要给某个类型两条路都留（既特化了 `io_traits`，又自己写了一条运算符），两条候选同样好，调用点就是二义性错误。
 
-细节（含提取端可选的 `parse_context_type` 中转）见 `io/traits/traits_base.h` 的文件头注释。
+细节（含提取端可选的 `parse_context_type` 中转）见 `IOv2/io/traits/traits_base.h` 的文件头注释。
 
 ### 从 `writer` / `reader` 迁移
 
@@ -116,7 +117,7 @@ struct io_traits<TChar, my_point>
 
 | 旧写法 | 新写法 |
 | --- | --- |
-| `#include <io/fp_defs/xxx.h>` | `#include <io/traits/xxx.h>`；`base_fp.h` → `traits_base.h` |
+| `#include <io/fp_defs/xxx.h>` | `#include <IOv2/io/traits/xxx.h>`；`base_fp.h` → `traits_base.h` |
 | `struct writer<TChar, T> { swrite(...); };` | `struct io_traits<TChar, T> { swrite(...); };`，`swrite` 签名不变 |
 | `struct reader<TChar, T> { sread(...); };` | 同一个 `io_traits<TChar, T>` 里的 `sread`，签名不变 |
 | 分别特化 `writer` 和 `reader` | 在**同一个** `io_traits` 特化里同时给出 `swrite` 与 `sread` |
@@ -124,12 +125,12 @@ struct io_traits<TChar, my_point>
 | 操纵符派生 `in_manip` / `out_manip` 并写 `operator()` | 特化 `io_traits`，写**流形式**的 `swrite(T& s, const M& m)` / `sread(T& s, const M& m)`；方向由哪个成员存在决定，两个标签基类和那对 `= delete` 重载一并消失 |
 | `setw(5)(os)`、`ws(is)`、`endl(os)` 直接调用 | 没有了。只能写 `os << setw(5)`、`is >> ws`、`os << endl` |
 | `os << std::function<void(ios_base<TChar>&)>{f}` | 没有了。操纵符只认**函数指针**一种形状；无捕获 lambda 写 `+lambda` 退化，带状态的操纵符请走流形式 |
-| `parse_context_type` | 保留，从 `io/fp_defs/base_fp.h` 挪到 `io/traits/traits_base.h`，用法不变 |
+| `parse_context_type` | 保留，从旧路径 `io/fp_defs/base_fp.h` 挪到 `IOv2/io/traits/traits_base.h`，用法不变 |
 
 另有两处行为变化：
 
 - **异常只在运算符里接一次。** 操纵符不再有 `operator()`，也就不再各自 try/catch；`os << m` / `is >> m` 里抛出的一切统一由运算符转交 `handle_exception`。
-- **用错类型时的报错措辞变了。** 旧的泛型运算符无约束，用错会撞上函数体里的 `static_assert`，能区分"根本没有 `io_traits`"和"有 `io_traits` 但这个方向没成员"。现在运算符带约束，用错类型就是**没有可行重载**，编译器给的是通用的 `no match for 'operator<<'`。这是换取可探测性必须付的代价：定制诊断需要无约束的运算符，而无约束的运算符没法被 `requires` 探测，二者不可兼得。**忘了 include 对应的 `io/traits/*.h` 现在也是这一条报错，遇到它先检查 include。**
+- **用错类型时的报错措辞变了。** 旧的泛型运算符无约束，用错会撞上函数体里的 `static_assert`，能区分"根本没有 `io_traits`"和"有 `io_traits` 但这个方向没成员"。现在运算符带约束，用错类型就是**没有可行重载**，编译器给的是通用的 `no match for 'operator<<'`。这是换取可探测性必须付的代价：定制诊断需要无约束的运算符，而无约束的运算符没法被 `requires` 探测，二者不可兼得。**忘了 include 对应的 `IOv2/io/traits/*.h` 现在也是这一条报错，遇到它先检查 include。**
 
 ### 使用方式：Header-Only 与共享库（DSO/DLL）
 
@@ -142,14 +143,19 @@ IOv2 提供两种发布模式，默认即开箱即用的 header-only：
 **安装（根目录 `Makefile`）**
 
 ```bash
-# header-only：仅安装头文件 + iov2.pc
+# header-only：安装头文件、许可证文件与 iov2.pc
 make install PREFIX=/usr/local
 
-# 共享库：构建 libiov2.so，安装头文件 + libiov2.so + iov2-shared.pc
+# 共享库：另加 libiov2.so 与 iov2-shared.pc
 make install-shared PREFIX=/opt/iov2
 ```
 
 `install-shared` 会自动打开**已安装那份**头文件里的发行模式开关，因此**消费方无需手动传 `-DIOV2_SHARED`**——模式信息随头文件一起交付。底层构建命令见 `src/iov2_objects.cpp`。卸载用 `make uninstall PREFIX=...`。
+
+两种模式都把头文件放在 `<prefix>/include/IOv2/`，避免在系统 include 根目录创建
+`common/`、`io/` 等通用名称；pkg-config 仍把 `<prefix>/include` 加入搜索路径，
+公开头文件统一使用 `#include <IOv2/io/iostream.h>`。MIT 正文与项目声明安装到
+`<prefix>/share/licenses/IOv2/`。
 
 **消费（推荐 pkg-config）**
 
@@ -220,7 +226,7 @@ ctest --preset gcc-release -L io                  # 只跑 IO 模块
 构建产物位于 `build/<preset>/`，不再污染源码树。更多用法（sanitizer、Valgrind、覆盖率、如何新增测试文件）参见 `test/README.md`，可用配置见 `cmake --list-presets`。
 
 ### 许可证
-IOv2 依据 **MIT 许可证**分发，全文见 `LICENSE`。
+IOv2 依据 **MIT 许可证**分发，全文见 [`LICENSE`](LICENSE)。
 
 本仓库有两条许可边界，克隆前请留意：
 
@@ -234,7 +240,9 @@ IOv2 依据 **MIT 许可证**分发，全文见 `LICENSE`。
 
 审计方法、结果、有意保留的内容与已知残留，记载于 [`PROVENANCE.md`](PROVENANCE.md)；完整条款与第三方声明见 [`NOTICE`](NOTICE)。
 
-库本身 header-only，除 C++ 标准库外无依赖；测试使用 GoogleTest（BSD-3-Clause），由 CMake 在 configure 阶段拉取，本仓库不再分发其任何部分。
+核心 header-only 组件仅依赖 C++ 标准库；可选的 `zlib_cvt` 与 `hash_cvt`
+分别要求外部提供 zlib 与 Botan。测试使用 GoogleTest（BSD-3-Clause），由 CMake
+在 configure 阶段拉取，其源码未提交到本 Git 仓库。
 
 ---
 
@@ -280,9 +288,9 @@ The architecture is divided into the following orthogonal dimensions:
 ### Quick Start
 
 ```cpp
-#include <io/iostream.h>
-#include <device/file_device.h>
-#include <io/traits/char_and_str.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/device/file_device.h>
+#include <IOv2/io/traits/char_and_str.h>
 
 using namespace IOv2;
 
@@ -298,12 +306,12 @@ int main() {
 
 ### Extension Point: Making Your Own Types Work with `<<` / `>>`
 
-The whole library has exactly **one** I/O extension point: `IOv2::io_traits<TChar, T>` (declared in `io/traits/traits_base.h`). Its primary template is **deliberately left undefined** -- "this type does not support this direction" is expressed as "the specialization does not exist". Specializations for the built-in types live under `io/traits/` grouped by category (`char_and_str.h`, `arithmetic.h`, `tm.h`, `nullptr.h`, ...); the stream headers do **not** pull them in, so include the ones you use.
+The whole library has exactly **one** I/O extension point: `IOv2::io_traits<TChar, T>` (declared in `IOv2/io/traits/traits_base.h`). Its primary template is **deliberately left undefined** -- "this type does not support this direction" is expressed as "the specialization does not exist". Specializations for the built-in types live under `IOv2/io/traits/` grouped by category (`char_and_str.h`, `arithmetic.h`, `tm.h`, `nullptr.h`, ...); the stream headers do **not** pull them in, so include the ones you use.
 
 To make `os << t` / `is >> t` work for your own type, specialize it in namespace `IOv2` and provide whichever members you need. The `s` in the names means **static** and has nothing to do with the sentry.
 
 ```cpp
-#include <io/traits/traits_base.h>
+#include <IOv2/io/traits/traits_base.h>
 
 namespace IOv2
 {
@@ -333,7 +341,7 @@ Four things to know:
 - The above is the **iterator form**, used by formatted I/O. Manipulators use the **stream form** instead -- `static void swrite(T& s, const my_point& v)` / `sread`, which get the stream itself with **no lock and no sentry**; do it yourself if you need one. The two forms are told apart by arity, and a specialization may provide **only one of them**: providing both is a compile error. The library's own manipulators have no `operator()`: all their logic lives in the extension point and `os << m` / `is >> m` is the only entry, so the standard's direct-call forms `std::ws(is)` and `std::endl(os)` do not exist here.
 - **Specializing `io_traits` is the only supported way to extend; do not write your own `operator<<` / `operator>>` in your namespace.** Taking the lock, building the sentry, consuming `width` / `fill`, and routing exceptions to `handle_exception` are the operator's job, and a hand-written one bypasses all of it -- including mutual exclusion with other insertions under threads. The extension point has none of that risk: it does not take part in overload resolution, and the operator still does all of the above. And if you do both for one type -- specialize `io_traits` *and* write your own operator -- the two candidates are equally good and the call site is an ambiguity error.
 
-For the details -- including the optional `parse_context_type` relay on the extraction side -- see the file-level comment in `io/traits/traits_base.h`.
+For the details -- including the optional `parse_context_type` relay on the extraction side -- see the file-level comment in `IOv2/io/traits/traits_base.h`.
 
 ### Migrating from `writer` / `reader`
 
@@ -341,7 +349,7 @@ The previous version had three parallel mechanisms for attaching I/O logic to a 
 
 | Old | New |
 | --- | --- |
-| `#include <io/fp_defs/xxx.h>` | `#include <io/traits/xxx.h>`; `base_fp.h` → `traits_base.h` |
+| `#include <io/fp_defs/xxx.h>` | `#include <IOv2/io/traits/xxx.h>`; `base_fp.h` → `traits_base.h` |
 | `struct writer<TChar, T> { swrite(...); };` | `struct io_traits<TChar, T> { swrite(...); };` -- `swrite`'s signature is unchanged |
 | `struct reader<TChar, T> { sread(...); };` | `sread` in that same `io_traits<TChar, T>`, signature unchanged |
 | Specializing `writer` and `reader` separately | Give `swrite` and `sread` in **one** `io_traits` specialization |
@@ -349,12 +357,12 @@ The previous version had three parallel mechanisms for attaching I/O logic to a 
 | A manipulator deriving from `in_manip` / `out_manip` with an `operator()` | Specialize `io_traits` with the **stream form** `swrite(T& s, const M& m)` / `sread(T& s, const M& m)`; the direction comes from which member exists, and both tag bases and the `= delete` pair are gone with them |
 | Direct calls `setw(5)(os)`, `ws(is)`, `endl(os)` | Gone. Write `os << setw(5)`, `is >> ws`, `os << endl` |
 | `os << std::function<void(ios_base<TChar>&)>{f}` | Gone. A function pointer is the only manipulator shape accepted; a capture-less lambda can be written `+lambda` to decay, and a stateful manipulator belongs in the stream form |
-| `parse_context_type` | Kept, moved from `io/fp_defs/base_fp.h` to `io/traits/traits_base.h`; usage unchanged |
+| `parse_context_type` | Kept, moved from the old path `io/fp_defs/base_fp.h` to `IOv2/io/traits/traits_base.h`; usage unchanged |
 
 Two behavioural changes come with it:
 
 - **Exceptions are caught once, in the operator.** Manipulators no longer have an `operator()` and so no longer try/catch individually; everything thrown out of `os << m` / `is >> m` is handed to `handle_exception` by the operator.
-- **The wording you get for a wrong type changed.** The old generic operators were unconstrained, so a wrong type hit a `static_assert` in the body that distinguished "no `io_traits` at all" from "an `io_traits` exists but has no member for this direction". The operators are constrained now, so a wrong type simply leaves **no viable overload** and the compiler emits its generic `no match for 'operator<<'`. That is the price of detectability: a tailored diagnostic needs an unconstrained operator, and an unconstrained operator cannot be probed with `requires` -- you cannot have both. **A forgotten `io/traits/*.h` include now produces this same error, so check your includes first when you see it.**
+- **The wording you get for a wrong type changed.** The old generic operators were unconstrained, so a wrong type hit a `static_assert` in the body that distinguished "no `io_traits` at all" from "an `io_traits` exists but has no member for this direction". The operators are constrained now, so a wrong type simply leaves **no viable overload** and the compiler emits its generic `no match for 'operator<<'`. That is the price of detectability: a tailored diagnostic needs an unconstrained operator, and an unconstrained operator cannot be probed with `requires` -- you cannot have both. **A forgotten `IOv2/io/traits/*.h` include now produces this same error, so check your includes first when you see it.**
 
 ### Usage Modes: Header-Only vs Shared Library (DSO/DLL)
 
@@ -367,14 +375,20 @@ IOv2 ships in two modes; the default is header-only and works out of the box:
 **Install (root `Makefile`)**
 
 ```bash
-# header-only: install headers + iov2.pc only
+# header-only: install headers, licence files and iov2.pc
 make install PREFIX=/usr/local
 
-# shared library: build libiov2.so, install headers + libiov2.so + iov2-shared.pc
+# shared library: additionally build and install libiov2.so + iov2-shared.pc
 make install-shared PREFIX=/opt/iov2
 ```
 
 `install-shared` turns on the distribution switch in the *installed* copy of the headers, so **consumers do not pass `-DIOV2_SHARED` by hand** — the mode ships with the headers. The underlying build command lives in `src/iov2_objects.cpp`. Uninstall with `make uninstall PREFIX=...`.
+
+Both modes place headers below `<prefix>/include/IOv2/`, rather than claiming
+generic names such as `common/` and `io/` in the system include root. pkg-config
+continues to add `<prefix>/include` to the search path; public headers uniformly
+use `#include <IOv2/io/iostream.h>`. The MIT text and project notice are
+installed under `<prefix>/share/licenses/IOv2/`.
 
 **Consume (pkg-config recommended)**
 
@@ -445,7 +459,7 @@ ctest --preset gcc-release -L io                  # run the IO module only
 Build output goes to `build/<preset>/` rather than into the source tree. For sanitizers, Valgrind, coverage and how to add a test file, see `test/README.md`; `cmake --list-presets` lists the available configurations.
 
 ### License
-IOv2 is distributed under the **MIT License**. See `LICENSE` for the full text.
+IOv2 is distributed under the **MIT License**. See [`LICENSE`](LICENSE) for the full text.
 
 This repository has two licence boundaries. Note them before cloning:
 
@@ -467,6 +481,7 @@ The audit method, its results, what was deliberately kept, and what is known to
 remain are recorded in [`PROVENANCE.md`](PROVENANCE.md). The full terms and
 third-party notices are in [`NOTICE`](NOTICE).
 
-The library itself is header-only with no dependencies beyond the C++ standard
-library. The tests use GoogleTest (BSD-3-Clause), fetched by CMake at configure
-time; no part of it is redistributed here.
+The core header-only components depend only on the C++ standard library. The
+optional `zlib_cvt` and `hash_cvt` components require externally supplied zlib
+and Botan, respectively. The tests use GoogleTest (BSD-3-Clause), fetched by
+CMake at configure time; its source is not committed to this Git repository.

@@ -3,15 +3,15 @@
 
 #include <string>
 #include <type_traits>
-#include <cvt/code_cvt.h>
-#include <cvt/cvt_pipe_creator.h>
-#include <cvt/comp/zlib_cvt.h>
-#include <device/mem_device.h>
-#include <io/traits/arithmetic.h>
-#include <io/traits/char_and_str.h>
-#include <io/istream.h>
-#include <io/ostream.h>
-#include <io/iostream.h>
+#include <IOv2/cvt/code_cvt.h>
+#include <IOv2/cvt/cvt_pipe_creator.h>
+#include <IOv2/cvt/comp/zlib_cvt.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/io/traits/arithmetic.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/ostream.h>
+#include <IOv2/io/iostream.h>
 
 #include <gtest/gtest.h>
 

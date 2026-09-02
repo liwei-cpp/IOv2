@@ -19,14 +19,14 @@
  * stream -- so the four are pinned down as a sequence over one fixture, in the
  * order a real reader meets them.
  */
-#include <device/mem_device.h>
-#include <facet/ctype_details.h>
-#include <io/io_base.h>
-#include <io/iostream.h>
-#include <io/istream.h>
-#include <io/traits/char_and_str.h>
-#include <io/utilities/istream_operators.h>
-#include <locale/locale.h>
+#include <IOv2/device/mem_device.h>
+#include <IOv2/facet/ctype_details.h>
+#include <IOv2/io/io_base.h>
+#include <IOv2/io/iostream.h>
+#include <IOv2/io/istream.h>
+#include <IOv2/io/traits/char_and_str.h>
+#include <IOv2/io/utilities/istream_operators.h>
+#include <IOv2/locale/locale.h>
 
 #include <gtest/gtest.h>
 

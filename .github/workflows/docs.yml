@@ -35,6 +35,9 @@ jobs:
           # Doxygen will generate en/ and zh/ subdirectories
           doxygen Doxyfile.zh
           doxygen Doxyfile.en
+          # The generated site republishes the source as HTML, so ship the
+          # complete permission notice alongside its SPDX-marked listings.
+          install -m 0644 LICENSE NOTICE PROVENANCE.md docs/
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')

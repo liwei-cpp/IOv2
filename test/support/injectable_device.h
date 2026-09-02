@@ -7,8 +7,8 @@
 #include <string>
 #include <utility>
 
-#include <common/defs.h>
-#include <device/mem_device.h>
+#include <IOv2/common/defs.h>
+#include <IOv2/device/mem_device.h>
 
 // A bidirectional device wrapping a mem_device that can be told, at run time, to make any one of
 // its primitives throw device_error, and that counts every call.
